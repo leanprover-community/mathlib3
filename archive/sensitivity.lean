@@ -22,7 +22,7 @@ A fun summer collaboration by
 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot,
 based on Don Knuth's account of the story
 (https://www.cs.stanford.edu/~knuth/papers/huang.pdf),
-using the Lean theorem prover (http://leanprover.github.io/),
+using the Lean theorem prover (https://leanprover.github.io/),
 by Leonardo de Moura at Microsoft Research, and his collaborators
 (https://leanprover.github.io/people/),
 and using Lean's user maintained mathematics library
@@ -50,7 +50,7 @@ Notations:
 - `bool` = {`tt`, `ff`}.
 -/
 
-/-- The hypercube in dimension n. -/
+/-- The hypercube in dimension `n`. -/
 @[derive [inhabited, fintype]] def Q (n : ℕ) := fin n → bool
 
 /-- The projection from `Q (n + 1)` to `Q n` forgetting the first value
@@ -163,7 +163,7 @@ instance : vector_space ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 
 /-! The next five definitions are short circuits helping Lean to quickly find
-relevant structures on `V n` -/
+relevant structures on `V n`. -/
 def module : module ℝ (V n) := by apply_instance
 def add_comm_semigroup : add_comm_semigroup (V n) := by apply_instance
 def add_comm_monoid : add_comm_monoid (V n) := by apply_instance
@@ -281,7 +281,7 @@ begin
   { cases v, simp [f_succ_apply, IH, add_smul], abel }
 end
 
-/-! We now compute the matrix of `f` in the `e` basis (p is the line index,
+/-! We now compute the matrix of `f` in the `e` basis (`p` is the line index,
 `q` the column index). -/
 
 lemma f_matrix :
@@ -332,7 +332,8 @@ begin
   abel
 end
 
-/-! ### The main proof
+/-!
+### The main proof
 
 In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
@@ -353,9 +354,9 @@ notation `Card` X:70 := X.to_finset.card
 equipped with their subspace structures. The notations come from the general
 theory of lattices, with inf and sup (also known as meet and join). -/
 
-/-- If a subset H of Q (m+1) has cardinal at least 2^m + 1 then the
-subspace of V (m+1) spanned by the corresponding basis vectors non-trivially
-intersects the range of g m. -/
+/-- If a subset `H` of `Q (m+1)` has cardinal at least `2^m + 1` then the
+subspace of `V (m+1)` spanned by the corresponding basis vectors non-trivially
+intersects the range of `g m`. -/
 lemma exists_eigenvalue (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ y ∈ Span (e '' H) ⊓ (g m).range, y ≠ (0 : _) :=
 begin

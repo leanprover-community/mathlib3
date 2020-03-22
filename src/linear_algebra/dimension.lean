@@ -37,6 +37,8 @@ include K
 open submodule function set
 
 variables (K V)
+
+/-- the dimension of a vector space, defined as a term of type `cardinal` -/
 def vector_space.dim : cardinal :=
 cardinal.min
   (nonempty_subtype.2 (@exists_is_basis K V _ _ _))
@@ -121,6 +123,7 @@ by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_on
 
 variables [add_comm_group V₂] [vector_space K V₂]
 
+/-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₂) :
   dim K V = dim K V₂ :=
 by letI := classical.dec_eq V;
@@ -353,6 +356,7 @@ end
 
 section rank
 
+/-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V₂) : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₂) : rank f ≤ dim K V :=

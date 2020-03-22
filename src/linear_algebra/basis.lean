@@ -72,7 +72,6 @@ variables {v : ι → M}
 variables [ring R] [add_comm_group M] [add_comm_group M']
 variables [module R M] [module R M']
 variables {a b : R} {x y : M}
-include R
 
 variables (R) (v)
 /-- Linearly independent family of vectors -/
@@ -737,7 +736,7 @@ end
 lemma is_basis.injective (hv : is_basis R v) (zero_ne_one : (0 : R) ≠ 1) : injective v :=
   λ x y h, linear_independent.injective zero_ne_one hv.1 h
 
-/- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
+/-- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
 given by this linear map. This is one direction of `module_equiv_finsupp`. -/
 def is_basis.repr : M →ₗ (ι →₀ R) :=
 (hv.1.repr).comp (linear_map.id.cod_restrict _ hv.mem_span)
@@ -808,9 +807,8 @@ lemma constr_sub {g f : ι → M'} (hs : is_basis R v) :
 by simp [sub_eq_add_neg, constr_add, constr_neg]
 
 -- this only works on functions if `R` is a commutative ring
-lemma constr_smul {ι R M M'} [comm_ring R]
-  [add_comm_group M] [add_comm_group M'] [module R M] [module R M']
-  {v : ι → R} {f : ι → M'} {a : R} (hv : is_basis R v) {b : M} :
+lemma constr_smul {ι R M} [comm_ring R] [add_comm_group M] [module R M]
+  {v : ι → R} {f : ι → M} {a : R} (hv : is_basis R v) :
   hv.constr (λb, a • f b) = a • hv.constr f :=
 constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
@@ -823,8 +821,8 @@ by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.r
 def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
-/-- Isomorphism between the two modules, given two modules M and M' with respective bases v and v'
-   and a bijection between the two bases. -/
+/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
+`v` and `v'` and a bijection between the two bases. -/
 def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} {f : M → M'} {g : M' → M}
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
@@ -919,7 +917,8 @@ end
 open fintype
 variables [fintype ι] (h : is_basis R v)
 
-/-- A module over R with a finite basis is linearly equivalent to functions from its basis to R. -/
+/-- A module over `R` with a finite basis is linearly equivalent to functions from its basis to `R`.
+-/
 def equiv_fun_basis  : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
   { to_fun := finsupp.to_fun,
@@ -1200,7 +1199,7 @@ open set linear_map
 
 section module
 variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
-variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)] [fintype η]
+variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
 
 lemma linear_independent_std_basis
   (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
@@ -1232,6 +1231,8 @@ begin
     refine disjoint_mono h₁ h₂
       (disjoint_std_basis_std_basis _ _ _ _ h₃), }
 end
+
+variable [fintype η]
 
 lemma is_basis_std_basis (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
   is_basis R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (s ji.1 ji.2)) :=

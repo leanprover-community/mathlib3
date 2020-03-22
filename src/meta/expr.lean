@@ -128,10 +128,21 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+/--
+Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
+-/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/--
+Constructs a (non-simple) name from a string.
+
+Example: ``name.from_string "foo.bar" = `foo.bar``
+-/
+meta def from_string (s : string) : name :=
+from_components $ s.split (= '.')
 
 end name
 
@@ -368,13 +379,15 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
@@ -641,6 +654,12 @@ e.is_constructor d.to_name ∨
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
 d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+
+/--
+Returns true iff `d` is an automatically-generated or internal declaration.
+-/
+meta def is_auto_or_internal (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
 
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=

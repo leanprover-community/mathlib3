@@ -207,8 +207,9 @@ attribute.get_instances `tactic_doc >>=
 
 /-- `add_tactic_doc tde` adds a declaration to the environment
 with `tde` as its body and tags it with the `tactic_doc`
-attribute. If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a
-doc string, it adds `tde.description` as the doc string. -/
+attribute. If `tde.decl_names` has exactly one entry `` `decl`` and 
+if `tde.description` is the empty string, `add_tactic_doc` uses the doc 
+string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
      fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",

@@ -88,7 +88,15 @@ omit ℰ
 -- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
+end
 
+section
+variables {B : Type u} [ℬ : category.{v} B]
+          {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
+include ℬ 𝒞 𝒟 ℰ
+protected lemma assoc (F : B ⥤ C) (G : C ⥤ D) (H : D ⥤ E) : (F ⋙ G) ⋙ H = F ⋙ (G ⋙ H) := rfl
 end
 
 section

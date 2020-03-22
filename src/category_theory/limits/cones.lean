@@ -5,7 +5,6 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
-import category_theory.concrete_category.bundled_hom
 import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -137,27 +136,6 @@ rfl
 { X := c.X,
   π := whisker_left E c.π }
 
--- We now prove a lemma about naturality of cones over functors into bundled categories.
-section
-
-omit 𝒞
-variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [𝒞' : concrete_category C']
-include 𝒞'
-
-local attribute [instance] concrete_category.has_coe_to_sort
-local attribute [instance] concrete_category.has_coe_to_fun
-
-/-- Naturality of a cone over functors to a concrete category. -/
-@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cone G) {j j' : J'} (f : j ⟶ j') (x : s.X) :
-   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
-begin
-  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
-  { dsimp, simp },
-end
-
-end
-
 end cone
 
 namespace cocone
@@ -183,26 +161,6 @@ rfl
 @[simps] def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := whisker_left E c.ι }
-
--- We now prove a lemma about naturality of cocones over functors into bundled categories.
-section
-omit 𝒞
-variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [𝒞' : concrete_category C']
-include 𝒞'
-
-local attribute [instance] concrete_category.has_coe_to_sort
-local attribute [instance] concrete_category.has_coe_to_fun
-
-/-- Naturality of a cocone over functors into a concrete category. -/
-@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cocone G) {j j' : J'} (f : j ⟶ j') (x : G.obj j) :
-  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-begin
-  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp },
-end
-
-end
 
 end cocone
 

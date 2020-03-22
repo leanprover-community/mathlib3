@@ -71,8 +71,26 @@ attribute [ext] AddGroup.ext
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
 
-end Group
+section
+-- In this section we verify that
+-- the three ways of turning a `Group` into a `Mon`
+-- are definitionally equal.
 
+example (G : Group.{u}) : Mon.of G = (forget₂ Group Mon).obj G := rfl
+
+local attribute [instance] has_forget₂.has_coe
+example (G : Group.{u}) : Mon.of G = (G : Mon.{u}) := rfl
+end
+
+-- FIXME Are we going to add all these instances?
+-- What about for the coercion?
+-- What priority should they be?
+@[to_additive]
+instance group_Mon_of (G : Group) : group (Mon.of G) := G.str
+@[to_additive]
+instance group_forget₂_Mon (G : Group) : group ((forget₂ Group Mon).obj G) := G.str
+
+end Group
 
 /-- The category of commutative groups and group morphisms. -/
 @[to_additive AddCommGroup]

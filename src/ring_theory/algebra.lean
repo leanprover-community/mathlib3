@@ -102,6 +102,14 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+/-- The monoid algebra R[G] is an algebra over R. -/
+instance [monoid G] : algebra R (monoid_algebra R G) :=
+sorry
+
+/-- The additive monoid algebra R[G] is an algebra over R. -/
+instance [add_monoid G] : algebra R (add_monoid_algebra R G) :=
+sorry
+
 /-- R[X] is the generator of the category R-Alg. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
@@ -623,7 +631,7 @@ section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
 `S`-modules are also `R`-modules. -/
 
-variables (R : Type*) [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
 (E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
 
 /-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a

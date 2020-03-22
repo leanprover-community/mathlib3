@@ -41,7 +41,7 @@ instance : concrete_category (Module.{u} R) :=
   forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
-instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
+instance has_forget_to_AddCommGroup : has_forget₂ (Module.{u} R) AddCommGroup.{u} :=
 { forget₂ :=
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }

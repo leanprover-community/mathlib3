@@ -10,13 +10,15 @@ namespace tactic
 /--
 Builds a collection of lemmas for use in the backtracking search in `solve_by_elim`.
 
-* By default, it includes all local hypotheses, along with `rfl`, `trivial`, `congr_fun` and `congr_arg`.
+* By default, it includes all local hypotheses, along with `rfl`, `trivial`, `congr_fun` and
+  `congr_arg`.
 * The flag `no_dflt` removes these.
 * The argument `hs` is a list of `simp_arg_type`s,
   and can be used to add, or remove, lemmas or expressions from the set.
 * The argument `attr : list name` adds all lemmas tagged with one of a specified list of attributes.
 -/
-meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) : tactic (list expr) :=
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) :
+  tactic (list expr) :=
 do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    hs ← hs.mmap i_to_expr_for_apply,
    l ← attr.mmap $ λ a, attribute.get_instances a,
@@ -91,13 +93,19 @@ are made into the new goal.
 optional arguments:
 - asms: list of rules to consider instead of the local constants
 - tac:  a tactic to run on each subgoals after applying an assumption; if
-        this tactic fails, the corresponding assumption will be rejected and
-        the next one will be attempted.
+  this tactic fails, the corresponding assumption will be rejected and
+  the next one will be attempted.
 -/
 meta def apply_assumption
   (asms : tactic (list expr) := local_context)
   (tac : tactic unit := return ()) : tactic unit :=
 tactic.apply_assumption asms tac
+
+add_tactic_doc
+{ name        := "apply_assumption",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.apply_assumption],
+  tags        := [] }
 
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
@@ -108,15 +116,15 @@ performing at most `max_rep` recursive steps.
 
 `solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption.
 
-By default, the assumptions passed to apply_assumption are the local context, `rfl`, `trivial`, `congr_fun` and
-`congr_arg`.
+By default, the assumptions passed to `apply_assumption` are the local context, `rfl`, `trivial`,
+`congr_fun` and `congr_arg`.
 
 `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
 
-`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
+`solve_by_elim with attr₁ ... attrᵣ` also applies all lemmas tagged with the specified attributes.
 
-`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `rfl`, `trivial`, `congr_fun`, or `congr_arg`
-unless they are explicitly included.
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `rfl`, `trivial`,
+`congr_fun`, or `congr_arg` unless they are explicitly included.
 
 `solve_by_elim [-id]` removes a specified assumption.
 
@@ -126,13 +134,45 @@ makes other goals impossible.
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
 - max_rep: number of attempts at discharging generated sub-goals
+
+---
+
+The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this
+eventually discharges the main goal.
+```lean
+solve_by_elim { discharger := `[cc] }
+```
+also attempts to discharge the goal using congruence closure before each round of applying
+assumptions.
+
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
+
+By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
+
+The assumptions can be modified with similar syntax as for `simp`:
+* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the
+  named attributes).
+* `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or
+  `congr_arg` unless they are explicitly included.
+* `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
+
 -/
-meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
+  tactic unit :=
 do asms ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
      assumptions := return asms,
      ..opt }
+
+add_tactic_doc
+{ name        := "solve_by_elim",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.solve_by_elim],
+  tags        := ["search"] }
+
 end interactive
 
 end tactic

@@ -217,6 +217,14 @@ instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
 
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
 
+instance : subsingleton (units (zmod 2)) :=
+⟨λ x y, begin
+  cases x with x xi,
+  cases y with y yi,
+  revert x y xi yi,
+  exact dec_trivial
+end⟩
+
 lemma le_div_two_iff_lt_neg {n : ℕ+} (hn : (n : ℕ) % 2 = 1)
   {x : zmod n} (hx0 : x ≠ 0) : x.1 ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).1 :=
 have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left n.pos).2 dec_trivial),
@@ -253,6 +261,18 @@ let ⟨k , hk⟩ := h in
 zmod.eq_iff_modeq_nat.2 (nat.modeq.modeq_of_modeq_mul_right k
     (by rw [← hk, zmod.val_cast_nat]; exact nat.mod_mod _ _))
 
+/-- `unit_of_coprime` makes an element of `units (zmod n)` given
+  a natural number `x` and a proof that `x` is coprime to `n`  -/
+def unit_of_coprime {n : ℕ+} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
+have (x * gcd_a x ↑n : zmod n) = 1,
+  by rw [← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,
+      zmod.eq_iff_modeq_int, ← int.coe_nat_one, ← (show nat.gcd _ _ = _, from h)];
+    simpa using int.modeq.gcd_a_modeq x n,
+⟨x, gcd_a x n, this, by simpa [mul_comm] using this⟩
+
+@[simp] lemma cast_unit_of_coprime {n : ℕ+} (x : ℕ) (h : nat.coprime x n) :
+  (unit_of_coprime x h : zmod n) = x := rfl
+
 def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.coprime x.1 n} :=
 { to_fun := λ x, ⟨x, nat.modeq.coprime_of_mul_modeq_one (x⁻¹).1.1 begin
     have := units.ext_iff.1 (mul_right_inv x),
@@ -261,14 +281,9 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
       units.coe_mul, zmod.mul_val, zmod.cast_mod_nat, zmod.cast_mod_nat,
       zmod.eq_iff_modeq_nat] at this
     end⟩,
-  inv_fun := λ x,
-    have x.val * ↑(gcd_a ((x.val).val) ↑n) = 1,
-      by rw [← zmod.cast_val x.1, ← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,
-          zmod.eq_iff_modeq_int, ← int.coe_nat_one, ← (show nat.gcd _ _ = _, from x.2)];
-        simpa using int.modeq.gcd_a_modeq x.1.1 n,
-    ⟨x.1, gcd_a x.1.1 n, this, by simpa [mul_comm] using this⟩,
-  left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
-  right_inv := λ ⟨_, _⟩, rfl }
+  inv_fun := λ x, unit_of_coprime x.1.1 x.2,
+  left_inv := λ ⟨_, _, _, _⟩, units.ext (by simp),
+  right_inv := λ ⟨_, _⟩, by simp }
 
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
   The result will be in the interval `(-n/2, n/2]` -/
@@ -436,6 +451,9 @@ lemma eq_zero_iff_dvd_int (a : ℤ) : (a : zmodp p hp) = 0 ↔ (p : ℤ) ∣ a :
 instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
+
+instance X (h : prime 2) : subsingleton (units (zmodp 2 h)) :=
+zmod.subsingleton
 
 instance : has_repr (zmodp p hp) := fin.has_repr _
 

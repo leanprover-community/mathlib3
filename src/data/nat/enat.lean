@@ -8,7 +8,7 @@ Natural numbers with infinity, represented as roption ℕ.
 import data.pfun algebra.ordered_group
 import tactic.norm_cast tactic.norm_num
 
-open roption lattice
+open roption
 
 def enat : Type := roption ℕ
 
@@ -117,7 +117,7 @@ lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
 by classical; exact not_iff_comm.1 roption.eq_none_iff'.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
-ne_of_lt $ lt_of_lt_of_le h lattice.le_top
+ne_of_lt $ lt_of_lt_of_le h le_top
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
@@ -201,14 +201,14 @@ by { rw [enat.lt_add_iff_pos_right hx], norm_cast, norm_num }
 
 lemma le_of_lt_add_one {x y : enat} (h : x < y + 1) : x ≤ y :=
 begin
-  induction y using enat.cases_on with n, apply lattice.le_top,
+  induction y using enat.cases_on with n, apply le_top,
   rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
   apply_mod_cast nat.le_of_lt_succ, apply_mod_cast h
 end
 
 lemma add_one_le_of_lt {x y : enat} (h : x < y) : x + 1 ≤ y :=
 begin
-  induction y using enat.cases_on with n, apply lattice.le_top,
+  induction y using enat.cases_on with n, apply le_top,
   rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
   apply_mod_cast nat.succ_le_of_lt, apply_mod_cast h
 end

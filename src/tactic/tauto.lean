@@ -214,6 +214,23 @@ and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be
 using `reflexivity` or `solve_by_elim`.
 This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tautology!` uses the law of excluded middle.
+
+---
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form
+`_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal or raises an error.
+
+The variants `tautology!` and `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
 -/
 meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
@@ -229,6 +246,13 @@ The variant `tauto!` uses the law of excluded middle.
 meta def tauto (c : parse $ (tk "!")?) := tautology c
 
 add_hint_tactic "tauto"
+
+add_tactic_doc
+{ name       := "tautology",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.tautology, `tactic.interactive.tauto],
+  tags       := ["logic", "decision procedure"],
+  inherit_description_from := `tactic.interactive.tautology }
 
 end interactive
 end tactic

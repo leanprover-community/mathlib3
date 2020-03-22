@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import algebra.punit_instances
 import algebra.category.Mon.basic
 import category_theory.endomorphism
+import category_theory.epi_mono
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
@@ -122,6 +123,49 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
 
+namespace AddCommGroup
+
+/-- Any element of an abelian group gives a unique morphism from `ℤ` sending
+`1` to that element. -/
+-- TODO allow other universe levels
+-- this will require writing a `ulift_instances.lean` file
+def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
+{ to_fun := λ i : ℤ, i • g,
+  map_zero' := rfl,
+  map_add' := λ a b, gpow_add g a b }
+
+@[simp]
+lemma as_hom_apply {G : AddCommGroup.{0}} (g : G) (i : ℤ) : (as_hom g) i = i • g := rfl
+
+lemma as_hom_injective {G : AddCommGroup.{0}} : function.injective (@as_hom G) :=
+λ h k w, by convert congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) w; simp
+
+@[ext]
+lemma int_hom_ext
+  {G : AddCommGroup.{0}} (f g : (AddCommGroup.of ℤ) ⟶ G) (w : f (1 : ℤ) = g (1 : ℤ)) : f = g :=
+begin
+  ext,
+  change ℤ at x,
+  rw ←gsmul_int_one x,
+  rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
+end
+
+-- TODO: this argument should be generalised to the situation where
+-- the forgetful functor is representable.
+lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
+λ g₁ g₂ h,
+begin
+  have t0 : as_hom g₁ ≫ f = as_hom g₂ ≫ f :=
+  begin
+    ext,
+    dsimp [as_hom],
+    simpa using h,
+  end,
+  have t1 : as_hom g₁ = as_hom g₂ := (cancel_mono _).1 t0,
+  apply as_hom_injective t1,
+end
+
+end AddCommGroup
 
 variables {X Y : Type u}
 

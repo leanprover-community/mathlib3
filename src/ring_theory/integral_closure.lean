@@ -259,7 +259,7 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
 begin
-  rw lattice.eq_bot_iff, intros r hr,
+  rw eq_bot_iff, intros r hr,
   rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),

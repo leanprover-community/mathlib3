@@ -51,7 +51,7 @@ linear algebra, vector space, module
 
 -/
 
-open function lattice
+open function
 
 reserve infix ` ≃ₗ `:25
 
@@ -326,7 +326,7 @@ variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃
 variables [module R M] [module R M₂] [module R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
-open set lattice
+open set
 
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
@@ -429,8 +429,8 @@ instance : complete_lattice (submodule R M) :=
   Inf          := Inf,
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
-  ..submodule.lattice.order_top,
-  ..submodule.lattice.order_bot }
+  ..submodule.order_top,
+  ..submodule.order_bot }
 
 instance : add_comm_monoid (submodule R M) :=
 { add := (⊔),
@@ -736,7 +736,7 @@ by apply span_induction h H; simp {contextual := tt}
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
-  (lattice.supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
+  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :

@@ -177,19 +177,24 @@ note in the doc display.
 
 Syntax:
 ```
-library_note "note id" "note message"
+/--
+note message
+-/
+library_note "note id"
 ```
 
 An example from `meta.expr`:
 
 ```
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 ```
 
 This note can be referenced near a usage of `pi_binders`:

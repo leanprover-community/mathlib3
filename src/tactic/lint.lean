@@ -255,11 +255,14 @@ return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (�
   errors_found := "USING ≥/> IN DECLARATIONS",
   is_fast := ff }
 
-library_note "nolint_ge" "Currently, the linter forbids the use of `>` and `≥` in definitions and
+/--
+Currently, the linter forbids the use of `>` and `≥` in definitions and
 statements, as they cause problems in rewrites. However, we still allow them in some contexts,
 for instance when expressing properties of the operator (as in `cobounded (≥)`), or in quantifiers
 such as `∀ ε > 0`. Such statements should be marked with the attribute `nolint` to avoid linter
-failures."
+failures.
+-/
+library_note "nolint_ge"
 
 /-- checks whether an instance that always applies has priority ≥ 1000. -/
 meta def instance_priority (d : declaration) : tactic (option string) := do
@@ -283,8 +286,8 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
   let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
 
-library_note "lower instance priority"
-"Certain instances always apply during type-class resolution. For example, the instance
+/--
+Certain instances always apply during type-class resolution. For example, the instance
 `add_comm_group.to_add_group {α} [add_comm_group α] : add_group α` applies to all type-class
 resolution problems of the form `add_group _`, and type-class inference will then do an
 exhaustive search to find a commutative group. These instances take a long time to fail.
@@ -297,17 +300,21 @@ always have higher priority than the instances of the first type (that always ap
 See also #1561.
 
 Therefore, if we create an instance that always applies, we set the priority of these instances to
-100 (or something similar, which is below the default value of 1000)."
+100 (or something similar, which is below the default value of 1000).
+-/
+library_note "lower instance priority"
 
-library_note "default priority"
-"Instances that always apply should be applied after instances that only apply in specific cases,
+/--
+Instances that always apply should be applied after instances that only apply in specific cases,
 see note [lower instance priority] above.
 
 Classes that use the `extends` keyword automatically generate instances that always apply.
 Therefore, we set the priority of these instances to 100 (or something similar, which is below the
 default value of 1000) using `set_option default_priority 100`.
 We have to put this option inside a section, so that the default priority is the default
-1000 outside the section."
+1000 outside the section.
+-/
+library_note "default priority"
 
 /-- A linter object for checking instance priorities of instances that always apply.
 This is in the default linter set. -/

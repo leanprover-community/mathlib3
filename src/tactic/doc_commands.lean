@@ -49,21 +49,32 @@ output. -/
 
 open tactic
 
+/--
+`mk_reflected_definition name val` constructs a definition declaration by reflection.
+
+Example: ``mk_reflected_definition `foo 17`` constructs the definition
+declaration corresponding to `def foo : ℕ := 17`
+-/
+meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
+  (body : type) [reflected body] : declaration :=
+mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
+
 /-- If `note_name` and `note` are `pexpr`s representing strings,
 `add_library_note note_name note` adds a declaration of type `string × string` and tags it with
 the `library_note` attribute. -/
-meta def tactic.add_library_note (note_name note : pexpr) : tactic unit :=
-do note_name ← to_expr note_name,
-   let decl_name := (to_string note_name).mk_hashed_name `library_note,
-   body ← to_expr ``((%%note_name, %%note) : string × string),
-   add_decl $ mk_definition decl_name [] `(string × string) body,
+meta def tactic.add_library_note (note_name note : string) : tactic unit :=
+do let decl_name := note_name.mk_hashed_name `library_note,
+   add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
 
 open lean lean.parser interactive
 /--
 A command to add library notes. Syntax:
 ```
-library_note "note id" "note content"
+/--
+note message
+-/
+library_note "note id"
 ```
 
 ---
@@ -79,19 +90,24 @@ note in the doc display.
 
 Syntax:
 ```
-library_note "note id" "note message"
+/--
+note message
+-/
+library_note "note id"
 ```
 
 An example from `meta.expr`:
 
 ```
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 ```
 
 This note can be referenced near a usage of `pi_binders`:
@@ -104,10 +120,13 @@ def f := pi_binders ...
 ```
 
 -/
-@[user_command] meta def library_note (_ : parse (tk "library_note")) : parser unit :=
-do name ← parser.pexpr,
-   note ← parser.pexpr,
-   of_tactic $ tactic.add_library_note name note
+@[user_command] meta def library_note (mi : interactive.decl_meta_info)
+  (_ : parse (tk "library_note")) : parser unit := do
+note_name ← parser.pexpr,
+note_name ← to_expr ``(%%note_name : string),
+note_name ← eval_expr string note_name,
+some doc_string ← pure mi.doc_string | fail "library_note requires a doc string",
+tactic.add_library_note note_name doc_string
 
 /-- Collects all notes in the current environment.
 Returns a list of pairs `(note_id, note_content)` -/

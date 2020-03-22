@@ -33,7 +33,7 @@ include 𝒱
 section
 variable [has_kernels.{v} V]
 /-- The map induceed by a chain map between the kernels of the differentials. -/
-def induced_map_on_cycles {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+def induced_map_on_cycles {C C' : chain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
@@ -49,7 +49,7 @@ We need to assume all equalizers, not just kernels, so that
 variables [has_images.{v} V] [has_equalizers.{v} V]
 
 /-- The connecting morphism from the image of `d i` to the kernel of `d (i+1)`. -/
-def image_to_kernel_map (C : chain_complex.{v} V) (i : ℤ) :
+def image_to_kernel_map (C : chain_complex V) (i : ℤ) :
   image (C.d i) ⟶ kernel (C.d (i+1)) :=
 kernel.lift _ (image.ι (C.d i))
 begin
@@ -83,7 +83,7 @@ end
 variables [has_cokernels.{v} V]
 
 /-- The `i`-th homology group of the chain complex `C`. -/
-def homology_group (C : chain_complex.{v} V) (i : ℤ) : V :=
+def homology_group (C : chain_complex V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C i)
 
 -- TODO:

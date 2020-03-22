@@ -86,7 +86,7 @@ instance forget_faithful : faithful (forget V) :=
 differential_object.forget_faithful _
 
 instance has_zero_morphisms : has_zero_morphisms.{v} (chain_complex V) :=
-by { dsimp [chain_complex], apply_instance }.
+by { dsimp [chain_complex], apply_instance, }
 
 variables [has_zero_object.{v} V]
 

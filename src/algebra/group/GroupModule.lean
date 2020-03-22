@@ -26,7 +26,7 @@ section
 omit 𝒱
 
 /-- The trivial representation of a group. -/
--- TODO What is the correct generalisation for an arbitrary `𝕍`?
+-- To generalise to other 𝕍, we probably want `monoidal_category 𝕍`, and then set `V := 𝟙_ 𝕍`.
 def trivial : GroupModule AddCommGroup G :=
 { V := 0,
   ρ := 1, }

@@ -243,7 +243,7 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
   Some entries may cover multiple declarations.
   It is only necessary to list the interactive versions of tactics.
 * `tags` is an optional list of strings used to categorize entries.
-* The doc string is the body of the entry, it can be formatted with markdown.
+* The doc string is the body of the entry. It can be formatted with markdown.
   What you are reading now is the description of `add_tactic_doc`.
 
 If only one related declaration is listed in `decl_names` and if this

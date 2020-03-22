@@ -1665,7 +1665,6 @@ apply_nolint pnat.xgcd_type.z doc_blame
 
 -- data/polynomial.lean
 apply_nolint polynomial.binom_expansion doc_blame
-apply_nolint polynomial.coeff_coe_to_fun doc_blame
 apply_nolint polynomial.comp doc_blame
 apply_nolint polynomial.decidable_dvd_monic doc_blame
 apply_nolint polynomial.div doc_blame
@@ -2079,24 +2078,13 @@ apply_nolint sylow.rotate_vectors_prod_eq_one doc_blame
 apply_nolint sylow.vectors_prod_eq_one doc_blame
 
 -- linear_algebra/basic.lean
-apply_nolint linear_equiv has_inhabited_instance
 apply_nolint linear_equiv.to_equiv doc_blame
 apply_nolint linear_equiv.to_linear_map doc_blame
-
--- linear_algebra/basis.lean
-apply_nolint constr_smul unused_arguments
-apply_nolint is_basis.repr doc_blame
-apply_nolint linear_independent_monoid_hom unused_arguments
-apply_nolint pi.linear_independent_std_basis unused_arguments
 
 -- linear_algebra/bilinear_form.lean
 apply_nolint bilin_form.bilin_linear_map_equiv doc_blame
 apply_nolint bilin_form.to_linear_map doc_blame
 apply_nolint linear_map.to_bilin doc_blame
-
--- linear_algebra/dimension.lean
-apply_nolint rank doc_blame
-apply_nolint vector_space.dim doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame
@@ -2190,7 +2178,6 @@ apply_nolint function.embedding.trans doc_blame
 -- logic/function.lean
 apply_nolint function.bicompl doc_blame
 apply_nolint function.bicompr doc_blame
-apply_nolint function.injective.decidable_eq doc_blame
 apply_nolint function.restrict doc_blame
 apply_nolint function.uncurry' doc_blame
 
@@ -2316,7 +2303,6 @@ apply_nolint tactic.mono doc_blame
 
 -- meta/expr.lean
 apply_nolint declaration.update_with_fun doc_blame
-apply_nolint name.last_string doc_blame
 
 -- number_theory/dioph.lean
 apply_nolint dioph.pell_dioph ge_or_gt
@@ -2554,7 +2540,6 @@ apply_nolint well_founded_submodule_gt ge_or_gt
 -- ring_theory/power_series.lean
 apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
-apply_nolint polynomial.monomial doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
 apply_nolint power_series.mk unused_arguments

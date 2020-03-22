@@ -710,9 +710,8 @@ checks.mmap $ λ ⟨linter_name, linter⟩, do
   pure (linter_name, linter, results)
 
 /-- Sorts a map with declaration keys as names by line number. -/
-meta def sort_results {α} (results : rb_map name α) : tactic (list (name × α)) := do
-e ← get_env,
-pure $ list.reverse $ rb_lmap.values $ rb_lmap.of_list $
+meta def sort_results {α} (e : environment) (results : rb_map name α) : list (name × α) :=
+list.reverse $ rb_lmap.values $ rb_lmap.of_list $
   results.fold [] $ λ decl linter_warning results,
     (((e.decl_pos decl).get_or_else ⟨0,0⟩).line, (decl, linter_warning)) :: results
 
@@ -721,27 +720,50 @@ meta def print_warning (decl_name : name) (warning : string) : format :=
 "#print " ++ to_fmt decl_name ++ " /- " ++ warning ++ " -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-meta def print_warnings (results : rb_map name string) : tactic format := do
-results ← sort_results results,
-pure $ format.intercalate format.line $ results.map $
+meta def print_warnings (env : environment) (results : rb_map name string) : format :=
+format.intercalate format.line $ (sort_results env results).map $
   λ ⟨decl_name, warning⟩, print_warning decl_name warning
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
 The first `drop_fn_chars` characters are stripped from the filename.
 -/
-meta def grouped_by_filename (results : rb_map name string) (drop_fn_chars := 0)
-  (formatter: rb_map name string → tactic format) : tactic format := do
-e ← get_env,
+meta def grouped_by_filename (e : environment) (results : rb_map name string) (drop_fn_chars := 0)
+  (formatter: rb_map name string → format) : format :=
 let results := results.fold (rb_map.mk string (rb_map name string)) $
   λ decl_name linter_warning results,
     let fn := (e.decl_olean decl_name).get_or_else "" in
     results.insert fn (((results.find fn).get_or_else mk_rb_map).insert
-      decl_name linter_warning),
-l ← results.to_list.reverse.mmap (λ ⟨fn, results⟩, do
-  formatted ← formatter results,
-  pure ("-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatted : format)),
-return $ format.intercalate "\n\n" l ++ "\n"
+      decl_name linter_warning) in
+let l := results.to_list.reverse.map (λ ⟨fn, results⟩,
+  ("-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatter results : format)) in
+format.intercalate "\n\n" l ++ "\n"
+
+/--
+Formats the linter results as Lean code with comments and `#print` commands.
+-/
+meta def format_linter_results
+  (env : environment)
+  (results : list (name × linter × rb_map name string))
+  (decls non_auto_decls : list declaration)
+  (group_by_filename : option nat)
+  (where_desc : string) (slow verbose : bool) :
+  format := do
+let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
+  let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
+  if ¬ results.empty then do
+    let warnings := match group_by_filename with
+      | none := print_warnings env results
+      | some dropped := grouped_by_filename env results dropped (print_warnings env)
+      end in
+    report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
+  else
+    if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
+let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
+let s := if ¬ verbose then s else
+  format!"/- Checking {non_auto_decls.length} declarations (plus {decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n" ++ s,
+let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
+s
 
 /-- The common denominator of `#lint[|mathlib|all]`.
 The different commands have different configurations for `l`,
@@ -756,22 +778,10 @@ meta def lint_aux (decls : list declaration) (group_by_filename : option nat)
     (where_desc : string) (slow verbose : bool) (checks : list (name × linter)) :
   tactic (name_set × format) := do
 e ← get_env,
-let non_auto_decls := decls.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
+let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal e),
 results ← lint_core decls non_auto_decls checks,
-formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
-  let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
-  if ¬ results.empty then do
-    warnings ← match group_by_filename with
-      | none := print_warnings results
-      | some dropped := grouped_by_filename results dropped print_warnings
-      end,
-      pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
-  else
-    pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
-let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
-let s := if ¬ verbose then s else
-  format!"/- Checking {non_auto_decls.length} declarations (plus {decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n" ++ s,
-let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
+let s := format_linter_results e results decls non_auto_decls
+  group_by_filename where_desc slow verbose,
 let ns := name_set.of_list (do (_,_,rs) ← results, rs.keys),
 pure (ns, s)
 
@@ -844,12 +854,6 @@ ls ← get_checks tt [] ff,
 let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
 exact (reflect ls)
 
-/-- `lint_mathlib_ci` runs the linters for the CI. -/
-meta def lint_mathlib_ci : tactic unit := do
-(failed, s) ← lint_mathlib tt tt mathlib_linters tt,
-trace s,
-when (¬ failed.empty) $ fail "Linting did not succeed"
-
 /-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
 `#lint_all-` will suppress the output of passing checks.
@@ -867,24 +871,10 @@ let ns := env.decl_filter_map $ λ dcl,
      b ← has_attribute' `linter n,
      trace $ n.pop_prefix.to_string ++ if b then " (*)" else ""
 
-/-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
-of the declarations don't exist. -/
-meta def apply_nolint_tac (decl : name) (linters : list name) : tactic unit :=
-try $ nolint_attr.set decl linters tt
-
-/-- `apply_nolint decl linter1 linter2 ...` tries to apply
-the `nolint linter1 linter2 ...` attribute to `decl`, ...
-It will always succeed, even if some of the declarations do not exist. -/
-@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit := do
-decl_name ← ident,
-linter_names ← ident*,
-apply_nolint_tac decl_name linter_names
-
 add_tactic_doc
 { name                     := "linting commands",
   category                 := doc_category.cmd,
-  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters,
-                               `apply_nolint_cmd],
+  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
   tags                     := ["linting"],
   description              :=
 "User commands to spot common mistakes in the code

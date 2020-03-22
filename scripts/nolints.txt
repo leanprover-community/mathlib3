@@ -2078,24 +2078,13 @@ apply_nolint sylow.rotate_vectors_prod_eq_one doc_blame
 apply_nolint sylow.vectors_prod_eq_one doc_blame
 
 -- linear_algebra/basic.lean
-apply_nolint linear_equiv has_inhabited_instance
 apply_nolint linear_equiv.to_equiv doc_blame
 apply_nolint linear_equiv.to_linear_map doc_blame
-
--- linear_algebra/basis.lean
-apply_nolint constr_smul unused_arguments
-apply_nolint is_basis.repr doc_blame
-apply_nolint linear_independent_monoid_hom unused_arguments
-apply_nolint pi.linear_independent_std_basis unused_arguments
 
 -- linear_algebra/bilinear_form.lean
 apply_nolint bilin_form.bilin_linear_map_equiv doc_blame
 apply_nolint bilin_form.to_linear_map doc_blame
 apply_nolint linear_map.to_bilin doc_blame
-
--- linear_algebra/dimension.lean
-apply_nolint rank doc_blame
-apply_nolint vector_space.dim doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame

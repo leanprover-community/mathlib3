@@ -254,7 +254,7 @@ noncomputable def f : Π n, V n →ₗ[ℝ] V n
              (linear_map.coprod (f n) linear_map.id)
              (linear_map.coprod linear_map.id (-f n))
 
-/-! The preceding definition use linear map constructions to automatically
+/-! The preceding definition uses linear map constructions to automatically
 get that `f` is linear, but its values are somewhat buried as a side-effect.
 The next two lemmas unbury them. -/
 

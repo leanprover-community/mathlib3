@@ -64,8 +64,8 @@ by { norm_cast, exact ennreal.coe_ne_top }
 lemma edist_inequality (hf : contracting_with K f) {x y} (h : edist x y < ⊤) :
   edist x y ≤ (edist x (f x) + edist y (f y)) / (1 - K) :=
 suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
-  by rwa [ennreal.le_div_iff_mul_le hf.one_sub_K_ne_zero hf.one_sub_K_ne_top,
-    mul_comm, ennreal.sub_mul (ne_of_lt h), one_mul, ennreal.sub_le_iff_le_add],
+  by rwa [ennreal.le_div_iff_mul_le (or.inl hf.one_sub_K_ne_zero) (or.inl hf.one_sub_K_ne_top),
+    mul_comm, ennreal.sub_mul (λ _ _, ne_of_lt h), one_mul, ennreal.sub_le_iff_le_add],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
   ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add' (le_refl _) (hf.2 _ _)
@@ -77,7 +77,7 @@ by simpa only [hy, edist_self, add_zero] using hf.edist_inequality h
 lemma eq_or_edist_eq_top_of_fixed_points {x y} (hx : f x = x) (hy : f y = y) :
   x = y ∨ edist x y = ⊤ :=
 begin
-  cases eq_or_lt_of_le (lattice.le_top : edist x y ≤ ⊤), from or.inr h,
+  cases eq_or_lt_of_le (le_top : edist x y ≤ ⊤), from or.inr h,
   refine or.inl (edist_le_zero.1 _),
   simpa only [hx, edist_self, add_zero, ennreal.zero_div]
     using hf.edist_le_of_fixed_point h hy

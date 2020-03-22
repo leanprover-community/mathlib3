@@ -9,7 +9,8 @@ import category_theory.limits.shapes.zero
 /-!
 # The category of graded objects
 
-A `β`-graded object is just a function `β → C` into the objects of some other category.
+For any type `β`, a `β`-graded object over some category `C` is just
+a function `β → C` into the objects of `C`.
 We define the category structure on these.
 
 We describe the `comap` functors obtained by precomposing with functions `β → γ`.
@@ -31,7 +32,8 @@ universes w v u
 def graded_object (β : Type w) (C : Type u) : Type (max w u) := β → C
 
 -- Satisfying the inhabited linter...
-instance (β : Type w) (C : Type u) [inhabited C] : inhabited (graded_object β C) :=
+instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
+  inhabited (graded_object β C) :=
 ⟨λ b, inhabited.default C⟩
 
 namespace graded_object
@@ -99,9 +101,7 @@ lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h
   comap_eq C (k.trans l) = comap_eq C k ≪≫ comap_eq C l :=
 begin
   ext X b,
-  dsimp,
   simp,
-  congr,
 end
 
 /--
@@ -145,6 +145,7 @@ end graded_object
 
 namespace graded_object
 -- The universes get a little hairy here, so we restrict the universe level for the grading to 0.
+-- Since we're typically interested in grading by ℤ or a finite group, this should be okay.
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [𝒞 : category.{v} C]

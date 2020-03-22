@@ -146,9 +146,10 @@ protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
 ⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
+section
 omit 𝒟
 @[refl] def refl : C ≌ C := equivalence.mk (𝟭 C) (𝟭 C) (iso.refl _) (iso.refl _)
-include 𝒟
+end
 
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
@@ -186,6 +187,31 @@ by { dsimp [inv_fun_id_assoc], tidy }
 @[simp] lemma inv_fun_id_assoc_inv_app (e : C ≌ D) (F : D ⥤ E) (X : D) :
   (inv_fun_id_assoc e F).inv.app X = F.map (e.counit_inv.app X) :=
 by { dsimp [inv_fun_id_assoc], tidy }
+
+section
+omit 𝒟 ℰ
+
+-- There's of course a monoid structure on `C ≌ C`,
+-- but let's not encourage using it.
+-- The power structure is nevertheless useful
+
+/-- Powers of an auto-equivalence. -/
+def nat_pow (e : C ≌ C) : ℕ → (C ≌ C)
+| 0 := equivalence.refl
+| 1 := e
+| (n+2) := e.trans (nat_pow (n+1))
+
+instance has_pow_nat : has_pow (C ≌ C) ℕ := ⟨nat_pow⟩
+
+/-- Integer powers of an auto-equivalence. -/
+def int_pow (e : C ≌ C) : ℤ → (C ≌ C)
+| (int.of_nat n) := e^n
+| (int.neg_succ_of_nat 0) := e.symm
+| (int.neg_succ_of_nat (n+1)) := e.symm.trans (int_pow (int.neg_succ_of_nat n))
+
+instance has_pow_int : has_pow (C ≌ C) ℤ := ⟨int_pow⟩
+
+end
 
 end equivalence
 

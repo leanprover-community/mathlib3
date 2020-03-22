@@ -479,7 +479,7 @@ variable (M)
 @[refl] protected def refl : M ≃L[R] M :=
 { continuous_to_fun := continuous_id,
   continuous_inv_fun := continuous_id,
-  .. linear_equiv.refl M }
+  .. linear_equiv.refl R M }
 end
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/

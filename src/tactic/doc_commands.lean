@@ -67,7 +67,11 @@ do let decl_name := note_name.mk_hashed_name `library_note,
    add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
 
-open lean lean.parser interactive
+/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
+meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
+to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
+
+open tactic lean lean.parser interactive
 /--
 A command to add library notes. Syntax:
 ```
@@ -123,10 +127,9 @@ def f := pi_binders ...
 @[user_command] meta def library_note (mi : interactive.decl_meta_info)
   (_ : parse (tk "library_note")) : parser unit := do
 note_name ← parser.pexpr,
-note_name ← to_expr ``(%%note_name : string),
-note_name ← eval_expr string note_name,
+note_name ← eval_pexpr string note_name,
 some doc_string ← pure mi.doc_string | fail "library_note requires a doc string",
-tactic.add_library_note note_name doc_string
+add_library_note note_name doc_string
 
 /-- Collects all notes in the current environment.
 Returns a list of pairs `(note_id, note_content)` -/
@@ -260,8 +263,7 @@ messages.
 @[user_command] meta def add_tactic_doc_command (mi : interactive.decl_meta_info)
   (_ : parse $ tk "add_tactic_doc") : parser unit := do
 pe ← parser.pexpr,
-elab ← to_expr ``(%%pe : tactic_doc_entry) ff ff,
-e ← eval_expr tactic_doc_entry elab,
+e ← eval_pexpr tactic_doc_entry pe,
 let e : tactic_doc_entry := match mi.doc_string with
   | some desc := { description := desc, ..e }
   | none := e

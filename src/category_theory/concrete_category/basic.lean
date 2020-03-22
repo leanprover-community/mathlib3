@@ -123,7 +123,7 @@ instance concrete_category.types : concrete_category (Type u) :=
 
 /--
 `has_forget₂ C D`, where `C` and `D` are both concrete categories, provides a functor
-`forget₂ C D : C ⥤ C` and a proof that `forget₂ ⋙ (forget D) = forget C`.
+`forget₂ C D : C ⥤ D` and a proof that `forget₂ ⋙ (forget D) = forget C`.
 -/
 class has_forget₂ (C D : Type (u+1)) [concrete_category C] [concrete_category D] :=
 (forget₂ : C ⥤ D)

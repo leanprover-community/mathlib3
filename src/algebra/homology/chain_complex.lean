@@ -36,10 +36,8 @@ variables [has_zero_morphisms.{v} V]
 /--
 A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`.
 -/
--- Actually, because I chose the "shift" to correspond to the +1 direction,
--- this is what would usually be called a cochain complex.
--- We should definitely bikeshed this. :-)
-@[nolint has_inhabited_instance]
+-- For now the "shift" is fixed to be the +1 direction,
+-- making this a cochain complex, rather than a chain complex.
 def chain_complex : Type (max v u) :=
 differential_object.{v} (graded_object ℤ V)
 
@@ -93,6 +91,13 @@ variables [has_zero_object.{v} V]
 instance has_zero_object : has_zero_object.{v} (chain_complex V) :=
 by { dsimp [chain_complex], apply_instance, }
 
+section
+omit 𝒱
+local attribute [instance] has_zero_object.has_zero
+
+instance : inhabited (chain_complex.{v} punit.{v+1}) := ⟨0⟩
+end
+
 end chain_complex
 
 namespace chain_complex
@@ -113,10 +118,11 @@ end chain_complex
 
 -- TODO `chain_complex V` is a module category for `V` when `V` is monoidal
 
--- TODO When V is enriched in AddCommGroup, and has coproducts(?),
+-- TODO When V is enriched in AddCommGroup, and has coproducts,
 -- we can collapse a double complex to obtain a complex.
--- (Do we need boundedness assumptions)
+-- If the double complex is supported in a quadrant, we only need finite coproducts.
 
 -- TODO when V is monoidal, enriched in `AddCommGroup`,
--- and has coproducts(?) then
+-- and has coproducts then
 -- `chain_complex V` is monoidal too.
+-- If the complexes are bounded below we only need finite coproducts.

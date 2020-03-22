@@ -53,12 +53,12 @@ def image_to_kernel_map (C : chain_complex.{v} V) (i : ℤ) :
   image (C.d i) ⟶ kernel (C.d (i+1)) :=
 kernel.lift _ (image.ι (C.d i))
 begin
-  apply @epi.left_cancellation _ _ _ _ (factor_thru_image (C.d i)) _ _ _ _ _,
-  simp,
+  rw ←cancel_epi (factor_thru_image (C.d i)),
+  rw [has_zero_morphisms.comp_zero, image.fac_assoc, d_squared],
   refl,
 end
 
--- PROJECT:
+-- TODO (a good project!):
 -- At this level of generality, it's just not true that a chain map
 -- induces maps on boundaries
 --
@@ -86,7 +86,7 @@ variables [has_cokernels.{v} V]
 def homology_group (C : chain_complex.{v} V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C i)
 
--- PROJECT:
+-- TODO:
 
 -- As noted above, as we don't get induced maps on boundaries with this generality,
 -- we can't assemble the homology groups into a functor. Hopefully, however,

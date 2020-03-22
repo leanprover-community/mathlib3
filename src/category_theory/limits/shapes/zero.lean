@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
 import category_theory.epi_mono
+import category_theory.punit
+import category_theory.pempty
 
 /-!
 # Zero morphisms and zero objects
@@ -45,6 +47,16 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
+section
+omit 𝒞
+
+instance has_zero_morphisms_pempty : has_zero_morphisms.{v} pempty.{v+1} :=
+{ has_zero := by tidy }
+
+instance has_zero_morphisms_punit : has_zero_morphisms.{v} punit.{v+1} :=
+{ has_zero := λ X Y, { zero := punit.star, } }
+end
+
 namespace has_zero_morphisms
 variables {C}
 
@@ -54,10 +66,10 @@ begin
   resetI,
   cases I, cases J,
   congr,
-  ext X Y,
-  exact w X Y,
-  apply proof_irrel_heq,
-  apply proof_irrel_heq,
+  { ext X Y,
+    exact w X Y },
+  { apply proof_irrel_heq, },
+  { apply proof_irrel_heq, }
 end
 
 @[ext]
@@ -74,14 +86,16 @@ instance : subsingleton (has_zero_morphisms.{v} C) :=
 
 end has_zero_morphisms
 
+open has_zero_morphisms
+
 section
 variables {C} [has_zero_morphisms.{v} C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←has_zero_morphisms.zero_comp.{v} C X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp.{v} C X g, cancel_mono] at h, exact h }
 
 lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←has_zero_morphisms.comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero.{v} C f Z, cancel_epi] at h, exact h }
 
 end
 
@@ -97,10 +111,10 @@ variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
   { apply faithful.injectivity (F.inverse),
-    simp only [functor.map_comp],
-    simp,
+    rw [functor.map_comp],
+    rw [equivalence.inv_fun_map],
     dsimp,
-    simp, },
+    rw [zero_comp, comp_zero, zero_comp], },
   exact t.trans (by simp)
 end
 
@@ -111,6 +125,15 @@ class has_zero_object :=
 (zero : C)
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
+
+section
+omit 𝒞
+
+instance has_zero_object_punit : has_zero_object.{v} punit.{v+1} :=
+{ zero := punit.star,
+  unique_to := by tidy,
+  unique_from := by tidy, }
+end
 
 variables {C}
 

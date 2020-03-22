@@ -668,25 +668,28 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
-/-- `symm_apply e cfg` tries `apply e cfg`, and if this fails, calls `symmetry` and tries again. -/
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+/--
+`apply_assumption` searches for terms in the local context that can be applied to make progress
+on the goal.
 
-/-- `apply_assumption` searches for terms in the local context that can be applied to make progress
-on the goal. If the goal is symmetric, it tries each goal in both directions. If this fails, it will
-call `exfalso` and repeat. Optional arguments:
-
+Optional arguments:
 * `asms` controls which expressions are applied. Defaults to `local_context`.
-* `tac` is called after a successful application. Defaults to `skip`. -/
+* `tac` is called after a successful application. Defaults to `skip`.
+* `use_symmetry`: also try calling `symmetry` and try again.
+* `use_exfalso`: also try calling `exfalso` and try again.
+-/
 meta def apply_assumption
   (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|>
-do { exfalso,
-     ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) }
-<|> fail "assumption tactic failed"
+  (tac : tactic unit := skip)
+  (use_symmetry : bool := tt)
+  (use_exfalso : bool := tt) : tactic unit :=
+do
+  let modes := [skip]
+    ++ if use_symmetry then [symmetry] else []
+    ++ if use_exfalso then [exfalso] else [],
+  asms ← asms,
+  modes.any_of (λ m, do m, asms.any_of (λ H, apply H >> tac)) <|>
+  fail "apply_assumption tactic failed"
 
 /-- `change_core e none` is equivalent to `change e`. It tries to change the goal to `e` and fails
 if this is not a definitional equality.

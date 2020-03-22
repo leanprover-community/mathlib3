@@ -53,7 +53,7 @@ Configuration options for `solve_by_elim`.
 * By default `solve_by_elim` operates only on the first goal,
   but with `backtrack_all_goals := true`, it operates on all goals at once,
   backtracking across goals as needed,
-  and only succeeds if it dischargers all goals.
+  and only succeeds if it discharges all goals.
 * `discharger` specifies a tactic to try discharge subgoals
   (this is only attempted on subgoals for which no lemma applies successfully).
 * `assumptions` generates the list of lemmas to use in the backtracking search.
@@ -62,7 +62,7 @@ Configuration options for `solve_by_elim`.
 meta structure by_elim_opt :=
   (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := mk_assumption_set false [] [])
+  (assumptions : tactic (list expr) := mk_assumption_set ff [] [])
   (max_rep : ℕ := 3)
 
 /--

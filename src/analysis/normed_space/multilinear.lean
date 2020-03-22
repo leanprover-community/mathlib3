@@ -252,35 +252,33 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
   (H : ∀ m, ∥f m∥ ≤ C * finset.univ.prod (λi, ∥m i∥)) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) :=
-begin
-  calc ∥f.restr s hk z v∥
-  ≤ C * finset.univ.prod (λ (j : fin n),
-          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥) : H _
-  ... = C * ((finset.univ \ s).prod (λ (j : fin n),
-          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
-        * s.prod (λ (j : fin n),
-          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
-    by rw ← finset.prod_sdiff (finset.subset_univ _)
-  ... = C * (∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥)) :
-    begin
-      congr' 2,
-      { have : ∥z∥ ^ (n - k) = (finset.univ \ s).prod (λ (j : fin n), ∥z∥),
-          by simp [finset.card_sdiff  (finset.subset_univ _), hk],
-        rw this,
-        exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
-      { apply finset.prod_bij (λ (i : fin n) (hi : i ∈ s), (s.mono_equiv_of_fin hk).symm ⟨i, hi⟩),
-        { exact λ _ _, finset.mem_univ _ },
-        { exact λ i hi, by simp [hi] },
-        { exact λ i j hi hi hij, subtype.mk.inj ((s.mono_equiv_of_fin hk).symm.injective hij) },
-        { assume i hi,
-          rcases (s.mono_equiv_of_fin hk).symm.surjective i with ⟨j, hj⟩,
-          refine ⟨j.1, j.2, _⟩,
-          unfold_coes,
-          convert hj.symm,
-          rw subtype.ext } }
-    end
-  ... = C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) : by rw mul_assoc
-end
+calc ∥f.restr s hk z v∥
+≤ C * finset.univ.prod (λ (j : fin n),
+        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥) : H _
+... = C * ((finset.univ \ s).prod (λ (j : fin n),
+        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
+      * s.prod (λ (j : fin n),
+        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
+  by rw ← finset.prod_sdiff (finset.subset_univ _)
+... = C * (∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥)) :
+  begin
+    congr' 2,
+    { have : ∥z∥ ^ (n - k) = (finset.univ \ s).prod (λ (j : fin n), ∥z∥),
+        by simp [finset.card_sdiff  (finset.subset_univ _), hk],
+      rw this,
+      exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
+    { apply finset.prod_bij (λ (i : fin n) (hi : i ∈ s), (s.mono_equiv_of_fin hk).symm ⟨i, hi⟩),
+      { exact λ _ _, finset.mem_univ _ },
+      { exact λ i hi, by simp [hi] },
+      { exact λ i j hi hi hij, subtype.mk.inj ((s.mono_equiv_of_fin hk).symm.injective hij) },
+      { assume i hi,
+        rcases (s.mono_equiv_of_fin hk).symm.surjective i with ⟨j, hj⟩,
+        refine ⟨j.1, j.2, _⟩,
+        unfold_coes,
+        convert hj.symm,
+        rw subtype.ext } }
+  end
+... = C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) : by rw mul_assoc
 
 end multilinear_map
 

@@ -11,7 +11,7 @@ import category_theory.shift
 
 A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
-a morphism `d : X ⟶ X[1]`, such that `d^2 = 0`.
+a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 
 We build the category of differential objects, and some basic constructions
 such as the forgetful functor, and zero morphisms and zero objects.
@@ -31,13 +31,13 @@ variables [has_zero_morphisms.{v} C] [has_shift.{v} C]
 /--
 A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
-a morphism `d : X ⟶ X[1]`, such that `d^2 = 0`.
+a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 -/
 @[nolint has_inhabited_instance]
 structure differential_object :=
 (X : C)
-(d : X ⟶ X[1])
-(d_squared' : d ≫ d[[1]] = 0 . obviously)
+(d : X ⟶ X⟦1⟧)
+(d_squared' : d ≫ d⟦1⟧' = 0 . obviously)
 
 restate_axiom differential_object.d_squared'
 attribute [simp] differential_object.d_squared
@@ -52,9 +52,10 @@ A morphism of differential objects is a morphism commuting with the differential
 @[ext, nolint has_inhabited_instance]
 structure hom (X Y : differential_object.{v} C) :=
 (f : X.X ⟶ Y.X)
-(comm' : f ≫ Y.d = X.d ≫ f[[1]] . obviously)
+(comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
 
 restate_axiom hom.comm'
+attribute [simp, reassoc] hom.comm
 
 namespace hom
 
@@ -66,8 +67,7 @@ def id (X : differential_object.{v} C) : hom X X :=
 /-- The composition of morphisms of differential objects. -/
 @[simps]
 def comp {X Y Z : differential_object.{v} C} (f : hom X Y) (g : hom Y Z) : hom X Z :=
-{ f := f.f ≫ g.f,
-  comm' := by rw [category.assoc, g.comm, ←category.assoc, f.comm, category.assoc, functor.map_comp], }
+{ f := f.f ≫ g.f, }
 
 end hom
 

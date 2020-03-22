@@ -50,9 +50,11 @@ variables {V}
 A convenience lemma for morphisms of differential graded objects,
 picking out one component of the commutation relation.
 -/
--- Could this be a simp lemma? Which way?
-lemma category_theory.differential_object.hom.comm_at {X Y : differential_object.{v} (graded_object ℤ V)}
-  (f : X ⟶ Y) (i : ℤ) : f.f i ≫ Y.d i = X.d i ≫ f.f (i+1) := congr_fun f.comm i
+@[simp]
+lemma category_theory.differential_object.hom.comm_at
+  {X Y : differential_object.{v} (graded_object ℤ V)} (f : X ⟶ Y) (i : ℤ) :
+    X.d i ≫ f.f (i+1) = f.f i ≫ Y.d i :=
+congr_fun f.comm i
 end
 
 namespace chain_complex
@@ -73,8 +75,8 @@ by { dsimp [chain_complex], apply_instance }.
 
 -- The components of a chain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : chain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
-example {C D : chain_complex V} (f : C ⟶ D) : f.f ≫ D.d = C.d ≫ f.f[[1]] := f.comm
-example {C D : chain_complex V} (f : C ⟶ D) : f.f 5 ≫ D.d 5 = C.d 5 ≫ f.f 6 := congr_fun f.comm 5
+example {C D : chain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
+example {C D : chain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := congr_fun f.comm 5
 
 /-- The forgetful functor from chain complexes to graded objects, forgetting the differential. -/
 def forget : (chain_complex V) ⥤ (graded_object ℤ V) :=

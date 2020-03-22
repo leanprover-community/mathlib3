@@ -196,20 +196,14 @@ omit 𝒟 ℰ
 -- The power structure is nevertheless useful
 
 /-- Powers of an auto-equivalence. -/
-def nat_pow (e : C ≌ C) : ℕ → (C ≌ C)
-| 0 := equivalence.refl
-| 1 := e
-| (n+2) := e.trans (nat_pow (n+1))
-
-instance has_pow_nat : has_pow (C ≌ C) ℕ := ⟨nat_pow⟩
-
-/-- Integer powers of an auto-equivalence. -/
-def int_pow (e : C ≌ C) : ℤ → (C ≌ C)
-| (int.of_nat n) := e^n
+def pow (e : C ≌ C) : ℤ → (C ≌ C)
+| (int.of_nat 0) := equivalence.refl
+| (int.of_nat 1) := e
+| (int.of_nat (n+2)) := e.trans (pow (int.of_nat (n+1)))
 | (int.neg_succ_of_nat 0) := e.symm
-| (int.neg_succ_of_nat (n+1)) := e.symm.trans (int_pow (int.neg_succ_of_nat n))
+| (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
 
-instance has_pow_int : has_pow (C ≌ C) ℤ := ⟨int_pow⟩
+instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
 end
 

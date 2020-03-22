@@ -26,6 +26,7 @@ section miscellany
   `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
+  bool.decidable_eq decidable.to_bool
 
 variables {α : Type*} {β : Type*}
 
@@ -625,14 +626,16 @@ by apply_instance
 noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
 by apply_instance
 
-library_note "classical lemma"
-"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+/--
+We make decidability results that depends on `classical.choice` noncomputable lemmas.
 * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
   for them, and fail because it depends on `classical.choice`.
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+-/
+library_note "classical lemma"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

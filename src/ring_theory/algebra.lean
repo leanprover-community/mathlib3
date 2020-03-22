@@ -11,6 +11,7 @@ import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
+import algebra.commute
 
 noncomputable theory
 
@@ -388,8 +389,12 @@ end mv_polynomial
 
 namespace rat
 
-instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
-algebra.of_ring_hom rat.cast (by apply_instance)
+instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
+{ smul := λ r x, (r : α) * x,
+  to_fun := coe,
+  hom := (rat.cast_hom α).is_ring_hom,
+  commutes' := λ r x, (commute.cast_int_right x r.1).div_right (commute.cast_nat_right x r.2),
+  smul_def' := λ _ _, rfl }
 
 end rat
 

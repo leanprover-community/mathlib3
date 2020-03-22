@@ -493,14 +493,7 @@ do x₁ ← to_expr x,
   (x₂,_) ← derive x₁,
   tactic.exact x₂
 
-add_tactic_doc
-{ name        := "norm_num",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.norm_num1, `tactic.interactive.norm_num,
-                  `tactic.interactive.apply_normed],
-  tags        := ["arithmetic", "decision procedure"],
-  description :=
-"
+/--
 Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over
 numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`,
 `A < B` and `A ≤ B`, where `A` and `B` are
@@ -532,7 +525,13 @@ def a : ℕ := 2^100
 def normed_a : ℕ := by apply_normed 2^100
 #print normed_a -- 1267650600228229401496703205376
 ```
-" }
+-/
+add_tactic_doc
+{ name        := "norm_num",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.norm_num1, `tactic.interactive.norm_num,
+                  `tactic.interactive.apply_normed],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end tactic.interactive
 

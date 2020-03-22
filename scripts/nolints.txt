@@ -95,12 +95,10 @@ apply_nolint monoid_hom.one doc_blame
 -- algebra/group/to_additive.lean
 apply_nolint to_additive.attr doc_blame
 apply_nolint to_additive.aux_attr doc_blame
-apply_nolint to_additive.guess_name doc_blame
 apply_nolint to_additive.map_namespace doc_blame
 apply_nolint to_additive.parser doc_blame
 apply_nolint to_additive.proceed_fields doc_blame
 apply_nolint to_additive.target_name doc_blame
-apply_nolint to_additive.tokens_dict doc_blame
 apply_nolint to_additive.value_type doc_blame
 
 -- algebra/group/type_tags.lean

@@ -391,3 +391,28 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
+
+/--
+The `add_decl_doc` command is used to add a doc string to an existing declaration.
+
+```lean
+def foo := 5
+
+/--
+Doc string for foo.
+-/
+add_decl_doc foo
+```
+-/
+@[user_command] meta def add_decl_doc_command (mi : interactive.decl_meta_info)
+  (_ : parse $ tk "add_decl_doc") : parser unit := do
+n ← parser.ident,
+n ← resolve_constant n,
+some doc ← pure mi.doc_string | fail "add_decl_doc requires a doc string",
+add_doc_string n doc
+
+add_tactic_doc
+{ name := "add_decl_doc",
+  category := doc_category.cmd,
+  decl_names := [``add_decl_doc_command],
+  tags := ["documentation"] }

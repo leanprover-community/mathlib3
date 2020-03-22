@@ -17,6 +17,12 @@ a `semilattice_inf_bot` instance on this this, and define three operations:
   extends both `f` and `g`.
 * `Sup` takes a `directed_on (≤)` set of partial linear maps, and returns the unique
   partial linear map on the `Sup` of their domains that extends all these maps.
+
+Partially defined maps are currently used in `mathlib` to prove Hahn-Banach theorem
+and its variations. Namely, `linear_pmap.Sup` implies that every chain of `linear_pmap`s
+is bounded above.
+
+Another possible use (not yet in `mathlib`) would be the theory of unbounded linear operators.
 -/
 
 lemma subtype.coe_prop {α : Type*} {p : α → Prop} (x : subtype p) : p x := x.2
@@ -62,7 +68,8 @@ f.to_fun.map_smul c x
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
   mk p f x = f x := rfl
 
-/-- Define a partial linear map on the span of a singleton in a module over a ring. -/
+/-- The unique `linear_pmap` on `span R {x}` that sends `x` to `y`. This version works for modules
+over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
 begin
@@ -98,7 +105,8 @@ begin
   apply classical.some_spec (mem_span_singleton.1 h),
 end
 
-/-- Define a partial linear map on the span of a singleton in a module over a division ring. -/
+/-- The unique `linear_pmap` on `span R {x}` that sends a non-zero vector `x` to `y`.
+This version works for modules over division rings. -/
 @[reducible] noncomputable def mk_span_singleton {K E F : Type*} [division_ring K]
   [add_comm_group E] [module K E] [add_comm_group F] [module K F] (x : E) (y : F) (hx : x ≠ 0) :
   linear_pmap K E F :=

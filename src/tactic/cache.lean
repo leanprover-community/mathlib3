@@ -77,16 +77,7 @@ for typeclass inference. -/
 meta def exactI (q : parse texpr) : tactic unit :=
 reset_instance_cache >> exact q
 
-add_tactic_doc
-{ name        := "Instance cache tactics",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.unfreezeI, `tactic.interactive.resetI,
-                  `tactic.interactive.introI, `tactic.interactive.introsI,
-                  `tactic.interactive.haveI, `tactic.interactive.letI,
-                  `tactic.interactive.exactI],
-  tags        := ["type classes"],
-  description :=
-"
+/--
 For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
 helps to force such updates. For a simple (but very artificial) example,
@@ -124,7 +115,15 @@ by its variant `haveI` described below.
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
-" }
+-/
+add_tactic_doc
+{ name        := "Instance cache tactics",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.unfreezeI, `tactic.interactive.resetI,
+                  `tactic.interactive.introI, `tactic.interactive.introsI,
+                  `tactic.interactive.haveI, `tactic.interactive.letI,
+                  `tactic.interactive.exactI],
+  tags        := ["type classes"] }
 
 end interactive
 end tactic

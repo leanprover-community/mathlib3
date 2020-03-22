@@ -757,8 +757,8 @@ by { cases n, cases h, apply succ_pos, }
 
 /-- Define a function on `ℕ` depending on parity of the argument. -/
 @[elab_as_eliminator]
-def bit_cases {C : ℕ → Sort*} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
-n.bit_decomp ▸ H _ _
+def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
+eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 
 /- partial subtraction -/
 

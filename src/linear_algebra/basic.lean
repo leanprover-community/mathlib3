@@ -1513,7 +1513,7 @@ variables [module R M] [module R M₂] [module R M₃]
 variables (f : M →ₗ[R] M₂)
 
 /-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
-equivalent to the range of `f`.  -/
+equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
 let F : f.ker.quotient →ₗ[R] f.range :=
@@ -1558,6 +1558,17 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
       use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
       change y - (y + z) ∈ p', rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
     end }
+
+section prod
+
+lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*}
+  [comm_ring R] [add_comm_group M] [add_comm_group M₂]
+  [add_comm_group M₃] [module R M] [module R M₂] [module R M₃] :
+  is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)),
+    (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
+⟨λu v, rfl, λc u, rfl⟩
+
+end prod
 
 section pi
 universe i

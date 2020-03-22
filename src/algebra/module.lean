@@ -606,7 +606,7 @@ def add_monoid_hom.to_int_linear_map [add_comm_group α] [add_comm_group β] (f 
   α →ₗ[ℤ] β :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
 
-/-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
+/-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
 def add_monoid_hom.to_rat_linear_map [add_comm_group α] [vector_space ℚ α]
   [add_comm_group β] [vector_space ℚ β] (f : α →+ β) :
   α →ₗ[ℚ] β :=

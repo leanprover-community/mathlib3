@@ -793,7 +793,7 @@ add_tactic_doc
 { name       := "use",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.use, `tactic.interactive.existsi],
-  tags       := ["logical manipulation"],
+  tags       := ["logic"],
   inherit_description_from := `tactic.interactive.use }
 
 /--

@@ -85,7 +85,7 @@ do
 
 open list
 
-/-- parse record literal of the shape `{ field1 := value1, .. , field2 := value2 }` -/
+/-- parse structure instance of the shape `{ field1 := value1, .. , field2 := value2 }` -/
 meta def record_lit : lean.parser pexpr :=
 do tk "{",
    ls ← sep_by (skip_info (tk ","))
@@ -99,7 +99,7 @@ do tk "{",
        field_values := values,
        sources := srcs }
 
-/-- pretty print record literal -/
+/-- pretty print structure instance -/
 meta def rec.to_tactic_format (e : pexpr) : tactic format :=
 do r ← e.get_structure_instance_info,
    fs ← mzip_with (λ n v,
@@ -112,9 +112,9 @@ do r ← e.get_structure_instance_info,
 
 /-- Attribute containing a table that accumulates multiple `squeeze_simp` suggestions -/
 @[user_attribute]
-meta def squeeze_loc_attr : user_attribute unit (option (list (pos × string × list simp_arg_type × string))) :=
-{ name := `squeeze_loc,
-  parser := fail "this attribute should not be used of definition",
+private meta def squeeze_loc_attr : user_attribute unit (option (list (pos × string × list simp_arg_type × string))) :=
+{ name := `_squeeze_loc,
+  parser := fail "this attribute should not be used",
   descr := "table to accumulate multiple `squeeze_simp` suggestions" }
 
 /-- dummy declaration used as target of `squeeze_loc` attribute -/
@@ -171,25 +171,25 @@ private meta def filter_simp_set_aux
 declare_trace squeeze.deleted
 
 /--
-`filter_simp_set v call_simp args args'` uses `call_simp` to call `simp` on
-lists of `simp` lemmas and assumptions built out of `args` and `args'`. `args`
-are the arguments provided by the user whereas `args'` are the lemmas taken from
+`filter_simp_set v call_simp user_args simp_args` uses `call_simp` to call `simp` on
+lists of `simp` lemmas and assumptions built out of `user_args` and `simp_args`. `user_args`
+are the arguments provided by the user whereas `simp_args` are the lemmas taken from
 the `simp` attribute.
 -/
 meta def filter_simp_set (v : expr)
   (tac : bool → list simp_arg_type → tactic unit)
-  (args args' : list simp_arg_type) : tactic (list simp_arg_type) :=
+  (user_args simp_args : list simp_arg_type) : tactic (list simp_arg_type) :=
 do gs ← get_goals,
    set_goals [v],
    tgt ← target,
-   (_,pr) ← solve_aux tgt (tac ff (args ++ args')),
+   (_,pr) ← solve_aux tgt (tac ff (user_args ++ simp_args)),
    env ← get_env,
    pr ← env.unfold_all_macros <$> instantiate_mvars pr,
-   (args', _)  ← filter_simp_set_aux tac args pr args' [] [],
-   (args₀, ds) ← filter_simp_set_aux tac args' pr args [] [],
+   (simp_args', _)  ← filter_simp_set_aux tac user_args pr simp_args [] [],
+   (user_args', ds) ← filter_simp_set_aux tac simp_args' pr user_args [] [],
    when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
      trace!"deleting provided arguments {ds}",
-   prod.fst <$> solve_aux tgt (pure (args₀ ++ args')) <* set_goals gs
+   prod.fst <$> solve_aux tgt (pure (user_args' ++ simp_args')) <* set_goals gs
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=

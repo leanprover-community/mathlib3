@@ -125,7 +125,7 @@ run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 /-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
 the suggestions emitted through `mk_suggestion` will be aggregated so that
 every tactic that makes a suggestion can consider multiple execution of the
-same invokation. -/
+same invocation. -/
 meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type) : tactic unit :=
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
@@ -171,10 +171,10 @@ private meta def filter_simp_set_aux
 declare_trace squeeze.deleted
 
 /--
-`filter_simp_set g call_simp user_args simp_args` returns args' such that, when calling
-`call_simp tt /- only -/ args'` on the goal g (g is a meta var) we end up in the same
+`filter_simp_set g call_simp user_args simp_args` returns `args'` such that, when calling
+`call_simp tt /- only -/ args'` on the goal `g` (`g` is a meta var) we end up in the same
 state as if we had called `call_simp ff (user_args ++ simp_args)` and removing any one
-element of args' changes the resulting proof.
+element of `args'` changes the resulting proof.
 -/
 meta def filter_simp_set (v : expr)
   (tac : bool → list simp_arg_type → tactic unit)
@@ -198,9 +198,9 @@ do e ← resolve_name n, pure $ simp_arg_type.expr e
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
 
- * no_dflt: did the user use the `only` keyword?
- * args:    list of `simp` arguments
- * tac :    how to invoke the underlying `simp` tactic
+ * `no_dflt`: did the user use the `only` keyword?
+ * `args`:    list of `simp` arguments
+ * `tac`:     how to invoke the underlying `simp` tactic
 
 -/
 meta def squeeze_simp_core
@@ -221,12 +221,12 @@ namespace interactive
 
 attribute [derive decidable_eq] simp_arg_type
 
-/-- combinator meant to aggregate the suggestions issues by multiple calls
+/-- combinator meant to aggregate the suggestions issued by multiple calls
 of `squeeze_simp` (due, for instance, to `;`).
 
 Can be used as:
 
-```
+```lean
 example {α β} (xs ys : list α) (f : α → β) :
   (xs ++ ys.tail).map f = xs.map f ∧ (xs.tail.map f).length = xs.length :=
 begin
@@ -344,11 +344,11 @@ end interactive
 end tactic
 open tactic.interactive
 add_tactic_doc
-{ name       := "squeeze_simp / squeeze_simpa",
+{ name       := "squeeze_simp / squeeze_simpa / squeeze_scope",
   category   := doc_category.tactic,
   decl_names :=
    [``squeeze_simp,
     ``squeeze_simpa,
     ``squeeze_scope],
-  tags       := ["simplification"],
+  tags       := ["simplification", "Try this"],
   inherit_description_from := ``squeeze_simp }

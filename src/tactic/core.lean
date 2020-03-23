@@ -1409,13 +1409,13 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
        end
 
 /--
-``trace_for `n msg`` traces the message `msg`
+``trace_if_enabled `n msg`` traces the message `msg`
 only if tracing is enabled for the name `n`.
 
 Create new names registered for tracing with `declare_trace n`.
 Then use `set_option trace.n true/false` to enable or disable tracing for `n`.
 -/
-meta def trace_for
+meta def trace_if_enabled
   (n : name) {α : Type u} [has_to_tactic_format α] (msg : α) : tactic unit :=
 when_tracing n (trace msg)
 

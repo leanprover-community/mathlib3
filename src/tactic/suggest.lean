@@ -219,8 +219,8 @@ do g :: _ ← get_goals,
    defs ← library_defs (head_symbol t),
    -- Sort by length; people like short proofs
    let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
-   trace_for `suggest format!"Found {defs.length} relevant lemmas:",
-   trace_for `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
+   trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
+   trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
    -- Try applying each lemma against the goal,
    -- then record the number of remaining goals, and number of local hypotheses used.

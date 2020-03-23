@@ -437,12 +437,12 @@ meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_
 λ co, focus1 $
 do trace_state_for `auto.finish "entering safe_core",
    if cfg.use_simp then do
-     trace_for `auto.finish "simplifying hypotheses",
+     trace_if_enabled `auto.finish "simplifying hypotheses",
      simp_all s.1 s.2 { fail_if_unchanged := ff },
      trace_state_for `auto.finish "result:"
    else skip,
    tactic.done <|>
-   do trace_for `auto.finish "preprocessing hypotheses",
+   do trace_if_enabled `auto.finish "preprocessing hypotheses",
       preprocess_hyps cfg,
       trace_state_for `auto.finish "result:",
       done ps cfg <|>

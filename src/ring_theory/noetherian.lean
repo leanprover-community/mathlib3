@@ -13,8 +13,8 @@ import linear_algebra.basis
 # Noetherian rings and modules
 
 The following are equivalent for a module M over a ring R:
-(i) Every increasing chain of submodule M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises
-(ii) Every submodule is finitely-generated.
+1. Every increasing chain of submodule M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
+2. Every submodule is finitely-generated.
 
 A module satisfying these equivalent conditions is said to be a *Noetherian* R-module.
 A ring is a *Noetherian ring* if it is Noetherian as a module over itself.

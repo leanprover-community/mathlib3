@@ -123,7 +123,7 @@ add_tactic_doc
                   `tactic.interactive.introI, `tactic.interactive.introsI,
                   `tactic.interactive.haveI, `tactic.interactive.letI,
                   `tactic.interactive.exactI],
-  tags        := ["type classes"] }
+  tags        := ["type class"] }
 
 end interactive
 end tactic

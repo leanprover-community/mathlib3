@@ -1077,9 +1077,21 @@ add_tactic_doc
   tags       := ["goal management"] }
 
 
-/-- `inhabit α` turns a `nonempty α` instance into an `inhabited α` instance.
-If the target is a prop, this is done constructively;
-otherwise, it uses `classical.choice`. -/
+/--
+`inhabit α` tries to derive a `nonempty α` instance and then upgrades this
+to an `inhabited α` instance.
+If the target is a `Prop`, this is done constructively;
+otherwise, it uses `classical.choice`.
+
+```lean
+example (α) [nonempty α] : ∃ a : α, true :=
+begin
+  inhabit α,
+  existsi default α,
+  trivial
+end
+```
+-/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
 do ty ← i_to_expr t,
    nm ← get_unused_name `inst,
@@ -1095,7 +1107,7 @@ add_tactic_doc
 { name       := "inhabit",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.inhabit],
-  tags       := ["context management", "type classes"] }
+  tags       := ["context management", "type class"] }
 
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
 It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/

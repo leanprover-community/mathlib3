@@ -30,7 +30,6 @@ open category_theory.limits
 variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms.{v} V]
 include 𝒱
 
-section
 variable [has_kernels.{v} V]
 /-- The map induceed by a chain map between the kernels of the differentials. -/
 def induced_map_on_cycles {C C' : chain_complex V} (f : C ⟶ C') (i : ℤ) :
@@ -38,7 +37,6 @@ def induced_map_on_cycles {C C' : chain_complex V} (f : C ⟶ C') (i : ℤ) :
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
   rw [category.assoc, ←f.comm_at, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
-end
 end
 
 /-!
@@ -48,12 +46,14 @@ We need to assume all equalizers, not just kernels, so that
 -/
 variables [has_images.{v} V] [has_equalizers.{v} V]
 
-/-- The connecting morphism from the image of `d (i-1)` to the kernel of `d i`. -/
+/--
+The connecting morphism from the image of `d i` to the kernel of `d (i+1)`.
+-/
 def image_to_kernel_map (C : chain_complex V) (i : ℤ) :
-  image (C.d (i-1)) ⟶ kernel (C.d i) :=
-kernel.lift _ (image.ι (C.d (i-1)))
+  image (C.d i) ⟶ kernel (C.d (i+1)) :=
+kernel.lift _ (image.ι (C.d i))
 begin
-  rw ←cancel_epi (factor_thru_image (C.d (i-1))),
+  rw ←cancel_epi (factor_thru_image (C.d i)),
   rw [has_zero_morphisms.comp_zero, image.fac_assoc, d_squared],
   refl,
 end
@@ -72,9 +72,8 @@ end
 --   image (C.d i) ⟶ image (C'.d i) :=
 -- sorry
 
--- I'm not certain what the minimal assumptions required to prove the following
--- lemma are:
-
+-- -- I'm not certain what the minimal assumptions required to prove the following
+-- -- lemma are:
 -- lemma induced_maps_commute {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 -- image_to_kernel_map C i ≫ induced_map_on_cycles f (i+1) =
 --   induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
@@ -84,7 +83,7 @@ variables [has_cokernels.{v} V]
 
 /-- The `i`-th homology group of the chain complex `C`. -/
 def homology (C : chain_complex V) (i : ℤ) : V :=
-cokernel (image_to_kernel_map C i)
+cokernel (image_to_kernel_map C (i-1))
 
 -- TODO:
 

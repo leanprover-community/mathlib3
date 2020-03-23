@@ -10,7 +10,8 @@ import data.int.basic data.nat.prime
 ## Main definitions
 
 * Given `x y : ℕ`, `xgcd x y` computes the pair of integers `(a, b)` such that
-  `gcd x y = x * a + y * b`. Its components are defined to be `gcd_a` and `gcd_b`.
+  `gcd x y = x * a + y * b`. `gcd_a x y` and `gcd_b x y` are defined to be `a` and `b`,
+  respectively.
 
 ## Main statements
 

@@ -862,7 +862,7 @@ rfl
 if_pos rfl
 
 @[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
-by { by_cases b = a; simp [swap_apply_def, *] }
+by { by_cases h : b = a, simp [swap_apply_def, h], }
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}

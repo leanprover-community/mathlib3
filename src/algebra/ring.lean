@@ -65,13 +65,16 @@ by split_ifs; refl
   (if P then a else b) * c = if P then a * c else b * c :=
 by split_ifs; refl
 
+-- In this lemma and the next we need to use `congr` because
+-- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
+-- modifies the decidable instance.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by simp
+by { simp, congr }
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by simp
+by { simp, congr }
 
 variable (α)
 

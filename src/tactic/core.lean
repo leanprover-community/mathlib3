@@ -1397,7 +1397,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := ["parsing", "localized", "notation"] }
+  tags                     := ["parsing", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/

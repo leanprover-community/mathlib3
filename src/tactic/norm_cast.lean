@@ -437,7 +437,7 @@ add_tactic_doc
   decl_names := [`tactic.interactive.norm_cast, `tactic.interactive.rw_mod_cast,
                  `tactic.interactive.apply_mod_cast, `tactic.interactive.assumption_mod_cast,
                  `tactic.interactive.exact_mod_cast, `tactic.interactive.push_cast],
-  tags       := ["coercions", "simplification"] }
+  tags       := ["coercions", "simplification", "normalization"] }
 
 /--
 The `norm_cast` family of tactics works with three attributes,
@@ -472,4 +472,4 @@ add_tactic_doc
 { name := "norm_cast attributes",
   category   := doc_category.attr,
   decl_names := [`norm_cast.move_cast_attr, `norm_cast.elim_cast_attr, `norm_cast.squash_cast_attr],
-  tags       := ["coercions"] }
+  tags       := ["coercions", "simplification"] }

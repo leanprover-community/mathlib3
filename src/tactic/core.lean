@@ -1397,7 +1397,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := [] }
+  tags                     := ["parsing", "localized", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1636,7 +1636,7 @@ add_tactic_doc
 { name                     := "import_private",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.import_private_cmd],
-  tags                     := [] }
+  tags                     := ["renaming"] }
 
 /--
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.

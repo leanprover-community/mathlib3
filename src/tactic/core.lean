@@ -8,6 +8,9 @@ import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.do
 
 universe variable u
 
+instance : has_lt pos :=
+{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+
 namespace expr
 open tactic
 
@@ -1387,6 +1390,13 @@ open interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
+
+meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
+λ s, match tac s with
+     | (result.success r s') := (finalizer >> pure r) s'
+     | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
+     end
+
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/
 meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=

@@ -18,6 +18,9 @@ meta def loc.to_string : loc → string
 | (loc.ns ls) := string.join $ list.intersperse " " (" at" :: ls.map loc.to_string_aux)
 | loc.wildcard := " at *"
 
+meta def pos.move_left (p : pos) (n : ℕ) : pos :=
+{ line := p.line, column := p.column - n }
+
 namespace expr
 
 meta def alpha_eqv_with_mvar : expr → expr → bool
@@ -101,6 +104,28 @@ do r ← e.get_structure_instance_info,
    let x : format := format.join $ list.intersperse ", " (fs ++ ss),
    pure format!" {{{x}}"
 
+@[user_attribute]
+meta def squeeze_loc_attr : user_attribute unit (option (list (pos × string × list simp_arg_type × string))) :=
+{ name := `squeeze_loc,
+  parser := fail "this attribute should not be used of definition",
+  descr := "table to accumulate multiple `squeeze_simp` suggestions" }
+
+def squeeze_loc_attr_carrier := unit
+
+run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
+
+meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type) : tactic unit :=
+do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
+   match xs with
+   | none := do
+     args ← to_line_wrap_format <$> args.mmap pp,
+     -- save_info_thunk p $ λ _, format!"{pre}{args}{post}",
+     @scope_trace _ p.line p.column $ λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
+   | some xs := do
+     squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
+     -- trace "insert replacement here"
+   end
+
 local postfix `?`:9001 := optional
 
 meta def parse_config : option pexpr → tactic (simp_config_ext × format)
@@ -135,7 +160,7 @@ declare_trace squeeze.deleted
 
 meta def filter_simp_set (v : expr)
   (tac : bool → list simp_arg_type → tactic unit)
-  (args args' : list simp_arg_type) : tactic (list format) :=
+  (args args' : list simp_arg_type) : tactic (list simp_arg_type) :=
 do gs ← get_goals,
    set_goals [v],
    tgt ← target,
@@ -147,7 +172,7 @@ do gs ← get_goals,
    (args₀, ds) ← filter_simp_set_aux tac args' pr args [] [],
    when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
      trace!"deleting provided arguments {ds}",
-   prod.fst <$> solve_aux tgt ((args₀ ++ args').mmap pp) <* set_goals gs
+   prod.fst <$> solve_aux tgt (pure (args₀ ++ args')) <* set_goals gs
 
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
 do e ← resolve_name n, pure $ simp_arg_type.expr e
@@ -162,7 +187,7 @@ argument list.
 -/
 meta def squeeze_simp_core
   (no_dflt : bool) (args : list simp_arg_type)
-  (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit) : tactic format :=
+  (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit) : tactic (list simp_arg_type):=
 do g ← main_goal,
    v ← target >>= mk_meta_var,
    tac no_dflt args,
@@ -172,11 +197,47 @@ do g ← main_goal,
    vs ← vs.mmap strip_prefix,
    vs ← erase_simp_args args vs,
    vs ← vs.to_list.mmap name.to_simp_args,
-   args' ← filter_simp_set v tac args vs,
-   if args'.empty then pure $ to_fmt ""
-     else pure args'.to_line_wrap_format
+   filter_simp_set v tac args vs
 
 namespace interactive
+
+attribute [derive decidable_eq] simp_arg_type
+
+/-- combinator meant to aggregate the suggestions issues by multiple calls
+of `squeeze_simp` (due, for instance, to `;`).
+
+Can be used as:
+
+```
+example {α β} (xs ys : list α) (f : α → β) :
+  (xs ++ ys.tail).map f = xs.map f ∧ (xs.tail.map f).length = xs.length :=
+begin
+  have : xs = ys, admit,
+  squeeze_scope
+  { split; squeeze_simp, -- `squeeze_simp` is run twice, the first one requires
+                         -- `list.map_append` and the second one `[list.length_map, list.length_tail]`
+                         -- prints only one message and combine the suggestions:
+                         -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
+    squeeze_simp [this]  -- `squeeze_simp` is run only once
+                         -- prints:
+                         -- > Try this: simp only [this]
+ },
+end
+```
+
+-/
+meta def squeeze_scope (tac : itactic) : tactic unit :=
+do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
+   squeeze_loc_attr.set ``squeeze_loc_attr_carrier (some []) ff,
+   finally tac $ do
+     some xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | fail "invalid state",
+     let m := native.rb_lmap.of_list xs,
+     squeeze_loc_attr.set ``squeeze_loc_attr_carrier none ff,
+     m.to_list.reverse.mmap' $ λ ⟨p,suggs⟩, do
+       { let ⟨pre,_,post⟩ := suggs.head,
+         let suggs : list (list simp_arg_type) := suggs.map $ prod.fst ∘ prod.snd,
+         -- trace!"{p.line}:{p.column}:",
+         mk_suggestion p pre post (suggs.foldl list.union []), pure () }
 
 /--
 `squeeze_simp` and `squeeze_simpa` perform the same task with
@@ -229,6 +290,7 @@ Known limitation(s):
     combined by concatenating their list of lemmas.
 -/
 meta def squeeze_simp
+  (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse record_lit?) : tactic unit :=
@@ -238,9 +300,12 @@ do (cfg',c) ← parse_config cfg,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
-   trace format!"Try this: simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
+   mk_suggestion (key.move_left 1)
+     sformat!"Try this: simp{use_iota_eqn} only "
+     sformat!"{attrs}{loc}{c}" args
 
 meta def squeeze_simpa
+  (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
   (cfg : parse record_lit?) : tactic unit :=
@@ -252,7 +317,9 @@ do (cfg',c) ← parse_config cfg,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let tgt' := tgt'.get_or_else "",
-   trace!"Try this: simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
+   mk_suggestion (key.move_left 1)
+     sformat!"Try this: simpa{use_iota_eqn} only "
+     sformat!"{attrs}{tgt'}{c}" args
 
 end interactive
 end tactic

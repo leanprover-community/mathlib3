@@ -351,7 +351,7 @@ def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 /-! ### Lemmas about `if` -/
 
 /--
-We add a more specialised `congr` lemma,
+We add a more specialized `congr` lemma,
 which will be used in preference to `if_simp_congr` when possible.
 
 This is desirable as even when the proposition `b` in `ite b x y` does not need to change,

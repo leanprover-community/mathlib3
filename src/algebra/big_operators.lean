@@ -248,7 +248,7 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
-@[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
+@[to_additive] lemma prod_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   s.prod (λ x, h (if p x then f x else g x)) =
   (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
@@ -497,7 +497,7 @@ end
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
-by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
+by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], }
 
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
@@ -653,6 +653,9 @@ by simp
 lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 by simp
+
+-- TODO prod/pow versions of the previous four lemmas?
+-- TODO versions of the previous two with `x = a` instead?
 
 end semiring
 

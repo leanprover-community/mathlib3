@@ -73,12 +73,20 @@ begin
   simp,
 end
 
--- Verify we can `rw` as well as `simp`.
-example (f g : ℕ →₀ ℤ) (h : ∀ m, f m = g m) :
-  f.sum (λ n i, i) = g.sum (λ n i, i) :=
+-- An example using `finsupp.sum`
+open_locale classical
+
+example {k G : Type} [semiring k] [group G]
+  (g : G →₀ k) (a₁ x : G) (b₁ : k)
+  (t : ∀ (a₂ : G), a₁ * a₂ = x ↔ a₁⁻¹ * x = a₂) :
+  g.sum (λ (a₂ : G) (b₂ : k), ite (a₁ * a₂ = x) (b₁ * b₂) 0) = b₁ * g (a₁⁻¹ * x) :=
 begin
-  conv_lhs { apply_congr, skip, dsimp, simp [h, H], },
-  conv_rhs { apply_congr, }
+  -- In fact, `congr` works fine here, because our rewrite works globally.
+  conv_lhs { apply_congr, skip, dsimp, rw t, },
+  rw finset.sum_ite_eq g.support, -- it's a pity we can't just use `simp` here.
+  split_ifs,
+  { refl, },
+  { simp [finsupp.not_mem_support_iff.1 h], },
 end
 
 example : true :=

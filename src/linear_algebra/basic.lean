@@ -18,7 +18,7 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 
 ## Main definitions
 
-* Many constructors for linear maps, including `pair` and `copair`
+* Many constructors for linear maps, including `prod` and `coprod`
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
 * If `p` is a submodule of `M`, `submodule.quotient p` is the quotient of `M` with respect to `p`:
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
@@ -43,7 +43,7 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 ## Implementation notes
 
 We note that, when constructing linear maps, it is convenient to use operations defined on bundled
-maps (`pair`, `copair`, arithmetic operations like `+`) instead of defining a function and proving
+maps (`prod`, `coprod`, arithmetic operations like `+`) instead of defining a function and proving
 it is linear.
 
 ## Tags
@@ -220,20 +220,22 @@ end
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
-/-- The pair of two linear maps is a linear map. -/
-def pair (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : M →ₗ[R] M₂ × M₃ :=
-⟨λ x, (f x, g x), λ x y, by simp, λ x y, by simp⟩
+/-- The prod of two linear maps is a linear map. -/
+def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : M →ₗ[R] M₂ × M₃ :=
+{ to_fun := λ x, (f x, g x),
+  add := λ x y, by simp only [prod.mk_add_mk, map_add],
+  smul := λ c x, by simp only [prod.smul_mk, map_smul] }
 
-@[simp] theorem pair_apply (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (x : M) :
-  pair f g x = (f x, g x) := rfl
+@[simp] theorem prod_apply (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (x : M) :
+  prod f g x = (f x, g x) := rfl
 
-@[simp] theorem fst_pair (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
-  (fst R M₂ M₃).comp (pair f g) = f := by ext; refl
+@[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
+  (fst R M₂ M₃).comp (prod f g) = f := by ext; refl
 
-@[simp] theorem snd_pair (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
-  (snd R M₂ M₃).comp (pair f g) = g := by ext; refl
+@[simp] theorem snd_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
+  (snd R M₂ M₃).comp (prod f g) = g := by ext; refl
 
-@[simp] theorem pair_fst_snd : pair (fst R M M₂) (snd R M M₂) = linear_map.id :=
+@[simp] theorem pair_fst_snd : prod (fst R M M₂) (snd R M M₂) = linear_map.id :=
 by ext; refl
 
 section
@@ -250,29 +252,34 @@ end
 @[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
 
-/-- The copair function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
-def copair (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
-⟨λ x, f x.1 + g x.2, λ x y, by simp; cc, λ x y, by simp [smul_add]⟩
+/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
+def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
+{ to_fun := λ x, f x.1 + g x.2,
+  add := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,
+  smul := λ x y, by simp only [smul_add, prod.smul_snd, prod.smul_fst, map_smul] }
 
-@[simp] theorem copair_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (x : M) (y : M₂) :
-  copair f g (x, y) = f x + g y := rfl
+@[simp] theorem coprod_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (x : M) (y : M₂) :
+  coprod f g (x, y) = f x + g y := rfl
 
-@[simp] theorem copair_inl (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
-  (copair f g).comp (inl R M M₂) = f := by ext; simp
+@[simp] theorem coprod_inl (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (coprod f g).comp (inl R M M₂) = f :=
+by ext; simp only [map_zero, add_zero, coprod_apply, inl_apply, comp_apply]
 
-@[simp] theorem copair_inr (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
-  (copair f g).comp (inr R M M₂) = g := by ext; simp
+@[simp] theorem coprod_inr (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (coprod f g).comp (inr R M M₂) = g :=
+by ext; simp only [map_zero, coprod_apply, inr_apply, zero_add, comp_apply]
 
-@[simp] theorem copair_inl_inr : copair (inl R M M₂) (inr R M M₂) = linear_map.id :=
-by ext ⟨x, y⟩; simp
+@[simp] theorem coprod_inl_inr : coprod (inl R M M₂) (inr R M M₂) = linear_map.id :=
+by ext ⟨x, y⟩; simp only [prod.mk_add_mk, add_zero, id_apply, coprod_apply,
+  inl_apply, inr_apply, zero_add]
 
-theorem fst_eq_copair : fst R M M₂ = copair linear_map.id 0 := by ext ⟨x, y⟩; simp
+theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext ⟨x, y⟩; simp
 
-theorem snd_eq_copair : snd R M M₂ = copair 0 linear_map.id := by ext ⟨x, y⟩; simp
+theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext ⟨x, y⟩; simp
 
-theorem inl_eq_pair : inl R M M₂ = pair linear_map.id 0 := rfl
+theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 
-theorem inr_eq_pair : inr R M M₂ = pair 0 linear_map.id := rfl
+theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
 
 end
 
@@ -291,8 +298,8 @@ instance : module R (M →ₗ[R] M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
-/-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂` to the space of
-linear maps `M₂ → M₃`. -/
+/-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂`
+to the space of linear maps `M₂ → M₃`. -/
 def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
 ⟨linear_map.comp f,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
@@ -824,7 +831,8 @@ by simpa using (quotient.eq p : mk x = 0 ↔ _)
 
 instance : has_add (quotient p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
- λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $ by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
+  λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
+    by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
 
 @[simp] theorem mk_add : (mk (x + y) : quotient p) = mk x + mk y := rfl
 
@@ -1031,14 +1039,17 @@ theorem map_le_map_iff {f : M →ₗ[R] M₂} (hf : ker f = ⊥) {p p'} : map f 
 theorem map_injective {f : M →ₗ[R] M₂} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff hf).1 (le_of_eq h)) ((map_le_map_iff hf).1 (ge_of_eq h))
 
-theorem comap_le_comap_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p p'} : comap f p ≤ comap f p' ↔ p ≤ p' :=
+theorem comap_le_comap_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p p'} :
+  comap f p ≤ comap f p' ↔ p ≤ p' :=
 ⟨λ H x hx, by rcases range_eq_top.1 hf x with ⟨y, hy, rfl⟩; exact H hx, comap_mono⟩
 
 theorem comap_injective {f : M →ₗ[R] M₂} (hf : range f = ⊤) : injective (comap f) :=
-λ p p' h, le_antisymm ((comap_le_comap_iff hf).1 (le_of_eq h)) ((comap_le_comap_iff hf).1 (ge_of_eq h))
+λ p p' h, le_antisymm ((comap_le_comap_iff hf).1 (le_of_eq h))
+  ((comap_le_comap_iff hf).1 (ge_of_eq h))
 
-theorem map_copair_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (p : submodule R M) (q : submodule R M₂) :
-  map (copair f g) (p.prod q) = map f p ⊔ map g q :=
+theorem map_coprod_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃)
+  (p : submodule R M) (q : submodule R M₂) :
+  map (coprod f g) (p.prod q) = map f p ⊔ map g q :=
 begin
   refine le_antisymm _ (sup_le (map_le_iff_le_comap.2 _) (map_le_iff_le_comap.2 _)),
   { rw le_def', rintro _ ⟨x, ⟨h₁, h₂⟩, rfl⟩,
@@ -1047,8 +1058,9 @@ begin
   { exact λ x hx, ⟨(0, x), by simp [hx]⟩ }
 end
 
-theorem comap_pair_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (p : submodule R M₂) (q : submodule R M₃) :
-  comap (pair f g) (p.prod q) = comap f p ⊓ comap g q :=
+theorem comap_prod_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃)
+  (p : submodule R M₂) (q : submodule R M₃) :
+  comap (prod f g) (p.prod q) = comap f p ⊓ comap g q :=
 submodule.ext $ λ x, iff.rfl
 
 theorem prod_eq_inf_comap (p : submodule R M) (q : submodule R M₂) :
@@ -1057,15 +1069,15 @@ submodule.ext $ λ x, iff.rfl
 
 theorem prod_eq_sup_map (p : submodule R M) (q : submodule R M₂) :
   p.prod q = p.map (linear_map.inl R M M₂) ⊔ q.map (linear_map.inr R M M₂) :=
-by rw [← map_copair_prod, copair_inl_inr, map_id]
+by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
   span R (prod.inl '' s ∪ prod.inr '' t) = (span R s).prod (span R t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
-lemma ker_pair (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
-  ker (pair f g) = ker f ⊓ ker g :=
-by rw [ker, ← prod_bot, comap_pair_prod]; refl
+lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
+  ker (prod f g) = ker f ⊓ ker g :=
+by rw [ker, ← prod_bot, comap_prod_prod]; refl
 
 end linear_map
 
@@ -1172,7 +1184,8 @@ def map_subtype.lt_order_embedding :
 (map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
 
 @[simp] theorem map_inl : p.map (inl R M M₂) = prod p ⊥ :=
-by ext ⟨x, y⟩; simp [and.left_comm, eq_comm]
+by ext ⟨x, y⟩; simp only [and.left_comm, eq_comm, mem_map, prod.mk.inj_iff, inl_apply, mem_bot,
+  exists_eq_left', mem_prod]
 
 @[simp] theorem map_inr : q.map (inr R M M₂) = prod ⊥ q :=
 by ext ⟨x, y⟩; simp [and.left_comm, eq_comm]
@@ -1303,6 +1316,7 @@ section
 set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
+@[nolint doc_blame has_inhabited_instance]
 structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
   extends M →ₗ[R] M₂, M ≃ M₂
@@ -1328,7 +1342,7 @@ lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) →
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
-variable (M)
+variables (M R)
 
 /-- The identity map is a linear equivalence. -/
 @[refl]
@@ -1350,7 +1364,8 @@ def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M
 /-- A linear equivalence is an additive equivalence. -/
 def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
 
-@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) : (e₁.trans e₂) c = e₂ (e₁ c) := rfl
+@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) :
+  (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
 
@@ -1368,7 +1383,8 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x :=
+by { cases e, refl }
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
@@ -1461,10 +1477,10 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
 
 /-- If M₂ and M₃ are linearly isomorphic then the two spaces of linear maps from M into M₂ and
 M into M₃ are linearly isomorphic. -/
-def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl M) f
+def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl R M) f
 
-/-- If M and M₂ are linearly isomorphic then the two spaces of linear maps from M and M₂ to themselves
-are linearly isomorphic. -/
+/-- If M and M₂ are linearly isomorphic then the two spaces of linear maps from M and M₂ to
+themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 
 end comm_ring
@@ -1498,7 +1514,7 @@ variables [module R M] [module R M₂] [module R M₃]
 variables (f : M →ₗ[R] M₂)
 
 /-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
-equivalent to the range of `f`.  -/
+equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
 let F : f.ker.quotient →ₗ[R] f.range :=
@@ -1546,21 +1562,11 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
 
 section prod
 
-/-- The cartesian product of two linear maps as a linear map. -/
-def prod {R M M₂ M₃ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-  [module R M] [module R M₂] [module R M₃]
-  (f₁ : M →ₗ[R] M₂) (f₂ : M →ₗ[R] M₃) : M →ₗ[R] (M₂ × M₃) :=
-{ to_fun := λx, (f₁ x, f₂ x),
-  add := λx y, begin
-    change (f₁ (x + y), f₂ (x+y)) = (f₁ x, f₂ x) + (f₁ y, f₂ y),
-    simp only [linear_map.map_add],
-    refl
-  end,
-  smul := λc x, by simp only [linear_map.map_smul] }
-
-lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*} [comm_ring R] [add_comm_group M] [add_comm_group M₂]
+lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*}
+  [comm_ring R] [add_comm_group M] [add_comm_group M₂]
   [add_comm_group M₃] [module R M] [module R M₂] [module R M₃] :
-  is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)), (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
+  is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)),
+    (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
 ⟨λu v, rfl, λc u, rfl⟩
 
 end prod
@@ -1768,7 +1774,7 @@ variables (R M)
 
 instance automorphism_group : group (M ≃ₗ[R] M) :=
 { mul := λ f g, g.trans f,
-  one := linear_equiv.refl M,
+  one := linear_equiv.refl R M,
   inv := λ f, f.symm,
   mul_assoc := λ f g h, by {ext, refl},
   mul_one := λ f, by {ext, refl},

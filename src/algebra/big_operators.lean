@@ -648,11 +648,11 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
-by simp
+by simp only [mul_ite, mul_one, mul_zero, sum_ite_eq]
 
 lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
-by simp
+by simp only [ite_mul, one_mul, zero_mul, sum_ite_eq]
 
 end semiring
 

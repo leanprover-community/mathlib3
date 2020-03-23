@@ -356,16 +356,18 @@ by rw [lt_iff_le_not_le, not_le_iff_exists]
 /-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
 inclusion. -/
 def of_le (h : p ≤ p') : p →ₗ[R] p' :=
-linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
+p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply (h : p ≤ p')
-  (x : p) : (of_le h x : M) = x := rfl
+@[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
+  (of_le h x : M) = x := rfl
+
+theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
 variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
-  (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
-by ext ⟨b, hb⟩; simp
+  q.subtype.comp (of_le h) = p.subtype :=
+by { ext ⟨b, hb⟩, refl }
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
@@ -703,6 +705,19 @@ by rintro ⟨a, y, rfl⟩; exact
 
 lemma span_singleton_eq_range (y : M) : (span R ({y} : set M) : set M) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
+
+lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {s : submodule K E} {x : E} :
+  disjoint s (span K {x}) ↔ (x ∈ s → x = 0) :=
+begin
+  refine disjoint_def.trans ⟨λ H hx, H x hx $ subset_span $ mem_singleton x, _⟩,
+  assume H y hy hyx,
+  obtain ⟨c, hc⟩ := mem_span_singleton.1 hyx,
+  subst y,
+  classical, by_cases hc : c = 0, by simp only [hc, zero_smul],
+  rw [s.smul_mem_iff hc] at hy,
+  rw [H hy, smul_zero]
+end
 
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
@@ -1349,6 +1364,8 @@ variables (M R)
 def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
+@[simp] lemma refl_apply (x : M) : refl R M x = x := rfl
+
 /-- Linear equivalences are symmetric. -/
 @[symm]
 def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
@@ -1385,6 +1402,28 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x :=
 by { cases e, refl }
+
+protected lemma bijective (e : M ≃ₗ[R] M₂) : function.bijective e := e.to_equiv.bijective
+protected lemma injective (e : M ≃ₗ[R] M₂) : function.injective e := e.to_equiv.injective
+protected lemma surjective (e : M ≃ₗ[R] M₂) : function.surjective e := e.to_equiv.surjective
+
+section prod
+
+variables [add_comm_group M₄] [module R M₄]
+
+/-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
+protected def prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
+  (M × M₃) ≃ₗ[R] M₂ × M₄ :=
+{ add := λ x y, prod.ext (e.map_add _ _) (e'.map_add _ _),
+  smul := λ c x, prod.ext (e.map_smul c _) (e'.map_smul c _),
+  .. equiv.prod_congr e.to_equiv e'.to_equiv }
+
+lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').symm = e.symm.prod e'.symm := rfl
+
+@[simp] lemma prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (p) :
+  e.prod e' p = (e p.1, e' p.2) := rfl
+
+end prod
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
@@ -1427,7 +1466,7 @@ def of_top (p : submodule R M) (h : p = ⊤) : p ≃ₗ[R] M :=
   of_top p h x = x := rfl
 
 @[simp] theorem of_top_symm_apply (p : submodule R M) {h} (x : M) :
-  ↑((of_top p h).symm x) = x := rfl
+  (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
 lemma eq_bot_of_equiv (p : submodule R M) (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
   p = ⊥ :=

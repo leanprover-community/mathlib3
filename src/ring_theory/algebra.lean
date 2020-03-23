@@ -104,9 +104,10 @@ by rw [smul_def, smul_def, mul_assoc]
 
 /-- The monoid algebra R[G] is an algebra over R. -/
 instance algebra_monoid_algebra {G : Type*} [monoid G] : algebra R (monoid_algebra R G) :=
-{ to_fun := sorry,
-  commutes' := sorry,
-  smul_def' := sorry, }
+{ to_fun := λ r, finsupp.single 1 r, -- TODO look at that abstraction leaking through
+  hom := begin end,
+  commutes' := λ r x, begin ext g, simp, sorry, end,
+  smul_def' := λ r x, begin ext g, dsimp, sorry, end, }
 
 /-- The additive monoid algebra R[G] is an algebra over R. -/
 instance algebra_add_monoid_algebra {G : Type*} [add_monoid G] : algebra R (add_monoid_algebra R G) :=

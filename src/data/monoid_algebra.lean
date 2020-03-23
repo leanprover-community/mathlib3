@@ -73,6 +73,43 @@ lemma mul_def {f g : monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
 rfl
 
+lemma mul_apply (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [sum_apply, single_apply],
+end
+
+section
+variables [group G]
+
+lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, b₁ * (g (a₁⁻¹ * x))) :=
+begin
+  rw mul_apply,
+  have t : ∀ a₁ a₂, a₁ * a₂ = x ↔ a₂ = a₁⁻¹ * x := sorry,
+  -- FIXME ugh, need operand again...
+  sorry
+end
+
+lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
+  (f * single x r) y = f (y * x⁻¹) * r :=
+begin
+  rw mul_apply_left,
+  -- FIXME need operand
+  sorry,
+end
+
+lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (g.sum $ λa₂ b₂, (f (x * a₂⁻¹)) * b₂) :=
+sorry
+
+lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
+  (single x r * f) y = r * f (x⁻¹ * y) :=
+sorry
+
+end
+
 lemma support_mul (a b : monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
 subset.trans support_sum $ bind_mono $ assume a₁ _,

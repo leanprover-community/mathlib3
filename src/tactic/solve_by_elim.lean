@@ -41,11 +41,11 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
 -/
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
+meta def solve_by_elim_aux (discharger : tactic unit) (lemmas : list expr)  : ℕ → tactic unit
 | 0 := done
 | (n+1) := done <|>
-              (apply_assumption asms $ solve_by_elim_aux n) <|>
-              (discharger >> solve_by_elim_aux n)
+    (apply_any lemmas $ solve_by_elim_aux n) <|>
+    (discharger >> solve_by_elim_aux n)
 
 /--
 Configuration options for `solve_by_elim`.
@@ -54,15 +54,15 @@ Configuration options for `solve_by_elim`.
   but with `backtrack_all_goals := true`, it operates on all goals at once,
   backtracking across goals as needed,
   and only succeeds if it discharges all goals.
-* `discharger` specifies a tactic to try discharge subgoals
-  (this is only attempted on subgoals for which no lemma applies successfully).
+* `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
+  If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
 * `max_rep` bounds the depth of the search.
 -/
 meta structure by_elim_opt :=
   (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := mk_assumption_set ff [] [])
+  (lemmas : list expr := [])
   (max_rep : ℕ := 3)
 
 /--
@@ -76,7 +76,7 @@ meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
   (if opt.backtrack_all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
+    solve_by_elim_aux opt.discharger opt.lemmas opt.max_rep
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -86,20 +86,24 @@ namespace interactive
 `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
 where `head` matches the current goal.
 
-alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-are made into the new goal.
+If this fails, `apply_assumption` will call `symmetry` and try again.
 
-optional arguments:
+If this also fails, `apply_assumption` will call `exfalso` and try again,
+so that if there is an assumption of the form `P → ¬ Q`, the new tactic state
+will have two goals, `P` and `Q`.
+
+Optional arguments:
 - asms: list of rules to consider instead of the local constants
-- tac:  a tactic to run on each subgoals after applying an assumption; if
+- tac:  a tactic to run on each subgoal after applying an assumption; if
   this tactic fails, the corresponding assumption will be rejected and
   the next one will be attempted.
 -/
 meta def apply_assumption
   (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := return ()) : tactic unit :=
-tactic.apply_assumption asms tac
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  lemmas ← asms,
+  tactic.apply_any lemmas tac
 
 add_tactic_doc
 { name        := "apply_assumption",
@@ -114,9 +118,9 @@ performing at most `max_rep` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails.
 
-`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption.
+`solve_by_elim` performs back-tracking if subgoals can not be solved.
 
-By default, the assumptions passed to `apply_assumption` are the local context, `rfl`, `trivial`,
+By default, the assumptions passed to `apply` are the local context, `rfl`, `trivial`,
 `congr_fun` and `congr_arg`.
 
 `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
@@ -161,10 +165,10 @@ The assumptions can be modified with similar syntax as for `simp`:
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
   tactic unit :=
-do asms ← mk_assumption_set no_dflt hs attr_names,
+do lemmas ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
-     assumptions := return asms,
+     lemmas := lemmas,
      ..opt }
 
 add_tactic_doc

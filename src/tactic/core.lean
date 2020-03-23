@@ -669,17 +669,16 @@ let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
 /--
-`apply_assumption` searches for terms in the local context that can be applied to make progress
-on the goal.
+`apply_any` tries to apply one of a list of lemmas to the current goal.
 
 Optional arguments:
-* `asms` controls which expressions are applied. Defaults to `local_context`.
+* `lemmas` controls which expressions are applied.
 * `tac` is called after a successful application. Defaults to `skip`.
-* `use_symmetry`: also try calling `symmetry` and try again.
-* `use_exfalso`: also try calling `exfalso` and try again.
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
 -/
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
+meta def apply_any
+  (lemmas : list expr)
   (tac : tactic unit := skip)
   (use_symmetry : bool := tt)
   (use_exfalso : bool := tt) : tactic unit :=
@@ -687,9 +686,12 @@ do
   let modes := [skip]
     ++ if use_symmetry then [symmetry] else []
     ++ if use_exfalso then [exfalso] else [],
-  asms ← asms,
-  modes.any_of (λ m, do m, asms.any_of (λ H, apply H >> tac)) <|>
-  fail "apply_assumption tactic failed"
+  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applieed"
+
+/-- Try to apply a hypothesis from the local context to the goal. -/
+meta def apply_assumption : tactic unit :=
+local_context >>= apply_any
 
 /-- `change_core e none` is equivalent to `change e`. It tries to change the goal to `e` and fails
 if this is not a definitional equality.

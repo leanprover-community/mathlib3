@@ -1364,7 +1364,7 @@ variables (M R)
 def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
-@[simp] lemma refl_apply (x : M) : (refl M : M ≃ₗ[R] M) x = x := rfl
+@[simp] lemma refl_apply (x : M) : refl R M x = x := rfl
 
 /-- Linear equivalences are symmetric. -/
 @[symm]

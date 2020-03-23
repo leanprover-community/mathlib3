@@ -1087,7 +1087,7 @@ add_tactic_doc
 { name                     := "Match Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.match_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 Invoking hole command "Equations Stub" ("Generate a list of equations for a recursive definition")
@@ -1159,7 +1159,7 @@ add_tactic_doc
 { name                     := "Equations Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.eqn_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 This command lists the constructors that can be used to satisfy the expected type.
@@ -1212,7 +1212,7 @@ add_tactic_doc
 { name                     := "List Constructors",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.list_constructors_hole],
-  tags                     := [] }
+  tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/

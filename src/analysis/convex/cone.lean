@@ -254,8 +254,8 @@ Given a convex cone `s` in a vector space `E`, a submodule `p`, and a linear `f 
 that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then there exists a globally defined linear
 function `g : E → ℝ` that agrees with `f` on `p`, and is nonnegative on `s`.
 
-We prove this theorem using Zorn's lemma. In `riesz_extension.step` is the main part of the proof.
-It says that if the domain `p` of `f` is not the whole space, then `f` can be extended to a largern
+We prove this theorem using Zorn's lemma. `riesz_extension.step` is the main part of the proof.
+It says that if the domain `p` of `f` is not the whole space, then `f` can be extended to a larger
 subspace `p ⊔ span ℝ {y}` without breaking the non-negativity condition.
 
 In `riesz_extension.exists_top` we use Zorn's lemma to prove that we can extend `f`
@@ -272,7 +272,7 @@ variables (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 
 /-- Induction step in M. Riesz extension theorem. Given a convex cone `s` in a vector space `E`,
 a partially defined linear map `f : f.domain → ℝ`, assume that `f` is nonnegative on `f.domain ∩ p`
-and `p + s = E`. If `f.domain` is not defined on the whole `E`, then we can extend it to a larger
+and `p + s = E`. If `f` is not defined on the whole `E`, then we can extend it to a larger
 submodule without breaking the non-negativity condition. -/
 lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :

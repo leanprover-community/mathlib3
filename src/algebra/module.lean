@@ -103,6 +103,8 @@ structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar �
 (mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
 
+/-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
+structure `module.core`. -/
 def module.of_core {α β} [ring α] [add_comm_group β] (M : module.core α β) : module α β :=
 by letI := M.to_has_scalar; exact
 { zero_smul := λ x,
@@ -131,6 +133,13 @@ by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 theorem sub_smul (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
+
+theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
+  {c : R} {x : E} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+⟨λ h, classical.by_cases or.inl
+  (λ hc, or.inr $ by rw [← one_smul R x, ← inv_mul_cancel hc, mul_smul, h, smul_zero]),
+  λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
 
@@ -353,6 +362,9 @@ instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 @[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
 @[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
 @[simp, move_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
+@[simp, elim_cast] lemma coe_mk (x : β) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : β) = x := rfl
+
+@[simp] protected lemma eta (x : p) (hx : (x : β) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
@@ -363,8 +375,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y :=
-by simp [sub_eq_add_neg]
+@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := rfl
 
 instance : module α p :=
 by refine {smul := (•), ..};
@@ -439,10 +450,8 @@ instance subspace.vector_space {α β}
 
 namespace submodule
 
-variables {R:field α} [add_comm_group β] [add_comm_group γ]
-variables [vector_space α β] [vector_space α γ]
-variables (p p' : submodule α β)
-variables {r : α} {x y : β}
+variables {R : division_ring α} [add_comm_group β] [module α β]
+variables (p : submodule α β) {r : α} {x y : β}
 include R
 
 set_option class.instance_max_depth 36
@@ -519,7 +528,8 @@ end add_comm_group
 section
 local attribute [instance] add_comm_monoid.nat_semimodule
 
-lemma module.smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+lemma semimodule.smul_eq_smul (R : Type*) [semiring R]
+  {β : Type*} [add_comm_group β] [semimodule R β]
   (n : ℕ) (b : β) : n • b = (n : R) • b :=
 begin
   induction n with n ih,
@@ -528,9 +538,9 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma module.add_monoid_smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
-  (n : ℕ) (b : β) : add_monoid.smul n b = (n : R) • b :=
-module.smul_eq_smul n b
+lemma semimodule.add_monoid_smul_eq_smul (R : Type*) [semiring R] {β : Type*} [add_comm_group β]
+  [semimodule R β] (n : ℕ) (b : β) : add_monoid.smul n b = (n : R) • b :=
+semimodule.smul_eq_smul R n b
 
 lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
   n • x = add_monoid.smul n x :=
@@ -543,32 +553,20 @@ local attribute [instance] add_comm_group.int_module
 
 lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
 
-def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
-  (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
-{ to_fun := f,
-  add := is_add_hom.map_add f,
-  smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.map_zero f])
-    (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
-    (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }
-
-lemma module.gsmul_eq_smul_cast {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+lemma module.gsmul_eq_smul_cast (R : Type*) [ring R] {β : Type*} [add_comm_group β] [module R β]
   (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
 begin
   cases n,
+  { apply semimodule.add_monoid_smul_eq_smul, },
   { dsimp,
-    apply module.add_monoid_smul_eq_smul, },
-  { dsimp,
-    rw module.add_monoid_smul_eq_smul (n.succ) b,
+    rw semimodule.add_monoid_smul_eq_smul R,
     push_cast,
     rw neg_smul, }
 end
 
 lemma module.gsmul_eq_smul {β : Type*} [add_comm_group β] [module ℤ β]
   (n : ℤ) (b : β) : gsmul n b = n • b :=
-begin
-  convert module.gsmul_eq_smul_cast n b,
-  simp,
-end
+by rw [module.gsmul_eq_smul_cast ℤ, int.cast_id]
 
 end
 
@@ -577,30 +575,60 @@ end
 lemma add_monoid_hom.map_int_module_smul
   {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
   [module ℤ α] [module ℤ β] (f : α →+ β) (x : ℤ) (a : α) : f (x • a) = x • f a :=
-begin
-  rw ←module.gsmul_eq_smul,
-  rw ←module.gsmul_eq_smul,
-  rw add_monoid_hom.map_gsmul,
-end
+by simp only [← module.gsmul_eq_smul, f.map_gsmul]
 
-lemma add_monoid_hom.map_smul_cast
+lemma add_monoid_hom.map_int_cast_smul
   {R : Type*} [ring R] {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
   [module R α] [module R β] (f : α →+ β) (x : ℤ) (a : α) : f ((x : R) • a) = (x : R) • f a :=
+by simp only [← module.gsmul_eq_smul_cast, f.map_gsmul]
+
+lemma add_monoid_hom.map_nat_cast_smul
+  {R : Type*} [semiring R] {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
+  [semimodule R α] [semimodule R β] (f : α →+ β) (x : ℕ) (a : α) :
+  f ((x : R) • a) = (x : R) • f a :=
+by simp only [← semimodule.add_monoid_smul_eq_smul, f.map_smul]
+
+lemma add_monoid_hom.map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
+  {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
+  (f : E →+ F) (c : ℚ) (x : E) :
+  f ((c : R) • x) = (c : R) • f x :=
 begin
-  rw ←module.gsmul_eq_smul_cast,
-  rw ←module.gsmul_eq_smul_cast,
-  rw add_monoid_hom.map_gsmul,
+  have : ∀ (x : E) (n : ℕ), 0 < n → f (((n⁻¹ : ℚ) : R) • x) = ((n⁻¹ : ℚ) : R) • f x,
+  { intros x n hn,
+    replace hn : (n : R) ≠ 0 := nat.cast_ne_zero.2 (ne_of_gt hn),
+    conv_rhs { congr, skip, rw [← one_smul R x, ← mul_inv_cancel hn, mul_smul] },
+    rw [f.map_nat_cast_smul, smul_smul, rat.cast_inv, rat.cast_coe_nat,
+      inv_mul_cancel hn, one_smul] },
+  refine c.num_denom_cases_on (λ m n hn hmn, _),
+  rw [rat.mk_eq_div, div_eq_mul_inv, rat.cast_mul, int.cast_coe_nat, mul_smul, mul_smul,
+    rat.cast_coe_int, f.map_int_cast_smul, this _ n hn]
 end
+
+lemma add_monoid_hom.map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
+  {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
+  f (c • x) = c • f x :=
+rat.cast_id c ▸ f.map_rat_cast_smul c x
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
+
+/-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
+def add_monoid_hom.to_int_linear_map [add_comm_group α] [add_comm_group β] (f : α →+ β) :
+  α →ₗ[ℤ] β :=
+⟨f, f.map_add, f.map_int_module_smul⟩
+
+/-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
+def add_monoid_hom.to_rat_linear_map [add_comm_group α] [vector_space ℚ α]
+  [add_comm_group β] [vector_space ℚ β] (f : α →+ β) :
+  α →ₗ[ℚ] β :=
+⟨f, f.map_add, f.map_rat_module_smul⟩
 
 namespace finset
 
 lemma sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   [add_comm_group β] [module R β] {s : finset α} (b : β) :
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
-by rw [finset.sum_const, ← module.smul_eq_smul]; refl
+by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
 
 variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
   {s : finset α} (f : α → M)

@@ -92,7 +92,7 @@ apply_opt_param
 <|>
 apply_auto_param
 <|>
-tactic.solve_by_elim { assumptions := pure asms }
+tactic.solve_by_elim { lemmas := asms }
 <|>
 reflexivity
 <|>

@@ -74,14 +74,14 @@ do
     | _ := s
     end) s
 
-/-- Polyfill instance for Lean versions <3.5.1c -/
--- TODO: when Lean 3.4 support is dropped, this instance can be removed
-@[priority 1]
-meta instance simp_arg_type.has_to_tactic_format : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
-| (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
-| (simp_arg_type.except n) := pure format!"-{n}"
-| _ := pure "*" -- should only be called on `simp_arg_type.all_hyps`
-end⟩
+-- /-- Polyfill instance for Lean versions <3.5.1c -/
+-- -- TODO: when Lean 3.4 support is dropped, this instance can be removed
+-- @[priority 1]
+-- meta instance simp_arg_type.has_to_tactic_format : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
+-- | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
+-- | (simp_arg_type.except n) := pure format!"-{n}"
+-- | _ := pure "*" -- should only be called on `simp_arg_type.all_hyps`
+-- end⟩
 
 open list
 
@@ -163,8 +163,7 @@ private meta def filter_simp_set_aux
   list simp_arg_type → tactic (list simp_arg_type × list simp_arg_type)
 | [] ys ds := pure (ys.reverse, ds.reverse)
 | (x :: xs) ys ds :=
-  do -- b ← same_result pr (simp use_iota_eqn tt (args ++ xs ++ ys) attr_names locat cfg >> trace_state),
-     b ← same_result pr (tac tt (args ++ xs ++ ys)),
+  do b ← same_result pr (tac tt (args ++ xs ++ ys)),
      if b
        then filter_simp_set_aux xs ys (x:: ds)
        else filter_simp_set_aux xs (x :: ys) ds
@@ -184,7 +183,6 @@ do gs ← get_goals,
    set_goals [v],
    tgt ← target,
    (_,pr) ← solve_aux tgt (tac ff (args ++ args')),
-   -- (_,pr) ← solve_aux tgt (simp use_iota_eqn no_dflt (args ++ args') attr_names locat cfg),
    env ← get_env,
    pr ← env.unfold_all_macros <$> instantiate_mvars pr,
    (args', _)  ← filter_simp_set_aux tac args pr args' [] [],
@@ -256,7 +254,6 @@ do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
      m.to_list.reverse.mmap' $ λ ⟨p,suggs⟩, do
        { let ⟨pre,_,post⟩ := suggs.head,
          let suggs : list (list simp_arg_type) := suggs.map $ prod.fst ∘ prod.snd,
-         -- trace!"{p.line}:{p.column}:",
          mk_suggestion p pre post (suggs.foldl list.union []), pure () }
 
 /--

@@ -65,6 +65,14 @@ by split_ifs; simp
   (if P then a else b) * c = if P then a * c else b * c :=
 by split_ifs; simp
 
+@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by { simp, rw decidable_of_decidable_of_iff_refl, }
+
+@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  (if P then 1 else 0) * a = if P then a else 0 :=
+by { simp, rw decidable_of_decidable_of_iff_refl, }
+
 variable (α)
 
 /-- Either zero and one are nonequal in a semiring, or the semiring is the zero ring. -/

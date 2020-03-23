@@ -60,7 +60,8 @@ end
 namespace has_zero_morphisms
 variables {C}
 
-lemma ext' (I J : has_zero_morphisms.{v} C)
+/-- This lemma will be immediately superseded by `ext`, below. -/
+private lemma ext_aux (I J : has_zero_morphisms.{v} C)
   (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
 begin
   resetI,
@@ -72,17 +73,23 @@ begin
   { apply proof_irrel_heq, }
 end
 
-@[ext]
+/--
+If you're tempted to use this lemma "in the wild", you should probably
+carefully consider whether you've made a mistake in allowing two
+instances of `has_zero_morphisms` to exist at all.
+
+See, particularly, the note on `zero_morphisms_of_zero_object` below.
+-/
 lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
 begin
-  apply ext',
+  apply ext_aux,
   intros X Y,
   rw ←@has_zero_morphisms.comp_zero _ _ I X X (@has_zero_morphisms.has_zero _ _ J X X).zero,
   rw @has_zero_morphisms.zero_comp _ _ J,
 end
 
 instance : subsingleton (has_zero_morphisms.{v} C) :=
-⟨λ I J, ext I J⟩
+⟨ext⟩
 
 end has_zero_morphisms
 
@@ -111,8 +118,7 @@ variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
   { apply faithful.injectivity (F.inverse),
-    rw [functor.map_comp],
-    rw [equivalence.inv_fun_map],
+    rw [functor.map_comp, equivalence.inv_fun_map],
     dsimp,
     rw [zero_comp, comp_zero, zero_comp], },
   exact t.trans (by simp)

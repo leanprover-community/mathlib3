@@ -112,14 +112,18 @@ where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
 join' ∘ list.intersperse x
 
+/-- `soft_break` is similar to `line`. Whereas in `group (x ++ line ++ y ++ line ++ z)`
+the result either fits on one line or in three, `x ++ soft_break ++ y ++ soft_break ++ z`
+each line break is decided independently -/
 meta def soft_break : format :=
 group line
 
 end format
 
 section format
-
 open format
+
+/-- format a `list` by separating elements with `soft_break` instead of `line` -/
 meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
 | [] := to_fmt "[]"
 | xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
@@ -1391,6 +1395,8 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+/-- `finally tac finalizer` runs `tac` first, then runs `finalizer` even if
+`tac` fails. `finally tac finalizer` fails if either `tac` or `finalizer` fails. -/
 meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
 λ s, match tac s with
      | (result.success r s') := (finalizer >> pure r) s'

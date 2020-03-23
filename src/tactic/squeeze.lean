@@ -8,21 +8,25 @@ import tactic.simpa
 
 open interactive interactive.types lean.parser
 
-meta def loc.to_string_aux : option name → string
+private meta def loc.to_string_aux : option name → string
 | none := "⊢"
 | (some x) := to_string x
 
+/-- pretty print a `loc` -/
 meta def loc.to_string : loc → string
 | (loc.ns []) := ""
 | (loc.ns [none]) := ""
 | (loc.ns ls) := string.join $ list.intersperse " " (" at" :: ls.map loc.to_string_aux)
 | loc.wildcard := " at *"
 
+/-- shift `pos` `n` columns to the left -/
 meta def pos.move_left (p : pos) (n : ℕ) : pos :=
 { line := p.line, column := p.column - n }
 
 namespace expr
 
+/-- Test alpha-equivalence of possibly incomplete proofs.
+All meta variables of the same type are considered equal. -/
 meta def alpha_eqv_with_mvar : expr → expr → bool
 | (var v) (var v') := v = v'
 | (sort u) (sort u') := u = u'
@@ -81,6 +85,7 @@ end⟩
 
 open list
 
+/-- parse record literal of the shape `{ field1 := value1, .. , field2 := value2 }` -/
 meta def record_lit : lean.parser pexpr :=
 do tk "{",
    ls ← sep_by (skip_info (tk ","))
@@ -94,6 +99,7 @@ do tk "{",
        field_values := values,
        sources := srcs }
 
+/-- pretty print record literal -/
 meta def rec.to_tactic_format (e : pexpr) : tactic format :=
 do r ← e.get_structure_instance_info,
    fs ← mzip_with (λ n v,
@@ -104,30 +110,35 @@ do r ← e.get_structure_instance_info,
    let x : format := format.join $ list.intersperse ", " (fs ++ ss),
    pure format!" {{{x}}"
 
+/-- Attribute containing a table that accumulates multiple `squeeze_simp` suggestions -/
 @[user_attribute]
 meta def squeeze_loc_attr : user_attribute unit (option (list (pos × string × list simp_arg_type × string))) :=
 { name := `squeeze_loc,
   parser := fail "this attribute should not be used of definition",
   descr := "table to accumulate multiple `squeeze_simp` suggestions" }
 
-def squeeze_loc_attr_carrier := unit
+/-- dummy declaration used as target of `squeeze_loc` attribute -/
+def squeeze_loc_attr_carrier := ()
 
 run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 
+/-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
+the suggestions emitted through `mk_suggestion` will be aggregated so that
+every tactic that makes a suggestion can consider multiple execution of the
+same invokation. -/
 meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type) : tactic unit :=
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
    | none := do
      args ← to_line_wrap_format <$> args.mmap pp,
-     -- save_info_thunk p $ λ _, format!"{pre}{args}{post}",
      @scope_trace _ p.line p.column $ λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
    | some xs := do
      squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
-     -- trace "insert replacement here"
    end
 
 local postfix `?`:9001 := optional
 
+/-- translate a `pexpr` into a `simp` configuration -/
 meta def parse_config : option pexpr → tactic (simp_config_ext × format)
 | none := pure ({}, "")
 | (some cfg) :=
@@ -136,6 +147,8 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
      prod.mk <$> eval_expr simp_config_ext e
              <*> rec.to_tactic_format cfg
 
+/-- `same_result proof tac` runs tactic `tac` and checks if the proof
+produced by `tac` is equivalent to `proof`. -/
 meta def same_result (pr : expr) (tac : tactic unit) : tactic bool :=
 do tgt ← target,
    some (_,p') ← try_core $ solve_aux tgt tac | pure ff,
@@ -143,7 +156,7 @@ do tgt ← target,
    env ← get_env,
    pure $ expr.alpha_eqv_with_mvar pr (env.unfold_all_macros p')
 
-meta def filter_simp_set_aux
+private meta def filter_simp_set_aux
   (tac : bool → list simp_arg_type → tactic unit)
   (args : list simp_arg_type) (pr : expr) :
   list simp_arg_type → list simp_arg_type →
@@ -158,6 +171,12 @@ meta def filter_simp_set_aux
 
 declare_trace squeeze.deleted
 
+/--
+`filter_simp_set v call_simp args args'` uses `call_simp` to call `simp` on
+lists of `simp` lemmas and assumptions built out of `args` and `args'`. `args`
+are the arguments provided by the user whereas `args'` are the lemmas taken from
+the `simp` attribute.
+-/
 meta def filter_simp_set (v : expr)
   (tac : bool → list simp_arg_type → tactic unit)
   (args args' : list simp_arg_type) : tactic (list simp_arg_type) :=
@@ -174,6 +193,7 @@ do gs ← get_goals,
      trace!"deleting provided arguments {ds}",
    prod.fst <$> solve_aux tgt (pure (args₀ ++ args')) <* set_goals gs
 
+/-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
 do e ← resolve_name n, pure $ simp_arg_type.expr e
 
@@ -287,7 +307,8 @@ Known limitation(s):
   * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
     `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
     It is likely that none of the suggestion is a good replacement but they can all be
-    combined by concatenating their list of lemmas.
+    combined by concatenating their list of lemmas. `squeeze_scope` can be used to
+    combine the suggestions
 -/
 meta def squeeze_simp
   (key : parse cur_pos)
@@ -304,6 +325,7 @@ do (cfg',c) ← parse_config cfg,
      sformat!"Try this: simp{use_iota_eqn} only "
      sformat!"{attrs}{loc}{c}" args
 
+/-- see `squeeze_simp` -/
 meta def squeeze_simpa
   (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
@@ -323,10 +345,13 @@ do (cfg',c) ← parse_config cfg,
 
 end interactive
 end tactic
-
+open tactic.interactive
 add_tactic_doc
 { name       := "squeeze_simp / squeeze_simpa",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.squeeze_simp, `tactic.interactive.squeeze_simpa],
+  decl_names :=
+   [``squeeze_simp,
+    ``squeeze_simpa,
+    ``squeeze_scope],
   tags       := ["simplification"],
-  inherit_description_from := `tactic.interactive.squeeze_simp }
+  inherit_description_from := ``squeeze_simp }

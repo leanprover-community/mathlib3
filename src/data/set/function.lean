@@ -82,6 +82,15 @@ lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
 @[reducible] def maps_to (f : α → β) (s : set α) (t : set β) : Prop := s ⊆ f ⁻¹' t
 
+/-- Given a map `f` sending `s : set α` into `t : set β`, restrict domain of `f` to `s`
+and the codomain to `t`. Same as `subtype.map`. -/
+def maps_to.restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  s → t :=
+subtype.map f h
+
+@[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
+  (h.restrict f s t x : β) = f x := rfl
+
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
@@ -99,6 +108,21 @@ theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to
 
 theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
 λ x h, h₁ (h₂ h)
+
+theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
+  ∀ n, maps_to (f^[n]) s s
+| 0 := λ _, id
+| (n+1) := (maps_to.iterate n).comp h
+
+theorem maps_to.iterate_restrict {f : α → α} {s : set α} (h : maps_to f s s) (n : ℕ) :
+  (h.restrict f s s^[n]) = (h.iterate n).restrict _ _ _ :=
+begin
+  funext x,
+  rw [subtype.coe_ext, maps_to.coe_restrict_apply],
+  induction n with n ihn generalizing x,
+  { refl },
+  { simp [nat.iterate, ihn] }
+end
 
 theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s₁ t₁) :
   maps_to f s₂ t₂ :=

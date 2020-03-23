@@ -139,6 +139,15 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
+instance [semiring k] [monoid G] : has_scalar k (monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance [semiring k] [monoid G] : semimodule k (monoid_algebra k G) :=
+finsupp.semimodule G k
+
+instance [ring k] [monoid G] : module k (monoid_algebra k G) :=
+finsupp.module G k
+
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
@@ -252,6 +261,15 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
+
+instance [semiring k] [monoid G] : has_scalar k (add_monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance [semiring k] [monoid G] : semimodule k (add_monoid_algebra k G) :=
+finsupp.semimodule G k
+
+instance [ring k] [monoid G] : module k (add_monoid_algebra k G) :=
+finsupp.module G k
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=

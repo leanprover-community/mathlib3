@@ -103,11 +103,13 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 /-- The monoid algebra R[G] is an algebra over R. -/
-instance [monoid G] : algebra R (monoid_algebra R G) :=
-sorry
+instance algebra_monoid_algebra {G : Type*} [monoid G] : algebra R (monoid_algebra R G) :=
+{ to_fun := sorry,
+  commutes' := sorry,
+  smul_def' := sorry, }
 
 /-- The additive monoid algebra R[G] is an algebra over R. -/
-instance [add_monoid G] : algebra R (add_monoid_algebra R G) :=
+instance algebra_add_monoid_algebra {G : Type*} [add_monoid G] : algebra R (add_monoid_algebra R G) :=
 sorry
 
 /-- R[X] is the generator of the category R-Alg. -/

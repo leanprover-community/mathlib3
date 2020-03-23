@@ -1314,7 +1314,7 @@ ext $ λ a', by by_cases a = a';
 
 end
 
-@[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :
+@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :
   (b • v) a = b • (v a) :=
 rfl
 

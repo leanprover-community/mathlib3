@@ -348,6 +348,24 @@ def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 | tt h := is_true (h.1 rfl)
 | ff h := is_false (mt h.2 bool.ff_ne_tt)
 
+/-! ### Lemmas about `if` -/
+
+/--
+We add a more specialised `congr` lemma,
+which will be used in preference to `if_simp_congr` when possible.
+
+This is desirable as even when the proposition `b` in `ite b x y` does not need to change,
+the usual `if_simp_congr` will replace the `decidable` instance `D : decidable b`
+`decidable_of_decidable_of_iff D (iff.refl b)`.
+
+This can be managed using the `congr` tactic, since `decidable` is a subsingleton,
+but it leaves unnecessary mess for the user.
+-/
+@[congr]
+lemma if_simp_congr' {α : Sort*} {b : Prop} [decidable b] {x y u v : α}
+  (h_t : x = u) (h_e : y = v) : ite b x y = ite b u v :=
+by congr; assumption
+
 /-! ### De Morgan's laws -/
 
 theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)

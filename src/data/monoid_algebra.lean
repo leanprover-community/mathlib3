@@ -79,23 +79,31 @@ begin
   rw [mul_def],
   simp only [sum_apply, single_apply],
 end
+end
 
 section
-variables [group G]
+variables [semiring k] [group G]
 
 lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, b₁ * (g (a₁⁻¹ * x))) :=
 begin
   rw mul_apply,
-  have t : ∀ a₁ a₂, a₁ * a₂ = x ↔ a₂ = a₁⁻¹ * x := sorry,
-  -- FIXME ugh, need operand again...
-  sorry
+  have t : ∀ a₁ a₂, a₁ * a₂ = x ↔ a₁⁻¹ * x = a₂ := sorry,
+  congr, funext,
+  conv_lhs { congr, skip, funext, rw t, },
+  dsimp [finsupp.sum],
+  -- TODO a version of finset.sum_ite_eq with the equality switched? (At least, if we can arrange for simp to work.)
+  rw finset.sum_ite_eq g.support, -- FIXME why do we need the `g.support`? Why can't `simp` do this?
+  split_ifs,
+  { refl, },
+  { simp [not_mem_support_iff.1 h], }, -- FIXME make this work just by `simp [h]`?
 end
 
 lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
   (f * single x r) y = f (y * x⁻¹) * r :=
 begin
   rw mul_apply_left,
+  conv_lhs { congr, skip, funext, simp [single_apply], rw mul_ite, },
   -- FIXME need operand
   sorry,
 end
@@ -109,6 +117,9 @@ lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
 sorry
 
 end
+
+section
+variables [semiring k] [monoid G]
 
 lemma support_mul (a b : monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=

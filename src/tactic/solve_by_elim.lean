@@ -65,6 +65,9 @@ meta structure by_elim_opt :=
   (lemmas : list expr := [])
   (max_rep : ℕ := 3)
 
+meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
+if opt.lemmas = [] then local_context else return opt.lemmas
+
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
 from the list of assumptions (passed via the `by_elim_opt` argument),
@@ -75,8 +78,9 @@ It succeeds only if it discharges the first goal
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
+  lemmas ← opt.get_lemmas,
   (if opt.backtrack_all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger opt.lemmas opt.max_rep
+    solve_by_elim_aux opt.discharger lemmas opt.max_rep
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -94,15 +98,15 @@ will have two goals, `P` and `Q`.
 
 Optional arguments:
 - asms: list of rules to consider instead of the local constants
-- tac:  a tactic to run on each subgoal after applying an assumption; if
+- tac: a tactic to run on each subgoal after applying an assumption; if
   this tactic fails, the corresponding assumption will be rejected and
   the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
+  (lemmas : list expr := [])
   (tac : tactic unit := skip) : tactic unit :=
 do
-  lemmas ← asms,
+  lemmas ← if lemmas = [] then local_context else return lemmas,
   tactic.apply_any lemmas tac
 
 add_tactic_doc

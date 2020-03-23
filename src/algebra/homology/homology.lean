@@ -48,12 +48,12 @@ We need to assume all equalizers, not just kernels, so that
 -/
 variables [has_images.{v} V] [has_equalizers.{v} V]
 
-/-- The connecting morphism from the image of `d i` to the kernel of `d (i+1)`. -/
+/-- The connecting morphism from the image of `d (i-1)` to the kernel of `d i`. -/
 def image_to_kernel_map (C : chain_complex V) (i : ℤ) :
-  image (C.d i) ⟶ kernel (C.d (i+1)) :=
-kernel.lift _ (image.ι (C.d i))
+  image (C.d (i-1)) ⟶ kernel (C.d i) :=
+kernel.lift _ (image.ι (C.d (i-1)))
 begin
-  rw ←cancel_epi (factor_thru_image (C.d i)),
+  rw ←cancel_epi (factor_thru_image (C.d (i-1))),
   rw [has_zero_morphisms.comp_zero, image.fac_assoc, d_squared],
   refl,
 end
@@ -83,7 +83,7 @@ end
 variables [has_cokernels.{v} V]
 
 /-- The `i`-th homology group of the chain complex `C`. -/
-def homology_group (C : chain_complex V) (i : ℤ) : V :=
+def homology (C : chain_complex V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C i)
 
 -- TODO:
@@ -94,16 +94,16 @@ cokernel (image_to_kernel_map C i)
 -- (with whatever added assumptions are needed above.)
 
 -- def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
---   C.homology_group i ⟶ C'.homology_group i :=
--- cokernel.desc _ (induced_map_on_cycles f (i+1) ≫ cokernel.π _)
+--   C.homology i ⟶ C'.homology i :=
+-- cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
 -- begin
 --   rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
 --   erw [has_zero_morphisms.comp_zero],
 -- end
 
 -- /-- The homology functor from chain complexes to `ℤ` graded objects in `V`. -/
--- def homology : chain_complex.{v} V ⥤ graded_object ℤ V :=
--- { obj := λ C i, homology_group C i,
+-- def homology_functor : chain_complex.{v} V ⥤ graded_object ℤ V :=
+-- { obj := λ C i, homology C i,
 --   map := λ C C' f i, induced_map_on_homology f i,
 --   map_id' := sorry,
 --   map_comp' := sorry, }

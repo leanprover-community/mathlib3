@@ -59,19 +59,26 @@ theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 
 @[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a b c : α) :
   a * (if P then b else c) = if P then a * b else a * c :=
-by split_ifs; simp
+by split_ifs; refl
 
 @[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a b c : α) :
   (if P then a else b) * c = if P then a * c else b * c :=
-by split_ifs; simp
+by split_ifs; refl
 
+-- Why is `congr` needed here?
+-- The problem is that `simp` has used the congruence lemma `if_simp_congr`,
+-- and thus even though the goal after simple appears to be the reflexively true
+-- `ite P a 0 = ite P a 0`,
+-- on the left hand side the `decidable` instance for `P`  has become
+-- `decidable_of_decidable_of_iff _inst (iff.refl P)` rather than just `_inst`.
+-- Since `decidable` is a subsingleton, `congr` can fix things ups.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by { simp, rw decidable_of_decidable_of_iff_refl, }
+by { simp, congr, }
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by { simp, rw decidable_of_decidable_of_iff_refl, }
+by { simp, congr, }
 
 variable (α)
 

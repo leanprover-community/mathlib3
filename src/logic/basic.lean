@@ -338,15 +338,6 @@ by { split; intro h,
 theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 
-@[simp]
-lemma decidable_of_decidable_of_iff_refl (a : Prop) [D : decidable a] :
-  decidable_of_decidable_of_iff D (iff.refl a) = D :=
-begin
-  unfold decidable_of_decidable_of_iff,
-  tactic.unfreeze_local_instances,
-  cases D; { dsimp [dite], congr, },
-end
-
 @[inline] def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
 decidable_of_decidable_of_iff D h
 

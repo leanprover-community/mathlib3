@@ -971,25 +971,33 @@ end
 ```
 and likewise for `to_rhs`.
 
-### operand
+### apply_congr
 
-The `operand` tactic is used in conversion mode. It allows the user to pull out the operand of a `finset.sum`, `finset.prod` or `finset.fold`, and gives a hypothesis `s_mem` which says that some variable is an element of the finset. For example:
+The `apply_congr` tactic is used in conversion mode, to apply a congruence lemma
+when `congr` performs poorly.
+In particular it is useful for rewriting inside the operand of a `finset.sum`,
+as it provides an extra hypothesis asserting we are inside the domain.
+
+For example:
 
 ```lean
-lemma eq_big_sum_Z (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
-  finset.sum S (λ s, f s) = finset.sum S (λ s, g s) :=
+example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
+  finset.sum S f = finset.sum S g :=
 begin
-  conv
-    {                     -- | finset.sum S (λ (s : ℤ), f s) = finset.sum S (λ (s : ℤ), g s)
-      to_lhs,             -- | finset.sum S (λ (s : ℤ), f s)
-      operand {           -- | f s
-        rw [h s s_mem],   -- | g s
-      },                  -- | finset.sum S (λ (s : ℤ), g s)
-    },                    -- goals accomplished
+  conv_lhs {
+    -- If we just call `congr` here, in the second goal we're helpless,
+    -- because we are only given the opportunity to rewrite `f`.
+
+    -- However `apply_congr` uses the appropriate `@[congr]` lemma,
+    -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
+    apply_congr,
+    skip,
+    simp [h, H],
+  }
 end
 ```
 
-In the above example, when the `operand` tactic is called it gives the hypothesis `s_mem : s ∈ S` which is is used to rewrite the `f s` to `g s`.
+In the above example, when the `apply_congr` tactic is called it gives the hypothesis `H : x ∈ S` which is then used to rewrite the `f x` to `g x`.
 
 ## mono
 

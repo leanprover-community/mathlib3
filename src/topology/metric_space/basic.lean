@@ -834,7 +834,7 @@ instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space �
   metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
-theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist x.1 y.1 := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 
 section nnreal
 

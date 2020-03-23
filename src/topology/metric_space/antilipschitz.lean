@@ -63,7 +63,7 @@ begin
   exact hf x y
 end
 
-lemma id : antilipschitz_with 1 (id : α → α) :=
+protected lemma id : antilipschitz_with 1 (id : α → α) :=
 λ x y, by simp only [ennreal.coe_one, one_mul, id, le_refl]
 
 lemma comp {Kg : ℝ≥0} {g : β → γ} (hg : antilipschitz_with Kg g)
@@ -95,6 +95,13 @@ begin
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end
+
+lemma restrict (hf : antilipschitz_with K f) (s : set α) :
+  antilipschitz_with K (s.restrict f) :=
+λ x y, hf x y
+
+lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
+antilipschitz_with.id.restrict s
 
 end antilipschitz_with
 

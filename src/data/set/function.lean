@@ -29,8 +29,25 @@ namespace set
 
 /-! ### Restrict -/
 
-lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-by { ext x, simp [restrict], refl }
+/-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
+takes an argument `↥s` instead of `subtype s`. -/
+def restrict (f : α → β) (s : set α) : s → β := λ x, f x
+
+lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
+
+@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
+range_comp.trans $ congr_arg (('') f) s.range_coe_subtype
+
+/-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
+has codomain `↥s` instead of `subtype s`. -/
+def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
+λ x, ⟨f x, h x⟩
+
+@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
+  (cod_restrict f s h x : β) = f x :=
+rfl
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}

@@ -219,6 +219,9 @@ classical.by_cases
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
+theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
+le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
+
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
@@ -231,11 +234,7 @@ lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
-λ hx, begin
-  rw [←(mul_one ∥f∥)],
-  calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
-  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
-end
+mul_one ∥f∥ ▸ f.le_op_norm_of_le
 
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
@@ -313,12 +312,7 @@ instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
 lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
-  begin
-    rw mul_assoc,
-    calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _ _
-    ... ≤ _ : mul_le_mul_of_nonneg_left
-              (le_op_norm _ _) (op_norm_nonneg _)
-  end⟩)
+    by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -592,6 +586,8 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_inverse e.left_inv
+
+protected lemma injective : function.injective e := e.antilipschitz.injective
 
 /-- A continuous linear equiv is a uniform embedding. -/
 lemma uniform_embedding : uniform_embedding e :=

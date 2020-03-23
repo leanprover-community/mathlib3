@@ -1290,7 +1290,7 @@ add_tactic_doc
 { name                     := "higher_order",
   category                 := doc_category.attr,
   decl_names               := [`tactic.higher_order_attr],
-  tags                     := [] }
+  tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
 

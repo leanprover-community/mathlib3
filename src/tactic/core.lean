@@ -836,7 +836,7 @@ add_tactic_doc
 { name                     := "fsplit",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.fsplit],
-  tags                     := [] }
+  tags                     := ["logic", "goal management"] }
 
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
 succeeds, clears the old hypothesis. -/
@@ -851,7 +851,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := [] }
+  tags                     := ["hypothesis management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/

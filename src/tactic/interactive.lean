@@ -23,7 +23,7 @@ add_tactic_doc
 { name       := "fconstructor",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fconstructor],
-  tags       := [] }
+  tags       := ["logic", "goal management"] }
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/

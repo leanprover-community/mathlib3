@@ -580,7 +580,7 @@ do try `[dunfold has_sub.sub algebra.sub],
                `[simp only [is_associative.assoc]]) ),
      n ← num_goals,
      iterate_exactly (n-1) (try $ solve1 $ apply_instance <|>
-       tactic.solve_by_elim {assumptions := pure asms}))
+       tactic.solve_by_elim {lemmas := asms}))
 
 open sum nat
 

@@ -171,10 +171,10 @@ private meta def filter_simp_set_aux
 declare_trace squeeze.deleted
 
 /--
-`filter_simp_set v call_simp user_args simp_args` uses `call_simp` to call `simp` on
-lists of `simp` lemmas and assumptions built out of `user_args` and `simp_args`. `user_args`
-are the arguments provided by the user whereas `simp_args` are the lemmas taken from
-the `simp` attribute.
+`filter_simp_set g call_simp user_args simp_args` returns args' such that, when calling
+`call_simp tt /- only -/ args'` on the goal g (g is a meta var) we end up in the same
+state as if we had called `call_simp ff (user_args ++ simp_args)` and removing any one
+element of args' changes the resulting proof.
 -/
 meta def filter_simp_set (v : expr)
   (tac : bool → list simp_arg_type → tactic unit)

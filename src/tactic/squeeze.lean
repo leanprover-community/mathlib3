@@ -23,42 +23,6 @@ meta def loc.to_string : loc → string
 meta def pos.move_left (p : pos) (n : ℕ) : pos :=
 { line := p.line, column := p.column - n }
 
-namespace expr
-
-/-- Test alpha-equivalence of possibly incomplete proofs.
-All meta variables of the same type are considered equal. -/
-meta def alpha_eqv_with_mvar : expr → expr → bool
-| (var v) (var v') := v = v'
-| (sort u) (sort u') := u = u'
-| (const c us) (const c' us') :=
-  c = c' ∧ us = us'
-| (mvar unique pretty type) (mvar unique' pretty' type') :=
-  alpha_eqv_with_mvar type type'
-| (local_const unique pretty bi type) (local_const unique' pretty' bi' type') :=
-  (unique,pretty,bi) = (unique',pretty',bi') ∧
-  alpha_eqv_with_mvar type type'
-| (app f e) (app f' e') :=
-  alpha_eqv_with_mvar f f' ∧
-  alpha_eqv_with_mvar e e'
-| (lam var_name bi var_type body) (lam var_name' bi' var_type' body') :=
-  alpha_eqv_with_mvar var_type var_type' ∧
-  alpha_eqv_with_mvar body body'
-| (pi var_name bi var_type body) (pi var_name' bi' var_type' body') :=
-  alpha_eqv_with_mvar var_type var_type' ∧
-  alpha_eqv_with_mvar body body'
-| (elet var_name type assignment body) (elet var_name' type' assignment' body') :=
-  alpha_eqv_with_mvar type type' ∧
-  alpha_eqv_with_mvar assignment assignment' ∧
-  alpha_eqv_with_mvar body body'
-| (macro m es) (macro m' es') :=
-  expr.macro_def_name m = expr.macro_def_name m' ∧
-  (list.map₂ alpha_eqv_with_mvar es es').all id
-| _ _ := ff
-
-
-end expr
-
-
 namespace tactic
 
 /--
@@ -74,19 +38,10 @@ do
     | _ := s
     end) s
 
--- /-- Polyfill instance for Lean versions <3.5.1c -/
--- -- TODO: when Lean 3.4 support is dropped, this instance can be removed
--- @[priority 1]
--- meta instance simp_arg_type.has_to_tactic_format : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
--- | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
--- | (simp_arg_type.except n) := pure format!"-{n}"
--- | _ := pure "*" -- should only be called on `simp_arg_type.all_hyps`
--- end⟩
-
 open list
 
 /-- parse structure instance of the shape `{ field1 := value1, .. , field2 := value2 }` -/
-meta def record_lit : lean.parser pexpr :=
+meta def struct_inst : lean.parser pexpr :=
 do tk "{",
    ls ← sep_by (skip_info (tk ","))
      ( sum.inl <$> (tk ".." *> texpr) <|>
@@ -100,7 +55,7 @@ do tk "{",
        sources := srcs }
 
 /-- pretty print structure instance -/
-meta def rec.to_tactic_format (e : pexpr) : tactic format :=
+meta def struct.to_tactic_format (e : pexpr) : tactic format :=
 do r ← e.get_structure_instance_info,
    fs ← mzip_with (λ n v,
      do v ← to_expr v >>= pp,
@@ -145,20 +100,17 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
   do e ← to_expr ``(%%cfg : simp_config_ext),
      fmt ← has_to_tactic_format.to_tactic_format cfg,
      prod.mk <$> eval_expr simp_config_ext e
-             <*> rec.to_tactic_format cfg
+             <*> struct.to_tactic_format cfg
 
 /-- `same_result proof tac` runs tactic `tac` and checks if the proof
 produced by `tac` is equivalent to `proof`. -/
-meta def same_result (pr : expr) (tac : tactic unit) : tactic bool :=
-do tgt ← target,
-   some (_,p') ← try_core $ solve_aux tgt tac | pure ff,
-   p' ← instantiate_mvars p',
-   env ← get_env,
-   pure $ expr.alpha_eqv_with_mvar pr (env.unfold_all_macros p')
+meta def same_result (pr : proof_state) (tac : tactic unit) : tactic bool :=
+do s ← get_proof_state_after tac,
+   pure $ some pr = s
 
 private meta def filter_simp_set_aux
   (tac : bool → list simp_arg_type → tactic unit)
-  (args : list simp_arg_type) (pr : expr) :
+  (args : list simp_arg_type) (pr : proof_state) :
   list simp_arg_type → list simp_arg_type →
   list simp_arg_type → tactic (list simp_arg_type × list simp_arg_type)
 | [] ys ds := pure (ys.reverse, ds.reverse)
@@ -176,20 +128,15 @@ declare_trace squeeze.deleted
 state as if we had called `call_simp ff (user_args ++ simp_args)` and removing any one
 element of `args'` changes the resulting proof.
 -/
-meta def filter_simp_set (v : expr)
+meta def filter_simp_set
   (tac : bool → list simp_arg_type → tactic unit)
   (user_args simp_args : list simp_arg_type) : tactic (list simp_arg_type) :=
-do gs ← get_goals,
-   set_goals [v],
-   tgt ← target,
-   (_,pr) ← solve_aux tgt (tac ff (user_args ++ simp_args)),
-   env ← get_env,
-   pr ← env.unfold_all_macros <$> instantiate_mvars pr,
-   (simp_args', _)  ← filter_simp_set_aux tac user_args pr simp_args [] [],
-   (user_args', ds) ← filter_simp_set_aux tac simp_args' pr user_args [] [],
+do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
+   (simp_args', _)  ← filter_simp_set_aux tac user_args s simp_args [] [],
+   (user_args', ds) ← filter_simp_set_aux tac simp_args' s user_args [] [],
    when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
      trace!"deleting provided arguments {ds}",
-   prod.fst <$> solve_aux tgt (pure (user_args' ++ simp_args')) <* set_goals gs
+   pure (user_args' ++ simp_args')
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
@@ -215,7 +162,7 @@ do g ← main_goal,
    vs ← vs.mmap strip_prefix,
    vs ← erase_simp_args args vs,
    vs ← vs.to_list.mmap name.to_simp_args,
-   filter_simp_set v tac args vs
+   with_local_goals' [v] $ filter_simp_set tac args vs
 
 namespace interactive
 
@@ -311,7 +258,7 @@ meta def squeeze_simp
   (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
-  (cfg : parse record_lit?) : tactic unit :=
+  (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    args ← squeeze_simp_core no_dflt hs
      (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg'),
@@ -327,7 +274,7 @@ meta def squeeze_simpa
   (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
-  (cfg : parse record_lit?) : tactic unit :=
+  (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
@@ -342,6 +289,7 @@ do (cfg',c) ← parse_config cfg,
 
 end interactive
 end tactic
+
 open tactic.interactive
 add_tactic_doc
 { name       := "squeeze_simp / squeeze_simpa / squeeze_scope",

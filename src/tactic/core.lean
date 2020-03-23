@@ -1450,6 +1450,88 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
 
+/-- `with_local_goals gs tac` runs `tac` on the goals `gs` and then restores the
+initial goals and returns the goals `tac` ended on. -/
+meta def with_local_goals {α} (gs : list expr) (tac : tactic α) : tactic (α × list expr) :=
+do gs' ← get_goals,
+   set_goals gs,
+   finally (prod.mk <$> tac <*> get_goals) (set_goals gs')
+
+/-- like `with_local_goals` but discards the resulting goals -/
+meta def with_local_goals' {α} (gs : list expr) (tac : tactic α) : tactic α :=
+prod.fst <$> with_local_goals gs tac
+
+/-- create a meta variable identical to the main goal -/
+meta def clone_goal : tactic expr :=
+target >>= mk_meta_var
+
+/-- clone every goal in the current proof state -/
+meta def clone_state : tactic (list expr) :=
+do gs ← get_goals,
+   gs.mmap (λ g, set_goals [g] >> clone_goal)
+     <* set_goals gs
+
+/-- run `tac` on the current proof state get revert back to initial state -/
+meta def with_cloned_state {α} (tac : tactic α) : tactic α :=
+do gs ← clone_state,
+   with_local_goals' gs tac
+
+/-- Representation of a proof goal that lends itself to comparison. The
+following goal:
+
+```lean
+l₀ : T,
+l₁ : T
+⊢ ∀ v : T, foo
+```
+
+is represented as
+
+```
+(2, ∀ l₀ l₁ v : T, foo)
+```
+
+The number 2 indicates that first the two bound variables of the
+`∀` are actually local constant. Comparing two such goals with `=`
+rather than `=ₐ` or `is_def_eq` tells us that proof script should
+not see the difference between the two.
+ -/
+meta def goal := ℕ × expr
+
+/-- proof state made of multiple `goal` meant for comparing
+the result of running different tactics -/
+meta def proof_state := list goal
+
+meta instance goal.inhabited : inhabited goal := ⟨(0,var 0)⟩
+meta instance proof_state.inhabited : inhabited proof_state :=
+(infer_instance : inhabited (list goal))
+
+/--
+Run `tac` in a disposable proof state and return the state.
+See `proof_state` and `goal`.
+
+Limitation:
+If one goal occurs as a meta variable in another goal, the representation
+that this function returns will not compare goals have in the desired way.
+
+Possible improvement:
+If one wants to account for that situation, `kabstract` can be used to replace
+the meta variables that are goals in the final state with bound variables.
+Then, if `(3, p)` is a goal in `gs`, `p` has `3 + gs.length` bound variables
+that do not stand for universal quantifications in the goal.
+-/
+meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
+with_cloned_state $ do
+  some _ ← try_core tac | pure none,
+  gs ← get_goals,
+  gs ← gs.mmap $ λ g, do
+  { set_goals [g],
+    ls ← local_context,
+    revert_lst ls,
+    tgt ← target >>= instantiate_mvars,
+    pure (ls.length, tgt) },
+  pure $ some gs
+
 open lean interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/

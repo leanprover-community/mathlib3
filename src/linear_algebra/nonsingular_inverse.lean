@@ -187,7 +187,7 @@ end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
-  s.sum (λ x, cramer α A (f x)) = cramer α A (sum s f) :=
+  s.sum (λ x, cramer α A (f x)) = cramer α A (s.sum f) :=
 (linear_map.map_sum (cramer α A)).symm
 
 /-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
@@ -265,10 +265,10 @@ begin
   ext i j,
   rw [mul_val, smul_val, one_val, mul_ite],
   calc
-    sum univ (λ (k : n), A i k * adjugate A k j)
-        = sum univ (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
+    univ.sum (λ (k : n), A i k * adjugate A k j)
+        = univ.sum (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
       : by {congr, ext k, apply mul_adjugate_val A i j k}
-    ... = cramer α A (λ j, sum univ (λ (k : n), if k = j then A i k else 0)) j
+    ... = cramer α A (λ j, univ.sum (λ (k : n), if k = j then A i k else 0)) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
       rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }

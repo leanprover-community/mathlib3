@@ -125,7 +125,6 @@ apply_nolint lie_submodule has_inhabited_instance
 
 -- algebra/module.lean
 apply_nolint ideal doc_blame
-apply_nolint is_add_group_hom.to_linear_map doc_blame
 apply_nolint is_linear_map doc_blame
 apply_nolint is_linear_map.mk' doc_blame
 apply_nolint is_ring_hom.to_module doc_blame

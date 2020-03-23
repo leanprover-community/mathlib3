@@ -21,7 +21,10 @@ We prove two extension theorems:
 
 * `riesz_extension`:
   [M. Riesz extension theorem](https://en.wikipedia.org/wiki/M._Riesz_extension_theorem) says that
-  if `s` is a convex cone
+  if `s` is a convex cone in a real vector space `E`, `p` is a submodule of `E`
+  such that `p + s = E`, and `f` is a linear function `p → ℝ` which is
+  nonnegative on `p ∩ s`, then there exists a globally defined linear function
+  `g : E → ℝ` that agrees with `f` on `p`, and is nonnegative on `s`.
 
 * `exists_extension_of_le_sublinear`:
   Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map

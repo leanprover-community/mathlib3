@@ -109,6 +109,18 @@ where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
 join' ∘ list.intersperse x
 
+meta def soft_break : format :=
+group line
+
+end format
+
+section format
+
+open format
+meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
+| [] := to_fmt "[]"
+| xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
+
 end format
 
 namespace tactic

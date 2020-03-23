@@ -18,8 +18,41 @@ meta def loc.to_string : loc → string
 | (loc.ns ls) := string.join $ list.intersperse " " (" at" :: ls.map loc.to_string_aux)
 | loc.wildcard := " at *"
 
+namespace expr
+
+meta def alpha_eqv_with_mvar : expr → expr → bool
+| (var v) (var v') := v = v'
+| (sort u) (sort u') := u = u'
+| (const c us) (const c' us') :=
+  c = c' ∧ us = us'
+| (mvar unique pretty type) (mvar unique' pretty' type') :=
+  alpha_eqv_with_mvar type type'
+| (local_const unique pretty bi type) (local_const unique' pretty' bi' type') :=
+  (unique,pretty,bi) = (unique',pretty',bi') ∧
+  alpha_eqv_with_mvar type type'
+| (app f e) (app f' e') :=
+  alpha_eqv_with_mvar f f' ∧
+  alpha_eqv_with_mvar e e'
+| (lam var_name bi var_type body) (lam var_name' bi' var_type' body') :=
+  alpha_eqv_with_mvar var_type var_type' ∧
+  alpha_eqv_with_mvar body body'
+| (pi var_name bi var_type body) (pi var_name' bi' var_type' body') :=
+  alpha_eqv_with_mvar var_type var_type' ∧
+  alpha_eqv_with_mvar body body'
+| (elet var_name type assignment body) (elet var_name' type' assignment' body') :=
+  alpha_eqv_with_mvar type type' ∧
+  alpha_eqv_with_mvar assignment assignment' ∧
+  alpha_eqv_with_mvar body body'
+| (macro m es) (macro m' es') :=
+  expr.macro_def_name m = expr.macro_def_name m' ∧
+  (list.map₂ alpha_eqv_with_mvar es es').all id
+| _ _ := ff
+
+
+end expr
+
+
 namespace tactic
-namespace interactive
 
 /--
   `erase_simp_args hs s` removes from `s` each name `n` such that `const n` is an element of `hs`
@@ -37,7 +70,7 @@ do
 /-- Polyfill instance for Lean versions <3.5.1c -/
 -- TODO: when Lean 3.4 support is dropped, this instance can be removed
 @[priority 1]
-meta instance : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
+meta instance simp_arg_type.has_to_tactic_format : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
 | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
 | (simp_arg_type.except n) := pure format!"-{n}"
 | _ := pure "*" -- should only be called on `simp_arg_type.all_hyps`
@@ -78,7 +111,72 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
      prod.mk <$> eval_expr simp_config_ext e
              <*> rec.to_tactic_format cfg
 
-meta def auto_simp_lemma := [``eq_self_iff_true]
+meta def same_result (pr : expr) (tac : tactic unit) : tactic bool :=
+do tgt ← target,
+   some (_,p') ← try_core $ solve_aux tgt tac | pure ff,
+   p' ← instantiate_mvars p',
+   env ← get_env,
+   pure $ expr.alpha_eqv_with_mvar pr (env.unfold_all_macros p')
+
+meta def filter_simp_set_aux
+  (tac : bool → list simp_arg_type → tactic unit)
+  (args : list simp_arg_type) (pr : expr) :
+  list simp_arg_type → list simp_arg_type →
+  list simp_arg_type → tactic (list simp_arg_type × list simp_arg_type)
+| [] ys ds := pure (ys.reverse, ds.reverse)
+| (x :: xs) ys ds :=
+  do -- b ← same_result pr (simp use_iota_eqn tt (args ++ xs ++ ys) attr_names locat cfg >> trace_state),
+     b ← same_result pr (tac tt (args ++ xs ++ ys)),
+     if b
+       then filter_simp_set_aux xs ys (x:: ds)
+       else filter_simp_set_aux xs (x :: ys) ds
+
+declare_trace squeeze.deleted
+
+meta def filter_simp_set (v : expr)
+  (tac : bool → list simp_arg_type → tactic unit)
+  (args args' : list simp_arg_type) : tactic (list format) :=
+do gs ← get_goals,
+   set_goals [v],
+   tgt ← target,
+   (_,pr) ← solve_aux tgt (tac ff (args ++ args')),
+   -- (_,pr) ← solve_aux tgt (simp use_iota_eqn no_dflt (args ++ args') attr_names locat cfg),
+   env ← get_env,
+   pr ← env.unfold_all_macros <$> instantiate_mvars pr,
+   (args', _)  ← filter_simp_set_aux tac args pr args' [] [],
+   (args₀, ds) ← filter_simp_set_aux tac args' pr args [] [],
+   when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
+     trace!"deleting provided arguments {ds}",
+   prod.fst <$> solve_aux tgt ((args₀ ++ args').mmap pp) <* set_goals gs
+
+meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
+do e ← resolve_name n, pure $ simp_arg_type.expr e
+
+/-- tactic combinator to create a `simp`-like tactic that minimizes its
+argument list.
+
+ * no_dflt: did the user use the `only` keyword?
+ * args:    list of `simp` arguments
+ * tac :    how to invoke the underlying `simp` tactic
+
+-/
+meta def squeeze_simp_core
+  (no_dflt : bool) (args : list simp_arg_type)
+  (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit) : tactic format :=
+do g ← main_goal,
+   v ← target >>= mk_meta_var,
+   tac no_dflt args,
+   g ← instantiate_mvars g,
+   let vs := g.list_constant,
+   vs ← vs.mfilter is_simp_lemma,
+   vs ← vs.mmap strip_prefix,
+   vs ← erase_simp_args args vs,
+   vs ← vs.to_list.mmap name.to_simp_args,
+   args' ← filter_simp_set v tac args vs,
+   if args'.empty then pure $ to_fmt ""
+     else pure args'.to_line_wrap_format
+
+namespace interactive
 
 /--
 `squeeze_simp` and `squeeze_simpa` perform the same task with
@@ -134,41 +232,27 @@ meta def squeeze_simp
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse record_lit?) : tactic unit :=
-do g ← main_goal,
-   (cfg',c) ← parse_config cfg,
-   hs' ← hs.mmap pp,
-   simp use_iota_eqn no_dflt hs attr_names locat cfg',
-   g ← instantiate_mvars g,
-   let vs := g.list_constant,
-   vs ← vs.mfilter is_simp_lemma >>= name_set.mmap strip_prefix,
-   let vs := auto_simp_lemma.foldl name_set.erase vs,
-   vs ← erase_simp_args hs vs,
+do (cfg',c) ← parse_config cfg,
+   args ← squeeze_simp_core no_dflt hs
+     (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg'),
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
-   let args := hs' ++ vs.to_list.map to_fmt,
    trace format!"Try this: simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
 
 meta def squeeze_simpa
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
   (cfg : parse record_lit?) : tactic unit :=
-do g ← main_goal,
-   (cfg',c) ← parse_config cfg,
+do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
-   simpa use_iota_eqn no_dflt hs attr_names tgt cfg',
-   g ← instantiate_mvars g,
-   let vs := g.list_constant,
-   vs ← vs.mfilter is_simp_lemma >>= name_set.mmap strip_prefix,
-   let vs := auto_simp_lemma.foldl name_set.erase vs,
-   vs ← erase_simp_args hs vs,
+   args ← squeeze_simp_core no_dflt hs
+     (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg'),
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let tgt' := tgt'.get_or_else "",
-   hs ← hs.mmap pp,
-   let args := hs ++ vs.to_list.map to_fmt,
-   trace format!"Try this: simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
+   trace!"Try this: simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
 
 end interactive
 end tactic

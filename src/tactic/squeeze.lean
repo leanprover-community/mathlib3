@@ -305,7 +305,7 @@ Known limitation(s):
     `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas. `squeeze_scope` can be used to
-    combine the suggestions
+    combine the suggestions: `by squeeze_scope { cases x; squeeze_simp }`
 -/
 meta def squeeze_simp
   (key : parse cur_pos)

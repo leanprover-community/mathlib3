@@ -832,7 +832,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
-metric_space.induced subtype.val (λ x y, subtype.eq) t
+metric_space.induced coe (λ x y, subtype.coe_ext.2) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 

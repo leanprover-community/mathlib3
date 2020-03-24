@@ -684,10 +684,10 @@ meta def apply_any
   (use_exfalso : bool := tt) : tactic unit :=
 do
   let modes := [skip]
-    ++ if use_symmetry then [symmetry] else []
-    ++ if use_exfalso then [exfalso] else [],
+    ++ (if use_symmetry then [symmetry] else [])
+    ++ (if use_exfalso then [exfalso] else []),
   modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applieed"
+  fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
 meta def apply_assumption : tactic unit :=

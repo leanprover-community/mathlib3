@@ -57,13 +57,13 @@ Configuration options for `solve_by_elim`.
 * `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
   If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
-* `max_rep` bounds the depth of the search.
+* `max_steps` bounds the depth of the search.
 -/
 meta structure by_elim_opt :=
   (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
   (lemmas : list expr := [])
-  (max_rep : ℕ := 3)
+  (max_steps : ℕ := 3)
 
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
 if opt.lemmas = [] then local_context else return opt.lemmas
@@ -80,7 +80,7 @@ do
   tactic.fail_if_no_goals,
   lemmas ← opt.get_lemmas,
   (if opt.backtrack_all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger lemmas opt.max_rep
+    solve_by_elim_aux opt.discharger lemmas opt.max_steps
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -118,7 +118,7 @@ add_tactic_doc
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
 and then repeatedly calls `apply` on the generated subgoals until no subgoals remain,
-performing at most `max_rep` recursive steps.
+performing at most `max_steps` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails.
 
@@ -141,7 +141,7 @@ makes other goals impossible.
 
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
-- max_rep: number of attempts at discharging generated sub-goals
+- max_steps: number of attempts at discharging generated sub-goals
 
 ---
 

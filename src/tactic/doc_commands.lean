@@ -207,8 +207,8 @@ attribute.get_instances `tactic_doc >>=
 
 /-- `add_tactic_doc tde` adds a declaration to the environment
 with `tde` as its body and tags it with the `tactic_doc`
-attribute. If `tde.decl_names` has exactly one entry `` `decl`` and 
-if `tde.description` is the empty string, `add_tactic_doc` uses the doc 
+attribute. If `tde.decl_names` has exactly one entry `` `decl`` and
+if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
@@ -344,8 +344,13 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
 * `ring` and `ring2`,
 * `norm_num`,
-* `norm_cast`, and
+* `norm_cast`,
+* `apply_congr`, and
 * `conv` (within another `conv`).
+
+`apply_congr` applies congruence lemmas to step further inside expressions,
+and sometimes gives between results than the automatically generated
+congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous
 state of the outer `conv` block after it is finished. Thus you can continue

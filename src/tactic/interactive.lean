@@ -855,7 +855,7 @@ add_tactic_doc
 { name       := "change'",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.change', `tactic.interactive.change],
-  tags       := ["simplification", "renaming"],
+  tags       := ["renaming"],
   inherit_description_from := `tactic.interactive.change' }
 
 meta def convert_to_core (r : pexpr) : tactic unit :=

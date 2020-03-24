@@ -57,11 +57,11 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-@[simp, to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+@[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
   a * (if P then b else c) = if P then a * b else a * c :=
 by split_ifs; refl
 
-@[simp, to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+@[to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
   (if P then a else b) * c = if P then a * c else b * c :=
 by split_ifs; refl
 
@@ -70,11 +70,11 @@ by split_ifs; refl
 -- modifies the decidable instance.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by { simp, congr }
+by { simp [mul_ite], congr }
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by { simp, congr }
+by { simp [ite_mul], congr }
 
 variable (α)
 

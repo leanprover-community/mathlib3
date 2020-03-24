@@ -456,6 +456,15 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α
    λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
      | _, rfl := rfl end⟩
 
+/-- transporting a sigma type through an equivalence of the base -/
+def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β a) ≃ (Σ a:α₂, β (f.symm a)) :=
+λ f, (sigma_congr_left f.symm).symm
+
+/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibres -/
+def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*} (f : α₁ ≃ α₂) (F : ∀ a, β₁ a ≃ β₂ (f a)) :
+  sigma β₁ ≃ sigma β₂ :=
+(sigma_congr_right F).trans (sigma_congr_left f)
+
 def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 

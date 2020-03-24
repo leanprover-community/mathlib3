@@ -647,7 +647,7 @@ theorem infinite_of_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) (hi : infinitesi
   infinite x :=
 begin
   cases (lt_or_gt_of_ne h0) with hn hp,
-  { exact or.inr (infinite_neg_iff_infinitesimal_inv_neg.mpr ⟨hi, inv_neg'.mpr hn⟩) },
+  { exact or.inr (infinite_neg_iff_infinitesimal_inv_neg.mpr ⟨hi, inv_neg.mpr hn⟩) },
   { exact or.inl (infinite_pos_iff_infinitesimal_inv_pos.mpr ⟨hi, inv_pos.mpr hp⟩) }
 end
 

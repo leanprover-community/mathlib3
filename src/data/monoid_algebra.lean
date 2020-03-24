@@ -82,43 +82,6 @@ end
 end
 
 section
-variables [semiring k] [group G]
-
-lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, b₁ * (g (a₁⁻¹ * x))) :=
-begin
-  rw mul_apply,
-  have t : ∀ a₁ a₂, a₁ * a₂ = x ↔ a₁⁻¹ * x = a₂ := sorry,
-  congr, funext,
-  conv_lhs { congr, skip, funext, rw t, },
-  dsimp [finsupp.sum],
-  -- TODO a version of finset.sum_ite_eq with the equality switched? (At least, if we can arrange for simp to work.)
-  rw finset.sum_ite_eq g.support, -- FIXME why do we need the `g.support`? Why can't `simp` do this?
-  split_ifs,
-  { refl, },
-  { simp [not_mem_support_iff.1 h], }, -- FIXME make this work just by `simp [h]`?
-end
-
-lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
-  (f * single x r) y = f (y * x⁻¹) * r :=
-begin
-  rw mul_apply_left,
-  conv_lhs { congr, skip, funext, simp [single_apply], rw mul_ite, },
-  -- FIXME need operand
-  sorry,
-end
-
-lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
-  (f * g) x = (g.sum $ λa₂ b₂, (f (x * a₂⁻¹)) * b₂) :=
-sorry
-
-lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
-  (single x r * f) y = r * f (x⁻¹ * y) :=
-sorry
-
-end
-
-section
 variables [semiring k] [monoid G]
 
 lemma support_mul (a b : monoid_algebra k G) :
@@ -209,6 +172,67 @@ lemma prod_single [comm_semiring k] [comm_monoid G]
   s.prod (λi, single (a i) (b i)) = single (s.prod a) (s.prod b) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
+
+section -- We now prove some additional statements that hold for group algebras.
+variables [semiring k] [group G]
+
+lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, b₁ * (g (a₁⁻¹ * x))) :=
+begin
+  rw mul_apply,
+  have t : ∀ a₁ a₂, a₁⁻¹ * x = a₂ ↔ a₁ * a₂ = x := by { intros, split; rintro rfl; simp, },
+  congr, funext,
+  conv_lhs { congr, skip, funext, rw ←t, },
+  dsimp [finsupp.sum],
+  -- TODO a version of finset.sum_ite_eq with the equality switched? (At least, if we can arrange for simp to work.)
+  rw finset.sum_ite_eq g.support, -- TODO why do we need the `g.support`? Why can't `simp` do this?
+  split_ifs,
+  { refl, },
+  { simp [not_mem_support_iff.1 h], }, -- TODO make this work just by `simp [h]`?
+end
+
+lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
+  (f * single x r) y = f (y * x⁻¹) * r :=
+begin
+  rw mul_apply_left,
+  -- a preparatory statement about groups...
+  have t : ∀ a₁, x = a₁⁻¹ * y ↔ y * x⁻¹ = a₁ := by { intros, split; rintro rfl; simp, },
+  -- unpack the `single` into a correctly positioned `ite`.
+  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
+  -- TODO I wish the next three lines were achieved by `simp`...
+  dsimp [finsupp.sum],
+  convert finset.sum_ite_eq f.support (y * x⁻¹) _,
+  funext, congr,
+  split_ifs,
+  { refl, },
+  { simp [not_mem_support_iff.1 h], }, -- TODO I wish this worked with just `simp [h]`.
+end
+
+-- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
+lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (g.sum $ λa₂ b₂, (f (x * a₂⁻¹)) * b₂) :=
+begin
+  rw mul_apply,
+  rw finset.sum_comm,
+
+  -- FIXME just copy-paste nonsense below
+  have t : ∀ a₁ a₂, a₁⁻¹ * x = a₂ ↔ a₁ * a₂ = x := by { intros, split; rintro rfl; simp, },
+  congr, funext,
+  conv_lhs { congr, skip, funext, rw ←t, },
+  dsimp [finsupp.sum],
+  -- TODO a version of finset.sum_ite_eq with the equality switched? (At least, if we can arrange for simp to work.)
+  rw finset.sum_ite_eq g.support, -- TODO why do we need the `g.support`? Why can't `simp` do this?
+  split_ifs,
+  { refl, },
+  { simp [not_mem_support_iff.1 h], }, -- TODO make this work just by `simp [h]`?
+end
+
+lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
+  (single x r * f) y = r * f (x⁻¹ * y) :=
+sorry
+
+end
+
 
 end monoid_algebra
 

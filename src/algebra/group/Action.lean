@@ -32,7 +32,7 @@ def ρ_Aut {G : Group.{u₁}} (A : Action 𝕍 (Mon.of G)) : G ⟶ Group.of (Aut
   { hom := A.ρ g,
     inv := A.ρ g⁻¹,
     -- FIXME inconsistent naming in core: `inv_mul_self` but `mul_inv_self`
-    hom_inv_id' := ((A.ρ).map_mul g⁻¹ g).symm.trans (by rw [mul_left_inv, ρ_1]),
+    hom_inv_id' := ((A.ρ).map_mul g⁻¹ g).symm.trans (by rw [inv_mul_self, ρ_1]),
     inv_hom_id' := ((A.ρ).map_mul g g⁻¹).symm.trans (by rw [mul_inv_self, ρ_1]), },
   map_one' := by { ext, exact A.ρ.map_one },
   map_mul' := λ x y, by { ext, exact A.ρ.map_mul x y }, }

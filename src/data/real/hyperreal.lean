@@ -618,7 +618,7 @@ show is_st (x + -r) 0, by rw ←add_neg_self r; exact is_st_add hxr (is_st_refl_
 theorem infinitesimal_sub_st {x : ℝ*} (hx : ¬infinite x) : infinitesimal (x - st x) :=
 infinitesimal_sub_is_st $ is_st_st' hx
 
-lemma infinite_pos_iff_infinitesimalinv_pos {x : ℝ*} :
+lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} :
   infinite_pos x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ > 0) :=
 ⟨ λ hip, ⟨ infinitesimal_def.mpr $ λ r hr,
   ⟨ lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos.2 (hip 0)),

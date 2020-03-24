@@ -96,9 +96,6 @@ begin
       rwa mul_comm } }
 end
 
-lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
-antilipschitz_with.id.restrict s
-
 lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
 λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
 

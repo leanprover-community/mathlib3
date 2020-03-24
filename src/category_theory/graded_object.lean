@@ -36,6 +36,11 @@ instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
   inhabited (graded_object β C) :=
 ⟨λ b, inhabited.default C⟩
 
+/--
+A type synonym for `β → C`, used for `β`-graded objects in a category `C`
+with a shift functor given by translation by `s`.
+-/
+@[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
 abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
 
 namespace graded_object

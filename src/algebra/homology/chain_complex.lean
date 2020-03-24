@@ -34,11 +34,16 @@ include 𝒱
 variables [has_zero_morphisms.{v} V]
 
 /--
-A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`.
+A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
+with differential graded `-1`.
 -/
 abbreviation chain_complex : Type (max v u) :=
 differential_object.{v} (graded_object_with_shift (-1 : ℤ) V)
 
+/--
+A cochain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
+with differential graded `+1`.
+-/
 abbreviation cochain_complex : Type (max v u) :=
 differential_object.{v} (graded_object_with_shift (1 : ℤ) V)
 

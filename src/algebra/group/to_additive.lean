@@ -112,10 +112,13 @@ do let n := src.mk_string "_to_additive",
 @[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
+/-- Dictionary of words used by `to_additive.guess_name` to autogenerate
+names. -/
 meta def tokens_dict : native.rb_map string string :=
 native.rb_map.of_list $
 [("mul", "add"), ("one", "zero"), ("inv", "neg"), ("prod", "sum")]
 
+/-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
 string.map_tokens '_' $ list.map $
 string.map_tokens ''' $ list.map $

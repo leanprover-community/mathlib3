@@ -12,5 +12,5 @@ When you make a pull request, do make sure that you put all lemmas which are gen
 
 Try to adhere to the guidelines for mathlib. They will be much less strictly enforced for the archive, but we still want you to adhere to all the conventions that make maintenance easier. This ensures that when mathlib is changing, the mathlib maintainers can fix these contributions without much effort. Here are the guidelines:
 - The [style guide](../docs/contribute/style.md) for contributors.
-- The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
+- The [git commit conventions](https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md).
 - You don't have to follow the [naming conventions](../docs/contribute/naming.md).

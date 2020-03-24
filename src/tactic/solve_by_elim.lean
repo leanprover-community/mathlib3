@@ -41,11 +41,19 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
 -/
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
-| 0 := done
-| (n+1) := done <|>
-              (apply_assumption asms $ solve_by_elim_aux n) <|>
-              (discharger >> solve_by_elim_aux n)
+meta def solve_by_elim_aux (accept : list expr → tactic unit) (discharger : tactic unit)
+  (original_goals : list expr) (lemmas : list expr)  : ℕ → tactic unit
+| n := do
+  -- First, check that progress so far is `accept`able.
+  (original_goals.mmap instantiate_mvars >>= accept) >>
+  -- Then check if we've finished.
+  (done <|>
+    -- Otherwise, if there's more time left,
+    guard (n > 0) >>
+    -- try either applying a lemma and recursing, or
+    ((apply_any lemmas $ solve_by_elim_aux (n-1)) <|>
+    -- if that does work, run the discharger and recurse.
+     (discharger >> solve_by_elim_aux (n-1))))
 
 /--
 Configuration options for `solve_by_elim`.
@@ -53,30 +61,47 @@ Configuration options for `solve_by_elim`.
 * By default `solve_by_elim` operates only on the first goal,
   but with `backtrack_all_goals := true`, it operates on all goals at once,
   backtracking across goals as needed,
-  and only succeeds if it dischargers all goals.
-* `discharger` specifies a tactic to try discharge subgoals
-  (this is only attempted on subgoals for which no lemma applies successfully).
+  and only succeeds if it discharges all goals.
+* `accept` determines whether the current branch should be explored.
+   It is passed the current state of original goals, and should fail if it wants to disregard this branch.
+   By default `accept` always succeeds.
+* `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
+  If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
-* `max_rep` bounds the depth of the search.
+* `max_steps` bounds the depth of the search.
 -/
 meta structure by_elim_opt :=
-  (backtrack_all_goals : bool := ff)
-  (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := mk_assumption_set false [] [])
-  (max_rep : ℕ := 3)
+(backtrack_all_goals : bool := ff)
+(accept : list expr → tactic unit := λ _, skip)
+(discharger : tactic unit := done)
+(lemmas : option (list expr) := none)
+(max_steps : ℕ := 3)
+
+meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
+match opt.lemmas with
+| none := mk_assumption_set ff [] []
+| some lemmas := return lemmas
+end
 
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
 from the list of assumptions (passed via the `by_elim_opt` argument),
 recursively operating on any generated subgoals.
+
 It succeeds only if it discharges the first goal
 (or with `backtrack_all_goals := tt`, if it discharges all goals.)
+
+If passed an empty list of assumptions, `solve_by_elim` builds a default set
+as per the interactive tactic, using the `local_context` along with
+`rfl`, `trivial`, `congr_arg`, and `congr_fun`.
 -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  (if opt.backtrack_all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
+  lemmas ← opt.get_lemmas,
+  (if opt.backtrack_all_goals then id else focus1) $ (do
+    gs ← get_goals,
+    solve_by_elim_aux opt.accept opt.discharger gs lemmas opt.max_steps)
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -86,20 +111,27 @@ namespace interactive
 `apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
 where `head` matches the current goal.
 
-alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-are made into the new goal.
+If this fails, `apply_assumption` will call `symmetry` and try again.
 
-optional arguments:
-- asms: list of rules to consider instead of the local constants
-- tac:  a tactic to run on each subgoals after applying an assumption; if
+If this also fails, `apply_assumption` will call `exfalso` and try again,
+so that if there is an assumption of the form `P → ¬ Q`, the new tactic state
+will have two goals, `P` and `Q`.
+
+Optional arguments:
+- `lemmas`: a list of expressions to apply, instead of the local constants
+- `tac`: a tactic to run on each subgoal after applying an assumption; if
   this tactic fails, the corresponding assumption will be rejected and
   the next one will be attempted.
 -/
 meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := return ()) : tactic unit :=
-tactic.apply_assumption asms tac
+  (lemmas : option (list expr) := none)
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  lemmas ← match lemmas with
+  | none := local_context
+  | some lemmas := return lemmas
+  end,
+  tactic.apply_any lemmas tac
 
 add_tactic_doc
 { name        := "apply_assumption",
@@ -110,13 +142,13 @@ add_tactic_doc
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
 and then repeatedly calls `apply` on the generated subgoals until no subgoals remain,
-performing at most `max_rep` recursive steps.
+performing at most `max_steps` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails.
 
-`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption.
+`solve_by_elim` performs back-tracking if subgoals can not be solved.
 
-By default, the assumptions passed to `apply_assumption` are the local context, `rfl`, `trivial`,
+By default, the assumptions passed to `apply` are the local context, `rfl`, `trivial`,
 `congr_fun` and `congr_arg`.
 
 `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
@@ -133,7 +165,7 @@ makes other goals impossible.
 
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
-- max_rep: number of attempts at discharging generated sub-goals
+- max_steps: number of attempts at discharging generated sub-goals
 
 ---
 
@@ -161,10 +193,10 @@ The assumptions can be modified with similar syntax as for `simp`:
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
   tactic unit :=
-do asms ← mk_assumption_set no_dflt hs attr_names,
+do lemmas ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
-     assumptions := return asms,
+     lemmas := lemmas,
      ..opt }
 
 add_tactic_doc

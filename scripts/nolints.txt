@@ -1278,9 +1278,6 @@ apply_nolint int.induction_on' doc_blame
 apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
 
--- data/int/gcd.lean
-apply_nolint nat.xgcd_aux doc_blame
-
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
 

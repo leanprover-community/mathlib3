@@ -502,7 +502,6 @@ end prod
 end local_equiv
 
 namespace set
-open_locale classical
 
 -- All arguments are explicit to avoid missing information in the pretty printer output
 /-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence

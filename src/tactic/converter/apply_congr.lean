@@ -37,10 +37,6 @@ will be hard to deal with in `conv` mode.
 Thus `apply_congr` automatically calls `intros` on any new goals,
 and fails if they are not then equations.
 
----
-
-The `apply_congr` tactic is used in conversion mode, to apply a congruence lemma
-when `congr` performs poorly.
 In particular it is useful for rewriting inside the operand of a `finset.sum`,
 as it provides an extra hypothesis asserting we are inside the domain.
 

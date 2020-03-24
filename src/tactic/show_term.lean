@@ -24,8 +24,6 @@ do
 
 namespace interactive
 
-declare_trace show_term
-
 /--
 `show_term { tac }` runs the tactic `tac`,
 and then prints the term that was constructed.
@@ -37,9 +35,7 @@ As an example, if the goal is `ℕ × ℕ`, `show_term { split, exact 0 }` will
 print `(0, ?m_1)`, indicating that the original goal has been partially filled in.
 -/
 meta def show_term (t : itactic) : itactic :=
-pp_term t >>= (λ s, when_tracing `show_term (trace s))
+pp_term t >>= trace
 
 end interactive
 end tactic
-
-set_option trace.show_term true

@@ -1461,21 +1461,6 @@ do gs' ← get_goals,
 meta def with_local_goals' {α} (gs : list expr) (tac : tactic α) : tactic α :=
 prod.fst <$> with_local_goals gs tac
 
-/-- create a meta variable identical to the main goal -/
-meta def clone_goal : tactic expr :=
-target >>= mk_meta_var
-
-/-- clone every goal in the current proof state -/
-meta def clone_state : tactic (list expr) :=
-do gs ← get_goals,
-   gs.mmap (λ g, set_goals [g] >> clone_goal)
-     <* set_goals gs
-
-/-- run `tac` on the current proof state get revert back to initial state -/
-meta def with_cloned_state {α} (tac : tactic α) : tactic α :=
-do gs ← clone_state,
-   with_local_goals' gs tac
-
 /-- Representation of a proof goal that lends itself to comparison. The
 following goal:
 
@@ -1496,41 +1481,73 @@ The number 2 indicates that first the two bound variables of the
 rather than `=ₐ` or `is_def_eq` tells us that proof script should
 not see the difference between the two.
  -/
-meta def goal := ℕ × expr
+meta def user_visible_goal := ℕ × expr
 
 /-- proof state made of multiple `goal` meant for comparing
 the result of running different tactics -/
-meta def proof_state := list goal
+meta def proof_state := list user_visible_goal
 
-meta instance goal.inhabited : inhabited goal := ⟨(0,var 0)⟩
+meta instance goal.inhabited : inhabited user_visible_goal := ⟨(0,var 0)⟩
 meta instance proof_state.inhabited : inhabited proof_state :=
-(infer_instance : inhabited (list goal))
+(infer_instance : inhabited (list user_visible_goal))
+
+meta def get_user_visible_goal : tactic user_visible_goal :=
+retrieve $ do
+ls ← local_context,
+     tgt ← target >>= instantiate_mvars >>= pis ls,
+     pure (ls.length, tgt)
+
+meta def goal_of_mvar (g : expr) : tactic user_visible_goal :=
+with_local_goals' [g] get_user_visible_goal
+
+/-- `get_proof_state` lists the user visible goal for each goal
+    of the current state and for each goal, abstracts all of the
+    meta variables of the other gaols.
+
+    This produces a list of goals in the form of `ℕ × expr` where
+    the `expr` encodes the following proof state:
+
+      ```lean
+      2 goals
+      l₁ : t₁,
+      l₂ : t₂,
+      l₃ : t₃
+      ⊢ tgt₁
+
+      ⊢ tgt₂
+      ```
+
+      as
+
+      ```lean
+      [ (3, ∀ (mv : tgt₁) (mv : tgt₂) (l₁ : t₁) (l₂ : t₂) (l₃ : t₃), tgt₁),
+        (0, ∀ (mv : tgt₁) (mv : tgt₂), tgt₂) ]
+      ```
+
+      with 2 goals, the first 2 bound variables encode the meta variable
+      of all the goals, the next 3 (in the first goal) and 0 (in the second goal)
+      are the local constants.
+
+      This representation allows us to compare goals and proof states while
+      ignoring information like the unique name of local constants and
+      the equality or difference of meta variables that encode the same goal.
+ -/
+meta def get_proof_state : tactic proof_state :=
+do gs ← get_goals,
+   gs.mmap $ λ g, do
+     ⟨n,g⟩ ← goal_of_mvar g,
+     g ← gs.mfoldl (λ g v, do
+       t ← infer_type v,
+       g ← kabstract g v reducible ff,
+       pure $ pi `mv binder_info.default t g ) g,
+     pure (n,g)
 
 /--
 Run `tac` in a disposable proof state and return the state.
-See `proof_state` and `goal`.
-
-Limitation:
-If one goal occurs as a meta variable in another goal, the representation
-that this function returns will not compare goals have in the desired way.
-
-Possible improvement:
-If one wants to account for that situation, `kabstract` can be used to replace
-the meta variables that are goals in the final state with bound variables.
-Then, if `(3, p)` is a goal in `gs`, `p` has `3 + gs.length` bound variables
-that do not stand for universal quantifications in the goal.
+See `proof_state`, `goal` and `get_proof_state`.
 -/
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
-with_cloned_state $ do
-  some _ ← try_core tac | pure none,
-  gs ← get_goals,
-  gs ← gs.mmap $ λ g, do
-  { set_goals [g],
-    ls ← local_context,
-    revert_lst ls,
-    tgt ← target >>= instantiate_mvars,
-    pure (ls.length, tgt) },
-  pure $ some gs
+try_core $ retrieve $ tac >> get_proof_state
 
 open lean interactive
 

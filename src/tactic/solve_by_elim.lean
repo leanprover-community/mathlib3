@@ -62,11 +62,14 @@ Configuration options for `solve_by_elim`.
 meta structure by_elim_opt :=
   (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
-  (lemmas : list expr := [])
+  (lemmas : option (list expr) := none)
   (max_steps : ℕ := 3)
 
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
-if opt.lemmas = [] then mk_assumption_set ff [] [] else return opt.lemmas
+match opt.lemmas with
+| none := mk_assumption_set ff [] []
+| some lemmas := return lemmas
+end
 
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
@@ -102,16 +105,19 @@ so that if there is an assumption of the form `P → ¬ Q`, the new tactic state
 will have two goals, `P` and `Q`.
 
 Optional arguments:
-- lemmas: a list of expressions to apply, instead of the local constants
-- tac: a tactic to run on each subgoal after applying an assumption; if
+- `lemmas`: a list of expressions to apply, instead of the local constants
+- `tac`: a tactic to run on each subgoal after applying an assumption; if
   this tactic fails, the corresponding assumption will be rejected and
   the next one will be attempted.
 -/
 meta def apply_assumption
-  (lemmas : list expr := [])
+  (lemmas : option (list expr) := none)
   (tac : tactic unit := skip) : tactic unit :=
 do
-  lemmas ← if lemmas = [] then local_context else return lemmas,
+  lemmas ← match lemmas with
+  | none := local_context
+  | some lemmas := return lemmas
+  end,
   tactic.apply_any lemmas tac
 
 add_tactic_doc

@@ -134,6 +134,9 @@ by_cases
 lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
 is_open_inter
 
+@[simp] lemma subsingleton.is_open [subsingleton α] (s : set α) : is_open s :=
+subsingleton.set_cases is_open_empty is_open_univ s
+
 /-- A set is closed if its complement is open -/
 def is_closed (s : set α) : Prop := is_open (-s)
 
@@ -187,6 +190,9 @@ by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
+
+@[simp] lemma subsingleton.is_closed [subsingleton α] (s : set α) : is_closed s :=
+subsingleton.set_cases is_closed_empty is_closed_univ s
 
 /-- The interior of a set `s` is the largest open subset of `s`. -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
@@ -403,7 +409,7 @@ localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
 
-lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) id :=
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
@@ -508,21 +514,25 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
 
+theorem mem_closure_iff_nhds_basis' {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+  {t : set α} :
+  a ∈ closure t ↔ ∀ i, p i → (s i ∩ t).nonempty :=
+begin
+  have mono : ∀ s t', s ⊆ t' → (s ∩ t).nonempty → (t' ∩ t).nonempty,
+    from λ s t hst hs, hs.mono (inter_subset_inter_left _ hst),
+  simp only [mem_closure_iff, ← and_imp, and_comm _ (a ∈ _)],
+  exact ((nhds_basis_opens a).forall_iff mono).symm.trans (h.forall_iff mono)
+end
+
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
-mem_closure_iff.trans
-⟨λ H t ht, nonempty.mono
-  (inter_subset_inter_left _ interior_subset)
-  (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
- λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
+mem_closure_iff_nhds_basis' (𝓝 a).basis_sets
 
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
-mem_closure_iff_nhds.trans
-  ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
-    λ H t' ht', let ⟨i, hi, hit⟩ := (h t').1 ht', ⟨x, xt, hx⟩ := H i hi in
-    ⟨x, hit hx, xt⟩⟩
+(mem_closure_iff_nhds_basis' h).trans $
+  by simp only [set.nonempty, mem_inter_iff, exists_prop, and_comm]
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/

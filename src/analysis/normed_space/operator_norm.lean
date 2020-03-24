@@ -585,7 +585,7 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 (e : E →L[𝕜] F).lipschitz
 
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
-e.symm.lipschitz.to_inverse e.left_inv
+e.symm.lipschitz.to_right_inverse e.left_inv
 
 protected lemma injective : function.injective e := e.antilipschitz.injective
 
@@ -606,6 +606,12 @@ pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)
 
 lemma norm_symm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+
+lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+(subsingleton_or_exists_ne (0 : E)).imp id (λ hE, e.norm_symm_pos hE)
+
+lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
+subsingleton_or_norm_symm_pos e
 
 end continuous_linear_equiv
 

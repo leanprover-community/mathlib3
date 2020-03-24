@@ -173,6 +173,18 @@ begin
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
 end
 
+lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
+  (∃ s ∈ l, P s) ↔ ∃ (i) (hi : p i), P (s i) :=
+⟨λ ⟨s, hs, hP⟩, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in ⟨i, hi, mono his hP⟩,
+  λ ⟨i, hi, hP⟩, ⟨s i, hl.mem_of_mem hi, hP⟩⟩
+
+lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P s → P t) :
+  (∀ s ∈ l, P s) ↔ ∀ i, p i → P (s i) :=
+⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
+  λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
+
 end same_type
 
 section two_types

@@ -115,8 +115,14 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma continuous_fst : continuous (@prod.fst α β) :=
 continuous_inf_dom_left continuous_induced_dom
 
+lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
+continuous_fst.continuous_at
+
 lemma continuous_snd : continuous (@prod.snd α β) :=
 continuous_inf_dom_right continuous_induced_dom
+
+lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
+continuous_snd.continuous_at
 
 lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, prod.mk (f x) (g x)) :=
@@ -151,6 +157,18 @@ by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
 hf.prod_mk_nhds hg
+
+lemma continuous_at.prod_map {f : α → γ} {g : β → δ} {p : α × β}
+  (hf : continuous_at f p.fst) (hg : continuous_at g p.snd) :
+  continuous_at (λ p : α × β, (f p.1, g p.2)) p :=
+(hf.comp continuous_fst.continuous_at).prod (hg.comp continuous_snd.continuous_at)
+
+lemma continuous_at.prod_map' {f : α → γ} {g : β → δ} {x : α} {y : β}
+  (hf : continuous_at f x) (hg : continuous_at g y) :
+  continuous_at (λ p : α × β, (f p.1, g p.2)) (x, y) :=
+have hf : continuous_at f (x, y).fst, from hf,
+have hg : continuous_at g (x, y).snd, from hg,
+hf.prod_map hg
 
 lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :

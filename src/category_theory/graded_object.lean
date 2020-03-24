@@ -36,6 +36,8 @@ instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
   inhabited (graded_object β C) :=
 ⟨λ b, inhabited.default C⟩
 
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+
 namespace graded_object
 
 variables {C : Type u} [𝒞 : category.{v} C]
@@ -119,10 +121,10 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type w} [add_comm_group β] [has_one β] : has_shift.{(max w v)} (graded_object β C) :=
+instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift.{v} (graded_object_with_shift s C) :=
 { shift := comap_equiv C
-  { to_fun := λ b, b-1,
-    inv_fun := λ b, b+1,
+  { to_fun := λ b, b-s,
+    inv_fun := λ b, b+s,
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
 

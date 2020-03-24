@@ -8,21 +8,21 @@ import category_theory.limits.shapes.images
 import category_theory.limits.shapes.kernels
 
 /-!
-# Non-functorial homology groups for chain complexes
+# Non-functorial cohomology groups for cochain complexes
 
-We setup that part of the theory of homology groups which works in
+We setup that part of the theory of cohomology groups which works in
 any category with kernels and images.
 
-We define the homology groups themselves, and while we can show that
+We define the cohomology groups themselves, and while we can show that
 chain maps induce maps on the kernels, at this level of generality
-chain maps do not induce maps on the images, and so not on the homology groups.
+chain maps do not induce maps on the images, and so not on the cohomology groups.
 
 We'll do this with stronger assumptions, later.
 -/
 
 universes v u
 
-namespace chain_complex
+namespace cochain_complex
 
 open category_theory
 open category_theory.limits
@@ -32,7 +32,7 @@ include 𝒱
 
 variable [has_kernels.{v} V]
 /-- The map induceed by a chain map between the kernels of the differentials. -/
-def induced_map_on_cycles {C C' : chain_complex V} (f : C ⟶ C') (i : ℤ) :
+def induced_map_on_cycles {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
@@ -49,7 +49,7 @@ variables [has_images.{v} V] [has_equalizers.{v} V]
 /--
 The connecting morphism from the image of `d i` to the kernel of `d (i+1)`.
 -/
-def image_to_kernel_map (C : chain_complex V) (i : ℤ) :
+def image_to_kernel_map (C : cochain_complex V) (i : ℤ) :
   image (C.d i) ⟶ kernel (C.d (i+1)) :=
 kernel.lift _ (image.ι (C.d i))
 begin
@@ -74,37 +74,37 @@ end
 
 -- -- I'm not certain what the minimal assumptions required to prove the following
 -- -- lemma are:
--- lemma induced_maps_commute {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- lemma induced_maps_commute {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 -- image_to_kernel_map C i ≫ induced_map_on_cycles f (i+1) =
 --   induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
 -- sorry
 
 variables [has_cokernels.{v} V]
 
-/-- The `i`-th homology group of the chain complex `C`. -/
-def homology (C : chain_complex V) (i : ℤ) : V :=
+/-- The `i`-th cohomology group of the cochain complex `C`. -/
+def cohomology (C : cochain_complex V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C (i-1))
 
 -- TODO:
 
 -- As noted above, as we don't get induced maps on boundaries with this generality,
--- we can't assemble the homology groups into a functor. Hopefully, however,
+-- we can't assemble the cohomology groups into a functor. Hopefully, however,
 -- the commented out code below will work
 -- (with whatever added assumptions are needed above.)
 
--- def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
---   C.homology i ⟶ C'.homology i :=
+-- def induced_map_on_cohomology {C C' : chain_cocomplex.{v} V} (f : C ⟶ C') (i : ℤ) :
+--   C.cohomology i ⟶ C'.cohomology i :=
 -- cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
 -- begin
 --   rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
 --   erw [has_zero_morphisms.comp_zero],
 -- end
 
--- /-- The homology functor from chain complexes to `ℤ` graded objects in `V`. -/
--- def homology_functor : chain_complex.{v} V ⥤ graded_object ℤ V :=
--- { obj := λ C i, homology C i,
---   map := λ C C' f i, induced_map_on_homology f i,
+-- /-- The cohomology functor from chain complexes to `ℤ` graded objects in `V`. -/
+-- def cohomology_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
+-- { obj := λ C i, cohomology C i,
+--   map := λ C C' f i, induced_map_on_cohomology f i,
 --   map_id' := sorry,
 --   map_comp' := sorry, }
 
-end chain_complex
+end cochain_complex

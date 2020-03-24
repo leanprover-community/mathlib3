@@ -36,16 +36,58 @@ variables [has_zero_morphisms.{v} V]
 /--
 A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`.
 -/
--- For now the "shift" is fixed to be the +1 direction,
--- making this a cochain complex, rather than a chain complex.
 abbreviation chain_complex : Type (max v u) :=
-differential_object.{v} (graded_object ℤ V)
+differential_object.{v} (graded_object_with_shift (-1 : ℤ) V)
+
+abbreviation cochain_complex : Type (max v u) :=
+differential_object.{v} (graded_object_with_shift (1 : ℤ) V)
 
 -- The chain groups of a chain complex `C` are accessed as `C.X i`,
--- and the differentials as `C.d i : C.X i ⟶ C.X (i+1)`.
-example (C : chain_complex V) : C.X 5 ⟶ C.X 6 := C.d 5
+-- and the differentials as `C.d i : C.X i ⟶ C.X (i-1)`.
+example (C : chain_complex V) : C.X 5 ⟶ C.X 4 := C.d 5
 
 end
+
+namespace cochain_complex
+variables {V : Type u} [𝒱 : category.{v} V]
+include 𝒱
+
+variables [has_zero_morphisms.{v} V]
+
+@[simp]
+lemma d_squared (C : cochain_complex.{v} V) (i : ℤ) :
+  C.d i ≫ C.d (i+1) = 0 :=
+congr_fun (C.d_squared) i
+
+/--
+A convenience lemma for morphisms of cochain complexes,
+picking out one component of the commutation relation.
+-/
+-- I haven't been able to get this to work with projection notation: `f.comm_at i`
+@[simp]
+lemma comm_at {C D : cochain_complex V} (f : C ⟶ D) (i : ℤ) :
+    C.d i ≫ f.f (i+1) = f.f i ≫ D.d i :=
+congr_fun f.comm i
+
+-- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
+example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
+example {C D : cochain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
+example {C D : cochain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := comm_at f 5
+
+variables (V)
+
+/-- The forgetful functor from cochain complexes to graded objects, forgetting the differential. -/
+abbreviation forget : (cochain_complex V) ⥤ (graded_object ℤ V) :=
+differential_object.forget _
+
+section
+omit 𝒱
+local attribute [instance] has_zero_object.has_zero
+
+instance : inhabited (cochain_complex.{v} punit.{v+1}) := ⟨0⟩
+end
+
+end cochain_complex
 
 namespace chain_complex
 variables {V : Type u} [𝒱 : category.{v} V]
@@ -55,23 +97,17 @@ variables [has_zero_morphisms.{v} V]
 
 @[simp]
 lemma d_squared (C : chain_complex.{v} V) (i : ℤ) :
-  C.d i ≫ C.d (i+1) = 0 :=
+  C.d i ≫ C.d (i-1) = 0 :=
 congr_fun (C.d_squared) i
 
 /--
-A convenience lemma for morphisms of differential graded objects,
+A convenience lemma for morphisms of chain complexes,
 picking out one component of the commutation relation.
 -/
--- I haven't been able to get this to work with projection notation: `f.comm_at i`
 @[simp]
 lemma comm_at {C D : chain_complex V} (f : C ⟶ D) (i : ℤ) :
-    C.d i ≫ f.f (i+1) = f.f i ≫ D.d i :=
+    C.d i ≫ f.f (i-1) = f.f i ≫ D.d i :=
 congr_fun f.comm i
-
--- The components of a chain map `f : C ⟶ D` are accessed as `f.f i`.
-example {C D : chain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
-example {C D : chain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
-example {C D : chain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := comm_at f 5
 
 variables (V)
 

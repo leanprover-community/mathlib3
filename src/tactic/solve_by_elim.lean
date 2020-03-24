@@ -97,7 +97,7 @@ so that if there is an assumption of the form `P → ¬ Q`, the new tactic state
 will have two goals, `P` and `Q`.
 
 Optional arguments:
-- asms: list of rules to consider instead of the local constants
+- lemmas: a list of expressions to apply, instead of the local constants
 - tac: a tactic to run on each subgoal after applying an assumption; if
   this tactic fails, the corresponding assumption will be rejected and
   the next one will be attempted.

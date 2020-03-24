@@ -95,12 +95,10 @@ apply_nolint monoid_hom.one doc_blame
 -- algebra/group/to_additive.lean
 apply_nolint to_additive.attr doc_blame
 apply_nolint to_additive.aux_attr doc_blame
-apply_nolint to_additive.guess_name doc_blame
 apply_nolint to_additive.map_namespace doc_blame
 apply_nolint to_additive.parser doc_blame
 apply_nolint to_additive.proceed_fields doc_blame
 apply_nolint to_additive.target_name doc_blame
-apply_nolint to_additive.tokens_dict doc_blame
 apply_nolint to_additive.value_type doc_blame
 
 -- algebra/group/type_tags.lean
@@ -127,7 +125,6 @@ apply_nolint lie_submodule has_inhabited_instance
 
 -- algebra/module.lean
 apply_nolint ideal doc_blame
-apply_nolint is_add_group_hom.to_linear_map doc_blame
 apply_nolint is_linear_map doc_blame
 apply_nolint is_linear_map.mk' doc_blame
 apply_nolint is_ring_hom.to_module doc_blame
@@ -136,7 +133,6 @@ apply_nolint linear_map.comp doc_blame
 apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
-apply_nolint module.of_core doc_blame
 apply_nolint submodule.subtype doc_blame
 
 -- algebra/order.lean
@@ -1282,9 +1278,6 @@ apply_nolint int.induction_on' doc_blame
 apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
 
--- data/int/gcd.lean
-apply_nolint nat.xgcd_aux doc_blame
-
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
 
@@ -2078,24 +2071,13 @@ apply_nolint sylow.rotate_vectors_prod_eq_one doc_blame
 apply_nolint sylow.vectors_prod_eq_one doc_blame
 
 -- linear_algebra/basic.lean
-apply_nolint linear_equiv has_inhabited_instance
 apply_nolint linear_equiv.to_equiv doc_blame
 apply_nolint linear_equiv.to_linear_map doc_blame
-
--- linear_algebra/basis.lean
-apply_nolint constr_smul unused_arguments
-apply_nolint is_basis.repr doc_blame
-apply_nolint linear_independent_monoid_hom unused_arguments
-apply_nolint pi.linear_independent_std_basis unused_arguments
 
 -- linear_algebra/bilinear_form.lean
 apply_nolint bilin_form.bilin_linear_map_equiv doc_blame
 apply_nolint bilin_form.to_linear_map doc_blame
 apply_nolint linear_map.to_bilin doc_blame
-
--- linear_algebra/dimension.lean
-apply_nolint rank doc_blame
-apply_nolint vector_space.dim doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame

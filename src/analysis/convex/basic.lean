@@ -125,6 +125,18 @@ def convex (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
 
+lemma convex_iff_forall_pos :
+  convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
+begin
+  refine ⟨λ h x y hx hy a b ha hb hab, h hx hy (le_of_lt ha) (le_of_lt hb) hab, _⟩,
+  intros h x y hx hy a b ha hb hab,
+  cases eq_or_lt_of_le ha with ha ha,
+  { subst a, rw [zero_add] at hab, simp [hab, hy] },
+  cases eq_or_lt_of_le hb with hb hb,
+  { subst b, rw [add_zero] at hab, simp [hab, hx] },
+  exact h hx hy ha hb hab
+end
+
 lemma convex_iff_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
 by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
   mem_set_of_eq, and_imp]

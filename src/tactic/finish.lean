@@ -572,14 +572,8 @@ do s ← mk_simp_set ff [] hs,
 
 add_hint_tactic "finish"
 
-add_tactic_doc
-{ name        := "finish / clarify / safe",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.finish, `tactic.interactive.clarify,
-                  `tactic.interactive.safe],
-  tags        := [],
-  description :=
-"These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
+/--
+These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
 and congruence closure to try to finish off a goal at the end.
 
@@ -593,7 +587,13 @@ they are only meant to be used on small, straightforward problems.
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.) All also accept an optional
 list of `ematch` lemmas, which must be preceded by `using`.
-" }
+-/
+add_tactic_doc
+{ name        := "finish / clarify / safe",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.finish, `tactic.interactive.clarify,
+                  `tactic.interactive.safe],
+  tags        := [] }
 
 /--
 `iclarify` is like `clarify`, but only uses intuitionistic logic.

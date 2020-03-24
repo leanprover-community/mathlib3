@@ -1,6 +1,8 @@
 # How to use calc
 
-`calc` is an environment -- so a "mode" like tactic mode, term mode and [conv mode](https://github.com/leanprover/mathlib/blob/master/docs/extras/conv.md). Documentation and basic examples for how to use it are in Theorem Proving In Lean, in [section 4.3](https://leanprover.github.io/theorem_proving_in_lean/quantifiers_and_equality.html#calculational-proofs).
+`calc` is an environment -- so a "mode" like tactic mode, term mode and
+[conv mode](https://github.com/leanprover-community/mathlib/blob/master/docs/extras/conv.md). Documentation and basic examples for how to use it are in Theorem Proving In Lean, in
+[section 4.3](https://leanprover.github.io/theorem_proving_in_lean/quantifiers_and_equality.html#calculational-proofs).
 
 Basic example usage:
 
@@ -12,7 +14,9 @@ calc a = b + 1 : H1
 
 # Error messages, and how to avoid them.
 
-Note that the error messages can be quite obscure when things aren't quite right, and often the red squiggles end up under a random `...`. A tip to avoid these problems with calc usage is to first populate a skeleton proof such as
+Note that the error messages can be quite obscure when things aren't quite right, and often the red
+squiggles end up under a random `...`. A tip to avoid these problems with calc usage is to first
+populate a skeleton proof such as
 
 ```lean
 example : A = D :=
@@ -28,7 +32,8 @@ have H : A = D,
   ...          = C : sorry
   ...          = D : sorry,
 ```
-with a comma at the end), and then to start filling in the sorries after that. (Idle thought: could one write a VS Code snippet to write this skeleton?)
+with a comma at the end), and then to start filling in the sorries after that. (Idle thought: could
+one write a VS Code snippet to write this skeleton?)
 
 # Using operators other than equality.
 
@@ -37,7 +42,7 @@ the operators, but actually `calc` will work with any relation for which
 the corresponding transitivity statement is tagged `[trans]`:
 
 ```lean
-definition r : ℕ → ℕ → Prop := sorry 
+definition r : ℕ → ℕ → Prop := sorry
 @[trans] theorem r_trans (a b c : ℕ) : r a b → r b c → r a c := sorry
 infix `***`: 50 := r
 
@@ -87,7 +92,9 @@ is `=`. Lean knows
 #check @trans_rel_left -- ∀ {α : Sort u_1} {a b c : α} (r : α → α → Prop), r a b → b = c → r a c
 ```
 
-and (Kevin believes) uses them if one of the operators is an equality operator. If however neither operator is the equality operator, Lean looks through the theorems in its database which are tagged `[trans]` and applies these instead. For example Lean has the following definitions:
+and (Kevin believes) uses them if one of the operators is an equality operator. If however neither
+operator is the equality operator, Lean looks through the theorems in its database which are tagged
+`[trans]` and applies these instead. For example Lean has the following definitions:
 
 ```
 @[trans] lemma lt_of_lt_of_le [preorder α] : ∀ {a b c : α}, a < b → b ≤ c → a < c
@@ -101,9 +108,9 @@ and it is easily seen that these lemmas can be used to justify the example in th
 It is as simple as tagging the relevant results with `trans`. For example
 
 ```lean
-definition r : ℕ → ℕ → Prop := sorry 
-definition s : ℕ → ℕ → Prop := sorry 
-definition t : ℕ → ℕ → Prop := sorry 
+definition r : ℕ → ℕ → Prop := sorry
+definition s : ℕ → ℕ → Prop := sorry
+definition t : ℕ → ℕ → Prop := sorry
 @[trans] theorem rst_trans (a b c : ℕ) : r a b → s b c → t a c := sorry
 infix `***`: 50 := r
 infix `&&&` : 50 := s

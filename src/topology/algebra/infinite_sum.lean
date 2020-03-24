@@ -648,7 +648,7 @@ lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d 
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
   -- Actually we need partial sums of `d` to be a Cauchy sequence
-  replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
+  replace hd : cauchy_seq (λ (n : ℕ), (range n).sum d) :=
     let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
   -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
@@ -670,7 +670,7 @@ lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : 
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
-  replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
+  replace hd : cauchy_seq (λ (n : ℕ), (range n).sum d) :=
     let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
   refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
   have hsum := hN n hn,

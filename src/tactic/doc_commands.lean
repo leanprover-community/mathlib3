@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
+import tactic.fix_reflect_string
+
 /-!
 # Documentation commands
 
@@ -47,21 +49,36 @@ output. -/
 
 open tactic
 
+/--
+`mk_reflected_definition name val` constructs a definition declaration by reflection.
+
+Example: ``mk_reflected_definition `foo 17`` constructs the definition
+declaration corresponding to `def foo : ℕ := 17`
+-/
+meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
+  (body : type) [reflected body] : declaration :=
+mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
+
 /-- If `note_name` and `note` are `pexpr`s representing strings,
 `add_library_note note_name note` adds a declaration of type `string × string` and tags it with
 the `library_note` attribute. -/
-meta def tactic.add_library_note (note_name note : pexpr) : tactic unit :=
-do note_name ← to_expr note_name,
-   let decl_name := (to_string note_name).mk_hashed_name `library_note,
-   body ← to_expr ``((%%note_name, %%note) : string × string),
-   add_decl $ mk_definition decl_name [] `(string × string) body,
+meta def tactic.add_library_note (note_name note : string) : tactic unit :=
+do let decl_name := note_name.mk_hashed_name `library_note,
+   add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
 
-open lean lean.parser interactive
+/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
+meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
+to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
+
+open tactic lean lean.parser interactive
 /--
 A command to add library notes. Syntax:
 ```
-library_note "note id" "note content"
+/--
+note message
+-/
+library_note "note id"
 ```
 
 ---
@@ -77,19 +94,24 @@ note in the doc display.
 
 Syntax:
 ```
-library_note "note id" "note message"
+/--
+note message
+-/
+library_note "note id"
 ```
 
 An example from `meta.expr`:
 
 ```
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 ```
 
 This note can be referenced near a usage of `pi_binders`:
@@ -102,10 +124,12 @@ def f := pi_binders ...
 ```
 
 -/
-@[user_command] meta def library_note (_ : parse (tk "library_note")) : parser unit :=
-do name ← parser.pexpr,
-   note ← parser.pexpr,
-   of_tactic $ tactic.add_library_note name note
+@[user_command] meta def library_note (mi : interactive.decl_meta_info)
+  (_ : parse (tk "library_note")) : parser unit := do
+note_name ← parser.pexpr,
+note_name ← eval_pexpr string note_name,
+some doc_string ← pure mi.doc_string | fail "library_note requires a doc string",
+add_library_note note_name doc_string
 
 /-- Collects all notes in the current environment.
 Returns a list of pairs `(note_id, note_content)` -/
@@ -181,26 +205,18 @@ meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
 attribute.get_instances `tactic_doc >>=
   list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
 
-/-- `add_tactic_doc tde` assumes `tde : pexpr` represents a term of type `tactic_doc_entry`.
-It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc`
-attribute. If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a
-doc string, it adds `tde.description` as the doc string. -/
-meta def tactic.add_tactic_doc (tde : expr) : tactic unit :=
-do tde ← eval_expr tactic_doc_entry tde,
-   when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
+/-- `add_tactic_doc tde` adds a declaration to the environment
+with `tde` as its body and tags it with the `tactic_doc`
+attribute. If `tde.decl_names` has exactly one entry `` `decl`` and 
+if `tde.description` is the empty string, `add_tactic_doc` uses the doc 
+string of `decl` as the description. -/
+meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
+do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
      fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
    tactic_doc_entry_attr.set decl_name () tt none
-
-/-- Given a `pexpr`, attempt to elaborate it and return either the error message or the result. -/
-private meta def elab_as_tde_or_error_msg (pe : pexpr) : tactic (expr ⊕ string) :=
-λ s, match to_expr ``(%%pe : tactic_doc_entry) ff ff s with
-| interaction_monad.result.success e s := interaction_monad.result.success (sum.inl e) s
-| interaction_monad.result.exception (some msg) _ _ := interaction_monad.result.success (sum.inr (msg ()).to_string) s
-| interaction_monad.result.exception none _ _ := interaction_monad.result.success (sum.inr (format!"{pe} is not a valid tactic doc entry").to_string) s
-end
 
 /--
 A command used to add documentation for a tactic, command, hole command, or attribute.
@@ -208,12 +224,14 @@ A command used to add documentation for a tactic, command, hole command, or attr
 Usage: after defining an interactive tactic, command, or attribute,
 add its documentation as follows.
 ```lean
+/--
+describe what the command does here
+-/
 add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"],
-  description := "describe what the command does here"
+  tags := ["tag_1", "tag_2"]
 }
 ```
 
@@ -226,12 +244,14 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
   Some entries may cover multiple declarations.
   It is only necessary to list the interactive versions of tactics.
 * `tags` is an optional list of strings used to categorize entries.
-* `description` is the body of the entry. Like doc strings, it can be formatted with markdown.
+* The doc string is the body of the entry. It can be formatted with markdown.
   What you are reading now is the description of `add_tactic_doc`.
 
-If only one related declaration is listed in `decl_names` and it does not have a doc string,
-`description` will be automatically added as its doc string. If there are multiple declarations, you
-can select the one to be used by passing a name to the `inherit_description_from` field.
+If only one related declaration is listed in `decl_names` and if this
+invocation of `add_tactic_doc` does not have a doc string, the doc string of
+that declaration will become the body of the tactic doc entry. If there are
+multiple declarations, you can select the one to be used by passing a name to
+the `inherit_description_from` field.
 
 If you prefer a tactic to have a doc string that is different then the doc entry, then between
 the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
@@ -241,13 +261,15 @@ Note that providing a badly formed `tactic_doc_entry` to the command can result 
 messages.
 
 -/
-@[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
-do pe ← parser.pexpr,
-   elab ← of_tactic (elab_as_tde_or_error_msg pe),
-   match elab with
-   | sum.inl e := tactic.add_tactic_doc e
-   | sum.inr msg := interaction_monad.fail msg
-   end .
+@[user_command] meta def add_tactic_doc_command (mi : interactive.decl_meta_info)
+  (_ : parse $ tk "add_tactic_doc") : parser unit := do
+pe ← parser.pexpr,
+e ← eval_pexpr tactic_doc_entry pe,
+let e : tactic_doc_entry := match mi.doc_string with
+  | some desc := { description := desc, ..e }
+  | none := e
+  end,
+tactic.add_tactic_doc e .
 
 add_tactic_doc
 { name                     := "library_note",
@@ -265,13 +287,8 @@ add_tactic_doc
 
 -- add docs to core tactics
 
-add_tactic_doc
-{ name := "cc (congruence closure)",
-  category := doc_category.tactic,
-  decl_names := [`tactic.interactive.cc],
-  tags := ["core", "finishing"],
-  description :=
-"The congruence closure tactic `cc` tries to solve the goal by chaining
+/--
+The congruence closure tactic `cc` tries to solve the goal by chaining
 equalities from context and applying congruence (i.e. if `a = b`, then `f a = f b`).
 It is a finishing tactic, i.e. it is meant to close
 the current goal, not to make some inconclusive progress.
@@ -310,15 +327,15 @@ Journal of the ACM (1980)
 * The congruence lemmas for dependent type theory as used in Lean are described in
 [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf)
 (de Moura, Selsam IJCAR 2016).
-" }
-
+-/
 add_tactic_doc
-{ name := "conv",
+{ name := "cc (congruence closure)",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.conv],
-  tags := ["core"],
-  description :=
-"`conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
+  decl_names := [`tactic.interactive.cc],
+  tags := ["core", "finishing"] }
+
+/--
+`conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
 See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
@@ -363,10 +380,40 @@ begin
 end
 ```
 and likewise for `to_rhs`.
-" }
+-/
+add_tactic_doc
+{ name := "conv",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.conv],
+  tags := ["core"] }
 
 add_tactic_doc
 { name := "simp",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
+
+/--
+The `add_decl_doc` command is used to add a doc string to an existing declaration.
+
+```lean
+def foo := 5
+
+/--
+Doc string for foo.
+-/
+add_decl_doc foo
+```
+-/
+@[user_command] meta def add_decl_doc_command (mi : interactive.decl_meta_info)
+  (_ : parse $ tk "add_decl_doc") : parser unit := do
+n ← parser.ident,
+n ← resolve_constant n,
+some doc ← pure mi.doc_string | fail "add_decl_doc requires a doc string",
+add_doc_string n doc
+
+add_tactic_doc
+{ name := "add_decl_doc",
+  category := doc_category.cmd,
+  decl_names := [``add_decl_doc_command],
+  tags := ["documentation"] }

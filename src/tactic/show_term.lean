@@ -6,18 +6,9 @@ Authors: Scott Morrison
 import tactic.core
 import tactic.tauto
 
-namespace tactic
+open tactic
 
-/-- Run a tactic, and then return the pretty printed original goal. -/
--- This could be inlined into the interactive `show_term`,
--- but I've kept it separate so we can do silent testing.
-meta def pp_term {α : Type} (t : tactic α) : tactic string :=
-do
-  g :: _ ← get_goals,
-  t,
-  to_string <$> pp g
-
-namespace interactive
+namespace tactic.interactive
 
 /--
 `show_term { tac }` runs the tactic `tac`,
@@ -30,9 +21,19 @@ As an example, if the goal is `ℕ × ℕ`, `show_term { split, exact 0 }` will
 print `(0, ?m_1)`, and afterwards there will be one remaining goal (of type `ℕ`).
 This indicates that `split, exact 0` partially filled in the original metavariable,
 but created a new metavariable for the resulting sub-goal.
+
+As another example, in
+```
+example {P Q R : Prop} (h₁ : Q → P) (h₂ : R) (h₃ : R → Q) : P ∧ R :=
+by show_term { tauto }
+```
+the term mode proof `⟨h₁ (h₃ h₂), eq.mpr rfl h₂⟩` produced by `tauto` will be printed.
 -/
 meta def show_term (t : itactic) : itactic :=
-pp_term t >>= trace
+do
+  g :: _ ← get_goals,
+  t,
+  to_string <$> pp g >>= trace
 
 add_tactic_doc
 { name := "show_term",
@@ -40,5 +41,4 @@ add_tactic_doc
   decl_names := [``show_term],
   tags := ["debugging"] }
 
-end interactive
-end tactic
+end tactic.interactive

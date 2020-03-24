@@ -133,7 +133,6 @@ apply_nolint linear_map.comp doc_blame
 apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
-apply_nolint module.of_core doc_blame
 apply_nolint submodule.subtype doc_blame
 
 -- algebra/order.lean
@@ -1278,9 +1277,6 @@ apply_nolint int.eq_mul_div_of_mul_eq_mul_of_dvd_left unused_arguments
 apply_nolint int.induction_on' doc_blame
 apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
-
--- data/int/gcd.lean
-apply_nolint nat.xgcd_aux doc_blame
 
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame

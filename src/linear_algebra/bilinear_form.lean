@@ -86,9 +86,9 @@ variable {D : bilin_form R M}
 
 instance : add_comm_group (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,
-                  bilin_add_left := λ x y z, by {rw add_left, rw add_left, simp},
+                  bilin_add_left := λ x y z, by {rw add_left, rw add_left, ac_refl},
                   bilin_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
-                  bilin_add_right := λ x y z, by {rw add_right, rw add_right, simp},
+                  bilin_add_right := λ x y z, by {rw add_right, rw add_right, ac_refl},
                   bilin_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
   add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin coe_fn has_coe_to_fun.coe bilin, rw add_assoc},
   zero := { bilin := λ x y, 0,
@@ -105,6 +105,8 @@ instance : add_comm_group (bilin_form R M) :=
                 bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm] },
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm} }
+
+instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
 

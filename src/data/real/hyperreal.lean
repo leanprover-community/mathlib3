@@ -8,9 +8,7 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
 open filter filter.filter_product
-open_locale topological_space
-
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[reducible] def hyperreal := filter.filterprod ℝ (@hyperfilter ℕ)
@@ -19,9 +17,43 @@ namespace hyperreal
 
 notation `ℝ*` := hyperreal
 
-private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
+private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 noncomputable instance : discrete_linear_ordered_field ℝ* :=
 filter_product.discrete_linear_ordered_field U
+
+@[simp] lemma hyperfilter_ne_bot {α} [infinite α] : ¬ @hyperfilter α = ⊥ :=
+is_ultrafilter_hyperfilter.1
+
+@[simp] lemma hyperfilter_ne_bot' {α} [infinite α] : ¬ ⊥ = @hyperfilter α :=
+hyperfilter_ne_bot ∘ eq.symm
+
+@[simp, elim_cast]
+lemma coe_eq_coe (x y : ℝ) : (x : ℝ*) = y ↔ x = y :=
+filter_product.coe_injective _ _ (by simp)
+
+@[simp, move_cast]
+lemma cast_div (x y : ℝ) : ((x / y : ℝ) : ℝ*) = x / y :=
+filter_product.of_div is_ultrafilter_hyperfilter _ _
+
+@[simp, elim_cast]
+lemma coe_lt_coe (x y : ℝ) : (x : ℝ*) < y ↔ x < y :=
+(filter_product.of_lt is_ultrafilter_hyperfilter).symm
+
+@[simp, elim_cast]
+lemma coe_le_coe (x y : ℝ) : (x : ℝ*) ≤ y ↔ x ≤ y :=
+(filter_product.of_le hyperfilter_ne_bot).symm
+
+@[simp, move_cast]
+lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x :=
+filter_product.of_abs _ _
+
+@[simp, move_cast]
+lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y :=
+filter_product.of_max _ _ _
+
+@[simp, move_cast]
+lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y :=
+filter_product.of_min _ _ _
 
 /-- A sample infinitesimal hyperreal-/
 noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
@@ -34,17 +66,15 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := inv_inv' ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv' _ _ ω
 
 lemma epsilon_pos : 0 < ε :=
+suffices ∀ᶠ i in hyperfilter, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def U,
 have h0' : {n : ℕ | ¬ n > 0} = {0} :=
 by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
-  rw lt_def U,
-  show {i : ℕ | (0 : ℝ) < i⁻¹} ∈ hyperfilter.sets,
   simp only [inv_pos', nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
-    (by convert set.finite_singleton _),
+  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
@@ -63,7 +93,7 @@ begin
   have hs : -{i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
+  exact mem_hyperfilter_of_finite_compl
     (set.finite_subset (set.finite_le_nat N) hs)
 end
 
@@ -74,7 +104,7 @@ neg_lt_of_neg_lt (by rw [neg_zero] at hg; exact lt_of_tendsto_zero_of_pos hg hr)
 
 lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r < 0 → (r : ℝ*) < of_seq f :=
-λ r hr, by rw [←of_eq_coe, ←neg_neg r, of_neg];
+λ r hr, by rw [←neg_neg r, of_neg];
 exact neg_lt_of_tendsto_zero_of_pos hf (neg_pos.mpr hr)
 
 lemma epsilon_lt_pos (x : ℝ) : x > 0 → ε < of x :=
@@ -106,10 +136,12 @@ private lemma is_st_unique' (x : ℝ*) (r s : ℝ) (hr : is_st x r) (hs : is_st 
 have hrs' : _ := half_pos $ sub_pos_of_lt hrs,
 have hr' : _ := (hr _ hrs').2,
 have hs' : _ := (hs _ hrs').1,
-have h : s + -((s - r) / 2) = r + (s - r) / 2 := by linarith,
-by simp only [(of_eq_coe _).symm, sub_eq_add_neg (of s),
-    (of_neg _).symm, (of_add _ _).symm, h] at hr' hs';
+have h : s - ((s - r) / 2) = r + (s - r) / 2 := by linarith,
+begin
+  norm_cast at *,
+  rw h at hs',
   exact not_lt_of_lt hs' hr'
+end
 
 theorem is_st_unique {x : ℝ*} {r s : ℝ} (hr : is_st x r) (hs : is_st x s) : r = s :=
 begin
@@ -124,9 +156,9 @@ theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ i
    (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
    (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
 
-theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (real.Sup {y : ℝ | of y < x}) :=
+theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (Sup {y : ℝ | of y < x}) :=
 let S : set ℝ := {y : ℝ | of y < x} in
-let R : _ := real.Sup S in
+let R : _ := Sup S in
 have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1,
 have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
 Exists.dcases_on hnile $ Exists.dcases_on hnige $ λ r₁ hr₁ r₂ hr₂,
@@ -144,9 +176,9 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z :=
       not_lt_of_le (real.le_Sup _ HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
 
 theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r :=
-⟨ real.Sup {y : ℝ | of y < x}, is_st_Sup hni ⟩
+⟨ Sup {y : ℝ | of y < x}, is_st_Sup hni ⟩
 
-theorem st_eq_Sup {x : ℝ*} : st x = real.Sup {y : ℝ | of y < x} :=
+theorem st_eq_Sup {x : ℝ*} : st x = Sup {y : ℝ | of y < x} :=
 begin
 unfold st, split_ifs,
 { exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exists_st h)) },
@@ -220,10 +252,10 @@ by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,
-have hxr' : _ := hxr (d / 2) (half_pos hd), have hys' : _ := hys (d / 2) (half_pos hd),
-by rw [←of_eq_coe, ←of_eq_coe, ←add_halves d, of_add, of_add, add_sub_comm,
-       norm_num.add_comm_middle, ←add_assoc, add_assoc _ _ (of s), add_comm _ (of s)];
-exact ⟨ add_lt_add hxr'.1 hys'.1, add_lt_add hxr'.2 hys'.2 ⟩
+have hxr' : _ := hxr (d / 2) (half_pos hd),
+have hys' : _ := hys (d / 2) (half_pos hd),
+⟨by convert add_lt_add hxr'.1 hys'.1 using 1; norm_cast; linarith,
+ by convert add_lt_add hxr'.2 hys'.2 using 1; norm_cast; linarith⟩
 
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) :=
 λ d hd, by show -(r : ℝ*) - d < -x ∧ -x < -r + d; cases (hxr d hd); split; linarith
@@ -239,8 +271,12 @@ lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s
 have hxr' : _ := (hxr _ hrs').2, have hys' : _ := (hys _ hrs').1,
 have H1 : r + ((s - r) / 2) = (r + s) / 2 := by linarith,
 have H2 : s - ((s - r) / 2) = (r + s) / 2 := by linarith,
-by simp only [(of_eq_coe _).symm, (of_add _ _).symm, (of_sub _ _).symm, H1, H2] at hxr' hys';
-exact lt_trans hxr' hys'
+begin
+  norm_cast at *,
+  rw H1 at hxr',
+  rw H2 at hys',
+  exact lt_trans hxr' hys'
+end
 
 lemma is_st_le_of_le {x y : ℝ*} {r s : ℝ} (hrx : is_st x r) (hsy : is_st y s) :
   x ≤ y → r ≤ s := by rw [←not_lt, ←not_lt, not_imp_not]; exact lt_of_is_st_lt hsy hrx
@@ -357,8 +393,8 @@ lemma infinite_pos_add_not_infinite_neg {x y : ℝ*} :
 begin
   intros hip hnin r,
   cases not_forall.mp hnin with r₂ hr₂,
-  convert (add_lt_add_of_lt_of_le (hip (r + -r₂)) (not_lt.mp hr₂)),
-  rw [←of_eq_coe, ←of_eq_coe, ←of_eq_coe, of_add, of_neg, ←sub_eq_add_neg, sub_add_cancel]
+  convert add_lt_add_of_lt_of_le (hip (r + -r₂)) (not_lt.mp hr₂) using 1,
+  simp
 end
 
 lemma not_infinite_neg_add_infinite_pos {x y : ℝ*} :
@@ -400,7 +436,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hS : - {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
@@ -412,7 +448,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hS : - {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=
@@ -429,8 +465,8 @@ theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : �
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).1) $
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).2) $ λ r hr s hs,
 by rw [not_lt] at hr hs; exact ⟨r - 1, s + 1,
-  ⟨ lt_of_lt_of_le (by rw [←of_eq_coe, of_sub]; exact sub_one_lt _) hr,
-    lt_of_le_of_lt hs (by rw [←of_eq_coe (s + 1), of_add]; exact lt_add_one _)⟩ ⟩,
+  ⟨ lt_of_lt_of_le (by rw sub_eq_add_neg; norm_num) hr,
+    lt_of_le_of_lt hs (by norm_num)⟩ ⟩,
 λ hrs, Exists.dcases_on hrs $ λ r hr, Exists.dcases_on hr $ λ s hs,
   not_or_distrib.mpr ⟨not_forall.mpr ⟨s, lt_asymm (hs.2)⟩, not_forall.mpr ⟨r, lt_asymm (hs.1) ⟩⟩⟩
 
@@ -453,26 +489,26 @@ not_infinite_of_exists_st ⟨r, hxr⟩,
 Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩,
 is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
    calc abs (x * y - of (r * s))
-      = abs (x * y - (of r) * (of s)) : by rw of_mul
+      = abs (x * y - (of r) * (of s)) : by simp
   ... = abs (x * (y - of s) + (x - of r) * (of s)) :
         by rw [mul_sub, sub_mul, add_sub, sub_add_cancel]
   ... ≤ abs (x * (y - of s)) + abs ((x - of r) * (of s)) : abs_add _ _
   ... ≤ abs x * abs (y - of s) + abs (x - of r) * abs (of s) : by simp only [abs_mul]
-  ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : add_le_add
+  ... ≤ abs x * ((d / t) / 2 : ℝ) + ((d / abs s) / 2 : ℝ) * abs s : add_le_add
         (mul_le_mul_of_nonneg_left (le_of_lt $ hys' _ $ half_pos $ div_pos hd $
           (of_lt U).mpr $ lt_of_le_of_lt (abs_nonneg _) ht) $ abs_nonneg _ )
         (mul_le_mul_of_nonneg_right (le_of_lt $ hxr' _ $ half_pos $ div_pos hd $
           abs_pos_of_ne_zero hs) $ abs_nonneg _)
-  ... = (of d) / 2 * (abs x / of t) + ((of d) / 2) : by
+  ... = (d / 2 * (abs x / t) + d / 2 : ℝ*) : by
       { rw [div_div_eq_div_mul, mul_comm t 2, ←div_div_eq_div_mul,
             of_div U, div_div_eq_div_mul, mul_comm (abs s) 2,
         ←div_div_eq_div_mul, mul_div_comm, of_div U, of_div U, of_div U, of_abs U,
         div_mul_cancel _ (ne_of_gt (abs_pos_of_ne_zero ((of_ne_zero U.1 _).mp hs)))], refl }
-  ... < (of d) / 2 * 1 + ((of d) / 2) :
+  ... < (d / 2 * 1 + d / 2 : ℝ*) :
         add_lt_add_right (mul_lt_mul_of_pos_left
         ((div_lt_one_iff_lt $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $
         half_pos $ of_lt_of_lt U hd) _
-  ... = of d : by rw [mul_one, add_halves]
+  ... = (d : ℝ*) : by rw [mul_one, add_halves]
 
 lemma is_st_mul {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) :
   is_st (x * y) (r * s) :=
@@ -484,10 +520,10 @@ begin
   { apply is_st_iff_abs_sub_lt_delta.mpr, intros d hd,
     have hys' : _ := is_st_iff_abs_sub_lt_delta.mp hys (d / t)
       (div_pos hd ((of_lt U).mpr (lt_of_le_of_lt (abs_nonneg x) ht))),
-    rw [hs, ←of_eq_coe _, of_zero, sub_zero] at hys',
-    rw [hs, mul_zero, (of_eq_coe _).symm, of_zero, sub_zero, abs_mul, mul_comm,
+    rw [hs, of_zero, sub_zero] at hys',
+    rw [hs, mul_zero, of_zero, sub_zero, abs_mul, mul_comm,
         ←div_mul_cancel (d : ℝ*) (ne_of_gt (lt_of_le_of_lt (abs_nonneg x) ht)),
-        ←of_eq_coe d, ←of_eq_coe t, ←of_div U],
+        ←of_div U],
     exact mul_lt_mul'' hys' ht (abs_nonneg _) (abs_nonneg _) },
   exact is_st_mul' hxr hys hs,
 end
@@ -538,7 +574,7 @@ exact (neg_neg (of r)).symm
 
 theorem abs_lt_real_iff_infinitesimal {x : ℝ*} :
   infinitesimal x ↔ ∀ r : ℝ, r ≠ 0 → abs x < abs r :=
-⟨ λ hi r hr, abs_lt.mpr (by rw [←of_eq_coe, ←of_abs U];
+⟨ λ hi r hr, abs_lt.mpr (by rw ←of_abs U;
   exact infinitesimal_def.mp hi (abs r) (abs_pos_of_ne_zero hr)),
   λ hR, infinitesimal_def.mpr $ λ r hr, abs_lt.mp $
   (abs_of_pos $ of_lt_of_lt U hr : abs (r : ℝ*) = r) ▸ hR r $ ne_of_gt hr ⟩
@@ -566,8 +602,7 @@ zero_mul 0 ▸ is_st_mul
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
   tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=
-λ hf d hd, by rw [←of_eq_coe, ←of_eq_coe, sub_eq_add_neg,
-  ←of_neg, ←of_add, ←of_add, zero_add, zero_add, of_eq_coe, of_eq_coe];
+λ hf d hd, by rw [sub_eq_add_neg, ←of_neg, ←of_add, ←of_add, zero_add, zero_add];
 exact ⟨neg_lt_of_tendsto_zero_of_pos hf hd, lt_of_tendsto_zero_of_pos hf hd⟩
 
 theorem infinitesimal_epsilon : infinitesimal ε :=
@@ -598,10 +633,9 @@ lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
   infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) :=
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp
   (infinite_pos_neg_of_infinite_neg hin),
-  by rwa [infinitesimal_neg_iff, ←neg_pos,
-    neg_inv (λ h0, lt_irrefl x (by convert hin 0) : x ≠ 0)],
+  by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv],
   λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
-  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0,
+  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
     ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ :=
@@ -622,27 +656,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ x > 0) :=
-begin
-  convert infinite_pos_iff_infinitesimal_inv_pos,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv']
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-begin
-  convert infinite_neg_iff_infinitesimal_inv_neg,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv']
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-begin
-  convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm,
-  exact (division_ring.inv_inv h).symm
-end
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv']
 
 -- ST STUFF THAT REQUIRES INFINITESIMAL MACHINERY
 
@@ -664,7 +685,7 @@ H'' ▸ hs
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ :=
 begin
   by_cases h0 : x = 0,
-  rw [h0, inv_zero, ←of_zero, of_eq_coe, st_id_real, inv_zero],
+  rw [h0, inv_zero, ←of_zero, st_id_real, inv_zero],
   by_cases h1 : infinitesimal x,
   rw [st_infinite ((infinitesimal_iff_infinite_inv h0).mp h1), st_of_is_st h1, inv_zero],
   by_cases h2 : infinite x,
@@ -685,7 +706,7 @@ lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} :
 λ hx hy₁ hy₂ r, have hy₁' : _ := not_forall.mp (by rw infinitesimal_def at hy₁; exact hy₁),
 Exists.dcases_on hy₁' $ λ r₁ hy₁'',
 have hyr : _ := by rw [not_imp, ←abs_lt, not_lt, abs_of_pos hy₂] at hy₁''; exact hy₁'',
-by rw [←div_mul_cancel r (ne_of_gt hyr.1), ←of_eq_coe, of_mul];
+by rw [←div_mul_cancel r (ne_of_gt hyr.1), of_mul];
 exact mul_lt_mul (hx (r / r₁)) hyr.2 (of_lt_of_lt U hyr.1) (le_of_lt (hx 0))
 
 lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} :

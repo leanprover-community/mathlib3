@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
+import data.nat.sqrt data.nat.gcd data.list.defs data.list.perm
 import algebra.group_power
 import tactic.wlog
 
@@ -466,6 +466,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
+instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
 

@@ -5,8 +5,6 @@ Authors: Mario Carneiro
 -/
 import algebra.ordered_group order.lattice
 
-open lattice
-
 universes u v
 variables {α : Type u} {β : Type v}
 
@@ -85,6 +83,7 @@ lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_in
 lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_inf_right
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
+lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
@@ -168,7 +167,7 @@ by simp [min_add, sub_eq_add_neg]
   rules relating them. -/
 lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
   f (min n m) + f (max n m) = f n + f m :=
-by { cases le_total n m with h h; simp [h] }
+by { cases le_total n m with h h; simp [h, add_comm] }
 
 lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
   min n m + max n m = n + m :=
@@ -273,6 +272,16 @@ begin
       ... ≤ abs (a - b) : le_abs_self _ },
   { refl }
 end
+
+lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
+begin
+  cases le_total a b with ab ba,
+  { rw [max_eq_right ab, min_eq_left ab, abs_of_nonpos, neg_sub], rwa sub_nonpos },
+  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], exact sub_nonneg_of_le ba }
+end
+
+lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
+by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
 
 end decidable_linear_ordered_comm_group
 

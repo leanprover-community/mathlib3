@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Makes a file all.lean in all subfolders of src/ importing all files in that folder,
 # including subfolders.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -13,31 +13,3 @@ do
   sed 's/$/\.all/; s/\.lean\.all//; s/^\.\//       \./; 1s/^      /import/' >> all.lean
   # Now modify this output so that Lean can parse it. Changes `./foo.lean` to `.foo` and `foodir` to `.foodir.all`. Also adds indentation, a comment and `import`. Write this to `all.lean`
 done
-
-nolint=0
-while getopts 't' opt; do
-  case $opt in
-    t) nolint=1 ;;
-    *) echo 'Error in command line parsing' >&2
-       exit 1
-  esac
-done
-
-cd $DIR/../src/
-if [ "$nolint" -eq 1 ]; then
-  cp ../scripts/nolints.txt ./nolints.lean
-  cat <<EOT > lint_mathlib.lean
-import .nolints
-EOT
-else
-  cat <<EOT > lint_mathlib.lean
-import all
-EOT
-fi
-
-cat <<EOT >> lint_mathlib.lean
-
-open nat -- need to do something before running a command
-
-#lint_mathlib- only unused_arguments dup_namespace doc_blame illegal_constants def_lemma instance_priority
-EOT

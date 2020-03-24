@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs
+import data.string.defs tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 
@@ -128,10 +128,21 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+/--
+Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
+-/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/--
+Constructs a (non-simple) name from a string.
+
+Example: ``name.from_string "foo.bar" = `foo.bar``
+-/
+meta def from_string (s : string) : name :=
+from_components $ s.split (= '.')
 
 end name
 
@@ -151,7 +162,7 @@ end level
 /-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 meta structure binder :=
   (name : name)
   (info : binder_info)
@@ -164,7 +175,6 @@ let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
 open tactic
-meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -369,23 +379,32 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-/- Note [open expressions]:
-  Some declarations work with open expressions, i.e. an expr that has free variables.
-  Terms will free variables are not well-typed, and one should not use them in tactics like
-  `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-  The reason for working with open types is for performance: instantiating variables requires
-  iterating through the expression. In one performance test `pi_binders` was more than 6x
-  quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
-  -/
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
-meta def pi_codomain : expr → expr -- see note [open expressions]
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def pi_codomain : expr → expr
 | (pi n bi d b) := pi_codomain b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`. -/
--- see note [open expressions]
+/-- Get the body/value of a lambda-expression.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def lambda_body : expr → expr
+| (lam n bi d b) := lambda_body b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`.
+  See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
 | es e             := (es, e)
@@ -393,8 +412,9 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 /-- Get the binders and codomain of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
-  free variables -/
-meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+  free variables.
+  See note [open expressions]. -/
+meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
 /-- Auxilliary defintion for `get_app_fn_args`. -/
@@ -440,6 +460,15 @@ meta def local_binding_info : expr → binder_info
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
+
+/-- `has_local_constant e l` checks whether local constant `l` occurs in expression `e` -/
+meta def has_local_constant (e l : expr) : bool :=
+e.has_local_in $ mk_name_set.insert l.local_uniq_name
+
+/-- Turns a local constant into a binder -/
+meta def to_binder : expr → binder
+| (local_const _ nm bi t) := ⟨nm, bi, t⟩
+| _                       := default binder
 
 end expr
 
@@ -495,6 +524,10 @@ meta def get_decl_names (e : environment) : list name :=
 meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
+
+/-- Filters all declarations in the environment. -/
+meta def filter (e : environment) (test : declaration → bool) : list declaration :=
+e.fold [] $ λ d ds, if test d then d::ds else ds
 
 /-- Filters all declarations in the environment. -/
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
@@ -621,6 +654,12 @@ e.is_constructor d.to_name ∨
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
 d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+
+/--
+Returns true iff `d` is an automatically-generated or internal declaration.
+-/
+meta def is_auto_or_internal (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
 
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=

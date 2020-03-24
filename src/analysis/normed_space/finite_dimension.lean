@@ -36,7 +36,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 `linear_map.continuous_of_finite_dimensional`. This gives the desired norm equivalence.
 -/
 
-universes u v w
+universes u v w x
 
 open set finite_dimensional
 open_locale classical
@@ -51,7 +51,8 @@ set_option class.instance_max_depth 100
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
-  {E : Type v} [normed_group E] [normed_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+  {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
+  [topological_add_group E] [topological_vector_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -68,6 +69,8 @@ section complete_field
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
+{F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
+[topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
 set_option class.instance_max_depth 150
@@ -96,23 +99,14 @@ begin
     { assume s s_dim,
       rcases exists_is_basis_finite 𝕜 s with ⟨b, b_basis, b_finite⟩,
       letI : fintype b := finite.fintype b_finite,
-      have U : uniform_embedding (equiv_fun_basis b_basis).symm,
+      have U : uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv,
       { have : fintype.card b = n,
           by { rw ← s_dim, exact (findim_eq_card_basis b_basis).symm },
         have : continuous (equiv_fun_basis b_basis) := IH (subtype.val : b → s) this b_basis,
         exact (equiv_fun_basis b_basis).symm.uniform_embedding (linear_map.continuous_on_pi _) this },
-      have : is_complete (range ((equiv_fun_basis b_basis).symm)),
-      { rw [← image_univ, is_complete_image_iff U],
-        convert complete_univ,
-        change complete_space (b → 𝕜),
-        apply_instance },
-      have : is_complete (range (subtype.val : s → E)),
-      { change is_complete (range ((equiv_fun_basis b_basis).symm.to_equiv)) at this,
-        rw equiv.range_eq_univ at this,
-        rwa [← image_univ, is_complete_image_iff],
-        exact isometry_subtype_val.uniform_embedding },
-      apply is_closed_of_is_complete,
-      rwa subtype.val_range at this },
+      have : is_complete (s : set E),
+        from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
+      exact is_closed_of_is_complete this },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
@@ -157,7 +151,7 @@ begin
 end
 
 /-- Any linear map on a finite dimensional space over a complete field is continuous. -/
-theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F) :
+theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') :
   continuous f :=
 begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
@@ -176,6 +170,19 @@ begin
   rw linear_equiv.symm_apply_apply
 end
 
+/-- The continuous linear map induced by a linear map on a finite dimensional space -/
+def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
+{ cont := f.continuous_of_finite_dimensional, ..f }
+
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
+{ continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
+  continuous_inv_fun := begin
+    haveI : finite_dimensional 𝕜 F := e.finite_dimensional,
+    exact e.symm.to_linear_map.continuous_of_finite_dimensional
+  end,
+  ..e }
+
 /-- Any finite-dimensional vector space over a complete field is complete.
 We do not register this as an instance to avoid an instance loop when trying to prove the
 completeness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Declare the instance
@@ -188,10 +195,8 @@ begin
   have : uniform_embedding (equiv_fun_basis b_basis).symm :=
     linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
     (linear_map.continuous_of_finite_dimensional _),
-  have : is_complete ((equiv_fun_basis b_basis).symm.to_equiv '' univ) :=
-    (is_complete_image_iff this).mpr complete_univ,
-  rw [image_univ, equiv.range_eq_univ] at this,
-  exact complete_space_of_is_complete_univ this
+  change uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv at this,
+  exact (complete_space_congr this).1 (by apply_instance)
 end
 
 variables {𝕜 E}
@@ -236,7 +241,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz _ _ }
+    exact f.lipschitz.dist_le_mul _ _ }
 end
 
 end proper_field

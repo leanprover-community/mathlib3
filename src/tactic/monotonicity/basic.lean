@@ -14,10 +14,11 @@ open tactic list
 open lean lean.parser interactive
 open interactive.types
 
+@[derive inhabited]
 structure mono_cfg :=
   (unify := ff)
 
-@[derive [decidable_eq,has_reflect]]
+@[derive [decidable_eq, has_reflect, inhabited]]
 inductive mono_selection : Type
 | left : mono_selection
 | right : mono_selection

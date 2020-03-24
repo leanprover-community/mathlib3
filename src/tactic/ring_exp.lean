@@ -8,75 +8,75 @@ Solve equations in commutative (semi)rings with exponents.
 import tactic.norm_num
 
 /-!
-  # ring_exp tactic
+# `ring_exp` tactic
 
-  A tactic for solving equations in commutative (semi)rings,
-  where the exponents can also contain variables.
+A tactic for solving equations in commutative (semi)rings,
+where the exponents can also contain variables.
 
-  More precisely, expressions of the following form are supported:
-  - constants (non-negative integers)
-  - variables
-  - coefficients (any rational number, embedded into the (semi)ring)
-  - addition of expressions
-  - multiplication of expressions
-  - exponentiation of expressions (the exponent must have type `ℕ`)
-  - subtraction and negation of expressions (if the base is a full ring)
+More precisely, expressions of the following form are supported:
+- constants (non-negative integers)
+- variables
+- coefficients (any rational number, embedded into the (semi)ring)
+- addition of expressions
+- multiplication of expressions
+- exponentiation of expressions (the exponent must have type `ℕ`)
+- subtraction and negation of expressions (if the base is a full ring)
 
-  The motivating example is proving `2 * 2^n * b = b * 2^(n+1)`,
-  something that the `ring` tactic cannot do, but `ring_exp` can.
+The motivating example is proving `2 * 2^n * b = b * 2^(n+1)`,
+something that the `ring` tactic cannot do, but `ring_exp` can.
 
-  ## Implementation notes
+## Implementation notes
 
-  The basic approach to prove equalities is to normalise both sides and check for equality.
-  The normalisation is guided by building a value in the type `ex` at the meta level,
-  together with a proof (at the base level) that the original value is equal to
-  the normalised version.
-  The normalised version and normalisation proofs are also stored in the `ex` type.
+The basic approach to prove equalities is to normalise both sides and check for equality.
+The normalisation is guided by building a value in the type `ex` at the meta level,
+together with a proof (at the base level) that the original value is equal to
+the normalised version.
+The normalised version and normalisation proofs are also stored in the `ex` type.
 
-  The outline of the file:
-  - Define an inductive family of types `ex`, parametrised over `ex_type`,
-    which can represent expressions with `+`, `*`, `^` and rational numerals.
-    The parametrisation over `ex_type` ensures that associativity and distributivity are applied,
-    by restricting which kinds of subexpressions appear as arguments to the various operators.
-  - Represent addition, multiplication and exponentiation in the `ex` type,
-    thus allowing us to map expressions to `ex` (the `eval` function drives this).
-    We apply associativity and distributivity of the operators here (helped by `ex_type`)
-    and commutativity as well (by sorting the subterms; unfortunately not helped by anything).
-    Any expression not of the above formats is treated as an atom (the same as a variable).
+The outline of the file:
+- Define an inductive family of types `ex`, parametrised over `ex_type`,
+  which can represent expressions with `+`, `*`, `^` and rational numerals.
+  The parametrisation over `ex_type` ensures that associativity and distributivity are applied,
+  by restricting which kinds of subexpressions appear as arguments to the various operators.
+- Represent addition, multiplication and exponentiation in the `ex` type,
+  thus allowing us to map expressions to `ex` (the `eval` function drives this).
+  We apply associativity and distributivity of the operators here (helped by `ex_type`)
+  and commutativity as well (by sorting the subterms; unfortunately not helped by anything).
+  Any expression not of the above formats is treated as an atom (the same as a variable).
 
-  There are some details we glossed over which make the plan more complicated:
-  - The order on atoms is not initially obvious.
-    We construct a list containing them in order of initial appearance in the expression,
-    then use the index into the list as a key to order on.
-  - In the tactic, a normalized expression `ps : ex` lives in the meta-world,
-    but the normalization proofs live in the real world.
-    Thus, we cannot directly say `ps.orig = ps.pretty` anywhere,
-    but we have to carefully construct the proof when we compute `ps`.
-    This was a major source of bugs in development!
-  - For `pow`, the exponent must be a natural number, while the base can be any semiring `α`.
-    We swap out operations for the base ring `α` with those for the exponent ring `ℕ`
-    as soon as we deal with exponents.
-    This is accomplished by the `in_exponent` function and is relatively painless since
-    we work in a `reader` monad.
-  - The normalized form of an expression is the one that is useful for the tactic,
-    but not as nice to read. To remedy this, the user-facing normalization calls `ex.simp`.
+There are some details we glossed over which make the plan more complicated:
+- The order on atoms is not initially obvious.
+  We construct a list containing them in order of initial appearance in the expression,
+  then use the index into the list as a key to order on.
+- In the tactic, a normalized expression `ps : ex` lives in the meta-world,
+  but the normalization proofs live in the real world.
+  Thus, we cannot directly say `ps.orig = ps.pretty` anywhere,
+  but we have to carefully construct the proof when we compute `ps`.
+  This was a major source of bugs in development!
+- For `pow`, the exponent must be a natural number, while the base can be any semiring `α`.
+  We swap out operations for the base ring `α` with those for the exponent ring `ℕ`
+  as soon as we deal with exponents.
+  This is accomplished by the `in_exponent` function and is relatively painless since
+  we work in a `reader` monad.
+- The normalized form of an expression is the one that is useful for the tactic,
+  but not as nice to read. To remedy this, the user-facing normalization calls `ex.simp`.
 
-  ## Caveats and future work
+## Caveats and future work
 
-  Subtraction cancels out identical terms, but division does not.
-  That is: `a - a = 0 := by ring_exp` solves the goal,
-  but `a / a := 1 by ring_exp` doesn't.
-  Note that `0 / 0` is generally defined to be `0`,
-  so division cancelling out is not true in general.
+Subtraction cancels out identical terms, but division does not.
+That is: `a - a = 0 := by ring_exp` solves the goal,
+but `a / a := 1 by ring_exp` doesn't.
+Note that `0 / 0` is generally defined to be `0`,
+so division cancelling out is not true in general.
 
-  Multiplication of powers can be simplified a little bit further:
-  `2 ^ n * 2 ^ n = 4 ^ n := by ring_exp` could be implemented
-  in a similar way that `2 * a + 2 * a = 4 * a := by ring_exp` already works.
-  This feature wasn't needed yet, so it's not implemented yet.
+Multiplication of powers can be simplified a little bit further:
+`2 ^ n * 2 ^ n = 4 ^ n := by ring_exp` could be implemented
+in a similar way that `2 * a + 2 * a = 4 * a := by ring_exp` already works.
+This feature wasn't needed yet, so it's not implemented yet.
 
-  ## Tags
+## Tags
 
-  ring, semiring, exponent, power
+ring, semiring, exponent, power
 -/
 
 -- The base ring `α` will have a universe level `u`.
@@ -88,59 +88,66 @@ namespace tactic.ring_exp
 open nat
 
 /--
-  The `atom` structure is used to represent atomic expressions:
-  those which `ring_exp` cannot parse any further.
+The `atom` structure is used to represent atomic expressions:
+those which `ring_exp` cannot parse any further.
 
-  For instance, `a + (a % b)` has `a` and `(a % b)` as atoms.
-  The `ring_exp_eq` tactic does not normalize the subexpressions in atoms,
-  but `ring_exp` does if `ring_exp_eq` was not sufficient.
+For instance, `a + (a % b)` has `a` and `(a % b)` as atoms.
+The `ring_exp_eq` tactic does not normalize the subexpressions in atoms,
+but `ring_exp` does if `ring_exp_eq` was not sufficient.
 
-  Atoms in fact represent equivalence classes of expressions,
-  modulo definitional equality.
-  The field `index : ℕ` should be a unique number for each class,
-  while `value : expr` contains a representative of this class.
-  The function `resolve_atom` determines the appropriate atom
-  for a given expression.
+Atoms in fact represent equivalence classes of expressions,
+modulo definitional equality.
+The field `index : ℕ` should be a unique number for each class,
+while `value : expr` contains a representative of this class.
+The function `resolve_atom` determines the appropriate atom
+for a given expression.
 -/
 meta structure atom : Type := (value : expr) (index : ℕ)
+
 namespace atom
+
 /--
-  The `eq` operation on `atom`s works modulo definitional equality,
-  ignoring their `value`s.
-  The invariants on `atom` ensure indices are unique per value.
-  Thus, `eq` indicates equality as long as the `atom`s come from the same context.
+The `eq` operation on `atom`s works modulo definitional equality,
+ignoring their `value`s.
+The invariants on `atom` ensure indices are unique per value.
+Thus, `eq` indicates equality as long as the `atom`s come from the same context.
 -/
 meta def eq (a b : atom) : bool := a.index = b.index
+
 /--
-  We order `atom`s on the order of appearance in the main expression.
+We order `atom`s on the order of appearance in the main expression.
 -/
 meta def lt (a b : atom) : bool := a.index < b.index
+
 meta instance : has_repr atom := ⟨λ x, "(atom " ++ repr x.2 ++ ")"⟩
+
 end atom
 
 section expression
 /-!
-  ### `expression` section
-  In this section, we define the `ex` type and its basic operations.
+### `expression` section
 
-  First, we introduce the supporting types `coeff`, `ex_type` and `ex_info`.
-  For understanding the code, it's easier to check out `ex` itself first,
-  then refer back to the supporting types.
+In this section, we define the `ex` type and its basic operations.
 
-  The arithmetic operations on `ex` need additional definitions,
-  so they are defined in a later section.
+First, we introduce the supporting types `coeff`, `ex_type` and `ex_info`.
+For understanding the code, it's easier to check out `ex` itself first,
+then refer back to the supporting types.
+
+The arithmetic operations on `ex` need additional definitions,
+so they are defined in a later section.
 -/
 
 /--
-  Coefficients in the expression are stored in a wrapper structure,
-  allowing for easier modification of the data structures.
-  The modifications might be caching of the result of `expr.of_rat`,
-  or using a different meta representation of numerals.
+Coefficients in the expression are stored in a wrapper structure,
+allowing for easier modification of the data structures.
+The modifications might be caching of the result of `expr.of_rat`,
+or using a different meta representation of numerals.
 -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 structure coeff : Type := (value : ℚ)
 
 /-- The values in `ex_type` are used as parameters to `ex` to control the expression's structure. -/
+@[derive decidable_eq, derive inhabited]
 inductive ex_type : Type
 | base : ex_type
 | sum : ex_type
@@ -149,54 +156,54 @@ inductive ex_type : Type
 open ex_type
 
 /--
-  Each `ex` stores information for its normalization proof.
+Each `ex` stores information for its normalization proof.
 
-  The `orig` expression is the expression that was passed to `eval`.
+The `orig` expression is the expression that was passed to `eval`.
 
-  The `pretty` expression is the normalised form that the `ex` represents.
-  (I didn't call this something like `norm`, because there are already
-  too many things called `norm` in mathematics!)
+The `pretty` expression is the normalised form that the `ex` represents.
+(I didn't call this something like `norm`, because there are already
+too many things called `norm` in mathematics!)
 
-  The field `proof` contains an optional proof term of type `%%orig = %%pretty`.
-  The value `none` for the proof indicates that everything reduces to reflexivity.
-  (Which saves space in quite a lot of cases.)
+The field `proof` contains an optional proof term of type `%%orig = %%pretty`.
+The value `none` for the proof indicates that everything reduces to reflexivity.
+(Which saves space in quite a lot of cases.)
 -/
 meta structure ex_info : Type :=
 (orig : expr) (pretty : expr) (proof : option expr)
 
 /--
-  The `ex` type is an abstract representation of an expression with `+`, `*` and `^`.
-  Those operators are mapped to the `sum`, `prod` and `exp` constructors respectively.
+The `ex` type is an abstract representation of an expression with `+`, `*` and `^`.
+Those operators are mapped to the `sum`, `prod` and `exp` constructors respectively.
 
-  The `zero` constructor is the base case for `ex sum`, e.g. `1 + 2` is represented
-  by (something along the lines of) `sum 1 (sum 2 zero)`.
+The `zero` constructor is the base case for `ex sum`, e.g. `1 + 2` is represented
+by (something along the lines of) `sum 1 (sum 2 zero)`.
 
-  The `coeff` constructor is the base case for `ex prod`, and is used for numerals.
-  The code maintains the invariant that the coefficient is never `0`.
+The `coeff` constructor is the base case for `ex prod`, and is used for numerals.
+The code maintains the invariant that the coefficient is never `0`.
 
-  The `var` constructor is the base case for `ex exp`, and is used for atoms.
+The `var` constructor is the base case for `ex exp`, and is used for atoms.
 
-  The `sum_b` constructor allows for addition in the base of an exponentiation;
-  it serves a similar purpose as the parentheses in `(a + b)^c`.
-  The code maintains the invariant that the argument to `sum_b` is not `zero`
-  or `sum _ zero`.
+The `sum_b` constructor allows for addition in the base of an exponentiation;
+it serves a similar purpose as the parentheses in `(a + b)^c`.
+The code maintains the invariant that the argument to `sum_b` is not `zero`
+or `sum _ zero`.
 
-  All of the constructors contain an `ex_info` field,
-  used to carry around (arguments to) proof terms.
+All of the constructors contain an `ex_info` field,
+used to carry around (arguments to) proof terms.
 
-  While the `ex_type` parameter enforces some simplification invariants,
-  the following ones must be manually maintained at the risk of insufficient power:
-   - the argument to `coeff` must be nonzero (to ensure `0 = 0 * 1`)
-   - the argument to `sum_b` must be of the form `sum a (sum b bs)` (to ensure `(a + 0)^n = a^n`)
-   - normalisation proofs of subexpressions must be `refl ps.pretty`
-   - if we replace `sum` with `cons` and `zero` with `nil`, the resulting list is sorted
-     according to the `lt` relation defined further down; similarly for `prod` and `coeff`
-     (to ensure `a + b = b + a`).
+While the `ex_type` parameter enforces some simplification invariants,
+the following ones must be manually maintained at the risk of insufficient power:
+- the argument to `coeff` must be nonzero (to ensure `0 = 0 * 1`)
+- the argument to `sum_b` must be of the form `sum a (sum b bs)` (to ensure `(a + 0)^n = a^n`)
+- normalisation proofs of subexpressions must be `refl ps.pretty`
+- if we replace `sum` with `cons` and `zero` with `nil`, the resulting list is sorted
+  according to the `lt` relation defined further down; similarly for `prod` and `coeff`
+  (to ensure `a + b = b + a`).
 
-  The first two invariants could be encoded in a subtype of `ex`,
-  but aren't (yet) to spare some implementation burden.
-  The other invariants cannot be encoded because we need the `tactic` monad to check them.
-  (For example, the correct equality check of `expr` is `is_def_eq : expr → expr → tactic unit`.)
+The first two invariants could be encoded in a subtype of `ex`,
+but aren't (yet) to spare some implementation burden.
+The other invariants cannot be encoded because we need the `tactic` monad to check them.
+(For example, the correct equality check of `expr` is `is_def_eq : expr → expr → tactic unit`.)
 -/
 meta inductive ex : ex_type → Type
 | zero  (info : ex_info) : ex sum
@@ -208,7 +215,7 @@ meta inductive ex : ex_type → Type
 | exp   (info : ex_info) : ex base → ex prod → ex exp
 
 /--
-  Return the proof information associated to the `ex`.
+Return the proof information associated to the `ex`.
 -/
 meta def ex.info : Π {et : ex_type} (ps : ex et), ex_info
 | sum  (ex.zero  i)     := i
@@ -220,38 +227,40 @@ meta def ex.info : Π {et : ex_type} (ps : ex et), ex_info
 | exp  (ex.exp   i _ _) := i
 
 /--
-  Return the original, non-normalized version of this `ex`.
+Return the original, non-normalized version of this `ex`.
 
-  Note that arguments to another `ex` are always "pre-normalized":
-  their `orig` and `pretty` are equal, and their `proof` is reflexivity.
+Note that arguments to another `ex` are always "pre-normalized":
+their `orig` and `pretty` are equal, and their `proof` is reflexivity.
 -/
 meta def ex.orig {et : ex_type} (ps : ex et) : expr := ps.info.orig
+
 /--
-  Return the normalized version of this `ex`.
+Return the normalized version of this `ex`.
 -/
 meta def ex.pretty {et : ex_type} (ps : ex et) : expr := ps.info.pretty
+
 /--
-  Return the normalisation proof of the given expression.
-  If the proof is `refl`, we give `none` instead,
-  which helps to control the size of proof terms.
-  To get an actual term, use `ex.proof_term`,
-  or use `mk_proof` with the correct set of arguments.
+Return the normalisation proof of the given expression.
+If the proof is `refl`, we give `none` instead,
+which helps to control the size of proof terms.
+To get an actual term, use `ex.proof_term`,
+or use `mk_proof` with the correct set of arguments.
 -/
 meta def ex.proof {et : ex_type} (ps : ex et) : option expr := ps.info.proof
 
 /--
-  Update the `orig` and `proof` fields of the `ex_info`.
-  Intended for use in `ex.set_info`.
+Update the `orig` and `proof` fields of the `ex_info`.
+Intended for use in `ex.set_info`.
 -/
 meta def ex_info.set (i : ex_info) (o : option expr) (pf : option expr) : ex_info :=
 {orig := o.get_or_else i.pretty, proof := pf, .. i}
 
 /--
-  Update the `ex_info` of the given expression.
+Update the `ex_info` of the given expression.
 
-  We use this to combine intermediate normalisation proofs.
-  Since `pretty` only depends on the subexpressions,
-  which do not change, we do not set `pretty`.
+We use this to combine intermediate normalisation proofs.
+Since `pretty` only depends on the subexpressions,
+which do not change, we do not set `pretty`.
 -/
 meta def ex.set_info : Π {et : ex_type} (ps : ex et), option expr → option expr → ex et
 | sum  (ex.zero  i)      o pf := ex.zero  (i.set o pf)
@@ -276,10 +285,10 @@ meta def ex.repr : Π {et : ex_type}, ex et → string
 meta instance {et : ex_type} : has_repr (ex et) := ⟨ex.repr⟩
 
 /--
-  Equality test for expressions.
+Equality test for expressions.
 
-  Since equivalence of `atom`s is not the same as equality,
-  we cannot make a true `(=)` operator for `ex` either.
+Since equivalence of `atom`s is not the same as equality,
+we cannot make a true `(=)` operator for `ex` either.
 -/
 meta def ex.eq : Π {et : ex_type}, ex et → ex et → bool
 | sum  (ex.zero _)      (ex.zero _)      := tt
@@ -297,9 +306,9 @@ meta def ex.eq : Π {et : ex_type}, ex et → ex et → bool
 | exp  (ex.exp _ p ps)  (ex.exp _ q qs)  := p.eq q && ps.eq qs
 
 /--
-  The ordering on expressions.
+The ordering on expressions.
 
-  As for `ex.eq`, this is a linear order only in one context.
+As for `ex.eq`, this is a linear order only in one context.
 -/
 meta def ex.lt : Π {et : ex_type}, ex et → ex et → bool
 | sum  _                (ex.zero _)      := ff
@@ -319,13 +328,14 @@ end expression
 
 section operations
 /-!
-  ### `operations` section
-  This section defines the operations (on `ex`) that use tactics.
-  They live in the `ring_exp_m` monad,
-  which adds a cache and a list of encountered atoms to the `tactic` monad.
+### `operations` section
 
-  Throughout this section, we will be constructing proof terms.
-  The lemmas used in the construction are all defined over a commutative semiring α.
+This section defines the operations (on `ex`) that use tactics.
+They live in the `ring_exp_m` monad,
+which adds a cache and a list of encountered atoms to the `tactic` monad.
+
+Throughout this section, we will be constructing proof terms.
+The lemmas used in the construction are all defined over a commutative semiring α.
 -/
 variables {α : Type u} [comm_semiring α]
 
@@ -333,33 +343,33 @@ open tactic
 open ex_type
 
 /--
-  Stores the information needed in the `eval` function and its dependencies,
-  so they can (re)construct expressions.
+Stores the information needed in the `eval` function and its dependencies,
+so they can (re)construct expressions.
 
-  The `eval_info` structure stores this information for one type,
-  and the `context` combines the two types, one for bases and one for exponents.
+The `eval_info` structure stores this information for one type,
+and the `context` combines the two types, one for bases and one for exponents.
 -/
 meta structure eval_info :=
-  (α : expr) (univ : level)
-  -- Cache the instances for optimization and consistency
-  (csr_instance : expr) (ha_instance : expr) (hm_instance : expr) (hp_instance : expr)
-  -- Optional instances (only required for (-) and (/) respectively)
-  (ring_instance : option expr) (dr_instance : option expr)
-  -- Cache common constants.
-  (zero : expr) (one : expr)
+(α : expr) (univ : level)
+-- Cache the instances for optimization and consistency
+(csr_instance : expr) (ha_instance : expr) (hm_instance : expr) (hp_instance : expr)
+-- Optional instances (only required for (-) and (/) respectively)
+(ring_instance : option expr) (dr_instance : option expr)
+-- Cache common constants.
+(zero : expr) (one : expr)
 
 /--
-  The `context` contains the full set of information needed for the `eval` function.
+The `context` contains the full set of information needed for the `eval` function.
 
-  This structure has two copies of `eval_info`:
-  one is for the base (typically some semiring `α`) and another for the exponent (always `ℕ`).
-  When evaluating an exponent, we put `info_e` in `info_b`.
+This structure has two copies of `eval_info`:
+one is for the base (typically some semiring `α`) and another for the exponent (always `ℕ`).
+When evaluating an exponent, we put `info_e` in `info_b`.
 -/
 meta structure context :=
-  (info_b : eval_info) (info_e : eval_info) (transp : transparency)
+(info_b : eval_info) (info_e : eval_info) (transp : transparency)
 
 /--
-  The `ring_exp_m` monad is used instead of `tactic` to store the context.
+The `ring_exp_m` monad is used instead of `tactic` to store the context.
 -/
 meta def ring_exp_m (α : Type) : Type := reader_t context (state_t (list atom) tactic) α
 
@@ -368,61 +378,61 @@ meta instance : monad ring_exp_m := by { dunfold ring_exp_m, apply_instance }
 meta instance : alternative ring_exp_m := by { dunfold ring_exp_m, apply_instance }
 
 /--
-  Access the instance cache.
+Access the instance cache.
 -/
 meta def get_context : ring_exp_m context := reader_t.read
 
 /--
-  Lift an operation in the `tactic` monad to the `ring_exp_m` monad.
+Lift an operation in the `tactic` monad to the `ring_exp_m` monad.
 
-  This operation will not access the cache.
+This operation will not access the cache.
 -/
 meta def lift {α} (m : tactic α) : ring_exp_m α := reader_t.lift (state_t.lift m)
 
 /--
-  Change the context of the given computation,
-  so that expressions are evaluated in the exponent ring,
-  instead of the base ring.
+Change the context of the given computation,
+so that expressions are evaluated in the exponent ring,
+instead of the base ring.
 -/
 meta def in_exponent {α} (mx : ring_exp_m α) : ring_exp_m α := do
   ctx ← get_context,
   reader_t.lift $ mx.run ⟨ctx.info_e, ctx.info_e, ctx.transp⟩
 
 /--
-  Specialized version of mk_app where the first two arguments are {α} [some_class α].
-  Should be faster because it can use the cached instances.
+Specialized version of `mk_app` where the first two arguments are `{α}` `[some_class α]`.
+Should be faster because it can use the cached instances.
 -/
 meta def mk_app_class (f : name) (inst : expr) (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   pure $ (@expr.const tt f [ctx.info_b.univ] ctx.info_b.α inst).mk_app args
 
 /--
-  Specialized version of mk_app where the first two arguments are {α} [comm_semiring α].
-  Should be faster because it can use the cached instances.
+Specialized version of `mk_app` where the first two arguments are `{α}` `[comm_semiring α]`.
+Should be faster because it can use the cached instances.
  -/
 meta def mk_app_csr (f : name) (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   mk_app_class f (ctx.info_b.csr_instance) args
 
 /--
-  Specialized version of `mk_app ``has_add.add`.
-  Should be faster because it can use the cached instances.
+Specialized version of `mk_app ``has_add.add`.
+Should be faster because it can use the cached instances.
 -/
 meta def mk_add (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   mk_app_class ``has_add.add ctx.info_b.ha_instance args
 
 /--
-  Specialized version of `mk_app ``has_mul.mul`.
-  Should be faster because it can use the cached instances.
+Specialized version of `mk_app ``has_mul.mul`.
+Should be faster because it can use the cached instances.
 -/
 meta def mk_mul (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   mk_app_class ``has_mul.mul ctx.info_b.hm_instance args
 
 /--
-  Specialized version of `mk_app ``has_pow.pow`.
-  Should be faster because it can use the cached instances.
+Specialized version of `mk_app ``has_pow.pow`.
+Should be faster because it can use the cached instances.
 -/
 meta def mk_pow (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
@@ -441,11 +451,11 @@ end
 meta def ex.proof_term {et : ex_type} (ps : ex et) : ring_exp_m expr := ps.info.proof_term
 
 /--
-  If all `ex_info` have trivial proofs, return a trivial proof.
-  Otherwise, construct all proof terms.
+If all `ex_info` have trivial proofs, return a trivial proof.
+Otherwise, construct all proof terms.
 
-  Useful in applications where trivial proofs combine to another trivial proof,
-  most importantly to pass to `mk_proof_or_refl`.
+Useful in applications where trivial proofs combine to another trivial proof,
+most importantly to pass to `mk_proof_or_refl`.
 -/
 meta def none_or_proof_term : list ex_info → ring_exp_m (option (list expr))
 | [] := pure none
@@ -462,17 +472,17 @@ meta def none_or_proof_term : list ex_info → ring_exp_m (option (list expr))
   end
 
 /--
-  Use the proof terms as arguments to the given lemma.
-  If the lemma could reduce to reflexivity, consider using `mk_proof_or_refl.`
-  -/
+Use the proof terms as arguments to the given lemma.
+If the lemma could reduce to reflexivity, consider using `mk_proof_or_refl.`
+-/
 meta def mk_proof (lem : name) (args : list expr) (hs : list ex_info) : ring_exp_m expr := do
   hs' ← traverse ex_info.proof_term hs,
   mk_app_csr lem (args ++ hs')
 
 /--
-  Use the proof terms as arguments to the given lemma.
-  Often, we construct a proof term using congruence where reflexivity suffices.
-  To solve this, the following function tries to get away with reflexivity.
+Use the proof terms as arguments to the given lemma.
+Often, we construct a proof term using congruence where reflexivity suffices.
+To solve this, the following function tries to get away with reflexivity.
 -/
 meta def mk_proof_or_refl (term : expr) (lem : name) (args : list expr) (hs : list ex_info) :
 ring_exp_m expr := do
@@ -518,10 +528,10 @@ meta def ex_sum (p : ex prod) (ps : ex sum) : ring_exp_m (ex sum) := do
   pure (ex.sum ⟨pps_o, pps_p, pps_pf⟩ (p.set_info none none) (ps.set_info none none))
 
 /--
-  Constructs `ex.coeff` with the correct arguments.
+Constructs `ex.coeff` with the correct arguments.
 
-  There are more efficient constructors for specific numerals:
-  if `x = 0`, you should use `ex_zero`; if `x = 1`, use `ex_one`.
+There are more efficient constructors for specific numerals:
+if `x = 0`, you should use `ex_zero`; if `x = 1`, use `ex_one`.
 -/
 meta def ex_coeff (x : rat) : ring_exp_m (ex prod) := do
   ctx ← get_context,
@@ -529,8 +539,8 @@ meta def ex_coeff (x : rat) : ring_exp_m (ex prod) := do
   pure (ex.coeff ⟨x_p, x_p, none⟩ ⟨x⟩)
 
 /--
-  Constructs `ex.coeff 1` with the correct arguments.
-  This is a special case for optimization purposes.
+Constructs `ex.coeff 1` with the correct arguments.
+This is a special case for optimization purposes.
 -/
 meta def ex_one : ring_exp_m (ex prod) := do
   ctx ← get_context,
@@ -591,10 +601,10 @@ meta def prod_to_sum (p : ex prod) : ring_exp_m (ex sum) := do
 
 lemma atom_to_sum_pf (p : α) : p = p ^ 1 * 1 + 0 := by simp
 /--
-  A more efficient conversion from `atom` to `ex sum`.
+A more efficient conversion from `atom` to `ex sum`.
 
-  The result should be the same as `ex_var p >>= base_to_exp >>= exp_to_prod >>= prod_to_sum`,
-  except we need to calculate less intermediate steps.
+The result should be the same as `ex_var p >>= base_to_exp >>= exp_to_prod >>= prod_to_sum`,
+except we need to calculate less intermediate steps.
 -/
 meta def atom_to_sum (p : atom) : ring_exp_m (ex sum) := do
   p' ← ex_var p,
@@ -608,13 +618,13 @@ meta def atom_to_sum (p : atom) : ring_exp_m (ex sum) := do
   pure $ p'.set_info p.1 pf
 
 /--
-  Compute the sum of two coefficients.
-  Note that the result might not be a valid expression:
-  if `p = -q`, then the result should be `ex.zero : ex sum` instead.
-  The caller must detect when this happens!
+Compute the sum of two coefficients.
+Note that the result might not be a valid expression:
+if `p = -q`, then the result should be `ex.zero : ex sum` instead.
+The caller must detect when this happens!
 
-  The returned value is of the form `ex.coeff _ (p + q)`,
-  with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
+The returned value is of the form `ex.coeff _ (p + q)`,
+with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
 -/
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
@@ -626,10 +636,10 @@ lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
 lemma mul_coeff_pf_mul_one (p : α) : p * 1 = p := mul_one p
 
 /--
-  Compute the product of two coefficients.
+Compute the product of two coefficients.
 
-  The returned value is of the form `ex.coeff _ (p * q)`,
-  with the proof of `expr.of_rat p * expr.of_rat q = expr.of_rat (p * q)`.
+The returned value is of the form `ex.coeff _ (p * q)`,
+with the proof of `expr.of_rat p * expr.of_rat q = expr.of_rat (p * q)`.
 -/
 meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) :=
 match p.1, q.1 with -- Special case to speed up multiplication with 1.
@@ -651,23 +661,23 @@ match p.1, q.1 with -- Special case to speed up multiplication with 1.
 end
 
 /--
-  Represents the way in which two products are equal except coefficient.
+Represents the way in which two products are equal except coefficient.
 
-  This type is used in the function `add_overlap`.
-  In order to deal with equations of the form `a * 2 + a = 3 * a`,
-  the `add` function will add up overlapping products,
-  turning `a * 2 + a` into `a * 3`.
-  We need to distinguish `a * 2 + a` from `a * 2 + b` in order to do this,
-  and the `overlap` type carries the information on how it overlaps.
+This type is used in the function `add_overlap`.
+In order to deal with equations of the form `a * 2 + a = 3 * a`,
+the `add` function will add up overlapping products,
+turning `a * 2 + a` into `a * 3`.
+We need to distinguish `a * 2 + a` from `a * 2 + b` in order to do this,
+and the `overlap` type carries the information on how it overlaps.
 
-  The case `none` corresponds to non-overlapping products, e.g. `a * 2 + b`;
-  the case `nonzero` to overlapping products adding to non-zero, e.g. `a * 2 + a`
-  (the `ex prod` field will then look like `a * 3` with a proof that `a * 2 + a = a * 3`);
-  the case `zero` to overlapping products adding to zero, e.g. `a * 2 + a * -2`.
-  We distinguish those two cases because in the second, the whole product reduces to `0`.
+The case `none` corresponds to non-overlapping products, e.g. `a * 2 + b`;
+the case `nonzero` to overlapping products adding to non-zero, e.g. `a * 2 + a`
+(the `ex prod` field will then look like `a * 3` with a proof that `a * 2 + a = a * 3`);
+the case `zero` to overlapping products adding to zero, e.g. `a * 2 + a * -2`.
+We distinguish those two cases because in the second, the whole product reduces to `0`.
 
-  A potential extension to the tactic would also do this for the base of exponents,
-  e.g. to show `2^n * 2^n = 4^n`.
+A potential extension to the tactic would also do this for the base of exponents,
+e.g. to show `2^n * 2^n = 4^n`.
 -/
 meta inductive overlap : Type
 | none {} : overlap
@@ -684,9 +694,9 @@ lemma add_overlap_pf_zero {ps qs} (p : α) : ps + qs = 0 → p * ps + p * qs = 0
   ... = 0 : mul_zero _
 
 /--
-  Given arguments `ps`, `qs` of the form `ps' * x` and `ps' * y` respectively
-  return `ps + qs = ps' * (x + y)` (with `x` and `y` arbitrary coefficients).
-  For other arguments, return `overlap.none`.
+Given arguments `ps`, `qs` of the form `ps' * x` and `ps' * y` respectively
+return `ps + qs = ps' * (x + y)` (with `x` and `y` arbitrary coefficients).
+For other arguments, return `overlap.none`.
 -/
 meta def add_overlap : ex prod → ex prod → ring_exp_m overlap
 | (ex.coeff x_i x) (ex.coeff y_i y) := do
@@ -737,7 +747,7 @@ lemma add_pf_sum_overlap_zero {pps p ps qqs q qs pqs : α} :
   pps = p + ps → qqs = q + qs → p + q = 0 → ps + qs = pqs → pps + qqs = pqs :=
 λ pps_pf qqs_pf pq_pf pqs_pf, calc
   pps + qqs = (p + ps) + (q + qs) : by rw [pps_pf, qqs_pf]
-  ... = (p + q) + (ps + qs) : by simp
+  ... = (p + q) + (ps + qs) : by cc
   ... = 0 + pqs : by rw [pq_pf, pqs_pf]
   ... = pqs : zero_add _
 
@@ -748,13 +758,13 @@ lemma add_pf_sum_gt {pps qqs q qs pqs : α} :
   qqs = q + qs → pps + qs = pqs → pps + qqs = q + pqs := by cc
 
 /--
-  Add two expressions.
+Add two expressions.
 
-   * `0 + qs = 0`
-   * `ps + 0 = 0`
-   * `ps * x + ps * y = ps * (x + y)` (for `x`, `y` coefficients; uses `add_overlap`)
-   * `(p + ps) + (q + qs) = p + (ps + (q + qs))` (if `p.lt q`)
-   * `(p + ps) + (q + qs) = q + ((p + ps) + qs)` (if not `p.lt q`)
+* `0 + qs = 0`
+* `ps + 0 = 0`
+* `ps * x + ps * y = ps * (x + y)` (for `x`, `y` coefficients; uses `add_overlap`)
+* `(p + ps) + (q + qs) = p + (ps + (q + qs))` (if `p.lt q`)
+* `(p + ps) + (q + qs) = q + ((p + ps) + qs)` (if not `p.lt q`)
 -/
 meta def add : ex sum → ex sum → ring_exp_m (ex sum)
 | ps@(ex.zero ps_i) qs := do
@@ -823,15 +833,15 @@ lemma mul_pp_pf_prod_gt {pps qqs q qs pqs : α} :
   qqs = q * qs → pps * qs = pqs → pps * qqs = q * pqs := by cc
 
 /--
-  Multiply two expressions.
+Multiply two expressions.
 
-  * `x * y = (x * y)` (for `x`, `y` coefficients)
-  * `x * (q * qs) = q * (qs * x)` (for `x` coefficient)
-  * `(p * ps) * y = p * (ps * y)` (for `y` coefficient)
-  * `(p_b^p_e * ps) * (p_b^q_e * qs) = p_b^(p_e + q_e) * (ps * qs)`
-      (if `p_e` and `q_e` are identical except coefficient)
-  * `(p * ps) * (q * qs) = p * (ps * (q * qs))` (if `p.lt q`)
-  * `(p * ps) * (q * qs) = q * ((p * ps) * qs)` (if not `p.lt q`)
+* `x * y = (x * y)` (for `x`, `y` coefficients)
+* `x * (q * qs) = q * (qs * x)` (for `x` coefficient)
+* `(p * ps) * y = p * (ps * y)` (for `y` coefficient)
+* `(p_b^p_e * ps) * (p_b^q_e * qs) = p_b^(p_e + q_e) * (ps * qs)`
+    (if `p_e` and `q_e` are identical except coefficient)
+* `(p * ps) * (q * qs) = p * (ps * (q * qs))` (if `p.lt q`)
+* `(p * ps) * (q * qs) = q * ((p * ps) * qs)` (if not `p.lt q`)
 -/
 meta def mul_pp : ex prod → ex prod → ring_exp_m (ex prod)
 | ps@(ex.coeff _ x) qs@(ex.coeff _ y) := do
@@ -897,8 +907,8 @@ lemma mul_p_pf_sum {pps p ps qs ppsqs : α} : pps = p + ps →
 /--
 Multiply two expressions.
 
-  * `0 * qs = 0`
-  * `(p + ps) * qs = (p * qs) + (ps * qs)`
+* `0 * qs = 0`
+* `(p + ps) * qs = (p * qs) + (ps * qs)`
 -/
 meta def mul_p : ex sum → ex prod → ring_exp_m (ex sum)
 | ps@(ex.zero ps_i) qs := do
@@ -928,10 +938,10 @@ lemma mul_pf_sum {ps qqs q qs psqqs : α} : qqs = q + qs → ps * q + ps * qs = 
   ... = psqqs : psqqs_pf
 
 /--
-  Multiply two expressions.
+Multiply two expressions.
 
-  * `ps * 0 = 0`
-  * `ps * (q + qs) = (ps * q) + (ps * qs)`
+* `ps * 0 = 0`
+* `ps * (q + qs) = (ps * q) + (ps * qs)`
 -/
 meta def mul : ex sum → ex sum → ring_exp_m (ex sum)
 | ps qs@(ex.zero qs_i) := do
@@ -959,9 +969,9 @@ lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} :
   ... = p ^ psqs : by rw [psqs_pf]
 
 /--
-  Exponentiate two expressions.
+Exponentiate two expressions.
 
-  * `(p ^ ps) ^ qs = p ^ (ps * qs)`
+* `(p ^ ps) ^ qs = p ^ (ps * qs)`
 -/
 meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
 | pps@(ex.exp pps_i p ps) qs := do
@@ -988,11 +998,11 @@ lemma pow_pp_pf_prod {pps p ps pqs psqs : α} {qs : ℕ} : pps = p * ps →
     ... = pqs * psqs : by rw [pqs_pf, psqs_pf]
 
 /--
-  Exponentiate two expressions.
+Exponentiate two expressions.
 
-  * `1 ^ qs = 1`
-  * `x ^ qs = x ^ qs` (for `x` coefficient)
-  * `(p * ps) ^ qs = p ^ qs + ps ^ qs`
+* `1 ^ qs = 1`
+* `x ^ qs = x ^ qs` (for `x` coefficient)
+* `(p * ps) ^ qs = p ^ qs + ps ^ qs`
 -/
 meta def pow_pp : ex prod → ex prod → ring_exp_m (ex prod)
 | ps@(ex.coeff ps_i ⟨⟨1, 1, _, _⟩⟩) qs := do
@@ -1043,13 +1053,13 @@ lemma pow_p_pf_singleton {pps p pqs : α} {qs : ℕ} :
 lemma pow_p_pf_cons {ps ps' : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps ^ qs = ps' ^ qs' := by cc
 /--
-  Exponentiate two expressions.
+Exponentiate two expressions.
 
-  * `ps ^ 1 = ps`
-  * `0 ^ qs = 0` (note that this is handled *after* `ps ^ 0 = 1`)
-  * `(p + 0) ^ qs = p ^ qs`
-  * `ps ^ (qs + 1) = ps * ps ^ qs` (note that this is handled *after* `p + 0 ^ qs = p ^ qs`)
-  * `ps ^ qs = ps ^ qs` (otherwise)
+* `ps ^ 1 = ps`
+* `0 ^ qs = 0` (note that this is handled *after* `ps ^ 0 = 1`)
+* `(p + 0) ^ qs = p ^ qs`
+* `ps ^ (qs + 1) = ps * ps ^ qs` (note that this is handled *after* `p + 0 ^ qs = p ^ qs`)
+* `ps ^ qs = ps ^ qs` (otherwise)
 -/
 meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
 | ps qs@(ex.coeff qs_i ⟨⟨1, 1, _, _⟩⟩) := do
@@ -1098,10 +1108,10 @@ lemma pow_pf_sum {ps psqqs : α} {qqs q qs : ℕ} : qqs = q + qs →
     ... = ps ^ q * ps ^ qs : pow_add _ _ _
     ... = psqqs : psqqs_pf
 /--
-  Exponentiate two expressions.
+Exponentiate two expressions.
 
-  * `ps ^ 0 = 1`
-  * `ps ^ (q + qs) = ps ^ q * ps ^ qs`
+* `ps ^ 0 = 1`
+* `ps ^ (q + qs) = ps ^ q * ps ^ qs`
 -/
 meta def pow : ex sum → ex sum → ring_exp_m (ex sum)
 | ps qs@(ex.zero qs_i) := do
@@ -1131,12 +1141,12 @@ lemma simple_pf_var_one (p : α) : p ^ 1 = p := by simp
 lemma simple_pf_exp_one {p p' : α} : p = p' → p ^ 1 = p' := by simp
 
 /--
-  Give a simpler, more human-readable representation of the normalized expression.
+Give a simpler, more human-readable representation of the normalized expression.
 
-  Normalized expressions might have the form `a^1 * 1 + 0`,
-  since the dummy operations reduce special cases in pattern-matching.
-  Humans prefer to read `a` instead.
-  This tactic gets rid of the dummy additions, multiplications and exponentiations.
+Normalized expressions might have the form `a^1 * 1 + 0`,
+since the dummy operations reduce special cases in pattern-matching.
+Humans prefer to read `a` instead.
+This tactic gets rid of the dummy additions, multiplications and exponentiations.
 -/
 meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 | sum pps@(ex.sum pps_i p (ex.zero _)) := do
@@ -1180,15 +1190,15 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 | et ps := prod.mk ps.pretty <$> ps.proof_term
 
 /--
-  Performs a lookup of the atom `a` in the list of known atoms,
-  or allocates a new one.
+Performs a lookup of the atom `a` in the list of known atoms,
+or allocates a new one.
 
-  If `a` is not definitionally equal to any of the list's entries,
-  a new atom is appended to the list and returned.
-  The index of this atom is kept track of in the second inductive argument.
+If `a` is not definitionally equal to any of the list's entries,
+a new atom is appended to the list and returned.
+The index of this atom is kept track of in the second inductive argument.
 
-  This function is mostly useful in `resolve_atom`,
-  which updates the state with the new list of atoms.
+This function is mostly useful in `resolve_atom`,
+which updates the state with the new list of atoms.
 -/
 meta def resolve_atom_aux (a : expr) : list atom → ℕ → ring_exp_m (atom × list atom)
 | [] n := let atm : atom := ⟨a, n⟩ in pure (atm, [atm])
@@ -1199,13 +1209,13 @@ meta def resolve_atom_aux (a : expr) : list atom → ℕ → ring_exp_m (atom ×
   pure (atm, b :: as')
 
 /--
-  Convert the expression to an atom:
-  either look up a definitionally equal atom,
-  or allocate it as a new atom.
+Convert the expression to an atom:
+either look up a definitionally equal atom,
+or allocate it as a new atom.
 
-  You probably want to use `eval_base` if `eval` doesn't work
-  instead of directly calling `resolve_atom`,
-  since `eval_base` can also handle numerals.
+You probably want to use `eval_base` if `eval` doesn't work
+instead of directly calling `resolve_atom`,
+since `eval_base` can also handle numerals.
 -/
 meta def resolve_atom (a : expr) : ring_exp_m atom := do
   atoms ← reader_t.lift $ state_t.get,
@@ -1214,10 +1224,10 @@ meta def resolve_atom (a : expr) : ring_exp_m atom := do
   pure atm
 
 /--
-  Treat the expression atomically: as a coefficient or atom.
+Treat the expression atomically: as a coefficient or atom.
 
-  Handles cases where `eval` cannot treat the expression as a known operation
-  because it is just a number or single variable.
+Handles cases where `eval` cannot treat the expression as a known operation
+because it is just a number or single variable.
 -/
 meta def eval_base (ps : expr) : ring_exp_m (ex sum) :=
 match ps.to_rat with
@@ -1229,10 +1239,11 @@ match ps.to_rat with
 end
 
 lemma negate_pf {α} [ring α] {ps ps' : α} : (-1) * ps = ps' → -ps = ps' := by simp
-/--
-  Negate an expression by multiplying with `-1`.
 
-  Only works if there is a `ring` instance; otherwise it will `fail`.
+/--
+Negate an expression by multiplying with `-1`.
+
+Only works if there is a `ring` instance; otherwise it will `fail`.
 -/
 meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
   ctx ← get_context,
@@ -1250,10 +1261,11 @@ meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
 lemma inverse_pf {α} [division_ring α] {ps ps_u ps_p e' e'' : α} :
   ps = ps_u → ps_u = ps_p → ps_p ⁻¹ = e' → e' = e'' → ps ⁻¹ = e'' :=
 by cc
-/--
-  Invert an expression by simplifying, applying `has_inv.inv` and treating the result as an atom.
 
-  Only works if there is a `division_ring` instance; otherwise it will `fail`.
+/--
+Invert an expression by simplifying, applying `has_inv.inv` and treating the result as an atom.
+
+Only works if there is a `division_ring` instance; otherwise it will `fail`.
 -/
 meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   ctx ← get_context,
@@ -1280,23 +1292,24 @@ end operations
 
 section wiring
 /-!
-  ### `wiring` section
-  This section deals with going from `expr` to `ex` and back.
+### `wiring` section
 
-  The main attraction is `eval`, which uses `add`, `mul`, etc.
-  to calculate an `ex` from a given `expr`.
-  Other functions use `ex`es to produce `expr`s together with a proof,
-  or produce the context to run `ring_exp_m` from an `expr`.
+This section deals with going from `expr` to `ex` and back.
+
+The main attraction is `eval`, which uses `add`, `mul`, etc.
+to calculate an `ex` from a given `expr`.
+Other functions use `ex`es to produce `expr`s together with a proof,
+or produce the context to run `ring_exp_m` from an `expr`.
 -/
 
 open tactic
 open ex_type
 
 /--
-  Compute a normalized form (of type `ex`) from an expression (of type `expr`).
+Compute a normalized form (of type `ex`) from an expression (of type `expr`).
 
-  This is the main driver of the `ring_exp` tactic,
-  calling out to `add`, `mul`, `pow`, etc. to parse the `expr`.
+This is the main driver of the `ring_exp` tactic,
+calling out to `add`, `mul`, `pow`, etc. to parse the `expr`.
 -/
 meta def eval : expr → ring_exp_m (ex sum)
 | e@`(%%ps + %%qs) := do
@@ -1353,20 +1366,20 @@ meta def eval : expr → ring_exp_m (ex sum)
 | ps := eval_base ps
 
 /--
-  Run `eval` on the expression and return the result together with normalization proof.
+Run `eval` on the expression and return the result together with normalization proof.
 
-  See also `eval_simple` if you want something that behaves like `norm_num`.
+See also `eval_simple` if you want something that behaves like `norm_num`.
 -/
 meta def eval_with_proof (e : expr) : ring_exp_m (ex sum × expr) := do
   e' ← eval e,
   prod.mk e' <$> e'.proof_term
 
 /--
-  Run `eval` on the expression and simplify the result.
+Run `eval` on the expression and simplify the result.
 
-  Returns a simplified normalized expression, together with an equality proof.
+Returns a simplified normalized expression, together with an equality proof.
 
-  See also `eval_with_proof` if you just want to check the equality of two expressions.
+See also `eval_with_proof` if you just want to check the equality of two expressions.
 -/
 meta def eval_simple (e : expr) : ring_exp_m (expr × expr) := do
   (complicated, complicated_pf) ← eval_with_proof e,
@@ -1412,12 +1425,12 @@ open interactive interactive.types lean.parser tactic tactic.ring_exp
 local postfix `?`:9001 := optional
 
 /--
-  Tactic for solving equations of *commutative* (semi)rings,
-  allowing variables in the exponent.
-  This version of `ring_exp` fails if the target is not an equality.
+Tactic for solving equations of *commutative* (semi)rings,
+allowing variables in the exponent.
+This version of `ring_exp` fails if the target is not an equality.
 
-  The variant `ring_exp_eq!` will use a more aggressive reducibility setting
-  to determine equality of atoms.
+The variant `ring_exp_eq!` will use a more aggressive reducibility setting
+to determine equality of atoms.
 -/
 meta def ring_exp_eq (red : parse (tk "!")?) : tactic unit := do
   `(eq %%ps %%qs) ← target >>= whnf,
@@ -1435,11 +1448,21 @@ meta def ring_exp_eq (red : parse (tk "!")?) : tactic unit := do
   else fail "ring_exp failed to prove equality"
 
 /--
-  Tactic for normalizing expressions of *commutative* (semi)rings,
-  allowing variables in the exponent.
+Tactic for evaluating expressions in *commutative* (semi)rings, allowing for variables in the
+exponent.
 
-  The variant `ring_exp!` will use a more aggressive reducibility setting
-  to determine equality of atoms.
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine
+equality of atoms.
+
+For example:
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
 -/
 meta def ring_exp (red : parse (tk "!")?) (loc : parse location) : tactic unit :=
   match loc with
@@ -1451,4 +1474,11 @@ meta def ring_exp (red : parse (tk "!")?) (loc : parse location) : tactic unit :
   tt ← tactic.replace_at (normalize transp) ns loc.include_goal
   | fail "ring_exp failed to simplify",
   when loc.include_goal $ try tactic.reflexivity
+
+add_tactic_doc
+{ name        := "ring_exp",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ring_exp],
+  tags        := ["arithmetic", "decision procedure"] }
+
 end tactic.interactive

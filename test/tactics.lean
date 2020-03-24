@@ -6,6 +6,7 @@ Authors: Simon Hudon, Scott Morrison
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
        tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+       tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -182,24 +183,20 @@ end
 
 variables P Q R : Prop
 
-example : tfae [P, Q, R] :=
+example (pq : P → Q) (qr : Q → R) (rp : R → P) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  --have : R → Q := sorry, -- uncommenting this makes the proof fail
   tfae_finish
 end
 
-example : tfae [P, Q, R] :=
+example (pq : P ↔ Q) (qr : Q ↔ R) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  have : R → Q := sorry, -- uncommenting this makes the proof fail
-  tfae_finish
-end
-
-example : tfae [P, Q, R] :=
-begin
-  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
   tfae_finish -- the success or failure of this tactic is nondeterministic!
+end
+
+example (p : unit → Prop) : tfae [p (), p ()] :=
+begin
+  tfae_have : 1 ↔ 2, from iff.rfl,
+  tfae_finish
 end
 
 end tfae
@@ -259,7 +256,8 @@ end swap
 
 section lift
 
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
+  (h : k + n = 2 + x) (f : false) :
   k + n = m + x :=
 begin
   lift n to ℕ using le_of_lt hn,
@@ -276,7 +274,8 @@ begin
     guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
   lift u to ℕ using hu with u rfl hu,
     guard_hyp hu := (0 : ℤ) ≤ ↑u,
-  all_goals { admit }
+
+  all_goals { exfalso, assumption },
 end
 
 -- test lift of functions
@@ -450,3 +449,129 @@ end struct_eq
 section ring_exp
   example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
 end ring_exp
+
+section clear'
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
+  clear' a b,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear' a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear'
+
+section clear_dependent
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
+  clear_dependent a,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear_dependent a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw
+
+section rename'
+
+example {α β} (a : α) (b : β) : unit :=
+begin
+  rename' a a',              -- rename-compatible syntax
+  guard_hyp a' := α,
+
+  rename' a' → a,            -- more suggestive syntax
+  guard_hyp a := α,
+
+  rename' [a a', b b'],      -- parallel renaming
+  guard_hyp a' := α,
+  guard_hyp b' := β,
+
+  rename' [a' → a, b' → b],  -- ditto with alternative syntax
+  guard_hyp a := α,
+  guard_hyp b := β,
+
+  rename' [a → b, b → a],    -- renaming really is parallel
+  guard_hyp a := β,
+  guard_hyp b := α,
+
+  rename' b a,               -- shadowing is allowed (but guard_hyp doesn't like it)
+
+  success_if_fail { rename' d e }, -- cannot rename nonexistent hypothesis
+  exact ()
+end
+
+end rename'
+
+section local_definitions
+/- Some tactics about local definitions.
+  Testing revert_deps, revert_after, generalize', clear_value. -/
+open tactic
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros, guard_target unit,
+  do { e ← get_local `k, e1 ← tactic.local_def_value e, e2 ← to_expr ```(n + 3), guard $ e1 = e2 },
+  do { e ← get_local `n, success_if_fail_with_msg (tactic.local_def_value e)
+    "Variable n is not a local definition." },
+  do { success_if_fail_with_msg (tactic.local_def_value `(1 + 2))
+    "No such hypothesis 1 + 2." },
+  revert_deps k, tactic.intron 5, guard_target unit,
+  revert_after n, tactic.intron 7, guard_target unit,
+  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  success_if_fail_with_msg {generalize : n + k = x}
+    "generalize tactic failed, failed to find expression in the target",
+  generalize' : n + k = x,
+  generalize' h : n + k = y,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  tactic.to_expr ```(n + n) >>= λ e, tactic.generalize' e `xxx,
+  success_if_fail_with_msg {clear_value n}
+    "Cannot clear the body of n. It is not a local definition.",
+  success_if_fail_with_msg {clear_value k}
+    "Cannot clear the body of k. The resulting goal is not type correct.",
+  clear_value k f,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  clear_value k f,
+  exact unit.star
+end
+
+end local_definitions

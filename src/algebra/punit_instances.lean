@@ -6,11 +6,9 @@ Authors: Kenny Lau
 Instances on punit.
 -/
 
-import algebra.module algebra.group
+import algebra.module
 
 universes u
-
-open lattice
 
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
@@ -51,7 +49,7 @@ instance : canonically_ordered_monoid punit :=
 by refine
 { lt_of_add_lt_add_left := λ _ _ _, id,
   le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
-  .. punit.comm_ring, .. punit.lattice.complete_boolean_algebra, .. };
+  .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 
 instance : decidable_linear_ordered_cancel_comm_monoid punit :=

@@ -62,6 +62,7 @@ theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 
 instance : has_zero game := ⟨⟦0⟧⟩
+instance : inhabited game := ⟨0⟩
 instance : has_one game := ⟨⟦1⟧⟩
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/

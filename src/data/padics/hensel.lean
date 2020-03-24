@@ -46,10 +46,7 @@ open filter metric
 
 private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
-@tendsto.comp _ _ _ ncs
-  (λ k, F.eval k)
-  _ _ _
-  (continuous_iff_continuous_at.1 F.continuous_eval _) (tendsto_limit ncs)
+(F.continuous_eval.tendsto _).comp ncs.tendsto_limit
 
 section
 parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
@@ -103,7 +100,7 @@ private lemma deriv_norm_ne_zero : ∥F.derivative.eval a∥ ≠ 0 :=
 private lemma deriv_norm_pos : 0 < ∥F.derivative.eval a∥ :=
 lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 
-private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt (norm_eq_zero _).2 deriv_norm_ne_zero
+private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
 calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
@@ -145,7 +142,7 @@ private lemma calc_deriv_dist {z z' z1 : ℤ_[p]} (hz' : z' = z - z1)
 calc
   ∥F.derivative.eval z' - F.derivative.eval z∥
     ≤ ∥z' - z∥ : padic_polynomial_dist _ _ _
-... = ∥z1∥ : by simp [hz']
+... = ∥z1∥ : by simp [sub_eq_add_neg, hz']
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ : (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
@@ -156,7 +153,7 @@ private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n
   {q : ℤ_[p] // F.eval z' = q * z1^2} :=
 have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   have hdzne : F.derivative.eval z ≠ 0,
-    from mt (norm_eq_zero _).2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
+    from mt norm_eq_zero.2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
   λ h, hdzne $ subtype.ext.2 h,
 let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
@@ -177,7 +174,7 @@ calc ∥F.eval z'∥
     = ∥q∥ * ∥z1∥^2 : by simp [heq]
 ... ≤ 1 * ∥z1∥^2 : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (pow_nonneg (norm_nonneg _) _)
 ... = ∥F.eval z∥^2 / ∥F.derivative.eval a∥^2 :
-  by simp [hzeq, hz.1, div_pow _ (deriv_norm_ne_zero hnorm)]
+  by simp [hzeq, hz.1, div_pow]
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [_root_.mul_pow]
@@ -225,7 +222,7 @@ private lemma newton_seq_norm_le (n : ℕ) :
 
 private lemma newton_seq_norm_eq (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval (newton_seq n)∥ :=
-by induction n; simp [newton_seq, newton_seq_aux, ih_n]
+by induction n; simp [sub_eq_add_neg, add_left_comm, newton_seq, newton_seq_aux, ih_n]
 
 private lemma newton_seq_succ_dist (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n) :=
@@ -240,10 +237,7 @@ include hnsol
 private lemma T_pos : T > 0 :=
 begin
   rw T_def,
-  apply div_pos_of_pos_of_pos,
-  { apply (norm_pos_iff _).2,
-    apply hnsol },
-  { exact deriv_sq_norm_pos hnorm }
+  exact div_pos_of_pos_of_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
 end
 
 private lemma newton_seq_succ_dist_weak (n : ℕ) :
@@ -261,7 +255,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
     rw [T, _root_.pow_two, _root_.pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
-    apply mul_div_mul_left',
+    apply mul_div_mul_left,
     apply deriv_norm_ne_zero; assumption
   end
 
@@ -288,7 +282,7 @@ let ⟨_, hex'⟩ := hex in
 by rw hex'; apply newton_seq_dist_aux; assumption
 
 private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥
-| 1 h := by simp [newton_seq, newton_seq_aux, ih_n]; apply norm_div
+| 1 h := by simp [sub_eq_add_neg, newton_seq, newton_seq_aux, ih_n]; apply normed_field.norm_div
 | (k+2) h :=
   have hlt : ∥newton_seq (k+2) - newton_seq (k+1)∥ < ∥newton_seq (k+1) - a∥,
     by rw newton_seq_dist_to_a (k+1) (succ_pos _); apply newton_seq_succ_dist_weak; assumption,
@@ -363,9 +357,7 @@ tendsto.congr'
 
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=
-tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _)
-             ((tendsto_limit _).sub tendsto_const_nhds)
-
+(continuous_norm.tendsto _).comp (newton_cau_seq.tendsto_limit.sub tendsto_const_nhds)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=
 tendsto_nhds_unique at_top_ne_bot newton_seq_dist_tendsto' newton_seq_dist_tendsto

@@ -25,7 +25,7 @@ section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
+theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
 (decode_inv α n).imp $ λ a, Exists.fst
@@ -33,7 +33,8 @@ option.is_some_iff_exists.2 $
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
-@[simp] theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
+@[simp, priority 900]
+theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
   decode α n = some (of_nat α n) :=
 option.eq_some_of_is_some _
 
@@ -117,7 +118,7 @@ end
 end denumerable
 
 namespace nat.subtype
-open function encodable lattice
+open function encodable
 
 variables {s : set ℕ} [decidable_pred s] [infinite s]
 

@@ -1,4 +1,4 @@
-# The equation compiler and using_well_founded #
+# The equation compiler and using_well_founded
 
 To define functions and proofs recursively you can use the equation compiler, if you have a well founded relation on that type
 
@@ -22,7 +22,7 @@ When the equation compiler fails, there are three main causes.
 3. A bug in the default tactic. (Often indicated by the message `nested exception message:
 tactic failed, there are no goals to be solved`, and solved by appending `using_well_founded wf_tacs`.)
 
-### Proving required inequality ###
+## Proving required inequality
 
 If we modify the gcd example above, by removing the `have`, we get an error.
 
@@ -31,6 +31,7 @@ def gcd : nat → nat → nat
 | 0        y := y
 | (succ x) y := gcd (y % succ x) (succ x)
 ```
+
 ```
 failed to prove recursive application is decreasing, well founded relation
   @has_well_founded.r (Σ' (a : ℕ), ℕ)
@@ -69,7 +70,7 @@ begin
 end
 ```
 
-### order of arguments ###
+## order of arguments
 
 Sometimes the default relation the equation compiler uses is not the correct one. For example swapping the order of x and y in the above example causes a failure
 
@@ -118,7 +119,7 @@ This is because for some reason, in the first example, the equation compiler tri
 
 Conjecture : this is because the type of `h` depends on `n` and the equation compiler can only synthesize useful relations on non dependent products
 
-### using_well_founded rel_tac ###
+## using_well_founded rel_tac
 
 Sometimes you need to change the well founded relation to prove that a recursion is well founded. To do this you need a `has_well_founded` instance. This is a structure with two fields, a relation and a proof that this relation is well founded. The easiest way to define a well founded relation is using a function to the natural numbers. For example on multisets the relation `λ s t, card s < card t` is a well founded relation.
 

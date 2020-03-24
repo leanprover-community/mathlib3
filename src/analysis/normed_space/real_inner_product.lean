@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import analysis.convex algebra.quadratic_discriminant analysis.complex.exponential
+import analysis.convex.basic algebra.quadratic_discriminant analysis.complex.exponential
        analysis.specific_limits
 import tactic.monotonicity
 
@@ -43,7 +43,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open real set lattice
+open real set
 open_locale topological_space
 
 universes u v w
@@ -57,6 +57,7 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 export has_inner (inner)
 
 section prio
+
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.
 /--
@@ -71,7 +72,7 @@ class inner_product_space (α : Type*) extends add_comm_group α, module ℝ α,
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
 end prio
 
-variable [inner_product_space α]
+variables [inner_product_space α]
 
 section basic_properties
 
@@ -120,12 +121,15 @@ by { simpa [inner_add_left, inner_add_right, two_mul] using inner_comm _ _ }
 
 /-- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : inner (x - y) (x - y) = inner x x - 2 * inner x y + inner y y :=
-by { simp only [inner_sub_left, inner_sub_right, two_mul], simpa using inner_comm _ _ }
+begin
+  simp only [inner_sub_left, inner_sub_right, two_mul],
+  simpa [sub_eq_add_neg, add_comm, add_left_comm] using inner_comm _ _
+end
 
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : α} :
   inner (x + y) (x + y) + inner (x - y) (x - y) = 2 * (inner x x + inner y y) :=
-by { simp [inner_add_add_self, inner_sub_sub_self, two_mul] }
+by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
 /-- Cauchy–Schwarz inequality -/
 lemma inner_mul_inner_self_le (x y : α) : inner x y * inner x y ≤ inner x x * inner y y :=
@@ -228,10 +232,11 @@ Existence of minimizers
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
  -/
-theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : nonempty K) (h₁ : is_complete K)
+theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
   (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
+  letI : nonempty K := ne.to_subtype,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
@@ -243,7 +248,7 @@ begin
   have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
     have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
       λ n, lt_add_of_le_of_pos (le_refl _) nat.one_div_pos_of_nat,
-    have h := λ n, exists_lt_of_cinfi_lt ne (hδ n),
+    have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
     exact ⟨w, λ n, classical.some_spec (h n)⟩,
   rcases exists_seq with ⟨w, hw⟩,
@@ -253,8 +258,7 @@ begin
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
       convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact le_of_lt (hw _) }),
+      (λ x, δ_le _) (λ x, le_of_lt (hw _)),
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
     rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
@@ -280,7 +284,8 @@ begin
         by { rw [norm_smul], refl }
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
-        rw [smul_sub, smul_smul, mul_one_div_cancel two_ne_zero, ← one_add_one_eq_two, add_smul],
+        rw [smul_sub, smul_smul, mul_one_div_cancel (two_ne_zero : (2 : ℝ) ≠ 0),
+            ← one_add_one_eq_two, add_smul],
         simp only [one_smul],
         have eq₁ : wp - wq = a - b, show wp - wq = (u - wq) - (u - wp), abel,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
@@ -339,12 +344,13 @@ begin
 end
 
 /-- Characterization of minimizers in the above theorem -/
-theorem norm_eq_infi_iff_inner_le_zero {K : set α} (ne : nonempty K) (h : convex K) {u : α} {v : α}
+theorem norm_eq_infi_iff_inner_le_zero {K : set α} (h : convex K) {u : α} {v : α}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) (w - v) ≤ 0 :=
 iff.intro
 begin
   assume eq w hw,
   let δ := ⨅ w : K, ∥u - w∥, let p := inner (u - v) (w - v), let q := ∥w - v∥^2,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
@@ -357,15 +363,14 @@ begin
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
-        rw eq, apply δ_le',
-        apply convex_iff.1 h hw hv,
-        repeat { exact subtype.mem _ },
-        exact ⟨le_of_lt hθ₁, hθ₂⟩,
+        rw [eq], apply δ_le',
+        apply h hw hv,
+        exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
-          rw [smul_sub, sub_smul, one_smul], simp,
+          {rw [smul_sub, sub_smul, one_smul], simp [sub_eq_add_neg, add_comm, add_left_comm]},
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
@@ -402,6 +407,7 @@ begin
 end
 begin
   assume h,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   apply le_antisymm,
   { apply le_cinfi, assume w,
     apply nonneg_le_nonneg_of_squares_le (norm_nonneg _),
@@ -423,9 +429,9 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty complete
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α) (ne : nonempty K)
+theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α)
   (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
-exists_norm_eq_infi_of_complete_convex ne h K.convex
+exists_norm_eq_infi_of_complete_convex ⟨0, K.zero⟩ h K.convex
 
 /--
 Characterization of minimizers in the above theorem.
@@ -433,13 +439,13 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty subspace
 Then point `v` minimizes the distance `∥u - v∥` if and only if
 for all `w ∈ K`, `inner (u - v) w = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
-theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ α) (ne : nonempty K) {u : α} {v : α}
+theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ α) {u : α} {v : α}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set α), ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) w = 0 :=
 iff.intro
 begin
   assume h,
   have h : ∀ w ∈ K, inner (u - v) (w - v) ≤ 0,
-  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [ne, K.convex, hv] },
+  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [K.convex, hv] },
   assume w hw,
   have le : inner (u - v) w ≤ 0,
     let w' := w + v,
@@ -465,7 +471,7 @@ begin
     have h₁ := h w' this,
     exact le_of_eq h₁,
   rwa norm_eq_infi_iff_inner_le_zero,
-    exact ne, exact submodule.convex _, exact hv
+  exacts [submodule.convex _, hv]
 end
 
 end orthogonal

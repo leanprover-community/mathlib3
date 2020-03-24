@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.basic algebra.associated data.nat.gcd
+import data.int.basic algebra.associated data.nat.gcd tactic.ring
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
@@ -28,14 +28,16 @@ section
 
   /-- Convert an integer to a `ℤ√d` -/
   def of_int (n : ℤ) : ℤ√d := ⟨n, 0⟩
-  @[simp] theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
-  @[simp] theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
+  theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
+  theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
 
   /-- The zero of the ring -/
   def zero : ℤ√d := of_int 0
   instance : has_zero ℤ√d := ⟨zsqrtd.zero⟩
   @[simp] theorem zero_re : (0 : ℤ√d).re = 0 := rfl
   @[simp] theorem zero_im : (0 : ℤ√d).im = 0 := rfl
+
+  instance : inhabited ℤ√d := ⟨0⟩
 
   /-- The one of the ring -/
   def one : ℤ√d := of_int 1
@@ -97,7 +99,7 @@ section
     neg            := has_neg.neg,
     mul            := (*),
     one            := 1, ..};
-  { intros, simp [ext, add_mul, mul_add, mul_comm, mul_left_comm] }
+  { intros, simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm] }
 
   instance : add_comm_monoid ℤ√d    := by apply_instance
   instance : add_monoid ℤ√d         := by apply_instance
@@ -133,10 +135,10 @@ section
   by simp [ext]
 
   instance : char_zero ℤ√d :=
-  { cast_inj := λ m n, ⟨by simp [zsqrtd.ext], congr_arg _⟩ }
+  { cast_injective := λ m n, by simp [ext] }
 
   @[simp] theorem of_int_eq_coe (n : ℤ) : (of_int n : ℤ√d) = n :=
-  by simp [ext]
+  by simp [ext, of_int_re, of_int_im]
 
   @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
   by simp [ext]
@@ -151,13 +153,13 @@ section
   by simp [ext]
 
   theorem mul_conj {x y : ℤ} : (⟨x, y⟩ * conj ⟨x, y⟩ : ℤ√d) = x * x - d * y * y :=
-  by simp [ext, mul_comm]
+  by simp [ext, sub_eq_add_neg, mul_comm]
 
   theorem conj_mul : Π {a b : ℤ√d}, conj (a * b) = conj a * conj b :=
-  by simp [ext]
+  by simp [ext, add_comm]
 
   protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n := by simp [ext]
-  protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext]
+  protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext, sub_eq_add_neg]
   protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n := by simp [ext]
   protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
   by simpa using congr_arg re h
@@ -209,7 +211,9 @@ section
     have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                            (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
     refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
-    simpa [mul_add, mul_left_comm, mul_comm] }
+    convert this,
+    simp only [one_mul, int.coe_nat_add, int.coe_nat_mul],
+    ring }
 
   /-- "Generalized" `nonneg`. `nonnegg c d x y` means `a √c + b √d ≥ 0`;
     we are interested in the case `c = 1` but this is more symmetric -/
@@ -249,10 +253,10 @@ def norm (n : ℤ√d) : ℤ := n.re * n.re - d * n.im * n.im
 @[simp] lemma norm_nat_cast (n : ℕ) : norm n = n * n := norm_int_cast n
 
 @[simp] lemma norm_mul (n m : ℤ√d) : norm (n * m) = norm n * norm m :=
-by simp [norm, mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
+by { simp only [norm, mul_im, mul_re], ring }
 
 lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
-by cases n; simp [norm, conj, zsqrtd.ext, mul_comm]
+by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
 
 instance : is_monoid_hom norm :=
 { map_one := norm_one, map_mul := norm_mul }
@@ -332,28 +336,30 @@ parameter {d : ℕ}
     rcases nonneg_cases hb with ⟨z, w, rfl|rfl|rfl⟩; dsimp [add, nonneg] at ha hb ⊢,
     { trivial },
     { refine nonnegg_cases_right (λi h, sq_le_of_le _ _ (nonnegg_pos_neg.1 hb)),
-      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ y (by simp *))) },
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ y (by simp [add_comm, *]))) },
       { apply nat.le_add_left } },
     { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 hb)),
-      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ x (by simp *))) },
+      { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ x (by simp [add_comm, *]))) },
       { apply nat.le_add_left } },
     { refine nonnegg_cases_right (λi h, sq_le_of_le _ _ (nonnegg_pos_neg.1 ha)),
       { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ w (by simp *))) },
       { apply nat.le_add_right } },
-    { simpa using nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
+    { simpa [add_comm] using
+        nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
     { exact nonneg_add_lem ha hb },
     { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
       { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ z (by simp *))) },
       { apply nat.le_add_right } },
     { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
-    { simpa using nonnegg_neg_pos.2 (sq_le_add (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb)) },
+    { simpa [add_comm] using
+        nonnegg_neg_pos.2 (sq_le_add (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb)) },
   end
 
   theorem le_refl (a : ℤ√d) : a ≤ a := show nonneg (a - a), by simp
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
   have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-  by simpa
+  by simpa [sub_eq_add_neg, add_left_comm]
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
 
@@ -441,19 +447,19 @@ parameter {d : ℕ}
   | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inl rfl⟩,          ha, hb := by rw mul_comm; exact nonneg_mul_lem ha
   | ._, ._, ⟨x, y, or.inr $ or.inr rfl⟩, ⟨z, w, or.inr $ or.inr rfl⟩, ha, hb :=
     by rw [calc (⟨-x, y⟩ * ⟨-z, w⟩ : ℤ√d) = ⟨_, _⟩ : rfl
-        ... = ⟨x * z + d * y * w, -(x * w + y * z)⟩ : by simp]; exact
+        ... = ⟨x * z + d * y * w, -(x * w + y * z)⟩ : by simp [add_comm]]; exact
     nonnegg_pos_neg.2 (sq_le_mul.left (nonnegg_neg_pos.1 ha) (nonnegg_neg_pos.1 hb))
   | ._, ._, ⟨x, y, or.inr $ or.inr rfl⟩, ⟨z, w, or.inr $ or.inl rfl⟩, ha, hb :=
     by rw [calc (⟨-x, y⟩ * ⟨z, -w⟩ : ℤ√d) = ⟨_, _⟩ : rfl
-        ... = ⟨-(x * z + d * y * w), x * w + y * z⟩ : by simp]; exact
+        ... = ⟨-(x * z + d * y * w), x * w + y * z⟩ : by simp [add_comm]]; exact
     nonnegg_neg_pos.2 (sq_le_mul.right.left (nonnegg_neg_pos.1 ha) (nonnegg_pos_neg.1 hb))
   | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inr $ or.inr rfl⟩, ha, hb :=
     by rw [calc (⟨x, -y⟩ * ⟨-z, w⟩ : ℤ√d) = ⟨_, _⟩ : rfl
-        ... = ⟨-(x * z + d * y * w), x * w + y * z⟩ : by simp]; exact
+        ... = ⟨-(x * z + d * y * w), x * w + y * z⟩ : by simp [add_comm]]; exact
     nonnegg_neg_pos.2 (sq_le_mul.right.right.left (nonnegg_pos_neg.1 ha) (nonnegg_neg_pos.1 hb))
   | ._, ._, ⟨x, y, or.inr $ or.inl rfl⟩, ⟨z, w, or.inr $ or.inl rfl⟩, ha, hb :=
     by rw [calc (⟨x, -y⟩ * ⟨z, -w⟩ : ℤ√d) = ⟨_, _⟩ : rfl
-        ... = ⟨x * z + d * y * w, -(x * w + y * z)⟩ : by simp]; exact
+        ... = ⟨x * z + d * y * w, -(x * w + y * z)⟩ : by simp [add_comm]]; exact
     nonnegg_pos_neg.2 (sq_le_mul.right.right.right (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb))
   end
 

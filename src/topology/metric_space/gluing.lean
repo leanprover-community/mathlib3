@@ -52,14 +52,13 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric lattice
+open function set premetric
 
 namespace metric
 section approx_gluing
 
 variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
-open lattice
 open sum (inl inr)
 
 /-- Define a predistance on α ⊕ β, for which Φ p and Ψ p are at distance ε -/
@@ -174,12 +173,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -194,12 +193,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -225,7 +224,8 @@ private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : �
   end
 | (inr x) (inl y) h := begin
     have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
-      le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
+      le_cinfi (λp, by simpa [add_comm]
+                         using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
     exfalso,
     linarith
@@ -272,7 +272,7 @@ def sum.dist : α ⊕ β → α ⊕ β → ℝ
 
 lemma sum.dist_eq_glue_dist {p q : α ⊕ β} :
   sum.dist p q = glue_dist (λ_ : unit, default α) (λ_ : unit, default β) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm]
+by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
 by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
@@ -356,6 +356,14 @@ by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inl x�
 
 def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : β) : glue_space hΦ hΨ :=
 by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
+
+instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited α] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_l _ _ (default _)⟩
+
+instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited β] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_r _ _ (default _)⟩
 
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
@@ -457,6 +465,9 @@ instance metric_space_inductive_limit (I : ∀n, isometry (f n)) :
 /-- Mapping each `X n` to the inductive limit. -/
 def to_inductive_limit (I : ∀n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
 by letI : premetric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+
+instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
+⟨to_inductive_limit _ 0 (default _)⟩
 
 /-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
 lemma to_inductive_limit_isometry (I : ∀n, isometry (f n)) (n : ℕ) :

@@ -52,7 +52,7 @@ variables (M : Type*) {N : Type*} {P : Type*}
 
 set_option old_structure_cmd true
 
-open function setoid lattice
+open function setoid
 
 /-- A congruence relation on a type with an addition is an equivalence relation which
     preserves addition. -/
@@ -95,6 +95,10 @@ namespace con
 
 section
 variables [has_mul M] [has_mul N] [has_mul P] (c : con M)
+
+@[to_additive]
+instance : inhabited (con M) :=
+⟨con_gen empty_relation⟩
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
@@ -182,9 +186,11 @@ variables (c)
 @[to_additive "Defining the quotient by an additive congruence relation of a type with an addition."]
 protected def quotient := quotient $ c.to_setoid
 
-/-- Coercion from a type with a multiplication to its quotient by a congruence relation. -/
+/-- Coercion from a type with a multiplication to its quotient by a congruence relation.
+
+See Note [use has_coe_t]. -/
 @[to_additive "Coercion from a type with an addition to its quotient by an additive congruence relation", priority 0]
-instance : has_coe M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
+instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient of a type with decidable equality by a congruence relation also has
     decidable equality. -/
@@ -569,7 +575,7 @@ lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
 /-- There exists an element of the quotient of a monoid by a congruence relation (namely 1). -/
 @[to_additive "There exists an element of the quotient of an `add_monoid` by a congruence relation (namely 0)."]
-instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
+instance quotient.inhabited : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
 
 variables (c)
 

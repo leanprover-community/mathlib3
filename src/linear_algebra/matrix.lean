@@ -36,7 +36,7 @@ noncomputable theory
 
 open set submodule
 
-universes u v
+universes u v w
 variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
@@ -99,6 +99,9 @@ begin
   congr, funext x, congr, funext y,
   rw [mul_assoc]
 end
+
+@[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
+by { ext, simp }
 
 end matrix
 
@@ -186,6 +189,51 @@ linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_
 end linear_equiv_matrix
 
 namespace matrix
+open_locale matrix
+
+section trace
+
+variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
+
+/--
+The diagonal of a square matrix.
+-/
+def diag (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M := {
+  to_fun := λ A i, A i i,
+  add    := by { intros, ext, refl, },
+  smul   := by { intros, ext, refl, } }
+
+@[simp] lemma diag_one [decidable_eq n] :
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
+
+@[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
+
+/--
+The trace of a square matrix.
+-/
+def trace (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M := {
+  to_fun := finset.univ.sum ∘ (diag n R M),
+  add    := by { intros, apply finset.sum_add_distrib, },
+  smul   := by { intros, simp [finset.smul_sum], } }
+
+@[simp] lemma trace_one [decidable_eq n] :
+  trace n R R 1 = fintype.card n :=
+have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
+by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
+
+@[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
+
+@[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
+  trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
+
+lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n]
+  (A : matrix m n S) (B : matrix n m S) :
+  trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
+by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
+
+end trace
 
 section ring
 
@@ -211,7 +259,7 @@ end ring
 
 section vector_space
 
-variables {K : Type u} [discrete_field K] -- maybe try to relax the universe constraint
+variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
@@ -250,7 +298,7 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] (w : m → K) :
+lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },

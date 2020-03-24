@@ -5,9 +5,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
-import topology.bases topology.separation
 
-open filter lattice
+import topology.bases topology.separation
+import order.copy
+
+open filter
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
@@ -21,7 +23,7 @@ def closeds := {s : set α // is_closed s}
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
-def nonempty_compacts := {s : set α // s ≠ ∅ ∧ compact s}
+def nonempty_compacts := {s : set α // s.nonempty ∧ compact s}
 
 section nonempty_compacts
 open topological_space set
@@ -31,11 +33,11 @@ instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact
 ⟨compact_iff_compact_univ.1 p.property.2⟩
 
 instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
-nonempty_subtype.2 $ ne_empty_iff_exists_mem.1 p.property.1
+p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
-def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
-⟨s.val, closed_of_compact _ s.property.2⟩
+def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closeds α :=
+set.inclusion $ λ s hs, closed_of_compact _ hs.2
 
 end nonempty_compacts
 
@@ -68,9 +70,9 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
 
 instance : complete_lattice (opens α) :=
 complete_lattice.copy
-(@order_dual.lattice.complete_lattice _
+(@order_dual.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+    (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl
 /- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
@@ -96,6 +98,7 @@ end
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
 instance : has_emptyc (opens α) := ⟨⊥⟩
+instance : inhabited (opens α) := ⟨∅⟩
 
 @[simp] lemma inter_eq (U V : opens α) : U ∩ V = U ⊓ V := rfl
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl

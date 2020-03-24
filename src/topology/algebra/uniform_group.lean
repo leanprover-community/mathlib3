@@ -14,7 +14,7 @@ Uniform structure on topological groups:
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
 import topology.uniform_space.uniform_embedding topology.uniform_space.complete_separated
-import topology.algebra.group
+import topology.algebra.group tactic.abel
 
 noncomputable theory
 open_locale classical uniformity topological_space
@@ -55,7 +55,7 @@ uniform_continuous_id.neg
 lemma uniform_continuous.add [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
 have uniform_continuous (λx, f x - - g x), from hf.sub hg.neg,
-by simp * at *
+by simp [*, sub_eq_add_neg] at *
 
 lemma uniform_continuous_add : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_fst.add uniform_continuous_snd
@@ -111,7 +111,7 @@ have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).em
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
+  simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg]
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
@@ -166,7 +166,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa using V_sum _ _ Hz1 Hz2
+        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ _ Hz1 Hz2
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -202,7 +202,7 @@ begin
   constructor,
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff,
     uniformity_eq_comap_nhds_zero' G, tendsto_comap_iff, prod_comap_comap_eq],
-  simpa [(∘)]
+  simpa [(∘), sub_eq_add_neg, add_comm, add_left_comm] using this
 end
 end
 
@@ -230,7 +230,7 @@ class is_Z_bilin (f : α × β → γ) : Prop :=
 
 variables (f : α × β → γ) [is_Z_bilin f]
 
-instance is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
+lemma is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
   is_Z_bilin (g ∘ f) :=
 by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_hom.map_add g]
 
@@ -265,7 +265,7 @@ assume a b, is_Z_bilin.neg_left (f ∘ prod.swap) b a
 lemma is_Z_bilin.sub_left : ∀ a a' b, f (a - a', b) = f (a, b) - f (a', b) :=
 begin
   intros,
-  dsimp [algebra.sub],
+  simp [sub_eq_add_neg],
   rw [is_Z_bilin.add_left f, is_Z_bilin.neg_left f]
 end
 
@@ -399,13 +399,10 @@ begin
     exact H _ _ (HU₁ (mk_mem_prod x_in x'_in)) (HV₁ (mk_mem_prod y_in y'_in)) },
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
-  have : ∃ x₁, x₁ ∈ U₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 de.comap_nhds_neq_bot U₁ U₁_nhd),
-  rcases this with ⟨x₁, x₁_in⟩,
-
-  have : ∃ y₁, y₁ ∈ V₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 df.comap_nhds_neq_bot V₁ V₁_nhd),
-  rcases this with ⟨y₁, y₁_in⟩,
+  obtain ⟨x₁, x₁_in⟩ : U₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
+  obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
@@ -418,7 +415,7 @@ begin
   { repeat { rw is_Z_bilin.sub_left φ },
     repeat { rw is_Z_bilin.sub_right φ },
     apply eq_of_sub_eq_zero,
-    simp },
+    simp [sub_eq_add_neg], abel },
   rw key_formula,
   have h₁ := HU x x' xU₂ x'U₂,
   have h₂ := H x x' xU₁ x'U₁ y₁ y' y₁_in y'V₁,
@@ -441,11 +438,10 @@ begin
   rintro ⟨x₀, y₀⟩,
   split,
   { apply map_ne_bot,
-    apply comap_neq_bot,
+    apply comap_ne_bot,
 
     intros U h,
-    rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h)
-      with ⟨x, x_in, ⟨z, z_x⟩⟩,
+    rcases mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h with ⟨x, x_in, ⟨z, z_x⟩⟩,
     existsi z,
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)

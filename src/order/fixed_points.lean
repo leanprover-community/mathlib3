@@ -10,8 +10,7 @@ import order.complete_lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace lattice
-
+/-- The set of fixed points of a self-map -/
 def fixed_points (f : α → α) : set α := { x | f x = x }
 
 section fixedpoint
@@ -170,7 +169,9 @@ Sup_le $ λ x hxA, (HA hxA) ▸ (hf $ le_Sup hxA)
 theorem f_le_Inf_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
 le_Inf $ λ x hxA, (HA hxA) ▸ (hf $ Inf_le hxA)
 
-instance : complete_lattice (fixed_points f) :=
+/-- The fixed points of `f` form a complete lattice.
+This cannot be an instance, since it depends on the monotonicity of `f`. -/
+protected def complete_lattice : complete_lattice (fixed_points f) :=
 { le           := λx y, x.1 ≤ y.1,
   le_refl      := λ x, le_refl x,
   le_trans     := λ x y z, le_trans,
@@ -207,5 +208,3 @@ instance : complete_lattice (fixed_points f) :=
     (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }
 
 end fixed_points
-
-end lattice

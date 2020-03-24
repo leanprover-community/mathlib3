@@ -5,7 +5,16 @@ This document explains how to get started with Lean and mathlib on a generic Lin
 All commands below should be typed inside a terminal.
 
 * Lean itself doesn't depend on much infrastructure, but supporting tools
-  needed by most users require `git`, `curl`, and `python`. So the first step is to get those.
+  needed by most users require `git`, `curl`, and `python3` (on Debian and
+  Ubuntu also `python3-pip`). So the first step is to get those.
+
+* The next step installs a small tool called `elan` which will handle
+  updating Lean according to the needs of your current project (hit Enter
+  when a question is asked). It will live in `$HOME/.elan` and add a
+  line to `$HOME/.profile`.
+  ```bash
+  curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh
+  ```
 
 * You will also need a code editor that has a Lean plugin. The
   recommended choice is [Visual Studio Code](https://code.visualstudio.com/).
@@ -21,19 +30,14 @@ All commands below should be typed inside a terminal.
     A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
     displayed.
 
-* The next step installs a small tool called `elan` which will handle
-  updating Lean according to the needs of your current project (hit Enter
-  when a question is asked). It will live in `$HOME/.elan` and add a
-  line to `$HOME/.profile`.
-  ```bash
-  curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh
-  ```
-
-* Then we install a small tool called `update-mathlib` that which will handle
+* Then we install a small tool called `leanproject` that will handle
   updating mathlib according to the needs of your current project.
-  It will live in `$HOME/.mathlib` and add a line to `$HOME/.profile`.
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  sudo pip3 install mathlibtools
   ```
 
-You can now read instructions about creating and working on [Lean projects](project.md)
+Note however that you cannot use mathlib, and in particular any imports,
+in the file `test.lean` created above. If you want to use mathlib you
+should now read instructions about creating and working on
+[Lean projects](project.md).
+

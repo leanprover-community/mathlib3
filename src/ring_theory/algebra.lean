@@ -11,12 +11,12 @@ import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
+import algebra.commute
 
 noncomputable theory
 
 universes u v w u₁ v₁
 
-open lattice
 open_locale tensor_product
 
 section prio
@@ -156,8 +156,8 @@ set_option class.instance_max_depth 40
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
 { to_fun    := (λ r, r • 1),
-  hom       := { map_one := by simp,
-                 map_mul := by { intros, simp [mul_smul], },
+  hom       := { map_one := by { ext, simp, },
+                 map_mul := by { intros, ext, simp [mul_assoc], },
                  map_add := by { intros, simp [add_smul], } },
   commutes' := by { intros, simp },
   smul_def' := by { intros, simp } }
@@ -273,7 +273,7 @@ include R S A
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
-@[nolint] def comap : Type w := A
+@[nolint unused_arguments] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
 
@@ -293,7 +293,7 @@ set_option class.instance_max_depth 40
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
-  hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
+  hom := @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _inst_5.hom,
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _ }
 
@@ -389,8 +389,12 @@ end mv_polynomial
 
 namespace rat
 
-instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
-algebra.of_ring_hom rat.cast (by apply_instance)
+instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
+{ smul := λ r x, (r : α) * x,
+  to_fun := coe,
+  hom := (rat.cast_hom α).is_ring_hom,
+  commutes' := λ r x, (commute.cast_int_right x r.1).div_right (commute.cast_nat_right x r.2),
+  smul_def' := λ _ _, rfl }
 
 end rat
 
@@ -430,10 +434,14 @@ iff.rfl
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 
+theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
+⟨λ h x, by rw h, ext⟩
+
 variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring
 instance : ring S := @@subtype.ring _ S.is_subring
+instance : inhabited S := ⟨0⟩
 instance (R : Type u) (A : Type v) {rR : comm_ring R} [comm_ring A]
   {aA : algebra R A} (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
 
@@ -543,12 +551,18 @@ protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 instance : complete_lattice (subalgebra R A) :=
 galois_insertion.lift_complete_lattice algebra.gi
 
+instance : inhabited (subalgebra R A) := ⟨⊥⟩
+
 theorem mem_bot {x : A} : x ∈ (⊥ : subalgebra R A) ↔ x ∈ set.range (algebra_map A : R → A) :=
 suffices (⊥ : subalgebra R A) = (of_id R A).range, by rw this; refl,
 le_antisymm bot_le $ subalgebra.range_le _
 
 theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 ring.mem_closure $ or.inr trivial
+
+theorem eq_top_iff {S : subalgebra R A} :
+  S = ⊤ ↔ ∀ x : A, x ∈ S :=
+⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
@@ -574,7 +588,9 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-algebra.of_ring_hom coe $ by constructor; intros; simp
+{ to_fun := coe,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ _ _, gsmul_eq_mul _ _ }
 
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/
@@ -612,7 +628,7 @@ section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
 `S`-modules are also `R`-modules. -/
 
-variables (R : Type*) [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
 (E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
 
 /-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a

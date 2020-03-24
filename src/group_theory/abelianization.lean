@@ -32,6 +32,8 @@ instance : comm_group (abelianization α) :=
     (group.subset_normal_closure ⟨b⁻¹,a⁻¹, by simp [mul_inv_rev, inv_inv, mul_assoc]⟩),
 .. quotient_group.group _}
 
+instance : inhabited (abelianization α) := ⟨1⟩
+
 variable {α}
 
 def of (x : α) : abelianization α :=

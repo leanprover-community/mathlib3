@@ -163,4 +163,19 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | none     (some b) := or.inr rfl
 | (some a) (some b) := by simpa [lift_or_get] using h a b
 
+@[simp] lemma lift_or_get_none_left {f} {b : option α} : lift_or_get f none b = b :=
+by cases b; refl
+
+@[simp] lemma lift_or_get_none_right {f} {a : option α} : lift_or_get f a none = a :=
+by cases a; refl
+
+@[simp] lemma lift_or_get_some_some {f} {a b : α} :
+  lift_or_get f (some a) (some b) = f a b := rfl
+
+/-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
+function to `a` if it comes from `α`, and return `b` otherwise. -/
+def cases_on' : option α → β → (α → β) → β
+| none     n s := n
+| (some a) n s := s a
+
 end option

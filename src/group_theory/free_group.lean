@@ -14,8 +14,8 @@ and proof that its join is an equivalence relation.
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
-import algebra.group algebra.group_power
-import data.fintype data.list.basic
+import algebra.group_power
+import data.fintype
 import group_theory.subgroup
 open relation
 
@@ -329,6 +329,8 @@ quot.lift_on (mk L) f H = f L := rfl
 instance : has_one (free_group α) := ⟨mk []⟩
 lemma one_eq_mk : (1 : free_group α) = mk [] := rfl
 
+instance : inhabited (free_group α) := ⟨1⟩
+
 instance : has_mul (free_group α) :=
 ⟨λ x y, quot.lift_on x
     (λ L₁, quot.lift_on y (λ L₂, mk $ L₁ ++ L₂) (λ L₂ L₃ H, quot.sound $ red.step.append_left H))
@@ -535,7 +537,8 @@ end prod
 
 theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
   to_group f x = prod (map f x) :=
-eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp
+have is_group_hom (prod ∘ map f) := is_group_hom.comp _ _, by exactI
+(eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp)
 
 section sum
 
@@ -584,7 +587,7 @@ def free_group_unit_equiv_int : free_group unit ≃ int :=
     (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih]) }
+    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg]) }
 
 section category
 

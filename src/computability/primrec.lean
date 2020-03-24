@@ -90,7 +90,7 @@ theorem sub : primrec (unpaired has_sub.sub) :=
 
 theorem mul : primrec (unpaired (*)) :=
 (prec zero (add.comp (pair left (right.comp right)))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, mul_succ]
+λ p, by simp; induction p.unpair.2; simp [*, mul_succ, add_comm]
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $

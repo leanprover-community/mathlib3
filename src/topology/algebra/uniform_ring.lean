@@ -8,7 +8,7 @@ Theory of topological rings with uniform structure.
 
 import topology.algebra.group_completion topology.algebra.ring
 
-open classical set lattice filter topological_space add_comm_group
+open classical set filter topological_space add_comm_group
 open_locale classical
 noncomputable theory
 
@@ -96,7 +96,9 @@ universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
           {f : α → β} [is_ring_hom f] (hf : continuous f)
 
-instance is_ring_hom_extension [complete_space β] [separated β] :
+/-- The completion extension is a ring morphism.
+This cannot be an instance, since it depends on the continuity of `f`. -/
+protected lemma is_ring_hom_extension [complete_space β] [separated β] :
   is_ring_hom (completion.extension f) :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_one := by rw [← coe_one, extension_coe hf, is_ring_hom.map_one f],
@@ -120,8 +122,11 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_mul := continuous_mul,
   continuous_neg := continuous_neg }
 
-instance is_ring_hom_map : is_ring_hom (completion.map f) :=
-(completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
+/-- The completion map is a ring morphism.
+This cannot be an instance, since it depends on the continuity of `f`. -/
+protected lemma is_ring_hom_map : is_ring_hom (completion.map f) :=
+@completion.is_ring_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_ring_hom.comp _ _)
+  ((continuous_coe β).comp hf) _ _
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

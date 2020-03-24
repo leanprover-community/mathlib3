@@ -5,15 +5,15 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.finsupp linear_algebra.basic
+import data.monoid_algebra linear_algebra.basic
 
 noncomputable theory
 
-open lattice set linear_map submodule
-
-namespace finsupp
+open set linear_map submodule
 
 open_locale classical
+
+namespace finsupp
 
 variables {α : Type*} {M : Type*} {R : Type*}
 variables [ring R] [add_comm_group M] [module R M]
@@ -252,9 +252,10 @@ show ↑(map_domain f l).support ⊆ s, begin
   exact set.subset.trans map_domain_support hl
 end
 
-theorem lmap_domain_supported [inhabited α] (f : α → α') (s : set α) :
+theorem lmap_domain_supported [nonempty α] (f : α → α') (s : set α) :
   (supported M R s).map (lmap_domain M R f) = supported M R (f '' s) :=
 begin
+  inhabit α,
   refine le_antisymm (map_le_iff_le_comap.2 $
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,
@@ -370,7 +371,7 @@ begin
     refine sum_mem _ _, simp [this] }
 end
 
-theorem mem_span_iff_total {s : set α} {x : M}:
+theorem mem_span_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by rw span_eq_map_total; simp
 
@@ -422,8 +423,37 @@ end
 
 end finsupp
 
-lemma linear_map.map_finsupp_total {R : Type*} {β : Type*} {γ : Type*} [ring R]
-  [add_comm_group β] [module R β] [add_comm_group γ] [module R γ]
-  (f : β →ₗ[R] γ) {ι : Type*} [fintype ι] {g : ι → β} (l : ι →₀ R) :
-  f (finsupp.total ι β R g l) = finsupp.total ι γ R (f ∘ g) l :=
+variables {R : Type*} {M : Type*} {N : Type*}
+variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+
+lemma linear_map.map_finsupp_total
+  (f : M →ₗ[R] N) {ι : Type*} [fintype ι] {g : ι → M} (l : ι →₀ R) :
+  f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
 by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
+
+lemma submodule.exists_finset_of_mem_supr
+  {ι : Sort*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
+  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+begin
+  obtain ⟨f, hf, rfl⟩ : ∃ f ∈ finsupp.supported R R (⋃ i, ↑(p i)), finsupp.total M M R id f = m,
+  { have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
+    rwa [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm },
+  let t : finset M := f.support,
+  have ht : ∀ x : {x // x ∈ t}, ∃ i, ↑x ∈ p i,
+  { intros x,
+    rw finsupp.mem_supported at hf,
+    specialize hf x.2,
+    rwa set.mem_Union at hf },
+  choose g hg using ht,
+  let s : finset ι := finset.univ.image g,
+  use s,
+  simp only [mem_supr, supr_le_iff],
+  assume N hN,
+  rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
+  apply is_add_submonoid.finset_sum_mem,
+  assume x hx,
+  apply submodule.smul_mem,
+  let i : ι := g ⟨x, hx⟩,
+  have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
+  exact hN i hi (hg _),
+end

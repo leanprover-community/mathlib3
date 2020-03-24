@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action group_theory.quotient_group
 import group_theory.order_of_element data.zmod.basic
+import data.fintype.card
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
@@ -127,7 +128,7 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
     set.card_range_of_injective (mk_vector_prod_eq_one_inj _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p')) =
-  (p' : ℕ) ^ 1 := (nat.pow_one p').symm ▸ card_fin _,
+  (p' : ℕ) ^ 1 := (nat.pow_one p').symm ▸ fintype.card_fin _,
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
   (multiplicative (zmod p')) (vectors_prod_eq_one G p') _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=

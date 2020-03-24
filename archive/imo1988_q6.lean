@@ -88,10 +88,9 @@ begin
   -- The strategy is to show that the exceptional locus in nonempty
   -- by running a descent argument that starts with the given point p = (x,y).
   -- Our assumptions ensure that we can then prove the claim.
-  suffices exc : exceptional ≠ ∅,
+  suffices exc : exceptional.nonempty,
   { -- Suppose that there exists an element in the exceptional locus.
-    rw set.ne_empty_iff_exists_mem at exc,
-    simp [exceptional, -add_comm] at exc,
+    simp [exceptional, -add_comm, set.nonempty] at exc,
     -- Let (a,b) be such an element, and consider all the possible cases.
     rcases exc with ⟨a, b, hH, hb⟩, rcases hb with _|rfl|rfl|hB|hB,
     -- The first three cases are rather easy to solve.
@@ -112,6 +111,7 @@ begin
       solve_by_elim } },
   -- To finish the main proof, we need to show that the exceptional locus is nonempty.
   -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
+  rw ← set.ne_empty_iff_nonempty,
   assume exceptional_empty,
   -- Observe that S is nonempty.
   have S_nonempty : S.nonempty,
@@ -255,7 +255,7 @@ begin
     apply eq_iff_eq_cancel_right.2,
     simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
-    intros x y, simp [mul_comm], },
+    cc },
   { -- Show that the claim is true if b = 0.
     simp },
   { -- Show that the claim is true if a = b.
@@ -291,5 +291,5 @@ begin
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals {omega} } }
+      all_goals { ring at h, omega } } }
 end

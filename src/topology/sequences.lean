@@ -29,7 +29,7 @@ variables {α : Type*} {β : Type*}
 
 local notation f ` ⟶ ` limit := tendsto f at_top (𝓝 limit)
 
-/- Statements about sequences in general topological spaces. -/
+/-! ### Statements about sequences in general topological spaces. -/
 section topological_space
 variables [topological_space α] [topological_space β]
 
@@ -38,19 +38,8 @@ holds. -/
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (𝓝 limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
-iff.intro
-  (assume ttol : tendsto x at_top (𝓝 limit),
-    show ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
-      assume U limitInU isOpenU,
-      have {n | (x n) ∈ U} ∈ at_top :=
-        mem_map.mp $ le_def.mp ttol U $ mem_nhds_sets isOpenU limitInU,
-      show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
-  (assume xtol : ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U,
-    suffices ∀ U, is_open U → limit ∈ U → x ⁻¹' U ∈ at_top,
-      from tendsto_nhds.mpr this,
-    assume U isOpenU limitInU,
-    suffices ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simp [this],
-    xtol U limitInU isOpenU)
+(at_top_basis.tendsto_iff (nhds_basis_opens limit)).trans $
+  by simp only [and_imp, exists_prop, true_and, set.mem_Ici, ge_iff_le, id]
 
 /-- The sequential closure of a subset M ⊆ α of a topological space α is
 the set of all p ∈ α which arise as limit of sequences in M. -/
@@ -61,7 +50,9 @@ lemma subset_sequential_closure (M : set α) : M ⊆ sequential_closure M :=
 assume p (_ : p ∈ M), show p ∈ sequential_closure M, from
   ⟨λ n, p, assume n, ‹p ∈ M›, tendsto_const_nhds⟩
 
-def is_seq_closed (A : set α) : Prop := A = sequential_closure A
+/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
+the limit belongs to `s` as well. -/
+def is_seq_closed (s : set α) : Prop := s = sequential_closure s
 
 /-- A convenience lemma for showing that a set is sequentially closed. -/
 lemma is_seq_closed_of_def {A : set α}
@@ -74,21 +65,8 @@ show A = sequential_closure A, from subset.antisymm
 /-- The sequential closure of a set is contained in the closure of that set.
 The converse is not true. -/
 lemma sequential_closure_subset_closure (M : set α) : sequential_closure M ⊆ closure M :=
-show ∀ p, p ∈ sequential_closure M → p ∈ closure M, from
-assume p,
-assume : ∃ x : ℕ → α, (∀ n : ℕ, ((x n) ∈ M)) ∧ (x ⟶ p),
-let ⟨x, ⟨_, _⟩⟩ := this in
-show p ∈ closure M, from
--- we have to show that p is in the closure of M
--- using mem_closure_iff, this is equivalent to proving that every open neighbourhood
--- has nonempty intersection with M, but this is witnessed by our sequence x
-suffices ∀ O, is_open O → p ∈ O → O ∩ M ≠ ∅, from mem_closure_iff.mpr this,
-have ∀ (U : set α), p ∈ U → is_open U → (∃ n0, ∀ n, n ≥ n0 → x n ∈ U), by rwa[←topological_space.seq_tendsto_iff],
-assume O is_open_O p_in_O,
-let ⟨n0, _⟩ := this O ‹p ∈ O› ‹is_open O› in
-have (x n0) ∈ O, from ‹∀ n ≥ n0, x n ∈ O› n0 (show n0 ≥ n0, from le_refl n0),
-have (x n0) ∈ O ∩ M, from ⟨this, ‹∀n, x n ∈ M› n0⟩,
-set.ne_empty_of_mem this
+assume p ⟨x, xM, xp⟩,
+mem_closure_of_tendsto at_top_ne_bot xp (univ_mem_sets' xM)
 
 /-- A set is sequentially closed if it is closed. -/
 lemma is_seq_closed_of_is_closed (M : set α) (_ : is_closed M) : is_seq_closed M :=
@@ -178,10 +156,10 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
     (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
   -- (g i) is a neighborhood of p and hence intersects M.
   -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
-  have x : ∀ i, g i ∩ M,
+  have x : Π i, g i ∩ M,
   { rw mem_closure_iff_nhds at hp,
-    intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
-    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
+    intro i, apply classical.indefinite_description,
+    apply hp, rw gbasis, rw ← le_principal_iff, apply infi_le_of_le i _, apply le_refl _ },
   -- It remains to show that x converges to p. Intuitively this is the case
   -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
   have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,

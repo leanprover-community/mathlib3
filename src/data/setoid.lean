@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.galois_connection
+import data.quot data.set.lattice data.fintype order.galois_connection order.copy
 
 /-!
 # Equivalence relations
@@ -23,7 +23,7 @@ equivalence relations on the same type.
 The complete lattice instance for equivalence relations could have been defined by lifting
 the Galois insertion of equivalence relations on α into binary relations on α, and then using
 `complete_lattice.copy` to define a complete lattice instance with more appropriate
-definitional equalities (a similar example is `filter.lattice.complete_lattice` in
+definitional equalities (a similar example is `filter.complete_lattice` in
 `order/filter/basic.lean`). This does not save space, however, and is less clear.
 
 Partitions are not defined as a separate structure here; users are encouraged to
@@ -36,7 +36,6 @@ class
 -/
 variables {α : Type*} {β : Type*}
 
-open lattice
 
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
@@ -464,15 +463,15 @@ section partition
 def is_partition (c : set (set α)) :=
 ∅ ∉ c ∧ ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b'
 
-/-- A partition of α does not contain the empty set. -/
-lemma ne_empty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
-  s ≠ ∅ :=
-λ hs0, hc.1 $ hs0 ▸ h
+/-- A partition of `α` does not contain the empty set. -/
+lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
+  s.nonempty :=
+set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
   ∃ y, s = {x | (mk_classes c hc.2).rel x y} :=
-let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc hs in
+let ⟨y, hy⟩ := nonempty_of_mem_partition hc hs in
   ⟨y, eq_eqv_class_of_mem hc.2 hs hy⟩
 
 /-- The equivalence classes of the equivalence relation defined by a partition of α equal
@@ -484,8 +483,7 @@ set.ext $ λ s,
     rwa (show s = b, from hs.symm ▸ set.ext
       (λ x, ⟨λ hx, symm' (mk_classes c hc.2) hx b hm hb,
              λ hx b' hc' hx', eq_of_mem_eqv_class hc.2 hm hx hc' hx' ▸ hb⟩)),
-   λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc h in
-     ⟨y, eq_eqv_class_of_mem hc.2 h hy⟩⟩
+   exists_of_mem_partition hc⟩
 
 /-- Defining `≤` on partitions as the `≤` defined on their induced equivalence relations. -/
 instance partition.le : has_le (subtype (@is_partition α)) :=
@@ -517,8 +515,7 @@ variables {α}
 
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
-instance partition.complete_lattice :
-  _root_.lattice.complete_lattice (subtype (@is_partition α)) :=
+instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
 galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
 _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 

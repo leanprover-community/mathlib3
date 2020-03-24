@@ -2,6 +2,11 @@
 Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
+-/
+
+import topology.bases topology.dense_embedding
+
+/-! # Stone-Čech compactification
 
 Construction of the Stone-Čech compactification using ultrafilters.
 
@@ -9,11 +14,9 @@ Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
 
-import topology.bases topology.dense_embedding
-
 noncomputable theory
 
-open filter lattice set
+open filter set
 open_locale topological_space
 
 universes u v
@@ -64,7 +67,7 @@ lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafil
 begin
   rw [eq_comm, ultrafilter.eq_iff_val_le_val],
   change u.val ≤ 𝓝 x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
-  simp only [topological_space.nhds_generate_from, lattice.le_infi_iff, ultrafilter_basis,
+  simp only [topological_space.nhds_generate_from, le_infi_iff, ultrafilter_basis,
     le_principal_iff],
   split; intro h,
   { intros a ha, exact h _ ⟨ha, a, rfl⟩ },
@@ -87,11 +90,9 @@ begin
   simp only [comap_infi, comap_principal],
   intros s hs,
   rw ←le_principal_iff,
-  refine lattice.infi_le_of_le {u | s ∈ u.val} _,
-  refine lattice.infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
-  rw principal_mono,
-  intros a ha,
-  exact mem_pure_iff.mp ha
+  refine infi_le_of_le {u | s ∈ u.val} _,
+  refine infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
+  exact principal_mono.2 (λ a, id)
 end
 
 section embedding
@@ -115,7 +116,7 @@ dense_inducing.mk' pure continuous_bot
       ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
   (assume a s as,
      ⟨{u | s ∈ u.val},
-      mem_nhds_sets (ultrafilter_is_open_basic s) (mem_pure_sets.mpr (mem_of_nhds as)),
+      mem_nhds_sets (ultrafilter_is_open_basic s) (mem_of_nhds as : a ∈ s),
       assume b hb, mem_pure_sets.mp hb⟩)
 
 -- The following refined version will never be used
@@ -172,7 +173,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    -- the facts that ultrafilter.extend is a continuous extension of f.
    let b' : ultrafilter (ultrafilter α) := b.map pure,
    have t : b'.val ≤ 𝓝 b,
-     from ultrafilter_converges_iff.mpr (by exact (bind_pure _).symm),
+     from ultrafilter_converges_iff.mpr (bind_pure _).symm,
    rw ←h,
    have := (continuous_ultrafilter_extend f).tendsto b,
    refine le_trans _ (le_trans (map_mono t) this),
@@ -212,6 +213,7 @@ def stone_cech : Type u := quotient (stone_cech_setoid α)
 
 variables {α}
 instance : topological_space (stone_cech α) := by unfold stone_cech; apply_instance
+instance [inhabited α] : inhabited (stone_cech α) := by unfold stone_cech; apply_instance
 
 /-- The natural map from α to its Stone-Čech compactification. -/
 def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧

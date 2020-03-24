@@ -7,21 +7,6 @@ import category_theory.limits.limits
 
 /-!
 # Preservation and reflection of (co)limits.
--/
-
-open category_theory
-
-namespace category_theory.limits
-
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-
-variables {C : Type u₁} [𝒞 : category.{v} C]
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
-
-variables {J : Type v} [small_category J] {K : J ⥤ C}
-
-/- Note on "preservation of (co)limits"
 
 There are various distinct notions of "preserving limits". The one we
 aim to capture here is: A functor F : C → D "preserves limits" if it
@@ -45,13 +30,33 @@ certain form, we say that a functor F preserves the limit of a
 diagram K if F sends every limit cone on K to a limit cone. This is
 vacuously satisfied when K does not admit a limit, which is consistent
 with the above definition of "preserves limits".
-
 -/
+
+open category_theory
+
+namespace category_theory.limits
+
+universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+variables {C : Type u₁} [𝒞 : category.{v} C]
+variables {D : Type u₂} [𝒟 : category.{v} D]
+include 𝒞 𝒟
+
+variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
+
+/-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
+def preserves_limit_iso (K : J ⥤ C) [has_limit.{v} K] (F : C ⥤ D) [has_limit.{v} (K ⋙ F)] [preserves_limit K F] :
+  F.obj (limit K) ≅ limit (K ⋙ F) :=
+is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves F (limit.is_limit K)) (limit.is_limit (K ⋙ F))
+/-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
+def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
+  F.obj (colimit K) ≅ colimit (K ⋙ F) :=
+is_colimit.cone_point_unique_up_to_iso (preserves_colimit.preserves F (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
@@ -80,9 +85,9 @@ instance preserves_colimits_of_shape_subsingleton (J : Type v) [small_category J
 by { split, intros, cases a, cases b, congr }
 
 instance preserves_limits_subsingleton (F : C ⥤ D) : subsingleton (preserves_limits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 
 omit 𝒟
 instance id_preserves_limits : preserves_limits (𝟭 C) :=
@@ -163,9 +168,9 @@ instance reflects_colimits_of_shape_subsingleton (J : Type v) [small_category J]
 by { split, intros, cases a, cases b, congr }
 
 instance reflects_limits_subsingleton (F : C ⥤ D) : subsingleton (reflects_limits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 instance reflects_colimits_subsingleton (F : C ⥤ D) : subsingleton (reflects_colimits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)

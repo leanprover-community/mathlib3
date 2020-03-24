@@ -263,7 +263,10 @@ rfl
   (e₁.trans e₂).conj = e₁.conj.trans e₂.conj :=
 rfl
 
-@[simp] lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
+-- This should not be a simp lemma as long as `(∘)` is reducible:
+-- when `(∘)` is reducible, Lean can unify `f₁ ∘ f₂` with any `g` using
+-- `f₁ := g` and `f₂ := λ x, x`.  This causes nontermination.
+lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 
@@ -453,6 +456,15 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α
      | _, rfl := rfl end,
    λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
      | _, rfl := rfl end⟩
+
+/-- transporting a sigma type through an equivalence of the base -/
+def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β a) ≃ (Σ a:α₂, β (f.symm a)) :=
+λ f, (sigma_congr_left f.symm).symm
+
+/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibres -/
+def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*} (f : α₁ ≃ α₂) (F : ∀ a, β₁ a ≃ β₂ (f a)) :
+  sigma β₁ ≃ sigma β₂ :=
+(sigma_congr_right F).trans (sigma_congr_left f)
 
 def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
@@ -972,3 +984,40 @@ protected def congr_right {r r' : setoid α}
   (eq : ∀a₁ a₂, @setoid.r α r a₁ a₂ ↔ @setoid.r α r' a₁ a₂) : quotient r ≃ quotient r' :=
 quot.congr_right eq
 end quotient
+
+/-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
+equivalence between the original type and the type `↑s`. -/
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
+  (h : set.bij_on f set.univ s) : α ≃ s :=
+begin
+  have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),
+  { split,
+    { assume x y hxy,
+      apply h.inj_on (set.mem_univ x) (set.mem_univ y) (subtype.mk.inj hxy) },
+    { assume x,
+      rcases h.surj_on x.2 with ⟨y, hy⟩,
+      exact ⟨y, subtype.eq hy.2⟩ } },
+  exact equiv.of_bijective this
+end
+
+/-- The composition of an updated function with an equiv on a subset can be expressed as an
+updated function. -/
+lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α} (e : β ≃ s)
+  (v : β → γ) (w : α → γ) (j : β) (x : γ) [decidable_eq β] [decidable_eq α]
+  [∀ j, decidable (j ∈ s)] :
+  (λ (i : α), if h : i ∈ s then (function.update v j x) (e.symm ⟨i, h⟩) else w i) =
+  function.update (λ (i : α), if h : i ∈ s then v (e.symm ⟨i, h⟩) else w i) (e j) x :=
+begin
+  ext i,
+  by_cases h : i ∈ s,
+  { simp only [h, dif_pos],
+    have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
+      by { rw equiv.symm_apply_eq, exact subtype.ext },
+    by_cases h' : i = e j,
+    { rw [A.2 h', h'], simp },
+    { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',
+      simp [h, h', this] } },
+  { have : i ≠ e j,
+      by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
+    simp [h, this] }
+end

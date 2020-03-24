@@ -8,14 +8,37 @@ Adjoining roots of polynomials
 
 import data.polynomial ring_theory.principal_ideal_domain
 
+/-!
+# Adjoining roots of polynomials
+
+This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
+commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
+irreducible, the field structure on `adjoin_root f` is constructed.
+
+## Main definitions and results
+
+The main definitions are in the `adjoin_root` namespace.
+
+*  `mk f : polynomial R →+* adjoin_root f`, the natural ring homomorphism.
+
+*  `of f : R →+* adjoin_root f`, the natural ring homomorphism.
+
+* `root f : adjoin_root f`, the image of X in R[X]/(f).
+
+* `lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S`, the ring
+  homomorphism from R[X]/(f) to S extending `i : R →+* S` and sending `X` to `x`.
+
+-/
 noncomputable theory
 
 universes u v w
 
-variables {R : Type u} {S : Type v} {γ : Type w}
+variables {R : Type u} {S : Type v} {K : Type w}
 
 open polynomial ideal
 
+/-- Adjoin a root of a polynomial `f` to a commutative ring `R`. We define the new ring
+as the quotient of `R` by the principal ideal of `f`. -/
 def adjoin_root [comm_ring R] (f : polynomial R) : Type u :=
 ideal.quotient (span {f} : ideal (polynomial R))
 
@@ -26,85 +49,80 @@ variables [comm_ring R] (f : polynomial R)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 
+instance : inhabited (adjoin_root f) := ⟨0⟩
+
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
-variable {f}
+/-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
+def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk_hom _
 
+/-- Embedding of the original ring `R` into `adjoin_root f`. -/
+def of : R →+* adjoin_root f := (mk f).comp (ring_hom.of C)
 
-/-- The canonical homomorphism from `polynomial R` to `adjoin_root f` -/
-def mk : polynomial R → adjoin_root f := ideal.quotient.mk _
+/-- The adjoined root. -/
+def root : adjoin_root f := mk f X
 
-/-- `root` is the `root` of `f` in `adjoin_root f` -/
-def root : adjoin_root f := mk X
-/-- The canonical map from `R` to `adjoin_root f`, where `f` is  a polynomial over `R` -/
-def of (x : R) : adjoin_root f := mk (C x)
+variables {f}
 
-instance mk.is_ring_hom : is_ring_hom (mk : polynomial R → adjoin_root f) :=
-ideal.quotient.is_ring_hom_mk _
+instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
-instance of.is_ring_hom : is_ring_hom (of : R → adjoin_root f) :=
-is_ring_hom.comp _ _
-
-@[simp] lemma mk_self : (mk f : adjoin_root f) = 0 :=
+@[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' (mem_span_singleton.2 $ by simp)
 
-lemma eval₂_root (f : polynomial R) : f.eval₂ of (root : adjoin_root f) = 0 :=
-quotient.induction_on' (root : adjoin_root f)
-  (λ (g : polynomial R) (hg : mk g = mk X),
-    show finsupp.sum f (λ (e : ℕ) (a : R), mk (C a) * mk g ^ e) = 0,
-    by simp only [hg, (is_semiring_hom.map_pow (mk : polynomial R → adjoin_root f) _ _).symm,
-         (is_ring_hom.map_mul (mk : polynomial R → adjoin_root f)).symm];
-      rw [finsupp.sum, finset.sum_hom (mk : polynomial R → adjoin_root f),
-        show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
-  (show (root : adjoin_root f) = mk X, from rfl)
+instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
 
-lemma is_root_root (f : polynomial R) : is_root (f.map of) (root : adjoin_root f) :=
+@[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
+
+@[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ coe (root f) = 0 :=
+quotient.induction_on' (root f)
+  (λ (g : polynomial R) (hg : mk f g = mk f X),
+    show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,
+    by simp only [hg, ((mk f).map_pow _ _).symm, ((mk f).map_mul _ _).symm];
+      rw [finsupp.sum, ← (mk f).map_sum,
+        show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
+  (show (root f) = mk f X, from rfl)
+
+lemma is_root_root (f : polynomial R) : is_root (f.map coe) (root f) :=
 by rw [is_root, eval_map, eval₂_root]
 
 variables [comm_ring S]
 
-def lift (i : R → S) [is_ring_hom i] (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) → S :=
-ideal.quotient.lift _ (eval₂ i x) $ λ g H,
+/-- Lift a ring homomorphism `i : R →+* S` to `adjoin_root f →+* S`. -/
+def lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S :=
 begin
-  simp [mem_span_singleton] at H,
-  cases H with y H,
-  rw [H, eval₂_mul],
-  simp [h]
+  apply ideal.quotient.lift _ (ring_hom.of (eval₂ i x)),
+  intros g H,
+  rcases mem_span_singleton.1 H with ⟨y, hy⟩,
+  rw [hy, ring_hom.map_mul, ring_hom.coe_of, h, zero_mul]
 end
 
-variables {i : R → S} [is_ring_hom i] {a : S} {h : f.eval₂ i a = 0}
+variables {i : R →+* S} {a : S} {h : f.eval₂ i a = 0}
 
-@[simp] lemma lift_mk {g : polynomial R} : lift i a h (mk g) = g.eval₂ i a :=
-ideal.quotient.lift_mk
+@[simp] lemma lift_mk {g : polynomial R} : lift i a h (mk f g) = g.eval₂ i a :=
+ideal.quotient.lift_mk _ _ _
 
-@[simp] lemma lift_root : lift i a h root = a := by simp [root, h]
+@[simp] lemma lift_root : lift i a h (root f) = a := by simp [root, h]
 
-@[simp] lemma lift_of {x : R} : lift i a h (of x) = i x :=
-by show lift i a h (ideal.quotient.mk _ (C x)) = i x;
-  convert ideal.quotient.lift_mk; simp
-
-instance is_ring_hom_lift : is_ring_hom (lift i a h) :=
-by unfold lift; apply_instance
+@[simp] lemma lift_of {x : R} : lift i a h x = i x :=
+by rw [← mk_C x, lift_mk, eval₂_C]
 
 end comm_ring
 
-section field
+variables [field K] {f : polynomial K} [irreducible f]
 
-variables [discrete_field R] {f : polynomial R} [irreducible f]
-
-instance is_maximal_span : is_maximal (span {f} : ideal (polynomial R)) :=
+instance is_maximal_span : is_maximal (span {f} : ideal (polynomial K)) :=
 principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
 
-noncomputable instance field : discrete_field (adjoin_root f) :=
-ideal.quotient.field (span {f} : ideal (polynomial R))
+noncomputable instance field : field (adjoin_root f) :=
+ideal.quotient.field (span {f} : ideal (polynomial K))
 
-lemma of_injective : function.injective (@of R _ f) := is_ring_hom.injective _
+lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
+(of f).injective
 
-instance lift_is_ring_hom [field S] {i : R → S} [is_ring_hom i] {a : S}
-  {h : f.eval₂ i a = 0} : is_ring_hom (lift i a h) := by apply_instance
+variable (f)
 
-lemma mul_div_root_cancel (f : polynomial R) [irreducible f] :
-  (X - C (root : adjoin_root f)) * (f.map of / (X - C root)) = f.map of :=
+lemma mul_div_root_cancel :
+  (X - C (root f)) * (f.map coe / (X - C (root f))) = f.map coe :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end field

@@ -15,10 +15,13 @@ namespace turing
 
 /-- A direction for the turing machine `move` command, either
   left or right. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive dir | left | right
 
 def tape (Γ) := Γ × list Γ × list Γ
+
+instance {Γ} [inhabited Γ] : inhabited (tape Γ) :=
+⟨by constructor; apply default⟩
 
 def tape.mk {Γ} [inhabited Γ] (l : list Γ) : tape Γ :=
 (l.head, [], l.tail)
@@ -329,6 +332,7 @@ parameters (Λ : Type*) [inhabited Λ] -- type of "labels" or TM states
 
 /-- A Turing machine "statement" is just a command to either move
   left or right, or write a symbol on the tape. -/
+@[derive inhabited]
 inductive stmt
 | move {} : dir → stmt
 | write {} : Γ → stmt
@@ -344,11 +348,14 @@ inductive stmt
   the initial state. -/
 def machine := Λ → Γ → option (Λ × stmt)
 
+instance machine.inhabited : inhabited machine := by unfold machine; apply_instance
+
 /-- The configuration state of a Turing machine during operation
   consists of a label (machine state), and a tape, represented in
   the form `(a, L, R)` meaning the tape looks like `L.rev ++ [a] ++ R`
   with the machine currently reading the `a`. The lists are
   automatically extended with blanks as the machine moves around. -/
+@[derive inhabited]
 structure cfg :=
 (q : Λ)
 (tape : tape Γ)
@@ -481,8 +488,11 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 /-- The configuration of a TM1 machine is given by the currently
   evaluating statement, the variable store value, and the tape. -/
+@[derive inhabited]
 structure cfg :=
 (l : option Λ)
 (var : σ)
@@ -1154,10 +1164,15 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 structure cfg :=
 (l : option Λ)
 (var : σ)
 (stk : ∀ k, list (Γ k))
+
+instance cfg.inhabited [inhabited σ] [∀ k, inhabited (Γ k)] : inhabited cfg :=
+⟨by constructor; intros; apply default⟩
 
 parameters {Γ Λ σ K}
 def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
@@ -1344,6 +1359,9 @@ inductive st_act (k : K)
 
 section
 open st_act
+
+instance st_act.inhabited {k} : inhabited (st_act k) :=
+⟨pop (default _) (λ s _, s)⟩
 
 def st_run {k : K} : st_act k → stmt₂ → stmt₂
 | (push f)   := TM2.stmt.push k f
@@ -1686,7 +1704,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
     have hgo := sub _ (or.inl $ or.inr rfl),
     have hret := sub _ (or.inl $ or.inl rfl),
@@ -1694,7 +1712,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
     { unfold TM1.supports_stmt TM2to1.tr,

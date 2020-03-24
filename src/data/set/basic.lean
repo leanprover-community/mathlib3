@@ -1,25 +1,91 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Leonardo de Moura
+Authors: Jeremy Avigad, Leonardo de Moura
 -/
+
 import tactic.basic tactic.finish data.subtype logic.unique
-open function
 
-/-! # Basic properties of sets
+/-!
 
-This file provides some basic definitions related to sets and functions (e.g., `preimage`)
-not present in the core library, as well as extra lemmas.
+# Basic properties of sets
+
+Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
+have type `X` are thus defined as `set X := X → Prop`. Note that this function need not
+be decidable. The definition is in the core library.
+
+This file provides some basic definitions related to sets and functions not present in the core
+library, as well as extra lemmas for functions in the core library (empty set, univ, union,
+intersection, insert, singleton, set-theoretic difference, complement, and powerset).
+
+Note that a set is a term, not a type. There is a coersion from `set α` to `Type*` sending
+`s` to the corresponding subtype `↑s`.
+
+See also the file `set_theory/zfc.lean`, which contains an encoding of ZFC set theory in Lean.
+
+## Main definitions
+
+Notation used here:
+
+-  `f : α → β` is a function,
+
+-  `s : set α` and `s₁ s₂ : set α` are subsets of `α`
+
+-  `t : set β` is a subset of `β`.
+
+Definitions in the file:
+
+* `strict_subset s₁ s₂ : Prop` : the predicate `s₁ ⊆ s₂` but `s₁ ≠ s₂`.
+
+* `nonempty s : Prop` : the predicate `s ≠ ∅`. Note that this is the preferred way to express the
+  fact that `s` has an element (see the Implementation Notes).
+
+* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
+
+* `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
+
+* `range f : set β` : the image of `univ` under `f`.
+  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
+
+* `prod s t : set (α × β)` : the subset `s × t`.
+
+* `inclusion s₁ s₂ : ↑s₁ → ↑s₂` : the map `↑s₁ → ↑s₂` induced by an inclusion `s₁ ⊆ s₂`.
+
+## Notation
+
+* `f ⁻¹' t` for `preimage f t`
+
+* `f '' s` for `image f s`
+
+## Implementation notes
+
+`s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`. It has the advantage that
+the `s.nonempty` dot notation can be used.
+
+## Tags
+
+set, sets, subset, subsets, image, preimage, pre-image, range, union, intersection, insert,
+singleton, complement, powerset
+
 -/
 
 /-! ### Set coercion to a type -/
+
+open function
+
 namespace set
+
+/-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+
 end set
 
 section set_coe
+
 universe u
+
 variables {α : Type u}
+
 theorem set.set_coe_eq_subtype (s : set α) :
   coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
 
@@ -30,6 +96,10 @@ subtype.forall
 @[simp] theorem set_coe.exists {s : set α} {p : s → Prop} :
   (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
 subtype.exists
+
+theorem set_coe.exists' {s : set α} {p : Π x, x ∈ s → Prop} :
+  (∃ x (h : x ∈ s), p x h) ↔ (∃ x : s, p x.1 x.2)  :=
+(@set_coe.exists _ _ $ λ x, p x.1 x.2).symm
 
 @[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
   cast H x = ⟨x.1, H' ▸ x.2⟩
@@ -46,7 +116,9 @@ end set_coe
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.property
 
 namespace set
+
 universes u v w x
+
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
 
 instance : inhabited (set α) := ⟨∅⟩
@@ -58,14 +130,13 @@ funext (assume x, propext (h x))
 theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
-@[trans] theorem mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
-h hx
+@[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
 @[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
-@[simp] theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
+theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
@@ -77,14 +148,12 @@ instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a
 
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
 
-@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
+@[simp] theorem set_of_subset_set_of {p q : α → Prop} :
+  {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
-@[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} :=
-rfl
+@[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
 
-@[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
-
-/-! #### Lemmas about subsets -/
+/-! ### Lemmas about subsets -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
@@ -94,7 +163,7 @@ theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rf
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)
 
-@[trans] theorem mem_of_eq_of_mem {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
+@[trans] theorem mem_of_eq_of_mem {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
 
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
@@ -104,31 +173,34 @@ theorem subset.antisymm_iff {a b : set α} : a = b ↔ a ⊆ b ∧ b ⊆ a :=
 ⟨λ e, e ▸ ⟨subset.refl _, subset.refl _⟩,
  λ ⟨h₁, h₂⟩, subset.antisymm h₁ h₂⟩
 
--- an alterantive name
+-- an alternative name
 theorem eq_of_subset_of_subset {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 subset.antisymm h₁ h₂
 
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ :=
 assume h₁ h₂, h₁ h₂
 
-theorem not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
+theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t :=
 by simp [subset_def, classical.not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 /-- `s ⊂ t` means that `s` is a strict subset of `t`, that is, `s ⊆ t` but `s ≠ t`. -/
-def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
+def strict_subset (s t : set α) := s ⊆ t ∧ ¬ (t ⊆ s)
 
 instance : has_ssubset (set α) := ⟨strict_subset⟩
 
-theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
+theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ ¬ (t ⊆ s)) := rfl
 
-lemma exists_of_ssubset {α : Type u} {s t : set α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
-classical.by_contradiction $ assume hn,
-  have t ⊆ s, from assume a hat, classical.by_contradiction $ assume has, hn ⟨a, hat, has⟩,
-  h.2 $ subset.antisymm h.1 this
+theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
+classical.by_cases
+  (λ H : t ⊆ s, or.inl $ subset.antisymm h H)
+  (λ H, or.inr ⟨h, H⟩)
 
-lemma ssubset_iff_subset_not_subset {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s :=
+lemma exists_of_ssubset {s t : set α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
+not_subset.1 h.2
+
+lemma ssubset_iff_subset_ne {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
 by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
 
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
@@ -146,6 +218,9 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
+theorem nonempty.not_subset_empty : s.nonempty  → ¬(s ⊆ ∅)
+| ⟨x, hx⟩ hs := hs hx
+
 theorem nonempty.ne_empty : s.nonempty → s ≠ ∅
 | ⟨x, hx⟩ hs := by { rw hs at hx, exact hx }
 
@@ -155,14 +230,14 @@ protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.som
 
 protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.some_spec h
 
-lemma nonempty.of_subset (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
+lemma nonempty.mono (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
 let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
 
 lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 
-lemma nonempty.of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
+lemma nonempty_of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
 
 lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
 
@@ -177,8 +252,11 @@ lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.
 lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 ⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩
 
-lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
+@[simp] lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
 | ⟨x⟩ := ⟨x, trivial⟩
+
+lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
+nonempty_subtype.2 h
 
 /-! ### Lemmas about the empty set -/
 
@@ -200,45 +278,39 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
-theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
-by haveI := classical.prop_decidable;
-   simp [eq_empty_iff_forall_not_mem, set.nonempty]
+lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
+by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
-theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s := ne_empty_iff_nonempty
+lemma empty_not_nonempty : ¬(∅ : set α).nonempty :=
+not_nonempty_iff_eq_empty.2 rfl
 
-theorem exists_mem_of_ne_empty {s : set α} : s ≠ ∅ → ∃ x, x ∈ s :=
-ne_empty_iff_exists_mem.1
+lemma eq_empty_or_nonempty (s : set α) : s = ∅ ∨ s.nonempty :=
+classical.by_cases or.inr (λ h, or.inl $ not_nonempty_iff_eq_empty.1 h)
 
-theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
-ne_empty_iff_nonempty.2 ⟨x, h⟩
-
-theorem coe_nonempty_iff_ne_empty {s : set α} : nonempty s ↔ s ≠ ∅ :=
-nonempty_subtype.trans ne_empty_iff_exists_mem.symm
-
--- TODO: remove when simplifier stops rewriting `a ≠ b` to `¬ a = b`
-theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
-ne_empty_iff_exists_mem
+@[simp] theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
+(not_congr not_nonempty_iff_eq_empty.symm).trans classical.not_not
 
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
 subset_empty_iff.1 $ e ▸ h
-
-theorem subset_ne_empty {s t : set α} (h : t ⊆ s) : t ≠ ∅ → s ≠ ∅ :=
-mt (subset_eq_empty h)
 
 theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
 by simp [iff_def]
 
-/-! ### Universal set.
+/-!
+
+### Universal set.
 
 In Lean `@univ α` (or `univ : set α`) is the set that contains all elements of type `α`.
-Mathematically it is the same as `α` but it has a different type. -/
+Mathematically it is the same as `α` but it has a different type.
+
+-/
 
 theorem univ_def : @univ α = {x | true} := rfl
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
-theorem empty_ne_univ [h : inhabited α] : (∅ : set α) ≠ univ :=
+theorem empty_ne_univ [h : nonempty α] : (∅ : set α) ≠ univ :=
 by simp [ext_iff]
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
@@ -254,17 +326,11 @@ by simp [ext_iff]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
-@[simp] lemma univ_eq_empty_iff {α : Type*} : (univ : set α) = ∅ ↔ ¬ nonempty α :=
+@[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ ¬ nonempty α :=
 eq_empty_iff_forall_not_mem.trans ⟨λ H ⟨x⟩, H x trivial, λ H x _, H ⟨x⟩⟩
-
-lemma nonempty_iff_univ_ne_empty {α : Type*} : nonempty α ↔ (univ : set α) ≠ ∅ :=
-by classical; exact iff_not_comm.1 univ_eq_empty_iff
 
 lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : set α)
 | ⟨x⟩ := ⟨x, trivial⟩
-
-@[simp] lemma univ_ne_empty {α} [h : nonempty α] : (univ : set α) ≠ ∅ :=
-λ e, univ_eq_empty_iff.1 e h
 
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
@@ -430,13 +496,6 @@ by finish [ext_iff, iff_def]
 theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
 by finish [ext_iff, iff_def]
 
--- TODO(Mario): remove?
-theorem nonempty_of_inter_nonempty_right {s t : set α} (h : s ∩ t ≠ ∅) : t ≠ ∅ :=
-by finish [ext_iff, iff_def]
-
-theorem nonempty_of_inter_nonempty_left {s t : set α} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
-by finish [ext_iff, iff_def]
-
 /-! ### Distributivity laws -/
 
 theorem inter_distrib_left (s t u : set α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
@@ -457,8 +516,6 @@ ext (assume x, and_or_distrib_right)
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
-@[simp] theorem insert_of_has_insert (x : α) (s : set α) : has_insert.insert x s = insert x s := rfl
-
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s :=
 assume y ys, or.inr ys
 
@@ -477,6 +534,10 @@ by finish [insert_def]
 @[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [ext_iff, iff_def]
 
+lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} (h : a ∉ s) :
+  s ≠ insert a t :=
+by { classical, contrapose! h, simp [h] }
+
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp [subset_def, or_imp_distrib, forall_and_distrib]
 
@@ -484,7 +545,7 @@ theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-by finish [ssubset_def, ext_iff]
+by finish [ssubset_iff_subset_ne, ext_iff]
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
@@ -498,9 +559,6 @@ ext $ assume a, by simp [or.comm, or.left_comm]
 theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
 
-theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
-(insert_nonempty a s).ne_empty
-
 -- useful in proofs by induction
 theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ insert a s → P x) :
   ∀ x, x ∈ s → P x :=
@@ -509,6 +567,10 @@ by finish
 theorem forall_insert_of_forall {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ s → P x) (ha : P a) :
   ∀ x, x ∈ insert a s → P x :=
 by finish
+
+theorem bex_insert_iff {P : α → Prop} {a : α} {s : set α} :
+  (∃ x ∈ insert a s, P x) ↔ (∃ x ∈ s, P x) ∨ P a :=
+by finish [iff_def]
 
 theorem ball_insert_iff {P : α → Prop} {a : α} {s : set α} :
   (∀ x ∈ insert a s, P x) ↔ P a ∧ (∀x ∈ s, P x) :=
@@ -544,8 +606,6 @@ by finish
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
 
-@[simp] theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := (singleton_nonempty a).ne_empty
-
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
 
@@ -564,10 +624,10 @@ by simp [eq_empty_iff_forall_not_mem]
 theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
 by rw [inter_comm, singleton_inter_eq_empty]
 
-lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ nonempty s :=
-by simp [coe_nonempty_iff_ne_empty]
+lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ s.nonempty :=
+by rw [mem_singleton_iff, ← ne.def, ne_empty_iff_nonempty]
 
-instance unique_singleton {α : Type*} (a : α) : unique ↥({a} : set α) :=
+instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 { default := ⟨a, mem_singleton a⟩,
   uniq :=
   begin
@@ -623,7 +683,8 @@ by finish [ext_iff]
 @[simp] theorem compl_union (s t : set α) : -(s ∪ t) = -s ∩ -t :=
 by finish [ext_iff]
 
-@[simp] theorem compl_compl (s : set α) : -(-s) = s :=
+local attribute [simp] -- Will be generalized to lattices in `compl_compl'`
+theorem compl_compl (s : set α) : -(-s) = s :=
 by finish [ext_iff]
 
 -- ditto
@@ -639,10 +700,8 @@ by { split, intro h, rw [←compl_compl s, h, compl_empty], intro h, rw [h, comp
 lemma compl_univ_iff {s : set α} : -s = univ ↔ s = ∅ :=
 by rw [←compl_empty_iff, compl_compl]
 
-lemma nonempty_compl {s : set α} : nonempty (-s : set α) ↔ s ≠ univ :=
-by { symmetry, rw [coe_nonempty_iff_ne_empty], apply not_congr,
-     split, intro h, rw [h, compl_univ],
-     intro h, rw [←compl_compl s, h, compl_empty] }
+lemma nonempty_compl {s : set α} : (-s : set α).nonempty ↔ s ≠ univ :=
+ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
@@ -699,6 +758,10 @@ h.left
 theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
 h.right
 
+theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
+⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
+  λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
+
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 by finish [ext_iff, iff_def, subset_def]
 
@@ -753,7 +816,7 @@ diff_subset_diff (subset.refl s) h
 theorem compl_eq_univ_diff (s : set α) : -s = univ \ s :=
 by finish [ext_iff]
 
-@[simp] lemma empty_diff {α : Type*} (s : set α) : (∅ \ s : set α) = ∅ :=
+@[simp] lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ :=
 eq_empty_of_subset_empty $ assume x ⟨hx, _⟩, hx
 
 theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
@@ -770,7 +833,7 @@ lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 ⟨assume h x xs, classical.by_cases or.inl (assume nxt, or.inr (h ⟨xs, nxt⟩)),
  assume h x ⟨xs, nxt⟩, or.resolve_left (h xs) nxt⟩
 
-lemma subset_insert_diff (s t : set α) : s ⊆ (s \ t) ∪ t :=
+lemma subset_diff_union (s t : set α) : s ⊆ (s \ t) ∪ t :=
 by rw [union_comm, ←diff_subset_iff]
 
 @[simp] lemma diff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
@@ -782,8 +845,21 @@ by rw [←diff_singleton_subset_iff]
 lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
-@[simp] theorem insert_diff (h : a ∈ t) : insert a s \ t = s \ t :=
+@[simp] theorem insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
 ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
+
+theorem insert_diff_of_not_mem (s) (h : a ∉ t) : insert a s \ t = insert a (s \ t) :=
+begin
+  classical,
+  ext x,
+  by_cases h' : x ∈ t,
+  { have : x ≠ a,
+    { assume H,
+      rw H at h',
+      exact h h' },
+    simp [h, h', this] },
+  { simp [h, h'] }
+end
 
 theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]
@@ -810,10 +886,10 @@ lemma mem_diff_singleton {s s' : set α} {t : set (set α)} : s ∈ t \ {s'} ↔
 by simp
 
 lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
-  s ∈ t \ {∅} ↔ (s ∈ t ∧ nonempty s) :=
-by simp [coe_nonempty_iff_ne_empty]
+  s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
+mem_diff_singleton.trans $ and_congr iff.rfl ne_empty_iff_nonempty
 
-/- powerset -/
+/-! ### Powerset -/
 
 theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
 
@@ -821,7 +897,7 @@ theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s :
 
 theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
-/- inverse image -/
+/-! ### Inverse image -/
 
 /-- The preimage of `s : set β` by `f : α → β`, written `f ⁻¹' s`,
   is the set of `x : α` such that `f x ∈ s`. -/
@@ -841,7 +917,7 @@ assume x hx, h hx
 
 @[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
-@[simp] theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
+theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
@@ -864,18 +940,22 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 ⟨assume s_eq x h, by rw [s_eq]; simp,
  assume h, ext $ assume ⟨x, hx⟩, by simp [h]⟩
 
+lemma if_preimage (s : set α) [decidable_pred s] (f g : α → β) (t : set β) :
+  (λa, if a ∈ s then f a else g a)⁻¹' t = (s ∩ f ⁻¹' t) ∪ (-s ∩ g ⁻¹' t) :=
+begin
+  ext,
+  simp only [mem_inter_eq, mem_union_eq, mem_preimage],
+  split_ifs;
+  simp [mem_def, h]
+end
+
 end preimage
 
-/- function image -/
+/-! ### Image of a set under a function -/
 
 section image
 
 infix ` '' `:80 := image
-
-/-- Two functions `f₁ f₂ : α → β` are equal on `s`
-  if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f1 f2 : α → β) (a : set α) : Prop :=
-∀ x ∈ a, f1 x = f2 x
 
 -- TODO(Jeremy): use bounded exists in image
 
@@ -884,7 +964,8 @@ theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
 
 theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x, x ∈ s ∧ f x = y := rfl
 
-@[simp] theorem mem_image (f : α → β) (s : set α) (y : β) : y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
+@[simp] theorem mem_image (f : α → β) (s : set α) (y : β) :
+  y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
 
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
@@ -899,14 +980,16 @@ theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
 by finish [mem_image_eq]
 
-@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 iff.intro
   (assume h a ha, h _ $ mem_image_of_mem _ ha)
   (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
 
-theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
-assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
+theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+  (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
+⟨λ ⟨y, ⟨x, hx, hxy⟩, hy⟩, ⟨x, hx, hxy.symm ▸ hy⟩,
+  λ ⟨x, hxs, hpx⟩, ⟨f x, mem_image_of_mem f hxs, hpx⟩⟩
 
 theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
@@ -920,13 +1003,9 @@ mem_image_elim h h_y
   (h : ∀a∈s, f a = g a) : f '' s = g '' s :=
 by safe [ext_iff, iff_def]
 
-/- A common special case of `image_congr` -/
+/-- A common special case of `image_congr` -/
 lemma image_congr' {f g : α → β} {s : set α} (h : ∀ (x : α), f x = g x) : f '' s = g '' s :=
 image_congr (λx _, h x)
-
-theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_on f₁ f₂ s) :
-  f₁ '' s = f₂ '' s :=
-image_congr heq
 
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 subset.antisymm
@@ -944,7 +1023,8 @@ end -/
 lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) = (λ x, g (f x)) '' s :=
 (image_comp g f s).symm
 
-
+/-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
+terms of `≤`. -/
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]
 
@@ -954,13 +1034,17 @@ by finish [ext_iff, iff_def, mem_image_eq]
 
 @[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ := ext $ by simp
 
+lemma image_inter_subset (f : α → β) (s t : set α) :
+  f '' (s ∩ t) ⊆ f '' s ∩ f '' t :=
+subset_inter (image_subset _ $ inter_subset_left _ _) (image_subset _ $ inter_subset_right _ _)
+
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
 subset.antisymm
   (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
     have a₂ = a₁, from h _ ha₂ _ ha₁ (by simp *),
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
-  (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
+  (image_inter_subset _ _ _)
 
 theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
@@ -980,8 +1064,8 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by simp only [eq_empty_iff_forall_not_mem]; exact
 ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩
 
-lemma inter_singleton_ne_empty {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
-by finish  [set.inter_singleton_eq_empty]
+lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
+by finish [set.nonempty]
 
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
@@ -993,10 +1077,10 @@ begin
   intro x, split; { intro e, subst e, simp }
 end
 
-@[simp] theorem image_id (s : set α) : id '' s = s := ext $ by simp
-
 /-- A variant of `image_id` -/
-@[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := image_id s
+@[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := ext $ by simp
+
+theorem image_id (s : set α) : id '' s = s := by simp
 
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
@@ -1005,6 +1089,9 @@ by rw [← image_comp, compl_comp_compl, image_id]
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
 ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
+
+theorem image_pair (f : α → β) (a b : α) : f '' {a, b} = {f a, f b} :=
+by simp only [image_insert_eq, image_singleton]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : left_inverse g f) (s : set α) : f '' s ⊆ g ⁻¹' s :=
@@ -1036,10 +1123,17 @@ by rw ← image_union; simp [image_univ_of_surjective H]
 theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' -s = -(f '' s) :=
 subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
 
-lemma nonempty_image (f : α → β) {s : set α} : nonempty s → nonempty (f '' s)
-| ⟨⟨x, hx⟩⟩ := ⟨⟨f x, mem_image_of_mem f hx⟩⟩
+lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
+| ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
 
-/- image and preimage are a Galois connection -/
+lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.nonempty
+| ⟨y, x, hx, _⟩ := ⟨x, hx⟩
+
+@[simp] lemma nonempty_image_iff {f : α → β} {s : set α} :
+  (f '' s).nonempty ↔ s.nonempty :=
+⟨nonempty.of_image, λ h, h.image f⟩
+
+/-- image and preimage are a Galois connection -/
 theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
@@ -1067,14 +1161,28 @@ iff.intro
   (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
   (assume eq, eq ▸ rfl)
 
+protected lemma push_pull (f : α → β) (s : set α) (t : set β) :
+  f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
+begin
+  apply subset.antisymm,
+  { calc f '' (s ∩ f ⁻¹' t) ⊆ f '' s ∩ (f '' (f⁻¹' t)) : image_inter_subset _ _ _
+  ... ⊆ f '' s ∩ t : inter_subset_inter_right _ (image_preimage_subset f t) },
+  { rintros _ ⟨⟨x, h', rfl⟩, h⟩,
+    exact ⟨x, ⟨h', h⟩, rfl⟩ }
+end
+
+protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
+  f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
+by simp only [inter_comm, set.push_pull]
+
 lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
-theorem compl_image_set_of {α : Type u} {p : set α → Prop} :
-  compl '' {x | p x} = {x | p (- x)} :=
+theorem compl_image_set_of {p : set α → Prop} :
+  compl '' {s | p s} = {s | p (- s)} :=
 congr_fun compl_image p
 
 theorem inter_preimage_subset (s : set α) (t : set β) (f : α → β) :
@@ -1130,6 +1238,31 @@ lemma surjective_onto_image {f : α → β} {s : set α} :
 
 end image
 
+/-! ### Subsingleton -/
+
+/-- A set `s` is a `subsingleton`, if it has at most one element. -/
+protected def subsingleton (s : set α) : Prop :=
+∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y
+
+lemma subsingleton.mono (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
+λ x hx y hy, ht (hst hx) (hst hy)
+
+lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
+λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
+
+lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) :
+  s = {x} :=
+ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleton hy).symm ▸ hx⟩
+
+lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
+
+lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
+λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
+
+lemma subsingleton.eq_empty_or_singleton (hs : s.subsingleton) :
+  s = ∅ ∨ ∃ x, s = {x} :=
+s.eq_empty_or_nonempty.elim or.inl (λ ⟨x, hx⟩, or.inr ⟨x, hs.eq_singleton_of_mem hx⟩)
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
@@ -1159,6 +1292,12 @@ eq_univ_iff_forall
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
+theorem range_inl_union_range_inr : range (@sum.inl α β) ∪ range sum.inr = univ :=
+ext $ λ x, by cases x; simp
+
+@[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
+range_iff_surjective.2 quot.exists_rep
+
 @[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=
 ext $ by simp [image, range]
 
@@ -1176,15 +1315,14 @@ forall_range_iff
 lemma range_comp_subset_range (f : α → β) (g : β → γ) : range (g ∘ f) ⊆ range g :=
 by rw range_comp; apply image_subset_range
 
-lemma range_ne_empty_iff_nonempty : range f ≠ ∅ ↔ nonempty ι :=
-ne_empty_iff_exists_mem.trans
-  ⟨λ ⟨y, x, hxy⟩, ⟨x⟩, λ ⟨x⟩, ⟨f x, mem_range_self x⟩⟩
+lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
+⟨λ ⟨y, x, hxy⟩, ⟨x⟩, λ ⟨x⟩, ⟨f x, mem_range_self x⟩⟩
 
-lemma range_ne_empty [h : nonempty ι] (f : ι → α) : range f ≠ ∅ :=
-range_ne_empty_iff_nonempty.2 h
+lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
+range_nonempty_iff_nonempty.2 h
 
-@[simp] lemma range_eq_empty {α : Type u} {β : Type v} {f : α → β} : range f = ∅ ↔ ¬ nonempty α :=
-by rw ← set.image_univ; simp [-set.image_univ]
+@[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
+not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=
@@ -1291,11 +1429,11 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-@[simp] lemma val_range {p : α → Prop} :
+lemma val_range {p : α → Prop} :
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
-@[simp] lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
+lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
 val_range
 
 theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=
@@ -1339,7 +1477,7 @@ variable {α : Type*}
 
 @[simp] lemma subtype.val_range {p : α → Prop} :
   range (@subtype.val _ p) = {x | p x} :=
-by rw ← image_univ; simp [-image_univ, subtype.val_image]
+subtype.val_range
 
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
@@ -1439,13 +1577,9 @@ theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
 theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
 
-theorem prod_ne_empty_iff : s.prod t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
-by simp only [ne_empty_iff_nonempty, prod_nonempty_iff]
-
 theorem prod_eq_empty_iff {s : set α} {t : set β} :
   set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
-suffices (¬ set.prod s t ≠ ∅) ↔ (¬ s ≠ ∅ ∨ ¬ t ≠ ∅), by simpa only [(≠), classical.not_not],
-by classical; rw [prod_ne_empty_iff, not_and_distrib]
+by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, classical.not_and_distrib]
 
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
@@ -1465,10 +1599,10 @@ lemma prod_subset_preimage_fst (s : set α) (t : set β) :
   set.prod s t ⊆ prod.fst ⁻¹' s :=
 image_subset_iff.1 (fst_image_prod_subset s t)
 
-lemma fst_image_prod (s : set β) {t : set α} (ht : t ≠ ∅) :
+lemma fst_image_prod (s : set β) {t : set α} (ht : t.nonempty) :
   prod.fst '' (set.prod s t) = s :=
 set.subset.antisymm (fst_image_prod_subset _ _)
-  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ t) := set.exists_mem_of_ne_empty ht in
+  $ λ y y_in, let ⟨x, x_in⟩ := ht in
     ⟨(y, x), ⟨y_in, x_in⟩, rfl⟩
 
 lemma snd_image_prod_subset (s : set α) (t : set β) :
@@ -1479,10 +1613,10 @@ lemma prod_subset_preimage_snd (s : set α) (t : set β) :
   set.prod s t ⊆ prod.snd ⁻¹' t :=
 image_subset_iff.1 (snd_image_prod_subset s t)
 
-lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
+lemma snd_image_prod {s : set α} (hs : s.nonempty) (t : set β) :
   prod.snd '' (set.prod s t) = t :=
 set.subset.antisymm (snd_image_prod_subset _ _)
-  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
+  $ λ y y_in, let ⟨x, x_in⟩ := hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
 /-- A product set is included in a product set if and only factors are included, or a factor of the
@@ -1491,12 +1625,12 @@ lemma prod_subset_prod_iff :
   (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
   classical,
-  by_cases h : set.prod s t = ∅,
+  cases (set.prod s t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
+  { have st : s.nonempty ∧ t.nonempty, by rwa [prod_nonempty_iff] at h,
     split,
     { assume H : set.prod s t ⊆ set.prod s₁ t₁,
-      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_ne_empty_iff.1 (subset_ne_empty H h),
+      have h' : s₁.nonempty ∧ t₁.nonempty := prod_nonempty_iff.1 (h.mono H),
       refine or.inl ⟨_, _⟩,
       show s ⊆ s₁,
       { have := image_subset (prod.fst : α × β → α) H,
@@ -1505,7 +1639,7 @@ begin
       { have := image_subset (prod.snd : α × β → β) H,
         rwa [snd_image_prod st.1, snd_image_prod h'.1] at this } },
     { assume H,
-      simp [st] at H,
+      simp only [st.1.ne_empty, st.2.ne_empty, or_false] at H,
       exact prod_mono H.1 H.2 } }
 end
 
@@ -1514,6 +1648,9 @@ end prod
 section pi
 variables {α : Type*} {π : α → Type*}
 
+/-- Given an index set `i` and a family of sets `s : Πa, set (π a)`, `pi i s`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
+whenever `a ∈ i`. -/
 def pi (i : set α) (s : Πa, set (π a)) : set (Πa, π a) := { f | ∀a∈i, f a ∈ s a }
 
 @[simp] lemma pi_empty_index (s : Πa, set (π a)) : pi ∅ s = univ := by ext; simp [pi]
@@ -1555,6 +1692,9 @@ by cases x; refl
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1
+
+lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
+ext $ λ ⟨x, hx⟩ , by simp [inclusion]
 
 end inclusion
 

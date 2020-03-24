@@ -8,6 +8,7 @@ import algebra.category.Group
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
+import data.equiv.ring
 
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.
@@ -36,6 +37,8 @@ namespace SemiRing
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
+
+instance : inhabited SemiRing := ⟨of punit⟩
 
 local attribute [reducible] SemiRing
 
@@ -66,6 +69,8 @@ namespace Ring
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
+instance : inhabited Ring := ⟨of punit⟩
+
 local attribute [reducible] Ring
 
 instance : has_coe_to_sort Ring := infer_instance -- short-circuit type class inference
@@ -90,6 +95,8 @@ namespace CommSemiRing
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
+
+instance : inhabited CommSemiRing := ⟨of punit⟩
 
 local attribute [reducible] CommSemiRing
 
@@ -116,6 +123,8 @@ namespace CommRing
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
+
+instance : inhabited CommRing := ⟨of punit⟩
 
 local attribute [reducible] CommRing
 

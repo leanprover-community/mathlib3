@@ -7,7 +7,7 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical topological_space
 noncomputable theory
 set_option eqn_compiler.zeta true
@@ -220,6 +220,8 @@ def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_
 namespace separation_quotient
 instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
 instance : separated (separation_quotient α) := by dunfold separation_quotient ; apply_instance
+instance [inhabited α] : inhabited (separation_quotient α) :=
+by unfold separation_quotient; apply_instance
 
 def lift [separated β] (f : α → β) : (separation_quotient α → β) :=
 if h : uniform_continuous f then

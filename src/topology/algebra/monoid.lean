@@ -11,7 +11,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 import topology.constructions topology.continuous_on
 import algebra.pi_instances
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical topological_space
 
 universes u v w
@@ -71,7 +71,19 @@ continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
-tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul) (hf.prod_mk hg)
+tendsto_mul.comp (hf.prod_mk_nhds hg)
+
+@[to_additive]
+lemma continuous_at.mul [topological_space β] {f : β → α} {g : β → α} {x : β}
+  (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λx, f x * g x) x :=
+hf.mul hg
+
+@[to_additive]
+lemma continuous_within_at.mul [topological_space β] {f : β → α} {g : β → α} {s : set β} {x : β}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (λx, f x * g x) s x :=
+hf.mul hg
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
@@ -80,7 +92,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
-    simp,
+    simp only [list.map_cons, list.prod_cons],
     exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end

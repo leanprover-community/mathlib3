@@ -64,6 +64,8 @@ instance (n : ℕ+) : has_one (zmod n) := ⟨⟨(1 % n), nat.mod_lt _ n.pos⟩�
 
 instance (n : ℕ+) : has_zero (zmod n) := ⟨⟨0, n.pos⟩⟩
 
+instance (n : ℕ+) : inhabited (zmod n) := ⟨0⟩
+
 instance zmod_one.subsingleton : subsingleton (zmod 1) :=
 ⟨λ a b, fin.eq_of_veq (by rw [eq_zero_of_le_zero (le_of_lt_succ a.2),
   eq_zero_of_le_zero (le_of_lt_succ b.2)])⟩
@@ -154,7 +156,8 @@ by rw [val_cast_nat, nat.mod_eq_of_lt h]
 @[simp] lemma cast_mod_nat (n : ℕ+) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
+@[simp, priority 980]
+lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
 cast_mod_nat _ _
 
 @[simp] lemma cast_val {n : ℕ+} (a : zmod n) : (a.val : zmod n) = a :=
@@ -163,7 +166,8 @@ by cases a; simp [mk_eq_cast]
 @[simp] lemma cast_mod_int (n : ℕ+) (a : ℤ) : ((a % (n : ℕ) : ℤ) : zmod n) = a :=
 by conv {to_rhs, rw ← int.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
+@[simp, priority 980]
+lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
   ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
 
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=
@@ -213,6 +217,14 @@ instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
 
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
 
+instance : subsingleton (units (zmod 2)) :=
+⟨λ x y, begin
+  cases x with x xi,
+  cases y with y yi,
+  revert x y xi yi,
+  exact dec_trivial
+end⟩
+
 lemma le_div_two_iff_lt_neg {n : ℕ+} (hn : (n : ℕ) % 2 = 1)
   {x : zmod n} (hx0 : x ≠ 0) : x.1 ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).1 :=
 have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left n.pos).2 dec_trivial),
@@ -249,6 +261,18 @@ let ⟨k , hk⟩ := h in
 zmod.eq_iff_modeq_nat.2 (nat.modeq.modeq_of_modeq_mul_right k
     (by rw [← hk, zmod.val_cast_nat]; exact nat.mod_mod _ _))
 
+/-- `unit_of_coprime` makes an element of `units (zmod n)` given
+  a natural number `x` and a proof that `x` is coprime to `n`  -/
+def unit_of_coprime {n : ℕ+} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
+have (x * gcd_a x ↑n : zmod n) = 1,
+  by rw [← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,
+      zmod.eq_iff_modeq_int, ← int.coe_nat_one, ← (show nat.gcd _ _ = _, from h)];
+    simpa using int.modeq.gcd_a_modeq x n,
+⟨x, gcd_a x n, this, by simpa [mul_comm] using this⟩
+
+@[simp] lemma cast_unit_of_coprime {n : ℕ+} (x : ℕ) (h : nat.coprime x n) :
+  (unit_of_coprime x h : zmod n) = x := rfl
+
 def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.coprime x.1 n} :=
 { to_fun := λ x, ⟨x, nat.modeq.coprime_of_mul_modeq_one (x⁻¹).1.1 begin
     have := units.ext_iff.1 (mul_right_inv x),
@@ -257,14 +281,9 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
       units.coe_mul, zmod.mul_val, zmod.cast_mod_nat, zmod.cast_mod_nat,
       zmod.eq_iff_modeq_nat] at this
     end⟩,
-  inv_fun := λ x,
-    have x.val * ↑(gcd_a ((x.val).val) ↑n) = 1,
-      by rw [← zmod.cast_val x.1, ← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,
-          zmod.eq_iff_modeq_int, ← int.coe_nat_one, ← (show nat.gcd _ _ = _, from x.2)];
-        simpa using int.modeq.gcd_a_modeq x.1.1 n,
-    ⟨x.1, gcd_a x.1.1 n, this, by simpa [mul_comm] using this⟩,
-  left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
-  right_inv := λ ⟨_, _⟩, rfl }
+  inv_fun := λ x, unit_of_coprime x.1.1 x.2,
+  left_inv := λ ⟨_, _, _, _⟩, units.ext (by simp),
+  right_inv := λ ⟨_, _⟩, by simp }
 
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
   The result will be in the interval `(-n/2, n/2]` -/
@@ -273,7 +292,7 @@ if x.val ≤ n / 2 then x.val else x.val - n
 
 @[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
   (x.val_min_abs : zmod n) = x :=
-by simp [zmod.val_min_abs]; split_ifs; simp
+by simp [zmod.val_min_abs]; split_ifs; simp [sub_eq_add_neg]
 
 lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
 have (x.val - n : ℤ) ≤ 0, from sub_nonpos.2 $ int.coe_nat_le.2 $ le_of_lt x.2,
@@ -344,7 +363,7 @@ begin
   rw [← not_le] at hpa,
   simp only [if_neg ha0, zmod.neg_val, hpa, int.coe_nat_sub (le_of_lt a.2)],
   split_ifs,
-  { simp },
+  { simp [sub_eq_add_neg] },
   { rw [← int.nat_abs_neg], simp }
 end
 
@@ -373,6 +392,8 @@ namespace zmodp
 variables {p : ℕ} (hp : prime p)
 
 instance : comm_ring (zmodp p hp) := zmod.comm_ring ⟨p, hp.pos⟩
+
+instance : inhabited (zmodp p hp) := ⟨0⟩
 
 instance {p : ℕ} (hp : prime p) : has_inv (zmodp p hp) :=
 ⟨λ a, gcd_a a.1 p⟩
@@ -430,6 +451,9 @@ lemma eq_zero_iff_dvd_int (a : ℤ) : (a : zmodp p hp) = 0 ↔ (p : ℤ) ∣ a :
 instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
+
+instance X (h : prime 2) : subsingleton (units (zmodp 2 h)) :=
+zmod.subsingleton
 
 instance : has_repr (zmodp p hp) := fin.has_repr _
 
@@ -492,13 +516,11 @@ private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 
   simpa [nat.gcd_comm, this]
 end
 
-instance : discrete_field (zmodp p hp) :=
+instance : field (zmodp p hp) :=
 { zero_ne_one := fin.ne_of_vne $ show 0 ≠ 1 % p,
     by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,
   mul_inv_cancel := mul_inv_cancel_aux hp,
-  inv_mul_cancel := λ a, by rw mul_comm; exact mul_inv_cancel_aux hp _,
-  has_decidable_eq := by apply_instance,
   inv_zero := show (gcd_a 0 p : zmodp p hp) = 0,
     by unfold gcd_a xgcd xgcd_aux; refl,
   ..zmodp.comm_ring hp,

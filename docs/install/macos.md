@@ -36,13 +36,11 @@ Installing mathlib supporting tools
 
 At a terminal, run the command
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  brew install python3
+  sudo pip3 install mathlibtools
   ```
-If the script asks you whether you want to install `python3` and `pip3`, type `y`.
 
 This will install tools that, amongst other things, let you download compiled binaries for mathlib.
-
-Then run `source ~/.profile`, so that your environment knows about `update-mathlib`.
 
 Installing and configuring an editor
 ---
@@ -60,4 +58,7 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
    A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
    displayed.
 
-You can now read instructions about creating and working on [Lean projects](project.md)
+Note however that you cannot use mathlib, and in particular any imports,
+in the file `test.lean` created above. If you want to use mathlib you should
+now read instructions about creating and working on [Lean projects](project.md).
+

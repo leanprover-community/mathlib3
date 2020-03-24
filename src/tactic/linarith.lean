@@ -4,16 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
 
 /-!
+# `linarith`
 
 A tactic for discharging linear arithmetic goals using Fourier-Motzkin elimination.
 
 `linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
 
-@TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
-@TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
+- @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
+- @TODO: delay proofs of denominator normalization and nat casting until after contradiction is
+  found
 -/
 
 meta def nat.to_pexpr : ℕ → pexpr
@@ -79,7 +81,7 @@ lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n *
       n * (e1 + e2) = t1 + t2 := by simp [left_distrib, *]
 
 lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *]
+      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *, sub_eq_add_neg]
 
 lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
 
@@ -98,7 +100,7 @@ end lemmas
 
 section datatypes
 
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive ineq
 | eq | le | lt
 
@@ -123,17 +125,16 @@ def ineq.to_string : ineq → string
 instance : has_to_string ineq := ⟨ineq.to_string⟩
 
 /--
-  The main datatype for FM elimination.
-  Variables are represented by natural numbers, each of which has an integer coefficient.
-  Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
-  The represented term is coeffs.keys.sum (λ i, coeffs.find i * Var[i]).
-  str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
+The main datatype for FM elimination.
+Variables are represented by natural numbers, each of which has an integer coefficient.
+Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
+The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
+str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
+@[derive _root_.inhabited]
 meta structure comp :=
 (str : ineq)
 (coeffs : rb_map ℕ int)
-
-meta instance : inhabited comp := ⟨⟨ineq.eq, mk_rb_map⟩⟩
 
 meta inductive comp_source
 | assump : ℕ → comp_source
@@ -194,8 +195,8 @@ end datatypes
 
 section fm_elim
 
-/-- If c1 and c2 both contain variable a with opposite coefficients,
-   produces v1, v2, and c such that a has been cancelled in c := v1*c1 + v2*c2 -/
+/-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
+produces `v1`, `v2`, and `c` such that `a` has been cancelled in `c := v1*c1 + v2*c2`. -/
 meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
 let v1 := c1.coeff_of a,
     v2 := c2.coeff_of a in
@@ -223,13 +224,14 @@ match pelim_var p pc a with
 end
 
 /--
-  The state for the elimination monad.
-    vars: the set of variables present in comps
-    comps: a set of comparisons
-    inputs: a set of pairs of exprs (t, pf), where t is a term and pf is a proof that t {<, ≤, =} 0,
-      indexed by ℕ.
-    has_false: stores a pcomp of 0 < 0 if one has been found
-    TODO: is it more efficient to store comps as a list, to avoid comparisons?
+The state for the elimination monad.
+* `vars`: the set of variables present in `comps`
+* `comps`: a set of comparisons
+* `inputs`: a set of pairs of exprs `(t, pf)`, where `t` is a term and `pf` is a proof that
+  `t {<, ≤, =} 0`, indexed by `ℕ`.
+* `has_false`: stores a `pcomp` of `0 < 0` if one has been found
+
+TODO: is it more efficient to store comps as a list, to avoid comparisons?
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
@@ -294,9 +296,9 @@ meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) 
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
 /--
-  Turns an expression into a map from ℕ to ℤ, for use in a comp object.
-    The expr_map ℕ argument identifies which expressions have already been assigned numbers.
-    Returns a new map.
+Turns an expression into a map from `ℕ` to `ℤ`, for use in a `comp` object.
+The `expr_map` `ℕ` argument identifies which expressions have already been assigned numbers.
+Returns a new map.
 -/
 meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
 | m e@`(%%e1 * %%e2) :=
@@ -346,9 +348,11 @@ meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr →
       return (none::l, mp))
 
 /--
-  Takes a list of proofs of props of the form t {<, ≤, =} 0, and creates a linarith_structure.
+Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
+`linarith_structure`.
 -/
-meta def mk_linarith_structure (red : transparency) (l : list expr) : tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
+meta def mk_linarith_structure (red : transparency) (l : list expr) :
+  tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
   (l', map) ← to_comp_fold red mk_rb_map pftps,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
@@ -358,7 +362,8 @@ do pftps ← l.mmap infer_type,
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
-meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
+meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
+  tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
 do (struct, inputs) ← mk_linarith_structure red l,
 match (state_t.run (validate >> tac) struct).run with
 | (except.ok (a, _)) := return (sum.inr a, inputs)
@@ -433,9 +438,10 @@ do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    return (niq, e')
 
 /--
-  Takes a list of coefficients [c] and list of expressions, of equal length.
-  Each expression is a proof of a prop of the form t {<, ≤, =} 0.
-  Produces a proof that the sum of (c*t) {<, ≤, =} 0, where the comp is as strong as possible.
+Takes a list of coefficients `[c]` and list of expressions, of equal length.
+Each expression is a proof of a prop of the form `t {<, ≤, =} 0`.
+Produces a proof that the sum of `(c*t) {<, ≤, =} 0`,
+where the `comp` is as strong as possible.
 -/
 meta def mk_lt_zero_pf : list ℕ → list expr → tactic expr
 | _ [] := fail "no linear hypotheses found"
@@ -464,7 +470,7 @@ meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
 to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
 
 /--
-  Assumes e is a proof that t = 0. Creates a proof that -t = 0.
+Assumes `e` is a proof that `t = 0`. Creates a proof that `-t = 0`.
 -/
 meta def mk_neg_eq_zero_pf (e : expr) : tactic expr :=
 to_expr ``(neg_eq_zero.mpr %%e)
@@ -479,8 +485,8 @@ meta def add_neg_eq_pfs : list expr → tactic (list expr)
   end
 
 /--
-  Takes a list of proofs of propositions of the form t {<, ≤, =} 0,
-  and tries to prove the goal `false`.
+Takes a list of proofs of propositions of the form `t {<, ≤, =} 0`,
+and tries to prove the goal `false`.
 -/
 meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic unit
 | [] := fail "no args to linarith"
@@ -597,8 +603,8 @@ meta def mk_prod_prf : ℕ → tree ℕ → expr → tactic expr
      mk_app `eq.refl [e']
 
 /--
- e is a term with rational division. produces a natural number n and a proof that n*e = e',
- where e' has no division.
+Given `e`, a term with rational division, produces a natural number `n` and a proof of `n*e = e'`,
+where `e'` has no division.
 -/
 meta def kill_factors (e : expr) : tactic (ℕ × expr) :=
 let (n, t) := find_cancel_factor e in
@@ -644,7 +650,8 @@ meta def get_contr_lemma_name : expr → option name
 | `(¬ %%a > %%b) := return `not.intro
 | _ := none
 
--- assumes the input t is of type ℕ. Produces t' of type ℤ such that ↑t = t' and a proof of equality
+/-- Assumes the input `t` is of type `ℕ`. Produces `t'` of type `ℤ` such that `↑t = t'` and
+a proof of equality. -/
 meta def cast_expr (e : expr) : tactic (expr × expr) :=
 do s ← [`int.coe_nat_add, `int.coe_nat_zero, `int.coe_nat_one,
         ``int.coe_nat_bit0_mul, ``int.coe_nat_bit1_mul, ``int.coe_nat_zero_mul, ``int.coe_nat_one_mul,
@@ -745,10 +752,10 @@ private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list 
 (first $ ls.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
 
 /--
-  Takes a list of proofs of propositions.
-  Filters out the proofs of linear (in)equalities,
-  and tries to use them to prove `false`.
-  If pref_type is given, starts by working over this type
+Takes a list of proofs of propositions.
+Filters out the proofs of linear (in)equalities,
+and tries to use them to prove `false`.
+If `pref_type` is given, starts by working over this type.
 -/
 meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
 do l' ← replace_nat_pfs l,
@@ -756,13 +763,14 @@ do l' ← replace_nat_pfs l,
    ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
    pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
-   match cfg.restrict_type, ls.values, pref_type with
+   match cfg.restrict_type, rb_map.values ls, pref_type with
    | some rtp, _, _ :=
       do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
          prove_false_by_linarith1 cfg (ls.ifind m)
    | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
    | none, ls', none := try_linarith_on_lists cfg ls'
-   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|> try_linarith_on_lists cfg (ls.erase t).values
+   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|>
+      try_linarith_on_lists cfg (rb_map.values (ls.erase t))
    end
 
 end normalize
@@ -785,11 +793,11 @@ meta def linarith.preferred_type_of_goal : option expr → tactic (option expr)
 | (some e) := some <$> ineq_pf_tp e
 
 /--
-linarith.interactive_aux cfg o_goal restrict_hyps args:
- * cfg is a linarith_config object
- * o_goal : option expr is the local constant corresponding to the former goal, if there was one
- * restrict_hyps : bool is tt if `linarith only [...]` was used
- * args : option (list pexpr) is the optional list of arguments in `linarith [...]`
+`linarith.interactive_aux cfg o_goal restrict_hyps args`:
+* `cfg` is a `linarith_config` object
+* `o_goal : option expr` is the local constant corresponding to the former goal, if there was one
+* `restrict_hyps : bool` is `tt` if `linarith only [...]` was used
+* `args : option (list pexpr)` is the optional list of arguments in `linarith [...]`
 -/
 meta def linarith.interactive_aux (cfg : linarith_config) :
   option expr → bool → option (list pexpr) → tactic unit
@@ -805,21 +813,65 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
      prove_false_by_linarith cfg otp
 
 /--
-  Tries to prove a goal of `false` by linear arithmetic on hypotheses.
-  If the goal is a linear (in)equality, tries to prove it by contradiction.
-  If the goal is not `false` or an inequality, applies `exfalso` and tries linarith on the
-  hypotheses.
-  `linarith` will use all relevant hypotheses in the local context.
-  `linarith [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
-  `linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
-    h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
-  `linarith!` will use a stronger reducibility setting to identify atoms.
+Tries to prove a goal of `false` by linear arithmetic on hypotheses.
+If the goal is a linear (in)equality, tries to prove it by contradiction.
+If the goal is not `false` or an inequality, applies `exfalso` and tries linarith on the
+hypotheses.
 
-  Config options:
-  `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
-  `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
-  `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
-    Options: `ring2`, `ring SOP`, `simp`
+* `linarith` will use all relevant hypotheses in the local context.
+* `linarith [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
+* `linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+  `h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
+* `linarith!` will use a stronger reducibility setting to identify atoms.
+
+Config options:
+* `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
+* `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
+* `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
+  Options: `ring2`, `ring SOP`, `simp`
+
+---
+
+`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
+Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
+
+In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over
+the rationals. While there is some special handling for non-dense orders like `nat` and `int`,
+this tactic is not complete for these theories and will not prove every true goal.
+
+An example:
+```lean
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
+        (h3 : 12*y - 4* z < 0)  : false :=
+by linarith
+```
+
+`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
+
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+`h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
+
+`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three
+optional arguments:
+* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
+  proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
+  problems.
+* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
+  if you have e.g. both integer and rational valued inequalities in the local context, which can
+  sometimes confuse the tactic.
+* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
+  (True by default.)
+
 -/
 meta def tactic.interactive.linarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
@@ -834,5 +886,13 @@ do t ← target,
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
    end
+
+add_hint_tactic "linarith"
+
+add_tactic_doc
+{ name       := "linarith",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.linarith],
+  tags       := ["arithmetic", "decision procedure"] }
 
 end

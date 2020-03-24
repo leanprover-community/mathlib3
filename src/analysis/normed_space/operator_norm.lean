@@ -29,33 +29,52 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
 
 section normed_field
 /- Most statements in this file require the field to be non-discrete, as this is necessary
-to deduce an inequality ∥f x∥ ≤ C ∥x∥ from the continuity of f. However, the other direction always
-holds. In this section, we just assume that 𝕜 is a normed field. In the remainder of the file,
+to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f. However, the other direction always
+holds. In this section, we just assume that `𝕜` is a normed field. In the remainder of the file,
 it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (nnreal.of_real C) f :=
-lipschitz_with.of_dist_le $ λ x y, by simpa [dist_eq_norm] using h (x - y)
+lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+theorem linear_map.antilipschitz_of_bound {K : nnreal} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+antilipschitz_with.of_le_mul_dist $
+λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   uniform_continuous f :=
-(f.lipschitz_of_bound C h).to_uniform_continuous
+(f.lipschitz_of_bound C h).uniform_continuous
 
 lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
-(f.lipschitz_of_bound C h).to_continuous
+(f.lipschitz_of_bound C h).continuous
 
-/-- Construct a continuous linear map from a linear map and a bound on this linear map. -/
-def linear_map.with_bound (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+/-- Construct a continuous linear map from a linear map and a bound on this linear map.
+The fact that the norm of the continuous linear map is then controlled is given in
+`linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+⟨f, linear_map.continuous_of_bound f C h⟩
+
+/-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
+map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
+follow automatically in `linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, elim_cast] lemma linear_map_with_bound_coe (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ((f.with_bound h) : E →ₗ[𝕜] F) = f := rfl
+@[simp, elim_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
-@[simp] lemma linear_map_with_bound_apply (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
-  f.with_bound h x = f x := rfl
+@[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  f.mk_continuous C h x = f x := rfl
+
+@[simp, elim_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
+
+@[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  f.mk_continuous_of_exists_bound h x = f x := rfl
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -64,14 +83,15 @@ begin
   refine ⟨λh, (continuous_iff_is_closed.1 h) {0} (t1_space.t1 0), λh, _⟩,
   -- for the other direction, we assume that the kernel is closed
   by_cases hf : ∀x, x ∈ f.ker,
-  { -- if f = 0, its continuity is obvious
+  { -- if `f = 0`, its continuity is obvious
     have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
     rw this,
     exact continuous_const },
-  { /- if f is not zero, we use an element x₀ ∉ ker f such taht ∥x₀∥ ≤ 2 ∥x₀ - y∥ for all y ∈ ker f,
-    given by Riesz's lemma, and prove that 2 ∥f x₀∥ / ∥x₀∥ gives a bound on the operator norm of f.
-    For this, start from an arbitrary x and note that y = x₀ - (f x₀ / f x) x belongs to the kernel
-    of f. Applying the above inequality to x₀ and y readily gives the conclusion. -/
+  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
+    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
+    operator norm of `f`. For this, start from an arbitrary `x` and note that
+    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
+    and `y` readily gives the conclusion. -/
     push_neg at hf,
     let r : ℝ := (2 : ℝ)⁻¹,
     have : 0 ≤ r, by norm_num [r],
@@ -90,8 +110,7 @@ begin
         apply_rules [mul_nonneg', norm_nonneg, inv_nonneg.2, norm_nonneg] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
-          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x :
-            by { dsimp [y], rw [f.map_add, f.map_neg, f.map_smul], refl }
+          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
           ... = 0 :
             by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
         have A : r * ∥x₀∥ ≤ ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥, from calc
@@ -118,8 +137,8 @@ variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space �
 include 𝕜
 
 /-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
-The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
-used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
+The continuity ensures boundedness on a ball of some radius `δ`. The nondiscreteness is then
+used to rescale any element into an element of norm in `[δ/C, δ]`, whose image has a controlled norm.
 The norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
   ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
@@ -158,16 +177,15 @@ section
 open asymptotics filter
 
 theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := f.bound in
-⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
 theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
   is_O (λ x', g (f x')) f l :=
-((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+(g.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
-is_O_comp f _ l
+f.is_O_comp _ l
 
 end
 
@@ -180,7 +198,7 @@ set_option class.instance_max_depth 100
 def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
 instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
--- So that invocations of real.Inf_le ma𝕜e sense: we show that the set of
+-- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
@@ -193,13 +211,18 @@ lemma bounds_bdd_below {f : E →L[𝕜] F} :
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
 lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
-/-- The fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
+/-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
-  (λ hne, have hlt : 0 < ∥x∥, from (norm_pos_iff _).2 hne,
+  (λ hne, have hlt : 0 < ∥x∥, from norm_pos_iff.2 hne,
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
+
+/-- continuous linear maps are Lipschitz continuous. -/
+theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
+lipschitz_with.of_dist_le_mul $ λ x y,
+  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 (or.elim (lt_or_eq_of_le (norm_nonneg _))
@@ -214,21 +237,24 @@ lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
 end
 
-/-- If one controls the norm of every A x, then one controls the norm of A. -/
+/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
+theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
+  ∥f∥ ≤ K :=
+f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
+
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-Inf_le _ bounds_bdd_below
-  ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
-    exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
+show ∥f + g∥ ≤ (coe : nnreal → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
+from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
 
 /-- An operator is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
-  (λ hn, continuous_linear_map.ext (λ x, (norm_le_zero_iff _).1
+  (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
   (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
@@ -238,8 +264,8 @@ iff.intro
 @[simp] lemma norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
 by rw op_norm_zero_iff
 
-/-- The norm of the identity is at most 1. It is in fact 1, except when the space is trivial where
-it is 0. It means that one can not do better than an inequality in general. -/
+/-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
+where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
@@ -288,13 +314,9 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
               (le_op_norm _ _) (op_norm_nonneg _)
   end⟩)
 
-/-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
-λ x y, by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
-
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
-f.lipschitz.to_uniform_continuous
+f.lipschitz.uniform_continuous
 
 variable {f}
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
@@ -311,26 +333,15 @@ begin
 end
 
 variable (f)
-/-- A continuous linear map is a uniform embedding if it expands the norm by a constant factor. -/
-theorem uniform_embedding_of_bound (C : ℝ) (hC : ∀x, ∥x∥ ≤ C * ∥f x∥) :
-  uniform_embedding f :=
-begin
-  have Cpos : 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right _ _),
-  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 f.uniform_continuous,
-                                    λδ δpos, ⟨δ / (max C 1), div_pos δpos Cpos, λx y hxy, _⟩⟩,
-  calc dist x y = ∥x - y∥ : by rw dist_eq_norm
-  ... ≤ C * ∥f (x - y)∥ : hC _
-  ... = C * dist (f x) (f y) : by rw [f.map_sub, dist_eq_norm]
-  ... ≤ max C 1 * dist (f x) (f y) :
-    mul_le_mul_of_nonneg_right (le_max_left _ _) dist_nonneg
-  ... < max C 1 * (δ / max C 1) : mul_lt_mul_of_pos_left hxy Cpos
-  ... = δ : by { rw mul_comm, exact div_mul_cancel _ (ne_of_lt Cpos).symm }
-end
 
-/-- If a continuous linear map is a uniform embedding, then it expands the norm by a positive
-factor.-/
-theorem bound_of_uniform_embedding (hf : uniform_embedding f) :
-  ∃ C : ℝ, 0 < C ∧ ∀x, ∥x∥ ≤ C * ∥f x∥ :=
+theorem uniform_embedding_of_bound {K : nnreal} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  uniform_embedding f :=
+(f.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f.uniform_continuous
+
+/-- If a continuous linear map is a uniform embedding, then it is expands the distances
+by a positive factor.-/
+theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f) :
+  ∃ K, antilipschitz_with K f :=
 begin
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1, from
     (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
@@ -343,9 +354,10 @@ begin
       apply hε,
       simp [dist_eq_norm],
       exact lt_of_le_of_lt hx (half_lt_self εpos) },
-  simpa using this },
+    simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, (mul_pos (inv_pos δ_pos) ((lt_trans zero_lt_one hc))), (λx, _)⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
   { have : f x = f 0, by { simp [hx] },
     have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
@@ -360,6 +372,82 @@ begin
     ... ≤ δ⁻¹ * ∥c∥ * ∥f x∥ :
       by rwa [mul_one] }
 end
+
+section completeness
+
+open_locale topological_space
+open filter
+
+/-- If the target space is complete, the space of continuous linear maps with its norm is also
+complete. -/
+instance [complete_space F] : complete_space (E →L[𝕜] F) :=
+begin
+  -- We show that every Cauchy sequence converges.
+  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  -- We now expand out the definition of a Cauchy sequence,
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
+  -- and establish that the evaluation at any point `v : E` is Cauchy.
+  have cau : ∀ v, cauchy_seq (λ n, f n v),
+  { assume v,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
+    { exact mul_nonneg (b0 n) (norm_nonneg _) },
+    { assume n m N hn hm,
+      rw dist_eq_norm,
+      apply le_trans ((f n - f m).le_op_norm v) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
+    { simpa using b_lim.mul tendsto_const_nhds } },
+  -- We assemble the limits points of those Cauchy sequences
+  -- (which exist as `F` is complete)
+  -- into a function which we call `G`.
+  choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
+  -- Next, we show that this `G` is linear,
+  let Glin : E →ₗ[𝕜] F :=
+  { to_fun := G,
+    add := λ v w, begin
+      have A := hG (v + w),
+      have B := (hG v).add (hG w),
+      simp only [map_add] at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+    end,
+    smul := λ c v, begin
+      have A := hG (c • v),
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
+      simp only [map_smul] at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+    end },
+  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
+  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+  { assume v,
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+    { assume n,
+      apply le_trans ((f n).le_op_norm _) _,
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
+      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
+      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
+      ... ≤ b 0 + ∥f 0∥ : begin
+        apply add_le_add_right,
+        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
+      end },
+    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
+  let Gcont := Glin.mk_continuous _ Gnorm,
+  use Gcont,
+  -- Our last task is to establish convergence to `G` in norm.
+  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
+  { assume n,
+    apply op_norm_le_bound _ (b0 n) (λ v, _),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
+    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
+      apply le_trans ((f n - f m).le_op_norm _) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
+    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
+      tendsto.norm (tendsto_const_nhds.sub (hG v)),
+    exact le_of_tendsto at_top_ne_bot B A },
+  erw tendsto_iff_norm_tendsto_zero,
+  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+end
+
+end completeness
 
 section uniformly_extend
 
@@ -405,15 +493,15 @@ end
 end
 
 section
-variables {N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : nnreal} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
-local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
+local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
 
 /-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, then the norm
     of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
 lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
 begin
-  have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing,
+  have uni : uniform_inducing e := (uniform_embedding_of_bound _ h_e).to_uniform_inducing,
   have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
   by_cases N0 : 0 ≤ N,
   { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
@@ -424,7 +512,7 @@ begin
       rw eq,
       calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
         ... ≤ ∥f∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
-        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm N ∥f∥, mul_assoc] } },
+        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm ↑N ∥f∥, mul_assoc] } },
   { have he : ∀ x : E, x = 0,
     { assume x,
       have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
@@ -489,14 +577,28 @@ end restrict_scalars
 
 end continuous_linear_map
 
-/-- If both directions in a linear equiv `e` are continuous, then `e` is a uniform embedding. -/
+lemma continuous_linear_equiv.lipschitz (e : E ≃L[𝕜] F) :
+  lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+(e : E →L[𝕜] F).lipschitz
+
+lemma continuous_linear_equiv.antilipschitz (e : E ≃L[𝕜] F) :
+  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
+e.symm.lipschitz.to_inverse e.left_inv
+
+/-- A continuous linear equiv is a uniform embedding. -/
+lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
+  uniform_embedding e :=
+e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+
 lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :
   uniform_embedding e :=
-begin
-  rcases linear_map.bound_of_continuous e.symm.to_linear_map h₂ with ⟨C, Cpos, hC⟩,
-  let f : E →L[𝕜] F := { cont := h₁, ..e },
-  apply f.uniform_embedding_of_bound C (λx, _),
-  have : e.symm (e x) = x := linear_equiv.symm_apply_apply _ _,
-  conv_lhs { rw ← this },
-  exact hC _
-end
+continuous_linear_equiv.uniform_embedding
+{ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e }
+
+/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
+then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
+lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_continuous C h∥ ≤ C :=
+continuous_linear_map.op_norm_le_bound _ hC h

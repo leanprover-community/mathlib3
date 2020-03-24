@@ -206,16 +206,12 @@ end
 
 end cocone
 
-structure cone_morphism (A B : cone F) :=
+@[ext] structure cone_morphism (A B : cone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)
 
 restate_axiom cone_morphism.w'
 attribute [simp] cone_morphism.w
-
-@[ext] lemma cone_morphism.ext {A B : cone F} {f g : cone_morphism A B}
-  (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cone.category : category.{v} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
@@ -253,8 +249,13 @@ begin
   { refine (postcompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact postcompose_id }
 end
 
-@[simps] def forget : cone F ⥤ C :=
+section
+variable (F)
+
+@[simps]
+def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
+end
 
 section
 variables {D : Type u'} [𝒟 : category.{v} D]
@@ -270,16 +271,12 @@ include 𝒟
 end
 end cones
 
-structure cocone_morphism (A B : cocone F) :=
+@[ext] structure cocone_morphism (A B : cocone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, A.ι.app j ≫ hom = B.ι.app j . obviously)
 
 restate_axiom cocone_morphism.w'
 attribute [simp] cocone_morphism.w
-
-@[ext] lemma cocone_morphism.ext
-  {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cocone.category : category.{v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
@@ -315,8 +312,13 @@ begin
   { refine (precompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact precompose_id }
 end
 
-@[simps] def forget : cocone F ⥤ C :=
+section
+variable (F)
+
+@[simps]
+def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
+end
 
 section
 variables {D : Type u'} [𝒟 : category.{v} D]

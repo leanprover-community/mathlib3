@@ -14,6 +14,7 @@ open nat_trans category category_theory.functor
 variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
+local attribute [simp] vcomp_app
 /--
 `functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.
@@ -34,6 +35,9 @@ variables {F G H I : C ⥤ D}
 namespace nat_trans
 
 @[simp] lemma vcomp_eq_comp (α : F ⟶ G) (β : G ⟶ H) : vcomp α β = α ≫ β := rfl
+
+lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+  (α ≫ β).app X = (α.app X) ≫ (β.app X) := rfl
 
 lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl

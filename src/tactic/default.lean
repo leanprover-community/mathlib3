@@ -32,4 +32,7 @@ import
   tactic.tfae
   tactic.apply_fun
   tactic.apply
-  tactic.suggest
+  tactic.pi_instances
+  tactic.fin_cases
+  tactic.interval_cases
+  tactic.reassoc_axiom -- most likely useful only for category_theory

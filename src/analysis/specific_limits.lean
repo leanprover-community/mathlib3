@@ -11,9 +11,12 @@ import topology.instances.ennreal
 noncomputable theory
 open_locale classical topological_space
 
-open classical function lattice filter finset metric
+open classical function filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
+
+lemma tendsto_norm_at_top_at_top : tendsto (norm : ℝ → ℝ) at_top at_top :=
+tendsto_abs_at_top_at_top
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
@@ -81,6 +84,36 @@ lemma tendsto_at_top_div [linear_ordered_field α]
   tendsto (λx, f x / r) l at_top :=
 tendsto_at_top_mul_right' (inv_pos hr) hf
 
+/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
+lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
+  [order_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
+  calc b ≤ max b 1 : le_max_left _ _
+  ... ≤ x⁻¹ : begin
+    apply (le_inv _ hx.1).2 (le_of_lt hx.2),
+    exact lt_of_lt_of_le zero_lt_one (le_max_right _ _)
+  end
+end
+
+/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
+lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
+begin
+  assume s hs,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
+  rcases hs with ⟨C, C0, hC⟩,
+  change 0 < C at C0,
+  refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
+  have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
+  exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
+end
+
+lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
+tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
+
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
@@ -97,17 +130,13 @@ lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   ⟨n, λ m hnm, le_of_lt $
     lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
-lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
-tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
-  mem_at_top_sets.mpr ⟨u⁻¹ + 1, assume b hb,
-    have u⁻¹ < b, from lt_of_lt_of_le (lt_add_of_pos_right _ zero_lt_one) hb,
-    ⟨lt_trans hl $ inv_pos $ lt_trans (inv_pos hu) this,
-    lt_of_one_div_lt_one_div hu $
-    begin
-      rw [inv_eq_one_div],
-      simp [-one_div_eq_inv, div_div_eq_mul_div, div_one],
-      simp [this]
-    end⟩⟩
+lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
+  tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
+lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
+
+lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
+(tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
@@ -115,7 +144,7 @@ by_cases
   (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
-      from tendsto.comp tendsto_inverse_at_top_nhds_0
+      from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
@@ -149,10 +178,17 @@ tendsto_coe_nat_real_at_top_iff.1 $
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
+
+lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
+by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
+
+lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
+  tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
@@ -187,11 +223,10 @@ tsum_eq_has_sum has_sum_geometric_two
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
-  convert has_sum_mul_left (a / 2) (has_sum_geometric
+  convert has_sum.mul_left (a / 2) (has_sum_geometric
     (le_of_lt one_half_pos) one_half_lt_one),
-  { funext n, simp,
-    rw ← pow_inv; [refl, exact two_ne_zero] },
-  { norm_num, rw div_mul_cancel _ two_ne_zero }
+  { funext n, simp, refl, },
+  { norm_num, rw div_mul_cancel, norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
@@ -240,7 +275,7 @@ begin
   have hf : has_sum f ε := has_sum_geometric_two' _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases summable_comp_of_summable_of_injective f (summable_spec hf) (@encodable.encode_injective ι _)
+  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
     with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
@@ -259,7 +294,7 @@ then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric : cauchy_seq f :=
 begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
-  rw [ennreal.mul_tsum, ennreal.tsum_geometric],
+  rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
   exact ne_of_gt (ennreal.zero_lt_sub_iff_lt.2 hr)
 end
@@ -272,7 +307,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.mul_tsum, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
+  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -335,13 +370,13 @@ begin
   { simp [has_sum_zero] },
   { have rnonneg: r ≥ 0, from nonneg_of_mul_nonneg_left
       (by simpa only [pow_one] using le_trans dist_nonneg (hu 1)) Cpos,
-    refine has_sum_mul_left C _,
+    refine has_sum.mul_left C _,
     by simpa using has_sum_geometric rnonneg hr }
 end
 
 variables (r C)
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.
+/-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.
 Note that this lemma does not assume `0 ≤ C` or `0 ≤ r`. -/
 lemma cauchy_seq_of_le_geometric : cauchy_seq f :=
 cauchy_seq_of_dist_le_of_summable _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩
@@ -362,7 +397,7 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu ⟨_, this⟩ ha n,
   simp only [pow_add, mul_left_comm C, mul_div_right_comm],
   rw [mul_comm],
-  exact (eq.symm $ tsum_eq_has_sum $ has_sum_mul_left _ this)
+  exact (eq.symm $ tsum_eq_has_sum $ this.mul_left _)
 end
 
 omit hr hu
@@ -389,10 +424,43 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
   simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
   symmetry,
-  exact tsum_eq_has_sum (has_sum_mul_right _ $ has_sum_geometric_two' C)
+  exact tsum_eq_has_sum (has_sum.mul_right _ $ has_sum_geometric_two' C)
 end
 
 end le_geometric
+
+section summable_le_geometric
+
+variables [normed_group α] {r C : ℝ} {f : ℕ → α}
+
+lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
+  dist ((finset.range n).sum f) ((finset.range (n+1)).sum f) ≤ C * r ^ n :=
+begin
+  rw [sum_range_succ, dist_eq_norm, ← norm_neg],
+  convert hf n,
+  abel
+end
+
+/-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
+Cauchy sequence. This lemma does not assume `0 ≤ r` or `0 ≤ C`. -/
+lemma cauchy_seq_finset_of_geometric_bound (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n) :
+  cauchy_seq (λ s : finset (ℕ), s.sum f) :=
+cauchy_seq_finset_of_norm_bounded _
+  (aux_has_sum_of_le_geometric hr (dist_partial_sum_le_of_le_geometric hf)).summable hf
+
+/-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` are within
+distance `C * r ^ n / (1 - r)` of the sum of the series. This lemma does not assume `0 ≤ r` or
+`0 ≤ C`. -/
+lemma norm_sub_le_of_geometric_bound_of_has_sum (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n)
+  {a : α} (ha : has_sum f a) (n : ℕ) :
+  ∥(finset.range n).sum f - a∥ ≤ (C * r ^ n) / (1 - r) :=
+begin
+  rw ← dist_eq_norm,
+  apply dist_le_of_le_geometric_of_tendsto r C hr (dist_partial_sum_le_of_le_geometric hf),
+  exact ha.tendsto_sum_nat
+end
+
+end summable_le_geometric
 
 namespace nnreal
 
@@ -400,9 +468,9 @@ theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := dense hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt.2 $ hε' i,
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
-   lt_of_le_of_lt (nnreal.coe_le.1 hcε) aε ⟩
+   lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
 
 end nnreal
 

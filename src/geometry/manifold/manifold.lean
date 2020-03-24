@@ -24,25 +24,25 @@ notion of structure groupoid, i.e., a set of local homeomorphisms stable under c
 inverse, to which the change of coordinates should belong.
 
 ## Main definitions
-`structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
-                           and restriction (ex: local diffeos)
-`pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
-                           restriction, but not inverse (ex: smooth maps)
-`groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
-                           inverse both belong to the pregroupoid (ex: construct diffeos from smooth
-                           maps)
-`continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
+* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
+                             and restriction (ex: local diffeos)
+* `pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
+                             restriction, but not inverse (ex: smooth maps)
+* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
+                             inverse both belong to the pregroupoid (ex: construct diffeos from smooth
+                             maps)
+* `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-`manifold H M`           : manifold structure on M modelled on H, given by an atlas of local
-                           homeomorphisms from M to H whose sources cover M. This is a type class.
-`has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
-                           `H`, require that all coordinate changes belong to `G`. This is a type
-                           class
-`atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
-                           structure, i.e., the set of charts
-`structomorph G M M'`    : the set of diffeomorphisms between the manifolds M and M' for the
-                           groupoid G. We avoid the word diffeomorphisms, keeping it for the
-                           smooth category.
+* `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
+                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
+* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
+                             `H`, require that all coordinate changes belong to `G`. This is a type
+                             class
+* `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
+                             structure, i.e., the set of charts
+* `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
+                             groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
+                             smooth category.
 
 As a basic example, we give the instance
 `instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`
@@ -155,10 +155,10 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   id_mem := mem_union_left _ (mem_insert _ ∅),
   locality := λe he, begin
-    by_cases h : e.source = ∅,
+    cases e.source.eq_empty_or_nonempty with h h,
     { right, exact h },
     { left,
-      rcases ne_empty_iff_exists_mem.1 h with ⟨x, hx⟩,
+      rcases h with ⟨x, hx⟩,
       rcases he x hx with ⟨s, open_s, xs, hs⟩,
       have x's : x ∈ (e.restr s).source,
       { rw [restr_source, interior_eq_of_open open_s],
@@ -188,7 +188,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end }
 
 /-- Every structure groupoid contains the identity groupoid -/
-instance : lattice.order_bot (structure_groupoid H) :=
+instance : order_bot (structure_groupoid H) :=
 { bot    := id_groupoid H,
   bot_le := begin
     assume u f hf,
@@ -286,7 +286,7 @@ pregroupoid.groupoid
   congr    := λf g u u_open hcongr hf, trivial }
 
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
-instance : lattice.order_top (structure_groupoid H) :=
+instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
   le_top := λ u f hf, by { split; exact dec_trivial },
   ..structure_groupoid.partial_order }

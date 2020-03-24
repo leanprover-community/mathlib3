@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
 import algebra.field
-import analysis.normed_space.operator_norm
+import analysis.normed_space.operator_norm analysis.normed_space.multilinear
 
 noncomputable theory
 open_locale classical filter
@@ -104,12 +104,7 @@ lemma sub (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g
 lemma comp {g : F → G}
   (hg : is_bounded_linear_map 𝕜 g) (hf : is_bounded_linear_map 𝕜 f) :
   is_bounded_linear_map 𝕜 (g ∘ f) :=
-let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
-let ⟨hlf, Mf, hMfp, hMf⟩ := hf in
-((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
-  calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hMg _
-    ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hMf _) (le_of_lt hMgp)
-    ... = Mg * Mf * ∥x∥   : (mul_assoc _ _ _).symm
+(hg.to_continuous_linear_map.comp hf.to_continuous_linear_map).is_bounded_linear_map
 
 lemma tendsto (x : E) (hf : is_bounded_linear_map 𝕜 f) : f →_{x} (f x) :=
 let ⟨hf, M, hMp, hM⟩ := hf in
@@ -134,11 +129,11 @@ open asymptotics filter
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
   is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := h.bound in
-⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
-((hg.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+(hg.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub {f : E → F} (h : is_bounded_linear_map 𝕜 f)
   (l : filter E) (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
@@ -150,10 +145,11 @@ end is_bounded_linear_map
 
 section
 set_option class.instance_max_depth 240
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
+/-- Taking the cartesian product of two continuous linear maps is a bounded linear operation. -/
 lemma is_bounded_linear_map_prod_iso :
-  is_bounded_linear_map 𝕜 (λ(p : (E →L[𝕜] F) × (E →L[𝕜] G)),
-                            (continuous_linear_map.prod p.1 p.2 : (E →L[𝕜] (F × G)))) :=
+  is_bounded_linear_map 𝕜 (λ(p : (E →L[𝕜] F) × (E →L[𝕜] G)), (p.1.prod p.2 : (E →L[𝕜] (F × G)))) :=
 begin
   refine is_linear_map.with_bound ⟨λu v, rfl, λc u, rfl⟩ 1 (λp, _),
   simp only [norm, one_mul],
@@ -168,27 +164,42 @@ begin
       mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _) }
 end
 
-lemma continuous_linear_map.is_bounded_linear_map_comp_left (g : continuous_linear_map 𝕜 F G) :
-  is_bounded_linear_map 𝕜 (λ(f : E →L[𝕜] F), continuous_linear_map.comp g f) :=
-begin
-  refine is_linear_map.with_bound ⟨λu v, _, λc u, _⟩
-    (∥g∥) (λu, continuous_linear_map.op_norm_comp_le _ _),
-  { ext x,
-    change g ((u+v) x) = g (u x) + g (v x),
-    have : (u+v) x = u x + v x := rfl,
-    rw [this, g.map_add] },
-  { ext x,
-    change g ((c • u) x) = c • g (u x),
-    have : (c • u) x = c • u x := rfl,
-    rw [this, continuous_linear_map.map_smul] }
-end
+/-- Taking the cartesian product of two continuous multilinear maps is a bounded linear operation. -/
+lemma is_bounded_linear_map_prod_multilinear
+  {E : ι → Type*} [∀i, normed_group (E i)] [∀i, normed_space 𝕜 (E i)] :
+  is_bounded_linear_map 𝕜
+  (λ p : (continuous_multilinear_map 𝕜 E F) × (continuous_multilinear_map 𝕜 E G), p.1.prod p.2) :=
+{ add := λ p₁ p₂, by { ext1 m, refl },
+  smul := λ c p, by { ext1 m, refl },
+  bound := ⟨1, zero_lt_one, λ p, begin
+    rw one_mul,
+    apply continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λ m, _),
+    rw [continuous_multilinear_map.prod_apply, norm_prod_le_iff],
+    split,
+    { exact le_trans (p.1.le_op_norm m)
+        (mul_le_mul_of_nonneg_right (norm_fst_le p) (finset.prod_nonneg (λ i hi, norm_nonneg _))) },
+    { exact le_trans (p.2.le_op_norm m)
+        (mul_le_mul_of_nonneg_right (norm_snd_le p) (finset.prod_nonneg (λ i hi, norm_nonneg _))) },
+  end⟩ }
 
-lemma continuous_linear_map.is_bounded_linear_map_comp_right (f : continuous_linear_map 𝕜 E F) :
-  is_bounded_linear_map 𝕜 (λ(g : F →L[𝕜] G), continuous_linear_map.comp g f) :=
+/-- Given a fixed continuous linear map `g`, associating to a continuous multilinear map `f` the
+continuous multilinear map `f (g m₁, ..., g mₙ)` is a bounded linear operation. -/
+lemma is_bounded_linear_map_continuous_multilinear_map_comp_linear (g : G →L[𝕜] E) :
+  is_bounded_linear_map 𝕜 (λ f : continuous_multilinear_map 𝕜 (λ (i : ι), E) F,
+    f.comp_continuous_linear_map 𝕜 E  g) :=
 begin
-  refine is_linear_map.with_bound ⟨λu v, rfl, λc u, rfl⟩ (∥f∥) (λg, _),
-  rw mul_comm,
-  exact continuous_linear_map.op_norm_comp_le _ _
+  refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
+    (∥g∥ ^ (fintype.card ι)) (λ f, _),
+  apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
+  { apply_rules [mul_nonneg', pow_nonneg, norm_nonneg, norm_nonneg] },
+  calc ∥f (g ∘ m)∥ ≤
+    ∥f∥ * finset.univ.prod (λ (i : ι), ∥g (m i)∥) : f.le_op_norm _
+    ... ≤ ∥f∥ * finset.univ.prod (λ (i : ι), ∥g∥ * ∥m i∥) : begin
+      apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+      exact finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, g.le_op_norm _)
+    end
+    ... = ∥g∥ ^ fintype.card ι * ∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥) :
+      by { simp [finset.prod_mul_distrib, finset.card_univ], ring }
 end
 
 end
@@ -211,15 +222,43 @@ variable {f : E × F → G}
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) -  f(y, z) :=
-calc f (x - y, z) = f (x + (-1 : 𝕜) • y, z) : by simp
+calc f (x - y, z) = f (x + (-1 : 𝕜) • y, z) : by simp [sub_eq_add_neg]
 ... = f (x, z) + (-1 : 𝕜) • f (y, z) : by simp only [h.add_left, h.smul_left]
-... = f (x, z) - f (y, z) : by simp
+... = f (x, z) - f (y, z) : by simp [sub_eq_add_neg]
 
 lemma is_bounded_bilinear_map.map_sub_right (h : is_bounded_bilinear_map 𝕜 f) {x : E} {y z : F} :
   f (x, y - z) = f (x, y) - f (x, z) :=
-calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp
+calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 ... = f (x, y) + (-1 : 𝕜) • f (x, z) : by simp only [h.add_right, h.smul_right]
-... = f (x, y) - f (x, z) : by simp
+... = f (x, y) - f (x, z) : by simp [sub_eq_add_neg]
+
+lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinear_map 𝕜 f) (y : F) :
+  is_bounded_linear_map 𝕜 (λ x, f (x, y)) :=
+{ add   := λ x x', h.add_left _ _ _,
+  smul  := λ c x, h.smul_left _ _ _,
+  bound := begin
+    rcases h.bound with ⟨C, C_pos, hC⟩,
+    refine ⟨C * (∥y∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
+    have : ∥y∥ ≤ ∥y∥ + 1, by simp [zero_le_one],
+    calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
+    ... ≤ C * ∥x∥ * (∥y∥ + 1) :
+      by apply_rules [norm_nonneg, mul_le_mul_of_nonneg_left, le_of_lt C_pos, mul_nonneg']
+    ... = C * (∥y∥ + 1) * ∥x∥ : by ring
+  end }
+
+lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_bilinear_map 𝕜 f) (x : E) :
+  is_bounded_linear_map 𝕜 (λ y, f (x, y)) :=
+{ add   := λ y y', h.add_right _ _ _,
+  smul  := λ c y, h.smul_right _ _ _,
+  bound := begin
+    rcases h.bound with ⟨C, C_pos, hC⟩,
+    refine ⟨C * (∥x∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
+    have : ∥x∥ ≤ ∥x∥ + 1, by simp [zero_le_one],
+    calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
+    ... ≤ C * (∥x∥ + 1) * ∥y∥ :
+      by apply_rules [mul_le_mul_of_nonneg_right, norm_nonneg, mul_le_mul_of_nonneg_left,
+                      le_of_lt C_pos]
+  end }
 
 lemma is_bounded_bilinear_map_smul :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × E), p.1 • p.2) :=
@@ -252,6 +291,14 @@ lemma is_bounded_bilinear_map_comp :
       ≤ ∥y∥ * ∥x∥ : continuous_linear_map.op_norm_comp_le _ _
     ... = 1 * ∥x∥ * ∥ y∥ : by ring ⟩ }
 
+lemma continuous_linear_map.is_bounded_linear_map_comp_left (g : continuous_linear_map 𝕜 F G) :
+  is_bounded_linear_map 𝕜 (λ(f : E →L[𝕜] F), continuous_linear_map.comp g f) :=
+is_bounded_bilinear_map_comp.is_bounded_linear_map_left _
+
+lemma continuous_linear_map.is_bounded_linear_map_comp_right (f : continuous_linear_map 𝕜 E F) :
+  is_bounded_linear_map 𝕜 (λ(g : F →L[𝕜] G), continuous_linear_map.comp g f) :=
+is_bounded_bilinear_map_comp.is_bounded_linear_map_right _
+
 lemma is_bounded_bilinear_map_apply :
   is_bounded_bilinear_map 𝕜 (λp : (E →L[𝕜] F) × E, p.1 p.2) :=
 { add_left   := by simp,
@@ -272,11 +319,30 @@ lemma is_bounded_bilinear_map_smul_right :
   smul_right := λc m f, by { ext z, simp [smul_smul, mul_comm] },
   bound      := ⟨1, zero_lt_one, λm f, by simp⟩ }
 
+/-- The composition of a continuous linear map with a continuous multilinear map is a bounded
+bilinear operation. -/
+lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
+[decidable_eq ι] [fintype ι] [∀i, normed_group (E i)] [∀i, normed_space 𝕜 (E i)] :
+  is_bounded_bilinear_map 𝕜 (λ p : (F →L[𝕜] G) × (continuous_multilinear_map 𝕜 E F),
+    p.1.comp_continuous_multilinear_map p.2) :=
+{ add_left   := λ g₁ g₂ f, by { ext m, refl },
+  smul_left  := λ c g f, by { ext m, refl },
+  add_right  := λ g f₁ f₂, by { ext m, simp },
+  smul_right := λ c g f, by { ext m, simp },
+  bound      := ⟨1, zero_lt_one, λ g f, begin
+    apply continuous_multilinear_map.op_norm_le_bound _ _ (λm, _),
+    { apply_rules [mul_nonneg, zero_le_one, norm_nonneg, norm_nonneg] },
+    calc ∥g (f m)∥ ≤ ∥g∥ * ∥f m∥ : g.le_op_norm _
+    ... ≤ ∥g∥ * (∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥)) :
+      mul_le_mul_of_nonneg_left (f.le_op_norm _) (norm_nonneg _)
+    ... = 1 * ∥g∥ * ∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥) : by ring
+    end⟩ }
+
 /-- Definition of the derivative of a bilinear map `f`, given at a point `p` by
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.
 We define this function here a bounded linear map from `E × F` to `G`. The fact that this
 is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv_at` in
-`deriv.lean`-/
+`fderiv.lean`-/
 
 def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) :
   (E × F) →ₗ[𝕜] G :=
@@ -284,7 +350,7 @@ def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p
   add := λq₁ q₂, begin
     change f (p.1, q₁.2 + q₂.2) + f (q₁.1 + q₂.1, p.2) =
       f (p.1, q₁.2) + f (q₁.1, p.2) + (f (p.1, q₂.2) + f (q₂.1, p.2)),
-    simp [h.add_left, h.add_right]
+    simp [h.add_left, h.add_right], abel
   end,
   smul := λc q, begin
     change f (p.1, c • q.2) + f (c • q.1, p.2) = c • (f (p.1, q.2) + f (q.1, p.2)),
@@ -294,7 +360,7 @@ def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p
 /-- The derivative of a bounded bilinear map at a point `p : E × F`, as a continuous linear map
 from `E × F` to `G`. -/
 def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) : (E × F) →L[𝕜] G :=
-(h.linear_deriv p).with_bound $ begin
+(h.linear_deriv p).mk_continuous_of_exists_bound $ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine ⟨C * ∥p.1∥ + C * ∥p.2∥, λq, _⟩,
   calc ∥f (p.1, q.2) + f (q.1, p.2)∥
@@ -321,7 +387,7 @@ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine is_linear_map.with_bound ⟨λp₁ p₂, _, λc p, _⟩ (C + C) (λp, _),
   { ext q,
-    simp [h.add_left, h.add_right] },
+    simp [h.add_left, h.add_right], abel },
   { ext q,
     simp [h.smul_left, h.smul_right, smul_add] },
   { refine continuous_linear_map.op_norm_le_bound _

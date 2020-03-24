@@ -24,7 +24,7 @@ a complete measure.
 
 noncomputable theory
 
-open classical set lattice filter finset function
+open classical set filter finset function
 open_locale classical topological_space
 
 universes u v w x
@@ -371,7 +371,7 @@ begin
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
   cases n, {apply zero_le _},
-  suffices : sum (finset.range n.succ) (λ i, μ (disjointed s i)) = μ (s n),
+  suffices : (finset.range n.succ).sum (λ i, μ (disjointed s i)) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
   { apply sum_congr rfl, intros i hi,
@@ -527,7 +527,7 @@ lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
 begin
   rw [outer_measure.Inf_eq_of_function_Inf_gen],
   refine outer_measure.caratheodory_is_measurable (assume t, _),
-  by_cases ht : t = ∅, { simp [ht] },
+  cases t.eq_empty_or_nonempty with ht ht, by simp [ht],
   simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
     to_outer_measure_apply, measure_eq_infi t],
   assume μ hμ u htu hu,
@@ -567,7 +567,8 @@ instance : order_bot (measure α) :=
 instance : order_top (measure α) :=
 { top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
-    by by_cases s = ∅; simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
+    by cases s.eq_empty_or_nonempty with h  h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
   .. measure.partial_order }
 
 instance : complete_lattice (measure α) :=
@@ -585,7 +586,7 @@ instance : complete_lattice (measure α) :=
   inf_le_left  := assume a b, Inf_le $ by simp,
   inf_le_right := assume a b, Inf_le $ by simp,
   le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
-  .. measure.partial_order, .. measure.lattice.order_top, .. measure.lattice.order_bot }
+  .. measure.partial_order, .. measure.order_top, .. measure.order_bot }
 
 end
 
@@ -867,7 +868,8 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
+def all_ae (p : α → Prop) : Prop :=
+∀ᶠ a in μ.a_e, p a
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 
@@ -878,8 +880,7 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
-by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=

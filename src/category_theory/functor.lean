@@ -24,8 +24,8 @@ universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `cat
 
 To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map f`.
 
-The axiom `map_id_lemma` expresses preservation of identities, and
-`map_comp_lemma` expresses functoriality.
+The axiom `map_id` expresses preservation of identities, and
+`map_comp` expresses functoriality.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
   Type (max v₁ v₂ u₁ u₂) :=
@@ -41,7 +41,7 @@ infixr ` ⥤ `:26 := functor       -- type as \func --
 restate_axiom functor.map_id'
 attribute [simp] functor.map_id
 restate_axiom functor.map_comp'
-attribute [simp, reassoc] functor.map_comp
+attribute [reassoc, simp] functor.map_comp
 
 namespace functor
 
@@ -78,7 +78,7 @@ def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
 infixr ` ⋙ `:80 := comp
 
 @[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
-@[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
+@[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
 omit ℰ

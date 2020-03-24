@@ -31,7 +31,7 @@ product, sum, disjoint union, subspace, quotient space
 
 noncomputable theory
 
-open topological_space set filter lattice
+open topological_space set filter
 open_locale classical topological_space
 
 universes u v w x
@@ -70,9 +70,8 @@ eq_univ_of_forall $ λ x, begin
   cases quotient.exists_rep x with y y_x,
   have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
   have V_op : is_open V := U_op,
-  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
-  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
+  obtain ⟨w, w_in_V, w_in_range⟩ : (V ∩ s).nonempty := mem_closure_iff.1 (H y) V V_op y_in_V,
+  exact ⟨_, w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
 end
 
 instance {p : α → Prop} [topological_space α] [discrete_topology α] :
@@ -98,11 +97,11 @@ The 𝓝 filter and the subspace topology.
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
   t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
+mem_nhds_induced subtype.val a t
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap subtype.val (𝓝 a.val) :=
-by rw nhds_induced
+nhds_induced subtype.val a
 
 end topα
 
@@ -144,14 +143,14 @@ by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
 
-lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
+lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
   (ha : tendsto ma f (𝓝 a)) (hb : tendsto mb f (𝓝 b)) :
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
-tendsto_prod_mk_nhds hf hg
+hf.prod_mk_nhds hg
 
 lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
@@ -244,9 +243,9 @@ empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
   is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  by_cases h : set.prod s t = ∅,
+  cases (set.prod s t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
+  { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
     { assume H : is_open (set.prod s t),
       refine or.inl ⟨_, _⟩,
@@ -257,7 +256,7 @@ begin
       { rw ← snd_image_prod st.1 t,
         exact is_open_map_snd _ H } },
     { assume H,
-      simp [st] at H,
+      simp [st.1.ne_empty, st.2.ne_empty] at H,
       exact is_open_prod H.1 H.2 } }
 end
 
@@ -267,7 +266,7 @@ set.ext $ assume ⟨a, b⟩,
 have filter.prod (𝓝 a) (𝓝 b) ⊓ principal (set.prod s t) =
   filter.prod (𝓝 a ⊓ principal s) (𝓝 b ⊓ principal t),
   by rw [←prod_inf_prod, prod_principal_principal],
-by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_neq_bot
+by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_ne_bot
 
 lemma mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
@@ -297,7 +296,7 @@ begin
   rw [is_open_map_iff_nhds_le],
   rintros ⟨a, b⟩,
   rw [nhds_prod_eq, nhds_prod_eq, ← filter.prod_map_map_eq],
-  exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
+  exact filter.prod_mono (is_open_map_iff_nhds_le.1 hf a) (is_open_map_iff_nhds_le.1 hg b)
 end
 
 protected lemma open_embedding.prod {f : α → β} {g : γ → δ}
@@ -327,7 +326,7 @@ lemma embedding_inl : embedding (@sum.inl α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_left },
+    { rw ← coinduced_le_iff_le_induced, exact le_sup_left },
     { intros u hu, existsi (sum.inl '' u),
       change
         (is_open (sum.inl ⁻¹' (@sum.inl α β '' u)) ∧
@@ -345,7 +344,7 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_right },
+    { rw ← coinduced_le_iff_le_induced, exact le_sup_right },
     { intros u hu, existsi (sum.inr '' u),
       change
         (is_open (sum.inl ⁻¹' (@sum.inr α β '' u)) ∧
@@ -370,13 +369,24 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
-lemma subtype_val.open_embedding {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : {x // x ∈ s} → α) :=
+lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
+continuous_subtype_val
+
+lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
+  open_embedding (subtype.val : s → α) :=
 { induced := rfl,
   inj := subtype.val_injective,
   open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
 
-lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
+lemma is_open.is_open_map_subtype_val {s : set α} (hs : is_open s) :
+  is_open_map (subtype.val : s → α) :=
+hs.open_embedding_subtype_val.is_open_map
+
+lemma is_open_map.restrict {f : α → β} (hf : is_open_map f) {s : set α} (hs : is_open s) :
+  is_open_map (function.restrict f s) :=
+hf.comp hs.is_open_map_subtype_val
+
+lemma is_closed.closed_embedding_subtype_val {s : set α} (hs : is_closed s) :
   closed_embedding (subtype.val : {x // x ∈ s} → α) :=
 { induced := rfl,
   inj := subtype.val_injective,
@@ -488,6 +498,18 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
+continuous. -/
+lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
+  continuous (λ x : π i, function.update f i x) :=
+begin
+  refine continuous_pi (λj, _),
+  by_cases h : j = i,
+  { rw h,
+    simpa using continuous_id },
+  { simpa [h] using continuous_const }
+end
+
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
@@ -546,7 +568,6 @@ end pi
 
 section sigma
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
-open lattice
 
 lemma continuous_sigma_mk {i : ι} : continuous (@sigma.mk ι σ i) :=
 continuous_supr_rng continuous_coinduced_rng

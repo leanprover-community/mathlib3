@@ -82,13 +82,13 @@ variables {M : Type*} [monoid M]
 @[simp] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
 @[simp] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
 
-@[simp] theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
+theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
 semiconj_by.units_inv_right
 
 @[simp] theorem units_inv_right_iff {a : M} {u : units M} : commute a ↑u⁻¹ ↔ commute a u :=
 semiconj_by.units_inv_right_iff
 
-@[simp] theorem units_inv_left {u : units M} {a : M} : commute ↑u a → commute ↑u⁻¹ a :=
+theorem units_inv_left {u : units M} {a : M} : commute ↑u a → commute ↑u⁻¹ a :=
 semiconj_by.units_inv_symm_left
 
 @[simp] theorem units_inv_left_iff {u : units M} {a : M}: commute ↑u⁻¹ a ↔ commute ↑u a :=
@@ -122,10 +122,10 @@ section group
 
 variables {G : Type*} [group G] {a b : G}
 
-@[simp] theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
+theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
 @[simp] theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_right_iff
 
-@[simp] theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
+theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
 @[simp] theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
 
 theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
@@ -186,10 +186,10 @@ section ring
 
 variables {R : Type*} [ring R] {a b c : R}
 
-@[simp] theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
 @[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
 
-@[simp] theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 @[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
 
 @[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
@@ -216,6 +216,35 @@ by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
 @[simp] theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
 
 end ring
+
+section division_ring
+
+variables {R : Type*} [division_ring R] {a b c : R}
+
+@[simp] theorem finv_left_iff : commute a⁻¹ b ↔ commute a b :=
+semiconj_by.finv_symm_left_iff
+
+theorem finv_left (h : commute a b) : commute a⁻¹ b :=
+finv_left_iff.2 h
+
+@[simp] theorem finv_right_iff : commute a b⁻¹ ↔ commute a b :=
+commute.symm_iff.trans (finv_left_iff.trans commute.symm_iff)
+
+theorem finv_right (h : commute a b) : commute a b⁻¹ :=
+finv_right_iff.2 h
+
+theorem finv_finv (h : commute a b) : commute a⁻¹ b⁻¹ :=
+h.finv_left.finv_right
+
+@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
+  commute a (b / c) :=
+hab.mul_right hac.finv_right
+
+@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
+  commute (a / b) c :=
+hac.mul_left hbc.finv_left
+
+end division_ring
 
 end commute
 

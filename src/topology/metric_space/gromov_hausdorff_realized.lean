@@ -15,7 +15,7 @@ open_locale classical
 open_locale topological_space
 universes u v w
 
-open classical lattice set function topological_space filter metric quotient
+open classical set function topological_space filter metric quotient
 open bounded_continuous_function
 open sum (inl inr)
 set_option class.instance_max_depth 50
@@ -78,7 +78,7 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
   ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) + diam (inr '' (univ : set β)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) + diam (univ : set β) :
-    by { rw [isometry.diam_image isometry_on_inl, isometry.diam_image isometry_on_inr], refl }
+    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
   begin
@@ -144,7 +144,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -161,6 +161,7 @@ calc
 private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
   lipschitz_with (2 * max_var α β) f :=
 begin
+  apply lipschitz_with.of_dist_le_mul,
   rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
@@ -172,7 +173,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).to_continuous
+bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -194,8 +195,8 @@ def candidates_b_dist (α : Type u) (β : Type v) [metric_space α] [compact_spa
 lemma candidates_b_dist_mem_candidates_b : candidates_b_dist α β ∈ candidates_b α β :=
 candidates_b_of_candidates_mem _ _
 
-private lemma candidates_b_ne_empty : candidates_b α β ≠ ∅ :=
-ne_empty_of_mem candidates_b_dist_mem_candidates_b
+private lemma candidates_b_nonempty : (candidates_b α β).nonempty :=
+⟨_,  candidates_b_dist_mem_candidates_b⟩
 
 /-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and equicontinuous.
 Equicontinuity follows from the Lipschitz control, we check closedness -/
@@ -244,7 +245,7 @@ begin
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
     { assume x y f hf,
-      exact candidates_lipschitz hf _ _ } }
+      exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
 /-- We will then choose the candidate minimizing the Hausdorff distance. Except that we are not
@@ -346,7 +347,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 
@@ -380,7 +380,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 
@@ -390,7 +389,7 @@ max_le (le_trans (HD_lipschitz_aux1 f g) (add_le_add_right (le_max_left _ _) _))
 
 /-- Conclude that HD, being Lipschitz, is continuous -/
 private lemma HD_continuous : continuous (HD : Cb α β → ℝ) :=
-lipschitz_with.to_continuous (lipschitz_with.one_of_le_add HD_lipschitz_aux3)
+lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 
 end constructions --section
 
@@ -401,7 +400,7 @@ variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [none
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃f ∈ candidates_b α β, ∀g ∈ candidates_b α β, HD f ≤ HD g :=
-exists_forall_le_of_compact_of_continuous _ HD_continuous _ compact_candidates_b candidates_b_ne_empty
+compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb α β := classical.some (exists_minimizer α β)
 
@@ -463,9 +462,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact compact_union_of_compact
-    (compact_image (compact_univ) (isometry_optimal_GH_injl α β).continuous)
-    (compact_image (compact_univ) (isometry_optimal_GH_injr α β).continuous)
+  exact (compact_univ.image (isometry_optimal_GH_injl α β).continuous).union
+    (compact_univ.image (isometry_optimal_GH_injr α β).continuous)
 end⟩
 
 /-- For any candidate f, HD(f) is larger than or equal to the Hausdorff distance in the
@@ -486,7 +484,7 @@ begin
         supr (λx:α, infi (λy:β, optimal_GH_dist α β (inl x, inr y))) :=
       le_cSup (by simpa using HD_bound_aux1 _ 0) (mem_range_self _),
     have I : infi (λy:β, optimal_GH_dist α β (inl z, inr y)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injr α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z, inr z') ≤ r := begin rw hz', exact le_of_lt hr' end,
@@ -505,7 +503,7 @@ begin
         supr (λy:β, infi (λx:α, optimal_GH_dist α β (inl x, inr y))) :=
       le_cSup (by simpa using HD_bound_aux2 _ 0) (mem_range_self _),
     have I : infi (λx:α, optimal_GH_dist α β (inl x, inr z)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injl α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z', inr z) ≤ r := begin rw hz', exact le_of_lt hr' end,

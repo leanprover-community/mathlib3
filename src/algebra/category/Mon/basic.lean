@@ -5,8 +5,9 @@ Authors: Scott Morrison
 -/
 
 import category_theory.concrete_category
-import algebra.group
-import data.equiv.algebra
+import algebra.group.hom
+import data.equiv.mul_add
+import algebra.punit_instances
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -20,12 +21,20 @@ along with the relevant forgetful functors between them.
 
 ## Implementation notes
 
-### Note [locally reducible category instances]
+See Note [locally reducible category instances]
 
+TODO: Probably @[derive] should be able to create instances of the
+required form (without `id`), and then we could use that instead of
+this obscure `local attribute [reducible]` method.
+-/
+
+/--
 We make SemiRing (and the other categories) locally reducible in order
 to define its instances. This is because writing, for example,
 
-  instance : concrete_category SemiRing := by { delta SemiRing, apply_instance }
+```
+instance : concrete_category SemiRing := by { delta SemiRing, apply_instance }
+```
 
 results in an instance of the form `id (bundled_hom.concrete_category _)`
 and this `id`, not being [reducible], prevents a later instance search
@@ -35,11 +44,8 @@ to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that
 we always access `R.α` through the coercion rather than directly).
-
-TODO: Probably @[derive] should be able to create instances of the
-required form (without `id`), and then we could use that instead of
-this obscure `local attribute [reducible]` method.
 -/
+library_note "locally reducible category instances"
 
 universes u v
 
@@ -54,6 +60,12 @@ namespace Mon
 /-- Construct a bundled Mon from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
+
+@[to_additive]
+instance : inhabited Mon :=
+-- The default instance for `monoid punit` is derived via `punit.comm_ring`,
+-- which breaks to_additive.
+⟨@of punit $ @group.to_monoid _ $ @comm_group.to_group _ punit.comm_group⟩
 
 local attribute [reducible] Mon
 
@@ -81,6 +93,12 @@ namespace CommMon
 /-- Construct a bundled CommMon from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
+
+@[to_additive]
+instance : inhabited CommMon :=
+-- The default instance for `comm_monoid punit` is derived via `punit.comm_ring`,
+-- which breaks to_additive.
+⟨@of punit $ @comm_group.to_comm_monoid _ punit.comm_group⟩
 
 local attribute [reducible] CommMon
 

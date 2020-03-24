@@ -17,6 +17,9 @@ def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
 { lt := pi.lex (<) (λ _, (<)) }
 
+instance [∀ a, inhabited (β a)] : inhabited (pilex ι β) :=
+by unfold pilex; apply_instance
+
 set_option eqn_compiler.zeta true
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
@@ -62,8 +65,10 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
         (λ hyx, lt_irrefl (x i) (by simpa [hyx] using hi.2))⟩, by tauto⟩,
   ..pilex.has_lt }
 
-instance [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
-  linear_order (pilex ι β) :=
+/-- `pilex` is a linear order if the original order is well-founded.
+This cannot be an instance, since it depends on the well-foundedness of `<`. -/
+protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop))
+  [∀ a, linear_order (β a)] : linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow, Kenny Lau
 -/
 
-import data.equiv.algebra
+import data.equiv.ring
 
 /-!
 # Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions
@@ -171,6 +171,8 @@ protected def ring_invo.id : ring_invo R :=
 { anti_hom := ⟨rfl, mul_comm, λ _ _, rfl⟩,
   to_fun_to_fun := λ _, rfl,
   .. equiv.refl R }
+
+instance : inhabited (ring_invo R) := ⟨ring_invo.id _⟩
 
 protected def ring_anti_equiv.refl : ring_anti_equiv R R :=
 (ring_invo.id R).to_ring_anti_equiv

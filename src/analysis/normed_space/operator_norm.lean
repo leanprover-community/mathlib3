@@ -155,7 +155,7 @@ begin
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
+  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos.2 δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, linear_map.map_zero] },
   { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,

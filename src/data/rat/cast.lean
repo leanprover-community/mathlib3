@@ -223,7 +223,7 @@ end with_div_ring
 @[simp, elim_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
 | ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),
   by rw [num_denom', ← nonneg_iff_zero_le, mk_nonneg _ (int.coe_nat_pos.2 h),
-    mul_nonneg_iff_right_nonneg_of_pos (@inv_pos α _ _ (nat.cast_pos.2 h)),
+    mul_nonneg_iff_right_nonneg_of_pos ((@inv_pos α _ _).2 (nat.cast_pos.2 h)),
     int.cast_nonneg]
 
 @[simp, elim_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=

@@ -40,7 +40,7 @@ open category_theory.limits
 variables [has_zero_morphisms.{v} C]
 
 @[simp]
-lemma shift_zero (X Y : C) (n : ℤ) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n⟧ ⟶ Y⟦n⟧) :=
+lemma shift_zero_eq_zero (X Y : C) (n : ℤ) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n⟧ ⟶ Y⟦n⟧) :=
 by apply equivalence_preserves_zero_morphisms
 
 end category_theory

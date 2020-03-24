@@ -36,7 +36,7 @@ def induced_map_on_cycles {C C' : chain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
-  rw [category.assoc, ←f.comm_at, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
+  rw [category.assoc, ←comm_at f, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
 end
 
 /-!

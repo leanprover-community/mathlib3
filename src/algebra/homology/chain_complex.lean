@@ -38,23 +38,13 @@ A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`.
 -/
 -- For now the "shift" is fixed to be the +1 direction,
 -- making this a cochain complex, rather than a chain complex.
-def chain_complex : Type (max v u) :=
+abbreviation chain_complex : Type (max v u) :=
 differential_object.{v} (graded_object ℤ V)
 
 -- The chain groups of a chain complex `C` are accessed as `C.X i`,
 -- and the differentials as `C.d i : C.X i ⟶ C.X (i+1)`.
 example (C : chain_complex V) : C.X 5 ⟶ C.X 6 := C.d 5
 
-variables {V}
-/--
-A convenience lemma for morphisms of differential graded objects,
-picking out one component of the commutation relation.
--/
-@[simp]
-lemma category_theory.differential_object.hom.comm_at
-  {X Y : differential_object.{v} (graded_object ℤ V)} (f : X ⟶ Y) (i : ℤ) :
-    X.d i ≫ f.f (i+1) = f.f i ≫ Y.d i :=
-congr_fun f.comm i
 end
 
 namespace chain_complex
@@ -68,30 +58,26 @@ lemma d_squared (C : chain_complex.{v} V) (i : ℤ) :
   C.d i ≫ C.d (i+1) = 0 :=
 congr_fun (C.d_squared) i
 
-variables (V)
-
-instance category_of_chain_complexes : category.{v} (chain_complex V) :=
-by { dsimp [chain_complex], apply_instance }.
+/--
+A convenience lemma for morphisms of differential graded objects,
+picking out one component of the commutation relation.
+-/
+-- I haven't been able to get this to work with projection notation: `f.comm_at i`
+@[simp]
+lemma comm_at {C D : chain_complex V} (f : C ⟶ D) (i : ℤ) :
+    C.d i ≫ f.f (i+1) = f.f i ≫ D.d i :=
+congr_fun f.comm i
 
 -- The components of a chain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : chain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
 example {C D : chain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
-example {C D : chain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := congr_fun f.comm 5
+example {C D : chain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := comm_at f 5
+
+variables (V)
 
 /-- The forgetful functor from chain complexes to graded objects, forgetting the differential. -/
-def forget : (chain_complex V) ⥤ (graded_object ℤ V) :=
+abbreviation forget : (chain_complex V) ⥤ (graded_object ℤ V) :=
 differential_object.forget _
-
-instance forget_faithful : faithful (forget V) :=
-differential_object.forget_faithful _
-
-instance has_zero_morphisms : has_zero_morphisms.{v} (chain_complex V) :=
-by { dsimp [chain_complex], apply_instance, }
-
-variables [has_zero_object.{v} V]
-
-instance has_zero_object : has_zero_object.{v} (chain_complex V) :=
-by { dsimp [chain_complex], apply_instance, }
 
 section
 omit 𝒱
@@ -99,19 +85,6 @@ local attribute [instance] has_zero_object.has_zero
 
 instance : inhabited (chain_complex.{v} punit.{v+1}) := ⟨0⟩
 end
-
-end chain_complex
-
-namespace chain_complex
-variables
-  {V : Type (u+1)} [𝒱 : concrete_category V] [has_zero_morphisms.{u} V] [has_coproducts.{u} V]
-include 𝒱
-
-instance : concrete_category (chain_complex.{u} V) :=
-differential_object.concrete_category_of_differential_objects (graded_object ℤ V)
-
-instance : has_forget₂ (chain_complex.{u} V) (graded_object ℤ V) :=
-by { dsimp [chain_complex], apply_instance }
 
 end chain_complex
 

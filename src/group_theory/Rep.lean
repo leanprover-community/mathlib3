@@ -1,6 +1,6 @@
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
-import algebra.group.Action
+import group_theory.Action
 import ring_theory.algebra
 import data.monoid_algebra
 

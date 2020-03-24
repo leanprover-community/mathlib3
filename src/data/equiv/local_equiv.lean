@@ -96,8 +96,8 @@ variables (e : local_equiv α β) (e' : local_equiv β γ)
 
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
-{ to_fun    := λ⟨x, hx⟩, ⟨e.to_fun x, e.map_source hx⟩,
-  inv_fun   := λ⟨y, hy⟩, ⟨e.inv_fun y, e.map_target hy⟩,
+{ to_fun    := λ x, ⟨e.to_fun x, e.map_source x.mem⟩,
+  inv_fun   := λ y, ⟨e.inv_fun y, e.map_target y.mem⟩,
   left_inv  := λ⟨x, hx⟩, subtype.eq $ e.left_inv hx,
   right_inv := λ⟨y, hy⟩, subtype.eq $ e.right_inv hy }
 
@@ -500,6 +500,30 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
 end prod
 
 end local_equiv
+
+namespace set
+
+-- All arguments are explicit to avoid missing information in the pretty printer output
+/-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
+between `α` and `β`. -/
+noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
+  (hf : bij_on f s t) :
+  local_equiv α β :=
+{ to_fun := f,
+  inv_fun := inv_fun_on f s,
+  source := s,
+  target := t,
+  map_source := hf.maps_to,
+  map_target := hf.surj_on.maps_to_inv_fun_on,
+  left_inv := hf.inv_on_inv_fun_on.1,
+  right_inv := hf.inv_on_inv_fun_on.2 }
+
+/-- A map injective on a subset of its domain provides a local equivalence. -/
+noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (hf : inj_on f s) :
+  local_equiv α β :=
+hf.bij_on_image.to_local_equiv f s (f '' s)
+
+end set
 
 namespace equiv
 /- equivs give rise to local_equiv. We set up simp lemmas to reduce most properties of the local

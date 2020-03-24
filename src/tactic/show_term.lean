@@ -37,5 +37,11 @@ print `(0, ?m_1)`, indicating that the original goal has been partially filled i
 meta def show_term (t : itactic) : itactic :=
 pp_term t >>= trace
 
+add_tactic_doc
+{ name := "show_term",
+  category := doc_category.tactic,
+  decl_names := [``show_term],
+  tags := ["debugging"] }
+
 end interactive
 end tactic

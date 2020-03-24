@@ -41,6 +41,8 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
 lemma injective.ne (hf : function.injective f) {a₁ a₂ : α} : a₁ ≠ a₂ → f a₁ ≠ f a₂ :=
 mt (assume h, hf h)
 
+/-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
+the domain `α` also has decidable equality. -/
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 

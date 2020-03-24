@@ -13,16 +13,12 @@ to make the process of contributing as smooth as possible.
    - The [style guide](style.md) for contributors.
    - The explanation of [naming conventions](naming.md).
    - The [documentation guidelines](doc.md).
-   - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
+   - The [git commit conventions](https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above, or from a branch of the main repository if you have commit access (you can ask for access on Zulip).
 4. If you've made a lot of changes/additions, try to make many PRs containing small, self-contained pieces. This helps you get feedback as you go along, and it is much easier to review. This is especially important for new contributors.
 5. You can use `leanproject get-cache` to fetch `.olean` binaries.
-  The `.olean` binaries take two hours to generate, so they might not yet be available if you're on the master branch.
-  If you checkout the remote branch `lean-3.6.1` then you can always get olean binaries:
    ```
-   git fetch --all
-   git checkout origin/lean-3.6.1
    leanproject get-cache
    git checkout -b my_new_feature
    ```

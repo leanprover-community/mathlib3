@@ -33,7 +33,7 @@ meta def show_term (t : itactic) : itactic :=
 do
   g :: _ ← get_goals,
   t,
-  to_string <$> pp g >>= trace
+  trace g
 
 add_tactic_doc
 { name := "show_term",

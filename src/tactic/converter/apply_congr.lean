@@ -7,6 +7,15 @@ Authors: Lucas Allen, Scott Morrison
 import tactic.interactive
 import tactic.converter.interactive
 
+/-!
+## Introduce the `apply_congr` conv mode tactic.
+
+`apply_congr` will apply congruence lemmas inside `conv` mode.
+It is particularly useful when the automatically generated congruence lemmas
+are not of the optimal shape. An example, described in the doc-string is
+rewriting inside the operand of a `finset.sum`.
+-/
+
 open tactic
 
 namespace conv.interactive

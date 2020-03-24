@@ -41,11 +41,19 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
 -/
-meta def solve_by_elim_aux (discharger : tactic unit) (lemmas : list expr)  : ℕ → tactic unit
-| 0 := done
-| (n+1) := done <|>
-    (apply_any lemmas $ solve_by_elim_aux n) <|>
-    (discharger >> solve_by_elim_aux n)
+meta def solve_by_elim_aux (accept : list expr → tactic unit) (discharger : tactic unit)
+  (original_goals : list expr) (lemmas : list expr)  : ℕ → tactic unit
+| n := do
+  -- First, check that progress so far is `accept`able.
+  (original_goals.mmap instantiate_mvars >>= accept) >>
+  -- Then check if we've finished.
+  (done <|>
+    -- Otherwise, if there's more time left,
+    guard (n > 0) >>
+    -- try either applying a lemma and recursing, or
+    ((apply_any lemmas $ solve_by_elim_aux (n-1)) <|>
+    -- if that does work, run the discharger and recurse.
+     (discharger >> solve_by_elim_aux (n-1))))
 
 /--
 Configuration options for `solve_by_elim`.
@@ -54,16 +62,20 @@ Configuration options for `solve_by_elim`.
   but with `backtrack_all_goals := true`, it operates on all goals at once,
   backtracking across goals as needed,
   and only succeeds if it discharges all goals.
+* `accept` determines whether the current branch should be explored.
+   It is passed the current state of original goals, and should fail if it wants to disregard this branch.
+   By default `accept` always succeeds.
 * `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
   If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
 * `max_steps` bounds the depth of the search.
 -/
 meta structure by_elim_opt :=
-  (backtrack_all_goals : bool := ff)
-  (discharger : tactic unit := done)
-  (lemmas : list expr := [])
-  (max_steps : ℕ := 3)
+(backtrack_all_goals : bool := ff)
+(accept : list expr → tactic unit := λ _, skip)
+(discharger : tactic unit := done)
+(lemmas : list expr := [])
+(max_steps : ℕ := 3)
 
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
 if opt.lemmas = [] then local_context else return opt.lemmas
@@ -79,8 +91,9 @@ meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
   lemmas ← opt.get_lemmas,
-  (if opt.backtrack_all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger lemmas opt.max_steps
+  (if opt.backtrack_all_goals then id else focus1) $ (do
+    gs ← get_goals,
+    solve_by_elim_aux opt.accept opt.discharger gs lemmas opt.max_steps)
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional

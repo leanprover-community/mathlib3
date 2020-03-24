@@ -73,8 +73,8 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 @[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
 set.eq_univ_of_forall e.surjective
 
-protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
-| ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
+protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
+e.injective.comap_subsingleton
 
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
 | a b := decidable_of_iff _ e.injective.eq_iff

@@ -637,6 +637,15 @@ variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
 
+section comm_monoid
+variables [comm_monoid β]
+
+lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.prod (λ x, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
+by simp
+
+end comm_monoid
+
 section semiring
 variables [semiring β]
 
@@ -646,19 +655,12 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (s.sum_hom _).symm
 
-lemma prod_pow (n : ℕ) : (s.prod f) ^ b = s.sum (λx, (f x) ^ b) :=
-(s.prod_hom (λ x, x ^ b)).symm
-
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 by simp
 
 lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
-by simp
-
-lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
-  s.prod (λ x, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
 by simp
 
 end semiring

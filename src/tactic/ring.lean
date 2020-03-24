@@ -537,7 +537,7 @@ add_tactic_doc
 { name        := "ring",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ring],
-  tags        := ["arithmetic", "simplification", "normalization", "decision procedure"] }
+  tags        := ["arithmetic", "simplification", "decision procedure"] }
 
 end interactive
 end tactic

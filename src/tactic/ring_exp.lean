@@ -1479,6 +1479,6 @@ add_tactic_doc
 { name        := "ring_exp",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ring_exp],
-  tags        := ["arithmetic", "simplification", "normalization", "decision procedure"] }
+  tags        := ["arithmetic", "simplification", "decision procedure"] }
 
 end tactic.interactive

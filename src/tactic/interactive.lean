@@ -713,7 +713,7 @@ add_tactic_doc
 { name       := "field_simp",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.field_simp],
-  tags       := ["simplification", "normalization", "arithmetic"] }
+  tags       := ["simplification", "arithmetic"] }
 
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e

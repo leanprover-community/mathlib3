@@ -2,12 +2,16 @@
 Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Mario Carneiro
-
-Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
 import algebra.group_power data.rat.order data.rat.cast data.rat.meta_defs data.nat.prime
 import tactic.interactive tactic.converter.interactive
+
+/-!
+# `norm_num`
+
+Evaluating arithmetic expressions including *, +, -, ^, ≤
+-/
 
 universes u v w
 
@@ -472,7 +476,7 @@ do ns ← loc.get_locals,
    when (¬ ns.empty) $ try tactic.contradiction
 
 /-- Normalize numerical expressions. Supports the operations
-  `+` `-` `*` `/` `^` and `%` over numerical types such as
+`+` `-` `*` `/` `^` and `%` over numerical types such as
 `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
 and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
 where `A` and `B` are numerical expressions.
@@ -483,10 +487,51 @@ simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
 
 add_hint_tactic "norm_num"
 
+/-- Normalizes a numerical expression and tries to close the goal with the result. -/
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,
   (x₂,_) ← derive x₁,
   tactic.exact x₂
+
+/--
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over
+numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`,
+`A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
+The variant `norm_num1` does not call `simp`.
+
+Both `norm_num` and `norm_num1` can be called inside the `conv` tactic.
+
+The tactic `apply_normed` normalises a numerical expression and tries to close the goal with
+the result. Compare:
+```lean
+def a : ℕ := 2^100
+#print a -- 2 ^ 100
+
+def normed_a : ℕ := by apply_normed 2^100
+#print normed_a -- 1267650600228229401496703205376
+```
+-/
+add_tactic_doc
+{ name        := "norm_num",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.norm_num1, `tactic.interactive.norm_num,
+                  `tactic.interactive.apply_normed],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end tactic.interactive
 

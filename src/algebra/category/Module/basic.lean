@@ -54,8 +54,11 @@ instance : inhabited (Module R) := ⟨of R punit⟩
 @[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
-/-- Forgetting the underlying type and then building the bundled object returns the original module. -/
-def of_self (M : Module R) : Module.of R M ≅ M :=
+variables {R}
+
+/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
+@[simps]
+def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=
@@ -120,10 +123,18 @@ def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group
 
 namespace Module
 
+section zero_morphisms
+
+instance : has_zero_morphisms.{u} (Module R) :=
+{ has_zero := λ M N, ⟨0⟩,
+  comp_zero' := λ M N f Z, by ext; erw linear_map.zero_apply,
+  zero_comp' := λ M N Z f, by ext; erw [linear_map.comp_apply, linear_map.zero_apply,
+    linear_map.zero_apply, linear_map.map_zero] }
+
+end zero_morphisms
+
 section kernel
 variables {R} {M N : Module R} (f : M ⟶ N)
-
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The cone on the equalizer diagram of f and 0 induced by the kernel of f -/
 def kernel_cone : cone (parallel_pair f 0) :=
@@ -154,8 +165,6 @@ def kernel_is_limit : is_limit (kernel_cone f) :=
     by convert @congr_fun _ _ _ _ h₁ x }
 
 end kernel
-
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 instance : has_kernels.{u} (Module R) :=
 ⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩

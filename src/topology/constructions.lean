@@ -31,7 +31,7 @@ product, sum, disjoint union, subspace, quotient space
 
 noncomputable theory
 
-open topological_space set filter lattice
+open topological_space set filter
 open_locale classical topological_space
 
 universes u v w x
@@ -326,7 +326,7 @@ lemma embedding_inl : embedding (@sum.inl α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_left },
+    { rw ← coinduced_le_iff_le_induced, exact le_sup_left },
     { intros u hu, existsi (sum.inl '' u),
       change
         (is_open (sum.inl ⁻¹' (@sum.inl α β '' u)) ∧
@@ -344,7 +344,7 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_right },
+    { rw ← coinduced_le_iff_le_induced, exact le_sup_right },
     { intros u hu, existsi (sum.inr '' u),
       change
         (is_open (sum.inl ⁻¹' (@sum.inr α β '' u)) ∧
@@ -368,6 +368,9 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
+
+lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
+continuous_subtype_val
 
 lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
   open_embedding (subtype.val : s → α) :=
@@ -565,7 +568,6 @@ end pi
 
 section sigma
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
-open lattice
 
 lemma continuous_sigma_mk {i : ι} : continuous (@sigma.mk ι σ i) :=
 continuous_supr_rng continuous_coinduced_rng

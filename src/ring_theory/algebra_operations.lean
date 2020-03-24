@@ -12,7 +12,7 @@ import tactic.monotonicity.basic
 
 universes u v
 
-open lattice algebra
+open algebra
 
 local attribute [instance] set.pointwise_mul_semiring
 

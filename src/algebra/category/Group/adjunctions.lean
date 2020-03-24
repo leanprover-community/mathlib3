@@ -41,9 +41,18 @@ def free : Type u ⥤ AddCommGroup.{u} :=
 /--
 The free-forgetful adjunction for abelian groups.
 -/
-def adj : free ⊣ forget AddCommGroup :=
+def adj : free ⊣ forget AddCommGroup.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
   hom_equiv_naturality_left_symm' := by {intros, ext, dsimp at *, simp [free_abelian_group.lift_comp],} }
+
+/--
+As an example, we now give a high-powered proof that
+the monomorphisms in `AddCommGroup` are just the injective functions.
+
+(This proof works in all universes.)
+-/
+example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
+(mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
 
 end AddCommGroup

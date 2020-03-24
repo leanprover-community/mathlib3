@@ -227,7 +227,7 @@ end
 
 @[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
   x ^ m = x ^ n ↔ m = n :=
-⟨λ h, injective_fpow h₀ h₁ h, congr_arg _⟩
+(injective_fpow h₀ h₁).eq_iff
 
 end ordered
 
@@ -241,9 +241,9 @@ begin
   rw [fpow_neg, one_div_eq_inv, fpow_of_nat]
 end
 
-@[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
+@[simp, move_cast] theorem rat.cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=
-(ring_hom.of rat.cast).map_fpow q n
+(rat.cast_hom K).map_fpow q n
 
 lemma fpow_eq_zero {x : K} {n : ℤ} (h : x^n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h

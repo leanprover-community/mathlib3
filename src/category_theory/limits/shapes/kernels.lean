@@ -97,8 +97,8 @@ end
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
+local attribute [instance] has_zero_object.has_zero
+variables [has_zero_morphisms.{v} C]
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
 def kernel.zero_cone : cone (parallel_pair f 0) :=
@@ -107,19 +107,11 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 
 /-- The map from the zero object is a kernel of a monomorphism -/
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
-{ lift := λ s, 0,
-  fac' := λ s j,
-  begin
-    cases j,
-    { erw has_zero_morphisms.zero_comp,
-      convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
-      erw fork.condition,
-      convert has_zero_morphisms.comp_zero.{v} _ (s.π.app zero) _ },
-    { rw ←cone_parallel_pair_right s,
-      simp only [has_zero_morphisms.zero_comp],
-      convert (has_zero_morphisms.comp_zero.{v} _ (s.π.app zero) _).symm },
-  end,
-  uniq' := λ _ m _, has_zero_object.zero_of_to_zero m }
+fork.is_limit.mk _ (λ s, 0)
+  (λ s, by { erw has_zero_morphisms.zero_comp,
+    convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
+    exact kernel_fork.condition _ })
+  (λ _ _ _, has_zero_object.zero_of_to_zero _)
 
 /-- The kernel of a monomorphism is isomorphic to the zero object -/
 def kernel.of_mono [has_limit (parallel_pair f 0)] [mono f] : kernel f ≅ 0 :=
@@ -131,16 +123,16 @@ lemma kernel.ι_of_mono [has_limit (parallel_pair f 0)] [mono f] : kernel.ι f =
 by rw [←category.id_comp _ (kernel.ι f), ←iso.hom_inv_id (kernel.of_mono f), category.assoc,
   has_zero_object.zero_of_to_zero (kernel.of_mono f).hom, has_zero_morphisms.zero_comp]
 
+end has_zero_object
+
 section
-variables (X) (Y)
+variables (X) (Y) [has_zero_morphisms.{v} C]
 
 /-- The kernel morphism of a zero morphism is an isomorphism -/
 def kernel.ι_of_zero [has_limit (parallel_pair (0 : X ⟶ Y) 0)] : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 end
-
-end has_zero_object
 
 section
 variables [has_zero_morphisms.{v} C]
@@ -182,8 +174,9 @@ end
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
+local attribute [instance] has_zero_object.has_zero
+
+variable [has_zero_morphisms.{v} C]
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
 def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
@@ -192,20 +185,11 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
-{ desc := λ s, 0,
-  fac' := λ s j,
-  begin
-    cases j,
-    { erw [←cocone_parallel_pair_left s,
-        has_zero_morphisms.comp_zero _ ((cokernel.zero_cocone f).ι.app zero) _, cofork.condition,
-        has_zero_morphisms.zero_comp],
-      refl },
-    { erw has_zero_morphisms.zero_comp,
-      convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
-      erw [cofork.condition, has_zero_morphisms.zero_comp],
-      refl },
-  end,
-  uniq' := λ _ m _, has_zero_object.zero_of_from_zero m }
+cofork.is_colimit.mk _ (λ s, 0)
+  (λ s, by { erw has_zero_morphisms.zero_comp,
+    convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
+    exact cokernel_cofork.condition _ })
+  (λ _ _ _, has_zero_object.zero_of_from_zero _)
 
 /-- The cokernel of an epimorphism is isomorphic to the zero object -/
 def cokernel.of_epi [has_colimit (parallel_pair f 0)] [epi f] : cokernel f ≅ 0 :=
@@ -217,8 +201,10 @@ lemma cokernel.π_of_epi [has_colimit (parallel_pair f 0)] [epi f] : cokernel.π
 by rw [←category.comp_id _ (cokernel.π f), ←iso.hom_inv_id (cokernel.of_epi f), ←category.assoc,
   has_zero_object.zero_of_from_zero (cokernel.of_epi f).inv, has_zero_morphisms.comp_zero]
 
+end has_zero_object
+
 section
-variables (X) (Y)
+variables (X) (Y) [has_zero_morphisms.{v} C]
 
 /-- The cokernel of a zero morphism is an isomorphism -/
 def cokernel.π_of_zero [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
@@ -227,13 +213,12 @@ coequalizer.π_of_self _
 
 end
 
-end has_zero_object
 
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
+local attribute [instance] has_zero_object.has_zero
+variables [has_zero_morphisms.{v} C]
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]

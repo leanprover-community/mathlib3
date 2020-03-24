@@ -156,8 +156,8 @@ Currently that is not a problem, as there are almost no instances of `monad_func
 
 see Note [lower instance priority] -/
 @[nolint dangerous_instance, priority 100]
-instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_functor m m' n n']
-  [monad_writer_adapter ω ω' m m'] : monad_writer_adapter ω ω' n n' :=
+instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_writer_adapter ω ω' m m']
+  [monad_functor m m' n n'] : monad_writer_adapter ω ω' n n' :=
 ⟨λ α f, monad_map (λ α, (adapt_writer f : m α → m' α))⟩
 
 instance [monad m] : monad_writer_adapter ω ω' (writer_t ω m) (writer_t ω' m) :=

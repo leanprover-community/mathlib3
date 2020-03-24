@@ -97,6 +97,10 @@ subtype.forall
   (∃ x : s, p x) ↔ (∃ x (h : x ∈ s), p ⟨x, h⟩) :=
 subtype.exists
 
+theorem set_coe.exists' {s : set α} {p : Π x, x ∈ s → Prop} :
+  (∃ x (h : x ∈ s), p x h) ↔ (∃ x : s, p x.1 x.2)  :=
+(@set_coe.exists _ _ $ λ x, p x.1 x.2).symm
+
 @[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
   cast H x = ⟨x.1, H' ▸ x.2⟩
 | s _ rfl _ ⟨x, h⟩ := rfl
@@ -679,7 +683,7 @@ by finish [ext_iff]
 @[simp] theorem compl_union (s t : set α) : -(s ∪ t) = -s ∩ -t :=
 by finish [ext_iff]
 
-local attribute [simp] -- Will be generalized to lattices in `lattice.neg_neg`
+local attribute [simp] -- Will be generalized to lattices in `compl_compl'`
 theorem compl_compl (s : set α) : -(-s) = s :=
 by finish [ext_iff]
 
@@ -981,6 +985,11 @@ theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
 iff.intro
   (assume h a ha, h _ $ mem_image_of_mem _ ha)
   (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+
+theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+  (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
+⟨λ ⟨y, ⟨x, hx, hxy⟩, hy⟩, ⟨x, hx, hxy.symm ▸ hy⟩,
+  λ ⟨x, hxs, hpx⟩, ⟨f x, mem_image_of_mem f hxs, hpx⟩⟩
 
 theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y

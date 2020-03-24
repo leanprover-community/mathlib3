@@ -952,7 +952,7 @@ end
 
 section
 variables
-  (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
 
 /--
 Transport dependent functions through

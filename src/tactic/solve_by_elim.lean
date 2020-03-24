@@ -66,14 +66,19 @@ meta structure by_elim_opt :=
   (max_steps : ℕ := 3)
 
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
-if opt.lemmas = [] then local_context else return opt.lemmas
+if opt.lemmas = [] then mk_assumption_set ff [] [] else return opt.lemmas
 
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
 from the list of assumptions (passed via the `by_elim_opt` argument),
 recursively operating on any generated subgoals.
+
 It succeeds only if it discharges the first goal
 (or with `backtrack_all_goals := tt`, if it discharges all goals.)
+
+If passed an empty list of assumptions, `solve_by_elim` builds a default set
+as per the interactive tactic, using the `local_context` along with
+`rfl`, `trivial`, `congr_arg`, and `congr_fun`.
 -/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do

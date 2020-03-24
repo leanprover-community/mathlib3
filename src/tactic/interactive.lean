@@ -181,7 +181,7 @@ add_tactic_doc
 { name       := "classical",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.classical],
-  tags       := ["classical reasoning", "type class"] }
+  tags       := ["classical logic", "type class"] }
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)

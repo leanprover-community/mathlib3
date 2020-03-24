@@ -971,34 +971,6 @@ end
 ```
 and likewise for `to_rhs`.
 
-### apply_congr
-
-The `apply_congr` tactic is used in conversion mode, to apply a congruence lemma
-when `congr` performs poorly.
-In particular it is useful for rewriting inside the operand of a `finset.sum`,
-as it provides an extra hypothesis asserting we are inside the domain.
-
-For example:
-
-```lean
-example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
-  finset.sum S f = finset.sum S g :=
-begin
-  conv_lhs {
-    -- If we just call `congr` here, in the second goal we're helpless,
-    -- because we are only given the opportunity to rewrite `f`.
-
-    -- However `apply_congr` uses the appropriate `@[congr]` lemma,
-    -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
-    apply_congr,
-    skip,
-    simp [h, H],
-  }
-end
-```
-
-In the above example, when the `apply_congr` tactic is called it gives the hypothesis `H : x ∈ S` which is then used to rewrite the `f x` to `g x`.
-
 ## mono
 
 - `mono` applies a monotonicity rule.

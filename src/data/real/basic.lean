@@ -256,7 +256,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
     replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
-    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos xz) hK),
+    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 xz) hK),
     refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
@@ -268,8 +268,8 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   intros j k ij ik,
   replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
   replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos ε0) ij),
-  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos ε0) ik),
+  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
+  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
   rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
   refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
     ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
@@ -412,8 +412,8 @@ suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, be
     exact ⟨y, le_of_lt y0, hy⟩ },
   { have := (inv_le_inv x0 zero_lt_one).2 x1,
     rw inv_one at this,
-    rcases H (inv_pos x0) this with ⟨y, y0, hy⟩,
-    refine ⟨y⁻¹, le_of_lt (inv_pos y0), _⟩, rw [← mul_inv', hy, inv_inv'] },
+    rcases H (inv_pos.2 x0) this with ⟨y, y0, hy⟩,
+    refine ⟨y⁻¹, le_of_lt (inv_pos.2 y0), _⟩, rw [← mul_inv', hy, inv_inv'] },
   { exact ⟨0, by simp [x0.symm]⟩ }
 end,
 λ x x0 x1, begin
@@ -606,8 +606,8 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 (le_or_lt x 0).elim
   (λ h, by simp [sqrt_eq_zero'.2, inv_nonpos, h])
   (λ h, by rw [
-    ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos $ sqrt_pos.2 h),
-    mul_self_sqrt (le_of_lt $ inv_pos h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
+    ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos.2 $ sqrt_pos.2 h),
+    mul_self_sqrt (le_of_lt $ inv_pos.2 h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl

@@ -60,10 +60,10 @@ Configuration options for `solve_by_elim`.
 * `max_steps` bounds the depth of the search.
 -/
 meta structure by_elim_opt :=
-  (backtrack_all_goals : bool := ff)
-  (discharger : tactic unit := done)
-  (lemmas : option (list expr) := none)
-  (max_steps : ℕ := 3)
+(backtrack_all_goals : bool := ff)
+(discharger : tactic unit := done)
+(lemmas : option (list expr) := none)
+(max_steps : ℕ := 3)
 
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
 match opt.lemmas with

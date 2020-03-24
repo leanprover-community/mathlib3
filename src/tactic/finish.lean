@@ -363,7 +363,7 @@ SMT state and will repeatedly use `ematch` (using `ematch` lemmas in the environ
 universally quantified assumptions, and the supplied lemmas `ps`) and congruence closure.
 -/
 meta def done (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-do trace_state_for `auto.done "entering done",
+do trace_state_if_enabled `auto.done "entering done",
    contradiction <|>
    (solve1 $
      (do revert_all,
@@ -435,16 +435,16 @@ it will:
 -/
 meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
-do trace_state_for `auto.finish "entering safe_core",
+do trace_state_if_enabled `auto.finish "entering safe_core",
    if cfg.use_simp then do
      trace_if_enabled `auto.finish "simplifying hypotheses",
      simp_all s.1 s.2 { fail_if_unchanged := ff },
-     trace_state_for `auto.finish "result:"
+     trace_state_if_enabled `auto.finish "result:"
    else skip,
    tactic.done <|>
    do trace_if_enabled `auto.finish "preprocessing hypotheses",
       preprocess_hyps cfg,
-      trace_state_for `auto.finish "result:",
+      trace_state_if_enabled `auto.finish "result:",
       done ps cfg <|>
         (mcond (case_some_hyp co safe_core)
           skip

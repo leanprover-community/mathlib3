@@ -1420,11 +1420,11 @@ meta def trace_if_enabled
 when_tracing n (trace msg)
 
 /--
-``trace_state_for `n msg`` prints the tactic state,
+``trace_state_if_enabled `n msg`` prints the tactic state,
 preceded by the optional string `msg`,
 only if tracing is enabled for the name `n`.
 -/
-meta def trace_state_for
+meta def trace_state_if_enabled
   (n : name) (msg : string := "") : tactic unit :=
 when_tracing n ((if msg = "" then skip else trace msg) >> trace_state)
 

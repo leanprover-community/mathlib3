@@ -193,7 +193,7 @@ omit 𝒟 ℰ
 
 -- There's of course a monoid structure on `C ≌ C`,
 -- but let's not encourage using it.
--- The power structure is nevertheless useful
+-- The power structure is nevertheless useful.
 
 /-- Powers of an auto-equivalence. -/
 def pow (e : C ≌ C) : ℤ → (C ≌ C)
@@ -204,6 +204,13 @@ def pow (e : C ≌ C) : ℤ → (C ≌ C)
 | (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
 
 instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
+
+@[simp] lemma pow_zero (e : C ≌ C) : e^(0 : ℤ) = equivalence.refl := rfl
+@[simp] lemma pow_one (e : C ≌ C) : e^(1 : ℤ) = e := rfl
+@[simp] lemma pow_minus_one (e : C ≌ C) : e^(-1 : ℤ) = e.symm := rfl
+
+-- TODO as necessary, add the natural isomorphisms `(e^a).trans e^b ≅ e^(a+b)`.
+-- At this point, we haven't even defined the category of equivalences.
 
 end
 

@@ -96,8 +96,8 @@ variables (e : local_equiv α β) (e' : local_equiv β γ)
 
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
-{ to_fun    := λ⟨x, hx⟩, ⟨e.to_fun x, e.map_source hx⟩,
-  inv_fun   := λ⟨y, hy⟩, ⟨e.inv_fun y, e.map_target hy⟩,
+{ to_fun    := λ x, ⟨e.to_fun x, e.map_source x.mem⟩,
+  inv_fun   := λ y, ⟨e.inv_fun y, e.map_target y.mem⟩,
   left_inv  := λ⟨x, hx⟩, subtype.eq $ e.left_inv hx,
   right_inv := λ⟨y, hy⟩, subtype.eq $ e.right_inv hy }
 
@@ -515,9 +515,9 @@ noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set �
   source := s,
   target := t,
   map_source := hf.maps_to,
-  map_target := λ y hy, inv_fun_on_mem $ mem_image_iff_bex.1 $ hf.surj_on hy,
-  left_inv := λ x hx, inv_fun_on_eq' hf.inj_on hx,
-  right_inv := λ y hy, inv_fun_on_eq $ mem_image_iff_bex.1 $ hf.surj_on hy }
+  map_target := hf.surj_on.maps_to_inv_fun_on,
+  left_inv := hf.inv_on_inv_fun_on.1,
+  right_inv := hf.inv_on_inv_fun_on.2 }
 
 /-- A map injective on a subset of its domain provides a local equivalence. -/
 noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (hf : inj_on f s) :

@@ -6,7 +6,7 @@ Make sure you have:
   * [ ] reviewed and applied [the documentation requirements](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md)
   * [ ] for tactics:
      * [ ] added or adapted documentation in the [tactic doc entries](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md#tactic-doc-entries)
-     * [ ] write an example of use of the new feature in [tactics.lean](https://github.com/leanprover-community/mathlib/blob/master/test/tactics.lean)
+     * [ ] write an example of use of the new feature in [test/tactics.lean](https://github.com/leanprover-community/mathlib/blob/master/test/tactics.lean) or another test file
   * [ ] make sure definitions and lemmas are put in the right files
   * [ ] make sure definitions and lemmas are not redundant
 

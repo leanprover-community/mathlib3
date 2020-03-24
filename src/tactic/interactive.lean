@@ -118,7 +118,7 @@ add_tactic_doc
 { name       := "clear_",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.clear_],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 meta def apply_iff_congr_core : tactic unit :=
 applyc ``iff_of_eq
@@ -172,7 +172,7 @@ add_tactic_doc
 { name       := "replace",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.replace],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /-- Make every proposition in the context decidable. -/
 meta def classical := tactic.classical
@@ -225,7 +225,7 @@ add_tactic_doc
 { name       := "generalize_hyp",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize_hyp],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /--
 The `exact e` and `refine e` tactics require a term `e` whose type is
@@ -624,7 +624,7 @@ add_tactic_doc
 { name       := "h_generalize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.h_generalize],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
@@ -1118,7 +1118,7 @@ add_tactic_doc
 { name       := "revert_deps",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_deps],
-  tags       := ["hypothesis management", "goal management"] }
+  tags       := ["context management", "goal management"] }
 
 /-- `revert_after n` reverts all the hypotheses after `n`. -/
 meta def revert_after (n : parse ident) : tactic unit :=
@@ -1128,7 +1128,7 @@ add_tactic_doc
 { name       := "revert_after",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_after],
-  tags       := ["hypothesis management", "goal management"] }
+  tags       := ["context management", "goal management"] }
 
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/

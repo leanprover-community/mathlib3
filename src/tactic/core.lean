@@ -851,7 +851,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := ["hypothesis management"] }
+  tags                     := ["context management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/

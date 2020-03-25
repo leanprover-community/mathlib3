@@ -587,8 +587,6 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
-protected lemma injective : function.injective e := e.antilipschitz.injective
-
 /-- A continuous linear equiv is a uniform embedding. -/
 lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous

@@ -33,8 +33,6 @@ and require `0⁻¹ = 0`.
 
 set_option old_structure_cmd true
 
-open_locale classical
-
 section prio -- see Note [default priority]
 set_option default_priority 100
 
@@ -102,9 +100,12 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
 @[simp] lemma inv_inv (a : G) : a⁻¹⁻¹ = a :=
-if h : a = 0 then by simp [h] else
-calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
-       ... = a                 : by simp [inv_ne_zero h]
+begin
+  classical,
+  by_cases h : a = 0, { simp [h] },
+  calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
+        ... = a                 : by simp [inv_ne_zero h]
+end
 
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) :=
 inv_inv
@@ -186,7 +187,7 @@ variables {G : Type*} [group_with_zero G]
 
 lemma mul_eq_zero (a b : G) (h : a * b = 0) : a = 0 ∨ b = 0 :=
 begin
-  contrapose! h,
+  classical, contrapose! h,
   exact unit_ne_zero ((units.mk0 a h.1) * (units.mk0 b h.2))
 end
 
@@ -209,7 +210,7 @@ begin
 end
 
 lemma mul_ne_zero_iff {a b : G} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-by { rw ← not_iff_not, push_neg, exact mul_eq_zero_iff }
+by { classical, rw ← not_iff_not, push_neg, exact mul_eq_zero_iff }
 
 lemma mul_left_cancel {x : G} (hx : x ≠ 0) {y z : G} (h : x * y = x * z) : y = z :=
 calc y = x⁻¹ * (x * y) : by rw inv_mul_cancel_assoc_right _ _ hx
@@ -229,6 +230,7 @@ eq.symm $ mul_inv_eq_of_eq_mul hx h.symm
 
 lemma mul_inv_rev (x y : G) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
 begin
+  classical,
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
   symmetry,
@@ -240,6 +242,7 @@ theorem inv_comm_of_comm {a b : G} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹
 begin
   have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
     congr_arg (λ x:G, a⁻¹ * x * a⁻¹) H.symm,
+  classical,
   by_cases h : a = 0, { rw [h, inv_zero, zero_mul, mul_zero] },
   rwa [inv_mul_cancel_assoc_right _ _ h, mul_assoc, mul_inv_cancel_assoc_left _ _ h] at this,
 end

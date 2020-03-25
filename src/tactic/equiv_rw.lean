@@ -36,13 +36,12 @@ def equiv_congr_lemmas : list name :=
 [-- these are functorial w.r.t equiv, and so could be subsumed by a `equiv_functor.map`
  -- many more could be added
  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
- -- these are bifunctors, and so could be subsumed by a `bifunctor.map_equiv`
- `equiv.sum_congr, `equiv.prod_congr,
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
  `equiv.arrow_congr',
  `equiv.sigma_congr_left', -- allows rewriting in the argument of a sigma-type
  `equiv.Pi_congr_left', -- allows rewriting in the argument of a pi-type
 --  `equiv.Pi_congr'', -- allows rewriting in the value of a pi-type??
+ `bifunctor.map_equiv,  -- handles `sum` and `prod`
  `functor.map_equiv,  -- handles `list`, `option`, and many others
  `equiv.refl]
 

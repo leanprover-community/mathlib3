@@ -1144,9 +1144,13 @@ else
     simp [sub_eq_add_neg, real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
 
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
-if hx : x = 0 then by simp [hx]
-else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
-    field.div_div_div_cancel_right _ (mt abs_eq_zero.1 hx)]
+begin
+  by_cases h : x = 0,
+  { simp only [h, euclidean_domain.zero_div,
+    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re]},
+  rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
+      gwz.div_div_div_cancel_right _ (mt abs_eq_zero.1 h)]
+end
 
 lemma arg_cos_add_sin_mul_I {x : ℝ} (hx₁ : -π < x) (hx₂ : x ≤ π) :
   arg (cos x + sin x * I) = x :=

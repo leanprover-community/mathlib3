@@ -33,8 +33,8 @@ and require `0⁻¹ = 0`.
 
 set_option old_structure_cmd true
 
-section prio -- see Note [default priority]
-set_option default_priority 100
+section prio
+set_option default_priority 10 -- see Note [default priority]
 
 /-- A type `G` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
@@ -191,8 +191,8 @@ begin
   exact unit_ne_zero ((units.mk0 a h.1) * (units.mk0 b h.2))
 end
 
-section prio -- see Note [default priority]
-set_option default_priority 100
+section prio
+set_option default_priority 10 -- see Note [default priority]
 
 instance : no_zero_divisors G :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mul_eq_zero,

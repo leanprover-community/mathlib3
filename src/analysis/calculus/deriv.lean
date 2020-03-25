@@ -1252,7 +1252,7 @@ begin
     lift m to ℕ using (le_of_lt hm),
     simp only [fpow_of_nat, int.cast_coe_nat],
     convert has_deriv_at_pow _ _ using 2,
-    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_of_nat],
+    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_coe_nat],
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,

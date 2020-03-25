@@ -112,7 +112,7 @@ or.elim (nat.lt_or_ge m (nat.succ n))
   suffices a ^ (m - n.succ) = a ^ m * (a ^ n.succ)⁻¹, from this,
   by rw gwz.pow_sub; assumption)
 
-theorem fpow_add (a : G) (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
+theorem fpow_add {a : G} (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
 | (of_nat m) (of_nat n) := pow_add _ _ _
 | (of_nat m) -[1+n]     := fpow_add_aux _ h _ _
 | -[1+m]     (of_nat n) := by rw [add_comm, fpow_add_aux _ h,
@@ -122,13 +122,13 @@ theorem fpow_add (a : G) (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * 
   by rw [← nat.succ_add_eq_succ_add, add_comm, pow_add, gwz.mul_inv_rev]
 
 theorem fpow_add_one (a : G) (h : a ≠ 0) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
-by rw [fpow_add _ h, fpow_one]
+by rw [fpow_add h, fpow_one]
 
 theorem fpow_one_add (a : G) (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
-by rw [fpow_add _ h, fpow_one]
+by rw [fpow_add h, fpow_one]
 
 theorem fpow_mul_comm (a : G) (h : a ≠ 0) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
-by rw [← fpow_add _ h, ← fpow_add _ h, add_comm]
+by rw [← fpow_add h, ← fpow_add h, add_comm]
 
 theorem fpow_mul (a : G) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -162,7 +162,7 @@ lemma fpow_ne_zero_of_ne_zero {a : G} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 
 | -[1+n]     := inv_ne_zero $ pow_ne_zero _ ha
 
 lemma fpow_sub {a : G} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
-by rw [sub_eq_add_neg, fpow_add _ ha, fpow_neg]; refl
+by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
 
 lemma mul_fpow {G : Type*} [comm_group_with_zero G] (a b : G) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)

@@ -4,9 +4,10 @@ on: [push, pull_request]
 
 jobs:
   cleanup-runs:
+      on: [push]
       runs-on: ubuntu-latest
       steps:
-      - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      - uses: semorrison/workflow-run-cleanup-action@v0.2.2
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"

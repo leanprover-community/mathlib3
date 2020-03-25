@@ -668,6 +668,14 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
+/--
+Configuration options for `apply_any`:
+* `use_symmetry`: if `apply_any` fails to apply any lemma, call `symmetry` and try again.
+* `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
+* `all_goals`: attempt to solve all goals simultaneously,
+    backtracking if a solution to one goal results in other goals being impossible.
+* `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
+-/
 meta structure apply_any_opt :=
 (use_symmetry : bool := tt)
 (use_exfalso : bool := tt)

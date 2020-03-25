@@ -42,10 +42,6 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 /--
 Configuration options for `solve_by_elim`.
 
-* By default `solve_by_elim` operates only on the first goal,
-  but with `backtrack_all_goals := true`, it operates on all goals at once,
-  backtracking across goals as needed,
-  and only succeeds if it discharges all goals.
 * `accept` determines whether the current branch should be explored.
    It takes the current state of original goals as a `list expr` argument,
    and should fail to signal omitting this branch.
@@ -53,8 +49,6 @@ Configuration options for `solve_by_elim`.
 * `pre_apply` specifies an additional tactic to run before each round of `apply`.
 * `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
   If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
-* `assumptions` generates the list of lemmas to use in the backtracking search.
-* `max_steps` bounds the depth of the search.
 -/
 meta structure basic_opt extends apply_any_opt :=
 (accept : list expr → tactic unit := λ _, skip)
@@ -80,6 +74,17 @@ meta def solve_by_elim_aux (opt : basic_opt)
     -- if that doesn't work, run the discharger and recurse.
      (opt.discharger >> solve_by_elim_aux (n-1))))
 
+/--
+Arguments for `solve_by_elim`:
+* By default `solve_by_elim` operates only on the first goal,
+  but with `backtrack_all_goals := true`, it operates on all goals at once,
+  backtracking across goals as needed,
+  and only succeeds if it discharges all goals.
+* `lemmas` specifies the list of lemmas to use in the backtracking search.
+  If `none`, `solve_by_elim` uses the local hypotheses,
+  along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
+* `max_steps` bounds the depth of the search.
+-/
 meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
 (lemmas : option (list expr) := none)

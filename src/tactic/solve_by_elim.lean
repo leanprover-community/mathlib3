@@ -185,6 +185,7 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 - accept: a subsidiary tactic that takes as an argument `list expr`
     showing the current state of the original goals,
     and which may fail to indicate that the current branch of the search tree should not be searched.
+    This may also be used to filter results.
 -/
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :

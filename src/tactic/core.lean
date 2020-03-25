@@ -1481,24 +1481,27 @@ The number 2 indicates that first the two bound variables of the
 rather than `=ₐ` or `is_def_eq` tells us that proof script should
 not see the difference between the two.
  -/
-meta def user_visible_goal := ℕ × expr
+meta def packaged_goal := ℕ × expr
 
 /-- proof state made of multiple `goal` meant for comparing
 the result of running different tactics -/
-meta def proof_state := list user_visible_goal
+meta def proof_state := list packaged_goal
 
-meta instance goal.inhabited : inhabited user_visible_goal := ⟨(0,var 0)⟩
+meta instance goal.inhabited : inhabited packaged_goal := ⟨(0,var 0)⟩
 meta instance proof_state.inhabited : inhabited proof_state :=
-(infer_instance : inhabited (list user_visible_goal))
+(infer_instance : inhabited (list packaged_goal))
 
-meta def get_user_visible_goal : tactic user_visible_goal :=
-retrieve $ do
+/-- create a `packaged_goal` corresponding to the current goal -/
+meta def get_packaged_goal : tactic packaged_goal := do
 ls ← local_context,
-     tgt ← target >>= instantiate_mvars >>= pis ls,
-     pure (ls.length, tgt)
+tgt ← target >>= instantiate_mvars,
+tgt ← pis ls tgt,
+pure (ls.length, tgt)
 
-meta def goal_of_mvar (g : expr) : tactic user_visible_goal :=
-with_local_goals' [g] get_user_visible_goal
+/-- `goal_of_mvar g`, with `g` a meta variable, creates a
+`packaged_goal` corresponding to `g` interpretted as a proof goal -/
+meta def goal_of_mvar (g : expr) : tactic packaged_goal :=
+with_local_goals' [g] get_packaged_goal
 
 /-- `get_proof_state` lists the user visible goal for each goal
     of the current state and for each goal, abstracts all of the
@@ -1537,9 +1540,8 @@ do gs ← get_goals,
    gs.mmap $ λ g, do
      ⟨n,g⟩ ← goal_of_mvar g,
      g ← gs.mfoldl (λ g v, do
-       t ← infer_type v,
        g ← kabstract g v reducible ff,
-       pure $ pi `mv binder_info.default t g ) g,
+       pure $ g.lift_vars 0 1 ) g,
      pure (n,g)
 
 /--

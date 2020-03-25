@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.category.Group.basic
 import category_theory.endomorphism
+import category_theory.single_obj
+import category_theory.equivalence
+import category_Theory.eq_to_hom
 
 universes u₁
 
@@ -49,8 +57,7 @@ section
 omit 𝒱
 
 /-- The trivial representation of a group. -/
--- TODO What is the correct generalisation for an arbitrary `𝕍`?
--- When 𝕍 is monoidal, the monoidal unit.
+-- TODO When 𝕍 is monoidal, use the monoidal unit.
 def trivial : Action AddCommGroup G :=
 { V := 0,
   ρ := 1, }
@@ -102,6 +109,58 @@ lemma id_hom (M : Action 𝕍 G) : (𝟙 M : hom M M).hom = 𝟙 M.V := rfl
 lemma comp_hom {M N K : Action 𝕍 G} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom :=
 rfl
+
+@[simps]
+def mk_iso {M N : Action 𝕍 G} (f : M.V ≅ N.V) (comm : ∀ g : G, M.ρ g ≫ f.hom = f.hom ≫ N.ρ g) : M ≅ N :=
+{ hom :=
+  { hom := f.hom,
+    comm' := comm, },
+  inv :=
+  { hom := f.inv,
+    comm' := λ g, begin have w := comm g =≫ f.inv, simp at w, simp [w], end, }}
+
+namespace functor_category_equivalence
+
+@[simps]
+def functor : Action 𝕍 G ⥤ (single_obj G ⥤ 𝕍) :=
+{ obj := λ M,
+  { obj := λ _, M.V,
+    map := λ _ _ g, M.ρ g,
+    map_id' := λ _, M.ρ.map_one,
+    map_comp' := λ _ _ _ g h, M.ρ.map_mul h g, },
+  map := λ M N f,
+  { app := λ _, f.hom,
+    naturality' := λ _ _ g, f.comm g, } }
+
+@[simps]
+def inverse : (single_obj G ⥤ 𝕍) ⥤ Action 𝕍 G :=
+{ obj := λ F,
+  { V := F.obj punit.star,
+    ρ :=
+    { to_fun := λ g, F.map g,
+      map_one' := F.map_id punit.star,
+      map_mul' := λ g h, F.map_comp h g, } },
+  map := λ M N f,
+  { hom := f.app punit.star,
+    comm' := λ g, f.naturality g, } }.
+
+def unit_iso : 𝟭 (Action 𝕍 G) ≅ functor ⋙ inverse :=
+nat_iso.of_components (λ M, mk_iso ((iso.refl _)) (by tidy)) (by tidy).
+def counit_iso : inverse ⋙ functor ≅ 𝟭 (single_obj G ⥤ 𝕍) :=
+nat_iso.of_components (λ M, nat_iso.of_components (by tidy) (by tidy)) (by tidy).
+
+end functor_category_equivalence
+
+section
+open functor_category_equivalence
+
+def functor_category_equivalence : Action 𝕍 G ≌ (single_obj G ⥤ 𝕍) :=
+{ functor := functor,
+  inverse := inverse,
+  unit_iso := unit_iso,
+  counit_iso := counit_iso, }
+
+end
 
 section forget
 

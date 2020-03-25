@@ -10,11 +10,21 @@ variables {α : Type*} [linear_ordered_field α] {a b c d : α}
 
 lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
-lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
-by rw [inv_eq_one_div]; exact div_pos zero_lt_one
+@[simp] lemma inv_pos : ∀ {a : α}, 0 < a⁻¹ ↔ 0 < a :=
+suffices ∀ a : α, 0 < a → 0 < a⁻¹,
+from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+λ a, one_div_eq_inv a ▸ one_div_pos_of_pos
 
-lemma inv_lt_zero {a : α} : a < 0 → a⁻¹ < 0 :=
-by rw [inv_eq_one_div]; exact div_neg_of_pos_of_neg zero_lt_one
+@[simp] lemma inv_lt_zero : ∀ {a : α}, a⁻¹ < 0 ↔ a < 0 :=
+suffices ∀ a : α, a < 0 → a⁻¹ < 0,
+from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+λ a, one_div_eq_inv a ▸ one_div_neg_of_neg
+
+@[simp] lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 inv_lt_zero
+
+@[simp] lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
+le_iff_le_iff_lt_iff_lt.2 inv_pos
 
 lemma one_le_div_iff_le (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 ⟨le_of_one_le_div a hb, one_le_div_of_le a hb⟩
@@ -67,10 +77,10 @@ by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]
 
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv hb (inv_pos ha), inv_inv']
+by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv (inv_pos hb) ha, inv_inv']
+by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
 
 lemma one_div_le_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ 1 / b ↔ b ≤ a :=
 by simpa [one_div_eq_inv] using inv_le_inv ha hb
@@ -174,46 +184,6 @@ by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then by simp [ha0]
 else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) (lt_of_lt_of_le hc h) hc).2 h
 
-end linear_ordered_field
-
-namespace nat
-
-variables {α : Type*} [linear_ordered_field α]
-
-lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
-inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
-
-lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
-by { rw one_div_eq_inv, exact inv_pos_of_nat }
-
-lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
-by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
-
-lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
-by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
-
-end nat
-
-section
-variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
-
-@[simp] lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
-⟨by rw [inv_eq_one_div]; exact pos_of_one_div_pos, inv_pos⟩
-
-@[simp] lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
-⟨by rw [inv_eq_one_div]; exact neg_of_one_div_neg, inv_lt_zero⟩
-
-@[simp] lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
-le_iff_le_iff_lt_iff_lt.2 inv_neg'
-
-@[simp] lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
-le_iff_le_iff_lt_iff_lt.2 inv_pos'
-
-lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=
-have h : abs (1 / a) = 1 / abs a,
-  begin rw [abs_div, abs_of_nonneg], exact zero_le_one end,
-by simp [*] at *
-
 lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
 by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
@@ -229,5 +199,34 @@ lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 lemma div_le_div_of_le_of_nonneg {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
   a / c ≤ b / c :=
 mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
+
+
+end linear_ordered_field
+
+namespace nat
+
+variables {α : Type*} [linear_ordered_field α]
+
+lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
+inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
+
+lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
+by { rw one_div_eq_inv, exact inv_pos_of_nat }
+
+lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
+by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
+
+lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
+by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
+
+end nat
+
+section
+variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
+
+lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=
+have h : abs (1 / a) = 1 / abs a,
+  begin rw [abs_div, abs_of_nonneg], exact zero_le_one end,
+by simp [*] at *
 
 end

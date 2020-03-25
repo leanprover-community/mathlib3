@@ -36,14 +36,21 @@ set_option old_structure_cmd true
 section prio
 set_option default_priority 10 -- see Note [default priority]
 
+/-- A type `M` is a “monoid with zero” if it is a monoid with zero element. -/
+class monoid_with_zero (G : Type*) extends monoid G, mul_zero_class G.
+
+/-- A type `M` is a commutative “monoid with zero”
+if it is a commutative monoid with zero element. -/
+class comm_monoid_with_zero (G : Type*) extends monoid G, mul_zero_class G.
+
 /-- A type `G` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`.
 
-Examples include fields and the ordered monoids that are the
+Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
 class group_with_zero (G : Type*)
-  extends monoid G, has_inv G, zero_ne_one_class G, mul_zero_class G :=
+  extends monoid_with_zero G, has_inv G, zero_ne_one_class G :=
 (inv_zero : (0 : G)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G, a ≠ 0 → a * a⁻¹ = 1)
 

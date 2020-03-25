@@ -15,6 +15,11 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
+@[simp] lemma mwz.zero_pow {M : Type*} [monoid_with_zero M] :
+  ∀ n : ℕ, n ≠ 0 → (0 : M)^n = 0
+| 0     h := absurd rfl h
+| (k+1) h := zero_mul _
+
 namespace gwz
 variables {G : Type*} [group_with_zero G]
 
@@ -42,10 +47,6 @@ eq_mul_inv_of_mul_eq (pow_ne_zero _ ha) h2
 
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 by rw inv_pow; exact inv_comm_of_comm (pow_mul_comm _ _ _)
-
-@[simp] lemma zero_pow : ∀ n : ℕ, n ≠ 0 → (0 : G)^n = 0
-| 0     h := absurd rfl h
-| (k+1) h := zero_mul _
 
 end nat_pow
 
@@ -83,7 +84,7 @@ local attribute [ematch] le_of_lt
 | -[1+ n] := show _⁻¹=(1:G), by rw [one_pow, gwz.inv_one]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G) ^ z = 0
-| (of_nat n) h := gwz.zero_pow _ $ by rintro rfl; exact h rfl
+| (of_nat n) h := mwz.zero_pow _ $ by rintro rfl; exact h rfl
 | -[1+n]     h := show (0*0^n)⁻¹ = (0 : G), by simp
 
 @[simp] theorem fpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹

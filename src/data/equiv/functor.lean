@@ -11,12 +11,12 @@ import category.bifunctor
 # Functor and bifunctors can be applied to `equiv`s.
 
 We define
-```
+```lean
 def functor.map_equiv (f : Type u → Type v) [functor f] [is_lawful_functor f] :
   α ≃ β → f α ≃ f β
 ```
 and
-```
+```lean
 def bifunctor.map_equiv (F : Type u → Type v → Type w) [bifunctor F] [is_lawful_bifunctor F] :
   α ≃ β → α' ≃ β' → F α α' ≃ F β β'
 ```

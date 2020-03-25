@@ -220,11 +220,10 @@ def map_prefix (f : name → option name) : name → name
 
 ## Theories documentation
 
-In addition to documentation living in Lean file, we have tactic documentation in
-[docs/tactics](../tactics.md), and theory documentation in [docs/theories](../theories) where we
-give overviews spanning several Lean files, and more mathematical explanations in cases where
-formalization requires slightly exotic points of view, see for instance the
-[topology documentation](../theories/topology.md).
+In addition to documentation living in Lean files, we have theory documentation in
+[docs/theories](../theories) where we give overviews spanning several Lean files, and
+more mathematical explanations in cases where formalization requires slightly exotic points of view,
+see for instance the [topology documentation](../theories/topology.md).
 
 ## Examples
 

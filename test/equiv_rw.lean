@@ -42,6 +42,12 @@ begin
   exact a,
 end
 
+example {α β : Type} (u : unique α) (e : α ≃ β) : β :=
+begin
+  equiv_rw e at u,
+  apply inhabited.default,
+end
+
 -- We can rewrite the goal under functors.
 example {α β : Type} (e : α ≃ β) (b : β) : option α :=
 begin

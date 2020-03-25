@@ -119,7 +119,7 @@ do
   intro x,
   k ← mk_fresh_name,
   -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
-  intro k >>= subst,
+  intro k >>= (λ k, subst k <|> unfreeze_local_instances >> subst k),
   `[try { simp only [equiv.symm_symm, equiv.apply_symm_apply, equiv.symm_apply_apply] }],
   skip
 

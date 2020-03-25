@@ -85,6 +85,10 @@ meta structure opt extends basic_opt :=
 (lemmas : option (list expr) := none)
 (max_steps : ℕ := 3)
 
+/--
+If no lemmas have been specified, generate the default set
+(local hypotheses, along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`).
+-/
 meta def opt.get_lemmas (opt : opt) : tactic (list expr) :=
 match opt.lemmas with
 | none := mk_assumption_set ff [] []
@@ -164,44 +168,24 @@ performing at most `max_steps` recursive steps.
 By default, the assumptions passed to `apply` are the local context, `rfl`, `trivial`,
 `congr_fun` and `congr_arg`.
 
-`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
-
-`solve_by_elim with attr₁ ... attrᵣ` also applies all lemmas tagged with the specified attributes.
-
-`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `rfl`, `trivial`,
-`congr_fun`, or `congr_arg` unless they are explicitly included.
-
-`solve_by_elim [-id]` removes a specified assumption.
-
-`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
-makes other goals impossible.
-
-optional arguments:
-- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
-- max_steps: number of attempts at discharging generated sub-goals
-
----
-
-The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this
-eventually discharges the main goal.
-```lean
-solve_by_elim { discharger := `[cc] }
-```
-also attempts to discharge the goal using congruence closure before each round of applying
-assumptions.
-
-`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
-makes other goals impossible.
-
-By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
-
 The assumptions can be modified with similar syntax as for `simp`:
-* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas (or all lemmas tagged with the
-  named attributes).
-* `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or
-  `congr_arg` unless they are explicitly included.
+* `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
+* `solve_by_elim with attr₁ ... attrᵣ` also applies all lemmas tagged with the specified attributes.
+* `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context,
+  `rfl`, `trivial`, `congr_fun`, or `congr_arg` unless they are explicitly included.
 * `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
 
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
+
+optional arguments passed via a configuration argument as `solve_by_elim { ... }`
+- max_steps: number of attempts at discharging generated sub-goals
+- discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
+- pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
+- accept: a subsidiary tactic that takes as an argument `list expr`
+    showing the current state of the original goals,
+    and which may fail to indicate that the current branch of the search tree should not be searched.
+    This may also be used to filter results.
 -/
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :

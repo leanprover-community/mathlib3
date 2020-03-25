@@ -1796,10 +1796,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- The image of a tangent cone under the differential of a map is included in the tangent cone to
 the image. -/
-lemma has_fderiv_within_at.image_tangent_cone_subset {x : E} (h : has_fderiv_within_at f f' s x) :
-  f' '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (f '' s) (f x) :=
+lemma has_fderiv_within_at.maps_to_tangent_cone {x : E} (h : has_fderiv_within_at f f' s x) :
+  maps_to f' (tangent_cone_at 𝕜 s x) (tangent_cone_at 𝕜 (f '' s) (f x)) :=
 begin
-  rw image_subset_iff,
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
   refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim at_top dtop clim cdlim⟩,
   simp [-mem_image, mem_image_of_mem] {contextual := tt}
@@ -1812,16 +1811,11 @@ lemma has_fderiv_within_at.unique_diff_within_at {x : E} (h : has_fderiv_within_
   (hs : unique_diff_within_at 𝕜 s x) (h' : closure (range f') = univ) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
-  have A : ∀v ∈ tangent_cone_at 𝕜 s x, f' v ∈ tangent_cone_at 𝕜 (f '' s) (f x),
-  { assume v hv,
-    have := h.image_tangent_cone_subset,
-    rw image_subset_iff at this,
-    exact this hv },
   have B : ∀v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E),
     f' v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F),
   { assume v hv,
     apply submodule.span_induction hv,
-    { exact λ w hw, submodule.subset_span (A w hw) },
+    { exact λ w hw, submodule.subset_span (h.maps_to_tangent_cone hw) },
     { simp },
     { assume w₁ w₂ hw₁ hw₂,
       rw continuous_linear_map.map_add,

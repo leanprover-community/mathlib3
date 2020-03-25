@@ -506,7 +506,7 @@ namespace set
 -- All arguments are explicit to avoid missing information in the pretty printer output
 /-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
 between `α` and `β`. -/
-noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
+@[simps] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
   (hf : bij_on f s t) :
   local_equiv α β :=
 { to_fun := f,
@@ -519,7 +519,8 @@ noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set �
   right_inv := hf.inv_on_inv_fun_on.2 }
 
 /-- A map injective on a subset of its domain provides a local equivalence. -/
-noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (hf : inj_on f s) :
+@[simp] noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α)
+  (hf : inj_on f s) :
   local_equiv α β :=
 hf.bij_on_image.to_local_equiv f s (f '' s)
 

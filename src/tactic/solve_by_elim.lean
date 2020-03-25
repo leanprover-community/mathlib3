@@ -178,9 +178,13 @@ The assumptions can be modified with similar syntax as for `simp`:
 `solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
 makes other goals impossible.
 
-optional arguments passed via a configuration argument:
-- discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful)
+optional arguments passed via a configuration argument as `solve_by_elim { ... }`
 - max_steps: number of attempts at discharging generated sub-goals
+- discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
+- pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
+- accept: a subsidiary tactic that takes as an argument `list expr`
+    showing the current state of the original goals,
+    and which may fail to indicate that the current branch of the search tree should not be searched.
 -/
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :

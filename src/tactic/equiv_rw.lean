@@ -15,7 +15,7 @@ transforming
 * `⊢ option α` with `⊢ option β`
 * `⊢ {a // P}` with `{b // P (⇑(equiv.symm e) b)}`
 
-The tactic can also be used to rewrite hypothesis, using the syntax `equiv_rw e at h`.
+The tactic can also be used to rewrite hypotheses, using the syntax `equiv_rw e at h`.
 
 ## Implementation details
 
@@ -38,7 +38,7 @@ The main `equiv_rw` function, when operating on the goal, simply generates a new
 with left hand side matching the target, and calls `apply e'.inv_fun`.
 
 When operating on a hypothesis `x : α`, we introduce a new fact `h : x = e.symm (e x)`,
-revert this, and then attempt to `generalize`, replacing all occurences of `e x` with a new constant `y`,
+revert this, and then attempt to `generalize`, replacing all occurrences of `e x` with a new constant `y`,
 before `intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
 
 ## Future improvements

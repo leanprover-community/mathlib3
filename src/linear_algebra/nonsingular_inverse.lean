@@ -257,13 +257,13 @@ lemma mul_adjugate_val (A : matrix n n α) (i j k) :
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
   congr, ext,
-  rw [pi.smul_apply, smul_eq_mul, mul_ite]
+  rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_ite],
+  rw [mul_val, smul_val, one_val, mul_boole],
   calc
     univ.sum (λ (k : n), A i k * adjugate A k j)
         = univ.sum (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
@@ -272,7 +272,7 @@ begin
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
       rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
-    ... = if i = j then det A else 0 : by rw cramer_column_self
+    ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=

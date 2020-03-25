@@ -107,28 +107,13 @@ end
 -- Rewriting in multiple positions.
 example {α β : Type} [has_add β] (e : α ≃ β) : β → α → α :=
 begin
-  -- have : (β → α → α) ≃ _, {
-  --   apply equiv.arrow_congr,
-  --   apply equiv.refl,
-  --   apply equiv.arrow_congr,
-  --   apply e,
-  --   apply e,
-  -- },
   equiv_rw e,
   exact (+),
 end
 
-
 -- Rewriting in multiple positions.
 example {α β : Type} [has_add β] (e : α ≃ β) : α → α → α :=
 begin
-  have : (α → α → α) ≃ _, {
-    apply equiv.arrow_congr,
-    apply e,
-    apply equiv.arrow_congr,
-    apply e,
-    apply e,
-  },
   equiv_rw e,
   exact (+),
 end
@@ -171,18 +156,18 @@ begin
   exact h _,
 end
 
--- rewriting in the base of a dependent pair
+-- a poor example, rewriting in the base of a dependent pair
 example {α β : Type} (P : α → Type) (h : Σ a, P a) (e : α ≃ β) : β :=
 begin
   equiv_rw e at h,
   exact h.1
 end
 
--- TODO we still can't rewrite in the argument of a dependent function
--- example {α β γ : Type} (e : α ≃ β) (P : α → Sort*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
--- begin
---   equiv_rw e at h,
---   exact (h b).2,
--- end
-
--- TODO second position of a dependent pair?
+-- rewriting in the argument of a dependent function can't be done in one step
+example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
+begin
+  equiv_rw e at h,
+  have t := h b,
+  equiv_rw e at t,
+  exact t.2,
+end

@@ -47,8 +47,10 @@ Configuration options for `solve_by_elim`.
   backtracking across goals as needed,
   and only succeeds if it discharges all goals.
 * `accept` determines whether the current branch should be explored.
-   It is passed the current state of original goals, and should fail if it wants to disregard this branch.
-   By default `accept` always succeeds.
+   It takes the current state of original goals as a `list expr` argument,
+   and should fail to signal omitting this branch.
+   By default `accept := λ _, skip` always succeeds.
+* `pre_apply` specifies an additional tactic to run before each round of `apply`.
 * `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
   If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
@@ -56,7 +58,8 @@ Configuration options for `solve_by_elim`.
 -/
 meta structure basic_opt extends apply_any_opt :=
 (accept : list expr → tactic unit := λ _, skip)
-(discharger : tactic unit := done)
+(pre_apply : tactic unit := skip)
+(discharger : tactic unit := failed)
 
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
@@ -66,12 +69,12 @@ meta def solve_by_elim_aux (opt : basic_opt)
 | n := do
   -- First, check that progress so far is `accept`able.
   lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept) >>
-  -- instantiate_mvars_in_goals >>
-  -- (get_goals >>= set_goals) >>
   -- Then check if we've finished.
   (done <|>
     -- Otherwise, if there's more time left,
     guard (n > 0) >>
+    -- run the `pre_apply` tactic, then
+    opt.pre_apply >>
     -- try either applying a lemma and recursing, or
     ((apply_any lemmas opt.to_apply_any_opt $ solve_by_elim_aux (n-1)) <|>
     -- if that doesn't work, run the discharger and recurse.

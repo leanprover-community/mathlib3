@@ -13,8 +13,9 @@ meta def expr.may_occur (e : expr) (t : expr) : tactic unit :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
 guard $ ¬ t.list_meta_vars.empty ∨ e.occurs t
 
--- Because Lean can't unify `?l_1` with `imax (1 ?m_1)`, I was running into trouble with the
--- version of equiv.arrow_congr that worked with `Sort*`.
+-- Because Lean can't unify `?l_1` with `imax (1 ?m_1)`,
+-- I was running into trouble with the standard version of `equiv.arrow_congr`,
+-- that works with `Sort*`.
 @[congr]
 def equiv.arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
@@ -41,28 +42,13 @@ def equiv_congr_lemmas : list name :=
  `equiv.arrow_congr',
  `equiv.sigma_congr_left', -- allows rewriting in the argument of a sigma-type
  `equiv.Pi_congr_left', -- allows rewriting in the argument of a pi-type
---  `equiv.Pi_congr', -- allows rewriting in the value of a pi-type??
+--  `equiv.Pi_congr'', -- allows rewriting in the value of a pi-type??
  `functor.map_equiv,  -- handles `list`, `option`, and many others
  `equiv.refl]
 
 declare_trace adapt_equiv
 
--- meta def hack_apply (e : expr) : tactic (list (name × expr)) :=
--- do
---   g :: gs ← get_goals,
---   `(%%ty ≃ _) ← infer_type g | tactic.apply e,
---   g' ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
---   set_goals (g' :: gs),
---   r ← tactic.apply e,
---   trace "!",
---   g' ← instantiate_mvars g',
---   g ← instantiate_mvars g,
---   infer_type g' >>= (λ t, pp (g', t)) >>= trace,
---   infer_type g >>= (λ t, pp (g, t)) >>= trace,
---   unify g g',
---   return r
-
-meta def adapt_equiv_2 (eq α ty : expr) : tactic expr :=
+meta def adapt_equiv_core (eq α ty : expr) : tactic expr :=
 do
   initial_goals ← get_goals,
   g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
@@ -72,7 +58,15 @@ do
     use_symmetry := false,
     use_exfalso := false,
     lemmas := some (eq :: equiv_congr_lemmas),
-    max_steps := 10, -- TODO decide what to put here
+    -- TODO decide an appropriate upper bound on search depth.
+    max_steps := 6,
+    -- Subgoals may contain function types,
+    -- and we want to continue trying to construct equivalences after the binders.
+    pre_apply := tactic.intros >> skip,
+    discharger := trace_if_enabled `adapt_equiv "Failed, no congruence lemma applied!" >> failed,
+    -- We accept any branch of the `solve_by_elim` search tree which
+    -- either still contains metavariables, or already contains at least one copy of `eq`.
+    -- This is to prevent generating equivalences built entirely out of `equiv.refl`.
     accept := λ goals, lock_tactic_state (do
       when_tracing `adapt_equiv (do
         goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
@@ -80,59 +74,13 @@ do
         (trace_if_enabled `adapt_equiv format!"Rejected, result does not contain {eq}" >> failed),
       done <|>
       when_tracing `adapt_equiv (do
-        g ← target >>= pp,
-        trace format!"Attempting to adapt to {g}"))
+        gs ← get_goals,
+        gs ← gs.mmap (λ g, infer_type g >>= pp),
+        trace format!"Attempting to adapt to {gs}"))
   },
-  -- r ← instantiate_mvars g,
   set_goals initial_goals,
   return g
 
-/--
-Helper function for `adapt_equiv`.
-Attempts to adapt the equivalence `eq : α ≃ _` so that the left-hand-side is `ty`.
--/
-meta def adapt_equiv' (eq α : expr) : Π (ty : expr), tactic (expr × bool)
-| ty :=
-do
-  when_tracing `adapt_equiv (do
-    ty_pp ← pp ty,
-    trace format!"Attempting to adapt to `{ty_pp} ≃ _`."),
-  if ty = α then (do
-    trace_if_enabled `adapt_equiv "Solving use original equiv.",
-    return (eq, tt))
-  else
-    -- TODO with better flow control, could we just add `equiv.refl to the list of lemmas?
-    if ¬ α.occurs ty then (do
-      trace_if_enabled `adapt_equiv "Solving use `equiv.refl _`.",
-      (λ e, (e, ff)) <$> to_expr ``(equiv.refl %%ty))
-    else
-    (do
-      initial_goals ← get_goals,
-      g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
-      set_goals [g],
-      let apply_and_adapt (n : name) : tactic (expr × bool) := (do
-        -- Apply the named lemma
-        mk_const n >>= tactic.fapply,
-        trace_if_enabled `adapt_equiv format!"Successfully applied lemma {n}",
-        all_goals (intros >> skip), -- TODO explain why?
-        -- Collect the resulting goals, then restore the original context before proceeding
-        gs ← get_goals,
-        set_goals initial_goals,
-        -- For each of the subsidiary goals, check it is of the form `_ ≃ _`,
-        -- and then if we can recursively solve it using `adapt_equiv'`.
-        ns ← gs.mmap (λ g, do
-          -- infer_type g >>= pp >>= trace_for `adapt_equiv,
-          `(%%p ≃ _) ← infer_type g | return ff,
-          (e, n) ← adapt_equiv' p,
-          unify g e,
-          return n),
-        -- If so, return the new equivalence constructed via `apply`.
-        g ← instantiate_mvars g,
-        return (g, tt ∈ ns)),
-      equiv_congr_lemmas.any_of apply_and_adapt) <|>
-    (do ty_pp ← pp ty,
-        eq_pp ← pp eq,
-        fail format!"Could not adapt {eq_pp} to the form `{ty_pp} ≃ _`")
 
 /--
 `adapt_equiv t e` "adapts" the equivalence `e`, producing a new equivalence with left-hand-side `t`.
@@ -145,10 +93,7 @@ do
     eq_ty_pp ← infer_type eq >>= pp,
     trace format!"Attempting to adapt `{eq_pp} : {eq_ty_pp}` to produce `{ty_pp} ≃ _`."),
   `(%%α ≃ %%β) ← infer_type eq | fail format!"{eq} must be an `equiv`",
-  adapt_equiv_2 eq α ty
-  -- (e, n) ← adapt_equiv' eq α ty,
-  -- guard n,
-  -- return e
+  adapt_equiv_core eq α ty
 
 /--
 Attempt to replace the hypothesis with name `x`

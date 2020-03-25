@@ -133,7 +133,6 @@ apply_nolint linear_map.comp doc_blame
 apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
-apply_nolint module.of_core doc_blame
 apply_nolint submodule.subtype doc_blame
 
 -- algebra/order.lean
@@ -1279,9 +1278,6 @@ apply_nolint int.induction_on' doc_blame
 apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
 
--- data/int/gcd.lean
-apply_nolint nat.xgcd_aux doc_blame
-
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
 
@@ -2194,7 +2190,6 @@ apply_nolint relator.right_unique doc_blame
 
 -- logic/unique.lean
 apply_nolint unique doc_blame
-apply_nolint unique.of_surjective doc_blame
 
 -- measure_theory/ae_eq_fun.lean
 apply_nolint measure_theory.ae_eq_fun.add doc_blame

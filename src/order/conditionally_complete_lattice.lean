@@ -202,6 +202,13 @@ the complete_lattice case.-/
 lemma cInf_lt_of_lt (_ : bdd_below s) (_ : a ∈ s) (_ : a < b) : Inf s < b :=
 lt_of_le_of_lt (cInf_le ‹bdd_below s› ‹a ∈ s›) ‹a < b›
 
+/-- If all elements of a nonempty set `s` are less than or equal to all elements
+of a nonempty set `t`, then there exists an element between these sets. -/
+lemma exists_between_of_forall_le (sne : s.nonempty) (tne : t.nonempty)
+  (hst : ∀ (x ∈ s) (y ∈ t), x ≤ y) :
+  (upper_bounds s ∩ lower_bounds t).nonempty :=
+⟨Inf t, λ x hx, le_cInf tne $ hst x hx, λ y hy, cInf_le (sne.mono hst) hy⟩
+
 /--The supremum of a singleton is the element of the singleton-/
 @[simp] theorem cSup_singleton (a : α) : Sup {a} = a :=
 is_greatest_singleton.cSup_eq

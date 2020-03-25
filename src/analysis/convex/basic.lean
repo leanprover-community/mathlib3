@@ -162,9 +162,9 @@ lemma convex_iff_div:
 ⟨begin
   assume h x y hx hy a b ha hb hab,
   apply h hx hy,
-  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
+  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos.2 hab)),
   rwa [mul_zero, ←div_eq_inv_mul] at ha',
-  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
+  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos.2 hab)),
   rwa [mul_zero, ←div_eq_inv_mul] at hb',
   rw [←add_div],
   exact div_self (ne_of_lt hab).symm

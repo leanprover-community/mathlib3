@@ -59,7 +59,7 @@ In fact, in a slightly more distant future PR I anticipate that
 we can incrementally bootstrap the strength of `equiv_rw`.
 
 An ambitious project might be to add `equiv_rw!`,
-a tactic which, when failing to find appropriate congruence lemmas,
+a tactic which, when failing to find appropriate `equiv_functor` instances,
 attempts to `derive` them on the spot.
 
 For now `equiv_rw` is entirely based on `equiv` in `Type`,

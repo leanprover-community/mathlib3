@@ -183,7 +183,7 @@ begin
   have t : ∀ a₁ a₂, a₁⁻¹ * x = a₂ ↔ a₁ * a₂ = x := by { intros, split; rintro rfl; simp, },
   congr, funext,
   conv_lhs { congr, skip, funext, rw ←t, },
-  simp,
+  simp, -- should use `finsupp.sum_ite_eq'`?
   dsimp [finsupp.sum],
   -- TODO a version of finset.sum_ite_eq with the equality switched? (At least, if we can arrange for simp to work.)
   rw finset.sum_ite_eq g.support, -- TODO why do we need the `g.support`? Why can't `simp` do this?

@@ -65,6 +65,10 @@ meta structure by_elim_opt :=
 (lemmas : option (list expr) := none)
 (max_steps : ℕ := 3)
 
+/--
+If no lemmas have been specified, generate the default set
+(local hypotheses, along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`).
+-/
 meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
 match opt.lemmas with
 | none := mk_assumption_set ff [] []

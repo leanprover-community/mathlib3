@@ -103,6 +103,8 @@ structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar �
 (mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
 
+/-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
+structure `module.core`. -/
 def module.of_core {α β} [ring α] [add_comm_group β] (M : module.core α β) : module α β :=
 by letI := M.to_has_scalar; exact
 { zero_smul := λ x,
@@ -131,6 +133,13 @@ by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 theorem sub_smul (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
+
+theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
+  {c : R} {x : E} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+⟨λ h, classical.by_cases or.inl
+  (λ hc, or.inr $ by rw [← one_smul R x, ← inv_mul_cancel hc, mul_smul, h, smul_zero]),
+  λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
 
@@ -353,6 +362,9 @@ instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 @[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
 @[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
 @[simp, move_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
+@[simp, elim_cast] lemma coe_mk (x : β) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : β) = x := rfl
+
+@[simp] protected lemma eta (x : p) (hx : (x : β) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
@@ -363,8 +375,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y :=
-by simp [sub_eq_add_neg]
+@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := rfl
 
 instance : module α p :=
 by refine {smul := (•), ..};
@@ -403,8 +414,8 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 
 end ideal
 
-library_note "vector space definition"
-"Vector spaces are defined as an `abbreviation` for modules,
+/--
+Vector spaces are defined as an `abbreviation` for modules,
 if the base ring is a field.
 (A previous definition made `vector_space` a structure
 defined to be `module`.)
@@ -413,7 +424,9 @@ for type class inference, which means that all instances for modules
 are immediately picked up for vector spaces as well.
 A cosmetic disadvantage is that one can not extend vector spaces an sich,
 in definitions such as `normed_space`.
-The solution is to extend `module` instead."
+The solution is to extend `module` instead.
+-/
+library_note "vector space definition"
 
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
@@ -437,10 +450,8 @@ instance subspace.vector_space {α β}
 
 namespace submodule
 
-variables {R:field α} [add_comm_group β] [add_comm_group γ]
-variables [vector_space α β] [vector_space α γ]
-variables (p p' : submodule α β)
-variables {r : α} {x y : β}
+variables {R : division_ring α} [add_comm_group β] [module α β]
+variables (p : submodule α β) {r : α} {x y : β}
 include R
 
 set_option class.instance_max_depth 36
@@ -606,7 +617,7 @@ def add_monoid_hom.to_int_linear_map [add_comm_group α] [add_comm_group β] (f 
   α →ₗ[ℤ] β :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
 
-/-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
+/-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
 def add_monoid_hom.to_rat_linear_map [add_comm_group α] [vector_space ℚ α]
   [add_comm_group β] [vector_space ℚ β] (f : α →+ β) :
   α →ₗ[ℚ] β :=

@@ -259,7 +259,7 @@ begin
   congr, ext,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
-#print cramer_column_self
+
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,

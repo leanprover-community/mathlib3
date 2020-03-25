@@ -259,24 +259,3 @@ by simp [finset.filter_or]
 end
 
 open tactic
-
-/--
-Demonstrate the packaged goals and how comparison of dependent goals
-works.
--/
-example (m n : ℕ) : m = n :=
-by do
-{ let tac := `[cases m; apply fin.mk.inj],
-  gs₀ ← retrieve $ tac >> get_goals,
-  gs₁ ← retrieve $ tac >> get_goals,
-  guard (gs₀ ≠ gs₁ : bool),
-  gs₀ ← get_proof_state_after tac,
-  gs₁ ← get_proof_state_after tac,
-  guard (gs₀ = gs₁),
-  gs₀ ← get_proof_state_after $ tac >> tactic.swap,
-  gs₁ ← get_proof_state_after tac,
-  guard (gs₀ ≠ gs₁),
-  gs₀ ← get_proof_state_after $ tac >> tactic.swap,
-  gs₁ ← get_proof_state_after $ tac >> tactic.swap,
-  guard (gs₀ = gs₁),
-  tactic.admit }

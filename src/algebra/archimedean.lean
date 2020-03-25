@@ -98,8 +98,8 @@ lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
 ⟨-(m+1),
-by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg, one_div_eq_inv,
+by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]

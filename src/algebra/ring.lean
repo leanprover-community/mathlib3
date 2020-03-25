@@ -68,6 +68,7 @@ by split_ifs; refl
 -- In this lemma and the next we need to use `congr` because
 -- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
 -- modifies the decidable instance.
+-- We expect in Lean 3.8 that this won't be necessary.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
 by { simp [mul_ite], congr }

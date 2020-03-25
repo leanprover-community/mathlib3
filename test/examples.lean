@@ -257,3 +257,24 @@ example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
 by simp [finset.filter_or]
 
 end
+
+/--
+Demonstrate the packaged goals and how comparison of dependent goals
+works.
+-/
+example (m n : ℕ) : m = n :=
+by do
+{ let tac := `[cases m; apply fin.mk.inj],
+  gs₀ ← retrieve $ tac >> get_goals,
+  gs₁ ← retrieve $ tac >> get_goals,
+  guard (gs₀ ≠ gs₁ : bool),
+  gs₀ ← get_proof_state_after $ tac <* all_goals (local_context >>= trace),
+  gs₁ ← get_proof_state_after tac,
+  guard (gs₀ = gs₁),
+  gs₀ ← get_proof_state_after $ tac >> swap,
+  gs₁ ← get_proof_state_after tac,
+  guard (gs₀ ≠ gs₁),
+  gs₀ ← get_proof_state_after $ tac >> swap,
+  gs₁ ← get_proof_state_after $ tac >> swap,
+  guard (gs₀ = gs₁),
+  admit }

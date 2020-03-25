@@ -1504,37 +1504,37 @@ meta def goal_of_mvar (g : expr) : tactic packaged_goal :=
 with_local_goals' [g] get_packaged_goal
 
 /-- `get_proof_state` lists the user visible goal for each goal
-    of the current state and for each goal, abstracts all of the
-    meta variables of the other gaols.
+of the current state and for each goal, abstracts all of the
+meta variables of the other gaols.
 
-    This produces a list of goals in the form of `ℕ × expr` where
-    the `expr` encodes the following proof state:
+This produces a list of goals in the form of `ℕ × expr` where
+the `expr` encodes the following proof state:
 
-      ```lean
-      2 goals
-      l₁ : t₁,
-      l₂ : t₂,
-      l₃ : t₃
-      ⊢ tgt₁
+```lean
+2 goals
+l₁ : t₁,
+l₂ : t₂,
+l₃ : t₃
+⊢ tgt₁
 
-      ⊢ tgt₂
-      ```
+⊢ tgt₂
+```
 
-      as
+as
 
-      ```lean
-      [ (3, ∀ (mv : tgt₁) (mv : tgt₂) (l₁ : t₁) (l₂ : t₂) (l₃ : t₃), tgt₁),
-        (0, ∀ (mv : tgt₁) (mv : tgt₂), tgt₂) ]
-      ```
+```lean
+[ (3, ∀ (mv : tgt₁) (mv : tgt₂) (l₁ : t₁) (l₂ : t₂) (l₃ : t₃), tgt₁),
+  (0, ∀ (mv : tgt₁) (mv : tgt₂), tgt₂) ]
+```
 
-      with 2 goals, the first 2 bound variables encode the meta variable
-      of all the goals, the next 3 (in the first goal) and 0 (in the second goal)
-      are the local constants.
+with 2 goals, the first 2 bound variables encode the meta variable
+of all the goals, the next 3 (in the first goal) and 0 (in the second goal)
+are the local constants.
 
-      This representation allows us to compare goals and proof states while
-      ignoring information like the unique name of local constants and
-      the equality or difference of meta variables that encode the same goal.
- -/
+This representation allows us to compare goals and proof states while
+ignoring information like the unique name of local constants and
+the equality or difference of meta variables that encode the same goal.
+-/
 meta def get_proof_state : tactic proof_state :=
 do gs ← get_goals,
    gs.mmap $ λ g, do

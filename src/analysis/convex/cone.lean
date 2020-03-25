@@ -100,7 +100,7 @@ lemma add_mem ⦃x⦄ (hx : x ∈ S) ⦃y⦄ (hy : y ∈ S) : x + y ∈ S := S.a
 lemma smul_mem_iff {c : ℝ} (hc : 0 < c) {x : E} :
   c • x ∈ S ↔ x ∈ S :=
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]
-  using S.smul_mem (inv_pos hc) h, λ h, S.smul_mem hc h⟩
+  using S.smul_mem (inv_pos.2 hc) h, λ h, S.smul_mem hc h⟩
 
 lemma convex : convex (S : set E) :=
 convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
@@ -217,9 +217,9 @@ lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
 begin
   refine hs.mem_to_cone.trans ⟨_, _⟩,
   { rintros ⟨c, hc, y, hy, rfl⟩,
-    exact ⟨c⁻¹, inv_pos hc, by rwa [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ },
+    exact ⟨c⁻¹, inv_pos.2 hc, by rwa [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ },
   { rintros ⟨c, hc, hcx⟩,
-    exact ⟨c⁻¹, inv_pos hc, _, hcx, by rw [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ }
+    exact ⟨c⁻¹, inv_pos.2 hc, _, hcx, by rw [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ }
 end
 
 lemma subset_to_cone : s ⊆ hs.to_cone s :=

@@ -56,13 +56,14 @@ welcomed.
 * Jeremy Avigad (@avigad): analysis
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): all (lead maintainer)
+* Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
+* Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory
-* Yury G. Kudryashov (@urkud): analysis, topology

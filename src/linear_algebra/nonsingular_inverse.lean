@@ -257,7 +257,7 @@ lemma mul_adjugate_val (A : matrix n n α) (i j k) :
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
   congr, ext,
-  rw [pi.smul_apply, smul_eq_mul, mul_ite]
+  rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=

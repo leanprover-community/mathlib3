@@ -26,7 +26,7 @@ import data.set.basic logic.function
 * `restrict f s` : restrict the domain of `f` to the set `s`;
 * `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
 * `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
-  ans the codomain to `t`.
+  and the codomain to `t`.
 -/
 universes u v w x y
 

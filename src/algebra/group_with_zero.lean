@@ -170,7 +170,7 @@ variables {a b : G}
 def mk0 (a : G) (ha : a ≠ 0) : units G :=
 ⟨a, a⁻¹, gwz.mul_inv_cancel _ ha, gwz.inv_mul_cancel _ ha⟩
 
-@[simp] lemma coe_mk0 (a : G) (h : a ≠ 0) : (mk0 a h : G) = a := rfl
+@[simp] lemma coe_mk0 {a : G} (h : a ≠ 0) : (mk0 a h : G) = a := rfl
 
 @[simp] theorem inv_eq_inv (u : units G) : (↑u⁻¹ : G) = u⁻¹ :=
 (mul_left_inj u).1 $ by { rw [units.mul_inv, gwz.mul_inv_cancel], apply gwz.unit_ne_zero }

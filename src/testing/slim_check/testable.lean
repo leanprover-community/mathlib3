@@ -69,6 +69,11 @@ def convert_counter_example {p q : Prop}
  | (success Hp) Hpq := success (combine Hpq Hp)
  | (gave_up n) _ := gave_up n
 
+def convert_counter_example' {p q : Prop}
+  (h : p ↔ q) (r : test_result p) :
+  test_result q :=
+convert_counter_example h.2 r (psum.inr h.1)
+
 /-- When we assign a value to a universally quantified variable,
 we record that value using this function so that our counter-examples
 can be informative -/
@@ -183,9 +188,24 @@ def var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
                       | (some v) := add_var_to_counter_example v x ($ x) r
                       end⟩
 
+def subtype_var_testable {p : α → Prop} [has_to_string α] [arbitrary (subtype p)]
+  [∀ x, testable (β x)]
+  (var : option string := none)
+: testable (Π x : α, p x → β x) :=
+⟨ λ min,
+   do r ← @testable.run (∀ x : subtype p, β x.val) (var_testable _ _ var) min,
+      pure $ convert_counter_example'
+        ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
+         λ h ⟨x,h'⟩, h x h'⟩
+        r ⟩
+
 instance pi_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
 : testable (Π x : α, β x) :=
 var_testable α β
+
+instance pi_testable' {p : α → Prop} [has_to_string α] [arbitrary (subtype p)] [∀ x, testable (β x)]
+: testable (Π x : α, p x → β x) :=
+subtype_var_testable α β
 
 @[priority 100]
 instance de_testable {p : Prop} [decidable p] : testable p :=
@@ -222,11 +242,16 @@ variable (p)
 
 variable [testable p]
 
+structure slim_check_cfg :=
+(num_inst : ℕ := 100) -- number of examples
+(max_size : ℕ := 100) -- final size argument
+
 /-- Try `n` times to find a counter-example for `p` -/
-def testable.run_suite_aux (bound : ℕ) : test_result p → ℕ → rand (test_result p)
+def testable.run_suite_aux (cfg : slim_check_cfg) : test_result p → ℕ → rand (test_result p)
  | r 0 := return r
  | r (succ n) :=
-do x ← retry ( (testable.run p tt).run ⟨ (bound - n - 1) ⟩) 10,
+do let size := (cfg.num_inst - n - 1) * cfg.max_size / cfg.num_inst,
+   x ← retry ( (testable.run p tt).run ⟨ size ⟩) 10,
    match x with
     | (success (psum.inl ())) := testable.run_suite_aux r n
     | (success (psum.inr Hp)) := return $ success (psum.inr Hp)
@@ -235,16 +260,16 @@ do x ← retry ( (testable.run p tt).run ⟨ (bound - n - 1) ⟩) 10,
    end
 
 /-- Try to find a counter-example of `p` -/
-def testable.run_suite (bound : ℕ := 100) : rand (test_result p) :=
-testable.run_suite_aux p bound (success $ psum.inl ()) (2*bound)
+def testable.run_suite (cfg : slim_check_cfg := {}) : rand (test_result p) :=
+testable.run_suite_aux p cfg (success $ psum.inl ()) cfg.num_inst
 
 /-- Run a test suite for `p` in `io` -/
-def testable.check (bound : ℕ := 100) : io (test_result p) :=
-io.run_rand (testable.run_suite p bound)
+def testable.check (cfg : slim_check_cfg := {}) : io (test_result p) :=
+io.run_rand (testable.run_suite p cfg)
 
 /-- Run a test suite for `p` and return true or false: should we believe that `p` holds? -/
-def testable.check' (bound : ℕ := 100) : io bool := do
-x ← io.run_rand (testable.run_suite p bound),
+def testable.check' (cfg : slim_check_cfg := {}) : io bool := do
+x ← io.run_rand (testable.run_suite p cfg),
 match x with
  | (success _) := return tt
  | (gave_up n) := io.put_str_ln ("Gave up " ++ repr n ++ " times") >> return ff

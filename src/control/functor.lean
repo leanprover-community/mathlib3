@@ -43,6 +43,8 @@ end functor
 
 def id.mk {α : Sort u} : α → id α := id
 
+def id.run {α : Sort u} : id α → α := id
+
 namespace functor
 
 /-- `const α` is the constant functor, mapping every type to `α` -/

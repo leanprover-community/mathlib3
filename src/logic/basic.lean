@@ -26,7 +26,7 @@ section miscellany
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
   bool.decidable_eq decidable.to_bool
-  
+
 attribute [simp] cast_eq
 
 variables {α : Type*} {β : Type*}
@@ -140,6 +140,9 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 @[simp] lemma eq_iff_eq_cancel_right {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
+
+/-- Gadget to help port instances from definitionally equal types -/
+def infer_instance_as (cl : Sort*) [I : cl] : cl := I
 
 /-- Wrapper for adding elementary propositions to the type class systems.
 Warning: this can easily be abused. See the rest of this docstring for details.

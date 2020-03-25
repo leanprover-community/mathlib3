@@ -63,8 +63,16 @@ open fin nat function
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
+instance fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+instance fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
+nat.zero_lt_bit0 $ ne_of_gt h
+instance fact.bit1.pos {n} : fact (0 < bit1 n) :=
+nat.zero_lt_bit1 _
+
 namespace fin
 variables {n m : ℕ} {a b : fin n}
+
+def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
 
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
@@ -800,6 +808,10 @@ end find
 
 lemma val_of_nat_eq_mod (m n : ℕ) :
   (@fin.of_nat m n).val = n % succ m :=
+rfl
+
+@[simp] lemma val_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
+  (@fin.of_nat' _ I n).val = n % m :=
 rfl
 
 end fin

@@ -60,6 +60,8 @@ match e with
        mk_testable_inst,
        (  (applye ``(slim_check.test_forall_in_list _ _ %%var)  ; apply_instance)
          <|>
+          (applye ``(slim_check.subtype_var_testable _ _ (some %%var)) ; apply_instance)
+         <|>
           (applye ``(slim_check.var_testable _ _ (some %%var)) ; apply_instance))
  | _ := trace_error "is_testable" $ tactic.applyc ``slim_check.de_testable
 end)
@@ -73,7 +75,7 @@ namespace interactive
 counter-examples to falsify `p`. If one is found, an assignment to the
 local variables is printed and the tactic fails. Otherwise, the goal
 is `admit`-ed.  -/
-meta def slim_check (bound : ℕ := 100) : tactic unit :=
+meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit :=
 do unfreeze_local_instances,
    n ← revert_all,
    t ← target,
@@ -83,7 +85,7 @@ do unfreeze_local_instances,
    hinst ← prod.snd <$> tactic.solve_aux cl is_testable,
    e ← to_expr ``(psigma.mk %%t %%hinst : Σ' t', testable t'),
    ⟨t',hinst⟩ ← eval_expr (psigma testable) e,
-   r ← unsafe_run_io (@testable.check t' hinst bound),
+   r ← unsafe_run_io (@testable.check t' hinst cfg),
    match r with
     | (success (psum.inl ())) := admit
     | (success (psum.inr p)) := do `[apply @of_as_true %%t, exact trivial]
@@ -99,7 +101,7 @@ do unfreeze_local_instances,
         xs ++
         [ "-------------------" ]
     | (gave_up n) :=
-      if n ≥ bound
+      if n ≥ cfg.num_inst
       then fail ("Gave up " ++ repr n ++ " time(s)")
       else trace ("Gave up " ++ repr n ++ " time(s)") >> admit
    end

@@ -35,9 +35,6 @@ random testing
 
 universes u v
 
-/-- Gadget to help port instances from definitionally equal types -/
-def infer_instance_as (cl : Sort u) [I : cl] : cl := I
-
 /-- Monad to generate random examples to test properties with.
 It has a `nat` parameter so that the caller can decide on the
 size of the examples -/
@@ -73,7 +70,7 @@ variables {α}
 
 /-- lift `random.random_r` to the `gen` monad -/
 def choose (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : gen (x .. y) :=
-⟨ λ _, random.random_r _ x y p ⟩
+⟨ λ _, random_r _ x y p ⟩
 
 end random
 

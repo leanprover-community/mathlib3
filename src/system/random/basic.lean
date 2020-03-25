@@ -75,11 +75,10 @@ local infix ` .. `:41 := set.Icc
 
 open stream
 
-/-- `random α` gives us machinery to generate values of type `α` -/
-class random (α : Type u) extends has_le α :=
-(random [] : Π (g : Type) [random_gen g], rand_g g α)
+/-- `bounded_random α` gives us machinery to generate values of type `α` between certain bounds -/
+class bounded_random (α : Type u) extends preorder α :=
 (random_r : Π g [random_gen g] (x y : α),
-              x ≤ y →
+              auto_param (x ≤ y) `random.assumption_or_dec_trivial →
               rand_g g (x .. y))
 (random_series [] : Π (g : Type) [random_gen g], g → stream α :=
 by { intros, resetI,
@@ -91,19 +90,26 @@ by { intros, resetI,
 by { introsI,
      exact corec prod.fst ((random_r g x y h).run ∘ prod.snd) ((random_r g x y h).run ⟨ a ⟩) } )
 
+/-- `random α` gives us machinery to generate values of type `α` -/
+class random (α : Type u) extends bounded_random α :=
+(random : Π (g : Type) [random_gen g], rand_g g α)
+
 /-- is 2^31; multiplying by it shifts a number left by 31 bits,
 dividing by it shifts it right by 31 bits -/
 def shift_31l : ℕ :=
 by apply_normed 2^31
 
-namespace random
-
-variables (α : Type u) [_root_.random α]
-variables {g : Type} [random_gen g]
+namespace stream
 
 /-- Use a state monad to generate a stream through corecursion -/
 def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
 stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
+end stream
+
+namespace rand
+
+variables {g : Type} [random_gen g]
 
 /-- create a new random number generator distinct from the one stored in the state -/
 def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
@@ -122,9 +128,10 @@ do gen ← liftable.up split,
 
 end random
 
-namespace tactic.interactive
 
-variables (α : Type u) [_root_.random α]
+namespace bounded_random
+open stream rand
+variables (α : Type u) [bounded_random α]
 variables {g : Type} [random_gen g]
 
 /-- Use a state monad to generate a stream through corecursion -/
@@ -142,9 +149,23 @@ do gen ← uliftable.up split,
 variables {α}
 
 /-- generate an infinite series of random values of type `α` between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
+def random_series_r (x y : α) (h : auto_param (x ≤ y) `random.assumption_or_dec_trivial) : rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up split,
    pure $ corec_state (random_r g x y h) gen
+
+end bounded_random
+
+namespace random
+open stream rand
+variables (α : Type u) [_root_.random α]
+variables {g : Type} [random_gen g]
+
+/-- generate an infinite series of random values of type `α` -/
+def random_series : rand_g g (stream α) :=
+do gen ← uliftable.up split,
+   pure $ corec_state (random α g) gen
+
+export bounded_random (random_r random_series_r)
 
 open tactic
 
@@ -171,25 +192,33 @@ def run_rand (cmd : _root_.rand α) : io α :=
 do g ← io.mk_generator,
    return $ (cmd.run ⟨g⟩).1
 
+open random (assumption_or_dec_trivial)
+
+section random
 variable [random α]
 
 /-- randomly generate a value of type α -/
 def random : io α :=
 io.run_rand (random.random α _)
 
-open random (assumption_or_dec_trivial)
-
-/-- randomly generate a value of type α between `x` and `y` -/
-def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : io (x .. y) :=
-io.run_rand (random.random_r _ x y p)
-
 /-- randomly generate an infinite series of value of type α -/
 def random_series : io (stream α) :=
 io.run_rand (random.random_series _)
 
+end random
+
+section bounded_random
+variable [bounded_random α]
+
+/-- randomly generate a value of type α between `x` and `y` -/
+def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : io (x .. y) :=
+io.run_rand (bounded_random.random_r _ x y p)
+
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
 def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : io (stream $ x .. y) :=
-io.run_rand (random.random_series_r x y h)
+io.run_rand (bounded_random.random_series_r x y h)
+
+end bounded_random
 
 end io
 
@@ -205,27 +234,33 @@ meta def run_rand {α : Type u} (cmd : rand α) : tactic α := do
 ⟨g⟩ ← tactic.up mk_generator,
 return (cmd.run ⟨g⟩).1
 
-section random
 open random (assumption_or_dec_trivial)
-
 variables {α : Type u}
+
+section bounded_random
+variable [bounded_random α]
+
+/-- use `random_r` in the `tactic` monad -/
+meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
+run_rand (bounded_random.random_r _ x y p)
+
+/-- use `random_series_r` in the `tactic` monad -/
+meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
+run_rand (bounded_random.random_series_r x y h)
+
+end bounded_random
+
+section random
+
 variable [random α]
 
 /-- use `random` in the `tactic` monad -/
 meta def random : tactic α :=
 run_rand (_root_.random.random _ _)
 
-/-- use `random_r` in the `tactic` monad -/
-meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
-run_rand (random.random_r _ x y p)
-
 /-- use `random_series` in the `tactic` monad -/
 meta def random_series : tactic (stream α) :=
 run_rand (random.random_series α)
-
-/-- use `random_series_r` in the `tactic` monad -/
-meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
-run_rand (random.random_series_r x y h)
 
 end random
 
@@ -378,18 +413,18 @@ local infix ^ := nat.pow
 
 namespace fin
 section fin
-parameter {n : ℕ}
+parameters {n : ℕ} [fact (0 < n)]
 
 /-- `random_aux m k` `m` words worth of random numbers and combine them
 with `k` -/
-protected def random_aux : ℕ → ℕ → rand_g g (fin (succ n))
-| 0 k := return $ fin.of_nat k
+protected def random_aux : ℕ → ℕ → rand_g g (fin n)
+| 0 k := return $ fin.of_nat' k
 | (succ n) k :=
 do x ← rand_g.next,
    random_aux n $ x + (k * shift_31l)
 
 /-- generate a `fin` randomly -/
-protected def random : rand_g g (fin (succ n)) :=
+protected def random : rand_g g (fin n) :=
 let m := word_size n / 31 + 1 in
 random_aux m 0
 
@@ -415,27 +450,28 @@ end coerce
 
 
 /-- Use `i` to generate an element of the interval `x .. y` -/
-protected def coerce {n : ℕ} (x y : fin (succ n)) (P : x ≤ y)
-  (i : fin (succ n)) : (x .. y) :=
+protected def coerce {n : ℕ} (x y : fin n) (P : x ≤ y)
+  (i : fin n) : (x .. y) :=
 let x' := x.val,
     i' := i.val,
     r := i' % (y.val - x' + 1) + x' in
 have P' : x.val ≤ y.val,
   by { rw ← le_def, apply P },
-have Hx : x ≤ fin.of_nat r,
+by haveI : fact (0 < n) :=  lt_of_le_of_lt (nat.zero_le x.val) x.is_lt; exact
+have Hx : x ≤ fin.of_nat' r,
   begin
     unfold_locals r,
-    simp only [fin.le_def,fin.val_of_nat_eq_mod,add_comm _ x',add_comm _ 1],
+    simp only [fin.le_def,fin.val_of_nat_eq_mod',add_comm _ x',add_comm _ 1],
     rw [mod_eq_of_lt],
     { apply nat.le_add_right },
     apply fin.interval_fits_in_word_size,
     unfold_locals x',
     rw ← fin.le_def, apply P
   end,
-have Hy : fin.of_nat r ≤ y,
+have Hy : fin.of_nat' r ≤ y,
   begin
     unfold_locals r,
-    rw [fin.le_def,fin.val_of_nat_eq_mod,mod_eq_of_lt],
+    rw [fin.le_def,fin.val_of_nat_eq_mod',mod_eq_of_lt],
     transitivity (y.val - x') + x',
     { apply add_le_add_right,
       apply le_of_lt_succ,
@@ -448,19 +484,19 @@ have Hy : fin.of_nat r ≤ y,
     simp only [add_comm _ x',add_comm _ 1],
     apply fin.interval_fits_in_word_size P',
   end,
-⟨ fin.of_nat r , Hx , Hy ⟩
+⟨ fin.of_nat' r , Hx , Hy ⟩
 
 /-- generate an element of the interval `x .. y` -/
-protected def random_r (x y : fin (succ n)) (p : x ≤ y) : rand_g g (x .. y) :=
+protected def random_r (x y : fin n) (p : x ≤ y) : rand_g g (x .. y) :=
 fin.coerce _ _ p <$> fin.random
 
 end fin
 end fin
 
-instance fin_random (n : ℕ) : random (fin (succ n)) :=
+instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
 { to_preorder := by apply_instance,
-  random := λ g, @fin.random _ g,
-  random_r := λ x y p, @fin.random_r n x y p }
+  random := λ g, @fin.random _ _ g,
+  random_r := λ x y p, @fin.random_r n _ x y p }
 
 open nat
 
@@ -469,3 +505,9 @@ a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
 def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
 | 0 h := false.elim (not_lt_zero _ h)
+
+instance nat_bounded_random : bounded_random ℕ :=
+{ random_r := λ g inst x y hxy,
+  do z ← @random.random (fin $ succ $ y - x) _ g inst,
+     pure ⟨z.val + x, nat.le_add_left _ _,
+       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }

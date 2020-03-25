@@ -191,6 +191,7 @@ begin
   { refl, },
 end
 
+@[simp]
 lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
   (f * single x r) y = f (y * x⁻¹) * r :=
 begin
@@ -220,6 +221,7 @@ begin
   { refl, },
 end
 
+@[simp]
 lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
   (single x r * f) y = r * f (x⁻¹ * y) :=
 begin

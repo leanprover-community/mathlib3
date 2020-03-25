@@ -12,12 +12,12 @@ lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 @[simp] lemma inv_pos : ∀ {a : α}, 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, gwz.inv_inv a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_pos_of_pos
 
 @[simp] lemma inv_lt_zero : ∀ {a : α}, a⁻¹ < 0 ↔ a < 0 :=
 suffices ∀ a : α, a < 0 → a⁻¹ < 0,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, gwz.inv_inv a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_neg_of_neg
 
 @[simp] lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=

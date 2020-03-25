@@ -35,7 +35,7 @@ lemma fpow_nonneg_of_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 
 lemma fpow_pos_of_pos {a : K} (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
 | (of_nat n) := pow_pos ha _
-| -[1+n]     := inv_pos $ pow_pos ha _
+| -[1+n]     := inv_pos.2 $ pow_pos ha _
 
 lemma fpow_le_of_le {x : K} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
 begin

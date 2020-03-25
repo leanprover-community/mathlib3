@@ -80,7 +80,7 @@ lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from

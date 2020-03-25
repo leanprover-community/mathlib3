@@ -8,8 +8,6 @@ The complex numbers, modelled as R^2 in the obvious way.
 import data.real.basic tactic.ring algebra.field_power
 import tactic.norm_cast
 
-noncomputable theory
-
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
 

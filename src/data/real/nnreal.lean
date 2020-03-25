@@ -438,7 +438,7 @@ lemma div_def {r p : nnreal} : r / p = r * p⁻¹ := rfl
 @[simp] lemma inv_zero : (0 : nnreal)⁻¹ = 0 := nnreal.eq inv_zero
 
 @[simp] lemma inv_eq_zero {r : nnreal} : (r : nnreal)⁻¹ = 0 ↔ r = 0 :=
-gwz.inv_eq_zero
+inv_eq_zero
 
 @[simp] lemma inv_pos {r : nnreal} : 0 < r⁻¹ ↔ 0 < r :=
 by simp [zero_lt_iff_ne_zero]

@@ -74,7 +74,7 @@ calc edist x y ≤ Kf * edist (f x) (f y) : hf x y
 ... ≤ Kf * (Kg * edist (g (f x)) (g (f y))) : ennreal.mul_left_mono (hg _ _)
 ... = _ : by rw [ennreal.coe_mul, mul_assoc]
 
-lemma to_inverse (hf : antilipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
+lemma to_right_inverse (hf : antilipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   lipschitz_with K g :=
 begin
   intros x y,
@@ -101,7 +101,7 @@ lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :
 
 end antilipschitz_with
 
-lemma lipschitz_with.to_inverse [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β}
+lemma lipschitz_with.to_right_inverse [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β}
   (hf : lipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   antilipschitz_with K g :=
 λ x y, by simpa only [hg _] using hf (g x) (g y)

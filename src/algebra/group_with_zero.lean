@@ -143,9 +143,6 @@ end
 lemma inv_eq_iff {g h : G} : g⁻¹ = h ↔ g⁻¹ = h :=
 by rw [← inv_inj, eq_comm, gwz.inv_inv]
 
-@[simp] lemma inv_eq_zero {a : G} : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*]) (assume : a ≠ 0, by simp [*, inv_ne_zero])
-
 @[simp] lemma coe_unit_mul_inv (a : units G) : (a : G) * a⁻¹ = 1 :=
 mul_inv_cancel _ $ ne_zero_of_mul_right_eq_one _ (a⁻¹ : units G) $ by simp
 
@@ -322,6 +319,9 @@ section not_comm
 
 variables {G : Type*} [group_with_zero G]
 variables {a b c : G}
+
+@[simp] lemma inv_eq_zero {a : G} : a⁻¹ = 0 ↔ a = 0 :=
+classical.by_cases (assume : a = 0, by simp [*]) (assume : a ≠ 0, by simp [*, gwz.inv_ne_zero])
 
 lemma one_div_mul_one_div_rev (a b : G) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, gwz.mul_inv_rev]

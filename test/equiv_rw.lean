@@ -148,6 +148,12 @@ begin
   exact s.1,
 end
 
+example {α β : Type} (e : α ≃ β) (P : α → Prop) (h : { a // P a }) : β :=
+begin
+  equiv_rw e at h,
+  exact h.val,
+end
+
 example {α β : Type} (e : α ≃ β) (P : α → Prop) (h : ∀ a : α, P a) (b : β) : P (e.symm b) :=
 begin
   equiv_rw e.symm at b,

@@ -38,9 +38,9 @@ def equiv_congr_lemmas : list name :=
  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
  `equiv.arrow_congr',
- `equiv.sigma_congr_left', -- allows rewriting in the argument of a sigma-type
+ `equiv.subtype_equiv_of_subtype', -- allows rewriting in subtypes
+ `equiv.sigma_congr_left', -- allows rewriting in the first component of a sigma-type
  `equiv.Pi_congr_left', -- allows rewriting in the argument of a pi-type
---  `equiv.Pi_congr'', -- allows rewriting in the value of a pi-type??
  `bifunctor.map_equiv,  -- handles `sum` and `prod`
  `functor.map_equiv,  -- handles `list`, `option`, and many others
  `equiv.refl]

@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   cleanup-runs:
-      on: [push]
       runs-on: ubuntu-latest
       steps:
       - uses: semorrison/workflow-run-cleanup-action@v0.2.2

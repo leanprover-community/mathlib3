@@ -432,6 +432,16 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
   (0 : α →₀ β).prod h = 1 :=
 rfl
 
+@[simp, to_additive]
+def prod_ite_eq [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
+  f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { dsimp [finsupp.prod], rw finset.prod_ite_eq f.support, }
+
+@[simp, to_additive]
+def prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
+  f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { conv_lhs { apply_congr, sorry, } }
+
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 

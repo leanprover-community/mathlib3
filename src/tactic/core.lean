@@ -1541,7 +1541,7 @@ do gs ← get_goals,
      ⟨n,g⟩ ← goal_of_mvar g,
      g ← gs.mfoldl (λ g v, do
        g ← kabstract g v reducible ff,
-       pure $ g.lift_vars 0 1 ) g,
+       pure $ pi `goal binder_info.default `(true) g ) g,
      pure (n,g)
 
 /--

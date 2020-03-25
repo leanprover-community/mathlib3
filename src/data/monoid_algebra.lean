@@ -73,6 +73,17 @@ lemma mul_def {f g : monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
 rfl
 
+lemma mul_apply (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [sum_apply, single_apply],
+end
+end
+
+section
+variables [semiring k] [monoid G]
+
 lemma support_mul (a b : monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
 subset.trans support_sum $ bind_mono $ assume a₁ _,
@@ -139,6 +150,15 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
+instance [semiring k] [monoid G] : has_scalar k (monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance [semiring k] [monoid G] : semimodule k (monoid_algebra k G) :=
+finsupp.semimodule G k
+
+instance [ring k] [monoid G] : module k (monoid_algebra k G) :=
+finsupp.module G k
+
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
@@ -152,6 +172,69 @@ lemma prod_single [comm_semiring k] [comm_monoid G]
   s.prod (λi, single (a i) (b i)) = single (s.prod a) (s.prod b) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
+
+section -- We now prove some additional statements that hold for group algebras.
+variables [semiring k] [group G]
+
+lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, b₁ * (g (a₁⁻¹ * x))) :=
+begin
+  rw mul_apply,
+  congr, funext,
+  -- We need to massage the condition in the if statement first:
+  have t : ∀ a₁ a₂, a₁⁻¹ * x = a₂ ↔ a₁ * a₂ = x := by { intros, split; rintro rfl; simp, },
+  conv_lhs { congr, skip, funext, rw ←t, },
+  -- but it's downhill from here.
+  simp only [mem_support_iff, ne.def, finsupp.sum_ite_eq],
+  split_ifs,
+  { simp [h], },
+  { refl, },
+end
+
+@[simp]
+lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
+  (f * single x r) y = f (y * x⁻¹) * r :=
+begin
+  rw mul_apply_left,
+  -- Again, we need to unpack the `single` into a correctly positioned `ite`:
+  have t : ∀ a₁, x = a₁⁻¹ * y ↔ y * x⁻¹ = a₁ := by { intros, split; rintro rfl; simp, },
+  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
+  -- after which it's straightforward.
+  simp only [mem_support_iff, sum_mul_ite_eq, ne.def],
+  split_ifs,
+  { simp [h], },
+  { refl, },
+end
+
+-- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
+lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (g.sum $ λa₂ b₂, (f (x * a₂⁻¹)) * b₂) :=
+begin
+  rw mul_apply,
+  rw finsupp.sum_comm,
+  congr, funext,
+  have t : ∀ a₁, a₁ * x' = x ↔ a₁ = x * x'⁻¹ := by { intros, split; rintro rfl; simp, },
+  conv_lhs { congr, skip, funext, rw t, },
+  simp only [mem_support_iff, ne.def, finsupp.sum_ite_eq'],
+  split_ifs,
+  { simp [h], },
+  { refl, },
+end
+
+@[simp]
+lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
+  (single x r * f) y = r * f (x⁻¹ * y) :=
+begin
+  rw mul_apply_right,
+  have t : ∀ a₂, x = y * a₂⁻¹ ↔ x⁻¹ * y = a₂ := by { intros, split; rintro rfl; simp, },
+  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
+  simp only [mem_support_iff, sum_ite_mul_eq, ne.def],
+  split_ifs,
+  { simp [h], },
+  { refl, },
+end
+
+end
 
 end monoid_algebra
 
@@ -252,6 +335,15 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
+
+instance [semiring k] [monoid G] : has_scalar k (add_monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance [semiring k] [monoid G] : semimodule k (add_monoid_algebra k G) :=
+finsupp.semimodule G k
+
+instance [ring k] [monoid G] : module k (add_monoid_algebra k G) :=
+finsupp.module G k
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=

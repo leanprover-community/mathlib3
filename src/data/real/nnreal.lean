@@ -28,6 +28,9 @@ protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.
 protected lemma eq_iff {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) ↔ n = m :=
 iff.intro nnreal.eq (congr_arg coe)
 
+lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
+not_iff_not_of_iff $ nnreal.eq_iff
+
 protected def of_real (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 
 lemma coe_of_real (r : ℝ) (hr : 0 ≤ r) : (nnreal.of_real r : ℝ) = r :=
@@ -76,6 +79,13 @@ begin
 end
 
 instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; intros; refl
+
+instance : comm_group_with_zero ℝ≥0 :=
+{ zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
+  inv_zero       := nnreal.eq $ inv_zero,
+  mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
+  .. (by apply_instance : has_inv ℝ≥0),
+  .. (_ : comm_semiring ℝ≥0) }
 
 @[move_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 is_monoid_hom.map_pow coe r n
@@ -355,7 +365,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-by { simp only [ne.def, ← nnreal.eq_iff], simp [h₁, h₂] }
+gwz.mul_ne_zero h₁ h₂
 
 end mul
 
@@ -428,7 +438,7 @@ lemma div_def {r p : nnreal} : r / p = r * p⁻¹ := rfl
 @[simp] lemma inv_zero : (0 : nnreal)⁻¹ = 0 := nnreal.eq inv_zero
 
 @[simp] lemma inv_eq_zero {r : nnreal} : (r : nnreal)⁻¹ = 0 ↔ r = 0 :=
-by rw [← nnreal.eq_iff, nnreal.coe_inv, nnreal.coe_zero, inv_eq_zero, ← nnreal.coe_zero, nnreal.eq_iff]
+gwz.inv_eq_zero
 
 @[simp] lemma inv_pos {r : nnreal} : 0 < r⁻¹ ↔ 0 < r :=
 by simp [zero_lt_iff_ne_zero]

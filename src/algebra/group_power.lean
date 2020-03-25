@@ -17,19 +17,19 @@ variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*
   {R : Type*} {S : Type*}
 
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
-def monoid.pow [monoid M] (a : M) : ℕ → M
+def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 | 0     := 1
 | (n+1) := a * monoid.pow n
 
-def add_monoid.smul [add_monoid A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _ a n
+def add_monoid.smul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
+@monoid.pow (multiplicative A) _ { one := (0 : A) } a n
 
 precedence `•`:70
 localized "infix ` • ` := add_monoid.smul" in add_monoid
 
 @[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
 
- /-!
+/-!
 ### (Additive) monoid
 -/
 section monoid

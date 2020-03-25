@@ -80,7 +80,7 @@ lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
     exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
@@ -98,8 +98,8 @@ lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos hx) hy in
 have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
 ⟨-(m+1),
-by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg, one_div_eq_inv,
+by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]

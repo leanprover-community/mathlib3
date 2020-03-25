@@ -74,6 +74,9 @@ lemma comm_at {C D : cochain_complex V} (f : C ⟶ D) (i : ℤ) :
     C.d i ≫ f.f (i+1) = f.f i ≫ D.d i :=
 congr_fun f.comm i
 
+@[simp]
+lemma comm {C D : cochain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := differential_object.hom.comm _
+
 -- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
 example {C D : cochain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
@@ -113,6 +116,9 @@ picking out one component of the commutation relation.
 lemma comm_at {C D : chain_complex V} (f : C ⟶ D) (i : ℤ) :
     C.d i ≫ f.f (i-1) = f.f i ≫ D.d i :=
 congr_fun f.comm i
+
+@[simp]
+lemma comm {C D : chain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := differential_object.hom.comm _
 
 variables (V)
 

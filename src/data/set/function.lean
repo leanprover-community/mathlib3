@@ -9,6 +9,8 @@ import data.set.basic logic.function
 
 ## Main definitions
 
+### Predicate
+
 * `eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
 * `maps_to f s t` : `f` sends every point of `s` to a point of `t`;
 * `inj_on f s` : restriction of `f` to `s` is injective;
@@ -18,6 +20,13 @@ import data.set.basic logic.function
 * `right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
 * `inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
   we have `left_inv_on f' f s` and `right_inv_on f' f t`.
+
+### Functions
+
+* `restrict f s` : restrict the domain of `f` to the set `s`;
+* `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
+* `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
+  ans the codomain to `t`.
 -/
 universes u v w x y
 

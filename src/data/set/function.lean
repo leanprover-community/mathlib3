@@ -9,6 +9,8 @@ import data.set.basic logic.function
 
 ## Main definitions
 
+### Predicate
+
 * `eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
 * `maps_to f s t` : `f` sends every point of `s` to a point of `t`;
 * `inj_on f s` : restriction of `f` to `s` is injective;
@@ -18,6 +20,13 @@ import data.set.basic logic.function
 * `right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
 * `inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
   we have `left_inv_on f' f s` and `right_inv_on f' f t`.
+
+### Functions
+
+* `restrict f s` : restrict the domain of `f` to the set `s`;
+* `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
+* `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
+  ans the codomain to `t`.
 -/
 universes u v w x y
 
@@ -29,8 +38,25 @@ namespace set
 
 /-! ### Restrict -/
 
-lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-by { ext x, simp [restrict], refl }
+/-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
+takes an argument `↥s` instead of `subtype s`. -/
+def restrict (f : α → β) (s : set α) : s → β := λ x, f x
+
+lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
+
+@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
+range_comp.trans $ congr_arg (('') f) s.range_coe_subtype
+
+/-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
+has codomain `↥s` instead of `subtype s`. -/
+def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
+λ x, ⟨f x, h x⟩
+
+@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
+  (cod_restrict f s h x : β) = f x :=
+rfl
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}

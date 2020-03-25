@@ -1429,7 +1429,7 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-lemma val_range {p : α → Prop} :
+@[simp] lemma val_range {p : α → Prop} :
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
@@ -1475,12 +1475,12 @@ section range
 
 variable {α : Type*}
 
-@[simp] lemma subtype.val_range {p : α → Prop} :
-  range (@subtype.val _ p) = {x | p x} :=
-subtype.val_range
-
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
+
+theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
+  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
+subtype.preimage_val_eq_preimage_val_iff _ _ _
 
 end range
 

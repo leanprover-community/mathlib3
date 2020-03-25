@@ -9,6 +9,16 @@ import data.equiv.functor
 # The `equiv_rw` tactic, which transports goals or hypotheses along equivalences.
 -/
 
+meta def expr.may_occur (e : expr) (t : expr) : tactic unit :=
+-- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
+guard $ ¬ t.list_meta_vars.empty ∨ e.occurs t
+
+-- Because Lean can't unify `?l_1` with `imax (1 ?m_1)`, I was running into trouble with the
+-- version of equiv.arrow_congr that worked with `Sort*`.
+@[congr]
+def equiv.arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
+equiv.arrow_congr hα hβ
+
 namespace tactic
 
 /-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
@@ -28,15 +38,54 @@ def equiv_congr_lemmas : list name :=
  -- these are bifunctors, and so could be subsumed by a `bifunctor.map_equiv`
  `equiv.sum_congr, `equiv.prod_congr,
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
- `equiv.arrow_congr,
+ `equiv.arrow_congr',
  `equiv.sigma_congr_left', -- allows rewriting in the argument of a sigma-type
  `equiv.Pi_congr_left', -- allows rewriting in the argument of a pi-type
 --  `equiv.Pi_congr', -- allows rewriting in the value of a pi-type??
- `functor.map_equiv] -- handles `list`, `option`, and many others
-
-#print equiv.Pi_congr_left'
+ `functor.map_equiv,  -- handles `list`, `option`, and many others
+ `equiv.refl]
 
 declare_trace adapt_equiv
+
+-- meta def hack_apply (e : expr) : tactic (list (name × expr)) :=
+-- do
+--   g :: gs ← get_goals,
+--   `(%%ty ≃ _) ← infer_type g | tactic.apply e,
+--   g' ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
+--   set_goals (g' :: gs),
+--   r ← tactic.apply e,
+--   trace "!",
+--   g' ← instantiate_mvars g',
+--   g ← instantiate_mvars g,
+--   infer_type g' >>= (λ t, pp (g', t)) >>= trace,
+--   infer_type g >>= (λ t, pp (g, t)) >>= trace,
+--   unify g g',
+--   return r
+
+meta def adapt_equiv_2 (eq α ty : expr) : tactic expr :=
+do
+  initial_goals ← get_goals,
+  g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
+  set_goals [g],
+  equiv_congr_lemmas ← equiv_congr_lemmas.mmap mk_const,
+  solve_by_elim {
+    use_symmetry := false,
+    use_exfalso := false,
+    lemmas := some (eq :: equiv_congr_lemmas),
+    max_steps := 10, -- TODO decide what to put here
+    accept := λ goals, lock_tactic_state (do
+      when_tracing `adapt_equiv (do
+        goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
+      goals.any_of (eq.may_occur) <|>
+        (trace_if_enabled `adapt_equiv format!"Rejected, result does not contain {eq}" >> failed),
+      done <|>
+      when_tracing `adapt_equiv (do
+        g ← target >>= pp,
+        trace format!"Attempting to adapt to {g}"))
+  },
+  -- r ← instantiate_mvars g,
+  set_goals initial_goals,
+  return g
 
 /--
 Helper function for `adapt_equiv`.
@@ -49,12 +98,12 @@ do
     ty_pp ← pp ty,
     trace format!"Attempting to adapt to `{ty_pp} ≃ _`."),
   if ty = α then (do
-    trace_for `adapt_equiv "Solving use original equiv.",
+    trace_if_enabled `adapt_equiv "Solving use original equiv.",
     return (eq, tt))
   else
     -- TODO with better flow control, could we just add `equiv.refl to the list of lemmas?
     if ¬ α.occurs ty then (do
-      trace_for `adapt_equiv "Solving use `equiv.refl _`.",
+      trace_if_enabled `adapt_equiv "Solving use `equiv.refl _`.",
       (λ e, (e, ff)) <$> to_expr ``(equiv.refl %%ty))
     else
     (do
@@ -64,7 +113,7 @@ do
       let apply_and_adapt (n : name) : tactic (expr × bool) := (do
         -- Apply the named lemma
         mk_const n >>= tactic.fapply,
-        trace_for `adapt_equiv format!"Successfully applied lemma {n}",
+        trace_if_enabled `adapt_equiv format!"Successfully applied lemma {n}",
         all_goals (intros >> skip), -- TODO explain why?
         -- Collect the resulting goals, then restore the original context before proceeding
         gs ← get_goals,
@@ -96,9 +145,10 @@ do
     eq_ty_pp ← infer_type eq >>= pp,
     trace format!"Attempting to adapt `{eq_pp} : {eq_ty_pp}` to produce `{ty_pp} ≃ _`."),
   `(%%α ≃ %%β) ← infer_type eq | fail format!"{eq} must be an `equiv`",
-  (e, n) ← adapt_equiv' eq α ty,
-  guard n,
-  return e
+  adapt_equiv_2 eq α ty
+  -- (e, n) ← adapt_equiv' eq α ty,
+  -- guard n,
+  -- return e
 
 /--
 Attempt to replace the hypothesis with name `x`

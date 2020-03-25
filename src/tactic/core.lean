@@ -668,6 +668,11 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
+meta structure apply_any_opt :=
+(use_symmetry : bool := tt)
+(use_exfalso : bool := tt)
+(apply : expr → tactic (list (name × expr)) := tactic.apply)
+
 /--
 `apply_any` tries to apply one of a list of lemmas to the current goal.
 
@@ -679,14 +684,13 @@ Optional arguments:
 -/
 meta def apply_any
   (lemmas : list expr)
-  (tac : tactic unit := skip)
-  (use_symmetry : bool := tt)
-  (use_exfalso : bool := tt) : tactic unit :=
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
-    ++ (if use_symmetry then [symmetry] else [])
-    ++ (if use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m, lemmas.any_of (λ H, opt.apply H >> tac)) <|>
   fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/

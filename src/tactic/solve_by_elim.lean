@@ -7,6 +7,7 @@ import tactic.core
 
 namespace tactic
 
+namespace solve_by_elim
 /--
 Builds a collection of lemmas for use in the backtracking search in `solve_by_elim`.
 
@@ -39,23 +40,6 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    else return hs
 
 /--
-The internal implementation of `solve_by_elim`, with a limiting counter.
--/
-meta def solve_by_elim_aux (accept : list expr → tactic unit) (discharger : tactic unit)
-  (original_goals : list expr) (lemmas : list expr)  : ℕ → tactic unit
-| n := do
-  -- First, check that progress so far is `accept`able.
-  (original_goals.mmap instantiate_mvars >>= accept) >>
-  -- Then check if we've finished.
-  (done <|>
-    -- Otherwise, if there's more time left,
-    guard (n > 0) >>
-    -- try either applying a lemma and recursing, or
-    ((apply_any lemmas $ solve_by_elim_aux (n-1)) <|>
-    -- if that does work, run the discharger and recurse.
-     (discharger >> solve_by_elim_aux (n-1))))
-
-/--
 Configuration options for `solve_by_elim`.
 
 * By default `solve_by_elim` operates only on the first goal,
@@ -70,18 +54,43 @@ Configuration options for `solve_by_elim`.
 * `assumptions` generates the list of lemmas to use in the backtracking search.
 * `max_steps` bounds the depth of the search.
 -/
-meta structure by_elim_opt :=
-(backtrack_all_goals : bool := ff)
+meta structure basic_opt extends apply_any_opt :=
 (accept : list expr → tactic unit := λ _, skip)
 (discharger : tactic unit := done)
+
+/--
+The internal implementation of `solve_by_elim`, with a limiting counter.
+-/
+meta def solve_by_elim_aux (opt : basic_opt)
+  (original_goals : list expr) (lemmas : list expr) : ℕ → tactic unit
+| n := do
+  -- First, check that progress so far is `accept`able.
+  lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept) >>
+  -- instantiate_mvars_in_goals >>
+  -- (get_goals >>= set_goals) >>
+  -- Then check if we've finished.
+  (done <|>
+    -- Otherwise, if there's more time left,
+    guard (n > 0) >>
+    -- try either applying a lemma and recursing, or
+    ((apply_any lemmas opt.to_apply_any_opt $ solve_by_elim_aux (n-1)) <|>
+    -- if that doesn't work, run the discharger and recurse.
+     (opt.discharger >> solve_by_elim_aux (n-1))))
+
+meta structure opt extends basic_opt :=
+(backtrack_all_goals : bool := ff)
 (lemmas : option (list expr) := none)
 (max_steps : ℕ := 3)
 
-meta def by_elim_opt.get_lemmas (opt : by_elim_opt) : tactic (list expr) :=
+meta def opt.get_lemmas (opt : opt) : tactic (list expr) :=
 match opt.lemmas with
 | none := mk_assumption_set ff [] []
 | some lemmas := return lemmas
 end
+
+end solve_by_elim
+
+open solve_by_elim
 
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
@@ -95,13 +104,13 @@ If passed an empty list of assumptions, `solve_by_elim` builds a default set
 as per the interactive tactic, using the `local_context` along with
 `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
 -/
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (opt : opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
   lemmas ← opt.get_lemmas,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
-    solve_by_elim_aux opt.accept opt.discharger gs lemmas opt.max_steps)
+    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_steps)
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -125,13 +134,14 @@ Optional arguments:
 -/
 meta def apply_assumption
   (lemmas : option (list expr) := none)
+  (opt : apply_any_opt := {})
   (tac : tactic unit := skip) : tactic unit :=
 do
   lemmas ← match lemmas with
   | none := local_context
   | some lemmas := return lemmas
   end,
-  tactic.apply_any lemmas tac
+  tactic.apply_any lemmas opt tac
 
 add_tactic_doc
 { name        := "apply_assumption",
@@ -191,12 +201,12 @@ The assumptions can be modified with similar syntax as for `simp`:
 
 -/
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
-  (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :
   tactic unit :=
 do lemmas ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
-     lemmas := lemmas,
+     lemmas := some lemmas,
      ..opt }
 
 add_tactic_doc

@@ -93,8 +93,42 @@ begin
 end
 
 -- Rewriting in multiple positions.
+example {α β : Type*} [has_add β] (e : α ≃ β) : α → α :=
+begin
+  have : (α → α) ≃ _, {
+    apply equiv.arrow_congr,
+    apply e,
+    apply e,
+  },
+  equiv_rw e,
+  exact (@id β),
+end
+
+-- Rewriting in multiple positions.
+example {α β : Type} [has_add β] (e : α ≃ β) : β → α → α :=
+begin
+  -- have : (β → α → α) ≃ _, {
+  --   apply equiv.arrow_congr,
+  --   apply equiv.refl,
+  --   apply equiv.arrow_congr,
+  --   apply e,
+  --   apply e,
+  -- },
+  equiv_rw e,
+  exact (+),
+end
+
+
+-- Rewriting in multiple positions.
 example {α β : Type} [has_add β] (e : α ≃ β) : α → α → α :=
 begin
+  have : (α → α → α) ≃ _, {
+    apply equiv.arrow_congr,
+    apply e,
+    apply equiv.arrow_congr,
+    apply e,
+    apply e,
+  },
   equiv_rw e,
   exact (+),
 end
@@ -134,7 +168,6 @@ begin
   -- this is a bit perverse, as `equiv_rw e.symm at b` is more natural,
   -- but this tests rewriting in the argument of a dependent function
   equiv_rw e at h,
-  dsimp at h,
   exact h _,
 end
 
@@ -142,7 +175,6 @@ end
 example {α β : Type} (P : α → Type) (h : Σ a, P a) (e : α ≃ β) : β :=
 begin
   equiv_rw e at h,
-  dsimp at h,
   exact h.1
 end
 
@@ -150,7 +182,6 @@ end
 -- example {α β γ : Type} (e : α ≃ β) (P : α → Sort*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
 -- begin
 --   equiv_rw e at h,
---   dsimp at h,
 --   exact (h b).2,
 -- end
 

@@ -249,6 +249,16 @@ rfl
   (arrow_congr e₁ e₂).symm = arrow_congr e₁.symm e₂.symm :=
 rfl
 
+/--
+A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
+
+The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
+because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
+-/
+@[congr]
+def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
+equiv.arrow_congr hα hβ
+
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_apply (e : α ≃ β) (f : α → α) (x : β) :

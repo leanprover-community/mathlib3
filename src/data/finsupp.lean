@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Scott Morrison
 -/
 
 import data.finset data.set.finite algebra.big_operators algebra.module
@@ -432,17 +432,46 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
   (0 : α →₀ β).prod h = 1 :=
 rfl
 
-/-- A product of -/
+@[to_additive]
+lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β') [comm_monoid γ] (h : α → β → α' → β' → γ) :
+  f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
+begin
+  dsimp [finsupp.prod],
+  rw finset.prod_comm,
+end
+
 @[simp, to_additive]
 lemma prod_ite_eq [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
   f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
-by { dsimp [finsupp.prod], rw finset.prod_ite_eq f.support, }
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 
 /-- A restatement of `prod_ite_eq` with the equality test reversed. -/
 @[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
 lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
-by { conv_lhs { apply_congr, skip, rw eq.comm, }, rw prod_ite_eq, }
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
+
+-- TODO revisit these next four proofs after Lean 3.8 arrives. Ideally this is `by simp`.
+@[simp]
+lemma sum_mul_ite_eq [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
+  f.sum (λ x v, (b x v) * ite (a = x) r 0) = ite (a ∈ f.support) (b a (f a) * r) 0 :=
+by { conv_lhs { apply_congr, skip, simp [mul_ite], }, simp, congr, }
+
+@[simp]
+lemma sum_ite_mul_eq [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
+  f.sum (λ x v, ite (a = x) r 0 * (b x v)) = ite (a ∈ f.support) (r * b a (f a)) 0 :=
+by { conv_lhs { apply_congr, skip, simp [ite_mul], }, simp, congr, }
+
+@[simp]
+lemma sum_mul_ite_eq' [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
+  f.sum (λ x v, (b x v) * ite (x = a) r 0) = ite (a ∈ f.support) (b a (f a) * r) 0 :=
+by { conv_lhs { apply_congr, skip, simp [mul_ite], }, simp, congr, }
+
+@[simp]
+lemma sum_ite_mul_eq' [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
+  f.sum (λ x v, ite (x = a) r 0 * (b x v)) = ite (a ∈ f.support) (r * b a (f a)) 0 :=
+by { conv_lhs { apply_congr, skip, simp [ite_mul], }, simp, congr, }
+
 
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩

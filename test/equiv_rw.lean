@@ -237,3 +237,37 @@ by { ext, refl, }
 lemma semigroup.map_comp {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
   (semigroup.map_equiv e).trans (semigroup.map_equiv f) = semigroup.map_equiv (e.trans f) :=
 by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
+
+-- For full disclosure, this works less well for the next example.
+-- Hopefully I am missing some tricks here.
+attribute [ext] monoid
+
+def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
+begin
+  intro S, fconstructor,
+  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  { intros,
+    apply e.symm.injective,
+    dsimp [(*)], simp,
+    -- The biggest problem is that `equiv_rw` doesn't work in one step here.
+    have mul_assoc := S.mul_assoc,
+    equiv_rw e at mul_assoc,
+    have mul_assoc' := mul_assoc a,
+    equiv_rw e at mul_assoc',
+    have mul_assoc'' := mul_assoc' b,
+    equiv_rw e at mul_assoc'',
+    exact mul_assoc'' c, },
+  { have one := S.one, equiv_rw e at one, exact one, },
+  { intros,
+    apply e.symm.injective,
+    dsimp [(*)], simp,
+    have one_mul := S.one_mul,
+    equiv_rw e at one_mul,
+    apply one_mul, },
+  { intros,
+    apply e.symm.injective,
+    dsimp [(*)], simp,
+    have mul_one := S.mul_one,
+    equiv_rw e at mul_one,
+    apply mul_one, },
+end

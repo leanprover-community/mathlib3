@@ -259,6 +259,11 @@ because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
 def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
 
+@[simp] lemma arrow_congr'_apply {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
+  (f : α₁ → β₁) (x : α₂) :
+  arrow_congr' e₁ e₂ f x = (e₂ $ f $ e₁.symm x) :=
+rfl
+
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_apply (e : α ≃ β) (f : α → α) (x : β) :

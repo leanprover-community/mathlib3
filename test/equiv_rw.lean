@@ -192,3 +192,48 @@ begin
   equiv_rw e at t,
   exact t.2,
 end
+
+/-- Transport through trivial families is the identity. -/
+-- TODO find a home in mathlib!
+@[simp]
+lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*}
+  (y : β) (h : a = a') :
+  (@eq.rec α a (λ a, β) y a' h) = y :=
+begin
+  cases h,
+  refl,
+end
+
+-- TODO move to data/equiv/basic
+@[simp]
+lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+
+-- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
+-- (which isn't yet in this PR, so we only define the fields without assembling them)
+-- Observe that the next three declarations could easily be implemented by a tactic.
+
+attribute [ext] semigroup
+
+def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
+begin
+  intro S, fconstructor,
+  -- transport data fields using `equiv_rw`
+  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  -- transport axioms by simplifying, and applying the original axiom
+  { intros, dsimp, simp, apply S.mul_assoc, }
+end
+
+-- Note this is purely formal, and will be provided by `equiv_functor` automatically.
+@[simps]
+def semigroup.map_equiv {α β : Type} (e : α ≃ β) : semigroup α ≃ semigroup β :=
+{ to_fun := semigroup.map e,
+  inv_fun := semigroup.map e.symm,
+  left_inv := by { intro x, funext, ext, dsimp [semigroup.map], simp, },
+  right_inv := by { intro x, funext, ext, dsimp [semigroup.map], simp, }, }
+
+lemma semigroup.map_id (α : Type) : semigroup.map_equiv (equiv.refl α) = equiv.refl (semigroup α) :=
+by { ext, refl, }
+
+lemma semigroup.map_comp {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
+  (semigroup.map_equiv e).trans (semigroup.map_equiv f) = semigroup.map_equiv (e.trans f) :=
+by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }

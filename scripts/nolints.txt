@@ -1132,9 +1132,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/functor.lean
-apply_nolint functor.map_equiv doc_blame
-
 -- data/equiv/list.lean
 apply_nolint denumerable.lower doc_blame
 apply_nolint denumerable.lower' doc_blame

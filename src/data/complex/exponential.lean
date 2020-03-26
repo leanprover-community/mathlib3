@@ -862,7 +862,7 @@ by linarith [add_one_le_exp_of_nonneg hx]
 lemma exp_pos (x : ℝ) : 0 < exp x :=
 (le_total 0 x).elim (lt_of_lt_of_le zero_lt_one ∘ one_le_exp)
   (λ h, by rw [← neg_neg x, real.exp_neg];
-    exact inv_pos (lt_of_lt_of_le zero_lt_one (one_le_exp (neg_nonneg.2 h))))
+    exact inv_pos.2 (lt_of_lt_of_le zero_lt_one (one_le_exp (neg_nonneg.2 h))))
 
 @[simp] lemma abs_exp (x : ℝ) : abs' (exp x) = exp x :=
 abs_of_pos (exp_pos _)

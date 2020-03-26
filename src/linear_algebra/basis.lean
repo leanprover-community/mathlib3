@@ -272,7 +272,7 @@ end
 
 lemma linear_independent.restrict_of_comp_subtype {s : set ι}
   (hs : linear_independent R (v ∘ subtype.val : s → M)) :
-  linear_independent R (function.restrict v s) :=
+  linear_independent R (s.restrict v) :=
 begin
   have h_restrict : restrict v s = v ∘ (λ x, x.val) := rfl,
   rw [linear_independent_iff, h_restrict, finsupp.total_comp],
@@ -1134,7 +1134,7 @@ begin
     rwa h₂ at h₁ },
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr (function.restrict (inv_fun f) C : C → V),
+  use hC.constr (C.restrict (inv_fun f)),
   apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hB,
   intros b,
   rw image_subset_iff at BC,
@@ -1153,7 +1153,7 @@ lemma exists_right_inverse_linear_map_of_surjective {f : V →ₗ[K] V'}
 begin
   rcases exists_is_basis K V' with ⟨C, hC⟩,
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr (function.restrict (inv_fun f) C : C → V),
+  use hC.constr (C.restrict (inv_fun f)),
   apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hC,
   intros c,
   simp [constr_basis hC],

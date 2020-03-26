@@ -562,6 +562,12 @@ option.is_none <$> simp_is_conditional_core ty
 private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
 prf.list_constant.to_list.mfilter is_simp_lemma
 
+/-- Checks whether two expressions are equal for the simplifier. That is,
+they are reducibly-definitional equal, and they have the same head symbol. -/
+meta def is_simp_eq (a b : expr) : tactic bool :=
+if a.get_app_fn.const_name ≠ b.get_app_fn.const_name then pure ff else
+succeeds $ is_def_eq a b transparency.reducible
+
 /-- Reports declarations that are simp lemmas whose left-hand side is not in simp-normal form. -/
 meta def simp_nf_linter (timeout := 200000) (d : declaration) : tactic (option string) := do
 tt ← is_simp_lemma d.to_name | pure none,
@@ -585,9 +591,9 @@ if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
 some (rhs', prf2) ← try_core $ simplify sls [] rhs {fail_if_unchanged := ff}
   | pure "simplify fails on right-hand side. PLEASE REPORT TO ZULIP",
-lhs'_eq_rhs' ← succeeds (is_def_eq lhs' rhs' transparency.reducible),
-lhs_in_nf ← succeeds (is_def_eq lhs' lhs transparency.reducible),
-if lhs'_eq_rhs' ∧ lhs'.get_app_fn.const_name = rhs'.get_app_fn.const_name then do
+lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
+lhs_in_nf ← is_simp_eq lhs' lhs,
+if lhs'_eq_rhs' then do
   used_lemmas ← heuristic_simp_lemma_extraction (prf1 prf2),
   pure $ pure $ "simp can prove this:\n"
     ++ "  by simp only " ++ to_string used_lemmas ++ "\n"

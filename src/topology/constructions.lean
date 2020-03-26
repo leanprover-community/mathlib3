@@ -32,7 +32,7 @@ product, sum, disjoint union, subspace, quotient space
 noncomputable theory
 
 open topological_space set filter
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -127,6 +127,19 @@ continuous_snd.continuous_at
 lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, prod.mk (f x) (g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
+
+lemma filter.eventually.prod_inl_nhds {p : α → Prop} {a : α}  (h : ∀ᶠ x in 𝓝 a, p x) (b : β) :
+  ∀ᶠ x in 𝓝 (a, b), p (x : α × β).1 :=
+continuous_at_fst h
+
+lemma filter.eventually.prod_inr_nhds {p : β → Prop} {b : β} (h : ∀ᶠ x in 𝓝 b, p x) (a : α) :
+  ∀ᶠ x in 𝓝 (a, b), p (x : α × β).2 :=
+continuous_at_snd h
+
+lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in 𝓝 a, pa x)
+  {pb : β → Prop} {b} (hb : ∀ᶠ y in 𝓝 b, pb y) :
+  ∀ᶠ p in 𝓝 (a, b), pa (p : α × β).1 ∧ pb p.2 :=
+(ha.prod_inl_nhds b).and (hb.prod_inr_nhds a)
 
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous.prod_mk continuous_snd continuous_fst

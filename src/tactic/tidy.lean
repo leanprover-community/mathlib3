@@ -71,7 +71,7 @@ meta def core (cfg : cfg := {}) : tactic (list string) :=
 do
   results ← chain cfg.tactics,
   when (cfg.trace_result) $
-    trace_for `tidy (cfg.trace_result_prefix ++ (", ".intercalate results)),
+    trace (cfg.trace_result_prefix ++ (", ".intercalate results)),
   return results
 
 end tidy

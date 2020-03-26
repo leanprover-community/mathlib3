@@ -50,3 +50,24 @@ decl ← get_decl ``h_c,
 res ← linter.simp_nf.test decl,
 -- linter complains
 guard $ res.is_some
+
+
+-- and the same for a general equivalence relation
+
+def equiv (a b : ℕ) := true
+
+@[refl] lemma equiv.refl (a : ℕ) : equiv a a := ⟨⟩
+@[trans] lemma equiv.trans (a b c : ℕ) : equiv a b → equiv b c → equiv b c := λ _ _, ⟨⟩
+
+def a : ℕ := default _
+def b : ℕ := default _
+def e : ℕ := default _
+
+@[simp] lemma a_equiv_e : equiv a e := by refl
+@[simp] lemma a_equiv_b : equiv a b := by refl
+
+#eval do
+decl ← get_decl ``a_equiv_e,
+res ← linter.simp_nf.test decl,
+-- linter complains
+guard res.is_some

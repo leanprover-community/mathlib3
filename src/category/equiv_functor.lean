@@ -67,8 +67,6 @@ instance of_is_lawful_functor
 -- TODO Include more examples here;
 -- once `equiv_rw` is available these are easy to construct,
 -- and in turn make `equiv_rw` more powerful.
-instance equiv_functor_inhabited : equiv_functor inhabited :=
-{ map := λ α β e, equiv.inhabited_congr e, }
 instance equiv_functor_unique : equiv_functor unique :=
 { map := λ α β e, equiv.unique_congr e, }
 

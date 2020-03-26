@@ -606,7 +606,7 @@ set_option class.instance_max_depth 50
 
 variables (α S)
 
-instance : algebra α (localization α S) := algebra.of_ring_hom coe (is_ring_hom.of_semiring coe)
+instance : algebra α (localization α S) := algebra.of_fun coe (is_ring_hom.of_semiring coe)
 
 lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
 by { simp, refl }

@@ -1315,6 +1315,47 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
 instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..finsupp.semimodule α β }
 
+section
+variables {α β}
+
+/--
+`finsupp.single.add_monoid_hom a` is the additive homomorphism `β →+ (α →₀ β)`,
+including `β` as functions supported at `a`.
+-/
+def single.add_monoid_hom [add_monoid β] (a : α) : β →+ (α →₀ β) :=
+{ to_fun := λ b, single a b,
+  map_zero' := by simp,
+  map_add' := by simp, }
+
+@[simp]
+lemma single.add_monoid_hom_apply [add_monoid β] (a : α) (b : β) :
+  (single.add_monoid_hom a : β →+ (α →₀ β)) b = single a b := rfl
+
+/--
+`finsupp.single.linear_map a` is the linear map `β →ₗ[γ] (α →₀ β)`,
+including `β` as functions supported at `a`.
+-/
+def single.linear_map [ring γ] [add_comm_group β] [module γ β] (a : α) : β →ₗ[γ] (α →₀ β) :=
+{ to_fun := λ b, single a b,
+  add := by simp,
+  smul := λ c x,
+  begin
+    ext a',
+    -- This is just gross.
+    -- * We need `h` in one branch, but `h.symm` in the other.
+    -- * We need to rewrite by `←ne.def`.
+    by_cases h : a = a',
+    { simp [h.symm], },
+    { rw ←ne.def at h, simp [h], },
+  end, }
+
+@[simp]
+lemma single.linear_map_apply [ring γ] [add_comm_group β] [module γ β] (a : α) (b : β) :
+  (single.linear_map a : β →ₗ[γ] (α →₀ β)) b = single a b := rfl
+
+end
+
+
 instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
 { ..finsupp.module α β }
 

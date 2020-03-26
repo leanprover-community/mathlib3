@@ -64,12 +64,41 @@ is_ring_hom.map_zero _
 is_ring_hom.map_one _
 variables {R A}
 
-/-- Creating an algebra from a morphism in CRing. -/
-def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
+/--
+Creating an algebra from a function `i : R → A`,
+where `R` is a commutative ring and `A` is a possibly non-commutative ring,
+equipped with `is_ring_hom i`.
+-/
+-- The `is_ring_hom` argument is explicit, rather than instance implicit,
+-- as typically at the point of use in this file it is constructed "on the spot".
+def of_fun' {A : Type w} [ring A] (i : R → A) (_ : is_ring_hom i) (comm : ∀ r a, a * i r = i r * a) : algebra R A :=
 { smul := λ c x, i c * x,
   to_fun := i,
-  commutes' := λ _ _, mul_comm _ _,
+  commutes' := comm,
   smul_def' := λ c x, rfl }
+
+/--
+Creating an algebra from a homomorphism `i : R →+* A`
+where `R` is a commutative ring and `A` is a possibly non-commutative ring,
+-/
+def of_ring_hom' {A : Type w} [ring A] (i : R →+* A) (comm : ∀ r a, a * i r = i r * a) : algebra R A :=
+{ smul := λ c x, i c * x,
+  to_fun := i,
+  commutes' := comm,
+  smul_def' := λ c x, rfl }
+
+/--
+Creating an algebra from a function `i : R → S` between commutative rings,
+equipped with `is_ring_hom i`.
+-/
+-- The `is_ring_hom` argument is explicit, rather than instance implicit,
+-- as typically at the point of use in this file it is constructed "on the spot".
+def of_fun (i : R → S) (I : is_ring_hom i) : algebra R S :=
+of_fun' i I (λ r a, mul_comm a (i r))
+
+/-- Creating an algebra from a homomorphism `i : R →+* S` between commutative rings. -/
+def of_ring_hom (i : R →+* S) : algebra R S :=
+of_ring_hom' i (λ r a, mul_comm a (i r))
 
 lemma smul_def'' (r : R) (x : A) : r • x = algebra_map A r * x :=
 algebra.smul_def' r x
@@ -101,21 +130,55 @@ by rw [smul_def, smul_def, left_comm]
 
 @[simp] lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
-by rw [smul_def, smul_def, mul_assoc]
+by rw [smul_def, smul_def, mul_assoc].
 
 /-- The monoid algebra R[G] is an algebra over R. -/
 instance algebra_monoid_algebra {G : Type*} [monoid G] : algebra R (monoid_algebra R G) :=
-{ to_fun := λ r, finsupp.single 1 r, -- TODO look at that abstraction leaking through
-  hom := begin end,
-  commutes' := λ r x, begin ext g, simp, sorry, end,
-  smul_def' := λ r x, begin ext g, dsimp, sorry, end, }
+of_ring_hom' (monoid_algebra.single_one.ring_hom : R →+* monoid_algebra R G)
+  (λ r f, begin
+    ext,
+    -- It would be nice if this next step worked by `simp`.
+    dsimp [monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+    simp only [monoid_algebra.mul_apply],
+    conv_lhs { rw [finsupp.sum_comm], },
+    rw [finsupp.sum_single_index],
+    { rw [finsupp.sum_single_index],
+      { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+        convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+        funext, congr,
+        convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+        { congr, funext, congr, },
+        { congr' 1, apply mul_comm, }, },
+      simp, },
+    { simp, }
+  end)
 
 /-- The additive monoid algebra R[G] is an algebra over R. -/
 instance algebra_add_monoid_algebra {G : Type*} [add_monoid G] : algebra R (add_monoid_algebra R G) :=
-sorry
+of_ring_hom' (add_monoid_algebra.single_one.ring_hom : R →+* add_monoid_algebra R G)
+  (λ r f, begin
+    ext,
+    -- It would be nice if this next step worked by `simp`.
+    dsimp [add_monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+    simp only [add_monoid_algebra.mul_apply],
+    conv_lhs { rw [finsupp.sum_comm], },
+    rw [finsupp.sum_single_index],
+    { rw [finsupp.sum_single_index],
+      { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+        convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+        funext, congr,
+        convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+        { congr, funext, congr, },
+        { congr' 1, apply mul_comm, }, },
+      simp, },
+    { simp, }
+  end)
 
-/-- R[X] is the generator of the category R-Alg. -/
+/-- The algebra of polynomials over R. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
+-- Unfortunately we can't just write `algebra.algebra_add_monoid_algebra` here,
+-- as the `module R (polynomial R)` instance that results is not definitionally
+-- equal to `polynomial.module` previously defined.
 { to_fun := polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
@@ -131,7 +194,7 @@ instance mv_polynomial (R : Type u) [comm_ring R]
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
-of_ring_hom subtype.val ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
+of_fun subtype.val ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
 
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
@@ -412,7 +475,7 @@ end rat
 namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ :=
-algebra.of_ring_hom coe $ by constructor; intros; simp [one_re]
+algebra.of_fun coe $ by constructor; intros; simp [one_re]
 
 instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
 
@@ -527,7 +590,7 @@ include R
 
 variables (R)
 instance id : algebra R R :=
-algebra.of_ring_hom id $ by apply_instance
+algebra.of_ring_hom (ring_hom.id R)
 
 namespace id
 

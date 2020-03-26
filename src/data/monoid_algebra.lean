@@ -164,6 +164,19 @@ lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} 
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
   (sum_single_index (by rw [_root_.mul_zero, single_zero]))
 
+/--
+The ring homomorphism `k →+* monoid_algebra k G`,
+including `k` as functions supported at `1 : G`.
+-/
+def single_one.ring_hom [semiring k] [monoid G] : k →+* monoid_algebra k G :=
+{ map_one' := rfl,
+  map_mul' := λ x y, begin convert single_mul_single.symm, simp, refl, end,
+  ..(finsupp.single.add_monoid_hom 1 ) }
+
+@[simp]
+lemma single_one.ring_hom_apply [semiring k] [monoid G] (x : k) :
+  (single_one.ring_hom : k →+* monoid_algebra k G) x = single 1 x := rfl
+
 universe ui
 variable {ι : Type ui}
 
@@ -270,6 +283,13 @@ lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
 
+lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [sum_apply, single_apply],
+end
+
 lemma support_mul (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
 subset.trans support_sum $ bind_mono $ assume a₁ _,
@@ -349,6 +369,19 @@ lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
   (sum_single_index (by rw [_root_.mul_zero, single_zero]))
+
+/--
+The ring homomorphism `k →+* add_monoid_algebra k G`,
+including `k` as functions supported at `0 : G`.
+-/
+def single_one.ring_hom [semiring k] [add_monoid G] : k →+* add_monoid_algebra k G :=
+{ map_one' := rfl,
+  map_mul' := λ x y, begin convert single_mul_single.symm, simp, refl, end,
+  ..(finsupp.single.add_monoid_hom 0 ) }
+
+@[simp]
+lemma single_one.ring_hom_apply [semiring k] [add_monoid G] (x : k) :
+  (single_one.ring_hom : k →+* add_monoid_algebra k G) x = single 0 x := rfl
 
 universe ui
 variable {ι : Type ui}

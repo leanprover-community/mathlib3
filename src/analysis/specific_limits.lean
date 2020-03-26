@@ -82,7 +82,7 @@ constant also tends to infinity. -/
 lemma tendsto_at_top_div [linear_ordered_field α]
   {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-tendsto_at_top_mul_right' (inv_pos hr) hf
+tendsto_at_top_mul_right' (inv_pos.2 hr) hf
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
@@ -106,8 +106,8 @@ begin
   rcases hs with ⟨C, C0, hC⟩,
   change 0 < C at C0,
   refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
-  have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
-  exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
+  have : 0 < x, from lt_of_lt_of_le (inv_pos.2 C0) hx,
+  exact ⟨inv_pos.2 this, (inv_le C0 this).1 hx⟩
 end
 
 lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]

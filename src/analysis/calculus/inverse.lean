@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov.
 -/
-import analysis.calculus.deriv
+import analysis.calculus.fderiv
 import topology.local_homeomorph
 import topology.metric_space.contracting
 
@@ -22,23 +22,26 @@ about `local_homeomorph` to `hf.to_local_homeomorph f`, and get statements about
 We also prove that for `f : local_homeomorph E F` that has a strict derivative `f' : E ≃L[𝕜] F`
 at a point `a ∈ f.source`, then its `f.inv_fun` has strict derivative `f'.symm`, then apply
 it to `hf.to_local_homeomorph f` to get a similar statement about `hf.to_local_homeomorph f`.
+
+Finally, we prove Implicit function theorem.
 -/
 
 open function set filter metric
 open_locale topological_space classical nnreal
 
+noncomputable theory
+
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {G' : Type*} [normed_group G'] [normed_space 𝕜 G']
 
 open asymptotics filter metric set
 open continuous_linear_map (id)
 
 /-- We say that `f` approximates continuous linear map `f'` on `s` with constant `c`,
 if `∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥` whenever `x, y ∈ s`.
-
-TODO : find a better name or move into a namespace.
 
 This predicate is defined to faciliate splitting of the inverse function theorem into small lemmas.
 Some of these lemmas can be useful, e.g., to prove that the inverse function is defined
@@ -116,7 +119,7 @@ inj_on_iff_injective.2 $ hf.injective hc
 be used outside of this file, because it is superseeded by `to_local_homeomorph` below.
 
 This is a first step towards the inverse function. -/
-noncomputable def to_local_equiv : local_equiv E F :=
+def to_local_equiv : local_equiv E F :=
 by haveI : nonempty E := ⟨0⟩; exact (hf.inj_on hc).to_local_equiv _ _
 
 /-- Inverse function is continuous on `f '' s`. Use properties of `local_homeomorph` instead. -/
@@ -131,7 +134,9 @@ section
 
 variables (f f')
 
-/-- Iterations of this map converge to `f⁻¹ y`. -/
+/-- Iterations of this map converge to `f⁻¹ y`. The formula is very similar to the one
+used in Newton's method but we use the same `f'.symm` for all `y` instead of evaluating
+the derivative at each point along the orbit. -/
 def inverse_approx_map (y : F) (x : E) : E := x + f'.symm (y - f x)
 
 end
@@ -227,7 +232,7 @@ variables (f s)
 
 /-- Given a function `f` that approximates a linear equivalence on an open set `s`,
 returns a local homeomorph with `to_fun = f` and `source = s`. -/
-noncomputable def to_local_homeomorph (hs : is_open s) : local_homeomorph E F :=
+def to_local_homeomorph (hs : is_open s) : local_homeomorph E F :=
 { to_local_equiv := hf.to_local_equiv hc,
     open_source := hs,
     open_target :=
@@ -256,6 +261,10 @@ end
 
 @[simp] lemma to_local_homeomorph_target (hs : is_open s) :
   (hf.to_local_homeomorph f s hc hs).target = f '' s := rfl
+
+lemma closed_ball_subset_target (hs : is_open s) {b : E} (ε0 : 0 ≤ ε) (hε : closed_ball b ε ⊆ s) :
+  closed_ball (f b) ((N⁻¹ - c) * ε) ⊆ (hf.to_local_homeomorph f s hc hs).target :=
+(hf.surj_on_closed_ball hc ε0 hε).mono hε (subset.refl _)
 
 end approximates_linear_on
 
@@ -304,7 +313,7 @@ variable (f)
 /-- Given a function with a bijective strict derivative at `a`, returns a `local_homeomorph`
 with `to_fun = f` and `a ∈ source`. This is a part of the inverse function theorem.
 The other part `local_homeomorph.inv_fun_has_strict_fderiv_at`  -/
-noncomputable def to_local_homeomorph : local_homeomorph E F :=
+def to_local_homeomorph : local_homeomorph E F :=
 approximates_linear_on.to_local_homeomorph f
   (classical.some hf.approximates_deriv_on_open_nhds)
   (classical.some_spec hf.approximates_deriv_on_open_nhds).snd
@@ -352,7 +361,81 @@ begin
     λ p hp, by { simp only [← dist_eq_norm], exact this.le_mul_dist ⟨p.1, hp.1⟩ ⟨p.2, hp.2⟩ }⟩
 end
 
-theorem has_strict_fderiv_at.inv_fun_has_strict_fderiv_at [complete_space E] {f : E → F}
-  {f' : E ≃L[𝕜] F} {a : E} (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
-  has_strict_fderiv_at (hf.to_local_homeomorph f).inv_fun (f'.symm : F →L[𝕜] E) (f a) :=
+namespace has_strict_fderiv_at
+
+variables [complete_space E] (f : E → F) {f' : E ≃L[𝕜] F} {a : E}
+  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a)
+
+/-- Given a function `f` with an invertible derivative, returns a function that is locally inverse
+to `f`. -/
+def inverse_function : F → E := (hf.to_local_homeomorph f).inv_fun
+
+variable {f}
+
+lemma eventually_left_inverse : ∀ᶠ x in 𝓝 a, hf.inverse_function f (f x) = x :=
+(hf.to_local_homeomorph f).eventually_left_inverse hf.mem_to_local_homeomorph_source
+
+lemma eventually_right_inverse : ∀ᶠ y in 𝓝 (f a), f (hf.inverse_function f y) = y :=
+(hf.to_local_homeomorph f).eventually_right_inverse' hf.mem_to_local_homeomorph_source
+
+theorem inverse_function_has_strict_fderiv_at :
+  has_strict_fderiv_at (hf.inverse_function f) (f'.symm : F →L[𝕜] E) (f a) :=
 (hf.to_local_homeomorph f).inv_fun_has_strict_fderiv_at hf.mem_to_local_homeomorph_source hf
+
+end has_strict_fderiv_at
+
+
+namespace has_strict_fderiv_at
+
+variables [complete_space (E × F)] {f : E × F → G} (f' : E × F →L[𝕜] G) (f'y : F ≃L[𝕜] G)
+  {p : E × F} (hf : has_strict_fderiv_at f f' p) (hfy : ∀ y : F, f' (0, y) = f'y y)
+
+/-- Formula for the derivative of an implicit function. -/
+def implicit_function_fderiv : (E × G) →L[𝕜] F :=
+((f'y.symm : G →L[𝕜] F).comp $ continuous_linear_map.snd 𝕜 E G -
+      f'.comp (continuous_linear_map.id.prod_map 0))
+
+@[simp] lemma implicit_function_fderiv_apply (x) :
+  implicit_function_fderiv f' f'y x = f'y.symm (x.2 - f' (x.1, 0)) := rfl
+
+variables {f' f'y}
+
+include f hf hfy
+
+lemma implicit_function_aux_deriv :
+  has_strict_fderiv_at (λ x : E × F, (x.1, f x)) ((continuous_linear_equiv.refl E).skew_prod f'y
+    (f'.comp $ (continuous_linear_map.id.prod 0)) : (E × F) →L[𝕜] E × G) p :=
+begin
+  convert has_strict_fderiv_at_fst.prod hf,
+  ext1 ⟨x, y⟩,
+  have : (x, y) = (x, 0) + (0, y) := by simp, rw [this],
+  rw [continuous_linear_equiv.coe_apply, continuous_linear_equiv.skew_prod_apply],
+  simp [-prod.mk_add_mk, hfy, add_comm (f' (x, 0))]
+end
+
+variable (f)
+
+/-- Implicit function `g` defined by an equation `f (x, g(x, y)) = z`. -/
+def implicit_function (x : E × G) : F :=
+((hf.implicit_function_aux_deriv hfy).inverse_function _ x).2
+
+lemma implicit_function_def (x : E × G) :
+  hf.implicit_function f hfy x = ((hf.implicit_function_aux_deriv hfy).inverse_function _ x).2 :=
+rfl
+
+lemma implicit_function_has_strict_fderiv_at :
+  has_strict_fderiv_at (hf.implicit_function f hfy) (implicit_function_fderiv f' f'y) (p.1, f p) :=
+((hf.implicit_function_aux_deriv hfy).inverse_function_has_strict_fderiv_at).snd
+
+lemma eventually_apply_fst_implicit_function_eq :
+  ∀ᶠ x in 𝓝 (p.1, f p), f ((x : E × G).1, hf.implicit_function f hfy x) = x.2 :=
+(hf.implicit_function_aux_deriv hfy).eventually_right_inverse.mono $
+  λ x hx, by { convert congr_arg prod.snd hx, convert prod.mk.eta,
+    exact (congr_arg prod.fst hx).symm }
+
+lemma eventually_implicit_function_eq :
+  ∀ᶠ x in 𝓝 p, hf.implicit_function f hfy ((x : E × F).1, f x) = x.2 :=
+(hf.implicit_function_aux_deriv hfy).eventually_left_inverse.mono $
+  λ x hx, congr_arg prod.snd hx
+
+end has_strict_fderiv_at

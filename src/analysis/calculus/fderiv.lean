@@ -88,6 +88,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {G' : Type*} [normed_group G'] [normed_space 𝕜 G']
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
@@ -638,6 +639,10 @@ end congr
 section id
 /-! ### Derivative of the identity -/
 
+theorem has_strict_fderiv_at_id (x : E) :
+  has_strict_fderiv_at id (id : E →L[𝕜] E) x :=
+(is_o_zero _ _).congr_left $ by simp
+
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
   has_fderiv_at_filter id (id : E →L[𝕜] E) x L :=
 (is_o_zero _ _).congr_left $ by simp
@@ -803,68 +808,9 @@ h.differentiable.differentiable_on
 
 end continuous_linear_map
 
-section cartesian_product
-/-! ### Derivative of the cartesian product of two functions -/
-
-variables {f₂ : E → G} {f₂' : E →L[𝕜] G}
-
-lemma has_strict_fderiv_at.prod
-  (hf₁ : has_strict_fderiv_at f₁ f₁' x) (hf₂ : has_strict_fderiv_at f₂ f₂' x) :
-  has_strict_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
-hf₁.prod_left hf₂
-
-lemma has_fderiv_at_filter.prod
-  (hf₁ : has_fderiv_at_filter f₁ f₁' x L) (hf₂ : has_fderiv_at_filter f₂ f₂' x L) :
-  has_fderiv_at_filter (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x L :=
-hf₁.prod_left hf₂
-
-lemma has_fderiv_within_at.prod
-  (hf₁ : has_fderiv_within_at f₁ f₁' s x) (hf₂ : has_fderiv_within_at f₂ f₂' s x) :
-  has_fderiv_within_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') s x :=
-hf₁.prod hf₂
-
-lemma has_fderiv_at.prod (hf₁ : has_fderiv_at f₁ f₁' x) (hf₂ : has_fderiv_at f₂ f₂' x) :
-  has_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
-hf₁.prod hf₂
-
-lemma differentiable_within_at.prod
-  (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x) :
-  differentiable_within_at 𝕜 (λx:E, (f₁ x, f₂ x)) s x :=
-(hf₁.has_fderiv_within_at.prod hf₂.has_fderiv_within_at).differentiable_within_at
-
-lemma differentiable_at.prod (hf₁ : differentiable_at 𝕜 f₁ x) (hf₂ : differentiable_at 𝕜 f₂ x) :
-  differentiable_at 𝕜 (λx:E, (f₁ x, f₂ x)) x :=
-(hf₁.has_fderiv_at.prod hf₂.has_fderiv_at).differentiable_at
-
-lemma differentiable_on.prod (hf₁ : differentiable_on 𝕜 f₁ s) (hf₂ : differentiable_on 𝕜 f₂ s) :
-  differentiable_on 𝕜 (λx:E, (f₁ x, f₂ x)) s :=
-λx hx, differentiable_within_at.prod (hf₁ x hx) (hf₂ x hx)
-
-lemma differentiable.prod (hf₁ : differentiable 𝕜 f₁) (hf₂ : differentiable 𝕜 f₂) :
-  differentiable 𝕜 (λx:E, (f₁ x, f₂ x)) :=
-λ x, differentiable_at.prod (hf₁ x) (hf₂ x)
-
-lemma differentiable_at.fderiv_prod
-  (hf₁ : differentiable_at 𝕜 f₁ x) (hf₂ : differentiable_at 𝕜 f₂ x) :
-  fderiv 𝕜 (λx:E, (f₁ x, f₂ x)) x =
-    continuous_linear_map.prod (fderiv 𝕜 f₁ x) (fderiv 𝕜 f₂ x) :=
-has_fderiv_at.fderiv (has_fderiv_at.prod hf₁.has_fderiv_at hf₂.has_fderiv_at)
-
-lemma differentiable_at.fderiv_within_prod
-  (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x)
-  (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 (λx:E, (f₁ x, f₂ x)) s x =
-    continuous_linear_map.prod (fderiv_within 𝕜 f₁ s x) (fderiv_within 𝕜 f₂ s x) :=
-begin
-  apply has_fderiv_within_at.fderiv_within _ hxs,
-  exact has_fderiv_within_at.prod hf₁.has_fderiv_within_at hf₂.has_fderiv_within_at
-end
-
-end cartesian_product
-
 section composition
-/-! ###
-Derivative of the composition of two functions
+/-!
+### Derivative of the composition of two functions
 
 For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
@@ -949,7 +895,7 @@ lemma differentiable_at.comp_differentiable_within_at {g : F → G}
 
 lemma fderiv_within.comp {g : F → G} {t : set F}
   (hg : differentiable_within_at 𝕜 g t (f x)) (hf : differentiable_within_at 𝕜 f s x)
-  (h : s ⊆ f ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t (f x)).comp (fderiv_within 𝕜 f s x) :=
 begin
   apply has_fderiv_within_at.fderiv_within _ hxs,
@@ -995,6 +941,245 @@ lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
   by simpa only [g'.map_sub, f'.coe_comp'] using (g'.is_O_comp _ _).trans_is_o hf
 
 end composition
+
+section cartesian_product
+/-! ### Derivative of the cartesian product of two functions -/
+
+section prod
+variables {f₂ : E → G} {f₂' : E →L[𝕜] G}
+
+lemma has_strict_fderiv_at.prod
+  (hf₁ : has_strict_fderiv_at f₁ f₁' x) (hf₂ : has_strict_fderiv_at f₂ f₂' x) :
+  has_strict_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
+hf₁.prod_left hf₂
+
+lemma has_fderiv_at_filter.prod
+  (hf₁ : has_fderiv_at_filter f₁ f₁' x L) (hf₂ : has_fderiv_at_filter f₂ f₂' x L) :
+  has_fderiv_at_filter (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x L :=
+hf₁.prod_left hf₂
+
+lemma has_fderiv_within_at.prod
+  (hf₁ : has_fderiv_within_at f₁ f₁' s x) (hf₂ : has_fderiv_within_at f₂ f₂' s x) :
+  has_fderiv_within_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') s x :=
+hf₁.prod hf₂
+
+lemma has_fderiv_at.prod (hf₁ : has_fderiv_at f₁ f₁' x) (hf₂ : has_fderiv_at f₂ f₂' x) :
+  has_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
+hf₁.prod hf₂
+
+lemma differentiable_within_at.prod
+  (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x) :
+  differentiable_within_at 𝕜 (λx:E, (f₁ x, f₂ x)) s x :=
+(hf₁.has_fderiv_within_at.prod hf₂.has_fderiv_within_at).differentiable_within_at
+
+lemma differentiable_at.prod (hf₁ : differentiable_at 𝕜 f₁ x) (hf₂ : differentiable_at 𝕜 f₂ x) :
+  differentiable_at 𝕜 (λx:E, (f₁ x, f₂ x)) x :=
+(hf₁.has_fderiv_at.prod hf₂.has_fderiv_at).differentiable_at
+
+lemma differentiable_on.prod (hf₁ : differentiable_on 𝕜 f₁ s) (hf₂ : differentiable_on 𝕜 f₂ s) :
+  differentiable_on 𝕜 (λx:E, (f₁ x, f₂ x)) s :=
+λx hx, differentiable_within_at.prod (hf₁ x hx) (hf₂ x hx)
+
+lemma differentiable.prod (hf₁ : differentiable 𝕜 f₁) (hf₂ : differentiable 𝕜 f₂) :
+  differentiable 𝕜 (λx:E, (f₁ x, f₂ x)) :=
+λ x, differentiable_at.prod (hf₁ x) (hf₂ x)
+
+lemma differentiable_at.fderiv_prod
+  (hf₁ : differentiable_at 𝕜 f₁ x) (hf₂ : differentiable_at 𝕜 f₂ x) :
+  fderiv 𝕜 (λx:E, (f₁ x, f₂ x)) x =
+    continuous_linear_map.prod (fderiv 𝕜 f₁ x) (fderiv 𝕜 f₂ x) :=
+has_fderiv_at.fderiv (has_fderiv_at.prod hf₁.has_fderiv_at hf₂.has_fderiv_at)
+
+lemma differentiable_at.fderiv_within_prod
+  (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x)
+  (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λx:E, (f₁ x, f₂ x)) s x =
+    continuous_linear_map.prod (fderiv_within 𝕜 f₁ s x) (fderiv_within 𝕜 f₂ s x) :=
+begin
+  apply has_fderiv_within_at.fderiv_within _ hxs,
+  exact has_fderiv_within_at.prod hf₁.has_fderiv_within_at hf₂.has_fderiv_within_at
+end
+
+end prod
+
+section fst
+
+variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
+
+lemma has_strict_fderiv_at_fst : has_strict_fderiv_at prod.fst (fst 𝕜 E F) p :=
+(fst 𝕜 E F).has_strict_fderiv_at
+
+lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
+  has_strict_fderiv_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x :=
+has_strict_fderiv_at_fst.comp x h
+
+lemma has_fderiv_at_filter_fst {L : filter (E × F)} :
+  has_fderiv_at_filter prod.fst (fst 𝕜 E F) p L :=
+(fst 𝕜 E F).has_fderiv_at_filter
+
+lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
+  has_fderiv_at_filter (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x L :=
+has_fderiv_at_filter_fst.comp x h
+
+lemma has_fderiv_at_fst : has_fderiv_at prod.fst (fst 𝕜 E F) p :=
+has_fderiv_at_filter_fst
+
+lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
+  has_fderiv_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x :=
+h.fst
+
+lemma has_fderiv_within_at_fst {s : set (E × F)} :
+  has_fderiv_within_at prod.fst (fst 𝕜 E F) s p :=
+has_fderiv_at_filter_fst
+
+lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
+  has_fderiv_within_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') s x :=
+h.fst
+
+lemma differentiable_at_fst : differentiable_at 𝕜 prod.fst p :=
+has_fderiv_at_fst.differentiable_at
+
+lemma differentiable_at.fst (h : differentiable_at 𝕜 f₂ x) :
+  differentiable_at 𝕜 (λ x, (f₂ x).1) x :=
+differentiable_at_fst.comp x h
+
+lemma differentiable_fst : differentiable 𝕜 (prod.fst : E × F → E) :=
+λ x, differentiable_at_fst
+
+lemma differentiable.fst (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).1) :=
+differentiable_fst.comp h
+
+lemma differentiable_within_at_fst {s : set (E × F)} : differentiable_within_at 𝕜 prod.fst s p :=
+differentiable_at_fst.differentiable_within_at
+
+lemma differentiable_within_at.fst (h : differentiable_within_at 𝕜 f₂ s x) :
+  differentiable_within_at 𝕜 (λ x, (f₂ x).1) s x :=
+differentiable_at_fst.comp_differentiable_within_at x h
+
+lemma differentiable_on_fst {s : set (E × F)} : differentiable_on 𝕜 prod.fst s :=
+differentiable_fst.differentiable_on
+
+lemma differentiable_on.fst (h : differentiable_on 𝕜 f₂ s) :
+  differentiable_on 𝕜 (λ x, (f₂ x).1) s :=
+differentiable_fst.comp_differentiable_on h
+
+lemma fderiv_fst : fderiv 𝕜 prod.fst p = fst 𝕜 E F := has_fderiv_at_fst.fderiv
+
+lemma fderiv.fst (h : differentiable_at 𝕜 f₂ x) :
+  fderiv 𝕜 (λ x, (f₂ x).1) x = (fst 𝕜 F G).comp (fderiv 𝕜 f₂ x) :=
+h.has_fderiv_at.fst.fderiv
+
+lemma fderiv_within_fst {s : set (E × F)} (hs : unique_diff_within_at 𝕜 s p) :
+  fderiv_within 𝕜 prod.fst s p = fst 𝕜 E F :=
+has_fderiv_within_at_fst.fderiv_within hs
+
+lemma fderiv_within.fst (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_within_at 𝕜 f₂ s x) :
+  fderiv_within 𝕜 (λ x, (f₂ x).1) s x = (fst 𝕜 F G).comp (fderiv_within 𝕜 f₂ s x) :=
+h.has_fderiv_within_at.fst.fderiv_within hs
+
+end fst
+
+section snd
+
+variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
+
+lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
+(snd 𝕜 E F).has_strict_fderiv_at
+
+lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
+  has_strict_fderiv_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x :=
+has_strict_fderiv_at_snd.comp x h
+
+lemma has_fderiv_at_filter_snd {L : filter (E × F)} :
+  has_fderiv_at_filter prod.snd (snd 𝕜 E F) p L :=
+(snd 𝕜 E F).has_fderiv_at_filter
+
+lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
+  has_fderiv_at_filter (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x L :=
+has_fderiv_at_filter_snd.comp x h
+
+lemma has_fderiv_at_snd : has_fderiv_at prod.snd (snd 𝕜 E F) p :=
+has_fderiv_at_filter_snd
+
+lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
+  has_fderiv_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x :=
+h.snd
+
+lemma has_fderiv_within_at_snd {s : set (E × F)} :
+  has_fderiv_within_at prod.snd (snd 𝕜 E F) s p :=
+has_fderiv_at_filter_snd
+
+lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :
+  has_fderiv_within_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') s x :=
+h.snd
+
+lemma differentiable_at_snd : differentiable_at 𝕜 prod.snd p :=
+has_fderiv_at_snd.differentiable_at
+
+lemma differentiable_at.snd (h : differentiable_at 𝕜 f₂ x) :
+  differentiable_at 𝕜 (λ x, (f₂ x).2) x :=
+differentiable_at_snd.comp x h
+
+lemma differentiable_snd : differentiable 𝕜 (prod.snd : E × F → F) :=
+λ x, differentiable_at_snd
+
+lemma differentiable.snd (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).2) :=
+differentiable_snd.comp h
+
+lemma differentiable_within_at_snd {s : set (E × F)} : differentiable_within_at 𝕜 prod.snd s p :=
+differentiable_at_snd.differentiable_within_at
+
+lemma differentiable_within_at.snd (h : differentiable_within_at 𝕜 f₂ s x) :
+  differentiable_within_at 𝕜 (λ x, (f₂ x).2) s x :=
+differentiable_at_snd.comp_differentiable_within_at x h
+
+lemma differentiable_on_snd {s : set (E × F)} : differentiable_on 𝕜 prod.snd s :=
+differentiable_snd.differentiable_on
+
+lemma differentiable_on.snd (h : differentiable_on 𝕜 f₂ s) :
+  differentiable_on 𝕜 (λ x, (f₂ x).2) s :=
+differentiable_snd.comp_differentiable_on h
+
+lemma fderiv_snd : fderiv 𝕜 prod.snd p = snd 𝕜 E F := has_fderiv_at_snd.fderiv
+
+lemma fderiv.snd (h : differentiable_at 𝕜 f₂ x) :
+  fderiv 𝕜 (λ x, (f₂ x).2) x = (snd 𝕜 F G).comp (fderiv 𝕜 f₂ x) :=
+h.has_fderiv_at.snd.fderiv
+
+lemma fderiv_within_snd {s : set (E × F)} (hs : unique_diff_within_at 𝕜 s p) :
+  fderiv_within 𝕜 prod.snd s p = snd 𝕜 E F :=
+has_fderiv_within_at_snd.fderiv_within hs
+
+lemma fderiv_within.snd (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_within_at 𝕜 f₂ s x) :
+  fderiv_within 𝕜 (λ x, (f₂ x).2) s x = (snd 𝕜 F G).comp (fderiv_within 𝕜 f₂ s x) :=
+h.has_fderiv_within_at.snd.fderiv_within hs
+
+end snd
+
+section prod_map
+
+variables {f₂ : G → G'} {f₂' : G →L[𝕜] G'} {y : G} (p : E × G)
+
+-- TODO (Lean 3.8): use `prod.map f f₂``
+
+theorem has_strict_fderiv_at.prod_map (hf : has_strict_fderiv_at f f' p.1)
+  (hf₂ : has_strict_fderiv_at f₂ f₂' p.2) :
+  has_strict_fderiv_at (λ p : E × G, (f p.1, f₂ p.2)) (f'.prod_map f₂') p :=
+(hf.comp p has_strict_fderiv_at_fst).prod (hf₂.comp p has_strict_fderiv_at_snd)
+
+theorem has_fderiv_at.prod_map (hf : has_fderiv_at f f' p.1)
+  (hf₂ : has_fderiv_at f₂ f₂' p.2) :
+  has_fderiv_at (λ p : E × G, (f p.1, f₂ p.2)) (f'.prod_map f₂') p :=
+(hf.comp p has_fderiv_at_fst).prod (hf₂.comp p has_fderiv_at_snd)
+
+theorem differentiable_at.prod_map (hf : differentiable_at 𝕜 f p.1)
+  (hf₂ : differentiable_at 𝕜 f₂ p.2) :
+  differentiable_at 𝕜 (λ p : E × G, (f p.1, f₂ p.2)) p :=
+(hf.comp p differentiable_at_fst).prod (hf₂.comp p differentiable_at_snd)
+
+end prod_map
+
+end cartesian_product
 
 section const_smul
 /-! ### Derivative of a function multiplied by a constant -/

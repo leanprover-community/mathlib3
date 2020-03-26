@@ -73,8 +73,8 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 @[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
 set.eq_univ_of_forall e.surjective
 
-protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
-| ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
+protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
+e.injective.comap_subsingleton
 
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
 | a b := decidable_of_iff _ e.injective.eq_iff
@@ -136,8 +136,7 @@ theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f :
 
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end, ⟩
+  assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
@@ -575,7 +574,7 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv (e : α ≃ β) (h : unique β) : unique α :=
-unique.of_surjective e.symm.surjective
+e.symm.surjective.unique
 
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := e.symm.unique_of_equiv,

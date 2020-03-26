@@ -49,19 +49,22 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj inclusion
 end core
 
-/-- `of_type_functor m` converts from Lean's `Type`-based `category` to `category_theory`. This
-allows us to use these functors in category theory. -/
+/--
+`of_equiv_functor m` converts from lifts a type-level `equiv_functor`
+to a categorical functor `core (Type u₁) ⥤ core (Type u₂)`.
+-/
 def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
   core (Type u₁) ⥤ core (Type u₂) :=
 { obj       := m,
   map       := λ α β f, (equiv_functor.map_equiv m f.to_equiv).to_iso,
   -- These are not very pretty.
-  map_id' := λ α, begin ext, erw equiv_functor.id_map, refl, end,
+  map_id' := λ α, begin ext, exact (congr_fun (equiv_functor.id_map _ _) x), end,
   map_comp' := λ α β γ f g,
   begin
     ext,
-    simp only [equiv.to_iso_hom, function.comp_app, core.comp_hom, types_comp],
-    erw [iso.to_equiv_comp, ←equiv_functor.map_map, equiv.trans_apply, equiv.apply_eq_iff_eq],
+    simp only [equiv_functor.map_equiv_apply, equiv.to_iso_hom,
+      function.comp_app, core.comp_hom, types_comp],
+    erw [iso.to_equiv_comp, equiv_functor.map_map],
   end, }
 
 

@@ -934,6 +934,7 @@ end
 protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
   (∀x, p x) ↔ (∀y, p (f.symm y)) :=
 equiv.forall_congr f (λx, by simp)
+
 protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
   (∀x, p (f x)) ↔ (∀y, p y) :=
 (equiv.forall_congr_left' f.symm).symm
@@ -974,7 +975,7 @@ end
 
 section
 variables
-  (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
 
 /--
 Transport dependent functions through

@@ -25,7 +25,7 @@ variables {G : Type*} [group_with_zero G]
 
 section nat_pow
 
-@[field_simps] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
+@[simp, field_simps] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
 by induction n with n ih; [exact inv_one.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev]]
 

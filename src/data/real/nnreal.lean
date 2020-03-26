@@ -452,8 +452,8 @@ mul_pos hr (inv_pos.2 hp)
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
-protected lemma inv_pow' {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
-nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
+protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
+nnreal.eq $ by { push_cast, exact (gwz.inv_pow _ _).symm }
 
 @[simp] lemma inv_mul_cancel {r : ℝ≥0} (h : r ≠ 0) : r⁻¹ * r = 1 :=
 nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
@@ -529,7 +529,7 @@ begin
 end
 
 @[field_simps] theorem div_pow {a b : ℝ≥0} (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_def, mul_pow, ← nnreal.inv_pow', ← div_def]
+div_pow _ _ _
 
 @[field_simps] lemma mul_div_assoc' (a b c : ℝ≥0) : a * (b / c) = (a * b) / c :=
 by rw [div_def, div_def, mul_assoc]

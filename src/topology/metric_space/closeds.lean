@@ -119,7 +119,7 @@ begin
       { assume l z,
         obtain ⟨z', z'_mem, hz'⟩ : ∃ z' ∈ (s (n+l+1)).val, edist (z:α) z' < B n / 2^l,
         { apply exists_edist_lt_of_Hausdorff_edist_lt z.2,
-          simp only [B, ennreal.div_def, ennreal.inv_pow'],
+          simp only [B, ennreal.div_def, ennreal.inv_pow],
           rw [← pow_add],
           apply hs; simp },
         exact ⟨⟨z', z'_mem⟩, le_of_lt hz'⟩ },

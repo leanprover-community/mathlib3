@@ -700,11 +700,11 @@ by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 nnreal.inv_one
 @[simp] lemma div_one {a : ennreal} : a / 1 = a :=
 by simp [ennreal.div_def]
 
-protected lemma inv_pow' {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
+protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin
   by_cases a = 0; cases a; cases n; simp [*, none_eq_top, some_eq_coe,
     zero_pow, top_pow, nat.zero_lt_succ] at *,
-  rw [← coe_inv h, ← coe_pow, ← coe_inv, nnreal.inv_pow', coe_pow],
+  rw [← coe_inv h, ← coe_pow, ← coe_inv, nnreal.inv_pow, coe_pow],
   rw [← ne.def] at h,
   rw [← zero_lt_iff_ne_zero] at *,
   apply pow_pos h

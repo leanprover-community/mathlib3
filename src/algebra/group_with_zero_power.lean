@@ -15,7 +15,7 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-@[simp] lemma mwz.zero_pow {M : Type*} [monoid_with_zero M] :
+@[simp] lemma gwz.zero_pow {M : Type*} [monoid_with_zero M] :
   ∀ n : ℕ, n ≠ 0 → (0 : M)^n = 0
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
@@ -25,7 +25,7 @@ variables {G : Type*} [group_with_zero G]
 
 section nat_pow
 
-@[simp] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
+@[field_simps] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
 by induction n with n ih; [exact inv_one.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev]]
 
@@ -84,7 +84,7 @@ local attribute [ematch] le_of_lt
 | -[1+ n] := show _⁻¹=(1:G), by rw [one_pow, gwz.inv_one]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G) ^ z = 0
-| (of_nat n) h := mwz.zero_pow _ $ by rintro rfl; exact h rfl
+| (of_nat n) h := gwz.zero_pow _ $ by rintro rfl; exact h rfl
 | -[1+n]     h := show (0*0^n)⁻¹ = (0 : G), by simp
 
 @[simp] theorem fpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
@@ -175,11 +175,38 @@ lemma mul_fpow {G : Type*} [comm_group_with_zero G] (a b : G) :
 lemma fpow_eq_zero {x : G} {n : ℤ} (h : x^n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
 
-@[simp] theorem fpow_neg_mul_fpow_self (n : ℕ) {x : G} (h : x ≠ 0) :
-  x^-(n:ℤ) * x^n = 1 :=
+lemma fpow_ne_zero {x : G} (n : ℤ) : x ≠ 0 → x^n ≠ 0 :=
+mt fpow_eq_zero
+
+theorem fpow_neg_mul_fpow_self (n : ℤ) {x : G} (h : x ≠ 0) :
+  x^(-n) * x^n = 1 :=
 begin
-  rw [fpow_neg, fpow_coe_nat],
-  exact gwz.inv_mul_cancel _ (pow_ne_zero n h)
+  rw [fpow_neg],
+  exact gwz.inv_mul_cancel _ (fpow_ne_zero n h)
 end
 
+theorem one_div_pow {a : G} (n : ℕ) :
+  (1 / a) ^ n = 1 / a ^ n :=
+by simp only [gwz.one_div, gwz.inv_pow]
+
+theorem one_div_fpow {a : G} (n : ℤ) :
+  (1 / a) ^ n = 1 / a ^ n :=
+by simp only [gwz.one_div, inv_fpow]
+
 end int_pow
+
+section
+variables {G : Type*} [comm_group_with_zero G]
+
+@[simp] theorem div_pow (a b : G) (n : ℕ) :
+  (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_pow, gwz.inv_pow]
+
+@[simp] theorem div_fpow (a : G) {b : G} (n : ℤ) :
+  (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_fpow, inv_fpow]
+
+lemma div_sq_cancel {a : G} (ha : a ≠ 0) (b : G) : a^2 * b / a = a * b :=
+by rw [pow_two, mul_assoc, gwz.mul_div_cancel_left _ ha]
+
+end

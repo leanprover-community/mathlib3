@@ -942,7 +942,6 @@ protected lemma forall_congr' {p : α → Prop} {q : β → Prop} (f : α ≃ β
   (h : ∀{x}, p (f.symm x) ↔ q x) : (∀x, p x) ↔ (∀y, q y) :=
 (equiv.forall_congr f.symm (λ x, h.symm)).symm
 
-
 -- We next build some higher arity versions of `equiv.forall_congr`.
 -- Although they appear to just be repeated applications of `equiv.forall_congr`,
 -- unification of metavariables works better with these versions.
@@ -954,7 +953,7 @@ variables {α₁ : Sort ua1} {α₂ : Sort ua2}
           {β₁ : Sort ub1} {β₂ : Sort ub2}
           {γ₁ : Sort ug1} {γ₂ : Sort ug2}
 
-lemma equiv.forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+protected lemma forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
   (h : ∀{x y}, p x y ↔ q (eα x) (eβ y)) : (∀x y, p x y) ↔ (∀x y, q x y) :=
 begin
   apply equiv.forall_congr,
@@ -963,11 +962,11 @@ begin
   intros,
   apply h,
 end
-lemma equiv.forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+protected lemma forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
   (h : ∀{x y}, p (eα.symm x) (eβ.symm y) ↔ q x y) : (∀x y, p x y) ↔ (∀x y, q x y) :=
 (equiv.forall₂_congr eα.symm eβ.symm (λ x y, h.symm)).symm
 
-lemma equiv.forall₃_congr {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+protected lemma forall₃_congr {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
   (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
   (h : ∀{x y z}, p x y z ↔ q (eα x) (eβ y) (eγ z)) : (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=
 begin
@@ -977,7 +976,7 @@ begin
   intros,
   apply h,
 end
-lemma equiv.forall₃_congr' {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+protected lemma forall₃_congr' {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
   (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
   (h : ∀{x y z}, p (eα.symm x) (eβ.symm y) (eγ.symm z) ↔ q x y z) :
     (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=

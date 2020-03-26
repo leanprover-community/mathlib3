@@ -177,6 +177,41 @@ def single_one.ring_hom [semiring k] [monoid G] : k →+* monoid_algebra k G :=
 lemma single_one.ring_hom_apply [semiring k] [monoid G] (x : k) :
   (single_one.ring_hom : k →+* monoid_algebra k G) x = single 1 x := rfl
 
+lemma single_one.central [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
+  f * (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r =
+    (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r * f :=
+begin
+  ext,
+  -- It would be nice if this next step worked by `simp`.
+  dsimp [monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+  simp only [monoid_algebra.mul_apply],
+  conv_lhs { rw [finsupp.sum_comm], },
+  rw [finsupp.sum_single_index],
+  { rw [finsupp.sum_single_index],
+    { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+      funext, congr,
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      { congr, funext, congr, },
+      { congr' 1, apply mul_comm, }, },
+    simp, },
+  { simp, }
+end.
+
+lemma module_smul_eq [semiring k] [monoid G] (r : k) (f : monoid_algebra k G) (w) :
+  finsupp.map_range (λ x, r • x) w f = (finsupp.single 1 r * f : monoid_algebra k G) :=
+begin
+  ext,
+  rw [monoid_algebra.mul_apply],
+  rw [finsupp.sum_single_index],
+  { simp only [one_mul, smul_eq_mul, finsupp.map_range_apply, finsupp.sum_ite_eq'],
+    symmetry,
+    convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+    { congr, funext, congr, },
+    { simp, classical, split_ifs, simp [h], }, },
+  { simp, }
+end
+
 universe ui
 variable {ι : Type ui}
 
@@ -356,13 +391,13 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-instance [semiring k] [monoid G] : has_scalar k (add_monoid_algebra k G) :=
+instance [semiring k] [add_monoid G] : has_scalar k (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] [monoid G] : semimodule k (add_monoid_algebra k G) :=
+instance [semiring k] [add_monoid G] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] [monoid G] : module k (add_monoid_algebra k G) :=
+instance [ring k] [add_monoid G] : module k (add_monoid_algebra k G) :=
 finsupp.module G k
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:
@@ -382,6 +417,41 @@ def single_one.ring_hom [semiring k] [add_monoid G] : k →+* add_monoid_algebra
 @[simp]
 lemma single_one.ring_hom_apply [semiring k] [add_monoid G] (x : k) :
   (single_one.ring_hom : k →+* add_monoid_algebra k G) x = single 0 x := rfl
+
+lemma single_one.central [comm_semiring k] [add_monoid G] (r : k) (f : add_monoid_algebra k G) :
+  f * (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r =
+    (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r * f :=
+begin
+  ext,
+  -- It would be nice if this next step worked by `simp`.
+  dsimp [add_monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+  simp only [add_monoid_algebra.mul_apply],
+  conv_lhs { rw [finsupp.sum_comm], },
+  rw [finsupp.sum_single_index],
+  { rw [finsupp.sum_single_index],
+    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+      funext, congr,
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      { congr, funext, congr, },
+      { congr' 1, apply mul_comm, }, },
+    simp, },
+  { simp, }
+end.
+
+lemma module_smul_eq [semiring k] [add_monoid G] (r : k) (f : add_monoid_algebra k G) (w) :
+  finsupp.map_range (λ x, r • x) w f = (finsupp.single 0 r * f : add_monoid_algebra k G) :=
+begin
+  ext,
+  rw [add_monoid_algebra.mul_apply],
+  rw [finsupp.sum_single_index],
+  { simp only [zero_add, smul_eq_mul, finsupp.map_range_apply, finsupp.sum_ite_eq'],
+    symmetry,
+    convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+    { congr, funext, congr, },
+    { simp, classical, split_ifs, simp [h], }, },
+  { simp, }
+end
 
 universe ui
 variable {ι : Type ui}

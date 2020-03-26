@@ -134,63 +134,38 @@ by rw [smul_def, smul_def, mul_assoc].
 
 /-- The monoid algebra R[G] is an algebra over R. -/
 instance algebra_monoid_algebra {G : Type*} [monoid G] : algebra R (monoid_algebra R G) :=
-of_ring_hom' (monoid_algebra.single_one.ring_hom : R →+* monoid_algebra R G)
-  (λ r f, begin
-    ext,
-    -- It would be nice if this next step worked by `simp`.
-    dsimp [monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
-    simp only [monoid_algebra.mul_apply],
-    conv_lhs { rw [finsupp.sum_comm], },
-    rw [finsupp.sum_single_index],
-    { rw [finsupp.sum_single_index],
-      { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
-        convert finsupp.sum_ite_eq' f a (λ x v, v * r),
-        funext, congr,
-        convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
-        { congr, funext, congr, },
-        { congr' 1, apply mul_comm, }, },
-      simp, },
-    { simp, }
-  end)
+{ to_fun := (monoid_algebra.single_one.ring_hom : R →+* monoid_algebra R G),
+  commutes' := monoid_algebra.single_one.central,
+  smul_def' := λ r f, monoid_algebra.module_smul_eq r f (by simp),
+  .. monoid_algebra.module }
 
 /-- The additive monoid algebra R[G] is an algebra over R. -/
 instance algebra_add_monoid_algebra {G : Type*} [add_monoid G] : algebra R (add_monoid_algebra R G) :=
-of_ring_hom' (add_monoid_algebra.single_one.ring_hom : R →+* add_monoid_algebra R G)
-  (λ r f, begin
-    ext,
-    -- It would be nice if this next step worked by `simp`.
-    dsimp [add_monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
-    simp only [add_monoid_algebra.mul_apply],
-    conv_lhs { rw [finsupp.sum_comm], },
-    rw [finsupp.sum_single_index],
-    { rw [finsupp.sum_single_index],
-      { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
-        convert finsupp.sum_ite_eq' f a (λ x v, v * r),
-        funext, congr,
-        convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
-        { congr, funext, congr, },
-        { congr' 1, apply mul_comm, }, },
-      simp, },
-    { simp, }
-  end)
+{ to_fun := (add_monoid_algebra.single_one.ring_hom : R →+* add_monoid_algebra R G),
+  commutes' := add_monoid_algebra.single_one.central,
+  smul_def' := λ r f, add_monoid_algebra.module_smul_eq r f (by simp),
+  .. add_monoid_algebra.module }
 
 /-- The algebra of polynomials over R. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
+algebra.algebra_add_monoid_algebra
+-- FIXME revisit:
 -- Unfortunately we can't just write `algebra.algebra_add_monoid_algebra` here,
 -- as the `module R (polynomial R)` instance that results is not definitionally
 -- equal to `polynomial.module` previously defined.
-{ to_fun := polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.module }
+-- { to_fun := polynomial.C,
+--   commutes' := λ _ _, mul_comm _ _,
+--   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
+--   .. polynomial.module }
 
 /-- The algebra of multivariate polynomials. -/
 instance mv_polynomial (R : Type u) [comm_ring R]
   (ι : Type v) : algebra R (mv_polynomial ι R) :=
-{ to_fun := mv_polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. mv_polynomial.module }
+algebra.algebra_add_monoid_algebra
+-- { to_fun := mv_polynomial.C,
+--   commutes' := λ _ _, mul_comm _ _,
+--   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
+--   .. mv_polynomial.module }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=

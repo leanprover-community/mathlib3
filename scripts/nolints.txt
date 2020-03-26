@@ -2168,7 +2168,6 @@ apply_nolint function.embedding.trans doc_blame
 -- logic/function.lean
 apply_nolint function.bicompl doc_blame
 apply_nolint function.bicompr doc_blame
-apply_nolint function.restrict doc_blame
 apply_nolint function.uncurry' doc_blame
 
 -- logic/relation.lean

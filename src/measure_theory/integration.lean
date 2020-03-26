@@ -13,7 +13,7 @@ import
   measure_theory.measure_space
   measure_theory.borel_space
 noncomputable theory
-open set filter
+open set (hiding restrict restrict_apply) filter
 open_locale classical topological_space
 
 namespace measure_theory
@@ -919,7 +919,7 @@ begin
     le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
   { assume a,
     by_cases a ∈ t;
-      simp [h, simple_func.restrict_apply, ht.compl],
+      simp [h, restrict_apply, ht.compl],
     exact le_trans (hfs a) (by_contradiction $ assume hnfg, h (hts hnfg)) },
   { refine le_of_eq (s.integral_congr _ _),
     filter_upwards [this],

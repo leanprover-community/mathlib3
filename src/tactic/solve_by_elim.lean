@@ -5,6 +5,23 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import tactic.core
 
+/-!
+# solve_by_elim
+
+A depth-first search backwards reasoner.
+
+`solve_by_elim` takes a list of lemmas, and repeating tries to `apply` these against
+the goals, recursively acting on any generated subgoals.
+
+It accepts a variety of configuration options described below, enabling
+* backtracking across multiple goals,
+* pruning the search tree, and
+* invoking other tactics before or after trying to apply lemmas.
+
+At present it has no "premise selection", and simply tries the supplied lemmas in order
+at each step of the search.
+-/
+
 namespace tactic
 
 namespace solve_by_elim
@@ -42,12 +59,15 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 /--
 Configuration options for `solve_by_elim`.
 
-* `accept` determines whether the current branch should be explored.
-   It takes the current state of original goals as a `list expr` argument,
-   and should fail to signal omitting this branch.
+* `accept : list expr → tactic unit` determines whether the current branch should be explored.
+   It is passed the original goals as a `list expr` argument
+   (which may by now be partially solved by previous `apply` steps),
+   and if the tactic fails `solve_by_elim` aborts this branch and backtracks.
    By default `accept := λ _, skip` always succeeds.
-* `pre_apply` specifies an additional tactic to run before each round of `apply`.
-* `discharger` specifies an additional tactic to apply on subgoals for which no lemma applies.
+   (There is an example usage in `tests/solve_by_elim.lean`.)
+* `pre_apply : tactic unit` specifies an additional tactic to run before each round of `apply`.
+* `discharger : tactic unit` specifies an additional tactic to apply on subgoals
+  for which no lemma applies.
   If that tactic succeeds, `solve_by_elim` will continue applying lemmas on resulting goals.
 -/
 meta structure basic_opt extends apply_any_opt :=
@@ -187,10 +207,13 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 - max_steps: number of attempts at discharging generated sub-goals
 - discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
 - pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
-- accept: a subsidiary tactic that takes as an argument `list expr`
-    showing the current state of the original goals,
-    and which may fail to indicate that the current branch of the search tree should not be searched.
-    This may also be used to filter results.
+- accept: a subsidiary tactic `list expr → tactic unit` that at each step is passed the original goals
+    (which may by now be partially solved by previous `apply` steps).
+    If the `accept` tactic fails,
+    `solve_by_elim` will abort searching the current branch and backtrack.
+    This may be used to filter results, either at every step of the search,
+    or filtering complete results
+    (by testing for the absence of metavariables, and then the filtering condition).
 -/
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :

@@ -988,7 +988,7 @@ end
 
 section
 variables
-  (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π b : β, (W (h₁.symm b) ≃ Z b))
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π b : β, (W (h₁.symm b) ≃ Z b))
 
 /--
 Transport dependent functions through
@@ -996,7 +996,7 @@ an equivalence of the base spaces and a family
 of equivalences of the matching fibres.
 -/
 def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
-(Pi_congr Z W h₁.symm (λ b, (h₂ b).symm)).symm
+(Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
 end
 
 end equiv

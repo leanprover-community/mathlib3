@@ -102,6 +102,13 @@ jobs:
           mv nolints.txt scripts/nolints.txt
           ./scripts/rm_all.sh
           git diff
+          
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run:
+          ./scripts/update_nolints.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: leanchecker
         run: |
@@ -117,9 +124,4 @@ jobs:
           github_event: ${{ github.event_name }}
           github_ref: ${{ github.ref }}
 
-      - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run:
-          ./scripts/update_nolints.sh
-        env:
-          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+

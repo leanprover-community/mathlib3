@@ -687,25 +687,30 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
-/-- `symm_apply e cfg` tries `apply e cfg`, and if this fails, calls `symmetry` and tries again. -/
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+/--
+`apply_any` tries to apply one of a list of lemmas to the current goal.
 
-/-- `apply_assumption` searches for terms in the local context that can be applied to make progress
-on the goal. If the goal is symmetric, it tries each goal in both directions. If this fails, it will
-call `exfalso` and repeat. Optional arguments:
+Optional arguments:
+* `lemmas` controls which expressions are applied.
+* `tac` is called after a successful application. Defaults to `skip`.
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
+-/
+meta def apply_any
+  (lemmas : list expr)
+  (tac : tactic unit := skip)
+  (use_symmetry : bool := tt)
+  (use_exfalso : bool := tt) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if use_symmetry then [symmetry] else [])
+    ++ (if use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
 
-* `asms` controls which expressions are applied. Defaults to `local_context`.
-* `tac` is called after a successful application. Defaults to `skip`. -/
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|>
-do { exfalso,
-     ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) }
-<|> fail "assumption tactic failed"
+/-- Try to apply a hypothesis from the local context to the goal. -/
+meta def apply_assumption : tactic unit :=
+local_context >>= apply_any
 
 /-- `change_core e none` is equivalent to `change e`. It tries to change the goal to `e` and fails
 if this is not a definitional equality.
@@ -1435,6 +1440,26 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
        | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
+
+/--
+``trace_if_enabled `n msg`` traces the message `msg`
+only if tracing is enabled for the name `n`.
+
+Create new names registered for tracing with `declare_trace n`.
+Then use `set_option trace.n true/false` to enable or disable tracing for `n`.
+-/
+meta def trace_if_enabled
+  (n : name) {α : Type u} [has_to_tactic_format α] (msg : α) : tactic unit :=
+when_tracing n (trace msg)
+
+/--
+``trace_state_if_enabled `n msg`` prints the tactic state,
+preceded by the optional string `msg`,
+only if tracing is enabled for the name `n`.
+-/
+meta def trace_state_if_enabled
+  (n : name) (msg : string := "") : tactic unit :=
+when_tracing n ((if msg = "" then skip else trace msg) >> trace_state)
 
 /--
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,

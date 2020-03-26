@@ -369,6 +369,9 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
+lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
+continuous_subtype_val
+
 lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
   open_embedding (subtype.val : s → α) :=
 { induced := rfl,

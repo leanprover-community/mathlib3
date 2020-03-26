@@ -88,26 +88,37 @@ namespace tactic
 -- and turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 
 meta def equiv_congr_lemmas : tactic (list expr) :=
-[-- These are functorial w.r.t equiv,
- -- and so will be subsumed by `equiv_functor.map_equiv` in a subsequent PR.
- -- Many more could be added, but will wait for that framework.
- `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
- -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
- -- but the pattern matcher will never see this.
- `equiv.arrow_congr',
- -- Allow rewriting in subtypes:
- `equiv.subtype_equiv_of_subtype',
- -- Allow rewriting in the first component of a sigma-type:
- `equiv.sigma_congr_left',
- -- Allow rewriting in the argument of a pi-type:
- `equiv.Pi_congr_left',
- -- Handles `sum` and `prod`, and many others:
- `bifunctor.map_equiv,
- -- Handles `list`, `option`, and many others:
- `functor.map_equiv,
- -- We have to filter results to ensure we don't cheat and only exclusively `equiv.refl`!
- `equiv.refl
-].mmap mk_const
+do exprs ←
+  [
+  `equiv.of_iff,
+  -- These are functorial w.r.t equiv,
+  -- and so will be subsumed by `equiv_functor.map_equiv` in a subsequent PR.
+  -- Many more could be added, but will wait for that framework.
+  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
+  -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
+  -- but the pattern matcher will never see this.
+  `equiv.arrow_congr',
+  -- Allow rewriting in subtypes:
+  `equiv.subtype_equiv_of_subtype',
+  -- Allow rewriting in the first component of a sigma-type:
+  `equiv.sigma_congr_left',
+  -- Allow rewriting ∀s:
+  -- (You might think that repeated application of `equiv.forall_congr'
+  -- would handle the higher arity cases, but unfortunately unification is not clever enough.)
+  `equiv.forall₃_congr',
+  `equiv.forall₂_congr',
+  `equiv.forall_congr',
+  -- Allow rewriting in argument of Pi types:
+   `equiv.Pi_congr_left',
+  -- Handles `sum` and `prod`, and many others:
+  `bifunctor.map_equiv,
+  -- Handles `list`, `option`, and many others:
+  `functor.map_equiv,
+  -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
+  `equiv.refl,
+  `iff.refl
+  ].mmap (λ n, try_core (mk_const n)),
+  return (exprs.map option.to_list).join -- TODO: implement `.mfilter_map mk_const`?
 
 declare_trace adapt_equiv
 

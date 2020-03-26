@@ -219,6 +219,13 @@ protected def ulift {α : Type u} : ulift α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- equivalence of propositions is the same as iff -/
+def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
+{ to_fun := h.mp,
+  inv_fun := h.mpr,
+  left_inv := λ x, rfl,
+  right_inv := λ y, rfl }
+
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
@@ -931,6 +938,51 @@ begin
   { rw [←f.right_inv x], apply h.mp, apply h₂ },
   apply h.mpr, apply h₂
 end
+protected lemma forall_congr' {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p (f.symm x) ↔ q x) : (∀x, p x) ↔ (∀y, q y) :=
+(equiv.forall_congr f.symm (λ x, h.symm)).symm
+
+
+-- We next build some higher arity versions of `equiv.forall_congr`.
+-- Although they appear to just be repeated applications of `equiv.forall_congr`,
+-- unification of metavariables works better with these versions.
+-- In particular, they are necessary in `equiv_rw`.
+-- (Stopping at ternary functions seems reasonable: at least in 1-categorical mathematics,
+-- it's rare to have axioms involving more than 3 elements at once.)
+universes ua1 ua2 ub1 ub2 ug1 ug2
+variables {α₁ : Sort ua1} {α₂ : Sort ua2}
+          {β₁ : Sort ub1} {β₂ : Sort ub2}
+          {γ₁ : Sort ug1} {γ₂ : Sort ug2}
+
+lemma equiv.forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+  (h : ∀{x y}, p x y ↔ q (eα x) (eβ y)) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+begin
+  apply equiv.forall_congr,
+  intros,
+  apply equiv.forall_congr,
+  intros,
+  apply h,
+end
+lemma equiv.forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+  (h : ∀{x y}, p (eα.symm x) (eβ.symm y) ↔ q x y) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+(equiv.forall₂_congr eα.symm eβ.symm (λ x y, h.symm)).symm
+
+lemma equiv.forall₃_congr {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+  (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
+  (h : ∀{x y z}, p x y z ↔ q (eα x) (eβ y) (eγ z)) : (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=
+begin
+  apply equiv.forall₂_congr,
+  intros,
+  apply equiv.forall_congr,
+  intros,
+  apply h,
+end
+lemma equiv.forall₃_congr' {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+  (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
+  (h : ∀{x y z}, p (eα.symm x) (eβ.symm y) (eγ.symm z) ↔ q x y z) :
+    (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=
+(equiv.forall₃_congr eα.symm eβ.symm eγ.symm (λ x y z, h.symm)).symm
+
 protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
   (∀x, p x) ↔ (∀y, p (f.symm y)) :=
 equiv.forall_congr f (λx, by simp)

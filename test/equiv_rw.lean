@@ -238,25 +238,24 @@ lemma semigroup.map_comp {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
   (semigroup.map_equiv e).trans (semigroup.map_equiv f) = semigroup.map_equiv (e.trans f) :=
 by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
 
--- For full disclosure, this works less well for the next example.
--- Hopefully I am missing some tricks here.
+-- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
 def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
 begin
   intro S, fconstructor,
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  { intros,
+  { /-
+    The next line also works here,
+    but this pattern doesn't work for axioms involving constants, e.g. one_mul:
+    -/
+    -- have mul_assoc := S.mul_assoc, equiv_rw e at mul_assoc, intros, dsimp, simp, apply mul_assoc,
+    intros,
     apply e.symm.injective,
     dsimp [(*)], simp,
-    -- The biggest problem is that `equiv_rw` doesn't work in one step here.
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
-    have mul_assoc' := mul_assoc a,
-    equiv_rw e at mul_assoc',
-    have mul_assoc'' := mul_assoc' b,
-    equiv_rw e at mul_assoc'',
-    exact mul_assoc'' c, },
+    apply mul_assoc, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { intros,
     apply e.symm.injective,

@@ -1132,9 +1132,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/functor.lean
-apply_nolint functor.map_equiv doc_blame
-
 -- data/equiv/list.lean
 apply_nolint denumerable.lower doc_blame
 apply_nolint denumerable.lower' doc_blame
@@ -3337,15 +3334,6 @@ apply_nolint tactic.find_if_cond_at doc_blame
 apply_nolint tactic.reduce_ifs_at doc_blame
 apply_nolint tactic.split_if1 doc_blame
 apply_nolint tactic.split_ifs doc_blame
-
--- tactic/squeeze.lean
-apply_nolint loc.to_string doc_blame
-apply_nolint loc.to_string_aux doc_blame
-apply_nolint tactic.interactive.auto_simp_lemma doc_blame
-apply_nolint tactic.interactive.parse_config doc_blame
-apply_nolint tactic.interactive.rec.to_tactic_format doc_blame
-apply_nolint tactic.interactive.record_lit doc_blame
-apply_nolint tactic.interactive.squeeze_simpa doc_blame
 
 -- tactic/subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame

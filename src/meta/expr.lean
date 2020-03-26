@@ -666,3 +666,7 @@ meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
+
+meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
+unchecked_cast
+expr.has_decidable_eq

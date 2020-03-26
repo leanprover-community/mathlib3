@@ -55,13 +55,32 @@ protected lemma subsingleton_unique' : ∀ (h₁ h₂ : unique α), h₁ = h₂
 instance subsingleton_unique : subsingleton (unique α) :=
 ⟨unique.subsingleton_unique'⟩
 
-def of_surjective {f : α → β} (hf : surjective f) [unique α] : unique β :=
-{ default := f (default _),
-  uniq := λ b,
-  begin
-    cases hf b with a ha,
-    subst ha,
-    exact congr_arg f (eq_default a)
-  end }
-
 end unique
+
+namespace function
+
+variable {f : α → β}
+
+/-- If the domain of a surjective function is a singleton,
+then the codomain is a singleton as well. -/
+def surjective.unique (hf : surjective f) [unique α] : unique β :=
+{ default := f (default _),
+  uniq := λ b, let ⟨a, ha⟩ := hf b in ha ▸ congr_arg f (unique.eq_default _) }
+
+/-- If the codomain of an injective function is a subsingleton, then the domain
+is a subsingleton as well. -/
+lemma injective.comap_subsingleton (hf : injective f) [subsingleton β] :
+  subsingleton α :=
+⟨λ x y, hf $ subsingleton.elim _ _⟩
+
+end function
+
+lemma nonempty_unique_or_exists_ne (x : α) : nonempty (unique α) ∨ ∃ y, y ≠ x :=
+classical.by_cases or.inr
+  (λ h, or.inl ⟨{ default := x,
+    uniq := λ y, classical.by_contradiction $ λ hy, h ⟨y, hy⟩ }⟩)
+
+lemma subsingleton_or_exists_ne (x : α) : subsingleton α ∨ ∃ y, y ≠ x :=
+(nonempty_unique_or_exists_ne x).elim
+  (λ ⟨h⟩, or.inl $ @unique.subsingleton _ h)
+  or.inr

@@ -65,7 +65,7 @@ instance of_is_lawful_functor
   map_map' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
 
 -- TODO Include more examples here;
--- once `equiv_rw` is available these are easy to construct,
+-- once `equiv_rw` is available these are hopefully easy to construct,
 -- and in turn make `equiv_rw` more powerful.
 instance equiv_functor_unique : equiv_functor unique :=
 { map := λ α β e, equiv.unique_congr e, }

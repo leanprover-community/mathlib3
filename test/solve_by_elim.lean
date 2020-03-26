@@ -28,8 +28,8 @@ by solve_by_elim
 
 example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
 begin
-  success_if_fail { solve_by_elim only [] },
-  success_if_fail { solve_by_elim only [h₀] },
+  success_if_fail { solve_by_elim only [], },
+  success_if_fail { solve_by_elim only [h₀], },
   solve_by_elim only [h₀, congr_fun]
 end
 

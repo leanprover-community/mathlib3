@@ -661,12 +661,12 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p).to_fun x).1,
+      let i := ((E p) x).1,
       have hip : i < N p := ((E p).to_fun x).2,
       have hiq : i < N q, by rwa Npq at hip,
       have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p).to_fun y).1,
+      let j := ((E p) y).1,
       have hjp : j < N p := ((E p).to_fun y).2,
       have hjq : j < N q, by rwa Npq at hjp,
       have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },

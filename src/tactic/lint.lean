@@ -574,6 +574,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+[] ← get_eqn_lemmas_for ff d.to_name | pure none,
 (λ tac, tactic.try_for timeout tac <|> pure (some "timeout")) $ -- last resort
 retrieve $ do
 reset_instance_cache,

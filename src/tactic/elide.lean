@@ -83,7 +83,7 @@ add_tactic_doc
 { name        := "elide / unelide",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
-  tags        := [] }
+  tags        := ["goal management", "context management", "rewrite"] }
 
 end interactive
 

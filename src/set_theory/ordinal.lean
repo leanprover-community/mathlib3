@@ -58,8 +58,6 @@ def of_iso (f : r ≃o s) : r ≼i s :=
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
-@[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : (f : r ≼o s) x = f x := rfl
-
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
 @[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl

@@ -49,6 +49,8 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj inclusion
 end core
 
+omit 𝒞
+
 /--
 `of_equiv_functor m` converts from lifts a type-level `equiv_functor`
 to a categorical functor `core (Type u₁) ⥤ core (Type u₂)`.
@@ -66,6 +68,5 @@ def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
       function.comp_app, core.comp_hom, types_comp],
     erw [iso.to_equiv_comp, equiv_functor.map_map],
   end, }
-
 
 end category_theory

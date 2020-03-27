@@ -145,32 +145,29 @@ def adj : (hom (G.prod G₁) G₂) ≃ (hom G (graph.ihom G₁ G₂)) :=
 
 end
 
-def colouring (W : Type u₁) (G : graph V) := hom G (complete W)
+variables {G G₁ G₂ G₃}
+
+abbreviation colouring (W : Type u₁) (G : graph V) := hom G (complete W)
 
 def colouring_id (G : graph V) (h : G.is_loopless) : colouring V G :=
 { to_fun    := id,
   map_edge' := assume x y e, show x ≠ y, from ne_of_edge h e }
 
-structure is_nat_colouring (n : ℕ) (G : graph V) (f : V → ℕ) : Prop :=
-(is_lt : ∀ x, f x < n)
-(edge  : ∀ {x y}, (x ~[G] y) → f x ≠ f y)
+lemma colouring.is_loopless {W : Type*} (c : colouring W G) :
+  G.is_loopless :=
+assume x e, c.map_edge e rfl
+
+def colouring.extend {W₁ : Type u₁} {W₂ : Type u₂}
+  (c : colouring W₁ G) (f : W₁ → W₂) (hf : function.injective f) :
+  colouring W₂ G :=
+{ to_fun    := f ∘ c,
+  map_edge' := assume x y e, hf.ne $ c.map_edge e }
 
 structure chromatic_number (G : graph V) (n : ℕ) : Prop :=
-(col_exists : ∃ f, is_nat_colouring n G f)
-(min        : ∀ {k f}, is_nat_colouring k G f → n ≤ k)
-
-def is_nat_colouring.colouring_fin {n} {G : graph V} {f} (h : is_nat_colouring n G f) :
-  G.colouring (fin n) :=
-{ to_fun    := λ x, ⟨f x, h.is_lt x⟩,
-  map_edge' := λ x y e H, h.edge e $ fin.veq_of_eq H }
+(col_exists : nonempty (colouring (fin n) G))
+(min        : ∀ {k}, colouring (fin k) G → n ≤ k)
 
 variables {G G₁ G₂ G₃}
-
-lemma is_nat_colouring.comp
-  {n} {g} (h : is_nat_colouring n G₂ g) (f : hom G₁ G₂) :
-  is_nat_colouring n G₁ (g ∘ f) :=
-{ is_lt := assume x, h.is_lt _,
-  edge  := assume x y e, h.edge $ f.map_edge e }
 
 section hedetniemi
 variables {n₁ n₂ n : ℕ}
@@ -186,14 +183,12 @@ n = min n₁ n₂
 
 lemma chromatic_number_prod_le_min : n ≤ min n₁ n₂ :=
 begin
-  obtain ⟨f₁, hf₁⟩ : ∃ f₁ : V₁ → ℕ, is_nat_colouring n₁ G₁ f₁ := h₁.col_exists,
-  obtain ⟨f₂, hf₂⟩ : ∃ f₂ : V₂ → ℕ, is_nat_colouring n₂ G₂ f₂ := h₂.col_exists,
-  have c₁ : is_nat_colouring n₁ (G₁.prod G₂) (f₁ ∘ _) := hf₁.comp (prod.fst G₁ G₂),
-  have c₂ : is_nat_colouring n₂ (G₁.prod G₂) (f₂ ∘ _) := hf₂.comp (prod.snd G₁ G₂),
+  obtain ⟨c₁⟩ : nonempty (colouring (fin n₁) G₁) := h₁.col_exists,
+  obtain ⟨c₂⟩ : nonempty (colouring (fin n₂) G₂) := h₂.col_exists,
   rw le_min_iff,
   split,
-  { exact h.min c₁ },
-  { exact h.min c₂ }
+  { exact h.min (c₁.comp (prod.fst G₁ G₂)) },
+  { exact h.min (c₂.comp (prod.snd G₁ G₂)) }
 end
 
 end hedetniemi
@@ -201,9 +196,8 @@ end hedetniemi
 lemma chromatic_number.is_loopless {n} (h : chromatic_number G n) :
   G.is_loopless :=
 begin
-  assume x e,
-  rcases h.col_exists with ⟨f, hf⟩,
-  exact hf.edge e rfl,
+  rcases h.col_exists with ⟨c⟩,
+  exact c.is_loopless
 end
 
 lemma chromatic_number_le_card_of_colouring {W : Type*} [fintype W] {n m}
@@ -214,17 +208,28 @@ begin
     fintype.exists_equiv_fin W,
   obtain rfl : m = k,
   { rw [hm, fintype.card_congr f, fintype.card_fin] },
-  suffices hc : is_nat_colouring m G (λ x, f (c.to_fun x)),
-  { exact hn.min hc },
-  refine
-  { is_lt := assume x, (f _).is_lt,
-    edge  := assume x y e H, c.map_edge e $ f.injective (fin.eq_of_veq H) }
+  apply hn.min,
+  exact c.extend f f.injective
 end
 
 lemma chromatic_number_le_card [fintype V] {n m}
   (hn : chromatic_number G n) (hm : m = fintype.card V) :
   n ≤ m :=
 chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn hm
+
+def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
+{ edge := assume x y, f x ~[G₂] f y,
+  symm := assume x y e, e.symm }
+
+def closed_neighbourhood (G : graph V) (x : V) :=
+{ y // y = x ∨ (y ~[G] x) }
+
+instance closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
+induced_graph G subtype.val
+
+def is_robust {W : Type*} (w : W) (G : graph V) (x : V) (s : set (V → W)) : Prop :=
+∀ φ ∈ s, ∃ y : closed_neighbourhood G x, w = (φ : V → W) y.val
+
 
 
 end graph

@@ -90,6 +90,30 @@ lemma continuous_of_uniform_limit_of_continuous (L : ∀ε>(0:ℝ), ∃N, ∀y, 
 continuous_of_locally_uniform_limit_of_continuous $ λx,
   ⟨univ, by simpa [filter.univ_mem_sets] using L⟩
 
+/-- If `Fₙ` converges uniformly to a function `f` which is continuous at `x`, and `uₙ` tends to `x`,
+then `Fₙ (uₙ)` tends to `f x`. -/
+lemma tendsto_comp_of_uniform_limit
+  (h : continuous_at f x) (hs : s ∈ 𝓝 x) {p : filter ι} {g : ι → α} (hg : tendsto g p (𝓝 x))
+  {b : ι → ℝ} (hb : tendsto b p (𝓝 0)) (hunif : ∀ n y, y ∈ s → dist (F n y) (f y) ≤ b n) :
+  tendsto (λ n, F n (g n)) p (𝓝 (f x)) :=
+begin
+  refine metric.tendsto_nhds.2 (λ ε εpos, _),
+  set δ := ε / 2 with hδ,
+  have δpos : 0 < δ := half_pos εpos,
+  have A : ∀ᶠ n in p, dist (f (g n)) (f x) < δ := hg (metric.continuous_at_iff'.1 h δ δpos),
+  have B : ∀ᶠ n in p, g n ∈ s := hg hs,
+  have C : ∀ᶠ n in p, dist (F n (g n)) (f (g n)) ≤ b n := B.mono (λ n hn, hunif n _ hn),
+  have D : ∀ᶠ n in p, dist (F n (g n)) (f x) ≤ b n + δ,
+  { apply (A.and C).mono (λ n hn, _),
+    calc dist (F n (g n)) (f x) ≤ dist (F n (g n)) (f (g n)) + dist (f (g n)) (f x) :
+      dist_triangle _ _ _
+    ... ≤ b n + δ : add_le_add hn.2 (le_of_lt hn.1) },
+  have E : ∀ᶠ n in p, b n + δ < ε,
+  { apply (tendsto_order.1 (hb.add tendsto_const_nhds)).2,
+    simp [δ, half_lt_self εpos] },
+  exact (D.and E).mono (λ n hn, lt_of_le_of_lt hn.1 hn.2)
+end
+
 end uniform_limit
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/

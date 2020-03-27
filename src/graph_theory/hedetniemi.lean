@@ -101,7 +101,7 @@ end
 
 /-- The internal hom in the category of graphs. -/
 instance ihom : graph (V₁ → V₂) :=
-{ edge := assume f g, ∀ {x y}, (x ~[G₁] y) → (f x ~[G₂] g y),
+{ edge := assume f g, ∀ ⦃x y⦄, (x ~[G₁] y) → (f x ~[G₂] g y),
   symm := assume f g h x y e,
           show g x ~[G₂] f y, from G₂.symm $ h e.symm }
 
@@ -154,15 +154,15 @@ def adj : (hom (G.prod G₁) G₂) ≃ (hom G (graph.ihom G₁ G₂)) :=
 
 end
 
-variables {G G₁ G₂ G₃}
+variables {G G₁ G₂ G₃} {W : Type*}
 
-abbreviation colouring (W : Type u₁) (G : graph V) := hom G (complete W)
+abbreviation colouring (W : Type*) (G : graph V) := hom G (complete W)
 
 def colouring_id (G : graph V) (h : G.is_loopless) : colouring V G :=
 { to_fun    := id,
   map_edge' := assume x y e, show x ≠ y, from ne_of_edge h e }
 
-lemma colouring.is_loopless {W : Type*} (c : colouring W G) :
+lemma colouring.is_loopless (c : colouring W G) :
   G.is_loopless :=
 assume x e, c.map_edge e rfl
 
@@ -171,6 +171,41 @@ def colouring.extend {W₁ : Type u₁} {W₂ : Type u₂}
   colouring W₂ G :=
 { to_fun    := f ∘ c,
   map_edge' := assume x y e, hf.ne $ c.map_edge e }
+
+def colouring.is_suited (c : colouring W (G.ihom (complete W))) : Prop :=
+∀ w : W, c (λ x, w) = w
+
+def universal_colouring (W : Type*) (G : graph V) :
+  colouring W ((G.ihom (complete W)).prod G) :=
+hom.uncurry $ hom.id _
+
+lemma colouring.mk_suited_aux' [fintype W] (c : colouring W (G.ihom (complete W))) :
+  function.bijective (λ w, c (λ x, w) : W → W) :=
+begin
+  rw ← fintype.injective_iff_bijective,
+  assume w₁ w₂ h,
+  classical,
+  contrapose! h,
+  apply c.map_edge,
+  assume x y e,
+  exact h
+end
+
+noncomputable def colouring.mk_suited_aux [fintype W] (c : colouring W (G.ihom (complete W))) :
+  W ≃ W :=
+equiv.of_bijective $ c.mk_suited_aux'
+
+noncomputable def colouring.mk_suited [fintype W] (c : colouring W (G.ihom (complete W))) :
+  colouring W (G.ihom (complete W)) :=
+c.extend (c.mk_suited_aux).symm $ equiv.injective _
+
+lemma colouring.mk_suited_is_suited [fintype W] (c : colouring W (G.ihom (complete W))) :
+  c.mk_suited.is_suited :=
+begin
+  assume w,
+  apply (colouring.mk_suited_aux c).injective,
+  apply equiv.apply_symm_apply
+end
 
 structure chromatic_number (G : graph V) (n : ℕ) : Prop :=
 (col_exists : nonempty (colouring (fin n) G))
@@ -236,11 +271,30 @@ def closed_neighbourhood (G : graph V) (x : V) :=
 instance closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
 induced_graph G subtype.val
 
+/-- Observation 1. -/
+lemma mem_range_of_is_suited {W : Type*} (G : graph V)
+  (Φ : colouring W (G.ihom (complete W))) (h : Φ.is_suited) (φ : V → W) :
+  Φ φ ∈ set.range φ :=
+begin
+  classical, by_contradiction H,
+  let E := G.ihom (complete W),
+  let w : W := Φ φ,
+  have hΦw : Φ (λ x, w) = w := h w,
+  suffices a : (φ ~[E] (λ x, w)),
+  { exfalso, apply Φ.map_edge a, exact hΦw.symm },
+  assume x y e, contrapose! H,
+  rw set.mem_range,
+  use x,
+  exact classical.not_not.1 H
+end
 
 /-- This definition appears in Claim 2 of Shitov's article. -/
 def is_robust {W : Type*} (w : W) (G : graph V) (x : V) (s : set (V → W)) : Prop :=
 ∀ φ ∈ s, ∃ y : closed_neighbourhood G x, w = (φ : V → W) y.val
 
-
+-- /-- Claim 2. -/
+-- lemma some_bound {W : Type*} (G : graph V)
+--   (Φ : colouring W (G.ihom (complete W))) :
+--   _ :=
 
 end graph

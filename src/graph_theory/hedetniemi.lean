@@ -1,6 +1,15 @@
 import tactic
 import data.fin
 
+/-!
+
+Important source:
+
+Yaroslav Shitov. COUNTEREXAMPLES TO HEDETNIEMI’S CONJECTURE.
+ https://arxiv.org/pdf/1905.02167.pdf
+
+-/
+
 universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
 
 set_option old_structure_cmd true
@@ -227,6 +236,8 @@ def closed_neighbourhood (G : graph V) (x : V) :=
 instance closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
 induced_graph G subtype.val
 
+
+/-- This definition appears in Claim 2 of Shitov's article. -/
 def is_robust {W : Type*} (w : W) (G : graph V) (x : V) (s : set (V → W)) : Prop :=
 ∀ φ ∈ s, ∃ y : closed_neighbourhood G x, w = (φ : V → W) y.val
 

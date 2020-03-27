@@ -283,6 +283,18 @@ lemma lt_iff_exists_real_btwn :
   ⟨q, rat.cast_nonneg.2 q0, aq, qb⟩,
 λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
 
+lemma lt_iff_exists_nnreal_btwn :
+  a < b ↔ (∃r:nnreal, a < r ∧ (r : ennreal) < b) :=
+begin
+  split,
+  { assume h,
+    rcases dense h with ⟨r, ar, rb⟩,
+    cases r, { simpa using rb },
+    exact ⟨r, ar, rb⟩ },
+  { rintros ⟨r, ar, rb⟩,
+    exact lt_trans ar rb }
+end
+
 lemma lt_iff_exists_add_pos_lt : a < b ↔ (∃ r : nnreal, 0 < r ∧ a + r < b) :=
 begin
   refine ⟨λ hab, _, λ ⟨r, rpos, hr⟩, lt_of_le_of_lt (le_add_right (le_refl _)) hr⟩,

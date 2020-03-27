@@ -141,9 +141,9 @@ end
 lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
   (h : (r : ennreal) < p.radius) : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
-  obtain ⟨t, rt, tp⟩ : ∃ t, (r : ennreal) < t ∧ t < p.radius := dense h,
-  cases t, { simpa using tp },
-  simp only [ennreal.some_eq_coe, ennreal.coe_lt_coe] at rt,
+  obtain ⟨t, rt, tp⟩ : ∃ (t : nnreal), (r : ennreal) < t ∧ (t : ennreal) < p.radius :=
+    ennreal.lt_iff_exists_nnreal_btwn.1 h,
+  rw ennreal.coe_lt_coe at rt,
   have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
   obtain ⟨C, hC⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * t^n ≤ C := p.bound_of_lt_radius tp,
   refine ⟨r / t, C, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
@@ -288,6 +288,24 @@ lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
 hf.add hg.neg
 
+lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
+  (v : fin 0 → E) : pf 0 v = f x :=
+begin
+  have v_eq : v = (λ i, 0), by { ext i, apply fin_zero_elim i },
+  have zero_mem : (0 : E) ∈ emetric.ball (0 : E) r, by simp [hf.r_pos],
+  have : ∀ i ≠ 0, pf i (λ j, 0) = 0,
+  { assume i hi,
+    have : 0 < i := bot_lt_iff_ne_bot.mpr hi,
+    apply continuous_multilinear_map.map_coord_zero _ (⟨0, this⟩ : fin i),
+    refl },
+  have A := has_sum_unique (hf.has_sum zero_mem) (has_sum_single _ this),
+  simpa [v_eq] using A.symm,
+end
+
+lemma has_fpower_series_at.coeff_zero (hf : has_fpower_series_at f pf x) (v : fin 0 → E) :
+  pf 0 v = f x :=
+let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
+
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
 sums of this power series on strict subdisks of the disk of convergence. -/
 lemma has_fpower_series_on_ball.uniform_limit {r' : nnreal}
@@ -326,9 +344,8 @@ begin
   apply continuous_on_of_locally_uniform_limit_of_continuous_on (λ y hy, _) this,
   have : (nnnorm (y - x) : ennreal) < r,
     by { rw ← edist_eq_coe_nnnorm_sub, exact hy },
-  rcases dense this with ⟨r', xr', r'r⟩,
-  cases r', { simpa using r'r },
-  replace xr' : nnnorm (y - x) < r', by simpa using xr',
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 this with ⟨r', xr', r'r⟩,
+  rw ennreal.coe_lt_coe at xr',
   refine ⟨metric.ball x r', _, λ ε εpos, _⟩,
   show metric.ball x r' ∈ nhds_within y (emetric.ball x r),
   { apply mem_nhds_within_of_mem_nhds,

@@ -512,31 +512,25 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- `simp_lhs_rhs ty` returns the tuple `(rel, lhs, rhs)` containing the name
-of the simp relation, and the left- and right-hand sides of the simp lemma with
-type `ty`. -/
-private meta def simp_lhs_rhs : expr → tactic (name × expr × expr) | ty := do
+/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
+private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
 ty ← whnf ty transparency.reducible,
+-- We only detect a fixed set of simp relations here.
+-- This is somewhat justified since for a custom simp relation R,
+-- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
 match ty with
-| `(¬ %%lhs) := pure (`iff, lhs, `(false))
-| `(%%lhs = %%rhs) := pure (`eq, lhs, rhs)
-| `(%%lhs ↔ %%rhs) := pure (`iff, lhs, rhs)
+| `(¬ %%lhs) := pure (lhs, `(false))
+| `(%%lhs = %%rhs) := pure (lhs, rhs)
+| `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
 | (expr.pi n bi a b) := do
   l ← mk_local' n bi a,
   simp_lhs_rhs (b.instantiate_var l)
-| ty := (do
-    res@(r, lhs, rhs) ← relation_lhs_rhs ty,
-    e ← get_env,
-    guard (e.refl_for r).is_some,
-    guard (e.trans_for r).is_some,
-    pure res)
-  <|> pure (`iff, ty, `(true))
+| ty := pure (ty, `(true))
 end
 
 /-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
-private meta def simp_lhs (ty : expr): tactic expr := do
-(_, lhs, _) ← simp_lhs_rhs ty,
-pure lhs
+private meta def simp_lhs (ty : expr): tactic expr :=
+prod.fst <$> simp_lhs_rhs ty
 
 /--
 `simp_is_conditional_core ty` returns `none` if `ty` is a conditional simp
@@ -586,16 +580,16 @@ reset_instance_cache,
 g ← mk_meta_var d.type,
 set_goals [g],
 intros,
-(simp_rel, lhs, rhs) ← target >>= simp_lhs_rhs,
+(lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
 -- TODO: should we do something special about rfl-lemmas?
-some (lhs', prf1) ← try_core $ simplify sls [] lhs {fail_if_unchanged := ff} simp_rel
+some (lhs', prf1) ← try_core $ simplify sls [] lhs {fail_if_unchanged := ff}
   | pure "simplify fails on left-hand side. PLEASE REPORT TO ZULIP",
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
-some (rhs', prf2) ← try_core $ simplify sls [] rhs {fail_if_unchanged := ff} simp_rel
+some (rhs', prf2) ← try_core $ simplify sls [] rhs {fail_if_unchanged := ff}
   | pure "simplify fails on right-hand side. PLEASE REPORT TO ZULIP",
 lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
 lhs_in_nf ← is_simp_eq lhs' lhs,
@@ -684,9 +678,9 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
-(_, lhs, rhs) ← simp_lhs_rhs d.type,
+(lhs, rhs) ← simp_lhs_rhs d.type,
 if lhs.get_app_fn.const_name ≠ rhs.get_app_fn.const_name then pure none else do
-(_, lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
+(lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
 tt ← succeeds $ unify rhs' lhs transparency.reducible | pure none,
 tt ← succeeds $ is_def_eq rhs lhs' transparency.reducible | pure none,
 -- ensure that the second application makes progress:

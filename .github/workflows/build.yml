@@ -94,14 +94,9 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: ..
 
-      - name: tests
-        # not sure why `success() ||` is needed here and in step `lint`...
-        if: success() || steps.build.outputs.status == 'built'
-        run: |
-          set -o pipefail
-          lean --make docs archive roadmap test | cat
-
       - name: lint
+        # for some reason this gets skipped if an earlier (non-"build") step fails,
+        # unless we include `success() ||`
         if: success() || steps.build.outputs.status == 'built'
         run: |
           ./scripts/mk_all.sh
@@ -116,6 +111,13 @@ jobs:
           ./scripts/update_nolints.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: tests
+        # see comment in the "lint" step
+        if: success() || steps.build.outputs.status == 'built'
+        run: |
+          set -o pipefail
+          lean --make docs archive roadmap test | cat
 
       - name: leanchecker
         run: |

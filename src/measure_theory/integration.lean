@@ -13,7 +13,7 @@ import
   measure_theory.measure_space
   measure_theory.borel_space
 noncomputable theory
-open lattice set filter
+open set (hiding restrict restrict_apply) filter
 open_locale classical topological_space
 
 namespace measure_theory
@@ -278,13 +278,13 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
   .. simple_func.partial_order }
 
 instance [semilattice_sup_bot β] : semilattice_sup_bot (α →ₛ β) :=
-{ .. simple_func.lattice.semilattice_sup,.. simple_func.lattice.order_bot }
+{ .. simple_func.semilattice_sup,.. simple_func.order_bot }
 
 instance [lattice β] : lattice (α →ₛ β) :=
-{ .. simple_func.lattice.semilattice_sup,.. simple_func.lattice.semilattice_inf }
+{ .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
 instance [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
-{ .. simple_func.lattice.lattice, .. simple_func.lattice.order_bot, .. simple_func.lattice.order_top }
+{ .. simple_func.lattice, .. simple_func.order_bot, .. simple_func.order_top }
 
 lemma finset_sup_apply [semilattice_sup_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
   s.sup f a = s.sup (λc, f c a) :=
@@ -914,12 +914,12 @@ lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g 
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
   have : - t ∈ (@measure_space.μ α _).a_e,
-  { rw [measure.mem_a_e_iff, lattice.neg_neg, ht0] },
+  { rw [measure.mem_a_e_iff, compl_compl, ht0] },
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
   { assume a,
     by_cases a ∈ t;
-      simp [h, simple_func.restrict_apply, ht.compl],
+      simp [h, restrict_apply, ht.compl],
     exact le_trans (hfs a) (by_contradiction $ assume hnfg, h (hts hnfg)) },
   { refine le_of_eq (s.integral_congr _ _),
     filter_upwards [this],

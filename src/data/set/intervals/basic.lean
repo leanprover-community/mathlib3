@@ -527,7 +527,6 @@ end linear_order
 
 section lattice
 
-open lattice
 
 section inf
 

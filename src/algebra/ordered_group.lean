@@ -27,7 +27,7 @@ class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, lattice.order_bot α :=
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
 end old_structure_cmd
@@ -166,7 +166,6 @@ by by_cases a ≤ b; simp [min, h]
 end units
 
 namespace with_zero
-open lattice
 
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
@@ -212,7 +211,6 @@ end
 end with_zero
 
 namespace with_top
-open lattice
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
@@ -302,7 +300,6 @@ instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top 
 end with_top
 
 namespace with_bot
-open lattice
 
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
@@ -356,7 +353,7 @@ canonically_ordered_monoid.le_iff_exists_add a b
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
 @[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
-le_antisymm lattice.bot_le (zero_le ⊥)
+le_antisymm bot_le (zero_le ⊥)
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff' (zero_le _) (zero_le _)
@@ -381,10 +378,10 @@ instance with_zero.canonically_ordered_monoid :
   canonically_ordered_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
     cases a with a,
-    { exact iff_of_true lattice.bot_le ⟨b, (zero_add b).symm⟩ },
+    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
     cases b with b,
     { exact iff_of_false
-        (mt (le_antisymm lattice.bot_le) (by simp))
+        (mt (le_antisymm bot_le) (by simp))
         (λ ⟨c, h⟩, by cases c; cases h) },
     { simp [le_iff_exists_add, -add_comm],
       split; intro h; rcases h with ⟨c, h⟩,

@@ -5,11 +5,11 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.finsupp linear_algebra.basic
+import data.monoid_algebra linear_algebra.basic
 
 noncomputable theory
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 open_locale classical
 

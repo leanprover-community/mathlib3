@@ -1,6 +1,6 @@
 name: continuous integration
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -97,9 +97,11 @@ jobs:
 
       - name: lint
         run: |
-          ./scripts/mk_all.sh -t
-          lean src/lint_mathlib.lean
+          ./scripts/mk_all.sh
+          lean --run scripts/lint_mathlib.lean
+          mv nolints.txt scripts/nolints.txt
           ./scripts/rm_all.sh
+          git diff
 
       - name: leanchecker
         run: |

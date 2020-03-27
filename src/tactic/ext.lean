@@ -269,22 +269,24 @@ add_tactic_doc
   decl_names               := [`extensional_attribute],
   tags                     := [] }
 
+-- We mark some existing extensionality lemmas.
 attribute [ext] array.ext propext prod.ext
 attribute [ext [(→),thunk]] _root_.funext
 
-namespace ulift
-@[ext] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
-begin
-  cases X, cases Y, dsimp at w, rw w,
-end
-end ulift
+-- We create some extensionality lemmas for existing structures.
+attribute [ext] ulift
 
 namespace plift
+-- This is stronger than the one generated automatically.
 @[ext] lemma ext {P : Prop} (a b : plift P) : a = b :=
 begin
   cases a, cases b, refl
 end
 end plift
+
+-- Conservatively, we'll only add extensionality lemmas for `has_*` structures
+-- as they become useful.
+attribute [ext] has_zero
 
 namespace tactic
 
@@ -356,13 +358,7 @@ meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → 
  | [] none     := repeat1 (ext1 [] $> ())
  | xs n        := tactic.ext xs n
 
-add_tactic_doc
-{ name        := "ext1 / ext",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := [],
-  description :=
-"
+/--
  * `ext1 id` selects and apply one extensionality lemma (with
     attribute `ext`), using `id`, if provided, to name a
     local constant introduced by the lemma. If `id` is omitted, the
@@ -394,6 +390,11 @@ y : β
 by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
-" }
+-/
+add_tactic_doc
+{ name        := "ext1 / ext",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
+  tags        := [] }
 
 end tactic

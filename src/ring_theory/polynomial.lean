@@ -42,6 +42,7 @@ begin
   { intros p hp, replace hp := mem_degree_le.1 hp,
     rw [← finsupp.sum_single p, finsupp.sum, submodule.mem_coe],
     refine submodule.sum_mem _ (λ k hk, _),
+    show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
     rw [single_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
@@ -164,7 +165,7 @@ begin
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, lattice.bot_le, _⟩,
+    { refine ⟨0, I.zero_mem, bot_le, _⟩,
       rw [leading_coeff_zero, eq_comm],
       exact coeff_eq_zero_of_degree_lt hpdeg },
     { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,

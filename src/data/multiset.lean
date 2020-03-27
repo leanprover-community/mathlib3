@@ -11,7 +11,7 @@ import logic.function order.boolean_algebra
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
 
-open list subtype nat lattice
+open list subtype nat
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -1274,7 +1274,7 @@ instance : lattice (multiset α) :=
 @[simp] theorem union_le_iff : s ∪ t ≤ u ↔ s ≤ u ∧ t ≤ u := sup_le_iff
 
 instance : semilattice_inf_bot (multiset α) :=
-{ bot := 0, bot_le := zero_le, ..multiset.lattice.lattice }
+{ bot := 0, bot_le := zero_le, ..multiset.lattice }
 
 theorem union_comm (s t : multiset α) : s ∪ t = t ∪ s := sup_comm
 theorem inter_comm (s t : multiset α) : s ∩ t = t ∩ s := inf_comm
@@ -1959,12 +1959,12 @@ instance : distrib_lattice (multiset α) :=
 { le_sup_inf := λ s t u, le_of_eq $ eq.symm $
     ext.2 $ λ a, by simp only [max_min_distrib_left,
       multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
-  ..multiset.lattice.lattice }
+  ..multiset.lattice }
 
 instance : semilattice_sup_bot (multiset α) :=
 { bot := 0,
   bot_le := zero_le,
-  ..multiset.lattice.lattice }
+  ..multiset.lattice }
 
 end
 

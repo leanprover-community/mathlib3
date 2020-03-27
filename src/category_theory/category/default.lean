@@ -19,7 +19,7 @@ Introduces notations
 * `f ≫ g` for composition in the 'arrows' convention.
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
-```
+```lean
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
@@ -31,7 +31,7 @@ namespace category_theory
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
 which is defined here as a
-[`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
+[`replacer` tactic](https://leanprover-community.github.io/mathlib_docs/commands.html#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
 powerful tactics.
 -/

@@ -22,7 +22,7 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-open lattice set filter classical
+open set filter classical
 noncomputable theory
 
 open_locale uniformity topological_space
@@ -384,11 +384,11 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced subtype.val (λ x y, subtype.eq)
+t.induced coe (λ x y, subtype.coe_ext.2)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist (x : α) y := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -510,13 +510,20 @@ begin
   have : 0 < ε - edist y x := by simpa using h,
   refine ⟨ε - edist y x, this, ball_subset _ _⟩,
   { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
-  { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+  { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
 eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
+
+/-- Relation “two points are at a finite edistance” is an equivalence relation. -/
+def edist_lt_top_setoid : setoid α :=
+{ r := λ x y, edist x y < ⊤,
+  iseqv := ⟨λ x, by { rw edist_self, exact ennreal.coe_lt_top },
+    λ x y h, by rwa edist_comm,
+    λ x y z hxy hyz, lt_of_le_of_lt (edist_triangle x y z) (ennreal.add_lt_top.2 ⟨hxy, hyz⟩)⟩ }
 
 @[simp] lemma ball_zero : ball x 0 = ∅ :=
 by rw [emetric.ball_eq_empty_iff]

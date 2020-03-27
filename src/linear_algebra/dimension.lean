@@ -2,11 +2,25 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
-
-Dimension of modules and vector spaces.
 -/
 import linear_algebra.basis
 import set_theory.ordinal
+/-!
+# Dimension of modules and vector spaces
+
+## Main definitions
+
+* The dimension of a vector space is defined as `vector_space.dim : cardinal`.
+
+## Main statements
+
+* `mk_eq_mk_of_basis`: the dimension theorem, any two bases of the same vector space have the same
+  cardinality.
+* `dim_quotient_add_dim`: if V' is a submodule of V, then dim (V/V') + dim V' = dim V.
+* `dim_range_add_dim_ker`: the rank-nullity theorem.
+
+-/
+
 noncomputable theory
 
 universes u u' u'' v v' w w'
@@ -20,9 +34,11 @@ open_locale classical
 section vector_space
 variables [field K] [add_comm_group V] [vector_space K V]
 include K
-open submodule lattice function set
+open submodule function set
 
 variables (K V)
+
+/-- the dimension of a vector space, defined as a term of type `cardinal` -/
 def vector_space.dim : cardinal :=
 cardinal.min
   (nonempty_subtype.2 (@exists_is_basis K V _ _ _))
@@ -107,6 +123,7 @@ by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_on
 
 variables [add_comm_group V₂] [vector_space K V₂]
 
+/-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₂) :
   dim K V = dim K V₂ :=
 by letI := classical.dec_eq V;
@@ -225,7 +242,7 @@ variables [add_comm_group V₄] [vector_space K V₄]
 set_option class.instance_max_depth 70
 open linear_map
 
-/-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq` -/
+/-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/
 lemma dim_add_dim_split
   (db : V₃ →ₗ[K] V) (eb : V₄ →ₗ[K] V) (cd : V₂ →ₗ[K] V₃) (ce : V₂ →ₗ[K] V₄)
   (hde : ⊤ ≤ db.range ⊔ eb.range)
@@ -233,25 +250,27 @@ lemma dim_add_dim_split
   (eq : db.comp cd = eb.comp ce)
   (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
   dim K V + dim K V₂ = dim K V₃ + dim K V₄ :=
-have hf : surjective (copair db eb),
+have hf : surjective (coprod db eb),
 begin
   refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_copair_prod]
+  rwa [← map_top, ← prod_top, map_coprod_prod]
 end,
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
   fapply linear_equiv.of_bijective,
-  { refine cod_restrict _ (pair cd (- ce)) _,
+  { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
-      simp [add_eq_zero_iff_eq_neg],
+      simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker,
+        coprod_apply, neg_neg, map_neg, neg_apply],
       exact linear_map.ext_iff.1 eq c } },
-  { rw [ker_cod_restrict, ker_pair, hgd, bot_inf_eq] },
+  { rw [ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
   { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
-    simp [add_eq_zero_iff_eq_neg] at ⊢ h,
+    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, mem_coe, prod.mk.inj_iff,
+      coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
     refine ⟨c, h₁, _⟩,
@@ -337,6 +356,7 @@ end
 
 section rank
 
+/-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V₂) : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₂) : rank f ≤ dim K V :=

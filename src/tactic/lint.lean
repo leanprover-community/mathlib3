@@ -575,7 +575,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 [] ← get_eqn_lemmas_for ff d.to_name | pure none,
-(λ tac, tactic.try_for timeout tac <|> pure (some "timeout")) $ -- last resort
+tactic.try_for timeout $ -- last resort
 retrieve $ do
 reset_instance_cache,
 g ← mk_meta_var d.type,
@@ -584,14 +584,13 @@ intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
--- TODO: should we do something special about rfl-lemmas?
-some (lhs', prf1) ← try_core $ simplify sls [] lhs {fail_if_unchanged := ff}
-  | pure "simplify fails on left-hand side. PLEASE REPORT TO ZULIP",
+(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+  simplify sls [] lhs {fail_if_unchanged := ff},
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
-some (rhs', prf2) ← try_core $ simplify sls [] rhs {fail_if_unchanged := ff}
-  | pure "simplify fails on right-hand side. PLEASE REPORT TO ZULIP",
+(rhs', prf2) ← decorate_error "simplify fails on right-hand side:" $
+  simplify sls [] rhs {fail_if_unchanged := ff},
 lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
 lhs_in_nf ← is_simp_eq lhs' lhs,
 if lhs'_eq_rhs' then do
@@ -727,8 +726,17 @@ checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,
-    some linter_warning ← linter.test decl | pure results,
-    pure $ results.insert decl.to_name linter_warning) mk_rb_map,
+    s ← read,
+    let linter_warning : option string :=
+      match linter.test decl s with
+      | result.success w _ := w
+      | result.exception msg _ _ :=
+        some $ "LINTER FAILED:\n" ++ msg.elim "(no message)" (λ msg, to_string $ msg ())
+      end,
+    match linter_warning with
+    | some w := pure $ results.insert decl.to_name w
+    | none := pure results
+    end) mk_rb_map,
   pure (linter_name, linter, results)
 
 /-- Sorts a map with declaration keys as names by line number. -/

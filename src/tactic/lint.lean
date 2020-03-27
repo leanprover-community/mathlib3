@@ -575,7 +575,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 [] ← get_eqn_lemmas_for ff d.to_name | pure none,
-tactic.try_for timeout $ -- last resort
+try_for timeout $
 retrieve $ do
 reset_instance_cache,
 g ← mk_meta_var d.type,
@@ -609,7 +609,7 @@ else if ¬ lhs_in_nf then do
       ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
       ++ "Try to change the left-hand side to the simplified term!\n"
 else if ¬ is_cond ∧ lhs = lhs' then do
-  pure "Left-hand side does not simplify. PLEASE REPORT TO ZULIP"
+  pure "Left-hand side does not simplify.\nYou need to debug this yourself using `set_option trace.simplify.rewrite true`"
 else
   pure none
 

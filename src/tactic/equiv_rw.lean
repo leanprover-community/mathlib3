@@ -159,7 +159,7 @@ do
     accept := λ goals, lock_tactic_state (do
       when_tracing `adapt_equiv (do
         goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
-      goals.any_of (eq.may_occur) <|>
+      goals.any_of (λ g, g.contains_expr_or_mvar eq) <|>
         (trace_if_enabled `adapt_equiv format!"Rejected, result does not contain {eq}" >> failed),
       done <|>
       when_tracing `adapt_equiv (do

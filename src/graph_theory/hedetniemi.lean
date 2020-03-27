@@ -37,10 +37,10 @@ def is_linked (G : graph V) (x y : V) : Prop :=
 relation.refl_trans_gen G.edge x y
 
 def is_connected (G : graph V) : Prop :=
-∀ {x y}, G.is_linked x y
+∀ ⦃x y⦄, G.is_linked x y
 
 def is_loopless (G : graph V) : Prop :=
-∀ {x}, ¬ (x ~[G] x)
+∀ ⦃x⦄, ¬ (x ~[G] x)
 
 def complete (V : Type u) : graph V :=
 { edge := assume x y, x ≠ y,
@@ -49,6 +49,10 @@ def complete (V : Type u) : graph V :=
 lemma complete_is_loopless (V : Type u) :
   (complete V).is_loopless :=
 assume x, ne.irrefl
+
+lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
+  x ≠ y :=
+by { rintro rfl, exact h e }
 
 section
 
@@ -141,7 +145,11 @@ def adj : (hom (G.prod G₁) G₂) ≃ (hom G (graph.ihom G₁ G₂)) :=
 
 end
 
-def colouring (W : Type) (G : graph V) := hom G (complete W)
+def colouring (W : Type u₁) (G : graph V) := hom G (complete W)
+
+def colouring_id (G : graph V) (h : G.is_loopless) : colouring V G :=
+{ to_fun    := id,
+  map_edge' := assume x y e, show x ≠ y, from ne_of_edge h e }
 
 structure is_nat_colouring (n : ℕ) (G : graph V) (f : V → ℕ) : Prop :=
 (is_lt : ∀ x, f x < n)
@@ -156,7 +164,7 @@ def is_nat_colouring.colouring_fin {n} {G : graph V} {f} (h : is_nat_colouring n
 { to_fun    := λ x, ⟨f x, h.is_lt x⟩,
   map_edge' := λ x y e H, h.edge e $ fin.veq_of_eq H }
 
-variables {G₁ G₂}
+variables {G G₁ G₂ G₃}
 
 lemma is_nat_colouring.comp
   {n} {g} (h : is_nat_colouring n G₂ g) (f : hom G₁ G₂) :
@@ -198,21 +206,25 @@ begin
   exact hf.edge e rfl,
 end
 
-lemma chromatic_number_le_card [fintype V] {n m}
- (hn : chromatic_number G n) (hm : m = fintype.card V) :
+lemma chromatic_number_le_card_of_colouring {W : Type*} [fintype W] {n m}
+  (c : colouring W G) (hn : chromatic_number G n) (hm : m = fintype.card W) :
   n ≤ m :=
 begin
-  obtain ⟨k, ⟨f⟩⟩ : ∃ k, nonempty (V ≃ fin k) :=
-    fintype.exists_equiv_fin V,
+  obtain ⟨k, ⟨f⟩⟩ : ∃ k, nonempty (W ≃ fin k) :=
+    fintype.exists_equiv_fin W,
   obtain rfl : m = k,
   { rw [hm, fintype.card_congr f, fintype.card_fin] },
-  suffices c : is_nat_colouring m G (λ x, f x),
-  { exact hn.min c },
+  suffices hc : is_nat_colouring m G (λ x, f (c.to_fun x)),
+  { exact hn.min hc },
   refine
-  { is_lt := assume x, (f x).is_lt,
-    edge  := assume x y e H, _ },
-  obtain rfl : x = y := f.injective (fin.eq_of_veq H),
-  exact hn.is_loopless G e
+  { is_lt := assume x, (f _).is_lt,
+    edge  := assume x y e H, c.map_edge e $ f.injective (fin.eq_of_veq H) }
 end
+
+lemma chromatic_number_le_card [fintype V] {n m}
+  (hn : chromatic_number G n) (hm : m = fintype.card V) :
+  n ≤ m :=
+chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn hm
+
 
 end graph

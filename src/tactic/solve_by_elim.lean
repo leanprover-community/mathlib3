@@ -212,8 +212,8 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 - discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
 - pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
 - accept: a subsidiary tactic `list expr → tactic unit` that at each step,
-    before any lemmas are applied, is passed the original metavariables
-    reported by `get_goals` when `solve_by_elim` started
+    before any lemmas are applied, is passed the original proof terms
+    as reported by `get_goals` when `solve_by_elim` started
     (but which may by now have been partially solved by previous `apply` steps).
     If the `accept` tactic fails,
     `solve_by_elim` will abort searching the current branch and backtrack.

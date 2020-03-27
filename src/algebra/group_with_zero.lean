@@ -138,11 +138,7 @@ calc a = (a * b) * b⁻¹ : (mul_inv_cancel_assoc_left _ _ (ne_zero_of_mul_left_
 eq.symm $ eq_inv_of_mul_right_eq_one _ _ (mul_one 1)
 
 lemma inv_injective : function.injective (@has_inv.inv G₀ _) :=
-begin
-  assume g h H,
-  rw [← inv_inv g, ← inv_inv h],
-  exact congr_arg _ H
-end
+inv_involutive.injective
 
 @[simp] lemma inv_inj (g h : G₀) :
   g⁻¹ = h⁻¹ ↔ g = h :=

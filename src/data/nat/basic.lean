@@ -915,7 +915,7 @@ theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 begin
   rw size,
   conv { to_lhs, rw [binary_rec], simp [h] },
-  rw div2_bit, refl
+  rw div2_bit,
 end
 
 @[simp] theorem size_bit0 {n} (h : n ≠ 0) : size (bit0 n) = succ (size n) :=

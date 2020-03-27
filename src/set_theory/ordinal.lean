@@ -193,9 +193,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
 ⟨@order_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
-    rw [←g.right_inv x],
-    simp only [order_iso.to_equiv_to_fun, coe_fn_coe_base, order_embedding.trans_apply],
-    rw [←order_iso.ord'' g, f.down', exists_congr],
+    rw [← g.right_inv x, order_iso.to_equiv_to_fun, ← order_iso.ord' g, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 

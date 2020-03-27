@@ -108,7 +108,7 @@ def has_fderiv_at (f : E → F) (f' : E →L[𝕜] F) (x : E) :=
 has_fderiv_at_filter f f' x (𝓝 x)
 
 /-- A function `f` has derivative `f'` at `a` in the sense of *strict differentiability*
-if `f x - f y - f' (x - y) = o(x - y)` as `x, y → a`. This forrm of differentiability is required,
+if `f x - f y - f' (x - y) = o(x - y)` as `x, y → a`. This form of differentiability is required,
 e.g., by the inverse function theorem. Any `C^1` function on a vector space over `ℝ` is strictly
 differentiable but this definition works, e.g., for vector spaces over `p`-adic numbers. -/
 def has_strict_fderiv_at (f : E → F) (f' : E →L[𝕜] F) (x : E) :=

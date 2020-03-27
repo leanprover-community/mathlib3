@@ -148,7 +148,7 @@ end
   g⁻¹ = h⁻¹ ↔ g = h :=
 ⟨assume H, inv_injective H, congr_arg _⟩
 
-lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ g⁻¹ = h :=
+lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj, eq_comm, gwz.inv_inv]
 
 @[simp] lemma coe_unit_mul_inv (a : units G₀) : (a : G₀) * a⁻¹ = 1 :=

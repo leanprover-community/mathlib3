@@ -913,7 +913,8 @@ do n ← get_unused_name "lh",
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
-   prod.snd <$> solve_aux t' assumption
+   (prod.snd <$> solve_aux t' assumption >>= instantiate_mvars) <|>
+     fail format!"No hypothesis found of the form: {t'}"
 
 /-- `dependent_pose_core l`: introduce dependent hypotheses, where the proofs depend on the values
 of the previous local constants. `l` is a list of local constants and their values. -/

@@ -61,6 +61,18 @@ equiv.ext _ _ H
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
+@[simp]
+lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+
+@[simp]
+lemma inv_fun_as_coe {α β : Sort*} (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+
+@[simp]
+lemma left_inv_apply {α β : Sort*} (e : α ≃ β) (a : α) : e.symm (e a) = a := e.left_inv a
+
+@[simp]
+lemma right_inv_apply {α β : Sort*} (e : α ≃ β) (b : β) : e (e.symm b) = b := e.right_inv b
+
 protected theorem injective : ∀ f : α ≃ β, injective f
 | ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
 
@@ -230,8 +242,8 @@ def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.left_inv, e₁.left_inv] },
-  right_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.right_inv, e₁.right_inv] } }
+  left_inv := λ f, funext $ λ x, by { dsimp, simp, },
+  right_inv := λ f, funext $ λ x, by { dsimp, simp, } }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :

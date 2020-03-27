@@ -115,7 +115,7 @@ def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
   | _, _, right := g
   end,
   -- `tidy` can cope with this, but it's too slow:
-  map_comp' := begin rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩⟨⟩; { unfold_aux, simp, refl, }, end, }.
+  map_comp' := begin rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩⟨⟩; { unfold_aux, simp, }, end, }.
 
 @[simp] lemma parallel_pair_obj_zero (f g : X ⟶ Y) : (parallel_pair f g).obj zero = X := rfl
 @[simp] lemma parallel_pair_obj_one (f g : X ⟶ Y) : (parallel_pair f g).obj one = Y := rfl

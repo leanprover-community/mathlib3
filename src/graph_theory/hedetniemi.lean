@@ -159,6 +159,8 @@ variables {G G₁ G₂ G₃} {W : Type*}
 
 abbreviation colouring (W : Type*) (G : graph V) := hom G (complete W)
 
+abbreviation nat_colouring (n : ℕ) (G : graph V) := colouring (fin n) G
+
 def colouring_id (G : graph V) (h : G.is_loopless) : colouring V G :=
 { to_fun    := id,
   map_edge' := assume x y e, show x ≠ y, from ne_of_edge h e }
@@ -209,8 +211,8 @@ begin
 end
 
 structure chromatic_number (G : graph V) (n : ℕ) : Prop :=
-(col_exists : nonempty (colouring (fin n) G))
-(min        : ∀ {k}, colouring (fin k) G → n ≤ k)
+(col_exists : nonempty (nat_colouring n G))
+(min        : ∀ {k}, nat_colouring k G → n ≤ k)
 
 variables {G G₁ G₂ G₃}
 
@@ -234,6 +236,30 @@ begin
   split,
   { exact h.min (c₁.comp (prod.fst G₁ G₂)) },
   { exact h.min (c₂.comp (prod.snd G₁ G₂)) }
+end
+
+omit h₁ h₂ h
+
+local notation `K_` n := complete (fin n)
+
+variables {n' : ℕ} (h' : chromatic_number (G₂.ihom (K_ n)) n')
+variables {nᵤ : ℕ} (hᵤ : chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
+
+lemma min_le_of_universal_hedetniemi (H : hedetniemi h' h₂ hᵤ) :
+  min n' n₂ ≤ n :=
+calc min n' n₂ = nᵤ : H.symm
+           ... ≤ n  : hᵤ.min (universal_colouring _ _)
+
+lemma hedetniemi_of_universal (H : hedetniemi h' h₂ hᵤ) :
+  hedetniemi h₁ h₂ h :=
+begin
+  apply le_antisymm (chromatic_number_prod_le_min h₁ h₂ h),
+  obtain ⟨c⟩ : nonempty (nat_colouring n (G₁.prod G₂)) := h.col_exists,
+  obtain ⟨c'⟩ : nonempty (nat_colouring n' (G₂.ihom (K_ n))) := h'.col_exists,
+  let f : hom G₁ (G₂.ihom (K_ n)) := (adj G₁ G₂ (K_ n)) c,
+  have n₁_le_n' : n₁ ≤ n' := h₁.min (c'.comp f),
+  calc min n₁ n₂ ≤ min n' n₂ : inf_le_inf_left n₂ n₁_le_n'
+             ... ≤ n         : min_le_of_universal_hedetniemi _ _ _ H
 end
 
 end hedetniemi
@@ -315,7 +341,8 @@ def cyclic (n : ℕ+) : graph (zmod n) :=
 { edge := assume x y, x = y + 1 ∨ y = x + 1,
   symm := assume x y, or.symm }
 
-abbreviation cycle (n : ℕ+) (G : graph V) := hom (cyclic n) G
+structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
+(inj : function.injective to_fun)
 
 structure girth (G : graph V) (n : ℕ+) : Prop :=
 (cyc_exists : nonempty (cycle n G))
@@ -328,5 +355,7 @@ theorem erdos (χ g : ℕ) :
 begin
   sorry
 end
+
+
 
 end graph

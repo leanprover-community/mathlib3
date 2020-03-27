@@ -12,7 +12,7 @@ The pointwise operations on filters have nice properties, such as
 import algebra.pointwise
 import order.filter.basic
 
-open classical set lattice
+open classical set
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

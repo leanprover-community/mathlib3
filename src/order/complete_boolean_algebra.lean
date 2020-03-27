@@ -12,8 +12,6 @@ set_option old_structure_cmd true
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
-namespace lattice
-
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A complete distributive lattice is a bit stronger than the name might
@@ -91,7 +89,8 @@ end
 end complete_distrib_lattice
 
 @[priority 100] -- see Note [lower instance priority]
-instance [d : complete_distrib_lattice α] : bounded_distrib_lattice α :=
+instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_lattice α] :
+  bounded_distrib_lattice α :=
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 
@@ -104,20 +103,19 @@ end prio
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}
 
-theorem neg_infi : - infi f = (⨆i, - f i) :=
+theorem compl_infi : - infi f = (⨆i, - f i) :=
 le_antisymm
-  (neg_le_of_neg_le $ le_infi $ assume i, neg_le_of_neg_le $ le_supr (λi, - f i) i)
-  (supr_le $ assume i, neg_le_neg $ infi_le _ _)
+  (compl_le_of_compl_le $ le_infi $ assume i, compl_le_of_compl_le $ le_supr (λi, - f i) i)
+  (supr_le $ assume i, compl_le_compl $ infi_le _ _)
 
-theorem neg_supr : - supr f = (⨅i, - f i) :=
-neg_eq_neg_of_eq (by simp [neg_infi])
+theorem compl_supr : - supr f = (⨅i, - f i) :=
+compl_inj (by simp [compl_infi])
 
-theorem neg_Inf : - Inf s = (⨆i∈s, - i) :=
-by simp [Inf_eq_infi, neg_infi]
+theorem compl_Inf : - Inf s = (⨆i∈s, - i) :=
+by simp [Inf_eq_infi, compl_infi]
 
-theorem neg_Sup : - Sup s = (⨅i∈s, - i) :=
-by simp [Sup_eq_supr, neg_supr]
+theorem compl_Sup : - Sup s = (⨅i∈s, - i) :=
+by simp [Sup_eq_supr, compl_supr]
 
 end complete_boolean_algebra
 
-end lattice

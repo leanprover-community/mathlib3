@@ -167,7 +167,7 @@ end simple_func
 end measure_theory
 
 namespace measure_theory
-open set lattice filter topological_space ennreal emetric
+open set filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α] {β : Type v} {γ : Type w}
@@ -325,20 +325,20 @@ by rw [bintegral_eq_integral' hf h_pos, ← lintegral_eq_integral]
 
 lemma bintegral_add {f g : α →ₛ β} (hf : integrable f) (hg : integrable g) :
   bintegral (f + g) = bintegral f + bintegral g :=
-calc bintegral (f + g) = sum (pair f g).range
+calc bintegral (f + g) = (pair f g).range.sum
        (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • (x.fst + x.snd)) :
 begin
   rw [add_eq_map₂, map_bintegral (pair f g)],
   { exact integrable_pair hf hg },
   { simp only [add_zero, prod.fst_zero, prod.snd_zero] }
 end
-... = sum (pair f g).range
+... = (pair f g).range.sum
         (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst +
              ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
   finset.sum_congr rfl $ assume a ha, smul_add _ _ _
-... = sum (simple_func.range (pair f g))
+... = (simple_func.range (pair f g)).sum
         (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst) +
-      sum (simple_func.range (pair f g))
+      (simple_func.range (pair f g)).sum
         (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).bintegral + ((pair f g).map prod.snd).bintegral :
@@ -368,9 +368,9 @@ end
 
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
-calc bintegral (r • f) = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
+calc bintegral (r • f) = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
   by rw [smul_eq_map r f, map_bintegral f _ hf (smul_zero _)]
-... = (f.range).sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
+... = f.range.sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
   finset.sum_congr rfl $ λb hb, by apply smul_smul
 ... = r • bintegral f :
 begin
@@ -384,10 +384,10 @@ lemma norm_bintegral_le_bintegral_norm (f : α →ₛ β) (hf : integrable f) :
 begin
   rw map_bintegral f norm hf norm_zero,
   rw bintegral,
-  calc ∥sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
-       sum f.range (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
+  calc ∥f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
+       f.range.sum (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
     norm_sum_le _ _
-    ... = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
+    ... = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
     begin
       refine finset.sum_congr rfl (λb hb, _),
       rw [norm_smul, smul_eq_mul, real.norm_eq_abs, abs_of_nonneg to_real_nonneg]

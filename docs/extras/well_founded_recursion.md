@@ -31,6 +31,7 @@ def gcd : nat → nat → nat
 | 0        y := y
 | (succ x) y := gcd (y % succ x) (succ x)
 ```
+
 ```
 failed to prove recursive application is decreasing, well founded relation
   @has_well_founded.r (Σ' (a : ℕ), ℕ)

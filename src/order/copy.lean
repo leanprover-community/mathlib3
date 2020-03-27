@@ -14,11 +14,8 @@ where one replaces the data parts with provably equal definitions
 that have better definitional properties.
 -/
 
-open lattice
-
 universe variable u
 
-namespace lattice
 variables {α : Type u}
 
 /-- A function to create a provable equal copy of a bounded lattice
@@ -99,4 +96,3 @@ begin
   all_goals { subst_vars, unfreezeI, cases c, assumption }
 end
 
-end lattice

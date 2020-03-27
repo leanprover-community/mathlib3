@@ -52,7 +52,7 @@ variables (M : Type*) {N : Type*} {P : Type*}
 
 set_option old_structure_cmd true
 
-open function setoid lattice
+open function setoid
 
 /-- A congruence relation on a type with an addition is an equivalence relation which
     preserves addition. -/

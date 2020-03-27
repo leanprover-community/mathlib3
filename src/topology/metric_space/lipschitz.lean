@@ -50,6 +50,10 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0}
 
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+  edist (f x) (f y) < ⊤ :=
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ennreal) * edist (f x) (f y) ≤ edist x y :=
 begin
@@ -105,6 +109,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
+
+protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
+  lipschitz_with K (s.restrict f) :=
+λ x y, hf x y
 
 protected lemma comp {Kf Kg : ℝ≥0} {f : β → γ} {g : α → β}
   (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) : lipschitz_with (Kf * Kg) (f ∘ g) :=

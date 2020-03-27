@@ -793,7 +793,7 @@ protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (padic_seq.ne_zero_iff_nequiv_zero f).1 hf,
   let ⟨n, hn⟩ := padic_seq.norm_image f this in
-  ⟨n, congr_arg rat.cast hn⟩
+  ⟨n, congr_arg coe hn⟩
 
 protected lemma is_rat (q : ℚ_[p]) : ∃ q' : ℚ, ∥q∥ = ↑q' :=
 if h : q = 0 then ⟨0, by simp [h]⟩

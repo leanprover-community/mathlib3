@@ -1054,7 +1054,7 @@ def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
 S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp, to_additive]
-lemma range_subtype (s : submonoid M) : s.subtype.range = s := 
+lemma range_subtype (s : submonoid M) : s.subtype.range = s :=
 ext' $ (coe_range _).trans $ set.range_coe_subtype s
 
 @[to_additive]

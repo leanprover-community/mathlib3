@@ -88,7 +88,7 @@ definition `preorder.topology α` though, that can be registered as an instance 
 for specific types.
 -/
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale topological_space classical
 
 universes u v w

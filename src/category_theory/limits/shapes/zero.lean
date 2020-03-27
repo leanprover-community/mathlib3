@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
 import category_theory.epi_mono
+import category_theory.punit
+import category_theory.pempty
 
 /-!
 # Zero morphisms and zero objects
@@ -46,13 +48,81 @@ restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
 section
+omit 𝒞
+
+instance has_zero_morphisms_pempty : has_zero_morphisms.{v} pempty.{v+1} :=
+{ has_zero := by tidy }
+
+instance has_zero_morphisms_punit : has_zero_morphisms.{v} punit.{v+1} :=
+{ has_zero := λ X Y, { zero := punit.star, } }
+end
+
+namespace has_zero_morphisms
+variables {C}
+
+/-- This lemma will be immediately superseded by `ext`, below. -/
+private lemma ext_aux (I J : has_zero_morphisms.{v} C)
+  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
+begin
+  resetI,
+  cases I, cases J,
+  congr,
+  { ext X Y,
+    exact w X Y },
+  { apply proof_irrel_heq, },
+  { apply proof_irrel_heq, }
+end
+
+/--
+If you're tempted to use this lemma "in the wild", you should probably
+carefully consider whether you've made a mistake in allowing two
+instances of `has_zero_morphisms` to exist at all.
+
+See, particularly, the note on `zero_morphisms_of_zero_object` below.
+-/
+lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
+begin
+  apply ext_aux,
+  intros X Y,
+  rw ←@has_zero_morphisms.comp_zero _ _ I X X (@has_zero_morphisms.has_zero _ _ J X X).zero,
+  rw @has_zero_morphisms.zero_comp _ _ J,
+end
+
+instance : subsingleton (has_zero_morphisms.{v} C) :=
+⟨ext⟩
+
+end has_zero_morphisms
+
+open has_zero_morphisms
+
+section
 variables {C} [has_zero_morphisms.{v} C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←has_zero_morphisms.zero_comp.{v} C X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp.{v} C X g, cancel_mono] at h, exact h }
 
 lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←has_zero_morphisms.comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+
+end
+
+section
+universes v' u'
+variables (D : Type u') [𝒟 : category.{v'} D]
+include 𝒟
+
+variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
+
+@[simp] lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
+  F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
+begin
+  have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
+  { apply faithful.injectivity (F.inverse),
+    rw [functor.map_comp, equivalence.inv_fun_map],
+    dsimp,
+    rw [zero_comp, comp_zero, zero_comp], },
+  exact t.trans (by simp)
+end
 
 end
 
@@ -61,6 +131,15 @@ class has_zero_object :=
 (zero : C)
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
+
+section
+omit 𝒞
+
+instance has_zero_object_punit : has_zero_object.{v} punit.{v+1} :=
+{ zero := punit.star,
+  unique_to := by tidy,
+  unique_from := by tidy, }
+end
 
 variables {C}
 
@@ -96,6 +175,7 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
+@[ext]
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
 begin
   rw (has_zero_object.unique_from.{v} X).uniq f,
@@ -103,6 +183,7 @@ begin
 end
 
 /-- An arrow starting at the zero object is zero -/
+@[ext]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
 begin
   rw (has_zero_object.unique_to.{v} X).uniq f,

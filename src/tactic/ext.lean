@@ -274,7 +274,7 @@ attribute [ext] array.ext propext prod.ext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
-attribute [ext] ulift inhabited
+attribute [ext] ulift
 
 namespace plift
 -- This is stronger than the one generated automatically.

@@ -17,10 +17,10 @@ by transporting data and axioms across `e` using `equiv_rw`.
 meta def transport (s e : expr) : tactic expr :=
 do
   gs ← get_goals,
-  `(%%α ≃ %%β) ← infer_type e, -- TODO complain
+  `(%%α ≃ %%β) ← infer_type e | format!"second argument to `transport` was not of the form `_ ≃ _`: {e}",
   S ← infer_type s >>= (λ t, match t with
   | expr.app S α' := pure S
-  | _ := failed -- TODO complain
+  | _ := fail format!"first argument to `transport` was not a parametrized type: {s}"
   end),
   g ← to_expr ``(%%S %%β) >>= mk_meta_var,
   set_goals [g],
@@ -62,7 +62,7 @@ by transport.
 ```
 
 You can specify the object to transport using `transport s`,
-and the equivalence to transport across using `transport s using e`.
+and the equivalence to transport across using `transport s with e`.
 -/
 meta def transport (s : parse texpr?) (e : parse $ (tk "with" *> ident)?) : itactic :=
 do

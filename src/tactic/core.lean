@@ -8,6 +8,9 @@ import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.do
 
 universe variable u
 
+instance : has_lt pos :=
+{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+
 namespace expr
 open tactic
 
@@ -108,6 +111,22 @@ xs.foldl compose nil
 where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
 join' ∘ list.intersperse x
+
+/-- `soft_break` is similar to `line`. Whereas in `group (x ++ line ++ y ++ line ++ z)`
+the result either fits on one line or in three, `x ++ soft_break ++ y ++ soft_break ++ z`
+each line break is decided independently -/
+meta def soft_break : format :=
+group line
+
+end format
+
+section format
+open format
+
+/-- format a `list` by separating elements with `soft_break` instead of `line` -/
+meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
+| [] := to_fmt "[]"
+| xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
 
 end format
 
@@ -668,25 +687,30 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
-/-- `symm_apply e cfg` tries `apply e cfg`, and if this fails, calls `symmetry` and tries again. -/
-meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
-tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
+/--
+`apply_any` tries to apply one of a list of lemmas to the current goal.
 
-/-- `apply_assumption` searches for terms in the local context that can be applied to make progress
-on the goal. If the goal is symmetric, it tries each goal in both directions. If this fails, it will
-call `exfalso` and repeat. Optional arguments:
+Optional arguments:
+* `lemmas` controls which expressions are applied.
+* `tac` is called after a successful application. Defaults to `skip`.
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
+-/
+meta def apply_any
+  (lemmas : list expr)
+  (tac : tactic unit := skip)
+  (use_symmetry : bool := tt)
+  (use_exfalso : bool := tt) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if use_symmetry then [symmetry] else [])
+    ++ (if use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
 
-* `asms` controls which expressions are applied. Defaults to `local_context`.
-* `tac` is called after a successful application. Defaults to `skip`. -/
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := skip) : tactic unit :=
-do { ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) } <|>
-do { exfalso,
-     ctx ← asms,
-     ctx.any_of (λ H, symm_apply H >> tac) }
-<|> fail "assumption tactic failed"
+/-- Try to apply a hypothesis from the local context to the goal. -/
+meta def apply_assumption : tactic unit :=
+local_context >>= apply_any
 
 /-- `change_core e none` is equivalent to `change e`. It tries to change the goal to `e` and fails
 if this is not a definitional equality.
@@ -836,7 +860,7 @@ add_tactic_doc
 { name                     := "fsplit",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.fsplit],
-  tags                     := [] }
+  tags                     := ["logic", "goal management"] }
 
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
 succeeds, clears the old hypothesis. -/
@@ -851,7 +875,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := [] }
+  tags                     := ["context management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/
@@ -1087,7 +1111,7 @@ add_tactic_doc
 { name                     := "Match Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.match_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 Invoking hole command "Equations Stub" ("Generate a list of equations for a recursive definition")
@@ -1159,7 +1183,7 @@ add_tactic_doc
 { name                     := "Equations Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.eqn_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 This command lists the constructors that can be used to satisfy the expected type.
@@ -1212,7 +1236,7 @@ add_tactic_doc
 { name                     := "List Constructors",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.list_constructors_hole],
-  tags                     := [] }
+  tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/
@@ -1290,7 +1314,7 @@ add_tactic_doc
 { name                     := "higher_order",
   category                 := doc_category.attr,
   decl_names               := [`tactic.higher_order_attr],
-  tags                     := [] }
+  tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
 
@@ -1375,6 +1399,15 @@ open interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
+
+/-- `finally tac finalizer` runs `tac` first, then runs `finalizer` even if
+`tac` fails. `finally tac finalizer` fails if either `tac` or `finalizer` fails. -/
+meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
+λ s, match tac s with
+     | (result.success r s') := (finalizer >> pure r) s'
+     | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
+     end
+
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/
 meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
@@ -1397,7 +1430,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := [] }
+  tags                     := ["parsing", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1441,6 +1474,107 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
+
+/-- `with_local_goals gs tac` runs `tac` on the goals `gs` and then restores the
+initial goals and returns the goals `tac` ended on. -/
+meta def with_local_goals {α} (gs : list expr) (tac : tactic α) : tactic (α × list expr) :=
+do gs' ← get_goals,
+   set_goals gs,
+   finally (prod.mk <$> tac <*> get_goals) (set_goals gs')
+
+/-- like `with_local_goals` but discards the resulting goals -/
+meta def with_local_goals' {α} (gs : list expr) (tac : tactic α) : tactic α :=
+prod.fst <$> with_local_goals gs tac
+
+/-- Representation of a proof goal that lends itself to comparison. The
+following goal:
+
+```lean
+l₀ : T,
+l₁ : T
+⊢ ∀ v : T, foo
+```
+
+is represented as
+
+```
+(2, ∀ l₀ l₁ v : T, foo)
+```
+
+The number 2 indicates that first the two bound variables of the
+`∀` are actually local constant. Comparing two such goals with `=`
+rather than `=ₐ` or `is_def_eq` tells us that proof script should
+not see the difference between the two.
+ -/
+meta def packaged_goal := ℕ × expr
+
+/-- proof state made of multiple `goal` meant for comparing
+the result of running different tactics -/
+meta def proof_state := list packaged_goal
+
+meta instance goal.inhabited : inhabited packaged_goal := ⟨(0,var 0)⟩
+meta instance proof_state.inhabited : inhabited proof_state :=
+(infer_instance : inhabited (list packaged_goal))
+
+/-- create a `packaged_goal` corresponding to the current goal -/
+meta def get_packaged_goal : tactic packaged_goal := do
+ls ← local_context,
+tgt ← target >>= instantiate_mvars,
+tgt ← pis ls tgt,
+pure (ls.length, tgt)
+
+/-- `goal_of_mvar g`, with `g` a meta variable, creates a
+`packaged_goal` corresponding to `g` interpretted as a proof goal -/
+meta def goal_of_mvar (g : expr) : tactic packaged_goal :=
+with_local_goals' [g] get_packaged_goal
+
+/-- `get_proof_state` lists the user visible goal for each goal
+of the current state and for each goal, abstracts all of the
+meta variables of the other gaols.
+
+This produces a list of goals in the form of `ℕ × expr` where
+the `expr` encodes the following proof state:
+
+```lean
+2 goals
+l₁ : t₁,
+l₂ : t₂,
+l₃ : t₃
+⊢ tgt₁
+
+⊢ tgt₂
+```
+
+as
+
+```lean
+[ (3, ∀ (mv : tgt₁) (mv : tgt₂) (l₁ : t₁) (l₂ : t₂) (l₃ : t₃), tgt₁),
+  (0, ∀ (mv : tgt₁) (mv : tgt₂), tgt₂) ]
+```
+
+with 2 goals, the first 2 bound variables encode the meta variable
+of all the goals, the next 3 (in the first goal) and 0 (in the second goal)
+are the local constants.
+
+This representation allows us to compare goals and proof states while
+ignoring information like the unique name of local constants and
+the equality or difference of meta variables that encode the same goal.
+-/
+meta def get_proof_state : tactic proof_state :=
+do gs ← get_goals,
+   gs.mmap $ λ g, do
+     ⟨n,g⟩ ← goal_of_mvar g,
+     g ← gs.mfoldl (λ g v, do
+       g ← kabstract g v reducible ff,
+       pure $ pi `goal binder_info.default `(true) g ) g,
+     pure (n,g)
+
+/--
+Run `tac` in a disposable proof state and return the state.
+See `proof_state`, `goal` and `get_proof_state`.
+-/
+meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
+try_core $ retrieve $ tac >> get_proof_state
 
 open lean interactive
 
@@ -1656,7 +1790,7 @@ add_tactic_doc
 { name                     := "import_private",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.import_private_cmd],
-  tags                     := [] }
+  tags                     := ["renaming"] }
 
 /--
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.

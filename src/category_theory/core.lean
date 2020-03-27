@@ -52,7 +52,7 @@ end core
 omit 𝒞
 
 /--
-`of_equiv_functor m` converts from lifts a type-level `equiv_functor`
+`of_equiv_functor m` lifts a type-level `equiv_functor`
 to a categorical functor `core (Type u₁) ⥤ core (Type u₂)`.
 -/
 def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :

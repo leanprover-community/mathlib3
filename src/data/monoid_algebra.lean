@@ -198,7 +198,7 @@ begin
   rw mul_apply_left,
   -- Again, we need to unpack the `single` into a correctly positioned `ite`:
   have t : ∀ a₁, x = a₁⁻¹ * y ↔ y * x⁻¹ = a₁ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
+  simp [single_apply, t],
   -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
   convert f.sum_ite_eq (y * x⁻¹) (λ x v, v * r),
   { funext, congr, },
@@ -229,7 +229,7 @@ lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
 begin
   rw mul_apply_right,
   have t : ∀ a₂, x = y * a₂⁻¹ ↔ x⁻¹ * y = a₂ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
+  simp [single_apply, t],
   -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
   convert f.sum_ite_eq (x⁻¹ * y) (λ x v, r * v),
   { funext, congr, },

@@ -611,7 +611,7 @@ begin
   -- A function `F` associating to `p : GH_space` the data of all distances between points
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
-    λp, ⟨N p, λa b, floor (ε⁻¹ * dist ((E p).inv_fun a) ((E p).inv_fun b))⟩,
+    λp, ⟨N p, λa b, floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⟩,
   refine ⟨_, by apply_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
@@ -622,7 +622,7 @@ begin
   the fact that `N p = N q`, this constructs `Ψ` between `s p` and `s q`, and then
   composing with the canonical inclusion we get `Φ`. -/
   have Npq : N p = N q := (sigma.mk.inj_iff.1 hpq).1,
-  let Ψ : s p → s q := λx, (E q).inv_fun (fin.cast Npq ((E p).to_fun x)),
+  let Ψ : s p → s q := λx, (E q).symm (fin.cast Npq ((E p) x)),
   let Φ : s p → q.rep := λx, Ψ x,
   -- Use the almost isometry `Φ` to show that `p.rep` and `q.rep`
   -- are within controlled Gromov-Hausdorff distance.
@@ -639,16 +639,16 @@ begin
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
       rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
-      let i := ((E q).to_fun ⟨y, ys⟩).1,
-      let hi := ((E q).to_fun ⟨y, ys⟩).2,
-      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,
+      let i := ((E q) ⟨y, ys⟩).1,
+      let hi := ((E q) ⟨y, ys⟩).2,
+      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw fin.ext_iff,
       have hiq : i < N q := hi,
       have hip : i < N p, { rwa Npq.symm at hiq },
-      let z := (E p).inv_fun ⟨i, hip⟩,
+      let z := (E p).symm ⟨i, hip⟩,
       use z,
-      have C1 : (E p).to_fun z = ⟨i, hip⟩ := (E p).right_inv ⟨i, hip⟩,
+      have C1 : (E p) z = ⟨i, hip⟩ := (E p).right_inv ⟨i, hip⟩,
       have C2 : fin.cast Npq ⟨i, hip⟩ = ⟨i, hi⟩ := rfl,
-      have C3 : (E q).inv_fun ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).left_inv ⟨y, ys⟩ },
+      have C3 : (E q).symm ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).left_inv ⟨y, ys⟩ },
       have : Φ z = y :=
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
@@ -671,13 +671,13 @@ begin
       have hjq : j < N q, by rwa Npq at hjp,
       have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },
       -- Express `dist x y` in terms of `F p`
-      have : (F p).2 ((E p).to_fun x) ((E p).to_fun y) = floor (ε⁻¹ * dist x y),
-        by simp only [F, (E p).left_inv _],
+      have : (F p).2 ((E p) x) ((E p) y) = floor (ε⁻¹ * dist x y),
+        by simp only [F, (E p).symm_apply_apply],
       have Ap : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = floor (ε⁻¹ * dist x y),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; refl },
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
-      have : (F q).2 ((E q).to_fun (Ψ x)) ((E q).to_fun (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
-        by simp only [F, (E q).left_inv _],
+      have : (F q).2 ((E q) (Ψ x)) ((E q) (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
+        by simp only [F, (E q).symm_apply_apply],
       have Aq : (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩ = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] },
       -- use the equality between `F p` and `F q` to deduce that the distances have equal
@@ -802,12 +802,12 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p).to_fun x).1,
+      let i := ((E p) x).1,
       have hip : i < N p := ((E p).to_fun x).2,
       have hiq : i < N q, by rwa Npq at hip,
       have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p).to_fun y).1,
+      let j := ((E p) y).1,
       have hjp : j < N p := ((E p).to_fun y).2,
       have hjq : j < N q, by rwa Npq at hjp,
       have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },

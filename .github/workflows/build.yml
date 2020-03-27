@@ -44,7 +44,11 @@ jobs:
           git_sha: "${{ github.sha }}"
 
       - name: leanpkg build
-        run: leanpkg build | python scripts/detect_errors.py
+        id: build
+        run: |
+          leanpkg build | python scripts/detect_errors.py
+          # if the build fails, `steps.build.output.status` will be `null`
+          echo "::set-output name=status::built"
 
       - name: configure git setup
         if: always()
@@ -91,18 +95,21 @@ jobs:
           path: ..
 
       - name: tests
+        # not sure why `success() ||` is needed here and in step `lint`...
+        if: success() || steps.build.outputs.status == 'built'
         run: |
           set -o pipefail
           lean --make docs archive roadmap test | cat
 
       - name: lint
+        if: success() || steps.build.outputs.status == 'built'
         run: |
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
           mv nolints.txt scripts/nolints.txt
           ./scripts/rm_all.sh
           git diff
-          
+
       - name: update nolints.txt
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run:
@@ -123,5 +130,3 @@ jobs:
           github_repo: ${{ github.repository }}
           github_event: ${{ github.event_name }}
           github_ref: ${{ github.ref }}
-
-

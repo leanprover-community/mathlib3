@@ -234,9 +234,9 @@ section
 variables {β : Type*} [division_ring α] [division_ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-@[simp] lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
 
-@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
+lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 

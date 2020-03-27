@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
 
-import tactic.basic tactic.transport tactic.algebra
+import tactic.basic algebra.group.to_additive.transport tactic.algebra
 
 /-!
 # Transport multiplicative to additive

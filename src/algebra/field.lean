@@ -16,7 +16,7 @@ instance division_ring.to_domain [s : division_ring α] : domain α :=
       division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
   ..s }
 
-/--Every field is a comm_group_with_zero.-/
+/-- Every division ring is a `group_with_zero`. -/
 @[priority 10] -- see Note [lower instance priority]
 instance division_ring.to_group_with_zero {K : Type*} [division_ring K] :
   group_with_zero K :=
@@ -24,7 +24,7 @@ instance division_ring.to_group_with_zero {K : Type*} [division_ring K] :
   mul_zero := _,
   .. ‹division_ring K› }
 
-/--Every field is a comm_group_with_zero.-/
+/-- Every field is a `comm_group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_comm_group_with_zero {K : Type*} [field K] :
   comm_group_with_zero K :=

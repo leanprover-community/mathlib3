@@ -728,6 +728,12 @@ lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 @[simp] lemma bit1_lt_bit0_iff : bit1 k < bit0 n ↔ k < n :=
 ⟨λ h, bit1_le_bit0_iff.1 (le_of_lt h), nat.bit1_lt_bit0⟩
 
+@[simp] lemma one_le_bit0_iff : 1 ≤ bit0 n ↔ 0 < n :=
+by { convert bit1_le_bit0_iff, refl, }
+
+@[simp] lemma one_lt_bit0_iff : 1 < bit0 n ↔ 1 ≤ n :=
+by { convert bit1_lt_bit0_iff, refl, }
+
 @[simp] lemma bit_le_bit_iff : ∀ {b : bool}, bit b k ≤ bit b n ↔ k ≤ n
 | ff := bit0_le_bit0
 | tt := bit1_le_bit1

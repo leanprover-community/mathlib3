@@ -308,12 +308,13 @@ meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
 
 /--
-Test if an expression `e` "may occur" in `t`, in the sense that either
-it does appear in `t`, or `t` contains metavariables.
+Test `t` contains the specified subexpression `e`, or a metavariable.
+This represents the notion that `e` "may occur" in `t`,
+possibly after subsequent unification.
 -/
-meta def may_occur (e : expr) (t : expr) : tactic unit :=
+meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
-guard $ ¬ t.list_meta_vars.empty ∨ e.occurs t
+¬ t.list_meta_vars.empty ∨ e.occurs t
 
 /-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=

@@ -111,9 +111,11 @@ end
 
 /-
 We now test the `accept` feature of `solve_by_elim`.
+
 Recall that the `accept` parameter has type `list expr → tactic unit`.
 At each branch (not just leaf) of the backtracking search tree,
-`accept` is invoked with the list of original goals
+`accept` is invoked with the list of metavariables
+reported by `get_goals` when `solve_by_elim` was called
 (which by now may have been partially solved by previous `apply` steps),
 and if it fails this branch of the search is ignored.
 
@@ -132,7 +134,7 @@ begin
     tactic.solve_by_elim
     { backtrack_all_goals := tt,
       -- We require that in some goal, the expression `b` is used.
-      accept := (λ gs, gs.any_of (b.may_occur)) })
+      accept := (λ gs, gs.any_of (λ g, guard $ g.contains_expr_or_mvar b)) })
 end
 
 -- We verify that the solution did use `b`.

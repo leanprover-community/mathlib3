@@ -33,7 +33,9 @@ Naturality is expressed by `α.naturality_lemma`.
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
 restate_axiom nat_trans.naturality'
-attribute [simp] nat_trans.naturality
+-- Rather arbitrarily, we say that the 'simpler' form is
+-- components of natural transfomations moving earlier.
+attribute [simp, reassoc] nat_trans.naturality
 
 namespace nat_trans
 
@@ -51,12 +53,7 @@ variables {F G H I : C ⥤ D}
 
 /-- `vcomp α β` is the vertical compositions of natural transformations. -/
 def vcomp (α : nat_trans F G) (β : nat_trans G H) : nat_trans F H :=
-{ app         := λ X, (α.app X) ≫ (β.app X),
-  naturality' :=
-  begin
-    /- `obviously'` says: -/
-    intros, simp, rw [←assoc, naturality, assoc, ←naturality],
-  end }
+{ app := λ X, (α.app X) ≫ (β.app X) }
 
 -- functor_category will rewrite (vcomp α β) to (α ≫ β), so this is not a
 -- suitable simp lemma.  We will declare the variant vcomp_app' there.
@@ -64,6 +61,22 @@ lemma vcomp_app (α : nat_trans F G) (β : nat_trans G H) (X : C) :
   (vcomp α β).app X = (α.app X) ≫ (β.app X) := rfl
 
 end
+
+/--
+The diagram
+    F(f)      F(g)      F(h)
+F X ----> F Y ----> F U ----> F U
+ |         |         |         |
+ | α(X)    | α(Y)    | α(U)    | α(V)
+ v         v         v         v
+G X ----> G Y ----> G U ----> G V
+    G(f)      G(g)      G(h)
+commutes.
+-/
+example {F G : C ⥤ D} (α : nat_trans F G) {X Y U V : C} (f : X ⟶ Y) (g : Y ⟶ U) (h : U ⟶ V) :
+  α.app X ≫ G.map f ≫ G.map g ≫ G.map h =
+    F.map f ≫ F.map g ≫ F.map h ≫ α.app V :=
+by simp
 
 end nat_trans
 

@@ -43,7 +43,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open real set lattice
+open real set
 open_locale topological_space
 
 universes u v w
@@ -57,6 +57,7 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 export has_inner (inner)
 
 section prio
+
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.
 /--
@@ -71,7 +72,7 @@ class inner_product_space (α : Type*) extends add_comm_group α, module ℝ α,
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
 end prio
 
-variable [inner_product_space α]
+variables [inner_product_space α]
 
 section basic_properties
 
@@ -120,12 +121,15 @@ by { simpa [inner_add_left, inner_add_right, two_mul] using inner_comm _ _ }
 
 /-- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : inner (x - y) (x - y) = inner x x - 2 * inner x y + inner y y :=
-by { simp only [inner_sub_left, inner_sub_right, two_mul], simpa using inner_comm _ _ }
+begin
+  simp only [inner_sub_left, inner_sub_right, two_mul],
+  simpa [sub_eq_add_neg, add_comm, add_left_comm] using inner_comm _ _
+end
 
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : α} :
   inner (x + y) (x + y) + inner (x - y) (x - y) = 2 * (inner x x + inner y y) :=
-by { simp [inner_add_add_self, inner_sub_sub_self, two_mul] }
+by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
 /-- Cauchy–Schwarz inequality -/
 lemma inner_mul_inner_self_le (x y : α) : inner x y * inner x y ≤ inner x x * inner y y :=
@@ -254,8 +258,7 @@ begin
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
       convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (filter.eventually_of_forall _ $ λ x, δ_le _)
-      (filter.eventually_of_forall _ $ λ x, le_of_lt (hw _)),
+      (λ x, δ_le _) (λ x, le_of_lt (hw _)),
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
     rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
@@ -281,7 +284,8 @@ begin
         by { rw [norm_smul], refl }
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
-        rw [smul_sub, smul_smul, mul_one_div_cancel two_ne_zero, ← one_add_one_eq_two, add_smul],
+        rw [smul_sub, smul_smul, mul_one_div_cancel (two_ne_zero : (2 : ℝ) ≠ 0),
+            ← one_add_one_eq_two, add_smul],
         simp only [one_smul],
         have eq₁ : wp - wq = a - b, show wp - wq = (u - wq) - (u - wp), abel,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
@@ -366,7 +370,7 @@ begin
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
-          rw [smul_sub, sub_smul, one_smul], simp,
+          {rw [smul_sub, sub_smul, one_smul], simp [sub_eq_add_neg, add_comm, add_left_comm]},
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :

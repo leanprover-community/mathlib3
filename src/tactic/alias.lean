@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.buffer.parser meta.expr
+import data.buffer.parser meta.expr tactic.core
 
 /-!
 # The `alias` command
@@ -14,24 +14,24 @@ of a theorem or definition with different names.
 
 Syntax:
 
-```
-/ -- doc string - /
+```lean
+/-- doc string -/
 alias my_theorem ← alias1 alias2 ...
 ```
 
 This produces defs or theorems of the form:
 
-```
-/ -- doc string - /
+```lean
+/-- doc string -/
 @[alias] theorem alias1 : <type of my_theorem> := my_theorem
 
-/ -- doc string - /
+/-- doc string -/
 @[alias] theorem alias2 : <type of my_theorem> := my_theorem
 ```
 
 Iff alias syntax:
 
-```
+```lean
 alias A_iff_B ↔ B_of_A A_of_B
 alias A_iff_B ↔ ..
 ```
@@ -91,6 +91,40 @@ meta def make_left_right : name → tactic (name × name)
         p <.> "_".intercalate (left ++ "of" :: right ++ suffix))
 | _ := failed
 
+/--
+The `alias` command can be used to create copies
+of a theorem or definition with different names.
+
+Syntax:
+
+```lean
+/-- doc string -/
+alias my_theorem ← alias1 alias2 ...
+```
+
+This produces defs or theorems of the form:
+
+```lean
+/-- doc string -/
+@[alias] theorem alias1 : <type of my_theorem> := my_theorem
+
+/-- doc string -/
+@[alias] theorem alias2 : <type of my_theorem> := my_theorem
+```
+
+Iff alias syntax:
+
+```lean
+alias A_iff_B ↔ B_of_A A_of_B
+alias A_iff_B ↔ ..
+```
+
+This gets an existing biconditional theorem `A_iff_B` and produces
+the one-way implications `B_of_A` and `A_of_B` (with no change in
+implicit arguments). A blank `_` can be used to avoid generating one direction.
+The `..` notation attempts to generate the 'of'-names automatically when the
+input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
+-/
 @[user_command] meta def alias_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "alias") : lean.parser unit :=
 do old ← ident,
@@ -111,13 +145,18 @@ do old ← ident,
     alias_iff d (doc left) left `iff.mp,
     alias_iff d (doc right) right `iff.mpr }
 
+add_tactic_doc
+{ name                     := "alias",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.alias.alias_cmd],
+  tags                     := ["renaming"] }
+
 meta def get_lambda_body : expr → expr
 | (expr.lam _ _ _ b) := get_lambda_body b
 | a                  := a
 
 meta def get_alias_target (n : name) : tactic (option name) :=
-do attr ← try_core (has_attribute `alias n),
-  option.cases_on attr (pure none) $ λ_, do
+do tt ← has_attribute' `alias n | pure none,
   d ← get_decl n,
   let (head, args) := (get_lambda_body d.value).get_app_fn_args,
   let head := if head.is_constant_of `iff.mp ∨ head.is_constant_of `iff.mpr then

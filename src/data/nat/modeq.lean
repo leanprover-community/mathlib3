@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Modular equality relation.
 -/
-import data.int.gcd algebra.ordered_ring
+import data.int.gcd algebra.ordered_ring tactic.abel
 
 namespace nat
 
@@ -29,8 +29,8 @@ theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
 theorem modeq_iff_dvd : a ≡ b [MOD n] ↔ (n:ℤ) ∣ b - a :=
-by rw [modeq, eq_comm, ← int.coe_nat_inj'];
-   simp [int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
+by rw [modeq, eq_comm, ← int.coe_nat_inj', int.coe_nat_mod, int.coe_nat_mod,
+   int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
 
 theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
@@ -56,12 +56,18 @@ theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ 
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
 theorem modeq_add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
-modeq_of_dvd $ by simpa using dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂)
+modeq_of_dvd begin
+  convert dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂) using 1,
+  simp [sub_eq_add_neg, add_left_comm, add_comm],
+end
 
 theorem modeq_add_cancel_left (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : c ≡ d [MOD n] :=
-have (n:ℤ) ∣ a + (-a + (d + -c)),
-by simpa using _root_.dvd_sub (dvd_of_modeq h₂) (dvd_of_modeq h₁),
-modeq_of_dvd $ by rwa add_neg_cancel_left at this
+begin
+  simp only [modeq_iff_dvd] at *,
+  convert _root_.dvd_sub h₂ h₁ using 1,
+  simp [sub_eq_add_neg],
+  abel
+end
 
 theorem modeq_add_cancel_right (h₁ : c ≡ d [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : a ≡ b [MOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
@@ -165,7 +171,7 @@ begin
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },
-  simp
+  simp, ac_refl
 end
 
 lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :

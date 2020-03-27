@@ -11,12 +11,12 @@ import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
+import algebra.commute
 
 noncomputable theory
 
 universes u v w u₁ v₁
 
-open lattice
 open_locale tensor_product
 
 section prio
@@ -293,7 +293,7 @@ set_option class.instance_max_depth 40
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
-  hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
+  hom := @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _inst_5.hom,
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _ }
 
@@ -389,8 +389,12 @@ end mv_polynomial
 
 namespace rat
 
-instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
-algebra.of_ring_hom rat.cast (by apply_instance)
+instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
+{ smul := λ r x, (r : α) * x,
+  to_fun := coe,
+  hom := (rat.cast_hom α).is_ring_hom,
+  commutes' := λ r x, (commute.cast_int_right x r.1).div_right (commute.cast_nat_right x r.2),
+  smul_def' := λ _ _, rfl }
 
 end rat
 
@@ -624,7 +628,7 @@ section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
 `S`-modules are also `R`-modules. -/
 
-variables (R : Type*) [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
 (E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
 
 /-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a

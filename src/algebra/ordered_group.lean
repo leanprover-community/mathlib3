@@ -5,7 +5,8 @@ Authors: Mario Carneiro, Johannes Hölzl
 
 Ordered monoids and groups.
 -/
-import algebra.group order.bounded_lattice tactic.basic
+import algebra.group.units algebra.group.with_one algebra.group.type_tags
+import order.bounded_lattice tactic.basic
 
 universe u
 variable {α : Type u}
@@ -26,7 +27,7 @@ class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, lattice.order_bot α :=
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
 end old_structure_cmd
@@ -165,7 +166,6 @@ by by_cases a ≤ b; simp [min, h]
 end units
 
 namespace with_zero
-open lattice
 
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
@@ -211,7 +211,6 @@ end
 end with_zero
 
 namespace with_top
-open lattice
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
@@ -301,7 +300,6 @@ instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top 
 end with_top
 
 namespace with_bot
-open lattice
 
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
@@ -354,8 +352,8 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
-lemma bot_eq_zero : (⊥ : α) = 0 :=
-le_antisymm lattice.bot_le (zero_le ⊥)
+@[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
+le_antisymm bot_le (zero_le ⊥)
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff' (zero_le _) (zero_le _)
@@ -380,10 +378,10 @@ instance with_zero.canonically_ordered_monoid :
   canonically_ordered_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
     cases a with a,
-    { exact iff_of_true lattice.bot_le ⟨b, (zero_add b).symm⟩ },
+    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
     cases b with b,
     { exact iff_of_false
-        (mt (le_antisymm lattice.bot_le) (by simp))
+        (mt (le_antisymm bot_le) (by simp))
         (λ ⟨c, h⟩, by cases c; cases h) },
     { simp [le_iff_exists_add, -add_comm],
       split; intro h; rcases h with ⟨c, h⟩,
@@ -551,15 +549,19 @@ lemma lt_neg : a < -b ↔ b < -a :=
 have -(-a) < -b ↔ b < -a, from neg_lt_neg_iff,
 by rwa neg_neg at this
 
+@[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
 (add_le_add_iff_left _).trans neg_le_neg_iff
 
+@[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
 add_le_add_iff_right _
 
+@[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 (add_lt_add_iff_left _).trans neg_lt_neg_iff
 
+@[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
 
@@ -599,7 +601,7 @@ by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
 
-@[simp] lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
+lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
 sub_le_iff_le_add
 
 @[simp] lemma add_neg_le_iff_le_add' : a + -b ≤ c ↔ a ≤ b + c :=
@@ -741,7 +743,6 @@ def to_decidable_linear_ordered_comm_group
   le_antisymm := @le_antisymm _ _,
   le_total := nonneg_total_iff.1 nonneg_total,
   decidable_le := by apply_instance,
-  decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
   ..@nonneg_comm_group.to_ordered_comm_group _ s }
 

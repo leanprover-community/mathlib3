@@ -1,16 +1,11 @@
 name: continuous integration
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lean_version:
-          - leanprover-community/lean:3.5.1
-      fail-fast: false
     steps:
       - uses: actions/checkout@v2
 
@@ -18,9 +13,15 @@ jobs:
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
-          ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
+          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
+
+      - name: compute lean file hash
+        run: |
+          lean_file_hash="$(echo `find src | grep '[.]lean$' | sort | xargs shasum` `shasum leanpkg.toml` "lean --version:" `lean --version` | shasum | head -c 40; echo)"
+          echo "lean file hash: $lean_file_hash"
+          echo "::set-env name=lean_file_hash::$lean_file_hash"
 
       - name: install azcopy
         run: |
@@ -28,10 +29,25 @@ jobs:
           wget -q https://aka.ms/downloadazcopy-v10-linux -O - | sudo tar zxf - --strip-components 1 --wildcards '*/azcopy'
           sudo chmod 755 /usr/local/bin/azcopy
 
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: install Python dependencies
+        run: python -m pip install --upgrade pip requests
+
+      - name: try to find olean cache
+        run: |
+          ./scripts/fetch_olean_cache.sh
+        env:
+          git_sha: "${{ github.sha }}"
+
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py
 
       - name: configure git setup
+        if: always()
         run: |
           git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"
@@ -43,7 +59,7 @@ jobs:
           git config --unset http.https://github.com/.extraheader
 
       - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push'
         run: |
           branch=${GITHUB_REF#refs/heads/}
           git fetch --depth=1 origin-bot $branch
@@ -52,12 +68,13 @@ jobs:
             archive_name="$(git rev-parse HEAD).tar.gz"
             tar czf "$archive_name" src
             azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
+            python scripts/write_azure_table_entry.py "$lean_file_hash" "${{ github.sha }}" "${{ secrets.AZURE_TABLE_WRITE_TOKEN }}"
           else
             echo "archive is obsolete: branch has been updated"
           fi
 
       - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: ./scripts/deploy_nightly.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
@@ -66,7 +83,6 @@ jobs:
         id: setup_precompiled
         run: |
           git_hash="$(git log -1 --pretty=format:%h)"
-          short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
         uses: actions/upload-artifact@v1
@@ -81,29 +97,28 @@ jobs:
 
       - name: lint
         run: |
-          ./scripts/mk_all.sh -t
-          lean src/lint_mathlib.lean
+          ./scripts/mk_all.sh
+          lean --run scripts/lint_mathlib.lean
+          mv nolints.txt scripts/nolints.txt
           ./scripts/rm_all.sh
+          git diff
 
       - name: leanchecker
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
 
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-
       - name: generate docs
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run:
           ./scripts/deploy_docs.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          github_repo: ${{ github.repository }}
+          github_event: ${{ github.event_name }}
+          github_ref: ${{ github.ref }}
 
       - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run:
           ./scripts/update_nolints.sh
         env:

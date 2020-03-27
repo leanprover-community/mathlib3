@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import data.polynomial topology.algebra.polynomial analysis.complex.exponential
 
-open complex polynomial metric filter is_absolute_value set lattice
+open complex polynomial metric filter is_absolute_value set
 
 namespace complex
 
@@ -26,7 +26,7 @@ else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in
-exists.intro z₀ $ by_contradiction $ λ hf0,
+exists.intro z₀ $ classical.by_contradiction $ λ hf0,
 have hfX : f - C (f.eval z₀) ≠ 0,
   from mt sub_eq_zero.1 (λ h, not_le_of_gt hf (h.symm ▸ degree_C_le)),
 let n := root_multiplicity z₀ (f - C (f.eval z₀)) in
@@ -56,7 +56,7 @@ have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n 
       neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← inv_inv' (complex.abs _ * _), mul_inv',
+  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
       inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
     calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
       ... = δ : pow_one _
@@ -68,7 +68,7 @@ have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
   ... = abs (f.eval z₀) * complex.abs (1 - (g.eval z₀).abs * δ ^ n /
       (f.eval z₀).abs : ℝ) : by rw [← complex.abs_mul];
         exact congr_arg complex.abs
-          (by simp [mul_add, add_mul, mul_assoc, div_eq_mul_inv])
+          (by simp [mul_add, add_mul, mul_assoc, div_eq_mul_inv, sub_eq_add_neg])
   ... = _ : by rw [complex.abs_of_nonneg (sub_nonneg.2 (le_of_lt hδs)),
       mul_sub, mul_div_cancel' _ (ne.symm (ne_of_lt hf0')), mul_one],
 have hef0 : abs (eval z₀ g) * (eval z₀ f).abs ≠ 0,
@@ -83,7 +83,8 @@ have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
       = (g.eval z' - g.eval z₀).abs * (z' - z₀).abs ^ n :
         by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
             ← complex.abs_mul, sub_mul];
-          simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel]
+          simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
+                sub_eq_add_neg]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $

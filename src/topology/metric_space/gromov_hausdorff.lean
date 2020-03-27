@@ -41,7 +41,7 @@ noncomputable theory
 open_locale classical topological_space
 universes u v w
 
-open classical lattice set function topological_space filter metric quotient
+open classical set function topological_space filter metric quotient
 open bounded_continuous_function nat Kuratowski_embedding
 open sum (inl inr)
 set_option class.instance_max_depth 50
@@ -251,16 +251,14 @@ begin
     { rcases exists_mem_of_nonempty α with ⟨xα, _⟩,
       have : ∃y ∈ range Ψ, dist (Φ xα) y < diam (univ : set α) + 1 + diam (univ : set β),
       { rw Ψrange,
-        have : Φ xα ∈ p.val := begin rw ← Φrange, exact mem_range_self _ end,
+        have : Φ xα ∈ p.val := Φrange ▸ mem_range_self _,
         exact exists_dist_lt_of_Hausdorff_dist_lt this bound
           (Hausdorff_edist_ne_top_of_nonempty_of_bounded p.2.1 q.2.1 p.2.2.bounded q.2.2.bounded) },
       rcases this with ⟨y, hy, dy⟩,
       rcases mem_range.1 hy with ⟨z, hzy⟩,
       rw ← hzy at dy,
-      have DΦ : diam (range Φ) = diam (univ : set α) :=
-        begin rw [← image_univ], apply metric.isometry.diam_image Φisom end,
-      have DΨ : diam (range Ψ) = diam (univ : set β) :=
-        begin rw [← image_univ], apply metric.isometry.diam_image Ψisom end,
+      have DΦ : diam (range Φ) = diam (univ : set α) := Φisom.diam_range,
+      have DΨ : diam (range Ψ) = diam (univ : set β) := Ψisom.diam_range,
       calc
         diam (range Φ ∪ range Ψ) ≤ diam (range Φ) + dist (Φ xα) (Ψ z) + diam (range Ψ) :
           diam_union (mem_range_self _) (mem_range_self _)
@@ -706,7 +704,7 @@ begin
         abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
         ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
-          by rw [abs_of_nonneg (le_of_lt (inv_pos εpos)), mul_assoc]
+          by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist (p.rep) (q.rep) : dist_GH_dist p q
@@ -822,7 +820,7 @@ begin
         ... = (floor (ε⁻¹ * dist x y)).to_nat :
         begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
-          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
+          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos.2 εpos)),
           change dist (x : p.rep) y ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam p pt
@@ -836,7 +834,7 @@ begin
         ... = (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat :
         begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
-          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
+          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos.2 εpos)),
           change dist (Ψ x : q.rep) (Ψ y) ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam q qt
@@ -856,9 +854,9 @@ begin
       have : floor (ε⁻¹ * dist x y) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
       { rw [Ap, Aq] at this,
         have D : 0 ≤ floor (ε⁻¹ * dist x y) :=
-          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos εpos)) dist_nonneg),
+          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
         have D' : floor (ε⁻¹ * dist (Ψ x) (Ψ y)) ≥ 0 :=
-          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos εpos)) dist_nonneg),
+          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
         rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', this] },
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
@@ -871,7 +869,7 @@ begin
         abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
         ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
-          by rw [abs_of_nonneg (le_of_lt (inv_pos εpos)), mul_assoc]
+          by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist (p.rep) (q.rep) : dist_GH_dist p q

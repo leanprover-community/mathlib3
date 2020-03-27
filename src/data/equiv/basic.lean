@@ -12,7 +12,7 @@ import tactic.split_ifs logic.function logic.unique data.set.function data.bool 
 
 open function
 
-universes u v w
+universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
@@ -73,8 +73,8 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 @[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
 set.eq_univ_of_forall e.surjective
 
-protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
-| ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
+protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
+e.injective.comap_subsingleton
 
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
 | a b := decidable_of_iff _ e.injective.eq_iff
@@ -136,8 +136,7 @@ theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f :
 
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end, ⟩
+  assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
@@ -457,6 +456,15 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α
    λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
      | _, rfl := rfl end⟩
 
+/-- transporting a sigma type through an equivalence of the base -/
+def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β a) ≃ (Σ a:α₂, β (f.symm a)) :=
+λ f, (sigma_congr_left f.symm).symm
+
+/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibres -/
+def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*} (f : α₁ ≃ α₂) (F : ∀ a, β₁ a ≃ β₂ (f a)) :
+  sigma β₁ ≃ sigma β₂ :=
+(sigma_congr_right F).trans (sigma_congr_left f)
+
 def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
@@ -551,7 +559,7 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv (e : α ≃ β) (h : unique β) : unique α :=
-unique.of_surjective e.symm.surjective
+e.symm.surjective.unique
 
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := e.symm.unique_of_equiv,
@@ -908,7 +916,60 @@ begin
   { rw [←f.right_inv x], apply h.mp, apply h₂ },
   apply h.mpr, apply h₂
 end
+protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
+  (∀x, p x) ↔ (∀y, p (f.symm y)) :=
+equiv.forall_congr f (λx, by simp)
 
+protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
+  (∀x, p (f x)) ↔ (∀y, p y) :=
+(equiv.forall_congr_left' f.symm).symm
+
+section
+variables (P : α → Sort w) (e : α ≃ β)
+
+/--
+Transport dependent functions through an equivalence of the base space.
+-/
+def Pi_congr_left' : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
+{ to_fun := λ f x, f (e.symm x),
+  inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
+  left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { dsimp, rw e.symm_apply_apply })),
+  right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { rw e.apply_symm_apply })) }
+
+@[simp]
+lemma Pi_congr_left'_apply (f : Π a, P a) (b : β) : ((Pi_congr_left' P e) f) b = f (e.symm b) :=
+rfl
+
+@[simp]
+lemma Pi_congr_left'_symm_apply (g : Π b, P (e.symm b)) (a : α) :
+  ((Pi_congr_left' P e).symm g) a = (by { convert g (e a), simp }) :=
+rfl
+
+end
+
+section
+variables (P : β → Sort w) (e : α ≃ β)
+
+/--
+Transporting dependent functions through an equivalence of the base,
+expressed as a "simplification".
+-/
+def Pi_congr_left : (Π a, P (e a)) ≃ (Π b, P b) :=
+(Pi_congr_left' P e.symm).symm
+end
+
+section
+variables
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
+
+/--
+Transport dependent functions through
+an equivalence of the base spaces and a family
+of equivalences of the matching fibres.
+-/
+def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
+(equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+end
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
@@ -975,3 +1036,40 @@ protected def congr_right {r r' : setoid α}
   (eq : ∀a₁ a₂, @setoid.r α r a₁ a₂ ↔ @setoid.r α r' a₁ a₂) : quotient r ≃ quotient r' :=
 quot.congr_right eq
 end quotient
+
+/-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
+equivalence between the original type and the type `↑s`. -/
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
+  (h : set.bij_on f set.univ s) : α ≃ s :=
+begin
+  have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),
+  { split,
+    { assume x y hxy,
+      apply h.inj_on (set.mem_univ x) (set.mem_univ y) (subtype.mk.inj hxy) },
+    { assume x,
+      rcases h.surj_on x.2 with ⟨y, hy⟩,
+      exact ⟨y, subtype.eq hy.2⟩ } },
+  exact equiv.of_bijective this
+end
+
+/-- The composition of an updated function with an equiv on a subset can be expressed as an
+updated function. -/
+lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α} (e : β ≃ s)
+  (v : β → γ) (w : α → γ) (j : β) (x : γ) [decidable_eq β] [decidable_eq α]
+  [∀ j, decidable (j ∈ s)] :
+  (λ (i : α), if h : i ∈ s then (function.update v j x) (e.symm ⟨i, h⟩) else w i) =
+  function.update (λ (i : α), if h : i ∈ s then v (e.symm ⟨i, h⟩) else w i) (e j) x :=
+begin
+  ext i,
+  by_cases h : i ∈ s,
+  { simp only [h, dif_pos],
+    have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
+      by { rw equiv.symm_apply_eq, exact subtype.ext },
+    by_cases h' : i = e j,
+    { rw [A.2 h', h'], simp },
+    { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',
+      simp [h, h', this] } },
+  { have : i ≠ e j,
+      by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
+    simp [h, this] }
+end

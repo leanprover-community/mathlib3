@@ -59,7 +59,7 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 ### Configure Git
 
 * Run `git config --global core.autocrlf input` in Git Bash
-  * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when running `update-mathlib` or `cache-olean --fetch`.
+  * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when using `leanproject`.
 
 ### Get Scripts
 
@@ -92,4 +92,4 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
    A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
    displayed.
 
-You can now read instructions about creating and working on [Lean projects](project.md)
+Note however that you cannot use mathlib, and in particular any imports, in the file `test.lean` created above. To use mathlib you will need to set up or download a Lean project. You should now read instructions about creating and working on [Lean projects](project.md).

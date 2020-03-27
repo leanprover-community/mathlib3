@@ -10,7 +10,7 @@ both pointwise and in L¹ norm, by a sequence of simple functions.
 import measure_theory.l1_space
 
 noncomputable theory
-open lattice set filter topological_space
+open set filter topological_space
 open_locale classical topological_space
 
 universes u v
@@ -186,8 +186,8 @@ end,
     let ⟨k, hk⟩ := mem_closure_range_iff_nat.1 (by { rw E_dense, exact mem_univ (f x) }) N₀ in
     begin
       rw [Union_disjointed, mem_Union], use k,
-      rw [mem_preimage], simp, rw [← one_div_eq_inv, add_comm],
-      exact ⟨hk , le_of_lt norm_fx_gt⟩
+      rw [mem_preimage], simp, rw [← one_div_eq_inv],
+      exact ⟨hk, le_of_lt norm_fx_gt⟩
     end,
   let ⟨k₀, x_mem_A⟩ := mem_Union.1 x_mem_Union_k_N₀ in
   let n := max N₀ k₀ in
@@ -243,7 +243,8 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
-    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le.symm, (hF x).2] },
+    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) :
+      by { simp [nnreal.coe_le_coe.symm, (hF x).2, add_comm] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =

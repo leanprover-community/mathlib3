@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.algebra data.zmod.basic
+import group_theory.order_of_element data.polynomial data.equiv.ring data.zmod.basic
 import algebra.char_p
 
 universes u v
@@ -31,14 +31,11 @@ end
 namespace finite_field
 
 def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] :
-  discrete_field α :=
-{ has_decidable_eq := by apply_instance,
-  inv := λ a, if h : a = 0 then 0
+  field α :=
+{ inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
       from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
-  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha;
-    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
-  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
+  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
   ..show integral_domain α, by apply_instance }
@@ -50,7 +47,7 @@ variables [fintype α] [integral_domain α]
 open finset polynomial
 
 /-- The cardinality of a field is at most n times the cardinality of the image of a degree n
-  polnyomial -/
+  polynomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
@@ -90,10 +87,6 @@ end polynomial
 section
 variables [field α] [fintype α]
 
-instance [decidable_eq α] : fintype (units α) :=
-by haveI := set_fintype {a : α | a ≠ 0}; exact
-fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
-
 lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
 begin
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
@@ -123,7 +116,7 @@ by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _
 
 end
 
-lemma pow_card_sub_one_eq_one [discrete_field α] [fintype α] (a : α) (ha : a ≠ 0) :
+lemma pow_card_sub_one_eq_one [decidable_eq α] [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
     by rw [units.coe_pow, units.mk0_val]
@@ -162,3 +155,24 @@ let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
 end⟩
 
 end char_p
+
+open_locale nat
+open zmod
+
+/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+  of the same theorem. -/
+@[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
+by rw [← card_units_eq_totient, pow_card_eq_one]
+
+/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+  of the same theorem. -/
+lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
+  let n' : ℕ+ := ⟨n, h₁⟩,
+  let x' : units (zmod n') := zmod.unit_of_coprime _ h,
+  have := zmod.pow_totient x',
+  apply (zmod.eq_iff_modeq_nat' h₁).1,
+  apply_fun (coe:units (zmod n') → zmod n') at this,
+  simpa [show (x':zmod n') = x, from rfl],
+end

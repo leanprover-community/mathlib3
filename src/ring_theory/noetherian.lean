@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
 
-import data.equiv.algebra
 import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
 import linear_algebra.basis
 
-open set lattice
+open set
 
 namespace submodule
 variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]
@@ -250,10 +249,9 @@ theorem is_noetherian_iff_well_founded
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
     λ a b, (strict_mono.le_iff_le (λ _ _, hN.1)).2,
   have : t ⊆ ⋃ i, (N i : set β),
-  { rw [← submodule.Union_coe_of_directed _ N _],
+  { rw [← submodule.coe_supr_of_directed N _],
     { show t ⊆ M, rw ← h₂,
       apply submodule.subset_span },
-    { apply_instance },
     { exact λ i j, ⟨max i j,
         hN' (le_max_left _ _),
         hN' (le_max_right _ _)⟩ } },
@@ -381,7 +379,7 @@ theorem is_noetherian_span_of_finite (R) {M} [ring R] [add_comm_group M] [module
 is_noetherian_of_fg_of_noetherian _ (submodule.fg_def.mpr ⟨A, hA, rfl⟩)
 
 theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
-  (f : R → S) [is_ring_hom f] (hf : function.surjective f)
+  (f : R →+* S) (hf : function.surjective f)
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
   unfold is_noetherian_ring at H ⊢,
@@ -389,17 +387,14 @@ begin
   convert order_embedding.well_founded (order_embedding.rsymm (ideal.lt_order_embedding_of_surjective f hf)) H
 end
 
-instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R → S) [is_ring_hom f]
+instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring (set.range f) :=
-@is_noetherian_ring_of_surjective R _ (set.range f) _ (λ x, ⟨f x, x, rfl⟩)
-  (⟨subtype.eq (is_ring_hom.map_one f),
-    λ _ _, subtype.eq (is_ring_hom.map_mul f),
-    λ _ _, subtype.eq (is_ring_hom.map_add f)⟩)
-  (λ ⟨x, y, hy⟩, ⟨y, subtype.eq hy⟩) _
+is_noetherian_ring_of_surjective R (set.range f) (f.cod_restrict (set.range f) set.mem_range_self)
+  set.surjective_onto_range
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f.1 f.to_equiv.surjective
+is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace is_noetherian_ring
 

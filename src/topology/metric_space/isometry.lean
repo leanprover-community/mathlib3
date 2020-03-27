@@ -49,11 +49,14 @@ section emetric_isometry
 variables [emetric_space α] [emetric_space β] [emetric_space γ]
 variables {f : α → β} {x y z : α}  {s : set α}
 
+lemma isometry.lipschitz (h : isometry f) : lipschitz_with 1 f :=
+lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
+
+lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
+λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
+
 /-- An isometry is injective -/
-lemma isometry.injective (h : isometry f) : injective f :=
-λx y hxy, edist_eq_zero.1 $
-calc edist x y = edist (f x) (f y) : (h x y).symm
-         ...   = 0 : by rw [hxy]; simp
+lemma isometry.injective (h : isometry f) : injective f := h.antilipschitz.injective
 
 /-- Any map on a subsingleton is an isometry -/
 theorem isometry_subsingleton [subsingleton α] : isometry f :=
@@ -71,29 +74,25 @@ assume x y, calc
 
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
-begin
-  refine emetric.uniform_embedding_iff'.2 ⟨_, _⟩,
-  { assume ε εpos,
-    existsi [ε, εpos],
-    simp [hf.edist_eq] },
-  { assume δ δpos,
-    existsi [δ, δpos],
-    simp [hf.edist_eq] }
-end
+hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=
-hf.uniform_embedding.embedding.continuous
+hf.lipschitz.continuous
 
 /-- The inverse of an isometry is an isometry. -/
 lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun :=
 λx y, by rw [← h, e.right_inv _, e.right_inv _]
 
-/-- Isometries preserve the diameter -/
-lemma emetric.isometry.diam_image (hf : isometry f) {s : set α}:
+/-- Isometries preserve the diameter in emetric spaces. -/
+lemma isometry.ediam_image (hf : isometry f) (s : set α) :
   emetric.diam (f '' s) = emetric.diam s :=
 eq_of_forall_ge_iff $ λ d,
 by simp only [emetric.diam_le_iff_forall_edist_le, ball_image_iff, hf.edist_eq]
+
+lemma isometry.ediam_range (hf : isometry f) :
+  emetric.diam (range f) = emetric.diam (univ : set α) :=
+by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
@@ -101,12 +100,16 @@ lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
 
 end emetric_isometry --section
 
-/-- An isometry preserves the diameter in metric spaces -/
-lemma metric.isometry.diam_image [metric_space α] [metric_space β]
-  {f : α → β} {s : set α} (hf : isometry f) : metric.diam (f '' s) = metric.diam s :=
-by rw [metric.diam, metric.diam, emetric.isometry.diam_image hf]
+/-- An isometry preserves the diameter in metric spaces. -/
+lemma isometry.diam_image [metric_space α] [metric_space β]
+  {f : α → β} (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
+by rw [metric.diam, metric.diam, hf.ediam_image]
 
-/-- α and β are isometric if there is an isometric bijection between them. -/
+lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) :
+  metric.diam (range f) = metric.diam (univ : set α) :=
+by { rw ← image_univ, exact hf.diam_image univ }
+
+/-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)
@@ -123,6 +126,9 @@ lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
 h.isometry_to_fun.inv h.to_equiv
 
+@[ext] lemma ext : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (∀ x, h₁ x = h₂ x) → h₁ = h₂
+| ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := have e₁ = e₂ := equiv.ext _ _ H, by subst e₁
+
 /-- Alternative constructor for isometric bijections,
 taking as input an isometry, and a right inverse. -/
 def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometry f) : α ≃ᵢ β :=
@@ -131,6 +137,29 @@ def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometr
   left_inv := λ x, hf.injective $ hfg _,
   right_inv := hfg,
   isometry_to_fun := hf }
+
+section normed_group
+
+variables {G : Type*} [normed_group G]
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  .. equiv.add_left x }
+
+variable (G)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  .. equiv.neg G }
+
+end normed_group
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -154,12 +183,30 @@ protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :
 { isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
+@[simp] lemma trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : α) : h₁.trans h₂ x = h₂ (h₁ x) := rfl
+
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry_inv_fun,
   .. h.to_equiv.symm }
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
+
+protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+
+@[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=
+h.to_equiv.apply_symm_apply y
+
+@[simp] lemma symm_apply_apply (h : α ≃ᵢ β) (x : α) : h.symm (h x) = x :=
+h.to_equiv.symm_apply_apply x
+
+lemma symm_apply_eq (h : α ≃ᵢ β) {x : α} {y : β} :
+  h.symm y = x ↔ y = h x :=
+h.to_equiv.symm_apply_eq
+
+lemma eq_symm_apply (h : α ≃ᵢ β) {x : α} {y : β} :
+  x = h.symm y ↔ h x = y :=
+h.to_equiv.eq_symm_apply
 
 lemma symm_comp_self (h : α ≃ᵢ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
@@ -246,7 +293,7 @@ begin
   rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp [embedding_of_subset_coe] },
+    by { simp [embedding_of_subset_coe, sub_eq_add_neg] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }

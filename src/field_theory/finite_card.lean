@@ -7,7 +7,7 @@ Authors: Joey van Langen, Casper Putz
 import algebra.char_p data.zmod.basic linear_algebra.basis
 
 universes u
-variables (α : Type u) [discrete_field α] [fintype α]
+variables (α : Type u) [field α] [fintype α]
 
 namespace finite_field
 

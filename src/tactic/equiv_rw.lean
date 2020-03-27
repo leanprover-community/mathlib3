@@ -19,7 +19,7 @@ The tactic can also be used to rewrite hypotheses, using the syntax `equiv_rw e 
 
 ## Implementation details
 
-The main internal function is `adapt_equiv t e`,
+The main internal function is `equiv_rw_type e t`,
 which attempts to turn an expression `e : α ≃ β` into a new equivalence with left hand side `t`.
 As an example, with `t = option α`, it will generate `functor.map_equiv option e`.
 
@@ -120,10 +120,10 @@ do exprs ←
   ].mmap (λ n, try_core (mk_const n)),
   return (exprs.map option.to_list).join -- TODO: implement `.mfilter_map mk_const`?
 
-declare_trace adapt_equiv
+declare_trace equiv_rw_type
 
-/-- Implementation of `adapt_equiv`, using `solve_by_elim`. -/
-meta def adapt_equiv_core (eq ty : expr) : tactic expr :=
+/-- Implementation of `equiv_rw_type`, using `solve_by_elim`. -/
+meta def equiv_rw_type_core (eq ty : expr) : tactic expr :=
 do
   -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
   initial_goals ← get_goals,
@@ -152,17 +152,17 @@ do
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
-    discharger := trace_if_enabled `adapt_equiv "Failed, no congruence lemma applied!" >> failed,
+    discharger := trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We accept any branch of the `solve_by_elim` search tree which
     -- either still contains metavariables, or already contains at least one copy of `eq`.
     -- This is to prevent generating equivalences built entirely out of `equiv.refl`.
     accept := λ goals, lock_tactic_state (do
-      when_tracing `adapt_equiv (do
+      when_tracing `equiv_rw_type (do
         goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
       goals.any_of (λ g, guard $ g.contains_expr_or_mvar eq) <|>
-        (trace_if_enabled `adapt_equiv format!"Rejected, result does not contain {eq}" >> failed),
+        (trace_if_enabled `equiv_rw_type format!"Rejected, result does not contain {eq}" >> failed),
       done <|>
-      when_tracing `adapt_equiv (do
+      when_tracing `equiv_rw_type (do
         gs ← get_goals,
         gs ← gs.mmap (λ g, infer_type g >>= pp),
         trace format!"Attempting to adapt to {gs}"))
@@ -172,17 +172,18 @@ do
 
 
 /--
-`adapt_equiv t e` "adapts" the equivalence `e`, producing a new equivalence with left-hand-side `t`.
+`equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
+returning a new equivalence `t ≃ t'`.
 -/
-meta def adapt_equiv (ty : expr) (eq : expr) : tactic expr :=
+meta def equiv_rw_type (eq : expr) (ty : expr) : tactic expr :=
 do
-  when_tracing `adapt_equiv (do
+  when_tracing `equiv_rw_type (do
     ty_pp ← pp ty,
     eq_pp ← pp eq,
     eq_ty_pp ← infer_type eq >>= pp,
-    trace format!"Attempting to adapt `{eq_pp} : {eq_ty_pp}` to produce `{ty_pp} ≃ _`."),
+    trace format!"Attempting to rewrite the type `{ty_pp}` using `{eq_pp} : {eq_ty_pp}`."),
   `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
-  adapt_equiv_core eq ty
+  equiv_rw_type_core eq ty
 
 /--
 Attempt to replace the hypothesis with name `x`
@@ -193,8 +194,8 @@ meta def equiv_rw_hyp : Π (x : name) (e : expr), tactic unit
 do
   x' ← get_local x,
   x_ty ← infer_type x',
-  -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`
-  e ← adapt_equiv x_ty e,
+  -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`.
+  e ← equiv_rw_type e x_ty,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
   h ← assertv_fresh eq prf,
@@ -217,7 +218,7 @@ do
 meta def equiv_rw_target (e : expr) : tactic unit :=
 do
   t ← target,
-  e ← adapt_equiv t e,
+  e ← equiv_rw_type e t,
   s ← to_expr ``(equiv.inv_fun %%e),
   tactic.eapply s,
   skip

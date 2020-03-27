@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.equiv_rw
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
--- set_option trace.adapt_equiv true
+-- set_option trace.equiv_rw_type true
 
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)

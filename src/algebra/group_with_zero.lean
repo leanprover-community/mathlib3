@@ -168,7 +168,7 @@ namespace units
 variables {G₀ : Type*} [group_with_zero G₀]
 variables {a b : G₀}
 
-/-- Embed an element of a division ring into the unit group.
+/-- Embed a non-zero element of a `group_with_zero` into the unit group.
   By combining this function with the operations on units,
   or the `/ₚ` operation, it is possible to write a division
   as a partial function with three arguments. -/

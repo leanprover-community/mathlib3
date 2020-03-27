@@ -183,7 +183,7 @@ add_tactic_doc
 { name        := "apply_assumption",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.apply_assumption],
-  tags        := [] }
+  tags        := ["context management", "lemma application"] }
 
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches

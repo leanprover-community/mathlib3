@@ -1,5 +1,6 @@
 import tactic
 import data.fin
+import data.zmod.basic
 
 /-!
 
@@ -288,13 +289,44 @@ begin
   exact classical.not_not.1 H
 end
 
+open_locale classical
+
+noncomputable theory
+
 /-- This definition appears in Claim 2 of Shitov's article. -/
-def is_robust {W : Type*} (w : W) (G : graph V) (x : V) (s : set (V → W)) : Prop :=
+def is_robust {W : Type*} (G : graph V) (x : V) (w : W) (s : set (V → W)) : Prop :=
 ∀ φ ∈ s, ∃ y : closed_neighbourhood G x, w = (φ : V → W) y.val
 
--- /-- Claim 2. -/
--- lemma some_bound {W : Type*} (G : graph V)
---   (Φ : colouring W (G.ihom (complete W))) :
---   _ :=
+def robust_classes {W : Type*} [fintype W] (G : graph V) (v : V)
+  (Φ : colouring W (G.ihom (complete W))) :
+  finset W :=
+finset.univ.filter $ λ w, is_robust G v w (Φ ⁻¹' {w})
+
+/-- Claim 2. -/
+lemma some_bound {W : Type*} {n c k : ℕ} [fintype V] [fintype W] (G : graph V)
+  (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited)
+  (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :
+  ∃ v, (robust_classes G v Φ).card + k ≥ c :=
+begin
+  sorry
+end
+
+def cyclic (n : ℕ+) : graph (zmod n) :=
+{ edge := assume x y, x = y + 1 ∨ y = x + 1,
+  symm := assume x y, or.symm }
+
+abbreviation cycle (n : ℕ+) (G : graph V) := hom (cyclic n) G
+
+structure girth (G : graph V) (n : ℕ+) : Prop :=
+(cyc_exists : nonempty (cycle n G))
+(min        : ∀ {m}, cycle m G → n ≤ m)
+
+theorem erdos (χ g : ℕ) :
+  ∃ {V : Type} [fintype V] (G : graph V) (k : ℕ) (n : ℕ+),
+  chromatic_number G k ∧ χ < k ∧
+  girth G n ∧ g < n:=
+begin
+  sorry
+end
 
 end graph

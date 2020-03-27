@@ -95,8 +95,6 @@ jobs:
           path: ..
 
       - name: lint
-        # for some reason this gets skipped if an earlier (non-"build") step fails,
-        # unless we include `success() ||`
         if: success() || steps.build.outputs.status == 'built'
         run: |
           ./scripts/mk_all.sh
@@ -113,7 +111,6 @@ jobs:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: tests
-        # see comment in the "lint" step
         if: success() || steps.build.outputs.status == 'built'
         run: |
           set -o pipefail

@@ -61,6 +61,18 @@ equiv.ext _ _ H
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
+@[simp]
+lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+
+@[simp]
+lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+
+@[simp]
+lemma left_inv_apply (e : α ≃ β) (a : α) : e.symm (e a) = a := e.left_inv a
+
+@[simp]
+lemma right_inv_apply (e : α ≃ β) (b : β) : e (e.symm b) = b := e.right_inv b
+
 protected theorem injective : ∀ f : α ≃ β, injective f
 | ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
 

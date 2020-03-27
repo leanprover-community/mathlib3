@@ -242,8 +242,8 @@ def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.left_inv, e₁.left_inv] },
-  right_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.right_inv, e₁.right_inv] } }
+  left_inv := λ f, funext $ λ x, by { dsimp, simp },
+  right_inv := λ f, funext $ λ x, by { dsimp, simp } }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :

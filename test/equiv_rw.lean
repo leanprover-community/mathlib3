@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.equiv_rw
+import category.equiv_functor.instances -- these make equiv_rw more powerful!
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.adapt_equiv true
@@ -43,11 +44,19 @@ begin
   exact a,
 end
 
+-- Verify that `equiv_rw` will rewrite under `equiv_functor` instances.
 example {α β : Type} (u : unique α) (e : α ≃ β) : β :=
 begin
   equiv_rw e at u,
   apply inhabited.default,
 end
+
+example {α β : Type} (p : equiv.perm α) (e : α ≃ β) : equiv.perm β :=
+begin
+  equiv_rw e at p,
+  exact p,
+end
+
 
 -- We can rewrite the goal under functors.
 example {α β : Type} (e : α ≃ β) (b : β) : option α :=
@@ -193,27 +202,13 @@ begin
   exact t.2,
 end
 
-/-- Transport through trivial families is the identity. -/
--- TODO find a home in mathlib!
-@[simp]
-lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*}
-  (y : β) (h : a = a') :
-  (@eq.rec α a (λ a, β) y a' h) = y :=
-begin
-  cases h,
-  refl,
-end
-
--- TODO move to data/equiv/basic
-@[simp]
-lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
-
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
--- (which isn't yet in this PR, so we only define the fields without assembling them)
 -- Observe that the next three declarations could easily be implemented by a tactic.
 
 attribute [ext] semigroup
 
+-- This has been automated in the `transport` branch,
+-- so we won't attempt to write a deriver handler until we join with that.
 def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
 begin
   intro S, fconstructor,
@@ -223,20 +218,25 @@ begin
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
 
--- Note this is purely formal, and will be provided by `equiv_functor` automatically.
-@[simps]
-def semigroup.map_equiv {α β : Type} (e : α ≃ β) : semigroup α ≃ semigroup β :=
-{ to_fun := semigroup.map e,
-  inv_fun := semigroup.map e.symm,
-  left_inv := by { intro x, funext, ext, dsimp [semigroup.map], simp, },
-  right_inv := by { intro x, funext, ext, dsimp [semigroup.map], simp, }, }
-
-lemma semigroup.map_id (α : Type) : semigroup.map_equiv (equiv.refl α) = equiv.refl (semigroup α) :=
+lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
 
-lemma semigroup.map_comp {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
-  (semigroup.map_equiv e).trans (semigroup.map_equiv f) = semigroup.map_equiv (e.trans f) :=
-by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
+lemma semigroup.map_map {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
+  semigroup.map (e.trans f) = (semigroup.map f) ∘ (semigroup.map e) :=
+by { ext, dsimp [semigroup.map], simp, }
+
+-- TODO create a derive handler for this
+instance : equiv_functor semigroup :=
+{ map := λ α β e, semigroup.map e,
+  id_map' := semigroup.id_map,
+  map_map' := λ α β γ e f, semigroup.map_map e f, }
+
+-- Verify that we can now use `equiv_rw` under `semigroup`:
+example {α : Type} [I : semigroup α] {β : Type} (e : α ≃ β) : semigroup β :=
+begin
+  equiv_rw e at I,
+  exact I,
+end
 
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid

@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.functor
+import category.equiv_functor
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -26,8 +26,7 @@ As an example, with `t = option α`, it will generate `functor.map_equiv option 
 This is achieved by generating a new synthetic goal `%%t ≃ _`,
 and calling `solve_by_elim` with an appropriate set of congruence lemmas.
 To avoid having to specify the relevant congruence lemmas by hand,
-we mostly rely on `functor.map_equiv` and `bifunctor.map_equiv`
-(and, in a future PR, `equiv_functor.map_equiv`, see below),
+we mostly rely on `equiv_functor.map_equiv` and `bifunctor.map_equiv`
 along with some structural congruence lemmas such as
 * `equiv.arrow_congr'`,
 * `equiv.subtype_equiv_of_subtype'`,
@@ -42,21 +41,9 @@ revert this, and then attempt to `generalize`, replacing all occurrences of `e x
 before `intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
 
 ## Future improvements
-While `equiv_rw` will rewrite under type-level functors (e.g. `option` and `list`),
-many constructions are only functorial with respect to equivalences
-(essentially, because of both positive and negative occurrences of the type being rewritten).
-At the moment, we only handle constructions of this form (e.g. `unique` or `ring`) by
-including explicit `equiv.*_congr` lemmas in the list provided to `solve_by_elim`.
-
-A (near) future PR will introduce `equiv_functor`,
-a typeclass for functions which are functorial with respect to equivalences,
-and use these instances rather than hard-coding the `congr` lemmas here.
-
-`equiv_functor` is not included in the initial implementation of `equiv_rw`, simply because
-the best way to construct an instance of `equiv_functor has_add` is to use `equiv_rw`!
-In fact, in a slightly more distant future PR I anticipate that
-`derive equiv_functor` should work on many examples, and
-we can incrementally bootstrap the strength of `equiv_rw`.
+In a future PR I anticipate that `derive equiv_functor` should work on many examples,
+(internally using `transport`, which is in turn based on `equiv_rw`)
+and we can incrementally bootstrap the strength of `equiv_rw`.
 
 An ambitious project might be to add `equiv_rw!`,
 a tactic which, when failing to find appropriate `equiv_functor` instances,
@@ -73,15 +60,10 @@ but this will wait for another subsequent PR.
 
 namespace tactic
 
-/-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
+/-- A list of lemmas used for constructing congruence equivalences. -/
 
--- TODO: This should not be a hard-coded list.
--- We could accommodate the remaining "non-structural" lemmas using
--- `equiv_functor` instances.
--- Moreover, these instances can typically be `derive`d.
-
--- (Scott): I have not incorporated `equiv_functor` as part of this PR,
--- as the best way to construct instances, either by hand or using `derive`, is to use this tactic!
+-- Although this looks 'hard-coded', in fact the lemma `equiv_functor.map_equiv`
+-- allows us to extend `equiv_rw` simply by constructing new instance so `equiv_functor`.
 
 -- TODO: We should also use `category_theory.functorial` and `category_theory.hygienic` instances.
 -- (example goal: we could rewrite along an isomorphism of rings (either as `R ≅ S` or `R ≃+* S`)
@@ -91,10 +73,8 @@ meta def equiv_congr_lemmas : tactic (list expr) :=
 do exprs ←
   [
   `equiv.of_iff,
-  -- These are functorial w.r.t equiv,
-  -- and so will be subsumed by `equiv_functor.map_equiv` in a subsequent PR.
-  -- Many more could be added, but will wait for that framework.
-  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
+  -- TODO decide what to do with this; it's an equiv_bifunctor?
+  `equiv.equiv_congr,
   -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
   -- but the pattern matcher will never see this.
   `equiv.arrow_congr',
@@ -112,8 +92,8 @@ do exprs ←
    `equiv.Pi_congr_left',
   -- Handles `sum` and `prod`, and many others:
   `bifunctor.map_equiv,
-  -- Handles `list`, `option`, and many others:
-  `functor.map_equiv,
+  -- Handles `list`, `option`, `unique`, and many others:
+  `equiv_functor.map_equiv,
   -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
   `equiv.refl,
   `iff.refl
@@ -240,9 +220,9 @@ with all occurrences of `h` in other hypotheses and the goal replaced with `e.sy
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under functors, so can turn
+`equiv_rw` will also try rewriting under (equiv-)functors, so can turn
 a hypothesis `h : list α` into `h : list β` or
-a goal `⊢ option α` into `⊢ option β`.
+a goal `⊢ unique α` into `⊢ unique β`.
 -/
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
 do e ← to_expr e,

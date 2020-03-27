@@ -133,7 +133,7 @@ begin
     congr, ext σ,
     rw [←mul_add ↑↑(sign σ)],
     congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i), prod_singleton, prod_singleton,
       prod_singleton, ←add_mul],
     refl },
@@ -142,10 +142,9 @@ begin
     rw [smul_eq_mul, mul_sum],
     congr, ext σ,
     rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i),
-      prod_singleton, prod_singleton, mul_assoc],
-    refl }
+      prod_singleton, prod_singleton, mul_assoc], }
 end
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) :=

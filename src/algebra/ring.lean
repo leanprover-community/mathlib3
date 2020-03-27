@@ -65,16 +65,27 @@ by split_ifs; refl
   (if P then a else b) * c = if P then a * c else b * c :=
 by split_ifs; refl
 
+-- We make `mul_ite` and `ite_mul` simp lemmas,
+-- but not `add_ite` or `ite_add`.
+-- The problem we're trying to avoid is dealing with
+-- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- in which `add_ite` followed by `sum_ite` would needlessly slice up
+-- the `f x` terms according to whether `P` holds at `x`.
+-- There doesn't appear to be a corresponding difficulty so far with
+-- `mul_ite` and `ite_mul`.
+attribute [simp] mul_ite ite_mul
+
 -- In this lemma and the next we need to use `congr` because
 -- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
 -- modifies the decidable instance.
+-- We expect in Lean 3.8 that this won't be necessary.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by { simp [mul_ite], congr }
+by { simp, congr }
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by { simp [ite_mul], congr }
+by { simp, congr }
 
 variable (α)
 

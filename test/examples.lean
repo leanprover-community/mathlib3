@@ -257,3 +257,5 @@ example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
 by simp [finset.filter_or]
 
 end
+
+open tactic

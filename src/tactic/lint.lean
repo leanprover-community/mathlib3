@@ -476,7 +476,7 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   As of 5 Mar 2020 the longest trace (for `is_add_hom`) takes 2900-3000 "heartbeats". -/
 @[linter, priority 1408] meta def linter.fails_quickly : linter :=
 { test := fails_quickly 3000,
-  no_errors_found := "No time-class searches timed out",
+  no_errors_found := "No type-class searches timed out",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }

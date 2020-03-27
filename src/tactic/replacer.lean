@@ -122,7 +122,7 @@ add_tactic_doc
 { name                     := "def_replacer",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.def_replacer_cmd],
-  tags                     := [] }
+  tags                     := ["environment", "renaming"] }
 
 meta def unprime : name → tactic name
 | nn@(name.mk_string s n) :=

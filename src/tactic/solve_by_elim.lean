@@ -61,8 +61,8 @@ Configuration options for `solve_by_elim`.
 
 * `accept : list expr → tactic unit` determines whether the current branch should be explored.
    At each step, before the lemmas are applied,
-   `accept` is passed the proof terms for the original goals
-   reported by `get_goals` when `solve_by_elim` started.
+   `accept` is passed the proof terms for the original goals,
+   as reported by `get_goals` when `solve_by_elim` started.
    These proof terms may be metavariables (if no progress has been made on that goal)
    or may contain metavariables at some leaf nodes 
    (if the goal has been partially solved by previous `apply` steps).

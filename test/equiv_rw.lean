@@ -204,6 +204,14 @@ begin
   refl,
 end
 
+@[simp]
+lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+
+@[simp]
+lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+@[simp]
+lemma eq_mpr_id {α β : Sort*} {h : α = β} {b : β} : eq.mpr (id h) b = eq.mpr h b := rfl
+
 -- TODO move to data/equiv/basic
 @[simp]
 lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
@@ -223,6 +231,17 @@ begin
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
 
+def semigroup.map' {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
+begin
+  intro S,
+  refine_struct { .. },
+  -- transport data fields using `equiv_rw`
+  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  -- transport axioms by simplifying, and applying the original axiom
+  { intros, dsimp, simp, apply S.mul_assoc, }
+end
+
+
 -- Note this is purely formal, and will be provided by `equiv_functor` automatically.
 @[simps]
 def semigroup.map_equiv {α β : Type} (e : α ≃ β) : semigroup α ≃ semigroup β :=
@@ -241,7 +260,130 @@ by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
-def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
+namespace tactic
+open tactic.interactive
+
+/--
+Given `s : S α` for some structure `S` depending on a type `α`,
+and an equivalence `e : α ≃ β`,
+produce an `S β`, by transporting data and axioms across `e`.
+-/
+meta def transport (s e : expr) : tactic expr :=
+do
+  gs ← get_goals,
+  `(%%α ≃ %%β) ← infer_type e, -- TODO complain
+  S ← infer_type s >>= (λ t, match t with
+  | expr.app S α' := pure S
+  | _ := failed -- TODO complain
+  end),
+  g ← to_expr ``(%%S %%β) >>= mk_meta_var,
+  set_goals [g],
+  seq `[refine_struct { .. }]
+  (do
+    propagate_tags $ (do
+    f ← get_current_field,
+    mk_mapp f [none, s] >>= note f none,
+    b ← target >>= is_prop,
+    if b then try (do
+      intros,
+      to_expr ``((%%e).symm.injective) >>= apply,
+      unfold_projs_target,
+      `[simp], -- TODO squeeze_simp here?
+      equiv_rw_hyp f e,
+      get_local f >>= apply
+      )
+    else try (do
+      equiv_rw_hyp f e,
+      get_local f >>= exact ))),
+  r ← instantiate_mvars g,
+  set_goals gs,
+  return r
+
+meta def find_hyp (p : expr) : tactic expr :=
+do
+  gs ← get_goals,
+  g ← mk_meta_var p,
+  set_goals [g],
+  assumption,
+  r ← instantiate_mvars g,
+  set_goals gs,
+  return r
+
+namespace interactive
+open lean.parser
+open interactive interactive.types
+open tactic
+
+local postfix `?`:9001 := optional
+
+meta def transport (s : parse texpr?) (e : parse $ (tk "with" *> ident)?) : tactic unit :=
+do
+  s ← match s with
+  | some s := to_expr s
+  | none := (do
+    S ← target >>= (λ t, match t with
+    | expr.app S α := pure S
+    | _ := fail "No object to transport specified, and target doesn't look like a parametrised type."
+    end),
+    to_expr ``(%%S _) >>= find_hyp <|> fail format!"No hypothesis found of the form: {S} _")
+  end,
+  (S, α) ← infer_type s >>= (λ t, match t with
+    | expr.app S α := pure (S, α)
+    | _ := fail format!"Object to transport doesn't look like a parametrised type: {s}"
+    end),
+  β ← target >>= (λ t, match t with
+  | expr.app S' β := if S' = S then pure β else fail format!"Target doesn't match expected type: {S} _"
+  | _ := fail format!"Target doesn't match expected type: {S} _"
+  end),
+  e ← match e with
+  | some e := get_local e
+  | none := to_expr ``(%%α ≃ %%β) >>= find_hyp <|> fail format!"No hypothesis found of the form: {α} ≃ {β}"
+  end,
+  tactic.transport s e >>= tactic.exact
+
+end interactive
+
+end tactic
+
+def add_monoid.map {α β : Type} (e : α ≃ β) (S : add_monoid α) : add_monoid β :=
+by transport.
+
+inductive mynat : Type
+| zero : mynat
+| succ : mynat → mynat
+
+def mynat_equiv : ℕ ≃ mynat :=
+{ to_fun := λ n, nat.rec_on n mynat.zero (λ n, mynat.succ),
+  inv_fun := λ n, mynat.rec_on n nat.zero (λ n, nat.succ),
+  left_inv := λ n, begin induction n, refl, exact congr_arg nat.succ n_ih, end,
+  right_inv := λ n, begin induction n, refl, exact congr_arg mynat.succ n_ih, end }
+
+@[simp] lemma mynat_equiv_apply_zero : mynat_equiv 0 = mynat.zero := rfl
+@[simp] lemma mynat_equiv_apply_succ (n : ℕ) :
+  mynat_equiv (n + 1) = mynat.succ (mynat_equiv n) := rfl
+@[simp] lemma mynat_equiv_symm_apply_zero : mynat_equiv.symm mynat.zero = 0:= rfl
+@[simp] lemma mynat_equiv_symm_apply_succ (n : mynat) :
+  mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
+
+instance add_monoid_mynat : add_monoid mynat := add_monoid.map mynat_equiv (by apply_instance)
+
+-- TODO these lemmas need to be automatically synthesised!
+lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
+begin
+  dsimp [add_monoid_mynat, add_monoid.map],
+  unfold_projs,
+  simp,
+end
+
+example :
+  (mynat.succ (mynat.succ mynat.zero)) + (mynat.succ mynat.zero) =
+    (mynat.succ (mynat.succ (mynat.succ mynat.zero))) :=
+by simp [mynat_add_def]
+
+example {α : Type} [ring α] {β : Type} (e : α ≃ β) : ring β :=
+by transport.
+
+def monoid.map_old {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
 begin
   intro S, fconstructor,
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
@@ -252,20 +394,23 @@ begin
     -- have mul_assoc := S.mul_assoc, equiv_rw e at mul_assoc, intros, dsimp, simp, apply mul_assoc,
     intros,
     apply e.symm.injective,
-    dsimp [(*)], simp,
+    unfold_projs,
+    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, to_fun_as_coe],
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     apply mul_assoc, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { intros,
-    apply e.symm.injective,
-    dsimp [(*)], simp,
     have one_mul := S.one_mul,
+    apply e.symm.injective,
+    unfold_projs,
+    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, to_fun_as_coe],
     equiv_rw e at one_mul,
     apply one_mul, },
   { intros,
     apply e.symm.injective,
-    dsimp [(*)], simp,
+    unfold_projs,
+    squeeze_simp,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     apply mul_one, },

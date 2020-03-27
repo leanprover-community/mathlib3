@@ -560,8 +560,6 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-open lattice
-
 @[to_additive]
 instance : has_le (submonoid M) := ⟨λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T⟩
 
@@ -1033,7 +1031,7 @@ open submonoid
 @[to_additive]
 theorem closure_range_of : closure (set.range $ @of α) = ⊤ :=
 begin
-  refine lattice.eq_top_iff.2 (λ x hx, _),
+  refine eq_top_iff.2 (λ x hx, _),
   induction x with hd tl ih,
   { from one_mem _ },
   { rw ← of_mul_eq_cons,

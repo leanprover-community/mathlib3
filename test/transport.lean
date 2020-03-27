@@ -1,6 +1,6 @@
 import tactic.transport
 
-def add_monoid.map {α β : Type} (e : α ≃ β) (S : add_monoid α) : add_monoid β :=
+def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semiring β :=
 by transport
 .
 
@@ -21,12 +21,12 @@ def mynat_equiv : ℕ ≃ mynat :=
 @[simp] lemma mynat_equiv_symm_apply_succ (n : mynat) :
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
-instance add_monoid_mynat : add_monoid mynat := add_monoid.map mynat_equiv (by apply_instance)
+instance semiring_mynat : semiring mynat := semiring.map mynat_equiv
 
--- TODO this lemma should be automatically synthesised!
+-- TODO synthesize?
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 begin
-  dsimp [add_monoid_mynat, add_monoid.map],
+  dsimp [semiring_mynat, semiring.map],
   unfold_projs,
   simp,
 end
@@ -37,6 +37,46 @@ example :
     (mynat.succ (mynat.succ (mynat.succ mynat.zero))) :=
 by simp [mynat_add_def]
 
-example {α : Type} [ring α] {β : Type} (e : α ≃ β) : ring β :=
-by transport
-.
+-- TODO synthesize?
+lemma mynat_zero_def : (0 : mynat) = mynat_equiv 0 :=
+begin
+  dsimp [semiring_mynat, semiring.map],
+  unfold_projs,
+  simp,
+end
+
+-- TODO synthesize?
+lemma mynat_one_def : (1 : mynat) = mynat_equiv 1 :=
+begin
+  dsimp [semiring_mynat, semiring.map],
+  unfold_projs,
+  simp,
+end
+
+-- TODO synthesize?
+lemma mynat_mul_def (a b : mynat) : a * b = mynat_equiv (mynat_equiv.symm a * mynat_equiv.symm b) :=
+begin
+  dsimp [semiring_mynat, semiring.map],
+  unfold_projs,
+  simp,
+end
+
+attribute [simp] mynat_zero_def mynat_one_def mynat_add_def mynat_mul_def
+
+-- Verify that we can do computations with the transported structure.
+example : (3 : mynat) + (7 : mynat) = (10 : mynat) :=
+begin
+  simp [bit0, bit1],
+end
+
+-- I suspect these next two will work if we merge #2207.
+
+-- example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
+-- begin
+--   simp [bit0, bit1],
+-- end
+
+-- example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
+-- begin
+--   simp [bit0, bit1],
+-- end

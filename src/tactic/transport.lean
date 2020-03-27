@@ -17,7 +17,8 @@ by transporting data and axioms across `e` using `equiv_rw`.
 meta def transport (s e : expr) : tactic expr :=
 do
   gs ← get_goals,
-  `(%%α ≃ %%β) ← infer_type e | format!"second argument to `transport` was not of the form `_ ≃ _`: {e}",
+  `(%%α ≃ %%β) ← infer_type e |
+    fail format!"second argument to `transport` was not of the form `_ ≃ _`: {e}",
   S ← infer_type s >>= (λ t, match t with
   | expr.app S α' := pure S
   | _ := fail format!"first argument to `transport` was not a parametrized type: {s}"

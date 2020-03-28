@@ -1,9 +1,4 @@
-import category_theory.category
-  category_theory.functor
-  category_theory.eq_to_hom
-  category_theory.single_obj
-  graph_theory.hedetniemi
-open category_theory
+import graph_theory.hedetniemi
 
 universes v u v₁ u₁
 
@@ -57,81 +52,6 @@ lemma comp_induction {C : Π {a b} (p : G.path a b), Sort*}
 
 end path
 open path
-
-/--
-We define a type synonym for `V`,
-thought of as a vertex in the particular graph G.
--/
--- This is perhaps badly named, as `a : paths G` actually says
--- "`a` is an object of the path category of `G`, i.e. a vertex of `G`"!
-
--- Possibly it will be safer to make this irreducible,
--- or possibly even an inductive type wrapping `V`.
-def paths {V : Type u} (G : multigraph.{v} V) := V
-
-instance path_category : category (paths G) :=
-{ hom := G.path,
-  id := @path.nil _ _,
-  comp := @comp _ _, }
-
-@[simp]
-lemma comp_as_comp {a b c : paths G} (p : a ⟶ b) (q : b ⟶ c) :
-  comp p q = p ≫ q := rfl
-@[simp]
-lemma nil_as_id (a : paths G) : path.nil G a = 𝟙 a := rfl
-
-section to_category
-
-variables {G} {C : Type u₁} [category.{v₁} C]
-  (f_obj : V → C)
-  (f_edge : Π {a b}, G.edge a b → (f_obj a ⟶ f_obj b))
-include G
-
-def to_hom : Π {a b} (p : G.path a b), (f_obj a ⟶ f_obj b)
-| _ _ (path.nil _ _) := 𝟙 _
-| _ _ (path.app p e) := to_hom p ≫ f_edge e
-
-@[simp]
-lemma to_hom.nil {a : paths G} : to_hom f_obj @f_edge (𝟙 a) = 𝟙 _ := rfl
-
-@[simp]
-lemma to_hom.app {a b c} (p : G.path a b) (e : G.edge b c) :
-  to_hom f_obj @f_edge (path.app p e) = to_hom f_obj @f_edge p ≫ f_edge e := rfl
-
-@[simp]
-lemma to_hom.of {a b} (e : G.edge a b) : to_hom f_obj @f_edge (of e) = f_edge e :=
-by { simp [of], }
-
-@[simp]
-lemma to_hom.comp : Π {a b c} (p : G.path a b) (q : G.path b c),
-  to_hom f_obj @f_edge (comp p q) = to_hom f_obj @f_edge p ≫ to_hom f_obj @f_edge q
-| _ _ _ p (path.nil _ _) := by simp
-| _ _ _ _ (path.app _ _) := by {rw [comp_app, to_hom.app, to_hom.app, to_hom.comp], simp}
-
-def to_category : (paths G) ⥤ C :=
-{ obj := f_obj,
-  map := λ a b p, to_hom f_obj @f_edge p,
-  map_comp' := λ _ _ _ _ _, to_hom.comp _ _ _ _ }
-
-lemma to_category.obj : (to_category f_obj @f_edge).obj = f_obj := rfl
-lemma to_category.map {a b} (p : G.path a b) :
-  (to_category f_obj @f_edge).map p = to_hom f_obj @f_edge p := rfl
-
-lemma to_category.unique {F : (paths G) ⥤ C}
-  (h_obj : ∀ a, F.obj a = f_obj a)
-  (h_edge : ∀ {a b} (e : G.edge a b),
-    F.map (of e) = eq_to_hom (h_obj a) ≫ f_edge e ≫ eq_to_hom (h_obj b).symm) :
-  F = to_category f_obj @f_edge :=
-category_theory.functor.ext h_obj $ begin
-  apply comp_induction,
-  { intro a,
-    simp },
-  { intros, rw [h_edge, to_category.map, to_hom.of] },
-  { intros a b c p q hp hq,
-    simp [hp, hq], }
-end
-
-end to_category
 
 namespace path
 

@@ -14,7 +14,7 @@ import linear_algebra.basis
 
 The following are equivalent for a module M over a ring R:
 1. Every increasing chain of submodule M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
-2. Every submodule is finitely-generated.
+2. Every submodule is finitely generated.
 
 A module satisfying these equivalent conditions is said to be a *Noetherian* R-module.
 A ring is a *Noetherian ring* if it is Noetherian as a module over itself.
@@ -23,15 +23,15 @@ A ring is a *Noetherian ring* if it is Noetherian as a module over itself.
 
 Let `R` be a ring and let `M` and `P` be `R`-modules. Let `N` be an `R`-submodule of `M`.
 
-* `fg N : Prop` is the assertion that `N` is finitely-generated as an `R`-module.
+* `fg N : Prop` is the assertion that `N` is finitely generated as an `R`-module.
 
 * `is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module. It is a class,
-  implemented as the predicate that all `R`-submodules of `M` are finitely-generated.
+  implemented as the predicate that all `R`-submodules of `M` are finitely generated.
 
 ## Main statements
 
 * `exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul` is Nakayama's lemma, in the following form:
-  if N is a finitely-generated submodule of an ambient R-module M and I is an ideal of R
+  if N is a finitely generated submodule of an ambient R-module M and I is an ideal of R
   such that N ⊆ IN, then there exists r ∈ 1 + I such that rN = 0.
 
 * `is_noetherian_iff_well_founded` is the theorem that an R-module M is Noetherian iff
@@ -55,6 +55,7 @@ open set
 namespace submodule
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
 
+/-- A submodule of `M` is finitely generated if it is the span of a finite subset of `M`. -/
 def fg (N : submodule R M) : Prop := ∃ S : finset M, submodule.span R ↑S = N
 
 theorem fg_def {N : submodule R M} :
@@ -181,6 +182,10 @@ end
 
 end submodule
 
+/-- 
+`is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module,
+implemented as the predicate that all `R`-submodules of `M` are finitely generated. 
+-/
 class is_noetherian (R M) [ring R] [add_comm_group M] [module R M] : Prop :=
 (noetherian : ∀ (s : submodule R M), s.fg)
 
@@ -354,6 +359,10 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
+/-- 
+A ring is Noetherian if it is Noetherian as a module over itself, 
+i.e. all its ideals are finitely generated.
+-/
 @[class] def is_noetherian_ring (R) [ring R] : Prop := is_noetherian R R
 
 instance is_noetherian_ring.to_is_noetherian {R : Type*} [ring R] :

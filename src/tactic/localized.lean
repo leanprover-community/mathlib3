@@ -127,7 +127,7 @@ add_tactic_doc
 { name                     := "localized notation",
   category                 := doc_category.cmd,
   decl_names               := [`localized_cmd, `open_locale_cmd],
-  tags                     := ["localized", "notation", "type classes"] }
+  tags                     := ["notation", "type classes"] }
 
 /-- Print all commands in a given notation namespace -/
 meta def print_localized_commands (ns : list name) : tactic unit :=

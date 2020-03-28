@@ -248,7 +248,7 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
-@[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
+@[to_additive] lemma prod_apply_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   s.prod (λ x, h (if p x then f x else g x)) =
   (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
@@ -263,6 +263,12 @@ calc s.prod (λ x, h (if p x then f x else g x))
   congr_arg2 _
     (prod_congr rfl (by simp {contextual := tt}))
     (prod_congr rfl (by simp {contextual := tt}))
+
+@[to_additive] lemma prod_ite {s : finset α}
+  {p : α → Prop} {hp : decidable_pred p} (f g : α → β) :
+  s.prod (λ x, if p x then f x else g x) =
+  (s.filter p).prod (λ x, f x) * (s.filter (λ x, ¬ p x)).prod (λ x, g x) :=
+by simp [prod_apply_ite _ _ (λ x, x)]
 
 @[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   s.prod (λ x, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
@@ -497,7 +503,7 @@ end
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
-by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
+by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
 
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
@@ -545,6 +551,11 @@ attribute [to_additive sum_smul'] prod_pow
   s.sum (λ a, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
+
+@[simp]
+lemma sum_boole {s : finset α} {p : α → Prop} [semiring β] {hp : decidable_pred p} :
+  s.sum (λ x, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
+by simp [sum_ite]
 
 lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
@@ -637,6 +648,15 @@ variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
 
+section comm_monoid
+variables [comm_monoid β]
+
+lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.prod (λ x, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
+by simp
+
+end comm_monoid
+
 section semiring
 variables [semiring β]
 
@@ -691,6 +711,15 @@ begin
       exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
+end
+
+lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
+  ∀ {s : finset α}, s.prod (λ i, x ^ (f i)) = x ^ (s.sum f) :=
+begin
+  apply finset.induction,
+  { simp },
+  { assume a s has H,
+    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
 end
 
 end comm_semiring
@@ -773,6 +802,27 @@ begin
   exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
 end
 
+lemma sum_lt_sum_of_subset [decidable_eq α]
+  (h : s₁ ⊆ s₂) {i : α} (hi : i ∈ s₂ \ s₁) (hpos : 0 < f i) (hnonneg : ∀ j ∈ s₂ \ s₁, 0 ≤ f j) :
+  s₁.sum f < s₂.sum f :=
+calc s₁.sum f < (insert i s₁).sum f :
+begin
+  simp only [mem_sdiff] at hi,
+  rw sum_insert hi.2,
+  exact lt_add_of_pos_left (finset.sum s₁ f) hpos,
+end
+... ≤ s₂.sum f :
+begin
+  simp only [mem_sdiff] at hi,
+  apply sum_le_sum_of_subset_of_nonneg,
+  { simp [finset.insert_subset, h, hi.1] },
+  { assume x hx h'x,
+    apply hnonneg x,
+    simp [mem_insert, not_or_distrib] at h'x,
+    rw mem_sdiff,
+    simp [hx, h'x] }
+end
+
 end ordered_cancel_comm_monoid
 
 section decidable_linear_ordered_cancel_comm_monoid
@@ -826,6 +876,23 @@ begin
 end
 
 end linear_ordered_comm_ring
+
+section canonically_ordered_comm_semiring
+
+variables [decidable_eq α] [canonically_ordered_comm_semiring β]
+
+lemma prod_le_prod' {s : finset α} {f g : α → β} (h : ∀ i ∈ s, f i ≤ g i) :
+  s.prod f ≤ s.prod g :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp },
+  { rw [finset.prod_insert has, finset.prod_insert has],
+    apply canonically_ordered_semiring.mul_le_mul,
+    { exact h _ (finset.mem_insert_self a s) },
+    { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
+end
+
+end canonically_ordered_comm_semiring
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

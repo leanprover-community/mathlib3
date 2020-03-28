@@ -137,27 +137,25 @@ namespace path
 
 variable {G}
 
--- Would probably be more sensible to define length directly
-def length {a b} (p : G.path a b) : ℕ :=
-@to_hom _ _ (single_obj $ multiplicative ℕ) _ (λ _, single_obj.star _)
-  (λ _ _ _, (1:ℕ)) _ _ p
+def length : Π {a b}, G.path a b → ℕ
+| _ _ (path.nil _ _) := 0
+| _ _ (path.app p _) := length p + 1
 
-lemma length_def {a b} (p : G.path a b) : length p =
-@to_hom _ _ (single_obj $ multiplicative ℕ) _ (λ _, single_obj.star _)
-  (λ _ _ _, (1:ℕ)) _ _ p := rfl
+lemma length_nil {a : V} : length (path.nil G a) = 0 :=
+rfl
 
 lemma length_comp {a b c} (p : G.path a b) (q : G.path b c) :
   length (comp p q) = length p + length q :=
-by { rw [length_def, to_hom.comp, add_comm], refl }
-
--- Why is this not rfl when #reduce lenth (@path.nil _ G a) gives 0?
-lemma length_nil {a : V} : length (@path.nil _ G a) = (0 : ℕ) :=
-by {rw [←add_left_inj (length $ path.nil _ _), ←length_comp], refl }
+begin
+  induction q,
+  { refl, },
+  { dsimp [comp, length], erw q_ih, simp, } -- This `erw` is yucky, let's fix.
+end
 
 lemma length_of {a b} (e : G.edge a b) : length (of e) = 1 := rfl
 
 lemma length_app {a b c} (p : G.path a b) (e : G.edge b c) :
-  length (path.app p e) = length p + 1 := add_comm _ _
+  length (path.app p e) = length p + 1 := rfl
 
 end path
 

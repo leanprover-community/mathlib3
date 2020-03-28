@@ -149,6 +149,13 @@ begin
   exact s.1,
 end
 
+example {α β : Type} (e : α ≃ β) (b : β) : α × (ℕ ⊕ ℕ) :=
+begin
+  have e' : α × (ℕ ⊕ ℕ) ≃ _ := by equiv_rw_type e,
+  apply e'.inv_fun,
+  exact (b, sum.inl 0)
+end
+
 example {α β : Type} (e : α ≃ β) (P : α → Prop) (h : { a // P a }) : β :=
 begin
   equiv_rw e at h,

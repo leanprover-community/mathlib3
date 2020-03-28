@@ -122,13 +122,13 @@ do exprs ←
 
 declare_trace equiv_rw_type
 
-/-- Implementation of `equiv_rw_type`, using `solve_by_elim`. -/
-meta def equiv_rw_type_core (eq ty : expr) : tactic expr :=
+/--
+Implementation of `equiv_rw_type`, using `solve_by_elim`.
+Expects a goal of the form `t ≃ _`,
+and tries to solve it using `eq : α ≃ β` and congruence lemmas.
+-/
+meta def equiv_rw_type_core (eq : expr) : tactic unit :=
 do
-  -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
-  initial_goals ← get_goals,
-  g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
-  set_goals [g],
   -- Assemble the relevant lemmas.
   equiv_congr_lemmas ← equiv_congr_lemmas,
   /-
@@ -165,11 +165,7 @@ do
       when_tracing `equiv_rw_type (do
         gs ← get_goals,
         gs ← gs.mmap (λ g, infer_type g >>= pp),
-        trace format!"Attempting to adapt to {gs}"))
-  },
-  set_goals initial_goals,
-  return g
-
+        trace format!"Attempting to adapt to {gs}")) }
 
 /--
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
@@ -183,7 +179,16 @@ do
     eq_ty_pp ← infer_type eq >>= pp,
     trace format!"Attempting to rewrite the type `{ty_pp}` using `{eq_pp} : {eq_ty_pp}`."),
   `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
-  equiv_rw_type_core eq ty
+  -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
+  initial_goals ← get_goals,
+  g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
+  set_goals [g],
+  -- Now call `equiv_rw_type_core` to actually do the work, then restore the original goals.
+  equiv_rw_type_core eq,
+  set_goals initial_goals,
+  -- Finally, we simplify the resulting equivalence,
+  -- to compress away some `map_equiv equiv.refl` subexpressions.
+  simplify_term g ff
 
 /--
 Attempt to replace the hypothesis with name `x`
@@ -225,7 +230,6 @@ do
 
 end tactic
 
-
 namespace tactic.interactive
 open lean.parser
 open interactive interactive.types
@@ -248,9 +252,25 @@ a goal `⊢ option α` into `⊢ option β`.
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
 do e ← to_expr e,
    match loc with
-   | (some hyp) := tactic.equiv_rw_hyp hyp e
-   | none := tactic.equiv_rw_target e
+   | (some hyp) := equiv_rw_hyp hyp e
+   | none := equiv_rw_target e
    end
+
+/--
+Solve a goal of the form `t ≃ _`,
+by constructing an equivalence from `e : α ≃ β`.
+This is the same equivalence that `equiv_rw` would use to rewrite a term of type `t`.
+
+A typical usage might be:
+```
+have e' : option α ≃ option β := by equiv_rw_type e
+```
+-/
+meta def equiv_rw_type (e : parse texpr) : itactic :=
+do
+ `(%%t ≃ _) ← target | fail "`equiv_rw_type` solves goals of the form `t ≃ _`.",
+ e ← to_expr e,
+ tactic.equiv_rw_type e t >>= tactic.exact
 
 add_tactic_doc
 { name        := "equiv_rw",

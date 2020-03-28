@@ -260,6 +260,12 @@ do e ← to_expr e,
    | none := equiv_rw_target e cfg
    end
 
+add_tactic_doc
+{ name        := "equiv_rw",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.equiv_rw],
+  tags        := ["rewriting", "equiv", "transport"] }
+
 /--
 Solve a goal of the form `t ≃ _`,
 by constructing an equivalence from `e : α ≃ β`.
@@ -277,9 +283,9 @@ do
  tactic.equiv_rw_type e t cfg >>= tactic.exact
 
 add_tactic_doc
-{ name        := "equiv_rw",
+{ name        := "equiv_rw_type",
   category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.equiv_rw, `tactic.interactive.equiv_rw_type],
+  decl_names  := [`tactic.interactive.equiv_rw_type],
   tags        := ["rewriting", "equiv", "transport"] }
 
 end tactic.interactive

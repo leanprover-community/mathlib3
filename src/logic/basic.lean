@@ -66,6 +66,45 @@ theorem coe_sort_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 
+/--
+Many structures such as bundled morphisms coerce to functions so that you can
+transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
+then you can write `e a` and this is elaborated as `⇑e a`.This type of
+coercion is implemented using the `has_coe_to_fun`type class. There are two
+important considerations:
+
+1. If a type coerces to another type which in turn coerces to a function,
+then it **must** implement `has_coe_to_fun` directly:
+```lean
+structure sparkling_equiv (α β) extends α ≃ β
+
+-- if we add a `has_coe` instance,
+instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
+⟨sparkling_equiv.to_equiv⟩
+
+-- then a `has_coe_to_fun` instance **must** be added as well:
+instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
+⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
+```
+
+(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
+simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
+often causes loops in the simplifier.)
+
+2. The `has_coe_to_fun` instance **must** not be definitionally equal to
+iterated or transitive coercions.
+```lean
+instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
+-- DO NOT USE COERCIONS HERE, not `⇑↑f`, not `⇑f`, use `f.to_equiv.to_fun` as above:
+⟨λ _, α → β, λ f, f⟩
+```
+
+(Rationale: Lean's unifier is very clever and manages to unify `coe_fn_trans`
+with such instances that are built from coercions. Hence `⇑e a` will not be
+in simp-normal form.)
+-/
+library_note "function coercion"
+
 @[simp] theorem coe_sort_coe_base
   {α β} [has_coe α β] [has_coe_to_sort β]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl

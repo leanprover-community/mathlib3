@@ -5,6 +5,9 @@ set -x
 
 lean_version="$(sed '/^lean_version/!d;s/.*"\(.*\)".*/\1/' leanpkg.toml)"
 
+# Note that since update_nolints.sh runs before this script, 
+# git_hash could refer to that "update nolints" commit,
+# and thus we might be building docs for a future commit
 git_hash="$(git log -1 --pretty=format:%h)"
 git clone https://github.com/leanprover-community/doc-gen.git
 cd doc-gen
@@ -14,6 +17,12 @@ sed -i "s/rev = \"\S*\"/rev = \"$git_hash\"/" leanpkg.toml
 
 echo -e "builtin_path\npath ./src\npath ../src" > leanpkg.path
 git clone "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs.git"
+
+# skip if docs for this commit have already been generated
+if [[ "$(git log -1 --pretty=format:%s)" == *"$git_hash" ]]; then
+  exit 0
+fi
+
 rm -rf mathlib_docs/docs/
 
 # Force doc_gen project to match the Lean version used in CI.

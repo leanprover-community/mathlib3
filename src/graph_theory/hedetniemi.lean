@@ -23,6 +23,10 @@ def directed_multigraph.vertices {V : Type u} (G : directed_multigraph V) := V
 structure multigraph (V : Type u) extends directed_multigraph.{v} V :=
 (inv : Π (x y), edge x y ≃ edge y x)
 
+def multigraph_of_edges {n : ℕ} (e : list (fin n × fin n)) : multigraph (fin n) :=
+{ edge := λ x y, fin (e.countp (λ p, p = (x, y) ∨ p = (y, x))),
+  inv := λ x y, by { convert equiv.refl _, funext, rw or_comm, } }
+
 structure directed_graph (V : Type u) extends directed_multigraph.{0} V.
 
 def directed_graph.vertices {V : Type u} (G : directed_graph V) := V

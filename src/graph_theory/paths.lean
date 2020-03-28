@@ -63,10 +63,6 @@ variables (H : multigraph.{v} V)
 def is_Eulerian : Prop :=
 ∃ {x : V} (p : tour H.to_directed_multigraph x), p.is_Eulerian
 
-def multigraph_of_edges {n : ℕ} (e : multiset (fin n × fin n)) : multigraph (fin n) :=
-{ edge := λ x y, fin (e.countp (λ p, p = (x, y) ∨ p = (y, x))),
-  inv := λ x y, by { convert equiv.refl _, funext, rw or_comm, } }
-
 /--
 I thought about defining an inductive type
 ```
@@ -79,7 +75,7 @@ inductive Konigsberg
 but it was too horrible to contemplate.
 -/
 def KonigsbergBridges : multigraph (fin 4) :=
-multigraph_of_edges (quot.mk _ [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)])
+multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 
 def KonigsbergBridgesProblem : Prop :=
 ¬ is_Eulerian KonigsbergBridges

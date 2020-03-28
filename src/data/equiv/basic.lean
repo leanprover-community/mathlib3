@@ -219,6 +219,13 @@ protected def ulift {α : Type u} : ulift α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- equivalence of propositions is the same as iff -/
+def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
+{ to_fun := h.mp,
+  inv_fun := h.mpr,
+  left_inv := λ x, rfl,
+  right_inv := λ y, rfl }
+
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,

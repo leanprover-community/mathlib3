@@ -20,16 +20,16 @@ structure directed_multigraph (V : Type u) :=
 
 def directed_multigraph.vertices {V : Type u} (G : directed_multigraph V) := V
 
-structure multigraph (V : Type u) extends directed_multigraph V :=
+structure multigraph (V : Type u) extends directed_multigraph.{v} V :=
 (inv : Π (x y), edge x y ≃ edge y x)
 
 structure directed_graph (V : Type u) extends directed_multigraph.{0} V.
 
 def directed_graph.vertices {V : Type u} (G : directed_graph V) := V
 
-structure graph (V : Type u) extends directed_graph V, multigraph V :=
+structure graph (V : Type u) extends directed_graph V, multigraph.{0} V :=
 (symm {} : symmetric edge)
-(inv := λ x y, sorry)
+(inv := λ x y, equiv.of_iff ⟨@symm _ _, @symm _ _⟩)
 
 notation x `~[`G`]` y := G.edge x y
 

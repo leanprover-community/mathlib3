@@ -48,6 +48,14 @@ lemma map_equiv_apply (h : α ≃ β) (x : f α) :
 lemma map_equiv_symm_apply (h : α ≃ β) (y : f β) :
   (map_equiv f h : f α ≃ f β).symm y = map h.symm y := rfl
 
+@[simp]
+lemma map_equiv_refl : map_equiv f (equiv.refl α) = equiv.refl (f α) :=
+begin
+  ext x,
+  simp only [map_equiv_apply, refl_apply],
+  exact is_lawful_functor.id_map x,
+end
+
 end functor
 
 namespace bifunctor
@@ -70,5 +78,13 @@ lemma map_equiv_apply (h : α ≃ β) (h' : α' ≃ β') (x : F α α') :
 @[simp]
 lemma map_equiv_symm_apply (h : α ≃ β) (h' : α' ≃ β') (y : F β β') :
   (map_equiv F h h' : F α α' ≃ F β β').symm y = bimap h.symm h'.symm y := rfl
+
+@[simp]
+lemma map_equiv_refl_refl : map_equiv F (equiv.refl α) (equiv.refl α') = equiv.refl (F α α') :=
+begin
+  ext x,
+  simp only [map_equiv_apply, refl_apply],
+  exact is_lawful_bifunctor.id_bimap x,
+end
 
 end bifunctor

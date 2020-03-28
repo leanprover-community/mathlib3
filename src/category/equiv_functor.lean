@@ -29,13 +29,13 @@ this function is part of an equivalence, provided by `equiv_functor.map_equiv`.
 -/
 class equiv_functor (f : Type u₀ → Type u₁) :=
 (map : Π {α β}, (α ≃ β) → (f α → f β))
-(id_map' : Π α, map (equiv.refl α) = @id (f α) . obviously)
-(map_map' : Π {α β γ} (k : α ≃ β) (h : β ≃ γ),
+(map_refl' : Π α, map (equiv.refl α) = @id (f α) . obviously)
+(map_trans' : Π {α β γ} (k : α ≃ β) (h : β ≃ γ),
   map (k.trans h) = (map h) ∘ (map k) . obviously)
 
-restate_axiom equiv_functor.id_map'
-restate_axiom equiv_functor.map_map'
-attribute [simp] equiv_functor.id_map
+restate_axiom equiv_functor.map_refl'
+restate_axiom equiv_functor.map_trans'
+attribute [simp] equiv_functor.map_refl
 
 namespace equiv_functor
 
@@ -47,8 +47,8 @@ def map_equiv :
   f α ≃ f β :=
 { to_fun := equiv_functor.map e,
   inv_fun := equiv_functor.map e.symm,
-  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_map f e e.symm) x).symm, simp, end,
-  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_map f e.symm e) y).symm, simp, end, }
+  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_trans f e e.symm) x).symm, simp, end,
+  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_trans f e.symm e) y).symm, simp, end, }
 
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
@@ -61,7 +61,7 @@ end
 instance of_is_lawful_functor
   (f : Type u₀ → Type u₁) [functor f] [is_lawful_functor f] : equiv_functor f :=
 { map := λ α β e, functor.map e,
-  id_map' := λ α, by { ext, apply is_lawful_functor.id_map, },
-  map_map' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
+  map_refl' := λ α, by { ext, apply is_lawful_functor.id_map, },
+  map_trans' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
 
 end equiv_functor

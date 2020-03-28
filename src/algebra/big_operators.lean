@@ -713,6 +713,15 @@ begin
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
 
+lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
+  ∀ {s : finset α}, s.prod (λ i, x ^ (f i)) = x ^ (s.sum f) :=
+begin
+  apply finset.induction,
+  { simp },
+  { assume a s has H,
+    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
+end
+
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/
@@ -793,6 +802,27 @@ begin
   exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
 end
 
+lemma sum_lt_sum_of_subset [decidable_eq α]
+  (h : s₁ ⊆ s₂) {i : α} (hi : i ∈ s₂ \ s₁) (hpos : 0 < f i) (hnonneg : ∀ j ∈ s₂ \ s₁, 0 ≤ f j) :
+  s₁.sum f < s₂.sum f :=
+calc s₁.sum f < (insert i s₁).sum f :
+begin
+  simp only [mem_sdiff] at hi,
+  rw sum_insert hi.2,
+  exact lt_add_of_pos_left (finset.sum s₁ f) hpos,
+end
+... ≤ s₂.sum f :
+begin
+  simp only [mem_sdiff] at hi,
+  apply sum_le_sum_of_subset_of_nonneg,
+  { simp [finset.insert_subset, h, hi.1] },
+  { assume x hx h'x,
+    apply hnonneg x,
+    simp [mem_insert, not_or_distrib] at h'x,
+    rw mem_sdiff,
+    simp [hx, h'x] }
+end
+
 end ordered_cancel_comm_monoid
 
 section decidable_linear_ordered_cancel_comm_monoid
@@ -846,6 +876,23 @@ begin
 end
 
 end linear_ordered_comm_ring
+
+section canonically_ordered_comm_semiring
+
+variables [decidable_eq α] [canonically_ordered_comm_semiring β]
+
+lemma prod_le_prod' {s : finset α} {f g : α → β} (h : ∀ i ∈ s, f i ≤ g i) :
+  s.prod f ≤ s.prod g :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp },
+  { rw [finset.prod_insert has, finset.prod_insert has],
+    apply canonically_ordered_semiring.mul_le_mul,
+    { exact h _ (finset.mem_insert_self a s) },
+    { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
+end
+
+end canonically_ordered_comm_semiring
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

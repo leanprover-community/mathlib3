@@ -13,7 +13,7 @@ Yaroslav Shitov. COUNTEREXAMPLES TO HEDETNIEMI’S CONJECTURE.
 
 universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
 
-set_option old_structure_cmd true
+-- set_option old_structure_cmd true
 
 structure directed_multigraph (V : Type u) :=
 (edge : V → V → Sort v)
@@ -25,15 +25,19 @@ structure multigraph (V : Type u) extends directed_multigraph.{v} V :=
 
 def multigraph_of_edges {n : ℕ} (e : list (fin n × fin n)) : multigraph (fin n) :=
 { edge := λ x y, fin (e.countp (λ p, p = (x, y) ∨ p = (y, x))),
-  inv := λ x y, by { convert equiv.refl _, funext, rw or_comm, } }
+  inv := λ x y, by { dsimp, convert equiv.refl _, funext, rw or_comm, } }
 
 structure directed_graph (V : Type u) extends directed_multigraph.{0} V.
 
 def directed_graph.vertices {V : Type u} (G : directed_graph V) := V
 
-structure graph (V : Type u) extends directed_graph V, multigraph.{0} V :=
+structure graph (V : Type u) extends multigraph.{0} V :=
 (symm {} : symmetric edge)
 (inv := λ x y, equiv.of_iff ⟨@symm _ _, @symm _ _⟩)
+
+def graph_of_edges {n : ℕ} (e : list (fin n × fin n)) : graph (fin n) :=
+{ edge := λ x y, (x, y) ∈ e ∨ (y, x) ∈ e,
+  symm := λ x y h, by { dsimp, rw [or_comm], apply h, } }
 
 notation x `~[`G`]` y := G.edge x y
 
@@ -108,12 +112,12 @@ end
 def ihom : graph (V₁ → V₂) :=
 { edge := assume f g, ∀ ⦃x y⦄, (x ~[G₁] y) → (f x ~[G₂] g y),
   symm := assume f g h x y e,
-          show g x ~[G₂] f y, from G₂.symm $ h e.symm }
+          show g x ~[G₂] f y, from G₂.symm $ h (G₁.symm e) }
 
 /-- The product in the category of graphs. -/
 def prod : graph (V₁ × V₂) :=
 { edge := assume p q, (p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2),
-  symm := assume p q ⟨e₁, e₂⟩, ⟨e₁.symm, e₂.symm⟩ }
+  symm := assume p q ⟨e₁, e₂⟩, ⟨G₁.symm e₁, G₂.symm e₂⟩ }
 
 def prod.fst : hom (G₁.prod G₂) G₁ :=
 { to_fun := λ p, p.1 }
@@ -292,7 +296,7 @@ chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn hm
 
 def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
 { edge := assume x y, f x ~[G₂] f y,
-  symm := assume x y e, e.symm }
+  symm := assume x y e, G₂.symm e }
 
 def closed_neighbourhood (G : graph V) (x : V) :=
 { y // y = x ∨ (y ~[G] x) }

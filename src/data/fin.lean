@@ -100,7 +100,7 @@ attribute [simp] val_zero
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
-lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
+protected lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
   (H : ∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) : f == g :=
 by tidy
 

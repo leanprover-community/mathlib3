@@ -552,7 +552,7 @@ by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..submonoid.to_monoid S}
+{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..S.to_monoid}
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]

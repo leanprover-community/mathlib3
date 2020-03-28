@@ -15,17 +15,21 @@ universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
 
 set_option old_structure_cmd true
 
-structure multigraph (V : Type u) :=
+structure directed_multigraph (V : Type u) :=
 (edge : V → V → Sort v)
 
-def multigraph.vertices {V : Type u} (G : multigraph V) := V
+def directed_multigraph.vertices {V : Type u} (G : directed_multigraph V) := V
 
-structure directed_graph (V : Type u) extends multigraph.{0} V.
+structure multigraph (V : Type u) extends directed_multigraph V :=
+(inv : Π (x y), edge x y ≃ edge y x)
+
+structure directed_graph (V : Type u) extends directed_multigraph.{0} V.
 
 def directed_graph.vertices {V : Type u} (G : directed_graph V) := V
 
-structure graph (V : Type u) extends directed_graph V :=
+structure graph (V : Type u) extends directed_graph V, multigraph V :=
 (symm {} : symmetric edge)
+(inv := λ x y, sorry)
 
 notation x `~[`G`]` y := G.edge x y
 
@@ -47,8 +51,8 @@ def is_loopless (G : graph V) : Prop :=
 ∀ ⦃x⦄, ¬ (x ~[G] x)
 
 def complete (V : Type u) : graph V :=
-{ edge := assume x y, x ≠ y,
-  symm := assume x y h, h.symm }
+{ edge := λ x y, x ≠ y,
+  symm := λ x y, sorry } -- oops,
 
 lemma complete_is_loopless (V : Type u) :
   (complete V).is_loopless :=

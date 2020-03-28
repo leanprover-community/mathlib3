@@ -279,7 +279,7 @@ do
 add_tactic_doc
 { name        := "equiv_rw",
   category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.equiv_rw],
+  decl_names  := [`tactic.interactive.equiv_rw, `tactic.interactive.equiv_rw_type],
   tags        := ["rewriting", "equiv", "transport"] }
 
 end tactic.interactive

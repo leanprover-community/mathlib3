@@ -52,7 +52,7 @@ def is_loopless (G : graph V) : Prop :=
 
 def complete (V : Type u) : graph V :=
 { edge := λ x y, x ≠ y,
-  symm := λ x y, sorry } -- oops,
+  symm := assume x y h, h.symm }
 
 local notation `K_` n := complete (fin n)
 

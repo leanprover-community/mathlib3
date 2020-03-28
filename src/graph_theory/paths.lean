@@ -65,7 +65,7 @@ def is_Eulerian : Prop :=
 
 def multigraph_of_edges {n : ℕ} (e : multiset (fin n × fin n)) : multigraph (fin n) :=
 { edge := λ x y, fin (e.countp (λ p, p = (x, y) ∨ p = (y, x))),
-  inv := sorry, }
+  inv := λ x y, by { convert equiv.refl _, funext, rw or_comm, } }
 
 /--
 I thought about defining an inductive type

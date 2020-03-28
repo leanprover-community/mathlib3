@@ -122,12 +122,15 @@ do exprs ←
 
 declare_trace equiv_rw_type
 
+structure equiv_rw_cfg :=
+(max_steps : ℕ := 10)
+
 /--
 Implementation of `equiv_rw_type`, using `solve_by_elim`.
 Expects a goal of the form `t ≃ _`,
 and tries to solve it using `eq : α ≃ β` and congruence lemmas.
 -/
-meta def equiv_rw_type_core (eq : expr) : tactic unit :=
+meta def equiv_rw_type_core (eq : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
   -- Assemble the relevant lemmas.
   equiv_congr_lemmas ← equiv_congr_lemmas,
@@ -147,8 +150,7 @@ do
     use_symmetry := false,
     use_exfalso := false,
     lemmas := some (eq :: equiv_congr_lemmas),
-    -- TODO decide an appropriate upper bound on search depth.
-    max_steps := 6,
+    max_steps := cfg.max_steps,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
@@ -171,7 +173,7 @@ do
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
 returning a new equivalence `t ≃ t'`.
 -/
-meta def equiv_rw_type (eq : expr) (ty : expr) : tactic expr :=
+meta def equiv_rw_type (eq : expr) (ty : expr) (cfg : equiv_rw_cfg) : tactic expr :=
 do
   when_tracing `equiv_rw_type (do
     ty_pp ← pp ty,
@@ -184,7 +186,7 @@ do
   g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
   set_goals [g],
   -- Now call `equiv_rw_type_core` to actually do the work, then restore the original goals.
-  equiv_rw_type_core eq,
+  equiv_rw_type_core eq cfg,
   set_goals initial_goals,
   -- Finally, we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
@@ -194,13 +196,12 @@ do
 Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
-meta def equiv_rw_hyp : Π (x : name) (e : expr), tactic unit
-| x e :=
+meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
   x' ← get_local x,
   x_ty ← infer_type x',
   -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`.
-  e ← equiv_rw_type e x_ty,
+  e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
   h ← assertv_fresh eq prf,
@@ -220,10 +221,10 @@ do
   skip
 
 /-- Rewrite the goal using an equiv `e`. -/
-meta def equiv_rw_target (e : expr) : tactic unit :=
+meta def equiv_rw_target (e : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
   t ← target,
-  e ← equiv_rw_type e t,
+  e ← equiv_rw_type e t cfg,
   s ← to_expr ``(equiv.inv_fun %%e),
   tactic.eapply s,
   skip
@@ -248,12 +249,15 @@ In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `appl
 `equiv_rw` will also try rewriting under functors, so can turn
 a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ option α` into `⊢ option β`.
+
+The maximum search depth for rewriting in subexpressions is controlled by
+`equiv_rw e {max_steps := n}`.
 -/
-meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
+meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) : itactic :=
 do e ← to_expr e,
    match loc with
-   | (some hyp) := equiv_rw_hyp hyp e
-   | none := equiv_rw_target e
+   | (some hyp) := equiv_rw_hyp hyp e cfg
+   | none := equiv_rw_target e cfg
    end
 
 /--
@@ -266,11 +270,11 @@ A typical usage might be:
 have e' : option α ≃ option β := by equiv_rw_type e
 ```
 -/
-meta def equiv_rw_type (e : parse texpr) : itactic :=
+meta def equiv_rw_type (e : parse texpr) (cfg : equiv_rw_cfg := {}) : itactic :=
 do
  `(%%t ≃ _) ← target | fail "`equiv_rw_type` solves goals of the form `t ≃ _`.",
  e ← to_expr e,
- tactic.equiv_rw_type e t >>= tactic.exact
+ tactic.equiv_rw_type e t cfg >>= tactic.exact
 
 add_tactic_doc
 { name        := "equiv_rw",

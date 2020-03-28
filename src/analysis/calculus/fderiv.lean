@@ -23,7 +23,11 @@ Finally,
 
   `has_strict_fderiv_at f f' x`
 
-means that `f : E → F` has derivative `f' : E →L[𝕜] F` in the sense of strict differentiability.
+means that `f : E → F` has derivative `f' : E →L[𝕜] F` in the sense of strict differentiability,
+i.e., `f y - f z - f'(y - z) = o(y - z)` as `y, z → x`. This notion is used in the inverse
+function theorem, and is defined here only to avoid proving theorems like
+`is_bounded_bilinear_map.has_fderiv_at` twice: first for `has_fderiv_at`, then for
+`has_strict_fderiv_at`.
 
 ## Main results
 
@@ -726,9 +730,9 @@ There are currently two variants of these in mathlib, the bundled version
 (named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
 predicate `is_bounded_linear_map`). We give statements for both versions. -/
 
-protected theorem continuous_linear_map.has_strict_fderiv_at (f : E →L[𝕜] F) {x : E} :
-  has_strict_fderiv_at f f x :=
-(is_o_zero _ _).congr_left $ λ x, by simp only [f.map_sub, sub_self]
+protected theorem continuous_linear_map.has_strict_fderiv_at {x : E} :
+  has_strict_fderiv_at e e x :=
+(is_o_zero _ _).congr_left $ λ x, by simp only [e.map_sub, sub_self]
 
 protected lemma continuous_linear_map.has_fderiv_at_filter :
   has_fderiv_at_filter e e x L :=

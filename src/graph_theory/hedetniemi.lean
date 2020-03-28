@@ -329,13 +329,10 @@ def robust_classes {W : Type*} [fintype W] (G : graph V) (v : V)
 finset.univ.filter $ λ w, is_robust G v w (Φ ⁻¹' {w})
 
 /-- Claim 2. -/
-lemma some_bound {W : Type*} {n c k : ℕ} [fintype V] [fintype W] (G : graph V)
+def statement_of_Claim2 {W : Type*} {n c k : ℕ} [fintype V] [fintype W] (G : graph V)
   (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited)
-  (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :
-  ∃ v, (robust_classes G v Φ).card + k ≥ c :=
-begin
-  sorry
-end
+  (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :=
+  ∃ v, (robust_classes G v Φ).card + k ≥ c
 
 def cyclic (n : ℕ+) : graph (zmod n) :=
 { edge := assume x y, x = y + 1 ∨ y = x + 1,
@@ -348,14 +345,9 @@ structure girth (G : graph V) (n : ℕ+) : Prop :=
 (cyc_exists : nonempty (cycle n G))
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
-theorem erdos (χ g : ℕ) :
+def statement_of_erdos (χ g : ℕ) :=
   ∃ {V : Type} [fintype V] (G : graph V) (k : ℕ) (n : ℕ+),
   chromatic_number G k ∧ χ < k ∧
-  girth G n ∧ g < n:=
-begin
-  sorry
-end
-
-
+  girth G n ∧ g < n
 
 end graph

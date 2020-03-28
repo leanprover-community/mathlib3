@@ -130,6 +130,9 @@ local attribute [reducible] CommRing
 
 instance : has_coe_to_sort CommRing := infer_instance -- short-circuit type class inference
 
+-- TODO install this lemma everywhere else!
+@[simp] lemma coe_of (R : Type u) [comm_ring R] : (CommRing.of R : Type u) = R := rfl
+
 instance (R : CommRing) : comm_ring R := R.str
 
 instance : concrete_category CommRing := infer_instance -- short-circuit type class inference

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 
 import category_theory.functor
+import category_theory.isomorphism
 
 /-!
 # Unbundled functors, as a typeclass decorating the object-level function.
@@ -30,12 +31,31 @@ attribute [simp] functorial.map_id
 restate_axiom functorial.map_comp'
 attribute [simp] functorial.map_comp
 
+section
+variables (F : C → D) [functorial.{v₁ v₂} F]
 /--
 If `F : C → D` (just a function) has `[functorial F]`,
-we can write `map F f  : F X ⟶ F Y` for the action of `F` on a morphism `f : X ⟶ Y`.
+we can write `map F f : F X ⟶ F Y` for the action of `F` on a morphism `f : X ⟶ Y`.
 -/
-def map (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ⟶ Y) : F X ⟶ F Y :=
+def map {X Y : C} (f : X ⟶ Y) : F X ⟶ F Y :=
 functorial.map.{v₁ v₂} F f
+
+@[simp]
+lemma map_id (X : C) : map F (𝟙 X) = 𝟙 (F X) := functorial.map_id F X
+@[simp]
+lemma map_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : map F (f ≫ g) = map F f ≫ map F g :=
+functorial.map_comp F _ _
+
+/--
+If `F : C → D` (just a function) has `[functorial F]`,
+we can write `map_iso F f : F X ≅ F Y` for the action of `F` on an isomorphism `f : X ≅ Y`.
+-/
+def map_iso (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ≅ Y) : F X ≅ F Y :=
+{ hom := map F f.hom,
+  inv := map F f.inv,
+  hom_inv_id' := begin rw [←map_comp, f.hom_inv_id, map_id], end,
+  inv_hom_id' := begin rw [←map_comp, f.inv_hom_id, map_id], end }
+end
 
 namespace functor
 

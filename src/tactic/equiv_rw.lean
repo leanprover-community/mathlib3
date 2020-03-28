@@ -91,6 +91,7 @@ meta def equiv_congr_lemmas : tactic (list expr) :=
 do exprs ←
   [
   `equiv.of_iff,
+  `category_theory.iso.to_equiv,
   -- These are functorial w.r.t equiv,
   -- and so will be subsumed by `equiv_functor.map_equiv` in a subsequent PR.
   -- Many more could be added, but will wait for that framework.
@@ -114,6 +115,7 @@ do exprs ←
   `bifunctor.map_equiv,
   -- Handles `list`, `option`, and many others:
   `functor.map_equiv,
+  `category_theory.map_iso,
   -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
   `equiv.refl,
   `iff.refl
@@ -154,7 +156,8 @@ do
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
-    discharger := trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
+    discharger := `[dsimp only [] with functoriality] <|>
+      trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We accept any branch of the `solve_by_elim` search tree which
     -- either still contains metavariables, or already contains at least one copy of `eq`.
     -- This is to prevent generating equivalences built entirely out of `equiv.refl`.
@@ -180,7 +183,7 @@ do
     eq_pp ← pp eq,
     eq_ty_pp ← infer_type eq >>= pp,
     trace format!"Attempting to rewrite the type `{ty_pp}` using `{eq_pp} : {eq_ty_pp}`."),
-  `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
+  -- `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
   -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
   initial_goals ← get_goals,
   g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
@@ -216,7 +219,14 @@ do
   intro x,
   k ← mk_fresh_name,
   -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
-  intro k >>= (λ k, subst k <|> unfreeze_local_instances >> subst k),
+  intro k >>= (λ k,
+    subst_core k
+    -- If we're rewriting a typeclass instance we may need to unfreeze local instances
+    <|> unfreeze_local_instances >> subst_core k
+    -- Sometimes (TODO?), particularly when rewriting along isomorphisms,
+    -- `subst` just doesn't work, so we clean up as best we can.
+    -- <|> infer_type k >>= pp >>= (λ kt, trace format!"`subst` failed: {kt}") >> clear k >> clear x'
+    ),
   `[try { simp only [equiv.symm_symm, equiv.apply_symm_apply, equiv.symm_apply_apply] }],
   skip
 

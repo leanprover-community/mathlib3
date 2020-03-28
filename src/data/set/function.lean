@@ -176,7 +176,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-lemma inj_on.inv_fun_on_image [inhabited α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
+lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
 begin
   have : eq_on ((inv_fun_on f s₂) ∘ f) id s₁, from λz hz, inv_fun_on_eq' h (ht hz),
@@ -357,19 +357,19 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
 
 /-! ### `inv_fun_on` is a left/right inverse -/
 
-theorem inj_on.left_inv_on_inv_fun_on [inhabited α] (h : inj_on f s) :
+theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
 λ x hx, inv_fun_on_eq' h hx
 
-theorem surj_on.right_inv_on_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.right_inv_on_inv_fun_on [nonempty α] (h : surj_on f s t) :
   right_inv_on (inv_fun_on f s) f t :=
 λ y hy, inv_fun_on_eq $ mem_image_iff_bex.1 $ h hy
 
-theorem bij_on.inv_on_inv_fun_on [inhabited α] (h : bij_on f s t) :
+theorem bij_on.inv_on_inv_fun_on [nonempty α] (h : bij_on f s t) :
   inv_on (inv_fun_on f s) f s t :=
 ⟨h.inj_on.left_inv_on_inv_fun_on, h.surj_on.right_inv_on_inv_fun_on⟩
 
-theorem surj_on.inv_on_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.inv_on_inv_fun_on [nonempty α] (h : surj_on f s t) :
   inv_on (inv_fun_on f s) f (inv_fun_on f s '' t) t :=
 begin
   refine ⟨_, h.right_inv_on_inv_fun_on⟩,
@@ -377,11 +377,11 @@ begin
   rw [h.right_inv_on_inv_fun_on hy]
 end
 
-theorem surj_on.maps_to_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.maps_to_inv_fun_on [nonempty α] (h : surj_on f s t) :
   maps_to (inv_fun_on f s) t s :=
 λ y hy, mem_preimage.2 $ inv_fun_on_mem $ mem_image_iff_bex.1 $ h hy
 
-theorem surj_on.bij_on_subset [inhabited α] (h : surj_on f s t) :
+theorem surj_on.bij_on_subset [nonempty α] (h : surj_on f s t) :
   bij_on f (inv_fun_on f s '' t) t :=
 begin
   refine h.inv_on_inv_fun_on.bij_on _ (maps_to_image _ _),
@@ -396,7 +396,7 @@ begin
   { rcases eq_empty_or_nonempty t with rfl|ht,
     { exact λ _, ⟨∅, empty_subset _, bij_on_empty f⟩ },
     { assume h,
-      haveI : inhabited α := ⟨classical.some (h.comap_nonempty ht)⟩,
+      haveI : nonempty α := ⟨classical.some (h.comap_nonempty ht)⟩,
       exact ⟨_, h.maps_to_inv_fun_on.image_subset, h.bij_on_subset⟩ }},
   { rintros ⟨s', hs', hfs'⟩,
     exact hfs'.surj_on.mono hs' (subset.refl _) }

@@ -434,6 +434,18 @@ mt $ λ e, e ▸ h
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
+/-- Transport through trivial families is the identity. -/
+@[simp]
+lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
+  (@eq.rec α a (λ a, β) y a' h) = y :=
+by { cases h, refl, }
+
+@[simp]
+lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+
+@[simp]
+lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)

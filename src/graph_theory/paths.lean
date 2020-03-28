@@ -1,83 +1,61 @@
 import graph_theory.hedetniemi
 
-universes v u v₁ u₁
+universes v u
 
 variables {V : Type u} (G : multigraph.{v} V)
 
 namespace multigraph
 
-inductive path : V → V → Type (max u v)
-| nil (a : V) : path a a
-| app {a b c : V} (p : path a b) (e : G.edge b c) : path a c
-
-end multigraph
-open multigraph
+inductive path : V → V → Type (max v u)
+| nil  : Π (h : V), path h h
+| cons : Π {h s t : V} (e : G.edge h s) (l : path s t), path h t
 
 namespace path
-variable {G}
 
-def of {a b : V} : G.edge a b → G.path a b := path.app (path.nil _ _)
-
-section comp
-
-def comp : Π {a b c : V}, G.path a b → G.path b c → G.path a c
-| _ _ _ p (path.nil _ _) := p
-| _ _ _ p (path.app q e) := path.app (comp p q) e
-
-lemma comp_app {a b c d : V} {p : G.path a b} {q : G.path b c} {e : G.edge c d} :
-  comp p (path.app q e) = path.app (comp p q) e := rfl
-
-@[simp]
-lemma comp_nil {a b : V} {p : G.path a b} : comp p (path.nil _ _) = p := rfl
-
-@[simp]
-lemma nil_comp : ∀ {a b : V} {p : G.path a b}, comp (path.nil _ _) p = p
-| _ _ (path.nil _ _) := rfl
-| _ _ (path.app p e) := by rw [comp_app, nil_comp]
-
-@[simp]
-lemma comp_assoc : ∀ {a b c d : V} {p : G.path a b} {q : G.path b c} {r : G.path c d},
-  comp (comp p q) r = comp p (comp q r)
-| _ _ _ _ _ _ (path.nil _ _) := rfl
-| _ _ _ _ _ _ (path.app _ _) := by {rw [comp_app, comp_app, comp_app, comp_assoc]}
-
-lemma app_eq_comp_of {a b c} (p : G.path a b) (e : G.edge b c) :
-  path.app p e = comp p (of e) := rfl
-
-lemma comp_induction {C : Π {a b} (p : G.path a b), Sort*}
-  (h_nil : ∀ a, C (@path.nil _ _ a))
-  (h_of : ∀ {a b} (e : G.edge a b), C (of e))
-  (h_comp : ∀ {a b c} {p : G.path a b} {q : G.path b c}, C p → C q → C (comp p q)) :
-  ∀ {a b} (p : G.path a b), C p
-| _ _ (path.nil _ _) := h_nil _
-| _ _ (path.app p e) := by {rw app_eq_comp_of, exact h_comp (comp_induction p) (h_of e)}
-
-end comp
-
-section length
-
-def length : Π {a b}, G.path a b → ℕ
+def length : Π {s t}, G.path s t → ℕ
 | _ _ (path.nil _ _) := 0
-| _ _ (path.app p _) := length p + 1
+| _ _ (@path.cons _ _ _ _ _ e l) := length l + 1
 
-lemma length_nil {a : V} : length (path.nil G a) = 0 :=
-rfl
+notation a :: b := path.cons a b
+notation `p[` l:(foldr `, ` (h t, path.cons h t) path.nil _ _ `]`) := l
 
-lemma length_comp {a b c} (p : G.path a b) (q : G.path b c) :
-  length (comp p q) = length p + length q :=
-begin
-  induction q,
-  { refl, },
-  { dsimp [comp, length], erw q_ih, simp, } -- This `erw` is yucky, let's fix.
-end
+variables {G}
 
-lemma length_of {a b} (e : G.edge a b) : length (of e) = 1 := rfl
+-- The pattern matching trick used here was explained by Jeremy Avigad
+-- at https://groups.google.com/d/msg/lean-user/JqaI12tdk3g/F9MZDxkFDAAJ
+@[simp]
+def concat : Π {x y z}, G.path x y → G.path y z → G.path x z
+| ._ ._ _ (path.nil _ _)               q := q
+| ._ ._ _ (@path.cons ._ _ _ _ _ e p') q := path.cons e (concat p' q)
 
-lemma length_app {a b c} (p : G.path a b) (e : G.edge b c) :
-  length (path.app p e) = length p + 1 := rfl
+@[simp]
+lemma concat_nil : ∀ {x y} (p : G.path x y), concat p (path.nil G y) = p
+| x ._ (path.nil G y) := rfl
+| x y (e :: p') := begin dsimp, congr, apply concat_nil, end
 
-end length
+@[simp]
+lemma concat_assoc : ∀ {w x y z} (p : G.path w x) (q : G.path x y) (r : G.path y z), concat p (concat q r) = concat (concat p q) r
+| ._ ._ y z (path.nil G x) q r := rfl
+| w x y z (e :: p) q r := begin dsimp, congr' 1, apply concat_assoc, end
 
 end path
 
--- TODO: define "reversible" multigraphs and the free groupoid
+open path
+
+inductive path_of_paths (G : multigraph.{v} V) : V → V → Type (max v u)
+| nil  : Π (h : V), path_of_paths h h
+| cons : Π {h s t} (e : G.path h s) (l : path_of_paths s t), path_of_paths h t
+
+namespace path_of_paths
+
+notation a :: b := path_of_paths.cons a b
+notation `pp[` l:(foldr `, ` (h t, path_of_paths.cons h t) path_of_paths.nil _ `]`) := l
+
+def concatenate_path_of_paths : Π {x y}, G.path_of_paths x y → G.path x y
+| ._ ._ (path_of_paths.nil G X) := path.nil G X
+| ._ ._ (@path_of_paths.cons ._ _ _ _ _ e p') :=
+  concat e (concatenate_path_of_paths p')
+
+end path_of_paths
+
+end multigraph

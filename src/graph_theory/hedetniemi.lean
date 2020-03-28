@@ -345,8 +345,9 @@ def strong_prod (G₁ : graph V₁) (G₂ : graph V₂) : graph (V₁ × V₂) :
     ((p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2)) ∨
     ((p.1 = q.1) ∧ (p.2 ~[G₂] q.2)) ∨
     ((p.1 ~[G₁] q.1) ∧ (p.2 = q.2)),
-  symm := assume p q, by repeat
-    {apply or.imp <|> apply and.imp <|> apply edge.symm <|> apply eq.symm } }
+  symm := assume p q, by
+    -- TODO: Scott, diagnose why `solve_by_elim` can't do this
+    repeat {apply or.imp <|> apply and.imp <|> apply edge.symm <|> apply eq.symm } }
 
 def prod_hom_strong (G₁ : graph V₁) (G₂ : graph V₂) :
   hom (G₁.prod G₂) (G₁.strong_prod G₂) :=

@@ -18,20 +18,14 @@ set_option old_structure_cmd true
 structure multigraph (V : Type u) :=
 (edge : V → V → Sort v)
 
-attribute [class] multigraph
-
 def multigraph.vertices {V : Type u} (G : multigraph V) := V
 
 structure directed_graph (V : Type u) extends multigraph.{0} V.
-
-attribute [class] directed_graph
 
 def directed_graph.vertices {V : Type u} (G : directed_graph V) := V
 
 structure graph (V : Type u) extends directed_graph V :=
 (symm {} : symmetric edge)
-
-attribute [class] graph
 
 notation x `~[`G`]` y := G.edge x y
 
@@ -101,13 +95,13 @@ def hom.comp (g : hom G₂ G₃) (f : hom G₁ G₂) : hom G₁ G₃ :=
 end
 
 /-- The internal hom in the category of graphs. -/
-instance ihom : graph (V₁ → V₂) :=
+def ihom : graph (V₁ → V₂) :=
 { edge := assume f g, ∀ ⦃x y⦄, (x ~[G₁] y) → (f x ~[G₂] g y),
   symm := assume f g h x y e,
           show g x ~[G₂] f y, from G₂.symm $ h e.symm }
 
 /-- The product in the category of graphs. -/
-instance prod : graph (V₁ × V₂) :=
+def prod : graph (V₁ × V₂) :=
 { edge := assume p q, (p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2),
   symm := assume p q ⟨e₁, e₂⟩, ⟨e₁.symm, e₂.symm⟩ }
 
@@ -295,7 +289,7 @@ def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
 def closed_neighbourhood (G : graph V) (x : V) :=
 { y // y = x ∨ (y ~[G] x) }
 
-instance closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
+def closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
 induced_graph G subtype.val
 
 /-- Observation 1. -/

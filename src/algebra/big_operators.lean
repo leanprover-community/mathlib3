@@ -248,7 +248,7 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
-@[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
+@[to_additive] lemma prod_apply_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   s.prod (λ x, h (if p x then f x else g x)) =
   (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
@@ -263,6 +263,12 @@ calc s.prod (λ x, h (if p x then f x else g x))
   congr_arg2 _
     (prod_congr rfl (by simp {contextual := tt}))
     (prod_congr rfl (by simp {contextual := tt}))
+
+@[to_additive] lemma prod_ite {s : finset α}
+  {p : α → Prop} {hp : decidable_pred p} (f g : α → β) :
+  s.prod (λ x, if p x then f x else g x) =
+  (s.filter p).prod (λ x, f x) * (s.filter (λ x, ¬ p x)).prod (λ x, g x) :=
+by simp [prod_apply_ite _ _ (λ x, x)]
 
 @[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   s.prod (λ x, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
@@ -497,7 +503,7 @@ end
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
-by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
+by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
 
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
@@ -545,6 +551,11 @@ attribute [to_additive sum_smul'] prod_pow
   s.sum (λ a, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
+
+@[simp]
+lemma sum_boole {s : finset α} {p : α → Prop} [semiring β] {hp : decidable_pred p} :
+  s.sum (λ x, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
+by simp [sum_ite]
 
 lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
@@ -636,6 +647,15 @@ variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
+
+section comm_monoid
+variables [comm_monoid β]
+
+lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.prod (λ x, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
+by simp
+
+end comm_monoid
 
 section semiring
 variables [semiring β]

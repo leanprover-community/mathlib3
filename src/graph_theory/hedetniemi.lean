@@ -50,6 +50,8 @@ def complete (V : Type u) : graph V :=
 { edge := assume x y, x ≠ y,
   symm := assume x y h, h.symm }
 
+local notation `K_` n := complete (fin n)
+
 lemma complete_is_loopless (V : Type u) :
   (complete V).is_loopless :=
 assume x, ne.irrefl
@@ -234,8 +236,6 @@ end
 
 omit h₁ h₂ h
 
-local notation `K_` n := complete (fin n)
-
 variables {n' : ℕ} (h' : chromatic_number (G₂.ihom (K_ n)) n')
 variables {nᵤ : ℕ} (hᵤ : chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
 
@@ -328,6 +328,20 @@ def statement_of_Claim2 {W : Type*} {n c k : ℕ} [fintype V] [fintype W] (G : g
   (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :=
   ∃ v, (robust_classes G v Φ).card + k ≥ c
 
+def strong_prod (G₁ : graph V₁) (G₂ : graph V₂) : graph (V₁ × V₂) :=
+{ edge := assume p q,
+    ((p.1 ~[G₁] q.1) ∧ (p.2 = q.2)) ∨
+    ((p.1 = q.1) ∧ (p.2 ~[G₂] q.2)) ∨
+    ((p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2)),
+  symm := assume p q, or.imp sorry sorry
+  --  edge.symm $ and.imp eq.symm ne.symm
+   }
+
+def prod_hom_strong (G : graph V) (W : Type*) :
+  hom (G.prod (complete W)) (G.strong_prod W) :=
+{ to_fun := id,
+  map_edge' := assume x y e, or.inl e.1 }
+
 def cyclic (n : ℕ+) : graph (zmod n) :=
 { edge := assume x y, x = y + 1 ∨ y = x + 1,
   symm := assume x y, or.symm }
@@ -339,9 +353,28 @@ structure girth (G : graph V) (n : ℕ+) : Prop :=
 (cyc_exists : nonempty (cycle n G))
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
+/-- Claim 3. -/
+lemma some_claim (G : graph V) {k : ℕ+} (g : girth G k) (hk : 6 ≤ k) :
+  ∃ N : ℕ, ∀ q, N < q → ∀ c, chromatic_number (G.strong_prod (fin q)) c → c > 3 * q :=
+begin
+  sorry
+end
+
 def statement_of_erdos (χ g : ℕ) :=
   ∃ {V : Type} [fintype V] (G : graph V) (k : ℕ) (n : ℕ+),
   chromatic_number G k ∧ χ < k ∧
   girth G n ∧ g < n
+
+/-- Shitov's theorem -/
+theorem hedetniemi_false :
+  ∃ {V : Type} [fintype V] (G : graph V) (q n' n n'' : ℕ)
+     (hn' : chromatic_number (G.ihom (K_ n)) n')
+    (hn : chromatic_number G n)
+    (hn'' : chromatic_number ((G.ihom (K_ n)).prod G) n''),
+  ¬ hedetniemi hn' hn hn'' :=
+begin
+  sorry
+  -- apply mt (min_le_of_universal_hedetniemi _ _ _)
+end
 
 end graph

@@ -1898,10 +1898,10 @@ map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b _, nat.sub_le_right_iff_le_add)
   (assume b _, by rw [nat.add_sub_cancel])
 
-lemma tendso_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
+lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
 le_of_eq (map_add_at_top_eq_nat k)
 
-lemma tendso_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
+lemma tendsto_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
 le_of_eq (map_sub_at_top_eq_nat k)
 
 lemma tendsto_add_at_top_iff_nat {f : ℕ → α} {l : filter α} (k : ℕ) :

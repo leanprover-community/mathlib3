@@ -122,7 +122,15 @@ do exprs ←
 
 declare_trace equiv_rw_type
 
-structure equiv_rw_cfg :=
+/--
+Configuration structure for `equiv_rw`.
+
+* `max_steps` bounds the search depth for equivalences to rewrite along.
+  The default value is 10.
+  (e.g., if you're rewriting along `e : α ≃ β`, and `max_steps := 2`,
+  you can rewrite `option (option α))` but not `option (option (option α))`.
+-/
+meta structure equiv_rw_cfg :=
 (max_steps : ℕ := 10)
 
 /--
@@ -260,6 +268,12 @@ do e ← to_expr e,
    | none := equiv_rw_target e cfg
    end
 
+add_tactic_doc
+{ name        := "equiv_rw",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.equiv_rw],
+  tags        := ["rewriting", "equiv", "transport"] }
+
 /--
 Solve a goal of the form `t ≃ _`,
 by constructing an equivalence from `e : α ≃ β`.
@@ -277,9 +291,9 @@ do
  tactic.equiv_rw_type e t cfg >>= tactic.exact
 
 add_tactic_doc
-{ name        := "equiv_rw",
+{ name        := "equiv_rw_type",
   category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.equiv_rw],
+  decl_names  := [`tactic.interactive.equiv_rw_type],
   tags        := ["rewriting", "equiv", "transport"] }
 
 end tactic.interactive

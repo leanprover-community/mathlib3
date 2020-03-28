@@ -18,6 +18,8 @@ variable {G}
 
 def of {a b : V} : G.edge a b → G.path a b := path.app (path.nil _ _)
 
+section comp
+
 def comp : Π {a b c : V}, G.path a b → G.path b c → G.path a c
 | _ _ _ p (path.nil _ _) := p
 | _ _ _ p (path.app q e) := path.app (comp p q) e
@@ -50,12 +52,9 @@ lemma comp_induction {C : Π {a b} (p : G.path a b), Sort*}
 | _ _ (path.nil _ _) := h_nil _
 | _ _ (path.app p e) := by {rw app_eq_comp_of, exact h_comp (comp_induction p) (h_of e)}
 
-end path
-open path
+end comp
 
-namespace path
-
-variable {G}
+section length
 
 def length : Π {a b}, G.path a b → ℕ
 | _ _ (path.nil _ _) := 0
@@ -76,6 +75,8 @@ lemma length_of {a b} (e : G.edge a b) : length (of e) = 1 := rfl
 
 lemma length_app {a b c} (p : G.path a b) (e : G.edge b c) :
   length (path.app p e) = length p + 1 := rfl
+
+end length
 
 end path
 

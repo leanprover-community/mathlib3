@@ -122,7 +122,15 @@ do exprs ←
 
 declare_trace equiv_rw_type
 
-structure equiv_rw_cfg :=
+/--
+Configuration structure for `equiv_rw`.
+
+* `max_steps` bounds the search depth for equivalences to rewrite along.
+  The default value is 10.
+  (e.g., if you're rewriting along `e : α ≃ β`, and `max_steps := 2`,
+  you can rewrite `option (option α))` but not `option (option (option α))`.
+-/
+meta structure equiv_rw_cfg :=
 (max_steps : ℕ := 10)
 
 /--

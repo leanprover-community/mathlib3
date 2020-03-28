@@ -3,7 +3,7 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import data.nat.basic tactic.tidy
+import data.nat.basic
 /-!
 # The finite type with `n` elements
 
@@ -102,7 +102,7 @@ attribute [simp] val_zero
 then they coincide (in the heq sense). -/
 protected lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
   (H : ∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) : f == g :=
-by tidy
+by { induction h, rw heq_iff_eq, ext i, convert H i, exact (fin.ext_iff _ _).mpr rfl }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)

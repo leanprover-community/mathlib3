@@ -4,7 +4,6 @@ universes v u
 
 variables {V : Type u} (G : directed_multigraph.{v} V)
 
--- instance : has_coe (multigraph.{v} V) (directed_multigraph.{v} V) := ⟨multigraph.to_directed_multigraph⟩
 namespace directed_multigraph
 
 inductive path : V → V → Type (max v u)

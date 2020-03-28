@@ -4,7 +4,7 @@ import category_theory.eq_to_hom
 
 open category_theory
 
-namespace multigraph
+namespace directed_multigraph
 
 open path
 
@@ -18,9 +18,9 @@ thought of as a vertex in the particular graph G.
 
 -- Possibly it will be safer to make this irreducible,
 -- or possibly even an inductive type wrapping `V`.
-def paths {V : Type u} (G : multigraph.{v} V) := V
+def paths {V : Type u} (G : directed_multigraph.{v} V) := V
 
-variables {V : Type u} (G : multigraph.{v} V)
+variables {V : Type u} (G : directed_multigraph.{v} V)
 
 instance path_category : category (paths G) :=
 { hom := G.path,
@@ -100,4 +100,4 @@ nat_iso.of_components
       simp [f_ih, h_edge], }
   end)
 
-end multigraph
+end directed_multigraph

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.equiv_rw
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
--- set_option trace.adapt_equiv true
+-- set_option trace.equiv_rw_type true
 
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
@@ -145,8 +145,17 @@ end
 
 example {α β γ : Type} (e : α ≃ β) (s : (α ⊕ γ) × β) : (β ⊕ γ) :=
 begin
+  success_if_fail { equiv_rw e at s {max_steps := 4} },
   equiv_rw e at s,
   exact s.1,
+end
+
+-- Test generating the actual equivalence using `equiv_rw_type`.
+example {α β : Type} (e : α ≃ β) (b : β) : α × (ℕ ⊕ ℕ) :=
+begin
+  have e' : α × (ℕ ⊕ ℕ) ≃ _ := by equiv_rw_type e,
+  apply e'.inv_fun,
+  exact (b, sum.inl 0)
 end
 
 example {α β : Type} (e : α ≃ β) (P : α → Prop) (h : { a // P a }) : β :=

@@ -142,9 +142,9 @@ begin
   { assume i hi j hj hij,
     apply finset.disjoint_iff_ne.2 (λ a ha b hb, _),
     contrapose! hij,
-    simp [t, finset.mem_powerset_len, finset.subset_univ] at ha hb,
-    rw [← ha, ← hb, hij] },
-  have S : ∀ k, finset.sum (t k) (λ (s : finset α), a ^ finset.card s * b ^ (fintype.card α - finset.card s))
+    simp only [mem_powerset_len, subset_univ, true_and, hij] at ha hb,
+    rw [← ha, ← hb] },
+  have S : ∀ k, finset.sum (t k) (λ (s : finset α), a ^ s.card * b ^ (fintype.card α - s.card))
     = finset.sum (t k) (λ (s : finset α), a ^ k * b ^ (fintype.card α - k)),
   { assume k,
     apply finset.sum_congr rfl,

@@ -155,8 +155,9 @@ theorem le_of_lt {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x < y) : x
 not_lt.1 (lt_asymm ox oy h)
 
 /-- On numeric pre-games, `<` and `≤` satisfy the axioms of a partial order (even though they
-    don't on all pre-games). -/
-theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
+don't on all pre-games). -/
+theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) :
+  x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
 
 theorem numeric_zero : numeric 0 :=

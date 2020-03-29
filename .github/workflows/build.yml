@@ -46,7 +46,7 @@ jobs:
       - name: leanpkg build
         id: build
         run: |
-          lean -T50000 --make src | python scripts/detect_errors.py
+          leanpkg build -- -T50000 | python scripts/detect_errors.py
           # if the build fails, `steps.build.output.status` will be `null`
           echo "::set-output name=status::built"
 

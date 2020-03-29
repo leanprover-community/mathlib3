@@ -250,6 +250,8 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 
 @[simp] lemma fst_sub [add_group α] [add_group β] : (p - q).1 = p.1 - q.1 := rfl
 @[simp] lemma snd_sub [add_group α] [add_group β] : (p - q).2 = p.2 - q.2 := rfl
+@[simp] lemma mk_sub_mk [add_group α] [add_group β] {a₁ a₂ : α} {b₁ b₂ : β} :
+  (a₁, b₁) - (a₂, b₂) = (a₁ - a₂, b₁ - b₂) := rfl
 
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
 @[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]

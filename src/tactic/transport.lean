@@ -14,17 +14,10 @@ and an equivalence `e : α ≃ β`,
 try to produce an `S β`,
 by transporting data and axioms across `e` using `equiv_rw`.
 -/
-meta def transport (s e : expr) : tactic expr :=
+meta def transport (s e : expr) : tactic unit :=
 do
-  gs ← get_goals,
-  `(%%α ≃ %%β) ← infer_type e |
-    fail format!"second argument to `transport` was not of the form `_ ≃ _`: {e}",
-  S ← infer_type s >>= (λ t, match t with
-  | expr.app S α' := pure S
-  | _ := fail format!"first argument to `transport` was not a parametrized type: {s}"
-  end),
-  g ← to_expr ``(%%S %%β) >>= mk_meta_var,
-  set_goals [g],
+  (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>
+    fail format!"second argument to `transport` was not an equivalence",
   seq `[refine_struct { .. }]
   (do
     propagate_tags $ (do
@@ -40,10 +33,7 @@ do
       get_local f >>= apply)
     else try (do
       equiv_rw_hyp f e,
-      get_local f >>= exact ))),
-  r ← instantiate_mvars g,
-  set_goals gs,
-  return r
+      get_local f >>= exact)))
 
 namespace interactive
 open lean.parser
@@ -76,19 +66,25 @@ do
     end),
     find_local ``(%%S _))
   end,
-  (S, α) ← infer_type s >>= (λ t, match t with
+  e ← match e with
+  | some e := get_local e
+  | none := do
+    -- FIXME this is a hack, that works fine for structures like `ring α`, but ...
+    (S, α) ← infer_type s >>= (λ t, match t with
     | expr.app S α := pure (S, α)
     | _ := fail format!"Object to transport doesn't look like a parametrized type: {s}"
     end),
-  β ← target >>= (λ t, match t with
-  | expr.app S' β := if S' = S then pure β else fail format!"Target doesn't match expected type: {S} _"
-  | _ := fail format!"Target doesn't match expected type: {S} _"
-  end),
-  e ← match e with
-  | some e := get_local e
-  | none := find_local ``(%%α ≃ %%β)
+    S ← whnf S,
+    β ← target >>= (λ t, match t with
+    | expr.app S' β := (do
+      S' ← whnf S',
+      (is_def_eq S' S >> pure β)
+        <|> (do S ← pp S, S' ← pp S', fail format!"Target doesn't match expected type: {S'} ≠ {S}"))
+    | _ := fail format!"Target doesn't match expected type: {S} _"
+    end),
+    find_local ``(%%α ≃ %%β)
   end,
-  tactic.transport s e >>= tactic.exact
+  tactic.transport s e
 
 end interactive
 

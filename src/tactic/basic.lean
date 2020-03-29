@@ -3,10 +3,12 @@ import
   tactic.cache
   tactic.clear
   tactic.converter.interactive
+  tactic.converter.apply_congr
   tactic.core
   tactic.ext
   tactic.elide
   tactic.explode
+  tactic.show_term
   tactic.find
   tactic.generalize_proofs
   tactic.interactive

@@ -46,9 +46,9 @@ include 𝒞
 
 /-- Every `@bundled_hom c _` defines a category with objects in `bundled c`.
 
-This instance generates the type-class problem bundled_hom ?m (which is why this is marked as
+This instance generates the type-class problem `bundled_hom ?m` (which is why this is marked as
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
-@[nolint] instance category : category (bundled c) :=
+@[nolint dangerous_instance] instance category : category (bundled c) :=
 by refine
 { hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
   id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
@@ -61,9 +61,9 @@ intros; apply 𝒞.hom_ext;
 
 /-- A category given by `bundled_hom` is a concrete category.
 
-This instance generates the type-class problem bundled_hom ?m (which is why this is marked as
+This instance generates the type-class problem `bundled_hom ?m` (which is why this is marked as
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
-@[nolint] instance : concrete_category (bundled c) :=
+@[nolint dangerous_instance] instance : concrete_category (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,

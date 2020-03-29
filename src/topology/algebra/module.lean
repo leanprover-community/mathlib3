@@ -82,7 +82,7 @@ class topological_module (R : Type u) (M : Type v)
 
 /-- A topological vector space is a topological module over a field. -/
 abbreviation topological_vector_space (R : Type u) (M : Type v)
-  [discrete_field R] [topological_space R]
+  [field R] [topological_space R]
   [topological_space M] [add_comm_group M] [module R M] :=
 topological_module R M
 end prio
@@ -138,7 +138,7 @@ end
 section
 
 variables {R : Type*} {M : Type*} {a : R}
-[discrete_field R] [topological_space R]
+[field R] [topological_space R]
 [topological_space M] [add_comm_group M]
 [vector_space R M] [topological_vector_space R M]
 
@@ -200,10 +200,10 @@ variables
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
-protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
-
 /-- Coerce continuous linear maps to functions. -/
 instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨_, λ f, f.to_fun⟩
+
+protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr' 1; ext x; apply h
@@ -223,10 +223,7 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp, squash_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
 /-- The continuous map that is constantly zero. -/
-def zero : M →L[R] M₂ :=
-⟨0, by exact continuous_const⟩
-
-instance: has_zero (M →L[R] M₂) := ⟨zero⟩
+instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
@@ -242,7 +239,7 @@ def id : M →L[R] M :=
 
 instance : has_one (M →L[R] M) := ⟨id⟩
 
-@[simp] lemma id_apply : (id : M →L[R] M) x = x := rfl
+lemma id_apply : (id : M →L[R] M) x = x := rfl
 @[simp, elim_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, elim_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
 
@@ -266,14 +263,16 @@ instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 @[move_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
 
 instance : add_comm_group (M →L[R] M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+by { refine {zero := 0, add := (+), neg := has_neg.neg, ..}; intros; ext;
+  apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
-@[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, move_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
 @[simp, move_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 end add
+
+@[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
@@ -321,9 +320,45 @@ instance [topological_add_group M] : ring (M →L[R] M) :=
   ..continuous_linear_map.add_comm_group }
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
-def prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) : M →L[R] (M₂ × M₃) :=
+protected def prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) : M →L[R] (M₂ × M₃) :=
 { cont := f₁.2.prod_mk f₂.2,
   ..f₁.to_linear_map.prod f₂.to_linear_map }
+
+@[simp, move_cast] lemma coe_prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) :
+  (f₁.prod f₂ : M →ₗ[R] M₂ × M₃) = linear_map.prod f₁ f₂ :=
+rfl
+
+@[simp, move_cast] lemma prod_apply (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) (x : M) :
+  f₁.prod f₂ x = (f₁ x, f₂ x) :=
+rfl
+
+variables (R M M₂)
+
+/-- `prod.fst` as a `continuous_linear_map`. -/
+protected def fst : M × M₂ →L[R] M :=
+{ cont := continuous_fst, to_linear_map := linear_map.fst R M M₂ }
+
+/-- `prod.snd` as a `continuous_linear_map`. -/
+protected def snd : M × M₂ →L[R] M₂ :=
+{ cont := continuous_snd, to_linear_map := linear_map.snd R M M₂ }
+
+variables {R M M₂}
+
+@[simp, move_cast] lemma coe_fst :
+  (continuous_linear_map.fst R M M₂ : M × M₂ →ₗ[R] M) = linear_map.fst R M M₂ :=
+rfl
+
+@[simp, move_cast] lemma coe_fst' :
+  (continuous_linear_map.fst R M M₂ : M × M₂ → M) = prod.fst :=
+rfl
+
+@[simp, move_cast] lemma coe_snd :
+  (continuous_linear_map.snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ :=
+rfl
+
+@[simp, move_cast] lemma coe_snd' :
+  (continuous_linear_map.snd R M M₂ : M × M₂ → M₂) = prod.snd :=
+rfl
 
 end general_ring
 
@@ -477,7 +512,7 @@ variable (M)
 @[refl] protected def refl : M ≃L[R] M :=
 { continuous_to_fun := continuous_id,
   continuous_inv_fun := continuous_id,
-  .. linear_equiv.refl M }
+  .. linear_equiv.refl R M }
 end
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
@@ -499,6 +534,10 @@ by { ext, refl }
 @[simp] lemma trans_to_linear_equiv (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) :
   (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv :=
 by { ext, refl }
+
+theorem bijective (e : M ≃L[R] M₂) : function.bijective e := e.to_linear_equiv.to_equiv.bijective
+theorem injective (e : M ≃L[R] M₂) : function.injective e := e.to_linear_equiv.to_equiv.injective
+theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_equiv.to_equiv.surjective
 
 @[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b

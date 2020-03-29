@@ -88,8 +88,8 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     rw ←padic_norm.neg p (f m) at hne,
     have hnam := add_eq_max_of_ne p hne,
     rw [padic_norm.neg, max_comm] at hnam,
-    rw ←hnam at this,
-    apply _root_.lt_irrefl _ (by simp at this; exact this)
+    rw [←hnam, sub_eq_add_neg, add_comm] at this,
+    apply _root_.lt_irrefl _ this
   end ⟩
 
 /-- For all n ≥ stationary_point f hf, the p-adic norm of f n is the same. -/
@@ -403,8 +403,8 @@ section completion
 variables {p : ℕ} [nat.prime p]
 
 /-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
-instance discrete_field : discrete_field (ℚ_[p]) :=
-cau_seq.completion.discrete_field
+instance field : field (ℚ_[p]) :=
+cau_seq.completion.field
 
 instance : inhabited ℚ_[p] := ⟨0⟩
 
@@ -659,7 +659,7 @@ begin
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-          by simpa,
+          by simpa [sub_eq_add_neg],
         apply lt_of_le_of_lt,
         { apply padic_norm_e.add },
         { apply add_lt_add,
@@ -793,7 +793,7 @@ protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (padic_seq.ne_zero_iff_nequiv_zero f).1 hf,
   let ⟨n, hn⟩ := padic_seq.norm_image f this in
-  ⟨n, congr_arg rat.cast hn⟩
+  ⟨n, congr_arg coe hn⟩
 
 protected lemma is_rat (q : ℚ_[p]) : ∃ q' : ℚ, ∥q∥ = ↑q' :=
 if h : q = 0 then ⟨0, by simp [h]⟩

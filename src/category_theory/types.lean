@@ -48,6 +48,11 @@ variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) 
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 
+@[simp] lemma map_inv_map_hom_apply (f : X ≅ Y) (x : F.obj X) : F.map f.inv (F.map f.hom x) = x :=
+congr_fun (F.map_iso f).hom_inv_id x
+@[simp] lemma map_hom_map_inv_apply (f : X ≅ Y) (y : F.obj Y) : F.map f.hom (F.map f.inv y) = y :=
+congr_fun (F.map_iso f).inv_hom_id y
+
 end functor_to_types
 
 def ulift_trivial (V : Type u) : ulift.{u} V ≅ V := by tidy
@@ -155,6 +160,7 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 end equiv
 
 namespace category_theory.iso
+open category_theory
 
 universe u
 
@@ -168,6 +174,10 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 @[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
 @[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
+
+@[simp] lemma to_equiv_id (X : Type u) : (iso.refl X).to_equiv = equiv.refl X := rfl
+@[simp] lemma to_equiv_comp {X Y Z : Type u} (f : X ≅ Y) (g : Y ≅ Z) :
+  (f ≪≫ g).to_equiv = f.to_equiv.trans (g.to_equiv) := rfl
 
 end category_theory.iso
 

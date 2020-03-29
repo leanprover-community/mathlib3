@@ -25,6 +25,10 @@ protected def cast : ℕ → α
 
 theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
 @[simp, move_cast] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
+
+@[simp, move_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
+  (((ite P m n) : ℕ) : α) = ite P (m : α) (n : α) :=
+by { split_ifs; refl, }
 end
 
 @[simp, squash_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
@@ -67,7 +71,7 @@ by induction n; simp [left_distrib, right_distrib, *]
 @[simp, elim_cast] theorem cast_le [linear_ordered_semiring α] : ∀ {m n : ℕ}, (m : α) ≤ n ↔ m ≤ n
 | 0     n     := by simp [zero_le]
 | (m+1) 0     := by simpa [not_succ_le_zero] using
-  lt_add_of_lt_of_nonneg zero_lt_one (@cast_nonneg α _ m)
+  lt_add_of_nonneg_of_lt (@cast_nonneg α _ m) zero_lt_one
 | (m+1) (n+1) := (add_le_add_iff_right 1).trans $
   (@cast_le m n).trans $ (add_le_add_iff_right 1).symm
 

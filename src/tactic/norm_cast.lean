@@ -398,3 +398,78 @@ attribute [move_cast] int.coe_nat_mul
 by by_cases h : c; simp [h]
 
 add_hint_tactic "norm_cast at *"
+
+/--
+The `norm_cast` family of tactics is used to normalize casts inside expressions.
+It is basically a simp tactic with a specific set of lemmas to move casts
+upwards in the expression.
+Therefore it can be used more safely as a non-terminating tactic.
+It also has special handling of numerals.
+
+For instance, given an assumption
+```lean
+a b : ℤ
+h : ↑a + ↑b < (10 : ℚ)
+```
+
+writing `norm_cast at h` will turn `h` into
+```lean
+h : a + b < 10
+```
+
+You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
+or `assumption_mod_cast`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `assumption_mod_cast` will normalize the goal and for every
+expression `h` in the context it will try to normalize `h` and use
+`exact h`.
+`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
+
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the forward direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+-/
+add_tactic_doc
+{ name := "norm_cast",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.norm_cast, `tactic.interactive.rw_mod_cast,
+                 `tactic.interactive.apply_mod_cast, `tactic.interactive.assumption_mod_cast,
+                 `tactic.interactive.exact_mod_cast, `tactic.interactive.push_cast],
+  tags       := ["coercions", "simplification"] }
+
+/--
+The `norm_cast` family of tactics works with three attributes,
+`elim_cast`, `move_cast` and `squash_cast`.
+
+`elim_cast` is for elimination lemmas of the shape
+`Π ..., P ↑a1 ... ↑an = P a1 ... an`, for instance:
+
+```lean
+int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+
+rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1
+```
+
+`move_cast` is for compositional lemmas of the shape
+`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`, for instance:
+```lean
+int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
+
+nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m
+```
+
+`squash_cast` is for lemmas of the shape
+`Π ..., ↑↑a = ↑a`, for instance:
+```lean
+int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
+
+int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+```
+-/
+add_tactic_doc
+{ name := "norm_cast attributes",
+  category   := doc_category.attr,
+  decl_names := [`norm_cast.move_cast_attr, `norm_cast.elim_cast_attr, `norm_cast.squash_cast_attr],
+  tags       := ["coercions", "simplification"] }

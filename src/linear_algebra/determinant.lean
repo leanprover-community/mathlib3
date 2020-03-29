@@ -5,7 +5,9 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
 import data.matrix.pequiv
+import data.fintype.card
 import group_theory.perm.sign
+import tactic.ring
 
 universes u v
 open equiv equiv.perm finset function
@@ -84,7 +86,7 @@ calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
   finset.sum_comm
 ... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  eq.symm $ sum_subset (filter_subset _) 
+  eq.symm $ sum_subset (filter_subset _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = (@univ (perm n) _).sum (λ τ, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
@@ -142,7 +144,7 @@ end
     conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
     conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
     congr,
-    { norm_num },
+    { simp [pow_two] },
     { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }

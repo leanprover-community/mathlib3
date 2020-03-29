@@ -339,13 +339,13 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
     exact zero_ne_one _ (nonneg_antisymm this h).symm
   end, ..s }
 
-@[priority 80] -- see Note [lower instance priority]
-instance to_decidable_linear_ordered_comm_ring
+/-- Convert a `linear_nonneg_ring` with a commutative multiplication and
+decidable non-negativity into a `decidable_linear_ordered_comm_ring` -/
+def to_decidable_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
   : decidable_linear_ordered_comm_ring α :=
 { decidable_le := by apply_instance,
-  decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
   mul_comm := is_commutative.comm (*),
   ..@linear_nonneg_ring.to_linear_ordered_ring _ s }
@@ -513,6 +513,13 @@ by rw [←coe_nat n]; apply coe_ne_top
 
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
 by rw [←coe_nat n]; apply top_ne_coe
+
+lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
+begin
+  cases n, { exact le_top },
+  cases i, { exact (not_le_of_lt h le_top).elim },
+  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
+end
 
 @[elab_as_eliminator]
 lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)

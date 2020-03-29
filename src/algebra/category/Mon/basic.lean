@@ -5,8 +5,8 @@ Authors: Scott Morrison
 -/
 
 import category_theory.concrete_category
-import algebra.group
-import data.equiv.algebra
+import algebra.group.hom
+import data.equiv.mul_add
 import algebra.punit_instances
 
 /-!
@@ -28,8 +28,8 @@ required form (without `id`), and then we could use that instead of
 this obscure `local attribute [reducible]` method.
 -/
 
-library_note "locally reducible category instances"
-"We make SemiRing (and the other categories) locally reducible in order
+/--
+We make SemiRing (and the other categories) locally reducible in order
 to define its instances. This is because writing, for example,
 
 ```
@@ -43,7 +43,9 @@ SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
 to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that
-we always access `R.α` through the coercion rather than directly)."
+we always access `R.α` through the coercion rather than directly).
+-/
+library_note "locally reducible category instances"
 
 universes u v
 

@@ -9,7 +9,7 @@ import topology.uniform_space.basic topology.bases data.set.intervals
 
 universes u v
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical
 variables {α : Type u} {β : Type v} [uniform_space α]
 
@@ -132,7 +132,21 @@ lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} 
 cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
   by simp only [prod_at_top_at_top_eq, prod.map_def]
 
-@[nolint] -- see Note [nolint_ge]
+/-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
+lemma tendsto_nhds_of_cauchy_seq_of_subseq
+  [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
+  (hf : tendsto f p at_top) {a : α} (ha : tendsto (λ i, u (f i)) p (𝓝 a)) :
+  tendsto u at_top (𝓝 a) :=
+begin
+  apply le_nhds_of_cauchy_adhp hu,
+  rw ← bot_lt_iff_ne_bot,
+  have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
+    by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
+  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀m n≥N, (u m, u n) ∈ s i :=
@@ -143,7 +157,7 @@ begin
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
@@ -190,8 +204,8 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
-        lattice.inf_assoc, lattice.inf_comm, lattice.inf_left_comm],
-  lattice.inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
+        inf_assoc, inf_comm, inf_left_comm],
+  inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=
@@ -293,8 +307,8 @@ let ⟨c, hfc, hct⟩ := hs _ this in
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,
-    intros x hx, simp [-mem_image],
-    exact let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩
+    intros x hx, simp,
+    exact hct x hx
   end⟩
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}

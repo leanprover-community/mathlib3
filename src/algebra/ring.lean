@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
-import algebra.group
+import algebra.group.with_one
+import deprecated.group
 import tactic.norm_cast
 
 /-!
@@ -56,13 +57,35 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-@[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a : α) :
-  a * (if P then 1 else 0) = if P then a else 0 :=
-by split_ifs; simp
+@[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  a * (if P then b else c) = if P then a * b else a * c :=
+by split_ifs; refl
 
-@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  (if P then a else b) * c = if P then a * c else b * c :=
+by split_ifs; refl
+
+-- We make `mul_ite` and `ite_mul` simp lemmas,
+-- but not `add_ite` or `ite_add`.
+-- The problem we're trying to avoid is dealing with
+-- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- in which `add_ite` followed by `sum_ite` would needlessly slice up
+-- the `f x` terms according to whether `P` holds at `x`.
+-- There doesn't appear to be a corresponding difficulty so far with
+-- `mul_ite` and `ite_mul`.
+attribute [simp] mul_ite ite_mul
+
+-- In this lemma and the next we need to use `congr` because
+-- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
+-- modifies the decidable instance.
+-- We expect in Lean 3.8 that this won't be necessary.
+@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by { simp, congr }
+
+@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by split_ifs; simp
+by { simp, congr }
 
 variable (α)
 
@@ -154,8 +177,8 @@ variables (f : α → β) [is_semiring_hom f] {x y : α}
 instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two semiring homomorphisms is a semiring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   is_semiring_hom (g ∘ f) :=
 { map_zero := by simp [map_zero f]; exact map_zero g,
   map_one := by simp [map_one f]; exact map_one g,
@@ -189,17 +212,17 @@ section
     of subtraction. -/
   theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
   calc
-    a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp
-      ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin simp [h] end) (λ h,
-                                                    begin simp [h.symm] end)
-      ... ↔ (a - b) * e + c = d   : begin simp [@sub_eq_add_neg α, @right_distrib α] end
+    a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
+      ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
+                                                    begin rw ← h, simp end)
+      ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
 
 /-- A simplification of one side of an equation exploiting right distributivity in rings
     and the definition of subtraction. -/
   theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
   assume h,
   calc
-    (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
+    (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
                 ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
 /-- If the product of two elements of a ring is nonzero, both elements are nonzero. -/
@@ -261,8 +284,10 @@ dvd_add_left (dvd_refl a)
 lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
   ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
 begin
-  have : c = b * x - x * x, { apply eq_of_sub_eq_zero, simpa using h },
-  use b - x, simp [left_distrib, mul_comm, this],
+  have : c = -(x * x - b * x) := (neg_eq_of_add_eq_zero h).symm,
+  have : c = x * (b - x), by subst this; simp [mul_sub, mul_comm],
+  refine ⟨b - x, _, by simp, by rw this⟩,
+  rw [this, sub_add, ← sub_mul, sub_self]
 end
 
 end comm_ring
@@ -294,14 +319,14 @@ calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
 
 /-- Ring homomorphisms preserve subtraction. -/
 lemma map_sub : f (x - y) = f x - f y :=
-by simp [map_add f, map_neg f]
+by simp [sub_eq_add_neg, map_add f, map_neg f]
 
 /-- The identity map is a ring homomorphism. -/
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   is_ring_hom (g ∘ f) :=
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
@@ -355,6 +380,8 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
   .. add_monoid_hom.of f }
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 
@@ -415,8 +442,16 @@ lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h 
 
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
-@[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
+
+lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : function.surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : function.injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, ring_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit rα rβ rγ
 
@@ -426,7 +461,7 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := by simp
+  f (x - y) = (f x) - (f y) := by simp [sub_eq_add_neg]
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
@@ -627,3 +662,24 @@ variables [domain α]
 end domain
 
 end units
+
+/-- A predicate to express that a ring is an integral domain.
+
+This is mainly useful because such a predicate does not contain data,
+and can therefore be easily transported along ring isomorphisms. -/
+structure is_integral_domain (R : Type u) [ring R] : Prop :=
+(mul_comm : ∀ (x y : R), x * y = y * x)
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
+(zero_ne_one : (0 : R) ≠ 1)
+
+/-- Every integral domain satisfies the predicate for integral domains. -/
+lemma integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :
+  is_integral_domain R :=
+{ .. (‹_› : integral_domain R) }
+
+/-- If a ring satisfies the predicate for integral domains,
+then it can be endowed with an `integral_domain` instance
+whose data is definitionally equal to the existing data. -/
+def is_integral_domain.to_integral_domain (R : Type u) [ring R] (h : is_integral_domain R) :
+  integral_domain R :=
+{ .. (‹_› : ring R), .. (‹_› : is_integral_domain R) }

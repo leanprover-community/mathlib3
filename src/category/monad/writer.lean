@@ -150,13 +150,14 @@ variables {ω ω' : Type u} {m m' : Type u → Type v}
 
 /-- Transitivity.
 
-This instance generates the type-class problem bundled_hom ?m (which is why this is marked as
-`[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`.
+This instance generates the type-class problem with a metavariable argument (which is why this is marked as
+`[nolint dangerous_instance]`).
+Currently that is not a problem, as there are almost no instances of `monad_functor` or `monad_writer_adapter`.
 
 see Note [lower instance priority] -/
-@[nolint, priority 100]
-instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_functor m m' n n']
-  [monad_writer_adapter ω ω' m m'] : monad_writer_adapter ω ω' n n' :=
+@[nolint dangerous_instance, priority 100]
+instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_writer_adapter ω ω' m m']
+  [monad_functor m m' n n'] : monad_writer_adapter ω ω' n n' :=
 ⟨λ α f, monad_map (λ α, (adapt_writer f : m α → m' α))⟩
 
 instance [monad m] : monad_writer_adapter ω ω' (writer_t ω m) (writer_t ω' m) :=

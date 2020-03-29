@@ -159,13 +159,13 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
   have x : Π i, g i ∩ M,
   { rw mem_closure_iff_nhds at hp,
     intro i, apply classical.indefinite_description,
-    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
+    apply hp, rw gbasis, rw ← le_principal_iff, apply infi_le_of_le i _, apply le_refl _ },
   -- It remains to show that x converges to p. Intuitively this is the case
   -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
   have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,
   { intro s, rw gbasis, rw mem_infi,
     { simp, intros i hi, use i, assumption },
-    { apply lattice.directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
+    { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
     { apply_instance } },
   -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
   ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],

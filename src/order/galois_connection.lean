@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Galois connections - order theoretic adjoints.
 -/
 import order.complete_lattice order.bounds order.order_iso
-open function set lattice
+open function set
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ : α} {b b₁ b₂ : β}
@@ -17,7 +17,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ :
 def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α) := ∀a b, l a ≤ b ↔ a ≤ u b
 
 /-- Makes a Galois connection from an order-preserving bijection. -/
-theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) : 
+theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) :
   galois_connection oi oi.symm :=
 λ b g, by rw [order_iso.ord' oi, order_iso.apply_symm_apply]
 
@@ -57,11 +57,11 @@ lemma lower_bounds_u_image_subset {s : set β} : lower_bounds (u '' s) ⊆ l ⁻
 assume a ha c, assume : c ∈ s, gc.l_le (ha (mem_image_of_mem _ ‹c ∈ s›))
 
 lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l a) :=
-⟨mem_upper_bounds_image gc.monotone_l $ and.elim_left ‹is_lub s a›,
+⟨gc.monotone_l.mem_upper_bounds_image $ and.elim_left ‹is_lub s a›,
   assume b hb, gc.l_le $ and.elim_right ‹is_lub s a› $ gc.upper_bounds_l_image_subset hb⟩
 
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
-⟨mem_lower_bounds_image gc.monotone_u $ and.elim_left ‹is_glb s b›,
+⟨gc.monotone_u.mem_lower_bounds_image $ and.elim_left ‹is_glb s b›,
   assume a ha, gc.le_u $ and.elim_right ‹is_glb s b› $ gc.lower_bounds_u_image_subset ha⟩
 
 lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
@@ -89,7 +89,7 @@ variables [order_top α] [order_top β] {l : α → β} {u : β → α} (gc : ga
 include gc
 
 lemma u_top : u ⊤ = ⊤ :=
-eq_of_is_glb_of_is_glb (gc.is_glb_u_image is_glb_empty) $ by simp [is_glb_empty, image_empty]
+(gc.is_glb_u_image is_glb_empty).unique $ by simp only [is_glb_empty, image_empty]
 
 end order_top
 
@@ -98,7 +98,7 @@ variables [order_bot α] [order_bot β] {l : α → β} {u : β → α} (gc : ga
 include gc
 
 lemma l_bot : l ⊥ = ⊥ :=
-eq_of_is_lub_of_is_lub (gc.is_lub_l_image is_lub_empty) $ by simp [is_lub_empty, image_empty]
+(gc.is_lub_l_image is_lub_empty).unique $ by simp only [is_lub_empty, image_empty]
 
 end order_bot
 
@@ -107,9 +107,7 @@ variables [semilattice_sup α] [semilattice_sup β] {l : α → β} {u : β → 
 include gc
 
 lemma l_sup : l (a₁ ⊔ a₂) = l a₁ ⊔ l a₂ :=
-have {l a₂, l a₁} = l '' {a₂, a₁}, by simp [image_insert_eq, image_singleton],
-eq.symm $ is_lub_iff_sup_eq.mp $
-  by rw [this]; exact gc.is_lub_l_image (is_lub_insert_sup is_lub_singleton)
+(gc.is_lub_l_image is_lub_pair).unique $ by simp only [image_pair, is_lub_pair]
 
 end semilattice_sup
 
@@ -118,9 +116,7 @@ variables [semilattice_inf α] [semilattice_inf β] {l : α → β} {u : β → 
 include gc
 
 lemma u_inf : u (b₁ ⊓ b₂) = u b₁ ⊓ u b₂ :=
-have {u b₂, u b₁} = u '' {b₂, b₁}, by simp [image_insert_eq, image_singleton],
-eq.symm $ is_glb_iff_inf_eq.mp $
-  by rw [this]; exact gc.is_glb_u_image (is_glb_insert_inf is_glb_singleton)
+(gc.is_glb_u_image is_glb_pair).unique $ by simp only [image_pair, is_glb_pair]
 
 end semilattice_inf
 
@@ -129,12 +125,12 @@ variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β �
 include gc
 
 lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
-eq.symm $ is_lub_iff_supr_eq.mp $ show is_lub (range (l ∘ f)) (l (supr f)),
-  by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image is_lub_Sup
+eq.symm $ is_lub.supr_eq $ show is_lub (range (l ∘ f)) (l (supr f)),
+  by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image (is_lub_Sup _)
 
 lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
-eq.symm $ is_glb_iff_infi_eq.mp $ show is_glb (range (u ∘ f)) (u (infi f)),
-  by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image is_glb_Inf
+eq.symm $ is_glb.infi_eq $ show is_glb (range (u ∘ f)) (u (infi f)),
+  by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image (is_glb_Inf _)
 
 end complete_lattice
 
@@ -202,7 +198,7 @@ def galois_insertion.monotone_intro {α β : Type*} [preorder α] [preorder β] 
   choice_eq := λ _ _, rfl }
 
 /-- Makes a Galois insertion from an order-preserving bijection. -/
-protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) : 
+protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) :
 @galois_insertion α β _ _ (oi) (oi.symm) :=
 { choice := λ b h, oi b,
   gc := oi.to_galois_connection,
@@ -218,11 +214,61 @@ def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_ord
   .. ‹partial_order β› }
 
 namespace galois_insertion
-open lattice
-variables [partial_order β] {l : α → β} {u : β → α}
 
-lemma l_u_eq [preorder α] (gi : galois_insertion l u) (b : β) : l (u b) = b :=
+variables {l : α → β} {u : β → α}
+
+lemma l_u_eq [preorder α] [partial_order β] (gi : galois_insertion l u) (b : β) :
+  l (u b) = b :=
 le_antisymm (gi.gc.l_u_le _) (gi.le_l_u _)
+
+lemma l_surjective [preorder α] [partial_order β] (gi : galois_insertion l u) :
+  surjective l :=
+assume b, ⟨u b, gi.l_u_eq b⟩
+
+lemma u_injective [preorder α] [partial_order β] (gi : galois_insertion l u) :
+  injective u :=
+assume a b h,
+calc a = l (u a) : (gi.l_u_eq a).symm
+   ... = l (u b) : congr_arg l h
+   ... = b       : gi.l_u_eq b
+
+lemma l_sup_u [semilattice_sup α] [semilattice_sup β] (gi : galois_insertion l u) (a b : β) :
+  l (u a ⊔ u b) = a ⊔ b :=
+calc l (u a ⊔ u b) = l (u a) ⊔ l (u b) : gi.gc.l_sup
+               ... = a ⊔ b : by simp only [gi.l_u_eq]
+
+lemma l_supr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} (f : ι → β) :
+  l (⨆ i, u (f i)) = ⨆ i, (f i) :=
+calc l (⨆ (i : ι), u (f i)) = ⨆ (i : ι), l (u (f i)) : gi.gc.l_supr
+                        ... = ⨆ (i : ι), f i : congr_arg _ $ funext $ λ i, gi.l_u_eq (f i)
+
+lemma l_supr_of_ul [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} (f : ι → α) (hf : ∀ i, u (l (f i)) = f i) :
+  l (⨆ i, (f i)) = ⨆ i, l (f i) :=
+calc l (⨆ (i : ι), (f i)) = l ⨆ (i : ι), (u (l (f i))) : by simp [hf]
+                        ... = ⨆ (i : ι), l (f i) : gi.l_supr_u _
+
+lemma l_inf_u [semilattice_inf α] [semilattice_inf β] (gi : galois_insertion l u) (a b : β) :
+  l (u a ⊓ u b) = a ⊓ b :=
+calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
+               ... = a ⊓ b : by simp only [gi.l_u_eq]
+
+lemma l_infi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} (f : ι → β) :
+  l (⨅ i, u (f i)) = ⨅ i, (f i) :=
+calc l (⨅ (i : ι), u (f i)) = l (u (⨅ (i : ι), (f i))) : congr_arg l gi.gc.u_infi.symm
+                        ... = ⨅ (i : ι), f i : gi.l_u_eq _
+
+lemma l_infi_of_ul [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} (f : ι → α) (hf : ∀ i, u (l (f i)) = f i) :
+  l (⨅ i, (f i)) = ⨅ i, l (f i) :=
+calc l (⨅ i, (f i)) =  l ⨅ (i : ι), (u (l (f i))) : by simp [hf]
+                ... = ⨅ i, l (f i) : gi.l_infi_u _
+
+section lift
+
+variables [partial_order β]
 
 /-- Lift the suprema along a Galois insertion -/
 def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semilattice_sup β :=
@@ -269,5 +315,7 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     assume s a hs, le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_infi $ assume b,
     show u a ≤ ⨅ (H : b ∈ s), u b, from le_infi $ assume hb, gi.gc.monotone_u $ hs _ hb,
   .. gi.lift_bounded_lattice }
+
+end lift
 
 end galois_insertion

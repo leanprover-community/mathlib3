@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import data.nat.cast algebra.group algebra.field tactic.wlog
+import data.nat.cast algebra.field tactic.wlog
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
@@ -55,7 +55,7 @@ cast_injective.eq_iff
 @[simp, elim_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 
-@[simp, elim_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+@[elim_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 end nat

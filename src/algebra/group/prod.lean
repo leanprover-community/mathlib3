@@ -6,6 +6,22 @@ Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 
 import algebra.group.hom
 
+/-!
+# Monoid, group etc structures on `M × N`
+
+In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
+trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
+
+* `fst M N : M × N →* M`, `snd M N : M × N →* N`: projections `prod.fst` and `prod.snd`
+  as `monoid_hom`s;
+* `inl M N : M →* M × N`, `inr M N : N →* M × N`: inclusions of first/second monoid
+  into the product;
+* `f.prod g : `M →* N × P`: sends `x` to `(f x, g x)`;
+* `f.coprod g : M × N →* P`: sends `(x, y)` to `f x * g y`;
+* `f.prod_map g : M × N → M' × N'`: `prod.map f g` as a `monoid_hom`,
+  sends `(x, y)` to `(f x, g y)`.
+-/
+
 variables {A : Type*} {B : Type*} {G : Type*} {H : Type*} {M : Type*} {N : Type*} {P : Type*}
 
 namespace prod

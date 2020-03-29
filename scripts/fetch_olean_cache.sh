@@ -7,7 +7,6 @@ MAX_REQUESTS=10
 if new_git_sha=$(python scripts/look_up_olean_hash.py $lean_file_hash); then
   echo "equivalent Git sha: $new_git_sha"
 else
-  git fetch --depth=$MAX_REQUESTS origin $branch
   for new_git_sha in $(git log -$MAX_REQUESTS --first-parent --pretty=format:%H)
   do
     if curl -fI "$archive_url$new_git_sha.tar.gz" ; then

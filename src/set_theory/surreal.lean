@@ -67,8 +67,8 @@ end
 instance : has_mul pgame := ⟨mul⟩
 
 /-- Because the two halves of the definition of inv produce more elements
-  of each side, we have to define the two families inductively.
-  This is the indexing set for the function, and `inv_val` is the function part. -/
+of each side, we have to define the two families inductively.
+This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive inv_ty (l r : Type u) : bool → Type u
 | zero {} : inv_ty ff
 | left₁ : r → inv_ty ff → inv_ty ff

@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: ${{ env.MAX_DEPTH }}
+          fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
       - name: install elan
         run: |

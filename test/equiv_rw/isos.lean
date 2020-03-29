@@ -68,8 +68,22 @@ def Polynomial : CommRing → CommRing :=
 def iso_functorial.map.to_fun {R S : CommRing} (i : R ≅ S) : Polynomial R → Polynomial S :=
 begin
   intro X,
-  transport X with i, -- This certainly doesn't work yet, but we may be reasonably close.
-  sorry
+  -- This certainly doesn't work yet, but we may be reasonably close.
+  -- transport X with i,
+  -- Let's try to do it by hand to see how it's meant to go.
+
+  -- dsimp [Polynomial, polynomial, add_monoid_algebra],
+  tactic.whnf_target,
+
+  refine_struct { .. } ,
+
+  have support := finsupp.support X,
+  try { equiv_rw i at support }, -- who cares,
+  exact support,
+
+  have to_fun := finsupp.to_fun X,
+  equiv_rw i at to_fun, -- but we need this to work...
+
 end
 
 -- Now we need to hope that all the algebraic axioms work out!

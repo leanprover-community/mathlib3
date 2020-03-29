@@ -2626,6 +2626,8 @@ begin
     split; simp [h₁, h₂], }
 end
 
+@[simp] lemma Ico_ℤ.card (l u : ℤ) : (Ico_ℤ l u).card = (u - l).to_nat := by simp [Ico_ℤ]
+
 end finset
 
 namespace multiset

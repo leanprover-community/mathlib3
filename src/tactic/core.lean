@@ -86,7 +86,8 @@ meta def set_state (state : σ) : interaction_monad σ unit :=
 /--
 `run_with_state state tac` applies `tac` to the given state `state` and returns the result,
 subsequently restoring the original state.
-If `tac` fails, then `run_with_state` does too. -/
+If `tac` fails, then `run_with_state` does too.
+-/
 meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
 λ s, match tac state with
      | success val _      := success val s

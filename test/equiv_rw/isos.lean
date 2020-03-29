@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.equiv_rw
+import tactic.transport
 import category_theory.functorial
 import category_theory.types
 import algebra.category.CommRing.basic
@@ -66,9 +67,8 @@ def Polynomial : CommRing → CommRing :=
 
 def iso_functorial.map.to_fun {R S : CommRing} (i : R ≅ S) : Polynomial R → Polynomial S :=
 begin
-  dsimp [Polynomial],
   intro X,
-  -- transport X, -- This certainly doesn't work yet, but we may be reasonably close.
+  transport X with i, -- This certainly doesn't work yet, but we may be reasonably close.
   sorry
 end
 
@@ -98,5 +98,5 @@ def iso_functorial.map_comp : sorry := sorry
 
 theorem is_local_ring_hygienic (R S : CommRing) (i : R ≅ S) (h : is_local_ring R) : is_local_ring S :=
 begin
-  transport is_local_ring,
+  transport h with i,
 end

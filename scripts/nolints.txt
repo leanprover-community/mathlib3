@@ -2517,10 +2517,7 @@ apply_nolint multiplicity.finite doc_blame
 apply_nolint multiplicity.finite_mul_aux unused_arguments
 
 -- ring_theory/noetherian.lean
-apply_nolint is_noetherian doc_blame
 apply_nolint is_noetherian_iff_well_founded ge_or_gt
-apply_nolint is_noetherian_ring doc_blame
-apply_nolint submodule.fg doc_blame
 apply_nolint well_founded_submodule_gt ge_or_gt
 
 -- ring_theory/power_series.lean

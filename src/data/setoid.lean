@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.galois_connection order.copy
+import data.quot data.set.lattice data.fintype.basic order.galois_connection order.copy
 
 /-!
 # Equivalence relations

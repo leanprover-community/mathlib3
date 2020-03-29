@@ -6,7 +6,7 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 Matrices
 -/
 import algebra.module algebra.pi_instances
-import data.fintype
+import data.fintype.basic
 
 universes u v w
 
@@ -343,7 +343,7 @@ begin
 end
 
 @[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
-  (c • M)ᵀ = c • Mᵀ := 
+  (c • M)ᵀ = c • Mᵀ :=
 by { ext i j, refl }
 
 @[simp] lemma transpose_neg [comm_ring α] (M : matrix m n α) :

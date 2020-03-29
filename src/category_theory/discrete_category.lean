@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import data.ulift
-import data.fintype
+import data.fintype.basic
 import category_theory.opposites category_theory.equivalence
 
 namespace category_theory

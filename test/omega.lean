@@ -3,7 +3,7 @@ Test cases for omega. Most of the examples are from John Harrison's
 Handbook of Practical Logic and Automated Reasoning.
 -/
 
-import data.fintype
+import data.fintype.basic
 import tactic.omega
 
 example (n : ℤ) : n - 1 ≠ n := by omega

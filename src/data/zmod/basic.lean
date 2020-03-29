@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 
-import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
+import data.int.modeq data.int.gcd data.fintype.basic data.pnat.basic tactic.ring
 
 /-!
 # Integers mod `n`

@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.rat
-import data.fintype
+import data.fintype.basic
 import data.fintype.card
 
 /-!

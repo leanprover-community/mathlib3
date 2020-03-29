@@ -399,15 +399,8 @@ by by_cases h : c; simp [h]
 
 add_hint_tactic "norm_cast at *"
 
-add_tactic_doc
-{ name := "norm_cast",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.norm_cast, `tactic.interactive.rw_mod_cast,
-                 `tactic.interactive.apply_mod_cast, `tactic.interactive.assumption_mod_cast,
-                 `tactic.interactive.exact_mod_cast, `tactic.interactive.push_cast],
-  tags       := ["coercions", "simplification"],
-  description :=
-"The `norm_cast` family of tactics is used to normalize casts inside expressions.
+/--
+The `norm_cast` family of tactics is used to normalize casts inside expressions.
 It is basically a simp tactic with a specific set of lemmas to move casts
 upwards in the expression.
 Therefore it can be used more safely as a non-terminating tactic.
@@ -436,15 +429,18 @@ expression `h` in the context it will try to normalize `h` and use
 This uses `move_cast` lemmas in the forward direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
-with `push_cast at h`." }
-
+with `push_cast at h`.
+-/
 add_tactic_doc
-{ name := "norm_cast attributes",
-  category   := doc_category.attr,
-  decl_names := [`norm_cast.move_cast_attr, `norm_cast.elim_cast_attr, `norm_cast.squash_cast_attr],
-  tags       := ["coercions"],
-  description :=
-"The `norm_cast` family of tactics works with three attributes,
+{ name := "norm_cast",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.norm_cast, `tactic.interactive.rw_mod_cast,
+                 `tactic.interactive.apply_mod_cast, `tactic.interactive.assumption_mod_cast,
+                 `tactic.interactive.exact_mod_cast, `tactic.interactive.push_cast],
+  tags       := ["coercions", "simplification"] }
+
+/--
+The `norm_cast` family of tactics works with three attributes,
 `elim_cast`, `move_cast` and `squash_cast`.
 
 `elim_cast` is for elimination lemmas of the shape
@@ -471,4 +467,9 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
-" }
+-/
+add_tactic_doc
+{ name := "norm_cast attributes",
+  category   := doc_category.attr,
+  decl_names := [`norm_cast.move_cast_attr, `norm_cast.elim_cast_attr, `norm_cast.squash_cast_attr],
+  tags       := ["coercions", "simplification"] }

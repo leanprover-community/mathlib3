@@ -12,9 +12,7 @@ apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
 -- algebra/big_operators.lean
-apply_nolint finset.prod_ite unused_arguments
 apply_nolint finset.sum doc_blame
-apply_nolint finset.sum_ite unused_arguments
 
 -- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
@@ -95,12 +93,10 @@ apply_nolint monoid_hom.one doc_blame
 -- algebra/group/to_additive.lean
 apply_nolint to_additive.attr doc_blame
 apply_nolint to_additive.aux_attr doc_blame
-apply_nolint to_additive.guess_name doc_blame
 apply_nolint to_additive.map_namespace doc_blame
 apply_nolint to_additive.parser doc_blame
 apply_nolint to_additive.proceed_fields doc_blame
 apply_nolint to_additive.target_name doc_blame
-apply_nolint to_additive.tokens_dict doc_blame
 apply_nolint to_additive.value_type doc_blame
 
 -- algebra/group/type_tags.lean
@@ -127,7 +123,6 @@ apply_nolint lie_submodule has_inhabited_instance
 
 -- algebra/module.lean
 apply_nolint ideal doc_blame
-apply_nolint is_add_group_hom.to_linear_map doc_blame
 apply_nolint is_linear_map doc_blame
 apply_nolint is_linear_map.mk' doc_blame
 apply_nolint is_ring_hom.to_module doc_blame
@@ -136,7 +131,6 @@ apply_nolint linear_map.comp doc_blame
 apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
-apply_nolint module.of_core doc_blame
 apply_nolint submodule.subtype doc_blame
 
 -- algebra/order.lean
@@ -1136,9 +1130,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/functor.lean
-apply_nolint functor.map_equiv doc_blame
-
 -- data/equiv/list.lean
 apply_nolint denumerable.lower doc_blame
 apply_nolint denumerable.lower' doc_blame
@@ -1281,9 +1272,6 @@ apply_nolint int.eq_mul_div_of_mul_eq_mul_of_dvd_left unused_arguments
 apply_nolint int.induction_on' doc_blame
 apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
-
--- data/int/gcd.lean
-apply_nolint nat.xgcd_aux doc_blame
 
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
@@ -2178,7 +2166,6 @@ apply_nolint function.embedding.trans doc_blame
 -- logic/function.lean
 apply_nolint function.bicompl doc_blame
 apply_nolint function.bicompr doc_blame
-apply_nolint function.restrict doc_blame
 apply_nolint function.uncurry' doc_blame
 
 -- logic/relation.lean
@@ -2197,7 +2184,6 @@ apply_nolint relator.right_unique doc_blame
 
 -- logic/unique.lean
 apply_nolint unique doc_blame
-apply_nolint unique.of_surjective doc_blame
 
 -- measure_theory/ae_eq_fun.lean
 apply_nolint measure_theory.ae_eq_fun.add doc_blame
@@ -3345,15 +3331,6 @@ apply_nolint tactic.find_if_cond_at doc_blame
 apply_nolint tactic.reduce_ifs_at doc_blame
 apply_nolint tactic.split_if1 doc_blame
 apply_nolint tactic.split_ifs doc_blame
-
--- tactic/squeeze.lean
-apply_nolint loc.to_string doc_blame
-apply_nolint loc.to_string_aux doc_blame
-apply_nolint tactic.interactive.auto_simp_lemma doc_blame
-apply_nolint tactic.interactive.parse_config doc_blame
-apply_nolint tactic.interactive.rec.to_tactic_format doc_blame
-apply_nolint tactic.interactive.record_lit doc_blame
-apply_nolint tactic.interactive.squeeze_simpa doc_blame
 
 -- tactic/subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame

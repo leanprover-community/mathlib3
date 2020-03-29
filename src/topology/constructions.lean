@@ -40,7 +40,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 section constructions
 
 instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
-induced subtype.val t
+induced coe t
 
 instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
 coinduced (quot.mk r) t
@@ -369,6 +369,9 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
+lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
+continuous_subtype_val
+
 lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
   open_embedding (subtype.val : s → α) :=
 { induced := rfl,
@@ -380,7 +383,7 @@ lemma is_open.is_open_map_subtype_val {s : set α} (hs : is_open s) :
 hs.open_embedding_subtype_val.is_open_map
 
 lemma is_open_map.restrict {f : α → β} (hf : is_open_map f) {s : set α} (hs : is_open s) :
-  is_open_map (function.restrict f s) :=
+  is_open_map (s.restrict f) :=
 hf.comp hs.is_open_map_subtype_val
 
 lemma is_closed.closed_embedding_subtype_val {s : set α} (hs : is_closed s) :

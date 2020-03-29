@@ -256,4 +256,9 @@ example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
   {x ∈ finset.range n | x < m } ∪ {x ∈ finset.range n | x < k } :=
 by simp [finset.filter_or]
 
+example : 1 = 1 :=
+by { squeeze_simp }
+
 end
+
+open tactic

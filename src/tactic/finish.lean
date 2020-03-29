@@ -363,7 +363,7 @@ SMT state and will repeatedly use `ematch` (using `ematch` lemmas in the environ
 universally quantified assumptions, and the supplied lemmas `ps`) and congruence closure.
 -/
 meta def done (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-do when_tracing `auto.done (trace "entering done" >> trace_state),
+do trace_state_if_enabled `auto.done "entering done",
    contradiction <|>
    (solve1 $
      (do revert_all,
@@ -435,16 +435,16 @@ it will:
 -/
 meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
-do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
+do trace_state_if_enabled `auto.finish "entering safe_core",
    if cfg.use_simp then do
-     when_tracing `auto.finish (trace "simplifying hypotheses"),
+     trace_if_enabled `auto.finish "simplifying hypotheses",
      simp_all s.1 s.2 { fail_if_unchanged := ff },
-     when_tracing `auto.finish (trace "result:" >> trace_state)
+     trace_state_if_enabled `auto.finish "result:"
    else skip,
    tactic.done <|>
-   do when_tracing `auto.finish (trace "preprocessing hypotheses"),
+   do trace_if_enabled `auto.finish "preprocessing hypotheses",
       preprocess_hyps cfg,
-      when_tracing `auto.finish (trace "result:" >> trace_state),
+      trace_state_if_enabled `auto.finish "result:",
       done ps cfg <|>
         (mcond (case_some_hyp co safe_core)
           skip
@@ -572,14 +572,8 @@ do s ← mk_simp_set ff [] hs,
 
 add_hint_tactic "finish"
 
-add_tactic_doc
-{ name        := "finish / clarify / safe",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.finish, `tactic.interactive.clarify,
-                  `tactic.interactive.safe],
-  tags        := [],
-  description :=
-"These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
+/--
+These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
 and congruence closure to try to finish off a goal at the end.
 
@@ -593,7 +587,13 @@ they are only meant to be used on small, straightforward problems.
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.) All also accept an optional
 list of `ematch` lemmas, which must be preceded by `using`.
-" }
+-/
+add_tactic_doc
+{ name        := "finish / clarify / safe",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.finish, `tactic.interactive.clarify,
+                  `tactic.interactive.safe],
+  tags        := ["logic", "finishing"] }
 
 /--
 `iclarify` is like `clarify`, but only uses intuitionistic logic.

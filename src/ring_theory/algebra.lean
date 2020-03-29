@@ -628,7 +628,7 @@ section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
 `S`-modules are also `R`-modules. -/
 
-variables (R : Type*) [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
 (E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
 
 /-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a

@@ -148,34 +148,18 @@ do
     * We make sure that `eq` is the first lemma, so it is applied whenever possible.
     * In `equiv_congr_lemmas`, we put `equiv.refl` last so it is only used when it is not possible
       to descend further.
-    * To avoid the possibility that the entire resulting expression is built out of
-      congruence lemmas and `equiv.refl`, we use the `accept` subtactic of `solve_by_elim`
-      to reject any results which neither contain `eq` or a remaining metavariable.
     * Since some congruence lemmas generate subgoals with `∀` statements,
       we use the `pre_apply` subtactic of `solve_by_elim` to preprocess each new goal with `intros`.
   -/
-  solve_by_elim {
-    use_symmetry := false,
+  solve_by_elim
+  { use_symmetry := false,
     use_exfalso := false,
     lemmas := some (eq :: equiv_congr_lemmas),
     max_steps := cfg.max_steps,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
-    discharger := trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
-    -- We accept any branch of the `solve_by_elim` search tree which
-    -- either still contains metavariables, or already contains at least one copy of `eq`.
-    -- This is to prevent generating equivalences built entirely out of `equiv.refl`.
-    accept := λ goals, lock_tactic_state (do
-      when_tracing `equiv_rw_type (do
-        goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
-      goals.any_of (λ g, guard $ g.contains_expr_or_mvar eq) <|>
-        (trace_if_enabled `equiv_rw_type format!"Rejected, result does not contain {eq}" >> failed),
-      done <|>
-      when_tracing `equiv_rw_type (do
-        gs ← get_goals,
-        gs ← gs.mmap (λ g, infer_type g >>= pp),
-        trace format!"Attempting to adapt to {gs}")) }
+    discharger := trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed }
 
 /--
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
@@ -196,9 +180,13 @@ do
   -- Now call `equiv_rw_type_core` to actually do the work, then restore the original goals.
   equiv_rw_type_core eq cfg,
   set_goals initial_goals,
-  -- Finally, we simplify the resulting equivalence,
+  -- Check that we actually used the equivalence `eq`
+  -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
+  g ← instantiate_mvars g,
+  guard (eq.occurs g) <|> fail format!"Could not construct an equivalence from {eq} of the form: {ty} ≃ _",
+  -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
-  instantiate_mvars g >>= (λ g, prod.fst <$> g.simp {fail_if_unchanged := ff})
+  prod.fst <$> g.simp {fail_if_unchanged := ff}
 
 /--
 Attempt to replace the hypothesis with name `x`

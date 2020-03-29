@@ -482,7 +482,7 @@ fintype.subtype (univ.filter (∈ s)) (by simp)
 
 namespace fintype
 
-variables [fintype α] [decidable_eq α] {δ : α → Type*} --[decidable_eq (Π a, δ a)]
+variables [fintype α] [decidable_eq α] {δ : α → Type*}
 
 /-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
 finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`. This is the

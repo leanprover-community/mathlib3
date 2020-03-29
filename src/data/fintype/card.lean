@@ -133,7 +133,7 @@ begin
     refine ⟨λ hs, finset.mem_univ _, λ hs, _⟩,
     rw finset.mem_bind,
     use s.card,
-    simp [t, finset.mem_powerset_len, finset.subset_univ],
+    simp only [mem_powerset_len, subset_univ, and_true, mem_range, eq_self_iff_true],
     have : s.card ≤ (finset.univ : finset α).card :=
       finset.card_le_of_subset (finset.subset_univ _),
     rw finset.card_univ at this,

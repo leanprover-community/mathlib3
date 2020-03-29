@@ -688,24 +688,45 @@ let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
 /--
-`apply_any` tries to apply one of a list of lemmas to the current goal.
+Configuration options for `apply_any`:
+* `use_symmetry`: if `apply_any` fails to apply any lemma, call `symmetry` and try again.
+* `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
+* `all_goals`: attempt to solve all goals simultaneously,
+    backtracking if a solution to one goal results in other goals being impossible.
+* `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
+-/
+meta structure apply_any_opt :=
+(use_symmetry : bool := tt)
+(use_exfalso : bool := tt)
+(all_goals : bool := tt)
+(apply : expr → tactic (list (name × expr)) := tactic.apply)
 
-Optional arguments:
-* `lemmas` controls which expressions are applied.
-* `tac` is called after a successful application. Defaults to `skip`.
-* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
-* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
+/--
+`apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
+
+`apply_any lemmas opt` allows control over how lemmas are applied.
+`opt` has fields:
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
+* `all_goals`: attempt to apply the lemmas to each of the goals sequentially. (Defaults to `tt`.)
+* `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
+
+`apply_any lemmas tac` calls the tactic `tac` after a successful application.
+Defaults to `skip`. This is used, for example, by `solve_by_elim` to arrange
+recursive invocations of `apply_any`.
 -/
 meta def apply_any
   (lemmas : list expr)
-  (tac : tactic unit := skip)
-  (use_symmetry : bool := tt)
-  (use_exfalso : bool := tt) : tactic unit :=
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
-    ++ (if use_symmetry then [symmetry] else [])
-    ++ (if use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  goals ← if opt.all_goals then list.range <$> num_goals else pure [0],
+  goals.any_of (λ g, do rotate g,
+    modes.any_of (λ m, do m,
+      lemmas.any_of (λ H, opt.apply H >> tac))) <|>
   fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
@@ -860,7 +881,7 @@ add_tactic_doc
 { name                     := "fsplit",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.fsplit],
-  tags                     := [] }
+  tags                     := ["logic", "goal management"] }
 
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
 succeeds, clears the old hypothesis. -/
@@ -875,7 +896,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := [] }
+  tags                     := ["context management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/
@@ -1111,7 +1132,7 @@ add_tactic_doc
 { name                     := "Match Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.match_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 Invoking hole command "Equations Stub" ("Generate a list of equations for a recursive definition")
@@ -1183,7 +1204,7 @@ add_tactic_doc
 { name                     := "Equations Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.eqn_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 This command lists the constructors that can be used to satisfy the expected type.
@@ -1236,7 +1257,7 @@ add_tactic_doc
 { name                     := "List Constructors",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.list_constructors_hole],
-  tags                     := [] }
+  tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/
@@ -1314,7 +1335,7 @@ add_tactic_doc
 { name                     := "higher_order",
   category                 := doc_category.attr,
   decl_names               := [`tactic.higher_order_attr],
-  tags                     := [] }
+  tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
 
@@ -1430,7 +1451,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := [] }
+  tags                     := ["parsing", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1790,7 +1811,7 @@ add_tactic_doc
 { name                     := "import_private",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.import_private_cmd],
-  tags                     := [] }
+  tags                     := ["renaming"] }
 
 /--
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.

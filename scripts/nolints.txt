@@ -12,9 +12,7 @@ apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
 -- algebra/big_operators.lean
-apply_nolint finset.prod_ite unused_arguments
 apply_nolint finset.sum doc_blame
-apply_nolint finset.sum_ite unused_arguments
 
 -- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
@@ -1132,9 +1130,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/functor.lean
-apply_nolint functor.map_equiv doc_blame
-
 -- data/equiv/list.lean
 apply_nolint denumerable.lower doc_blame
 apply_nolint denumerable.lower' doc_blame
@@ -2171,7 +2166,6 @@ apply_nolint function.embedding.trans doc_blame
 -- logic/function.lean
 apply_nolint function.bicompl doc_blame
 apply_nolint function.bicompr doc_blame
-apply_nolint function.restrict doc_blame
 apply_nolint function.uncurry' doc_blame
 
 -- logic/relation.lean
@@ -2523,10 +2517,7 @@ apply_nolint multiplicity.finite doc_blame
 apply_nolint multiplicity.finite_mul_aux unused_arguments
 
 -- ring_theory/noetherian.lean
-apply_nolint is_noetherian doc_blame
 apply_nolint is_noetherian_iff_well_founded ge_or_gt
-apply_nolint is_noetherian_ring doc_blame
-apply_nolint submodule.fg doc_blame
 apply_nolint well_founded_submodule_gt ge_or_gt
 
 -- ring_theory/power_series.lean
@@ -3337,15 +3328,6 @@ apply_nolint tactic.find_if_cond_at doc_blame
 apply_nolint tactic.reduce_ifs_at doc_blame
 apply_nolint tactic.split_if1 doc_blame
 apply_nolint tactic.split_ifs doc_blame
-
--- tactic/squeeze.lean
-apply_nolint loc.to_string doc_blame
-apply_nolint loc.to_string_aux doc_blame
-apply_nolint tactic.interactive.auto_simp_lemma doc_blame
-apply_nolint tactic.interactive.parse_config doc_blame
-apply_nolint tactic.interactive.rec.to_tactic_format doc_blame
-apply_nolint tactic.interactive.record_lit doc_blame
-apply_nolint tactic.interactive.squeeze_simpa doc_blame
 
 -- tactic/subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame

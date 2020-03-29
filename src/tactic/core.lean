@@ -6,12 +6,10 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
   tactic.derive_inhabited
 
-universe variable u
+universes u
 
 instance : has_lt pos :=
 { lt := λ x y, (x.line, x.column) < (y.line, y.column) }
-
-universes u
 
 namespace expr
 open tactic

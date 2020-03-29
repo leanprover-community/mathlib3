@@ -1352,7 +1352,7 @@ include R
 
 instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨λ _, M → M₂, λ f, f.to_fun⟩
+instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
 @[simp] theorem coe_apply (e : M ≃ₗ[R] M₂) (b : M) : (e : M →ₗ[R] M₂) b = e b := rfl
 

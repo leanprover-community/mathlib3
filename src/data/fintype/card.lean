@@ -119,7 +119,7 @@ end
 
 @[to_additive] lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
   {δ : α → Type u_1} [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
-  (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β):
+  (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
   (univ.pi t).prod f = (fintype.pi_finset t).prod (λ x, f (λ a _, x a)) :=
 prod_bij (λ x _ a, x a (mem_univ _))
   (by simp)

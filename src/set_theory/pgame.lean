@@ -5,7 +5,6 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.equiv.basic logic.embedding
 import data.nat.cast
-import data.finset data.fintype
 
 /-!
 # Combinatorial (pre-)games.

@@ -28,4 +28,6 @@ begin
     exact ⟨h₁, h₂⟩ }
 end
 
+@[simp] lemma Ico.card (l u : ℕ+) : (Ico l u).card = u - l := by simp [pnat.Ico]
+
 end pnat

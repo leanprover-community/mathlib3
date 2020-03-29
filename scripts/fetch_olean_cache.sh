@@ -38,11 +38,11 @@ dirs="src"
 # Delete every <path>.olean without a matching <path>.lean.
 for olean_file in `find $dirs -name "*.olean"`
 do
-    lean_file=${olean_file/%.olean/.lean}
-    if [ ! -e $lean_file ]; then
-        echo "rm $olean_file"
-        rm $olean_file
-    fi
+  lean_file=${olean_file/%.olean/.lean}
+  if [ ! -e $lean_file ]; then
+    echo "rm $olean_file"
+    rm $olean_file
+  fi
 done
 
 # Delete all empty directories. An empty directory may have been created if it

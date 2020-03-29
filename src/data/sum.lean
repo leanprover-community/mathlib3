@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 
 More theorems about the sum type.
 -/
+import tactic.lint
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -30,15 +31,15 @@ protected def map {α α' β β'} (f : α → α') (g : β → β')  : α ⊕ β
 | (sum.inl x) := sum.inl (f x)
 | (sum.inr x) := sum.inr (g x)
 
-@[simp] theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
+theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
-@[simp] theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
+theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
 ⟨inr.inj, congr_arg _⟩
 
-@[simp] theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
+theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
 
-@[simp] theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
+theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
 
 protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ β → γ := λ x, sum.rec_on x f g
 

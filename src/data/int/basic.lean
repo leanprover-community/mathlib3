@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
+import data.nat.basic algebra.char_zero algebra.order_functions
 open nat
 
 
@@ -38,7 +38,7 @@ by rw [← int.coe_nat_zero, coe_nat_lt]
 @[simp] theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
 by rw [← int.coe_nat_zero, coe_nat_inj']
 
-@[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
+theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
 lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
@@ -110,7 +110,7 @@ begin
   { have : ∀n:ℕ, p (- n),
     { intro n, induction n,
       { simp [hz] },
-      { have := hn _ n_ih, simpa } },
+      { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
 
@@ -159,7 +159,7 @@ by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_tr
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
-by simp [neg_succ_of_nat_eq]
+by simp [neg_succ_of_nat_eq, sub_eq_neg_add]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
@@ -206,12 +206,14 @@ match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
 | ._, ._, ⟨m, rfl⟩, ⟨n, rfl⟩ := neg_succ_lt_zero _
 end
 
-@[simp] protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
+-- Will be generalized to Euclidean domains.
+protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
 | 0       := rfl
 | (n+1:ℕ) := rfl
 | -[1+ n] := rfl
 
-@[simp] protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
+local attribute [simp] -- Will be generalized to Euclidean domains.
+protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
 | 0       := rfl
 | (n+1:ℕ) := rfl
 | -[1+ n] := rfl
@@ -301,14 +303,17 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 @[simp] theorem mod_abs (a b : ℤ) : a % (abs b) = a % b :=
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
-@[simp] theorem zero_mod (b : ℤ) : 0 % b = 0 :=
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem zero_mod (b : ℤ) : 0 % b = 0 :=
 congr_arg of_nat $ nat.zero_mod _
 
-@[simp] theorem mod_zero : ∀ (a : ℤ), a % 0 = a
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_zero : ∀ (a : ℤ), a % 0 = a
 | (m : ℕ) := congr_arg of_nat $ nat.mod_zero _
 | -[1+ m] := congr_arg neg_succ_of_nat $ nat.mod_zero _
 
-@[simp] theorem mod_one : ∀ (a : ℤ), a % 1 = 0
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_one : ∀ (a : ℤ), a % 1 = 0
 | (m : ℕ) := congr_arg of_nat $ nat.mod_one _
 | -[1+ m] := show (1 - (m % 1).succ : ℤ) = 0, by rw nat.mod_one; refl
 
@@ -405,17 +410,18 @@ by rw [← zero_add (a * b), add_mul_mod_self, zero_mod]
 @[simp] theorem mul_mod_right (a b : ℤ) : (a * b) % a = 0 :=
 by rw [mul_comm, mul_mod_left]
 
-@[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
-
-@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
-by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 @[simp] theorem mod_mod_of_dvd (n : int) {m k : int} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
 end
+
+@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
+by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 /- properties of / and % -/
 
@@ -1064,7 +1070,7 @@ section cast
 variables {α : Type*}
 
 section
-variables [has_neg α] [has_zero α] [has_one α] [has_add α]
+variables [has_zero α] [has_one α] [has_add α] [has_neg α]
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
 protected def cast : ℤ → α
@@ -1107,15 +1113,18 @@ end
   by rw [add_assoc, ← cast_succ, ← nat.cast_add, add_comm,
          nat.cast_add, cast_succ, neg_add_cancel_left]
 | -[1+ m] -[1+ n] := show -((m + n + 1 + 1 : ℕ) : α) = -(m + 1) + -(n + 1),
-  by rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add];
-     apply congr_arg (λ x:ℕ, -(x:α)); simp
+  begin
+    rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add],
+    apply congr_arg (λ x:ℕ, -(x:α)),
+    ac_refl
+  end
 
 @[simp, move_cast] theorem cast_neg [add_group α] [has_one α] : ∀ n, ((-n : ℤ) : α) = -n
 | (n : ℕ) := cast_neg_of_nat _
 | -[1+ n] := (neg_neg _).symm
 
 @[move_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
-by simp
+by simp [sub_eq_add_neg]
 
 @[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
 ⟨λ h, begin cases n,
@@ -1130,7 +1139,7 @@ by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
 theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.injective (coe : ℤ → α)
 | m n := cast_inj.1
 
-@[simp] theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 @[simp, move_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n

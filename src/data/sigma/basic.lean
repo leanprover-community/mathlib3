@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
 
+import tactic.lint
+
 section sigma
 variables {α : Type*} {β : α → Type*}
 
@@ -23,9 +25,10 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
 lemma injective_sigma_mk {i : α} : function.injective (@sigma.mk α β i)
 | _ _ rfl := rfl
 
-@[simp] theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+@[simp, nolint simp_nf] -- sometimes the built-in injectivity support does not work
+theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
-⟨sigma.mk.inj, λ ⟨h₁, h₂⟩, by congr; assumption⟩
+by simp
 
 @[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=

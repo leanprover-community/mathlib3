@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 
-import tactic.library_note
+import tactic.doc_commands
 
 /-!
 # Basic logic properties
@@ -26,6 +26,7 @@ section miscellany
   `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
+  bool.decidable_eq decidable.to_bool
 
 variables {α : Type*} {β : Type*}
 
@@ -53,7 +54,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
-@[simp] theorem coe_fn_coe_trans
+theorem coe_fn_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
 
@@ -61,7 +62,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α β} [has_coe α β] [has_coe_to_fun β]
   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
 
-@[simp] theorem coe_sort_coe_trans
+theorem coe_sort_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 
@@ -111,7 +112,7 @@ end miscellany
 ### Declarations about propositional connectives
 -/
 
-@[simp] theorem false_ne_true : false ≠ true
+theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
 section propositional
@@ -144,7 +145,7 @@ iff_iff_implies_and_implies _ _
 theorem iff_def' : (a ↔ b) ↔ (b → a) ∧ (a → b) :=
 iff_def.trans and.comm
 
-@[simp] theorem imp_true_iff {α : Sort*} : (α → true) ↔ true :=
+theorem imp_true_iff {α : Sort*} : (α → true) ↔ true :=
 iff_true_intro $ λ_, trivial
 
 @[simp] theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
@@ -334,7 +335,7 @@ by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
      { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
 
-@[simp] theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
+theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 
 @[inline] def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
@@ -393,6 +394,18 @@ mt $ λ e, e ▸ h
 
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
+
+/-- Transport through trivial families is the identity. -/
+@[simp]
+lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
+  (@eq.rec α a (λ a, β) y a' h) = y :=
+by { cases h, refl, }
+
+@[simp]
+lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+
+@[simp]
+lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
 
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
@@ -625,14 +638,16 @@ by apply_instance
 noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
 by apply_instance
 
-library_note "classical lemma"
-"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+/--
+We make decidability results that depends on `classical.choice` noncomputable lemmas.
 * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
   for them, and fail because it depends on `classical.choice`.
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+-/
+library_note "classical lemma"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

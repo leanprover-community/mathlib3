@@ -860,7 +860,10 @@ theorem length_foldr_permutations_aux2' (t : α) (ts : list α) (r L : list (lis
 begin
   rw [length_foldr_permutations_aux2, (_ : sum (map length L) = n * length L)],
   induction L with l L ih, {simp},
-  simp [ih (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
+  have sum_map : sum (map length L) = n * length L :=
+    ih (λ l m, H l (mem_cons_of_mem _ m)),
+  have length_l : length l = n := H _ (mem_cons_self _ _),
+  simp [sum_map, length_l, mul_add, add_comm]
 end
 
 theorem perm_of_mem_permutations_aux :

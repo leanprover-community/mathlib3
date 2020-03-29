@@ -47,7 +47,6 @@ attribute [ancestor add_semigroup] add_right_cancel_semigroup
 
 attribute [ancestor ring has_inv zero_ne_one_class] division_ring
 attribute [ancestor division_ring comm_ring] field
-attribute [ancestor field] discrete_field
 
 attribute [ancestor has_mul has_add] distrib
 attribute [ancestor has_mul has_zero] mul_zero_class

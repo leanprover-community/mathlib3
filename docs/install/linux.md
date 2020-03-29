@@ -30,10 +30,14 @@ All commands below should be typed inside a terminal.
     A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
     displayed.
 
-* Then we install a small tool called `update-mathlib` that which will handle
+* Then we install a small tool called `leanproject` that will handle
   updating mathlib according to the needs of your current project.
   ```bash
   sudo pip3 install mathlibtools
   ```
 
-You can now read instructions about creating and working on [Lean projects](project.md)
+Note however that you cannot use mathlib, and in particular any imports,
+in the file `test.lean` created above. If you want to use mathlib you
+should now read instructions about creating and working on
+[Lean projects](project.md).
+

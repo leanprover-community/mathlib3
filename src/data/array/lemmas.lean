@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic category.traversable.equiv data.vector2
+import category.traversable.equiv data.vector2
 
 universes u w
 
@@ -133,7 +133,7 @@ theorem to_list_nth_le_aux (i : ℕ) (ih : i < n) : ∀ j {jh t h'},
   show list.nth_le (a.read ⟨j, jh⟩ :: t) k tl = a.read ⟨i, ih⟩, from
   match k, hjk, tl with
   | 0,    e, tl := match i, e, ih with ._, rfl, _ := rfl end
-  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [*])
+  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [*]; cc)
   end
 
 theorem to_list_nth_le (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read ⟨i, h⟩ :=

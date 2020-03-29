@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
 
-import analysis.normed_space.basic tactic.alias
+import analysis.normed_space.basic topology.local_homeomorph tactic.alias
 
 /-!
 # Asymptotics
@@ -951,6 +951,7 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     refine is_O_of_le _ (λ x, _),
+    classical,
     by_cases H : g x = 0,
     { simp only [H, hgf _ H, mul_zero] },
     { simp only [div_mul_cancel _ H] }
@@ -996,3 +997,58 @@ theorem is_O_with.right_le_add_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c 
   (λ x, by rw [neg_sub, sub_neg_eq_add])
 
 end asymptotics
+
+namespace local_homeomorph
+
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+
+variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
+
+open asymptotics
+
+/-- Transfer `is_O_with` over a `local_homeomorph`. -/
+lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
+  {f : β → E} {g : β → F} {C : ℝ} :
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+⟨λ h, h.comp_tendsto $
+  by { convert e.continuous_at_to_fun (e.map_target hb), exact (e.right_inv hb).symm },
+  λ h, (h.comp_tendsto (e.continuous_at_inv_fun hb)).congr' rfl
+    ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg f hx)
+    ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg g hx)⟩
+
+/-- Transfer `is_O` over a `local_homeomorph`. -/
+lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+exists_congr $ λ C, e.is_O_with_congr hb
+
+/-- Transfer `is_o` over a `local_homeomorph`. -/
+lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
+
+end local_homeomorph
+
+namespace homeomorph
+
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+
+variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
+
+open asymptotics
+
+/-- Transfer `is_O_with` over a `homeomorph`. -/
+lemma is_O_with_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} {C : ℝ} :
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+e.to_local_homeomorph.is_O_with_congr trivial
+
+/-- Transfer `is_O` over a `homeomorph`. -/
+lemma is_O_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+exists_congr $ λ C, e.is_O_with_congr
+
+/-- Transfer `is_o` over a `homeomorph`. -/
+lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr
+
+end homeomorph

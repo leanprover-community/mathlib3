@@ -111,7 +111,7 @@ instance is_group_hom_quotient_lift  :
 @[to_additive quotient_add_group.map_is_add_group_hom]
 instance map_is_group_hom (M : set H) [normal_subgroup M]
 (f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
+@quotient_group.is_group_hom_quotient_lift _ _ _ _ _ _ _ (is_group_hom.comp _ _) _
 
 open function is_group_hom
 
@@ -159,10 +159,13 @@ variables {G : Type u} [_root_.add_group G] (N : set G) [normal_add_subgroup N] 
 variables (φ : G → H) [_root_.is_add_group_hom φ]
 
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ _
+@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _)
 
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) : (quotient (ker φ)) ≃ H :=
-@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ _ hφ
+noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+  (quotient (ker φ)) ≃ H :=
+@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _) hφ
 
 attribute [to_additive quotient_add_group.quotient_ker_equiv_range] quotient_group.quotient_ker_equiv_range
 attribute [to_additive quotient_add_group.quotient_ker_equiv_of_surjective] quotient_group.quotient_ker_equiv_of_surjective

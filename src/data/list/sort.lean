@@ -20,8 +20,6 @@ def sorted := @pairwise
 
 @[simp] theorem sorted_nil : sorted r [] := pairwise.nil
 
-@[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
-
 theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=
 pairwise_of_pairwise_cons
 
@@ -53,6 +51,17 @@ begin
     rw [(@eq_repeat _ a (length u₂ + 1) (a::u₂)).2,
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
     split; simp [iff_true_intro this, or_comm] }
+end
+
+@[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
+
+lemma nth_le_of_sorted_of_le [is_refl α r] {l : list α}
+  (h : l.sorted r) {a b : ℕ} {ha : a < l.length} {hb : b < l.length} (hab : a ≤ b) :
+  r (l.nth_le a ha) (l.nth_le b hb) :=
+begin
+  cases eq_or_lt_of_le hab with H H,
+  { induction H, exact refl _ },
+  { exact list.pairwise_iff_nth_le.1 h a b hb H }
 end
 
 end sorted

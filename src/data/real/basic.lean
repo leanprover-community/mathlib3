@@ -128,7 +128,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
   ..real.linear_ordered_comm_ring,
   ..real.domain,
-  ..cau_seq.completion.discrete_field }
+  ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
@@ -136,18 +136,17 @@ noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance discrete_field : discrete_field ℝ := by apply_instance
-noncomputable instance : field ℝ                   := by apply_instance
+noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
 noncomputable instance : decidable_linear_order ℝ  := by apply_instance
-noncomputable instance : lattice.distrib_lattice ℝ := by apply_instance
-noncomputable instance : lattice.lattice ℝ         := by apply_instance
-noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
-noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
-noncomputable instance : lattice.has_inf ℝ         := by apply_instance
-noncomputable instance : lattice.has_sup ℝ         := by apply_instance
+noncomputable instance : distrib_lattice ℝ := by apply_instance
+noncomputable instance : lattice ℝ         := by apply_instance
+noncomputable instance : semilattice_inf ℝ := by apply_instance
+noncomputable instance : semilattice_sup ℝ := by apply_instance
+noncomputable instance : has_inf ℝ         := by apply_instance
+noncomputable instance : has_sup ℝ         := by apply_instance
 
 lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -257,7 +256,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
     replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
-    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos xz) hK),
+    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 xz) hK),
     refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
@@ -269,8 +268,8 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   intros j k ij ik,
   replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
   replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos ε0) ij),
-  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos ε0) ik),
+  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
+  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
   rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
   refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
     ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
@@ -278,13 +277,17 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
 end
 
-noncomputable def Sup (S : set ℝ) : ℝ :=
-if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-then classical.some (exists_sup S h.1 h.2) else 0
+noncomputable instance : has_Sup ℝ :=
+⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+  then classical.some (exists_sup S h.1 h.2) else 0⟩
+
+lemma Sup_def (S : set ℝ) :
+  Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+    then classical.some (exists_sup S h.1 h.2) else 0 := rfl
 
 theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp [Sup, h₁, h₂]; exact
+by simp [Sup_def, h₁, h₂]; exact
 classical.some_spec (exists_sup S h₁ h₂) y
 
 section
@@ -306,7 +309,9 @@ protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ 
 ⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
 
-noncomputable def Inf (S : set ℝ) : ℝ := -Sup {x | -x ∈ S}
+noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup {x | -x ∈ S}⟩
+
+lemma Inf_def (S : set ℝ) : Inf S = -Sup {x | -x ∈ S} := rfl
 
 theorem le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
   {y} : y ≤ Inf S ↔ ∀ z ∈ S, y ≤ z :=
@@ -333,12 +338,9 @@ theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x �
 theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S, lb ≤ y) : lb ≤ Inf S :=
 (le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
-open lattice
-noncomputable instance lattice : lattice ℝ := by apply_instance
-
 noncomputable instance : conditionally_complete_linear_order ℝ :=
-{ Sup := real.Sup,
-  Inf := real.Inf,
+{ Sup := has_Sup.Sup,
+  Inf := has_Inf.Inf,
   le_cSup :=
     assume (s : set ℝ) (a : ℝ) (_ : bdd_above s) (_ : a ∈ s),
     show a ≤ Sup s,
@@ -358,18 +360,18 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
   decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
-theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
-theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
+theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
-theorem Sup_univ : real.Sup set.univ = 0 :=
+theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
-theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
-show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
+theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
+by simp [Inf_def, Sup_empty]
 
-theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
+theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 have bdd_above {x | -x ∈ s} → bdd_below s, from
   assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
@@ -410,8 +412,8 @@ suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, be
     exact ⟨y, le_of_lt y0, hy⟩ },
   { have := (inv_le_inv x0 zero_lt_one).2 x1,
     rw inv_one at this,
-    rcases H (inv_pos x0) this with ⟨y, y0, hy⟩,
-    refine ⟨y⁻¹, le_of_lt (inv_pos y0), _⟩, rw [← mul_inv', hy, inv_inv'] },
+    rcases H (inv_pos.2 x0) this with ⟨y, y0, hy⟩,
+    refine ⟨y⁻¹, le_of_lt (inv_pos.2 y0), _⟩, rw [← mul_inv', hy, inv_inv'] },
   { exact ⟨0, by simp [x0.symm]⟩ }
 end,
 λ x x0 x1, begin
@@ -437,7 +439,7 @@ end,
     have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
     refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), div_div_cancel (ne_of_gt h)],
+      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one_iff_le _30],
@@ -604,8 +606,8 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 (le_or_lt x 0).elim
   (λ h, by simp [sqrt_eq_zero'.2, inv_nonpos, h])
   (λ h, by rw [
-    ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos $ sqrt_pos.2 h),
-    mul_self_sqrt (le_of_lt $ inv_pos h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
+    ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos.2 $ sqrt_pos.2 h),
+    mul_self_sqrt (le_of_lt $ inv_pos.2 h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl

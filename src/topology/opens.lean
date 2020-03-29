@@ -5,9 +5,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
-import topology.bases topology.separation
 
-open filter lattice
+import topology.bases topology.separation
+import order.copy
+
+open filter
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
@@ -34,8 +36,8 @@ instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.v
 p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
-def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
-⟨s.val, closed_of_compact _ s.property.2⟩
+def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closeds α :=
+set.inclusion $ λ s hs, closed_of_compact _ hs.2
 
 end nonempty_compacts
 
@@ -68,9 +70,9 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
 
 instance : complete_lattice (opens α) :=
 complete_lattice.copy
-(@order_dual.lattice.complete_lattice _
+(@order_dual.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+    (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl
 /- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl

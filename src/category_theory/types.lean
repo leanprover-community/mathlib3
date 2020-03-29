@@ -160,6 +160,7 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 end equiv
 
 namespace category_theory.iso
+open category_theory
 
 universe u
 
@@ -173,6 +174,10 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 @[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
 @[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
+
+@[simp] lemma to_equiv_id (X : Type u) : (iso.refl X).to_equiv = equiv.refl X := rfl
+@[simp] lemma to_equiv_comp {X Y Z : Type u} (f : X ≅ Y) (g : Y ≅ Z) :
+  (f ≪≫ g).to_equiv = f.to_equiv.trans (g.to_equiv) := rfl
 
 end category_theory.iso
 

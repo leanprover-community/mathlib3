@@ -423,18 +423,6 @@ meta def clear_value (e : expr) : tactic unit := do
     fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
   intron n
 
-/--
-`simplify_term e` tuns the term `e` through the simplifier with the basic simp set.
-
-The optional argument `fail_if_unchanged := tt` controls
-whether `simplify_term` should fail if the simplifier makes no progress.
--/
-meta def simplify_term (e : expr) (fail_if_unchanged : bool := tt) : tactic expr :=
-do
-  e ← instantiate_mvars e,
-  (_, s, _) ← mk_simp_set_core ff [] [] tt,
-  prod.fst <$> simplify s [] e {fail_if_unchanged := fail_if_unchanged} `eq tactic.failed
-
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
 expression and a proof of equality. -/
@@ -893,7 +881,7 @@ add_tactic_doc
 { name                     := "fsplit",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.fsplit],
-  tags                     := [] }
+  tags                     := ["logic", "goal management"] }
 
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
 succeeds, clears the old hypothesis. -/
@@ -908,7 +896,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := [] }
+  tags                     := ["context management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/
@@ -1144,7 +1132,7 @@ add_tactic_doc
 { name                     := "Match Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.match_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 Invoking hole command "Equations Stub" ("Generate a list of equations for a recursive definition")
@@ -1216,7 +1204,7 @@ add_tactic_doc
 { name                     := "Equations Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.eqn_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 This command lists the constructors that can be used to satisfy the expected type.
@@ -1269,7 +1257,7 @@ add_tactic_doc
 { name                     := "List Constructors",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.list_constructors_hole],
-  tags                     := [] }
+  tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/
@@ -1347,7 +1335,7 @@ add_tactic_doc
 { name                     := "higher_order",
   category                 := doc_category.attr,
   decl_names               := [`tactic.higher_order_attr],
-  tags                     := [] }
+  tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
 
@@ -1463,7 +1451,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := [] }
+  tags                     := ["parsing", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1823,7 +1811,7 @@ add_tactic_doc
 { name                     := "import_private",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.import_private_cmd],
-  tags                     := [] }
+  tags                     := ["renaming"] }
 
 /--
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.

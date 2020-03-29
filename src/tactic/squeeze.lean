@@ -140,7 +140,7 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
-do e ← resolve_name n, pure $ simp_arg_type.expr e
+do e ← resolve_name' n, pure $ simp_arg_type.expr e
 
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
@@ -152,17 +152,21 @@ argument list.
 -/
 meta def squeeze_simp_core
   (no_dflt : bool) (args : list simp_arg_type)
-  (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit) : tactic (list simp_arg_type):=
-do g ← main_goal,
-   v ← target >>= mk_meta_var,
-   tac no_dflt args,
-   g ← instantiate_mvars g,
+  (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit)
+  (mk_suggestion : list simp_arg_type → tactic unit) : tactic unit :=
+do v ← target >>= mk_meta_var,
+   g ← retrieve $ do
+   { g ← main_goal,
+     tac no_dflt args,
+     instantiate_mvars g },
    let vs := g.list_constant,
    vs ← vs.mfilter is_simp_lemma,
    vs ← vs.mmap strip_prefix,
    vs ← erase_simp_args args vs,
    vs ← vs.to_list.mmap name.to_simp_args,
-   with_local_goals' [v] $ filter_simp_set tac args vs
+   with_local_goals' [v] (filter_simp_set tac args vs)
+     >>= mk_suggestion,
+   tac no_dflt args
 
 namespace interactive
 
@@ -260,14 +264,15 @@ meta def squeeze_simp
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
-   args ← squeeze_simp_core no_dflt hs
-     (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg'),
-   let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
-   let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
-   let loc := loc.to_string locat,
-   mk_suggestion (key.move_left 1)
-     sformat!"Try this: simp{use_iota_eqn} only "
-     sformat!"{attrs}{loc}{c}" args
+   squeeze_simp_core no_dflt hs
+     (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg')
+     (λ args,
+        let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
+            attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
+            loc := loc.to_string locat in
+        mk_suggestion (key.move_left 1)
+          sformat!"Try this: simp{use_iota_eqn} only "
+          sformat!"{attrs}{loc}{c}" args)
 
 /-- see `squeeze_simp` -/
 meta def squeeze_simpa
@@ -278,14 +283,15 @@ meta def squeeze_simpa
 do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
-   args ← squeeze_simp_core no_dflt hs
-     (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg'),
-   let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
-   let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
-   let tgt' := tgt'.get_or_else "",
-   mk_suggestion (key.move_left 1)
-     sformat!"Try this: simpa{use_iota_eqn} only "
-     sformat!"{attrs}{tgt'}{c}" args
+   squeeze_simp_core no_dflt hs
+     (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg')
+     (λ args,
+        let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
+            attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
+            tgt' := tgt'.get_or_else "" in
+        mk_suggestion (key.move_left 1)
+          sformat!"Try this: simpa{use_iota_eqn} only "
+          sformat!"{attrs}{tgt'}{c}" args)
 
 end interactive
 end tactic

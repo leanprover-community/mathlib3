@@ -683,6 +683,8 @@ lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by rw insert_erase ha
   ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
+/-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
+  `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
 lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa, finset (δ a)} {f : Πa, δ a → β} :
   s.prod (λa, (t a).sum (λb, f a b)) =

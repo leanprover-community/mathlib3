@@ -117,7 +117,15 @@ begin
     exact (congr_fun hfg a : _) }
 end
 
-@[to_additive] lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
+/-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
+  `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
+  in the type of their element, `univ.pi t` is a `finset (Π a ∈ univ, t a)` and
+  `fintype.pi_finset t` is a `finset (Π a, t a)`. -/
+@[to_additive "Taking a sum over `univ.pi t` is the same as taking the sum over
+  `fintype.pi_finset t`. `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`,
+  but differ in the type of their element, `univ.pi t` is a `finset (Π a ∈ univ, t a)` and
+  `fintype.pi_finset t` is a `finset (Π a, t a)`."]
+lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
   {δ : α → Type u_1} [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
   (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
   (univ.pi t).prod f = (fintype.pi_finset t).prod (λ x, f (λ a _, x a)) :=
@@ -127,6 +135,9 @@ prod_bij (λ x _ a, x a (mem_univ _))
   (by simp [function.funext_iff] {contextual := tt})
   (λ x hx, ⟨λ a _, x a, by simp * at *⟩)
 
+/-- The product over `univ` of a sum can be written as a sum over the product of sets,
+  `fintype.pi_finset`. `finset.prod_sum` is an alternative statement when the product is not
+  over `univ` -/
 lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ : α → Type u_1}
   [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
   {f : Π (a : α), δ a → β} :

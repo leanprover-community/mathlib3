@@ -39,6 +39,7 @@ jobs:
 
       - name: try to find olean cache
         run: |
+          branch=${GITHUB_REF#refs/heads/}
           ./scripts/fetch_olean_cache.sh
         env:
           git_sha: "${{ github.sha }}"

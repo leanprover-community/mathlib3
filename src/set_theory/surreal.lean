@@ -51,7 +51,7 @@ namespace pgame
 they are only useful on surreal numbers, we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-  `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
 def mul (x y : pgame) : pgame :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,

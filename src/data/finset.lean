@@ -2301,7 +2301,7 @@ begin
     have : f j = mono_of_fin s h j,
       by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
     rw this at hj,
-    exact false.elim (ne_of_lt (mono_of_fin_strict_mono s h ji) hj) }
+    exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
 end
 
 /-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`

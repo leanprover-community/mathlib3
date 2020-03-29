@@ -612,6 +612,9 @@ instance : has_inf (submonoid M) :=
 @[simp, to_additive]
 lemma coe_inf (p p' : submonoid M) : ((p ⊓ p' : submonoid M) : set M) = p ∩ p' := rfl
 
+@[simp, to_additive]
+lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
+
 @[to_additive]
 instance : has_Inf (submonoid M) :=
 ⟨λ s, {

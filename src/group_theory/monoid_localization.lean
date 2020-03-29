@@ -660,7 +660,7 @@ f.mul_equiv_of_localizations $ k.mul_equiv_comap H
   (f.mul_equiv_of_mul_equiv k H).to_monoid_hom =
     f.map (λ y : S, show j.to_monoid_hom y ∈ T, from H ▸ set.mem_image_of_mem j y.2) k := rfl
 
-@[to_additive, simp] lemma mul_equiv_of_mul_equiv_on_beta {k : localization_map T Q}
+@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq {k : localization_map T Q}
   {j : M ≃* P} (H : j.to_monoid_hom.map S = T) (x) :
   f.mul_equiv_of_mul_equiv k H (f.1 x) = k.1 (j x) :=
 f.map_eq (λ y : S, H ▸ set.mem_image_of_mem j y.2) _

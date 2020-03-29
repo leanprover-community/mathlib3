@@ -64,7 +64,7 @@ Configuration options for `solve_by_elim`.
    `accept` is passed the proof terms for the original goals,
    as reported by `get_goals` when `solve_by_elim` started.
    These proof terms may be metavariables (if no progress has been made on that goal)
-   or may contain metavariables at some leaf nodes 
+   or may contain metavariables at some leaf nodes
    (if the goal has been partially solved by previous `apply` steps).
    If the `accept` tactic fails `solve_by_elim` aborts searching this branch and backtracks.
    By default `accept := λ _, skip` always succeeds.

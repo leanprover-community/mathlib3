@@ -74,15 +74,18 @@ open result
 variables {σ : Type} {α : Type u}
 
 /-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalisation of `tactic.read` in core.
 meta def get_state : interaction_monad σ σ :=
 λ state, success state state
 
 /-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalisation of `tactic.write` in core.
 meta def set_state (state : σ) : interaction_monad σ unit :=
 λ _, success () state
 
 /--
-`run_with_state` applies `tac` to the given state and returns the result.
+`run_with_state state tac` applies `tac` to the given state `state` and returns the result,
+subsequently restoring the original state.
 If `tac` fails, then `run_with_state` does too. -/
 meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
 λ s, match tac state with

@@ -22,9 +22,9 @@ to write expressions explicitly as applications of functors."
 @[functoriality]
 lemma coe_as_forget (R : Ring.{u}) : (R : Type u) = (forget Ring.{u}).obj R := rfl
 
-set_option trace.app_builder true
+-- set_option trace.app_builder true
+-- set_option pp.all true
 
-set_option pp.all true
 example (R S : Ring.{u}) (i : R ≅ S) (r : R) : S :=
 begin
   -- let t : R ≃ _ := by equiv_rw_type i,
@@ -52,8 +52,6 @@ There are some issues because of bundling,
 but let's ignore those for now, and just deal
 with proving functoriality.
 -/
-
--- notation `CommRing` := CommRing.{0}
 
 noncomputable theory
 
@@ -92,3 +90,13 @@ sorry
 def iso_functorial.map_id (R : CommRing) : iso_functorial.map (iso.refl R) = 𝟙 (Polynomial R) :=
 sorry
 def iso_functorial.map_comp : sorry := sorry
+
+
+----
+
+-- We want to prove `is_local_ring` is "hygienic"
+
+theorem is_local_ring_hygienic (R S : CommRing) (i : R ≅ S) (h : is_local_ring R) : is_local_ring S :=
+begin
+  transport is_local_ring,
+end

@@ -10,12 +10,8 @@ variables {A : Type*} {B : Type*} {G : Type*} {H : Type*} {M : Type*} {N : Type*
 
 namespace prod
 
--- TODO (Lean 3.7.0) : make `to_additive` aware of `protected`, and use it for instances
--- in this file
-
-instance [has_add A] [has_add B] : has_add (A × B) := ⟨λ p q, ⟨p.1 + q.1, p.2 + q.2⟩⟩
 @[to_additive]
-instance [has_mul A] [has_mul B] : has_mul (A × B) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
+instance [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 
 @[simp, to_additive]
 lemma fst_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).1 = p.1 * q.1 := rfl
@@ -25,7 +21,6 @@ lemma snd_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).2 = p.2 * q.2 := 
 lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
 
-instance [has_zero A] [has_zero B] : has_zero (A × B) := ⟨(0, 0)⟩
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
 
@@ -41,7 +36,6 @@ lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :
   (p.fst, 1) * (1, p.snd) = p :=
 ext (mul_one p.1) (one_mul p.2)
 
-instance [has_neg A] [has_neg B] : has_neg (A × B) := ⟨λp, (- p.1, - p.2)⟩
 @[to_additive]
 instance [has_inv M] [has_inv N] : has_inv (M × N) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
 
@@ -49,51 +43,39 @@ instance [has_inv M] [has_inv N] : has_inv (M × N) := ⟨λp, (p.1⁻¹, p.2⁻
 lemma fst_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).1 = (p.1)⁻¹ := rfl
 @[simp, to_additive]
 lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := rfl
-@[to_additive]
+@[simp, to_additive]
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
-instance [add_semigroup A] [add_semigroup B] : add_semigroup (A × B) :=
-{ add_assoc := assume a b c, mk.inj_iff.mpr ⟨add_assoc _ _ _, add_assoc _ _ _⟩,
-  .. prod.has_add }
 @[to_additive add_semigroup]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
 
-instance [add_monoid A] [add_monoid B] : add_monoid (A × B) :=
-{ zero_add := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_add _, zero_add _⟩,
-  add_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨add_zero _, add_zero _⟩,
-  .. prod.add_semigroup, .. prod.has_zero }
 @[to_additive add_monoid]
 instance [monoid M] [monoid N] : monoid (M × N) :=
 { one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,
   mul_one := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_one _, mul_one _⟩,
   .. prod.semigroup, .. prod.has_one }
 
-instance [add_group A] [add_group B] : add_group (A × B) :=
-{ add_left_neg := assume a, mk.inj_iff.mpr ⟨add_left_neg _, add_left_neg _⟩,
-  .. prod.add_monoid, .. prod.has_neg }
 @[to_additive add_group]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.monoid, .. prod.has_inv }
 
-instance [add_comm_semigroup A] [add_comm_semigroup B] : add_comm_semigroup (A × B) :=
-{ add_comm := assume a b, mk.inj_iff.mpr ⟨add_comm _ _, add_comm _ _⟩,
-  .. prod.add_semigroup }
+@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
+@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
+@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
+  (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+
 @[to_additive add_comm_semigroup]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
 { mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
   .. prod.semigroup }
 
-instance [add_comm_monoid A] [add_comm_monoid B] : add_comm_monoid (A × B) :=
-{ .. prod.add_comm_semigroup, .. prod.add_monoid }
 @[to_additive add_comm_monoid]
 instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 { .. prod.comm_semigroup, .. prod.monoid }
 
-instance [add_comm_group A] [add_comm_group B] : add_comm_group (A × B) :=
-{ .. prod.add_comm_semigroup, .. prod.add_group }
 @[to_additive add_comm_group]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 { .. prod.comm_semigroup, .. prod.group }
@@ -148,7 +130,7 @@ variable [monoid P]
 given by `(f.prod g) x = (f x, g x)` -/
 @[to_additive prod "Combine two `add_monoid_hom`s `f : M →+ N`, `g : M →+ P` into
 `f.prod g : M →+ N × P` given by `(f.prod g) x = (f x, g x)`"]
-def prod (f : M →* N) (g : M →* P) : M →* N × P :=
+protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
 { to_fun := λ x, (f x, g x),
   map_one' := prod.ext f.map_one g.map_one,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
@@ -221,11 +203,11 @@ ext $ λ x, by simp [coprod_apply, inl_apply, inr_apply, ← map_mul]
 
 @[simp, to_additive] lemma coprod_inl_inr {M N : Type*} [comm_monoid M] [comm_monoid N] :
   (inl M N).coprod (inr M N) = id (M × N) :=
-by simpa using coprod_unique (id $ M × N)
+coprod_unique (id $ M × N)
 
 lemma comp_coprod {Q : Type*} [comm_monoid Q] (h : P →* Q) (f : M →* P) (g : N →* P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
-ext $ λ x, by simp [coprod_apply]
+ext $ λ x, by simp
 
 end coprod
 

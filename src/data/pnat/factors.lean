@@ -16,16 +16,19 @@ def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
 
+instance : inhabited prime_multiset :=
+by unfold prime_multiset; apply_instance
+
 instance : has_repr prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
 instance : canonically_ordered_monoid prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
-instance : lattice.distrib_lattice prime_multiset :=
+instance : distrib_lattice prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
-instance : lattice.semilattice_sup_bot prime_multiset :=
+instance : semilattice_sup_bot prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
 instance : has_sub prime_multiset :=
@@ -100,7 +103,7 @@ def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
 begin
   let h : (v.prod : ℕ) = ((v.map coe).map coe).prod :=
-  (multiset.prod_hom coe v.to_pnat_multiset).symm,
+  (v.to_pnat_multiset.prod_hom coe).symm,
   rw [multiset.map_map] at h,
   have : (coe : ℕ+ → ℕ) ∘ (coe : nat.primes → ℕ+) = coe := funext (λ p, rfl),
   rw[this] at h, exact h,
@@ -308,11 +311,11 @@ theorem factor_multiset_gcd (m n : ℕ+) :
  factor_multiset (gcd m n) = (factor_multiset m) ⊓ (factor_multiset n) :=
 begin
   apply le_antisymm,
-  { apply lattice.le_inf_iff.mpr; split; apply factor_multiset_le_iff.mpr,
+  { apply le_inf_iff.mpr; split; apply factor_multiset_le_iff.mpr,
     exact gcd_dvd_left m n, exact gcd_dvd_right m n},
   { rw[← prime_multiset.prod_dvd_iff, prod_factor_multiset],
     apply dvd_gcd; rw[prime_multiset.prod_dvd_iff'],
-    exact lattice.inf_le_left, exact lattice.inf_le_right}
+    exact inf_le_left, exact inf_le_right}
 end
 
 theorem factor_multiset_lcm (m n : ℕ+) :
@@ -321,8 +324,8 @@ begin
   apply le_antisymm,
   { rw[← prime_multiset.prod_dvd_iff, prod_factor_multiset],
     apply lcm_dvd; rw[← factor_multiset_le_iff'],
-    exact lattice.le_sup_left, exact lattice.le_sup_right},
-  { apply lattice.sup_le_iff.mpr; split; apply factor_multiset_le_iff.mpr,
+    exact le_sup_left, exact le_sup_right},
+  { apply sup_le_iff.mpr; split; apply factor_multiset_le_iff.mpr,
     exact dvd_lcm_left m n, exact dvd_lcm_right m n },
 end
 

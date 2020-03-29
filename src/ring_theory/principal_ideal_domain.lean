@@ -10,14 +10,19 @@ import ring_theory.ideals ring_theory.noetherian ring_theory.unique_factorizatio
 variables {α : Type*}
 
 open set function ideal
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
 (principal : ∃ a, S = span {a})
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class principal_ideal_domain (α : Type*) extends integral_domain α :=
 (principal : ∀ (S : ideal α), S.is_principal)
-attribute [instance] principal_ideal_domain.principal
+end prio
+
+-- see Note [lower instance priority]
+attribute [instance, priority 500] principal_ideal_domain.principal
 namespace ideal.is_principal
 variable [comm_ring α]
 
@@ -68,13 +73,11 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 ⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (mul_mem_right S hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
-    ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
-    then ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
-      ⟨λ haS, by_contradiction $ λ ha0, eq_empty_iff_forall_not_mem.1 h a ⟨haS, ha0⟩,
-      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩
-    else
+    ⟨if h : {x : α | x ∈ S ∧ x ≠ 0}.nonempty
+    then
     have wf : well_founded euclidean_domain.r := euclidean_domain.r_well_founded α,
     have hmin : well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ≠ 0,
@@ -87,7 +90,10 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α 
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
-      λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
+      λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩
+    else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
+      ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩,
+      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 
 end
 
@@ -95,6 +101,7 @@ end
 namespace principal_ideal_domain
 variables [principal_ideal_domain α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin
@@ -103,7 +110,7 @@ begin
 end⟩
 
 section
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open submodule
 
 lemma factors_decreasing (b₁ b₂ : α) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
@@ -127,7 +134,7 @@ lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
 end⟩
 
 lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
-⟨λ hp, (span_singleton_prime $ ne_zero_of_irreducible hp).1 $
+⟨λ hp, (span_singleton_prime hp.ne_zero).1 $
     (is_maximal_of_irreducible hp).is_prime,
   irreducible_of_prime⟩
 
@@ -136,7 +143,7 @@ associates.forall_associated.2 $ assume a,
 by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
 
 section
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable def factors (a : α) : multiset α :=
 if h : a = 0 then ∅ else classical.some

@@ -1,14 +1,14 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.limits.limits
 import order.complete_lattice
 
 universes u
 
 open category_theory
-open lattice
 
 namespace category_theory.limits
 
@@ -16,6 +16,7 @@ variables {α : Type u}
 
 -- It would be nice to only use the `Inf` half of the complete lattice, but
 -- this seems not to have been described separately.
+@[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_complete_lattice [complete_lattice α] : has_limits.{u} α :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -27,6 +28,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits.{u} �
       { lift := λ s, ⟨⟨complete_lattice.le_Inf _ _
         begin rintros _ ⟨j, rfl⟩, exact (s.π.app j).down.down, end⟩⟩ } } } }
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits.{u} α :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F,

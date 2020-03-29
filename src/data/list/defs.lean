@@ -13,6 +13,11 @@ open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
+def is_nil {α} : list α → bool
+| [] := tt
+| _  := ff
+
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -96,6 +101,18 @@ def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []
 
+/-- `after p xs` is the suffix of `xs` after the first element that satisfies
+  `p`, not including that element.
+
+  ```lean
+  after      (eq 1)       [0, 1, 2, 3] = [2, 3]
+  drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
+  ```
+-/
+def after (p : α → Prop) [decidable_pred p] : list α → list α
+| [] := []
+| (x :: xs) := if p x then xs else after xs
+
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results.
 
@@ -119,6 +136,13 @@ let (b', l') := scanr_aux f b l in b' :: l'
 
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
+
+/-- Sum of a list.
+
+     sum [a, b, c] = ((0 + a) + b) + c -/
+-- Later this will be tagged with `to_additive`, but this can't be done yet because of import
+-- dependencies.
+def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
 
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
@@ -144,7 +168,7 @@ find_indexes_aux p l 0
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
-  replacing `a -> b` at the first value `a` in the list such that `f a = some b`. -/
+  replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/
 def lookmap (f : α → option α) : list α → list α
 | []     := []
 | (a::l) :=
@@ -164,6 +188,16 @@ map_with_index_core f 0 as
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
+
+/-- Auxilliary definition for `indexes_values`. -/
+def indexes_values_aux {α} (f : α → bool) : list α → ℕ → list (ℕ × α)
+| []      n := []
+| (x::xs) n := let ns := indexes_values_aux xs (n+1) in if f x then (n, x)::ns else ns
+
+/-- Returns `(l.find_indexes f).zip l`, i.e. pairs of `(n, x)` such that `f x = tt` and
+  `l.nth = some x`, in increasing order of first arguments. -/
+def indexes_values {α} (l : list α) (f : α → bool) : list (ℕ × α) :=
+indexes_values_aux f l 0
 
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] : list α → nat
@@ -392,10 +426,12 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] chain.nil
+
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
-instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance
 
 end chain
@@ -431,9 +467,18 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-@[simp] def last' {α} : α → list α → α
+/-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `x` otherwise -/
+@[simp] def ilast' {α} : α → list α → α
 | a []     := a
-| a (b::l) := last' b l
+| a (b::l) := ilast' b l
+
+/-- `last' xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
+@[simp] def last' {α} : list α → option α
+| []     := none
+| [a]    := some a
+| (b::l) := last' l
 
 /- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
@@ -469,6 +514,8 @@ namespace func
 /- Definitions for using lists as finite
    representations of functions with domain ℕ. -/
 
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
 variables [inhabited α] [inhabited β]
 
 @[simp] def set (a : α) : list α → ℕ → list α
@@ -485,8 +532,6 @@ variables [inhabited α] [inhabited β]
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
-
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
@@ -500,5 +545,24 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 end func
+
+/-- Filters and maps elements of a list -/
+def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+  list α → m (list β)
+| []       := return []
+| (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
+  match b with none := t' | (some x) := x::t' end
+
+protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  list α → F (list β)
+| [] := pure []
+| (x :: xs) := list.cons <$> f x <*> traverse xs
+
+/-- `get_rest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
+  If `l₁` is not a prefix of `l`, returns `none` -/
+def get_rest [decidable_eq α] : list α → list α → option (list α)
+| l      []      := some l
+| []     _       := none
+| (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
 
 end list

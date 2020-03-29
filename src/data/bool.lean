@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura, Jeremy Avigad
 -/
 
+prefix `!`:90 := bnot
+
 namespace bool
 
 @[simp] theorem coe_sort_tt : coe_sort.{1 1} tt = true := eq_true_intro rfl
@@ -19,7 +21,7 @@ show _ = to_bool false, by congr
 @[simp] theorem to_bool_coe (b:bool) {h} : @to_bool b h = b :=
 (show _ = to_bool b, by congr).trans (by cases b; refl)
 
-@[simp] theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
+theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
 
 @[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
 ⟨of_to_bool_true, _root_.to_bool_true⟩
@@ -73,15 +75,17 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
   cond (to_bool p) t e = if p then t else e :=
 by by_cases p; simp *
 
+theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
+
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial
 
 theorem eq_ff_of_ne_tt : ∀ {a : bool}, a ≠ tt → a = ff := dec_trivial
 
-@[simp] theorem bor_comm : ∀ a b, a || b = b || a := dec_trivial
+theorem bor_comm : ∀ a b, a || b = b || a := dec_trivial
 
 @[simp] theorem bor_assoc : ∀ a b c, (a || b) || c = a || (b || c) := dec_trivial
 
-@[simp] theorem bor_left_comm : ∀ a b c, a || (b || c) = b || (a || c) := dec_trivial
+theorem bor_left_comm : ∀ a b c, a || (b || c) = b || (a || c) := dec_trivial
 
 theorem bor_inl {a b : bool} (H : a) : a || b :=
 by simp [H]
@@ -89,11 +93,11 @@ by simp [H]
 theorem bor_inr {a b : bool} (H : b) : a || b :=
 by simp [H]
 
-@[simp] theorem band_comm : ∀ a b, a && b = b && a := dec_trivial
+theorem band_comm : ∀ a b, a && b = b && a := dec_trivial
 
 @[simp] theorem band_assoc : ∀ a b c, (a && b) && c = a && (b && c) := dec_trivial
 
-@[simp] theorem band_left_comm : ∀ a b c, a && (b && c) = b && (a && c) := dec_trivial
+theorem band_left_comm : ∀ a b c, a && (b && c) = b && (a && c) := dec_trivial
 
 theorem band_elim_left : ∀ {a b : bool}, a && b → a := dec_trivial
 
@@ -109,10 +113,13 @@ theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_triv
 
 theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
 
-@[simp] theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
-
+theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
 @[simp] theorem bxor_assoc : ∀ a b c, bxor (bxor a b) c = bxor a (bxor b c) := dec_trivial
+theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
+@[simp] theorem bxor_bnot_left : ∀ a, bxor (!a) a = tt := dec_trivial
+@[simp] theorem bxor_bnot_right : ∀ a, bxor a (!a) = tt := dec_trivial
+@[simp] theorem bxor_bnot_bnot : ∀ a b, bxor (!a) (!b) = bxor a b := dec_trivial
 
-@[simp] theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
+lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
 end bool

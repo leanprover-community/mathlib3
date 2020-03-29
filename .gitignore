@@ -3,3 +3,5 @@
 /leanpkg.path
 _cache
 __pycache__
+all.lean
+*.depend

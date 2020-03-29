@@ -12,20 +12,18 @@ set_option old_structure_cmd true
 
 universes u v w
 
+variables {α : Type u} {β : Type v}
+
 -- TODO: move this eventually, if we decide to use them
 attribute [ematch] le_trans lt_of_le_of_lt lt_of_lt_of_le lt_trans
 
 section
-  variable {α : Type u}
-
-  -- TODO: this seems crazy, but it also seems to work reasonably well
-  @[ematch] theorem le_antisymm' [partial_order α] : ∀ {a b : α}, (: a ≤ b :) → b ≤ a → a = b :=
-  @le_antisymm _ _
+-- TODO: this seems crazy, but it also seems to work reasonably well
+@[ematch] theorem le_antisymm' [partial_order α] : ∀ {a b : α}, (: a ≤ b :) → b ≤ a → a = b :=
+@le_antisymm _ _
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-namespace lattice
-
 reserve infixl ` ⊓ `:70
 reserve infixl ` ⊔ `:65
 
@@ -37,6 +35,8 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -44,9 +44,10 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
+end prio
 
 section semilattice_sup
-variables {α : Type u} [semilattice_sup α] {a b c d : α}
+variables [semilattice_sup α] {a b c d : α}
 
 @[simp] theorem le_sup_left : a ≤ a ⊔ b :=
 semilattice_sup.le_sup_left a b
@@ -92,6 +93,11 @@ by finish
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by finish
+
+/-- A monotone function on a sup-semilattice is directed. -/
+lemma directed_of_mono (f : α → β) {r : β → β → Prop}
+  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
+λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
 
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
 begin
@@ -145,6 +151,8 @@ assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -152,9 +160,10 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
+end prio
 
 section semilattice_inf
-variables {α : Type u} [semilattice_inf α] {a b c d : α}
+variables [semilattice_inf α] {a b c d : α}
 
 @[simp] theorem inf_le_left : a ⊓ b ≤ a :=
 semilattice_inf.inf_le_left a b
@@ -188,6 +197,12 @@ theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
 by apply le_antisymm; finish
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
+by finish
+
+lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
+by finish
+
+lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
 by finish
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
@@ -239,7 +254,8 @@ begin
   cases A; cases B; injection this; congr'
 end
 
-lemma directed_of_inf {β : Type*} {r : β → β → Prop} {f : α → β}
+/-- An antimonotone function on an inf-semilattice is directed. -/
+lemma directed_of_inf {r : β → β → Prop} {f : α → β}
   (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
@@ -247,11 +263,14 @@ end semilattice_inf
 
 /- Lattices -/
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+end prio
 
 section lattice
-variables {α : Type u} [lattice α] {a b c d : α}
+variables [lattice α] {a b c d : α}
 
 /- Distributivity laws -/
 /- TODO: better names? -/
@@ -278,8 +297,8 @@ end
 
 end lattice
 
-variables {α : Type u} {x y z w : α}
-
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A distributive lattice is a lattice that satisfies any of four
   equivalent distribution properties (of sup over inf or inf over sup,
   on the left or right). A classic example of a distributive lattice
@@ -288,9 +307,10 @@ variables {α : Type u} {x y z w : α}
   as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
+end prio
 
 section distrib_lattice
-variables [distrib_lattice α]
+variables [distrib_lattice α] {x y z : α}
 
 theorem le_sup_inf : ∀{x y z : α}, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z) :=
 distrib_lattice.le_sup_inf
@@ -327,6 +347,7 @@ end distrib_lattice
 
 /- Lattices derived from linear orders -/
 
+@[priority 100] -- see Note [lower instance priority]
 instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -339,25 +360,38 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   le_inf       := assume a b c, le_min,
   ..o }
 
-theorem sup_eq_max [decidable_linear_order α] : x ⊔ y = max x y := rfl
-theorem inf_eq_min [decidable_linear_order α] : x ⊓ y = min x y := rfl
+theorem sup_eq_max [decidable_linear_order α] {x y : α} : x ⊔ y = max x y := rfl
+theorem inf_eq_min [decidable_linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
-instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
+@[priority 100] -- see Note [lower instance priority]
+instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] :
+  distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice.lattice_of_decidable_linear_order }
+  ..lattice_of_decidable_linear_order }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
-end lattice
+namespace monotone
+
+lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+sup_le (h le_sup_left) (h le_sup_right)
+
+lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+le_inf (h inf_le_left) (h inf_le_right)
+
+end monotone
 
 namespace order_dual
-open lattice
-variable (α : Type*)
+variable (α)
 
 instance [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
 instance [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
@@ -366,26 +400,25 @@ instance [semilattice_inf α] : semilattice_sup (order_dual α) :=
 { le_sup_left  := @inf_le_left α _,
   le_sup_right := @inf_le_right α _,
   sup_le := assume a b c hca hcb, @le_inf α _ _ _ _ hca hcb,
-  .. order_dual.partial_order α, .. order_dual.lattice.has_sup α }
+  .. order_dual.partial_order α, .. order_dual.has_sup α }
 
 instance [semilattice_sup α] : semilattice_inf (order_dual α) :=
 { inf_le_left  := @le_sup_left α _,
   inf_le_right := @le_sup_right α _,
   le_inf := assume a b c hca hcb, @sup_le α _ _ _ _ hca hcb,
-  .. order_dual.partial_order α, .. order_dual.lattice.has_inf α }
+  .. order_dual.partial_order α, .. order_dual.has_inf α }
 
 instance [lattice α] : lattice (order_dual α) :=
-{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.semilattice_inf α }
+{ .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
 instance [distrib_lattice α] : distrib_lattice (order_dual α) :=
 { le_sup_inf := assume x y z, le_of_eq inf_sup_left.symm,
-  .. order_dual.lattice.lattice α }
+  .. order_dual.lattice α }
 
 end order_dual
 
 namespace prod
-open lattice
-variables (α : Type u) (β : Type v)
+variables (α β)
 
 instance [has_sup α] [has_sup β] : has_sup (α × β) := ⟨λp q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩⟩
 instance [has_inf α] [has_inf β] : has_inf (α × β) := ⟨λp q, ⟨p.1 ⊓ q.1, p.2 ⊓ q.2⟩⟩
@@ -394,19 +427,19 @@ instance [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) 
 { sup_le := assume a b c h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩,
   le_sup_left  := assume a b, ⟨le_sup_left, le_sup_left⟩,
   le_sup_right := assume a b, ⟨le_sup_right, le_sup_right⟩,
-  .. prod.partial_order α β, .. prod.lattice.has_sup α β }
+  .. prod.partial_order α β, .. prod.has_sup α β }
 
 instance [semilattice_inf α] [semilattice_inf β] : semilattice_inf (α × β) :=
 { le_inf := assume a b c h₁ h₂, ⟨le_inf h₁.1 h₂.1, le_inf h₁.2 h₂.2⟩,
   inf_le_left  := assume a b, ⟨inf_le_left, inf_le_left⟩,
   inf_le_right := assume a b, ⟨inf_le_right, inf_le_right⟩,
-  .. prod.partial_order α β, .. prod.lattice.has_inf α β }
+  .. prod.partial_order α β, .. prod.has_inf α β }
 
 instance [lattice α] [lattice β] : lattice (α × β) :=
-{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.semilattice_sup α β }
+{ .. prod.semilattice_inf α β, .. prod.semilattice_sup α β }
 
 instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) :=
 { le_sup_inf := assume a b c, ⟨le_sup_inf, le_sup_inf⟩,
-  .. prod.lattice.lattice α β }
+  .. prod.lattice α β }
 
 end prod

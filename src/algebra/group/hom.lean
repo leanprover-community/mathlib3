@@ -1,198 +1,236 @@
 /-
-Copyright (c) 2014 Patrick Massot. All rights reserved.
+Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes, Johannes Hölzl, Yury Kudryashov
-
-Homomorphisms of multiplicative and additive (semi)groups and monoids.
+Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
+  Johannes Hölzl, Yury Kudryashov
 -/
+
 import algebra.group.to_additive algebra.group.basic
 
-universes u v
-variables {α : Type u} {β : Type v}
+/-!
+# monoid and group homomorphisms
 
-class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-(map_mul : ∀ x y, f (x * y) = f x * f y)
+This file defines the bundled structures for monoid and group homomorphisms. Namely, we define
+`monoid_hom` (resp., `add_monoid_hom`) to be bundled homomorphisms between multiplicative (resp.,
+additive) monoids or groups.
 
-class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
-(map_add : ∀ x y, f (x + y) = f x + f y)
+We also define coercion to a function, and  usual operations: composition, identity homomorphism,
+pointwise multiplication and pointwise inversion.
 
-attribute [to_additive is_add_hom] is_mul_hom
-attribute [to_additive is_add_hom.cases_on] is_mul_hom.cases_on
-attribute [to_additive is_add_hom.dcases_on] is_mul_hom.dcases_on
-attribute [to_additive is_add_hom.drec] is_mul_hom.drec
-attribute [to_additive is_add_hom.drec_on] is_mul_hom.drec_on
-attribute [to_additive is_add_hom.map_add] is_mul_hom.map_mul
-attribute [to_additive is_add_hom.mk] is_mul_hom.mk
-attribute [to_additive is_add_hom.rec] is_mul_hom.rec
-attribute [to_additive is_add_hom.rec_on] is_mul_hom.rec_on
+## Notations
 
-namespace is_mul_hom
-variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
+* `→*` for bundled monoid homs (also use for group homs)
+* `→+` for bundled add_monoid homs (also use for add_group homs)
 
-@[to_additive is_add_hom.id]
-instance id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
+## implementation notes
 
-@[to_additive is_add_hom.comp]
-instance comp (f : α → β) (g : β → γ) [is_mul_hom f] [hg : is_mul_hom g] : is_mul_hom (g ∘ f) :=
-{ map_mul := λ x y, by simp only [function.comp, map_mul f, map_mul g] }
+There's a coercion from bundled homs to fun, and the canonical
+notation is to use the bundled hom as a function via this coercion.
 
-@[to_additive is_add_hom.add]
-lemma mul {α β} [semigroup α] [comm_semigroup β]
-  (f g : α → β) [is_mul_hom f] [is_mul_hom g] :
-  is_mul_hom (λa, f a * g a) :=
-{ map_mul := assume a b, by simp only [map_mul f, map_mul g, mul_comm, mul_assoc, mul_left_comm] }
+There is no `group_hom` -- the idea is that `monoid_hom` is used.
+The constructor for `monoid_hom` needs a proof of `map_one` as well
+as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
+group homs (i.e. monoid homs between groups) given only a proof
+that multiplication is preserved,
 
-attribute [instance] is_mul_hom.mul is_add_hom.add
+Implicit `{}` brackets are often used instead of type class `[]` brackets.  This is done when the
+instances can be inferred because they are implicit arguments to the type `monoid_hom`.  When they
+can be inferred from the type it is faster to use this method than to use type class inference.
 
-@[to_additive is_add_hom.neg]
-lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
-  is_mul_hom (λa, (f a)⁻¹) :=
-{ map_mul := assume a b, (map_mul f a b).symm ▸ mul_inv _ _ }
+Historically this file also included definitions of unbundled homomorphism classes; they were
+deprecated and moved to `deprecated/group`.
 
-attribute [instance] is_mul_hom.inv is_add_hom.neg
+## Tags
 
-end is_mul_hom
+monoid_hom, add_monoid_hom
 
-class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
-(map_one : f 1 = 1)
+-/
 
-class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
-(map_zero : f 0 = 0)
+variables {M : Type*} {N : Type*} {P : Type*} -- monoids
+  {G : Type*} {H : Type*} -- groups
 
-attribute [to_additive is_add_monoid_hom] is_monoid_hom
-attribute [to_additive is_add_monoid_hom.to_is_add_hom] is_monoid_hom.to_is_mul_hom
-attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
-attribute [to_additive is_add_monoid_hom.cases_on] is_monoid_hom.cases_on
-attribute [to_additive is_add_monoid_hom.dcases_on] is_monoid_hom.dcases_on
-attribute [to_additive is_add_monoid_hom.rec] is_monoid_hom.rec
-attribute [to_additive is_add_monoid_hom.drec] is_monoid_hom.drec
-attribute [to_additive is_add_monoid_hom.rec_on] is_monoid_hom.rec_on
-attribute [to_additive is_add_monoid_hom.drec_on] is_monoid_hom.drec_on
-attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
+/-- Bundled add_monoid homomorphisms; use this for bundled add_group homomorphisms too. -/
+structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N] :=
+(to_fun : M → N)
+(map_zero' : to_fun 0 = 0)
+(map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
-namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+infixr ` →+ `:25 := add_monoid_hom
 
-@[to_additive is_add_monoid_hom.map_add]
-lemma map_mul (x y) : f (x * y) = f x * f y :=
-is_mul_hom.map_mul f x y
+/-- Bundled monoid homomorphisms; use this for bundled group homomorphisms too. -/
+@[to_additive add_monoid_hom]
+structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
+(to_fun : M → N)
+(map_one' : to_fun 1 = 1)
+(map_mul' : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
-end is_monoid_hom
+infixr ` →* `:25 := monoid_hom
 
-@[to_additive is_add_monoid_hom.of_add]
-theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
-  is_monoid_hom f :=
-{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
-
-namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
-
-@[to_additive is_add_monoid_hom.id]
-instance id : is_monoid_hom (@id α) := { map_one := rfl }
-
-@[to_additive is_add_monoid_hom.comp]
-instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
-  is_monoid_hom (g ∘ f) :=
-{ map_one := show g _ = 1, by rw [map_one f, map_one g] }
-
-end is_monoid_hom
-
-namespace is_add_monoid_hom
-
-instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
-{ map_zero := mul_zero x, map_add := λ y z, mul_add x y z }
-
-instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, y * x) :=
-{ map_zero := zero_mul x, map_add := λ y z, add_mul y z x }
+@[to_additive]
+instance {M : Type*} {N : Type*} {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
+⟨_, monoid_hom.to_fun⟩
 
 
-end is_add_monoid_hom
+namespace monoid_hom
+variables {mM : monoid M} {mN : monoid N} {mP : monoid P}
+variables [group G] [comm_group H]
 
-/-- Predicate for group homomorphism. -/
-class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : Prop
+include mM mN
 
-class is_add_group_hom [add_group α] [add_group β] (f : α → β) extends is_add_hom f : Prop
+@[simp, to_additive]
+lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
 
-attribute [to_additive is_add_group_hom] is_group_hom
-attribute [to_additive is_add_group_hom.to_is_add_hom] is_group_hom.to_is_mul_hom
-attribute [to_additive is_add_group_hom.cases_on] is_group_hom.cases_on
-attribute [to_additive is_add_group_hom.dcases_on] is_group_hom.dcases_on
-attribute [to_additive is_add_group_hom.rec] is_group_hom.rec
-attribute [to_additive is_add_group_hom.drec] is_group_hom.drec
-attribute [to_additive is_add_group_hom.rec_on] is_group_hom.rec_on
-attribute [to_additive is_add_group_hom.drec_on] is_group_hom.drec_on
-attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
+@[to_additive]
+lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
+by cases f; cases g; cases h; refl
 
-/-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get `is_mul_hom` from class instances, and this makes some proofs fail. -/
-@[to_additive is_add_group_hom.mk']
-lemma is_group_hom.mk' [group α] [group β] {f : α → β} (hf : ∀ x y, f (x * y) = f x * f y) :
-  is_group_hom f :=
-{ map_mul := hf }
+@[ext, to_additive]
+lemma ext ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_inj (funext h)
 
-namespace is_group_hom
-variables [group α] [group β] (f : α → β) [is_group_hom f]
-open is_mul_hom (map_mul)
+attribute [ext] _root_.add_monoid_hom.ext
 
-@[to_additive is_add_group_hom.to_is_add_monoid_hom]
-instance to_is_monoid_hom : is_monoid_hom f :=
-is_monoid_hom.of_mul f
+@[to_additive]
+lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-@[to_additive is_add_group_hom.map_zero]
-lemma map_one : f 1 = 1 := is_monoid_hom.map_one f
+/-- If f is a monoid homomorphism then f 1 = 1. -/
+@[simp, to_additive]
+lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 
-@[to_additive is_add_group_hom.map_neg]
-theorem map_inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
+/-- If f is a monoid homomorphism then f (a * b) = f a * f b. -/
+@[simp, to_additive]
+lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
-@[to_additive is_add_group_hom.id]
-instance id : is_group_hom (@id α) := { }
+omit mN mM
 
-@[to_additive is_add_group_hom.comp]
-instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) := { }
+/-- The identity map from a monoid to itself. -/
+@[to_additive]
+def id (M : Type*) [monoid M] : M →* M :=
+{ to_fun := id,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
-@[to_additive is_add_group_hom.injective_iff]
-lemma injective_iff (f : α → β) [is_group_hom f] :
+include mM mN mP
+
+/-- Composition of monoid morphisms is a monoid morphism. -/
+@[to_additive]
+def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
+{ to_fun := hnp ∘ hmn,
+  map_one' := by simp,
+  map_mul' := by simp }
+
+@[simp, to_additive] lemma comp_apply (g : N →* P) (f : M →* N) (x : M) :
+  g.comp f x = g (f x) := rfl
+
+/-- Composition of monoid homomorphisms is associative. -/
+@[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
+/-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
+    `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
+    `f(S)` to invertible elements of `P`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps elements of `f(S)` to invertible elements of `P`."]
+lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
+  (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
+  ∃ x : P, g.comp f s * x = 1 :=
+let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩
+
+@[to_additive]
+lemma cancel_right {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, monoid_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+@[to_additive]
+lemma cancel_left {g : N →* P} {f₁ f₂ : M →* N} (hg : function.injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, monoid_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+
+omit mP
+variables [mM] [mN]
+
+@[to_additive]
+protected def one : M →* N :=
+{ to_fun := λ _, 1,
+  map_one' := rfl,
+  map_mul' := λ _ _, (one_mul 1).symm }
+
+@[to_additive]
+instance : has_one (M →* N) := ⟨monoid_hom.one⟩
+
+@[to_additive]
+instance : inhabited (M →* N) := ⟨1⟩
+
+omit mM mN
+
+/-- The product of two monoid morphisms is a monoid morphism if the target is commutative. -/
+@[to_additive]
+protected def mul {M N} {mM : monoid M} [comm_monoid N] (f g : M →* N) : M →* N :=
+{ to_fun := λ m, f m * g m,
+  map_one' := show f 1 * g 1 = 1, by simp,
+  map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
+    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }
+
+@[to_additive]
+instance {M N} {mM : monoid M} [comm_monoid N] : has_mul (M →* N) := ⟨monoid_hom.mul⟩
+
+/-- (M →* N) is a comm_monoid if N is commutative. -/
+@[to_additive add_comm_monoid]
+instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
+{ mul := (*),
+  mul_assoc := by intros; ext; apply mul_assoc,
+  one := 1,
+  one_mul := by intros; ext; apply one_mul,
+  mul_one := by intros; ext; apply mul_one,
+  mul_comm := by intros; ext; apply mul_comm }
+
+/-- Group homomorphisms preserve inverse. -/
+@[simp, to_additive]
+theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
+eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
+
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive]
+theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
+  f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
+
+/-- A group homomorphism is injective iff its kernel is trivial. -/
+@[to_additive]
+lemma injective_iff {G H} [group G] [group H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h _, by rw ← is_group_hom.map_one f; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← map_inv f,
-      ← map_mul f] at hxy;
+⟨λ h _, by rw ← f.map_one; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
+      ← f.map_mul] at hxy;
     simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
-@[to_additive is_add_group_hom.add]
-lemma mul {α β} [group α] [comm_group β]
-  (f g : α → β) [is_group_hom f] [is_group_hom g] :
-  is_group_hom (λa, f a * g a) :=
-{ }
+include mM
+/-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/
+@[to_additive]
+def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
+{ to_fun := f,
+  map_mul' := map_mul,
+  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
-attribute [instance] is_group_hom.mul is_add_group_hom.add
+omit mM
 
-@[to_additive is_add_group_hom.neg]
-lemma inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
-  is_group_hom (λa, (f a)⁻¹) :=
-{ }
+/-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is
+    a commutative group.-/
+@[to_additive]
+protected def inv {M G} {mM : monoid M} [comm_group G] (f : M →* G) : M →* G :=
+mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
 
-attribute [instance] is_group_hom.inv is_add_group_hom.neg
+@[to_additive]
+instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) := ⟨monoid_hom.inv⟩
 
-end is_group_hom
+/-- (M →* G) is a comm_group if G is a comm_group -/
+@[to_additive add_comm_group]
+instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
+{ inv := has_inv.inv,
+  mul_left_inv := by intros; ext; apply mul_left_inv,
+  ..monoid_hom.comm_monoid }
 
-@[to_additive neg.is_add_group_hom]
-lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
-{ map_mul := mul_inv }
+end monoid_hom
 
-attribute [instance] inv.is_group_hom neg.is_add_group_hom
-
-namespace is_add_group_hom
-variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
-
-lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a + -b) = f a + f (-b) : is_add_hom.map_add f _ _
-            ... = f a + -f b   : by rw [map_neg f]
-
-end is_add_group_hom
-
-lemma is_add_group_hom.sub {α β} [add_group α] [add_comm_group β]
-  (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
-  is_add_group_hom (λa, f a - g a) :=
-is_add_group_hom.add f (λa, - g a)
-
-attribute [instance] is_add_group_hom.sub
+/-- Additive group homomorphisms preserve subtraction. -/
+@[simp] theorem add_monoid_hom.map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
+  f (g - h) = (f g) - (f h) := f.map_add_neg g h

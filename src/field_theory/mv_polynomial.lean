@@ -9,19 +9,19 @@ Multivariate functions of the form `α^n → α` are isomorphic to multivariate 
 import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 namespace mv_polynomial
 universes u v
-variables {σ : Type u} {α : Type v} [decidable_eq σ]
+variables {σ : Type u} {α : Type v}
 
-instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
+instance [field α] : vector_space α (mv_polynomial σ α) :=
 finsupp.vector_space _ _
 
 section
-variables (σ α) [discrete_field α] (m : ℕ)
+variables (σ α) [field α] (m : ℕ)
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=
 finsupp.supported _ _ {n | n.sum (λn e, e) ≤ m }
 
@@ -36,18 +36,18 @@ end
 
 section
 variables (σ α)
-def restrict_degree (m : ℕ) [discrete_field α] : submodule α (mv_polynomial σ α) :=
+def restrict_degree (m : ℕ) [field α] : submodule α (mv_polynomial σ α) :=
 finsupp.supported _ _ {n | ∀i, n i ≤ m }
 end
 
-lemma mem_restrict_degree [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+lemma mem_restrict_degree [field α] (p : mv_polynomial σ α) (n : ℕ) :
   p ∈ restrict_degree σ α n ↔ (∀s ∈ p.support, ∀i, (s : σ →₀ ℕ) i ≤ n) :=
 begin
   rw [restrict_degree, finsupp.mem_supported],
   refl
 end
 
-lemma mem_restrict_degree_iff_sup [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+lemma mem_restrict_degree_iff_sup [field α] (p : mv_polynomial σ α) (n : ℕ) :
   p ∈ restrict_degree σ α n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
   simp only [mem_restrict_degree, degrees, multiset.count_sup, finsupp.count_to_multiset,
@@ -56,12 +56,12 @@ begin
 end
 
 lemma map_range_eq_map {β : Type*}
-  [decidable_eq α] [comm_ring α] [decidable_eq β] [comm_ring β] (p : mv_polynomial σ α)
+  [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
   (f : α → β) [is_semiring_hom f]:
   finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum, finsupp.map_range_finset_sum,
-    ← finset.sum_hom (map f)],
+    ← p.support.sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
     rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial] },
   apply_instance
@@ -69,8 +69,7 @@ end
 
 section
 variables (σ α)
-
-lemma is_basis_monomials [discrete_field α] :
+lemma is_basis_monomials [field α] :
   is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
 suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),
 begin
@@ -86,16 +85,17 @@ end,
 begin
   apply finsupp.is_basis_single (λ _ _, (1 : α)),
   intro _,
-  apply is_basis_singleton_one, end
+  apply is_basis_singleton_one,
+end
 end
 
 end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
+variables (σ : Type u) (α : Type u) [field α]
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 lemma dim_mv_polynomial : vector_space.dim α (mv_polynomial σ α) = cardinal.mk (σ →₀ ℕ) :=
 by rw [← cardinal.lift_inj, ← (is_basis_monomials σ α).mk_eq_dim]
@@ -105,7 +105,7 @@ end mv_polynomial
 namespace mv_polynomial
 
 variables {α : Type*} {σ : Type*}
-variables [discrete_field α] [fintype α] [fintype σ] [decidable_eq σ]
+variables [field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
 finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
@@ -117,7 +117,7 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.prod_hom (eval a)).symm, eval_sub,
+by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
     is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 
@@ -126,7 +126,7 @@ lemma eval_indicator_apply_eq_zero (a b : σ → α) (h : a ≠ b) :
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.prod_hom (eval a)).symm, eval_sub,
+  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
     is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
@@ -154,7 +154,7 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  rw [← finset.sum_hom (multiset.count n)],
+  rw [← finset.univ.sum_hom (multiset.count n)],
   simp only [is_add_monoid_hom.map_smul (multiset.count n), multiset.singleton_eq_singleton,
     add_monoid.smul_eq_mul, nat.cast_id],
   transitivity,
@@ -173,7 +173,7 @@ def evalₗ : mv_polynomial σ α →ₗ[α] (σ → α) → α :=
 end
 
 section
-set_option class.instance_max_depth 50
+
 lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
 rfl
 end
@@ -198,12 +198,10 @@ end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [decidable_eq σ] [fintype σ] [discrete_field α] [fintype α]
+variables (σ : Type u) (α : Type u) [fintype σ] [field α] [fintype α]
 
+@[derive [add_comm_group, vector_space α, inhabited]]
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
-
-instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
-instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=

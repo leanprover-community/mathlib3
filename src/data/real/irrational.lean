@@ -12,14 +12,14 @@ open rat real multiplicity
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
 theorem irr_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
-  (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : n > 0) :
+  (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : 0 < n) :
   irrational x
 | ⟨q, e⟩ := begin
   rw [e, ← cast_pow] at hxr, cases q with N D P C,
   have c1 : ((D : ℤ) : ℝ) ≠ 0,
   { rw [int.cast_ne_zero, int.coe_nat_ne_zero], exact ne_of_gt P },
   have c2 : ((D : ℤ) : ℝ) ^ n ≠ 0 := pow_ne_zero _ c1,
-  rw [num_denom', cast_pow, cast_mk, div_pow _ c1, div_eq_iff_mul_eq c2,
+  rw [num_denom', cast_pow, cast_mk, div_pow, div_eq_iff_mul_eq c2,
       ← int.cast_pow, ← int.cast_pow, ← int.cast_mul, int.cast_inj] at hxr,
   have hdivn : ↑D ^ n ∣ N ^ n := dvd.intro_left m hxr,
   rw [← int.dvd_nat_abs, ← int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow, nat.pow_dvd_pow_iff hnpos] at hdivn,

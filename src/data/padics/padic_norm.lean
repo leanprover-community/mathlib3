@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import data.rat.basic algebra.gcd_domain algebra.field_power
+import data.rat algebra.gcd_domain algebra.field_power
 import ring_theory.multiplicity tactic.ring
 import data.real.cau_seq
 import tactic.norm_cast
@@ -33,7 +33,8 @@ by taking (prime p) as a type class argument.
 ## References
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
-* https://en.wikipedia.org/wiki/P-adic_number
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* <https://en.wikipedia.org/wiki/P-adic_number>
 
 ## Tags
 
@@ -46,7 +47,7 @@ open nat
 
 attribute [class] nat.prime
 
-local infix `/.`:70 := rat.mk
+open_locale rat
 
 open multiplicity
 
@@ -123,22 +124,22 @@ include p_prime
 The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
 -/
 lemma finite_int_prime_iff {p : ℕ} [p_prime : p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
-by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.gt_one))]
+by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.one_lt))]
 
 /--
 A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`.
 -/
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
   padic_val_rat p q = (multiplicity (p : ℤ) n).get (finite_int_iff.2
-    ⟨ne.symm $ ne_of_lt p_prime.gt_one, λ hn, by simp * at *⟩) -
-  (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.gt_one,
+    ⟨ne.symm $ ne_of_lt p_prime.one_lt, λ hn, by simp * at *⟩) -
+  (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.one_lt,
     λ hd, by simp * at *⟩) :=
 have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hn hd qdf in
 by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime),
-    (ne.symm (ne_of_lt p_prime.gt_one)), hqz]
+    (ne.symm (ne_of_lt p_prime.one_lt)), hqz]
 
 /--
 A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
@@ -146,14 +147,14 @@ A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by rw_mod_cast rat.mul_num_denom,
-have hq' : q.num /. q.denom ≠ 0, by rw ← rat.num_denom q; exact hq,
-have hr' : r.num /. r.denom ≠ 0, by rw ← rat.num_denom r; exact hr,
+have hq' : q.num /. q.denom ≠ 0, by rw rat.num_denom; exact hq,
+have hr' : r.num /. r.denom ≠ 0, by rw rat.num_denom; exact hr,
 have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 p_prime,
 begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
-  conv_rhs { rw [rat.num_denom q, padic_val_rat.defn p hq',
-    rat.num_denom r, padic_val_rat.defn p hr'] },
-  rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
+  conv_rhs { rw [←(@rat.num_denom q), padic_val_rat.defn p hq',
+    ←(@rat.num_denom r), padic_val_rat.defn p hr'] },
+  rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp [add_comm, add_left_comm, sub_eq_add_neg]
 end
 
 /--
@@ -162,7 +163,7 @@ A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
-  _root_.pow_succ, add_mul]
+  _root_.pow_succ, add_mul, add_comm]
 
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
@@ -224,11 +225,11 @@ have hqreq : q + r = (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom
 have hqrd : q.num * ↑(r.denom) + ↑(q.denom) * r.num ≠ 0,
   from rat.mk_num_ne_zero_of_ne_zero hqr hqreq,
 begin
-  conv_lhs { rw rat.num_denom q },
+  conv_lhs { rw ←(@rat.num_denom q) },
   rw [hqreq, padic_val_rat_le_padic_val_rat_iff p hqn hqrd hqd (mul_ne_zero hqd hrd),
     ← multiplicity_le_multiplicity_iff, mul_left_comm,
     multiplicity.mul (nat.prime_iff_prime_int.1 p_prime), add_mul],
-  rw [rat.num_denom q, rat.num_denom r, padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
+  rw [←(@rat.num_denom q), ←(@rat.num_denom r), padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
     ← multiplicity_le_multiplicity_iff] at h,
   calc _ ≤ min (multiplicity ↑p (q.num * ↑(r.denom) * ↑(q.denom)))
     (multiplicity ↑p (↑(q.denom) * r.num * ↑(q.denom))) : (le_min
@@ -264,8 +265,26 @@ namespace padic_norm
 
 section padic_norm
 open padic_val_rat
-variables (p : ℕ) [hp : p.prime]
-include hp
+variables (p : ℕ)
+
+/--
+Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+-/
+@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
+  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
+by simp [hq, padic_norm]
+
+/--
+The p-adic norm is nonnegative.
+-/
+protected lemma nonneg (q : ℚ) : 0 ≤ padic_norm p q :=
+if hq : q = 0 then by simp [hq]
+else
+  begin
+    unfold padic_norm; split_ifs,
+    apply fpow_nonneg_of_nonneg,
+    exact_mod_cast nat.zero_le _
+  end
 
 /--
 The p-adic norm of 0 is 0.
@@ -278,11 +297,13 @@ The p-adic norm of 1 is 1.
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
-Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
 -/
-@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
-  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
-by simp [hq, padic_norm]
+protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+
+variable [hp : p.prime]
+include hp
 
 /--
 If `q ≠ 0`, then `padic_norm p q ≠ 0`.
@@ -299,7 +320,7 @@ end
 -/
 @[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
 if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq, hp.gt_one]
+else by simp [padic_norm, hq, hp.one_lt]
 
 /--
 If the p-adic norm of `q` is 0, then `q` is 0.
@@ -314,18 +335,6 @@ begin
 end
 
 /--
-The p-adic norm is nonnegative.
--/
-protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
-if hq : q = 0 then by simp [hq]
-else
-  begin
-    unfold padic_norm; split_ifs,
-    apply fpow_nonneg_of_nonneg,
-    exact_mod_cast nat.zero_le _
-  end
-
-/--
 The p-adic norm is multiplicative.
 -/
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
@@ -335,8 +344,8 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
-  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
+  have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
+  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this, mul_comm]
 
 /--
 The p-adic norm respects division.
@@ -354,7 +363,7 @@ begin
   unfold padic_norm,
   rw [if_neg _],
   { refine fpow_le_one_of_nonpos _ _,
-    { exact_mod_cast le_of_lt hp.gt_one, },
+    { exact_mod_cast le_of_lt hp.one_lt, },
     { rw [padic_val_rat_of_int _ hp.ne_one hz, neg_nonpos],
       norm_cast, simp }},
   exact_mod_cast hz
@@ -376,7 +385,7 @@ else
     apply le_max_iff.2,
     left,
     apply fpow_le_of_le,
-    { exact_mod_cast le_of_lt hp.gt_one },
+    { exact_mod_cast le_of_lt hp.one_lt },
     { apply neg_le_neg,
       have : padic_val_rat p q =
               min (padic_val_rat p q) (padic_val_rat p r),
@@ -439,12 +448,6 @@ begin
 end
 
 /--
-The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
--/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
-⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
-
-/--
 The p-adic norm is an absolute value: positive-definite and multiplicative, satisfying the triangle
 inequality.
 -/
@@ -469,7 +472,7 @@ begin
   { apply fpow_nonneg_of_nonneg,
     exact_mod_cast le_of_lt hp.pos },
   { apply fpow_le_of_le,
-    exact_mod_cast le_of_lt hp.gt_one,
+    exact_mod_cast le_of_lt hp.one_lt,
     apply neg_le_neg,
     rw padic_val_rat_of_int _ hp.ne_one _,
     { norm_cast,

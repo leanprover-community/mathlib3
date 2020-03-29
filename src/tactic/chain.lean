@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Mario Carneiro
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Mario Carneiro
+-/
 import tactic.ext
 import data.option.defs
 
@@ -138,9 +139,7 @@ do tgt ← target,
    pure r
 
 meta def chain (tactics : list (tactic α)) : tactic (list string) :=
-if is_trace_enabled_for `chain then
-  chain_core (tactics.map trace_output)
-else
-  chain_core tactics
+chain_core
+  (if is_trace_enabled_for `chain then (tactics.map trace_output) else tactics)
 
 end tactic

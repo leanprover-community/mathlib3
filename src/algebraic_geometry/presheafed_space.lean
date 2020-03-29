@@ -1,7 +1,9 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-import topology.Top.presheaf
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import topology.sheaves.presheaf
 
 /-!
 # Presheafed spaces
@@ -21,7 +23,7 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 local attribute [tidy] tactic.op_induction'
@@ -53,7 +55,7 @@ structure hom (X Y : PresheafedSpace.{v} C) :=
 (f : (X : Top.{v}) ⟶ (Y : Top.{v}))
 (c : Y.𝒪 ⟶ f _* X.𝒪)
 
-@[extensionality] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
+@[ext] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
   (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.𝒪) = β.c) :
   α = β :=
 begin
@@ -65,11 +67,11 @@ end
 
 def id (X : PresheafedSpace.{v} C) : hom X X :=
 { f := 𝟙 (X : Top.{v}),
-  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
+  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.to_Top)).hom) _) }
 
 def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { f := α.f ≫ β.f,
-  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) }
+  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
 
 variables (C)
 
@@ -88,27 +90,31 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },
-    { ext1 U,
-      op_induction,
-      cases U,
+    { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, map_id] },
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id], },
   end,
   comp_id' := λ X Y f,
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext1 U,
-      op_induction,
-      cases U,
+    { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id] }
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id], }
   end,
   assoc' := λ W X Y Z f g h,
   begin
-    simp only [true_and, presheaf.pushforward, id, comp, whisker_left_twice, whisker_left_comp,
-               heq_iff_eq, category.assoc],
-    split; refl
+     ext1, swap,
+     refl,
+     { ext U, op_induction, cases U,
+       dsimp,
+       simp only [assoc, map_id, comp_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+       dsimp,
+       simp only [comp_id, id_comp], }
   end }
 
 end
@@ -129,7 +135,7 @@ instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_To
 
 lemma id_c (X : PresheafedSpace.{v} C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) := rfl
+  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.to_Top)).hom) _)) := rfl
 
 -- Implementation note: this harmless looking lemma causes deterministic timeouts,
 -- but happily we can survive without it.
@@ -141,7 +147,7 @@ lemma id_c (X : PresheafedSpace.{v} C) :
 by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) ≫ (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
 /-- The forgetful functor from `PresheafedSpace` to `Top`. -/
 def forget : PresheafedSpace.{v} C ⥤ Top :=
@@ -158,7 +164,7 @@ variables {C}
 
 namespace category_theory
 
-variables {D : Type u} [𝒟 : category.{v+1} D]
+variables {D : Type u} [𝒟 : category.{v} D]
 include 𝒟
 
 local attribute [simp] presheaf.pushforward
@@ -176,7 +182,7 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   begin
     ext1, swap,
     { refl },
-    { ext1,
+    { ext,
       dsimp,
       simp only [presheaf.pushforward, eq_to_hom_map, map_id, comp_id, id_c_app],
       refl }
@@ -185,7 +191,11 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   begin
     ext1, swap,
     { refl, },
-    { ext, dsimp, simp only [comp_id, assoc, map_comp, map_id], },
+    { ext, dsimp,
+      simp only [comp_id, assoc, map_comp, map_id, comp_c_app,
+        presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id, map_id] }
   end }
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
@@ -207,16 +217,18 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 { app := λ X,
   { f := 𝟙 _,
     c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
+           (whisker_right (nat_trans.op (opens.map_id X.to_Top).hom) _) },
   naturality' := λ X Y f,
   begin
     ext1, swap,
     { refl },
-    { ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,
-      simp only [comp_id, assoc, map_id, nat_trans.naturality] }
+      simp only [comp_id, assoc, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id, nat_trans.naturality], }
   end }
 
 -- TODO Assemble the last two constructions into a functor

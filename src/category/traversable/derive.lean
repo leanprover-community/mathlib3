@@ -47,23 +47,28 @@ do t ← infer_type e >>= whnf,
      <|> pure e
 
 /-- similar to `traverse_constructor` but for `functor` -/
-meta def map_constructor (c n : name) (f α β : expr) (args₀ rec_call : list expr) : tactic expr :=
+meta def map_constructor (c n : name) (f α β : expr)
+  (args₀ : list expr)
+  (args₁ : list (bool × expr)) (rec_call : list expr) : tactic expr :=
 do g ← target,
-   args' ← mmap (map_field n g.app_fn f α β) args₀,
+   (_, args') ← mmap_accuml (λ (x : list expr) (y : bool × expr),
+     if y.1 then pure (x.tail,x.head)
+     else prod.mk rec_call <$> map_field n g.app_fn f α β y.2) rec_call args₁,
    constr ← mk_const c,
-   let r := constr.mk_app (args' ++ rec_call),
+   let r := constr.mk_app (args₀ ++ args'),
    return r
 
 /-- derive the `map` definition of a `functor` -/
 meta def mk_map (type : name)  :=
 do ls ← local_context,
    [α,β,f,x] ← tactic.intro_lst [`α,`β,`f,`x],
+   et ← infer_type x,
    xs ← tactic.induction x,
    xs.mmap' (λ (x : name × list expr × list (name × expr)),
       do let (c,args,_) := x,
          (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
-         let args₀ := args.take $ args.length - rec_call.length,
-         map_constructor c type f α β (ls ++ β :: args₀) rec_call >>= tactic.exact)
+         args₀ ← args.mmap $ λ a, do { b ← et.occurs <$> infer_type a, pure (b,a) },
+         map_constructor c type f α β (ls ++ [β]) args₀ rec_call >>= tactic.exact)
 
 meta def mk_mapp_aux' : expr → expr → list expr → tactic expr
 | fn (expr.pi n bi d b) (a::as) :=
@@ -94,10 +99,13 @@ do e ← get_env,
         n_map ← mk_const (with_prefix pre n <.> "map"),
         let call_map := λ x, mk_mapp' n_map (vs ++ [α,β,f,x]),
         lhs ← call_map arg,
-        (args,rec_call) ← vs'.mpartition $
-          λ e, ((≠ n) ∘ expr.const_name ∘ expr.get_app_fn) <$> infer_type e,
+        args ← vs'.mmap $ λ a,
+        do { t ← infer_type a,
+             pure ((expr.const_name (expr.get_app_fn t) = n : bool),a) },
+        let rec_call := args.filter_map $
+          λ ⟨b, e⟩, guard b >> pure e,
         rec_call ← rec_call.mmap call_map,
-        rhs ← map_constructor c n f α β (vs ++ α :: args) rec_call,
+        rhs ← map_constructor c n f α β (vs ++ [β]) args rec_call,
         monad.join $ unify <$> infer_type lhs <*> infer_type rhs,
         eqn ← mk_app ``eq [lhs,rhs],
         let ws := eqn.list_local_consts,
@@ -165,13 +173,18 @@ do t ← infer_type e >>= whnf,
 For a sum type `inductive foo (α : Type) | foo1 : list α → ℕ → foo | ...`
 ``traverse_constructor `foo1 `foo appl_inst f `α `β [`(x : list α), `(y : ℕ)]``
 synthesizes `foo1 <$> traverse f x <*> pure y.` -/
-meta def traverse_constructor (c n : name) (appl_inst f α β : expr) (args₀ rec_call : list expr) : tactic expr :=
+meta def traverse_constructor (c n : name) (appl_inst f α β : expr)
+  (args₀ : list expr)
+  (args₁ : list (bool × expr)) (rec_call : list expr) : tactic expr :=
 do g ← target,
    args' ← mmap (traverse_field n appl_inst g.app_fn f α) args₀,
+   (_, args') ← mmap_accuml (λ (x : list expr) (y : bool × _),
+     if y.1 then pure (x.tail, sum.inr x.head)
+     else prod.mk x <$> traverse_field n appl_inst g.app_fn f α y.2) rec_call args₁,
    constr ← mk_const c,
    v ← mk_mvar,
    constr' ← to_expr ``(@pure _ (%%appl_inst).to_has_pure _ %%v),
-   (vars_intro,r) ← seq_apply_constructor constr' (args' ++ rec_call.map sum.inr),
+   (vars_intro,r) ← seq_apply_constructor constr' (args₀.map sum.inl ++ args'),
    gs ← get_goals,
    set_goals [v],
    vs ← vars_intro.mmap id,
@@ -184,14 +197,15 @@ do g ← target,
 meta def mk_traverse (type : name) := do
 do ls ← local_context,
    [m,appl_inst,α,β,f,x] ← tactic.intro_lst [`m,`appl_inst,`α,`β,`f,`x],
+   et ← infer_type x,
    reset_instance_cache,
    xs ← tactic.induction x,
    xs.mmap'
       (λ (x : name × list expr × list (name × expr)),
       do let (c,args,_) := x,
          (args,rec_call) ← args.mpartition $ λ e, (bnot ∘ β.occurs) <$> infer_type e,
-         let args₀ := args.take $ args.length - rec_call.length,
-         traverse_constructor c type appl_inst f α β (ls ++ β :: args₀) rec_call >>= tactic.exact)
+         args₀ ← args.mmap $ λ a, do { b ← et.occurs <$> infer_type a, pure (b,a) },
+         traverse_constructor c type appl_inst f α β (ls ++ [β]) args₀ rec_call >>= tactic.exact)
 
 open applicative
 
@@ -212,10 +226,13 @@ do e ← get_env,
         n_map ← mk_const (with_prefix pre n <.> "traverse"),
         let call_traverse := λ x, mk_mapp' n_map (vs ++ [m,appl_inst,α,β,f,x]),
         lhs ← call_traverse arg,
-        (args,rec_call) ← vs'.mpartition $
-          λ e, ((≠ n) ∘ expr.const_name ∘ expr.get_app_fn) <$> infer_type e,
+        args ← vs'.mmap $ λ a,
+        do { t ← infer_type a,
+             pure ((expr.const_name (expr.get_app_fn t) = n : bool),a) },
+        let rec_call := args.filter_map $
+          λ ⟨b, e⟩, guard b >> pure e,
         rec_call ← rec_call.mmap call_traverse,
-        rhs ← traverse_constructor c n appl_inst f α β (vs ++ β :: args) rec_call,
+        rhs ← traverse_constructor c n appl_inst f α β (vs ++ [β]) args rec_call,
         monad.join $ unify <$> infer_type lhs <*> infer_type rhs,
         eqn ← mk_app ``eq [lhs,rhs],
         let ws := eqn.list_local_consts,

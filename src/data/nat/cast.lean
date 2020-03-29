@@ -19,12 +19,16 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
-@[priority 0] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
 theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
 @[simp, move_cast] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
+
+@[simp, move_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
+  (((ite P m n) : ℕ) : α) = ite P (m : α) (n : α) :=
+by { split_ifs; refl, }
 end
 
 @[simp, squash_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
@@ -43,7 +47,7 @@ by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
 
-@[simp, move_cast] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
+@[simp, move_cast] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 
 @[simp, move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m :=
@@ -67,7 +71,7 @@ by induction n; simp [left_distrib, right_distrib, *]
 @[simp, elim_cast] theorem cast_le [linear_ordered_semiring α] : ∀ {m n : ℕ}, (m : α) ≤ n ↔ m ≤ n
 | 0     n     := by simp [zero_le]
 | (m+1) 0     := by simpa [not_succ_le_zero] using
-  lt_add_of_lt_of_nonneg zero_lt_one (@cast_nonneg α _ m)
+  lt_add_of_nonneg_of_lt (@cast_nonneg α _ m) zero_lt_one
 | (m+1) (n+1) := (add_le_add_iff_right 1).trans $
   (@cast_le m n).trans $ (add_le_add_iff_right 1).symm
 
@@ -103,3 +107,17 @@ by by_cases a ≤ b; simp [h, max]
 abs_of_nonneg (cast_nonneg a)
 
 end nat
+
+section semiring_hom
+variables {α : Type*} {β : Type*} [semiring α] [semiring β]
+
+lemma is_semiring_hom.map_nat_cast (f : α → β) [is_semiring_hom f] :
+  ∀ (n : ℕ), f n = n
+| 0     := by simp [is_semiring_hom.map_zero f]
+| (n+1) := by simp [is_semiring_hom.map_add f, is_semiring_hom.map_one f,
+  is_semiring_hom.map_nat_cast n]
+
+@[simp] lemma ring_hom.map_nat_cast (f : α →+* β) (n : ℕ) : f (n : α) = n :=
+is_semiring_hom.map_nat_cast _ _
+
+end semiring_hom

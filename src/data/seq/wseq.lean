@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.seq.seq data.seq.computation data.list.basic data.dlist
+import data.seq.seq data.seq.computation data.dlist
 universes u v w
 
 /-
@@ -44,6 +44,8 @@ instance coe_stream : has_coe (stream α) (wseq α) := ⟨of_stream⟩
 
 /-- The empty weak sequence -/
 def nil : wseq α := seq.nil
+
+instance : inhabited (wseq α) := ⟨nil⟩
 
 /-- Prepend an element to a weak sequence -/
 def cons (a : α) : wseq α → wseq α := seq.cons (some a)
@@ -621,7 +623,7 @@ instance productive_dropn (s : wseq α) [productive s] (n) : productive (drop s 
 def to_seq (s : wseq α) [productive s] : seq α :=
 ⟨λ n, (nth s n).get, λn h,
 begin
-  induction e : computation.get (nth s (n + 1)), {trivial},
+  cases e : computation.get (nth s (n + 1)), {assumption},
   have := mem_of_get_eq _ e,
   simp [nth] at this h, cases head_some_of_head_tail_some this with a' h',
   have := mem_unique h' (@mem_of_get_eq _ _ _ _ h),

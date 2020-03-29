@@ -7,8 +7,8 @@ The Schröder-Bernstein theorem, and well ordering of cardinals.
 -/
 import order.fixed_points data.set.lattice logic.function logic.embedding order.zorn
 
-open lattice set classical
-local attribute [instance] prop_decidable
+open set classical
+open_locale classical
 
 universes u v
 
@@ -27,7 +27,7 @@ have hs : s = - (g '' - (f '' s)),
     compl_subset_compl.mpr $ image_subset _ h,
 
 have hns : - s = g '' - (f '' s),
-  from lattice.neg_eq_neg_of_eq $ by simp [hs.symm],
+  from compl_inj $ by simp [hs.symm],
 
 let g' := λa, @inv_fun β ⟨f a⟩ α g a in
 have g'g : g' ∘ g = id,
@@ -129,4 +129,3 @@ end
 
 end embedding
 end function
-

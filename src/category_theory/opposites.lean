@@ -1,8 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
-
-import category_theory.products
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison
+-/
 import category_theory.types
 import category_theory.natural_isomorphism
 import data.opposite
@@ -153,23 +153,6 @@ instance {F : C ⥤ D} [faithful F] : faithful F.op :=
 
 end
 
-section
-
-omit 𝒞
-variables (E : Type u₁) [ℰ : category.{v₁+1} E]
-include ℰ
-
-/-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
-definition hom : Eᵒᵖ × E ⥤ Type v₁ :=
-{ obj       := λ p, unop p.1 ⟶ p.2,
-  map       := λ X Y f, λ h, f.1.unop ≫ h ≫ f.2 }
-
-@[simp] lemma hom_obj (X : Eᵒᵖ × E) : (functor.hom E).obj X = (unop X.1 ⟶ X.2) := rfl
-@[simp] lemma hom_pairing_map {X Y : Eᵒᵖ × E} (f : X ⟶ Y) :
-  (functor.hom E).map f = λ h, f.1.unop ≫ h ≫ f.2 := rfl
-
-end
-
 end functor
 
 namespace nat_trans
@@ -180,17 +163,17 @@ include 𝒟
 section
 variables {F G : C ⥤ D}
 
-protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
+@[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
-protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+@[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma unop_app (α : F.op ⟶ G.op) (X) : (nat_trans.unop α).app X = (α.app (op X)).unop := rfl
+@[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
 end
 
@@ -237,6 +220,8 @@ variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
+/-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural
+isomorphism between the original functors `F ≅ G`. -/
 protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
@@ -245,6 +230,17 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 
 @[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
 @[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
+
+/-- The natural isomorphism between functors `G ≅ F` induced by a natural isomorphism
+between the opposite functors `F.op ≅ G.op`. -/
+protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
+{ hom := nat_trans.unop α.hom,
+  inv := nat_trans.unop α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma unop_hom (α : F.op ≅ G.op) : (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
+@[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
 
 end nat_iso
 

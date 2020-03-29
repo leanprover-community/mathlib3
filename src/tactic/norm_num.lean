@@ -2,39 +2,18 @@
 Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Mario Carneiro
+-/
+
+import algebra.group_power data.rat.order data.rat.cast data.rat.meta_defs data.nat.prime
+import tactic.interactive tactic.converter.interactive
+
+/-!
+# `norm_num`
 
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat.basic data.nat.prime
-import tactic.interactive tactic.converter.interactive
-
 universes u v w
-
-namespace expr
-
-protected meta def to_pos_rat : expr → option ℚ
-| `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
-| e              := do n ← e.to_nat, return (rat.of_int n)
-
-protected meta def to_rat : expr → option ℚ
-| `(has_neg.neg %%e) := do q ← e.to_pos_rat, some (-q)
-| e                  := e.to_pos_rat
-
-protected meta def of_rat (α : expr) : ℚ → tactic expr
-| ⟨(n:ℕ), d, h, c⟩   := do
-  e₁ ← expr.of_nat α n,
-  if d = 1 then return e₁ else
-  do e₂ ← expr.of_nat α d,
-  tactic.mk_app ``has_div.div [e₁, e₂]
-| ⟨-[1+n], d, h, c⟩ := do
-  e₁ ← expr.of_nat α (n+1),
-  e ← (if d = 1 then return e₁ else do
-    e₂ ← expr.of_nat α d,
-    tactic.mk_app ``has_div.div [e₁, e₂]),
-  tactic.mk_app ``has_neg.neg [e]
-
-end expr
 
 namespace tactic
 
@@ -110,16 +89,21 @@ meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (exp
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit0_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e'),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(monoid.pow %%e₁ (bit1 %%e₂)) := do
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit1_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e' * %%e₁),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  e'' ← mk_app ``has_mul.mul [e'', e₁],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(nat.pow %%e₁ %%e₂) := do
-  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂],
+  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p₂) ← simp e,
   p ← mk_eq_trans p₁ p₂,
@@ -475,6 +459,9 @@ do e ← instantiate_mvars e,
       `eq e,
     return (e', pr)
 
+/-- This version of `derive` does not fail when the input is already a numeral -/
+meta def derive' : expr → tactic (expr × expr) := derive1 derive
+
 end norm_num
 
 namespace tactic.interactive
@@ -489,16 +476,62 @@ do ns ← loc.get_locals,
    when (¬ ns.empty) $ try tactic.contradiction
 
 /-- Normalize numerical expressions. Supports the operations
-  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
-  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
+`+` `-` `*` `/` `^` and `%` over numerical types such as
+`ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
+and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
+where `A` and `B` are numerical expressions.
+It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
 repeat1 $ orelse' (norm_num1 l) $
 simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
 
+add_hint_tactic "norm_num"
+
+/-- Normalizes a numerical expression and tries to close the goal with the result. -/
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,
   (x₂,_) ← derive x₁,
   tactic.exact x₂
+
+/--
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over
+numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`,
+`A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
+The variant `norm_num1` does not call `simp`.
+
+Both `norm_num` and `norm_num1` can be called inside the `conv` tactic.
+
+The tactic `apply_normed` normalises a numerical expression and tries to close the goal with
+the result. Compare:
+```lean
+def a : ℕ := 2^100
+#print a -- 2 ^ 100
+
+def normed_a : ℕ := by apply_normed 2^100
+#print normed_a -- 1267650600228229401496703205376
+```
+-/
+add_tactic_doc
+{ name        := "norm_num",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.norm_num1, `tactic.interactive.norm_num,
+                  `tactic.interactive.apply_normed],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end tactic.interactive
 

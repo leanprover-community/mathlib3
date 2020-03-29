@@ -223,11 +223,13 @@ theorem tendsto_iff (f : α → β) {l₁ : filter α} {l₂ : filter β} (L₁ 
 (le_iff (L₁.map f) L₂).trans $ forall_congr $ λ b, exists_congr $ λ a, image_subset_iff
 
 theorem ne_bot_iff {f : filter α} (F : f.realizer) :
-  f ≠ ⊥ ↔ ∀ a : F.σ, F.F a ≠ ∅ :=
-by haveI := classical.prop_decidable;
-   rw [not_iff_comm, ← lattice.le_bot_iff,
-       F.le_iff realizer.bot]; simp [not_forall]; exact
-⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
- λ h, let ⟨x, h⟩ := h () in ⟨x, lattice.le_bot_iff.1 h⟩⟩
+  f ≠ ⊥ ↔ ∀ a : F.σ, (F.F a).nonempty :=
+begin
+  classical,
+  rw [not_iff_comm, ← le_bot_iff, F.le_iff realizer.bot, not_forall],
+  simp only [set.not_nonempty_iff_eq_empty],
+  exact ⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
+    λ h, let ⟨x, h⟩ := h () in ⟨x, le_bot_iff.1 h⟩⟩
+end
 
 end filter.realizer

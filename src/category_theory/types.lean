@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
+-/
 import category_theory.functor_category
 import category_theory.fully_faithful
 import data.equiv.basic
@@ -10,14 +11,14 @@ namespace category_theory
 
 universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-instance types : large_category (Sort u) :=
+instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }
 
-@[simp] lemma types_hom {α β : Sort u} : (α ⟶ β) = (α → β) := rfl
-@[simp] lemma types_id (X : Sort u) : 𝟙 X = id := rfl
-@[simp] lemma types_comp {X Y Z : Sort u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
+@[simp] lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl
+@[simp] lemma types_id (X : Type u) : 𝟙 X = id := rfl
+@[simp] lemma types_comp {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
 
 namespace functor
 variables {J : Type u} [𝒥 : category.{v} J]
@@ -28,7 +29,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
@@ -46,6 +47,11 @@ congr_fun (σ.naturality f) x
 variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
+
+@[simp] lemma map_inv_map_hom_apply (f : X ≅ Y) (x : F.obj X) : F.map f.inv (F.map f.hom x) = x :=
+congr_fun (F.map_iso f).hom_inv_id x
+@[simp] lemma map_hom_map_inv_apply (f : X ≅ Y) (y : F.obj Y) : F.map f.hom (F.map f.inv y) = y :=
+congr_fun (F.map_iso f).inv_hom_id y
 
 end functor_to_types
 
@@ -140,7 +146,7 @@ namespace equiv
 
 universe u
 
-variables {X Y : Sort u}
+variables {X Y : Type u}
 
 def to_iso (e : X ≃ Y) : X ≅ Y :=
 { hom := e.to_fun,
@@ -154,10 +160,11 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 end equiv
 
 namespace category_theory.iso
+open category_theory
 
 universe u
 
-variables {X Y : Sort u}
+variables {X Y : Type u}
 
 def to_equiv (i : X ≅ Y) : X ≃ Y :=
 { to_fun := i.hom,
@@ -168,4 +175,27 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 @[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
 @[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
 
+@[simp] lemma to_equiv_id (X : Type u) : (iso.refl X).to_equiv = equiv.refl X := rfl
+@[simp] lemma to_equiv_comp {X Y Z : Type u} (f : X ≅ Y) (g : Y ≅ Z) :
+  (f ≪≫ g).to_equiv = f.to_equiv.trans (g.to_equiv) := rfl
+
 end category_theory.iso
+
+
+universe u
+
+-- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
+-- (In this order the proofs are handled by `obviously`.)
+
+/-- equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms of types -/
+@[simps] def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
+{ hom := λ e, e.to_iso,
+  inv := λ i, i.to_equiv, }
+
+/-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
+-- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function won't fire without them.
+def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
+(equiv_iso_iso).to_equiv
+
+@[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
+@[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl

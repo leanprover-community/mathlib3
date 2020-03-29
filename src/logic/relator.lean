@@ -20,11 +20,11 @@ predicate? For now we stick to the recursor approach.
 -/
 
 section
-variables {α : Type u₁} {β : Type u₂} {γ : Type v₁} {δ : Type v₂}
+variables {α : Sort u₁} {β : Sort u₂} {γ : Sort v₁} {δ : Sort v₂}
 variables (R : α → β → Prop) (S : γ → δ → Prop)
 
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
-∀{a b}, R a b → S (f a) (g b)
+∀⦃a b⦄, R a b → S (f a) (g b)
 
 infixr ⇒ := lift_fun
 
@@ -75,6 +75,8 @@ assume p q h r s l, imp_congr h l
 lemma rel_not : (iff ⇒ iff) not not :=
 assume p q h, not_congr h
 
+@[priority 100] -- see Note [lower instance priority]
+-- (this is an instance is always applies, since the relation is an out-param)
 instance bi_total_eq {α : Type u₁} : relator.bi_total (@eq α) :=
 ⟨assume a, ⟨a, rfl⟩, assume a, ⟨a, rfl⟩⟩
 

@@ -55,6 +55,12 @@ begin
   rw [h, one_mul]
 end
 
+example (n) (h : n*n ≠ 1) : n ≠ 1 :=
+begin
+  contrapose! h with newh,
+  rw [newh, one_mul]
+end
+
 example : 0 = 0 :=
 begin
   success_if_fail_with_msg { contrapose }

@@ -69,13 +69,14 @@ card_sigma _ _
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 by rw [sum.fintype, fintype.of_equiv_card]; simp
 
+@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
+  {δ : α → Type*} (t : Π a, finset (δ a)) :
+  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
+by simp [fintype.pi_finset, card_map]
+
 @[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
   [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = univ.prod (λ a, fintype.card (β a)) :=
-by letI f' : fintype (Πa∈univ, β a) :=
-  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩;
-exact calc fintype.card (Π a, β a) = fintype.card (Π a ∈ univ, β a) : fintype.card_congr
-  ⟨λ f a ha, f a, λ f a, f a (mem_univ a), λ _, rfl, λ _, rfl⟩
-... = univ.prod (λ a, fintype.card (β a)) : finset.card_pi _ _
+fintype.card_pi_finset _
 
 -- FIXME ouch, this should be in the main file.
 @[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
@@ -103,18 +104,6 @@ begin
   { intros, rwa fin.eq_iff_veq },
   { intros k hk, rw mem_range at hk,
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
-end
-
-@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
-  {δ : α → Type*} [decidable_eq (Π a, δ a)] (t : Π a, finset (δ a)) :
-  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
-begin
-  dsimp [fintype.pi_finset],
-  rw card_image_of_injective,
-  { simp },
-  { assume f g hfg,
-    ext a ha,
-    exact (congr_fun hfg a : _) }
 end
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.

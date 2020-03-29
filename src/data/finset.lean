@@ -1301,8 +1301,8 @@ theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
-@[simp] lemma card_map {α β} [decidable_eq β] (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
-by rw [map_eq_image, card_image_of_injective]; exact f.2
+@[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
+multiset.card_map _ _
 
 lemma card_eq_of_bijective [decidable_eq α] {s : finset α} {n : ℕ}
   (f : ∀i, i < n → α)

@@ -730,7 +730,7 @@ calc s.prod (λ a, f a + g a)
   refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
   { simp [subset_iff]; tauto },
   { intros t ht,
-    erw [prod_ite (λ a : {a // a ∈ s}, f a.1) (λ a : {a // a ∈ s}, g a.1) (λ x, x)],
+    erw [prod_ite (λ a : {a // a ∈ s}, f a.1) (λ a : {a // a ∈ s}, g a.1)],
     refine congr_arg2 _
       (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
          _ _ _
@@ -755,6 +755,7 @@ begin
   rw [← prod_const, prod_add],
   refine finset.sum_congr rfl (λ t ht, _),
   rw [prod_const, prod_const, card_sub_card (mem_powerset.1 ht)]
+end
 
 lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
   ∀ {s : finset α}, s.prod (λ i, x ^ (f i)) = x ^ (s.sum f) :=

@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # number of commits to check for olean cache
-      MAX_DEPTH: 10
+      GIT_HISTORY_DEPTH: 10
     steps:
       - uses: actions/checkout@v2
         with:

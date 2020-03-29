@@ -21,10 +21,14 @@ fi
 
 curl "$archive_url$new_git_sha.tar.gz" | tar xz src
 
-# extracting the archive overwrites all .lean files, which is fine if we
+# Extracting the archive overwrites all .lean files, which is fine if we
 # downloaded an "equivalent" cache. However, since we might be using an older
-# cache, we must revert any changes to the .lean files
+# cache, we must revert any changes made to the .lean files.
+#
+# The following commands don't make any changes to ignored files, so the .olean
+# files should be OK.
 git reset --hard HEAD
+git clean -f -d
 
 # A list of directories containing .olean files. We are being conservative to
 # avoid traversing irrelevant directories and affecting directories we do not
@@ -32,7 +36,6 @@ git reset --hard HEAD
 dirs="src"
 
 # Delete every <path>.olean without a matching <path>.lean.
-
 for olean_file in `find $dirs -name "*.olean"`
 do
     lean_file=${olean_file/%.olean/.lean}
@@ -44,5 +47,4 @@ done
 
 # Delete all empty directories. An empty directory may have been created if it
 # does not contain any .lean files and all of its .olean files were deleted.
-
 find $dirs -type d -empty -delete

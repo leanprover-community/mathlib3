@@ -162,7 +162,7 @@ lemma inverse_approx_map_fixed_iff {x : E} :
   g x = x ↔ f x = y :=
 by rw [← dist_eq_zero, inverse_approx_map_dist_self, dist_eq_zero, f'.symm.injective.eq_iff]
 
-include hf hc
+include hf
 
 lemma inverse_approx_map_contracts_on {x x'} (hx : x ∈ s) (hx' : x' ∈ s) :
   dist (g x) (g x') ≤ N * c * dist x x' :=
@@ -172,6 +172,8 @@ begin
     by simpa only [f'.symm.map_sub, f'.symm_apply_apply, mul_assoc] using this,
   exact (f'.symm : F →L[𝕜] E).le_op_norm_of_le (hf x hx x' hx')
 end
+
+include hc
 
 variable {y}
 
@@ -188,7 +190,7 @@ begin
     dist (inverse_approx_map f f' y x) (inverse_approx_map f f' y b) +
       dist (inverse_approx_map f f' y b) b : dist_triangle _ _ _
   ... ≤ N * c * dist x b + N * dist (f b) y :
-    add_le_add (hf.inverse_approx_map_contracts_on (or.inr hc) y (hε hx) hb)
+    add_le_add (hf.inverse_approx_map_contracts_on y (hε hx) hb)
       (inverse_approx_map_dist_self_le _ _)
   ... ≤ N * c * ε + N * ((N⁻¹ - c) * ε) :
     add_le_add (mul_le_mul_of_nonneg_left hx (mul_nonneg (nnreal.coe_nonneg _) c.coe_nonneg))
@@ -219,7 +221,7 @@ begin
     { rwa [mul_comm, ← nnreal.lt_inv_iff_mul_lt],
       exact ne_of_gt (inv_pos.1 $ lt_of_le_of_lt c.coe_nonneg hc) },
     { exact lipschitz_with.of_dist_le_mul (λ x x', hf.inverse_approx_map_contracts_on
-        (or.inr hc) y (hε x.mem) (hε x'.mem)) } },
+        y (hε x.mem) (hε x'.mem)) } },
   refine ⟨this.efixed_point' _ _ _ b (mem_closed_ball_self ε0) (edist_lt_top _ _), _, _⟩,
   { exact is_complete_of_is_closed is_closed_ball },
   { apply contracting_with.efixed_point_mem' },
@@ -387,7 +389,7 @@ end has_strict_fderiv_at
 
 namespace has_strict_fderiv_at
 
-variables [complete_space (E × F)] {f : E × F → G} (f' : E × F →L[𝕜] G) (f'y : F ≃L[𝕜] G)
+variables [cs : complete_space (E × F)] {f : E × F → G} (f' : E × F →L[𝕜] G) (f'y : F ≃L[𝕜] G)
   {p : E × F} (hf : has_strict_fderiv_at f f' p) (hfy : ∀ y : F, f' (0, y) = f'y y)
 
 /-- Formula for the derivative of an implicit function. -/
@@ -413,6 +415,7 @@ begin
   simp [-prod.mk_add_mk, hfy, add_comm (f' (x, 0))]
 end
 
+include cs
 variable (f)
 
 /-- Implicit function `g` defined by an equation `f (x, g(x, y)) = z`. -/

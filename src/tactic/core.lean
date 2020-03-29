@@ -74,12 +74,12 @@ open result
 variables {σ : Type} {α : Type u}
 
 /-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
--- Note that this is a generalisation of `tactic.read` in core.
+-- Note that this is a generalization of `tactic.read` in core.
 meta def get_state : interaction_monad σ σ :=
 λ state, success state state
 
 /-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
--- Note that this is a generalisation of `tactic.write` in core.
+-- Note that this is a generalization of `tactic.write` in core.
 meta def set_state (state : σ) : interaction_monad σ unit :=
 λ _, success () state
 

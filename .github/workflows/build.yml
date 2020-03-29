@@ -6,10 +6,13 @@ jobs:
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
+    env:
+      # number of commits to check for olean cache
+      MAX_DEPTH: 10
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 10
+          fetch-depth: ${{ jobs.build.env.MAX_DEPTH }}
 
       - name: install elan
         run: |
@@ -42,8 +45,6 @@ jobs:
       - name: try to find olean cache
         run: |
           ./scripts/fetch_olean_cache.sh
-        env:
-          git_sha: "${{ github.sha }}"
 
       - name: leanpkg build
         id: build

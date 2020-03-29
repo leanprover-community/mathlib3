@@ -66,7 +66,7 @@ end
 
 instance : has_mul pgame := ⟨mul⟩
 
-/-- Because the two halves of the definition of inv produce more elements
+/-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive inv_ty (l r : Type u) : bool → Type u
@@ -76,9 +76,9 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
-/-- Because the two halves of the definition of inv produce more elements
-  of each side, we have to define the two families inductively.
-  This is the function part, defined by recursion on `inv_ty`. -/
+/-- Because the two halves of the definition of `inv` produce more elements
+of each side, we have to define the two families inductively.
+This is the function part, defined by recursion on `inv_ty`. -/
 def inv_val {l r} (L : l → pgame) (R : r → pgame)
   (IHl : l → pgame) (IHr : r → pgame) : ∀ {b}, inv_ty l r b → pgame
 | _ inv_ty.zero := 0
@@ -88,11 +88,11 @@ def inv_val {l r} (L : l → pgame) (R : r → pgame)
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
 
 /-- The inverse of a positive surreal number `x = {L | R}` is
-  given by `x⁻¹ = {0,
-    (1 + (R - x) * x⁻¹L) * R, (1 + (L - x) * x⁻¹R) * L |
-    (1 + (L - x) * x⁻¹L) * L, (1 + (R - x) * x⁻¹R) * R}`.
-  Because the two halves `x⁻¹L, x⁻¹R` of `x⁻¹` are used in their own
-  definition, the sets and elements are inductively generated. -/
+given by `x⁻¹ = {0,
+  (1 + (R - x) * x⁻¹L) * R, (1 + (L - x) * x⁻¹R) * L |
+  (1 + (L - x) * x⁻¹L) * L, (1 + (R - x) * x⁻¹R) * R}`.
+Because the two halves `x⁻¹L, x⁻¹R` of `x⁻¹` are used in their own
+definition, the sets and elements are inductively generated. -/
 def inv' : pgame → pgame
 | ⟨l, r, L, R⟩ :=
   let l' := {i // 0 < L i},
@@ -103,7 +103,7 @@ def inv' : pgame → pgame
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
 /-- The inverse of a surreal number in terms of the inverse on
-  positive surreals. -/
+positive surreals. -/
 noncomputable def inv (x : pgame) : pgame :=
 by classical; exact
 if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
@@ -111,8 +111,7 @@ if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-/-- A pre-game is numeric if
-  everything in the L set is less than everything in the R set,
+/-- A pre-game is numeric if everything in the L set is less than everything in the R set,
   and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=

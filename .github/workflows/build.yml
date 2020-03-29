@@ -37,11 +37,11 @@ jobs:
       - name: install Python dependencies
         run: python -m pip install --upgrade pip requests
 
-      - name: try to find olean cache
-        run: |
-          ./scripts/fetch_olean_cache.sh
-        env:
-          git_sha: "${{ github.sha }}"
+      # - name: try to find olean cache
+      #   run: |
+      #     ./scripts/fetch_olean_cache.sh
+      #   env:
+      #     git_sha: "${{ github.sha }}"
 
       - name: leanpkg build
         id: build

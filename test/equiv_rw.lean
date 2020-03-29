@@ -202,21 +202,6 @@ begin
   exact t.2,
 end
 
-/-- Transport through trivial families is the identity. -/
--- TODO find a home in mathlib!
-@[simp]
-lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*}
-  (y : β) (h : a = a') :
-  (@eq.rec α a (λ a, β) y a' h) = y :=
-begin
-  cases h,
-  refl,
-end
-
--- TODO move to data/equiv/basic
-@[simp]
-lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
-
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
 -- (which isn't yet in this PR, so we only define the fields without assembling them)
 -- Observe that the next three declarations could easily be implemented by a tactic.

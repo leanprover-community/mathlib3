@@ -198,7 +198,7 @@ do
   set_goals initial_goals,
   -- Finally, we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
-  simplify_term g ff
+  instantiate_mvars g >>= (λ g, prod.fst <$> g.simp {fail_if_unchanged := ff})
 
 /--
 Attempt to replace the hypothesis with name `x`

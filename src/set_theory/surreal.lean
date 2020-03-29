@@ -102,8 +102,7 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
-/-- The inverse of a surreal number in terms of the inverse on
-positive surreals. -/
+/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
 noncomputable def inv (x : pgame) : pgame :=
 by classical; exact
 if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
@@ -112,7 +111,7 @@ noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
 /-- A pre-game is numeric if everything in the L set is less than everything in the R set,
-  and all the elements of L and R are also numeric. -/
+and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
@@ -271,8 +270,8 @@ instance surreal.setoid : setoid {x // pgame.numeric x} :=
  λ x y z, pgame.equiv_trans⟩
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
-  by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
-  the order becomes a total order. -/
+by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
+the order becomes a total order. -/
 def surreal := quotient surreal.setoid
 
 namespace surreal
@@ -327,6 +326,8 @@ instance : linear_order surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   ..surreal.partial_order }
 
+/-- Addition on surreals is inherited from pre-game addition:
+the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : surreal → surreal → surreal :=
 surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)

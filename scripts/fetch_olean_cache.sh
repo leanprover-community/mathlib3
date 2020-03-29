@@ -9,7 +9,7 @@ else
   # MAX_DEPTH is set in .github/workflows/build.yml
   for new_git_sha in $(git log -$MAX_DEPTH --first-parent --pretty=format:%H)
   do
-    if curl -fI "$archive_url$new_git_sha.tar.gz" ; then
+    if curl -sfI "$archive_url$new_git_sha.tar.gz" ; then
       echo "found ancestor Git sha: $new_git_sha"
       break
     fi

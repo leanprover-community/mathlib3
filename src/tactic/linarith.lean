@@ -893,6 +893,6 @@ add_tactic_doc
 { name       := "linarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.linarith],
-  tags       := ["arithmetic", "decision procedure"] }
+  tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

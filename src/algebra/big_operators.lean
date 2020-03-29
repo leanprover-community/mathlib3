@@ -720,13 +720,13 @@ open_locale classical
   the product of `g` over the complement of `t`  -/
 lemma prod_add (f g : α → β) (s : finset α) :
   s.prod (λ a, f a + g a) =
-  s.powerset.sum (λ t : finset α, t.prod f * (s.filter (∉ t)).prod g) :=
+  s.powerset.sum (λ t : finset α, t.prod f * (s \ t).prod g) :=
 calc s.prod (λ a, f a + g a)
     = s.prod (λ a, ({false, true} : finset Prop).sum
       (λ p : Prop, if p then f a else g a)) : by simp
 ... = (s.pi (λ _, {false, true})).sum (λ p : Π a ∈ s, Prop,
       s.attach.prod (λ a : {a // a ∈ s}, if p a.1 a.2 then f a.1 else g a.1)) : prod_sum
-... = s.powerset.sum (λ (t : finset α), t.prod f * (s.filter (∉ t)).prod g) : begin
+... = s.powerset.sum (λ (t : finset α), t.prod f * (s \ t).prod g) : begin
   refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
   { simp [subset_iff]; tauto },
   { intros t ht,
@@ -735,7 +735,7 @@ calc s.prod (λ a, f a + g a)
       (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
          _ _ _
         (λ b hb, ⟨b, by cases b; finish⟩))
-      (prod_bij (λ (a : α) (ha : a ∈ s.filter (∉ t)), ⟨a, by simp * at *⟩)
+      (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
         _ _ _
         (λ b hb, ⟨b, by cases b; finish⟩));
     intros; simp * at *; simp * at * },
@@ -754,7 +754,7 @@ lemma sum_pow_mul_eq_add_pow
 begin
   rw [← prod_const, prod_add],
   refine finset.sum_congr rfl (λ t ht, _),
-  rw [prod_const, prod_const, card_sub_card (mem_powerset.1 ht)]
+  rw [prod_const, prod_const, ← card_sdiff (mem_powerset.1 ht)]
 end
 
 lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :

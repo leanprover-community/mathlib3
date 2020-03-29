@@ -150,7 +150,7 @@ begin
     apply finset.sum_congr rfl,
     simp [t, finset.mem_powerset_len] {contextual := tt} },
   rw [← this, finset.sum_bind D, add_pow],
-  simp only [S, finset.card_fin, finset.sum_const, finset.card_powerset_len],
+  simp only [S, finset.sum_const, finset.card_powerset_len],
   apply finset.sum_congr rfl (λ i hi, _),
   rw [add_monoid.smul_eq_mul, finset.card_univ],
   ring

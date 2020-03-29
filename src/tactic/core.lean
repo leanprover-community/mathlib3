@@ -81,22 +81,14 @@ meta def get_state : interaction_monad σ σ :=
 meta def set_state (state : σ) : interaction_monad σ unit :=
 λ _, success () state
 
-/-- `under_state` applies `tac` to the given state and returns the result. If `tac` fails, then
-`under_state` does too. -/
+/--
+`run_with_state` applies `tac` to the given state and returns the result.
+If `tac` fails, then `run_with_state` does too. -/
 meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
 λ s, match tac state with
      | success val _      := success val s
      | exception fn pos _ := exception fn pos s
      end
-
-/-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it updates the current state. -/
-meta def get_result (tac : interaction_monad σ α)
-  : interaction_monad σ (interaction_monad.result σ α) :=
-λ s₁, match tac s₁ with
-      | r@(success _ s₂)     := success r s₂
-      | r@(exception _ _ s₂) := success r s₂
-      end
 
 end interaction_monad
 

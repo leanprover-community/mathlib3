@@ -2390,6 +2390,14 @@ by simpa only [disjoint.comm] using disjoint_bind_left t f s
   card (s ∪ t) = card s + card t :=
 by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
 
+lemma card_sub_card {s t : finset α} (hst : t ⊆ s) :
+  card s - card t = (s.filter (∉ t)).card :=
+begin
+  rw [nat.sub_eq_iff_eq_add (card_le_of_subset hst), ← card_disjoint_union],
+  exact congr_arg card (finset.ext.2 $ λ _, by split; finish [subset_iff]),
+  finish [disjoint_left]
+end
+
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]

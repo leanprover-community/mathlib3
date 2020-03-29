@@ -60,10 +60,13 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 Configuration options for `solve_by_elim`.
 
 * `accept : list expr → tactic unit` determines whether the current branch should be explored.
-   It is passed the original metavariables reported by `get_goals` when `solve_by_elim` started,
-   as a `list expr` argument
-   (these metavariables may by now have been partially solved by previous `apply` steps),
-   and if the `accept` tactic fails `solve_by_elim` aborts searching this branch and backtracks.
+   At each step, before the lemmas are applied,
+   `accept` is passed the proof terms for the original goals,
+   as reported by `get_goals` when `solve_by_elim` started.
+   These proof terms may be metavariables (if no progress has been made on that goal)
+   or may contain metavariables at some leaf nodes
+   (if the goal has been partially solved by previous `apply` steps).
+   If the `accept` tactic fails `solve_by_elim` aborts searching this branch and backtracks.
    By default `accept := λ _, skip` always succeeds.
    (There is an example usage in `tests/solve_by_elim.lean`.)
 * `pre_apply : tactic unit` specifies an additional tactic to run before each round of `apply`.
@@ -180,7 +183,7 @@ add_tactic_doc
 { name        := "apply_assumption",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.apply_assumption],
-  tags        := [] }
+  tags        := ["context management", "lemma application"] }
 
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
@@ -208,8 +211,9 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 - max_steps: number of attempts at discharging generated sub-goals
 - discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
 - pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
-- accept: a subsidiary tactic `list expr → tactic unit` that at each step is passed
-    the metavariables reported by `get_goals` when `solve_by_elim` started
+- accept: a subsidiary tactic `list expr → tactic unit` that at each step,
+    before any lemmas are applied, is passed the original proof terms
+    as reported by `get_goals` when `solve_by_elim` started
     (but which may by now have been partially solved by previous `apply` steps).
     If the `accept` tactic fails,
     `solve_by_elim` will abort searching the current branch and backtrack.

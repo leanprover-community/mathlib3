@@ -106,7 +106,7 @@ add_tactic_doc
 { name                     := "tidy",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.tidy],
-  tags                     := ["search", "Try this"] }
+  tags                     := ["search", "Try this", "finishing"] }
 
 /-- Invoking the hole command `tidy` ("Use `tidy` to complete the goal") runs the tactic of
 the same name, replacing the hole with the tactic script `tidy` produces.

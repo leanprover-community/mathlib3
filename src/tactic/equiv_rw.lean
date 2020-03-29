@@ -204,7 +204,7 @@ do
 Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
-meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg) : tactic unit :=
+meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=
 do
   x' ← get_local x,
   x_ty ← infer_type x',
@@ -229,7 +229,7 @@ do
   skip
 
 /-- Rewrite the goal using an equiv `e`. -/
-meta def equiv_rw_target (e : expr) (cfg : equiv_rw_cfg) : tactic unit :=
+meta def equiv_rw_target (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=
 do
   t ← target,
   e ← equiv_rw_type e t cfg,

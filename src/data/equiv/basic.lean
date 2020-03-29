@@ -236,8 +236,8 @@ def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, simp, },
-  right_inv := λ f, funext $ λ x, by { dsimp, simp, } }
+  left_inv := λ f, funext $ λ x, by { dsimp, simp },
+  right_inv := λ f, funext $ λ x, by { dsimp, simp } }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :
@@ -320,7 +320,7 @@ calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.re
 
 end
 
-@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ :β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨λp, (e₁ p.1, e₂ p.2), λp, (e₁.symm p.1, e₂.symm p.2),
    λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [symm_apply_apply, symm_apply_apply],
    λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_symm_apply, apply_symm_apply]⟩
@@ -898,7 +898,7 @@ rfl
 if_pos rfl
 
 @[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
-by { by_cases b = a; simp [swap_apply_def, *] }
+by { by_cases h : b = a; simp [swap_apply_def, h], }
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}

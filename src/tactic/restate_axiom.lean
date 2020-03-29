@@ -84,4 +84,4 @@ add_tactic_doc
 { name                     := "restate_axiom",
   category                 := doc_category.cmd,
   decl_names               := [`restate_axiom_cmd],
-  tags                     := [] }
+  tags                     := ["renaming", "environment"] }

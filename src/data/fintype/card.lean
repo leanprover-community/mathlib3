@@ -124,37 +124,7 @@ lemma fintype.sum_pow_mul_eq_add_pow
   (α : Type*) [fintype α] {R : Type*} [comm_semiring R] (a b : R) :
   finset.univ.sum (λ (s : finset α), a ^ s.card * b ^ (fintype.card α - s.card)) =
   (a + b) ^ (fintype.card α) :=
-begin
-  classical,
-  let u := finset.range (fintype.card α).succ,
-  let t : ℕ → finset (finset α) := λ k, finset.powerset_len k (finset.univ : finset α),
-  have : u.bind t = finset.univ,
-  { ext s,
-    refine ⟨λ hs, finset.mem_univ _, λ hs, _⟩,
-    rw finset.mem_bind,
-    use s.card,
-    simp only [mem_powerset_len, subset_univ, and_true, mem_range, eq_self_iff_true],
-    have : s.card ≤ (finset.univ : finset α).card :=
-      finset.card_le_of_subset (finset.subset_univ _),
-    rw finset.card_univ at this,
-    exact lt_of_le_of_lt this (lt_add_one _) },
-  have D : ∀ (i : ℕ), i ∈ u → ∀ (j : ℕ), j ∈ u → i ≠ j → disjoint (t i) (t j),
-  { assume i hi j hj hij,
-    apply finset.disjoint_iff_ne.2 (λ a ha b hb, _),
-    contrapose! hij,
-    simp only [mem_powerset_len, subset_univ, true_and, hij] at ha hb,
-    rw [← ha, ← hb] },
-  have S : ∀ k, finset.sum (t k) (λ (s : finset α), a ^ s.card * b ^ (fintype.card α - s.card))
-    = finset.sum (t k) (λ (s : finset α), a ^ k * b ^ (fintype.card α - k)),
-  { assume k,
-    apply finset.sum_congr rfl,
-    simp [t, finset.mem_powerset_len] {contextual := tt} },
-  rw [← this, finset.sum_bind D, add_pow],
-  simp only [S, finset.sum_const, finset.card_powerset_len],
-  apply finset.sum_congr rfl (λ i hi, _),
-  rw [add_monoid.smul_eq_mul, finset.card_univ],
-  ring
-end
+finset.sum_pow_mul_eq_add_pow _ _ _
 
 lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
   finset.univ.sum (λ (s : finset (fin n)), a ^ s.card * b ^ (n - s.card)) =

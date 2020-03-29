@@ -32,6 +32,7 @@ for `n : ℕ`.
 * `p.le_radius_of_bound`, `p.bound_of_lt_radius`, `p.geometric_bound_of_lt_radius`: relating the
   value of the radius with the growth of `∥p n∥ * r^n`.
 * `p.partial_sum n x`: the sum `∑_{i = 0}^{n-1} pᵢ xⁱ`.
+* `p.sum x`: the sum `∑_{i = 0}^{∞} pᵢ xⁱ`.
 
 Additionally, let `f` be a function from `E` to `F`.
 
@@ -176,7 +177,7 @@ by simp [formal_multilinear_series.radius, nnnorm_neg]
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
 priori, it only behaves well when `∥x∥ < p.radius`. -/
-def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F :=
+protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F :=
 tsum (λn:ℕ, p n (λ(i : fin n), x))
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum

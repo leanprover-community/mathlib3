@@ -116,3 +116,20 @@ begin
     ext a ha,
     exact (congr_fun hfg a : _) }
 end
+
+@[to_additive] lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
+  {δ : α → Type u_1} [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
+  (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β):
+  (univ.pi t).prod f = (fintype.pi_finset t).prod (λ x, f (λ a _, x a)) :=
+prod_bij (λ x _ a, x a (mem_univ _))
+  (by simp)
+  (by simp)
+  (by simp [function.funext_iff] {contextual := tt})
+  (λ x hx, ⟨λ a _, x a, by simp * at *⟩)
+
+lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ : α → Type u_1}
+  [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
+  {f : Π (a : α), δ a → β} :
+  univ.prod (λ a, (t a).sum (λ b, f a b)) =
+  (fintype.pi_finset t).sum (λ p, univ.prod (λ x, f x (p x))) :=
+by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]

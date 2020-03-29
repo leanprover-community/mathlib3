@@ -2292,7 +2292,7 @@ begin
     have : f j = mono_of_fin s h j,
       by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
     rw ← this at hj,
-    exact false.elim (ne_of_lt (hmono ji) hj) },
+    exact (ne_of_lt (hmono ji) hj).elim },
   { exact H },
   { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
     rcases hbij.surj_on A with ⟨j, _, hj⟩,

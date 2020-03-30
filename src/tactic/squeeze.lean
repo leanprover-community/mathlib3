@@ -80,13 +80,18 @@ run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 /-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
 the suggestions emitted through `mk_suggestion` will be aggregated so that
 every tactic that makes a suggestion can consider multiple execution of the
-same invocation. -/
-meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type) : tactic unit :=
+same invocation.
+If `at_pos` is true, make the suggestion at `p` instead of the current position. -/
+meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type)
+  (at_pos := ff) : tactic unit :=
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
    | none := do
      args ← to_line_wrap_format <$> args.mmap pp,
-     @scope_trace _ p.line p.column $ λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
+     if at_pos then
+       @scope_trace _ p.line p.column $ λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
+     else
+       trace sformat!"{pre}{args}{post}"
    | some xs := do
      squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
    end
@@ -205,7 +210,7 @@ do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
      m.to_list.reverse.mmap' $ λ ⟨p,suggs⟩, do
        { let ⟨pre,_,post⟩ := suggs.head,
          let suggs : list (list simp_arg_type) := suggs.map $ prod.fst ∘ prod.snd,
-         mk_suggestion p pre post (suggs.foldl list.union []), pure () }
+         mk_suggestion p pre post (suggs.foldl list.union []) tt, pure () }
 
 /--
 `squeeze_simp` and `squeeze_simpa` perform the same task with

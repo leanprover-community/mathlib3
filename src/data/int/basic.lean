@@ -1259,10 +1259,10 @@ namespace ring_hom
 variables {α : Type*} {β : Type*} {rα : ring α} {rβ : ring β}
 include rα
 
-lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
+@[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
 int.eq_cast f f.map_one f.map_add n
 
-@[simp] lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
+lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
 ring_hom.ext $ int.eq_cast f f.map_one f.map_add
 
 include rβ

@@ -1125,7 +1125,7 @@ begin
       support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
       multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
     refl,
-    refine disjoint_mono support_single_subset (subset.refl _) _,
+    refine disjoint.mono_left support_single_subset _,
     rwa [finset.singleton_eq_singleton, finset.singleton_disjoint] }
 end
 

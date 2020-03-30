@@ -50,10 +50,10 @@ lemma sub_div (a b c : α) : (a - b) / c = a / c - b / c :=
 (div_sub_div_same _ _ _).symm
 
 lemma division_ring.inv_inj : a⁻¹ = b⁻¹ ↔ a = b :=
-⟨λ h, by rw [← gwz.inv_inv a, h, gwz.inv_inv], congr_arg (λx,x⁻¹)⟩
+inv_inj'' _ _
 
 lemma division_ring.inv_eq_iff  : a⁻¹ = b ↔ b⁻¹ = a :=
-by rw [← division_ring.inv_inj, eq_comm, gwz.inv_inv]
+inv_eq_iff
 
 lemma div_neg (a : α) : a / -b = -(a / b) :=
 by rw [← div_neg_eq_neg_div]

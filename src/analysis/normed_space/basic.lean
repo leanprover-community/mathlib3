@@ -271,7 +271,7 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf :
   antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
-  rw [nnreal.coe_inv, ← div_eq_inv_mul],
+  rw [nnreal.coe_inv, ← div_eq_inv_mul'],
   apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
   rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
@@ -588,7 +588,7 @@ begin
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
     show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
     { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
-      rw [inv_div, div_eq_inv_mul, mul_comm] },
+      rw [inv_div, div_eq_inv_mul', mul_comm] },
     show (0 : ℝ) ≤ 2, by norm_num
   end
   ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
@@ -729,16 +729,16 @@ begin
   show (c ^ (n + 1))⁻¹  ≠ 0,
     by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
   show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul', div_le_iff cnpos, mul_comm, norm_fpow],
     exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
         fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
-        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+        one_mul, ← div_eq_inv_mul', le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul'],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 

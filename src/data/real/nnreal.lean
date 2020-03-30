@@ -365,7 +365,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-gwz.mul_ne_zero h₁ h₂
+mul_ne_zero'' h₁ h₂
 
 end mul
 
@@ -453,7 +453,7 @@ mul_pos hr (inv_pos.2 hp)
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
 protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
-nnreal.eq $ by { push_cast, exact (gwz.inv_pow _ _).symm }
+nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
 
 @[simp] lemma inv_mul_cancel {r : ℝ≥0} (h : r ≠ 0) : r⁻¹ * r = 1 :=
 nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
@@ -573,11 +573,7 @@ by { rw ← nnreal.eq_iff, simp [div_div_eq_div_mul] }
 
 @[field_simps] lemma div_eq_div_iff {a b c d : ℝ≥0} (hb : b ≠ 0) (hd : d ≠ 0) :
   a / b = c / d ↔ a * d = c * b :=
-begin
-  rw [← nnreal.eq_iff, ← nnreal.eq_iff],
-  simp only [nnreal.coe_div, nnreal.coe_mul],
-  exact div_eq_div_iff (coe_ne_zero.2 hb) (coe_ne_zero.2 hd)
-end
+div_eq_div_iff hb hd
 
 @[field_simps] lemma div_eq_iff {a b c : ℝ≥0} (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
 by simpa using @div_eq_div_iff a b c 1 hb one_ne_zero

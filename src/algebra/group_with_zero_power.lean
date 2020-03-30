@@ -15,45 +15,45 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-@[simp] lemma gwz.zero_pow {M : Type*} [monoid_with_zero M] :
+@[simp] lemma zero_pow' {M : Type*} [monoid_with_zero M] :
   ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
 
-namespace gwz
+section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 
 section nat_pow
 
-@[simp, field_simps] theorem inv_pow (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; [exact inv_one.symm,
-  rw [pow_succ', pow_succ, ih, mul_inv_rev]]
+@[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
+by induction n with n ih; [exact inv_one'.symm,
+  rw [pow_succ', pow_succ, ih, mul_inv_rev']]
 
-theorem pow_eq_zero {g : G₀} {n : ℕ} (H : g ^ n = 0) : g = 0 :=
+theorem pow_eq_zero' {g : G₀} {n : ℕ} (H : g ^ n = 0) : g = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
     rw [← mul_one g, H, mul_zero] },
-  exact or.cases_on (mul_eq_zero _ _ H) id ih
+  exact or.cases_on (mul_eq_zero' _ _ H) id ih
 end
 
-@[field_simps] theorem pow_ne_zero {g : G₀} (n : ℕ) (h : g ≠ 0) : g ^ n ≠ 0 :=
-mt pow_eq_zero h
+@[field_simps] theorem pow_ne_zero' {g : G₀} (n : ℕ) (h : g ≠ 0) : g ^ n ≠ 0 :=
+mt pow_eq_zero' h
 
-theorem pow_sub (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
+theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq (pow_ne_zero _ ha) h2
+eq_mul_inv_of_mul_eq' (pow_ne_zero' _ ha) h2
 
-theorem pow_inv_comm (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
-by rw inv_pow; exact inv_comm_of_comm (pow_mul_comm _ _ _)
+theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
+by rw inv_pow'; exact inv_comm_of_comm' (pow_mul_comm _ _ _)
 
 end nat_pow
 
-end gwz
+end group_with_zero
 
 section int_pow
-open gwz int
+open int
 variables {G₀ : Type*} [group_with_zero G₀]
 
 /--
@@ -81,22 +81,22 @@ local attribute [ematch] le_of_lt
 
 @[simp] theorem one_fpow : ∀ (n : ℤ), (1 : G₀) ^ n = 1
 | (n : ℕ) := one_pow _
-| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, gwz.inv_one]
+| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, inv_one']
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
-| (of_nat n) h := gwz.zero_pow _ $ by rintro rfl; exact h rfl
+| (of_nat n) h := zero_pow' _ $ by rintro rfl; exact h rfl
 | -[1+n]     h := show (0*0 ^ n)⁻¹ = (0 : G₀), by simp
 
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
-| 0       := gwz.inv_one.symm
-| -[1+ n] := (gwz.inv_inv _).symm
+| 0       := inv_one'.symm
+| -[1+ n] := (inv_inv'' _).symm
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
 
 theorem inv_fpow (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
-| (n : ℕ) := inv_pow a n
-| -[1+ n] := congr_arg has_inv.inv $ inv_pow a (n+1)
+| (n : ℕ) := inv_pow' a n
+| -[1+ n] := congr_arg has_inv.inv $ inv_pow' a (n+1)
 
 private lemma fpow_add_aux (a : G₀) (h : a ≠ 0) (m n : nat) :
   a ^ ((of_nat m) + -[1+n]) = a ^ of_nat m * a ^ -[1+n] :=
@@ -106,21 +106,21 @@ or.elim (nat.lt_or_ge m (nat.succ n))
   suffices a ^ -[1+ n-m] = a ^ of_nat m * a ^ -[1+n],
     by rwa [of_nat_add_neg_succ_of_nat_of_lt h1],
   show (a ^ nat.succ (n - m))⁻¹ = a ^ of_nat m * a ^ -[1+n],
-  by rw [← nat.succ_sub h2, pow_sub _ h (le_of_lt h1), gwz.mul_inv_rev, gwz.inv_inv]; refl)
+  by rw [← nat.succ_sub h2, pow_sub' _ h (le_of_lt h1), mul_inv_rev', inv_inv'']; refl)
  (assume : m ≥ n.succ,
   suffices a ^ (of_nat (m - n.succ)) = (a ^ (of_nat m)) * (a ^ -[1+ n]),
     by rw [of_nat_add_neg_succ_of_nat_of_ge]; assumption,
   suffices a ^ (m - n.succ) = a ^ m * (a ^ n.succ)⁻¹, from this,
-  by rw gwz.pow_sub; assumption)
+  by rw pow_sub'; assumption)
 
 theorem fpow_add {a : G₀} (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
 | (of_nat m) (of_nat n) := pow_add _ _ _
 | (of_nat m) -[1+n]     := fpow_add_aux _ h _ _
 | -[1+m]     (of_nat n) := by rw [add_comm, fpow_add_aux _ h,
-  fpow_neg_succ, fpow_of_nat, ← gwz.inv_pow, ← gwz.pow_inv_comm]
+  fpow_neg_succ, fpow_of_nat, ← inv_pow', ← pow_inv_comm']
 | -[1+m]     -[1+n]     :=
   suffices (a ^ (m + n.succ.succ))⁻¹ = (a ^ m.succ)⁻¹ * (a ^ n.succ)⁻¹, from this,
-  by rw [← nat.succ_add_eq_succ_add, add_comm, pow_add, gwz.mul_inv_rev]
+  by rw [← nat.succ_add_eq_succ_add, add_comm, pow_add, mul_inv_rev']
 
 theorem fpow_add_one (a : G₀) (h : a ≠ 0) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
 by rw [fpow_add h, fpow_one]
@@ -136,9 +136,9 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) -[1+ n] := (fpow_neg _ (m * n.succ)).trans $
   show (a ^ (m * n.succ))⁻¹ = _, by rw pow_mul; refl
 | -[1+ m] (n : ℕ) := (fpow_neg _ (m.succ * n)).trans $
-  show (a ^ (m.succ * n))⁻¹ = _, by rw [pow_mul, ← gwz.inv_pow]; refl
+  show (a ^ (m.succ * n))⁻¹ = _, by rw [pow_mul, ← inv_pow']; refl
 | -[1+ m] -[1+ n] := (pow_mul a m.succ n.succ).trans $
-  show _ = (_⁻¹ ^ _)⁻¹, by rw [gwz.inv_pow, gwz.inv_inv]
+  show _ = (_⁻¹ ^ _)⁻¹, by rw [inv_pow', inv_inv'']
 
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
@@ -159,8 +159,8 @@ lemma fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ (-[1+ n]) = (a ^ (n + 1))�
 | -[1+k] := by rw [fpow_neg_succ_of_nat, gpow_neg_succ, units.inv_eq_inv, unit_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
-| (of_nat n) := pow_ne_zero _ ha
-| -[1+n]     := inv_ne_zero $ pow_ne_zero _ ha
+| (of_nat n) := pow_ne_zero' _ ha
+| -[1+n]     := inv_ne_zero' $ pow_ne_zero' _ ha
 
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
@@ -170,7 +170,7 @@ lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) :
 | (int.of_nat n) := mul_pow a b n
 | -[1+n] :=
   by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
-      mul_pow, gwz.mul_inv]
+      mul_pow, mul_inv'']
 
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
@@ -182,16 +182,16 @@ theorem fpow_neg_mul_fpow_self (n : ℤ) {x : G₀} (h : x ≠ 0) :
   x ^ (-n) * x ^ n = 1 :=
 begin
   rw [fpow_neg],
-  exact gwz.inv_mul_cancel _ (fpow_ne_zero n h)
+  exact inv_mul_cancel' _ (fpow_ne_zero n h)
 end
 
 theorem one_div_pow {a : G₀} (n : ℕ) :
   (1 / a) ^ n = 1 / a ^ n :=
-by simp only [gwz.one_div, gwz.inv_pow]
+by simp only [one_div, inv_pow']
 
 theorem one_div_fpow {a : G₀} (n : ℤ) :
   (1 / a) ^ n = 1 / a ^ n :=
-by simp only [gwz.one_div, inv_fpow]
+by simp only [one_div, inv_fpow]
 
 end int_pow
 
@@ -200,13 +200,13 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
 
 @[simp] theorem div_pow (a b : G₀) (n : ℕ) :
   (a / b) ^ n = a ^ n / b ^ n :=
-by simp only [div_eq_mul_inv, mul_pow, gwz.inv_pow]
+by simp only [div_eq_mul_inv, mul_pow, inv_pow']
 
 @[simp] theorem div_fpow (a : G₀) {b : G₀} (n : ℤ) :
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_fpow, inv_fpow]
 
 lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b :=
-by rw [pow_two, mul_assoc, gwz.mul_div_cancel_left _ ha]
+by rw [pow_two, mul_assoc, mul_div_cancel_left' _ ha]
 
 end

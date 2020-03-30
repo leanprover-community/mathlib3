@@ -107,7 +107,7 @@ def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λm, p.bind $ λa
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λa, s.count a / s.card,
   have s.to_finset.sum (λa, (s.count a : ℝ) / s.card) = 1,
-    by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
+    by simp [div_eq_inv_mul', finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
   have s.to_finset.sum (λa, (s.count a : nnreal) / s.card) = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin

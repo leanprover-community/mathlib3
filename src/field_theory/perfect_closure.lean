@@ -152,7 +152,7 @@ instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : comm_ring (perfe
 
 instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : has_inv (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, x.2⁻¹)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw ← gwz.inv_pow; apply r.intro
+| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw ← inv_pow'; apply r.intro
 end)⟩
 
 theorem eq_iff' [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p]

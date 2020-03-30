@@ -147,7 +147,7 @@ begin
   have r_pos : 0 < r := lt_of_le_of_ne hr0 (ne.symm r_ne_zero),
   replace hk : m = k + n.succ := (nat.sub_eq_iff_eq_add hmn).1 hk,
   induction k with k ih generalizing m n,
-  { rw [hk, zero_add, mul_right_comm, gwz.inv_pow _ _, ← div_eq_mul_inv, mul_div_cancel],
+  { rw [hk, zero_add, mul_right_comm, inv_pow' _ _, ← div_eq_mul_inv, mul_div_cancel],
     exact (ne_of_lt (pow_pos r_pos _)).symm },
   { have kn : k + n.succ ≥ n.succ, by rw ← zero_add n.succ; exact add_le_add (zero_le _) (by simp),
     rw [hk, nat.succ_add, pow_succ' r, ← mul_assoc],
@@ -914,7 +914,7 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
   end
 ... = (nat.fact n)⁻¹ * (range (j - n)).sum (λ m, n.succ⁻¹ ^ m) :
-  by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, gwz.inv_pow]
+  by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
         (mt nat.succ_inj (nat.pos_iff_ne_zero.1 hn)),

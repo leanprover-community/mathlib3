@@ -1060,7 +1060,7 @@ begin
   have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
     by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  simp [div_eq_inv_mul, pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
+  simp [div_eq_inv_mul', pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
   ring
 end
 

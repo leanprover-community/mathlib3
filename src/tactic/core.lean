@@ -71,14 +71,28 @@ end expr
 namespace interaction_monad
 open result
 
-/-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it does not update the current state. -/
-meta def get_result {σ α} (tac : interaction_monad σ α) :
-  interaction_monad σ (interaction_monad.result σ α) | s :=
-match tac s with
-| r@(success _ s') := success r s'
-| r@(exception _ _ s') := success r s'
-end
+variables {σ : Type} {α : Type u}
+
+/-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.read` in core.
+meta def get_state : interaction_monad σ σ :=
+λ state, success state state
+
+/-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.write` in core.
+meta def set_state (state : σ) : interaction_monad σ unit :=
+λ _, success () state
+
+/--
+`run_with_state state tac` applies `tac` to the given state `state` and returns the result,
+subsequently restoring the original state.
+If `tac` fails, then `run_with_state` does too.
+-/
+meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+λ s, match tac state with
+     | success val _      := success val s
+     | exception fn pos _ := exception fn pos s
+     end
 
 end interaction_monad
 

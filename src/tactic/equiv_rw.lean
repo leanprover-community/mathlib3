@@ -11,9 +11,9 @@ import data.equiv.functor
 The basic syntax is `equiv_rw e`, where `e : α ≃ β` is an equivalence.
 This will try to replace occurrences of `α` in the goal with `β`, for example
 transforming
-* `⊢ α` with `⊢ β`,
-* `⊢ option α` with `⊢ option β`
-* `⊢ {a // P}` with `{b // P (⇑(equiv.symm e) b)}`
+* `⊢ α` to `⊢ β`,
+* `⊢ option α` to `⊢ option β`
+* `⊢ {a // P}` to `{b // P (⇑(equiv.symm e) b)}`
 
 The tactic can also be used to rewrite hypotheses, using the syntax `equiv_rw e at h`.
 

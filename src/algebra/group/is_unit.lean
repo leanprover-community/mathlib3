@@ -35,7 +35,7 @@ by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 
-@[to_additive is_add_unit_of_add_zero] theorem is_unit_of_mul_one [comm_monoid M]
+@[to_additive is_add_unit_of_add_eq_zero] theorem is_unit_of_mul_eq_one [comm_monoid M]
   (a b : M) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 

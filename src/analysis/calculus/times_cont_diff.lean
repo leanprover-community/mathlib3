@@ -1315,9 +1315,9 @@ begin
     have : f = e.symm ∘ (e ∘ f),
       by { ext y, simp only [function.comp_app], rw e.symm_apply_apply (f y) },
     rw this,
-    exact H.continuous_linear_map_comp (e.symm : G →L[𝕜] F) },
+    exact H.continuous_linear_map_comp _ },
   { assume H,
-    exact H.continuous_linear_map_comp (e : F →L[𝕜] G) }
+    exact H.continuous_linear_map_comp _ }
 end
 
 /-- If `f` admits a Taylor series `p` in a set `s`, and `g` is linear, then `f ∘ g` admits a Taylor
@@ -1374,13 +1374,13 @@ domains. -/
 lemma continuous_linear_equiv.times_cont_diff_on_comp_iff {n : with_top ℕ} (e : G ≃L[𝕜] E) :
   times_cont_diff_on 𝕜 n (f ∘ e) (e ⁻¹' s) ↔ times_cont_diff_on 𝕜 n f s :=
 begin
-  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map (e : G →L[𝕜] E)⟩,
+  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map _⟩,
   have A : f = (f ∘ e) ∘ e.symm,
     by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
   have B : e.symm ⁻¹' (e ⁻¹' s) = s,
     by { rw [← preimage_comp, e.self_comp_symm], refl },
   rw [A, ← B],
-  exact H.comp_continuous_linear_map (e.symm : E →L[𝕜] G)
+  exact H.comp_continuous_linear_map _
 end
 
 /-- If two functions `f` and `g` admit Taylor series `p` and `q` in a set `s`, then the cartesian

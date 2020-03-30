@@ -84,7 +84,7 @@ local attribute [reducible] Ring
 see Note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
-instance : has_coe_to_sort Ring := infer_instance -- short-circuit type class inference
+instance : has_coe_to_sort Ring := by apply_instance -- short-circuit type class inference
 
 instance (R : Ring) : ring R := R.str
 

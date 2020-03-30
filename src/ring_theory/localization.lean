@@ -388,7 +388,7 @@ lift'.is_ring_hom _ _ _
 
 noncomputable def away_to_away_right (x y : α) : away x → away (x * y) :=
 localization.away.lift coe $
-is_unit_of_mul_one x (y * away.inv_self (x * y)) $
+is_unit_of_mul_eq_one x (y * away.inv_self (x * y)) $
 by rw [away.inv_self, coe_mul_mk, coe_mul_mk, mul_one, mk_self]
 
 instance away_to_away_right.is_ring_hom (x y : α) :

@@ -46,7 +46,7 @@ TODO: Probably @[derive] should be able to create instances of the
 required form (without `id`), and then we could use that instead of
 this obscure `local attribute [reducible]` method.
 
-See also Note [reducible has_coe_to_sort instances for bundled categories],
+See also note [reducible has_coe_to_sort instances for bundled categories],
 explaining why the `has_coe_to_sort` instances themselves must be `[reducible]`.
 -/
 library_note "locally reducible category instances"
@@ -75,7 +75,7 @@ local attribute [reducible] Mon
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible, to_additive]
 instance : has_coe_to_sort Mon := infer_instance -- short-circuit type class inference
@@ -112,7 +112,7 @@ local attribute [reducible] CommMon
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible, to_additive]
 instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class inference

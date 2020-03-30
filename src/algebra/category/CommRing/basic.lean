@@ -45,7 +45,7 @@ local attribute [reducible] SemiRing
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
 instance : has_coe_to_sort SemiRing := infer_instance -- short-circuit type class inference
@@ -81,7 +81,7 @@ local attribute [reducible] Ring
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
 instance : has_coe_to_sort Ring := infer_instance -- short-circuit type class inference
@@ -113,7 +113,7 @@ local attribute [reducible] CommSemiRing
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
 instance : has_coe_to_sort CommSemiRing := infer_instance -- short-circuit type class inference
@@ -146,7 +146,7 @@ local attribute [reducible] CommRing
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
 instance : has_coe_to_sort CommRing := infer_instance -- short-circuit type class inference
@@ -167,7 +167,7 @@ end CommRing
 We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
 so that `simp` lemmas for morphisms work.
 
-See Note [reducible has_coe_to_sort instances for bundled categories].
+See note [reducible has_coe_to_sort instances for bundled categories].
 -/
 example {R S : CommRing} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 by simp [h]

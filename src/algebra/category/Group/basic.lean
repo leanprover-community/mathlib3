@@ -42,7 +42,7 @@ local attribute [reducible] Group
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible, to_additive]
 instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
@@ -95,7 +95,7 @@ local attribute [reducible] CommGroup
 
 /--
 `has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible, to_additive]
 instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
@@ -136,7 +136,7 @@ end CommGroup
 We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
 so that `simp` lemmas for morphisms work.
 
-See Note [reducible has_coe_to_sort instances for bundled categories].
+See note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[to_additive]
 example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 
 Bundled types.
 -/
+import tactic.doc_commands
 
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
@@ -36,12 +37,14 @@ In order for simp lemmas for bundled morphisms to apply correctly,
 it seems to be necessary for all the `has_coe_to_sort` instances for bundled categories
 to be marked `[reducible]`.
 
-Examples verifying correct behaviour are also marked with this Note [reducible has_coe_to_sort instances for bundled categories].
+Examples verifying correct behaviour are also marked with this
+note [reducible has_coe_to_sort instances for bundled categories].
 -/
-library_note "has_coe_to_sort reducible"
+library_note "reducible has_coe_to_sort instances for bundled categories"
 
 /--
-has_coe_to_sort instances for bundled categories must be reducible, see Note [reducible has_coe_to_sort instances for bundled categories].
+has_coe_to_sort instances for bundled categories must be reducible,
+see note [reducible has_coe_to_sort instances for bundled categories].
 -/
 @[reducible]
 instance : has_coe_to_sort (bundled c) :=

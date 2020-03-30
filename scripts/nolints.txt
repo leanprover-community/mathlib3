@@ -1827,8 +1827,6 @@ apply_nolint set.fintype_subset doc_blame
 -- data/set/lattice.lean
 apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
-apply_nolint set.kern_image doc_blame
-apply_nolint set.pairwise_disjoint doc_blame
 apply_nolint set.seq doc_blame
 apply_nolint set.sigma_to_Union doc_blame
 

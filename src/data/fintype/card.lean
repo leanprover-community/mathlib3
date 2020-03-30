@@ -133,18 +133,6 @@ lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ
   (fintype.pi_finset t).sum (λ p, univ.prod (λ x, f x (p x))) :=
 by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
 
-@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
-  {δ : α → Type*} [decidable_eq (Π a, δ a)] (t : Π a, finset (δ a)) :
-  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
-begin
-  dsimp [fintype.pi_finset],
-  rw card_image_of_injective,
-  { simp },
-  { assume f g hfg,
-    ext a ha,
-    exact (congr_fun hfg a : _) }
-end
-
 /-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
 gives `(a + b)^n`. The "good" proof involves expanding along all coordinates using the fact that
 `x^n` is multilinear, but multilinear maps are only available now over rings, so we give instead

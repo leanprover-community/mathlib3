@@ -56,6 +56,7 @@ with proving functoriality.
 
 noncomputable theory
 
+@[reducible]
 def Polynomial : CommRing → CommRing :=
 (λ R, CommRing.of (polynomial R))
 
@@ -68,12 +69,33 @@ def Polynomial : CommRing → CommRing :=
 @[simp]
 lemma refl_symm {α : Type*} : (equiv.refl α).symm = equiv.refl α := rfl
 
+@[simp]
+lemma polynomial.to_fun_as_coeff {α : Type*} [comm_semiring α] (p : polynomial α) (n : ℕ) :
+  p.to_fun n = polynomial.coeff p n :=
+begin
+  refl,
+end
+
+
+lemma coeff_one_zero {α : Type*} [comm_semiring α] : polynomial.coeff (1 : polynomial α) 0 = (1 : α) :=
+begin
+  simp,
+end
+
+@[simp]
+lemma zero_eq_succ_iff_false (n : ℕ) : 0 = n + 1 ↔ false := sorry
+
+lemma coeff_one_succ {α : Type*} [comm_semiring α] (n : ℕ) : polynomial.coeff (1 : polynomial α) (n+1) = (0 : α) :=
+begin
+  simp,
+end
+
+
 -- set_option pp.all true
 
 example {R S : CommRing.{u}} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 begin
   simp [h],
-  erw ring_hom.map_zero i, -- argh, why is erw required? why not just by simp?
 end
 
 
@@ -86,13 +108,10 @@ begin
   { intro h,
     replace h := congr_arg i.inv h,
     simpa using h, },
-  { intro h, simp [h], erw ring_hom.map_zero i.hom, } -- argh, why is erw required? why not by simp? -- probably related to the problem below
+  { intro h, simp [h] }
 end
 
-
-
-
-set_option pp.all true
+-- set_option pp.all true
 def iso_functorial.map.to_fun {R S : CommRing.{u}} (i : R ≅ S) : Polynomial R → Polynomial S :=
 begin
   intro X,
@@ -117,28 +136,54 @@ begin
   have mem_support_to_fun := finsupp.mem_support_to_fun X,
   dsimp,
   intros,
-  simp, dsimp, rw [eq_zero_iff], -- so close! this needs to work by simp.
+  simp, dsimp,
   simp at mem_support_to_fun,
   apply mem_support_to_fun,
-end
+end.
 
 -- Now we need to hope that all the algebraic axioms work out!
 
-def iso_functorial.map.map_one : sorry := sorry
-def iso_functorial.map.map_mul : sorry := sorry
+-- set_option pp.all true
+def iso_functorial.map.map_one {R S : CommRing.{u}} (i : R ≅ S) :
+  iso_functorial.map.to_fun i 1 = 1 :=
+begin
+  dsimp [iso_functorial.map.to_fun],
+  ext,
+  simp,
+  dsimp,
+  cases n, -- hmm, could be awkward
+  dsimp,
+  simp,
+  simp,
+end
+
+def iso_functorial.map.map_mul {R S : CommRing.{u}} (i : R ≅ S) (x y : Polynomial R) :
+  iso_functorial.map.to_fun i (x * y) =
+    iso_functorial.map.to_fun i x * iso_functorial.map.to_fun i y := sorry
 -- etc
 
 -- We can now put those facts together as
 
 def iso_functorial.map {R S : CommRing} (i : R ≅ S) : Polynomial R ⟶ Polynomial S :=
-sorry
+{ to_fun := iso_functorial.map.to_fun i,
+  map_one' := iso_functorial.map.map_one i,
+  map_mul' := iso_functorial.map.map_mul i,
+  map_zero' := sorry,
+  map_add' := sorry, }
 
 -- And then we need to prove `iso_functorial.map_id` and `iso_functorial.map_comp`,
 -- which should be consequences of the behaviour of `transport`.
 -- (Note that means "practical" rather than "logical" consequences, since `transport` is meta.)
 
 def iso_functorial.map_id (R : CommRing) : iso_functorial.map (iso.refl R) = 𝟙 (Polynomial R) :=
-sorry
+begin
+  ext,
+  simp,
+  dsimp [iso_functorial.map, iso_functorial.map.to_fun],
+  simp,
+  dsimp,
+  simp,
+end
 def iso_functorial.map_comp : sorry := sorry
 
 
@@ -147,6 +192,7 @@ def iso_functorial.map_comp : sorry := sorry
 -- We want to prove `is_local_ring` is "hygienic"
 #check and.imp
 
+set_option pp.proofs true
 theorem is_local_ring_hygienic (R S : CommRing) (i : R ≅ S) (h : is_local_ring R) : is_local_ring S :=
 begin
   tactic.whnf_target,

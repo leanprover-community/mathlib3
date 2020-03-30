@@ -113,6 +113,7 @@ do exprs ←
    `equiv.Pi_congr_left',
   -- Handles `sum` and `prod`, and many others:
   `bifunctor.map_equiv,
+  `and_congr, `or_congr, -- TODO a generic version of these?
   -- Handles `list`, `option`, and many others:
   `functor.map_equiv,
   `category_theory.map_iso,

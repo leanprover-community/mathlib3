@@ -58,12 +58,13 @@ variables {f : α → β}
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
 
-def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
+/-- `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s` -/
+def kern_image (f : α → β) (s : set α) : set β := {y | ∀ ⦃x⦄, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
 assume a b,
 ⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
-  assume h x (hx : f x ∈ a), h hx x rfl⟩
+  assume h x (hx : f x ∈ a), h hx rfl⟩
 
 end galois_connection
 
@@ -772,19 +773,19 @@ disjoint.comm.1
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
 @[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
 
-theorem disjoint_mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
+theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
 
-theorem disjoint_mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint_mono h (le_refl _)
+theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
+disjoint.mono h (le_refl _)
 
-theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint_mono (le_refl _) h
+theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
+disjoint.mono (le_refl _) h
 
 @[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
 by simp [disjoint]
 
-lemma ne_of_disjoint {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
+lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
 end disjoint
@@ -817,22 +818,24 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
+are disjoint.  -/
 def pairwise_disjoint (s : set (set α)) : Prop :=
 pairwise_on s disjoint
 
-lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
+lemma pairwise_disjoint.subset {s t : set (set α)} (h : s ⊆ t)
   (ht : pairwise_disjoint t) : pairwise_disjoint s :=
 pairwise_on.mono h ht
 
-lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
+lemma pairwise_disjoint.range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
   (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
 begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_mono (hf x) (hf y) (ht _ x.2 _ y.2 _),
+  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine (ht _ x.2 _ y.2 _).mono (hf x) (hf y),
   intro h, apply hxy, apply congr_arg f, exact subtype.eq h
 end
 
 /- warning: classical -/
-lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
+lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
 

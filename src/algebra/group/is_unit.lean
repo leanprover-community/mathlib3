@@ -42,7 +42,7 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 @[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
 ⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
- λ ⟨b, hab⟩, is_unit_of_mul_one _ b hab⟩
+ λ ⟨b, hab⟩, is_unit_of_mul_eq_one _ b hab⟩
 
 @[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=

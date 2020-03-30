@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 
-import data.fintype
-import algebra.big_operators
+import data.fintype algebra.big_operators data.nat.choose tactic.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -116,3 +115,18 @@ begin
     ext a ha,
     exact (congr_fun hfg a : _) }
 end
+
+/-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
+gives `(a + b)^n`. The "good" proof involves expanding along all coordinates using the fact that
+`x^n` is multilinear, but multilinear maps are only available now over rings, so we give instead
+a proof reducing to the usual binomial theorem to have a result over semirings. -/
+lemma fintype.sum_pow_mul_eq_add_pow
+  (α : Type*) [fintype α] {R : Type*} [comm_semiring R] (a b : R) :
+  finset.univ.sum (λ (s : finset α), a ^ s.card * b ^ (fintype.card α - s.card)) =
+  (a + b) ^ (fintype.card α) :=
+finset.sum_pow_mul_eq_add_pow _ _ _
+
+lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
+  finset.univ.sum (λ (s : finset (fin n)), a ^ s.card * b ^ (n - s.card)) =
+  (a + b) ^ n :=
+by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b

@@ -11,9 +11,9 @@ import data.equiv.functor
 The basic syntax is `equiv_rw e`, where `e : α ≃ β` is an equivalence.
 This will try to replace occurrences of `α` in the goal with `β`, for example
 transforming
-* `⊢ α` with `⊢ β`,
-* `⊢ option α` with `⊢ option β`
-* `⊢ {a // P}` with `{b // P (⇑(equiv.symm e) b)}`
+* `⊢ α` to `⊢ β`,
+* `⊢ option α` to `⊢ option β`
+* `⊢ {a // P}` to `{b // P (⇑(equiv.symm e) b)}`
 
 The tactic can also be used to rewrite hypotheses, using the syntax `equiv_rw e at h`.
 
@@ -62,7 +62,7 @@ An ambitious project might be to add `equiv_rw!`,
 a tactic which, when failing to find appropriate `equiv_functor` instances,
 attempts to `derive` them on the spot.
 
-For now `equiv_rw` is entirely based on `equiv` in `Type`,
+For now `equiv_rw` is entirely based on `equiv`,
 but the framework can readily be generalised to also work with other types of equivalences,
 for example specific notations such as ring equivalence (`≃+*`),
 or general categorical isomorphisms (`≅`).
@@ -128,13 +128,13 @@ declare_trace equiv_rw_type
 /--
 Configuration structure for `equiv_rw`.
 
-* `max_steps` bounds the search depth for equivalences to rewrite along.
+* `max_depth` bounds the search depth for equivalences to rewrite along.
   The default value is 10.
-  (e.g., if you're rewriting along `e : α ≃ β`, and `max_steps := 2`,
+  (e.g., if you're rewriting along `e : α ≃ β`, and `max_depth := 2`,
   you can rewrite `option (option α))` but not `option (option (option α))`.
 -/
 meta structure equiv_rw_cfg :=
-(max_steps : ℕ := 10)
+(max_depth : ℕ := 10)
 
 /--
 Implementation of `equiv_rw_type`, using `solve_by_elim`.
@@ -151,58 +151,43 @@ do
     * We make sure that `eq` is the first lemma, so it is applied whenever possible.
     * In `equiv_congr_lemmas`, we put `equiv.refl` last so it is only used when it is not possible
       to descend further.
-    * To avoid the possibility that the entire resulting expression is built out of
-      congruence lemmas and `equiv.refl`, we use the `accept` subtactic of `solve_by_elim`
-      to reject any results which neither contain `eq` or a remaining metavariable.
     * Since some congruence lemmas generate subgoals with `∀` statements,
       we use the `pre_apply` subtactic of `solve_by_elim` to preprocess each new goal with `intros`.
   -/
-  solve_by_elim {
-    use_symmetry := false,
+  solve_by_elim
+  { use_symmetry := false,
     use_exfalso := false,
     lemmas := some ((eq :: equiv_congr_lemmas).map return),
-    max_steps := cfg.max_steps,
+    max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
     discharger := `[dsimp only [] with functoriality] <|>
-      trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
-    -- We accept any branch of the `solve_by_elim` search tree which
-    -- either still contains metavariables, or already contains at least one copy of `eq`.
-    -- This is to prevent generating equivalences built entirely out of `equiv.refl`.
-    accept := λ goals, lock_tactic_state (do
-      when_tracing `equiv_rw_type (do
-        goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
-      goals.any_of (λ g, guard $ g.contains_expr_or_mvar eq) <|>
-        (trace_if_enabled `equiv_rw_type format!"Rejected, result does not contain {eq}" >> failed),
-      done <|>
-      when_tracing `equiv_rw_type (do
-        gs ← get_goals,
-        gs ← gs.mmap (λ g, infer_type g >>= pp),
-        trace format!"Attempting to adapt to {gs}")) }
+      trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed }
 
 /--
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
 returning a new equivalence `t ≃ t'`.
 -/
-meta def equiv_rw_type (eq : expr) (ty : expr) (cfg : equiv_rw_cfg) : tactic expr :=
+meta def equiv_rw_type (eqv : expr) (ty : expr) (cfg : equiv_rw_cfg) : tactic expr :=
 do
   when_tracing `equiv_rw_type (do
     ty_pp ← pp ty,
-    eq_pp ← pp eq,
-    eq_ty_pp ← infer_type eq >>= pp,
-    trace format!"Attempting to rewrite the type `{ty_pp}` using `{eq_pp} : {eq_ty_pp}`."),
-  -- `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
+    eqv_pp ← pp eqv,
+    eqv_ty_pp ← infer_type eqv >>= pp,
+    trace format!"Attempting to rewrite the type `{ty_pp}` using `{eqv_pp} : {eqv_ty_pp}`."),
+  `(_ ≃ _) ← infer_type eqv | fail format!"{eqv} must be an `equiv`",
   -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
-  initial_goals ← get_goals,
-  g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
-  set_goals [g],
-  -- Now call `equiv_rw_type_core` to actually do the work, then restore the original goals.
-  equiv_rw_type_core eq cfg,
-  set_goals initial_goals,
-  -- Finally, we simplify the resulting equivalence,
+  equiv_ty ← to_expr ``(%%ty ≃ _),
+  -- Now call `equiv_rw_type_core`.
+  new_eqv ← prod.snd <$> (solve_aux equiv_ty $ equiv_rw_type_core eqv cfg),
+  -- Check that we actually used the equivalence `eq`
+  -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
+  new_eqv ← instantiate_mvars new_eqv,
+  guard (eqv.occurs new_eqv) <|> fail format!"Could not construct an equivalence from {eqv} of the form: {ty} ≃ _",
+  -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
-  instantiate_mvars g >>= (λ g, prod.fst <$> g.simp {fail_if_unchanged := ff})
+  prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
 
 /--
 Attempt to replace the hypothesis with name `x`
@@ -270,7 +255,7 @@ a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ option α` into `⊢ option β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
-`equiv_rw e {max_steps := n}`.
+`equiv_rw e {max_depth := n}`.
 -/
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) : itactic :=
 do e ← to_expr e,

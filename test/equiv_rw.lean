@@ -145,7 +145,7 @@ end
 
 example {α β γ : Type} (e : α ≃ β) (s : (α ⊕ γ) × β) : (β ⊕ γ) :=
 begin
-  success_if_fail { equiv_rw e at s {max_steps := 4} },
+  success_if_fail { equiv_rw e at s {max_depth := 4} },
   equiv_rw e at s,
   exact s.1,
 end
@@ -258,7 +258,7 @@ begin
     intros,
     apply e.symm.injective,
     unfold_projs,
-    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, to_fun_as_coe],
+    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     apply mul_assoc, },
@@ -267,7 +267,7 @@ begin
     have one_mul := S.one_mul,
     apply e.symm.injective,
     unfold_projs,
-    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, to_fun_as_coe],
+    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
     equiv_rw e at one_mul,
     apply one_mul, },
   { intros,

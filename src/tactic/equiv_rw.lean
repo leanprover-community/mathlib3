@@ -11,9 +11,9 @@ import data.equiv.functor
 The basic syntax is `equiv_rw e`, where `e : α ≃ β` is an equivalence.
 This will try to replace occurrences of `α` in the goal with `β`, for example
 transforming
-* `⊢ α` with `⊢ β`,
-* `⊢ option α` with `⊢ option β`
-* `⊢ {a // P}` with `{b // P (⇑(equiv.symm e) b)}`
+* `⊢ α` to `⊢ β`,
+* `⊢ option α` to `⊢ option β`
+* `⊢ {a // P}` to `{b // P (⇑(equiv.symm e) b)}`
 
 The tactic can also be used to rewrite hypotheses, using the syntax `equiv_rw e at h`.
 
@@ -62,7 +62,7 @@ An ambitious project might be to add `equiv_rw!`,
 a tactic which, when failing to find appropriate `equiv_functor` instances,
 attempts to `derive` them on the spot.
 
-For now `equiv_rw` is entirely based on `equiv` in `Type`,
+For now `equiv_rw` is entirely based on `equiv`,
 but the framework can readily be generalised to also work with other types of equivalences,
 for example specific notations such as ring equivalence (`≃+*`),
 or general categorical isomorphisms (`≅`).

@@ -109,6 +109,24 @@ begin
   solve_by_elim { backtrack_all_goals := true },
 end
 
+-- test that metavariables created for implicit arguments don't get stuck
+example (P : ℕ → Type) (f : Π {n : ℕ}, P n) : P 2 × P 3 :=
+begin
+  fsplit,
+  solve_by_elim* only [f],
+end
+
+example : 6 = 6 ∧ [7] = [7] :=
+begin
+  split,
+  solve_by_elim* only [@rfl _],
+end
+
+example (P Q R : Prop) : P ∧ Q → P ∧ Q :=
+begin
+  solve_by_elim [and.imp, id],
+end
+
 /-
 We now test the `accept` feature of `solve_by_elim`.
 
@@ -120,7 +138,7 @@ reported by `get_goals` when `solve_by_elim` was called
 and if it fails this branch of the search is ignored.
 
 Non-leaf nodes of the search tree will contain metavariables,
-so we can test using `expr.has_mvar` when we're only interesting in
+so we can test using `expr.has_meta_var` when we're only interesting in
 filtering complete solutions.
 
 In this example, we only accept solutions that contain

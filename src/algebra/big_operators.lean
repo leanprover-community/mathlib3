@@ -564,11 +564,11 @@ attribute [to_additive] prod_range_succ'
 
 lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
-(s.sum_hom _).symm
+(nat.cast_add_monoid_hom β).map_sum f s
 
 lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
   ↑(s.prod f) = s.prod (λa, f a : α → β) :=
-(s.prod_hom _).symm
+(nat.cast_ring_hom β).map_prod f s
 
 protected lemma sum_nat_coe_enat [decidable_eq α] (s : finset α) (f : α → ℕ) :
   s.sum (λ x, (f x : enat)) = (s.sum f : ℕ) :=

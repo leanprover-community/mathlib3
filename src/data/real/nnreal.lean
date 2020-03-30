@@ -108,7 +108,7 @@ eq.symm $ s.prod_hom coe
 is_add_monoid_hom.map_smul coe r n
 
 @[simp, squash_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-is_semiring_hom.map_nat_cast coe n
+(ring_hom.of (coe : ℝ≥0 → ℝ)).map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
 decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)

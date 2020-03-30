@@ -1300,7 +1300,7 @@ variable {α}
 instance C.is_ring_hom : is_ring_hom (@C α _) := by apply is_ring_hom.of_semiring
 
 lemma int_cast_eq_C (n : ℤ) : (n : polynomial α) = C n :=
-congr_fun (int.eq_cast' _).symm n
+((ring_hom.of C).map_int_cast n).symm
 
 @[simp] lemma C_neg : C (-a) = -C a := is_ring_hom.map_neg C
 

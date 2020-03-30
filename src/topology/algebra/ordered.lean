@@ -49,7 +49,8 @@ vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see th
 * `le_of_tendsto_of_tendsto` : if `f` converges to `a`, `g` converges to `b`, and eventually
   `f x ≤ g x`, then `a ≤ b`
 * `le_of_tendsto`, `ge_of_tendsto` : if `f` converges to `a` and eventually `f x ≤ b`
-  (resp., `b ≤ f x`), then `a ≤ b` (resp., `b ≤ a);
+  (resp., `b ≤ f x`), then `a ≤ b` (resp., `b ≤ a); we also provide primed versions
+  that assume the inequalities to hold for all `x`.
 
 ### Min, max, `Sup` and `Inf`
 
@@ -139,13 +140,26 @@ have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
 
+lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
+  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :
+  a₁ ≤ a₂ :=
+le_of_tendsto_of_tendsto hb hf hg (eventually_of_forall _ h)
+
 lemma le_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | c ≤ b} ∈ x) : a ≤ b :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, f c ≤ b) : a ≤ b :=
 le_of_tendsto_of_tendsto nt lim tendsto_const_nhds h
 
+lemma le_of_tendsto' {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, f c ≤ b) : a ≤ b :=
+le_of_tendsto nt lim (eventually_of_forall _ h)
+
 lemma ge_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | b ≤ c} ∈ x) : b ≤ a :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, b ≤ f c) : b ≤ a :=
 le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
+
+lemma ge_of_tendsto' {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, b ≤ f c) : b ≤ a :=
+ge_of_tendsto nt lim (eventually_of_forall _ h)
 
 @[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=

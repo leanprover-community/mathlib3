@@ -145,7 +145,7 @@ end
 
 example {α β γ : Type} (e : α ≃ β) (s : (α ⊕ γ) × β) : (β ⊕ γ) :=
 begin
-  success_if_fail { equiv_rw e at s {max_steps := 4} },
+  success_if_fail { equiv_rw e at s {max_depth := 4} },
   equiv_rw e at s,
   exact s.1,
 end

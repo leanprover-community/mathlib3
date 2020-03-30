@@ -423,18 +423,6 @@ meta def clear_value (e : expr) : tactic unit := do
     fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
   intron n
 
-/--
-`simplify_term e` tuns the term `e` through the simplifier with the basic simp set.
-
-The optional argument `fail_if_unchanged := tt` controls
-whether `simplify_term` should fail if the simplifier makes no progress.
--/
-meta def simplify_term (e : expr) (fail_if_unchanged : bool := tt) : tactic expr :=
-do
-  e ← instantiate_mvars e,
-  (_, s, _) ← mk_simp_set_core ff [] [] tt,
-  prod.fst <$> simplify s [] e {fail_if_unchanged := fail_if_unchanged} `eq tactic.failed
-
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
 expression and a proof of equality. -/

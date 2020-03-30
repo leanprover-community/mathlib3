@@ -407,6 +407,12 @@ lemma is_O_fst_prod : is_O f' (λ x, (f' x, g' x)) l := is_O_with_fst_prod.is_O
 
 lemma is_O_snd_prod : is_O g' (λ x, (f' x, g' x)) l := is_O_with_snd_prod.is_O
 
+lemma is_O_fst_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).1) f' l :=
+is_O_fst_prod
+
+lemma is_O_snd_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).2) f' l :=
+is_O_snd_prod
+
 section
 
 variables (f' k')

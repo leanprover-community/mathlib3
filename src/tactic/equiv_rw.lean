@@ -165,28 +165,25 @@ do
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
 returning a new equivalence `t ≃ t'`.
 -/
-meta def equiv_rw_type (eq : expr) (ty : expr) (cfg : equiv_rw_cfg) : tactic expr :=
+meta def equiv_rw_type (eqv : expr) (ty : expr) (cfg : equiv_rw_cfg) : tactic expr :=
 do
   when_tracing `equiv_rw_type (do
     ty_pp ← pp ty,
-    eq_pp ← pp eq,
-    eq_ty_pp ← infer_type eq >>= pp,
-    trace format!"Attempting to rewrite the type `{ty_pp}` using `{eq_pp} : {eq_ty_pp}`."),
-  `(_ ≃ _) ← infer_type eq | fail format!"{eq} must be an `equiv`",
+    eqv_pp ← pp eqv,
+    eqv_ty_pp ← infer_type eqv >>= pp,
+    trace format!"Attempting to rewrite the type `{ty_pp}` using `{eqv_pp} : {eqv_ty_pp}`."),
+  `(_ ≃ _) ← infer_type eqv | fail format!"{eqv} must be an `equiv`",
   -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
-  initial_goals ← get_goals,
-  g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
-  set_goals [g],
-  -- Now call `equiv_rw_type_core` to actually do the work, then restore the original goals.
-  equiv_rw_type_core eq cfg,
-  set_goals initial_goals,
+  equiv_ty ← to_expr ``(%%ty ≃ _),
+  -- Now call `equiv_rw_type_core`.
+  new_eqv ← prod.snd <$> (solve_aux equiv_ty $ equiv_rw_type_core eqv cfg),
   -- Check that we actually used the equivalence `eq`
   -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
-  g ← instantiate_mvars g,
-  guard (eq.occurs g) <|> fail format!"Could not construct an equivalence from {eq} of the form: {ty} ≃ _",
+  new_eqv ← instantiate_mvars new_eqv,
+  guard (eqv.occurs new_eqv) <|> fail format!"Could not construct an equivalence from {eqv} of the form: {ty} ≃ _",
   -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
-  prod.fst <$> g.simp {fail_if_unchanged := ff}
+  prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
 
 /--
 Attempt to replace the hypothesis with name `x`

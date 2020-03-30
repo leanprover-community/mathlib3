@@ -12,7 +12,7 @@ We define two type tags:
 * `additive α`: turns any multiplicative structure on `α` into the corresponding
   additive structure on `additive α`;
 * `multiplicative α`: turns any additive structure on `α` into the corresponding
-  multiplicative structure on `additive α`.
+  multiplicative structure on `multiplicative α`.
 
 We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
 -/

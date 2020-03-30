@@ -286,13 +286,14 @@ h.map (monoid_hom.of f)
 
 end is_unit
 
+/-
 lemma additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
-  @is_add_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+  is_add_hom (λ x, to_add (f $ of_add x)) :=
+{ map_add := λ x y, of_add_inj $ is_mul_hom.map_mul f _ _ }
 
 lemma multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
-  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
+  is_mul_hom (λ x, to_mul (f $ of_mul x)) :=
+{ map_mul := λ x y, of_mul_inj $ is_add_hom.map_add f _ _ }
 
 lemma additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
   @is_add_monoid_hom (additive α) (additive β) _ _ f :=
@@ -311,3 +312,4 @@ lemma additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_
 lemma multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := @is_add_hom.map_add α β _ _ f _ }
+-/

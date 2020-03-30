@@ -212,6 +212,8 @@ end with_zero
 
 namespace with_top
 
+local attribute [semireducible] additive multiplicative
+
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
@@ -464,7 +466,8 @@ lemma with_top.add_lt_add_iff_left :
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
-by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
+have _ := @with_top.add_lt_add_iff_left _ _ a b c,
+by rwa [add_comm a] at this
 
 end ordered_cancel_comm_monoid
 

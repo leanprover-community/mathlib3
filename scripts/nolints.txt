@@ -2614,7 +2614,6 @@ apply_nolint pgame.add_lt_add unused_arguments
 apply_nolint pgame.inv_ty has_inhabited_instance
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments
-apply_nolint surreal.add doc_blame
 
 -- set_theory/zfc.lean
 apply_nolint Class doc_blame

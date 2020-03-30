@@ -298,7 +298,7 @@ lemma linear_independent.mono {t s : set M} (h : t ⊆ s) :
   linear_independent R (λ x, x : s → M) → linear_independent R (λ x, x : t → M) :=
 begin
  simp only [linear_independent_subtype_disjoint],
- exact (disjoint_mono_left (finsupp.supported_mono h))
+ exact (disjoint.mono_left (finsupp.supported_mono h))
 end
 
 lemma linear_independent_union {s t : set M}
@@ -393,7 +393,7 @@ begin
     { apply hl },
     { apply ih },
     rw [finset.sup_eq_supr],
-    refine disjoint_mono (le_refl _) _ (hd i _ _ his),
+    refine (hd i _ _ his).mono_right _,
     { simp only [(span_Union _).symm],
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
@@ -625,7 +625,7 @@ begin
     { apply linear_independent.to_subtype_range,
       apply linear_independent.image hv',
       simp [ker_inr] },
-    { apply disjoint_mono _ _ disjoint_inl_inr,
+    { apply disjoint_inl_inr.mono _ _,
       { rw [set.range_comp, span_image],
         apply linear_map.map_le_range },
       { rw [set.range_comp, span_image],
@@ -1228,8 +1228,7 @@ begin
     { convert set.disjoint_singleton_left.2 hiJ,
       rw ←@set_of_mem_eq _ {j},
       refl },
-    refine disjoint_mono h₁ h₂
-      (disjoint_std_basis_std_basis _ _ _ _ h₃), }
+    exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
 
 variable [fintype η]

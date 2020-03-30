@@ -360,7 +360,7 @@ begin
   rw [mul_smul],
   convert hI _ (hb _ (submodule.smul_mem _ aJ mem_J)),
   rw [←hy', mul_coe_eq_smul]
-end 
+end
 
 noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal R (non_zero_divisors R)) :=
@@ -389,15 +389,14 @@ begin
     simp [y_eq_y'.symm] }
 end
 
+lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R (non_zero_divisors R)) (h : I * J = 1) : I ≠ 0 :=
+λ hI, @zero_ne_one (fractional_ideal R (non_zero_divisors R)) _ (by { convert h, simp [hI], })
+
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R (non_zero_divisors R)) (h : I * J = 1) :
   J = I⁻¹ :=
 begin
-  have hI : I ≠ 0,
-  { intro hI,
-    apply @zero_ne_one (fractional_ideal R (non_zero_divisors R)),
-    convert h,
-    simp [hI] },
+  have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
   suffices h' : I * (1 / I) = 1,
   { exact (congr_arg units.inv $
       @units.ext _ _ (units.mk_of_mul_eq_one _ _ h) (units.mk_of_mul_eq_one _ _ h') rfl) },

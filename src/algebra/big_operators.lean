@@ -60,7 +60,7 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 section comm_monoid
 variables [comm_monoid β]
 
-attribute [semireducible] multiplicative additive
+local attribute [semireducible] multiplicative additive
 
 @[simp, to_additive]
 lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl

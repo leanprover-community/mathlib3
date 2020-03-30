@@ -712,10 +712,6 @@ meta structure apply_any_opt :=
 (use_exfalso : bool := tt)
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
-meta def apply_pexpr_expr (p : pexpr × expr) : tactic (pexpr × expr) :=
-do
-  apply p.2
-
 /--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
 
@@ -739,6 +735,24 @@ do
     ++ (if opt.use_exfalso then [exfalso] else []),
   modes.any_of (λ m, do m,
     lemmas.any_of (λ H, opt.apply H >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
+
+/--
+This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
+and evaluates these as thunks before trying to apply them.
+
+We need to do this to avoid metavariables getting stuck during subsequent rounds of `apply`.
+-/
+meta def apply_any_thunk
+  (lemmas : list (tactic expr))
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
   fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/

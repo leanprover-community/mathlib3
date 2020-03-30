@@ -24,7 +24,6 @@ at each step of the search.
 
 namespace tactic
 
-#print rfl
 namespace solve_by_elim
 /--
 `mk_assumption_set` builds a collection of lemmas for use in the backtracking search in `solve_by_elim`.

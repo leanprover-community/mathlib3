@@ -156,7 +156,7 @@ open solve_by_elim
 
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
-from the list of assumptions (passed via the `by_elim_opt` argument),
+from the list of assumptions (passed via the `opt` argument),
 recursively operating on any generated subgoals.
 
 It succeeds only if it discharges the first goal
@@ -165,6 +165,11 @@ It succeeds only if it discharges the first goal
 If passed an empty list of assumptions, `solve_by_elim` builds a default set
 as per the interactive tactic, using the `local_context` along with
 `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
+
+To pass a particular list of assumptions, use the `lemmas` field
+in the configuration argument. This expects an `option (list (tactic expr))`.
+We provide lemmas as `tactic expr` thunks to allow for regenerating metavariables
+for each application.
 -/
 meta def solve_by_elim (opt : opt := { }) : tactic unit :=
 do

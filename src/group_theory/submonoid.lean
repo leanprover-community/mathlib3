@@ -930,82 +930,72 @@ open submonoid
 
 /-- The range of a monoid homomorphism is a submonoid. -/
 @[to_additive "The range of an `add_monoid_hom` is an `add_submonoid`."]
-def range (f : M →* N) : submonoid N := (⊤ : submonoid M).map f
+def mrange (f : M →* N) : submonoid N := (⊤ : submonoid M).map f
 
-@[simp, to_additive] lemma coe_range (f : M →* N) :
-  (f.range : set N) = set.range f :=
+@[simp, to_additive] lemma coe_mrange (f : M →* N) :
+  (f.mrange : set N) = set.range f :=
 set.image_univ
 
-@[simp, to_additive] lemma mem_range {f : M →* N} {y : N} :
-  y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp, to_additive] lemma mem_mrange {f : M →* N} {y : N} :
+  y ∈ f.mrange ↔ ∃ x, f x = y :=
+by simp [mrange]
 
 @[to_additive]
-lemma map_range (g : N →* P) (f : M →* N) : f.range.map g = (g.comp f).range :=
+lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mrange :=
 (⊤ : submonoid M).map_map g f
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def restrict {N : Type*} [monoid N] (f : M →* N) : S →* N := f.comp S.subtype
+def mrestrict {N : Type*} [monoid N] (f : M →* N) : S →* N := f.comp S.subtype
 
 @[to_additive]
-lemma restrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.restrict S x = f x := rfl
+lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
-def cod_restrict {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
+def cod_mrestrict {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
-/-- Restriction of a monoid hom to its range. -/
-@[to_additive "Restriction of an `add_monoid` hom to its range."]
-def range_restrict {N} [monoid N] (f : M →* N) : M →* f.range :=
-f.cod_restrict f.range $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+/-- Restriction of a monoid hom to its range iterpreted as a submonoid. -/
+@[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
+def range_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
+f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
 
 @[to_additive]
-lemma range_top_iff_surjective {N} [monoid N] {f : M →* N} :
-  f.range = (⊤ : submonoid N) ↔ function.surjective f :=
-submonoid.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
+lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
+  f.mrange = (⊤ : submonoid N) ↔ function.surjective f :=
+submonoid.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid hom is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
-lemma range_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
-  f.range = (⊤ : submonoid N) :=
-range_top_iff_surjective.2 hf
-
-/-- Multiplicative kernel of a monoid hom as a submonoid of its domain-/
-@[to_additive "Additive kernel of an `add_monoid_hom` as a submonoid of its domain"]
-def ker (f : M →* N) := (⊥ : submonoid N).comap f
-
-@[to_additive]
-lemma mem_ker {f : M →* N} {x : M} : x ∈ f.ker ↔ f x = 1 := submonoid.mem_bot
-
-@[to_additive]
-lemma comap_ker (g : N →* P) (f : M →* N) : g.ker.comap f = (g.comp f).ker := rfl
+lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
+  f.mrange = (⊤ : submonoid N) :=
+mrange_top_iff_surjective.2 hf
 
 /-- The submonoid of elements `x : M` such that `f x = g x` -/
 @[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
-def eq_locus (f g : M →* N) : submonoid M :=
+def eq_mlocus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
   one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
 @[to_additive]
-lemma eq_on_closure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
+lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
-show closure s ≤ f.eq_locus g, from closure_le.2 h
+show closure s ≤ f.eq_mlocus g, from closure_le.2 h
 
 @[to_additive]
-lemma eq_of_eq_on_top {f g : M →* N} (h : set.eq_on f g (⊤ : submonoid M)) :
+lemma eq_of_eq_on_mtop {f g : M →* N} (h : set.eq_on f g (⊤ : submonoid M)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_dense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h : s.eq_on f g) :
   f = g :=
-eq_of_eq_on_top $ hs ▸ eq_on_closure h
+eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
 @[to_additive]
 lemma closure_preimage_le (f : M →* N) (s : set N) :
@@ -1016,7 +1006,7 @@ closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
     by the image of the set. -/
 @[to_additive "The image under an `add_monoid` hom of the `add_submonoid` generated by a set equals
 the `add_submonoid` generated by the image of the set."]
-lemma map_closure (f : M →* N) (s : set M) :
+lemma map_mclosure (f : M →* N) (s : set M) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
@@ -1052,22 +1042,22 @@ open monoid_hom lattice
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_restrict _ (λ x, h x.2)
+S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
-lemma range_subtype (s : submonoid M) : s.subtype.range = s :=
-ext' $ (coe_range _).trans $ set.range_coe_subtype s
+lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
+ext' $ (coe_mrange _).trans $ set.range_coe_subtype s
 
 @[to_additive]
-lemma closure_eq_range (s : set M) : closure s = (free_monoid.lift s M coe).range :=
-by rw [range, ← free_monoid.closure_range_of, map_closure,
+lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift s M coe).mrange :=
+by rw [mrange, ← free_monoid.closure_range_of, map_mclosure,
   ← set.range_comp, free_monoid.lift_comp_of, set.range_coe_subtype]
 
 @[to_additive]
 lemma exists_list_of_mem_closure {s : set M} {x : M} (hx : x ∈ closure s) :
   ∃ (l : list M) (hl : ∀ y ∈ l, y ∈ s), l.prod = x :=
 begin
-  rw [closure_eq_range, mem_range] at hx,
+  rw [closure_eq_mrange, mem_mrange] at hx,
   rcases hx with ⟨l, hx⟩,
   exact ⟨list.map coe l, λ y hy, let ⟨z, hz, hy⟩ := list.mem_map.1 hy in hy ▸ z.2, hx⟩
 end
@@ -1083,24 +1073,24 @@ ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
   λ ⟨hp1, hps⟩, ⟨p.2, hps, prod.ext (set.eq_of_mem_singleton hp1).symm rfl⟩⟩
 
 @[to_additive]
-lemma range_inl : (inl M N).range = prod ⊤ ⊥ := map_inl ⊤
+lemma range_inl : (inl M N).mrange = prod ⊤ ⊥ := map_inl ⊤
 
 @[to_additive]
-lemma range_inr : (inr M N).range = prod ⊥ ⊤ := map_inr ⊤
+lemma range_inr : (inr M N).mrange = prod ⊥ ⊤ := map_inr ⊤
 
 @[to_additive]
-lemma range_inl' : (inl M N).range = comap (snd M N) ⊥ := range_inl.trans (top_prod _)
+lemma range_inl' : (inl M N).mrange = comap (snd M N) ⊥ := range_inl.trans (top_prod _)
 
 @[to_additive]
-lemma range_inr' : (inr M N).range = comap (fst M N) ⊥ := range_inr.trans (prod_top _)
+lemma range_inr' : (inr M N).mrange = comap (fst M N) ⊥ := range_inr.trans (prod_top _)
 
 @[simp, to_additive]
-lemma range_fst : (fst M N).range = ⊤ :=
-(fst M N).range_top_of_surjective $ @prod.fst_surjective _ _ ⟨1⟩
+lemma range_fst : (fst M N).mrange = ⊤ :=
+(fst M N).mrange_top_of_surjective $ @prod.fst_surjective _ _ ⟨1⟩
 
 @[simp, to_additive]
-lemma range_snd : (snd M N).range = ⊤ :=
-(snd M N).range_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
+lemma range_snd : (snd M N).mrange = ⊤ :=
+(snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
 
 @[simp, to_additive prod_bot_sup_bot_prod]
 lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
@@ -1111,7 +1101,7 @@ assume p hp, prod.fst_mul_snd p ▸ mul_mem _
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
 
 @[simp, to_additive]
-lemma range_inl_sup_range_inr : (inl M N).range ⊔ (inr M N).range = ⊤ :=
+lemma range_inl_sup_range_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
 by simp only [range_inl, range_inr, prod_bot_sup_bot_prod, top_prod_top]
 
 end submonoid
@@ -1123,14 +1113,14 @@ variables {N : Type*} [comm_monoid N]
 open monoid_hom
 
 @[to_additive]
-lemma sup_eq_range (s t : submonoid N) : s ⊔ t = (s.subtype.coprod t.subtype).range :=
-by rw [range, ← range_inl_sup_range_inr, map_sup, map_range, coprod_comp_inl,
-  map_range, coprod_comp_inr, range_subtype, range_subtype]
+lemma sup_eq_range (s t : submonoid N) : s ⊔ t = (s.subtype.coprod t.subtype).mrange :=
+by rw [mrange, ← range_inl_sup_range_inr, map_sup, map_mrange, coprod_comp_inl,
+  map_mrange, coprod_comp_inr, range_subtype, range_subtype]
 
 @[to_additive]
 lemma mem_sup {s t : submonoid N} {x : N} :
   x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
-by simp only [sup_eq_range, mem_range, coprod_apply, prod.exists, submonoid.exists,
+by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, submonoid.exists,
   coe_subtype, subtype.coe_mk]
 
 end submonoid

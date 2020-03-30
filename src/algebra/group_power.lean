@@ -16,18 +16,20 @@ import data.int.basic
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
   {R : Type*} {S : Type*}
 
+local attribute [semireducible] multiplicative
+
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid M] (a : M) : ℕ → M
 | 0     := 1
 | (n+1) := a * monoid.pow n
 
+@[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+
 def add_monoid.smul [add_monoid A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _ a n
+of_mul $ (to_mul a)^n
 
 precedence `•`:70
 localized "infix ` • ` := add_monoid.smul" in add_monoid
-
-@[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
 
  /-!
 ### (Additive) monoid
@@ -653,3 +655,9 @@ by simp [pow, monoid.pow]
 
 lemma div_sq_cancel {α} [field α] {a : α} (ha : a ≠ 0) (b : α) : a^2 * b / a = a * b :=
 by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
+
+@[simp] lemma add_monoid.to_mul_smul [add_monoid A] (n : ℕ) (a : A) :
+  to_mul (n •ℕ a) = (to_mul a)^n := rfl
+
+@[simp] lemma add_monoid.of_mul_pow [add_monoid A] (n : ℕ) (a : multiplicative A) :
+  of_mul (a^n) = n •ℕ (of_mul a) := rfl

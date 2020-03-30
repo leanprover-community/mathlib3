@@ -60,6 +60,8 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 section comm_monoid
 variables [comm_monoid β]
 
+attribute [semireducible] multiplicative additive
+
 @[simp, to_additive]
 lemma prod_empty {α : Type u} {f : α → β} : (∅:finset α).prod f = 1 := rfl
 
@@ -360,14 +362,13 @@ lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
   (Ico m n).prod (λ l, f (k + l)) = (Ico (m + k) (n + k)).prod f :=
 Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
 
-lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
-  (hab : a ≤ b) (f : ℕ → δ) : (Ico a (b + 1)).sum f = (Ico a b).sum f + f b :=
-by rw [Ico.succ_top hab, sum_insert Ico.not_mem_top, add_comm]
-
-@[to_additive]
 lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
   (Ico a b.succ).prod f = (Ico a b).prod f * f b :=
-@sum_Ico_succ_top (additive β) _ _ _ hab _
+by rw [Ico.succ_top hab, prod_insert Ico.not_mem_top, mul_comm]
+
+lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
+  (hab : a ≤ b) (f : ℕ → δ) : (Ico a (b + 1)).sum f = (Ico a b).sum f + f b :=
+@prod_Ico_succ_top (multiplicative δ) _ _ _ hab _
 
 lemma sum_eq_sum_Ico_succ_bot {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a < b) (f : ℕ → δ) : (Ico a b).sum f = f a + (Ico (a + 1) b).sum f :=

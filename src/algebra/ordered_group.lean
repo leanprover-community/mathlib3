@@ -221,7 +221,8 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ ..@additive.add_comm_semigroup _ $
+{ add := (+),
+  ..@additive.add_comm_semigroup _ $
     @with_zero.comm_semigroup (multiplicative α) _ }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
@@ -466,8 +467,7 @@ lemma with_top.add_lt_add_iff_left :
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
-have _ := @with_top.add_lt_add_iff_left _ _ a b c,
-by rwa [add_comm a] at this
+by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_comm_monoid
 

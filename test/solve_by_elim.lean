@@ -109,6 +109,12 @@ begin
   solve_by_elim { backtrack_all_goals := true },
 end
 
+example (P : ℕ → Type) (f : Π {n : ℕ}, P n) : P 2 × P 3 :=
+begin
+  fsplit,
+  solve_by_elim* only [f],
+end
+
 /-
 We now test the `accept` feature of `solve_by_elim`.
 

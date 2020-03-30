@@ -712,6 +712,10 @@ meta structure apply_any_opt :=
 (use_exfalso : bool := tt)
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
+meta def apply_pexpr_expr (p : pexpr × expr) : tactic (pexpr × expr) :=
+do
+  apply p.2
+
 /--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
 

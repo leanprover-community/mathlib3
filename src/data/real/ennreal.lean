@@ -285,15 +285,7 @@ lemma lt_iff_exists_real_btwn :
 
 lemma lt_iff_exists_nnreal_btwn :
   a < b ↔ (∃r:nnreal, a < r ∧ (r : ennreal) < b) :=
-begin
-  split,
-  { assume h,
-    rcases dense h with ⟨r, ar, rb⟩,
-    cases r, { simpa using rb },
-    exact ⟨r, ar, rb⟩ },
-  { rintros ⟨r, ar, rb⟩,
-    exact lt_trans ar rb }
-end
+with_top.lt_iff_exists_coe_btwn
 
 lemma lt_iff_exists_add_pos_lt : a < b ↔ (∃ r : nnreal, 0 < r ∧ a + r < b) :=
 begin

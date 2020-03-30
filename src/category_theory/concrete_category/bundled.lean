@@ -5,7 +5,6 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 
 Bundled types.
 -/
-import tactic.doc_commands
 
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.

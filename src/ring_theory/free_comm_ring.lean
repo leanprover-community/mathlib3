@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import group_theory.free_abelian_group data.equiv.functor data.polynomial
+import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
 noncomputable theory

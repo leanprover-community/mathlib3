@@ -107,12 +107,12 @@ Arguments for `solve_by_elim`:
 * `lemmas` specifies the list of lemmas to use in the backtracking search.
   If `none`, `solve_by_elim` uses the local hypotheses,
   along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
-* `max_steps` bounds the depth of the search.
+* `max_depth` bounds the depth of the search.
 -/
 meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
 (lemmas : option (list expr) := none)
-(max_steps : ℕ := 3)
+(max_depth : ℕ := 3)
 
 /--
 If no lemmas have been specified, generate the default set
@@ -146,7 +146,7 @@ do
   lemmas ← opt.get_lemmas,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
-    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_steps)
+    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth)
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional
@@ -188,7 +188,7 @@ add_tactic_doc
 /--
 `solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
 and then repeatedly calls `apply` on the generated subgoals until no subgoals remain,
-performing at most `max_steps` recursive steps.
+performing at most `max_depth` recursive steps.
 
 `solve_by_elim` discharges the current goal or fails.
 
@@ -208,7 +208,7 @@ The assumptions can be modified with similar syntax as for `simp`:
 makes other goals impossible.
 
 optional arguments passed via a configuration argument as `solve_by_elim { ... }`
-- max_steps: number of attempts at discharging generated sub-goals
+- max_depth: number of attempts at discharging generated sub-goals
 - discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
 - pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
 - accept: a subsidiary tactic `list expr → tactic unit` that at each step,

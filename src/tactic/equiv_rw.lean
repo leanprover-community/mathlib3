@@ -125,13 +125,13 @@ declare_trace equiv_rw_type
 /--
 Configuration structure for `equiv_rw`.
 
-* `max_steps` bounds the search depth for equivalences to rewrite along.
+* `max_depth` bounds the search depth for equivalences to rewrite along.
   The default value is 10.
-  (e.g., if you're rewriting along `e : α ≃ β`, and `max_steps := 2`,
+  (e.g., if you're rewriting along `e : α ≃ β`, and `max_depth := 2`,
   you can rewrite `option (option α))` but not `option (option (option α))`.
 -/
 meta structure equiv_rw_cfg :=
-(max_steps : ℕ := 10)
+(max_depth : ℕ := 10)
 
 /--
 Implementation of `equiv_rw_type`, using `solve_by_elim`.
@@ -155,7 +155,7 @@ do
   { use_symmetry := false,
     use_exfalso := false,
     lemmas := some (eq :: equiv_congr_lemmas),
-    max_steps := cfg.max_steps,
+    max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
@@ -247,7 +247,7 @@ a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ option α` into `⊢ option β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
-`equiv_rw e {max_steps := n}`.
+`equiv_rw e {max_depth := n}`.
 -/
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) : itactic :=
 do e ← to_expr e,

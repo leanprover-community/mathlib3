@@ -160,7 +160,7 @@ do
   solve_by_elim {
     use_symmetry := false,
     use_exfalso := false,
-    lemmas := some (eq :: equiv_congr_lemmas),
+    lemmas := some ((eq :: equiv_congr_lemmas).map return),
     max_steps := cfg.max_steps,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.

@@ -513,7 +513,7 @@ lemma comp_continuous_iff
 e.to_homeomorph.comp_continuous_iff _
 
 section
-variable (M)
+variables (R M)
 
 /-- The identity map as a continuous linear equivalence. -/
 @[refl] protected def refl : M ≃L[R] M :=
@@ -523,10 +523,10 @@ variable (M)
 end
 
 @[simp, elim_cast] lemma coe_refl :
-  ((continuous_linear_equiv.refl M : M ≃L[R] M) : M →L[R] M) = continuous_linear_map.id := rfl
+  ((continuous_linear_equiv.refl R M) : M →L[R] M) = continuous_linear_map.id := rfl
 
 @[simp, elim_cast] lemma coe_refl' :
-  ((continuous_linear_equiv.refl M : M ≃L[R] M) : M → M) = id := rfl
+  ((continuous_linear_equiv.refl R M) : M → M) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
 @[symm] protected def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=

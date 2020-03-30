@@ -2,15 +2,29 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Type tags `multiplicative` and `additive` that turn additive structures into multiplicative, and vice versa
 -/
 import algebra.group.hom
+/-!
+# Type tags that turn additive structures into multiplicative, and vice versa
+
+We define two type tags:
+
+* `additive α`: turns any multiplicative structure on `α` into the corresponding
+  additive structure on `additive α`;
+* `multiplicative α`: turns any additive structure on `α` into the corresponding
+  multiplicative structure on `additive α`.
+
+We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
 
+/-- If `α` carries some multiplicative structure, then `additive α` carries the corresponding
+additive structure. -/
 def additive (α : Type*) := α
+/-- If `α` carries some additive structure, then `multiplicative α` carries the corresponding
+multiplicative structure. -/
 def multiplicative (α : Type*) := α
 
 instance [inhabited α] : inhabited (additive α) := ⟨(default _ : α)⟩

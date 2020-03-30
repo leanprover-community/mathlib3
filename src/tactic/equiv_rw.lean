@@ -62,7 +62,7 @@ An ambitious project might be to add `equiv_rw!`,
 a tactic which, when failing to find appropriate `equiv_functor` instances,
 attempts to `derive` them on the spot.
 
-For now `equiv_rw` is entirely based on `equiv` in `Type`,
+For now `equiv_rw` is entirely based on `equiv`,
 but the framework can readily be generalised to also work with other types of equivalences,
 for example specific notations such as ring equivalence (`≃+*`),
 or general categorical isomorphisms (`≅`).

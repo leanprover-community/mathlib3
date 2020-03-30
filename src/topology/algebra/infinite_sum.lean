@@ -490,8 +490,7 @@ variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $
-  assume s, sum_le_sum $ assume b _, h b
+le_of_tendsto_of_tendsto' at_top_ne_bot hf hg $ assume s, sum_le_sum $ assume b _, h b
 
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
@@ -523,7 +522,7 @@ has_sum_le_inj i hi hs h hf.has_sum hg.has_sum
 
 lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
   s.sum f ≤ a :=
-ge_of_tendsto at_top_ne_bot hf (mem_at_top_sets.2 ⟨s, λ t hst,
+ge_of_tendsto at_top_ne_bot hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
 
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
@@ -692,7 +691,7 @@ lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d :
   dist (f n) a ≤ ∑ m, d (n + m) :=
 begin
   refine le_of_tendsto at_top_ne_bot (tendsto_dist tendsto_const_nhds ha)
-    (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
+    (eventually_at_top.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],
   refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,

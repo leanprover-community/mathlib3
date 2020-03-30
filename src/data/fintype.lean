@@ -263,6 +263,21 @@ begin
     exact fin.eq_last_of_not_lt h }
 end
 
+/-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
+the increasing bijection `mono_of_fin s h`. -/
+lemma finset.mono_of_fin_unique' [decidable_linear_order α] {s : finset α} {k : ℕ} (h : s.card = k)
+  {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
+  f = s.mono_of_fin h :=
+begin
+  have finj : set.inj_on f set.univ := hmono.injective.inj_on _,
+  apply mono_of_fin_unique h (set.bij_on.mk fmap finj (λ y hy, _)) hmono,
+  simp only [set.image_univ, set.mem_range],
+  rcases surj_on_of_inj_on_of_card_le (λ i (hi : i ∈ finset.univ), f i)
+    (λ i hi, fmap (set.mem_univ i)) (λ i j hi hj hij, finj (set.mem_univ i) (set.mem_univ j) hij)
+    (by simp [h]) y hy with ⟨x, _, hx⟩,
+  exact ⟨x, hx.symm⟩
+end
+
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
@@ -431,6 +446,10 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.inject
   surjective_comp e.surjective (this.1 (injective_comp e.symm.injective hinj)),
 λ hsurj, by simpa [function.comp] using
   injective_comp e.injective (this.2 (surjective_comp e.symm.surjective hsurj))⟩
+
+lemma fintype.coe_image_univ [fintype α] [decidable_eq β] {f : α → β} :
+  ↑(finset.image f finset.univ) = set.range f :=
+by { ext x, simp }
 
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach

@@ -61,6 +61,12 @@ equiv.ext _ _ H
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
+@[simp]
+lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+
+@[simp]
+lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+
 protected theorem injective : ∀ f : α ≃ β, injective f
 | ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
 
@@ -223,8 +229,8 @@ protected def plift : plift α ≃ α :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.left_inv, e₁.left_inv] },
-  right_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.right_inv, e₁.right_inv] } }
+  left_inv := λ f, funext $ λ x, by { dsimp, simp },
+  right_inv := λ f, funext $ λ x, by { dsimp, simp } }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :
@@ -292,7 +298,7 @@ calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.re
 
 end
 
-@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ :β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨λp, (e₁ p.1, e₂ p.2), λp, (e₁.symm p.1, e₂.symm p.2),
    λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [symm_apply_apply, symm_apply_apply],
    λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_symm_apply, apply_symm_apply]⟩

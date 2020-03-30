@@ -35,7 +35,7 @@ whereas we denote subsets of prime spectra with `t`, `t'`, etc...
 ## Inspiration/contributors
 
 The contents of this file draw inspiration from
-https://github.com/ramonfmir/lean-scheme
+<https://github.com/ramonfmir/lean-scheme>
 which has contributions from Ramon Fernandez Mir, Kevin Buzzard, Kenny Lau,
 and Chris Hughes (on an earlier repository).
 

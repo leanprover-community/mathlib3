@@ -1335,7 +1335,7 @@ variable {S : Type}
 def pderivative (v : S) (p : mv_polynomial S R) : mv_polynomial S R :=
 p.sum (λ A B, monomial (erase v A + single v (A v - 1)) (B * (A v)))
 
-@[simp] lemma pderivative_monomial {a : R} {v : S} {n : ℕ} :
+lemma pderivative_monomial {a : R} {v : S} {n : ℕ} :
   pderivative v (C a * (X v)^n) = C (a * n) * (X v)^(n - 1) :=
 begin
   rw [←single_eq_C_mul_X, ←single_eq_C_mul_X, pderivative, monomial, sum_single_index],

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.equiv_rw
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
-set_option trace.equiv_rw_type true
+-- set_option trace.equiv_rw_type true
 
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
@@ -235,7 +235,6 @@ by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
-set_option pp.proofs true
 def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
 begin
   intro S, fconstructor,

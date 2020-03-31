@@ -458,7 +458,7 @@ instance : has_coe (M ≃L[R] M₂) (M →L[R] M₂) := ⟨to_continuous_linear_
 /-- Coerce continuous linear equivs to maps. -/
 instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨_, λ f, ((f : M →L[R] M₂) : M → M₂)⟩
 
-@[simp] theorem coe_def_ref (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
+@[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
@@ -513,7 +513,7 @@ lemma comp_continuous_iff
 e.to_homeomorph.comp_continuous_iff _
 
 section
-variable (M)
+variables (R M)
 
 /-- The identity map as a continuous linear equivalence. -/
 @[refl] protected def refl : M ≃L[R] M :=
@@ -523,10 +523,10 @@ variable (M)
 end
 
 @[simp, elim_cast] lemma coe_refl :
-  ((continuous_linear_equiv.refl M : M ≃L[R] M) : M →L[R] M) = continuous_linear_map.id := rfl
+  (continuous_linear_equiv.refl R M : M →L[R] M) = continuous_linear_map.id := rfl
 
 @[simp, elim_cast] lemma coe_refl' :
-  ((continuous_linear_equiv.refl M : M ≃L[R] M) : M → M) = id := rfl
+  (continuous_linear_equiv.refl R M : M → M) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
 @[symm] protected def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
@@ -563,8 +563,8 @@ rfl
 
 variables [topological_add_group M₄]
 
-/-- Equivalence given by a block upper diagonal matrix. `e` and `e'` are diagonal square blocks,
-  and `f` is a rectangular block above the diagonal. -/
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
 def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
   (M × M₃) ≃L[R] M₂ × M₄ :=
 { continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk

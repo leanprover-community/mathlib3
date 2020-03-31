@@ -1440,8 +1440,8 @@ lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').
   (e.prod e' : (M × M₃) →ₗ[R] M₂ × M₄) = (e : M →ₗ[R] M₂).prod_map (e' : M₃ →ₗ[R] M₄) :=
 rfl
 
-/-- Equivalence given by a block upper diagonal matrix. `e` and `e'` are diagonal square blocks,
-  and `f` is a rectangular block above the diagonal. -/
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
 protected def skew_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) :
   (M × M₃) ≃ₗ[R] M₂ × M₄ :=
 { inv_fun := λ p : M₂ × M₄, (e.symm p.1, e'.symm (p.2 - f (e.symm p.1))),
@@ -1815,7 +1815,7 @@ end
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
-  refine disjoint_mono
+  refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,

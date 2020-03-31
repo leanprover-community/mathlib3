@@ -946,14 +946,14 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def mrestrict {N : Type*} [monoid N] (f : M →* N) : S →* N := f.comp S.subtype
+def restrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
 
 @[to_additive]
-lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
+lemma restrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.restrict S x = f x := rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
-def cod_mrestrict {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
+def cod_restrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
@@ -961,7 +961,12 @@ def cod_mrestrict {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) :
 /-- Restriction of a monoid hom to its range iterpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
 def range_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
-f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+f.cod_restrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+
+@[simp, to_additive]
+lemma coe_range_restrict {N} [monoid N] (f : M →* N) (x : M) :
+  (f.range_restrict x : N) = f x :=
+rfl
 
 @[to_additive]
 lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
@@ -1042,7 +1047,7 @@ open monoid_hom lattice
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_mrestrict _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=

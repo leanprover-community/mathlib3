@@ -13,19 +13,11 @@ def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)
 by transport
 .
 
+-- TODO verify definitional equalities here!
 def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
 by transport.
 
--- Below we verify that the transported structure is definitionally what you would hope for.
-
--- FIXME
--- In fact, as defined in semiring.map above, it's _not_ definitionally what you want. :-(
--- However just taking the definition of `semiring.map` produced `by transport` above,
--- and simplifying it, gives something that _is_ definitionally what you want!
--- Surely it's possible to arrange this without making a new declaration...
-
-simp_defn semiring.map semiring.map'
-
+-- Below we verify that the transported structure for `semiring` is definitionally what you would hope for.
 
 inductive mynat : Type
 | zero : mynat
@@ -44,7 +36,7 @@ def mynat_equiv : ℕ ≃ mynat :=
 @[simp] lemma mynat_equiv_symm_apply_succ (n : mynat) :
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
-instance semiring_mynat : semiring mynat := semiring.map' mynat_equiv
+instance semiring_mynat : semiring mynat := semiring.map mynat_equiv
 
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 rfl

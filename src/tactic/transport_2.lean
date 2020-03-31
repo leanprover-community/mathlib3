@@ -9,13 +9,31 @@ namespace tactic
 open tactic.interactive
 
 /--
+Attempts to run a tactic (which should only operate on the main goal),
+intercepts any result it assigns to the goal,
+and runs `simp` on that
+before assigning the simplified value to the original goal.
+-/
+meta def simp_result {α : Type} (t : tactic α) : tactic α :=
+do
+  (r, a) ← retrieve (do
+    v :: _ ← get_goals,
+    a ← t,
+    v ← instantiate_mvars v,
+    return (v, a)),
+  prod.fst <$> r.simp {fail_if_unchanged := ff} >>= exact,
+  return a
+
+/--
 Given `s : S α` for some structure `S` depending on a type `α`,
 and an equivalence `e : α ≃ β`,
 try to produce an `S β`,
 by transporting data and axioms across `e` using `equiv_rw`.
 -/
 meta def transport (s e : expr) : tactic unit :=
+simp_result $
 do
+  v :: _ ← get_goals,
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>
     fail format!"second argument to `transport` was not an equivalence",
   seq `[refine_struct { .. }]
@@ -87,55 +105,3 @@ do
   tactic.transport s e
 
 end interactive
-
--- This part is a hack, and hopefully won't last once I understand how to
--- simplify the output from a tactic...
-
-/-- Copy a declaration to a new name, first running `simp` on the body. -/
-meta def simp_defn (d : declaration) (new_name : name) : tactic unit :=
-do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition with
-  | declaration.defn name levels type value reducibility trusted :=
-    (levels, type, value, reducibility, trusted)
-  | _ := undefined
-  end),
-  prop ← is_prop type,
-  value ← prod.fst <$> value.simp {fail_if_unchanged := ff},
-  let new_decl := if prop then
-      declaration.thm new_name levels type (task.pure value)
-    else
-      declaration.defn new_name levels type value reducibility trusted,
-  updateex_env $ λ env, env.add new_decl
-
-open lean.parser tactic interactive parser
-
-/-- Copy a declaration to a new name, first running `simp` on the body. -/
-@[user_command] meta def simp_defn_cmd (_ : parse $ tk "simp_defn") : lean.parser unit :=
-do from_lemma ← ident,
-   new_name ← ident,
-   from_lemma_fully_qualified ← resolve_constant from_lemma,
-  d ← get_decl from_lemma_fully_qualified <|>
-    fail ("declaration " ++ to_string from_lemma ++ " not found"),
-  tactic.simp_defn d new_name.
-
-end tactic
-
--- This is an attempt at an alternative to `simp_defn` to copy a declaration.
--- It works on easy examples, e.g. `def f : ℕ := by simp_result { exact (id 0) }`
--- but `transport` breaks when wrapped in it.
-
--- namespace tactic
--- meta def simp_result (i : tactic unit) : tactic unit :=
--- do
---   gs ← get_goals,
---   gs' ← gs.mmap (λ g, infer_type g >>= mk_meta_var),
---   set_goals gs',
---   r ← i,
---   (gs.zip gs').mmap (λ p, instantiate_mvars p.2 >>= (λ e, prod.fst <$> expr.simp e) >>= unify p.1),
---   set_goals gs,
---   return r
-
--- namespace interactive
--- meta def simp_result (i : itactic) : itactic := tactic.simp_result i
--- end interactive
-
--- end tactic

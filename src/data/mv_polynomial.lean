@@ -169,15 +169,16 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n := by rw [← zero_add (single s n), monomial_add_single, C]
 
-lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
+@[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
 monomial s (a + b) = monomial s a + monomial s b :=
-by rw [monomial, monomial, monomial]; simp
+by simp [monomial]
 
-lemma monomial_mul {s s' : σ →₀ ℕ} {a b : α} :
+@[simp] lemma monomial_mul {s s' : σ →₀ ℕ} {a b : α} :
   monomial (s + s') (a * b) = monomial s a * monomial s' b :=
 by rw [monomial, monomial, monomial, add_monoid_algebra.single_mul_single]
 
-lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : α) = (0 : mv_polynomial σ α) := by rw [monomial, single_zero]; refl
+@[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : α) = 0 :=
+by rw [monomial, single_zero]; refl
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
@@ -211,19 +212,12 @@ finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
   (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
 
-theorem induction_on' {M : mv_polynomial σ α → Prop} (p : mv_polynomial σ α) :
-    (∀ (u : σ →₀ ℕ) (a : α), M (monomial u a)) →
-    (∀ (p q : mv_polynomial σ α), M p → M q → M (p + q)) → M p :=
-begin
-  intros h1 h2,
-  apply finsupp.induction,
-    { have h1' : M (monomial 0 0) := h1 0 0,
-      rw monomial at h1', simp at h1', exact h1' },
-    intros a b f ha hb hMf,
-    apply h2,
-    {rw ←monomial, apply h1},
-    apply hMf,
-end
+theorem induction_on' {P : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
+    (h1 : ∀ (u : σ →₀ ℕ) (a : α), P (monomial u a))
+    (h2 : ∀ (p q : mv_polynomial σ α), P p → P q → P (p + q)) : P p :=
+finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
+                     show P (monomial 0 0), from h1 0 0)
+                    (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
 
 lemma hom_eq_hom [semiring γ]
@@ -1323,17 +1317,19 @@ end
 
 end equiv
 
-/-! lemmas about `pderivative v`, the partial derivative with respect to `v : σ`-/
+/-!
+## Partial derivatives
+-/
 section pderivative
 
 variables {R : Type} [comm_ring R]
 variable {S : Type}
 
-/-- pderivative v p is the partial derivative of p with respect to v -/
+/-- `pderivative v p` is the partial derivative of `p` with respect to `v` -/
 def pderivative (v : S) (p : mv_polynomial S R) : mv_polynomial S R :=
 p.sum (λ A B, monomial (erase v A + single v (A v - 1)) (B * (A v)))
 
-lemma pderivative_monomial {a : R} {v : S} {n : ℕ} :
+@[simp] lemma pderivative_monomial {a : R} {v : S} {n : ℕ} :
   pderivative v (C a * (X v)^n) = C (a * n) * (X v)^(n - 1) :=
 begin
   rw [←single_eq_C_mul_X, ←single_eq_C_mul_X, pderivative, monomial, sum_single_index],
@@ -1342,15 +1338,14 @@ begin
   exact monomial_zero,
 end
 
-@[simp]
-lemma pderivative_C {a : R} {v : S} : pderivative v (C a) = 0 :=
+@[simp] lemma pderivative_C {a : R} {v : S} : pderivative v (C a) = 0 :=
 begin
   rw [(show C a = C a * (X v)^0, by rw [pow_zero, mul_one]),
   pderivative_monomial], simp only [mv_polynomial.C_0, nat.zero_sub, nat.cast_zero, zero_mul,
     mul_zero, pow_zero],
 end
 
-lemma pderivative_X {v : S} : pderivative v (X v : mv_polynomial S R) = 1 :=
+@[simp] lemma pderivative_X {v : S} : pderivative v (X v : mv_polynomial S R) = 1 :=
 begin
   rw [(show (X v : mv_polynomial S R) = C 1 * (X v)^1,
     by simp only [one_mul, pow_one, mv_polynomial.C_1]),
@@ -1358,20 +1353,22 @@ begin
   simp only [mul_one, nat.sub_self, nat.cast_one, mv_polynomial.C_1, pow_zero],
 end
 
-lemma pderivative_zero {v : S} : pderivative v (0: mv_polynomial S R) = 0 :=
+@[simp] lemma pderivative_zero {v : S} : pderivative v (0: mv_polynomial S R) = 0 :=
   finsupp.sum_zero_index
 
-lemma pderivative_monomial' {a : R} {v1 v2 : S} {n : ℕ} {hv : v1 ≠ v2} :
+lemma pderivative_monomial' {a : R} {v1 v2 : S} {n : ℕ} (h : v1 ≠ v2) :
   pderivative v1 (C a * (X v2)^n) = 0 :=
 begin
   rw [←single_eq_C_mul_X, pderivative, monomial, sum_single_index],
-  {rw single_eq_of_ne, {rw [nat.cast_zero, monomial], simpa only [single_zero, mul_zero]},
-    symmetry, assumption },
+  { rw single_eq_of_ne,
+    { rw [nat.cast_zero, monomial],
+      simpa only [single_zero, mul_zero] },
+    exact h.symm },
   rw zero_mul,
   exact monomial_zero,
 end
 
-lemma pderivative_monomial_not_in_support_eq_zero {a : R} {v : S} {s : S →₀ ℕ}
+lemma pderivative_monomial_eq_zero_of_not_mem_support {a : R} {v : S} {s : S →₀ ℕ}
    (hv : v ∉ s.support) : pderivative v (monomial s a) = 0 :=
 begin
   rw [s.mem_support_to_fun, not_not] at hv,

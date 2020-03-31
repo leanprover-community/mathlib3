@@ -55,22 +55,22 @@ begin
   exact c.is_loopless
 end
 
-lemma is_chromatic_number_le_card_of_colouring {W : Type*} [fintype W] {n m}
-  (c : colouring W G) (hn : is_chromatic_number G n) (hm : m = fintype.card W) :
-  n ≤ m :=
+lemma is_chromatic_number_le_card_of_colouring {W : Type*} [fintype W] {n}
+  (c : colouring W G) (hn : is_chromatic_number G n) :
+  n ≤ fintype.card W :=
 begin
   obtain ⟨k, ⟨f⟩⟩ : ∃ k, nonempty (W ≃ fin k) :=
     fintype.exists_equiv_fin W,
-  obtain rfl : m = k,
-  { rw [hm, fintype.card_congr f, fintype.card_fin] },
+  obtain rfl : fintype.card W = k,
+  { rw [fintype.card_congr f, fintype.card_fin] },
   apply hn.min,
   exact c.extend f f.injective
 end
 
-lemma is_chromatic_number_le_card [fintype V] {n m}
-  (hn : is_chromatic_number G n) (hm : m = fintype.card V) :
-  n ≤ m :=
-is_chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn hm
+lemma is_chromatic_number_le_card [fintype V] {n}
+  (hn : is_chromatic_number G n) :
+  n ≤ fintype.card V :=
+is_chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn
 
 section
 open_locale classical

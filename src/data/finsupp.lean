@@ -402,6 +402,19 @@ if_pos rfl
 @[simp] lemma erase_ne [has_zero β] {a a' : α} {f : α →₀ β} (h : a' ≠ a) : (f.erase a) a' = f a' :=
 if_neg h
 
+lemma erase_single [has_zero β] {a : α} {b : β} : (erase a (single a b)) = 0 := begin
+  ext s, classical, by_cases hs : s = a,
+  { rw [hs, erase_same], refl },
+  { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
+end
+
+lemma erase_single_ne [has_zero β] {a a' : α} {b : β} {hv : a ≠ a'} : (erase a (single a' b)) = single a' b :=
+begin
+  ext s, classical, by_cases hs : s = a,
+  { rw [hs, erase_same, single_eq_of_ne (hv.symm)] },
+  { rw [erase_ne hs] }
+end
+
 end erase
 
 /-!
@@ -501,6 +514,13 @@ lemma erase_add_single {a : α} {f : α →₀ β} : f.erase a + single a (f a) 
 ext $ λ a',
 if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
 else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
+
+lemma erase_add (a : α) (f f' : α →₀ β) : erase a (f + f') = erase a f + erase a f' :=
+begin
+  ext s, classical, by_cases hs : s = a,
+  { rw [hs, add_apply, erase_same, erase_same, erase_same, add_zero] },
+  rw [add_apply, erase_ne hs, erase_ne hs, erase_ne hs, add_apply],
+end
 
 @[elab_as_eliminator]
 protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)

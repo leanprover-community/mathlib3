@@ -237,8 +237,8 @@ by { ext, dsimp [semigroup.map], simp, }
 -- TODO create a derive handler for this
 instance : equiv_functor semigroup :=
 { map := λ α β e, semigroup.map e,
-  id_map' := semigroup.id_map,
-  map_map' := λ α β γ e f, semigroup.map_map e f, }
+  map_refl' := semigroup.id_map,
+  map_trans' := λ α β γ e f, semigroup.map_map e f, }
 
 -- Verify that we can now use `equiv_rw` under `semigroup`:
 example {α : Type} [I : semigroup α] {β : Type} (e : α ≃ β) : semigroup β :=

@@ -5,23 +5,6 @@ Authors: Scott Morrison
 -/
 import tactic.equiv_rw
 
--- namespace tactic
--- meta def simp_result (i : tactic unit) : tactic unit :=
--- do
---   gs ← get_goals,
---   gs' ← gs.mmap (λ g, infer_type g >>= mk_meta_var),
---   set_goals gs',
---   r ← i,
---   (gs.zip gs').mmap (λ p, instantiate_mvars p.2 >>= (λ e, prod.fst <$> expr.simp e) >>= unify p.1),
---   set_goals gs,
---   return r
-
--- namespace interactive
--- meta def simp_result (i : itactic) : itactic := tactic.simp_result i
--- end interactive
-
--- end tactic
-
 namespace tactic
 open tactic.interactive
 
@@ -39,7 +22,7 @@ do
   (do
     propagate_tags $ (do
     f ← get_current_field,
-    mk_mapp f [none, s] >>= note f none,
+    mk_mapp f [α, none] >>= note f none,
     b ← target >>= is_prop,
     if b then (do
       unfold_projs_target,
@@ -77,7 +60,7 @@ meta def transport (s : parse texpr?) (e : parse $ (tk "with" *> ident)?) : itac
 do
   s ← match s with
   | some s := to_expr s
-  | none := (do
+  | none := (do -- no object specified, try to find a hypothesis that looks like the target:
     S ← target >>= (λ t, match t with
     | expr.app S α := pure S
     | _ := fail "No object to transport specified, and target doesn't look like a parametrized type."
@@ -86,8 +69,7 @@ do
   end,
   e ← match e with
   | some e := get_local e
-  | none := do
-    -- FIXME this is a hack, that works fine for structures like `ring α`, but ...
+  | none := do -- no equivalence specified, try to find a hypothesis of the right shape:
     (S, α) ← infer_type s >>= (λ t, match t with
     | expr.app S α := pure (S, α)
     | _ := fail format!"Object to transport doesn't look like a parametrized type: {s}"
@@ -109,7 +91,7 @@ end interactive
 -- This part is a hack, and hopefully won't last once I understand how to
 -- simplify the output from a tactic...
 
-/-- FIXME dummy doc -/
+/-- Copy a declaration to a new name, first running `simp` on the body. -/
 meta def simp_defn (d : declaration) (new_name : name) : tactic unit :=
 do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition with
   | declaration.defn name levels type value reducibility trusted :=
@@ -126,7 +108,7 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
 
 open lean.parser tactic interactive parser
 
-/-- FIXME dummy doc -/
+/-- Copy a declaration to a new name, first running `simp` on the body. -/
 @[user_command] meta def simp_defn_cmd (_ : parse $ tk "simp_defn") : lean.parser unit :=
 do from_lemma ← ident,
    new_name ← ident,
@@ -136,3 +118,24 @@ do from_lemma ← ident,
   tactic.simp_defn d new_name.
 
 end tactic
+
+-- This is an attempt at an alternative to `simp_defn` to copy a declaration.
+-- It works on easy examples, e.g. `def f : ℕ := by simp_result { exact (id 0) }`
+-- but `transport` breaks when wrapped in it.
+
+-- namespace tactic
+-- meta def simp_result (i : tactic unit) : tactic unit :=
+-- do
+--   gs ← get_goals,
+--   gs' ← gs.mmap (λ g, infer_type g >>= mk_meta_var),
+--   set_goals gs',
+--   r ← i,
+--   (gs.zip gs').mmap (λ p, instantiate_mvars p.2 >>= (λ e, prod.fst <$> expr.simp e) >>= unify p.1),
+--   set_goals gs,
+--   return r
+
+-- namespace interactive
+-- meta def simp_result (i : itactic) : itactic := tactic.simp_result i
+-- end interactive
+
+-- end tactic

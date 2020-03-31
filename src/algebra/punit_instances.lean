@@ -74,7 +74,7 @@ intros; exact subsingleton.elim _ _
 @[simp, to_additive] lemma mul_eq : x * y = star := rfl
 @[simp] lemma neg_eq : -x = star := rfl
 @[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
-@[simp] lemma smul_eq : x • y = star := rfl
+lemma smul_eq : x • y = star := rfl
 @[simp] lemma top_eq : (⊤ : punit) = star := rfl
 @[simp] lemma bot_eq : (⊥ : punit) = star := rfl
 @[simp] lemma sup_eq : x ⊔ y = star := rfl

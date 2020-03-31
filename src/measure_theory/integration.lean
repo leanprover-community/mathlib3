@@ -865,12 +865,12 @@ end
 lemma lintegral_const_mul (r : ennreal) {f : α → ennreal} (hf : measurable f) :
   (∫⁻ a, r * f a) = r * (∫⁻ a, f a) :=
 calc (∫⁻ a, r * f a) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a)) :
-    by congr; funext a; rw [← supr_eapprox_apply f hf, ennreal.mul_supr]; refl
+    by { congr, funext a, rw [← supr_eapprox_apply f hf, ennreal.mul_supr], refl }
   ... = (⨆n, r * (eapprox f n).integral) :
   begin
     rw [lintegral_supr],
     { congr, funext n, rw [← simple_func.const_mul_integral, ← simple_func.lintegral_eq_integral] },
-    { assume n, exact simple_func.measurable _ },
+    { assume n, dsimp, exact simple_func.measurable _ },
     { assume i j h a, exact canonically_ordered_semiring.mul_le_mul (le_refl _)
         (monotone_eapprox _ h _) }
   end

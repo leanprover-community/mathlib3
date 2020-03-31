@@ -13,7 +13,7 @@ variables (E : Type*) [add_comm_group E] [vector_space ℝ E]
 /-- A linear map sending each point `(x, y)` to the midpoint of the segment `[x, y]`.
 This map should be used only to prove properties of `midpoint` defined below. -/
 noncomputable def midpoint.linear : E × E →ₗ[ℝ] E :=
-(1/2:ℝ) • (linear_map.id.copair linear_map.id)
+(1/2:ℝ) • (linear_map.id.coprod linear_map.id)
 
 variable {E}
 

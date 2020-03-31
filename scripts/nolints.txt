@@ -1198,7 +1198,7 @@ apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
 
--- data/fintype.lean
+-- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments
 apply_nolint fintype.choose doc_blame

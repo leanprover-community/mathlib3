@@ -169,7 +169,7 @@ do
     -- If solve_by_elim gets stuck, check whether the simp-set `[functoriality]` can
     -- adjust the goal into a "more functorial" form:
     `[dsimp only [] with functoriality] <|>
-    -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
+    -- Also, make sure it isn't because there's a later `≃` or `↔` goal
     -- that we should still attempt.
     `[show _ ≃ _] <|> `[show _ ↔ _] <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,

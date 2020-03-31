@@ -173,16 +173,19 @@ end char_p
 
 namespace zmod
 
-variables {α : Type u} [ring α] {n : ℕ+}
+variables (α : Type u) [ring α] {n : ℕ+}
 
-instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast : zmod n → α) :=
-{ map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
-  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
+/-- `zmod.cast : zmod n →+* α` as a ring homomorphism. -/
+def cast_hom [char_p α n] : zmod n →+* α :=
+{ to_fun := cast,
+  map_zero' := rfl,
+  map_one' := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
+  map_mul' := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
     by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
-  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
+  map_add' := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
     by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
 
-instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
+instance to_module [char_p α n] : module (zmod n) α := (cast_hom α).to_module
 
 instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
 @zmod.to_module α _ ⟨m, hm⟩ hc

@@ -24,7 +24,8 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
-def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+/-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
+def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
 ⟨f, f, h.left_inverse, h.right_inverse⟩
 
 namespace equiv

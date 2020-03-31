@@ -423,6 +423,12 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
+
+/-- `mv_polynomial.eval₂` as a `ring_hom`. -/
+def eval₂_hom (f : α →+* β) (g : σ → β) : mv_polynomial σ α →+* β := ring_hom.of (eval₂ f g)
+
+@[simp] lemma coe_eval₂_hom (f : α →+* β) (g : σ → β) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
+
 end
 
 section
@@ -811,7 +817,7 @@ instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
 
 variables (σ a a')
-lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
@@ -869,12 +875,12 @@ variables (f : α → β) [is_ring_hom f] (g : σ → β)
 instance eval₂.is_ring_hom : is_ring_hom (eval₂ f g) :=
 by apply is_ring_hom.of_semiring
 
-lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
+@[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
-congr_fun (@int.eq_cast' _ _ (f ∘ C) (is_ring_hom.comp _ _)) n
+((ring_hom.of f).comp (ring_hom.of C)).eq_int_cast n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -882,7 +888,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C, int.eq_cast' c], refl })
+(λ n, by { rw [hom_C f, eval₂_C], exact (ring_hom.of c).eq_int_cast n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
@@ -890,9 +896,9 @@ mv_polynomial.induction_on x
 functions out of the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
-  inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
+  inv_fun := λ f, eval₂_hom (int.cast_ring_hom β) f,
   left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
-  right_inv := λ f, funext $ λ x, by simp only [ring_hom.coe_of, function.comp_app, eval₂_X] }
+  right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
 
@@ -902,7 +908,7 @@ variables (f : σ → α)
 
 instance eval.is_ring_hom : is_ring_hom (eval f) := eval₂.is_ring_hom _ _
 
-lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
+@[simp] lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
 
 @[simp] lemma eval_neg : (-p).eval f = -(p.eval f) := is_ring_hom.map_neg _
 
@@ -919,7 +925,7 @@ is_ring_hom.comp _ _
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _
 
-lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+@[simp] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 
 @[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 

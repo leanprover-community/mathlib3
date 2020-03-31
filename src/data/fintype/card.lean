@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 
-import data.fintype algebra.big_operators data.nat.choose tactic.ring
+import data.fintype.basic algebra.big_operators data.nat.choose tactic.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent

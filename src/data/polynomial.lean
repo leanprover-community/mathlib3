@@ -74,6 +74,14 @@ theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :
 @[ext] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
 (@ext_iff _ _ p q).2
 
+-- TODO -- this is OK for semimodules
+@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+
+-- TODO -- this is OK for semimodules
+lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
+ext $ λ n, coeff_C_mul f
+
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
@@ -1348,9 +1356,9 @@ is_ring_hom.map_neg _
 is_ring_hom.map_sub _
 
 section aeval
-/-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
-{ to_fun := polynomial.C,
+/-- R[X] is the generator of the category R-Alg. -/
+instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
+{ to_fun := ring_hom.of polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.module }

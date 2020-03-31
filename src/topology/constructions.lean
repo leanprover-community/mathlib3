@@ -125,8 +125,12 @@ lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
 continuous_snd.continuous_at
 
 lemma continuous.prod_mk {f : γ → α} {g : γ → β}
-  (hf : continuous f) (hg : continuous g) : continuous (λx, prod.mk (f x) (g x)) :=
+  (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
+
+lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
+  continuous (λ x : γ × δ, (f x.1, g x.2)) :=
+(hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
 
 lemma filter.eventually.prod_inl_nhds {p : α → Prop} {a : α}  (h : ∀ᶠ x in 𝓝 a, p x) (b : β) :
   ∀ᶠ x in 𝓝 (a, b), p (x : α × β).1 :=

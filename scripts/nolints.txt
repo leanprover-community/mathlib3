@@ -99,10 +99,6 @@ apply_nolint to_additive.proceed_fields doc_blame
 apply_nolint to_additive.target_name doc_blame
 apply_nolint to_additive.value_type doc_blame
 
--- algebra/group/type_tags.lean
-apply_nolint additive doc_blame
-apply_nolint multiplicative doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
 apply_nolint with_one.map doc_blame
@@ -125,9 +121,7 @@ apply_nolint lie_submodule has_inhabited_instance
 apply_nolint ideal doc_blame
 apply_nolint is_linear_map doc_blame
 apply_nolint is_linear_map.mk' doc_blame
-apply_nolint is_ring_hom.to_module doc_blame
 apply_nolint linear_map doc_blame
-apply_nolint linear_map.comp doc_blame
 apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
@@ -1098,7 +1092,6 @@ apply_nolint equiv.unique_congr doc_blame
 apply_nolint equiv.unique_of_equiv doc_blame
 apply_nolint equiv_of_unique_of_unique doc_blame
 apply_nolint equiv_punit_of_unique doc_blame
-apply_nolint function.involutive.to_equiv doc_blame
 apply_nolint unique_unique_equiv doc_blame
 
 -- data/equiv/denumerable.lean
@@ -1202,7 +1195,7 @@ apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
 
--- data/fintype.lean
+-- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments
 apply_nolint fintype.choose doc_blame

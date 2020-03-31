@@ -91,11 +91,18 @@ lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
+attribute [simp] val_zero
 @[simp] lemma val_one  {n : ℕ} : (1 : fin (n+2)).val = 1 := rfl
 @[simp] lemma val_two  {n : ℕ} : (2 : fin (n+3)).val = 2 := rfl
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 @[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
+
+/-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
+then they coincide (in the heq sense). -/
+protected lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
+  (H : ∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) : f == g :=
+by { induction h, rw heq_iff_eq, ext i, convert H i, exact (fin.ext_iff _ _).mpr rfl }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)

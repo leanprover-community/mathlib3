@@ -564,11 +564,11 @@ attribute [to_additive] prod_range_succ'
 
 lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
-(s.sum_hom _).symm
+(nat.cast_add_monoid_hom β).map_sum f s
 
 lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
   ↑(s.prod f) = s.prod (λa, f a : α → β) :=
-(s.prod_hom _).symm
+(nat.cast_ring_hom β).map_prod f s
 
 protected lemma sum_nat_coe_enat [decidable_eq α] (s : finset α) (f : α → ℕ) :
   s.sum (λ x, (f x : enat)) = (s.sum f : ℕ) :=
@@ -711,6 +711,50 @@ begin
       exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
+end
+
+open_locale classical
+
+/-- The product of `f a + g a` over all of `s` is the sum
+  over the powerset of `s` of the product of `f` over a subset `t` times
+  the product of `g` over the complement of `t`  -/
+lemma prod_add (f g : α → β) (s : finset α) :
+  s.prod (λ a, f a + g a) =
+  s.powerset.sum (λ t : finset α, t.prod f * (s \ t).prod g) :=
+calc s.prod (λ a, f a + g a)
+    = s.prod (λ a, ({false, true} : finset Prop).sum
+      (λ p : Prop, if p then f a else g a)) : by simp
+... = (s.pi (λ _, {false, true})).sum (λ p : Π a ∈ s, Prop,
+      s.attach.prod (λ a : {a // a ∈ s}, if p a.1 a.2 then f a.1 else g a.1)) : prod_sum
+... = s.powerset.sum (λ (t : finset α), t.prod f * (s \ t).prod g) : begin
+  refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
+  { simp [subset_iff]; tauto },
+  { intros t ht,
+    erw [prod_ite (λ a : {a // a ∈ s}, f a.1) (λ a : {a // a ∈ s}, g a.1)],
+    refine congr_arg2 _
+      (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
+         _ _ _
+        (λ b hb, ⟨b, by cases b; finish⟩))
+      (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
+        _ _ _
+        (λ b hb, ⟨b, by cases b; finish⟩));
+    intros; simp * at *; simp * at * },
+  { finish [function.funext_iff, finset.ext, subset_iff] },
+  { assume f hf,
+    exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
+      by simp, by funext; intros; simp *⟩ }
+end
+
+/--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`
+gives `(a + b)^s.card`.-/
+lemma sum_pow_mul_eq_add_pow
+  {α R : Type*} [comm_semiring R] (a b : R) (s : finset α) :
+  s.powerset.sum (λ t : finset α, a ^ t.card * b ^ (s.card - t.card)) =
+  (a + b) ^ s.card :=
+begin
+  rw [← prod_const, prod_add],
+  refine finset.sum_congr rfl (λ t ht, _),
+  rw [prod_const, prod_const, ← card_sdiff (mem_powerset.1 ht)]
 end
 
 lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :

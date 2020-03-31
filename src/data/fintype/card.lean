@@ -68,13 +68,14 @@ card_sigma _ _
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 by rw [sum.fintype, fintype.of_equiv_card]; simp
 
+@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
+  {δ : α → Type*} (t : Π a, finset (δ a)) :
+  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
+by simp [fintype.pi_finset, card_map]
+
 @[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
   [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = univ.prod (λ a, fintype.card (β a)) :=
-by letI f' : fintype (Πa∈univ, β a) :=
-  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩;
-exact calc fintype.card (Π a, β a) = fintype.card (Π a ∈ univ, β a) : fintype.card_congr
-  ⟨λ f a ha, f a, λ f a, f a (mem_univ a), λ _, rfl, λ _, rfl⟩
-... = univ.prod (λ a, fintype.card (β a)) : finset.card_pi _ _
+fintype.card_pi_finset _
 
 -- FIXME ouch, this should be in the main file.
 @[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
@@ -104,17 +105,33 @@ begin
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
 end
 
-@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
-  {δ : α → Type*} [decidable_eq (Π a, δ a)] (t : Π a, finset (δ a)) :
-  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
-begin
-  dsimp [fintype.pi_finset],
-  rw card_image_of_injective,
-  { simp },
-  { assume f g hfg,
-    ext a ha,
-    exact (congr_fun hfg a : _) }
-end
+/-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
+  `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
+  in the type of their element, `univ.pi t` is a `finset (Π a ∈ univ, t a)` and
+  `fintype.pi_finset t` is a `finset (Π a, t a)`. -/
+@[to_additive "Taking a sum over `univ.pi t` is the same as taking the sum over
+  `fintype.pi_finset t`. `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`,
+  but differ in the type of their element, `univ.pi t` is a `finset (Π a ∈ univ, t a)` and
+  `fintype.pi_finset t` is a `finset (Π a, t a)`."]
+lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
+  {δ : α → Type*} {t : Π (a : α), finset (δ a)}
+  (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
+  (univ.pi t).prod f = (fintype.pi_finset t).prod (λ x, f (λ a _, x a)) :=
+prod_bij (λ x _ a, x a (mem_univ _))
+  (by simp)
+  (by simp)
+  (by simp [function.funext_iff] {contextual := tt})
+  (λ x hx, ⟨λ a _, x a, by simp * at *⟩)
+
+/-- The product over `univ` of a sum can be written as a sum over the product of sets,
+  `fintype.pi_finset`. `finset.prod_sum` is an alternative statement when the product is not
+  over `univ` -/
+lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ : α → Type u_1}
+  [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
+  {f : Π (a : α), δ a → β} :
+  univ.prod (λ a, (t a).sum (λ b, f a b)) =
+  (fintype.pi_finset t).sum (λ p, univ.prod (λ x, f x (p x))) :=
+by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
 
 /-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
 gives `(a + b)^n`. The "good" proof involves expanding along all coordinates using the fact that

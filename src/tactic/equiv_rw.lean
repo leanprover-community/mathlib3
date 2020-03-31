@@ -163,6 +163,7 @@ do
     -- that we should still attempt.
     discharger :=  `[show _ ≃ _] <|> `[show _ ↔ _] <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
+    -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
     accept := λ goals, lock_tactic_state (do
       when_tracing `equiv_rw_type (do
         goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),

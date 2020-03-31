@@ -189,7 +189,7 @@ lemma coeff_mul (p q : polynomial α) (n : ℕ) :
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
     → a.1 + a.2 = n, from λ a ha, by_contradiction
   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
+calc coeff (p * q) n = p.support.sum (λ a, q.support.sum
     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
   by simp only [mul_def, coeff_sum, coeff_single]; refl
 ... = (p.support.product q.support).sum
@@ -718,7 +718,7 @@ lemma degree_sum_le (s : finset β) (f : β → polynomial α) :
   degree (s.sum f) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $
   assume a s has ih,
-  calc degree (sum (insert a s) f) ≤ max (degree (f a)) (degree (s.sum f)) :
+  calc degree ((insert a s).sum f) ≤ max (degree (f a)) (degree (s.sum f)) :
     by rw sum_insert has; exact degree_add_le _ _
   ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
 

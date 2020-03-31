@@ -279,7 +279,7 @@ end
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
 @ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
-  (@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α) $
+  (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,

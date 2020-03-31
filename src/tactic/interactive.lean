@@ -23,7 +23,7 @@ add_tactic_doc
 { name       := "fconstructor",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fconstructor],
-  tags       := [] }
+  tags       := ["logic", "goal management"] }
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -42,7 +42,7 @@ add_tactic_doc
 { name       := "substs",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.substs],
-  tags       := ["substitution"] }
+  tags       := ["rewrite"] }
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
@@ -118,7 +118,7 @@ add_tactic_doc
 { name       := "clear_",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.clear_],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 meta def apply_iff_congr_core : tactic unit :=
 applyc ``iff_of_eq
@@ -172,7 +172,7 @@ add_tactic_doc
 { name       := "replace",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.replace],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /-- Make every proposition in the context decidable. -/
 meta def classical := tactic.classical
@@ -181,7 +181,7 @@ add_tactic_doc
 { name       := "classical",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.classical],
-  tags       := ["classical reasoning", "type class"] }
+  tags       := ["classical logic", "type class"] }
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -225,7 +225,7 @@ add_tactic_doc
 { name       := "generalize_hyp",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize_hyp],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /--
 The `exact e` and `refine e` tactics require a term `e` whose type is
@@ -624,7 +624,7 @@ add_tactic_doc
 { name       := "h_generalize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.h_generalize],
-  tags       := ["hypothesis management"] }
+  tags       := ["context management"] }
 
 /-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
@@ -713,7 +713,7 @@ add_tactic_doc
 { name       := "field_simp",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.field_simp],
-  tags       := ["simplification", "normalization", "algebra"] }
+  tags       := ["simplification", "arithmetic"] }
 
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
@@ -793,7 +793,7 @@ add_tactic_doc
 { name       := "use",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.use, `tactic.interactive.existsi],
-  tags       := ["logical manipulation"],
+  tags       := ["logic"],
   inherit_description_from := `tactic.interactive.use }
 
 /--
@@ -855,7 +855,7 @@ add_tactic_doc
 { name       := "change'",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.change', `tactic.interactive.change],
-  tags       := ["simplification", "renaming"],
+  tags       := ["renaming"],
   inherit_description_from := `tactic.interactive.change' }
 
 meta def convert_to_core (r : pexpr) : tactic unit :=
@@ -1077,9 +1077,21 @@ add_tactic_doc
   tags       := ["goal management"] }
 
 
-/-- `inhabit α` turns a `nonempty α` instance into an `inhabited α` instance.
-If the target is a prop, this is done constructively;
-otherwise, it uses `classical.choice`. -/
+/--
+`inhabit α` tries to derive a `nonempty α` instance and then upgrades this
+to an `inhabited α` instance.
+If the target is a `Prop`, this is done constructively;
+otherwise, it uses `classical.choice`.
+
+```lean
+example (α) [nonempty α] : ∃ a : α, true :=
+begin
+  inhabit α,
+  existsi default α,
+  trivial
+end
+```
+-/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
 do ty ← i_to_expr t,
    nm ← get_unused_name `inst,
@@ -1095,7 +1107,7 @@ add_tactic_doc
 { name       := "inhabit",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.inhabit],
-  tags       := ["context management", "type classes"] }
+  tags       := ["context management", "type class"] }
 
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
 It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
@@ -1106,7 +1118,7 @@ add_tactic_doc
 { name       := "revert_deps",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_deps],
-  tags       := ["hypothesis management", "goal management"] }
+  tags       := ["context management", "goal management"] }
 
 /-- `revert_after n` reverts all the hypotheses after `n`. -/
 meta def revert_after (n : parse ident) : tactic unit :=
@@ -1116,7 +1128,7 @@ add_tactic_doc
 { name       := "revert_after",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_after],
-  tags       := ["hypothesis management", "goal management"] }
+  tags       := ["context management", "goal management"] }
 
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/

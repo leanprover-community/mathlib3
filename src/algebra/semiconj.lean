@@ -237,4 +237,18 @@ lemma gsmul_gsmul (h : semiconj_by a x y) (m n : ℤ) : semiconj_by (m •ℤ a)
 
 end ring
 
+section division_ring
+
+variables {R : Type*} [division_ring R] {a x y : R}
+
+@[simp] lemma finv_symm_left_iff : semiconj_by a⁻¹ x y ↔ semiconj_by a y x :=
+classical.by_cases
+  (λ ha : a = 0, by simp only [ha, inv_zero, zero_left])
+  (λ ha, @units_inv_symm_left_iff _ _ (units.mk0 a ha) _ _)
+
+lemma finv_symm_left (h : semiconj_by a x y) : semiconj_by a⁻¹ y x :=
+finv_symm_left_iff.2 h
+
+end division_ring
+
 end semiconj_by

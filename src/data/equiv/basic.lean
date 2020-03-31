@@ -12,7 +12,7 @@ import tactic.split_ifs logic.function logic.unique data.set.function data.bool 
 
 open function
 
-universes u v w
+universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
@@ -61,6 +61,12 @@ equiv.ext _ _ H
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
+@[simp]
+lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+
+@[simp]
+lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+
 protected theorem injective : ∀ f : α ≃ β, injective f
 | ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
 
@@ -73,8 +79,8 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 @[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
 set.eq_univ_of_forall e.surjective
 
-protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
-| ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
+protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
+e.injective.comap_subsingleton
 
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
 | a b := decidable_of_iff _ e.injective.eq_iff
@@ -136,8 +142,7 @@ theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f :
 
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end,
-  assume ac, begin simp [trans_assoc], rw [← trans_assoc], simp end, ⟩
+  assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
@@ -224,8 +229,8 @@ protected def plift : plift α ≃ α :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.left_inv, e₁.left_inv] },
-  right_inv := λ f, funext $ λ x, by { dsimp, rw [e₂.right_inv, e₁.right_inv] } }
+  left_inv := λ f, funext $ λ x, by { dsimp, simp },
+  right_inv := λ f, funext $ λ x, by { dsimp, simp } }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :
@@ -293,7 +298,7 @@ calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.re
 
 end
 
-@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ :β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+@[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨λp, (e₁ p.1, e₂ p.2), λp, (e₁.symm p.1, e₂.symm p.2),
    λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [symm_apply_apply, symm_apply_apply],
    λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_symm_apply, apply_symm_apply]⟩
@@ -457,6 +462,15 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α
    λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
      | _, rfl := rfl end⟩
 
+/-- transporting a sigma type through an equivalence of the base -/
+def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β a) ≃ (Σ a:α₂, β (f.symm a)) :=
+λ f, (sigma_congr_left f.symm).symm
+
+/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibres -/
+def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*} (f : α₁ ≃ α₂) (F : ∀ a, β₁ a ≃ β₂ (f a)) :
+  sigma β₁ ≃ sigma β₂ :=
+(sigma_congr_right F).trans (sigma_congr_left f)
+
 def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
@@ -551,7 +565,7 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv (e : α ≃ β) (h : unique β) : unique α :=
-unique.of_surjective e.symm.surjective
+e.symm.surjective.unique
 
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := e.symm.unique_of_equiv,
@@ -862,7 +876,7 @@ rfl
 if_pos rfl
 
 @[simp] theorem swap_apply_right (a b : α) : swap a b b = a :=
-by { by_cases b = a; simp [swap_apply_def, *] }
+by { by_cases h : b = a; simp [swap_apply_def, h], }
 
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
@@ -908,7 +922,60 @@ begin
   { rw [←f.right_inv x], apply h.mp, apply h₂ },
   apply h.mpr, apply h₂
 end
+protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
+  (∀x, p x) ↔ (∀y, p (f.symm y)) :=
+equiv.forall_congr f (λx, by simp)
 
+protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
+  (∀x, p (f x)) ↔ (∀y, p y) :=
+(equiv.forall_congr_left' f.symm).symm
+
+section
+variables (P : α → Sort w) (e : α ≃ β)
+
+/--
+Transport dependent functions through an equivalence of the base space.
+-/
+def Pi_congr_left' : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
+{ to_fun := λ f x, f (e.symm x),
+  inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
+  left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { dsimp, rw e.symm_apply_apply })),
+  right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { rw e.apply_symm_apply })) }
+
+@[simp]
+lemma Pi_congr_left'_apply (f : Π a, P a) (b : β) : ((Pi_congr_left' P e) f) b = f (e.symm b) :=
+rfl
+
+@[simp]
+lemma Pi_congr_left'_symm_apply (g : Π b, P (e.symm b)) (a : α) :
+  ((Pi_congr_left' P e).symm g) a = (by { convert g (e a), simp }) :=
+rfl
+
+end
+
+section
+variables (P : β → Sort w) (e : α ≃ β)
+
+/--
+Transporting dependent functions through an equivalence of the base,
+expressed as a "simplification".
+-/
+def Pi_congr_left : (Π a, P (e a)) ≃ (Π b, P b) :=
+(Pi_congr_left' P e.symm).symm
+end
+
+section
+variables
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
+
+/--
+Transport dependent functions through
+an equivalence of the base spaces and a family
+of equivalences of the matching fibres.
+-/
+def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
+(equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+end
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

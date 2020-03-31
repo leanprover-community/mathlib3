@@ -5,7 +5,6 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.equiv.basic logic.embedding
 import data.nat.cast
-import data.finset data.fintype
 
 /-!
 # Combinatorial (pre-)games.
@@ -181,7 +180,7 @@ meta def pgame_wf_tac :=
   [psigma.lex.left, psigma.lex.right,
    subsequent.left_move, subsequent.right_move,
    subsequent.left, subsequent.right, subsequent.trans]
-  { max_rep := 6 }]
+  { max_steps := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩

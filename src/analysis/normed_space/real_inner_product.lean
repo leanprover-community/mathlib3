@@ -232,6 +232,9 @@ Existence of minimizers
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
  -/
+-- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
+-- It should be broken in a sequence of more manageable pieces,
+-- perhaps with individual statements for the three steps below.
 theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
   (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin

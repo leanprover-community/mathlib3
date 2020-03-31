@@ -206,18 +206,13 @@ end
 -- (which isn't yet in this PR, so we only define the fields without assembling them)
 -- Observe that the next three declarations could easily be implemented by a tactic.
 
+-- `semigroup.map` and `monoid.map` can now be synthesized automatically using the
+-- `transport` tactic, but we leave these in the test file for `equiv_rw`,
+-- to make sure we have differential diagnosis for `equiv_rw` and `transport`.
+
 attribute [ext] semigroup
 
 def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
-begin
-  intro S, fconstructor,
-  -- transport data fields using `equiv_rw`
-  { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  -- transport axioms by simplifying, and applying the original axiom
-  { intros, dsimp, simp, apply S.mul_assoc, }
-end
-
-def semigroup.map' {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
 begin
   intro S,
   refine_struct { .. },
@@ -226,7 +221,6 @@ begin
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
-
 
 -- Note this is purely formal, and will be provided by `equiv_functor` automatically.
 @[simps]
@@ -246,16 +240,13 @@ by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
+-- The constructions and proofs here are written as uniformly as possible.
+-- This example is the blueprint for the `transport` tactic.
 def monoid.map {α β : Type} (e : α ≃ β) (S : monoid α) : monoid β :=
 begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  { /-
-    The next line also works here,
-    but this pattern doesn't work for axioms involving constants, e.g. one_mul:
-    -/
-    -- have mul_assoc := S.mul_assoc, equiv_rw e at mul_assoc, intros, dsimp, simp, apply mul_assoc,
-    unfold_projs,
+  { unfold_projs,
     simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
     under_binders { apply e.symm.injective },
     have mul_assoc := S.mul_assoc,
@@ -269,7 +260,7 @@ begin
     equiv_rw e at one_mul,
     solve_by_elim, },
   { unfold_projs,
-    squeeze_simp,
+    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
     under_binders { apply e.symm.injective },
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,

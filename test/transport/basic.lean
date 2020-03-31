@@ -7,6 +7,7 @@ def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semirin
 by transport
 .
 
+-- Indeed, it can equally well move a `semilattice_sup_top`.
 def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) : semilattice_sup_top β :=
 by transport
 .

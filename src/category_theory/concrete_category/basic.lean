@@ -116,6 +116,13 @@ lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.
     convert congr_arg (λ k : Z ⟶ Y, (k : Z → Y) z) w; simp only [coe_comp],
   end⟩
 
+lemma iso.injective {X Y : C} (i : X ≅ Y) : function.injective (i.hom : X → Y) :=
+((forget C).map_iso i).to_equiv.injective
+
+-- FIXME name
+lemma iso.injective_iff {X Y : C} (i : X ≅ Y) (x y : X) : x = y ↔ i.hom x = i.hom y :=
+⟨λ h, by subst h, λ h, i.injective h⟩
+
 end
 
 instance concrete_category.types : concrete_category (Type u) :=

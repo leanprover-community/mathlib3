@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.functor
+import category_theory.concrete_category.basic
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -145,6 +146,8 @@ meta def equiv_rw_type_core (eq : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
   -- Assemble the relevant lemmas.
   equiv_congr_lemmas ← equiv_congr_lemmas,
+  eq_injective ← try_core $ to_expr ``(equiv.injective %%eq) <|> to_expr ``(category_theory.iso.injective_iff %%eq),
+  let equiv_congr_lemmas := eq :: eq_injective.to_list ++ equiv_congr_lemmas,
   /-
     We now call `solve_by_elim` to try to generate the requested equivalence.
     There are a few subtleties!
@@ -157,7 +160,7 @@ do
   solve_by_elim
   { use_symmetry := false,
     use_exfalso := false,
-    lemmas := some ((eq :: equiv_congr_lemmas).map return),
+    lemmas := some (equiv_congr_lemmas.map return),
     max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
@@ -187,7 +190,6 @@ do
     eqv_pp ← pp eqv,
     eqv_ty_pp ← infer_type eqv >>= pp,
     trace format!"Attempting to rewrite the type `{ty_pp}` using `{eqv_pp} : {eqv_ty_pp}`."),
-  `(_ ≃ _) ← infer_type eqv | fail format!"{eqv} must be an `equiv`",
   -- We prepare a synthetic goal of type `(%%ty ≃ _)`, for some placeholder right hand side.
   equiv_ty ← to_expr ``(%%ty ≃ _),
   -- Now call `equiv_rw_type_core`.

@@ -50,6 +50,7 @@ functorial.map_comp F _ _
 If `F : C → D` (just a function) has `[functorial F]`,
 we can write `map_iso F f : F X ≅ F Y` for the action of `F` on an isomorphism `f : X ≅ Y`.
 -/
+@[simps]
 def map_iso (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ≅ Y) : F X ≅ F Y :=
 { hom := map F f.hom,
   inv := map F f.inv,

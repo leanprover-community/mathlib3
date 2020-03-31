@@ -1153,11 +1153,10 @@ not_congr cast_eq_zero
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
 
-instance cast.is_ring_hom [ring α] :
-  is_ring_hom (int.cast : ℤ → α) :=
-⟨cast_one, cast_mul, cast_add⟩
+/-- `coe : ℤ → α` as a `ring_hom`. -/
+def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
-instance coe.is_ring_hom [ring α] : is_ring_hom (coe : ℤ → α) := cast.is_ring_hom
+@[simp] lemma coe_cast_ring_hom [ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
@@ -1204,9 +1203,6 @@ begin
       ← show -[1+ n] + (↑n + 1) = 0, from neg_add_self (↑n+1),
       Hadd, show f (n+1) = n+1, from H (n+1)]
 end
-
-lemma eq_cast' [ring α] (f : ℤ → α) [is_ring_hom f] : f = int.cast :=
-funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
 
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm
@@ -1258,15 +1254,20 @@ end decidable
 
 end int
 
-section ring_hom
+namespace ring_hom
 
-variables {α : Type*} {β : Type*} [ring α] [ring β]
+variables {α : Type*} {β : Type*} {rα : ring α} {rβ : ring β}
+include rα
 
-lemma is_ring_hom.map_int_cast (f : α → β) [is_ring_hom f] (n : ℤ) : f n = n :=
-int.eq_cast (λ n : ℤ, f n) (by simp [is_ring_hom.map_one f])
-  (by simp [is_ring_hom.map_add f]) _
+@[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
+int.eq_cast f f.map_one f.map_add n
 
-lemma ring_hom.map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
-is_ring_hom.map_int_cast _ _
+lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
+ring_hom.ext $ int.eq_cast f f.map_one f.map_add
+
+include rβ
+
+@[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
+(f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 end ring_hom

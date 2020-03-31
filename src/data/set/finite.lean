@@ -521,6 +521,14 @@ calc
           end
   ... = s.prod g : by rw [image_preimage]
 
+/-- A finset is bounded above. -/
+lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=
+set.bdd_above_finite (finset.finite_to_set s)
+
+/-- A finset is bounded below. -/
+lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) : bdd_below (↑s : set α) :=
+set.bdd_below_finite (finset.finite_to_set s)
+
 end finset
 
 lemma fintype.exists_max [fintype α] [nonempty α]

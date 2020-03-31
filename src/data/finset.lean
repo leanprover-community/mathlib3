@@ -1293,6 +1293,21 @@ theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
+end card
+end finset
+
+theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
+card_le_of_le (erase_dup_le _)
+
+theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
+multiset.to_finset_card_le ⟦l⟧
+
+namespace finset
+section card
+
+theorem card_image_le [decidable_eq β] {f : α → β} {s : finset α} : card (image f s) ≤ card s :=
+by simpa only [card_map] using (s.1.map f).to_finset_card_le
+
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
 by simp only [card, image_val_of_inj_on H, card_map]

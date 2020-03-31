@@ -150,19 +150,67 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-instance [semiring k] [monoid G] : has_scalar k (monoid_algebra k G) :=
+instance [semiring k] : has_scalar k (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] [monoid G] : semimodule k (monoid_algebra k G) :=
+instance [semiring k] : semimodule k (monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] [monoid G] : module k (monoid_algebra k G) :=
+instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
   (sum_single_index (by rw [_root_.mul_zero, single_zero]))
+
+/--
+The ring homomorphism `k →+* monoid_algebra k G`,
+including `k` as functions supported at `1 : G`.
+-/
+def single_one.ring_hom [semiring k] [monoid G] : k →+* monoid_algebra k G :=
+{ map_one' := rfl,
+  map_mul' := λ x y, begin convert single_mul_single.symm, simp, refl, end,
+  ..(finsupp.single.add_monoid_hom 1 ) }
+
+@[simp]
+lemma single_one.ring_hom_apply [semiring k] [monoid G] (x : k) :
+  (single_one.ring_hom : k →+* monoid_algebra k G) x = single 1 x := rfl
+
+lemma single_one.central [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
+  f * (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r =
+    (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r * f :=
+begin
+  ext,
+  -- It would be nice if this next step worked by `simp`.
+  dsimp [monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+  simp only [monoid_algebra.mul_apply],
+  conv_lhs { rw [finsupp.sum_comm], },
+  rw [finsupp.sum_single_index],
+  { rw [finsupp.sum_single_index],
+    { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+      funext, congr,
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      { congr, funext, congr, },
+      { congr' 1, apply mul_comm, }, },
+    simp, },
+  { simp, }
+end.
+
+lemma module_smul_eq [semiring k] [monoid G] (r : k) (f : monoid_algebra k G) (w) :
+  finsupp.map_range (λ x, r • x) w f = (finsupp.single 1 r * f : monoid_algebra k G) :=
+begin
+  ext,
+  rw [monoid_algebra.mul_apply],
+  rw [finsupp.sum_single_index],
+  { simp only [one_mul, smul_eq_mul, finsupp.map_range_apply, finsupp.sum_ite_eq'],
+    symmetry,
+    convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+    { congr, funext, congr, },
+    { simp, classical, split_ifs, simp [h], }, },
+  { simp, }
+end
 
 universe ui
 variable {ι : Type ui}
@@ -198,12 +246,14 @@ begin
   rw mul_apply_left,
   -- Again, we need to unpack the `single` into a correctly positioned `ite`:
   have t : ∀ a₁, x = a₁⁻¹ * y ↔ y * x⁻¹ = a₁ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
-  -- after which it's straightforward.
-  simp only [mem_support_iff, sum_mul_ite_eq, ne.def],
-  split_ifs,
-  { simp [h], },
-  { refl, },
+  simp [single_apply, t],
+  -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
+  convert f.sum_ite_eq (y * x⁻¹) (λ x v, v * r),
+  { funext, congr, },
+  { simp only [mem_support_iff, ne.def],
+    split_ifs,
+    { simp [h], },
+    { refl, }, }
 end
 
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
@@ -227,11 +277,14 @@ lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
 begin
   rw mul_apply_right,
   have t : ∀ a₂, x = y * a₂⁻¹ ↔ x⁻¹ * y = a₂ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
-  simp only [mem_support_iff, sum_ite_mul_eq, ne.def],
-  split_ifs,
-  { simp [h], },
-  { refl, },
+  simp [single_apply, t],
+  -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
+  convert f.sum_ite_eq (x⁻¹ * y) (λ x v, r * v),
+  { funext, congr, },
+  { simp only [mem_support_iff, ne.def],
+    split_ifs,
+    { simp [h], },
+    { refl, }, }
 end
 
 end
@@ -269,6 +322,13 @@ instance : has_mul (add_monoid_algebra k G) :=
 lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
+
+lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [sum_apply, single_apply],
+end
 
 lemma support_mul (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
@@ -336,19 +396,67 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-instance [semiring k] [monoid G] : has_scalar k (add_monoid_algebra k G) :=
+instance [semiring k] : has_scalar k (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] [monoid G] : semimodule k (add_monoid_algebra k G) :=
+instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] [monoid G] : module k (add_monoid_algebra k G) :=
+instance [ring k] : module k (add_monoid_algebra k G) :=
 finsupp.module G k
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
   (sum_single_index (by rw [_root_.mul_zero, single_zero]))
+
+/--
+The ring homomorphism `k →+* add_monoid_algebra k G`,
+including `k` as functions supported at `0 : G`.
+-/
+def single_one.ring_hom [semiring k] [add_monoid G] : k →+* add_monoid_algebra k G :=
+{ map_one' := rfl,
+  map_mul' := λ x y, begin convert single_mul_single.symm, simp, refl, end,
+  ..(finsupp.single.add_monoid_hom 0 ) }
+
+@[simp]
+lemma single_one.ring_hom_apply [semiring k] [add_monoid G] (x : k) :
+  (single_one.ring_hom : k →+* add_monoid_algebra k G) x = single 0 x := rfl
+
+lemma single_one.central [comm_semiring k] [add_monoid G] (r : k) (f : add_monoid_algebra k G) :
+  f * (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r =
+    (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r * f :=
+begin
+  ext,
+  -- It would be nice if this next step worked by `simp`.
+  dsimp [add_monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
+  simp only [add_monoid_algebra.mul_apply],
+  conv_lhs { rw [finsupp.sum_comm], },
+  rw [finsupp.sum_single_index],
+  { rw [finsupp.sum_single_index],
+    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+      funext, congr,
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      { congr, funext, congr, },
+      { congr' 1, apply mul_comm, }, },
+    simp, },
+  { simp, }
+end.
+
+lemma module_smul_eq [semiring k] [add_monoid G] (r : k) (f : add_monoid_algebra k G) (w) :
+  finsupp.map_range (λ x, r • x) w f = (finsupp.single 0 r * f : add_monoid_algebra k G) :=
+begin
+  ext,
+  rw [add_monoid_algebra.mul_apply],
+  rw [finsupp.sum_single_index],
+  { simp only [zero_add, smul_eq_mul, finsupp.map_range_apply, finsupp.sum_ite_eq'],
+    symmetry,
+    convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+    { congr, funext, congr, },
+    { simp, classical, split_ifs, simp [h], }, },
+  { simp, }
+end
 
 universe ui
 variable {ι : Type ui}

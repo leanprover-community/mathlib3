@@ -6,6 +6,8 @@ Authors: Scott Morrison
 
 import category_theory.groupoid
 import category_theory.whiskering
+import category.equiv_functor
+import category_theory.types
 
 namespace category_theory
 
@@ -46,5 +48,25 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 
 def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj inclusion
 end core
+
+omit 𝒞
+
+/--
+`of_equiv_functor m` lifts a type-level `equiv_functor`
+to a categorical functor `core (Type u₁) ⥤ core (Type u₂)`.
+-/
+def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
+  core (Type u₁) ⥤ core (Type u₂) :=
+{ obj       := m,
+  map       := λ α β f, (equiv_functor.map_equiv m f.to_equiv).to_iso,
+  -- These are not very pretty.
+  map_id' := λ α, begin ext, exact (congr_fun (equiv_functor.map_refl _ _) x), end,
+  map_comp' := λ α β γ f g,
+  begin
+    ext,
+    simp only [equiv_functor.map_equiv_apply, equiv.to_iso_hom,
+      function.comp_app, core.comp_hom, types_comp],
+    erw [iso.to_equiv_comp, equiv_functor.map_trans],
+  end, }
 
 end category_theory

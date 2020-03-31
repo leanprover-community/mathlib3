@@ -593,7 +593,7 @@ add_tactic_doc
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.finish, `tactic.interactive.clarify,
                   `tactic.interactive.safe],
-  tags        := [] }
+  tags        := ["logic", "finishing"] }
 
 /--
 `iclarify` is like `clarify`, but only uses intuitionistic logic.

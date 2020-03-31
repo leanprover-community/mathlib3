@@ -73,6 +73,22 @@ begin
   refl
 end
 
+lemma eventually_left_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  ∀ᶠ y in 𝓝 x, e.inv_fun (e.to_fun y) = y :=
+filter.eventually.mono (mem_nhds_sets e.open_source hx) e.left_inv
+
+lemma eventually_left_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
+  ∀ᶠ y in 𝓝 (e.inv_fun x), e.inv_fun (e.to_fun y) = y :=
+e.eventually_left_inverse (e.map_target hx)
+
+lemma eventually_right_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
+  ∀ᶠ y in 𝓝 x, e.to_fun (e.inv_fun y) = y :=
+filter.eventually.mono (mem_nhds_sets e.open_target hx) e.right_inv
+
+lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  ∀ᶠ y in 𝓝 (e.to_fun x), e.to_fun (e.inv_fun y) = y :=
+e.eventually_right_inverse (e.map_source hx)
+
 /-- Two local homeomorphisms are equal when they have equal to_fun, inv_fun and source. It is not
 sufficient to have equal to_fun and source, as this only determines inv_fun on the target. This
 would only be true for a weaker notion of equality, arguably the right one, called `eq_on_source`. -/

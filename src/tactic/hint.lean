@@ -49,7 +49,7 @@ add_tactic_doc
 { name                     := "add_hint_tactic",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.hint.add_hint_tactic],
-  tags                     := ["rewrite", "search"] }
+  tags                     := ["search"] }
 
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
@@ -110,7 +110,7 @@ add_tactic_doc
 { name        := "hint",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.hint],
-  tags        := ["rewrite", "search", "Try this"] }
+  tags        := ["search", "Try this"] }
 
 end interactive
 

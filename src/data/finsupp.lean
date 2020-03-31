@@ -451,28 +451,6 @@ lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 
--- TODO revisit these next four proofs after Lean 3.8 arrives. Ideally this is `by simp`.
-@[simp]
-lemma sum_mul_ite_eq [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
-  f.sum (λ x v, (b x v) * ite (a = x) r 0) = ite (a ∈ f.support) (b a (f a) * r) 0 :=
-by { conv_lhs { apply_congr, skip, simp [mul_ite], }, simp, congr, }
-
-@[simp]
-lemma sum_ite_mul_eq [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
-  f.sum (λ x v, ite (a = x) r 0 * (b x v)) = ite (a ∈ f.support) (r * b a (f a)) 0 :=
-by { conv_lhs { apply_congr, skip, simp [ite_mul], }, simp, congr, }
-
-@[simp]
-lemma sum_mul_ite_eq' [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
-  f.sum (λ x v, (b x v) * ite (x = a) r 0) = ite (a ∈ f.support) (b a (f a) * r) 0 :=
-by { conv_lhs { apply_congr, skip, simp [mul_ite], }, simp, congr, }
-
-@[simp]
-lemma sum_ite_mul_eq' [has_zero β] [semiring γ] (f : α →₀ β) (a : α) (b : α → β → γ) (r : γ):
-  f.sum (λ x v, ite (x = a) r 0 * (b x v)) = ite (a ∈ f.support) (r * b a (f a)) 0 :=
-by { conv_lhs { apply_congr, skip, simp [ite_mul], }, simp, congr, }
-
-
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 
@@ -1166,7 +1144,7 @@ begin
       support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
       multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
     refl,
-    refine disjoint_mono support_single_subset (subset.refl _) _,
+    refine disjoint.mono_left support_single_subset _,
     rwa [finset.singleton_eq_singleton, finset.singleton_disjoint] }
 end
 
@@ -1314,6 +1292,47 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
 
 instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..finsupp.semimodule α β }
+
+section
+variables {α β}
+
+/--
+`finsupp.single.add_monoid_hom a` is the additive homomorphism `β →+ (α →₀ β)`,
+including `β` as functions supported at `a`.
+-/
+def single.add_monoid_hom [add_monoid β] (a : α) : β →+ (α →₀ β) :=
+{ to_fun := λ b, single a b,
+  map_zero' := by simp,
+  map_add' := by simp, }
+
+@[simp]
+lemma single.add_monoid_hom_apply [add_monoid β] (a : α) (b : β) :
+  (single.add_monoid_hom a : β →+ (α →₀ β)) b = single a b := rfl
+
+/--
+`finsupp.single.linear_map a` is the linear map `β →ₗ[γ] (α →₀ β)`,
+including `β` as functions supported at `a`.
+-/
+def single.linear_map [ring γ] [add_comm_group β] [module γ β] (a : α) : β →ₗ[γ] (α →₀ β) :=
+{ to_fun := λ b, single a b,
+  add := by simp,
+  smul := λ c x,
+  begin
+    ext a',
+    -- This is just gross.
+    -- * We need `h` in one branch, but `h.symm` in the other.
+    -- * We need to rewrite by `←ne.def`.
+    by_cases h : a = a',
+    { simp [h.symm], },
+    { rw ←ne.def at h, simp [h], },
+  end, }
+
+@[simp]
+lemma single.linear_map_apply [ring γ] [add_comm_group β] [module γ β] (a : α) (b : β) :
+  (single.linear_map a : β →ₗ[γ] (α →₀ β)) b = single a b := rfl
+
+end
+
 
 instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
 { ..finsupp.module α β }

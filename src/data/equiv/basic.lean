@@ -24,7 +24,8 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
-def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+/-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
+def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
 ⟨f, f, h.left_inverse, h.right_inverse⟩
 
 namespace equiv
@@ -225,6 +226,13 @@ protected def ulift {α : Type u} : ulift α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- equivalence of propositions is the same as iff -/
+def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
+{ to_fun := h.mp,
+  inv_fun := h.mpr,
+  left_inv := λ x, rfl,
+  right_inv := λ y, rfl }
+
 @[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
@@ -252,6 +260,33 @@ rfl
 
 @[simp] lemma arrow_congr_symm {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
   (arrow_congr e₁ e₂).symm = arrow_congr e₁.symm e₂.symm :=
+rfl
+
+/--
+A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
+
+The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
+because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
+-/
+@[congr]
+def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
+equiv.arrow_congr hα hβ
+
+@[simp] lemma arrow_congr'_apply {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
+  (f : α₁ → β₁) (x : α₂) :
+  arrow_congr' e₁ e₂ f x = (e₂ $ f $ e₁.symm x) :=
+rfl
+
+@[simp] lemma arrow_congr'_refl {α β : Type*} :
+  arrow_congr' (equiv.refl α) (equiv.refl β) = equiv.refl (α → β) := rfl
+
+@[simp] lemma arrow_congr'_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Type*}
+  (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
+  arrow_congr' (e₁.trans e₂) (e₁'.trans e₂') = (arrow_congr' e₁ e₁').trans (arrow_congr' e₂ e₂') :=
+rfl
+
+@[simp] lemma arrow_congr'_symm {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+  (arrow_congr' e₁ e₂).symm = arrow_congr' e₁.symm e₂.symm :=
 rfl
 
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
@@ -922,6 +957,50 @@ begin
   { rw [←f.right_inv x], apply h.mp, apply h₂ },
   apply h.mpr, apply h₂
 end
+protected lemma forall_congr' {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p (f.symm x) ↔ q x) : (∀x, p x) ↔ (∀y, q y) :=
+(equiv.forall_congr f.symm (λ x, h.symm)).symm
+
+-- We next build some higher arity versions of `equiv.forall_congr`.
+-- Although they appear to just be repeated applications of `equiv.forall_congr`,
+-- unification of metavariables works better with these versions.
+-- In particular, they are necessary in `equiv_rw`.
+-- (Stopping at ternary functions seems reasonable: at least in 1-categorical mathematics,
+-- it's rare to have axioms involving more than 3 elements at once.)
+universes ua1 ua2 ub1 ub2 ug1 ug2
+variables {α₁ : Sort ua1} {α₂ : Sort ua2}
+          {β₁ : Sort ub1} {β₂ : Sort ub2}
+          {γ₁ : Sort ug1} {γ₂ : Sort ug2}
+
+protected lemma forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+  (h : ∀{x y}, p x y ↔ q (eα x) (eβ y)) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+begin
+  apply equiv.forall_congr,
+  intros,
+  apply equiv.forall_congr,
+  intros,
+  apply h,
+end
+protected lemma forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
+  (h : ∀{x y}, p (eα.symm x) (eβ.symm y) ↔ q x y) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+(equiv.forall₂_congr eα.symm eβ.symm (λ x y, h.symm)).symm
+
+protected lemma forall₃_congr {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+  (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
+  (h : ∀{x y z}, p x y z ↔ q (eα x) (eβ y) (eγ z)) : (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=
+begin
+  apply equiv.forall₂_congr,
+  intros,
+  apply equiv.forall_congr,
+  intros,
+  apply h,
+end
+protected lemma forall₃_congr' {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
+  (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂) (eγ : γ₁ ≃ γ₂)
+  (h : ∀{x y z}, p (eα.symm x) (eβ.symm y) (eγ.symm z) ↔ q x y z) :
+    (∀x y z, p x y z) ↔ (∀x y z, q x y z) :=
+(equiv.forall₃_congr eα.symm eβ.symm eγ.symm (λ x y z, h.symm)).symm
+
 protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
   (∀x, p x) ↔ (∀y, p (f.symm y)) :=
 equiv.forall_congr f (λx, by simp)
@@ -976,6 +1055,20 @@ of equivalences of the matching fibres.
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
 end
+
+section
+variables
+  {W : α → Sort w} {Z : β → Sort z} (h₁ : α ≃ β) (h₂ : Π b : β, (W (h₁.symm b) ≃ Z b))
+
+/--
+Transport dependent functions through
+an equivalence of the base spaces and a family
+of equivalences of the matching fibres.
+-/
+def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
+(Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
+end
+
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

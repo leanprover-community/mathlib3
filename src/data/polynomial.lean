@@ -31,6 +31,8 @@ variables [comm_semiring α] {p q r : polynomial α}
 
 instance : inhabited (polynomial α) := finsupp.inhabited
 instance : comm_semiring (polynomial α) := add_monoid_algebra.comm_semiring
+instance : has_scalar α (polynomial α) := add_monoid_algebra.has_scalar
+instance : semimodule α (polynomial α) := add_monoid_algebra.semimodule
 
 /-- the coercion turning a `polynomial` into the function which reports the coefficient of a given monomial `X^n` -/
 def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
@@ -175,6 +177,12 @@ begin
     assume i hi, by_cases i = n; simp [h] },
   { simp [finsupp.sum], erw [add_monoid.smul_zero], }, -- TODO why doesn't simp do this?
 end
+
+@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+
+lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
+ext $ λ n, coeff_C_mul f
 
 @[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
@@ -1276,17 +1284,7 @@ end comm_semiring
 section comm_ring
 variables [comm_ring α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := add_monoid_algebra.comm_ring
-instance : has_scalar α (polynomial α) := finsupp.has_scalar
--- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.module ℕ α
-
--- TODO -- this is OK for semimodules
-@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
-
--- TODO -- this is OK for semimodules
-lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
-ext $ λ n, coeff_C_mul f
+instance : module α (polynomial α) := add_monoid_algebra.module
 
 variable (α)
 def lcoeff (n : ℕ) : polynomial α →ₗ α :=

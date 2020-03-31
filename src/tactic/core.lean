@@ -842,6 +842,7 @@ do
   return r
 
 namespace interactive
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
 meta def under_binders (i : itactic) : itactic := tactic.under_binders i
 end interactive
 

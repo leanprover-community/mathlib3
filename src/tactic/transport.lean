@@ -109,6 +109,7 @@ end interactive
 -- This part is a hack, and hopefully won't last once I understand how to
 -- simplify the output from a tactic...
 
+/-- FIXME dummy doc -/
 meta def simp_defn (d : declaration) (new_name : name) : tactic unit :=
 do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition with
   | declaration.defn name levels type value reducibility trusted :=
@@ -125,8 +126,8 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
 
 open lean.parser tactic interactive parser
 
-@[user_command] meta def simp_defn_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "simp_defn") : lean.parser unit :=
+/-- FIXME dummy doc -/
+@[user_command] meta def simp_defn_cmd (_ : parse $ tk "simp_defn") : lean.parser unit :=
 do from_lemma ← ident,
    new_name ← ident,
    from_lemma_fully_qualified ← resolve_constant from_lemma,

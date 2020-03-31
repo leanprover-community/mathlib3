@@ -1,5 +1,4 @@
-import tactic
-import data.fin
+import graph_theory.chromatic_number
 import data.zmod.basic
 
 /-!
@@ -13,182 +12,15 @@ Yaroslav Shitov. COUNTEREXAMPLES TO HEDETNIEMI’S CONJECTURE.
 
 universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
 
--- set_option old_structure_cmd true
-
-structure directed_multigraph (V : Type u) :=
-(edge : V → V → Sort v)
-
-def directed_multigraph.vertices {V : Type u} (G : directed_multigraph V) := V
-
-structure multigraph (V : Type u) extends directed_multigraph.{v} V :=
-(inv : Π (x y), edge x y ≃ edge y x)
-
-def multigraph_of_edges {n : ℕ} (e : list (fin n × fin n)) : multigraph (fin n) :=
-{ edge := λ x y, fin (e.countp (λ p, p = (x, y) ∨ p = (y, x))),
-  inv := λ x y, by { dsimp, convert equiv.refl _, funext, rw or_comm, } }
-
-structure directed_graph (V : Type u) extends directed_multigraph.{0} V.
-
-def directed_graph.vertices {V : Type u} (G : directed_graph V) := V
-
-structure graph (V : Type u) extends multigraph.{0} V :=
-(symm {} : symmetric edge)
-(inv := λ x y, equiv.of_iff ⟨@symm _ _, @symm _ _⟩)
-
-def graph_of_edges {n : ℕ} (e : list (fin n × fin n)) : graph (fin n) :=
-{ edge := λ x y, (x, y) ∈ e ∨ (y, x) ∈ e,
-  symm := λ x y h, by { dsimp, rw [or_comm], apply h, } }
-
-notation x `~[`G`]` y := G.edge x y
-
 namespace graph
-variables {V : Type u} {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃}
-variables (G : graph V) (G₁ : graph V₁) (G₂ : graph V₂) (G₃ : graph V₃)
 
-def vertices (G : graph V) := V
+variables {V : Type u} {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃} {W : Type*}
+variables {G : graph V} {G₁ : graph V₁} {G₂ : graph V₂} {G₃ : graph V₃}
 
-def edge.symm {G : graph V} {x y : V} (e : x ~[G] y) : y ~[G] x := G.symm e
-
-def is_linked (G : graph V) (x y : V) : Prop :=
-relation.refl_trans_gen G.edge x y
-
-def is_connected (G : graph V) : Prop :=
-∀ ⦃x y⦄, G.is_linked x y
-
-def is_loopless (G : graph V) : Prop :=
-∀ ⦃x⦄, ¬ (x ~[G] x)
-
-def complete (V : Type u) : graph V :=
-{ edge := λ x y, x ≠ y,
-  symm := assume x y h, h.symm }
-
-local notation `K_` n := complete (fin n)
-
-lemma complete_is_loopless (V : Type u) :
-  (complete V).is_loopless :=
-assume x, ne.irrefl
-
-lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
-  x ≠ y :=
-by { rintro rfl, exact h e }
-
-section
-
-/-- A homomorphism of graphs is a function on the vertices that preserves edges. -/
-structure hom (G₁ : graph V₁) (G₂ : graph V₂) :=
-(to_fun    : V₁ → V₂)
-(map_edge' : ∀ {x y}, (x ~[G₁] y) → (to_fun x ~[G₂] to_fun y) . obviously)
-
-instance hom.has_coe_to_fun : has_coe_to_fun (hom G₁ G₂) :=
-{ F := λ f, V₁ → V₂,
-  coe := hom.to_fun }
-
-@[simp] lemma hom.to_fun_eq_coe (f : hom G₁ G₂) (x : V₁) :
-  f.to_fun x = f x := rfl
-
-section
-variables {G₁ G₂ G₃}
-
-@[simp, ematch] lemma hom.map_edge (f : hom G₁ G₂) :
-  ∀ {x y}, (x ~[G₁] y) → (f x ~[G₂] f y) :=
-f.map_edge'
-
-@[ext] lemma hom.ext {f g : hom G₁ G₂} (h : (f : V₁ → V₂) = g) : f = g :=
-by { cases f, cases g, congr, exact h }
-
-lemma hom.ext_iff (f g : hom G₁ G₂) : f = g ↔ (f : V₁ → V₂) = g :=
-⟨congr_arg _, hom.ext⟩
-
-def hom.id : hom G G :=
-{ to_fun := id }
-
-def hom.comp (g : hom G₂ G₃) (f : hom G₁ G₂) : hom G₁ G₃ :=
-{ to_fun    := g ∘ f,
-  map_edge' := assume x y, g.map_edge ∘ f.map_edge }
-
-end
-
-/-- The internal hom in the category of graphs. -/
-def ihom : graph (V₁ → V₂) :=
-{ edge := assume f g, ∀ ⦃x y⦄, (x ~[G₁] y) → (f x ~[G₂] g y),
-  symm := assume f g h x y e,
-          show g x ~[G₂] f y, from G₂.symm $ h (G₁.symm e) }
-
-/-- The product in the category of graphs. -/
-def prod : graph (V₁ × V₂) :=
-{ edge := assume p q, (p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2),
-  symm := assume p q ⟨e₁, e₂⟩, ⟨G₁.symm e₁, G₂.symm e₂⟩ }
-
-def prod.fst : hom (G₁.prod G₂) G₁ :=
-{ to_fun := λ p, p.1 }
-
-def prod.snd : hom (G₁.prod G₂) G₂ :=
-{ to_fun := λ p, p.2 }
-
-@[simps]
-def hom.pair (f : hom G G₁) (g : hom G G₂) : hom G (G₁.prod G₂) :=
-{ to_fun    := λ x, (f x, g x),
-  map_edge' := by { intros x y e, split; simp only [e, hom.map_edge] } }
-
-@[simps]
-def icurry : hom ((G₁.prod G₂).ihom G₃) (G₁.ihom (G₂.ihom G₃)) :=
-{ to_fun    := function.curry,
-  map_edge' := assume f g h x₁ y₁ e₁ x₂ y₂ e₂, h $ by exact ⟨e₁, e₂⟩ }
-
-@[simps]
-def iuncurry : hom (G₁.ihom (G₂.ihom G₃)) ((G₁.prod G₂).ihom G₃) :=
-{ to_fun    := λ f p, f p.1 p.2,
-  map_edge' := assume f g h p q e, h e.1 e.2 }
-
-section
-variables {G₁ G₂ G₃}
-
-@[simps]
-def hom.curry (f : hom (G₁.prod G₂) G₃) : hom G₁ (G₂.ihom G₃) :=
-{ to_fun    := icurry G₁ G₂ G₃ f,
-  map_edge' := assume x₁ y₁ e₁ x₂ y₂ e₂, f.map_edge ⟨e₁, e₂⟩ }
-
-@[simps]
-def hom.uncurry (f : hom G₁ (G₂.ihom G₃)) : hom (G₁.prod G₂) G₃ :=
-{ to_fun    := iuncurry G₁ G₂ G₃ f,
-  map_edge' := assume p q e, f.map_edge e.1 e.2 }
-
-end
-
-def adj : (hom (G.prod G₁) G₂) ≃ (hom G (graph.ihom G₁ G₂)) :=
-{ to_fun := hom.curry,
-  inv_fun := hom.uncurry,
-  left_inv := λ f, hom.ext $ funext $ λ ⟨x,y⟩, rfl,
-  right_inv := λ f, hom.ext $ funext $ λ p, rfl }
-
-end
-
-variables {G G₁ G₂ G₃} {W : Type*}
-
-abbreviation colouring (W : Type*) (G : graph V) := hom G (complete W)
-
-abbreviation nat_colouring (n : ℕ) (G : graph V) := colouring (fin n) G
-
-def colouring_id (G : graph V) (h : G.is_loopless) : colouring V G :=
-{ to_fun    := id,
-  map_edge' := assume x y e, show x ≠ y, from ne_of_edge h e }
-
-lemma colouring.is_loopless (c : colouring W G) :
-  G.is_loopless :=
-assume x e, c.map_edge e rfl
-
-def colouring.extend {W₁ : Type u₁} {W₂ : Type u₂}
-  (c : colouring W₁ G) (f : W₁ → W₂) (hf : function.injective f) :
-  colouring W₂ G :=
-{ to_fun    := f ∘ c,
-  map_edge' := assume x y e, hf.ne $ c.map_edge e }
+open_locale graph_theory
 
 def colouring.is_suited (c : colouring W (G.ihom (complete W))) : Prop :=
 ∀ w : W, c (λ x, w) = w
-
-def universal_colouring (W : Type*) (G : graph V) :
-  colouring W ((G.ihom (complete W)).prod G) :=
-hom.uncurry $ hom.id _
 
 lemma colouring.mk_suited_aux' [fintype W] (c : colouring W (G.ihom (complete W))) :
   function.bijective (λ w, c (λ x, w) : W → W) :=
@@ -218,12 +50,6 @@ begin
   apply equiv.apply_symm_apply
 end
 
-structure chromatic_number (G : graph V) (n : ℕ) : Prop :=
-(col_exists : nonempty (nat_colouring n G))
-(min        : ∀ {k}, nat_colouring k G → n ≤ k)
-
-variables {G G₁ G₂ G₃}
-
 section hedetniemi
 variables {n₁ n₂ n : ℕ}
 variables (h₁ : chromatic_number G₁ n₁)
@@ -235,16 +61,6 @@ include h₁ h₂ h
 /-- Hedetniemi's conjecture, which has been disproven in <https://arxiv.org/pdf/1905.02167.pdf>. -/
 def hedetniemi : Prop :=
 n = min n₁ n₂
-
-lemma chromatic_number_prod_le_min : n ≤ min n₁ n₂ :=
-begin
-  obtain ⟨c₁⟩ : nonempty (colouring (fin n₁) G₁) := h₁.col_exists,
-  obtain ⟨c₂⟩ : nonempty (colouring (fin n₂) G₂) := h₂.col_exists,
-  rw le_min_iff,
-  split,
-  { exact h.min (c₁.comp (prod.fst G₁ G₂)) },
-  { exact h.min (c₂.comp (prod.snd G₁ G₂)) }
-end
 
 omit h₁ h₂ h
 
@@ -269,30 +85,6 @@ begin
 end
 
 end hedetniemi
-
-lemma chromatic_number.is_loopless {n} (h : chromatic_number G n) :
-  G.is_loopless :=
-begin
-  rcases h.col_exists with ⟨c⟩,
-  exact c.is_loopless
-end
-
-lemma chromatic_number_le_card_of_colouring {W : Type*} [fintype W] {n m}
-  (c : colouring W G) (hn : chromatic_number G n) (hm : m = fintype.card W) :
-  n ≤ m :=
-begin
-  obtain ⟨k, ⟨f⟩⟩ : ∃ k, nonempty (W ≃ fin k) :=
-    fintype.exists_equiv_fin W,
-  obtain rfl : m = k,
-  { rw [hm, fintype.card_congr f, fintype.card_fin] },
-  apply hn.min,
-  exact c.extend f f.injective
-end
-
-lemma chromatic_number_le_card [fintype V] {n m}
-  (hn : chromatic_number G n) (hm : m = fintype.card V) :
-  n ≤ m :=
-chromatic_number_le_card_of_colouring (colouring_id G hn.is_loopless) hn hm
 
 def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
 { edge := assume x y, f x ~[G₂] f y,
@@ -325,6 +117,8 @@ open_locale classical
 
 noncomputable theory
 
+section claim2
+
 /-- This definition appears in Claim 2 of Shitov's article. -/
 def is_robust {W : Type*} (G : graph V) (x : V) (w : W) (s : set (V → W)) : Prop :=
 ∀ φ ∈ s, ∃ y : closed_neighbourhood G x, w = (φ : V → W) y.val
@@ -334,11 +128,68 @@ def robust_classes {W : Type*} [fintype W] (G : graph V) (v : V)
   finset W :=
 finset.univ.filter $ λ w, is_robust G v w (Φ ⁻¹' {w})
 
-/-- Claim 2. -/
-def statement_of_Claim2 {W : Type*} {n c k : ℕ} [fintype V] [fintype W] (G : graph V)
+def I [fintype V] [fintype W] (Φ : colouring W (G.ihom (complete W)))
+  (u : V) (b : W) :
+  finset (V → W) :=
+finset.univ.filter $ λ φ : V → W, φ u = b ∧ Φ φ = b
+
+lemma hI [fintype V] [fintype W]
+  (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited) (φ : V → W) :
+  ∃ u b, φ ∈ I Φ u b :=
+begin
+  obtain ⟨u, hu⟩ := mem_range_of_is_suited G Φ hΦ φ,
+  use [u, Φ φ],
+  simp [I, finset.mem_filter, hu]
+end
+
+def is_large [fintype V] [fintype W] {n c : ℕ} (hn : n = fintype.card V) (hc : c = fintype.card W)
+  (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited) (u : V) (b : W) : Prop :=
+  n^2 * c^(n-2) < (I Φ u b).card
+
+lemma is_robust_of_is_large [fintype V] [fintype W] {n c : ℕ} (hn : n = fintype.card V) (hc : c = fintype.card W)
+  (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited) (u : V) (b : W)
+  (hub : is_large hn hc Φ hΦ u b) :
+  is_robust G u b (Φ ⁻¹' {b}) :=
+begin
+  assume φ,
+  change _ < _ at hub,
+  contrapose! hub,
+  cases hub with hφ hub,
+  have key : ∀ φ' : V → W, φ' ∈ I Φ u b → ∃ u' ≠ u, φ' u' ∈ finset.univ.image φ,
+  { assume φ' hφ',
+    replace hφ' := (finset.mem_filter.mp hφ').2,
+    rw [set.mem_preimage, set.mem_singleton_iff] at hφ,
+    have tmp : ¬ (φ ~[G.ihom (complete W)] φ'),
+    { assume e, apply Φ.map_edge e, rw [hφ'.2, hφ] },
+    have : ∃ (x y : V), (x ~[G] y) ∧ (φ x = φ' y),
+    { contrapose! tmp, intros x y, rw imp_iff_not_or, exact tmp x y },
+    sorry },
+  sorry
+end
+
+/-- Claim 2 of Shitov's paper. -/
+theorem claim2 {W : Type*} [fintype V] [fintype W] {n c k : ℕ} (G : graph V)
   (Φ : colouring W (G.ihom (complete W))) (hΦ : Φ.is_suited)
-  (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :=
-  ∃ v, (robust_classes G v Φ).card + k ≥ c
+  (hn : n = fintype.card V) (hc : c = fintype.card W) (hk : k^n ≥ n^3 * c^(n-1)) :
+  ∃ v, c ≤ (robust_classes G v Φ).card + k :=
+begin
+  let large_classes : V → finset W :=
+    λ v, finset.univ.filter $ λ b, is_large hn hc Φ hΦ v b,
+  by_cases h : ∃ v, c ≤ (large_classes v).card + k,
+  { cases h with v hv,
+    use v,
+    apply le_trans hv,
+    apply add_le_add_right,
+    apply finset.card_le_of_subset,
+    assume b hb,
+    rw finset.mem_filter at hb,
+    apply finset.mem_filter.mpr,
+    refine ⟨finset.mem_univ _, _⟩,
+    exact is_robust_of_is_large hn hc Φ hΦ v b hb.2 },
+  { sorry }
+end
+
+end claim2
 
 def strong_prod (G₁ : graph V₁) (G₂ : graph V₂) : graph (V₁ × V₂) :=
 { edge := assume p q,
@@ -365,9 +216,10 @@ structure girth (G : graph V) (n : ℕ+) : Prop :=
 (cyc_exists : nonempty (cycle n G))
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
-/-- Claim 3. -/
-lemma some_claim (G : graph V) {k : ℕ+} (g : girth G k) (hk : 6 ≤ k) :
-  ∃ N : ℕ, ∀ q, N < q → ∀ c, chromatic_number (G.strong_prod (K_ q)) c → c > 3 * q :=
+/-- Claim 3 of Shitov's paper. -/
+-- Currently this statement is wrong, it's not what Shitov wrote.
+lemma claim3 (G : graph V) {k : ℕ+} (g : girth G k) (hk : 6 ≤ k) :
+  ∃ N : ℕ, ∀ q, N < q → ∀ c, chromatic_number (G.strong_prod (K_ q)) c → 3 * q < c :=
 begin
   sorry
 end

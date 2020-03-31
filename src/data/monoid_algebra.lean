@@ -150,13 +150,13 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-instance [semiring k] [monoid G] : has_scalar k (monoid_algebra k G) :=
+instance [semiring k] : has_scalar k (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] [monoid G] : semimodule k (monoid_algebra k G) :=
+instance [semiring k] : semimodule k (monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] [monoid G] : module k (monoid_algebra k G) :=
+instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
@@ -246,12 +246,14 @@ begin
   rw mul_apply_left,
   -- Again, we need to unpack the `single` into a correctly positioned `ite`:
   have t : ∀ a₁, x = a₁⁻¹ * y ↔ y * x⁻¹ = a₁ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
-  -- after which it's straightforward.
-  simp only [mem_support_iff, sum_mul_ite_eq, ne.def],
-  split_ifs,
-  { simp [h], },
-  { refl, },
+  simp [single_apply, t],
+  -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
+  convert f.sum_ite_eq (y * x⁻¹) (λ x v, v * r),
+  { funext, congr, },
+  { simp only [mem_support_iff, ne.def],
+    split_ifs,
+    { simp [h], },
+    { refl, }, }
 end
 
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
@@ -275,11 +277,14 @@ lemma single_mul_apply (r : k) (x : G) (f : monoid_algebra k G) (y : G) :
 begin
   rw mul_apply_right,
   have t : ∀ a₂, x = y * a₂⁻¹ ↔ x⁻¹ * y = a₂ := by { intros, split; rintro rfl; simp, },
-  conv_lhs { congr, skip, funext, simp [single_apply], rw t, },
-  simp only [mem_support_iff, sum_ite_mul_eq, ne.def],
-  split_ifs,
-  { simp [h], },
-  { refl, },
+  simp [single_apply, t],
+  -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
+  convert f.sum_ite_eq (x⁻¹ * y) (λ x v, r * v),
+  { funext, congr, },
+  { simp only [mem_support_iff, ne.def],
+    split_ifs,
+    { simp [h], },
+    { refl, }, }
 end
 
 end
@@ -391,13 +396,13 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-instance [semiring k] [add_monoid G] : has_scalar k (add_monoid_algebra k G) :=
+instance [semiring k] : has_scalar k (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] [add_monoid G] : semimodule k (add_monoid_algebra k G) :=
+instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] [add_monoid G] : module k (add_monoid_algebra k G) :=
+instance [ring k] : module k (add_monoid_algebra k G) :=
 finsupp.module G k
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:

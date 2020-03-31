@@ -30,7 +30,7 @@ end subtype
 namespace subtype
 variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
 
-lemma val_eq_coe (x : subtype p) : x.val = x := rfl
+lemma val_eq_coe : @val _ p = coe := rfl
 
 protected lemma eq' : ∀ {a1 a2 : {x // p x}}, a1.val = a2.val → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl

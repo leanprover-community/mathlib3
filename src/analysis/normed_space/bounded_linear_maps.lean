@@ -220,6 +220,20 @@ structure is_bounded_bilinear_map (f : E × F → G) : Prop :=
 variable {𝕜}
 variable {f : E × F → G}
 
+protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
+  asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
+let ⟨C, Cpos, hC⟩ := h.bound in
+⟨C, filter.eventually_of_forall ⊤ $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y⟩
+
+lemma is_bounded_bilinear_map.is_O_comp {α : Type*} (H : is_bounded_bilinear_map 𝕜 f)
+  {g : α → E} {h : α → F} {l : filter α} :
+  asymptotics.is_O (λ x, f (g x, h x)) (λ x, ∥g x∥ * ∥h x∥) l :=
+H.is_O.comp_tendsto le_top
+
+protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
+  asymptotics.is_O f (λ p : E × F, ∥p∥ * ∥p∥) ⊤ :=
+h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
+
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) -  f(y, z) :=
 calc f (x - y, z) = f (x + (-1 : 𝕜) • y, z) : by simp [sub_eq_add_neg]

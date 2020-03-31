@@ -22,7 +22,7 @@ do
   (do
     propagate_tags $ (do
     f ← get_current_field,
-    mk_mapp f [none, s] >>= note f none,
+    mk_mapp f [α, none] >>= note f none,
     b ← target >>= is_prop,
     if b then (do
       unfold_projs_target,

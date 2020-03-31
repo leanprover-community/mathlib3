@@ -19,7 +19,7 @@ echo -e "builtin_path\npath ./src\npath ../src" > leanpkg.path
 git clone "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs.git"
 
 # skip if docs for this commit have already been generated
-if [[ "$(git log -1 --pretty=format:%s)" == *"$git_hash" ]]; then
+if [ "$(cd mathlib_docs && git log -1 --pretty=format:%s)" == "automatic update to $git_hash" ]; then
   exit 0
 fi
 

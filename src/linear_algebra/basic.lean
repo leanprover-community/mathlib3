@@ -281,6 +281,13 @@ theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 
 theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
 
+/-- `prod.map` of two linear maps. -/
+def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=
+(f.comp (fst R M M₂)).prod (g.comp (snd R M M₂))
+
+@[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
+  f.prod_map g x = (f x.1, g x.2) := rfl
+
 end
 
 section comm_ring
@@ -1354,6 +1361,8 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
+instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
+
 @[simp] theorem coe_apply (e : M ≃ₗ[R] M₂) (b : M) : (e : M →ₗ[R] M₂) b = e b := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
@@ -1428,6 +1437,27 @@ lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').
 
 @[simp] lemma prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (p) :
   e.prod e' p = (e p.1, e' p.2) := rfl
+
+@[simp, move_cast] lemma coe_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
+  (e.prod e' : (M × M₃) →ₗ[R] M₂ × M₄) = (e : M →ₗ[R] M₂).prod_map (e' : M₃ →ₗ[R] M₄) :=
+rfl
+
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
+protected def skew_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) :
+  (M × M₃) ≃ₗ[R] M₂ × M₄ :=
+{ inv_fun := λ p : M₂ × M₄, (e.symm p.1, e'.symm (p.2 - f (e.symm p.1))),
+  left_inv := λ p, by simp,
+  right_inv := λ p, by simp,
+  .. ((e : M →ₗ[R] M₂).comp (linear_map.fst R M M₃)).prod
+    ((e' : M₃ →ₗ[R] M₄).comp (linear_map.snd R M M₃) +
+      f.comp (linear_map.fst R M M₃)) }
+
+@[simp] lemma skew_prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
+  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+
+@[simp] lemma skew_prod_symm_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
+  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
 
 end prod
 
@@ -1787,7 +1817,7 @@ end
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
-  refine disjoint_mono
+  refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,

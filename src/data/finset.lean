@@ -1295,8 +1295,13 @@ theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s
 
 end card
 end finset
+
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
+
+theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
+multiset.to_finset_card_le ⟦l⟧
+
 namespace finset
 section card
 

@@ -99,10 +99,6 @@ apply_nolint to_additive.proceed_fields doc_blame
 apply_nolint to_additive.target_name doc_blame
 apply_nolint to_additive.value_type doc_blame
 
--- algebra/group/type_tags.lean
-apply_nolint additive doc_blame
-apply_nolint multiplicative doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
 apply_nolint with_one.map doc_blame
@@ -1202,7 +1198,7 @@ apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
 
--- data/fintype.lean
+-- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments
 apply_nolint fintype.choose doc_blame
@@ -1827,8 +1823,6 @@ apply_nolint set.fintype_subset doc_blame
 -- data/set/lattice.lean
 apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
-apply_nolint set.kern_image doc_blame
-apply_nolint set.pairwise_disjoint doc_blame
 apply_nolint set.seq doc_blame
 apply_nolint set.sigma_to_Union doc_blame
 
@@ -2614,7 +2608,6 @@ apply_nolint pgame.add_lt_add unused_arguments
 apply_nolint pgame.inv_ty has_inhabited_instance
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments
-apply_nolint surreal.add doc_blame
 
 -- set_theory/zfc.lean
 apply_nolint Class doc_blame

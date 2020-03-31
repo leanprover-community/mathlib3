@@ -2222,6 +2222,13 @@ def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
 have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
 (s.sort (≤)).nth_le i A
 
+lemma mono_of_fin_strict_mono (s : finset α) {k : ℕ} (h : s.card = k) :
+  strict_mono (s.mono_of_fin h) :=
+begin
+  assume i j hij,
+  exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij
+end
+
 lemma bij_on_mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.bij_on (s.mono_of_fin h) set.univ ↑s :=
 begin
@@ -2230,14 +2237,71 @@ begin
   { assume i hi,
     simp only [mono_of_fin, set.mem_preimage, mem_coe, list.nth_le, A],
     exact list.nth_le_mem _ _ _ },
-  { refine (strict_mono.injective (λ i j hij, _)).inj_on _,
-    exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij },
+  { exact ((mono_of_fin_strict_mono s h).injective).inj_on _ },
   { assume x hx,
     simp only [mem_coe, A] at hx,
     obtain ⟨i, il, hi⟩ : ∃ (i : ℕ) (h : i < (s.sort (≤)).length), (s.sort (≤)).nth_le i h = x :=
       list.nth_le_of_mem hx,
     simp [h] at il,
     exact ⟨⟨i, il⟩, set.mem_univ _, hi⟩ }
+end
+
+/-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
+lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
+  mono_of_fin s h ⟨0, hz⟩ = s.min' hs :=
+begin
+  apply le_antisymm,
+  { have : min' s hs ∈ s := min'_mem s hs,
+    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rw ← ha,
+    apply (mono_of_fin_strict_mono s h).monotone,
+    exact zero_le a.val },
+  { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    exact min'_le s hs _ this }
+end
+
+/-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
+lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
+  mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' hs :=
+begin
+  have h'' : k - 1 < k := buffer.lt_aux_2 hz,
+  apply le_antisymm,
+  { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    exact le_max' s hs _ this },
+  { have : max' s hs ∈ s := max'_mem s hs,
+    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rw ← ha,
+    apply (mono_of_fin_strict_mono s h).monotone,
+    exact le_pred_of_lt a.2},
+end
+
+/-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
+the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
+`s`, see `mono_of_fin_unique'`.-/
+lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
+  (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = s.mono_of_fin h :=
+begin
+  ext i,
+  rcases i with ⟨i, hi⟩,
+  induction i using nat.strong_induction_on with i IH,
+  rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
+  { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),
+    rcases (bij_on_mono_of_fin s h).surj_on A with ⟨j, _, hj⟩,
+    rw ← hj at H,
+    have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
+    have : f j = mono_of_fin s h j,
+      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+    rw ← this at hj,
+    exact (ne_of_lt (hmono ji) hj).elim },
+  { exact H },
+  { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    rcases hbij.surj_on A with ⟨j, _, hj⟩,
+    rw ← hj at H,
+    have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
+    have : f j = mono_of_fin s h j,
+      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+    rw this at hj,
+    exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
 end
 
 /-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`
@@ -2341,6 +2405,10 @@ lemma pi_disjoint_of_disjoint {δ : α → Type*} [∀a, decidable_eq (δ a)]
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
   disjoint_iff_ne.1 h (f₁ a ha) (mem_pi.mp hf₁ a ha) (f₂ a ha) (mem_pi.mp hf₂ a ha)
   $ congr_fun (congr_fun eq₁₂ a) ha
+
+lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
+  disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
+by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
 end disjoint
 
@@ -2526,6 +2594,9 @@ have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
 by ext k; by_cases n ≤ k; simp [h, this]
 
 end Ico
+
+lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
+by { ext i, simp }
 
 -- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
 

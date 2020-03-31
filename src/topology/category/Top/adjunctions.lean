@@ -28,9 +28,9 @@ def adj₂ : forget Top ⊣ trivial :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, ⟨f, continuous_top⟩,
     inv_fun := λ f, f,
-    left_inv := by tidy,
-    right_inv := by tidy },
+    left_inv := λ X, rfl,
+    right_inv := λ Y, subtype.eq rfl, },
   unit := { app := λ X, ⟨id, continuous_top⟩ },
-  counit := { app := λ X, id } }
+  counit := { app := λ X, id }, }
 
 end Top

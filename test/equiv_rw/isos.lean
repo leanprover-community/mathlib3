@@ -10,17 +10,16 @@ import algebra.category.CommRing.basic
 
 universes u
 
-set_option trace.equiv_rw_type true
-
 open category_theory
 
-mk_simp_attribute functoriality
-"The simpset `functoriality` is used by the tactic `equiv_rw`
-to write expressions explicitly as applications of functors."
-
+-- TODO
+-- We will probably want to install this in `algebra.category.CommRing.basic`,
+-- along with analogues for all the other concrete categories.
+-- (We probably should write a command that synthesizes all the apparatus of a concrete category!)
 @[functoriality]
-lemma coe_as_forget (R : Ring.{u}) : (R : Type u) = (forget Ring.{u}).obj R := rfl
+lemma coe_as_forget_obj (R : Ring.{u}) : (R : Type u) = (forget Ring.{u}).obj R := rfl
 
+set_option trace.equiv_rw_type true
 
 example (R S : Ring.{u}) (i : R ≅ S) (r : R) : S :=
 begin

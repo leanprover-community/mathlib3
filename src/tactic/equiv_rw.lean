@@ -71,6 +71,10 @@ This will allow us to transport across more general types of equivalences,
 but this will wait for another subsequent PR.
 -/
 
+mk_simp_attribute functoriality
+"The simpset `functoriality` is used by the tactic `equiv_rw`
+to write expressions explicitly as applications of functors."
+
 namespace tactic
 
 /-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
@@ -161,9 +165,13 @@ do
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
+    discharger :=
+    -- If solve_by_elim gets stuck, check whether the simp-set `[functoriality]` can
+    -- adjust the goal into a "more functorial" form:
+    `[dsimp only [] with functoriality] <|>
     -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
     -- that we should still attempt.
-    discharger :=  `[show _ ≃ _] <|> `[show _ ↔ _] <|>
+    `[show _ ≃ _] <|> `[show _ ↔ _] <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
     accept := λ goals, lock_tactic_state (do

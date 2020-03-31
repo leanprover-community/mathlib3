@@ -71,14 +71,28 @@ end expr
 namespace interaction_monad
 open result
 
-/-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it does not update the current state. -/
-meta def get_result {σ α} (tac : interaction_monad σ α) :
-  interaction_monad σ (interaction_monad.result σ α) | s :=
-match tac s with
-| r@(success _ s') := success r s'
-| r@(exception _ _ s') := success r s'
-end
+variables {σ : Type} {α : Type u}
+
+/-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.read` in core.
+meta def get_state : interaction_monad σ σ :=
+λ state, success state state
+
+/-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.write` in core.
+meta def set_state (state : σ) : interaction_monad σ unit :=
+λ _, success () state
+
+/--
+`run_with_state state tac` applies `tac` to the given state `state` and returns the result,
+subsequently restoring the original state.
+If `tac` fails, then `run_with_state` does too.
+-/
+meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+λ s, match tac state with
+     | success val _      := success val s
+     | exception fn pos _ := exception fn pos s
+     end
 
 end interaction_monad
 
@@ -423,18 +437,6 @@ meta def clear_value (e : expr) : tactic unit := do
     fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
   intron n
 
-/--
-`simplify_term e` tuns the term `e` through the simplifier with the basic simp set.
-
-The optional argument `fail_if_unchanged := tt` controls
-whether `simplify_term` should fail if the simplifier makes no progress.
--/
-meta def simplify_term (e : expr) (fail_if_unchanged : bool := tt) : tactic expr :=
-do
-  e ← instantiate_mvars e,
-  (_, s, _) ← mk_simp_set_core ff [] [] tt,
-  prod.fst <$> simplify s [] e {fail_if_unchanged := fail_if_unchanged} `eq tactic.failed
-
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
 expression and a proof of equality. -/
@@ -703,14 +705,11 @@ ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 Configuration options for `apply_any`:
 * `use_symmetry`: if `apply_any` fails to apply any lemma, call `symmetry` and try again.
 * `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
-* `all_goals`: attempt to solve all goals simultaneously,
-    backtracking if a solution to one goal results in other goals being impossible.
 * `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
 -/
 meta structure apply_any_opt :=
 (use_symmetry : bool := tt)
 (use_exfalso : bool := tt)
-(all_goals : bool := tt)
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
 /--
@@ -720,7 +719,6 @@ meta structure apply_any_opt :=
 `opt` has fields:
 * `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
 * `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
-* `all_goals`: attempt to apply the lemmas to each of the goals sequentially. (Defaults to `tt`.)
 * `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
 
 `apply_any lemmas tac` calls the tactic `tac` after a successful application.
@@ -735,10 +733,8 @@ do
   let modes := [skip]
     ++ (if opt.use_symmetry then [symmetry] else [])
     ++ (if opt.use_exfalso then [exfalso] else []),
-  goals ← if opt.all_goals then list.range <$> num_goals else pure [0],
-  goals.any_of (λ g, do rotate g,
-    modes.any_of (λ m, do m,
-      lemmas.any_of (λ H, opt.apply H >> tac))) <|>
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, opt.apply H >> tac)) <|>
   fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/

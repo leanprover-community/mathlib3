@@ -395,6 +395,18 @@ mt $ λ e, e ▸ h
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
+/-- Transport through trivial families is the identity. -/
+@[simp]
+lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
+  (@eq.rec α a (λ a, β) y a' h) = y :=
+by { cases h, refl, }
+
+@[simp]
+lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+
+@[simp]
+lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
@@ -626,14 +638,16 @@ by apply_instance
 noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
 by apply_instance
 
-library_note "classical lemma"
-"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+/--
+We make decidability results that depends on `classical.choice` noncomputable lemmas.
 * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
   for them, and fail because it depends on `classical.choice`.
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+-/
+library_note "classical lemma"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

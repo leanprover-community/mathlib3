@@ -371,7 +371,7 @@ begin
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
   cases n, {apply zero_le _},
-  suffices : sum (finset.range n.succ) (λ i, μ (disjointed s i)) = μ (s n),
+  suffices : (finset.range n.succ).sum (λ i, μ (disjointed s i)) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
   { apply sum_congr rfl, intros i hi,

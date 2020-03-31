@@ -281,6 +281,13 @@ theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 
 theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
 
+/-- `prod.map` of two linear maps. -/
+def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=
+(f.comp (fst R M M₂)).prod (g.comp (snd R M M₂))
+
+@[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
+  f.prod_map g x = (f x.1, g x.2) := rfl
+
 end
 
 section comm_ring
@@ -356,16 +363,18 @@ by rw [lt_iff_le_not_le, not_le_iff_exists]
 /-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
 inclusion. -/
 def of_le (h : p ≤ p') : p →ₗ[R] p' :=
-linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
+p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply (h : p ≤ p')
-  (x : p) : (of_le h x : M) = x := rfl
+@[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
+  (of_le h x : M) = x := rfl
+
+theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
 variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
-  (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
-by ext ⟨b, hb⟩; simp
+  q.subtype.comp (of_le h) = p.subtype :=
+by { ext ⟨b, hb⟩, refl }
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
@@ -704,6 +713,19 @@ by rintro ⟨a, y, rfl⟩; exact
 lemma span_singleton_eq_range (y : M) : (span R ({y} : set M) : set M) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
+lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {s : submodule K E} {x : E} :
+  disjoint s (span K {x}) ↔ (x ∈ s → x = 0) :=
+begin
+  refine disjoint_def.trans ⟨λ H hx, H x hx $ subset_span $ mem_singleton x, _⟩,
+  assume H y hy hyx,
+  obtain ⟨c, hc⟩ := mem_span_singleton.1 hyx,
+  subst y,
+  classical, by_cases hc : c = 0, by simp only [hc, zero_smul],
+  rw [s.smul_mem_iff hc] at hy,
+  rw [H hy, smul_zero]
+end
+
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
   rw [← union_singleton, span_union, mem_sup],
@@ -1033,6 +1055,10 @@ theorem ker_eq_top {f : M →ₗ[R] M₂} : ker f = ⊤ ↔ f = 0 :=
 lemma range_le_bot_iff (f : M →ₗ[R] M₂) : range f ≤ ⊥ ↔ f = 0 :=
 by rw [range_le_iff_comap]; exact ker_eq_top
 
+lemma range_le_ker_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} : range f ≤ ker g ↔ g.comp f = 0 :=
+⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ mem_map_of_mem trivial,
+ λ h x hx, mem_ker.2 $ exists.elim hx $ λ y ⟨_, hy⟩, by rw [←hy, ←comp_apply, h, zero_apply]⟩
+
 theorem map_le_map_iff {f : M →ₗ[R] M₂} (hf : ker f = ⊥) {p p'} : map f p ≤ map f p' ↔ p ≤ p' :=
 ⟨λ H x hx, let ⟨y, hy, e⟩ := H ⟨x, hx, rfl⟩ in ker_eq_bot.1 hf e ▸ hy, map_mono⟩
 
@@ -1333,6 +1359,8 @@ include R
 
 instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
+instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
+
 @[simp] theorem coe_apply (e : M ≃ₗ[R] M₂) (b : M) : (e : M →ₗ[R] M₂) b = e b := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
@@ -1348,6 +1376,8 @@ variables (M R)
 @[refl]
 def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
+
+@[simp] lemma refl_apply (x : M) : refl R M x = x := rfl
 
 /-- Linear equivalences are symmetric. -/
 @[symm]
@@ -1385,6 +1415,49 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x :=
 by { cases e, refl }
+
+protected lemma bijective (e : M ≃ₗ[R] M₂) : function.bijective e := e.to_equiv.bijective
+protected lemma injective (e : M ≃ₗ[R] M₂) : function.injective e := e.to_equiv.injective
+protected lemma surjective (e : M ≃ₗ[R] M₂) : function.surjective e := e.to_equiv.surjective
+
+section prod
+
+variables [add_comm_group M₄] [module R M₄]
+
+/-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
+protected def prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
+  (M × M₃) ≃ₗ[R] M₂ × M₄ :=
+{ add := λ x y, prod.ext (e.map_add _ _) (e'.map_add _ _),
+  smul := λ c x, prod.ext (e.map_smul c _) (e'.map_smul c _),
+  .. equiv.prod_congr e.to_equiv e'.to_equiv }
+
+lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').symm = e.symm.prod e'.symm := rfl
+
+@[simp] lemma prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (p) :
+  e.prod e' p = (e p.1, e' p.2) := rfl
+
+@[simp, move_cast] lemma coe_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
+  (e.prod e' : (M × M₃) →ₗ[R] M₂ × M₄) = (e : M →ₗ[R] M₂).prod_map (e' : M₃ →ₗ[R] M₄) :=
+rfl
+
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
+protected def skew_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) :
+  (M × M₃) ≃ₗ[R] M₂ × M₄ :=
+{ inv_fun := λ p : M₂ × M₄, (e.symm p.1, e'.symm (p.2 - f (e.symm p.1))),
+  left_inv := λ p, by simp,
+  right_inv := λ p, by simp,
+  .. ((e : M →ₗ[R] M₂).comp (linear_map.fst R M M₃)).prod
+    ((e' : M₃ →ₗ[R] M₄).comp (linear_map.snd R M M₃) +
+      f.comp (linear_map.fst R M M₃)) }
+
+@[simp] lemma skew_prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
+  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+
+@[simp] lemma skew_prod_symm_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
+  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
+
+end prod
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
@@ -1427,7 +1500,7 @@ def of_top (p : submodule R M) (h : p = ⊤) : p ≃ₗ[R] M :=
   of_top p h x = x := rfl
 
 @[simp] theorem of_top_symm_apply (p : submodule R M) {h} (x : M) :
-  ↑((of_top p h).symm x) = x := rfl
+  (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
 lemma eq_bot_of_equiv (p : submodule R M) (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
   p = ⊥ :=
@@ -1742,7 +1815,7 @@ end
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
-  refine disjoint_mono
+  refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,

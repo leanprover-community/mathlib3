@@ -307,6 +307,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
 
+/--
+Test `t` contains the specified subexpression `e`, or a metavariable.
+This represents the notion that `e` "may occur" in `t`,
+possibly after subsequent unification.
+-/
+meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
+-- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
+¬ t.list_meta_vars.empty ∨ e.occurs t
+
 /-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
@@ -379,13 +388,15 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
@@ -664,3 +675,7 @@ meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
+
+meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
+unchecked_cast
+expr.has_decidable_eq

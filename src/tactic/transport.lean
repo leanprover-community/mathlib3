@@ -5,6 +5,23 @@ Authors: Scott Morrison
 -/
 import tactic.equiv_rw
 
+-- namespace tactic
+-- meta def simp_result (i : tactic unit) : tactic unit :=
+-- do
+--   gs ← get_goals,
+--   gs' ← gs.mmap (λ g, infer_type g >>= mk_meta_var),
+--   set_goals gs',
+--   r ← i,
+--   (gs.zip gs').mmap (λ p, instantiate_mvars p.2 >>= (λ e, prod.fst <$> expr.simp e) >>= unify p.1),
+--   set_goals gs,
+--   return r
+
+-- namespace interactive
+-- meta def simp_result (i : itactic) : itactic := tactic.simp_result i
+-- end interactive
+
+-- end tactic
+
 namespace tactic
 open tactic.interactive
 
@@ -24,13 +41,14 @@ do
     f ← get_current_field,
     mk_mapp f [none, s] >>= note f none,
     b ← target >>= is_prop,
-    if b then try (do
-      intros,
-      to_expr ``((%%e).symm.injective) >>= apply,
+    if b then (do
       unfold_projs_target,
-      `[simp], -- TODO squeeze_simp here?
+      `[simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe]],
+      -- Explain/understand when this is/isn't appropriate, and don't just `try` it blindly.
+      try $ under_binders $ to_expr ``((%%e).symm.injective) >>= apply,
       equiv_rw_hyp f e,
-      get_local f >>= apply)
+      get_local f >>= exact) <|>
+      skip
     else try (do
       equiv_rw_hyp f e,
       get_local f >>= exact)))
@@ -87,5 +105,33 @@ do
   tactic.transport s e
 
 end interactive
+
+-- This part is a hack, and hopefully won't last once I understand how to
+-- simplify the output from a tactic...
+
+meta def simp_defn (d : declaration) (new_name : name) : tactic unit :=
+do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition with
+  | declaration.defn name levels type value reducibility trusted :=
+    (levels, type, value, reducibility, trusted)
+  | _ := undefined
+  end),
+  prop ← is_prop type,
+  value ← prod.fst <$> value.simp {fail_if_unchanged := ff},
+  let new_decl := if prop then
+      declaration.thm new_name levels type (task.pure value)
+    else
+      declaration.defn new_name levels type value reducibility trusted,
+  updateex_env $ λ env, env.add new_decl
+
+open lean.parser tactic interactive parser
+
+@[user_command] meta def simp_defn_cmd (meta_info : decl_meta_info)
+  (_ : parse $ tk "simp_defn") : lean.parser unit :=
+do from_lemma ← ident,
+   new_name ← ident,
+   from_lemma_fully_qualified ← resolve_constant from_lemma,
+  d ← get_decl from_lemma_fully_qualified <|>
+    fail ("declaration " ++ to_string from_lemma ++ " not found"),
+  tactic.simp_defn d new_name.
 
 end tactic

@@ -208,7 +208,7 @@ meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg := {}) : tactic 
 do
   x' ← get_local x,
   x_ty ← infer_type x',
-  -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`.
+  -- Adapt `e` to an equivalence with left-hand-side `x_ty`.
   e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),

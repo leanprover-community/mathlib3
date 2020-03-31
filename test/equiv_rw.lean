@@ -246,35 +246,32 @@ by { ext, dsimp [semigroup.map, semigroup.map_equiv], simp, }
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
-def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
+def monoid.map {α β : Type} (e : α ≃ β) (S : monoid α) : monoid β :=
 begin
-  intro S, fconstructor,
+  refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { /-
     The next line also works here,
     but this pattern doesn't work for axioms involving constants, e.g. one_mul:
     -/
     -- have mul_assoc := S.mul_assoc, equiv_rw e at mul_assoc, intros, dsimp, simp, apply mul_assoc,
-    intros,
-    apply e.symm.injective,
     unfold_projs,
-    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
+    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
+    under_binders { apply e.symm.injective },
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
-    apply mul_assoc, },
+    solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
-  { intros,
+  { unfold_projs,
+    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
+    under_binders { apply e.symm.injective },
     have one_mul := S.one_mul,
-    apply e.symm.injective,
-    unfold_projs,
-    simp only [eq_rec_constant, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
     equiv_rw e at one_mul,
-    apply one_mul, },
-  { intros,
-    apply e.symm.injective,
-    unfold_projs,
+    solve_by_elim, },
+  { unfold_projs,
     squeeze_simp,
+    under_binders { apply e.symm.injective },
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
-    apply mul_one, },
+    solve_by_elim, },
 end

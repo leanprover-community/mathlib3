@@ -405,7 +405,7 @@ variables {f' f'y}
 include f hf hfy
 
 lemma implicit_function_aux_deriv :
-  has_strict_fderiv_at (λ x : E × F, (x.1, f x)) ((continuous_linear_equiv.refl E).skew_prod f'y
+  has_strict_fderiv_at (λ x : E × F, (x.1, f x)) ((continuous_linear_equiv.refl 𝕜 E).skew_prod f'y
     (f'.comp $ (continuous_linear_map.id.prod 0)) : (E × F) →L[𝕜] E × G) p :=
 begin
   convert has_strict_fderiv_at_fst.prod hf,

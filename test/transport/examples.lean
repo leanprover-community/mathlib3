@@ -1,4 +1,4 @@
-import tactic.transport
+import tactic.transport_2
 import algebra.lie_algebra
 
 set_option trace.app_builder true

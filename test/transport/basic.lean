@@ -1,4 +1,4 @@
-import tactic.transport
+import tactic.transport_2
 import order.bounded_lattice
 
 -- We verify that `transport` can move a `semiring` across an equivalence.

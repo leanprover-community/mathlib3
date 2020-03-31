@@ -28,7 +28,7 @@ begin
       exact disjoint_bot_right },
     apply linear_independent.image (hf i) h_disjoint },
   { intros i t ht hit,
-    apply disjoint_mono _ _ (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)),
+    refine (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)).mono _ _,
     { rw span_le,
       simp only [supr_singleton],
       rw range_coe,

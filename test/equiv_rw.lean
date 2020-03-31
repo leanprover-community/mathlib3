@@ -145,7 +145,7 @@ end
 
 example {α β γ : Type} (e : α ≃ β) (s : (α ⊕ γ) × β) : (β ⊕ γ) :=
 begin
-  success_if_fail { equiv_rw e at s {max_steps := 4} },
+  success_if_fail { equiv_rw e at s {max_depth := 4} },
   equiv_rw e at s,
   exact s.1,
 end
@@ -201,21 +201,6 @@ begin
   equiv_rw e at t,
   exact t.2,
 end
-
-/-- Transport through trivial families is the identity. -/
--- TODO find a home in mathlib!
-@[simp]
-lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*}
-  (y : β) (h : a = a') :
-  (@eq.rec α a (λ a, β) y a' h) = y :=
-begin
-  cases h,
-  refl,
-end
-
--- TODO move to data/equiv/basic
-@[simp]
-lemma to_fun_as_coe {α β : Sort*} (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
 
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
 -- (which isn't yet in this PR, so we only define the fields without assembling them)

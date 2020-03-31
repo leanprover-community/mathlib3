@@ -276,6 +276,18 @@ equiv.arrow_congr hα hβ
   arrow_congr' e₁ e₂ f x = (e₂ $ f $ e₁.symm x) :=
 rfl
 
+@[simp] lemma arrow_congr'_refl {α β : Type*} :
+  arrow_congr' (equiv.refl α) (equiv.refl β) = equiv.refl (α → β) := rfl
+
+@[simp] lemma arrow_congr'_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Type*}
+  (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
+  arrow_congr' (e₁.trans e₂) (e₁'.trans e₂') = (arrow_congr' e₁ e₁').trans (arrow_congr' e₂ e₂') :=
+rfl
+
+@[simp] lemma arrow_congr'_symm {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+  (arrow_congr' e₁ e₂).symm = arrow_congr' e₁.symm e₂.symm :=
+rfl
+
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_apply (e : α ≃ β) (f : α → α) (x : β) :

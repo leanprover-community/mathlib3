@@ -12,9 +12,10 @@ universes u
 
 open category_theory
 
--- TODO
--- We will probably want to install this in `algebra.category.CommRing.basic`,
--- along with analogues for all the other concrete categories.
+-- TODO eventually, we should move this lemma (and its analogues for all concrete categories)
+-- to the files where those categories are set up.
+-- While `equiv_rw` is being actively developed, I'd prefer not to do that, so as not to
+-- make all the concrete categories dependent on `equiv_rw`.
 -- (We probably should write a command that synthesizes all the apparatus of a concrete category!)
 @[functoriality]
 lemma coe_as_forget_obj (R : Ring.{u}) : (R : Type u) = (forget Ring.{u}).obj R := rfl

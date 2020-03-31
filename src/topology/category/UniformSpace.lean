@@ -97,15 +97,8 @@ open CpltSepUniformSpace
 noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
 { obj := λ X, CpltSepUniformSpace.of (completion X),
   map := λ X Y f, ⟨completion.map f.1, completion.uniform_continuous_map⟩,
-  map_comp' := λ X Y Z f g,
-  begin
-  apply subtype.eq,
-  dsimp,
-  rw ←completion.map_comp,
-  refl,
-  exact g.property,
-  exact f.property
-  end }.
+  map_id' := λ X, subtype.eq completion.map_id,
+  map_comp' := λ X Y Z f g, subtype.eq (completion.map_comp g.property f.property).symm, }.
 
 /-- The inclusion of any uniform spaces into its completion. -/
 def completion_hom (X : UniformSpace) :

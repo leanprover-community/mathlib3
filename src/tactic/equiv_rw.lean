@@ -162,8 +162,19 @@ do
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
-    discharger := `[dsimp only [] with functoriality] <|>
-      trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed }
+    -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
+    -- that we should still attempt.
+    discharger :=  `[dsimp only [] with functoriality] <|> `[show _ ≃ _] <|> `[show _ ↔ _] <|>
+      trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
+    -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
+    accept := λ goals, lock_tactic_state (do
+      when_tracing `equiv_rw_type (do
+        goals.mmap pp >>= λ goals, trace format!"So far, we've built: {goals}"),
+      done <|>
+      when_tracing `equiv_rw_type (do
+        gs ← get_goals,
+        gs ← gs.mmap (λ g, infer_type g >>= pp),
+        trace format!"Attempting to adapt to {gs}")) }
 
 /--
 `equiv_rw_type e t` rewrites the type `t` using the equivalence `e : α ≃ β`,
@@ -184,7 +195,10 @@ do
   -- Check that we actually used the equivalence `eq`
   -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
   new_eqv ← instantiate_mvars new_eqv,
-  guard (eqv.occurs new_eqv) <|> fail format!"Could not construct an equivalence from {eqv} of the form: {ty} ≃ _",
+  guard (eqv.occurs new_eqv) <|> (do
+    eqv_pp ← pp eqv,
+    ty_pp ← pp ty,
+    fail format!"Could not construct an equivalence from {eqv_pp} of the form: {ty_pp} ≃ _"),
   -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
   prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
@@ -197,7 +211,7 @@ meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg := {}) : tactic 
 do
   x' ← get_local x,
   x_ty ← infer_type x',
-  -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`.
+  -- Adapt `e` to an equivalence with left-hand-side `x_ty`.
   e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),

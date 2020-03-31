@@ -234,7 +234,7 @@ lemma semigroup.map_map {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
   semigroup.map (e.trans f) = (semigroup.map f) ∘ (semigroup.map e) :=
 by { ext, dsimp [semigroup.map], simp, }
 
--- TODO create a derive handler for this
+-- TODO (after joining the `transport` branch) create a derive handler for this
 instance : equiv_functor semigroup :=
 { map := λ α β e, semigroup.map e,
   map_refl' := semigroup.id_map,

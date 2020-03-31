@@ -234,7 +234,7 @@ with all occurrences of `h` in other hypotheses and the goal replaced with `e.sy
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under (equiv-)functors, so can turn
+`equiv_rw` will also try rewriting under (equiv_)functors, so can turn
 a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ unique α` into `⊢ unique β`.
 

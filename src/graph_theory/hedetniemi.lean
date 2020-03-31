@@ -1,5 +1,6 @@
 import graph_theory.chromatic_number
 import data.zmod.basic
+import data.rat.floor
 
 /-!
 
@@ -50,32 +51,60 @@ begin
   apply equiv.apply_symm_apply
 end
 
+lemma is_loopless.prod₁ (h : G₁.is_loopless) :
+  (G₁.prod G₂).is_loopless :=
+assume x e, h e.1
+
+lemma is_loopless.prod₂ (h : G₂.is_loopless) :
+  (G₁.prod G₂).is_loopless :=
+assume x e, h e.2
+
 section hedetniemi
 variables {n₁ n₂ n : ℕ}
-variables (h₁ : chromatic_number G₁ n₁)
-variables (h₂ : chromatic_number G₂ n₂)
-variables (h : chromatic_number (G₁.prod G₂) n)
+variables (h₁ : is_chromatic_number G₁ n₁)
+variables (h₂ : is_chromatic_number G₂ n₂)
+variables (h : is_chromatic_number (G₁.prod G₂) n)
+
+variables (G₁ G₂)
+
+/-- Hedetniemi's conjecture, which has been disproven in <https://arxiv.org/pdf/1905.02167.pdf>. -/
+def hedetniemi [fintype V₁] [fintype V₂] (h₁ : G₁.is_loopless) (h₂ : G₂.is_loopless) : Prop :=
+chromatic_number (G₁.prod G₂) h₁.prod₁ = min (chromatic_number G₁ h₁) (chromatic_number G₂ h₂)
+
+variables {G₁ G₂}
 
 include h₁ h₂ h
 
-/-- Hedetniemi's conjecture, which has been disproven in <https://arxiv.org/pdf/1905.02167.pdf>. -/
-def hedetniemi : Prop :=
+def hedetniemi' : Prop :=
 n = min n₁ n₂
 
 omit h₁ h₂ h
 
-variables {n' : ℕ} (h' : chromatic_number (G₂.ihom (K_ n)) n')
-variables {nᵤ : ℕ} (hᵤ : chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
+lemma hedetniemi_iff [fintype V₁] [fintype V₂] :
+  hedetniemi G₁ G₂ h₁.is_loopless h₂.is_loopless ↔ hedetniemi' h₁ h₂ h :=
+begin
+  have H₁ : n₁ = chromatic_number G₁ h₁.is_loopless :=
+    h₁.elim (chromatic_number_is_chromatic_number G₁ h₁.is_loopless),
+  have H₂ : n₂ = chromatic_number G₂ h₂.is_loopless :=
+    h₂.elim (chromatic_number_is_chromatic_number G₂ h₂.is_loopless),
+  have H : n = chromatic_number (G₁.prod G₂) h.is_loopless :=
+    h.elim (chromatic_number_is_chromatic_number (G₁.prod G₂) h.is_loopless),
+  convert iff.rfl,
+  all_goals { apply chromatic_number_is_chromatic_number }
+end
 
-lemma min_le_of_universal_hedetniemi (H : hedetniemi h' h₂ hᵤ) :
+variables {n' : ℕ} (h' : is_chromatic_number (G₂.ihom (K_ n)) n')
+variables {nᵤ : ℕ} (hᵤ : is_chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
+
+lemma min_le_of_universal_hedetniemi (H : hedetniemi' h' h₂ hᵤ) :
   min n' n₂ ≤ n :=
 calc min n' n₂ = nᵤ : H.symm
            ... ≤ n  : hᵤ.min (universal_colouring _ _)
 
-lemma hedetniemi_of_universal (H : hedetniemi h' h₂ hᵤ) :
-  hedetniemi h₁ h₂ h :=
+lemma hedetniemi_of_universal (H : hedetniemi' h' h₂ hᵤ) :
+  hedetniemi' h₁ h₂ h :=
 begin
-  apply le_antisymm (chromatic_number_prod_le_min h₁ h₂ h),
+  apply le_antisymm (is_chromatic_number_prod_le_min h₁ h₂ h),
   obtain ⟨c⟩ : nonempty (nat_colouring n (G₁.prod G₂)) := h.col_exists,
   obtain ⟨c'⟩ : nonempty (nat_colouring n' (G₂.ihom (K_ n))) := h'.col_exists,
   let f : hom G₁ (G₂.ihom (K_ n)) := (adj G₁ G₂ (K_ n)) c,
@@ -205,6 +234,22 @@ def prod_hom_strong (G₁ : graph V₁) (G₂ : graph V₂) :
 { to_fun := id,
   map_edge' := assume x y e, or.inl e }
 
+lemma is_loopless.strong_prod (h₁ : G₁.is_loopless) (h₂ : G₂.is_loopless) :
+  (G₁.strong_prod G₂).is_loopless :=
+begin
+  rintros x (e|e|e),
+  { exact h₁ e.1 },
+  { exact h₂ e.2 },
+  { exact h₁ e.1 }
+end
+
+lemma loop_of_hom (f : hom G₁ G₂) : f ~[G₁.ihom G₂] f :=
+assume x y e, f.map_edge e
+
+lemma is_loopless.ihom (h : hom G₁ G₂ → false) :
+  (G₁.ihom G₂).is_loopless :=
+assume f e, h ⟨f, e⟩
+
 def cyclic (n : ℕ+) : graph (zmod n) :=
 { edge := assume x y, x = y + 1 ∨ y = x + 1,
   symm := assume x y, or.symm }
@@ -217,28 +262,68 @@ structure girth (G : graph V) (n : ℕ+) : Prop :=
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
 /-- Claim 3 of Shitov's paper. -/
--- Currently this statement is wrong, it's not what Shitov wrote.
 lemma claim3 (G : graph V) {k : ℕ+} (g : girth G k) (hk : 6 ≤ k) :
-  ∃ N : ℕ, ∀ q, N < q → ∀ c, chromatic_number (G.strong_prod (K_ q)) c → 3 * q < c :=
+  ∃ N : ℕ, ∀ q, N ≤ q → ∃ (c χ : ℕ)
+    (h : is_chromatic_number ((G.strong_prod (K_ q)).ihom (K_ c)) χ),
+    c < χ ∧ ⌈(3.1 * q : ℚ)⌉ = c :=
 begin
   sorry
 end
 
-def statement_of_erdos (χ g : ℕ) :=
-  ∃ {V : Type} [fintype V] (G : graph V) (k : ℕ) (n : ℕ+),
-  chromatic_number G k ∧ χ < k ∧
-  girth G n ∧ g < n
+theorem erdos (χ : ℚ) (g : ℕ) :
+  ∃ {V : Type} [fintype V] (G : graph V) (q : ℚ) (n : ℕ+),
+  is_frac_chromatic_number G q ∧ χ < q ∧
+  girth G n ∧ g < n :=
+sorry
+
+-- I have no idea why this is true. Shitov just uses it, without any justification.
+lemma whut (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
+  (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
+  χ * n ≤ k :=
+sorry
+
+/-- A silly lemma about ceil. -/
+lemma helpme {χ' χ : ℚ} (hχ : χ' < χ) {n k : ℕ} (h : χ * n ≤ k)  :
+  ⌈χ' * n⌉ < k :=
+begin
+  sorry
+end
+
+lemma is_frac_chromatic_number.is_loopless {G : graph V} {q : ℚ}
+  (hq : is_frac_chromatic_number G q) :
+  G.is_loopless :=
+sorry
 
 /-- Shitov's theorem -/
 theorem hedetniemi_false :
-  ∃ {V : Type} [fintype V] (G : graph V) (q n' n n'' : ℕ)
-     (hn' : chromatic_number (G.ihom (K_ n)) n')
-    (hn : chromatic_number G n)
-    (hn'' : chromatic_number ((G.ihom (K_ n)).prod G) n''),
-  ¬ hedetniemi hn' hn hn'' :=
+  ∃ {V₁ V₂ : Type} [fintype V₁] [fintype V₂]
+    (G₁ : graph V₁) (G₂ : graph V₂) (h₁ : G₁.is_loopless) (h₂ : G₂.is_loopless),
+  by exactI (¬ hedetniemi G₁ G₂ h₁ h₂) :=
 begin
-  sorry
-  -- apply mt (min_le_of_universal_hedetniemi _ _ _)
+  rcases erdos 3.1 6 with ⟨V, _inst, G, χ, g, hχ, hltχ, hg, hg'⟩,
+  resetI,
+  have six_le_g : 6 ≤ g,
+  { apply le_of_lt, exact hg' },
+  have hG : G.is_loopless := hχ.is_loopless,
+  rcases claim3 G hg six_le_g with ⟨q, hq⟩,
+  specialize hq q (le_refl q),
+  rcases hq with ⟨c, χ', hχ', hcχ', hqc⟩,
+  have hGKq : (G.strong_prod (K_ q)).is_loopless :=
+    hG.strong_prod (complete_is_loopless _),
+  refine ⟨_, _, infer_instance, infer_instance,
+    (G.strong_prod (K_ q)).ihom (K_ c), G.strong_prod (K_ q),
+    hχ'.is_loopless, hGKq, _⟩,
+  apply ne_of_lt,
+  refine lt_of_le_of_lt (show _ ≤ c, from _) _,
+  { let uc := universal_colouring (fin c) (G.strong_prod (K_ q)),
+    exact (chromatic_number_is_chromatic_number _ _).min uc },
+  { rw lt_min_iff,
+    split,
+    { rwa (chromatic_number_is_chromatic_number _ _).elim hχ' },
+    { rw [← int.coe_nat_lt, ← hqc],
+      apply helpme hltχ,
+      apply whut _ _ _ hχ,
+      apply chromatic_number_is_chromatic_number } }
 end
 
 end graph

@@ -40,6 +40,14 @@ structure is_chromatic_number (G : graph V) (n : ℕ) : Prop :=
 (col_exists : nonempty (nat_colouring n G))
 (min        : ∀ {k}, nat_colouring k G → n ≤ k)
 
+lemma is_chromatic_number.elim {n₁ n₂ : ℕ}
+  (h₁ : is_chromatic_number G n₁) (h₂ : is_chromatic_number G n₂) : n₁ = n₂ :=
+begin
+  obtain ⟨c₁⟩ := h₁.col_exists,
+  obtain ⟨c₂⟩ := h₂.col_exists,
+  exact le_antisymm (h₁.min c₂) (h₂.min c₁)
+end
+
 lemma is_chromatic_number.is_loopless {n} (h : is_chromatic_number G n) :
   G.is_loopless :=
 begin
@@ -235,5 +243,42 @@ end
 
 end
 
+structure is_frac_chromatic_number (G : graph V) (r : ℚ) : Prop :=
+(col_exists : ∃ (n k : ℕ), nonempty (nat_multicolouring n k G) ∧ r = n/k)
+(min        : ∀ {n k}, nat_multicolouring n k G → r ≤ n/k)
+
+section
+variable [fintype V]
+
+lemma frac_chromatic_number_exists (G : graph V) (hG : G.is_loopless) :
+  ∃ q, is_frac_chromatic_number G q :=
+begin
+  sorry
+end
+
+noncomputable def frac_chromatic_number (G : graph V) (hG : G.is_loopless) : ℚ :=
+classical.some (frac_chromatic_number_exists G hG)
+
+lemma frac_chromatic_number_is_frac_chromatic_number (G : graph V) (hG : G.is_loopless) :
+  is_frac_chromatic_number G (frac_chromatic_number G hG) :=
+classical.some_spec (frac_chromatic_number_exists G hG)
+
+end
+
+lemma is_frac_chromatic_number_le_is_chromatic_number
+  (G : graph V) (q : ℚ) (n : ℕ)
+  (hq : is_frac_chromatic_number G q) (hn : is_chromatic_number G n) :
+  q ≤ n :=
+begin
+  obtain ⟨c⟩ := hn.col_exists,
+  have := hq.min c.to_multi,
+  simpa only [nat.cast_one, div_one],
+end
+
+lemma frac_chromatic_number_le_chromatic_number [fintype V] (G : graph V) (hG : G.is_loopless) :
+  frac_chromatic_number G hG ≤ chromatic_number G hG :=
+is_frac_chromatic_number_le_is_chromatic_number G _ _
+  (frac_chromatic_number_is_frac_chromatic_number G hG)
+  (chromatic_number_is_chromatic_number G hG)
 
 end graph

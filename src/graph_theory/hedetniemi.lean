@@ -282,10 +282,11 @@ lemma whut (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
   χ * n ≤ k :=
 sorry
 
-/-- A silly lemma about ceil. -/
+/-- A silly lemma about ceil that is actually false. -/
 lemma helpme {χ' χ : ℚ} (hχ : χ' < χ) {n k : ℕ} (h : χ * n ≤ k)  :
   ⌈χ' * n⌉ < k :=
 begin
+  have h' : ⌈χ * n⌉ ≤ k, by rwa ceil_le,
   sorry
 end
 

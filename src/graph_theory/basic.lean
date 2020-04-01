@@ -1,10 +1,10 @@
-import tactic
+import .to_mathlib
 
 /-!
 # Definitions of graphs
 -/
 
-universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
+universe variables v v₁ v₂ v₃ u u₁ u₂ u₃ u₄
 
 structure directed_multigraph (V : Type u) :=
 (edge : V → V → Sort v)
@@ -33,8 +33,8 @@ def graph_of_edges {n : ℕ} (e : list (fin n × fin n)) : graph (fin n) :=
 notation x `~[`G`]` y := G.edge x y
 
 namespace graph
-variables {V : Type u} {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃}
-variables (G : graph V) (G₁ : graph V₁) (G₂ : graph V₂) (G₃ : graph V₃)
+variables {V : Type u} {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃} {V₄ : Type u₄}
+variables (G : graph V) (G₁ : graph V₁) (G₂ : graph V₂) (G₃ : graph V₃) (G₄ : graph V₄)
 
 def vertices (G : graph V) := V
 
@@ -77,8 +77,13 @@ instance hom.has_coe_to_fun : has_coe_to_fun (hom G₁ G₂) :=
 @[simp] lemma hom.to_fun_eq_coe (f : hom G₁ G₂) (x : V₁) :
   f.to_fun x = f x := rfl
 
+@[simp] lemma hom.mk_coe {G₁ : graph V₁} {G₂ : graph V₂}
+  (to_fun : V₁ → V₂) (map_edge' : ∀ {x y}, (x ~[G₁] y) → (to_fun x ~[G₂] to_fun y)) (x : V₁) :
+  (hom.mk to_fun @map_edge') x = to_fun x :=
+rfl
+
 section
-variables {G₁ G₂ G₃}
+variables {G₁ G₂ G₃ G₄}
 
 @[simp, ematch] lemma hom.map_edge (f : hom G₁ G₂) :
   ∀ {x y}, (x ~[G₁] y) → (f x ~[G₂] f y) :=
@@ -93,9 +98,24 @@ lemma hom.ext_iff (f g : hom G₁ G₂) : f = g ↔ (f : V₁ → V₂) = g :=
 def hom.id : hom G G :=
 { to_fun := id }
 
+@[simp]
+lemma hom.id_coe (x) : (hom.id G) x = x := rfl
+
 def hom.comp (g : hom G₂ G₃) (f : hom G₁ G₂) : hom G₁ G₃ :=
 { to_fun    := g ∘ f,
   map_edge' := assume x y, g.map_edge ∘ f.map_edge }
+
+@[simp]
+lemma hom.comp_coe (g : hom G₂ G₃) (f : hom G₁ G₂) (x) : (hom.comp g f) x = g (f x) := rfl
+
+@[simp]
+lemma hom.comp_id (g : hom G₁ G₂) : hom.comp g (hom.id _) = g := by { ext, simp, }
+@[simp]
+lemma hom.id_comp (g : hom G₁ G₂) : hom.comp (hom.id _) g = g := by { ext, simp, }
+
+@[simp]
+lemma hom.assoc (f : hom G₁ G₂) (g : hom G₂ G₃) (h : hom G₃ G₄) :
+  hom.comp h (hom.comp g f) = hom.comp (hom.comp h g) f := by { ext, simp, }
 
 end
 

@@ -538,9 +538,13 @@ lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem_sets' hp
 
-lemma eventually_false_iff_eq_bot {f : filter α} :
+@[simp] lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_in_sets_eq_bot
+
+@[simp] lemma eventually_const {f : filter α} (hf : f ≠ ⊥) {p : Prop} :
+  (∀ᶠ x in f, p) ↔ p :=
+classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h, hf])
 
 lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
   (hq : ∀ᶠ x in f, p x → q x) :
@@ -552,14 +556,30 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
 
-lemma eventually.congr {f : filter α} {β : Type*} {u v : α → β} {p : β → Prop}
-  (h : ∀ᶠ a in f, u a = v a) (h' : ∀ᶠ a in f, p (u a)) : ∀ᶠ a in f, p (v a) :=
-h'.mp (h.mono (by simp {contextual := tt}))
+@[simp] lemma eventually_and {p q : α → Prop} {f : filter α} :
+  (∀ᶠ x in f, p x ∧ q x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in f, q x) :=
+⟨λ h, ⟨h.mono $ λ _, and.left, h.mono $ λ _, and.right⟩, λ h, h.1.and h.2⟩
 
-lemma eventually.congr_iff {f : filter α} {β : Type*} {u v : α → β}
-  (h : ∀ᶠ a in f, u a = v a) (p : β → Prop) :
-  (∀ᶠ a in f, p (u a)) ↔ (∀ᶠ a in f, p (v a)) :=
-⟨h.congr, eventually.congr (h.mp (by simp {contextual := tt}))⟩
+lemma eventually.congr {f : filter α} {p q : α → Prop} (h' : ∀ᶠ x in f, p x)
+  (h : ∀ᶠ x in f, p x ↔ q x) : ∀ᶠ x in f, q x :=
+h'.mp (h.mono $ λ x hx, hx.mp)
+
+-- `@[congr]` doesn't accept this lemma with `∀ᶠ` notation
+@[congr] lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p x ↔ q x) :
+  (f.eventually p) ↔ (∀ᶠ x in f, q x) :=
+⟨λ hp, hp.congr h, λ hq, hq.congr $ by simpa only [iff.comm] using h⟩
+
+@[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
+  (∀ᶠ x in f, p ∨ q x) ↔ (p ∨ ∀ᶠ x in f, q x) :=
+classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h])
+
+@[simp] lemma eventually_or_distrib_right {f : filter α} {p : α → Prop} {q : Prop} :
+  (∀ᶠ x in f, p x ∨ q) ↔ ((∀ᶠ x in f, p x) ∨ q) :=
+by simp only [or_comm _ q, eventually_or_distrib_left]
+
+@[simp] lemma eventually_imp_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
+  (∀ᶠ x in f, p → q x) ↔ (p → ∀ᶠ x in f, q x) :=
+by simp only [imp_iff_not_or, eventually_or_distrib_left]
 
 @[simp]
 lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
@@ -647,10 +667,42 @@ by simp [filter.frequently]
   (¬ ∃ᶠ x in f, p x) ↔ (∀ᶠ x in f, ¬ p x) :=
 by simp only [filter.frequently, not_not]
 
-lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
+@[simp] lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
 by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot]
 
 lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
+
+@[simp] lemma frequently_const {f : filter α} (hf : f ≠ ⊥) {p : Prop} :
+  (∃ᶠ x in f, p) ↔ p :=
+classical.by_cases (λ h : p, by simp [*]) (λ h, by simp [*])
+
+@[simp] lemma frequently_or_distrib {f : filter α} {p q : α → Prop} :
+  (∃ᶠ x in f, p x ∨ q x) ↔ (∃ᶠ x in f, p x) ∨ (∃ᶠ x in f, q x) :=
+by simp only [filter.frequently, ← not_and_distrib, not_or_distrib, eventually_and]
+
+lemma frequently_or_distrib_left {f : filter α} (hf : f ≠ ⊥) {p : Prop} {q : α → Prop} :
+  (∃ᶠ x in f, p ∨ q x) ↔ (p ∨ ∃ᶠ x in f, q x) :=
+by simp [hf]
+
+lemma frequently_or_distrib_right {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} {q : Prop} :
+  (∃ᶠ x in f, p x ∨ q) ↔ (∃ᶠ x in f, p x) ∨ q :=
+by simp [hf]
+
+@[simp] lemma frequently_imp_distrib {f : filter α} {p q : α → Prop} :
+  (∃ᶠ x in f, p x → q x) ↔ ((∀ᶠ x in f, p x) → ∃ᶠ x in f, q x) :=
+by simp [imp_iff_not_or, not_eventually, frequently_or_distrib]
+
+lemma frequently_imp_distrib_left {f : filter α} (hf : f ≠ ⊥) {p : Prop} {q : α → Prop} :
+  (∃ᶠ x in f, p → q x) ↔ (p → ∃ᶠ x in f, q x) :=
+by simp [hf]
+
+lemma frequently_imp_distrib_right {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} {q : Prop} :
+  (∃ᶠ x in f, p x → q) ↔ ((∀ᶠ x in f, p x) → q) :=
+by simp [hf]
+
+@[simp] lemma eventually_imp_distrib_right {f : filter α} {p : α → Prop} {q : Prop} :
+  (∀ᶠ x in f, p x → q) ↔ ((∃ᶠ x in f, p x) → q) :=
+by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
 
 lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
 

@@ -271,22 +271,22 @@ theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   (principal s).Liminf = Inf s :=
 by simp [Liminf]; exact cSup_lower_bounds_eq_cInf h hs
 
-lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
+@[congr] lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : limsup f u = limsup f v :=
 begin
   rw limsup_eq,
   congr,
   ext b,
-  exact h.congr_iff (λ z, z ≤ b),
+  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
-lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
+@[congr] lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf f u = liminf f v :=
 begin
   rw liminf_eq,
   congr,
   ext b,
-  exact h.congr_iff (λ z, b ≤ z),
+  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
 lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)

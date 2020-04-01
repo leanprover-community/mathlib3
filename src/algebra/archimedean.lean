@@ -72,7 +72,7 @@ begin
 end
 
 end linear_ordered_ring
---
+-- 1 2 3
 section linear_ordered_field
 --
 /-- Every positive x is between two successive integer powers of

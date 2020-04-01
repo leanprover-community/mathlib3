@@ -43,7 +43,7 @@ example : ∀ n : S, 4 ≤ (n : ℕ) := λ ⟨n, hn⟩, hn
 It is useful to use a subtype rather than a set when you need to define functions on subtypes, or when using the cardinal of a subtype.
 
 ### fintype ###
-#### data.fintype ####
+#### data.fintype.basic ####
 `fintype α` means that a type α is finite. It is constructed from a finset containing all elements of a type.
 ```lean
 class fintype (α : Type*) :=

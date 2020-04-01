@@ -31,36 +31,57 @@ namespace category_theory.limits
 inductive walking_pair : Type v
 | left | right
 
-instance fintype_walking_pair : fintype walking_pair :=
-{ elems := [walking_pair.left, walking_pair.right].to_finset,
-  complete := λ x, by { cases x; simp } }
+open walking_pair
 
-def pair_function {C : Type u} (X Y : C) : walking_pair → C
-| walking_pair.left := X
-| walking_pair.right := Y
+instance fintype_walking_pair : fintype walking_pair :=
+{ elems := [left, right].to_finset,
+  complete := λ x, by { cases x; simp } }
 
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+/-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
-functor.of_function (pair_function X Y)
+functor.of_function (λ j, walking_pair.cases_on j X Y)
 
-@[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj walking_pair.left = X := rfl
-@[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj walking_pair.right = Y := rfl
+@[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj left = X := rfl
+@[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj right = Y := rfl
 
-def map_pair {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : pair W X ⟶ pair Y Z :=
+section
+variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj left ⟶ G.obj left) (g : F.obj right ⟶ G.obj right)
+
+/-- The natural transformation between two functors out of the walking pair, specified by its components. -/
+def map_pair : F ⟶ G :=
 { app := λ j, match j with
-  | walking_pair.left := f
-  | walking_pair.right := g
+  | left := f
+  | right := g
   end }
 
-@[simp] lemma map_pair_left {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.left = f := rfl
-@[simp] lemma map_pair_right {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.right = g := rfl
+@[simp] lemma map_pair_left : (map_pair f g).app left = f := rfl
+@[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
-/-- Every functor indexing a (co)product is naturally isomorphic (actually, equal) to a `pair` -/
+/-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
+@[simps]
+def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
+{ hom := map_pair f.hom g.hom,
+  inv := map_pair f.inv g.inv,
+  hom_inv_id' := begin ext j, cases j; { dsimp, simp, } end,
+  inv_hom_id' := begin ext j, cases j; { dsimp, simp, } end }
+end
+
+section
+variables {D : Type u} [𝒟 : category.{v} D]
+include 𝒟
+
+/-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
+def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
+map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
+end
+
+/-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
 def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
   F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
-nat_iso.of_components (λ j, eq_to_iso $ by cases j; refl) $ by tidy
+map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
 
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)

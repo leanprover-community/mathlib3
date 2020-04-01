@@ -42,6 +42,7 @@ begin
   { intros p hp, replace hp := mem_degree_le.1 hp,
     rw [← finsupp.sum_single p, finsupp.sum, submodule.mem_coe],
     refine submodule.sum_mem _ (λ k hk, _),
+    show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
     rw [single_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $

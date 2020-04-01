@@ -84,7 +84,7 @@ begin
   have : countable (univ : set s) := countable_encodable _,
   rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
   have : range g = univ := univ_subset_iff.1 hg,
-  use subtype.val ∘ g,
+  use coe ∘ g,
   rw [range_comp, this],
   simp
 end

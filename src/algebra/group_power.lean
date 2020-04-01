@@ -44,6 +44,21 @@ theorem succ_smul (a : A) (n : ℕ) : (n+1)•a = a + n•a := rfl
 @[simp] theorem pow_one (a : M) : a^1 = a := mul_one _
 @[simp] theorem add_monoid.one_smul (a : A) : 1•a = a := add_zero _
 
+@[simp] lemma pow_ite (P : Prop) [decidable P] (a : M) (b c : ℕ) :
+  a ^ (if P then b else c) = if P then a ^ b else a ^ c :=
+by split_ifs; refl
+
+@[simp] lemma ite_pow (P : Prop) [decidable P] (a b : M) (c : ℕ) :
+  (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
+by split_ifs; refl
+
+-- In this lemma we need to use `congr` because
+-- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
+-- modifies the decidable instance.
+@[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
+  a ^ (if P then 1 else 0) = if P then a else 1 :=
+by { simp, congr }
+
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
   rw [pow_succ, mul_assoc, ih]]

@@ -7,7 +7,7 @@ import category.monad.basic
 import data.list.basic
 import data.equiv.basic
 import data.finset
-import data.fintype
+import data.fintype.basic
 
 /-!
 Type class for finitely enumerable types. The property is stronger

@@ -71,14 +71,28 @@ end expr
 namespace interaction_monad
 open result
 
-/-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it does not update the current state. -/
-meta def get_result {σ α} (tac : interaction_monad σ α) :
-  interaction_monad σ (interaction_monad.result σ α) | s :=
-match tac s with
-| r@(success _ s') := success r s'
-| r@(exception _ _ s') := success r s'
-end
+variables {σ : Type} {α : Type u}
+
+/-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.read` in core.
+meta def get_state : interaction_monad σ σ :=
+λ state, success state state
+
+/-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.write` in core.
+meta def set_state (state : σ) : interaction_monad σ unit :=
+λ _, success () state
+
+/--
+`run_with_state state tac` applies `tac` to the given state `state` and returns the result,
+subsequently restoring the original state.
+If `tac` fails, then `run_with_state` does too.
+-/
+meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+λ s, match tac state with
+     | success val _      := success val s
+     | exception fn pos _ := exception fn pos s
+     end
 
 end interaction_monad
 
@@ -688,24 +702,39 @@ let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
 /--
-`apply_any` tries to apply one of a list of lemmas to the current goal.
+Configuration options for `apply_any`:
+* `use_symmetry`: if `apply_any` fails to apply any lemma, call `symmetry` and try again.
+* `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
+* `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
+-/
+meta structure apply_any_opt :=
+(use_symmetry : bool := tt)
+(use_exfalso : bool := tt)
+(apply : expr → tactic (list (name × expr)) := tactic.apply)
 
-Optional arguments:
-* `lemmas` controls which expressions are applied.
-* `tac` is called after a successful application. Defaults to `skip`.
-* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
-* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
+/--
+`apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
+
+`apply_any lemmas opt` allows control over how lemmas are applied.
+`opt` has fields:
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
+* `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
+
+`apply_any lemmas tac` calls the tactic `tac` after a successful application.
+Defaults to `skip`. This is used, for example, by `solve_by_elim` to arrange
+recursive invocations of `apply_any`.
 -/
 meta def apply_any
   (lemmas : list expr)
-  (tac : tactic unit := skip)
-  (use_symmetry : bool := tt)
-  (use_exfalso : bool := tt) : tactic unit :=
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
-    ++ (if use_symmetry then [symmetry] else [])
-    ++ (if use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, opt.apply H >> tac)) <|>
   fail "apply_any tactic failed; no lemma could be applied"
 
 /-- Try to apply a hypothesis from the local context to the goal. -/

@@ -29,6 +29,8 @@ include r
 /-- A type synonom for `C`, thought of as the objects of the quotient category. -/
 structure quotient := (to_C : C)
 
+instance [inhabited C] : inhabited (quotient r) := ⟨⟨r, default C⟩⟩
+
 namespace quotient
 
 /-- Generates the closure of a family of relations w.r.t. composition from left and right. -/
@@ -46,6 +48,8 @@ lemma comp_right {a b c : C} (g : b ⟶ c) : Π (f₁ f₂ : a ⟶ b) (h : comp_
 
 /-- Hom-sets of the quotient category. -/
 def hom (s t : quotient r) := quot $ @comp_closure C _ r s.to_C t.to_C
+
+instance (a : quotient r) : inhabited (hom r a a) := ⟨quot.mk _ (𝟙 a.to_C)⟩
 
 /-- Composition in the quotient category. -/
 def comp {a b c : quotient r} : hom r a b → hom r b c → hom r a c :=

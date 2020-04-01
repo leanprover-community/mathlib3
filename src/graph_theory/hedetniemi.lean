@@ -289,10 +289,29 @@ begin
   sorry
 end
 
+lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :
+  0 < q :=
+begin
+  obtain ⟨n, k, ⟨c⟩, hk, hc⟩ := h.col_exists,
+  suffices hn : 0 < n,
+  { rw hc, apply div_pos; assumption_mod_cast },
+  unfreezeI, obtain ⟨x⟩ := ‹nonempty V›,
+  obtain ⟨s, hs⟩ : {s : finset (fin n) // s.card = k} := c x,
+  suffices : s.nonempty,
+  { obtain ⟨i, hi⟩ : ∃ i, i ∈ s := this,
+    exact lt_of_le_of_lt (zero_le _) i.is_lt },
+  rwa [← finset.card_pos, hs],
+end
+
 lemma is_frac_chromatic_number.is_loopless {G : graph V} {q : ℚ}
   (hq : is_frac_chromatic_number G q) :
   G.is_loopless :=
-sorry
+begin
+  obtain ⟨n, k, ⟨c⟩, h, hc⟩ := hq.col_exists,
+  assume x e,
+  rw ← (Kneser.is_loopless_iff (fin n) k) at h,
+  exact h (c.map_edge e)
+end
 
 /-- Shitov's theorem -/
 theorem hedetniemi_false :

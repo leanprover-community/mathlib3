@@ -137,7 +137,7 @@ def Kneser (V : Type u) [decidable_eq V] (k : ℕ) :
 { edge := assume s t, disjoint (s : finset V) (t : finset V),
   symm := assume s t e, e.symm }
 
-def Kneser.map {V₁ : Type u₁} {V₂ : Type u₂} [decidable_eq V₁] [decidable_eq V₂]
+def Kneser.map [decidable_eq V₁] [decidable_eq V₂]
   (f : V₁ ↪ V₂) (k : ℕ) :
   hom (Kneser V₁ k) (Kneser V₂ k) :=
 { to_fun    := λ s, ⟨finset.map f s, by { rw finset.card_map f, exact s.2 }⟩,
@@ -145,18 +145,31 @@ def Kneser.map {V₁ : Type u₁} {V₂ : Type u₂} [decidable_eq V₁] [decida
     by rwa [finset.map_disjoint] }
 
 @[simp]
-lemma Kneser.map_id {V₁ : Type u₁} [decidable_eq V₁] (k : ℕ) :
-  Kneser.map (function.embedding.refl V₁) k = hom.id _ :=
+lemma Kneser.map_id [decidable_eq V] (k : ℕ) :
+  Kneser.map (function.embedding.refl V) k = hom.id _ :=
 by { ext, dsimp [Kneser.map], apply subtype.eq, simp, refl, }
 
 @[simp]
-lemma Kneser.map_trans {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃}
-  [decidable_eq V₁] [decidable_eq V₂] [decidable_eq V₃]
+lemma Kneser.map_trans [decidable_eq V₁] [decidable_eq V₂] [decidable_eq V₃]
   (f : V₁ ↪ V₂) (g : V₂ ↪ V₃) (k : ℕ) :
   Kneser.map (f.trans g) k = hom.comp (Kneser.map g k) (Kneser.map f k) :=
 by { ext, dsimp [Kneser.map], apply subtype.eq, simp, }
 
-
+lemma Kneser.is_loopless_iff (V : Type u) [decidable_eq V] (k : ℕ) :
+  (Kneser V k).is_loopless ↔ 0 < k :=
+begin
+  split,
+  { unfold is_loopless,
+    contrapose!,
+    rw nat.le_zero_iff,
+    rintro rfl,
+    refine ⟨⟨∅, finset.card_empty⟩, disjoint_bot_left⟩ },
+  { rintros h ⟨s, rfl⟩ e,
+    replace e : s = ∅ := disjoint_self.mp e,
+    subst s,
+    rw finset.card_empty at h,
+    exact nat.not_lt_zero _ h }
+end
 
 /-- A `multicolouring W k G` is a “k-fold colouring” of the graph `G`,
 using colors from the type `W`.
@@ -273,8 +286,8 @@ end
 end
 
 structure is_frac_chromatic_number (G : graph V) (r : ℚ) : Prop :=
-(col_exists : ∃ (n k : ℕ), nonempty (nat_multicolouring n k G) ∧ r = n/k)
-(min        : ∀ {n k}, nat_multicolouring n k G → r ≤ n/k)
+(col_exists : ∃ (n k : ℕ), nonempty (nat_multicolouring n k G) ∧ 0 < k ∧ r = n/k)
+(min        : ∀ {n k}, nat_multicolouring n k G → 0 < k → r ≤ n/k)
 
 section
 variable [fintype V]
@@ -300,7 +313,7 @@ lemma is_frac_chromatic_number_le_is_chromatic_number
   q ≤ n :=
 begin
   obtain ⟨c⟩ := hn.col_exists,
-  have := hq.min c.to_multi,
+  have := hq.min c.to_multi zero_lt_one,
   simpa only [nat.cast_one, div_one],
 end
 

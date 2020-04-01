@@ -1,1 +1,2 @@
 status = ["Build mathlib"]
+use_squash_merge = true

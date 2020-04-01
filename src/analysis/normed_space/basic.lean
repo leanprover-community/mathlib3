@@ -853,6 +853,8 @@ lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a�
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
 
+/-- If `∑ i, ∥f i∥` is summable, then `∥(∑ i, f i)∥ ≤ (∑ i, ∥f i∥)`. Note that we do not assume that
+`∑ i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 begin
   by_cases h : summable f,
@@ -860,7 +862,7 @@ begin
       (continuous_norm.tendsto _).comp h.has_sum,
     have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
       hf.has_sum,
-    exact le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ (univ_mem_sets' (assume s, norm_sum_le _ _)) },
+    exact le_of_tendsto_of_tendsto' at_top_ne_bot h₁ h₂ (assume s, norm_sum_le _ _) },
   { rw tsum_eq_zero_of_not_summable h,
     simp [tsum_nonneg] }
 end

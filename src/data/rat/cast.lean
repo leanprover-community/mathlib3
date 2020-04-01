@@ -32,10 +32,7 @@ variable [division_ring α]
   division ring. If the field has positive characteristic `p`,
   we define `1 / p = 1 / 0 = 0` for consistency with our
   division by zero convention. -/
-protected def cast : ℚ → α
-| ⟨n, d, h, c⟩ := n / d
-
-@[priority 10] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℚ α := ⟨λ r, r.1 / r.2⟩
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
@@ -198,32 +195,35 @@ cast_add _ _
   ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
-instance is_ring_hom_cast [char_zero α] : is_ring_hom (rat.cast : ℚ → α) :=
-⟨rat.cast_one, rat.cast_mul, rat.cast_add⟩
+variable (α)
+
+/-- Coercion `ℚ → α` as a `ring_hom`. -/
+def cast_hom [char_zero α] : ℚ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+
+variable {α}
+
+@[simp] lemma coe_cast_hom [char_zero α] : ⇑(cast_hom α) = coe := rfl
+
+@[simp, move_cast] theorem cast_inv [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+(cast_hom α).map_inv
+
+@[simp, move_cast] theorem cast_div [char_zero α] (m n) :
+  ((m / n : ℚ) : α) = m / n :=
+(cast_hom α).map_div
+
+@[move_cast] theorem cast_mk [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
+by simp only [mk_eq_div, cast_div, cast_coe_int]
+
+@[simp, move_cast] theorem cast_pow [char_zero α] (q) (k : ℕ) :
+  ((q ^ k : ℚ) : α) = q ^ k :=
+(cast_hom α).map_pow q k
 
 end with_div_ring
 
-@[move_cast] theorem cast_mk [field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
-if b0 : b = 0 then by simp [b0, div_zero]
-else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
-
-@[simp, move_cast] theorem cast_inv [field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
-if n0 : n.num = 0 then
-  by simp [show n = 0, by rw [←(@num_denom n), n0]; simp, inv_zero] else
-cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_div [field α] [char_zero α] (m n) :
-  ((m / n : ℚ) : α) = m / n :=
-by rw [division_def, cast_mul, cast_inv, division_def]
-
-@[simp, move_cast] theorem cast_pow [field α] [char_zero α] (q) (k : ℕ) :
-  ((q ^ k : ℚ) : α) = q ^ k :=
-by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
-
-@[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
+@[simp, elim_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
 | ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),
   by rw [num_denom', ← nonneg_iff_zero_le, mk_nonneg _ (int.coe_nat_pos.2 h),
-    mul_nonneg_iff_right_nonneg_of_pos (@inv_pos α _ _ (nat.cast_pos.2 h)),
+    mul_nonneg_iff_right_nonneg_of_pos ((@inv_pos α _ _).2 (nat.cast_pos.2 h)),
     int.cast_nonneg]
 
 @[simp, elim_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=

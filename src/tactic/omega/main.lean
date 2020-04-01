@@ -125,4 +125,4 @@ add_tactic_doc
 { name       := "omega",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.omega],
-  tags       := ["simplification", "normalization", "arithmetic", "decision procedure"] }
+  tags       := ["finishing", "arithmetic", "decision procedure"] }

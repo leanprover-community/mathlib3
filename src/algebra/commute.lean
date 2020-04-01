@@ -217,6 +217,35 @@ by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
 
 end ring
 
+section division_ring
+
+variables {R : Type*} [division_ring R] {a b c : R}
+
+@[simp] theorem finv_left_iff : commute a⁻¹ b ↔ commute a b :=
+semiconj_by.finv_symm_left_iff
+
+theorem finv_left (h : commute a b) : commute a⁻¹ b :=
+finv_left_iff.2 h
+
+@[simp] theorem finv_right_iff : commute a b⁻¹ ↔ commute a b :=
+commute.symm_iff.trans (finv_left_iff.trans commute.symm_iff)
+
+theorem finv_right (h : commute a b) : commute a b⁻¹ :=
+finv_right_iff.2 h
+
+theorem finv_finv (h : commute a b) : commute a⁻¹ b⁻¹ :=
+h.finv_left.finv_right
+
+@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
+  commute a (b / c) :=
+hab.mul_right hac.finv_right
+
+@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
+  commute (a / b) c :=
+hac.mul_left hbc.finv_left
+
+end division_ring
+
 end commute
 
 

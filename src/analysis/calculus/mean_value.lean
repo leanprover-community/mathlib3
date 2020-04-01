@@ -115,7 +115,7 @@ begin
         (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hy⟩)).exists,
     have := le_of_lt (lt_trans hfz hzB),
     refine ⟨z, _, hz⟩,
-    rw [mul_le_mul_left (inv_pos $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this,
+    rw [mul_le_mul_left (inv_pos.2 $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this,
     exact this }
 end
 

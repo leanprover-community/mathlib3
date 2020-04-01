@@ -180,28 +180,44 @@ variables {S}
   f (sec S f z).1 = f (sec S f z).2 * z :=
 by rw [mul_comm, sec_spec h]
 
-@[to_additive] lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+    `w : M, z : N` and `y ∈ S`, we have `w * (f y)⁻¹ = z ↔ w = f y * z`. -/
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w  - f y = z ↔ w = f y + z`."]
+lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z ↔ w = f y * z :=
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
   exact (is_unit.coe_lift_right (f.restrict S) h _).symm
 
-@[to_additive] lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+    `w : M, z : N` and `y ∈ S`, we have `z = w * (f y)⁻¹ ↔ z * f y = w`. -/
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `z = w - f y ↔ z + f y = w`."]
+lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : z = w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ ↔ z * f y = w :=
 by rw [eq_comm, mul_inv_left h, mul_comm, eq_comm]
 
-@[to_additive] lemma mul_inv {f : M →* N} (h : ∀ y : S, is_unit (f y)) {x₁ x₂} {y₁ y₂ : S} :
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that
+    `f(S) ⊆ units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
+    `f x₁ * (f y₁)⁻¹ = f x₂ * (f y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁)`. -/
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have `f x₁ - f y₁ = f x₂ - f y₂ ↔ f (x₁ + y₂) = f (x₂ + y₁)`."]
+lemma mul_inv {f : M →* N} (h : ∀ y : S, is_unit (f y)) {x₁ x₂} {y₁ y₂ : S} :
   f x₁ * ↑(is_unit.lift_right (f.restrict S) h y₁)⁻¹ =
     f x₂ * ↑(is_unit.lift_right (f.restrict S) h y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁) :=
 by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_left h, mul_comm x₂,
   f.map_mul, f.map_mul]
 
-@[to_additive] lemma inv_inj {f : M →* N} (hf : ∀ y : S, is_unit (f y)) {y z}
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+    `y, z ∈ S`, we have `(f y)⁻¹ = (f z)⁻¹ → f y = f z`. -/
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `y, z ∈ S`, we have `- (f y) = - (f z) → f y = f z`."]
+lemma inv_inj {f : M →* N} (hf : ∀ y : S, is_unit (f y)) {y z}
   (h : (is_unit.lift_right (f.restrict S) hf y)⁻¹ = (is_unit.lift_right (f.restrict S) hf z)⁻¹) :
   f y = f z :=
 by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
   convert units.inv_mul _; exact (is_unit.coe_lift_right (f.restrict S) hf _).symm
 
-@[to_additive] lemma inv_unique {f : M →* N} (h : ∀ y : S, is_unit (f y)) {y : S}
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+    `y ∈ S`, `(f y)⁻¹` is unique. -/
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `y ∈ S`, `-(f y)` is unique."]
+lemma inv_unique {f : M →* N} (h : ∀ y : S, is_unit (f y)) {y : S}
   {z} (H : f y * z = 1) : ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z :=
 by rw [←one_mul ↑(_)⁻¹, mul_inv_left, ←H]
 
@@ -222,7 +238,10 @@ f.1 x * ↑(is_unit.lift_right (f.1.restrict S) f.2 y)⁻¹
 @[to_additive] lemma mk'_one (x) : f.mk' x (1 : S) = f.1 x :=
 by rw [mk', monoid_hom.map_one]; exact mul_one (f.1 x)
 
-@[simp, to_additive] lemma mk'_sec (z : N) : f.mk' (sec S f.1 z).1 (sec S f.1 z).2 = z :=
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, for all `z : N` we have that if
+    `x : M, y ∈ S` are such that `z * f y = f x`, then `f x * (f y)⁻¹ = z`. -/
+@[simp, to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, for all `z : N` we have that if `x : M, y ∈ S` are such that `z + f y = f x`, then `f x - f y = z`."]
+lemma mk'_sec (z : N) : f.mk' (sec S f.1 z).1 (sec S f.1 z).2 = z :=
 show _ * _ = _, by rw [←sec_spec f.3, mul_inv_left, mul_comm]
 
 @[to_additive] lemma mk'_surjective (z : N) : ∃ x (y : S), f.mk' x y = z :=
@@ -267,13 +286,13 @@ by rw [f.eq, localization.r_iff_exists]
   {y₁ y₂ : S} : f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ g.mk' x₁ y₁ = g.mk' x₂ y₂ :=
 f.eq'.trans g.eq'.symm
 
-@[to_additive] lemma exists_of_sec_mk' (x) (y : S) :
+/-- Application of the 'weaker-than-injectivity' property of localization maps `f : M →* N`
+    for a submonoid `S ⊆ M` to the fact that for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`,
+    `f x₁ * (f y₁)⁻¹ * f y₂ = f x₂ → f (x₁ * y₂) = f (x₂ * y₁)`.  -/
+@[to_additive "Application of the 'weaker-than-injectivity' property of localization maps `f : M →+ N` for a submonoid `S ⊆ M` to the fact that for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, `(f x₁ - f y₁) + f y₂ = f x₂ → f (x₁ + y₂) = f (x₂ + y₁)`."]
+lemma exists_of_sec_mk' (x) (y : S) :
   ∃ c : S, x * (sec S f.1 $ f.mk' x y).2 * c = (sec S f.1 $ f.mk' x y).1 * y * c :=
 (f.4 _ _).1 $ f.mk'_eq_iff_eq.1 $ (mk'_sec _ _).symm
-
-@[to_additive] lemma exists_of_sec (x) :
-  ∃ c : S, x * (sec S f.1 $ f.1 x).2 * c = (sec S f.1 $ f.1 x).1 * c :=
-(f.4 _ _).1 $ by rw f.1.map_mul; exact sec_spec f.3 _
 
 @[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * a₂ = a₁ * b₂) :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
@@ -334,10 +353,11 @@ f.eq_of_eq (λ y : S, show is_unit (k.1.comp g y), from k.2 ⟨g y, hg y⟩) h
 
 variables (hg : ∀ y : S, is_unit (g y))
 
-/-- Given a localization map `f : M →* N` and a map of `comm_monoid`s `g : M →* P` such that
-    `g y` is invertible for all `y : S`, the homomorphism induced from `N` to `P` sending `z : N`
-    to `g x * (g y)⁻¹`, where `(x, y) : M × S` are such that `z = f x * (f y)⁻¹`. -/
-@[to_additive "Given a localization map `f : M →+ N` and a map of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : S`, the homomorphism induced from `N` to `P` sending `z : N` to `g x - g y`, where `(x, y) : M × S` are such that `z = f x - f y`."]
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M` and a map of `comm_monoid`s
+    `g : M →* P` such that `g y` is invertible for all `y : S`, the homomorphism induced from
+    `N` to `P` sending `z : N` to `g x * (g y)⁻¹`, where `(x, y) : M × S` are such that
+    `z = f x * (f y)⁻¹`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M` and a map of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : S`, the homomorphism induced from `N` to `P` sending `z : N` to `g x - g y`, where `(x, y) : M × S` are such that `z = f x - f y`."]
 noncomputable def lift : N →* P :=
 { to_fun := λ z, g (sec S f.1 z).1 * ↑(is_unit.lift_right (g.restrict S) hg (sec S f.1 z).2)⁻¹,
   map_one' := by rw [mul_inv_left, mul_one]; exact f.eq_of_eq hg (by rw [←sec_spec f.3, one_mul]),
@@ -348,16 +368,29 @@ noncomputable def lift : N →* P :=
 
 variables {S g}
 
-@[to_additive] lemma lift_mk' (x y) :
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M` and a map of `comm_monoid`s
+    `g : M →* P` such that `g y` is invertible for all `y : S`, the homomorphism induced from
+    `N` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : M, y ∈ S`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M` and a map of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : S`, the homomorphism induced from `N` to `P` maps `f x - f y` to `g x - g y` for all `x : M, y ∈ S`."]
+lemma lift_mk' (x y) :
   f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.restrict S) hg y)⁻¹ :=
 (mul_inv hg).2 $ f.eq_of_eq hg $ by
   rw [f.1.map_mul, f.1.map_mul, sec_spec' f.3, mul_assoc, f.mk'_spec, mul_comm]
 
-@[to_additive] lemma lift_spec (z v) :
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
+    `g : M →* P` induces a map `f.lift hg : N →* P` then for all `z : N, v : P`, we have
+    `f.lift hg z = v ↔ g x = g y * v`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N, v : P`, we have `f.lift hg z = v ↔ g x = g y + v`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma lift_spec (z v) :
   f.lift hg z = v ↔ g (sec S f.1 z).1 = g (sec S f.1 z).2 * v :=
 mul_inv_left hg _ _ v
 
-@[to_additive] lemma lift_spec_mul (z w v) :
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
+    `g : M →* P` induces a map `f.lift hg : N →* P` then for all `z : N, v w : P`, we have
+    `f.lift hg z * w = v ↔ g x * w = g y * v`, where `x : M, y ∈ S` are such that
+    `z * f y = f x`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N, v w : P`, we have `f.lift hg z + w = v ↔ g x + w = g y + v`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma lift_spec_mul (z w v) :
   f.lift hg z * w = v ↔ g (sec S f.1 z).1 * w = g (sec S f.1 z).2 * v :=
 begin
   rw mul_comm,
@@ -369,11 +402,19 @@ end
   f.lift hg (f.mk' x y) = v ↔ g x = g y * v :=
 by rw f.lift_mk' hg; exact mul_inv_left hg _ _ _
 
-@[to_additive] lemma lift_mul_right (z) :
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
+    `g : M →* P` induces a map `f.lift hg : N →* P` then for all `z : N`, we have
+    `f.lift hg z * g y = g x`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N`, we have `f.lift hg z + g y = g x`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma lift_mul_right (z) :
   f.lift hg z * g (sec S f.1 z).2 = g (sec S f.1 z).1 :=
 show _ * _ * _ = _, by erw [mul_assoc, is_unit.lift_right_inv_mul, mul_one]
 
-@[to_additive] lemma lift_mul_left (z) :
+/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
+    `g : M →* P` induces a map `f.lift hg : N →* P` then for all `z : N`, we have
+    `g y * f.lift hg z = g x`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
+@[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N`, we have `g y + f.lift hg z = g x`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma lift_mul_left (z) :
   g (sec S f.1 z).2 * f.lift hg z = g (sec S f.1 z).1 :=
 by rw [mul_comm, lift_mul_right]
 
@@ -472,10 +513,10 @@ variables {T : submonoid P} (hy : ∀ y : S, g y ∈ T) {Q : Type*} [comm_monoid
 
 /-- Given a `comm_monoid` homomorphism `g : M →* P` where for submonoids `S ⊆ M, T ⊆ P` we have
     `g(S) ⊆ T`, the induced monoid homomorphism from the localization of `M` at `S` to the
-    localization of `P` at `T`: if `f : M →* N` and `k : P →* U` are localization maps for `S` and
+    localization of `P` at `T`: if `f : M →* N` and `k : P →* Q` are localization maps for `S` and
     `T` respectively, we send `z : N` to `k (g x) * (k (g y))⁻¹`, where `(x, y) : M × S` are such
     that `z = f x * (f y)⁻¹`. -/
-@[to_additive "Given a `add_comm_monoid` homomorphism `g : M →+ P` where for submonoids `S ⊆ M, T ⊆ P` we have `g(S) ⊆ T`, the induced add_monoid homomorphism from the localization of `M` at `S` to the localization of `P` at `T`: if `f : M →+ N` and `k : P →+ U` are localization maps for `S` and `T` respectively, we send `z : N` to `k (g x) - k (g y)`, where `(x, y) : M × S` are such that `z = f x - f y`."]
+@[to_additive "Given a `add_comm_monoid` homomorphism `g : M →+ P` where for submonoids `S ⊆ M, T ⊆ P` we have `g(S) ⊆ T`, the induced add_monoid homomorphism from the localization of `M` at `S` to the localization of `P` at `T`: if `f : M →+ N` and `k : P →+ Q` are localization maps for `S` and `T` respectively, we send `z : N` to `k (g x) - k (g y)`, where `(x, y) : M × S` are such that `z = f x - f y`."]
 noncomputable def map : N →* Q :=
 @lift _ _ _ _ _ _ _ f (k.1.comp g) $ λ y, k.2 ⟨g y, hy y⟩
 
@@ -496,15 +537,30 @@ begin
     exact (k.mk'_mul_cancel_left (g x) ⟨(g y), hy y⟩).symm },
 end
 
-@[to_additive] lemma map_spec (z u) :
+/-- Given localization maps `f : M →* N, k : P →* Q` for submonoids `S, T` respectively, if a
+    `comm_monoid` homomorphism `g : M →* P` induces a `f.map hy k : N →* Q`, then for all `z : N`,
+    `u : Q`, we have `f.map hy k z = u ↔ k (g x) = k (g y) * u` where `x : M, y ∈ S` are such that
+    `z * f y = f x`. -/
+@[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, `u : Q`, we have `f.map hy k z = u ↔ k (g x) = k (g y) + u` where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma map_spec (z u) :
   f.map hy k z = u ↔ k.1 (g (sec S f.1 z).1) = k.1 (g (sec S f.1 z).2) * u :=
 f.lift_spec (λ y, k.2 ⟨g y, hy y⟩) _ _
 
-@[to_additive] lemma map_mul_right (z) :
+/-- Given localization maps `f : M →* N, k : P →* Q` for submonoids `S, T` respectively, if a
+    `comm_monoid` homomorphism `g : M →* P` induces a `f.map hy k : N →* Q`, then for all `z : N`,
+    we have `f.map hy k z * k (g y) = k (g x)` where `x : M, y ∈ S` are such that
+    `z * f y = f x`. -/
+@[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, we have `f.map hy k z + k (g y) = k (g x)` where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma map_mul_right (z) :
   f.map hy k z * (k.1 (g (sec S f.1 z).2)) = k.1 (g (sec S f.1 z).1) :=
 f.lift_mul_right (λ y, k.2 ⟨g y, hy y⟩) _
 
-@[to_additive] lemma map_mul_left (z) :
+/-- Given localization maps `f : M →* N, k : P →* Q` for submonoids `S, T` respectively, if a
+    `comm_monoid` homomorphism `g : M →* P` induces a `f.map hy k : N →* Q`, then for all `z : N`,
+    we have `k (g y) * f.map hy k z = k (g x)` where `x : M, y ∈ S` are such that
+    `z * f y = f x`. -/
+@[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, we have `k (g y) + f.map hy k z = k (g x)` where `x : M, y ∈ S` are such that `z + f y = f x`."]
+lemma map_mul_left (z) :
   k.1 (g (sec S f.1 z).2) * f.map hy k z = k.1 (g (sec S f.1 z).1) :=
 by rw [mul_comm, f.map_mul_right]
 
@@ -512,8 +568,11 @@ by rw [mul_comm, f.map_mul_right]
   f.map (λ y, show monoid_hom.id M y ∈ S, from y.2) f z = z :=
 f.lift_id z
 
-@[to_additive] lemma map_comp_map {U : submonoid Q} {R} [comm_monoid R]
-  (j : localization_map U R) {l : P →* Q} (hl : ∀ w : T, l w ∈ U) :
+/-- If `comm_monoid` homs `g : M →* P, l : P →* A` induce maps of localizations, the composition
+    of the induced maps equals the map of localizations induced by `l ∘ g`. -/
+@[to_additive "If `add_comm_monoid` homs `g : M →+ P, l : P →+ A` induce maps of localizations, the composition of the induced maps equals the map of localizations induced by `l ∘ g`."]
+lemma map_comp_map {A : Type*} [comm_monoid A] {U : submonoid A} {R} [comm_monoid R]
+  (j : localization_map U R) {l : P →* A} (hl : ∀ w : T, l w ∈ U) :
   (k.map hl j).comp (f.map hy k) = f.map (λ x, show l.comp g x ∈ U, from hl ⟨g x, hy x⟩) j :=
 begin
   ext z,
@@ -525,8 +584,11 @@ begin
       (by rw [k.1.map_mul, k.1.map_mul, sec_spec' k.3, mul_assoc, map_mul_right]) },
 end
 
-@[to_additive] lemma map_map {U : submonoid Q} {R} [comm_monoid R]
-  (j : localization_map U R) {l : P →* Q} (hl : ∀ w : T, l w ∈ U) (x) :
+/-- If `comm_monoid` homs `g : M →* P, l : P →* A` induce maps of localizations, the composition
+    of the induced maps equals the map of localizations induced by `l ∘ g`. -/
+@[to_additive "If `add_comm_monoid` homs `g : M →+ P, l : P →+ A` induce maps of localizations, the composition of the induced maps equals the map of localizations induced by `l ∘ g`."]
+lemma map_map {A : Type*} [comm_monoid A] {U : submonoid A} {R} [comm_monoid R]
+  (j : localization_map U R) {l : P →* A} (hl : ∀ w : T, l w ∈ U) (x) :
   k.map hl j (f.map hy k x) = f.map (λ x, show l.comp g x ∈ U, from hl ⟨g x, hy x⟩) j x :=
 by rw ←f.map_comp_map hy j hl; refl
 
@@ -629,16 +691,11 @@ let H' : k.to_monoid_hom.comap S = T :=
   (H : k.symm.to_monoid_hom.map T = S) (x) :
   (f.mul_equiv_comap H).1 (k x) = f.1 x := congr_arg f.1 $ k.symm_apply_apply x
 
-@[simp, to_additive] lemma mul_equiv_comap_id :
+/-- A special case of `f ∘ id = f`, `f` a localization map. -/
+@[simp, to_additive "A special case of `f ∘ id = f`, `f` a localization map."]
+lemma mul_equiv_comap_id :
   f.mul_equiv_comap (show (mul_equiv.refl M).to_monoid_hom.map S = S, from
     submonoid.ext $ λ x, ⟨λ ⟨y, hy, h⟩, h ▸ hy, λ h, ⟨x, h, rfl⟩⟩) = f :=
-by ext; refl
-
-@[to_additive] lemma mul_equiv_comap_comp {T' : submonoid Q} {k : P ≃* M} {j : Q ≃* P}
-  (Hk : k.to_monoid_hom.map T = S) (Hj : j.to_monoid_hom.map T' = T) :
-  (f.mul_equiv_comap $ show (j.trans k).to_monoid_hom.map T' = S, by
-    rw [←Hk, ←Hj]; exact submonoid.ext'_iff.1 (set.image_comp k j ↑(T'))).1
-  = (f.mul_equiv_comap Hk).1.comp j.to_monoid_hom :=
 by ext; refl
 
 /-- Given localization maps `f : M →* N, k : P →* U` for submonoids `S, T` respectively, an

@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
--- TODO remove
-import tactic.clear tactic.rename
+import category.basic data.sum data.list.defs tactic.basic
 
 
 universes u v w
@@ -35,8 +34,16 @@ also receives each element's index. -/
 def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
-/-- The list of indexes of a list. `index_list l = [0, ..., length l - 1]`. -/
-def index_list : list α → list nat := map_with_index (λ i _, i)
+/-- The list of indices of a list. `index_list l = [0, ..., length l - 1]`. -/
+def index_list : list α → list ℕ := map_with_index (λ i _, i)
+
+def to_rbmap : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
+def all_some : list (option α) → option (list α)
+| [] := some []
+| (some x :: xs) := (λ z, x :: z) <$> all_some xs
+| (none :: xs) := none
 
 end list
 
@@ -58,10 +65,11 @@ namespace rbmultimap
 
 variables
   {α : Type u} {β : Type v}
-  {ltα : α → α → Prop} [decidable_rel ltα]
-  {ltβ : β → β → Prop} [decidable_rel ltβ]
+  {ltα : α → α → Prop} {ltβ : β → β → Prop}
 
-def insert (m : rbmultimap α β ltα ltβ) (a : α) (b : β) : rbmultimap α β ltα ltβ :=
+def insert [decidable_rel ltα] [decidable_rel ltβ] (m : rbmultimap α β ltα ltβ)
+  (a : α) (b : β)
+  : rbmultimap α β ltα ltβ :=
 let bs := m.find a in
 m.insert a
   (match bs with
@@ -69,10 +77,13 @@ m.insert a
    | (some bs) := bs.insert b
    end)
 
-def find (m : rbmultimap α β ltα ltβ) (a : α) : option (rbtree β ltβ) :=
+def find [decidable_rel ltα] (m : rbmultimap α β ltα ltβ) (a : α)
+  : option (rbtree β ltβ) :=
 m.find a
 
-def contains (m : rbmultimap α β ltα ltβ) (a : α) (b : β) : bool :=
+def contains [decidable_rel ltα] [decidable_rel ltβ] (m : rbmultimap α β ltα ltβ)
+  (a : α) (b : β)
+  : bool :=
 match m.find a with
 | none := false
 | (some bs) := bs.contains b
@@ -87,21 +98,130 @@ m.to_list.map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
 end rbmultimap
 
 
+namespace rbtree
+
+def merge {α} {lt : α → α → Prop} [decidable_rel lt] (xs ys : rbtree α lt)
+  : rbtree α lt :=
+ys.fold (λ a xs, xs.insert a) xs
+
+end rbtree
+
+
+namespace expr
+
+meta def local_pp_name_option : expr → option name
+| (local_const _ n _ _) := some n
+| _ := none
+
+meta def local_unique_name_option : expr → option name
+| (local_const n _ _ _) := some n
+| _ := none
+
+meta def local_names_option : expr → option (name × name)
+| (local_const n₁ n₂ _ _) := some (n₁, n₂)
+| _ := none
+
+meta def is_local (e : expr) : bool := e.local_unique_name_option.is_some
+
+end expr
+
+
+namespace sum
+
+def get_left {α β} : α ⊕ β → option α
+| (inl a) := some a
+| _ := none
+
+def get_right {α β} : α ⊕ β → option β
+| (inr b) := some b
+| _ := none
+
+def is_left {α β} (s : α ⊕ β) : bool :=
+s.get_left.is_some
+
+def is_right {α β} (s : α ⊕ β) : bool :=
+s.get_right.is_some
+
+end sum
+
+
+namespace parser
+
+def char : parser char :=
+sat (λ _, true)
+
+def digit : parser nat := do
+c ← char,
+let c' := c.to_nat - '0'.to_nat,
+if 0 ≤ c' ∧ c' ≤ 9
+  then pure c'
+  else parser.fail $ "expected a digit, got: " ++ c.to_string
+
+def nat : parser nat := do
+digits ← many1 digit,
+pure $ prod.fst $
+  digits.foldr
+    (λ digit ⟨sum, magnitude⟩, ⟨sum + digit * magnitude, magnitude * 10⟩)
+    ⟨0, 1⟩
+
+end parser
+
+
+namespace name
+
+open parser
+
+meta def likely_generated_name_p : parser unit := do
+str "a",
+optional (ch '_' *> parser.nat),
+pure ()
+
+meta def is_likely_generated_name (n : name) : bool :=
+match n with
+| anonymous := ff
+| mk_numeral _ _ := ff
+| mk_string s anonymous := (likely_generated_name_p.run_string s).is_right
+| mk_string _ _ := ff
+end
+
+end name
+
+
 namespace tactic
 
 open expr
 
-/-- Given a type of the form `∀ (x : T) ... (z : U), V`, this function returns
-information about each of the binders `x ... z` (binder name, binder info and
-type) and the return type `V`.
+meta def free_vars (binder_depth : ℕ) (e : expr) : rbtree ℕ :=
+e.fold (mk_rbtree ℕ) $ λ e depth vars,
+  match e with
+  | var n := if n ≥ binder_depth + depth then vars.insert n else vars
+  | _ := vars
+  end
 
-Given any other expression `e`, it returns an empty list and `e`.
+meta def decompose_pi_aux
+  : ℕ → expr → list (name × binder_info × expr × bool) × ℕ × expr × rbtree ℕ
+| binder_depth (pi name binfo T rest) :=
+  let (args, n_args, ret, vars) := decompose_pi_aux (binder_depth + 1) rest in
+  let dep := vars.contains binder_depth in
+  let vars' := vars.merge (free_vars binder_depth T) in
+  ((name, binfo, T, dep) :: args, n_args + 1, ret, vars')
+| binder_depth e := ([], 0, e, free_vars binder_depth e)
+
+/-- Given a type of the form `∀ (x : T) ... (z : U), V`, this function returns a
+tuple `(args, n, V)` where
+
+- `args` is a list containing information about the arguments `x ... z`:
+  argument name, binder info, argument type and whether the argument is
+  dependent (i.e. whether the rest of the input `expr` depends on it).
+- `n` is the length of `args`.
+- `V` is the return type.
+
+Given any other expression `e`, this function returns an empty list and `e`.
 -/
-meta def decompose_pi : expr → list (name × binder_info × expr) × expr
-| (pi n binfo T rest) :=
-  let (args , ret) := decompose_pi rest in
-  ((n, binfo, T) :: args, ret)
-| e := ([] , e)
+meta def decompose_pi (e : expr)
+  : list (name × binder_info × expr × bool) × ℕ × expr :=
+let (args, n_args, ret, _) := decompose_pi_aux 0 e in
+(args, n_args, ret)
 
 /-- Given a type of the form `∀ (x : T) ... (z : U), V`, this function returns
 information about each of the binders `x ... z` (binder name, binder info and
@@ -112,12 +232,12 @@ Given any other expression `e`, it returns an empty list and `e`.
 The input expression is normalised lazily. This means that the returned
 expressions are not necessarily in normal form.
 -/
-meta def decompose_pi_normalising
+meta def decompose_pi_normalizing
   : expr → tactic (list (name × binder_info × expr) × expr) := λ e, do
 e ← whnf e,
 match e with
 | (pi n binfo T rest) := do
-  (args, ret) ← decompose_pi_normalising rest,
+  (args, ret) ← decompose_pi_normalizing rest,
   pure ((n , binfo, T) :: args, ret)
 | _ := pure ([] , e)
 end
@@ -137,12 +257,12 @@ meta def decompose_app (e : expr) : expr × list expr :=
 let (f , args) := decompose_app_aux e in
 (f , args.reverse)
 
-/-- Auxiliary function for `decompose_app_normalising`. -/
-meta def decompose_app_normalising_aux : expr → tactic (expr × list expr) := λ e, do
+/-- Auxiliary function for `decompose_app_normalizing`. -/
+meta def decompose_app_normalizing_aux : expr → tactic (expr × list expr) := λ e, do
 e ← whnf e,
 match e with
 | (app t u) := do
-  (f , args) ← decompose_app_normalising_aux e,
+  (f , args) ← decompose_app_normalizing_aux t,
   pure (f , u :: args)
 | _ := pure (e , [])
 end
@@ -154,8 +274,8 @@ result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
 `e` is normalised lazily. This means that the returned expressions are not
 necessarily in normal form.
 -/
-meta def decompose_app_normalising (e : expr) : tactic (expr × list expr) := do
-(f , args) ← decompose_app_normalising_aux e,
+meta def decompose_app_normalizing (e : expr) : tactic (expr × list expr) := do
+(f , args) ← decompose_app_normalizing_aux e,
 pure (f , args.reverse)
 
 /-- Matches any expression of the form `C x .. z` where `C` is a constant.
@@ -172,10 +292,10 @@ Returns the name of `C`.
 The input expression is normalised lazily. This means that the returned
 expressions are not necessarily in normal form.
 -/
-meta def match_const_application_normalising : expr → tactic name := λ e, do
+meta def match_const_application_normalizing : expr → tactic name := λ e, do
 e ← whnf e,
 match e with
-| (app e₁ e₂) := match_const_application_normalising e₁
+| (app e₁ e₂) := match_const_application_normalizing e₁
 | (const n _) := pure n
 | _ := fail $ format!
     "Expected {e} to be a constant (possibly applied to some arguments)."
@@ -192,13 +312,13 @@ base_type_name = type_name
 
 /-- `match_variable e` returns `some n` if `e` is the `n`-th de Bruijn variable,
 and `none` otherwise. -/
-meta def match_variable : expr → option nat
+meta def match_variable : expr → option ℕ
 | (var n) := some n
 | _ := none
 
 /-- Returns the set of variables occurring in `e`. -/
-meta def variable_occurrences (e : expr) : rbtree nat :=
-e.fold (mk_rbtree nat)
+meta def variable_occurrences (e : expr) : rbtree ℕ :=
+e.fold (mk_rbtree ℕ)
   (λ e _ occs,
     match match_variable e with
     | some n := occs.insert n
@@ -206,23 +326,29 @@ e.fold (mk_rbtree nat)
     end)
 
 /-- Given an application `e = f x ... z`, this function returns a map
-associating each de Bruijn index that occurs in `e` with the parts of `e` that it
-occurs in. For instance, if `e = #3 (#2 + 1) 0 #3` then the returned map is
+associating each de Bruijn index that occurs in `e` with the application
+argument(s) that it occurs in. For instance, if `e = f (#2 + 1) #3 #3` then the
+returned map is
 
-    3 -> 0, 3
-    2 -> 1
+    3 -> 1, 2
+    2 -> 0
+
+As shown in the example, arguments are counted from zero.
 -/
-meta def application_variable_occurrences (e : expr) : rbmultimap nat nat :=
-let (f, args) := decompose_app e in
-let occs := (f :: args).map variable_occurrences in
+meta def application_variable_occurrences (e : expr) : rbmultimap ℕ ℕ :=
+let (_, args) := decompose_app e in
+let occs := args.map variable_occurrences in
 occs.foldl_with_index
-  (λ i occ_map occs, occs.fold (λ var occ_map , occ_map.insert var i) occ_map)
-  (mk_rbmap nat (rbtree nat))
+  (λ i occ_map occs, occs.fold (λ var occ_map, occ_map.insert var i) occ_map)
+  (mk_rbmultimap ℕ ℕ)
 
 @[derive has_reflect]
 meta structure constructor_argument_info :=
 (aname : name)
 (type : expr)
+(dependent : bool)
+(index_occurrences : list ℕ)
+(arg_occs : list (ℕ × list ℕ)) -- TODO debug
 
 @[derive has_reflect]
 meta structure constructor_info :=
@@ -239,17 +365,32 @@ meta structure inductive_info :=
 (num_params : ℕ)
 (num_indices : ℕ)
 
+meta def get_constructor_argument_info (num_params : ℕ)
+  (num_constructor_args : ℕ) (arg_index : ℕ) (arg_name : name) (arg_type : expr)
+  (arg_dependent : bool) (arg_occurrences : rbmultimap ℕ ℕ)
+  : constructor_argument_info :=
+let arg_var := num_constructor_args - 1 - arg_index in
+let arg_occs :=
+  ((arg_occurrences.find arg_var).map rbtree.to_list).get_or_else [] in
+let index_occs := arg_occs.filter (λ i, i >= num_params) in
+-- TODO dbg
+let dbg : list (ℕ × list ℕ):= arg_occurrences.to_list.map (λ ⟨i, xs⟩, ⟨i, xs.to_list⟩) in
+⟨ arg_name, arg_type, arg_dependent, index_occs, dbg ⟩
+
 /-- Gathers information about a constructor from the environment. Fails if `c`
 does not refer to a constructor. -/
-meta def get_constructor_info (env : environment) (c : name)
+meta def get_constructor_info (env : environment) (num_params : ℕ) (c : name)
   : exceptional constructor_info := do
 when (¬ env.is_constructor c) $ exceptional.fail format!
   "Expected {c} to be a constructor.",
 decl ← env.get c,
-let (args , return_type) := decompose_pi decl.type,
+let (args, n_args, return_type) := decompose_pi decl.type,
+let arg_occurrences := application_variable_occurrences return_type,
 pure
   { cname := decl.to_name,
-    args := args.map (λ ⟨name, _, type⟩, ⟨name, type⟩),
+    args := args.map_with_index $ λ i ⟨name, _, type, dep⟩,
+      get_constructor_argument_info num_params n_args i name type dep
+        arg_occurrences,
     return_type := return_type }
 
 /-- Gathers information about an inductive type from the environment. Fails if
@@ -263,7 +404,8 @@ let type := decl.type,
 let num_params := env.inductive_num_params T,
 let num_indices := env.inductive_num_indices T,
 let constructor_names := env.constructors_of T,
-constructors ← constructor_names.mmap (get_constructor_info env),
+constructors ← constructor_names.mmap
+  (get_constructor_info env num_params),
 pure
   { iname := T,
     constructors := constructors,
@@ -272,27 +414,22 @@ pure
     num_params := num_params,
     num_indices := num_indices }
 
-@[derive has_reflect]
 meta structure eliminee_info :=
 (ename : name)
 (type : expr)
-(index_instantiations : list expr)
-
-meta def local_pp_name_option : expr → option name
-| (local_const _ n _ _) := some n
-| _ := none
+(args : rbmap ℕ expr)
 
 meta def get_eliminee_info (e : expr) : tactic eliminee_info := do
 ename ← local_pp_name_option e <|> fail format!
   "Expected {e} to be a local constant.",
 type ← infer_type e,
+⟨f, args⟩ ← decompose_app_normalizing type,
 pure
   { ename := ename,
     type := type,
-    index_instantiations := [] } -- TODO
+    args := args.to_rbmap }
 
-@[derive has_reflect]
-meta structure constructor_argument_naming_info : Type :=
+meta structure constructor_argument_naming_info :=
 (einfo : eliminee_info)
 (iinfo : inductive_info)
 (cinfo : constructor_info)
@@ -305,6 +442,52 @@ meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule
 if is_recursive_constructor_argument i.iinfo.iname i.ainfo.type
   then some i.einfo.ename
   else none
+
+/--
+After elaboration, Lean does not have non-dependent function types with
+unnamed arguments. This means that for the declaration
+
+```lean
+inductive test : Type :=
+| intro : unit → test
+```
+
+the type of `test.intro` becomes
+
+```lean
+test.intro : ∀ (a : unit), test
+```lean
+
+after elaboration, where `a` is an auto-generated name.
+
+This means that we can't know for sure whether a constructor argument was named
+by the user. Hence the following hack: If an argument is non-dependent *and* its
+name is `a` or `a_n` for some `n ∈ ℕ`, then we assume that this name was
+auto-generated rather than chosen by the user.
+-/
+library_note "unnamed constructor arguments"
+
+-- TODO as written, this rule always fires. See previous note.
+meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
+let arg_name := i.ainfo.aname in
+if arg_name = name.anonymous
+  then none
+  else some arg_name
+
+meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule := λ i,
+let index_occs := i.ainfo.index_occurrences in
+let eliminee_args := i.einfo.args in
+let local_index_instantiations :=
+  (index_occs.map (eliminee_args.find >=> local_names_option)).all_some in
+-- TODO this needs to be updated when we allow complex indices
+match local_index_instantiations with
+| none := none
+| some [] := none
+| some ((uname, ppname) :: is) :=
+  if is.all (λ ⟨uname', _⟩, uname' = uname)
+    then some ppname
+    else none
+end
 
 meta def default_constructor_argument_name : name := `x
 
@@ -324,7 +507,9 @@ in
 meta def constructor_argument_name (info : constructor_argument_naming_info)
   : name :=
 apply_constructor_argument_naming_rules info
-  [ constructor_argument_naming_rule_rec ]
+  [ constructor_argument_naming_rule_rec
+  , constructor_argument_naming_rule_index
+  , constructor_argument_naming_rule_named ]
 
 meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
@@ -337,8 +522,11 @@ pure ()
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info)
   : tactic unit :=
-(cinfo.args.drop iinfo.num_params).mmap' $ λ ainfo,
-  intro_fresh (constructor_argument_name ⟨einfo, iinfo, cinfo, ainfo⟩)
+(cinfo.args.drop iinfo.num_params).mmap' $ λ ainfo, do
+  let info : constructor_argument_naming_info := ⟨einfo, iinfo, cinfo, ainfo⟩,
+  -- TODO debug
+  trace format!"arg: {ainfo.aname}, dep: {ainfo.dependent}, index occs: {ainfo.index_occurrences}",
+  intro_fresh (constructor_argument_name info)
 
 meta def ih_intros (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info)
@@ -357,52 +545,24 @@ end
 
 meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info) : tactic unit := do
+-- TODO debug
+trace format!"constructor: {cinfo.cname}",
 constructor_argument_intros einfo iinfo cinfo,
 ih_intros einfo iinfo cinfo
 
-meta def interactive.stuff : tactic unit := do
-env ← get_env,
-cinfo ← get_constructor_info env `nat.less_than_or_equal.step,
-trace cinfo.return_type,
-trace (application_variable_occurrences cinfo.return_type).to_multilist,
-pure ()
+meta def eliminee_args_valid (args : list expr) : bool :=
+args.all is_local
 
-set_option pp.all true
-
-example : unit :=
-begin
-  stuff,
-  exact ()
-end
-
--- TODO debug
-meta def trace_constructor_arg (type_name : name) (arg : constructor_argument_info)
-  : tactic unit := do
-let ⟨n , ty⟩ := arg,
-trace format!"Name: {n}",
-trace format!"Type: {ty}",
-let is_rec := is_recursive_constructor_argument type_name ty,
-trace format!"Recursive?: {is_rec}"
-
--- TODO debug
-meta def trace_constructor (type_name : name) (constructor_name : name)
-  : tactic unit := do
-env ← get_env,
-info ← get_constructor_info env constructor_name,
-trace "Arguments:",
-info.args.mmap (trace_constructor_arg type_name),
-trace "Return type:",
-trace info.return_type
-
-meta def induction'' (eliminee_name : name) : tactic unit := do
+meta def induction'' (eliminee_name : name) : tactic unit := focus1 $ do
 eliminee ← get_local eliminee_name,
 einfo ← get_eliminee_info eliminee,
 let eliminee_type := einfo.type,
+let eliminee_args := einfo.args.to_list.map prod.snd,
 env ← get_env,
 
 -- Find the recursor and other info about the inductive type
 (rec_const, iinfo) ← (do
-  type_name ← match_const_application_normalising eliminee_type,
+  type_name ← match_const_application_normalizing eliminee_type,
   guard (env.is_inductive type_name),
   let rec_name := type_name ++ "rec_on",
   rec_const ← mk_const rec_name,
@@ -412,13 +572,26 @@ env ← get_env,
   "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
 -- TODO disallow generalised inductives; we don't want to support them
 
+-- Disallow complex indices (for now)
+guard (eliminee_args_valid eliminee_args) <|> fail format!
+  "induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n
+  where `T` is an inductive family and the `xᵢ` are local hypotheses.",
+
+-- TODO generalisation
+
 -- Apply the recursor
 let rec := ``(%%rec_const %%eliminee),
 rec ← i_to_expr_for_apply rec,
 apply rec,
 
--- Clear the eliminated hypothesis
-focus $ list.repeat (clear eliminee) iinfo.num_constructors,
+-- Clear the eliminated hypothesis and the index args (unless used elsewhere)
+focus $ flip list.repeat iinfo.num_constructors (do
+  clear eliminee,
+  (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear)),
+  -- TODO is this the right thing to do? I don't think this necessarily
+  -- preserves provability: The args we clear could contain interesting
+  -- information, even if nothing else depends on them. Is there a way to avoid
+  -- this, i.e. clean up even more conservatively?
 
 -- Introduce all constructor arguments
 focus $ iinfo.constructors.map $ constructor_intros einfo iinfo,
@@ -435,135 +608,3 @@ meta def induction' (hyp : parse ident) : tactic unit :=
   tactic.induction'' hyp
 
 end tactic.interactive
-
-
---------------------------------------------------------------------------------
--- TODO remove everything below this
---------------------------------------------------------------------------------
-
-set_option trace.app_builder true
--- set_option pp.all true
-
-inductive le : ℕ → ℕ → Type
-| zero {n} : le 0 n
-| succ {n m} : le n m → le (n + 1) (m + 1)
-
-inductive lt : ℕ → ℕ → Type
-| zero {n} : lt 0 (n + 1)
-| succ {n m} : lt n m → lt (n + 1) (m + 1)
-
-inductive unit_param (a : unit) : Type
-| intro : unit_param
-
-inductive unit_index : unit → Type
-| intro : unit_index ()
-
-inductive Fin : ℕ → Type
-| zero {n} : Fin (n + 1)
-| succ {n} : Fin n → Fin (n + 1)
-
-inductive List (α : Sort*) : Sort*
-| nil {} : List
-| cons {} (x : α) (xs : List) : List
-
-namespace List
-
-def append {α} : List α → List α → List α
-| nil ys := ys
-| (cons x xs) ys := cons x (append xs ys)
-
-end List
-
-inductive Vec (α : Sort*) : ℕ → Sort*
-| nil : Vec 0
-| cons {n} : α → Vec n → Vec (n + 1)
-
-example (k) : 0 + k = k :=
-begin
-  induction' k,
-  { refl
-  },
-  { simp [ih]
-  }
-end
-
-example {k} (fk : Fin k) : Fin (k + 1) :=
-begin
-  induction' fk,
-  { clear' k,
-    rename x k,
-    exact Fin.zero
-  },
-  { clear' k fk,
-    rename x k,
-    exact Fin.succ ih
-  }
-end
-
-example {α} (l : List α) : l.append List.nil = l :=
-begin
-  induction' l,
-  { refl
-  },
-  { simp [ih, List.append]
-  }
-end
-
-example {k l} (h : lt k l) : le k l :=
-begin
-  induction' h,
-  { clear' k l,
-    rename x l,
-    constructor
-  },
-  { clear' k l,
-    rename' [x k, x_1 l],
-    constructor,
-    assumption
-  }
-end
-
--- The type of the induction premise can be a complex expression so long as it
--- normalises to an inductive (possibly applied to params/indexes).
-example (n) : 0 + n = n :=
-begin
-  let T := ℕ,
-  change T at n,
-  induction' n; simp
-end
-
--- Fail if the type of the induction premise is not an inductive type
-example {α} (x : α) (f : α → α) : unit :=
-begin
-  success_if_fail { induction' x },
-  success_if_fail { induction' f },
-  exact ()
-end
-
-
-namespace tactic
-
-meta def test : tactic unit := do
-  get_unused_name `y none >>= trace,
-  get_unused_name `x none >>= trace,
-  get_unused_name `x (some 0) >>= trace,
-  get_unused_name `x (some 1) >>= trace,
-  get_unused_name `x (some 2) >>= trace,
-  get_unused_name `x (some 3) >>= trace,
-  get_unused_name `y (some 0) >>= trace,
-  get_unused_name >>= trace,
-  pure ()
-
-end tactic
-
-example {x x_1 : Type} : unit :=
-begin
-  tactic.test,
-  exact ()
-end
-
-example : unit :=
-begin
-  tactic.trace_constructor `le `le.succ,
-  exact ()
-end

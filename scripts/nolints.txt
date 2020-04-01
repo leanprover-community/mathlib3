@@ -3355,10 +3355,6 @@ apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
 
--- tactic/transport.lean
-apply_nolint tactic.transport_with_prefix_dict doc_blame
-apply_nolint tactic.transport_with_prefix_fun doc_blame
-
 -- tactic/where.lean
 apply_nolint lean.parser.get_includes doc_blame
 apply_nolint lean.parser.get_namespace doc_blame

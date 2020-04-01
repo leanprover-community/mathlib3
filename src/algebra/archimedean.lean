@@ -12,6 +12,8 @@ variables {α : Type*}
 
 open_locale add_monoid
 
+example : true := trivial
+
 class archimedean (α) [ordered_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 

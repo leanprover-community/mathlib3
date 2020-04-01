@@ -71,7 +71,7 @@ def functor : C ⥤ quotient r :=
 protected lemma induction {P : Π {a b : quotient r}, (a ⟶ b) → Prop}
   (h : ∀ {x y : C} (f : x ⟶ y), P ((functor r).map f)) :
   ∀ {a b : quotient r} (f : a ⟶ b), P f :=
-begin rintros ⟨x⟩ ⟨y⟩ ⟨f⟩, exact h f, end
+by { rintros ⟨x⟩ ⟨y⟩ ⟨f⟩, exact h f, }
 
 protected lemma sound {a b : C} (f₁ f₂ : a ⟶ b) (h : r a b f₁ f₂) :
   (functor r).map f₁ = (functor r).map f₂ :=
@@ -87,12 +87,9 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.to_C,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    begin
-      rintros _ _ ⟨x, y, f, m₁, m₂, g, h⟩,
-      simp [H x y m₁ m₂ h],
-    end,
+    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id' a.to_C,
-  map_comp' := begin rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp' f g end }
+  map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp' f g, } }
 
 @[simp]
 lemma lift.is_lift : (functor r) ⋙ lift r F H = F :=

@@ -182,7 +182,7 @@ by rw [mul_comm, sec_spec h]
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
     `w : M, z : N` and `y ∈ S`, we have `w * (f y)⁻¹ = z ↔ w = f y * z`. -/
-@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w  - f y = z ↔ w = f y + z`."]
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w - f y = z ↔ w = f y + z`."]
 lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z ↔ w = f y * z :=
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
@@ -216,7 +216,7 @@ by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
     `y ∈ S`, `(f y)⁻¹` is unique. -/
-@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `y ∈ S`, `-(f y)` is unique."]
+@[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that `f(S) ⊆ add_units N`, for all `y ∈ S`, `- (f y)` is unique."]
 lemma inv_unique {f : M →* N} (h : ∀ y : S, is_unit (f y)) {y : S}
   {z} (H : f y * z = 1) : ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z :=
 by rw [←one_mul ↑(_)⁻¹, mul_inv_left, ←H]
@@ -343,9 +343,9 @@ begin
 end
 
 /-- Given `comm_monoid`s `M, P`, localization maps `f : M →* N, k : P →* Q` for submonoids
-    `S, T` respectively, and `g : M →* P` such that `g(S) ⊆ T`, `f(x) = f(y)` implies
+    `S, T` respectively, and `g : M →* P` such that `g(S) ⊆ T`, `f x = f y` implies
     `k (g x) = k (g y)`. -/
-@[to_additive "Given `add_comm_monoid`s `M, P`, localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, and `g : M →+ P` such that `g(S) ⊆ T`, `f(x) = f(y)` implies `k (g x) = k (g y)`."]
+@[to_additive "Given `add_comm_monoid`s `M, P`, localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, and `g : M →+ P` such that `g(S) ⊆ T`, `f x = f y` implies `k (g x) = k (g y)`."]
 lemma comp_eq_of_eq {T : submonoid P} {Q : Type*} [comm_monoid Q]
   (hg : ∀ y : S, g y ∈ T) (k : localization_map T Q)
   {x y} (h : f.1 x = f.1 y) : k.1 (g x) = k.1 (g y) :=

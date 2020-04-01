@@ -40,21 +40,42 @@ do
   -- FIXME document this algorithm line by line!
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>
     fail format!"second argument to `transport` was not an equivalence",
+  -- We explode the goal into individual fields using `refine_struct`.
+  -- Later we'll want to also consider falling back to `fconstructor`,
+  -- but for now this suffices.
   seq `[refine_struct { .. }]
-  (simp_result (do
-    propagate_tags $ (do
+  -- We now deal with each field sequentially.
+  -- Since we may pass goals through to the user if the heuristics here fail,
+  -- we wrap everything in `propagate_tags`.
+  -- In order to achieve good definitional properties,
+  -- we use `simp_result` to intercept the synthesized term and simplify it,
+  -- in particular simplifying along `eq_rec_constant`.
+  (propagate_tags (try (simp_result(do
+    -- Look up the name of the current field being processed
     f ← get_current_field,
+    -- Note the value in the original structure.
+    -- (This `mk_mapp` call with second argument inferred only works for typeclasses!)
     mk_mapp f [α, none] >>= note f none,
+    -- We now run different algorithms,
+    -- depending on whether we're transporting data or a proposition.
     b ← target >>= is_prop,
     if b then (do
+      -- The goal probably has messy expressions produced by `equiv_rw` acting on early data fields,
+      -- so we clean up a little.
       unfold_projs_target,
       `[simp only [] with transport_simps],
-      -- Explain/understand when this is/isn't appropriate, and don't just `try` it blindly.
+      -- If the field is an equation in terms in `β`, use injectivity of the equivalence
+      -- to turn it into an equation in `α`.
+      -- TODO: the `try` statement is a bit of a hack,
+      -- perhaps we should explicitly check the type of the goal here.
       try $ under_binders $ to_expr ``((%%e).symm.injective) >>= apply,
+      -- Finally, rewrite the original field value using the equivalence `e`, and try to close
+      -- the goal using
       equiv_rw_hyp f e,
       get_local f >>= exact) <|>
       skip
-    else try (do
+    else do
+      -- For data fields, simply rewrite them using `equiv_rw`.
       equiv_rw_hyp f e,
       get_local f >>= exact))))
 
@@ -75,7 +96,7 @@ example {α : Type} [ring α] {β : Type} (e : α ≃ β) : ring β :=
 by transport along e.
 ```
 
-You can specify the object to transport using `transport s along e`.
+You can specify the object to transport using `transport s using e`.
 
 `transport` works by attempting to copy each of the operations and axiom fields of `s`,
 rewriting them using `equiv_rw e` and defining a new structure using these rewritten fields.
@@ -87,7 +108,7 @@ to finish, rather than solving these goals by hand.
 there are several examples of "transport-by-hand" at the end of `test/equiv_rw.lean`,
 which `transport` is an abstraction of.)
 -/
-meta def transport (s : parse texpr?) (e : parse $ (tk "along" *> ident)) : itactic :=
+meta def transport (s : parse texpr?) (e : parse $ (tk "using" *> ident)) : itactic :=
 do
   s ← match s with
   | some s := to_expr s
@@ -95,7 +116,7 @@ do
       t ← target,
       let n := t.get_app_fn.const_name,
       ctx ← local_context,
-      ctx.any_of (λ e, guard (e.get_app_fn.const_name = n) >> return e))
+      ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e)))
   end,
   e ← get_local e,
   tactic.transport s e

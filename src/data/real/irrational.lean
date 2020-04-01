@@ -45,7 +45,7 @@ begin
   rw [num_denom', int.coe_nat_one, mk_eq_div, int.cast_one, div_one, cast_coe_int]
 end
 
-/-- If `x^n = m` is integer and `n` does not divide the `multiplicity p m`, then `x`
+/-- If `x^n = m` is an integer and `n` does not divide the `multiplicity p m`, then `x`
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
   [hp : nat.prime p] (hxr : x ^ n = m)

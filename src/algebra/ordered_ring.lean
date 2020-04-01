@@ -37,6 +37,42 @@ by { rw [← zero_add (0:α), bit0], exact add_lt_add zero_lt_one zero_lt_one }
 ⟨lt_imp_lt_of_le_imp_le $ λ h', mul_le_mul_of_nonneg_right h' (le_of_lt h),
  λ h', mul_lt_mul_of_pos_right h' h⟩
 
+@[simp] lemma zero_le_mul_left {b c : α} (h : 0 < c) : 0 ≤ c * b ↔ 0 ≤ b :=
+by { convert mul_le_mul_left h, simp }
+
+@[simp] lemma zero_le_mul_right {b c : α} (h : 0 < c) : 0 ≤ b * c ↔ 0 ≤ b :=
+by { convert mul_le_mul_right h, simp }
+
+@[simp] lemma zero_lt_mul_left {b c : α} (h : 0 < c) : 0 < c * b ↔ 0 < b :=
+by { convert mul_lt_mul_left h, simp }
+
+@[simp] lemma zero_lt_mul_right {b c : α} (h : 0 < c) : 0 < b * c ↔ 0 < b :=
+by { convert mul_lt_mul_right h, simp }
+
+@[simp] lemma bit0_le_bit0 {a b : α} : bit0 a ≤ bit0 b ↔ a ≤ b :=
+by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left zero_lt_two]
+
+@[simp] lemma bit0_lt_bit0 {a b : α} : bit0 a < bit0 b ↔ a < b :=
+by rw [bit0, bit0, ← two_mul, ← two_mul, mul_lt_mul_left zero_lt_two]
+
+@[simp] lemma bit1_le_bit1 {a b : α} : bit1 a ≤ bit1 b ↔ a ≤ b :=
+(add_le_add_iff_right 1).trans bit0_le_bit0
+
+@[simp] lemma bit1_lt_bit1 {a b : α} : bit1 a < bit1 b ↔ a < b :=
+(add_lt_add_iff_right 1).trans bit0_lt_bit0
+
+@[simp] lemma one_le_bit1 {a : α} : (1 : α) ≤ bit1 a ↔ 0 ≤ a :=
+by rw [bit1, le_add_iff_nonneg_left, bit0, ← two_mul, zero_le_mul_left zero_lt_two]
+
+@[simp] lemma one_lt_bit1 {a : α} : (1 : α) < bit1 a ↔ 0 < a :=
+by rw [bit1, lt_add_iff_pos_left, bit0, ← two_mul, zero_lt_mul_left zero_lt_two]
+
+@[simp] lemma zero_le_bit0 {a : α} : (0 : α) ≤ bit0 a ↔ 0 ≤ a :=
+by rw [bit0, ← two_mul, zero_le_mul_left zero_lt_two]
+
+@[simp] lemma zero_lt_bit0 {a : α} : (0 : α) < bit0 a ↔ 0 < a :=
+by rw [bit0, ← two_mul, zero_lt_mul_left zero_lt_two]
+
 lemma mul_lt_mul'' {a b c d : α} (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) :
        a * b < c * d :=
 (lt_or_eq_of_le h4).elim

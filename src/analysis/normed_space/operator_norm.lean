@@ -155,7 +155,7 @@ begin
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
+  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos.2 δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, linear_map.map_zero] },
   { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
@@ -219,6 +219,9 @@ classical.by_cases
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
+theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
+le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
+
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
@@ -231,11 +234,7 @@ lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
-λ hx, begin
-  rw [←(mul_one ∥f∥)],
-  calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
-  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
-end
+mul_one ∥f∥ ▸ f.le_op_norm_of_le
 
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
@@ -266,18 +265,24 @@ by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
-lemma norm_id : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
+lemma norm_id_le : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
+
+/-- If a space is non-trivial, then the norm of the identity equals `1`. -/
+lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥(id : E →L[𝕜] E)∥ = 1 :=
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
+have _ := ratio_le_op_norm (id : E →L[𝕜] E) x,
+by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 /-- The operator norm is homogeneous. -/
 lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 le_antisymm
-  (Inf_le _ bounds_bdd_below
-    ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+  ((c • f).op_norm_le_bound
+    (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
     begin
       erw [norm_smul, mul_assoc],
       exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-    end⟩)
+    end))
   (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
     (or.elim (lt_or_eq_of_le (norm_nonneg c))
       (λ hlt,
@@ -304,15 +309,10 @@ instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
 ⟨op_norm_smul⟩
 
 /-- The operator norm is submultiplicative. -/
-lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
+lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
-  begin
-    rw mul_assoc,
-    calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _ _
-    ... ≤ _ : mul_le_mul_of_nonneg_left
-              (le_op_norm _ _) (op_norm_nonneg _)
-  end⟩)
+    by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -577,18 +577,41 @@ end restrict_scalars
 
 end continuous_linear_map
 
-lemma continuous_linear_equiv.lipschitz (e : E ≃L[𝕜] F) :
-  lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+namespace continuous_linear_equiv
+
+variable (e : E ≃L[𝕜] F)
+
+protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 (e : E →L[𝕜] F).lipschitz
 
-lemma continuous_linear_equiv.antilipschitz (e : E ≃L[𝕜] F) :
-  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
-e.symm.lipschitz.to_inverse e.left_inv
+protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
+e.symm.lipschitz.to_right_inverse e.left_inv
 
 /-- A continuous linear equiv is a uniform embedding. -/
-lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
-  uniform_embedding e :=
+lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+
+lemma one_le_norm_mul_norm_symm (h : ∃ x : E, x ≠ 0) :
+  1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
+begin
+  rw [mul_comm],
+  convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
+  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id h]
+end
+
+lemma norm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e : E →L[𝕜] F)∥ :=
+pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+
+lemma norm_symm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+
+lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+(subsingleton_or_exists_ne (0 : E)).imp id (λ hE, e.norm_symm_pos hE)
+
+lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
+subsingleton_or_norm_symm_pos e
+
+end continuous_linear_equiv
 
 lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :
   uniform_embedding e :=

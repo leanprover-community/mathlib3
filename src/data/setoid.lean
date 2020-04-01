@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.galois_connection order.copy
+import data.quot data.set.lattice order.galois_connection
 
 /-!
 # Equivalence relations
@@ -444,7 +444,7 @@ lemma eqv_classes_of_disjoint_union {c : set (set α)}
   (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
   ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
 let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  ⟨b, hc, ha, λ b' hc' ha', set.pairwise_disjoint_elim H hc hc' a ha ha'⟩
+  ⟨b, hc, ha, λ b' hc' ha', H.elim hc hc' a ha ha'⟩
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)

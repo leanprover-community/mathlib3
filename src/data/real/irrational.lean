@@ -23,7 +23,7 @@ def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 ### Irrationality of roots of integer and rational numbers
 -/
 
-/-- If `x^n`, `n > 0`, is integer and is not `n`-th power of an integer, then
+/-- If `x^n`, `n > 0`, is integer and is not the `n`-th power of an integer, then
 `x` is irrational. -/
 theorem irrational_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
   (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : 0 < n) :

@@ -6,6 +6,7 @@ Authors: Simon Hudon, Patrick Massot
 Pi instances for algebraic structures.
 -/
 import order.basic
+import algebra.group.prod
 import algebra.module
 import data.finset
 import ring_theory.subring
@@ -158,120 +159,12 @@ end pi
 namespace prod
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
-
-instance [has_add α] [has_add β] : has_add (α × β) :=
-⟨λp q, (p.1 + q.1, p.2 + q.2)⟩
-@[to_additive]
-instance [has_mul α] [has_mul β] : has_mul (α × β) :=
-⟨λp q, (p.1 * q.1, p.2 * q.2)⟩
-
-@[simp, to_additive]
-lemma fst_mul [has_mul α] [has_mul β] : (p * q).1 = p.1 * q.1 := rfl
-@[simp, to_additive]
-lemma snd_mul [has_mul α] [has_mul β] : (p * q).2 = p.2 * q.2 := rfl
-@[simp, to_additive]
-lemma mk_mul_mk [has_mul α] [has_mul β] (a₁ a₂ : α) (b₁ b₂ : β) :
-  (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
-
-instance [has_zero α] [has_zero β] : has_zero (α × β) := ⟨(0, 0)⟩
-@[to_additive]
-instance [has_one α] [has_one β] : has_one (α × β) := ⟨(1, 1)⟩
-
-@[simp, to_additive]
-lemma fst_one [has_one α] [has_one β] : (1 : α × β).1 = 1 := rfl
-@[simp, to_additive]
-lemma snd_one [has_one α] [has_one β] : (1 : α × β).2 = 1 := rfl
-@[to_additive]
-lemma one_eq_mk [has_one α] [has_one β] : (1 : α × β) = (1, 1) := rfl
-
-instance [has_neg α] [has_neg β] : has_neg (α × β) := ⟨λp, (- p.1, - p.2)⟩
-@[to_additive]
-instance [has_inv α] [has_inv β] : has_inv (α × β) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
-
-@[simp, to_additive]
-lemma fst_inv [has_inv α] [has_inv β] : (p⁻¹).1 = (p.1)⁻¹ := rfl
-@[simp, to_additive]
-lemma snd_inv [has_inv α] [has_inv β] : (p⁻¹).2 = (p.2)⁻¹ := rfl
-@[to_additive]
-lemma inv_mk [has_inv α] [has_inv β] (a : α) (b : β) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
-
-instance [add_semigroup α] [add_semigroup β] : add_semigroup (α × β) :=
-{ add_assoc := assume a b c, mk.inj_iff.mpr ⟨add_assoc _ _ _, add_assoc _ _ _⟩,
-  .. prod.has_add }
-@[to_additive add_semigroup]
-instance [semigroup α] [semigroup β] : semigroup (α × β) :=
-{ mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
-  .. prod.has_mul }
-
-instance [add_monoid α] [add_monoid β] : add_monoid (α × β) :=
-{ zero_add := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_add _, zero_add _⟩,
-  add_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨add_zero _, add_zero _⟩,
-  .. prod.add_semigroup, .. prod.has_zero }
-@[to_additive add_monoid]
-instance [monoid α] [monoid β] : monoid (α × β) :=
-{ one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,
-  mul_one := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_one _, mul_one _⟩,
-  .. prod.semigroup, .. prod.has_one }
-
-instance [add_group α] [add_group β] : add_group (α × β) :=
-{ add_left_neg := assume a, mk.inj_iff.mpr ⟨add_left_neg _, add_left_neg _⟩,
-  .. prod.add_monoid, .. prod.has_neg }
-@[to_additive add_group]
-instance [group α] [group β] : group (α × β) :=
-{ mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
-  .. prod.monoid, .. prod.has_inv }
-
-instance [add_comm_semigroup α] [add_comm_semigroup β] : add_comm_semigroup (α × β) :=
-{ add_comm := assume a b, mk.inj_iff.mpr ⟨add_comm _ _, add_comm _ _⟩,
-  .. prod.add_semigroup }
-@[to_additive add_comm_semigroup]
-instance [comm_semigroup α] [comm_semigroup β] : comm_semigroup (α × β) :=
-{ mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
-  .. prod.semigroup }
-
-instance [add_comm_monoid α] [add_comm_monoid β] : add_comm_monoid (α × β) :=
-{ .. prod.add_comm_semigroup, .. prod.add_monoid }
-@[to_additive add_comm_monoid]
-instance [comm_monoid α] [comm_monoid β] : comm_monoid (α × β) :=
-{ .. prod.comm_semigroup, .. prod.monoid }
-
-instance [add_comm_group α] [add_comm_group β] : add_comm_group (α × β) :=
-{ .. prod.add_comm_semigroup, .. prod.add_group }
-@[to_additive add_comm_group]
-instance [comm_group α] [comm_group β] : comm_group (α × β) :=
-{ .. prod.comm_semigroup, .. prod.group }
-
 @[to_additive is_add_monoid_hom]
 lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α × β → α) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 @[to_additive is_add_monoid_hom]
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
-
-@[simp] lemma fst_sub [add_group α] [add_group β] : (p - q).1 = p.1 - q.1 := rfl
-@[simp] lemma snd_sub [add_group α] [add_group β] : (p - q).2 = p.2 - q.2 := rfl
-@[simp] lemma mk_sub_mk [add_group α] [add_group β] {a₁ a₂ : α} {b₁ b₂ : β} :
-  (a₁, b₁) - (a₂, b₂) = (a₁ - a₂, b₁ - b₂) := rfl
-
-/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
-@[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]
-def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
-⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
-
-/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `β`.-/
-@[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
-def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
-⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
-
-/-- Given monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. -/
-@[to_additive prod.add_monoid_hom.inl "Given add_monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. There is an unbundled version, `prod.inl`, for arbitrary `α, β` such that `β` has a zero."]
-def monoid_hom.inl [monoid α] [monoid β] : α →* α × β :=
-⟨λ x, (x, 1), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
-
-/-- Given monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. -/
-@[to_additive prod.add_monoid_hom.inr "Given add_monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. There is an unbundled version, `prod.inr`, for arbitrary `α, β` such that `α` has a zero."]
-def monoid_hom.inr [monoid α] [monoid β] : β →* α × β :=
-⟨λ x, (1, x), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
 
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
@@ -286,12 +179,12 @@ fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 @[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=
-(t.prod_hom prod.fst).symm
+(monoid_hom.fst α β).map_prod f t
 
 @[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).2 = t.prod (λc, (f c).2) :=
-(t.prod_hom prod.snd).symm
+(monoid_hom.snd α β).map_prod f t
 
 instance [semiring α] [semiring β] : semiring (α × β) :=
 { zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
@@ -398,18 +291,6 @@ instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
 end substructures
 
 end prod
-
-namespace submonoid
-
-/-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
-@[to_additive prod "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
-def prod {α : Type*} {β : Type*} [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
-  submonoid (α × β) :=
-{ carrier := (s : set α).prod t,
-  one_mem' := ⟨s.one_mem, t.one_mem⟩,
-  mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩ }
-
-end submonoid
 
 namespace finset
 

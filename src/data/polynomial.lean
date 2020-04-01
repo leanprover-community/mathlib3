@@ -1350,7 +1350,7 @@ is_ring_hom.map_neg _
 is_ring_hom.map_sub _
 
 section aeval
-/-- R[X] is the generator of the category R-Alg. -/
+/-- `R[X]` is the generator of the category `R-Alg`. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
@@ -1361,7 +1361,8 @@ variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (x : A)
 
-/-- A → Hom[R-Alg](R[X],A) -/
+/-- Given a valuation `x` of the variable in an `R`-algebra `A`, returns
+the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
   ..ring_hom.of (eval₂ (algebra_map A) x) }

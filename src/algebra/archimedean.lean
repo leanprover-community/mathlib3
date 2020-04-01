@@ -34,6 +34,8 @@ let ⟨n, h⟩ := archimedean.arch x hy0 in
        ... < 1 + n • (y - 1) : lt_one_add _
        ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
 
+example : true := trivial
+
 /-- Every x greater than 1 is between two successive natural-number
 powers of another y greater than one. -/
 lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :

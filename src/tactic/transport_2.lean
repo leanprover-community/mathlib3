@@ -1,28 +1,24 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Gabriel Ebner, Simon Hudon, Scott Morrison
 -/
 import tactic.equiv_rw
 
+/-!
+## The `transport` tactic
+
+`transport` attempts to move an `s : S α` expression across an equivalence `e : α ≃ β` to solve
+a goal of the form `S β`, by building the new object field by field, taking each field of `s`
+and rewriting it along `e` using the `equiv_rw` tactic.
+
+We try to ensure good definitional properties, so that, for example, when we transport a `monoid α`
+to a `monoid β`, the new multiplication is definitionally `λ x y, e (e.symm a * e.symm b)`.
+
+-/
+
 namespace tactic
 open tactic.interactive
-
-/--
-Attempts to run a tactic (which should only operate on the main goal),
-intercepts any result it assigns to the goal,
-and runs `simp` on that
-before assigning the simplified value to the original goal.
--/
-meta def simp_result {α : Type} (t : tactic α) : tactic α :=
-do
-  (r, a) ← retrieve (do
-    v :: _ ← get_goals,
-    a ← t,
-    v ← instantiate_mvars v,
-    return (v, a)),
-  prod.fst <$> r.simp {fail_if_unchanged := ff} >>= exact,
-  return a
 
 /--
 Given `s : S α` for some structure `S` depending on a type `α`,

@@ -7,7 +7,7 @@ import data.real.basic algebra.gcd_domain ring_theory.multiplicity tactic.alias
 /-!
 # Irrational real numbers
 
-In this file we define predicate `irrational` on `ℝ`, prove that `n`-th root of an integer
+In this file we define a predicate `irrational` on `ℝ`, prove that the `n`-th root of an integer
 number is irrational if it is not integer, and that `sqrt q` is irrational if and only if
 `rat.sqrt q * rat.sqrt q ≠ q ∧ 0 ≤ q`.
 

@@ -1746,9 +1746,6 @@ apply_nolint hyperreal.is_st_iff_abs_sub_lt_delta ge_or_gt
 apply_nolint hyperreal.lt_neg_of_pos_of_infinitesimal ge_or_gt
 apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 
--- data/real/irrational.lean
-apply_nolint irrational doc_blame
-
 -- data/real/nnreal.lean
 apply_nolint nnreal.of_real doc_blame
 

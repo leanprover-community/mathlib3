@@ -635,7 +635,8 @@ theorem mem_map_of_inj {f : α → β} (H : function.injective f) {a : α} {s : 
   f a ∈ map f s ↔ a ∈ s :=
 quot.induction_on s $ λ l, mem_map_of_inj H
 
-@[simp] theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
+@[simp]
+theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
 quot.induction_on s $ λ l, congr_arg coe $ list.map_map _ _ _
 
 theorem map_id (s : multiset α) : map id s = s :=

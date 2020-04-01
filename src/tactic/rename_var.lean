@@ -22,7 +22,7 @@ begin
   rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
   exact h -- Lean does not care about those bound variable names
 end
-```lean
+```
 
 ## Tags
 
@@ -55,8 +55,31 @@ namespace tactic.interactive
 open tactic
 setup_tactic_parser
 
-/-- `rename_var old new` renames all bound variables named `old` to `new` in the goal.
-    `rename_var old new at h` does the same in hypothesis `h`. -/
+/--
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+
+---
+
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```
+-/
 meta def rename_var (old : parse ident) (new : parse ident) (l : parse location) : tactic unit :=
 l.apply (rename_var_at_hyp old new) (rename_var_at_goal old new)
 end tactic.interactive
+
+add_tactic_doc
+{ name       := "rename_var",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rename_var],
+  tags       := ["renaming"] }

@@ -24,13 +24,11 @@ import data.set.finite
 * `∃ᶠ x in f, p x` : `f.frequently p`.
 * `f ×ᶠ g` : `filter.prod f g`, localized in `filter`.
 -/
-open lattice set
+open set
 
 universes u v w x y
 
 open_locale classical
-
-open set lattice
 
 section order
 variables {α : Type u} (r : α → α → Prop)
@@ -277,17 +275,17 @@ section complete_lattice
   upfront and change the lattice operations for the complete lattice instance. -/
 
 private def original_complete_lattice : complete_lattice (filter α) :=
-@order_dual.lattice.complete_lattice _ (gi_generate α).lift_complete_lattice
+@order_dual.complete_lattice _ (gi_generate α).lift_complete_lattice
 
 local attribute [instance] original_complete_lattice
 
 instance : complete_lattice (filter α) := original_complete_lattice.copy
   /- le  -/ filter.partial_order.le rfl
-  /- top -/ (filter.lattice.has_top).1
+  /- top -/ (filter.has_top).1
   (top_unique $ assume s hs, by have := univ_mem_sets ; finish)
   /- bot -/ _ rfl
   /- sup -/ _ rfl
-  /- inf -/ (filter.lattice.has_inf).1
+  /- inf -/ (filter.has_inf).1
   begin
     ext f g : 2,
     exact le_antisymm
@@ -476,7 +474,7 @@ instance : bounded_distrib_lattice (filter α) :=
       z.sets_of_superset ht₂ $ subset_union_right _ _,
       subset.trans (@le_sup_inf (set α) _ _ _ _) (union_subset (subset.refl _) hts)⟩
   end,
-  ..filter.lattice.complete_lattice }
+  ..filter.complete_lattice }
 
 /- the complementary version with ⨆i, f ⊓ g i does not hold! -/
 lemma infi_sup_eq {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
@@ -553,6 +551,15 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   (hq : ∀ x, p x → q x) :
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
+
+lemma eventually.congr {f : filter α} {β : Type*} {u v : α → β} {p : β → Prop}
+  (h : ∀ᶠ a in f, u a = v a) (h' : ∀ᶠ a in f, p (u a)) : ∀ᶠ a in f, p (v a) :=
+h'.mp (h.mono (by simp {contextual := tt}))
+
+lemma eventually.congr_iff {f : filter α} {β : Type*} {u v : α → β}
+  (h : ∀ᶠ a in f, u a = v a) (p : β → Prop) :
+  (∀ᶠ a in f, p (u a)) ↔ (∀ᶠ a in f, p (v a)) :=
+⟨h.congr, eventually.congr (h.mp (by simp {contextual := tt}))⟩
 
 @[simp]
 lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
@@ -789,7 +796,7 @@ def cofinite : filter α :=
 { sets             := {s | finite (- s)},
   univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
   sets_of_superset := assume s t (hs : finite (-s)) (st: s ⊆ t),
-    finite_subset hs $ @lattice.neg_le_neg (set α) _ _ _ st,
+    finite_subset hs $ compl_subset_compl.2 st,
   inter_sets       := assume s t (hs : finite (-s)) (ht : finite (-t)),
     by simp only [compl_inter, finite_union, ht, hs, mem_set_of_eq] }
 
@@ -1364,6 +1371,11 @@ def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl
 
+lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {p : β → Prop}
+  (hf : tendsto f l₁ l₂) (h : ∀ᶠ y in l₂, p y) :
+  ∀ᶠ x in l₁, p (f x) :=
+hf h
+
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
@@ -1446,7 +1458,7 @@ end
 
 lemma tendsto_inf {f : α → β} {x : filter α} {y₁ y₂ : filter β} :
   tendsto f x (y₁ ⊓ y₂) ↔ tendsto f x y₁ ∧ tendsto f x y₂ :=
-by simp only [tendsto, lattice.le_inf_iff, iff_self]
+by simp only [tendsto, le_inf_iff, iff_self]
 
 lemma tendsto_inf_left {f : α → β} {x₁ x₂ : filter α} {y : filter β}
   (h : tendsto f x₁ y) : tendsto f (x₁ ⊓ x₂) y  :=
@@ -1462,7 +1474,7 @@ tendsto_inf.2 ⟨tendsto_inf_left h₁, tendsto_inf_right h₂⟩
 
 lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β} :
   tendsto f x (⨅i, y i) ↔ ∀i, tendsto f x (y i) :=
-by simp only [tendsto, iff_self, lattice.le_infi_iff]
+by simp only [tendsto, iff_self, le_infi_iff]
 
 lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι) :
   tendsto f (x i) y → tendsto f (⨅i, x i) y :=
@@ -1552,6 +1564,19 @@ lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α
   (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (g ×ᶠ h) :=
 tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
+lemma eventually.prod_inl {la : filter α} {p : α → Prop} (h : ∀ᶠ x in la, p x) (lb : filter β) :
+  ∀ᶠ x in la ×ᶠ lb, p (x : α × β).1 :=
+tendsto_fst.eventually h
+
+lemma eventually.prod_inr {lb : filter β} {p : β → Prop} (h : ∀ᶠ x in lb, p x) (la : filter α) :
+  ∀ᶠ x in la ×ᶠ lb, p (x : α × β).2 :=
+tendsto_snd.eventually h
+
+lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in la, pa x)
+  {lb : filter β} {pb : β → Prop} (hb : ∀ᶠ y in lb, pb y) :
+  ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
+(ha.prod_inl lb).and (hb.prod_inr la)
+
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=
 by rw [filter.prod, comap_infi, infi_inf i]; simp only [filter.prod, eq_self_iff_true]
@@ -1603,7 +1628,7 @@ have h : _ := map_prod id f g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   (f₁ ×ᶠ g₁) ⊓ (f₂ ×ᶠ g₂) = (f₁ ⊓ f₂) ×ᶠ (g₁ ⊓ g₂) :=
-by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm]
+by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
 
 @[simp] lemma prod_bot {f : filter α} : f ×ᶠ (⊥ : filter β) = ⊥ := by simp [filter.prod]
 @[simp] lemma bot_prod {g : filter β} : (⊥ : filter α) ×ᶠ g = ⊥ := by simp [filter.prod]
@@ -1891,10 +1916,10 @@ map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b _, nat.sub_le_right_iff_le_add)
   (assume b _, by rw [nat.add_sub_cancel])
 
-lemma tendso_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
+lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
 le_of_eq (map_add_at_top_eq_nat k)
 
-lemma tendso_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
+lemma tendsto_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
 le_of_eq (map_sub_at_top_eq_nat k)
 
 lemma tendsto_add_at_top_iff_nat {f : ℕ → α} {l : filter α} (k : ℕ) :
@@ -1946,7 +1971,7 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
     assume hs,
       have f ≤ principal (-s), from
         le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_eq_bot $
-          by simp only [h, eq_self_iff_true, lattice.neg_neg],
+          by simp only [h, eq_self_iff_true, compl_compl],
       by simp only [le_principal_iff] at this; assumption⟩,
  assume hf,
    ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),
@@ -2114,7 +2139,7 @@ theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
 λ hy,
 have hx : -s ∉ hyperfilter :=
   λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mp hs hy,
-have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, lattice.neg_neg],
+have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, compl_compl],
 hx $ hyperfilter_le_cofinite ht
 
 theorem compl_mem_hyperfilter_of_finite [infinite α] {s : set α} (hf : set.finite s) :
@@ -2124,8 +2149,7 @@ nmem_hyperfilter_of_finite hf
 
 theorem mem_hyperfilter_of_finite_compl [infinite α] {s : set α} (hf : set.finite (-s)) :
   s ∈ @hyperfilter α :=
-have h : _ := compl_mem_hyperfilter_of_finite hf,
-by rwa [lattice.neg_neg] at h
+s.compl_compl ▸ compl_mem_hyperfilter_of_finite hf
 
 section
 
@@ -2144,7 +2168,7 @@ lemma ultrafilter.eq_iff_val_le_val {u v : ultrafilter α} : u = v ↔ u.val ≤
  assume h, by rw subtype.ext; apply ultrafilter_unique v.property u.property.1 h⟩
 
 lemma exists_ultrafilter_iff (f : filter α) : (∃ (u : ultrafilter α), u.val ≤ f) ↔ f ≠ ⊥ :=
-⟨assume ⟨u, uf⟩, lattice.ne_bot_of_le_ne_bot u.property.1 uf,
+⟨assume ⟨u, uf⟩, ne_bot_of_le_ne_bot u.property.1 uf,
  assume h, let ⟨u, uf, hu⟩ := exists_ultrafilter h in ⟨⟨u, hu⟩, uf⟩⟩
 
 end ultrafilter

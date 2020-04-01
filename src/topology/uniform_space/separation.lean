@@ -7,7 +7,7 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical topological_space
 noncomputable theory
 set_option eqn_compiler.zeta true

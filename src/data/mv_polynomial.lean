@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.algebra data.equiv.fin
+import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
 
 /-!
 # Multivariate polynomials
@@ -80,7 +80,7 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 Recall that if `Y` has a zero, then `X →₀ Y` is the type of functions from `X` to `Y` with finite
 support, i.e. such that only finitely many elements of `X` get sent to non-zero terms in `Y`.
 The definition of `mv_polynomial σ α` is `(σ →₀ ℕ) →₀ α` ; here `σ →₀ ℕ` denotes the space of all
-monomials in the variables, and the function to α sends a monomial to its coefficient in
+monomials in the variables, and the function to `α` sends a monomial to its coefficient in
 the polynomial being represented.
 
 ## Tags
@@ -91,14 +91,14 @@ polynomial, multivariate polynomial, multivariable polynomial
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open set function finsupp lattice
+open set function finsupp add_monoid_algebra
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `α` is the coefficient ring -/
-def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ) →₀ α
+def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := add_monoid_algebra α (σ →₀ ℕ)
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
@@ -108,12 +108,14 @@ variables [comm_semiring α] {p q : mv_polynomial σ α}
 
 instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
   decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
-instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
-instance : has_one (mv_polynomial σ α) := finsupp.has_one
-instance : has_add (mv_polynomial σ α) := finsupp.has_add
-instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
-instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
+instance : comm_semiring (mv_polynomial σ α) := add_monoid_algebra.comm_semiring
 instance : inhabited (mv_polynomial σ α) := ⟨0⟩
+
+/-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
+def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ α) :=
+finsupp.has_coe_to_fun
+
+local attribute [instance] coeff_coe_to_fun
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
@@ -164,10 +166,12 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
   apply @finsupp.induction σ ℕ _ _ s,
-  { simp [C, prod_zero_index]; exact (mul_one _).symm },
+  { simp only [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
-    simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih,
-      monomial_single_add, mul_comm, mul_left_comm]  }
+    rw [monomial_single_add, ih, prod_add_index, prod_single_index, mul_left_comm],
+    { simp only [pow_zero], },
+    { intro a, simp only [pow_zero], },
+    { intros, rw pow_add, }, }
 end
 
 @[recursor 5]
@@ -270,13 +274,16 @@ by rw [coeff_X', if_pos rfl]
 @[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
 begin
   rw [mul_def, C, monomial],
-  simp only [sum_single_index, zero_mul, single_zero, zero_add, sum_zero],
-  convert sum_apply,
-  simp only [single_apply, finsupp.sum],
-  rw finset.sum_eq_single m,
-  { rw if_pos rfl, refl },
-  { intros m' hm' H, apply if_neg, exact H },
-  { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
+  rw sum_single_index,
+  { simp only [zero_add],
+    convert sum_apply,
+    simp only [single_apply, finsupp.sum],
+    rw finset.sum_eq_single m,
+    { rw if_pos rfl, refl },
+    { intros m' hm' H, apply if_neg, exact H },
+    { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] } },
+  simp only [zero_mul, single_zero, zero_add],
+  exact sum_zero, -- TODO doesn't work if we put this inside the simp
 end
 
 lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
@@ -416,8 +423,16 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
+
+/-- `mv_polynomial.eval₂` as a `ring_hom`. -/
+def eval₂_hom (f : α →+* β) (g : σ → β) : mv_polynomial σ α →+* β := ring_hom.of (eval₂ f g)
+
+@[simp] lemma coe_eval₂_hom (f : α →+* β) (g : σ → β) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
+
 end
 
+section
+local attribute [instance, priority 10] is_semiring_hom.comp
 lemma eval₂_comp_left {γ} [comm_semiring γ]
   (k : β → γ) [is_semiring_hom k]
   (f : α → β) [is_semiring_hom f] (g : σ → β)
@@ -425,6 +440,7 @@ lemma eval₂_comp_left {γ} [comm_semiring γ]
 by apply mv_polynomial.induction_on p; simp [
   eval₂_add, is_semiring_hom.map_add k,
   eval₂_mul, is_semiring_hom.map_mul k] {contextual := tt}
+end
 
 @[simp] lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
 by apply mv_polynomial.induction_on p;
@@ -501,6 +517,10 @@ variables (f : α → β)
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
 
 variables [is_semiring_hom f]
+
+instance is_semiring_hom_C_f :
+  is_semiring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
+is_semiring_hom.comp _ _
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
@@ -745,7 +765,7 @@ finset.sup_le $ assume n hn,
 lemma total_degree_mul (a b : mv_polynomial σ α) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=
 finset.sup_le $ assume n hn,
-  have _ := finsupp.support_mul a b hn,
+  have _ := add_monoid_algebra.support_mul a b hn,
   begin
     simp only [finset.mem_bind, finset.mem_singleton, finset.singleton_eq_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
@@ -789,16 +809,15 @@ section comm_ring
 variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
-instance : ring (mv_polynomial σ α) := finsupp.ring
-instance : comm_ring (mv_polynomial σ α) := finsupp.comm_ring
+instance : comm_ring (mv_polynomial σ α) := add_monoid_algebra.comm_ring
 instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.module _ α
+instance : module α (mv_polynomial σ α) := finsupp.module (σ →₀ ℕ) α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
 
 variables (σ a a')
-lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
@@ -819,11 +838,11 @@ begin
   { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
   intros p b f haf hb0 ih,
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
-  rw [finsupp.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
+  rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
   rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
-  { rw [mul_zero, finsupp.single_zero] },
+  { rw [mul_zero, finsupp.single_zero], refl },
   { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero] } }
+    all_goals { rw [zero_mul, finsupp.single_zero], refl }, }
 end
 
 lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=
@@ -856,12 +875,12 @@ variables (f : α → β) [is_ring_hom f] (g : σ → β)
 instance eval₂.is_ring_hom : is_ring_hom (eval₂ f g) :=
 by apply is_ring_hom.of_semiring
 
-lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
+@[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
-congr_fun (int.eq_cast' (f ∘ C)) n
+((ring_hom.of f).comp (ring_hom.of C)).eq_int_cast n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -869,7 +888,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C, int.eq_cast' c], refl })
+(λ n, by { rw [hom_C f, eval₂_C], exact (ring_hom.of c).eq_int_cast n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
@@ -877,9 +896,9 @@ mv_polynomial.induction_on x
 functions out of the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
-  inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
+  inv_fun := λ f, eval₂_hom (int.cast_ring_hom β) f,
   left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
-  right_inv := λ f, funext $ λ x, by simp only [ring_hom.coe_of, function.comp_app, eval₂_X] }
+  right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
 
@@ -889,7 +908,7 @@ variables (f : σ → α)
 
 instance eval.is_ring_hom : is_ring_hom (eval f) := eval₂.is_ring_hom _ _
 
-lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
+@[simp] lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
 
 @[simp] lemma eval_neg : (-p).eval f = -(p.eval f) := is_ring_hom.map_neg _
 
@@ -900,10 +919,13 @@ section map
 variables [comm_ring β]
 variables (f : α → β) [is_ring_hom f]
 
+instance is_ring_hom_C_f : is_ring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
+is_ring_hom.comp _ _
+
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _
 
-lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+@[simp] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 
 @[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 

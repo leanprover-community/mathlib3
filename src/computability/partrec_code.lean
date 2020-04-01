@@ -136,8 +136,7 @@ theorem encode_lt_comp (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.bit0_lt (nat.lt_succ_self _),
+  change _, simp [encode_code_eq, encode_code]
 end
 
 theorem encode_lt_prec (cf cg) :
@@ -146,8 +145,7 @@ theorem encode_lt_prec (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.lt_succ_self _,
+  change _, simp [encode_code_eq, encode_code],
 end
 
 theorem encode_lt_rfind' (cf) : encode cf < encode (rfind' cf) :=
@@ -560,7 +558,6 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   x ← evaln (k+1) cf (mkpair a m),
   if x = 0 then pure m else
   evaln k (rfind' cf) (mkpair a (m+1)))
-using_well_founded wf_tacs
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | 0     c n x h := by simp [evaln] at h; cases h

@@ -88,6 +88,8 @@ by cases f; cases g; cases h; refl
 lemma ext ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
+attribute [ext] _root_.add_monoid_hom.ext
+
 @[to_additive]
 lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -145,6 +147,10 @@ lemma cancel_left {g : N →* P} {f₁ f₂ : M →* N} (hg : function.injective
 ⟨λ h, monoid_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit mP
+
+@[simp, to_additive] lemma comp_id (f : M →* N) : f.comp (id M) = f := ext $ λ x, rfl
+@[simp, to_additive] lemma id_comp (f : M →* N) : (id N).comp f = f := ext $ λ x, rfl
+
 variables [mM] [mN]
 
 @[to_additive]

@@ -157,7 +157,7 @@ begin
         rw [← mul_assoc, mul_inv_cancel, one_mul],
         exact ne_of_gt c_pos
       end },
-    { apply mul_pos (inv_pos c_pos) (pow_pos _ _),
+    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
@@ -197,7 +197,7 @@ begin
         rw [← mul_assoc, mul_inv_cancel, one_mul],
         exact ne_of_gt c_pos
       end },
-    { apply mul_pos (inv_pos c_pos) (pow_pos _ _),
+    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
@@ -266,7 +266,7 @@ begin
   rw [← univ_subset_iff, ← h.1],
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
   exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono_nhds st)),
-    lattice.ne_bot_of_le_ne_bot h.2 st⟩
+    ne_bot_of_le_ne_bot h.2 st⟩
 end
 
 lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :

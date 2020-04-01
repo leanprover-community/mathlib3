@@ -34,12 +34,12 @@ instance preimage.is_subfield {K : Type*} [field K]
 { inv_mem := λ a (ha : f a ∈ s), show f a⁻¹ ∈ s,
     by { rw [f.map_inv],
          exact is_subfield.inv_mem ha },
-  ..is_ring_hom.is_subring_preimage f s }
+  ..f.is_subring_preimage s }
 
 instance image.is_subfield {K : Type*} [field K]
   (f : F →+* K) (s : set F) [is_subfield s] : is_subfield (f '' s) :=
 { inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, is_subfield.inv_mem xmem, ha ▸ f.map_inv⟩,
-  ..is_ring_hom.is_subring_image f s }
+  ..f.is_subring_image s }
 
 instance range.is_subfield {K : Type*} [field K]
   (f : F →+* K) : is_subfield (set.range f) :=

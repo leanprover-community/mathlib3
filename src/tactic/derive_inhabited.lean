@@ -64,6 +64,8 @@ attribute [derive inhabited]
   rbnode.color
   ordering
   unification_constraint pprod unification_hint
+  doc_category
+  tactic_doc_entry
 
 instance {α} : inhabited (bin_tree α) := ⟨bin_tree.empty⟩
 

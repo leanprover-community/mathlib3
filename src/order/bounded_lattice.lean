@@ -15,8 +15,7 @@ set_option old_structure_cmd true
 
 universes u v
 
-namespace lattice
-variable {α : Type u}
+variables {α : Type u} {β : Type v}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
 class has_top (α : Type u) := (top : α)
@@ -26,7 +25,7 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
-attribute [pattern] lattice.has_bot.bot lattice.has_top.top
+attribute [pattern] has_bot.bot has_top.top
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -194,7 +193,7 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
 { bot := bot_aux s,
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
-  ..lattice.lattice_of_decidable_linear_order }
+  ..lattice_of_decidable_linear_order }
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -290,7 +289,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
 
 /- Prop instance -/
 instance bounded_lattice_Prop : bounded_lattice Prop :=
-{ lattice.bounded_lattice .
+{ bounded_lattice .
   le           := λa b, a → b,
   le_refl      := assume _, id,
   le_trans     := assume a b c f g, g ∘ f,
@@ -335,13 +334,9 @@ instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
 by pi_instance
 
-end lattice
-
 def with_bot (α : Type*) := option α
 
 namespace with_bot
-variable {α : Type u}
-open lattice
 
 meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
 { to_format := λ x,
@@ -478,7 +473,7 @@ instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
 theorem lattice_eq_DLO [decidable_linear_order α] :
-  lattice.lattice_of_decidable_linear_order = @with_bot.lattice α _ :=
+  lattice_of_decidable_linear_order = @with_bot.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
 theorem sup_eq_max [decidable_linear_order α] (x y : with_bot α) : x ⊔ y = max x y :=
@@ -523,8 +518,6 @@ end with_bot
 def with_top (α : Type*) := option α
 
 namespace with_top
-variable {α : Type u}
-open lattice
 
 meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
 { to_format := λ x,
@@ -687,7 +680,7 @@ instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
 theorem lattice_eq_DLO [decidable_linear_order α] :
-  lattice.lattice_of_decidable_linear_order = @with_top.lattice α _ :=
+  lattice_of_decidable_linear_order = @with_top.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
 theorem sup_eq_max [decidable_linear_order α] (x y : with_top α) : x ⊔ y = max x y :=
@@ -710,7 +703,7 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 λ a, acc.intro _ (well_founded.induction h a
   (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →
     ∀ y : with_top α, y < some b → acc (<) y,
-  from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge lattice.le_top hc).elim)
+  from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge le_top hc).elim)
     (λ c hc, acc.intro _ (ih _ (some_lt_some.1 hc))))),
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
   (λ _ _, acc_some _))) acc_some⟩
@@ -725,79 +718,79 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-lemma dense_coe [partial_order α] [densely_ordered α] [no_top_order α] {a b : with_top α}
-  (h : a < b) : ∃ x : α, a < ↑x ∧ ↑x < b :=
-let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩
+lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
+  {a b : with_top α} :
+  (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
+⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
+ λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top
 
 namespace order_dual
-open lattice
-variable (α : Type*)
+variable (α)
 
 instance [has_bot α] : has_top (order_dual α) := ⟨(⊥ : α)⟩
 instance [has_top α] : has_bot (order_dual α) := ⟨(⊤ : α)⟩
 
 instance [order_bot α] : order_top (order_dual α) :=
 { le_top := @bot_le α _,
-  .. order_dual.partial_order α, .. order_dual.lattice.has_top α }
+  .. order_dual.partial_order α, .. order_dual.has_top α }
 
 instance [order_top α] : order_bot (order_dual α) :=
 { bot_le := @le_top α _,
-  .. order_dual.partial_order α, .. order_dual.lattice.has_bot α }
+  .. order_dual.partial_order α, .. order_dual.has_bot α }
 
 instance [semilattice_inf_bot α] : semilattice_sup_top (order_dual α) :=
-{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_top α }
+{ .. order_dual.semilattice_sup α, .. order_dual.order_top α }
 
 instance [semilattice_inf_top α] : semilattice_sup_bot (order_dual α) :=
-{ .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.order_bot α }
+{ .. order_dual.semilattice_sup α, .. order_dual.order_bot α }
 
 instance [semilattice_sup_bot α] : semilattice_inf_top (order_dual α) :=
-{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_top α }
+{ .. order_dual.semilattice_inf α, .. order_dual.order_top α }
 
 instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
-{ .. order_dual.lattice.semilattice_inf α, .. order_dual.lattice.order_bot α }
+{ .. order_dual.semilattice_inf α, .. order_dual.order_bot α }
 
 instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
-{ .. order_dual.lattice.lattice α, .. order_dual.lattice.order_top α, .. order_dual.lattice.order_bot α }
+{ .. order_dual.lattice α, .. order_dual.order_top α, .. order_dual.order_bot α }
 
 instance [bounded_distrib_lattice α] : bounded_distrib_lattice (order_dual α) :=
-{ .. order_dual.lattice.bounded_lattice α, .. order_dual.lattice.distrib_lattice α }
+{ .. order_dual.bounded_lattice α, .. order_dual.distrib_lattice α }
 
 end order_dual
 
 namespace prod
-open lattice
-variables (α : Type u) (β : Type v)
+variables (α β)
 
 instance [has_top α] [has_top β] : has_top (α × β) := ⟨⟨⊤, ⊤⟩⟩
 instance [has_bot α] [has_bot β] : has_bot (α × β) := ⟨⟨⊥, ⊥⟩⟩
 
 instance [order_top α] [order_top β] : order_top (α × β) :=
 { le_top := assume a, ⟨le_top, le_top⟩,
-  .. prod.partial_order α β, .. prod.lattice.has_top α β }
+  .. prod.partial_order α β, .. prod.has_top α β }
 
 instance [order_bot α] [order_bot β] : order_bot (α × β) :=
 { bot_le := assume a, ⟨bot_le, bot_le⟩,
-  .. prod.partial_order α β, .. prod.lattice.has_bot α β }
+  .. prod.partial_order α β, .. prod.has_bot α β }
 
 instance [semilattice_sup_top α] [semilattice_sup_top β] : semilattice_sup_top (α × β) :=
-{ .. prod.lattice.semilattice_sup α β, .. prod.lattice.order_top α β }
+{ .. prod.semilattice_sup α β, .. prod.order_top α β }
 
 instance [semilattice_inf_top α] [semilattice_inf_top β] : semilattice_inf_top (α × β) :=
-{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.order_top α β }
+{ .. prod.semilattice_inf α β, .. prod.order_top α β }
 
 instance [semilattice_sup_bot α] [semilattice_sup_bot β] : semilattice_sup_bot (α × β) :=
-{ .. prod.lattice.semilattice_sup α β, .. prod.lattice.order_bot α β }
+{ .. prod.semilattice_sup α β, .. prod.order_bot α β }
 
 instance [semilattice_inf_bot α] [semilattice_inf_bot β] : semilattice_inf_bot (α × β) :=
-{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.order_bot α β }
+{ .. prod.semilattice_inf α β, .. prod.order_bot α β }
 
 instance [bounded_lattice α] [bounded_lattice β] : bounded_lattice (α × β) :=
-{ .. prod.lattice.lattice α β, .. prod.lattice.order_top α β, .. prod.lattice.order_bot α β }
+{ .. prod.lattice α β, .. prod.order_top α β, .. prod.order_bot α β }
 
 instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
   bounded_distrib_lattice (α × β) :=
-{ .. prod.lattice.bounded_lattice α β, .. prod.lattice.distrib_lattice α β }
+{ .. prod.bounded_lattice α β, .. prod.distrib_lattice α β }
 
 end prod

@@ -9,7 +9,7 @@ import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
   tactic.monotonicity tactic.apply
 
-open multiset subtype nat lattice
+open multiset subtype nat
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -515,16 +515,16 @@ instance : lattice (finset α) :=
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
 
 instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }
+{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
 
 instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
-{ ..finset.lattice.semilattice_inf_bot, ..finset.lattice.lattice }
+{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],
-  ..finset.lattice.lattice }
+  ..finset.lattice }
 
 theorem inter_distrib_left (s t u : finset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := inf_sup_left
 
@@ -1293,6 +1293,21 @@ theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
+end card
+end finset
+
+theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
+card_le_of_le (erase_dup_le _)
+
+theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
+multiset.to_finset_card_le ⟦l⟧
+
+namespace finset
+section card
+
+theorem card_image_le [decidable_eq β] {f : α → β} {s : finset α} : card (image f s) ≤ card s :=
+by simpa only [card_map] using (s.1.map f).to_finset_card_le
+
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
 by simp only [card, image_val_of_inj_on H, card_map]
@@ -1301,8 +1316,8 @@ theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
-@[simp] lemma card_map {α β} [decidable_eq β] (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
-by rw [map_eq_image, card_image_of_injective]; exact f.2
+@[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
+multiset.card_map _ _
 
 lemma card_eq_of_bijective [decidable_eq α] {s : finset α} {n : ℕ}
   (f : ∀i, i < n → α)
@@ -2101,6 +2116,50 @@ begin
   exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
 end
 
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
+element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
+taking values in `option α`. -/
+def min' (s : finset α) (H : s.nonempty) : α :=
+@option.get _ s.min $
+  let ⟨k, hk⟩ := H in
+  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
+
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
+element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
+taking values in `option α`. -/
+def max' (s : finset α) (H : s.nonempty) : α :=
+@option.get _ s.max $
+  let ⟨k, hk⟩ := H in
+  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
+
+variables (s : finset α) (H : s.nonempty)
+
+theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
+
+theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
+
+theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
+
+theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
+
+theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
+
+theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
+
+theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
+begin
+  rcases lt_trichotomy i j with H4 | H4 | H4,
+  { have H5 := min'_le s H i H1,
+    have H6 := le_max' s H j H2,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 },
+  { cc },
+  { have H5 := min'_le s H j H2,
+    have H6 := le_max' s H i H1,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 }
+end
+
 end max_min
 
 /-! ### sort -/
@@ -2131,6 +2190,144 @@ multiset.mem_sort _
 multiset.length_sort _
 
 end sort
+
+section sort_linear_order
+
+variables [decidable_linear_order α]
+
+theorem sort_sorted_lt (s : finset α) :
+  list.sorted (<) (sort (≤) s) :=
+(sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
+
+lemma sorted_zero_eq_min' (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
+  (s.sort (≤)).nth_le 0 h = s.min' H :=
+begin
+  let l := s.sort (≤),
+  apply le_antisymm,
+  { have : s.min' H ∈ l := (finset.mem_sort (≤)).mpr (s.min'_mem H),
+    obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.min' H :=
+      list.mem_iff_nth_le.1 this,
+    rw ← hi,
+    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.zero_le i) },
+  { have : l.nth_le 0 h ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h),
+    exact s.min'_le H _ this }
+end
+
+lemma sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
+  (H : s.nonempty) : (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h = s.max' H :=
+begin
+  let l := s.sort (≤),
+  apply le_antisymm,
+  { have : l.nth_le ((s.sort (≤)).length - 1) h ∈ s :=
+      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ h),
+    exact s.le_max' H _ this },
+  { have : s.max' H ∈ l := (finset.mem_sort (≤)).mpr (s.max'_mem H),
+    obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.max' H :=
+      list.mem_iff_nth_le.1 this,
+    rw ← hi,
+    have : i ≤ l.length - 1 := nat.le_pred_of_lt i_lt,
+    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.le_pred_of_lt i_lt) },
+end
+
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `mono_of_fin s h`
+is the increasing bijection between `fin k` and `s` as an `α`-valued map. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
+have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
+(s.sort (≤)).nth_le i A
+
+lemma mono_of_fin_strict_mono (s : finset α) {k : ℕ} (h : s.card = k) :
+  strict_mono (s.mono_of_fin h) :=
+begin
+  assume i j hij,
+  exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij
+end
+
+lemma bij_on_mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  set.bij_on (s.mono_of_fin h) set.univ ↑s :=
+begin
+  have A : ∀ j, j ∈ s ↔ j ∈ (s.sort (≤)) := λ j, by simp,
+  apply set.bij_on.mk,
+  { assume i hi,
+    simp only [mono_of_fin, set.mem_preimage, mem_coe, list.nth_le, A],
+    exact list.nth_le_mem _ _ _ },
+  { exact ((mono_of_fin_strict_mono s h).injective).inj_on _ },
+  { assume x hx,
+    simp only [mem_coe, A] at hx,
+    obtain ⟨i, il, hi⟩ : ∃ (i : ℕ) (h : i < (s.sort (≤)).length), (s.sort (≤)).nth_le i h = x :=
+      list.nth_le_of_mem hx,
+    simp [h] at il,
+    exact ⟨⟨i, il⟩, set.mem_univ _, hi⟩ }
+end
+
+/-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
+lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
+  mono_of_fin s h ⟨0, hz⟩ = s.min' hs :=
+begin
+  apply le_antisymm,
+  { have : min' s hs ∈ s := min'_mem s hs,
+    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rw ← ha,
+    apply (mono_of_fin_strict_mono s h).monotone,
+    exact zero_le a.val },
+  { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    exact min'_le s hs _ this }
+end
+
+/-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
+lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
+  mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' hs :=
+begin
+  have h'' : k - 1 < k := buffer.lt_aux_2 hz,
+  apply le_antisymm,
+  { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    exact le_max' s hs _ this },
+  { have : max' s hs ∈ s := max'_mem s hs,
+    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rw ← ha,
+    apply (mono_of_fin_strict_mono s h).monotone,
+    exact le_pred_of_lt a.2},
+end
+
+/-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
+the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
+`s`, see `mono_of_fin_unique'`.-/
+lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
+  (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = s.mono_of_fin h :=
+begin
+  ext i,
+  rcases i with ⟨i, hi⟩,
+  induction i using nat.strong_induction_on with i IH,
+  rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
+  { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),
+    rcases (bij_on_mono_of_fin s h).surj_on A with ⟨j, _, hj⟩,
+    rw ← hj at H,
+    have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
+    have : f j = mono_of_fin s h j,
+      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+    rw ← this at hj,
+    exact (ne_of_lt (hmono ji) hj).elim },
+  { exact H },
+  { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+    rcases hbij.surj_on A with ⟨j, _, hj⟩,
+    rw ← hj at H,
+    have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
+    have : f j = mono_of_fin s h j,
+      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+    rw this at hj,
+    exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
+end
+
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`
+is the increasing bijection between `fin k` and `s` as an `s`-valued map. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  fin k ≃ {x // x ∈ s} :=
+(s.bij_on_mono_of_fin h).equiv _
+
+end sort_linear_order
 
 /-! ### disjoint -/
 section disjoint
@@ -2224,11 +2421,11 @@ disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
   disjoint_iff_ne.1 h (f₁ a ha) (mem_pi.mp hf₁ a ha) (f₂ a ha) (mem_pi.mp hf₂ a ha)
   $ congr_fun (congr_fun eq₁₂ a) ha
 
-end disjoint
+lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
+  disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
+by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
-theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
-  list.sorted (<) (sort (≤) s) :=
-(sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
+end disjoint
 
 instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 
@@ -2277,49 +2474,6 @@ section decidable_linear_order
 
 variables {α} [decidable_linear_order α]
 
-/-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
-element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
-taking values in `option α`. -/
-def min' (s : finset α) (H : s.nonempty) : α :=
-@option.get _ s.min $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
-
-/-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
-element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
-taking values in `option α`. -/
-def max' (s : finset α) (H : s.nonempty) : α :=
-@option.get _ s.max $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
-
-variables (s : finset α) (H : s.nonempty)
-
-theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
-
-theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
-
-theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
-
-theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
-
-theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
-
-theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
-
-theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
-begin
-  rcases lt_trichotomy i j with H4 | H4 | H4,
-  { have H5 := min'_le s H i H1,
-    have H6 := le_max' s H j H2,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 },
-  { cc },
-  { have H5 := min'_le s H j H2,
-    have H6 := le_max' s H i H1,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 }
-end
 
 end decidable_linear_order
 
@@ -2456,6 +2610,9 @@ by ext k; by_cases n ≤ k; simp [h, this]
 
 end Ico
 
+lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
+by { ext i, simp }
+
 -- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
 
 /-- `Ico_ℤ l u` is the set of integers `l ≤ k < u`. -/
@@ -2475,6 +2632,8 @@ begin
     use (l - n).to_nat,
     split; simp [h₁, h₂], }
 end
+
+@[simp] lemma Ico_ℤ.card (l u : ℤ) : (Ico_ℤ l u).card = (u - l).to_nat := by simp [Ico_ℤ]
 
 end finset
 
@@ -2501,7 +2660,7 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
 
-namespace lattice
+section lattice
 variables {ι : Sort*} [complete_lattice α] [decidable_eq ι]
 
 lemma supr_eq_supr_finset (s : ι → α) : (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
@@ -2523,11 +2682,11 @@ variables {ι : Sort*} [decidable_eq ι]
 
 lemma Union_eq_Union_finset (s : ι → set α) :
   (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
-lattice.supr_eq_supr_finset s
+supr_eq_supr_finset s
 
 lemma Inter_eq_Inter_finset (s : ι → set α) :
   (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
-lattice.infi_eq_infi_finset s
+infi_eq_infi_finset s
 
 end set
 

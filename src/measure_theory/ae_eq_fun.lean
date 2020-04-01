@@ -74,7 +74,7 @@ noncomputable theory
 open_locale classical
 
 namespace measure_theory
-open set lattice filter topological_space
+open set filter topological_space
 
 universes u v
 variables {α : Type u} {β : Type v} [measure_space α]

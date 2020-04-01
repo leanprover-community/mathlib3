@@ -11,7 +11,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 import topology.constructions topology.continuous_on
 import algebra.pi_instances
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical topological_space
 
 universes u v w

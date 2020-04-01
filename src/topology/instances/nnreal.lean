@@ -103,15 +103,14 @@ open_locale classical
 
 @[move_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
 if hf : summable f
-then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf)
+then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ hf.has_sum)
 else by simp [tsum, hf, mt summable_coe.1 hf]
 
 lemma summable_comp_injective {β : Type*} {f : α → nnreal} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
   summable (f ∘ i) :=
 nnreal.summable_coe.1 $
-show summable ((coe ∘ f) ∘ i),
-from summable_comp_of_summable_of_injective _ (nnreal.summable_coe.2 hf) hi
+show summable ((coe ∘ f) ∘ i), from summable.summable_comp_of_injective (nnreal.summable_coe.2 hf) hi
 
 end coe
 

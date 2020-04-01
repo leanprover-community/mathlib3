@@ -11,6 +11,7 @@ import data.polynomial ring_theory.principal_ideal_domain
        algebra.euclidean_domain
 
 local attribute [instance, priority 100000] is_ring_hom.id
+local attribute [instance, priority 100] is_ring_hom.comp
 
 universes u v w
 

@@ -28,7 +28,7 @@ and in particular
 https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
-open set filter lattice classical
+open set filter classical
 open_locale classical topological_space
 
 universes u v
@@ -116,7 +116,7 @@ classical.by_contradiction $ assume h,
   in
   have f ≤ principal (- U i),
     from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
-  have is_closed (- U i), from is_open_compl_iff.mp $ by rw lattice.neg_neg; exact hUo i,
+  have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
   have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
   this ‹a ∈ U i›
@@ -655,12 +655,15 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_preirreducible_univ : is_preirreducible (univ : set α))
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- An irreducible space is one that is nonempty
 and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty : nonempty α)
+end prio
 
-attribute [instance] irreducible_space.to_nonempty
+attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
@@ -991,11 +994,14 @@ subset_connected_component
 class preconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_preconnected_univ : is_preconnected (univ : set α))
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A connected space is a nonempty one where there is no non-trivial open partition. -/
 class connected_space (α : Type u) [topological_space α] extends preconnected_space α : Prop :=
 (to_nonempty : nonempty α)
+end prio
 
-attribute [instance] connected_space.to_nonempty
+attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]

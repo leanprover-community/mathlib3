@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.algebra data.zmod.basic
+import group_theory.order_of_element data.polynomial data.equiv.ring data.zmod.basic
 import algebra.char_p
 
 universes u v
@@ -47,7 +47,7 @@ variables [fintype α] [integral_domain α]
 open finset polynomial
 
 /-- The cardinality of a field is at most n times the cardinality of the image of a degree n
-  polnyomial -/
+  polynomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
@@ -86,10 +86,6 @@ end polynomial
 
 section
 variables [field α] [fintype α]
-
-instance [decidable_eq α] : fintype (units α) :=
-by haveI := set_fintype {a : α | a ≠ 0}; exact
-fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
 
 lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
 begin
@@ -150,12 +146,30 @@ lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
 let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
   from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
 ⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
+  have := congr_arg ⇑(zmod.cast_hom α : zmod n →+* α) hab,
   rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
+  simpa using this
 end⟩
 
 end char_p
+
+open_locale nat
+open zmod
+
+/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+  of the same theorem. -/
+@[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
+by rw [← card_units_eq_totient, pow_card_eq_one]
+
+/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+  of the same theorem. -/
+lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
+  let n' : ℕ+ := ⟨n, h₁⟩,
+  let x' : units (zmod n') := zmod.unit_of_coprime _ h,
+  have := zmod.pow_totient x',
+  apply (zmod.eq_iff_modeq_nat' h₁).1,
+  apply_fun (coe:units (zmod n') → zmod n') at this,
+  simpa [show (x':zmod n') = x, from rfl],
+end

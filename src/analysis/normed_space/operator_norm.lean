@@ -155,7 +155,7 @@ begin
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
+  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos.2 δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, linear_map.map_zero] },
   { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
@@ -181,7 +181,7 @@ let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
 theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
   is_O (λ x', g (f x')) f l :=
-(g.is_O_id ⊤).comp_tendsto lattice.le_top
+(g.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
@@ -219,6 +219,9 @@ classical.by_cases
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
+theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
+le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
+
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
@@ -231,11 +234,7 @@ lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
-λ hx, begin
-  rw [←(mul_one ∥f∥)],
-  calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
-  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
-end
+mul_one ∥f∥ ▸ f.le_op_norm_of_le
 
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
@@ -266,18 +265,24 @@ by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
-lemma norm_id : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
+lemma norm_id_le : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
+
+/-- If a space is non-trivial, then the norm of the identity equals `1`. -/
+lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥(id : E →L[𝕜] E)∥ = 1 :=
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
+have _ := ratio_le_op_norm (id : E →L[𝕜] E) x,
+by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 /-- The operator norm is homogeneous. -/
 lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 le_antisymm
-  (Inf_le _ bounds_bdd_below
-    ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+  ((c • f).op_norm_le_bound
+    (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
     begin
       erw [norm_smul, mul_assoc],
       exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-    end⟩)
+    end))
   (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
     (or.elim (lt_or_eq_of_le (norm_nonneg c))
       (λ hlt,
@@ -304,15 +309,10 @@ instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
 ⟨op_norm_smul⟩
 
 /-- The operator norm is submultiplicative. -/
-lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
+lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
-  begin
-    rw mul_assoc,
-    calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _ _
-    ... ≤ _ : mul_le_mul_of_nonneg_left
-              (le_op_norm _ _) (op_norm_nonneg _)
-  end⟩)
+    by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -372,6 +372,82 @@ begin
     ... ≤ δ⁻¹ * ∥c∥ * ∥f x∥ :
       by rwa [mul_one] }
 end
+
+section completeness
+
+open_locale topological_space
+open filter
+
+/-- If the target space is complete, the space of continuous linear maps with its norm is also
+complete. -/
+instance [complete_space F] : complete_space (E →L[𝕜] F) :=
+begin
+  -- We show that every Cauchy sequence converges.
+  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  -- We now expand out the definition of a Cauchy sequence,
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
+  -- and establish that the evaluation at any point `v : E` is Cauchy.
+  have cau : ∀ v, cauchy_seq (λ n, f n v),
+  { assume v,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
+    { exact mul_nonneg (b0 n) (norm_nonneg _) },
+    { assume n m N hn hm,
+      rw dist_eq_norm,
+      apply le_trans ((f n - f m).le_op_norm v) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
+    { simpa using b_lim.mul tendsto_const_nhds } },
+  -- We assemble the limits points of those Cauchy sequences
+  -- (which exist as `F` is complete)
+  -- into a function which we call `G`.
+  choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
+  -- Next, we show that this `G` is linear,
+  let Glin : E →ₗ[𝕜] F :=
+  { to_fun := G,
+    add := λ v w, begin
+      have A := hG (v + w),
+      have B := (hG v).add (hG w),
+      simp only [map_add] at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+    end,
+    smul := λ c v, begin
+      have A := hG (c • v),
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
+      simp only [map_smul] at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+    end },
+  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
+  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+  { assume v,
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+    { assume n,
+      apply le_trans ((f n).le_op_norm _) _,
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
+      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
+      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
+      ... ≤ b 0 + ∥f 0∥ : begin
+        apply add_le_add_right,
+        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
+      end },
+    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
+  let Gcont := Glin.mk_continuous _ Gnorm,
+  use Gcont,
+  -- Our last task is to establish convergence to `G` in norm.
+  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
+  { assume n,
+    apply op_norm_le_bound _ (b0 n) (λ v, _),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
+    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
+      apply le_trans ((f n - f m).le_op_norm _) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
+    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
+      tendsto.norm (tendsto_const_nhds.sub (hG v)),
+    exact le_of_tendsto at_top_ne_bot B A },
+  erw tendsto_iff_norm_tendsto_zero,
+  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+end
+
+end completeness
 
 section uniformly_extend
 
@@ -501,18 +577,41 @@ end restrict_scalars
 
 end continuous_linear_map
 
-lemma continuous_linear_equiv.lipschitz (e : E ≃L[𝕜] F) :
-  lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+namespace continuous_linear_equiv
+
+variable (e : E ≃L[𝕜] F)
+
+protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 (e : E →L[𝕜] F).lipschitz
 
-lemma continuous_linear_equiv.antilipschitz (e : E ≃L[𝕜] F) :
-  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
-e.symm.lipschitz.to_inverse e.left_inv
+protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
+e.symm.lipschitz.to_right_inverse e.left_inv
 
 /-- A continuous linear equiv is a uniform embedding. -/
-lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
-  uniform_embedding e :=
+lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+
+lemma one_le_norm_mul_norm_symm (h : ∃ x : E, x ≠ 0) :
+  1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
+begin
+  rw [mul_comm],
+  convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
+  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id h]
+end
+
+lemma norm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e : E →L[𝕜] F)∥ :=
+pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+
+lemma norm_symm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+
+lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+(subsingleton_or_exists_ne (0 : E)).imp id (λ hE, e.norm_symm_pos hE)
+
+lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
+subsingleton_or_norm_symm_pos e
+
+end continuous_linear_equiv
 
 lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :
   uniform_embedding e :=

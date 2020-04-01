@@ -6,7 +6,7 @@ Authors: Scott Morrison
 
 import category_theory.concrete_category
 import algebra.group.hom
-import data.equiv.algebra
+import data.equiv.mul_add
 import algebra.punit_instances
 
 /-!
@@ -21,15 +21,12 @@ along with the relevant forgetful functors between them.
 
 ## Implementation notes
 
-See Note [locally reducible category instances]
-
-TODO: Probably @[derive] should be able to create instances of the
-required form (without `id`), and then we could use that instead of
-this obscure `local attribute [reducible]` method.
+See the note [locally reducible category instances]
+and the note [reducible has_coe_to_sort instances for bundled categories].
 -/
 
-library_note "locally reducible category instances"
-"We make SemiRing (and the other categories) locally reducible in order
+/--
+We make SemiRing (and the other categories) locally reducible in order
 to define its instances. This is because writing, for example,
 
 ```
@@ -43,7 +40,16 @@ SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
 to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that
-we always access `R.α` through the coercion rather than directly)."
+we always access `R.α` through the coercion rather than directly).
+
+TODO: Probably @[derive] should be able to create instances of the
+required form (without `id`), and then we could use that instead of
+this obscure `local attribute [reducible]` method.
+
+See also note [reducible has_coe_to_sort instances for bundled categories],
+explaining why the `has_coe_to_sort` instances themselves must be `[reducible]`.
+-/
+library_note "locally reducible category instances"
 
 universes u v
 
@@ -67,7 +73,11 @@ instance : inhabited Mon :=
 
 local attribute [reducible] Mon
 
-@[to_additive]
+/--
+`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
+see note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[reducible, to_additive]
 instance : has_coe_to_sort Mon := infer_instance -- short-circuit type class inference
 
 @[to_additive add_monoid]
@@ -100,7 +110,11 @@ instance : inhabited CommMon :=
 
 local attribute [reducible] CommMon
 
-@[to_additive]
+/--
+`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
+see note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[reducible, to_additive]
 instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_monoid]

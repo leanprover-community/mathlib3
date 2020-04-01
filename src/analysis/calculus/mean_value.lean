@@ -60,7 +60,7 @@ set_option class.instance_max_depth 120
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics continuous_linear_map filter
+open metric set asymptotics continuous_linear_map filter
 open_locale classical topological_space
 
 /-! ### One-dimensional fencing inequalities -/
@@ -115,7 +115,7 @@ begin
         (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hy⟩)).exists,
     have := le_of_lt (lt_trans hfz hzB),
     refine ⟨z, _, hz⟩,
-    rw [mul_le_mul_left (inv_pos $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this,
+    rw [mul_le_mul_left (inv_pos.2 $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this,
     exact this }
 end
 

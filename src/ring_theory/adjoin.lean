@@ -11,7 +11,7 @@ import algebra.pointwise
 
 universes u v w
 
-open lattice submodule ring
+open submodule ring
 
 namespace algebra
 
@@ -170,7 +170,7 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
-is_noetherian_ring_range f
+is_noetherian_ring_range f.to_ring_hom
 
 variables [decidable_eq R] [decidable_eq A]
 

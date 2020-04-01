@@ -43,7 +43,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open real set lattice
+open real set
 open_locale topological_space
 
 universes u v w
@@ -57,16 +57,6 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 export has_inner (inner)
 
 section prio
-
-/-- A local instance providing a `has_sizeof (module α β)` instance, without
-initiating any typeclass search. -/
--- HACK: work around automatically generated module.has_sizeof instance
--- with [ring α] and [add_comm_group β] arguments
-protected def module.has_sizeof' {α β} {r : ring α} {g : add_comm_group β} :
-  has_sizeof (module α β) :=
-⟨λ _, 0⟩
-
-local attribute [instance] module.has_sizeof'
 
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.
@@ -242,6 +232,9 @@ Existence of minimizers
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
  -/
+-- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
+-- It should be broken in a sequence of more manageable pieces,
+-- perhaps with individual statements for the three steps below.
 theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
   (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin

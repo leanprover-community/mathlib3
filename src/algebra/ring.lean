@@ -57,13 +57,35 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-@[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a : α) :
-  a * (if P then 1 else 0) = if P then a else 0 :=
-by split_ifs; simp
+@[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  a * (if P then b else c) = if P then a * b else a * c :=
+by split_ifs; refl
 
-@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  (if P then a else b) * c = if P then a * c else b * c :=
+by split_ifs; refl
+
+-- We make `mul_ite` and `ite_mul` simp lemmas,
+-- but not `add_ite` or `ite_add`.
+-- The problem we're trying to avoid is dealing with
+-- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- in which `add_ite` followed by `sum_ite` would needlessly slice up
+-- the `f x` terms according to whether `P` holds at `x`.
+-- There doesn't appear to be a corresponding difficulty so far with
+-- `mul_ite` and `ite_mul`.
+attribute [simp] mul_ite ite_mul
+
+-- In this lemma and the next we need to use `congr` because
+-- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
+-- modifies the decidable instance.
+-- We expect in Lean 3.8 that this won't be necessary.
+@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by { simp, congr }
+
+@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by split_ifs; simp
+by { simp, congr }
 
 variable (α)
 
@@ -155,8 +177,8 @@ variables (f : α → β) [is_semiring_hom f] {x y : α}
 instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two semiring homomorphisms is a semiring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   is_semiring_hom (g ∘ f) :=
 { map_zero := by simp [map_zero f]; exact map_zero g,
   map_one := by simp [map_one f]; exact map_one g,
@@ -303,8 +325,8 @@ by simp [sub_eq_add_neg, map_add f, map_neg f]
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   is_ring_hom (g ∘ f) :=
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
@@ -358,6 +380,8 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
   .. add_monoid_hom.of f }
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 

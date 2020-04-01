@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.galois_connection order.copy
+import data.quot data.set.lattice order.galois_connection
 
 /-!
 # Equivalence relations
@@ -23,7 +23,7 @@ equivalence relations on the same type.
 The complete lattice instance for equivalence relations could have been defined by lifting
 the Galois insertion of equivalence relations on α into binary relations on α, and then using
 `complete_lattice.copy` to define a complete lattice instance with more appropriate
-definitional equalities (a similar example is `filter.lattice.complete_lattice` in
+definitional equalities (a similar example is `filter.complete_lattice` in
 `order/filter/basic.lean`). This does not save space, however, and is less clear.
 
 Partitions are not defined as a separate structure here; users are encouraged to
@@ -36,7 +36,6 @@ class
 -/
 variables {α : Type*} {β : Type*}
 
-open lattice
 
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
@@ -445,7 +444,7 @@ lemma eqv_classes_of_disjoint_union {c : set (set α)}
   (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
   ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
 let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  ⟨b, hc, ha, λ b' hc' ha', set.pairwise_disjoint_elim H hc hc' a ha ha'⟩
+  ⟨b, hc, ha, λ b' hc' ha', H.elim hc hc' a ha ha'⟩
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
@@ -516,8 +515,7 @@ variables {α}
 
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
-instance partition.complete_lattice :
-  _root_.lattice.complete_lattice (subtype (@is_partition α)) :=
+instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
 galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
 _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 

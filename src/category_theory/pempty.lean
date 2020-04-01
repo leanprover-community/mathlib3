@@ -29,6 +29,12 @@ include 𝒞
 /-- The unique functor from the empty category to any target category. -/
 def empty : pempty.{v+1} ⥤ C := by tidy
 
+/-- The natural isomorphism between any two functors out of the empty category. -/
+@[simps]
+def empty_ext (F G : pempty.{v+1} ⥤ C) : F ≅ G :=
+{ hom := { app := λ j, by cases j },
+  inv := { app := λ j, by cases j } }
+
 end functor
 
 /-- The category `pempty` is equivalent to the category `discrete pempty`. -/

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Johan Commelin
+Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.isomorphism
+import category_theory.equivalence
 import category_theory.punit
 
 namespace category_theory
@@ -228,6 +229,50 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
+
+section iterated_slice
+variables (f : over X)
+
+/-- Given f : Y ⟶ X, this is the obvious functor from (T/X)/f to T/Y -/
+@[simps]
+def iterated_slice_forward : over f ⥤ over f.left :=
+{ obj := λ α, over.mk α.hom.left,
+  map := λ α β κ, over.hom_mk κ.left.left (by { rw auto_param_eq, rw ← over.w κ, refl }) }
+
+/-- Given f : Y ⟶ X, this is the obvious functor from T/Y to (T/X)/f -/
+@[simps]
+def iterated_slice_backward : over f.left ⥤ over f :=
+{ obj := λ g, over.mk (over.hom_mk g.hom (by simp) : over.mk (g.hom ≫ f.hom) ⟶ f),
+  map := λ g h α, over.hom_mk (over.hom_mk α.left (over.w_assoc α f.hom))
+                              (over.over_morphism.ext (over.w α)) }
+
+/-- Given f : Y ⟶ X, we have an equivalence between (T/X)/f and T/Y -/
+@[simps]
+def iterated_slice_equiv : over f ≌ over f.left :=
+{ functor := iterated_slice_forward f,
+  inverse := iterated_slice_backward f,
+  unit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }),
+  counit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }) }
+
+lemma iterated_slice_forward_forget :
+  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+rfl
+
+lemma iterated_slice_backward_forget_forget :
+  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
+rfl
+
+end iterated_slice
 
 section
 variables {D : Type u₃} [𝒟 : category.{v₃} D]

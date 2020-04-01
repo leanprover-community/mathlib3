@@ -10,7 +10,7 @@ both pointwise and in L¹ norm, by a sequence of simple functions.
 import measure_theory.l1_space
 
 noncomputable theory
-open lattice set filter topological_space
+open set filter topological_space
 open_locale classical topological_space
 
 universes u v
@@ -22,6 +22,9 @@ open_locale measure_theory
 variables [measure_space α] [normed_group β] [second_countable_topology β]
 
 local infixr ` →ₛ `:25 := simple_func
+
+-- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
+-- It should be broken in a sequence of more manageable pieces.
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
@@ -244,7 +247,7 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
     ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) :
-      by { simp [nnreal.coe_le.symm, (hF x).2, add_comm] },
+      by { simp [nnreal.coe_le_coe.symm, (hF x).2, add_comm] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =

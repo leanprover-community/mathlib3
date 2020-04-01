@@ -188,7 +188,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end }
 
 /-- Every structure groupoid contains the identity groupoid -/
-instance : lattice.order_bot (structure_groupoid H) :=
+instance : order_bot (structure_groupoid H) :=
 { bot    := id_groupoid H,
   bot_le := begin
     assume u f hf,
@@ -286,7 +286,7 @@ pregroupoid.groupoid
   congr    := λf g u u_open hcongr hf, trivial }
 
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
-instance : lattice.order_top (structure_groupoid H) :=
+instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
   le_top := λ u f hf, by { split; exact dec_trivial },
   ..structure_groupoid.partial_order }

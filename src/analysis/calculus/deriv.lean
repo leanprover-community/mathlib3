@@ -199,7 +199,7 @@ lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
   has_deriv_within_at f f' s x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (s \ {x})) (𝓝 f') :=
 begin
-  simp only [has_deriv_within_at, nhds_within, diff_eq, lattice.inf_assoc.symm, inf_principal.symm],
+  simp only [has_deriv_within_at, nhds_within, diff_eq, inf_assoc.symm, inf_principal.symm],
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
@@ -729,7 +729,7 @@ has_fderiv_at_filter.tendsto_nhds hL h
 
 theorem has_deriv_within_at.continuous_within_at
   (h : has_deriv_within_at f f' s x) : continuous_within_at f s x :=
-has_deriv_at_filter.tendsto_nhds lattice.inf_le_left h
+has_deriv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_deriv_at.continuous_at (h : has_deriv_at f f' x) : continuous_at f x :=
 has_deriv_at_filter.tendsto_nhds (le_refl _) h

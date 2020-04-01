@@ -30,7 +30,7 @@ giry monad
 noncomputable theory
 open_locale classical
 
-open classical set lattice filter
+open classical set filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
@@ -64,7 +64,7 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp [hs, lattice.supr_eq_if],
+    simp [hs, supr_eq_if],
     exact measurable_const.if hs measurable_const
   end
 

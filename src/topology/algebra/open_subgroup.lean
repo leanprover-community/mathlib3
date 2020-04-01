@@ -20,7 +20,7 @@ namespace open_add_subgroup
 end open_add_subgroup
 
 namespace open_subgroup
-open function lattice topological_space
+open function topological_space
 open_locale topological_space
 variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G}
@@ -151,7 +151,7 @@ instance [topological_monoid G] : semilattice_sup_top (open_subgroup G) :=
   le_sup_left := λ U V, set.subset.trans (set.subset_union_left _ _) group.subset_closure,
   le_sup_right := λ U V, set.subset.trans (set.subset_union_right _ _) group.subset_closure,
   sup_le := λ U V W hU hV, group.closure_subset $ set.union_subset hU hV,
-  ..open_subgroup.lattice.semilattice_inf_top }
+  ..open_subgroup.semilattice_inf_top }
 
 @[simp, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 

@@ -21,7 +21,8 @@ class principal_ideal_domain (α : Type*) extends integral_domain α :=
 (principal : ∀ (S : ideal α), S.is_principal)
 end prio
 
-attribute [instance] principal_ideal_domain.principal
+-- see Note [lower instance priority]
+attribute [instance, priority 500] principal_ideal_domain.principal
 namespace ideal.is_principal
 variable [comm_ring α]
 

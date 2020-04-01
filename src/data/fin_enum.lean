@@ -7,7 +7,7 @@ import category.monad.basic
 import data.list.basic
 import data.equiv.basic
 import data.finset
-import data.fintype
+import data.fintype.basic
 
 /-!
 Type class for finitely enumerable types. The property is stronger
@@ -24,7 +24,7 @@ class fin_enum (α : Sort*) :=
 (equiv : α ≃ fin card)
 [dec_eq : decidable_eq α]
 
-attribute [instance] fin_enum.dec_eq
+attribute [instance, priority 100] fin_enum.dec_eq
 
 namespace fin_enum
 

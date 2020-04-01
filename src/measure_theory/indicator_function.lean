@@ -111,7 +111,7 @@ end
 end order
 
 section tendsto
-variables {ι : Type*} [lattice.semilattice_sup ι] [has_zero β]
+variables {ι : Type*} [semilattice_sup ι] [has_zero β]
 
 lemma tendsto_indicator_of_monotone [nonempty ι] (s : ι → set α) (hs : monotone s) (f : α → β)
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=

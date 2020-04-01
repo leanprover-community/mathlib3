@@ -15,7 +15,7 @@ open_locale classical
 open_locale topological_space
 universes u v w
 
-open classical lattice set function topological_space filter metric quotient
+open classical set function topological_space filter metric quotient
 open bounded_continuous_function
 open sum (inl inr)
 set_option class.instance_max_depth 50

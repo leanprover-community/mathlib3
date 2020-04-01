@@ -1,4 +1,4 @@
-import tactic.transport_2
+import tactic.transport
 import order.bounded_lattice
 import algebra.lie_algebra
 

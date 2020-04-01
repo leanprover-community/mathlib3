@@ -37,9 +37,8 @@ by transporting data and axioms across `e` using `equiv_rw`.
 @[nolint unused_arguments] -- At present we don't actually use `s`; it's inferred in the `mk_app` call.
 meta def transport (s e : expr) : tactic unit :=
 do
-  -- FIXME document this algorithm line by line!
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>
-    fail format!"second argument to `transport` was not an equivalence",
+    fail format!"second argument to `transport` was not an equivalence-type relation",
   -- We explode the goal into individual fields using `refine_struct`.
   -- Later we'll want to also consider falling back to `fconstructor`,
   -- but for now this suffices.
@@ -88,12 +87,12 @@ local postfix `?`:9001 := optional
 
 /--
 Given a goal `⊢ S β` for some parametrized structure type `S`, and an equivalence `e : α ≃ β`.
-`transport along e` will look for a hypothesis `s : S α`,
+`transport using e` will look for a hypothesis `s : S α`,
 and attempt to close the goal by transporting `s` across the equivalence `e`.
 
 ```lean
 example {α : Type} [ring α] {β : Type} (e : α ≃ β) : ring β :=
-by transport along e.
+by transport using e.
 ```
 
 You can specify the object to transport using `transport s using e`.
@@ -116,7 +115,8 @@ do
       t ← target,
       let n := t.get_app_fn.const_name,
       ctx ← local_context,
-      ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e)))
+      ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e))) <|>
+        fail "`transport` could not find an appropriate source object. Try `transport S using e`."
   end,
   e ← get_local e,
   tactic.transport s e

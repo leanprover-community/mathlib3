@@ -31,7 +31,7 @@ structure quotient := (to_C : C)
 
 namespace quotient
 
-/-- Generates the closure of a family of relations w.r.t. composition from left and right -/
+/-- Generates the closure of a family of relations w.r.t. composition from left and right. -/
 inductive comp_closure {s t : C} : (s ⟶ t) → (s ⟶ t) → Prop
 | intro {a b} (f : s ⟶ a) (m₁ m₂ : a ⟶ b) (g : b ⟶ t) (h : r _ _ m₁ m₂) :
   comp_closure (f ≫ m₁ ≫ g) (f ≫ m₂ ≫ g)
@@ -62,7 +62,7 @@ instance category : category (quotient r) :=
   id := λ a, quot.mk _ (𝟙 a.to_C),
   comp := @comp _ _ r }
 
-/-- The functor from a category to its quotient -/
+/-- The functor from a category to its quotient. -/
 @[simps]
 def functor : C ⥤ quotient r :=
 { obj := λ a, ⟨r, a⟩,

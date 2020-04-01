@@ -233,6 +233,7 @@ variables
   (hgj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) = f b)
 include hi hj hji hij hgj
 
+-- FIXME this causes a deterministic timeout with `-T50000`
 lemma has_sum.has_sum_ne_zero : has_sum g a → has_sum f a :=
 have j_inj : ∀x y (hx : f x ≠ 0) (hy : f y ≠ 0), (j hx = j hy ↔ x = y),
   from assume x y hx hy,

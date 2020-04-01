@@ -13,11 +13,23 @@ def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)
 by transport
 .
 
--- TODO verify definitional equalities here!
+-- Verify definitional equality of the new structure data.
+example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)  :
+  (sup_top.map e).le =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e (equiv.refl Prop))) semilattice_sup_top.le :=
+rfl
+
 def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
 by transport.
 
--- Below we verify that the transported structure for `semiring` is definitionally what you would hope for.
+-- Verify definitional equality of the new structure data.
+example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) :
+  (lie_ring.map e).bracket =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_bracket.bracket :=
+rfl
+
+-- Below we verify in more detail that the transported structure for `semiring`
+-- is definitionally what you would hope for.
 
 inductive mynat : Type
 | zero : mynat

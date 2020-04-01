@@ -32,13 +32,12 @@ by transporting data and axioms across `e` using `equiv_rw`.
 -/
 @[nolint unused_arguments] -- At present we don't actually use `s`; it's inferred in the `mk_app` call.
 meta def transport (s e : expr) : tactic unit :=
-simp_result $
 do
   v :: _ ← get_goals,
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>
     fail format!"second argument to `transport` was not an equivalence",
   seq `[refine_struct { .. }]
-  (do
+  (simp_result (do
     propagate_tags $ (do
     f ← get_current_field,
     mk_mapp f [α, none] >>= note f none,
@@ -53,7 +52,7 @@ do
       skip
     else try (do
       equiv_rw_hyp f e,
-      get_local f >>= exact)))
+      get_local f >>= exact))))
 
 namespace interactive
 open lean.parser

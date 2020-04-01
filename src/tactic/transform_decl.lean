@@ -18,7 +18,7 @@ do
     if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)
 
-/-
+/--
 Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the function `f`.
 This is used to implement `@[to_additive]`.
@@ -29,7 +29,7 @@ do transform_decl_with_prefix_fun_aux f src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
    ls.mmap' $ transform_decl_with_prefix_fun_aux f src tgt attrs
 
-/-
+/--
 Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.

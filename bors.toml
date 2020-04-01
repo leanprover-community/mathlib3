@@ -1,1 +1,2 @@
 status = ["Build mathlib"]
+timeout_sec = 14400

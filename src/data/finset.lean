@@ -1082,11 +1082,17 @@ theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
 
+@[simp]
 theorem map_refl : s.map (embedding.refl _) = s :=
 ext.2 $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
 
-theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
+@[simp]
+theorem map_trans {g : β ↪ γ} : s.map (f.trans g) = (s.map f).map g :=
 eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
+
+-- TODO remove? --This would require explaining the discrepancy with multiset!
+-- theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
+-- eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
 
 theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s₁ ⊆ s₂ :=
 ⟨λ h x xs, (mem_map' _).1 $ h $ (mem_map' f).2 xs,

@@ -651,6 +651,11 @@ noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P
 
 end classical
 
+/-- Classically, we can extract an element from a `nonempty α`. -/
+noncomputable def nonempty.choose {α : Sort*} (n : nonempty α) : α :=
+classical.indefinite_description _
+  (nonempty.dcases_on n (λ (n : α), Exists.intro n trivial) : ∃ a : α, true)
+
 @[elab_as_eliminator]
 noncomputable def {u} exists.classical_rec_on
  {α} {p : α → Prop} (h : ∃ a, p a) {C : Sort u} (H : ∀ a, p a → C) : C :=

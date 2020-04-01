@@ -5,13 +5,11 @@ import algebra.lie_algebra
 -- We verify that `transport` can move a `semiring` across an equivalence.
 -- Note that we've never even mentioned the idea of addition or multiplication to `transport`.
 def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semiring β :=
-by transport
-.
+by transport along e
 
 -- Indeed, it can equally well move a `semilattice_sup_top`.
 def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) : semilattice_sup_top β :=
-by transport
-.
+by transport along e
 
 -- Verify definitional equality of the new structure data.
 example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)  :
@@ -20,7 +18,7 @@ example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)  :
 rfl
 
 def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
-by transport.
+by transport along e
 
 -- Verify definitional equality of the new structure data.
 example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) :

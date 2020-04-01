@@ -136,8 +136,7 @@ theorem encode_lt_comp (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.bit0_lt (nat.lt_succ_self _),
+  change _, simp [encode_code_eq, encode_code]
 end
 
 theorem encode_lt_prec (cf cg) :
@@ -146,8 +145,7 @@ theorem encode_lt_prec (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.lt_succ_self _,
+  change _, simp [encode_code_eq, encode_code],
 end
 
 theorem encode_lt_rfind' (cf) : encode cf < encode (rfind' cf) :=

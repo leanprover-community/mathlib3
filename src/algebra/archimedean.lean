@@ -68,9 +68,9 @@ begin
 end
 
 end linear_ordered_ring
-
+--
 section linear_ordered_field
-
+--
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/

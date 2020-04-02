@@ -260,8 +260,20 @@ structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
 structure girth_at_least (G : graph V) (n : ℕ+) : Prop :=
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
-def girth_at_least.is_loopless {G : graph V} {n : ℕ+} (g : girth_at_least G n) (h : n ≥ 2) : G.is_loopless :=
-sorry
+def girth_at_least.is_loopless {G : graph V} {n : ℕ+} (g : girth_at_least G n) (h : 2 ≤ n) :
+  G.is_loopless :=
+begin
+  assume x e,
+  suffices : (2 : ℕ+) ≤ 1, { replace : 2 ≤ 1 := by exact_mod_cast this, linarith },
+  apply le_trans h,
+  apply g.min,
+  refine
+  { to_fun    := λ _, x,
+    map_edge' := assume _ _ _, e,
+    inj       := _ },
+  assume _ _ _,
+  apply subsingleton.elim,
+end
 
 structure girth (G : graph V) (n : ℕ+) extends girth_at_least G n : Prop :=
 (cyc_exists : nonempty (cycle n G))
@@ -360,16 +372,16 @@ begin
 end
 
 
--- no longer necessary
-lemma is_frac_chromatic_number.is_loopless {G : graph V} {q : ℚ}
-  (hq : is_frac_chromatic_number G q) :
-  G.is_loopless :=
-begin
-  obtain ⟨n, k, ⟨c⟩, h, hc⟩ := hq.col_exists,
-  assume x e,
-  rw ← (Kneser.is_loopless_iff (fin n) k) at h,
-  exact h (c.map_edge e)
-end
+-- -- no longer necessary
+-- lemma frac_chromatic_number_at_least.is_loopless {G : graph V} {q : ℚ}
+--   (hq : frac_chromatic_number_at_least G q) :
+--   G.is_loopless :=
+-- begin
+--   obtain ⟨n, k, ⟨c⟩, h, hc⟩ := hq.col_exists,
+--   assume x e,
+--   rw ← (Kneser.is_loopless_iff (fin n) k) at h,
+--   exact h (c.map_edge e)
+-- end
 
 lemma coe_monotone (a b : ℤ) (h : (a : ℚ) < (b : ℚ)) : a < b := by exact_mod_cast h
 

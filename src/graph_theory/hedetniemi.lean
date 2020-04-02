@@ -323,13 +323,16 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : co
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
 lemma whut [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
-  (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
+  (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
   χ * n ≤ k :=
 begin
-  obtain ⟨c⟩ := hn.col_exists,
+  by_cases hn : n = 0, { simp [hn] },
+  replace hn : 0 < n := nat.pos_of_ne_zero hn,
+  obtain ⟨c⟩ := hk.col_exists,
   let mc := multicolouring_of_strong_prod_K_colouring c,
-  have := hχ.min mc,
-  sorry
+  have := hχ.min mc hn,
+  rwa le_div_iff at this,
+  assumption_mod_cast,
 end
 
 /-- A silly lemma about ceil that is actually false. -/

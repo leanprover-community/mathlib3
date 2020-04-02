@@ -176,4 +176,14 @@ def adj : (hom (G.prod G₁) G₂) ≃ (hom G (graph.ihom G₁ G₂)) :=
 
 end
 
+def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
+{ edge := assume x y, f x ~[G₂] f y,
+  symm := assume x y e, G₂.symm e }
+
+def closed_neighbourhood (G : graph V) (x : V) :=
+{ y // y = x ∨ (y ~[G] x) }
+
+def closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
+induced_graph G subtype.val
+
 end graph

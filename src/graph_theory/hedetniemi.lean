@@ -1,4 +1,6 @@
-import graph_theory.chromatic_number
+import graph_theory.frac_chromatic_number
+import graph_theory.strong_prod
+import graph_theory.girth
 import data.zmod.basic
 import data.rat.floor
 
@@ -115,16 +117,6 @@ end
 
 end hedetniemi
 
-def induced_graph (G₂ : graph V₂) (f : V₁ → V₂) : graph V₁ :=
-{ edge := assume x y, f x ~[G₂] f y,
-  symm := assume x y e, G₂.symm e }
-
-def closed_neighbourhood (G : graph V) (x : V) :=
-{ y // y = x ∨ (y ~[G] x) }
-
-def closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourhood G x) :=
-induced_graph G subtype.val
-
 /-- Observation 1. -/
 lemma mem_range_of_is_suited {W : Type*} (G : graph V)
   (Φ : colouring W (G.ihom (complete W))) (h : Φ.is_suited) (φ : V → W) :
@@ -220,29 +212,6 @@ end
 
 end claim2
 
-def strong_prod (G₁ : graph V₁) (G₂ : graph V₂) : graph (V₁ × V₂) :=
-{ edge := assume p q,
-    ((p.1 ~[G₁] q.1) ∧ (p.2 ~[G₂] q.2)) ∨
-    ((p.1 = q.1) ∧ (p.2 ~[G₂] q.2)) ∨
-    ((p.1 ~[G₁] q.1) ∧ (p.2 = q.2)),
-  symm := assume p q, by
-    -- TODO: Scott, diagnose why `solve_by_elim` can't do this
-    repeat {apply or.imp <|> apply and.imp <|> apply edge.symm <|> apply eq.symm } }
-
-def prod_hom_strong (G₁ : graph V₁) (G₂ : graph V₂) :
-  hom (G₁.prod G₂) (G₁.strong_prod G₂) :=
-{ to_fun := id,
-  map_edge' := assume x y e, or.inl e }
-
-lemma is_loopless.strong_prod (h₁ : G₁.is_loopless) (h₂ : G₂.is_loopless) :
-  (G₁.strong_prod G₂).is_loopless :=
-begin
-  rintros x (e|e|e),
-  { exact h₁ e.1 },
-  { exact h₂ e.2 },
-  { exact h₁ e.1 }
-end
-
 lemma loop_of_hom (f : hom G₁ G₂) : f ~[G₁.ihom G₂] f :=
 assume x y e, f.map_edge e
 
@@ -250,33 +219,6 @@ lemma is_loopless.ihom (h : hom G₁ G₂ → false) :
   (G₁.ihom G₂).is_loopless :=
 assume f e, h ⟨f, e⟩
 
-def cyclic (n : ℕ+) : graph (zmod n) :=
-{ edge := assume x y, x = y + 1 ∨ y = x + 1,
-  symm := assume x y, or.symm }
-
-structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
-(inj : function.injective to_fun)
-
-structure girth_at_least (G : graph V) (n : ℕ+) : Prop :=
-(min        : ∀ {m}, cycle m G → n ≤ m)
-
-def girth_at_least.is_loopless {G : graph V} {n : ℕ+} (g : girth_at_least G n) (h : 2 ≤ n) :
-  G.is_loopless :=
-begin
-  assume x e,
-  suffices : (2 : ℕ+) ≤ 1, { replace : 2 ≤ 1 := by exact_mod_cast this, linarith },
-  apply le_trans h,
-  apply g.min,
-  refine
-  { to_fun    := λ _, x,
-    map_edge' := assume _ _ _, e,
-    inj       := _ },
-  assume _ _ _,
-  apply subsingleton.elim,
-end
-
-structure girth (G : graph V) (n : ℕ+) extends girth_at_least G n : Prop :=
-(cyc_exists : nonempty (cycle n G))
 
 /-- Claim 3 of Shitov's paper. -/
 lemma claim3 (G : graph V) (g : girth_at_least G 6) :
@@ -289,17 +231,8 @@ end
 
 theorem erdos (χ : ℚ) (g : ℕ+) :
   ∃ {V : Type} [fintype V] (G : graph V),
-  frac_chromatic_number_at_least G χ ∧
-  girth_at_least G g :=
+  frac_chromatic_number_at_least G χ ∧ girth_at_least G g :=
 sorry
-
--- Johan: I have no idea why `whut` is true. Shitov just uses it, without any justification.
--- Scott: I think this just comes from the fact that a k-colouring of `G.strong_prod (K_ n)`
--- gives a fractional colouring of `G`, stubbed below:
-
-def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
-  {s : finset V // s.card = k} :=
-⟨finset.univ.map ⟨f, i⟩, (by simp)⟩
 
 lemma edge_strong_prod_complete (p q : V × W) (e : p.1 ~[G] q.1) :
   p ~[G.strong_prod (complete W)] q :=
@@ -337,9 +270,7 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : co
     exact edge_strong_prod_complete _ _ e
   end }
 
--- Scott: @Johan, why all these predicates?
--- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
-lemma whut [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
+lemma frac_chromatic_number_mul_le_chromatic_number_strong_prod_K [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
   (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : frac_chromatic_number_at_least G χ) :
   χ * n ≤ k :=
 begin
@@ -357,31 +288,6 @@ calc (⌈α * q⌉ : ℚ) < α * q + 1 : ceil_lt_add_one _
                ... ≤ α * q + q : by { apply add_le_add_left, exact_mod_cast nat.pos_of_ne_zero h }
                ... = (α + 1) * q : by ring
 
-lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :
-  0 < q :=
-begin
-  obtain ⟨n, k, ⟨c⟩, hk, hc⟩ := h.col_exists,
-  suffices hn : 0 < n,
-  { rw hc, apply div_pos; assumption_mod_cast },
-  unfreezeI, obtain ⟨x⟩ := ‹nonempty V›,
-  obtain ⟨s, hs⟩ : {s : finset (fin n) // s.card = k} := c x,
-  suffices : s.nonempty,
-  { obtain ⟨i, hi⟩ : ∃ i, i ∈ s := this,
-    exact lt_of_le_of_lt (zero_le _) i.is_lt },
-  rwa [← finset.card_pos, hs],
-end
-
-
--- -- no longer necessary
--- lemma frac_chromatic_number_at_least.is_loopless {G : graph V} {q : ℚ}
---   (hq : frac_chromatic_number_at_least G q) :
---   G.is_loopless :=
--- begin
---   obtain ⟨n, k, ⟨c⟩, h, hc⟩ := hq.col_exists,
---   assume x e,
---   rw ← (Kneser.is_loopless_iff (fin n) k) at h,
---   exact h (c.map_edge e)
--- end
 
 lemma coe_monotone (a b : ℤ) (h : (a : ℚ) < (b : ℚ)) : a < b := by exact_mod_cast h
 
@@ -413,7 +319,8 @@ begin
     split,
     { rwa (chromatic_number_is_chromatic_number _ _).elim hχ' },
     { rw [← int.coe_nat_lt, ← hqc],
-      have t₂ := whut G q (chromatic_number_is_chromatic_number _ _) hχ,
+      have t₂ := frac_chromatic_number_mul_le_chromatic_number_strong_prod_K G q
+        (chromatic_number_is_chromatic_number _ _) hχ,
       by_cases q = 0,
       { simp [h], apply chromatic_number.pos, },
       apply coe_monotone,

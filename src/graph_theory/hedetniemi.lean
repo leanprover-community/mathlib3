@@ -276,8 +276,8 @@ begin
 end
 
 theorem erdos (χ : ℚ) (g : ℕ+) :
-  ∃ {V : Type} [fintype V] (G : graph V) (q : ℚ),
-  is_frac_chromatic_number G q ∧ χ < q ∧
+  ∃ {V : Type} [fintype V] (G : graph V),
+  frac_chromatic_number_at_least G χ ∧
   girth_at_least G g :=
 sorry
 
@@ -328,7 +328,7 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : co
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
 lemma whut [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
-  (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
+  (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : frac_chromatic_number_at_least G χ) :
   χ * n ≤ k :=
 begin
   by_cases hn : n = 0, { simp [hn] },
@@ -388,7 +388,7 @@ theorem hedetniemi_false :
   by exactI (¬ hedetniemi G₁ G₂ h₁ h₂) :=
 begin
   classical,
-  rcases erdos 4.1 6 with ⟨V, _inst, G, χ, hχ, hltχ, hg⟩,
+  rcases erdos 4.1 6 with ⟨V, _inst, G, hχ, hg⟩,
   resetI,
   have hG : G.is_loopless := hg.is_loopless (by norm_num),
   rcases claim3 G hg with ⟨q, hq⟩,
@@ -413,12 +413,8 @@ begin
       apply coe_monotone,
       apply lt_of_lt_of_le,
       apply helpme' _ _ h,
-      transitivity,
-      swap 2,
-      use t₂,
-      replace hltχ := le_of_lt hltχ,
       norm_num,
-      convert mul_mono_nonneg (nat.cast_nonneg q) hltχ,
+      exact t₂,
       } }
 end
 

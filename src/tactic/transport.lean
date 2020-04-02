@@ -25,8 +25,15 @@ to simplify certain expressions involving application of equivalences,
 and trivial `eq.rec` or `ep.mpr` conversions.
 It's probably best not to adjust it without understanding the algorithm used by `transport`."
 
-attribute [transport_simps] eq_rec_constant eq_mpr_rfl
-attribute [transport_simps] equiv.symm_apply_apply equiv.arrow_congr'_apply equiv.to_fun_as_coe
+attribute [transport_simps]
+  eq_rec_constant
+  eq_mpr_rfl
+  equiv.to_fun_as_coe
+  equiv.arrow_congr'_apply
+  equiv.symm_apply_apply
+  -- we use `apply_eq_iff_eq_symm_apply` rather than `apply_eq_iff_eq`,
+  -- as many axioms have a constant on the right-hand-side
+  equiv.apply_eq_iff_eq_symm_apply
 
 /--
 Given `s : S α` for some structure `S` depending on a type `α`,
@@ -63,10 +70,10 @@ do
       -- so we clean up a little.
       unfold_projs_target,
       `[simp only [] with transport_simps],
-      -- If the field is an equation in terms in `β`, use injectivity of the equivalence
+      -- If the field is an equation in `β`, try to use injectivity of the equivalence
       -- to turn it into an equation in `α`.
-      -- TODO: the `try` statement is a bit of a hack,
-      -- perhaps we should explicitly check the type of the goal here.
+      -- (If the left hand side of the equation involved an operation we've already transported,
+      -- this step has already been achieved by the `transport_simps`, so we `try` this step.)
       try $ under_binders $ to_expr ``((%%e).symm.injective) >>= apply,
       -- Finally, rewrite the original field value using the equivalence `e`, and try to close
       -- the goal using

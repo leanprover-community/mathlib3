@@ -253,30 +253,37 @@ begin
 end
 
 -- Now we do `monoid`, to try out a structure with constants.
-attribute [ext] monoid
 
 -- The constructions and proofs here are written as uniformly as possible.
 -- This example is the blueprint for the `transport` tactic.
+
+mk_simp_attribute transport_simps "simps useful inside `transport`"
+
+attribute [transport_simps]
+  eq_rec_constant
+  eq_mpr_rfl
+  equiv.to_fun_as_coe
+  equiv.arrow_congr'_apply
+  equiv.symm_apply_apply
+  equiv.apply_eq_iff_eq_symm_apply
+
 def monoid.map {α β : Type} (e : α ≃ β) (S : monoid α) : monoid β :=
 begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { unfold_projs,
-    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
-    under_binders { apply e.symm.injective },
+    simp only [] with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { unfold_projs,
-    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
-    under_binders { apply e.symm.injective },
+    simp only [] with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
     solve_by_elim, },
   { unfold_projs,
-    simp only [eq_rec_constant, eq_mpr_rfl, equiv.symm_apply_apply, equiv.arrow_congr'_apply, equiv.to_fun_as_coe],
-    under_binders { apply e.symm.injective },
+    simp only [] with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     solve_by_elim, },

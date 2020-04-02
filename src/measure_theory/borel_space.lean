@@ -557,7 +557,7 @@ lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology 
 begin
   rw [borel_prod],
   apply measurable_of_continuous,
-  exact continuous_dist continuous_fst continuous_snd
+  exact continuous_dist
 end
 
 lemma measurable.dist {α : Type*} [metric_space α] [second_countable_topology α]
@@ -570,7 +570,7 @@ lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topolog
 begin
   rw [borel_prod],
   apply measurable_of_continuous,
-  exact continuous_nndist continuous_fst continuous_snd
+  exact continuous_nndist
 end
 
 lemma measurable.nndist {α : Type*} [metric_space α] [second_countable_topology α]
@@ -583,7 +583,7 @@ lemma measurable_edist {α : Type*} [emetric_space α] [second_countable_topolog
 begin
   rw [borel_prod],
   apply measurable_of_continuous,
-  exact continuous_edist continuous_fst continuous_snd
+  exact continuous_edist
 end
 
 lemma measurable.edist {α : Type*} [emetric_space α] [second_countable_topology α]

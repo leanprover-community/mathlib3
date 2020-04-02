@@ -577,6 +577,49 @@ iff_true_intro $ λ h, hn.elim h
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
 
+lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
+exists.elim h (λ x hx, ⟨x, and.left hx⟩)
+
+lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
+  {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
+unique_of_exists_unique h py₁ py₂
+
+@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
+  (∃! x, p x) ↔ ∃ x, p x :=
+⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
+
+lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
+  (h₁ : ∀ x (h : p x), q x h → (∀ y (hy : p y), q y hy → y = x) → b) : b :=
+begin
+  simp only [exists_unique_iff_exists] at h₂,
+  apply h₂.elim,
+  exact λ x ⟨hxp, hxq⟩ H, h₁ x hxp hxq (λ y hyp hyq, H y ⟨hyp, hyq⟩)
+end
+
+lemma exists_unique.intro2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (h : p x), Prop} (w : α) (hp : p w) (hq : q w hp)
+  (H : ∀ y (hy : p y), q y hy → y = w) :
+  ∃! x (hx : p x), q x hx :=
+begin
+  simp only [exists_unique_iff_exists],
+  exact exists_unique.intro w ⟨hp, hq⟩ (λ y ⟨hyp, hyq⟩, H y hyp hyq)
+end
+
+lemma exists_unique.exists2 {α : Sort*} {p : α → Sort*} {q : Π (x : α) (h : p x), Prop}
+  (h : ∃! x (hx : p x), q x hx) :
+  ∃ x (hx : p x), q x hx :=
+h.exists.imp (λ x hx, hx.exists)
+
+lemma exists_unique.unique2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (hx : p x), Prop} (h : ∃! x (hx : p x), q x hx)
+  {y₁ y₂ : α} (hpy₁ : p y₁) (hqy₁ : q y₁ hpy₁)
+  (hpy₂ : p y₂) (hqy₂ : q y₂ hpy₂) : y₁ = y₂ :=
+begin
+  simp only [exists_unique_iff_exists] at h,
+  exact h.unique ⟨hpy₁, hqy₁⟩ ⟨hpy₂, hqy₂⟩
+end
+
 end quantifiers
 
 /-! ### Classical versions of earlier lemmas -/

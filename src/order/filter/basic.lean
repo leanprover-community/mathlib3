@@ -669,7 +669,7 @@ by simp only [filter.frequently, not_not]
 @[simp] lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
 by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot]
 
-lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
+@[simp] lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
 
 @[simp] lemma frequently_const {f : filter α} (hf : f ≠ ⊥) {p : Prop} :
   (∃ᶠ x in f, p) ↔ p :=
@@ -703,7 +703,7 @@ by simp [hf]
   (∀ᶠ x in f, p x → q) ↔ ((∃ᶠ x in f, p x) → q) :=
 by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
 
-lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
+@[simp] lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
 
 @[simp]
 lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=

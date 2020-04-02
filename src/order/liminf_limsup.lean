@@ -280,7 +280,7 @@ begin
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
-@[congr] lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
+lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf f u = liminf f v :=
 begin
   rw liminf_eq,

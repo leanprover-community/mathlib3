@@ -434,11 +434,7 @@ section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
-lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
-  H.to_finset.card = fintype.card H :=
-multiset.card_map subtype.val finset.univ.val
-
-lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 

@@ -532,24 +532,41 @@ end
 private meta def simp_lhs (ty : expr): tactic expr :=
 prod.fst <$> simp_lhs_rhs ty
 
-/-- `simp_is_conditional ty` returns true iff the simp lemma with type `ty` is conditional. -/
-private meta def simp_is_conditional : expr → tactic bool | ty := do
+/--
+`simp_is_conditional_core ty` returns `none` if `ty` is a conditional simp
+lemma, and `some lhs` otherwise.
+-/
+private meta def simp_is_conditional_core : expr → tactic (option expr) | ty := do
 ty ← whnf ty transparency.semireducible,
 match ty with
-| `(¬ %%lhs) := pure ff
-| `(%%lhs = _) := pure ff
-| `(%%lhs ↔ _) := pure ff
-| (expr.pi n bi a b) :=
-  if bi ≠ binder_info.inst_implicit ∧ ¬ b.has_var then
-    pure tt
-  else do
-    l ← mk_local' n bi a,
-    simp_is_conditional (b.instantiate_var l)
-| ty := pure ff
+| `(¬ %%lhs) := pure lhs
+| `(%%lhs = _) := pure lhs
+| `(%%lhs ↔ _) := pure lhs
+| (expr.pi n bi a b) := do
+  l ← mk_local' n bi a,
+  some lhs ← simp_is_conditional_core (b.instantiate_var l) | pure none,
+  if bi ≠ binder_info.inst_implicit ∧
+      ¬ (lhs.abstract_local l.local_uniq_name).has_var then
+    pure none
+  else
+    pure lhs
+| ty := pure ty
 end
+
+/--
+`simp_is_conditional ty` returns true iff the simp lemma with type `ty` is conditional.
+-/
+private meta def simp_is_conditional (ty : expr) : tactic bool :=
+option.is_none <$> simp_is_conditional_core ty
 
 private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
 prf.list_constant.to_list.mfilter is_simp_lemma
+
+/-- Checks whether two expressions are equal for the simplifier. That is,
+they are reducibly-definitional equal, and they have the same head symbol. -/
+meta def is_simp_eq (a b : expr) : tactic bool :=
+if a.get_app_fn.const_name ≠ b.get_app_fn.const_name then pure ff else
+succeeds $ is_def_eq a b transparency.reducible
 
 /-- Reports declarations that are simp lemmas whose left-hand side is not in simp-normal form. -/
 meta def simp_nf_linter (timeout := 200000) (d : declaration) : tactic (option string) := do
@@ -557,8 +574,8 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
-(λ tac, tactic.try_for timeout tac <|> pure (some "timeout")) $ -- last resort
-(λ tac : tactic _, tac <|> pure none) $ -- tc resolution depth
+[] ← get_eqn_lemmas_for ff d.to_name | pure none,
+try_for timeout $
 retrieve $ do
 reset_instance_cache,
 g ← mk_meta_var d.type,
@@ -567,14 +584,16 @@ intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
--- TODO: should we do something special about rfl-lemmas?
-(lhs', prf1) ← simplify sls [] lhs {fail_if_unchanged := ff},
+(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+  simplify sls [] lhs {fail_if_unchanged := ff},
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
-(rhs', prf2) ← simplify sls [] rhs {fail_if_unchanged := ff},
-lhs'_eq_rhs' ← succeeds (is_def_eq lhs' rhs' transparency.reducible),
-lhs_in_nf ← succeeds (is_def_eq lhs' lhs transparency.reducible),
-if lhs'_eq_rhs' ∧ lhs'.get_app_fn.const_name = rhs'.get_app_fn.const_name then do
+is_cond ← simp_is_conditional d.type,
+(rhs', prf2) ← decorate_error "simplify fails on right-hand side:" $
+  simplify sls [] rhs {fail_if_unchanged := ff},
+lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
+lhs_in_nf ← is_simp_eq lhs' lhs,
+if lhs'_eq_rhs' then do
   used_lemmas ← heuristic_simp_lemma_extraction (prf1 prf2),
   pure $ pure $ "simp can prove this:\n"
     ++ "  by simp only " ++ to_string used_lemmas ++ "\n"
@@ -589,6 +608,8 @@ else if ¬ lhs_in_nf then do
       ++ "to" ++ lhs'.group.indent 2 ++ format.line
       ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
       ++ "Try to change the left-hand side to the simplified term!\n"
+else if ¬ is_cond ∧ lhs = lhs' then do
+  pure "Left-hand side does not simplify.\nYou need to debug this yourself using `set_option trace.simplify.rewrite true`"
 else
   pure none
 
@@ -705,8 +726,17 @@ checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,
-    some linter_warning ← linter.test decl | pure results,
-    pure $ results.insert decl.to_name linter_warning) mk_rb_map,
+    s ← read,
+    let linter_warning : option string :=
+      match linter.test decl s with
+      | result.success w _ := w
+      | result.exception msg _ _ :=
+        some $ "LINTER FAILED:\n" ++ msg.elim "(no message)" (λ msg, to_string $ msg ())
+      end,
+    match linter_warning with
+    | some w := pure $ results.insert decl.to_name w
+    | none := pure results
+    end) mk_rb_map,
   pure (linter_name, linter, results)
 
 /-- Sorts a map with declaration keys as names by line number. -/

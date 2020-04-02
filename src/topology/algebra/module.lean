@@ -201,7 +201,8 @@ variables
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
 /-- Coerce continuous linear maps to functions. -/
-instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨_, λ f, f.to_fun⟩
+-- see Note [function coercion]
+instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
 
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
@@ -456,7 +457,8 @@ def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
 instance : has_coe (M ≃L[R] M₂) (M →L[R] M₂) := ⟨to_continuous_linear_map⟩
 
 /-- Coerce continuous linear equivs to maps. -/
-instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨_, λ f, ((f : M →L[R] M₂) : M → M₂)⟩
+-- see Note [function coercion]
+instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
 @[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
@@ -469,7 +471,6 @@ begin
   cases f; cases g,
   simp only [],
   ext x,
-  simp only [coe_fn_coe_base] at h,
   induction h,
   refl
 end

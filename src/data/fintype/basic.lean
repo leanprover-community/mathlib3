@@ -226,8 +226,9 @@ mem_to_finset
 
 -- We include an arbitrary `fintype H` instance here,
 -- as there are several possible ways to construct one.
-lemma to_finset_card {α : Type*} [fintype α] (H : set α) [fintype H] :
-  H.to_finset.card = fintype.card H :=
+@[simp]
+lemma to_finset_card {α : Type*} (s : set α) [fintype s] :
+  s.to_finset.card = fintype.card s :=
 multiset.card_map subtype.val finset.univ.val
 
 end set

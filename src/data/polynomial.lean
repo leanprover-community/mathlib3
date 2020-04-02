@@ -1361,7 +1361,7 @@ variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (x : A)
 
-/-- Given a valuation `x` of the variable in an `R`-algebra `A`, returns
+/-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,

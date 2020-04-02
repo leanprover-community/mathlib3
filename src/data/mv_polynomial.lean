@@ -938,7 +938,7 @@ instance mv_polynomial (R : Type u) [comm_ring R]
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
-/-- A map `σ → A` from where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `A`. -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _ _

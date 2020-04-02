@@ -504,7 +504,7 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-{ to_fun := coe,
+{ to_fun := int.cast_ring_hom R,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ _ _, gsmul_eq_mul _ _ }
 

@@ -132,17 +132,11 @@ lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
 eq.symm $ is_glb.infi_eq $ show is_glb (range (u ∘ f)) (u (infi f)),
   by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image (is_glb_Inf _)
 
-end complete_lattice
-
-section complete_lattice
-variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β → α} (gc : galois_connection l u)
-include gc
-
 lemma l_Sup {s : set α} : l (Sup s) = (⨆a∈s, l a) :=
-by simp [Sup_eq_supr, gc.l_supr]
+by simp only [Sup_eq_supr, gc.l_supr]
 
 lemma u_Inf {s : set β} : u (Inf s) = (⨅a∈s, u a) :=
-by simp [Inf_eq_infi, gc.u_infi]
+by simp only [Inf_eq_infi, gc.u_infi]
 
 end complete_lattice
 

@@ -7,6 +7,7 @@ List permutations.
 -/
 import data.list.bag_inter
 import data.list.erase_dup
+import data.list.zip
 import logic.relation
 
 namespace list

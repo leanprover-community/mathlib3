@@ -1,5 +1,7 @@
 import graph_theory.basic
 import data.equiv.fin
+import data.fintype.fiber
+import algebra.big_operators
 
 /-!
 # The chromatic number of a graph
@@ -243,9 +245,9 @@ def nat_multicolouring.multiply {n k : ℕ} (c : nat_multicolouring n k G) (m : 
 begin
   apply (multicolouring.map_equiv (@fin_prod_fin_equiv n m)).to_fun,
   fapply multicolouring.multiply c m (k * m) rfl,
-  { exact fintype.fibre (λ p, p.1) },
+  { exact fintype.fiber (λ p, p.1) },
   { intro a, simp, },
-  { apply fintype.fibres_disjoint, }
+  { apply fintype.fibers_disjoint, }
 end
 
 def nat_colouring.multiply {n : ℕ} (c : nat_colouring n G) (m : ℕ) :

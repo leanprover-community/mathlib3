@@ -1,19 +1,36 @@
-import tactic
-import data.equiv.fin
+import data.fintype
 
--- TODO do these exist? find them or find homes for these
+open function
 
-def fintype.fibre {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) : finset α :=
+namespace fintype
+/--
+The fiber of function `f : α → β` over a point `b : β` is a `finset α` when we have `fintype α`.
+-/
+def fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) : finset α :=
 set.to_finset { a | f a = b }
 
 @[simp]
-lemma fintype.mem_fibre {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) (a : α) :
-  a ∈ fintype.fibre f b ↔ f a = b :=
-by simp [fintype.fibre]
+lemma mem_fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) (a : α) :
+  a ∈ fintype.fiber f b ↔ f a = b :=
+by simp [fiber]
 
 @[simp]
-lemma fintype.fibre_prod_fst {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [fintype β] (a : α) :
-  fintype.fibre (λ p : α × β, p.1) a = (@finset.univ β _).map (embedding.inr a β) :=
+lemma card_fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) :
+  finset.card (fiber f b) = fintype.card { a | f a = b } :=
+set.to_finset_card _
+
+lemma fibers_disjoint {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [decidable_eq β] (f : α → β) (b₁ b₂ : β) (h : b₁ ≠ b₂) :
+  disjoint (fiber f b₁) (fiber f b₂) :=
+begin
+  dsimp [disjoint],
+  rintros a w,
+  simp [fiber] at w,
+  exact false.elim (h (w.1.symm.trans w.2))
+end
+
+@[simp]
+lemma fiber_prod_fst {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [fintype β] (a : α) :
+  fiber (λ p : α × β, p.1) a = (@finset.univ β _).map (embedding.inr a β) :=
 begin
   ext p,
   simp,
@@ -23,8 +40,8 @@ begin
 end
 
 @[simp]
-lemma fintype.fibre_prod_snd {α : Type*} [fintype α] {β : Type*} [fintype β] [decidable_eq β] (b : β) :
-  fintype.fibre (λ p : α × β, p.2) b = (@finset.univ α _).map (embedding.inl α b) :=
+lemma fiber_prod_snd {α : Type*} [fintype α] {β : Type*} [fintype β] [decidable_eq β] (b : β) :
+  fiber (λ p : α × β, p.2) b = (@finset.univ α _).map (embedding.inl α b) :=
 begin
   ext p,
   simp,
@@ -33,16 +50,4 @@ begin
   { rintros ⟨b, rfl⟩, refl, }
 end
 
-@[simp]
-lemma fintype.card_fibre {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) :
-  finset.card (fintype.fibre f b) = fintype.card { a | f a = b } :=
-to_finset_card _
-
-lemma fintype.fibres_disjoint {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [decidable_eq β] (f : α → β) (b₁ b₂ : β) (h : b₁ ≠ b₂) :
-  disjoint (fintype.fibre f b₁) (fintype.fibre f b₂) :=
-begin
-  dsimp [disjoint],
-  rintros a w,
-  simp [fintype.fibre] at w,
-  exact false.elim (h (w.1.symm.trans w.2))
-end
+end fintype

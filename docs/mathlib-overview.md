@@ -30,7 +30,7 @@ Definition of real manifold, manifolds with corners. Vector bundles, tangent bun
 
 Metric spaces. Cauchy sequences, Hausdorff distance and Gromov-Hausdorff distance. Completions. Lipschitz continuous functions.
 Uniform spaces, uniform continuity, completions.
-Topological spaces, open and closed sets, compact sets, connected sets. Separation axioms T0 to T4. Topological groups, rings, fields. Continuous maps, homeomorphisms, the compact-open topology. Sequences, sequential spaces, sequentially continuous functions. The Stone-Cech compactification. Topological fibre bundles. Baire theorem. Normed vector spaces, operator norm.
+Topological spaces, open and closed sets, compact sets, connected sets. Separation axioms T0 to T4. Topological groups, rings, fields. Continuous maps, homeomorphisms, the compact-open topology. Sequences, sequential spaces, sequentially continuous functions. The Stone-Cech compactification. Topological fiber bundles. Baire theorem. Normed vector spaces, operator norm.
 Presheaves on a topological space, stalks.
 
 [See here for more details information about topology in mathlib](https://github.com/leanprover-community/mathlib/blob/master/docs/theories/topology.md).
@@ -52,4 +52,3 @@ The category of commutative rings, the category of modules over a ring, the cate
 Ordinals and cardinals. A model of ZFC.
 Continued fractions. Turing machines, the Halting problem.
 Conway games. The Fibonacci sequence. The hyperreals. Cubing a cube.
-

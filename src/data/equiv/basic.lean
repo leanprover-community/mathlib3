@@ -467,7 +467,7 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α
 def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β a) ≃ (Σ a:α₂, β (f.symm a)) :=
 λ f, (sigma_congr_left f.symm).symm
 
-/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibres -/
+/-- transporting a sigma type through an equivalence of the base and a family of equivalences of matching fibers -/
 def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*} (f : α₁ ≃ α₂) (F : ∀ a, β₁ a ≃ β₂ (f a)) :
   sigma β₁ ≃ sigma β₂ :=
 (sigma_congr_right F).trans (sigma_congr_left f)
@@ -972,7 +972,7 @@ variables
 /--
 Transport dependent functions through
 an equivalence of the base spaces and a family
-of equivalences of the matching fibres.
+of equivalences of the matching fibers.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)

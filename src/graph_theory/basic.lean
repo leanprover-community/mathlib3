@@ -1,4 +1,6 @@
-import .to_mathlib
+import data.equiv.basic
+import logic.relation
+import category_theory.category -- This is only for the sake of the `obviously` tactic, which should be moved.
 
 /-!
 # Definitions of graphs

@@ -63,6 +63,6 @@ add_tactic_doc
 { name                     := "pi_instance",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.pi_instance],
-  tags                     := ["instances"] }
+  tags                     := ["type class"] }
 
 end tactic

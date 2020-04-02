@@ -1765,7 +1765,7 @@ begin
     have : δ ≤ ε ^ (1 / q) := le_trans (min_le_left _ _) (min_le_right _ _),
     have : δ < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num),
     use δ, use δ0, rintros ⟨⟨x, y⟩, hy⟩,
-    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero],
+    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero, subtype.coe_mk],
     assume h, rw max_lt_iff at h, cases h with xδ yy₀,
     have qy : q < y, calc q < y₀ / 2 : q_lt
       ... = y₀ - y₀ / 2 : (sub_half _).symm

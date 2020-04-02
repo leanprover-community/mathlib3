@@ -306,7 +306,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
       refine multiset.induction_on s _ _,
@@ -330,7 +330,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
     { exact λ i, int.induction_on i
       (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])

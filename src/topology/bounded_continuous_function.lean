@@ -211,7 +211,7 @@ begin
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (by simp)
       (tendsto_dist tendsto_const_nhds (hF x))
-      (filter.mem_at_top_sets.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
+      (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous -/
     refine continuous_of_uniform_limit_of_continuous (λ ε ε0, _) (λN, (f N).2.1),

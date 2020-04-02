@@ -110,6 +110,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
 
+protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
+  lipschitz_with K (s.restrict f) :=
+λ x y, hf x y
+
 protected lemma comp {Kf Kg : ℝ≥0} {f : β → γ} {g : α → β}
   (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) : lipschitz_with (Kf * Kg) (f ∘ g) :=
 assume x y,

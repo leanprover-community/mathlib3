@@ -1,4 +1,4 @@
-import data.list.basic
+import data.list.pairwise
 
 universes u v
 

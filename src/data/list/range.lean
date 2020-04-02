@@ -1,3 +1,4 @@
+import data.list.chain
 import data.list.nodup
 
 open nat

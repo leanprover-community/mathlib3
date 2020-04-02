@@ -359,6 +359,8 @@ begin
   rwa [← finset.card_pos, hs],
 end
 
+
+-- no longer necessary
 lemma is_frac_chromatic_number.is_loopless {G : graph V} {q : ℚ}
   (hq : is_frac_chromatic_number G q) :
   G.is_loopless :=

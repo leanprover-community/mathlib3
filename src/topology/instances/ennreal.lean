@@ -737,7 +737,7 @@ begin
     apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
 end
 
-theorem continuous_edist' : continuous (λp:α×α, edist p.1 p.2) :=
+theorem continuous_edist : continuous (λp:α×α, edist p.1 p.2) :=
 begin
   apply continuous_of_le_add_edist 2 (by simp),
   rintros ⟨x, y⟩ ⟨x', y'⟩,
@@ -748,16 +748,14 @@ begin
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 
-theorem continuous_edist [topological_space β] {f g : β → α}
+theorem continuous.edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
-continuous_edist'.comp (hf.prod_mk hg)
+continuous_edist.comp (hf.prod_mk hg)
 
-theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
+theorem filter.tendsto.edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, edist (f x) (g x)) x (𝓝 (edist a b)) :=
-have tendsto (λp:α×α, edist p.1 p.2) (𝓝 (a, b)) (𝓝 (edist a b)),
-  from continuous_iff_continuous_at.mp continuous_edist' (a, b),
-tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
+(continuous_edist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
 lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
@@ -775,7 +773,7 @@ lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ennreal
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
   edist (f n) a ≤ ∑ m, d (n + m) :=
 begin
-  refine le_of_tendsto at_top_ne_bot (tendsto_edist tendsto_const_nhds ha)
+  refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.edist ha)
     (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (edist_le_Ico_sum_of_edist_le hnm (λ k _ _, hf k)) _,
   rw [finset.sum_Ico_eq_sum_range],

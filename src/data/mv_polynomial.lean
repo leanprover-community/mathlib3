@@ -931,6 +931,48 @@ eval₂.is_ring_hom _ _
 
 end map
 
+section aeval
+
+/-- The algebra of multivariate polynomials. -/
+instance mv_polynomial (R : Type u) [comm_ring R]
+  (σ : Type v) : algebra R (mv_polynomial σ R) :=
+{ to_fun := mv_polynomial.C,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
+  .. mv_polynomial.module }
+
+variables (R : Type u) (A : Type v) (f : σ → A)
+variables [comm_ring R] [comm_ring A] [algebra R A]
+
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `A`. -/
+def aeval : mv_polynomial σ R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _ _
+  ..ring_hom.of (eval₂ (algebra_map A) f) }
+
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map A) f p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map A r := eval₂_C _ _ _
+
+instance aeval.is_ring_hom : is_ring_hom (aeval R A f) :=
+by apply_instance
+
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+  φ = aeval R A (φ ∘ X) :=
+begin
+  ext p,
+  apply mv_polynomial.induction_on p,
+  { intro r, rw aeval_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
+  { intros p j ih,
+    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+end aeval
+
 end comm_ring
 
 section rename

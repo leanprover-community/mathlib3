@@ -120,9 +120,7 @@ apply_nolint lie_submodule has_inhabited_instance
 -- algebra/module.lean
 apply_nolint ideal doc_blame
 apply_nolint is_linear_map doc_blame
-apply_nolint is_linear_map.mk' doc_blame
 apply_nolint linear_map doc_blame
-apply_nolint linear_map.id doc_blame
 apply_nolint module.End doc_blame
 apply_nolint module.core doc_blame has_inhabited_instance
 apply_nolint submodule.subtype doc_blame
@@ -1748,9 +1746,6 @@ apply_nolint hyperreal.is_st_iff_abs_sub_lt_delta ge_or_gt
 apply_nolint hyperreal.lt_neg_of_pos_of_infinitesimal ge_or_gt
 apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 
--- data/real/irrational.lean
-apply_nolint irrational doc_blame
-
 -- data/real/nnreal.lean
 apply_nolint nnreal.of_real doc_blame
 
@@ -3359,10 +3354,6 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/transport.lean
-apply_nolint tactic.transport_with_prefix_dict doc_blame
-apply_nolint tactic.transport_with_prefix_fun doc_blame
 
 -- tactic/where.lean
 apply_nolint lean.parser.get_includes doc_blame

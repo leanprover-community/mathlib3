@@ -257,12 +257,14 @@ def cyclic (n : ℕ+) : graph (zmod n) :=
 structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
 (inj : function.injective to_fun)
 
-structure girth (G : graph V) (n : ℕ+) : Prop :=
-(cyc_exists : nonempty (cycle n G))
+structure girth_at_least (G : graph V) (n : ℕ+) : Prop :=
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
+structure girth (G : graph V) (n : ℕ+) extends girth_at_least G n : Prop :=
+(cyc_exists : nonempty (cycle n G))
+
 /-- Claim 3 of Shitov's paper. -/
-lemma claim3 (G : graph V) {k : ℕ+} (g : girth G k) (hk : 6 ≤ k) :
+lemma claim3 (G : graph V) (g : girth_at_least G 6) :
   ∃ N : ℕ, ∀ q, N ≤ q → ∃ (c χ : ℕ)
     (h : is_chromatic_number ((G.strong_prod (K_ q)).ihom (K_ c)) χ),
     c < χ ∧ ⌈(3.1 * q : ℚ)⌉ = c :=
@@ -270,10 +272,10 @@ begin
   sorry
 end
 
-theorem erdos (χ : ℚ) (g : ℕ) :
-  ∃ {V : Type} [fintype V] (G : graph V) (q : ℚ) (n : ℕ+),
+theorem erdos (χ : ℚ) (g : ℕ+) :
+  ∃ {V : Type} [fintype V] (G : graph V) (q : ℚ),
   is_frac_chromatic_number G q ∧ χ < q ∧
-  girth G n ∧ g < n :=
+  girth_at_least G g :=
 sorry
 
 -- Johan: I have no idea why `whut` is true. Shitov just uses it, without any justification.
@@ -374,12 +376,10 @@ theorem hedetniemi_false :
   by exactI (¬ hedetniemi G₁ G₂ h₁ h₂) :=
 begin
   classical,
-  rcases erdos 3.1 6 with ⟨V, _inst, G, χ, g, hχ, hltχ, hg, hg'⟩,
+  rcases erdos 3.1 6 with ⟨V, _inst, G, χ, hχ, hltχ, hg⟩,
   resetI,
-  have six_le_g : 6 ≤ g,
-  { apply le_of_lt, exact hg' },
   have hG : G.is_loopless := hχ.is_loopless,
-  rcases claim3 G hg six_le_g with ⟨q, hq⟩,
+  rcases claim3 G hg with ⟨q, hq⟩,
   specialize hq q (le_refl q),
   rcases hq with ⟨c, χ', hχ', hcχ', hqc⟩,
   have hGKq : (G.strong_prod (K_ q)).is_loopless :=

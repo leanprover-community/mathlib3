@@ -260,6 +260,9 @@ structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
 structure girth_at_least (G : graph V) (n : ℕ+) : Prop :=
 (min        : ∀ {m}, cycle m G → n ≤ m)
 
+def girth_at_least.is_loopless {G : graph V} {n : ℕ+} (g : girth_at_least G n) (h : n ≥ 2) : G.is_loopless :=
+sorry
+
 structure girth (G : graph V) (n : ℕ+) extends girth_at_least G n : Prop :=
 (cyc_exists : nonempty (cycle n G))
 
@@ -378,7 +381,7 @@ begin
   classical,
   rcases erdos 3.1 6 with ⟨V, _inst, G, χ, hχ, hltχ, hg⟩,
   resetI,
-  have hG : G.is_loopless := hχ.is_loopless,
+  have hG : G.is_loopless := hg.is_loopless (by norm_num),
   rcases claim3 G hg with ⟨q, hq⟩,
   specialize hq q (le_refl q),
   rcases hq with ⟨c, χ', hχ', hcχ', hqc⟩,

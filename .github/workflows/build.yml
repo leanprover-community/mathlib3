@@ -1,6 +1,10 @@
 name: continuous integration
 
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - 'staging.tmp*'
+      - 'trying.tmp*'
 
 jobs:
   build:

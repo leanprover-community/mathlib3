@@ -55,6 +55,16 @@ theorem inj' {α β} : ∀ (f : α ↪ β), injective f
 @[simp] theorem trans_apply {α β γ} (f : α ↪ β) (g : β ↪ γ) (a : α) :
   (f.trans g) a = g (f a) := rfl
 
+@[simp]
+lemma equiv_to_embedding_trans_symm_to_embedding {α β : Sort*} (e : α ≃ β) :
+  function.embedding.trans (e.to_embedding) (e.symm.to_embedding) = function.embedding.refl _ :=
+by { ext, simp, }
+
+@[simp]
+lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β) :
+  function.embedding.trans (e.symm.to_embedding) (e.to_embedding) = function.embedding.refl _ :=
+by { ext, simp, }
+
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
@@ -100,6 +110,18 @@ protected def some {α} : α ↪ option α :=
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨subtype.val, λ _ _, subtype.eq'⟩
 
+/-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
+def punit {β : Sort*} (b : β) : punit ↪ β :=
+⟨λ _, b, by { rintros ⟨⟩ ⟨⟩ _, refl, }⟩
+
+/-- Fixing an element `b : β` gives an embedding `α ↪ α × β`. -/
+def inl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
+⟨λ a, (a, b), λ a a' h, congr_arg prod.fst h⟩
+
+/-- Fixing an element `a : α` gives an embedding `β ↪ α × β`. -/
+def inr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
+⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
+
 /-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=
 ⟨λ a, ⟨f a, H a⟩, λ a b h, f.inj (@congr_arg _ _ _ _ subtype.val h)⟩
@@ -117,17 +139,17 @@ section sum
 open sum
 
 def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
-⟨assume s, match s with inl a := inl (e₁ a) | inr b := inr (e₂ b) end,
+⟨assume s, match s with sum.inl a := sum.inl (e₁ a) | sum.inr b := sum.inr (e₂ b) end,
     assume s₁ s₂ h, match s₁, s₂, h with
-    | inl a₁, inl a₂, h := congr_arg inl $ e₁.inj $ inl.inj h
-    | inr b₁, inr b₂, h := congr_arg inr $ e₂.inj $ inr.inj h
+    | sum.inl a₁, sum.inl a₂, h := congr_arg sum.inl $ e₁.inj $ sum.inl.inj h
+    | sum.inr b₁, sum.inr b₂, h := congr_arg sum.inr $ e₂.inj $ sum.inr.inj h
     end⟩
 
 @[simp] theorem sum_congr_apply_inl {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
+  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (sum.inl a) = sum.inl (e₁ a) := rfl
 
 @[simp] theorem sum_congr_apply_inr {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
+  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (sum.inr b) = sum.inr (e₂ b) := rfl
 
 end sum
 

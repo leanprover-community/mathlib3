@@ -283,19 +283,24 @@ sorry
 def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
   {s : finset V // s.card = k} := sorry
 
-def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) : multicolouring W n G :=
+def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) :
+  multicolouring W n G :=
 { to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) sorry,
   map_edge' := sorry, }
 
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
-lemma whut [fintype V] (G : graph V) (hG : is_loopless G) (n : ℕ) {k : ℕ} {χ : ℚ}
+lemma whut [fintype V] (G : graph V) (hG : is_loopless G) (n : ℕ) (np : 0 < n) {k : ℕ} {χ : ℚ}
   (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
   χ * n ≤ k :=
 begin
-  have := minimal_colouring (G.strong_prod (K_ n)) (is_loopless.strong_prod hG (complete_is_loopless _)),
-  have := multicolouring_of_strong_prod_K_colouring this,
-  have := hχ.min this, -- huh? why doesn't that typecheck?
+  suffices : χ ≤ (k : ℚ) / (n : ℚ), sorry,
+  apply hχ.min _ np,
+  have c := minimal_colouring (G.strong_prod (K_ n)) (is_loopless.strong_prod hG (complete_is_loopless _)),
+  have mc := multicolouring_of_strong_prod_K_colouring c,
+  dunfold nat_multicolouring,
+  convert mc,
+  sorry -- easy now, but we only have to do this in the first place because we're fussing about with predicates.
 end
 
 /-- A silly lemma about ceil that is actually false. -/

@@ -398,9 +398,11 @@ begin
     split,
     { rwa (chromatic_number_is_chromatic_number _ _).elim hχ' },
     { rw [← int.coe_nat_lt, ← hqc],
-      apply helpme hltχ,
-      apply whut _ _ _ hχ,
-      apply chromatic_number_is_chromatic_number } }
+      have t₂ := whut G q (chromatic_number_is_chromatic_number _ _) hχ,
+      -- hltχ : 31 / 10 < χ
+      have t₁ := helpme hltχ t₂,
+      exact t₁,
+      } }
 end
 
 end graph

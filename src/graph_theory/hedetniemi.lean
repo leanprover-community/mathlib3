@@ -281,12 +281,22 @@ sorry
 -- gives a fractional colouring of `G`, stubbed below:
 
 def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
-  {s : finset V // s.card = k} := sorry
+  {s : finset V // s.card = k} :=
+⟨finset.univ.map ⟨f, i⟩, (by simp)⟩
 
 def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) :
   multicolouring W n G :=
-{ to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) sorry,
-  map_edge' := sorry, }
+{ to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) (λ i j h, begin dsimp at h, sorry end),
+  map_edge' := λ x y e,
+  begin
+    dsimp [finset_with_card_of_injective_fn],
+    intros w h, exfalso,
+    simp at h,
+    rcases h with ⟨⟨i, rfl⟩, ⟨j, w⟩⟩,
+    -- there doesn't appear to be an existing lemma for the statement:
+    -- "if x is connected to y, then ¬ c x = c y"
+    sorry
+  end, }
 
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`

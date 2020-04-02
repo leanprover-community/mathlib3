@@ -134,6 +134,7 @@ end
 
 end move_this
 
+@[simps]
 def Kneser (V : Type u) [decidable_eq V] (k : ℕ) :
   graph { s : finset V // s.card = k } :=
 { edge := assume s t, disjoint (s : finset V) (t : finset V),

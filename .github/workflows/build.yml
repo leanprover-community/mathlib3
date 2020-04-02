@@ -3,8 +3,8 @@ name: continuous integration
 on:
   push:
     branches-ignore:
-      - 'staging.tmp'
-      - 'trying.tmp'
+      - 'staging.tmp*'
+      - 'trying.tmp*'
 
 jobs:
   build:

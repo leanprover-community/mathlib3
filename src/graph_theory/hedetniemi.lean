@@ -282,23 +282,7 @@ sorry
 
 def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
   {s : finset V // s.card = k} :=
-<<<<<<< Updated upstream
 ⟨finset.univ.map ⟨f, i⟩, (by simp)⟩
-
-def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) :
-  multicolouring W n G :=
-{ to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) (λ i j h, begin dsimp at h, sorry end),
-  map_edge' := λ x y e,
-  begin
-    dsimp [finset_with_card_of_injective_fn],
-    intros w h, exfalso,
-    simp at h,
-    rcases h with ⟨⟨i, rfl⟩, ⟨j, w⟩⟩,
-    -- there doesn't appear to be an existing lemma for the statement:
-    -- "if x is connected to y, then ¬ c x = c y"
-    sorry
-=======
-⟨finset.map ⟨f, i⟩ finset.univ, by rw [finset.card_map, finset.card_fin]⟩
 
 lemma edge_strong_prod_complete (p q : V × W) (e : p.1 ~[G] q.1) :
   p ~[G.strong_prod (complete W)] q :=
@@ -334,33 +318,18 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : co
     show c (x,i) ≠ c (y,j),
     apply c.map_edge,
     exact edge_strong_prod_complete _ _ e
->>>>>>> Stashed changes
-  end, }
+  end }
 
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
-<<<<<<< Updated upstream
-lemma whut [fintype V] (G : graph V) (hG : is_loopless G) (n : ℕ) (np : 0 < n) {k : ℕ} {χ : ℚ}
-  (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
-  χ * n ≤ k :=
-begin
-  suffices : χ ≤ (k : ℚ) / (n : ℚ), sorry,
-  apply hχ.min _ np,
-  have c := minimal_colouring (G.strong_prod (K_ n)) (is_loopless.strong_prod hG (complete_is_loopless _)),
-  have mc := multicolouring_of_strong_prod_K_colouring c,
-  dunfold nat_multicolouring,
-  convert mc,
-  sorry -- easy now, but we only have to do this in the first place because we're fussing about with predicates.
-=======
 lemma whut [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
   (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
   χ * n ≤ k :=
 begin
   obtain ⟨c⟩ := hn.col_exists,
   let mc := multicolouring_of_strong_prod_K_colouring c,
-  have := hχ.min mc, -- huh? why doesn't that typecheck?
+  have := hχ.min mc,
   sorry
->>>>>>> Stashed changes
 end
 
 /-- A silly lemma about ceil that is actually false. -/

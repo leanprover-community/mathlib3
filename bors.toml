@@ -1,4 +1,5 @@
 status = ["Build mathlib"]
 use_squash_merge = true
 timeout_sec = 14400
+delete_merged_branches = true
 cut_body_after = "TO CONTRIBUTORS:"

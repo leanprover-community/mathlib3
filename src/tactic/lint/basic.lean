@@ -11,7 +11,7 @@ import tactic.core
 This file defines the basic types and attributes used by the linting
 framework.  A linter essentially consists of a function
 `declaration → tactic (option string)`, this function together with some
-metadata is stored in the `linter` structure`. We define two attributes:
+metadata is stored in the `linter` structure. We define two attributes:
 
  * `@[linter]` applies to a declaration of type `linter` and adds it to the default linter set.
 

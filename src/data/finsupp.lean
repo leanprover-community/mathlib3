@@ -471,6 +471,14 @@ instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.s
   (g₁ - g₂) a = g₁ a - g₂ a :=
 rfl
 
+@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h ]
+end
+
 end nat_sub
 
 section add_monoid

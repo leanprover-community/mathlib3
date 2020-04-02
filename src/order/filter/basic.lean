@@ -564,9 +564,8 @@ lemma eventually.congr {f : filter α} {p q : α → Prop} (h' : ∀ᶠ x in f, 
   (h : ∀ᶠ x in f, p x ↔ q x) : ∀ᶠ x in f, q x :=
 h'.mp (h.mono $ λ x hx, hx.mp)
 
--- `@[congr]` doesn't accept this lemma with `∀ᶠ` notation
-@[congr] lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p x ↔ q x) :
-  (f.eventually p) ↔ (∀ᶠ x in f, q x) :=
+lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p x ↔ q x) :
+  (∀ᶠ x in f, p x) ↔ (∀ᶠ x in f, q x) :=
 ⟨λ hp, hp.congr h, λ hq, hq.congr $ by simpa only [iff.comm] using h⟩
 
 @[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :

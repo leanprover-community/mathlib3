@@ -1,4 +1,4 @@
-import data.list.basic
+import data.list.nodup
 
 universes u
 variables {α : Type u}

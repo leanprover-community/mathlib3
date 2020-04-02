@@ -49,7 +49,7 @@ lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
   g (s.prod f) = s.prod (λx, g (f x)) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_hom.map_sum [comm_semiring β] [comm_semiring γ]
+lemma ring_hom.map_sum [semiring β] [semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (s.sum f) = s.sum (λx, g (f x)) :=
 g.to_add_monoid_hom.map_sum f s
@@ -683,6 +683,8 @@ lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
 calc s.prod f = (insert a (erase s a)).prod f : by rw insert_erase ha
   ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
+/-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
+  `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
 lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa, finset (δ a)} {f : Πa, δ a → β} :
   s.prod (λa, (t a).sum (λb, f a b)) =

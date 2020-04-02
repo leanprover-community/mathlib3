@@ -714,8 +714,45 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
+@[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
+⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
+  bit0_lt_bit0, nat.lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
+
+@[simp] lemma bit0_lt_bit1_iff : bit0 k < bit1 n ↔ k ≤ n :=
+⟨λ h, bit0_le_bit1_iff.1 (le_of_lt h), nat.bit0_lt_bit1⟩
+
+@[simp] lemma bit1_le_bit0_iff : bit1 k ≤ bit0 n ↔ k < n :=
+⟨λ h, by rwa [k.bit1_eq_succ_bit0, succ_le_iff, bit0_lt_bit0] at h,
+  λ h, le_of_lt (nat.bit1_lt_bit0 h)⟩
+
+@[simp] lemma bit1_lt_bit0_iff : bit1 k < bit0 n ↔ k < n :=
+⟨λ h, bit1_le_bit0_iff.1 (le_of_lt h), nat.bit1_lt_bit0⟩
+
+@[simp] lemma one_le_bit0_iff : 1 ≤ bit0 n ↔ 0 < n :=
+by { convert bit1_le_bit0_iff, refl, }
+
+@[simp] lemma one_lt_bit0_iff : 1 < bit0 n ↔ 1 ≤ n :=
+by { convert bit1_lt_bit0_iff, refl, }
+
+@[simp] lemma bit_le_bit_iff : ∀ {b : bool}, bit b k ≤ bit b n ↔ k ≤ n
+| ff := bit0_le_bit0
+| tt := bit1_le_bit1
+
+@[simp] lemma bit_lt_bit_iff : ∀ {b : bool}, bit b k < bit b n ↔ k < n
+| ff := bit0_lt_bit0
+| tt := bit1_lt_bit1
+
+@[simp] lemma bit_le_bit1_iff : ∀ {b : bool}, bit b k ≤ bit1 n ↔ k ≤ n
+| ff := bit0_le_bit1_iff
+| tt := bit1_le_bit1
+
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }
+
+/-- Define a function on `ℕ` depending on parity of the argument. -/
+@[elab_as_eliminator]
+def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
+eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 
 /- partial subtraction -/
 

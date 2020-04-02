@@ -86,9 +86,15 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
+ext $ λ i, mem_Union.symm
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨assume (h : ∀a ∈ {a : set β | ∃i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem set_of_forall (p : ι → β → Prop) : {x | ∀ i, p i x} = ⋂ i, {x | p i x} :=
+ext $ λ i, mem_Inter.symm
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
 -- TODO: should be simpler when sets' order is based on lattices

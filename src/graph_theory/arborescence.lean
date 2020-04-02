@@ -1,115 +1,101 @@
 import graph_theory.paths
+import order.basic
+
+/-!
+  We define subgraphs and (anti-)arborescences, or directed rooted trees.
+    We show that any directed multigraph has a subarborescence coverging to `root : V`,
+  assuming that every vertex has some path to `root` to begin with. The proof essentially
+  works by assigning to each non-root vertex a parent vertex that is closer to `root`.
+-/
+
 open path directed_multigraph
 
-noncomputable theory
-local attribute [instance] classical.prop_decidable
+universes v
 
-universes v u
+variables {V : Type*}
+          (G : directed_multigraph.{v+1} V)
+          (root : V)
 
-variables {V : Type u} (G : directed_multigraph.{v+1} V) (root : V)
-
-def subgraph := Π a b, set (G.edge a b)
-
+/-- An arborescence converging to `root` has a unique path to root from every node. -/
 class arborescence :=
-(path : Π s, G.path s root)
+(path : Π s, G.path s root) -- reversing this would be non-trivial due to how paths are defined
 (unique : ∀ s (p : G.path s root), p = path s)
+
+/-- A subgraph of a directed multigraph, obtained by deleting edges. -/
+def subgraph := Π a b, set (G.edge a b) -- how to allow for Prop-valued edge-sets?
+instance : inhabited (subgraph G) := ⟨λ a b, ∅⟩
 
 variable {G}
 
-def graph_of_subgraph (RR : subgraph G) : directed_multigraph V :=
-⟨λ s t, RR s t⟩
+/-- A subgraph is genuinely a graph. -/
+def graph_of_subgraph (S : subgraph G) : directed_multigraph V :=
+⟨λ s t, S s t⟩
 
-def based_rec' : Π (s t : V) (p : G.path s t) (C : Π s' (p' : G.path s' t), Sort*)
-  (hn : C t (path.nil _ _)) (hc : Π s' m (e : G.edge s' m) (l : G.path m t),
-    C m l → C s' (e::l)), C s p
-| _ _ (path.nil _ _) C hn _ := hn
-| s t (@path.cons _ _ _ m _ e l) C hn hc := hc s m e l (based_rec' m t l C hn hc)
+variables {root} (H : ∀ s, nonempty (G.path s root))
+include H
 
-def based_rec_on {t : V} {C : Π s (p : G.path s t), Sort*} {s} (p : G.path s t)
-  (hn : C t (path.nil _ _)) (hc : Π s m (e : G.edge s m) (l : G.path m t),
-    C m l → C s (e::l)) : C s p :=
-based_rec' s t p C hn hc
+/-- A path to `root` of minimal length. -/
+noncomputable def shortest_path (s : V) : G.path s root :=
+well_founded.min (measure_wf $ λ p : G.path s root, length p) set.univ
+  (@set.univ_nonempty _ (H s))
 
-def is_nil : Π {s t} (p : G.path s t), Prop
-| _ _ (path.nil _ _) := true
-| _ _ (_ :: _) := false
-
-lemma eq_of_is_nil : Π {s t} (p : G.path s t), is_nil p → s = t
-| _ _ (path.nil _ _) _ := rfl
-| _ _ (_ :: _) h := false.elim h
-
-def mid : Π {s t} (p : G.path s t), ¬ is_nil p → V
-| _ _ (path.nil _ _) h := false.elim $ h trivial
-| _ _ (@path.cons _ _ _ s' _ _ _) _ := s'
-
-def head : Π {s t} (p : G.path s t) (h : ¬ is_nil p), G.edge s (mid _ h)
-| _ _ (path.nil _ _) h := false.elim $ h trivial
-| _ _ (e :: _) _ := e
-
-def tail : Π {s t} (p : G.path s t) (h : ¬ is_nil p), G.path (mid _ h) t
-| _ _ (path.nil _ _) h := false.elim $ h trivial
-| _ _ (_ :: l) _ := l
-
-lemma length_eq_length_tail_plus_one : Π {s t} (p : G.path s t) (h : ¬ is_nil p),
-  length _ p = length _ (tail _ h) + 1
-| _ _ (path.nil _ _) h := false.elim $ h trivial
-| _ _ (_ :: _) _ := rfl
-
-def path_of_eq : Π {s t} (h : s = t), G.path s t
-| _ _ rfl := path.nil _ _
-
-variable (RR : ∀ s, nonempty (G.path s root))
-include RR
-
-def shortest_path (s : V) : G.path s root :=
-well_founded.min (measure_wf $ λ p : G.path s root, length _ p) set.univ
-  (@set.univ_nonempty _ $ RR s)
-
+/-- The length of a path is at least the length of the shortest path -/
 lemma shortest_path_spec (s : V) (p : G.path s root) :
-  length _ (shortest_path _ RR s) ≤ length _ p :=
+  length (shortest_path H s) ≤ length p :=
 begin
-  have : ¬ (length _ p < length _ (shortest_path _ RR s)),
+  have : ¬ (length p < length (shortest_path H s)),
   exact well_founded.not_lt_min (measure_wf _) set.univ _ trivial,
   simpa using this,
 end
 
-lemma shortest_nnil (s) (h : s ≠ root) : ¬ is_nil (shortest_path _ RR s) :=
-mt (eq_of_is_nil $ shortest_path _ RR s) h
+/-- The shortest path from a non-root vertex is not nil.
+We use this a to extract the head of the shortest path -/
+lemma nnil {s} (h : s ≠ root) : ¬ is_nil (shortest_path H s) :=
+by { cases shortest_path H s, { simpa using h }, { simp }, }
 
+/-- The geodesic subgraph. For each non-root vertex, there is an edge to a parent:
+some vertex that is closer to `root`. -/
 inductive geodesic_subgraph : Π (s t : V) (e : G.edge s t), Prop
-| intro (s : V) (h : s ≠ root) : geodesic_subgraph s
-  (mid _ (shortest_nnil _ RR s h)) (head _ (shortest_nnil _ RR s h))
+| intro (s : V) (h : s ≠ root) : geodesic_subgraph s _ (head (nnil H h))
 
-def geodesic_graph : directed_multigraph V :=
-graph_of_subgraph $ geodesic_subgraph _ RR
+/-- Can we find a better name for this? -/
+def geodesic_graph : directed_multigraph V := graph_of_subgraph (geodesic_subgraph H)
 
-abbreviation height (s : V) : ℕ := length _ $ shortest_path _ RR s
+/-- Distance to `root`: we use this to do well-founded recursion -/
+noncomputable def height (s : V) : ℕ := length $ shortest_path H s
 
-lemma height_le {s} (h : s ≠ root) :
-  height _ RR (mid _ $ shortest_nnil _ RR s h) < height _ RR s := begin
-  have : height _ RR _ ≤ length _ (tail _ $ shortest_nnil _ RR s h),
+/-- The parent really is closer to `root` -/
+lemma parent_height_lt {s} (h : s ≠ root) :
+  height H (mid $ nnil H h) < height H s := begin
+  have : height H _ ≤ length (tail $ nnil H h),
   { apply shortest_path_spec },
   apply lt_of_le_of_lt this,
-  have : height _ RR s = length _ (tail _ $ shortest_nnil _ RR s h) + 1,
+  have : height H s = length (tail $ nnil H h) + 1,
   { apply length_eq_length_tail_plus_one },
   rw this,
-  simp,
+  exact nat.lt.base _
 end
 
-noncomputable def geodesic_path : Π s, path (geodesic_graph _ RR) s root
-| s := dite (s = root) (λ h, path_of_eq h)
-       (λ h, have _ := height_le _ RR h,
-            ⟨_, geodesic_subgraph.intro RR s h⟩ :: geodesic_path _)
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (height _ RR)⟩],
-  dec_tac := `[assumption]}
+variable [decidable_eq V]
 
-lemma geodesic_path_def : Π s, geodesic_path _ RR s = dite (s = root) (λ h, path_of_eq h)
-       (λ h, ⟨_, geodesic_subgraph.intro RR s h⟩ :: geodesic_path _ RR _) :=
+/-- Following edges to parents gives a path to `root`. -/
+noncomputable def geodesic_path : Π s, path (geodesic_graph H) s root
+| s := dite (s = root) (λ h, path_of_eq h)
+       (λ h, have _ := parent_height_lt H h,
+            ⟨_, geodesic_subgraph.intro H s h⟩ :: geodesic_path _)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (height H)⟩], }
+
+/-- The recursive definition of the path to `root`. -/
+lemma geodesic_path_def : Π s, geodesic_path H s = dite (s = root) (λ h, path_of_eq h)
+       (λ h, ⟨_, geodesic_subgraph.intro H s h⟩ :: geodesic_path H _) :=
 well_founded.fix_eq _ _
 
-lemma geodesic_path_unique (s) (p : path (geodesic_graph _ RR) s root) :
-  p = geodesic_path _ RR s := @based_rec_on V (geodesic_graph _ RR) root
-  (λ s p, p = geodesic_path _ RR s) s p (by { rw [geodesic_path_def, dif_pos rfl], simpa })
+/-- By induction, there is no other path to `root`. -/
+lemma geodesic_path_unique (s) (p : path (geodesic_graph H) s root) :
+  p = geodesic_path H s :=
+@based_rec_on V (geodesic_graph H) root
+(λ s p, p = geodesic_path H s) s p
+(by { rw [geodesic_path_def, dif_pos rfl], simpa })
 begin
   intros s m e l h,
   cases e with e p,
@@ -119,6 +105,7 @@ begin
   simpa using h,
 end
 
-instance geodesic_arboresence : arborescence (geodesic_graph root RR) root :=
-{ path := geodesic_path root RR,
-  unique := geodesic_path_unique root RR}
+/-- Putting all this together, we've obtained an arborescence! -/
+noncomputable instance geodesic_arboresence : arborescence (geodesic_graph H) root :=
+{ path := geodesic_path H,
+  unique := geodesic_path_unique H}

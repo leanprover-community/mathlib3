@@ -1,4 +1,4 @@
-import graph_theory.hedetniemi
+import graph_theory.basic
 
 universes v u
 
@@ -24,14 +24,14 @@ open directed_multigraph
 
 namespace path
 
+variables {G}
+
 def length : Π {s t}, path G s t → ℕ
 | _ _ (path.nil _ _) := 0
 | _ _ (@path.cons _ _ _ _ _ e l) := length l + 1
 
 notation a :: b := path.cons a b
 notation `p[` l:(foldr `, ` (h t, path.cons h t) path.nil _ _ `]`) := l
-
-variables {G}
 
 -- The pattern matching trick used here was explained by Jeremy Avigad
 -- at https://groups.google.com/d/msg/lean-user/JqaI12tdk3g/F9MZDxkFDAAJ
@@ -51,6 +51,37 @@ lemma concat_assoc : ∀ {w x y z} (p : G.path w x) (q : G.path x y) (r : G.path
 | ._ ._ y z (path.nil G x) q r := rfl
 | w x y z (e :: p) q r := begin dsimp, congr' 1, apply concat_assoc, end
 
+/-- A based version of path.rec_on. -/
+def based_rec_on {t : V} {C : Π s (p : G.path s t), Sort*}
+  {s} (p : G.path s t)
+  (hn : C t p[])
+  (hc : Π s h (e : G.edge s h) (l : G.path h t), C h l → C s (e::l))
+  : C s p :=
+by { induction p with _ s h t e l ih, { exact hn }, { exact hc s h e l (ih hn hc) }, }
+
+@[simp]
+def is_nil : Π {s t} (p : G.path s t), Prop
+| _ _ (p[]) := true
+| _ _ (_ :: _) := false
+
+def mid : Π {s t} {p : G.path s t}, ¬ is_nil p → V
+| _ _ (p[]) h := false.elim $ h trivial
+| _ _ (@path.cons _ _ _ s' _ _ _) _ := s'
+
+def head : Π {s t} {p : G.path s t} (h : ¬ is_nil p), G.edge s (mid h)
+| _ _ (p[]) h := false.elim $ h trivial
+| _ _ (e :: _) _ := e
+
+def tail : Π {s t} {p : G.path s t} (h : ¬ is_nil p), G.path (mid h) t
+| _ _ (path.nil _ _) h := false.elim $ h trivial
+| _ _ (_ :: l) _ := l
+
+lemma length_eq_length_tail_plus_one {s t} {p : G.path s t} (h : ¬ is_nil p) :
+  length p = length (tail h) + 1 :=
+by { cases p, { simpa using h }, { refl } }
+
+def path_of_eq : Π {s t} (h : s = t), G.path s t
+| _ _ rfl := p[]
 
 variables {H : multigraph.{v} V}
 

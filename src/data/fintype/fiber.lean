@@ -1,4 +1,16 @@
-import data.fintype
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Johan Commelin, Scott Morrison
+-/
+import data.fintype.basic
+
+/-!
+# The fibre over a point, when the domain is a fintype.
+
+We define the fiber of a function `f : α → β` over a point `b : β`, when we have `fintype α`,
+as a `finset α`, and prove some basic properties.
+-/
 
 open function
 
@@ -17,7 +29,7 @@ by simp [fiber]
 @[simp]
 lemma card_fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) :
   finset.card (fiber f b) = fintype.card { a | f a = b } :=
-set.to_finset_card _
+set.to_finset_card { a | f a = b }
 
 lemma fibers_disjoint {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [decidable_eq β] (f : α → β) (b₁ b₂ : β) (h : b₁ ≠ b₂) :
   disjoint (fiber f b₁) (fiber f b₂) :=

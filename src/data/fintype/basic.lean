@@ -224,8 +224,10 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
-@[simp]
-lemma to_finset_card {α : Type*} (s : set α) [fintype s] : (set.to_finset s).card = fintype.card s :=
+-- We include an arbitrary `fintype H` instance here,
+-- as there are several possible ways to construct one.
+lemma to_finset_card {α : Type*} [fintype α] (H : set α) [fintype H] :
+  H.to_finset.card = fintype.card H :=
 multiset.card_map subtype.val finset.univ.val
 
 end set

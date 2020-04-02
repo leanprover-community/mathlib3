@@ -7,11 +7,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 import tactic.lint.frontend
   tactic.lint.simp
   tactic.lint.type_classes
-  tactic.lint.ge_or_gt
-  tactic.lint.dup_namespace
-  tactic.lint.unused_args
-  tactic.lint.doc_strings
-  tactic.lint.def_lemma
+  tactic.lint.misc
 
 open tactic
 

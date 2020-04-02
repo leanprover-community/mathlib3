@@ -142,11 +142,11 @@ begin
   exact classical.not_not.1 H
 end
 
+section claim2
+
 open_locale classical
 
 noncomputable theory
-
-section claim2
 
 /-- This definition appears in Claim 2 of Shitov's article. -/
 def is_robust {W : Type*} (G : graph V) (x : V) (w : W) (s : set (V → W)) : Prop :=
@@ -282,6 +282,7 @@ sorry
 
 def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
   {s : finset V // s.card = k} :=
+<<<<<<< Updated upstream
 ⟨finset.univ.map ⟨f, i⟩, (by simp)⟩
 
 def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) :
@@ -296,10 +297,49 @@ def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W
     -- there doesn't appear to be an existing lemma for the statement:
     -- "if x is connected to y, then ¬ c x = c y"
     sorry
+=======
+⟨finset.map ⟨f, i⟩ finset.univ, by rw [finset.card_map, finset.card_fin]⟩
+
+lemma edge_strong_prod_complete (p q : V × W) (e : p.1 ~[G] q.1) :
+  p ~[G.strong_prod (complete W)] q :=
+begin
+  classical,
+  by_cases h : p.2 = q.2,
+  { right, right, exact ⟨e, h⟩ },
+  { left, exact ⟨e, h⟩ }
+end
+
+-- rename this
+lemma colouring.foo {n : ℕ} (c : colouring W (G.strong_prod (K_ n))) (v : V) :
+  function.injective (λ i : fin n, c (v, i)) :=
+begin
+  assume i j h,
+  contrapose! h,
+  apply c.map_edge,
+  right, left,
+  exact ⟨rfl, h⟩
+end
+
+def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : colouring W (G.strong_prod (K_ n))) :
+  multicolouring W n G :=
+{ to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) (c.foo v),
+  map_edge' :=
+  begin
+    assume x y e, show disjoint (finset.map _ _) (finset.map _ _),
+    rw finset.disjoint_iff_ne,
+    assume w₁ hw₁ w₂ hw₂,
+    rw finset.mem_map at hw₁ hw₂,
+    rcases hw₁ with ⟨i, hi, rfl⟩,
+    rcases hw₂ with ⟨j, hj, rfl⟩,
+    show c (x,i) ≠ c (y,j),
+    apply c.map_edge,
+    exact edge_strong_prod_complete _ _ e
+>>>>>>> Stashed changes
   end, }
 
 -- Scott: @Johan, why all these predicates?
 -- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
+<<<<<<< Updated upstream
 lemma whut [fintype V] (G : graph V) (hG : is_loopless G) (n : ℕ) (np : 0 < n) {k : ℕ} {χ : ℚ}
   (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
   χ * n ≤ k :=
@@ -311,6 +351,16 @@ begin
   dunfold nat_multicolouring,
   convert mc,
   sorry -- easy now, but we only have to do this in the first place because we're fussing about with predicates.
+=======
+lemma whut [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
+  (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
+  χ * n ≤ k :=
+begin
+  obtain ⟨c⟩ := hn.col_exists,
+  let mc := multicolouring_of_strong_prod_K_colouring c,
+  have := hχ.min mc, -- huh? why doesn't that typecheck?
+  sorry
+>>>>>>> Stashed changes
 end
 
 /-- A silly lemma about ceil that is actually false. -/
@@ -351,6 +401,7 @@ theorem hedetniemi_false :
     (G₁ : graph V₁) (G₂ : graph V₂) (h₁ : G₁.is_loopless) (h₂ : G₂.is_loopless),
   by exactI (¬ hedetniemi G₁ G₂ h₁ h₂) :=
 begin
+  classical,
   rcases erdos 3.1 6 with ⟨V, _inst, G, χ, g, hχ, hltχ, hg, hg'⟩,
   resetI,
   have six_le_g : 6 ≤ g,

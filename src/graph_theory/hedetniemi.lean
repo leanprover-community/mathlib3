@@ -340,17 +340,9 @@ begin
   assumption_mod_cast,
 end
 
-/-- A silly lemma about ceil that is actually false. -/
-lemma helpme {χ' χ : ℚ} (hχ : χ' < χ) {n k : ℕ} (h : χ * n ≤ k)  :
-  ⌈χ' * n⌉ < k :=
-begin
-  have h' : ⌈χ * n⌉ ≤ k, by rwa ceil_le,
-  sorry
-end
-
 lemma helpme' (α : ℚ) (q : ℕ) (h : ¬ q = 0) : (⌈α * q⌉ : ℚ) < (α + 1) * q :=
 calc (⌈α * q⌉ : ℚ) < α * q + 1 : ceil_lt_add_one _
-               ... ≤ α * q + q : sorry
+               ... ≤ α * q + q : by { apply add_le_add_left, exact_mod_cast nat.pos_of_ne_zero h }
                ... = (α + 1) * q : by ring
 
 lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :

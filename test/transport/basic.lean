@@ -66,22 +66,11 @@ rfl
 lemma mynat_mul_def (a b : mynat) : a * b = mynat_equiv (mynat_equiv.symm a * mynat_equiv.symm b) :=
 rfl
 
-attribute [simp] mynat_zero_def mynat_one_def mynat_add_def mynat_mul_def
-
--- Verify that we can do computations with the transported structure.
 example : (3 : mynat) + (7 : mynat) = (10 : mynat) :=
-begin
-  simp [bit0, bit1],
-end
+rfl
 
--- I suspect these next two will work if we merge #2207.
+example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
+rfl
 
--- example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
--- begin
---   simp [bit0, bit1],
--- end
-
--- example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
--- begin
---   simp [bit0, bit1],
--- end
+example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
+rfl

@@ -5,9 +5,9 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function order.boolean_algebra
-  data.equiv.basic data.list.basic data.list.perm data.list.sort data.list.erase_dup
-  data.quot data.string.basic
+import logic.function order.boolean_algebra data.equiv.basic
+import data.list.sort data.list.erase_dup data.list.intervals
+import data.quot data.string.basic
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic

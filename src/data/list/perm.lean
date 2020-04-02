@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic
+import data.list.bag_inter
 import data.list.erase_dup
 import logic.relation
 

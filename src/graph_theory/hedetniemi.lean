@@ -348,6 +348,11 @@ begin
   sorry
 end
 
+lemma helpme' (α : ℚ) (q : ℕ) (h : ¬ q = 0) : (⌈α * q⌉ : ℚ) < (α + 1) * q :=
+calc (⌈α * q⌉ : ℚ) < α * q + 1 : ceil_lt_add_one _
+               ... ≤ α * q + q : sorry
+               ... = (α + 1) * q : by ring
+
 lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :
   0 < q :=
 begin
@@ -372,6 +377,10 @@ begin
   exact h (c.map_edge e)
 end
 
+lemma coe_monotone (a b : ℤ) (h : (a : ℚ) < (b : ℚ)) : a < b := sorry
+
+example (n : ℕ) : 0 ≤ (n : ℚ) := by exact nat.cast_nonneg n
+
 /-- Shitov's theorem -/
 theorem hedetniemi_false :
   ∃ {V₁ V₂ : Type} [fintype V₁] [fintype V₂]
@@ -379,7 +388,7 @@ theorem hedetniemi_false :
   by exactI (¬ hedetniemi G₁ G₂ h₁ h₂) :=
 begin
   classical,
-  rcases erdos 3.1 6 with ⟨V, _inst, G, χ, hχ, hltχ, hg⟩,
+  rcases erdos 4.1 6 with ⟨V, _inst, G, χ, hχ, hltχ, hg⟩,
   resetI,
   have hG : G.is_loopless := hg.is_loopless (by norm_num),
   rcases claim3 G hg with ⟨q, hq⟩,
@@ -399,9 +408,17 @@ begin
     { rwa (chromatic_number_is_chromatic_number _ _).elim hχ' },
     { rw [← int.coe_nat_lt, ← hqc],
       have t₂ := whut G q (chromatic_number_is_chromatic_number _ _) hχ,
-      -- hltχ : 31 / 10 < χ
-      have t₁ := helpme hltχ t₂,
-      exact t₁,
+      by_cases q = 0,
+      { simp [h], apply chromatic_number.pos, },
+      apply coe_monotone,
+      apply lt_of_lt_of_le,
+      apply helpme' _ _ h,
+      transitivity,
+      swap 2,
+      use t₂,
+      replace hltχ := le_of_lt hltχ,
+      norm_num,
+      convert mul_mono_nonneg (nat.cast_nonneg q) hltχ,
       } }
 end
 

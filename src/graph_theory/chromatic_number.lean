@@ -96,6 +96,10 @@ lemma chromatic_number_is_chromatic_number [fintype V] (G : graph V) (hG : G.is_
   is_chromatic_number G (chromatic_number G hG) :=
 ⟨⟨minimal_colouring G hG⟩, λ k c, nat.find_min' (chromatic_number_exists G hG) ⟨c⟩⟩
 
+lemma chromatic_number.pos [fintype V] (G : graph V) (hG : G.is_loopless) :
+  0 < chromatic_number G hG :=
+sorry
+
 end
 
 section

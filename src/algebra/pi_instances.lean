@@ -202,6 +202,21 @@ lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) : (monoid_hom.apply f i) g 
 end
 
 section
+universes u v
+variable {I : Type u}     -- The indexing type
+variable (f : I → Type v) -- The family of types already equipped with instances
+variables [Π i, semiring (f i)]
+
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
+{ ..(monoid_hom.apply f i),
+  ..(add_monoid_hom.apply f i) }
+
+@[simp]
+lemma ring_hom.apply_apply (i : I) (g : Π i, f i) : (ring_hom.apply f i) g = g i := rfl
+end
+
+section
 variables {I : Type*} (Z : I → Type*)
 variables [Π i, comm_monoid (Z i)]
 
@@ -226,8 +241,7 @@ lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   finset.univ.sum (λ i, pi.single i (f i)) = f :=
 begin
   ext a,
-  simp,
-  rw finset.sum_eq_single a,
+  rw [finset.sum_apply, finset.sum_eq_single a],
   { simp, },
   { intros b _ h, simp [h.symm], },
   { intro h, exfalso, simpa using h, },
@@ -276,6 +290,23 @@ lemma add_monoid_hom.functions_ext [fintype I] (G : Type*) [add_comm_monoid G] (
 begin
   ext k,
   rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+end
+
+section
+variables {f}
+variables [Π i, semiring (f i)]
+
+-- it is somewhat unfortunate that we can't easily use `add_monoid_hom.functions_ext` here
+@[ext]
+lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, ring_hom.map_sum, ring_hom.map_sum],
   apply finset.sum_congr rfl,
   intros,
   apply w,

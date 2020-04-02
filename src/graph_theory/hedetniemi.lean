@@ -276,11 +276,27 @@ theorem erdos (χ : ℚ) (g : ℕ) :
   girth G n ∧ g < n :=
 sorry
 
--- I have no idea why this is true. Shitov just uses it, without any justification.
-lemma whut (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
+-- Johan: I have no idea why `whut` is true. Shitov just uses it, without any justification.
+-- Scott: I think this just comes from the fact that a k-colouring of `G.strong_prod (K_ n)`
+-- gives a fractional colouring of `G`, stubbed below:
+
+def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → V) (i : function.injective f) :
+  {s : finset V // s.card = k} := sorry
+
+def multicolouring_of_strong_prod_K_colouring {n} {G : graph V} (c : colouring W (G.strong_prod (K_ n))) : multicolouring W n G :=
+{ to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) sorry,
+  map_edge' := sorry, }
+
+-- Scott: @Johan, why all these predicates?
+-- Why not just write `frac_chromatic_number G * n ≤ chromatic_number (G.strong_prod (K_ n))`
+lemma whut [fintype V] (G : graph V) (hG : is_loopless G) (n : ℕ) {k : ℕ} {χ : ℚ}
   (hn : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : is_frac_chromatic_number G χ) :
   χ * n ≤ k :=
-sorry
+begin
+  have := minimal_colouring (G.strong_prod (K_ n)) (is_loopless.strong_prod hG (complete_is_loopless _)),
+  have := multicolouring_of_strong_prod_K_colouring this,
+  have := hχ.min this, -- huh? why doesn't that typecheck?
+end
 
 /-- A silly lemma about ceil that is actually false. -/
 lemma helpme {χ' χ : ℚ} (hχ : χ' < χ) {n k : ℕ} (h : χ * n ≤ k)  :

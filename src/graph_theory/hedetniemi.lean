@@ -371,7 +371,7 @@ begin
   exact h (c.map_edge e)
 end
 
-lemma coe_monotone (a b : ℤ) (h : (a : ℚ) < (b : ℚ)) : a < b := sorry
+lemma coe_monotone (a b : ℤ) (h : (a : ℚ) < (b : ℚ)) : a < b := by exact_mod_cast h
 
 example (n : ℕ) : 0 ≤ (n : ℚ) := by exact nat.cast_nonneg n
 

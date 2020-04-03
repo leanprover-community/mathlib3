@@ -1437,6 +1437,18 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
 
+/-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
+meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s :=
+  let msg (_ : unit) : format := match msg with
+    | some msg := add_msg ++ format.line ++ msg ()
+    | none := add_msg
+    end in
+  result.exception msg p s
+| ok := ok
+end
+
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/
 meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=

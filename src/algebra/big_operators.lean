@@ -49,7 +49,7 @@ lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
   g (s.prod f) = s.prod (λx, g (f x)) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_hom.map_sum [comm_semiring β] [comm_semiring γ]
+lemma ring_hom.map_sum [semiring β] [semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (s.sum f) = s.sum (λx, g (f x)) :=
 g.to_add_monoid_hom.map_sum f s

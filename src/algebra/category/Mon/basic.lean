@@ -88,6 +88,9 @@ instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
 
 @[to_additive]
+instance : category Mon := infer_instance -- short-circuit type class inference
+
+@[to_additive]
 instance : concrete_category Mon := infer_instance -- short-circuit type class inference
 
 end Mon
@@ -119,6 +122,9 @@ instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class
 
 @[to_additive add_comm_monoid]
 instance (M : CommMon) : comm_monoid M := M.str
+
+@[to_additive]
+instance : category CommMon := infer_instance -- short-circuit type class inference
 
 @[to_additive]
 instance : concrete_category CommMon := infer_instance -- short-circuit type class inference

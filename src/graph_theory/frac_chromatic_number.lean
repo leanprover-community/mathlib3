@@ -42,13 +42,15 @@ lemma multicolouring.extend_id {W₁ : Type u₁} [decidable_eq W₁] {k : ℕ} 
 by { dsimp [multicolouring.extend], simp, }
 
 @[simp]
-lemma multicolouring.extend_trans {W₁ : Type u₁} {W₂ : Type u₂} {W₃ : Type u₃} [decidable_eq W₁] [decidable_eq W₂] [decidable_eq W₃] {k : ℕ}
-  (c : multicolouring W₁ k G) (f₁ : W₁ ↪ W₂) (f₂ : W₂ ↪ W₃) :
-  c.extend (f₁.trans f₂) = (c.extend f₁).extend f₂:=
+lemma multicolouring.extend_trans
+  {W₁ : Type u₁} {W₂ : Type u₂} {W₃ : Type u₃} [decidable_eq W₁] [decidable_eq W₂] [decidable_eq W₃]
+  {k : ℕ} (c : multicolouring W₁ k G) (f₁ : W₁ ↪ W₂) (f₂ : W₂ ↪ W₃) :
+    c.extend (f₁.trans f₂) = (c.extend f₁).extend f₂:=
 by { dsimp [multicolouring.extend], simp, }
 
-def multicolouring.map_equiv {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ} (e : W₁ ≃ W₂) :
-  multicolouring W₁ k G ≃ multicolouring W₂ k G :=
+def multicolouring.map_equiv
+  {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ} (e : W₁ ≃ W₂) :
+    multicolouring W₁ k G ≃ multicolouring W₂ k G :=
 { to_fun := λ m, multicolouring.extend m e.to_embedding,
   inv_fun := λ m, multicolouring.extend m e.symm.to_embedding,
   left_inv := λ m, begin dsimp, rw ←multicolouring.extend_trans, simp, end,
@@ -135,7 +137,8 @@ end
 structure frac_chromatic_number_at_least (G : graph V) (r : ℚ) : Prop :=
 (min        : ∀ {n k}, nat_multicolouring n k G → 0 < k → r ≤ n/k)
 
-structure is_frac_chromatic_number (G : graph V) (r : ℚ) extends frac_chromatic_number_at_least G r : Prop :=
+structure is_frac_chromatic_number (G : graph V) (r : ℚ)
+  extends frac_chromatic_number_at_least G r : Prop :=
 (col_exists : ∃ (n k : ℕ), nonempty (nat_multicolouring n k G) ∧ 0 < k ∧ r = n/k)
 
 section

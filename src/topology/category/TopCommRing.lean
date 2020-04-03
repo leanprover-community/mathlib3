@@ -25,18 +25,18 @@ instance : has_coe_to_sort TopCommRing :=
 
 attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
+instance : category TopCommRing.{u} :=
+{ hom   := λ R S, {f : R →+* S // continuous f },
+  id    := λ R, ⟨ring_hom.id R, by obviously⟩, -- TODO remove obviously?
+  comp  := λ R S T f g, ⟨g.val.comp f.val,
+    begin -- TODO automate
+      cases f, cases g,
+      dsimp, apply continuous.comp ; assumption
+    end⟩ }
+
 instance : concrete_category TopCommRing.{u} :=
-{ to_category :=
-  { hom   := λ R S, {f : R →+* S // continuous f },
-    id    := λ R, ⟨ring_hom.id R, by obviously⟩, -- TODO remove obviously?
-    comp  := λ R S T f g, ⟨g.val.comp f.val,
-      begin -- TODO automate
-        cases f, cases g,
-        dsimp, apply continuous.comp ; assumption
-      end⟩ },
-  forget := { obj := λ R, R, map := λ R S f, f.val },
-  forget_faithful := { }
-}
+{ forget := { obj := λ R, R, map := λ R S f, f.val },
+  forget_faithful := { } }
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩

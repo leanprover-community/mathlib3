@@ -46,6 +46,8 @@ begin
   -- rather than
   -- ⊢ {a := 1}.a = {a := 1}.a
   target >>= pp >>= (λ t, guard $ to_string t = "1 = 1"),
+  trivial
+end
 
 variables {α : Type} [_inst : monoid α]
 include _inst

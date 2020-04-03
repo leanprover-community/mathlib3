@@ -1,6 +1,7 @@
 import data.finset
 import data.fin_enum
 import algebra.big_operators
+import measure_theory.probability_mass_function
 
 section move_this
 variables {X : Type*} {Y : Type*} [decidable_eq X] [decidable_eq Y]

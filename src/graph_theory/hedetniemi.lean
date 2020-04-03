@@ -63,9 +63,9 @@ assume x e, h e.2
 
 section hedetniemi
 variables {n₁ n₂ n : ℕ}
-variables (h₁ : is_chromatic_number G₁ n₁)
-variables (h₂ : is_chromatic_number G₂ n₂)
-variables (h : is_chromatic_number (G₁.prod G₂) n)
+variables (h₁ : has_chromatic_number G₁ n₁)
+variables (h₂ : has_chromatic_number G₂ n₂)
+variables (h : has_chromatic_number (G₁.prod G₂) n)
 
 variables (G₁ G₂)
 
@@ -86,17 +86,17 @@ lemma hedetniemi_iff [fintype V₁] [fintype V₂] :
   hedetniemi G₁ G₂ h₁.is_loopless h₂.is_loopless ↔ hedetniemi' h₁ h₂ h :=
 begin
   have H₁ : n₁ = chromatic_number G₁ h₁.is_loopless :=
-    h₁.elim (chromatic_number_is_chromatic_number G₁ h₁.is_loopless),
+    h₁.elim (has_chromatic_number_chromatic_number G₁ h₁.is_loopless),
   have H₂ : n₂ = chromatic_number G₂ h₂.is_loopless :=
-    h₂.elim (chromatic_number_is_chromatic_number G₂ h₂.is_loopless),
+    h₂.elim (has_chromatic_number_chromatic_number G₂ h₂.is_loopless),
   have H : n = chromatic_number (G₁.prod G₂) h.is_loopless :=
-    h.elim (chromatic_number_is_chromatic_number (G₁.prod G₂) h.is_loopless),
+    h.elim (has_chromatic_number_chromatic_number (G₁.prod G₂) h.is_loopless),
   convert iff.rfl,
-  all_goals { apply chromatic_number_is_chromatic_number }
+  all_goals { apply has_chromatic_number_chromatic_number }
 end
 
-variables {n' : ℕ} (h' : is_chromatic_number (G₂.ihom (K_ n)) n')
-variables {nᵤ : ℕ} (hᵤ : is_chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
+variables {n' : ℕ} (h' : has_chromatic_number (G₂.ihom (K_ n)) n')
+variables {nᵤ : ℕ} (hᵤ : has_chromatic_number ((G₂.ihom (K_ n)).prod G₂) nᵤ)
 
 lemma min_le_of_universal_hedetniemi (H : hedetniemi' h' h₂ hᵤ) :
   min n' n₂ ≤ n :=
@@ -106,7 +106,7 @@ calc min n' n₂ = nᵤ : H.symm
 lemma hedetniemi_of_universal (H : hedetniemi' h' h₂ hᵤ) :
   hedetniemi' h₁ h₂ h :=
 begin
-  apply le_antisymm (is_chromatic_number_prod_le_min h₁ h₂ h),
+  apply le_antisymm (has_chromatic_number_prod_le_min h₁ h₂ h),
   obtain ⟨c⟩ : nonempty (nat_colouring n (G₁.prod G₂)) := h.col_exists,
   obtain ⟨c'⟩ : nonempty (nat_colouring n' (G₂.ihom (K_ n))) := h'.col_exists,
   let f : hom G₁ (G₂.ihom (K_ n)) := (adj G₁ G₂ (K_ n)) c,
@@ -223,7 +223,7 @@ assume f e, h ⟨f, e⟩
 /-- Claim 3 of Shitov's paper. -/
 lemma claim3 (G : graph V) (g : girth_at_least G 6) :
   ∃ N : ℕ+, ∀ q, N ≤ q → ∃ (c χ : ℕ)
-    (h : is_chromatic_number ((G.strong_prod (K_ q)).ihom (K_ c)) χ),
+    (h : has_chromatic_number ((G.strong_prod (K_ q)).ihom (K_ c)) χ),
     c < χ ∧ ⌈(3.1 * q : ℚ)⌉ = c :=
 begin
   sorry
@@ -276,7 +276,7 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ+} (c : c
   end }
 
 lemma frac_chromatic_number_mul_le_chromatic_number_strong_prod_K [fintype V] (G : graph V) (n : ℕ+) {k : ℕ} {χ : ℚ}
-  (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : frac_chromatic_number_at_least G χ) :
+  (hk : has_chromatic_number (G.strong_prod (K_ n)) k) (hχ : frac_chromatic_number_at_least G χ) :
   χ * n ≤ k :=
 begin
   obtain ⟨c⟩ := hk.col_exists,
@@ -317,13 +317,13 @@ begin
   apply ne_of_lt,
   refine lt_of_le_of_lt (show _ ≤ c, from _) _,
   { let uc := universal_colouring (fin c) (G.strong_prod (K_ q)),
-    exact (chromatic_number_is_chromatic_number _ _).min uc },
+    exact (has_chromatic_number_chromatic_number _ _).min uc },
   { rw lt_min_iff,
     split,
-    { rwa (chromatic_number_is_chromatic_number _ _).elim hχ' },
+    { rwa (has_chromatic_number_chromatic_number _ _).elim hχ' },
     { rw [← int.coe_nat_lt, ← hqc],
       have t₂ := frac_chromatic_number_mul_le_chromatic_number_strong_prod_K G q
-        (chromatic_number_is_chromatic_number _ _) hχ,
+        (has_chromatic_number_chromatic_number _ _) hχ,
       apply coe_monotone,
       apply lt_of_lt_of_le,
       apply helpme' _ _,

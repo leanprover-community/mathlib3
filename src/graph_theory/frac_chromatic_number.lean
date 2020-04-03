@@ -159,9 +159,9 @@ classical.some_spec (frac_chromatic_number_exists G hG)
 
 end
 
-lemma frac_chromatic_number_at_least_le_is_chromatic_number
+lemma frac_chromatic_number_at_least_le_has_chromatic_number
   (G : graph V) (q : ℚ) (n : ℕ)
-  (hq : frac_chromatic_number_at_least G q) (hn : is_chromatic_number G n) :
+  (hq : frac_chromatic_number_at_least G q) (hn : has_chromatic_number G n) :
   q ≤ n :=
 begin
   obtain ⟨c⟩ := hn.col_exists,
@@ -171,9 +171,9 @@ end
 
 lemma frac_chromatic_number_le_chromatic_number [fintype V] (G : graph V) (hG : G.is_loopless) :
   frac_chromatic_number G hG ≤ chromatic_number G hG :=
-frac_chromatic_number_at_least_le_is_chromatic_number G _ _
+frac_chromatic_number_at_least_le_has_chromatic_number G _ _
   (frac_chromatic_number_is_frac_chromatic_number G hG).to_frac_chromatic_number_at_least
-  (chromatic_number_is_chromatic_number G hG)
+  (has_chromatic_number_chromatic_number G hG)
 
 lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :
   0 < q :=

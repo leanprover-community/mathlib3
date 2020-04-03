@@ -461,6 +461,7 @@ meta structure linarith_config :=
 (restrict_type_reflect : reflected restrict_type . apply_instance)
 (exfalso : bool := tt)
 (transparency : transparency := reducible)
+(split_hypotheses : bool := tt)
 
 meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
@@ -880,6 +881,7 @@ let cfg :=
   if red.is_some then {cfg with transparency := semireducible, discharger := `[ring!]}
   else cfg in
 do t ← target,
+   when cfg.split_hypotheses (try auto.split_hyps),
    match get_contr_lemma_name t with
    | some nm := seq (applyc nm) $
      do t ← intro1, linarith.interactive_aux cfg (some t) restr.is_some hyps

@@ -57,12 +57,19 @@ instance comm_group         [∀ i, comm_group         $ f i] : comm_group      
 instance add_semigroup      [∀ i, add_semigroup      $ f i] : add_semigroup      (Π i : I, f i) := by pi_instance
 instance add_comm_semigroup [∀ i, add_comm_semigroup $ f i] : add_comm_semigroup (Π i : I, f i) := by pi_instance
 instance add_monoid         [∀ i, add_monoid         $ f i] : add_monoid         (Π i : I, f i) := by pi_instance
-instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance add_group          [∀ i, add_group          $ f i] : add_group          (Π i : I, f i) := by pi_instance
 instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group     (Π i : I, f i) := by pi_instance
 instance semiring           [∀ i, semiring           $ f i] : semiring           (Π i : I, f i) := by pi_instance
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
+
+instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) :=
+{ add := λ a b i, a i + b i,
+  zero := λ i, 0,
+  add_assoc := by simp,
+  add_comm := by intros a b; ext; simp; cc,
+  zero_add := by intro a; ext; simp,
+  add_zero := by intro a; ext; simp, }
 
 instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
 { smul := λ c f i, c • f i,
@@ -76,14 +83,25 @@ instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f 
 
 variables (I f)
 
-instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+instance semimodule
+    (α) {r : semiring α}
+           [m : ∀ i, add_comm_monoid $ f i]
+           [∀ i, semimodule α $ f i]     :
+           @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m)
+            :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
-variables {I f}
+/-
+instance cheat2 (R : Type u) [ring R] (ι : Type v) :
+@semimodule.{u (max v u)} R (ι → R) (@ring.to_semiring.{u} R _inst_1)
+    (@add_comm_group.to_add_comm_monoid.{(max v u)} (ι → R)
+       (@pi.add_comm_group.{v u} ι (λ (a : ι), R) (λ (i : ι), @ring.to_add_comm_group.{u} R _inst_1))) :=
+  @pi.semimodule ι (λ (i : ι), R) R _ _ _
+-/
 
-instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
+variables {I f}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
@@ -423,9 +441,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
   smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩,
   .. prod.has_scalar }
-
-instance {r : ring α} [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] : module α (β × γ) := {}
 
 section substructures
 variables (s : set α) (t : set β)

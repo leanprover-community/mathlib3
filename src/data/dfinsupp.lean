@@ -132,16 +132,19 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   ..dfinsupp.add_group }
 
-def to_has_scalar {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] : has_scalar γ (Π₀ i, β i) :=
+def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+  has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
+@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
+  [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
   (b • v) i = b • (v i) :=
 map_range_apply
 
-def to_module {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] : module γ (Π₀ i, β i) :=
-module.of_core {
+def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+  semimodule γ (Π₀ i, β i) :=
+semimodule.of_core {
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
@@ -386,9 +389,10 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 { map_add := λ _ _, mk_add }
 
 section
-local attribute [instance] to_module
-variables (γ : Type w) [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+local attribute [instance] to_semimodule
+variables (γ : Type w) [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)]
 include γ
+
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
@@ -397,9 +401,22 @@ ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
   single i (c • x) = c • single i x :=
 ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smul_zero]; refl
 
-variable β
-def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ[γ] Π₀ i, β i :=
+variable (β)
+include β
+/-
+def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ[γ] (Π₀ i, β i) :=
 ⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
+
+-- failed to synthetize instance for semimodule γ (Π (i : ↥↑s), β i.val)
+-/
+
+def lmk (s : finset ι) :
+by { letI : semimodule γ (Π (i : (↑s : set ι)), β i.val) := by apply_instance,
+     exact (Π i : (↑s : set ι), β i.1) →ₗ[γ] (Π₀ i, β i) } :=
+begin
+  letI : semimodule γ (Π (i : (↑s : set ι)), β i.val) := by apply_instance,
+  exact ⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
+end
 
 def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
 ⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
@@ -559,7 +576,7 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
-local attribute [instance] dfinsupp.to_module
+local attribute [instance] dfinsupp.to_semimodule
 
 lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
   [Π (i : ι), decidable_pred (eq (0 : β i))]

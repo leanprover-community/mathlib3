@@ -538,9 +538,13 @@ lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem_sets' hp
 
-lemma eventually_false_iff_eq_bot {f : filter α} :
+@[simp] lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_in_sets_eq_bot
+
+@[simp] lemma eventually_const {f : filter α} (hf : f ≠ ⊥) {p : Prop} :
+  (∀ᶠ x in f, p) ↔ p :=
+classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h, hf])
 
 lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
   (hq : ∀ᶠ x in f, p x → q x) :
@@ -552,14 +556,29 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
 
-lemma eventually.congr {f : filter α} {β : Type*} {u v : α → β} {p : β → Prop}
-  (h : ∀ᶠ a in f, u a = v a) (h' : ∀ᶠ a in f, p (u a)) : ∀ᶠ a in f, p (v a) :=
-h'.mp (h.mono (by simp {contextual := tt}))
+@[simp] lemma eventually_and {p q : α → Prop} {f : filter α} :
+  (∀ᶠ x in f, p x ∧ q x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in f, q x) :=
+⟨λ h, ⟨h.mono $ λ _, and.left, h.mono $ λ _, and.right⟩, λ h, h.1.and h.2⟩
 
-lemma eventually.congr_iff {f : filter α} {β : Type*} {u v : α → β}
-  (h : ∀ᶠ a in f, u a = v a) (p : β → Prop) :
-  (∀ᶠ a in f, p (u a)) ↔ (∀ᶠ a in f, p (v a)) :=
-⟨h.congr, eventually.congr (h.mp (by simp {contextual := tt}))⟩
+lemma eventually.congr {f : filter α} {p q : α → Prop} (h' : ∀ᶠ x in f, p x)
+  (h : ∀ᶠ x in f, p x ↔ q x) : ∀ᶠ x in f, q x :=
+h'.mp (h.mono $ λ x hx, hx.mp)
+
+lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p x ↔ q x) :
+  (∀ᶠ x in f, p x) ↔ (∀ᶠ x in f, q x) :=
+⟨λ hp, hp.congr h, λ hq, hq.congr $ by simpa only [iff.comm] using h⟩
+
+@[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
+  (∀ᶠ x in f, p ∨ q x) ↔ (p ∨ ∀ᶠ x in f, q x) :=
+classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h])
+
+@[simp] lemma eventually_or_distrib_right {f : filter α} {p : α → Prop} {q : Prop} :
+  (∀ᶠ x in f, p x ∨ q) ↔ ((∀ᶠ x in f, p x) ∨ q) :=
+by simp only [or_comm _ q, eventually_or_distrib_left]
+
+@[simp] lemma eventually_imp_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
+  (∀ᶠ x in f, p → q x) ↔ (p → ∀ᶠ x in f, q x) :=
+by simp only [imp_iff_not_or, eventually_or_distrib_left]
 
 @[simp]
 lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
@@ -647,12 +666,44 @@ by simp [filter.frequently]
   (¬ ∃ᶠ x in f, p x) ↔ (∀ᶠ x in f, ¬ p x) :=
 by simp only [filter.frequently, not_not]
 
-lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
+@[simp] lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
 by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot]
 
-lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
+@[simp] lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
 
-lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
+@[simp] lemma frequently_const {f : filter α} (hf : f ≠ ⊥) {p : Prop} :
+  (∃ᶠ x in f, p) ↔ p :=
+classical.by_cases (λ h : p, by simp [*]) (λ h, by simp [*])
+
+@[simp] lemma frequently_or_distrib {f : filter α} {p q : α → Prop} :
+  (∃ᶠ x in f, p x ∨ q x) ↔ (∃ᶠ x in f, p x) ∨ (∃ᶠ x in f, q x) :=
+by simp only [filter.frequently, ← not_and_distrib, not_or_distrib, eventually_and]
+
+lemma frequently_or_distrib_left {f : filter α} (hf : f ≠ ⊥) {p : Prop} {q : α → Prop} :
+  (∃ᶠ x in f, p ∨ q x) ↔ (p ∨ ∃ᶠ x in f, q x) :=
+by simp [hf]
+
+lemma frequently_or_distrib_right {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} {q : Prop} :
+  (∃ᶠ x in f, p x ∨ q) ↔ (∃ᶠ x in f, p x) ∨ q :=
+by simp [hf]
+
+@[simp] lemma frequently_imp_distrib {f : filter α} {p q : α → Prop} :
+  (∃ᶠ x in f, p x → q x) ↔ ((∀ᶠ x in f, p x) → ∃ᶠ x in f, q x) :=
+by simp [imp_iff_not_or, not_eventually, frequently_or_distrib]
+
+lemma frequently_imp_distrib_left {f : filter α} (hf : f ≠ ⊥) {p : Prop} {q : α → Prop} :
+  (∃ᶠ x in f, p → q x) ↔ (p → ∃ᶠ x in f, q x) :=
+by simp [hf]
+
+lemma frequently_imp_distrib_right {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} {q : Prop} :
+  (∃ᶠ x in f, p x → q) ↔ ((∀ᶠ x in f, p x) → q) :=
+by simp [hf]
+
+@[simp] lemma eventually_imp_distrib_right {f : filter α} {p : α → Prop} {q : Prop} :
+  (∀ᶠ x in f, p x → q) ↔ ((∃ᶠ x in f, p x) → q) :=
+by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
+
+@[simp] lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
 
 @[simp]
 lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=
@@ -1371,6 +1422,11 @@ def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl
 
+lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {p : β → Prop}
+  (hf : tendsto f l₁ l₂) (h : ∀ᶠ y in l₂, p y) :
+  ∀ᶠ x in l₁, p (f x) :=
+hf h
+
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
@@ -1558,6 +1614,19 @@ tendsto_inf_right tendsto_comap
 lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α → β} {m₂ : α → γ}
   (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (g ×ᶠ h) :=
 tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
+
+lemma eventually.prod_inl {la : filter α} {p : α → Prop} (h : ∀ᶠ x in la, p x) (lb : filter β) :
+  ∀ᶠ x in la ×ᶠ lb, p (x : α × β).1 :=
+tendsto_fst.eventually h
+
+lemma eventually.prod_inr {lb : filter β} {p : β → Prop} (h : ∀ᶠ x in lb, p x) (la : filter α) :
+  ∀ᶠ x in la ×ᶠ lb, p (x : α × β).2 :=
+tendsto_snd.eventually h
+
+lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in la, pa x)
+  {lb : filter β} {pb : β → Prop} (hb : ∀ᶠ y in lb, pb y) :
+  ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
+(ha.prod_inl lb).and (hb.prod_inr la)
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=
@@ -1898,10 +1967,10 @@ map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b _, nat.sub_le_right_iff_le_add)
   (assume b _, by rw [nat.add_sub_cancel])
 
-lemma tendso_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
+lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
 le_of_eq (map_add_at_top_eq_nat k)
 
-lemma tendso_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
+lemma tendsto_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
 le_of_eq (map_sub_at_top_eq_nat k)
 
 lemma tendsto_add_at_top_iff_nat {f : ℕ → α} {l : filter α} (k : ℕ) :

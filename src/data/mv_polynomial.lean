@@ -167,7 +167,8 @@ lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s 
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
-  monomial (single s n) a = C a * (X s)^n := by rw [← zero_add (single s n), monomial_add_single, C]
+  monomial (single s n) a = C a * (X s)^n := 
+by rw [← zero_add (single s n), monomial_add_single, C]
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
   monomial s a + monomial s b = monomial s (a + b) :=
@@ -182,7 +183,7 @@ by rw [monomial, single_zero]; refl
 
 @[simp] lemma sum_monomial  {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : α} {b : (σ →₀ ℕ) → α → A} (w : b u 0 = 0) :
-    sum (monomial u r) b = b u r :=
+  sum (monomial u r) b = b u r :=
 sum_single_index w
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
@@ -1345,7 +1346,7 @@ lemma pderivative_add {v : S} {f g : mv_polynomial S R} :
   pderivative v (f + g) = pderivative v f + pderivative v g :=
 begin
   refine sum_add_index _ _,
-  {intro, simpa [monomial]},
+  { intro, simpa [monomial] },
   intros, rw [monomial_add, add_mul],
 end
 
@@ -1372,9 +1373,8 @@ begin
   ext f,
   rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
   by_cases h : v = f,
-  { rw [←h, single_eq_same], cases (u v), {contradiction},
-    rw [nat.succ_sub_one, nat.succ_add, nat.succ_sub_one],
-  },
+  { rw [←h, single_eq_same], cases (u v), { contradiction },
+    rw [nat.succ_sub_one, nat.succ_add, nat.succ_sub_one] },
   rw single_eq_of_ne h, simp
 end
 
@@ -1394,9 +1394,8 @@ begin
   ext f,
   rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
   by_cases h : v = f,
-  { rw [←h, single_eq_same], cases (u' v), {contradiction},
-    rw [nat.succ_sub_one, nat.add_succ, nat.succ_sub_one]
-  },
+  { rw [←h, single_eq_same], cases (u' v), { contradiction },
+    rw [nat.succ_sub_one, nat.add_succ, nat.succ_sub_one] },
   rw single_eq_of_ne h, simp,
 end
 
@@ -1406,7 +1405,7 @@ private lemma pderivative_monomial_mul_aux2 {v : S} {u u' : S →₀ ℕ} {r r' 
     monomial (u + u' - single v 1) (r * (r' * (u' v))) :=
 begin
   by_cases h : u' v = 0,
-  {rw [h, nat.cast_zero, mul_zero, mul_zero], simp [monomial]},
+  { rw [h, nat.cast_zero, mul_zero, mul_zero], simp [monomial] },
   rw pderivative_monomial_mul_aux2_aux h,
 end
 

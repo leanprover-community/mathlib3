@@ -476,7 +476,7 @@ begin
   ext f,
   by_cases h : (a = f),
   { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h ]
+  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
 end
 
 end nat_sub

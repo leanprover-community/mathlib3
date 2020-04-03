@@ -210,7 +210,7 @@ begin
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (by simp)
-      (tendsto_dist tendsto_const_nhds (hF x))
+      (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous -/

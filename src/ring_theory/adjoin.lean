@@ -70,7 +70,7 @@ begin
 end
 
 theorem adjoin_eq_range [decidable_eq R] [decidable_eq A] :
-  adjoin R s = (mv_polynomial.aeval R A s).range :=
+  adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
   (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p

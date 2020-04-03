@@ -167,7 +167,7 @@ lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s 
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
-  monomial (single s n) a = C a * (X s)^n := 
+  monomial (single s n) a = C a * (X s)^n :=
 by rw [← zero_add (single s n), monomial_add_single, C]
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
@@ -1341,13 +1341,13 @@ variable {S : Type}
 def pderivative (v : S) (p : mv_polynomial S R) : mv_polynomial S R :=
 p.sum (λ A B, monomial (A - single v 1) (B * (A v)))
 
-
+@[simp]
 lemma pderivative_add {v : S} {f g : mv_polynomial S R} :
   pderivative v (f + g) = pderivative v f + pderivative v g :=
 begin
   refine sum_add_index _ _,
-  { intro, simpa [monomial] },
-  intros, rw [monomial_add, add_mul],
+  { simp },
+  simp [add_mul],
 end
 
 @[simp]
@@ -1355,12 +1355,14 @@ lemma pderivative_monomial {v : S} {u : S →₀ ℕ} {a : R} :
   pderivative v (monomial u a) = monomial (u - single v 1) (a * (u v)) :=
 by simp [pderivative]
 
+@[simp]
 lemma pderivative_C {v : S} {a : R} : pderivative v (C a) = 0 :=
-suffices pderivative v (monomial 0 a) = 0, by rw C; exact this,
-by rw [pderivative_monomial, zero_apply, nat.cast_zero, mul_zero, monomial_zero]
+suffices pderivative v (monomial 0 a) = 0, by simpa,
+by simp
 
+@[simp]
 lemma pderivative_zero {v : S} : pderivative v (0 : mv_polynomial S R) = 0 :=
-suffices pderivative v (C 0 : mv_polynomial S R) = 0, by rw C_0 at this; exact this,
+suffices pderivative v (C 0 : mv_polynomial S R) = 0, by simpa,
 show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
 
 lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
@@ -1375,7 +1377,7 @@ begin
   by_cases h : v = f,
   { rw [←h, single_eq_same], cases (u v), { contradiction },
     rw [nat.succ_sub_one, nat.succ_add, nat.succ_sub_one] },
-  rw single_eq_of_ne h, simp
+  { rw single_eq_of_ne h, simp, }
 end
 
 @[simp]
@@ -1385,7 +1387,7 @@ private lemma pderivative_monomial_mul_aux1 {v : S} {u u' : S →₀ ℕ} {r r' 
 begin
   by_cases h : u v = 0,
   { rw [h, nat.cast_zero, mul_zero, zero_mul], simp [monomial] },
-  rw pderivative_monomial_mul_aux1_aux h,
+  { rw pderivative_monomial_mul_aux1_aux h, }
 end
 
 private lemma pderivative_monomial_mul_aux2_aux {v : S} {u u' : S →₀ ℕ} (h : u' v ≠ 0) :
@@ -1396,7 +1398,7 @@ begin
   by_cases h : v = f,
   { rw [←h, single_eq_same], cases (u' v), { contradiction },
     rw [nat.succ_sub_one, nat.add_succ, nat.succ_sub_one] },
-  rw single_eq_of_ne h, simp,
+  { rw single_eq_of_ne h, simp, }
 end
 
 @[simp]
@@ -1406,7 +1408,7 @@ private lemma pderivative_monomial_mul_aux2 {v : S} {u u' : S →₀ ℕ} {r r' 
 begin
   by_cases h : u' v = 0,
   { rw [h, nat.cast_zero, mul_zero, mul_zero], simp [monomial] },
-  rw pderivative_monomial_mul_aux2_aux h,
+  { rw pderivative_monomial_mul_aux2_aux h, }
 end
 
 lemma pderivative_monomial_mul {v : S} {u u' : S →₀ ℕ} {r r' : R} :
@@ -1425,11 +1427,11 @@ begin
   apply induction_on' f,
   { apply induction_on' g,
     { intros u r u' r', exact pderivative_monomial_mul },
-    intros p q hp hq u r,
-    rw [mul_add, pderivative_add, hp, hq, mul_add, pderivative_add],
-    ring },
+    { intros p q hp hq u r,
+      rw [mul_add, pderivative_add, hp, hq, mul_add, pderivative_add],
+      ring } },
   intros p q hp hq,
-  rw [add_mul, pderivative_add, pderivative_add, hp, hq],
+  simp [add_mul, hp, hq],
   ring,
 end
 

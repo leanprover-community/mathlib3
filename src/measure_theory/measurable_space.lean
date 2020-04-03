@@ -84,8 +84,11 @@ lemma is_measurable.empty : is_measurable (∅ : set α) :=
 lemma is_measurable.compl : is_measurable s → is_measurable (-s) :=
 ‹measurable_space α›.is_measurable_compl s
 
+lemma is_measurable.of_compl (h : is_measurable (-s)) : is_measurable s :=
+s.compl_compl ▸ h.compl
+
 lemma is_measurable.compl_iff : is_measurable (-s) ↔ is_measurable s :=
-⟨λ h, by simpa using h.compl, is_measurable.compl⟩
+⟨is_measurable.of_compl, is_measurable.compl⟩
 
 lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
@@ -391,6 +394,10 @@ lemma measurable.comp [measurable_space α] [measurable_space β] [measurable_sp
   {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) : measurable (g ∘ f) :=
 le_trans hg $ map_mono hf
 
+lemma measurable_from_top [measurable_space β] {f : α → β} :
+  @measurable _ _ ⊤ _ f :=
+λ s hs, by simp
+
 lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
   (h : ∀t∈s, is_measurable (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
 generate_from_le h
@@ -423,6 +430,15 @@ instance : measurable_space unit := ⊤
 instance : measurable_space bool := ⊤
 instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
+instance : measurable_space ℚ := ⊤
+
+lemma measurable_to_encodable [encodable α] [measurable_space α] [measurable_space β] {f : β → α}
+  (h : ∀ y, is_measurable {x | f x = y}) : measurable f :=
+begin
+  assume s hs, show is_measurable {x | f x ∈ s},
+  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
+  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
+end
 
 lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 have f = (λu, f ()) := funext $ assume ⟨⟩, rfl,
@@ -431,15 +447,11 @@ by rw this; exact measurable_const
 section nat
 
 lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f :=
-assume s hs, show is_measurable {n : ℕ | f n ∈ s}, from trivial
+measurable_from_top
 
 lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
-(∀ k, is_measurable {x | f x = k}) → measurable f :=
-begin
-  assume h s hs, show is_measurable {x | f x ∈ s},
-  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
-  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
-end
+  (∀ k, is_measurable {x | f x = k}) → measurable f :=
+measurable_to_encodable
 
 lemma measurable_find_greatest [measurable_space α] {p : ℕ → α → Prop} :
   ∀ {N}, (∀ k ≤ N, is_measurable {x | nat.find_greatest (λ n, p n x) N = k}) →

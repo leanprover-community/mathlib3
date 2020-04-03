@@ -55,6 +55,7 @@ instance (R : SemiRing) : semiring R := R.str
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
 
+instance : category SemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category SemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
@@ -88,6 +89,7 @@ instance : has_coe_to_sort Ring := by apply_instance -- short-circuit type class
 
 instance (R : Ring) : ring R := R.str
 
+instance : category Ring := infer_instance -- short-circuit type class inference
 instance : concrete_category Ring := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance  -- short-circuit type class inference
@@ -120,6 +122,7 @@ instance : has_coe_to_sort CommSemiRing := infer_instance -- short-circuit type 
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
 
+instance : category CommSemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommSemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := infer_instance -- short-circuit type class inference
@@ -153,6 +156,7 @@ instance : has_coe_to_sort CommRing := infer_instance -- short-circuit type clas
 
 instance (R : CommRing) : comm_ring R := R.str
 
+instance : category CommRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := infer_instance -- short-circuit type class inference

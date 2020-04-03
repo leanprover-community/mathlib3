@@ -1,6 +1,6 @@
 name: continuous integration
 
-on: [push]
+on:
   push:
     branches-ignore:
       # ignore tmp branches used by bors

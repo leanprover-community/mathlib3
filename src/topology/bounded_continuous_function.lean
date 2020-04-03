@@ -146,8 +146,7 @@ begin
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
     have : tendsto_uniformly (λn x, f n x) F at_top,
     { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
-      apply ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn, _),
-      assume x,
+      refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
     exact this.continuous (λN, (f N).2.1) at_top_ne_bot },

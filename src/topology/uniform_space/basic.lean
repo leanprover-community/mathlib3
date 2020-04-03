@@ -910,6 +910,21 @@ lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α}
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂
 
+/-!
+### Expressing continuity properties in uniform spaces
+
+We reformulate the various continuity properties of functions taking values in a uniform space
+in terms of the uniformity in the target. Since the same lemmas (essentially with the same names)
+also exist for metric spaces and emetric spaces (reformulating things in terms of the distance or
+the edistance in the target), we put them in a namespace `uniform` here.
+
+In the metric and emetric space setting, there are also similar lemmas where one assumes that
+both the source and the target are metric spaces, reformulating things in terms of the distance
+on both sides. These lemmas are generally written without primes, and the versions where only
+the target is a metric space is primed. We follow the same convention here, thus giving lemmas
+with primes.
+-/
+
 namespace uniform
 
 variables {α : Type*} {β : Type*} [uniform_space α]

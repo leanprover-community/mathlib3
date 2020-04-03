@@ -110,6 +110,7 @@ jobs:
           ./scripts/update_nolints.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          DEPLOY_NIGHTLY_GITHUB_USER: leanprover-community-bot
 
       - name: tests
         if: success() || steps.build.outputs.status == 'built'

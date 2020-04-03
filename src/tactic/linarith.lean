@@ -862,7 +862,7 @@ by linarith
 will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
 This can sometimes be expensive.
 
-`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three
+`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with five
 optional arguments:
 * `discharger` specifies a tactic to be used for reducing an algebraic equation in the
   proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
@@ -870,6 +870,10 @@ optional arguments:
 * `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
   if you have e.g. both integer and rational valued inequalities in the local context, which can
   sometimes confuse the tactic.
+* `transparency` controls how hard `linarith` will try to match atoms to each other. By default
+  it will only unfold `reducible` definitions.
+* If `split_hypotheses` is true, `linarith` will split conjunctions in the context into separate
+  hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
 

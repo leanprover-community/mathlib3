@@ -222,7 +222,7 @@ assume f e, h ⟨f, e⟩
 
 /-- Claim 3 of Shitov's paper. -/
 lemma claim3 (G : graph V) (g : girth_at_least G 6) :
-  ∃ N : ℕ, ∀ q, N ≤ q → ∃ (c χ : ℕ)
+  ∃ N : ℕ+, ∀ q, N ≤ q → ∃ (c χ : ℕ)
     (h : is_chromatic_number ((G.strong_prod (K_ q)).ihom (K_ c)) χ),
     c < χ ∧ ⌈(3.1 * q : ℚ)⌉ = c :=
 begin
@@ -254,7 +254,7 @@ begin
   exact ⟨rfl, h⟩
 end
 
-def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : colouring W (G.strong_prod (K_ n))) :
+def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ+} (c : colouring W (G.strong_prod (K_ n))) :
   multicolouring W n G :=
 { to_fun := λ v, finset_with_card_of_injective_fn (λ i : fin n, c (v, i)) (c.foo v),
   map_edge' :=
@@ -270,22 +270,20 @@ def multicolouring_of_strong_prod_K_colouring [decidable_eq W] {n : ℕ} (c : co
     exact edge_strong_prod_complete _ _ e
   end }
 
-lemma frac_chromatic_number_mul_le_chromatic_number_strong_prod_K [fintype V] (G : graph V) (n : ℕ) {k : ℕ} {χ : ℚ}
+lemma frac_chromatic_number_mul_le_chromatic_number_strong_prod_K [fintype V] (G : graph V) (n : ℕ+) {k : ℕ} {χ : ℚ}
   (hk : is_chromatic_number (G.strong_prod (K_ n)) k) (hχ : frac_chromatic_number_at_least G χ) :
   χ * n ≤ k :=
 begin
-  by_cases hn : n = 0, { simp [hn] },
-  replace hn : 0 < n := nat.pos_of_ne_zero hn,
   obtain ⟨c⟩ := hk.col_exists,
   let mc := multicolouring_of_strong_prod_K_colouring c,
-  have := hχ.min mc hn,
+  have := hχ.min mc,
   rwa le_div_iff at this,
-  assumption_mod_cast,
+  simp,
 end
 
-lemma helpme' (α : ℚ) (q : ℕ) (h : ¬ q = 0) : (⌈α * q⌉ : ℚ) < (α + 1) * q :=
+lemma helpme' (α : ℚ) (q : ℕ+) : (⌈α * q⌉ : ℚ) < (α + 1) * q :=
 calc (⌈α * q⌉ : ℚ) < α * q + 1 : ceil_lt_add_one _
-               ... ≤ α * q + q : by { apply add_le_add_left, exact_mod_cast nat.pos_of_ne_zero h }
+               ... ≤ α * q + q : by { apply add_le_add_left, simp, sorry } -- how is that hard?
                ... = (α + 1) * q : by ring
 
 
@@ -321,11 +319,9 @@ begin
     { rw [← int.coe_nat_lt, ← hqc],
       have t₂ := frac_chromatic_number_mul_le_chromatic_number_strong_prod_K G q
         (chromatic_number_is_chromatic_number _ _) hχ,
-      by_cases q = 0,
-      { simp [h], apply chromatic_number.pos, },
       apply coe_monotone,
       apply lt_of_lt_of_le,
-      apply helpme' _ _ h,
+      apply helpme' _ _,
       norm_num,
       exact t₂,
       } }

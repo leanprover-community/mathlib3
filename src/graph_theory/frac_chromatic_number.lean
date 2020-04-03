@@ -23,33 +23,33 @@ using colors from the type `W`.
 In other words, an assignment of subsets of `W` of size `k` to the vertices of `G`,
 in such a way that adjacent vertices are assigned disjoint sets.
 These multicolourings are implemented as homomorphisms from `G` to the Kneser graph `Kneser W k`. -/
-abbreviation multicolouring (W : Type*) [decidable_eq W] (k : ℕ) (G : graph V) :=
+abbreviation multicolouring (W : Type*) [decidable_eq W] (k : ℕ+) (G : graph V) :=
 hom G (Kneser W k)
 
 /-- A `nat_multicolouring n k G` is a “n:k-fold colouring” of the graph `G`.
 In other words, an assignment of sets of size `k` to the vertices of `G`,
 in such a way that adjacent vertices are assigned disjoint sets. -/
-abbreviation nat_multicolouring (n k : ℕ) (G : graph V) := multicolouring (fin n) k G
+abbreviation nat_multicolouring (n : ℕ) (k : ℕ+) (G : graph V) := multicolouring (fin n) k G
 
-def multicolouring.extend {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ}
+def multicolouring.extend {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ+}
   (c : multicolouring W₁ k G) (f : W₁ ↪ W₂) :
   multicolouring W₂ k G :=
 (Kneser.map f k).comp c
 
 @[simp]
-lemma multicolouring.extend_id {W₁ : Type u₁} [decidable_eq W₁] {k : ℕ} (c : multicolouring W₁ k G) :
+lemma multicolouring.extend_id {W₁ : Type u₁} [decidable_eq W₁] {k : ℕ+} (c : multicolouring W₁ k G) :
   c.extend (function.embedding.refl _) = c :=
 by { dsimp [multicolouring.extend], simp, }
 
 @[simp]
 lemma multicolouring.extend_trans
   {W₁ : Type u₁} {W₂ : Type u₂} {W₃ : Type u₃} [decidable_eq W₁] [decidable_eq W₂] [decidable_eq W₃]
-  {k : ℕ} (c : multicolouring W₁ k G) (f₁ : W₁ ↪ W₂) (f₂ : W₂ ↪ W₃) :
+  {k : ℕ+} (c : multicolouring W₁ k G) (f₁ : W₁ ↪ W₂) (f₂ : W₂ ↪ W₃) :
     c.extend (f₁.trans f₂) = (c.extend f₁).extend f₂:=
 by { dsimp [multicolouring.extend], simp, }
 
 def multicolouring.map_equiv
-  {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ} (e : W₁ ≃ W₂) :
+  {W₁ : Type u₁} {W₂ : Type u₂} [decidable_eq W₁] [decidable_eq W₂] {k : ℕ+} (e : W₁ ≃ W₂) :
     multicolouring W₁ k G ≃ multicolouring W₂ k G :=
 { to_fun := λ m, multicolouring.extend m e.to_embedding,
   inv_fun := λ m, multicolouring.extend m e.symm.to_embedding,
@@ -67,7 +67,7 @@ def colouring.to_multi [decidable_eq W] (c : colouring W G) :
 (complete_to_Kneser_one W).comp c
 
 def multicolouring.multiply {W' : Type*} [decidable_eq W] [decidable_eq W']
-  {k : ℕ} (c : multicolouring W k G) (m : ℕ)
+  {k : ℕ+} (c : multicolouring W k G) (m : ℕ+)
   (f : W → finset W') (hf : ∀ w, (f w).card = m) (hf' : ∀ w₁ w₂, w₁ ≠ w₂ → disjoint (f w₁) (f w₂)) :
   multicolouring W' (k * m) G :=
 { to_fun    := λ v, ⟨finset.bind (c v : finset W) f,
@@ -87,7 +87,7 @@ def multicolouring.multiply {W' : Type*} [decidable_eq W] [decidable_eq W']
     solve_by_elim
   end }
 
-def nat_multicolouring.multiply {n k : ℕ} (c : nat_multicolouring n k G) (m : ℕ) :
+def nat_multicolouring.multiply {n : ℕ} {k : ℕ+} (c : nat_multicolouring n k G) (m : ℕ+) :
   nat_multicolouring (n * m) (k * m) G :=
 begin
   apply (multicolouring.map_equiv (@fin_prod_fin_equiv n m)).to_fun,
@@ -97,14 +97,14 @@ begin
   { apply fintype.fibers_disjoint, }
 end
 
-def nat_colouring.multiply {n : ℕ} (c : nat_colouring n G) (m : ℕ) :
+def nat_colouring.multiply {n : ℕ} (c : nat_colouring n G) (m : ℕ+) :
   nat_multicolouring (n * m) m G :=
 begin
   convert nat_multicolouring.multiply c.to_multi _,
   exact (one_mul m).symm,
 end
 
-structure is_multichromatic_number (G : graph V) (n k : ℕ) : Prop :=
+structure is_multichromatic_number (G : graph V) (n : ℕ) (k : ℕ+) : Prop :=
 (col_exists : nonempty (nat_multicolouring n k G))
 (min        : ∀ {m}, nat_multicolouring m k G → n ≤ m)
 
@@ -113,18 +113,18 @@ open_locale classical
 
 variable [fintype V]
 
-lemma multichromatic_number_exists (G : graph V) (hG : G.is_loopless) (k : ℕ) :
+lemma multichromatic_number_exists (G : graph V) (hG : G.is_loopless) (k : ℕ+) :
   ∃ n, nonempty (nat_multicolouring n k G) :=
 ⟨(chromatic_number G hG) * k, ⟨nat_colouring.multiply (minimal_colouring G hG) k⟩⟩
 
-noncomputable def multichromatic_number (G : graph V) (hG : G.is_loopless) (k : ℕ) : ℕ :=
+noncomputable def multichromatic_number (G : graph V) (hG : G.is_loopless) (k : ℕ+) : ℕ :=
 nat.find (multichromatic_number_exists G hG k)
 
-noncomputable def minimal_multicolouring [fintype V] (G : graph V) (hG : G.is_loopless)  (k : ℕ) :
+noncomputable def minimal_multicolouring [fintype V] (G : graph V) (hG : G.is_loopless)  (k : ℕ+) :
   nat_multicolouring (multichromatic_number G hG k) k G :=
 nonempty.choose (nat.find_spec (multichromatic_number_exists G hG k))
 
-lemma multichromatic_number_is_multichromatic_number (G : graph V) (hG : G.is_loopless) (k : ℕ) :
+lemma multichromatic_number_is_multichromatic_number (G : graph V) (hG : G.is_loopless) (k : ℕ+) :
   is_multichromatic_number G (multichromatic_number G hG k) k :=
 begin
   refine ⟨nat.find_spec (multichromatic_number_exists G hG k), _⟩,
@@ -135,11 +135,11 @@ end
 end
 
 structure frac_chromatic_number_at_least (G : graph V) (r : ℚ) : Prop :=
-(min        : ∀ {n k}, nat_multicolouring n k G → 0 < k → r ≤ n/k)
+(min        : ∀ {n k}, nat_multicolouring n k G → r ≤ n/k)
 
 structure is_frac_chromatic_number (G : graph V) (r : ℚ)
   extends frac_chromatic_number_at_least G r : Prop :=
-(col_exists : ∃ (n k : ℕ), nonempty (nat_multicolouring n k G) ∧ 0 < k ∧ r = n/k)
+(col_exists : ∃ (n : ℕ) (k : ℕ+), nonempty (nat_multicolouring n k G) ∧ r = n/k)
 
 section
 variable [fintype V]
@@ -165,8 +165,8 @@ lemma frac_chromatic_number_at_least_le_is_chromatic_number
   q ≤ n :=
 begin
   obtain ⟨c⟩ := hn.col_exists,
-  have := hq.min c.to_multi zero_lt_one,
-  simpa only [nat.cast_one, div_one],
+  have := hq.min c.to_multi,
+  simpa,
 end
 
 lemma frac_chromatic_number_le_chromatic_number [fintype V] (G : graph V) (hG : G.is_loopless) :
@@ -178,24 +178,25 @@ frac_chromatic_number_at_least_le_is_chromatic_number G _ _
 lemma is_frac_chromatic_number.pos [nonempty V] {q : ℚ} (h : is_frac_chromatic_number G q) :
   0 < q :=
 begin
-  obtain ⟨n, k, ⟨c⟩, hk, hc⟩ := h.col_exists,
+  obtain ⟨n, k, ⟨c⟩, hc⟩ := h.col_exists,
   suffices hn : 0 < n,
-  { rw hc, apply div_pos; assumption_mod_cast },
+  { rw hc, apply div_pos, assumption_mod_cast, simp, },
   unfreezeI, obtain ⟨x⟩ := ‹nonempty V›,
   obtain ⟨s, hs⟩ : {s : finset (fin n) // s.card = k} := c x,
   suffices : s.nonempty,
   { obtain ⟨i, hi⟩ : ∃ i, i ∈ s := this,
     exact lt_of_le_of_lt (zero_le _) i.is_lt },
-  rwa [← finset.card_pos, hs],
+  rw [← finset.card_pos, hs],
+  simp,
 end
 
 lemma is_frac_chromatic_number.is_loopless {G : graph V} {q : ℚ}
   (hq : is_frac_chromatic_number G q) :
   G.is_loopless :=
 begin
-  obtain ⟨n, k, ⟨c⟩, h, hc⟩ := hq.col_exists,
+  obtain ⟨n, k, ⟨c⟩, hc⟩ := hq.col_exists,
   assume x e,
-  rw ← (Kneser.is_loopless_iff (fin n) k) at h,
+  have h := (Kneser.is_loopless_iff (fin n) k).2 (by simp),
   exact h (c.map_edge e)
 end
 

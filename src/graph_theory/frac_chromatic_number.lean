@@ -67,14 +67,14 @@ def colouring.to_multi [decidable_eq W] (c : colouring W G) :
 (complete_to_Kneser_one W).comp c
 
 def multicolouring.multiply {W' : Type*} [decidable_eq W] [decidable_eq W']
-  {k : ℕ} (c : multicolouring W k G) (m n : ℕ) (hn : k * m = n)
+  {k : ℕ} (c : multicolouring W k G) (m : ℕ)
   (f : W → finset W') (hf : ∀ w, (f w).card = m) (hf' : ∀ w₁ w₂, w₁ ≠ w₂ → disjoint (f w₁) (f w₂)) :
-  multicolouring W' n G :=
+  multicolouring W' (k * m) G :=
 { to_fun    := λ v, ⟨finset.bind (c v : finset W) f,
   begin
     rw [finset.card_bind],
     { have : finset.card (c v : finset W) = k := (c v).property,
-      simp [hf, hn, this] },
+      simp [hf, this] },
     { intros _ _ _ _ H, apply hf' _ _ H }
   end⟩,
   map_edge' := assume x y e, show disjoint (finset.bind ↑(c x) f) (finset.bind ↑(c y) f),
@@ -91,7 +91,7 @@ def nat_multicolouring.multiply {n k : ℕ} (c : nat_multicolouring n k G) (m : 
   nat_multicolouring (n * m) (k * m) G :=
 begin
   apply (multicolouring.map_equiv (@fin_prod_fin_equiv n m)).to_fun,
-  fapply multicolouring.multiply c m (k * m) rfl,
+  fapply multicolouring.multiply c m,
   { exact fintype.fiber (λ p, p.1) },
   { intro a, simp, },
   { apply fintype.fibers_disjoint, }

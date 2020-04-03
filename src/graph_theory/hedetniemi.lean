@@ -229,6 +229,11 @@ begin
   sorry
 end
 
+/--
+The original paper is
+https://doi.org/10.4153/CJM-1959-003-9
+although this consequence is not mentioned directly.
+-/
 theorem erdos (χ : ℚ) (g : ℕ+) :
   ∃ {V : Type} [fintype V] (G : graph V),
   frac_chromatic_number_at_least G χ ∧ girth_at_least G g :=

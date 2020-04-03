@@ -1,4 +1,5 @@
 import data.list.pairwise
+import data.list.forall2
 
 universes u v
 

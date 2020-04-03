@@ -53,10 +53,7 @@ do
   -- We now deal with each field sequentially.
   -- Since we may pass goals through to the user if the heuristics here fail,
   -- we wrap everything in `propagate_tags`.
-  -- In order to achieve good definitional properties,
-  -- we use `simp_result` to intercept the synthesized term and simplify it,
-  -- in particular simplifying along `eq_rec_constant`.
-  (propagate_tags (try (simp_result(do
+  (propagate_tags (try (do
     -- Look up the name of the current field being processed
     f ← get_current_field,
     -- Note the value in the original structure.
@@ -65,7 +62,14 @@ do
     -- We now run different algorithms,
     -- depending on whether we're transporting data or a proposition.
     b ← target >>= is_prop,
-    if b then (do
+    -- In order to achieve good definitional properties,
+    -- we use `simp_result` to intercept the synthesized term and simplify it,
+    -- in particular simplifying along `eq_rec_constant`.
+    if ¬ b then simp_result (do
+      -- For data fields, simply rewrite them using `equiv_rw`.
+      equiv_rw_hyp f e,
+      get_local f >>= exact)
+    else try (do
       -- The goal probably has messy expressions produced by `equiv_rw` acting on early data fields,
       -- so we clean up a little.
       unfold_projs_target,
@@ -77,11 +81,6 @@ do
       try $ under_binders $ to_expr ``((%%e).symm.injective) >>= apply,
       -- Finally, rewrite the original field value using the equivalence `e`, and try to close
       -- the goal using
-      equiv_rw_hyp f e,
-      get_local f >>= exact) <|>
-      skip
-    else do
-      -- For data fields, simply rewrite them using `equiv_rw`.
       equiv_rw_hyp f e,
       get_local f >>= exact))))
 

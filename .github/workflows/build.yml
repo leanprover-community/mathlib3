@@ -3,6 +3,7 @@ name: continuous integration
 on:
   push:
     branches-ignore:
+      # ignore tmp branches used by bors
       - 'staging.tmp*'
       - 'trying.tmp*'
 

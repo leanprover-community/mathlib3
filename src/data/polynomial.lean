@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `add_monoid_algebra α ℕ`, where α is a commutative semiring.
 -/
-import data.monoid_algebra
+import data.monoid_algebra ring_theory.algebra
 import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
 import tactic.ring_exp
 
@@ -1346,6 +1346,46 @@ is_ring_hom.map_neg _
 
 @[simp] lemma eval_sub (p q : polynomial α) (x : α) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
+
+section aeval
+/-- `R[X]` is the generator of the category `R-Alg`. -/
+instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
+{ to_fun := polynomial.C,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
+  .. polynomial.module }
+
+variables (R : Type u) (A : Type v)
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (x : A)
+
+/-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
+the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
+def aeval : polynomial R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _,
+  ..ring_hom.of (eval₂ (algebra_map A) x) }
+
+theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
+
+@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
+
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
+
+instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
+by apply_instance
+
+theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
+  φ p = eval₂ (algebra_map A) (φ X) p :=
+begin
+  apply polynomial.induction_on p,
+  { intro r, rw eval₂_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [is_ring_hom.map_add φ, ih1, ih2, eval₂_add] },
+  { intros n r ih,
+    rw [pow_succ', ← mul_assoc, is_ring_hom.map_mul φ, eval₂_mul (algebra_map A : R → A), eval₂_X, ih] }
+end
+
+end aeval
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

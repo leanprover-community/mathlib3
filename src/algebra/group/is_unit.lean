@@ -25,22 +25,27 @@ The actual definition says that `a` is equal to some `u : units M`, where
 @[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has a two-sided additive inverse. The actual definition says that `a` is equal to some `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, a = u
 
-@[simp, to_additive is_add_unit_add_unit] lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
+@[simp, to_additive is_add_unit_add_unit]
+lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
-@[to_additive] lemma is_unit.map [monoid M] [monoid N] (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
+@[to_additive] lemma is_unit.map [monoid M] [monoid N]
+  (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
 
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 
-@[to_additive is_add_unit_of_add_zero] theorem is_unit_of_mul_one [comm_monoid M] (a b : M) (h : a * b = 1) : is_unit a :=
+@[to_additive is_add_unit_of_add_eq_zero] theorem is_unit_of_mul_eq_one [comm_monoid M]
+  (a b : M) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 
-@[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M] {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
+@[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M]
+  {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
 ⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
- λ ⟨b, hab⟩, is_unit_of_mul_one _ b hab⟩
+ λ ⟨b, hab⟩, is_unit_of_mul_eq_one _ b hab⟩
 
-@[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M] {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=
+@[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M]
+  {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=
 by simp [is_unit_iff_exists_inv, mul_comm]
 
 /-- Multiplication by a `u : units M` doesn't affect `is_unit`. -/
@@ -73,9 +78,17 @@ to `f : M →* units N`. See also `units.lift_right` for a computable version. -
 @[to_additive "If a homomorphism `f : M →+ N` sends each element to an `is_add_unit`, then it can be lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]
 noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) : M →* units N :=
-units.lift_right f (λ x, classical.some (hf x)) (λ x, (classical.some_spec (hf x)).symm)
+units.lift_right f (λ x, classical.some (hf x)) $ λ x, (classical.some_spec (hf x)).symm
 
-@[simp, to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
+@[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) (x) :
   (is_unit.lift_right f hf x : N) = f x :=
 units.coe_lift_right _ x
+
+@[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
+  (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
+units.mul_lift_right_inv (λ y, (classical.some_spec $ h y).symm) x
+
+@[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
+  (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
+units.lift_right_inv_mul (λ y, (classical.some_spec $ h y).symm) x

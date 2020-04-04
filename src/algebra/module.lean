@@ -215,25 +215,25 @@ instance : is_add_group_hom f := { map_add := map_add f }
 /-- convert a linear map to an additive map -/
 def to_add_monoid_hom (f : β →ₗ[α] γ) : β →+ γ :=
 { to_fun := f,
-  map_zero' := by simp,
-  map_add' := by simp, }
+  map_zero' := f.map_zero,
+  map_add' := f.map_add }
 
 @[simp] lemma to_add_monoid_hom_coe (f : β →ₗ[α] γ) :
   ((f.to_add_monoid_hom) : β → γ) = (f : β → γ) := rfl
 
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
-by rw [← neg_one_smul α, map_smul, neg_one_smul]
+f.to_add_monoid_hom.map_neg x
 
 @[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
-by simp [map_neg, map_add, sub_eq_add_neg]
+f.to_add_monoid_hom.map_sub x y
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → β} :
   f (t.sum g) = t.sum (λi, f (g i)) :=
-(t.sum_hom f).symm
+f.to_add_monoid_hom.map_sum _ _
 
 include mδ
 
-/-- Composition of linear maps. -/
+/-- Composition of two linear maps is a linear map -/
 def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) (x : β) : f.comp g x = f (g x) := rfl
@@ -241,7 +241,8 @@ def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨
 omit mγ mδ
 variables [rα] [gβ] [mβ]
 
-def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
+/-- Identity map as a `linear_map` -/
+def id : β →ₗ[α] β := ⟨id, λ _ _, rfl, λ _ _, rfl⟩
 
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
 
@@ -252,6 +253,7 @@ variables [ring α] [add_comm_group β] [add_comm_group γ]
 variables [module α β] [module α γ]
 include α
 
+/-- Convert an `is_linear_map` predicate to a `linear_map` -/
 def mk' (f : β → γ) (H : is_linear_map α f) : β →ₗ γ := {to_fun := f, ..H}
 
 @[simp] theorem mk'_apply {f : β → γ} (H : is_linear_map α f) (x : β) :
@@ -282,17 +284,15 @@ end
 variables {f : β → γ} (lin : is_linear_map α f)
 include β γ lin
 
-lemma map_zero : f (0 : β) = (0 : γ) :=
-by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
+lemma map_zero : f (0 : β) = (0 : γ) := (lin.mk' f).map_zero
 
-lemma map_add (x y : β) : f (x + y) = f x + f y :=
-by rw [lin.add]
+lemma map_add : ∀ x y, f (x + y) = f x + f y := lin.add
 
-lemma map_neg (x : β) : f (- x) = - f x :=
-by rw [← neg_one_smul α, lin.smul, neg_one_smul]
+lemma map_neg (x : β) : f (- x) = - f x := (lin.mk' f).map_neg x
 
-lemma map_sub (x y : β) : f (x - y) = f x - f y :=
-by simp [lin.map_neg, lin.map_add, sub_eq_add_neg]
+lemma map_sub (x y : β) : f (x - y) = f x - f y := (lin.mk' f).map_sub x y
+
+lemma map_smul (c : α) (x : β) : f (c • x) = c • f x := (lin.mk' f).map_smul c x
 
 end is_linear_map
 

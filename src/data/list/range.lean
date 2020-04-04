@@ -1,5 +1,6 @@
 import data.list.chain
 import data.list.nodup
+import data.list.of_fn
 
 open nat
 

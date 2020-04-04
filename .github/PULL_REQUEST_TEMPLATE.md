@@ -1,5 +1,8 @@
 TO CONTRIBUTORS:
 
+Please include a summary of the changes made in this PR above "TO CONTRIBUTORS:"
+(that text will become the commit message).
+
 Make sure you have:
 
   * [ ] reviewed and applied the coding style: [coding](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/style.md), [naming](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/naming.md)

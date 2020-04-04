@@ -1,11 +1,11 @@
 pull_request_rules:
   - name: automatic merge on CI success and review - push
     conditions:
-      - status-success=Build mathlib
-      - "#changes-requested-reviews-by=0"
+      # - status-success=Build mathlib
+      # - "#changes-requested-reviews-by=0"
       - base=master
       - label=ready-to-merge
-      - approved-reviews-by=@leanprover-community/mathlib-maintainers
+      # - approved-reviews-by=@leanprover-community/mathlib-maintainers
     actions:
       comment:
          message: |

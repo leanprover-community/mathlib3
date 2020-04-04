@@ -52,12 +52,12 @@ instance semigroup          [∀ i, semigroup          $ f i] : semigroup       
 instance comm_semigroup     [∀ i, comm_semigroup     $ f i] : comm_semigroup     (Π i : I, f i) := by pi_instance
 instance monoid             [∀ i, monoid             $ f i] : monoid             (Π i : I, f i) := by pi_instance
 instance comm_monoid        [∀ i, comm_monoid        $ f i] : comm_monoid        (Π i : I, f i) := by pi_instance
-instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance group              [∀ i, group              $ f i] : group              (Π i : I, f i) := by pi_instance
 instance comm_group         [∀ i, comm_group         $ f i] : comm_group         (Π i : I, f i) := by pi_instance
 instance add_semigroup      [∀ i, add_semigroup      $ f i] : add_semigroup      (Π i : I, f i) := by pi_instance
 instance add_comm_semigroup [∀ i, add_comm_semigroup $ f i] : add_comm_semigroup (Π i : I, f i) := by pi_instance
 instance add_monoid         [∀ i, add_monoid         $ f i] : add_monoid         (Π i : I, f i) := by pi_instance
+instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance add_group          [∀ i, add_group          $ f i] : add_group          (Π i : I, f i) := by pi_instance
 instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group     (Π i : I, f i) := by pi_instance
 instance semiring           [∀ i, semiring           $ f i] : semiring           (Π i : I, f i) := by pi_instance
@@ -85,14 +85,6 @@ instance semimodule
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
-
-/-
-instance cheat2 (R : Type u) [ring R] (ι : Type v) :
-@semimodule.{u (max v u)} R (ι → R) (@ring.to_semiring.{u} R _inst_1)
-    (@add_comm_group.to_add_comm_monoid.{(max v u)} (ι → R)
-       (@pi.add_comm_group.{v u} ι (λ (a : ι), R) (λ (i : ι), @ring.to_add_comm_group.{u} R _inst_1))) :=
-  @pi.semimodule ι (λ (i : ι), R) R _ _ _
--/
 
 variables {I f}
 

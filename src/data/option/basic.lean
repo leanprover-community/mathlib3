@@ -172,4 +172,10 @@ by cases a; refl
 @[simp] lemma lift_or_get_some_some {f} {a b : α} :
   lift_or_get f (some a) (some b) = f a b := rfl
 
+/-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
+function to `a` if it comes from `α`, and return `b` otherwise. -/
+def cases_on' : option α → β → (α → β) → β
+| none     n s := n
+| (some a) n s := s a
+
 end option

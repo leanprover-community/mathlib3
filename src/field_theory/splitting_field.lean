@@ -11,6 +11,7 @@ import data.polynomial ring_theory.principal_ideal_domain
        algebra.euclidean_domain
 
 local attribute [instance, priority 100000] is_ring_hom.id
+local attribute [instance, priority 100] is_ring_hom.comp
 
 universes u v w
 
@@ -20,7 +21,7 @@ namespace polynomial
 
 noncomputable theory
 open_locale classical
-variables [discrete_field α] [discrete_field β] [discrete_field γ]
+variables [field α] [field β] [field γ]
 open polynomial
 
 section splits

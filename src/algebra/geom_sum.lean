@@ -142,10 +142,11 @@ lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (
 have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],
 have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
 have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
-have h₄ : x * x⁻¹ ^ n = x⁻¹ ^ n * x,
-  from nat.cases_on n (by simp)
-  (λ _, by conv { to_rhs, rw [pow_succ', mul_assoc, inv_mul_cancel hx0, mul_one] };
-    rw [pow_succ, ← mul_assoc, mul_inv_cancel hx0, one_mul]),
-by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
-    ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃];
-  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄]
+have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
+  nat.rec_on n (by simp)
+  (λ n h, by rw [pow_succ, mul_inv', ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc, inv_mul_cancel hx0]),
+begin
+  rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
+    ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃],
+  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm, add_left_comm],
+end

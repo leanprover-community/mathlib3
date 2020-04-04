@@ -5,8 +5,6 @@ Authors: Mario Carneiro
 -/
 import algebra.ordered_group order.lattice
 
-open lattice
-
 universes u v
 variables {α : Type u} {β : Type v}
 
@@ -169,7 +167,7 @@ by simp [min_add, sub_eq_add_neg]
   rules relating them. -/
 lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
   f (min n m) + f (max n m) = f n + f m :=
-by { cases le_total n m with h h; simp [h] }
+by { cases le_total n m with h h; simp [h, add_comm] }
 
 lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
   min n m + max n m = n + m :=

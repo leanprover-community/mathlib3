@@ -314,7 +314,7 @@ begin
   rw [category.assoc, monoidal_category.pentagon]
 end
 
-@[simp] lemma triangle_assoc_comp_left (X Y : C) :
+lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle C X Y
 

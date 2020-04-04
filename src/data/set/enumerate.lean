@@ -67,7 +67,7 @@ begin
         have : enumerate sel (s - {a}) m = some a, { simp [enumerate, *] at * },
         have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
-    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, *] at *; tauto } }
+    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, add_comm, *] at *; tauto } }
 end
 
 end enumerate

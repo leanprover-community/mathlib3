@@ -30,23 +30,25 @@ class is_subgroup (s : set G) extends is_submonoid s : Prop :=
 (inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
 end prio
 
-instance additive.is_add_subgroup
+lemma additive.is_add_subgroup
   (s : set G) [is_subgroup s] : @is_add_subgroup (additive G) _ s :=
-⟨@is_subgroup.inv_mem _ _ _ _⟩
+@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid _)
+  (@is_subgroup.inv_mem _ _ _ _)
 
 theorem additive.is_add_subgroup_iff
   {s : set G} : @is_add_subgroup (additive G) _ s ↔ is_subgroup s :=
 ⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_subgroup.mk G _ _ ⟨h₁, @h₂⟩ @h₃,
-  λ h, by resetI; apply_instance⟩
+  λ h, by exactI additive.is_add_subgroup _⟩
 
-instance multiplicative.is_subgroup
+lemma multiplicative.is_subgroup
   (s : set A) [is_add_subgroup s] : @is_subgroup (multiplicative A) _ s :=
-⟨@is_add_subgroup.neg_mem _ _ _ _⟩
+@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid _)
+  (@is_add_subgroup.neg_mem _ _ _ _)
 
 theorem multiplicative.is_subgroup_iff
   {s : set A} : @is_subgroup (multiplicative A) _ s ↔ is_add_subgroup s :=
 ⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_add_subgroup.mk A _ _ ⟨h₁, @h₂⟩ @h₃,
-  λ h, by resetI; apply_instance⟩
+  λ h, by exactI multiplicative.is_subgroup _⟩
 
 @[to_additive add_group]
 instance subtype.group {s : set G} [is_subgroup s] : group s :=
@@ -126,13 +128,13 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : �
 | -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] : a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
-@is_subgroup.gpow_mem (multiplicative A) _ _ _ _
+@is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
 
 lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := is_subgroup.gpow_mem h end
 
 lemma gmultiples_subset {a : A} {s : set A} [is_add_subgroup s] (h : a ∈ s) : gmultiples a ⊆ s :=
-@gpowers_subset (multiplicative A) _ _ _ _ h
+@gpowers_subset (multiplicative A) _ _ _ (multiplicative.is_subgroup _) h
 
 attribute [to_additive gmultiples_subset] gpowers_subset
 
@@ -180,25 +182,29 @@ lemma normal_subgroup_of_comm_group [comm_group G] (s : set G) [hs : is_subgroup
 { normal := λ n hn g, by rwa [mul_right_comm, mul_right_inv, one_mul],
   ..hs }
 
-instance additive.normal_add_subgroup [group G]
+lemma additive.normal_add_subgroup [group G]
   (s : set G) [normal_subgroup s] : @normal_add_subgroup (additive G) _ s :=
-⟨@normal_subgroup.normal _ _ _ _⟩
+@normal_add_subgroup.mk (additive G) _ _
+  (@additive.is_add_subgroup G _ _ _)
+  (@normal_subgroup.normal _ _ _ _)
 
 theorem additive.normal_add_subgroup_iff [group G]
   {s : set G} : @normal_add_subgroup (additive G) _ s ↔ normal_subgroup s :=
 ⟨by rintro ⟨h₁, h₂⟩; exact
     @normal_subgroup.mk G _ _ (additive.is_add_subgroup_iff.1 h₁) @h₂,
-  λ h, by resetI; apply_instance⟩
+  λ h, by exactI additive.normal_add_subgroup _⟩
 
-instance multiplicative.normal_subgroup [add_group A]
+lemma multiplicative.normal_subgroup [add_group A]
   (s : set A) [normal_add_subgroup s] : @normal_subgroup (multiplicative A) _ s :=
-⟨@normal_add_subgroup.normal _ _ _ _⟩
+@normal_subgroup.mk (multiplicative A) _ _
+  (@multiplicative.is_subgroup A _ _ _)
+  (@normal_add_subgroup.normal _ _ _ _)
 
 theorem multiplicative.normal_subgroup_iff [add_group A]
   {s : set A} : @normal_subgroup (multiplicative A) _ s ↔ normal_add_subgroup s :=
 ⟨by rintro ⟨h₁, h₂⟩; exact
     @normal_add_subgroup.mk A _ _ (multiplicative.is_subgroup_iff.1 h₁) @h₂,
-  λ h, by resetI; apply_instance⟩
+  λ h, by exactI multiplicative.normal_subgroup _⟩
 
 namespace is_subgroup
 variable [group G]
@@ -261,7 +267,7 @@ def normalizer (s : set G) : set G :=
 {g : G | ∀ n, n ∈ s ↔ g * n * g⁻¹ ∈ s}
 
 @[to_additive normalizer_is_add_subgroup]
-instance normalizer_is_subgroup (s : set G) [is_subgroup s] : is_subgroup (normalizer s) :=
+instance normalizer_is_subgroup (s : set G) : is_subgroup (normalizer s) :=
 { one_mem := by simp [normalizer],
   mul_mem := λ a b (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s)
     (hb : ∀ n, n ∈ s ↔ b * n * b⁻¹ ∈ s) n,
@@ -290,14 +296,15 @@ end is_subgroup
 namespace is_group_hom
 open is_submonoid is_subgroup
 open is_mul_hom (map_mul)
-variables [group G] [group H]
 
 @[to_additive]
-def ker (f : G → H) [is_group_hom f] : set G := preimage f (trivial H)
+def ker [group H] (f : G → H) : set G := preimage f (trivial H)
 
 @[to_additive]
-lemma mem_ker (f : G → H) [is_group_hom f] {x : G} : x ∈ ker f ↔ f x = 1 :=
+lemma mem_ker [group H] (f : G → H) {x : G} : x ∈ ker f ↔ f x = 1 :=
 mem_trivial
+
+variables [group G] [group H]
 
 @[to_additive]
 lemma one_ker_inv (f : G → H) [is_group_hom f] {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b :=
@@ -417,6 +424,18 @@ instance subtype_mk.is_group_hom [group G] [group H] {s : set G}
 instance set_inclusion.is_group_hom [group G] {s t : set G}
   [is_subgroup s] [is_subgroup t] (h : s ⊆ t) : is_group_hom (set.inclusion h) :=
 subtype_mk.is_group_hom _ _
+
+/-- `subtype.val : set.range f → H` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
+@[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+def monoid_hom.range_subtype_val [monoid G] [monoid H] (f : G →* H) : (set.range f) →* H :=
+monoid_hom.of subtype.val
+
+/-- `set.range_factorization f : G → set.range f` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
+@[to_additive "`set.range_factorization f : G → set.range f` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+def monoid_hom.range_factorization [monoid G] [monoid H] (f : G →* H) : G →* (set.range f) :=
+{ to_fun := set.range_factorization f,
+  map_one' := by { dsimp [set.range_factorization], simp, refl, },
+  map_mul' := by { intros, dsimp [set.range_factorization], simp, refl, } }
 
 namespace add_group
 

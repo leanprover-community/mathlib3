@@ -81,7 +81,7 @@ by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
     ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
-    exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
+    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
@@ -95,7 +95,7 @@ but with ≤ and < the other way around. -/
 lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
-let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos hx) hy in
+let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
 ⟨-(m+1),
 by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
@@ -180,7 +180,7 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos (sub_pos.2 h)) nh),
+  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
   have n0' := (@nat.cast_pos α _ _).2 n0,
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
@@ -199,7 +199,7 @@ begin
   cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
   existsi n,
   apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
   { apply (div_lt_iff' hε).1,
     transitivity,
     { exact hn },

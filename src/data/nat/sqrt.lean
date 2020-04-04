@@ -72,7 +72,7 @@ begin
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
     rw [nat.sub_lt_right_iff_lt_add h₁],
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_comm, add_left_comm] },
   have re : div2 (2 * r * 2^m) = r * 2^m, {
     rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },

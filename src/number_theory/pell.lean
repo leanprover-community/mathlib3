@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.modeq data.zsqrtd.basic tactic.ring
+import data.nat.modeq data.zsqrtd.basic tactic.ring tactic.omega
 
 namespace pell
 open nat
@@ -66,7 +66,7 @@ section
   λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1, by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
   theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
-  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]
+  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring
 
   theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
   is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
@@ -79,7 +79,7 @@ section
   by simp [zsqrtd.ext]
 
   theorem is_pell_one : is_pell ⟨a, 1⟩ :=
-  show az*az-d*1*1=1, by simp [dz_val]
+  show az*az-d*1*1=1, by simp [dz_val]; ring
 
   theorem is_pell_pell_zd : ∀ (n : ℕ), is_pell (pell_zd n)
   | 0     := rfl
@@ -99,7 +99,7 @@ section
     have n*n + 1 = a*a, by rw ← h; exact nat.succ_pred_eq_of_pos (asq_pos a1),
     have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
     have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
-    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by simpa [mul_add, mul_comm, mul_left_comm]),
+    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring at this ⊢; assumption),
     ne_of_gt d_pos $ by rw nat.eq_zero_of_le_zero (le_trans (nat.le_add_left _ _) this) at h; exact h⟩
 
   theorem xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
@@ -279,9 +279,9 @@ section
 
   theorem pell_zd_succ_succ (n) : pell_zd (n + 2) + pell_zd n = (2 * a : ℕ) * pell_zd (n + 1) :=
   have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
-  by rw zsqrtd.coe_nat_val; change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩;
-     rw dz_val; change az a1 with a; simp [mul_add, add_mul],
-  by simpa [mul_add, mul_comm, mul_left_comm] using congr_arg (* pell_zd a1 n) this
+  by { rw zsqrtd.coe_nat_val, change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩,
+     rw dz_val, change az a1 with a, rw zsqrtd.ext, dsimp, split; ring },
+  by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd a1 n) this
 
   theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧
                              yn (n + 2) + yn n = (2 * a) * yn (n + 1) := begin
@@ -304,7 +304,7 @@ section
   | 0 := by simp
   | 1 := by simp
   | (n+2) := modeq.modeq_add_cancel_right (yn_modeq_a_sub_one n) $
-    have 2*(n+1) = n+2+n, by simp [two_mul],
+    have 2*(n+1) = n+2+n, by ring,
     by rw [yn_succ_succ, ← this];
     refine modeq.modeq_mul (modeq.modeq_mul_left 2 (_ : a ≡ 1 [MOD a-1])) (yn_modeq_a_sub_one (n+1));
     exact (modeq.modeq_of_dvd $ by rw [int.coe_nat_sub $ le_of_lt a1]; apply dvd_refl).symm
@@ -313,7 +313,7 @@ section
   | 0 := by simp
   | 1 := by simp
   | (n+2) := modeq.modeq_add_cancel_right (yn_modeq_two n) $
-    have 2*(n+1) = n+2+n, by simp [two_mul],
+    have 2*(n+1) = n+2+n, by ring,
     by rw [yn_succ_succ, ← this];
     refine modeq.modeq_mul _ (yn_modeq_two (n+1));
     exact modeq.trans
@@ -331,7 +331,7 @@ section
   | (n+2) :=
     have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
     ⟨-↑(y^n), by simp [nat.pow_succ, mul_add, int.coe_nat_mul,
-        show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm]⟩,
+        show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm]; ring ⟩,
     by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)]; exact
     dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
 
@@ -610,7 +610,8 @@ have y < a → 2*a*y ≥ a + (y*y + 1), begin
     { change y + y < 2 * a, rw ← two_mul,
       exact mul_lt_mul_of_pos_left (nat.lt_of_succ_lt ya) dec_trivial },
     have := add_le_add (IH ypos (nat.lt_of_succ_lt ya)) this,
-    simpa }
+    convert this using 1,
+    ring }
 end, λk0 yak,
 lt_of_lt_of_le (int.coe_nat_lt_coe_nat_of_lt yak) $
 by rw sub_sub; apply le_sub_right_of_add_le;

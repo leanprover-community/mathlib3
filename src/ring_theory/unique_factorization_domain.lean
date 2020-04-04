@@ -123,7 +123,7 @@ structure unique_irreducible_factorization (α : Type*) [integral_domain α] :=
   (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
 
 namespace unique_factorization_domain
-open unique_factorization_domain associated lattice
+open unique_factorization_domain associated
 variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
 
 lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
@@ -190,7 +190,7 @@ by letI := classical.dec_eq α; exact
 end unique_factorization_domain
 
 namespace associates
-open unique_factorization_domain associated lattice
+open unique_factorization_domain associated
 variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
 
 /-- `factor_set α` representation elements of unique factorization domain as multisets.
@@ -248,7 +248,8 @@ iff.intro
   end
   prod_le_prod
 
-@[simp] theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
+@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑a + ↑b : factor_set α) = ↑(a + b) :=
 with_top.coe_add
 
@@ -398,8 +399,8 @@ instance : bounded_lattice (associates α) :=
   inf_le_right := assume a b,
     le_trans (prod_mono inf_le_right) (le_of_eq (factors_prod b)),
   .. associates.partial_order,
-  .. associates.lattice.order_top,
-  .. associates.lattice.order_bot }
+  .. associates.order_top,
+  .. associates.order_bot }
 
 lemma sup_mul_inf (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
 show (a.factors ⊔ b.factors).prod * (a.factors ⊓ b.factors).prod = a * b,
@@ -411,7 +412,7 @@ end
 end associates
 
 section
-open associates unique_factorization_domain lattice
+open associates unique_factorization_domain
 
 /-- `to_gcd_domain` constructs a GCD domain out of a unique factorization domain over a normalization
 domain. -/

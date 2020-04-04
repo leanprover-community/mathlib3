@@ -30,7 +30,7 @@ Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics filter real
+open metric set asymptotics filter real
 open_locale classical
 
 /-! ### Technical lemmas about `gronwall_bound` -/
@@ -188,8 +188,8 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le x y) hf hf' f_bound hfs
-  hg hg' g_bound (λ t ht, trivial) ha
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+  hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
 can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
@@ -234,8 +234,8 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le x y) hf hf' hfs
-  hg hg' (λ t ht, trivial) ha
+dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+  hf hf' hfs hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
 a given initial value provided that RHS is Lipschitz continuous in `x` within `s`,
@@ -270,5 +270,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le x y)
+ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

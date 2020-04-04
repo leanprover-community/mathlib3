@@ -136,7 +136,9 @@ from dif_pos $ finset.mem_singleton_self i
 
 variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]
 
-theorem to_group.unique (f : direct_sum ι β) : ψ f = to_group (λ i, ψ ∘ of β i) f :=
+theorem to_group.unique (f : direct_sum ι β) :
+  ψ f = @to_group _ _ _ _ _ _ (λ i, ψ ∘ of β i) (λ i, is_add_group_hom.comp (of β i) ψ) f :=
+by haveI : ∀ i, is_add_group_hom (ψ ∘ of β i) := (λ _, is_add_group_hom.comp _ _); exact
 direct_sum.induction_on f
   (by rw [is_add_group_hom.map_zero ψ, is_add_group_hom.map_zero (to_group (λ i, ψ ∘ of β i))])
   (λ i x, by rw [to_group_of])

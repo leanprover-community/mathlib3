@@ -21,7 +21,7 @@ show _ = to_bool false, by congr
 @[simp] theorem to_bool_coe (b:bool) {h} : @to_bool b h = b :=
 (show _ = to_bool b, by congr).trans (by cases b; refl)
 
-@[simp] theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
+theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
 
 @[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
 ⟨of_to_bool_true, _root_.to_bool_true⟩

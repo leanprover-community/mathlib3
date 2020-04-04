@@ -259,7 +259,7 @@ end ring
 
 section vector_space
 
-variables {K : Type u} [discrete_field K] -- maybe try to relax the universe constraint
+variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
@@ -298,7 +298,7 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] (w : m → K) :
+lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },

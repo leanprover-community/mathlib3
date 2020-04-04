@@ -52,7 +52,7 @@ variables (M : Type*) {N : Type*} {P : Type*}
 
 set_option old_structure_cmd true
 
-open function setoid lattice
+open function setoid
 
 /-- A congruence relation on a type with an addition is an equivalence relation which
     preserves addition. -/
@@ -186,9 +186,11 @@ variables (c)
 @[to_additive "Defining the quotient by an additive congruence relation of a type with an addition."]
 protected def quotient := quotient $ c.to_setoid
 
-/-- Coercion from a type with a multiplication to its quotient by a congruence relation. -/
+/-- Coercion from a type with a multiplication to its quotient by a congruence relation.
+
+See Note [use has_coe_t]. -/
 @[to_additive "Coercion from a type with an addition to its quotient by an additive congruence relation", priority 0]
-instance : has_coe M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
+instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient of a type with decidable equality by a congruence relation also has
     decidable equality. -/
@@ -669,7 +671,7 @@ lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
     equivalence classes, `f` has the same image as the homomorphism that `f` induces on the
     quotient. -/
 @[to_additive "Given an additive congruence relation `c` on an `add_monoid` and a homomorphism `f` constant on `c`'s equivalence classes, `f` has the same image as the homomorphism that `f` induces on the quotient."]
-theorem lift_range (H : c ≤ ker f) : (c.lift f H).range = f.range :=
+theorem lift_range (H : c ≤ ker f) : (c.lift f H).mrange = f.mrange :=
 submonoid.ext $ λ x,
   ⟨λ ⟨y, hy⟩, by revert hy; rcases y; exact
      λ hy, ⟨y, hy.1, by rw [hy.2.symm, ←lift_coe H]; refl⟩,
@@ -708,7 +710,7 @@ lemma ker_lift_mk (x : M) :  ker_lift f x = f x := rfl
 /-- Given a monoid homomorphism `f`, the induced homomorphism on the quotient by `f`'s kernel has
     the same image as `f`. -/
 @[simp, to_additive "Given an `add_monoid` homomorphism `f`, the induced homomorphism on the quotient by `f`'s kernel has the same image as `f`."]
-lemma ker_lift_range_eq : (ker_lift f).range = f.range :=
+lemma ker_lift_range_eq : (ker_lift f).mrange = f.mrange :=
 lift_range $ λ _ _, id
 
 /-- A monoid homomorphism `f` induces an injective homomorphism on the quotient by `f`'s kernel. -/
@@ -734,11 +736,11 @@ variables (c)
 
 /-- The first isomorphism theorem for monoids. -/
 @[to_additive "The first isomorphism theorem for `add_monoid`s."]
-noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.range :=
+noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.mrange :=
 { map_mul' := monoid_hom.map_mul _,
   ..@equiv.of_bijective _ _
-      ((@mul_equiv.to_monoid_hom (ker_lift f).range _ _ _
-        $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).range_mk) $
+      ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
+        $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).range_restrict) $
       bijective_comp (equiv.bijective _)
         ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
@@ -754,7 +756,7 @@ noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjecti
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]
 noncomputable def comap_quotient_equiv (f : N →* M) :
-  (comap f f.map_mul c).quotient ≃* (c.mk'.comp f).range :=
+  (comap f f.map_mul c).quotient ≃* (c.mk'.comp f).mrange :=
 (con.congr comap_eq).trans $ quotient_ker_equiv_range $ c.mk'.comp f
 
 /-- The third isomorphism theorem for monoids. -/

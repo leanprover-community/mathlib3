@@ -29,7 +29,7 @@ noncomputable theory
 open_locale classical
 universes u v w
 
-open classical lattice set function topological_space filter
+open classical set function topological_space filter
 
 namespace emetric
 
@@ -85,7 +85,7 @@ begin
     { assume a b h, simp, apply add_le_add_right' h }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
-  simpa only [and_imp, function.comp_app, lattice.le_Inf_iff, exists_imp_distrib, ball_image_iff]
+  simpa only [and_imp, function.comp_app, le_Inf_iff, exists_imp_distrib, ball_image_iff]
 end
 
 /-- The edist to a set depends continuously on the point -/
@@ -161,7 +161,7 @@ variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
 /-- The Hausdorff edistance of a set to itself vanishes -/
 @[simp] lemma Hausdorff_edist_self : Hausdorff_edist s s = 0 :=
 begin
-  erw [Hausdorff_edist_def, lattice.sup_idem, ← le_bot_iff],
+  erw [Hausdorff_edist_def, sup_idem, ← le_bot_iff],
   apply Sup_le _,
   simp [le_bot_iff, inf_edist_zero_of_mem] {contextual := tt},
 end
@@ -176,7 +176,7 @@ lemma Hausdorff_edist_le_of_inf_edist {r : ennreal}
   (H1 : ∀x ∈ s, inf_edist x t ≤ r) (H2 : ∀x ∈ t, inf_edist x s ≤ r) :
   Hausdorff_edist s t ≤ r :=
 begin
-  simp only [Hausdorff_edist, -mem_image, set.ball_image_iff, lattice.Sup_le_iff, lattice.sup_le_iff],
+  simp only [Hausdorff_edist, -mem_image, set.ball_image_iff, Sup_le_iff, sup_le_iff],
   exact ⟨H1, H2⟩
 end
 
@@ -229,7 +229,7 @@ ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
     ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add' (le_of_lt dxy) (le_of_lt dyz)
-    ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm]
+    ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm, add_left_comm]
 end
 
 /-- The Hausdorff edistance is invariant under eisometries -/
@@ -276,8 +276,8 @@ end
 lemma Hausdorff_edist_triangle : Hausdorff_edist s u ≤ Hausdorff_edist s t + Hausdorff_edist t u :=
 begin
   rw Hausdorff_edist_def,
-  simp only [and_imp, set.mem_image, lattice.Sup_le_iff, exists_imp_distrib,
-             lattice.sup_le_iff, -mem_image, set.ball_image_iff],
+  simp only [and_imp, set.mem_image, Sup_le_iff, exists_imp_distrib,
+             sup_le_iff, -mem_image, set.ball_image_iff],
   split,
   show ∀x ∈ s, inf_edist x u ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xs, calc
     inf_edist x u ≤ inf_edist x t + Hausdorff_edist t u : inf_edist_le_inf_edist_add_Hausdorff_edist
@@ -291,11 +291,12 @@ begin
 end
 
 /-- The Hausdorff edistance between a set and its closure vanishes -/
-@[simp] lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
+@[simp, priority 1100]
+lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 begin
   erw ← le_bot_iff,
   simp only [Hausdorff_edist, inf_edist_closure, -le_zero_iff_eq, and_imp,
-    set.mem_image, lattice.Sup_le_iff, exists_imp_distrib, lattice.sup_le_iff,
+    set.mem_image, Sup_le_iff, exists_imp_distrib, sup_le_iff,
     set.ball_image_iff, ennreal.bot_eq_zero, -mem_image],
   simp only [inf_edist_zero_of_mem, mem_closure_iff_inf_edist_zero, le_refl, and_self,
              forall_true_iff] {contextual := tt}
@@ -679,7 +680,8 @@ begin
 end
 
 /-- The Hausdorff distance between a set and its closure vanish -/
-@[simp] lemma Hausdorff_dist_self_closure : Hausdorff_dist s (closure s) = 0 :=
+@[simp, priority 1100]
+lemma Hausdorff_dist_self_closure : Hausdorff_dist s (closure s) = 0 :=
 by simp [Hausdorff_dist]
 
 /-- Replacing a set by its closure does not change the Hausdorff distance. -/

@@ -7,6 +7,7 @@ import
   data.nat.gcd
   data.pnat.basic data.int.sqrt data.equiv.encodable
   algebra.group algebra.ordered_group algebra.group_power
+  algebra.euclidean_domain
   algebra.ordered_field
   tactic.norm_cast
   tactic.lift
@@ -147,7 +148,7 @@ begin
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
     constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
-    simp [left_distrib] }
+    simp [left_distrib, sub_eq_add_neg], cc }
 end,
 begin
   intros, simp [mk_pnat], constructor; intro h,
@@ -354,7 +355,7 @@ by rw [← zero_mk d]; simp [h, -zero_mk]
 protected theorem add_comm : a + b = b + a :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
-by simp [h₁, h₂, mul_comm]
+by simp [h₁, h₂]; cc
 
 protected theorem add_assoc : a + b + c = a + (b + c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
@@ -410,7 +411,7 @@ eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
 
 instance : decidable_eq ℚ := by tactic.mk_dec_eq_instance
 
-instance : discrete_field ℚ :=
+instance : field ℚ :=
 { zero             := 0,
   add              := rat.add,
   neg              := rat.neg,
@@ -430,12 +431,9 @@ instance : discrete_field ℚ :=
   right_distrib    := rat.add_mul,
   zero_ne_one      := rat.zero_ne_one,
   mul_inv_cancel   := rat.mul_inv_cancel,
-  inv_mul_cancel   := rat.inv_mul_cancel,
-  has_decidable_eq := rat.decidable_eq,
   inv_zero         := rfl }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : field ℚ              := by apply_instance
 instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
@@ -460,7 +458,7 @@ instance : semigroup ℚ          := by apply_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
-by simp [b0, d0]
+by simp [b0, d0, sub_eq_add_neg]
 
 @[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
 | ⟨_, d, _, _⟩ := rfl

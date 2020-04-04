@@ -31,31 +31,57 @@ namespace category_theory.limits
 inductive walking_pair : Type v
 | left | right
 
-instance fintype_walking_pair : fintype walking_pair :=
-{ elems := [walking_pair.left, walking_pair.right].to_finset,
-  complete := λ x, by { cases x; simp } }
+open walking_pair
 
-def pair_function {C : Type u} (X Y : C) : walking_pair → C
-| walking_pair.left := X
-| walking_pair.right := Y
+instance fintype_walking_pair : fintype walking_pair :=
+{ elems := [left, right].to_finset,
+  complete := λ x, by { cases x; simp } }
 
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+/-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
-functor.of_function (pair_function X Y)
+functor.of_function (λ j, walking_pair.cases_on j X Y)
 
-@[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj walking_pair.left = X := rfl
-@[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj walking_pair.right = Y := rfl
+@[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj left = X := rfl
+@[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj right = Y := rfl
 
-def map_pair {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : pair W X ⟶ pair Y Z :=
+section
+variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj left ⟶ G.obj left) (g : F.obj right ⟶ G.obj right)
+
+/-- The natural transformation between two functors out of the walking pair, specified by its components. -/
+def map_pair : F ⟶ G :=
 { app := λ j, match j with
-  | walking_pair.left := f
-  | walking_pair.right := g
+  | left := f
+  | right := g
   end }
 
-@[simp] lemma map_pair_left {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.left = f := rfl
-@[simp] lemma map_pair_right {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.right = g := rfl
+@[simp] lemma map_pair_left : (map_pair f g).app left = f := rfl
+@[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
+
+/-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
+@[simps]
+def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
+{ hom := map_pair f.hom g.hom,
+  inv := map_pair f.inv g.inv,
+  hom_inv_id' := begin ext j, cases j; { dsimp, simp, } end,
+  inv_hom_id' := begin ext j, cases j; { dsimp, simp, } end }
+end
+
+section
+variables {D : Type u} [𝒟 : category.{v} D]
+include 𝒟
+
+/-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
+def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
+map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
+end
+
+/-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
+def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
+  F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
+map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
 
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
@@ -73,16 +99,16 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
   (binary_fan.mk π₁ π₂).π.app walking_pair.left = π₁ := rfl
 @[simp] lemma binary_fan.mk_π_app_right {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
   (binary_fan.mk π₁ π₂).π.app walking_pair.right = π₂ := rfl
-@[simp] lemma binary_cofan.mk_π_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+@[simp] lemma binary_cofan.mk_ι_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.left = ι₁ := rfl
-@[simp] lemma binary_cofan.mk_π_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+@[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.right = ι₂ := rfl
 
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
-notation X `⨯`:20 Y:20 := prod X Y
-notation X `⨿`:20 Y:20 := coprod X Y
+notation X ` ⨯ `:20 Y:20 := prod X Y
+notation X ` ⨿ `:20 Y:20 := coprod X Y
 
 abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
@@ -120,6 +146,16 @@ instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 @[priority 100] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
+
+/-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
+def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
+  has_binary_products.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm } }
+
+/-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
+def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
+  has_binary_coproducts.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
 
 section
 

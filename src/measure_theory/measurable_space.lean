@@ -57,7 +57,7 @@ measurable space, measurable function, dynkin system
 -/
 
 local attribute [instance] classical.prop_decidable
-open set lattice encodable
+open set encodable
 open_locale classical
 
 universes u v w x
@@ -271,6 +271,28 @@ show s ∈ (⋂m∈ms, {t | @is_measurable _ m t }) ↔ _, by simp
 @[simp] theorem is_measurable_infi {ι} {m : ι → measurable_space α} {s : set α} :
   @is_measurable _ (infi m) s ↔ ∀ i, @is_measurable _ (m i) s :=
 show s ∈ (λm, {s | @is_measurable _ m s }) (infi m) ↔ _, by rw (@gi_generate_from α).gc.u_infi; simp; refl
+
+theorem is_measurable_sup {m₁ m₂ : measurable_space α} {s : set α} :
+  @is_measurable _ (m₁ ⊔ m₂) s ↔ generate_measurable (m₁.is_measurable ∪ m₂.is_measurable) s :=
+iff.refl _
+
+theorem is_measurable_Sup {ms : set (measurable_space α)} {s : set α} :
+  @is_measurable _ (Sup ms) s ↔ generate_measurable (⋃₀ (measurable_space.is_measurable '' ms)) s :=
+begin
+  change @is_measurable _ (generate_from _) _ ↔ _,
+  dsimp [generate_from],
+  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (is_measurable b)) = (⋃₀(is_measurable '' ms)),
+  { ext,
+    simp only [exists_prop, mem_Union, sUnion_image, mem_set_of_eq],
+    refl, })
+end
+
+theorem is_measurable_supr {ι} {m : ι → measurable_space α} {s : set α} :
+  @is_measurable _ (supr m) s ↔ generate_measurable (⋃i, (m i).is_measurable) s :=
+begin
+  convert @is_measurable_Sup _ (range m) s,
+  simp,
+end
 
 end complete_lattice
 
@@ -513,13 +535,13 @@ instance measurable_space.pi {α : Type u} {β : α → Type v} [m : Πa, measur
 
 lemma measurable_pi_apply {α : Type u} {β : α → Type v} [Πa, measurable_space (β a)] (a : α) :
   measurable (λf:Πa, β a, f a) :=
-measurable_space.comap_le_iff_le_map.1 $ lattice.le_supr _ a
+measurable_space.comap_le_iff_le_map.1 $ le_supr _ a
 
 lemma measurable_pi_lambda {α : Type u} {β : α → Type v} {γ : Type w}
   [Πa, measurable_space (β a)] [measurable_space γ]
   (f : γ → Πa, β a) (hf : ∀a, measurable (λc, f c a)) :
   measurable f :=
-lattice.supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
+supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
 
 end pi
 

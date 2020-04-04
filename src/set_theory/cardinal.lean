@@ -5,6 +5,7 @@ Author: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.fintype.card
 
 /-!
 # Cardinal Numbers
@@ -31,7 +32,7 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
 cardinal number, cardinal arithmetic, cardinal exponentiation, omega
 -/
 
-open function lattice set
+open function set
 open_locale classical
 
 universes u v w x
@@ -295,7 +296,7 @@ instance : canonically_ordered_monoid cardinal.{u} :=
 { add_le_add_left       := λ a b h c, add_le_add_left _ h,
   lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
-  ..cardinal.lattice.order_bot,
+  ..cardinal.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
 
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
@@ -807,7 +808,7 @@ fintype_card pempty
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
-@[simp] theorem mk_unit : mk unit = 1 :=
+theorem mk_unit : mk unit = 1 :=
 (fintype_card unit).trans nat.cast_one
 
 @[simp] theorem mk_punit : mk punit = 1 :=

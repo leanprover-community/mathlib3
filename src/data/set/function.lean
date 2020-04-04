@@ -9,6 +9,8 @@ import data.set.basic logic.function
 
 ## Main definitions
 
+### Predicate
+
 * `eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
 * `maps_to f s t` : `f` sends every point of `s` to a point of `t`;
 * `inj_on f s` : restriction of `f` to `s` is injective;
@@ -18,6 +20,13 @@ import data.set.basic logic.function
 * `right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
 * `inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
   we have `left_inv_on f' f s` and `right_inv_on f' f t`.
+
+### Functions
+
+* `restrict f s` : restrict the domain of `f` to the set `s`;
+* `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
+* `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
+  and the codomain to `t`.
 -/
 universes u v w x y
 
@@ -29,8 +38,25 @@ namespace set
 
 /-! ### Restrict -/
 
-lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-by { ext x, simp [restrict], refl }
+/-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
+takes an argument `↥s` instead of `subtype s`. -/
+def restrict (f : α → β) (s : set α) : s → β := λ x, f x
+
+lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
+
+@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
+range_comp.trans $ congr_arg (('') f) s.range_coe_subtype
+
+/-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
+has codomain `↥s` instead of `subtype s`. -/
+def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
+λ x, ⟨f x, h x⟩
+
+@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
+  (cod_restrict f s h x : β) = f x :=
+rfl
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
@@ -65,6 +91,15 @@ lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
 @[reducible] def maps_to (f : α → β) (s : set α) (t : set β) : Prop := s ⊆ f ⁻¹' t
 
+/-- Given a map `f` sending `s : set α` into `t : set β`, restrict domain of `f` to `s`
+and the codomain to `t`. Same as `subtype.map`. -/
+def maps_to.restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  s → t :=
+subtype.map f h
+
+@[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
+  (h.restrict f s t x : β) = f x := rfl
+
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
@@ -82,6 +117,21 @@ theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to
 
 theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
 λ x h, h₁ (h₂ h)
+
+theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
+  ∀ n, maps_to (f^[n]) s s
+| 0 := λ _, id
+| (n+1) := (maps_to.iterate n).comp h
+
+theorem maps_to.iterate_restrict {f : α → α} {s : set α} (h : maps_to f s s) (n : ℕ) :
+  (h.restrict f s s^[n]) = (h.iterate n).restrict _ _ _ :=
+begin
+  funext x,
+  rw [subtype.coe_ext, maps_to.coe_restrict_apply],
+  induction n with n ihn generalizing x,
+  { refl },
+  { simp [nat.iterate, ihn] }
+end
 
 theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s₁ t₁) :
   maps_to f s₂ t₂ :=
@@ -126,7 +176,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-lemma inj_on.inv_fun_on_image [inhabited α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
+lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
 begin
   have : eq_on ((inv_fun_on f s₂) ∘ f) id s₁, from λz hz, inv_fun_on_eq' h (ht hz),
@@ -307,19 +357,19 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
 
 /-! ### `inv_fun_on` is a left/right inverse -/
 
-theorem inj_on.left_inv_on_inv_fun_on [inhabited α] (h : inj_on f s) :
+theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
 λ x hx, inv_fun_on_eq' h hx
 
-theorem surj_on.right_inv_on_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.right_inv_on_inv_fun_on [nonempty α] (h : surj_on f s t) :
   right_inv_on (inv_fun_on f s) f t :=
 λ y hy, inv_fun_on_eq $ mem_image_iff_bex.1 $ h hy
 
-theorem bij_on.inv_on_inv_fun_on [inhabited α] (h : bij_on f s t) :
+theorem bij_on.inv_on_inv_fun_on [nonempty α] (h : bij_on f s t) :
   inv_on (inv_fun_on f s) f s t :=
 ⟨h.inj_on.left_inv_on_inv_fun_on, h.surj_on.right_inv_on_inv_fun_on⟩
 
-theorem surj_on.inv_on_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.inv_on_inv_fun_on [nonempty α] (h : surj_on f s t) :
   inv_on (inv_fun_on f s) f (inv_fun_on f s '' t) t :=
 begin
   refine ⟨_, h.right_inv_on_inv_fun_on⟩,
@@ -327,11 +377,11 @@ begin
   rw [h.right_inv_on_inv_fun_on hy]
 end
 
-theorem surj_on.maps_to_inv_fun_on [inhabited α] (h : surj_on f s t) :
+theorem surj_on.maps_to_inv_fun_on [nonempty α] (h : surj_on f s t) :
   maps_to (inv_fun_on f s) t s :=
 λ y hy, mem_preimage.2 $ inv_fun_on_mem $ mem_image_iff_bex.1 $ h hy
 
-theorem surj_on.bij_on_subset [inhabited α] (h : surj_on f s t) :
+theorem surj_on.bij_on_subset [nonempty α] (h : surj_on f s t) :
   bij_on f (inv_fun_on f s '' t) t :=
 begin
   refine h.inv_on_inv_fun_on.bij_on _ (maps_to_image _ _),
@@ -346,7 +396,7 @@ begin
   { rcases eq_empty_or_nonempty t with rfl|ht,
     { exact λ _, ⟨∅, empty_subset _, bij_on_empty f⟩ },
     { assume h,
-      haveI : inhabited α := ⟨classical.some (h.comap_nonempty ht)⟩,
+      haveI : nonempty α := ⟨classical.some (h.comap_nonempty ht)⟩,
       exact ⟨_, h.maps_to_inv_fun_on.image_subset, h.bij_on_subset⟩ }},
   { rintros ⟨s', hs', hfs'⟩,
     exact hfs'.surj_on.mono hs' (subset.refl _) }
@@ -383,13 +433,16 @@ begin
   { by_cases h' : i ∈ s; simp [h, h'] }
 end
 
-@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+@[simp, priority 990]
+lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+@[simp, priority 990]
+lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
+@[simp, priority 990]
+lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
 by { simp [piecewise, h], congr }
 
@@ -412,4 +465,3 @@ lemma surjective.surj_on (hf : surjective f) (s : set β) :
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
 
 end function
-

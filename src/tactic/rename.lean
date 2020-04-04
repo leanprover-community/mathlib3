@@ -99,8 +99,36 @@ rename' [x → y, a → b]  -- ditto
 ```
 
 Brackets are necessary if multiple hypotheses should be renamed in parallel.
+
+---
+
+Renames one or more hypotheses in the context.
+
+```lean
+example {α β} (a : α) (b : β) : unit :=
+begin
+  rename' a a',              -- result: a' : α, b  : β
+  rename' a' → a,            --         a  : α, b  : β
+  rename' [a a', b b'],      --         a' : α, b' : β
+  rename' [a' → a, b' → b],  --         a  : α, b  : β
+  exact ()
+end
+```
+
+Compared to the standard `rename` tactic, this tactic makes the following
+improvements:
+
+- You can rename multiple hypotheses at once.
+- Renaming a hypothesis always preserves its location in the context (whereas
+  `rename` may reorder hypotheses).
 -/
 meta def rename' (renames : parse rename'_args_parser) : tactic unit :=
   tactic.rename' (rb_map.of_list renames)
+
+add_tactic_doc
+{ name       := "rename'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rename'],
+  tags       := ["renaming"] }
 
 end tactic.interactive

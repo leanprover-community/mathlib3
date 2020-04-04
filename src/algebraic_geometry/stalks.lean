@@ -55,7 +55,7 @@ begin
   ext U,
   op_induction U,
   cases U,
-  simp only [colim.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
+  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
     whisker_left_app, whisker_right_app,
     assoc, id_comp, map_id, map_comp],
   dsimp,

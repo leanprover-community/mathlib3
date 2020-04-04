@@ -140,11 +140,11 @@ by dsimp [of_set]; split_ifs; simp *
 lemma mem_of_set_iff {s : set α} [decidable_pred s] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 by dsimp [of_set]; split_ifs; split; finish
 
-@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
-  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
-
 @[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred s} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff
+
+@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
+  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
@@ -182,7 +182,7 @@ lemma trans_symm_eq_iff_forall_is_some {f : α ≃. β} :
   f.trans f.symm = pequiv.refl α ↔ ∀ a, is_some (f a) :=
 by rw [trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
 
-instance : lattice.has_bot (α ≃. β) :=
+instance : has_bot (α ≃. β) :=
 ⟨{ to_fun := λ _, none,
    inv_fun := λ _, none,
    inv := by simp }⟩
@@ -267,7 +267,6 @@ single_trans_of_eq_none _ (single_apply_of_ne h.symm _)
 end single
 
 section order
-open lattice
 
 instance : partial_order (α ≃. β) :=
 { le := λ f g, ∀ (a : α) (b : β), b ∈ f a → b ∈ g a,
@@ -286,7 +285,7 @@ lemma le_def {f g : α ≃. β} : f ≤ g ↔ (∀ (a : α) (b : β), b ∈ f a 
 instance : order_bot (α ≃. β) :=
 { bot_le := λ _ _  _ h, (not_mem_none _ h).elim,
   ..pequiv.partial_order,
-  ..pequiv.lattice.has_bot }
+  ..pequiv.has_bot }
 
 instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) :=
 { inf := λ f g,
@@ -305,7 +304,7 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.lattice.order_bot }
+  ..pequiv.order_bot }
 
 end order
 

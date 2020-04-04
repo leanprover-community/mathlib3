@@ -127,6 +127,7 @@ example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)
 example (x y : ℚ) (n : ℕ) (hx : x ≠ 0) (hy : y ≠ 0) :
   1/ (2/(x / y))^(2 * n) + y / y^(n+1) - (x/y)^n * (x/(2 * y))^n / 2 ^n = 1/y^n :=
 begin
+  simp [sub_eq_add_neg],
   field_simp [hx, hy],
   ring_exp
 end

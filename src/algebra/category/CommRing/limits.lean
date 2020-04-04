@@ -88,11 +88,14 @@ instance limit_comm_ring (F : J ⥤ CommRing.{u}) :
 @subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (CommRing.sections_subring F))
 
-instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
-  is_ring_hom (limit.π (F ⋙ forget CommRing) j) :=
-{ map_one := by { simp only [types.types_limit_π], refl },
-  map_mul := λ x y, by { simp only [types.types_limit_π], refl },
-  map_add := λ x y, by { simp only [types.types_limit_π], refl } }
+/-- `limit.π (F ⋙ forget CommRing) j` as a `ring_hom`. -/
+def limit_π_ring_hom (F : J ⥤ CommRing.{u}) (j) :
+  limit (F ⋙ forget CommRing) →+* (F ⋙ forget CommRing).obj j :=
+{ to_fun := limit.π (F ⋙ forget CommRing) j,
+  map_one' := by { simp only [types.types_limit_π], refl },
+  map_zero' := by { simp only [types.types_limit_π], refl },
+  map_mul' := λ x y, by { simp only [types.types_limit_π], refl },
+  map_add' := λ x y, by { simp only [types.types_limit_π], refl } }
 
 namespace CommRing_has_limits
 -- The next two definitions are used in the construction of `has_limits CommRing`.
@@ -106,7 +109,7 @@ Construction of a limit cone in `CommRing`.
 def limit (F : J ⥤ CommRing.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
-  { app := λ j, ring_hom.of $ limit.π (F ⋙ forget _) j,
+  { app := limit_π_ring_hom F,
     naturality' := λ j j' f,
       ring_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 

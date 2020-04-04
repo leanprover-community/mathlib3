@@ -103,12 +103,12 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp, λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm], λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
-⟨λ f, ⟨λ m, - f m, λm i x y, by simp, λm i c x, by simp⟩⟩
+⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
@@ -121,7 +121,7 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+   intros; ext; simp [add_comm, add_left_comm]
 
 /-- If `f` is a multilinear map, then `f.to_linear_map m i` is the linear map obtained by fixing all
 coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
@@ -330,7 +330,7 @@ variables {R M M₂}
 [comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
 [∀i, module R (M i)] [module R M'] [module R M₂]
 
-/-! #### Left curryfication -/
+/-! #### Left currying -/
 
 /-- Given a linear map `f` from `M 0` to multilinear maps on `n` variables,
 construct the corresponding multilinear map on `n+1` variables obtained by concatenating
@@ -420,7 +420,7 @@ def multilinear_curry_left_equiv :
 
 variables {R M M₂}
 
-/-! #### Right curryfication -/
+/-! #### Right currying -/
 
 /-- Given a multilinear map `f` in `n` variables to the space of linear maps from `M (last n)` to
 `M₂`, construct the corresponding multilinear map on `n+1` variables obtained by concatenating

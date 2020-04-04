@@ -73,7 +73,7 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [discrete_field K] [comm_ring A] [algebra K A]
+variables (K : Type u) {A : Type v} [field K] [comm_ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -89,7 +89,7 @@ end field
 
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
-variables [discrete_field K] [discrete_field L] [comm_ring A]
+variables [field K] [field L] [comm_ring A]
 variables [algebra K L] [algebra L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,

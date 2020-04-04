@@ -40,7 +40,7 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.discrete_field }
+  .. complex.field }
 
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
@@ -180,6 +180,7 @@ variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
 
 /-- If a complex function is differentiable at a real point, then the induced real function is also
 differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
+-- FIXME this causes a deterministic timeout with `-T50000`
 theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
   has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin

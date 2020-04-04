@@ -36,7 +36,7 @@ namespace nat_trans
 
 @[simp] lemma vcomp_eq_comp (α : F ⟶ G) (β : G ⟶ H) : vcomp α β = α ≫ β := rfl
 
-@[simp] lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = (α.app X) ≫ (β.app X) := rfl
 
 lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h

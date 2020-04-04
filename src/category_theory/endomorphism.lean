@@ -7,7 +7,7 @@ Definition and basic properties of endomorphisms and automorphisms of an object 
 -/
 
 import category_theory.category category_theory.isomorphism category_theory.groupoid category_theory.functor
-import algebra.group.units data.equiv.algebra
+import algebra.group.units data.equiv.mul_add
 
 universes v v' u u'
 

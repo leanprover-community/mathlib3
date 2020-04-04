@@ -287,7 +287,7 @@ not_nonempty_iff_eq_empty.2 rfl
 lemma eq_empty_or_nonempty (s : set α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inr (λ h, or.inl $ not_nonempty_iff_eq_empty.1 h)
 
-@[simp] theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
+theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
 (not_congr not_nonempty_iff_eq_empty.symm).trans classical.not_not
 
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=

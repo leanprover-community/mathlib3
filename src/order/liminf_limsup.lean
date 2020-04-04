@@ -277,7 +277,7 @@ begin
   rw limsup_eq,
   congr,
   ext b,
-  exact h.congr_iff (λ z, z ≤ b),
+  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
@@ -286,7 +286,7 @@ begin
   rw liminf_eq,
   congr,
   ext b,
-  exact h.congr_iff (λ z, b ≤ z),
+  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
 lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)

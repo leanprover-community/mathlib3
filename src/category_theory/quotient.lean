@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 
 import category_theory.functor
+import category_theory.natural_isomorphism
 
 /-!
 # Quotient category
@@ -93,9 +94,16 @@ def lift : quotient r ⥤ D :=
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
+/-- The original functor factors through the induced functor. -/
+def lift.is_lift : (functor r) ⋙ lift r F H ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
 @[simp]
-lemma lift.is_lift : (functor r) ⋙ lift r F H = F :=
-by { cases F, refl, }
+lemma lift.is_lift_hom (X : C) : (lift.is_lift r F H).hom.app X = 𝟙 (F.obj X) :=
+rfl
+@[simp]
+lemma lift.is_lift_inv (X : C) : (lift.is_lift r F H).inv.app X = 𝟙 (F.obj X) :=
+rfl
 
 end quotient
 

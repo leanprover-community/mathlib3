@@ -76,7 +76,7 @@ protected lemma induction {P : Π {a b : quotient r}, (a ⟶ b) → Prop}
   ∀ {a b : quotient r} (f : a ⟶ b), P f :=
 by { rintros ⟨x⟩ ⟨y⟩ ⟨f⟩, exact h f, }
 
-protected lemma sound {a b : C} (f₁ f₂ : a ⟶ b) (h : r f₁ f₂) :
+protected lemma sound {a b : C} {f₁ f₂ : a ⟶ b} (h : r f₁ f₂) :
   (functor r).map f₁ = (functor r).map f₂ :=
 by simpa using quot.sound (comp_closure.intro (𝟙 a) f₁ f₂ (𝟙 b) h)
 

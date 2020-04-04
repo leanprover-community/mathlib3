@@ -342,12 +342,10 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (f g : M →ₗ[R] M₂)
 include R
 
-instance zoug : comm_semiring R := by apply_instance
 
-#print linear_map.zoug
 
-/- local attribute [instance, priority 10000] comm_ring.to_comm_semiring add_comm_group.to_add_comm_monoid
-comm_semiring.to_semiring -/
+/- Next definition fails. I have not been able to sort it out, even tweaking priorities
+as follows.
 
 local attribute [instance, priority 50] semiring.to_add_comm_monoid ring.to_add_comm_group
 
@@ -357,17 +355,14 @@ comm_ring.to_comm_semiring comm_semiring.to_semiring
 set_option trace.class_instances true
 
 set_option class.instance_max_depth 10
+-/
 
-def f : (M₂ →ₗ[R] R) := sorry
+#exit
 
 /--
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
 def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] (M →ₗ[R] (M₂ →ₗ[R] M)) :=
-sorry
-
-#exit
-
 { to_fun := λ f, {
     to_fun := linear_map.smul_right f,
     add    := λ m m', by { ext, apply smul_add, },

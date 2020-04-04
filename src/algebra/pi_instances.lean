@@ -52,6 +52,7 @@ instance semigroup          [∀ i, semigroup          $ f i] : semigroup       
 instance comm_semigroup     [∀ i, comm_semigroup     $ f i] : comm_semigroup     (Π i : I, f i) := by pi_instance
 instance monoid             [∀ i, monoid             $ f i] : monoid             (Π i : I, f i) := by pi_instance
 instance comm_monoid        [∀ i, comm_monoid        $ f i] : comm_monoid        (Π i : I, f i) := by pi_instance
+instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance group              [∀ i, group              $ f i] : group              (Π i : I, f i) := by pi_instance
 instance comm_group         [∀ i, comm_group         $ f i] : comm_group         (Π i : I, f i) := by pi_instance
 instance add_semigroup      [∀ i, add_semigroup      $ f i] : add_semigroup      (Π i : I, f i) := by pi_instance
@@ -62,14 +63,6 @@ instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group  
 instance semiring           [∀ i, semiring           $ f i] : semiring           (Π i : I, f i) := by pi_instance
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
-
-instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) :=
-{ add := λ a b i, a i + b i,
-  zero := λ i, 0,
-  add_assoc := by simp,
-  add_comm := by intros a b; ext; simp; cc,
-  zero_add := by intro a; ext; simp,
-  add_zero := by intro a; ext; simp, }
 
 instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
 { smul := λ c f i, c • f i,

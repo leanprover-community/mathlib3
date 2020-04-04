@@ -472,4 +472,4 @@ add_tactic_doc
 { name := "norm_cast attributes",
   category   := doc_category.attr,
   decl_names := [`norm_cast.move_cast_attr, `norm_cast.elim_cast_attr, `norm_cast.squash_cast_attr],
-  tags       := ["coercions"] }
+  tags       := ["coercions", "simplification"] }

@@ -267,7 +267,7 @@ add_tactic_doc
 { name                     := "ext",
   category                 := doc_category.attr,
   decl_names               := [`extensional_attribute],
-  tags                     := [] }
+  tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
 attribute [ext] array.ext propext prod.ext
@@ -395,6 +395,6 @@ add_tactic_doc
 { name        := "ext1 / ext",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := [] }
+  tags        := ["rewrite", "logic"] }
 
 end tactic

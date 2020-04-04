@@ -168,8 +168,7 @@ begin
   { convert (continuous_subtype_coe.tendsto _).comp h_tendsto, ext n,
     simp only [(∘), maps_to.iterate_restrict, maps_to.coe_restrict_apply, subtype.coe_mk] },
   { convert hle n,
-    rw [maps_to.iterate_restrict, eq_comm, subtype.val_eq_coe, maps_to.coe_restrict_apply,
-      subtype.coe_mk] }
+    rw [maps_to.iterate_restrict, eq_comm, maps_to.coe_restrict_apply, subtype.coe_mk] }
 end
 
 variable (f) -- avoid `efixed_point _` in pretty printer

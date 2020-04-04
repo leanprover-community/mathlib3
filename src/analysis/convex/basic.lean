@@ -892,7 +892,7 @@ begin
   apply congr_arg,
   convert (subtype.range_val s).symm,
   ext x,
-  simp [linear_map.sum_apply, ite_smul, finset.sum_ite _ _ (λ x, x), finset.filter_eq]
+  simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/

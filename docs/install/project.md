@@ -1,9 +1,14 @@
 # Creating a Lean project
 
-Lean files are organized in projects called packages. The tool `leanproject`
-manages project creation and dependencies. We will now create a new
-project depending on mathlib. The following commands should be typed in a
-terminal.
+Lean files are organized in projects called packages. Projects are
+git repositories containing a `leanpkg.toml` file specifying the Lean
+version and all required dependencies alongside the `src/` subdirectory
+containing the Lean code. The tool
+[`leanproject`](https://github.com/leanprover-community/mathlib-tools)
+manages project creation and dependencies. 
+
+We will now create a new project depending on mathlib. The following
+commands should be typed in a terminal.
 
 * If you have not logged in since you installed Lean and mathlib, then
   you need to first type `source ~/.profile`.

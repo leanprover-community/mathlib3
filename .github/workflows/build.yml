@@ -1,13 +1,18 @@
 name: continuous integration
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
+    env:
+      # number of commits to check for olean cache
+      GIT_HISTORY_DEPTH: 10
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
       - name: install elan
         run: |
@@ -40,11 +45,13 @@ jobs:
       - name: try to find olean cache
         run: |
           ./scripts/fetch_olean_cache.sh
-        env:
-          git_sha: "${{ github.sha }}"
 
       - name: leanpkg build
-        run: leanpkg build | python scripts/detect_errors.py
+        id: build
+        run: |
+          leanpkg build | python scripts/detect_errors.py
+          # if the build fails, `steps.build.output.status` will be `null`
+          echo "::set-output name=status::built"
 
       - name: configure git setup
         if: always()
@@ -90,18 +97,27 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: ..
 
-      - name: tests
-        run: |
-          set -o pipefail
-          lean --make docs archive roadmap test | cat
-
       - name: lint
+        if: success() || steps.build.outputs.status == 'built'
         run: |
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
           mv nolints.txt scripts/nolints.txt
           ./scripts/rm_all.sh
           git diff
+
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run:
+          ./scripts/update_nolints.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: tests
+        if: success() || steps.build.outputs.status == 'built'
+        run: |
+          set -o pipefail
+          lean --make docs archive roadmap test | cat
 
       - name: leanchecker
         run: |
@@ -116,10 +132,3 @@ jobs:
           github_repo: ${{ github.repository }}
           github_event: ${{ github.event_name }}
           github_ref: ${{ github.ref }}
-
-      - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run:
-          ./scripts/update_nolints.sh
-        env:
-          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

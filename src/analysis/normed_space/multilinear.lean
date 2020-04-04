@@ -105,7 +105,7 @@ begin
   set C := (1 + ∥f 0∥) * univ.prod (λ(i : ι), δ⁻¹ * ∥c∥),
   have C_pos : 0 < C :=
     mul_pos (lt_of_lt_of_le zero_lt_one (by simp))
-      (prod_pos (λi hi, mul_pos (inv_pos δ_pos) (lt_of_le_of_lt zero_le_one hc))),
+      (prod_pos (λi hi, mul_pos (inv_pos.2 δ_pos) (lt_of_le_of_lt zero_le_one hc))),
   refine ⟨C, C_pos, λm, _⟩,
   /- Given a general point `m`, rescale each coordinate to bring it to `[δ/∥c∥, δ]` by multiplication
   by a power of a scalar `c` with norm `∥c∥ > 1`.-/

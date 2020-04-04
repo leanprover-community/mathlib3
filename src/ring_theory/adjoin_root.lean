@@ -8,6 +8,27 @@ Adjoining roots of polynomials
 
 import data.polynomial ring_theory.principal_ideal_domain
 
+/-!
+# Adjoining roots of polynomials
+
+This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
+commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
+irreducible, the field structure on `adjoin_root f` is constructed.
+
+## Main definitions and results
+
+The main definitions are in the `adjoin_root` namespace.
+
+*  `mk f : polynomial R →+* adjoin_root f`, the natural ring homomorphism.
+
+*  `of f : R →+* adjoin_root f`, the natural ring homomorphism.
+
+* `root f : adjoin_root f`, the image of X in R[X]/(f).
+
+* `lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S`, the ring
+  homomorphism from R[X]/(f) to S extending `i : R →+* S` and sending `X` to `x`.
+
+-/
 noncomputable theory
 
 universes u v w

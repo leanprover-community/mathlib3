@@ -38,7 +38,7 @@ variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 @[reducible]
 def indicator (s : set α) (f : α → β) : α → β := λ x, if x ∈ s then f x else 0
 
-@[simp] lemma indicator_apply (s : set α) (f : α → β) (a : α) :
+lemma indicator_apply (s : set α) (f : α → β) (a : α) :
   indicator s f a = if a ∈ s then f a else 0 := rfl
 
 @[simp] lemma indicator_of_mem (h : a ∈ s) (f : α → β) : indicator s f a = f a := if_pos h

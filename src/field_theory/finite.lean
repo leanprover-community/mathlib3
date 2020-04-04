@@ -146,12 +146,9 @@ lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
 let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
   from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
 ⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
+  have := congr_arg ⇑(zmod.cast_hom α : zmod n →+* α) hab,
   rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
+  simpa using this
 end⟩
 
 end char_p

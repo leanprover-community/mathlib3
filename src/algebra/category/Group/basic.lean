@@ -21,7 +21,8 @@ along with the relevant forgetful functors between them, and to the bundled mono
 
 ## Implementation notes
 
-See the note [locally reducible category instances].
+See the note [locally reducible category instances]
+and the note [reducible has_coe_to_sort instances for bundled categories].
 -/
 
 universes u v
@@ -39,7 +40,11 @@ namespace Group
 
 local attribute [reducible] Group
 
-@[to_additive]
+/--
+`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
+see note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[reducible, to_additive]
 instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
 
 @[to_additive add_group]
@@ -58,6 +63,9 @@ instance : unique (1 : Group.{u}) :=
 
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
+
+@[to_additive]
+instance : category Group := infer_instance -- short-circuit type class inference
 
 @[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
@@ -88,7 +96,11 @@ namespace CommGroup
 
 local attribute [reducible] CommGroup
 
-@[to_additive]
+/--
+`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
+see note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[reducible, to_additive]
 instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_group_instance]
@@ -106,6 +118,8 @@ instance : unique (1 : CommGroup.{u}) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
+@[to_additive] instance : category CommGroup := infer_instance -- short-circuit type class inference
+
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
@@ -122,6 +136,16 @@ instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
+
+/--
+We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
+so that `simp` lemmas for morphisms work.
+
+See note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[to_additive]
+example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=
+by simp [h]
 
 namespace AddCommGroup
 

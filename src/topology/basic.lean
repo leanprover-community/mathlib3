@@ -429,7 +429,7 @@ attribute [irreducible] nhds
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
 
-lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α} {s : set α}
+lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
   (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
 mem_of_nhds h
 

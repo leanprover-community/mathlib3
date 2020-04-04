@@ -9,6 +9,43 @@ import tactic.rewrite_all
 import tactic.core
 import data.mllist
 
+/-!
+## rw_hint
+
+The tactic `rw_hint` will try to rewrite the goal using all available lemmas and hypotheses,
+reporting those that make progress.
+
+```
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q :=
+begin
+  rw_hint, -- Prints "Try this: rw ←h"
+  rw ←h, exact p,
+end
+```
+
+The optional syntax `rw_hint with p` only reports rewrites that transform the goal
+to something containing the pattern `p`.
+(So for example one could write `rw_hint with _ ∧ _` to find rewrites producing a
+goal containing a conjunction.)
+
+Users should be careful that this is a blunt tool:
+* with many imports open it can be very slow,
+* with 'generic' goals (in particular anything involving numerals) you will get many
+  spurious suggestions.
+
+There is also a `conv` mode, which may be more useful: it only reports rewrites that transform the
+entire current focus, so if you expect to be able to rewrite some particular subexpression using a
+lemma, you can use `congr` and `skip` inside `conv` to focus on that subexpression, and then call
+`rw_hint`, which hopefully will then return fewer false positives than `rw_hint` on the entire
+original goal. Inside `conv`, calling `rw_hint with p` will require that the rewritten
+focus matches the pattern `p`, rather than merely the pattern `p` appearing as a subexpression.
+
+The main use case for `rw_hint` is for users with some familiarity with the mathlib naming
+conventions, who may be able to scan through a list of suggestions and quickly recognise from the
+names which are the actually relevant suggestions. Beginners unfamiliar with these conventions may
+find `rw_hint` unhelpful.
+-/
+
 open tactic.rewrite_all.congr
 open tactic.rewrite_search.discovery
 
@@ -83,6 +120,13 @@ meta def rw_hint (for : parse (tk "with" *> texpr)?) : tactic unit :=
 do hints ← rw_hint_target for,
    guard (hints.length > 0) <|> fail "No rewrites found",
    hints.mmap' (λ h, trace $ "Try this: " ++ h.1 ++ " -- " ++ h.2)
+
+
+add_tactic_doc
+{ name        := "rw_hint",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.rw_hint],
+  tags        := ["rewriting", "search", "Try this"] }
 
 end interactive
 

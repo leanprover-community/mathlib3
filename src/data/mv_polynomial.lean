@@ -1420,6 +1420,8 @@ show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
 
 section
 variables (R)
+
+/-- `pderivative : S → mv_polynomial S R → mv_polynomial S R` as an `add_monoid_hom`  -/
 def pderivative.add_monoid_hom (v : S) : mv_polynomial S R →+ mv_polynomial S R :=
 { to_fun := pderivative v,
   map_zero' := pderivative_zero,

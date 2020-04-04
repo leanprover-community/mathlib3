@@ -138,6 +138,14 @@ by cases n; split; rintro ⟨⟩; refl
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
+@[simp]
+lemma add_succ_sub_one (n m : ℕ) : (n + succ m) - 1 = n + m :=
+by rw [add_succ, succ_sub_one]
+
+@[simp]
+lemma succ_add_sub_one (n m : ℕ) : (succ n + m) - 1 = n + m :=
+by rw [succ_add, succ_sub_one]
+
 lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=

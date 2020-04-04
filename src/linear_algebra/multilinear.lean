@@ -242,8 +242,7 @@ by simpa using f.map_piecewise_add m m' finset.univ
 
 section apply_sum
 
-variables {α : ι → Type*} [decidable_eq (Π (a : ι), α a)] [fintype ι]
-(g : Π i, α i → M₁ i) (A : Π i, finset (α i))
+variables {α : ι → Type*} [fintype ι] (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
 
 open_locale classical
 open fintype finset
@@ -289,7 +288,8 @@ begin
         exact mem_pi_finset.mp hr i },
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  add_monoid.one_smul] },
-    simp [finset.sum_congr rfl this, Ai_card], },
+    simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, add_monoid.one_smul,
+               sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
   -- for `i ≠ i₀`, apply the inductive assumption to `B` and `C`, and add up the corresponding
@@ -303,13 +303,13 @@ begin
   have B_subset_A : ∀ i, B i ⊆ A i,
   { assume i,
     by_cases hi : i = i₀,
-    { rw hi, simp [B] },
-    { simp [hi, B] } },
+    { rw hi, simp only [B, sdiff_subset, update_same]},
+    { simp only [hi, B, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
   have C_subset_A : ∀ i, C i ⊆ A i,
   { assume i,
     by_cases hi : i = i₀,
-    { rw hi, simp [C, hj₂] },
-    { simp [hi, C] } },
+    { rw hi, simp only [C, hj₂, finset.singleton_subset_iff, update_same] },
+    { simp only [hi, C, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
   -- split the sum at `i₀` as the sum over `B i₀` plus the sum over `C i₀`, to use additivity.
   have A_eq_BC : (λ i, (A i).sum (g i)) =
     function.update (λ i, (A i).sum (g i)) i₀ ((B i₀).sum (g i₀) + (C i₀).sum (g i₀)),
@@ -321,27 +321,28 @@ begin
       { simp only [B, C, function.update_same, finset.insert_empty_eq_singleton,
                    finset.sdiff_union_self_eq_union],
         symmetry,
-        simp [hj₂] },
+        simp only [hj₂, finset.singleton_subset_iff, union_eq_left_iff_subset] },
       rw this,
       apply finset.sum_union,
       apply finset.disjoint_right.2 (λ j hj, _),
       have : j = j₂, by { dsimp [C] at hj, simpa using hj },
       rw this,
       dsimp [B],
-      simp },
+      simp only [mem_sdiff, eq_self_iff_true, not_true, not_false_iff, finset.mem_singleton,
+                 update_same, and_false] },
     { simp [hi] } },
   have Beq : function.update (λ i, (A i).sum (g i)) i₀ ((B i₀).sum (g i₀)) =
     (λ i, finset.sum (B i) (g i)),
   { ext i,
     by_cases hi : i = i₀,
-    { rw hi, simp [B] },
-    { simp [hi, B] } },
+    { rw hi, simp only [update_same] },
+    { simp only [hi, B, update_noteq, ne.def, not_false_iff] } },
   have Ceq : function.update (λ i, (A i).sum (g i)) i₀ ((C i₀).sum (g i₀)) =
     (λ i, finset.sum (C i) (g i)),
   { ext i,
     by_cases hi : i = i₀,
-    { rw hi, simp [C] },
-    { simp [hi, C] } },
+    { rw hi, simp only [update_same] },
+    { simp only [hi, C, update_noteq, ne.def, not_false_iff] } },
   -- Express the inductive assumption for `B`
   have Brec : f (λ i, finset.sum (B i) (g i)) = (pi_finset B).sum (λ r, f (λ i, g i (r i))),
   { have : finset.univ.sum (λ i, finset.card (B i)) < finset.univ.sum (λ i, finset.card (A i)),
@@ -384,7 +385,7 @@ begin
         (pi_finset_subset _ _ (λ i, C_subset_A i)) } },
   rw A_eq_BC,
   simp only [multilinear_map.map_add, Beq, Ceq, Brec, Crec, pi_BC],
-  rw ← finset.sum_union D
+  rw ← finset.sum_union D,
 end
 
 /-- If `f` is multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum of
@@ -400,7 +401,7 @@ f.map_sum_finset_aux _ _ rfl
 multilinearity by expanding successively with respect to each coordinate. -/
 lemma map_sum [∀ i, fintype (α i)] :
   f (λ i, finset.univ.sum (g i)) = finset.univ.sum (λ (r : Π i, α i), f (λ i, g i (r i))) :=
-by { convert f.map_sum_finset g (λ i, finset.univ), rw [fintype.pi_finset_univ] }
+f.map_sum_finset g (λ i, finset.univ)
 
 end apply_sum
 

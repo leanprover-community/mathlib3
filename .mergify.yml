@@ -7,11 +7,14 @@ pull_request_rules:
       - label=ready-to-merge
       - approved-reviews-by=@leanprover-community/mathlib-maintainers
     actions:
-     delete_head_branch: {}
-     merge:
-        method: squash
-        strict: smart
-        strict_method: merge
+      comment:
+         message: |
+              bors r+
+    #  delete_head_branch: {}
+    #  merge:
+    #     method: squash
+    #     strict: smart
+    #     strict_method: merge
  # In practice this turns out to be really annoying.
  # - name: remove outdated reviews
  #   conditions:

@@ -389,6 +389,17 @@ end
 
 end coeff
 
+section as_sum
+
+@[simp]
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+finsupp.sum_single p
+
+lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+(support_sum_monomial_coeff p).symm
+
+end as_sum
+
 section eval₂
 variables [comm_semiring β]
 variables (f : α → β) (g : σ → β)
@@ -1406,6 +1417,52 @@ by simp
 lemma pderivative_zero {v : S} : pderivative v (0 : mv_polynomial S R) = 0 :=
 suffices pderivative v (C 0 : mv_polynomial S R) = 0, by simpa,
 show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
+
+section
+variables (R)
+def pderivative.add_monoid_hom (v : S) : mv_polynomial S R →+ mv_polynomial S R :=
+{ to_fun := pderivative v,
+  map_zero' := pderivative_zero,
+  map_add' := λ x y, pderivative_add, }
+
+@[simp]
+lemma pderivative.add_monoid_hom_apply (v : S) (p : mv_polynomial S R) :
+  (pderivative.add_monoid_hom R v) p = pderivative v p :=
+rfl
+end
+
+private lemma pderivative_eq_zero_of_not_mem_vars_aux {v : S} {f : mv_polynomial S R}
+  (h : v ∉ vars f) (x : S →₀ ℕ) (H : x ∈ f.support) :
+  x v = 0 :=
+begin
+  rw [vars, multiset.mem_to_finset] at h,
+  rw ←not_mem_support_iff,
+  by_contradiction,
+  have : v ∈ degrees f,
+  { unfold degrees,
+    rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+    rw finset.sup_insert,
+    simp only [multiset.mem_union, multiset.sup_eq_union],
+    left,
+    rw [←to_finset_to_multiset, multiset.mem_to_finset] at a,
+    exact a },
+  contradiction,
+end
+
+lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v ∉ f.vars) :
+  pderivative v f = 0 :=
+begin
+  change (pderivative.add_monoid_hom R v) f = 0,
+  rw f.as_sum,
+  rw add_monoid_hom.map_sum,
+  simp,
+  conv_lhs {
+    apply_congr,
+    skip,
+    rw (show x v = 0, from pderivative_eq_zero_of_not_mem_vars_aux h x H),
+  },
+  simp,
+end
 
 lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
   pderivative v (monomial (single v n) a) = monomial (single v (n-1)) (a * n) :=

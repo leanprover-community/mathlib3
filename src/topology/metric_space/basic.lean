@@ -832,9 +832,9 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
-metric_space.induced subtype.val (λ x y, subtype.eq) t
+metric_space.induced coe (λ x y, subtype.coe_ext.2) t
 
-theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist x.1 y.1 := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 
 section nnreal
 
@@ -910,19 +910,17 @@ theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
   uniform_continuous (λb, dist (f b) (g b)) :=
 uniform_continuous_dist'.comp (hf.prod_mk hg)
 
-theorem continuous_dist' : continuous (λp:α×α, dist p.1 p.2) :=
+theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_dist'.continuous
 
-theorem continuous_dist [topological_space β] {f g : β → α}
+theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-continuous_dist'.comp (hf.prod_mk hg)
+continuous_dist.comp (hf.prod_mk hg)
 
-theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
+theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, dist (f x) (g x)) x (𝓝 (dist a b)) :=
-have tendsto (λp:α×α, dist p.1 p.2) (𝓝 (a, b)) (𝓝 (dist a b)),
-  from continuous_iff_continuous_at.mp continuous_dist' (a, b),
-tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
+(continuous_dist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
 lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero,
@@ -932,25 +930,26 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
-lemma uniform_continuous_nndist' : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
+lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_subtype_mk uniform_continuous_dist' _
 
-lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_nndist'.continuous
+lemma continuous_nndist : continuous (λp:α×α, nndist p.1 p.2) :=
+uniform_continuous_nndist.continuous
 
-lemma continuous_nndist [topological_space β] {f g : β → α}
+lemma continuous.nndist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
-continuous_nndist'.comp (hf.prod_mk hg)
+continuous_nndist.comp (hf.prod_mk hg)
 
-lemma tendsto_nndist' (a b :α) :
-  tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (𝓝 a) (𝓝 b)) (𝓝 (nndist a b)) :=
-by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _
+theorem filter.tendsto.nndist {f g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
+  tendsto (λx, nndist (f x) (g x)) x (𝓝 (nndist a b)) :=
+(continuous_nndist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
 namespace metric
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
-is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
+is_closed_le (continuous_id.dist continuous_const) continuous_const
 
 /-- ε-characterization of the closure in metric spaces-/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -1184,7 +1183,7 @@ begin
   choose T T_dense using H,
   have I1 : ∀n:ℕ, (n:ℝ) + 1 > 0 :=
     λn, lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_left (nat.cast_nonneg _)),
-  have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos'.2 (I1 n),
+  have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos.2 (I1 n),
   let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
   have count_t : countable t := by finish [countable_Union],
   have clos_t : closure t = univ,

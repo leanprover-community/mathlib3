@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import group_theory.free_abelian_group data.equiv.functor data.polynomial
+import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
 noncomputable theory
@@ -279,7 +279,7 @@ end
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
 @ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
-  (@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α) $
+  (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
@@ -306,7 +306,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
       refine multiset.induction_on s _ _,
@@ -330,7 +330,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
     { exact λ i, int.induction_on i
       (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])

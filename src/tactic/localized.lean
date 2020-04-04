@@ -76,13 +76,7 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
     (reflect (⟨nm, cmd⟩ : name × string)) (reducibility_hints.regular 1 tt) ff),
    localized_attr.set dummy_decl_name unit.star tt
 
-add_tactic_doc
-{ name                     := "localized notation",
-  category                 := doc_category.cmd,
-  decl_names               := [`localized_cmd, `open_locale_cmd],
-  tags                     := ["localized", "notation", "type classes"],
-  description :=
-"
+/--
 This consists of two user-commands which allow you to declare notation and commands localized to a
 namespace.
 
@@ -128,7 +122,12 @@ namespace.
   `noncomputable theory`, `run_cmd tactic.skip`, ...).
 * Warning 2: You have to fully specify the names used in localized notation, so that the localized
   notation also works when the appropriate namespaces are not opened.
-" }
+-/
+add_tactic_doc
+{ name                     := "localized notation",
+  category                 := doc_category.cmd,
+  decl_names               := [`localized_cmd, `open_locale_cmd],
+  tags                     := ["notation", "type classes"] }
 
 /-- Print all commands in a given notation namespace -/
 meta def print_localized_commands (ns : list name) : tactic unit :=

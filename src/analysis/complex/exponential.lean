@@ -342,13 +342,13 @@ continuous_iff_continuous_at.2 $ λ x,
 begin
   rw continuous_at,
   let f₁ := λ h:{h:ℝ // 0 < h}, log (x.1 * h.1),
-  let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos x.2) y.2),
+  let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos.2 x.2) y.2),
   have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
     simp only [this, log_mul x.2 zero_lt_one, log_one],
     exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
-  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
+  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos.2 x.2) x.2⟩),
     rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
@@ -1765,7 +1765,7 @@ begin
     have : δ ≤ ε ^ (1 / q) := le_trans (min_le_left _ _) (min_le_right _ _),
     have : δ < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num),
     use δ, use δ0, rintros ⟨⟨x, y⟩, hy⟩,
-    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero],
+    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero, subtype.coe_mk],
     assume h, rw max_lt_iff at h, cases h with xδ yy₀,
     have qy : q < y, calc q < y₀ / 2 : q_lt
       ... = y₀ - y₀ / 2 : (sub_half _).symm

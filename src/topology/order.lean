@@ -198,6 +198,10 @@ class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
   is_open s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
+@[simp] lemma is_closed_discrete [topological_space α] [discrete_topology α] (s : set α) :
+  is_closed s :=
+(discrete_topology.eq_bot α).symm ▸ trivial
+
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α] [topological_space β] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
 
@@ -340,6 +344,11 @@ variables {α : Type u} {β : Type v}
 
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩
+
+@[priority 100]
+instance subsingleton.discrete_topology [topological_space α] [subsingleton α] :
+  discrete_topology α :=
+⟨eq_bot_of_singletons_open $ λ x, subsingleton.set_cases is_open_empty is_open_univ ({x} : set α)⟩
 
 instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩

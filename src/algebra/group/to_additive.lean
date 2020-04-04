@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
 
-import tactic.basic tactic.transport tactic.algebra
+import tactic.basic tactic.transform_decl tactic.algebra
 
 /-!
 # Transport multiplicative to additive
@@ -112,10 +112,13 @@ do let n := src.mk_string "_to_additive",
 @[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
+/-- Dictionary of words used by `to_additive.guess_name` to autogenerate
+names. -/
 meta def tokens_dict : native.rb_map string string :=
 native.rb_map.of_list $
 [("mul", "add"), ("one", "zero"), ("inv", "neg"), ("prod", "sum")]
 
+/-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
 string.map_tokens '_' $ list.map $
 string.map_tokens ''' $ list.map $
@@ -190,7 +193,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transport_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict src tgt
         [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator],
       match val.doc with
       | some doc := add_doc_string tgt doc

@@ -26,6 +26,7 @@ section miscellany
   `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
+  bool.decidable_eq decidable.to_bool
 
 variables {α : Type*} {β : Type*}
 
@@ -64,6 +65,33 @@ theorem coe_fn_coe_trans
 theorem coe_sort_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+
+/--
+Many structures such as bundled morphisms coerce to functions so that you can
+transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
+then you can write `e a` and this is elaborated as `⇑e a`. This type of
+coercion is implemented using the `has_coe_to_fun`type class. There is one
+important consideration:
+
+If a type coerces to another type which in turn coerces to a function,
+then it **must** implement `has_coe_to_fun` directly:
+```lean
+structure sparkling_equiv (α β) extends α ≃ β
+
+-- if we add a `has_coe` instance,
+instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
+⟨sparkling_equiv.to_equiv⟩
+
+-- then a `has_coe_to_fun` instance **must** be added as well:
+instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
+⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
+```
+
+(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
+simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
+often causes loops in the simplifier.)
+-/
+library_note "function coercion"
 
 @[simp] theorem coe_sort_coe_base
   {α β} [has_coe α β] [has_coe_to_sort β]
@@ -394,6 +422,18 @@ mt $ λ e, e ▸ h
 theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
+/-- Transport through trivial families is the identity. -/
+@[simp]
+lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
+  (@eq.rec α a (λ a, β) y a' h) = y :=
+by { cases h, refl, }
+
+@[simp]
+lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+
+@[simp]
+lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
@@ -564,6 +604,49 @@ iff_true_intro $ λ h, hn.elim h
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
 
+lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
+exists.elim h (λ x hx, ⟨x, and.left hx⟩)
+
+lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
+  {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
+unique_of_exists_unique h py₁ py₂
+
+@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
+  (∃! x, p x) ↔ ∃ x, p x :=
+⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
+
+lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
+  (h₁ : ∀ x (h : p x), q x h → (∀ y (hy : p y), q y hy → y = x) → b) : b :=
+begin
+  simp only [exists_unique_iff_exists] at h₂,
+  apply h₂.elim,
+  exact λ x ⟨hxp, hxq⟩ H, h₁ x hxp hxq (λ y hyp hyq, H y ⟨hyp, hyq⟩)
+end
+
+lemma exists_unique.intro2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (h : p x), Prop} (w : α) (hp : p w) (hq : q w hp)
+  (H : ∀ y (hy : p y), q y hy → y = w) :
+  ∃! x (hx : p x), q x hx :=
+begin
+  simp only [exists_unique_iff_exists],
+  exact exists_unique.intro w ⟨hp, hq⟩ (λ y ⟨hyp, hyq⟩, H y hyp hyq)
+end
+
+lemma exists_unique.exists2 {α : Sort*} {p : α → Sort*} {q : Π (x : α) (h : p x), Prop}
+  (h : ∃! x (hx : p x), q x hx) :
+  ∃ x (hx : p x), q x hx :=
+h.exists.imp (λ x hx, hx.exists)
+
+lemma exists_unique.unique2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (hx : p x), Prop} (h : ∃! x (hx : p x), q x hx)
+  {y₁ y₂ : α} (hpy₁ : p y₁) (hqy₁ : q y₁ hpy₁)
+  (hpy₂ : p y₂) (hqy₂ : q y₂ hpy₂) : y₁ = y₂ :=
+begin
+  simp only [exists_unique_iff_exists] at h,
+  exact h.unique ⟨hpy₁, hqy₁⟩ ⟨hpy₂, hqy₂⟩
+end
+
 end quantifiers
 
 /-! ### Classical versions of earlier lemmas -/
@@ -625,14 +708,16 @@ by apply_instance
 noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
 by apply_instance
 
-library_note "classical lemma"
-"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+/--
+We make decidability results that depends on `classical.choice` noncomputable lemmas.
 * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
   for them, and fail because it depends on `classical.choice`.
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+-/
+library_note "classical lemma"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

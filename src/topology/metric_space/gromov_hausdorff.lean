@@ -611,7 +611,7 @@ begin
   -- A function `F` associating to `p : GH_space` the data of all distances between points
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
-    λp, ⟨N p, λa b, floor (ε⁻¹ * dist ((E p).inv_fun a) ((E p).inv_fun b))⟩,
+    λp, ⟨N p, λa b, floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⟩,
   refine ⟨_, by apply_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
@@ -622,7 +622,7 @@ begin
   the fact that `N p = N q`, this constructs `Ψ` between `s p` and `s q`, and then
   composing with the canonical inclusion we get `Φ`. -/
   have Npq : N p = N q := (sigma.mk.inj_iff.1 hpq).1,
-  let Ψ : s p → s q := λx, (E q).inv_fun (fin.cast Npq ((E p).to_fun x)),
+  let Ψ : s p → s q := λx, (E q).symm (fin.cast Npq ((E p) x)),
   let Φ : s p → q.rep := λx, Ψ x,
   -- Use the almost isometry `Φ` to show that `p.rep` and `q.rep`
   -- are within controlled Gromov-Hausdorff distance.
@@ -639,16 +639,16 @@ begin
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
       rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
-      let i := ((E q).to_fun ⟨y, ys⟩).1,
-      let hi := ((E q).to_fun ⟨y, ys⟩).2,
-      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,
+      let i := ((E q) ⟨y, ys⟩).1,
+      let hi := ((E q) ⟨y, ys⟩).2,
+      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw fin.ext_iff,
       have hiq : i < N q := hi,
       have hip : i < N p, { rwa Npq.symm at hiq },
-      let z := (E p).inv_fun ⟨i, hip⟩,
+      let z := (E p).symm ⟨i, hip⟩,
       use z,
-      have C1 : (E p).to_fun z = ⟨i, hip⟩ := (E p).right_inv ⟨i, hip⟩,
+      have C1 : (E p) z = ⟨i, hip⟩ := (E p).apply_symm_apply ⟨i, hip⟩,
       have C2 : fin.cast Npq ⟨i, hip⟩ = ⟨i, hi⟩ := rfl,
-      have C3 : (E q).inv_fun ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).left_inv ⟨y, ys⟩ },
+      have C3 : (E q).symm ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).symm_apply_apply ⟨y, ys⟩ },
       have : Φ z = y :=
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
@@ -661,23 +661,23 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p).to_fun x).1,
-      have hip : i < N p := ((E p).to_fun x).2,
+      let i := ((E p) x).1,
+      have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
+      have i' : i = ((E q) (Ψ x)).1, by { simp [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p).to_fun y).1,
-      have hjp : j < N p := ((E p).to_fun y).2,
+      let j := ((E p) y).1,
+      have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },
+      have j' : j = ((E q) (Ψ y)).1, by { simp [Ψ] },
       -- Express `dist x y` in terms of `F p`
-      have : (F p).2 ((E p).to_fun x) ((E p).to_fun y) = floor (ε⁻¹ * dist x y),
-        by simp only [F, (E p).left_inv _],
+      have : (F p).2 ((E p) x) ((E p) y) = floor (ε⁻¹ * dist x y),
+        by simp only [F, (E p).symm_apply_apply],
       have Ap : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = floor (ε⁻¹ * dist x y),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; refl },
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
-      have : (F q).2 ((E q).to_fun (Ψ x)) ((E q).to_fun (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
-        by simp only [F, (E q).left_inv _],
+      have : (F q).2 ((E q) (Ψ x)) ((E q) (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
+        by simp only [F, (E q).symm_apply_apply],
       have Aq : (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩ = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] },
       -- use the equality between `F p` and `F q` to deduce that the distances have equal
@@ -704,7 +704,7 @@ begin
         abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
         ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
-          by rw [abs_of_nonneg (le_of_lt (inv_pos εpos)), mul_assoc]
+          by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist (p.rep) (q.rep) : dist_GH_dist p q
@@ -756,13 +756,13 @@ begin
   let M := (floor (ε⁻¹ * max C 0)).to_nat,
   let F : GH_space → (Σk:fin ((K n).succ), (fin k → fin k → fin (M.succ))) :=
     λp, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
-         λa b, ⟨min M (floor (ε⁻¹ * dist ((E p).inv_fun a) ((E p).inv_fun b))).to_nat,
+         λa b, ⟨min M (floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))).to_nat,
                 lt_of_le_of_lt ( min_le_left _ _) (nat.lt_succ_self _) ⟩ ⟩,
   refine ⟨_, by apply_instance, (λp, F p), _⟩,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
   have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,
-  let Ψ : s p → s q := λx, (E q).inv_fun (fin.cast Npq ((E p).to_fun x)),
+  let Ψ : s p → s q := λx, (E q).symm (fin.cast Npq ((E p) x)),
   let Φ : s p → q.rep := λx, Ψ x,
   have main : GH_dist (p.rep) (q.rep) ≤ ε + ε/2 + ε,
   { -- to prove the main inequality, argue that `s p` is `ε`-dense in `p`, and `s q` is `ε`-dense
@@ -780,16 +780,16 @@ begin
       assume x,
       have : x ∈ ⋃y∈(s q), ball y (u n) := (hs q qt) (mem_univ _),
       rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
-      let i := ((E q).to_fun ⟨y, ys⟩).1,
-      let hi := ((E q).to_fun ⟨y, ys⟩).2,
-      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,
+      let i := ((E q) ⟨y, ys⟩).1,
+      let hi := ((E q) ⟨y, ys⟩).2,
+      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw fin.ext_iff,
       have hiq : i < N q := hi,
       have hip : i < N p, { rwa Npq.symm at hiq },
-      let z := (E p).inv_fun ⟨i, hip⟩,
+      let z := (E p).symm ⟨i, hip⟩,
       use z,
-      have C1 : (E p).to_fun z = ⟨i, hip⟩ := (E p).right_inv ⟨i, hip⟩,
+      have C1 : (E p) z = ⟨i, hip⟩ := (E p).apply_symm_apply ⟨i, hip⟩,
       have C2 : fin.cast Npq ⟨i, hip⟩ = ⟨i, hi⟩ := rfl,
-      have C3 : (E q).inv_fun ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).left_inv ⟨y, ys⟩ },
+      have C3 : (E q).symm ⟨i, hi⟩ = ⟨y, ys⟩, by { rw ihi_eq, exact (E q).symm_apply_apply ⟨y, ys⟩ },
       have : Φ z = y :=
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
@@ -802,39 +802,39 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p).to_fun x).1,
-      have hip : i < N p := ((E p).to_fun x).2,
+      let i := ((E p) x).1,
+      have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
+      have i' : i = ((E q) (Ψ x)).1, by { simp [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p).to_fun y).1,
-      have hjp : j < N p := ((E p).to_fun y).2,
+      let j := ((E p) y).1,
+      have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },
+      have j' : j = ((E q) (Ψ y)).1, by { simp [Ψ] },
       -- Express `dist x y` in terms of `F p`
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = (floor (ε⁻¹ * dist x y)).to_nat := calc
-        ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p).to_fun x) ((E p).to_fun y)).1 :
+        ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
           by { congr; apply (fin.ext_iff _ _).2; refl }
         ... = min M (floor (ε⁻¹ * dist x y)).to_nat :
-          by simp only [F, (E p).left_inv _]
+          by simp only [F, (E p).symm_apply_apply]
         ... = (floor (ε⁻¹ * dist x y)).to_nat :
         begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
-          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
+          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos.2 εpos)),
           change dist (x : p.rep) y ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam p pt
         end,
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat := calc
-        ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q).to_fun (Ψ x)) ((E q).to_fun (Ψ y))).1 :
+        ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
           by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
         ... = min M (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat :
-          by simp only [F, (E q).left_inv _]
+          by simp only [F, (E q).symm_apply_apply]
         ... = (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat :
         begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
-          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
+          refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos.2 εpos)),
           change dist (Ψ x : q.rep) (Ψ y) ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam q qt
@@ -854,9 +854,9 @@ begin
       have : floor (ε⁻¹ * dist x y) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
       { rw [Ap, Aq] at this,
         have D : 0 ≤ floor (ε⁻¹ * dist x y) :=
-          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos εpos)) dist_nonneg),
+          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
         have D' : floor (ε⁻¹ * dist (Ψ x) (Ψ y)) ≥ 0 :=
-          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos εpos)) dist_nonneg),
+          floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
         rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', this] },
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
@@ -869,7 +869,7 @@ begin
         abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
         ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
-          by rw [abs_of_nonneg (le_of_lt (inv_pos εpos)), mul_assoc]
+          by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist (p.rep) (q.rep) : dist_GH_dist p q

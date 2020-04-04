@@ -58,8 +58,6 @@ def of_iso (f : r ≃o s) : r ≼i s :=
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
-@[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : (f : r ≼o s) x = f x := rfl
-
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
 @[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
@@ -195,9 +193,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
 ⟨@order_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
-    rw [←g.right_inv x],
-    simp only [order_iso.to_equiv_to_fun, coe_fn_coe_base, order_embedding.trans_apply],
-    rw [←order_iso.ord'' g, f.down', exists_congr],
+    rw [← g.right_inv x, order_iso.to_equiv_to_fun, ← order_iso.ord' g, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 

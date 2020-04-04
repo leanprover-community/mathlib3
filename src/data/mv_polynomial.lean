@@ -1369,53 +1369,21 @@ lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
   pderivative v (monomial (single v n) a) = monomial (single v (n-1)) (a * n) :=
 by simp
 
-private lemma pderivative_monomial_mul_aux1_aux {v : S} {u u' : S →₀ ℕ} (h : u v ≠ 0) :
-  u - single v 1 + u' = u + u' - single v 1 :=
-begin
-  ext f,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : v = f,
-  { rw [←h, single_eq_same], cases (u v), { contradiction },
-    rw [nat.succ_sub_one, nat.succ_add, nat.succ_sub_one] },
-  { rw single_eq_of_ne h, simp, }
-end
-
-@[simp]
-private lemma pderivative_monomial_mul_aux1 {v : S} {u u' : S →₀ ℕ} {r r' : R} :
+private lemma monomial_sub_single_one_add {v : S} {u u' : S →₀ ℕ} {r r' : R} :
   monomial (u - single v 1 + u') (r * (u v) * r') =
     monomial (u + u' - single v 1) (r * (u v) * r') :=
-begin
-  by_cases h : u v = 0,
-  { rw [h, nat.cast_zero, mul_zero, zero_mul], simp [monomial] },
-  { rw pderivative_monomial_mul_aux1_aux h, }
-end
+by by_cases h : u v = 0; simp [h, sub_single_one_add]
 
-private lemma pderivative_monomial_mul_aux2_aux {v : S} {u u' : S →₀ ℕ} (h : u' v ≠ 0) :
-  u + (u' - single v 1) = u + u' - single v 1 :=
-begin
-  ext f,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : v = f,
-  { rw [←h, single_eq_same], cases (u' v), { contradiction },
-    rw [nat.succ_sub_one, nat.add_succ, nat.succ_sub_one] },
-  { rw single_eq_of_ne h, simp, }
-end
-
-@[simp]
-private lemma pderivative_monomial_mul_aux2 {v : S} {u u' : S →₀ ℕ} {r r' : R} :
+private lemma monomial_add_sub_single_one {v : S} {u u' : S →₀ ℕ} {r r' : R} :
   monomial (u + (u' - single v 1)) (r * (r' * (u' v))) =
     monomial (u + u' - single v 1) (r * (r' * (u' v))) :=
-begin
-  by_cases h : u' v = 0,
-  { rw [h, nat.cast_zero, mul_zero, mul_zero], simp [monomial] },
-  { rw pderivative_monomial_mul_aux2_aux h, }
-end
+by by_cases h : u' v = 0; simp [h, add_sub_single_one]
 
 lemma pderivative_monomial_mul {v : S} {u u' : S →₀ ℕ} {r r' : R} :
   pderivative v (monomial u r * monomial u' r') =
     pderivative v (monomial u r) * monomial u' r' + monomial u r * pderivative v (monomial u' r') :=
 begin
-  simp,
+  simp [monomial_sub_single_one_add, monomial_add_sub_single_one],
   congr,
   ring,
 end
@@ -1430,9 +1398,9 @@ begin
     { intros p q hp hq u r,
       rw [mul_add, pderivative_add, hp, hq, mul_add, pderivative_add],
       ring } },
-  intros p q hp hq,
-  simp [add_mul, hp, hq],
-  ring,
+  { intros p q hp hq,
+    simp [add_mul, hp, hq],
+    ring, }
 end
 
 @[simp]

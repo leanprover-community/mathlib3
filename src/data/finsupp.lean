@@ -464,23 +464,6 @@ lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 
-section nat_sub
-instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
-
-@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
-  (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
-
-@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
-begin
-  ext f,
-  by_cases h : (a = f),
-  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
-end
-
-end nat_sub
-
 section add_monoid
 variables [add_monoid β]
 
@@ -586,6 +569,47 @@ lemma map_range_add [add_monoid β₁] [add_monoid β₂]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 end add_monoid
+
+section nat_sub
+instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+
+@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
+  (g₁ - g₂) a = g₁ a - g₂ a :=
+rfl
+
+@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
+end
+
+-- These next two lemmas are used in developing
+-- the partial derivative on `mv_polynomial`.
+
+lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
+  u - single a 1 + u' = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
+  u + (u' - single a 1) = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+end nat_sub
+
 
 instance [add_comm_monoid β] : add_comm_monoid (α →₀ β) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,

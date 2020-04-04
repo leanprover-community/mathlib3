@@ -180,8 +180,7 @@ section apply_sum
 
 open fintype finset
 
-variables {α : ι → Type*} [decidable_eq (Π (a : ι), α a)] [fintype ι]
-(g : Π i, α i → M₁ i) (A : Π i, finset (α i))
+variables {α : ι → Type*} [fintype ι] (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
 
 /-- If `f` is continuous multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum
 of `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,

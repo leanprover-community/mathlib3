@@ -403,20 +403,9 @@ ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smu
 
 variable (β)
 include β
-/-
+
 def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ[γ] (Π₀ i, β i) :=
 ⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
-
--- failed to synthetize instance for semimodule γ (Π (i : ↥↑s), β i.val)
--/
-
-def lmk (s : finset ι) :
-by { letI : semimodule γ (Π (i : (↑s : set ι)), β i.val) := by apply_instance,
-     exact (Π i : (↑s : set ι), β i.1) →ₗ[γ] (Π₀ i, β i) } :=
-begin
-  letI : semimodule γ (Π (i : (↑s : set ι)), β i.val) := by apply_instance,
-  exact ⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
-end
 
 def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
 ⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩

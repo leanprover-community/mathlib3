@@ -28,7 +28,7 @@ jobs:
           json: ${{ steps.check_user.outputs.data }}
           permission: 'permission'
 
-      - if: steps.parse_check_user.outputs.data.permission == 'admin'
+      - if: steps.parse_check_user.outputs.permission == 'admin'
         uses: octokit/request-action@v2.x
         id: add_label
         name: Add label

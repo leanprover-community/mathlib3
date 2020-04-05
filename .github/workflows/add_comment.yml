@@ -7,7 +7,7 @@ on:
 jobs:
   add_label:
     name: Add "bors r+" comment
-    if: startsWith(github.event.comment.body, 'bors r+') || contains(github.event.comment.body, '\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(github.event.comment.body, '\nbors merge')
+    if: contains(github.event.pull_request.labels, 'ready-to-merge')
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/request-action@v2.x

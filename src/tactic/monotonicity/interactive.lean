@@ -92,7 +92,7 @@ apply_opt_param
 <|>
 apply_auto_param
 <|>
-tactic.solve_by_elim { lemmas := some (asms.map return) }
+tactic.solve_by_elim { lemmas := some asms }
 <|>
 reflexivity
 <|>

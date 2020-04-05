@@ -49,6 +49,7 @@ begin
   trivial
 end
 
+section
 variables {α : Type} [_inst : monoid α]
 include _inst
 
@@ -59,6 +60,7 @@ begin
     guard_tags _field inv group, admit,
     guard_tags _field mul_left_inv group, admit, },
   trivial
+end
 end
 
 def my_foo {α} (x : semigroup α) (y : group α) : true := trivial

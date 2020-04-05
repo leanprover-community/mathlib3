@@ -908,7 +908,7 @@ begin
   { exact ⟨_, h, λ _ x_in, x_in _ rfl⟩ }
 end
 
-@[simp] lemma frequently_comap {f : filter β} {φ : α → β } {P : α → Prop} :
+@[simp] lemma frequently_comap {f : filter β} {φ : α → β} {P : α → Prop} :
   (∃ᶠ a in comap φ f, P a) ↔ ∃ᶠ b in f, ∃ a, φ a = b ∧ P a :=
 begin
   classical,

@@ -897,7 +897,7 @@ def comap (m : α → β) (f : filter β) : filter α :=
   inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
     ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, inter_subset_inter ha₂ hb₂⟩ }
 
-@[simp] lemma eventually_comap {f : filter β} {φ : α → β } {P : α → Prop} :
+@[simp] lemma eventually_comap {f : filter β} {φ : α → β} {P : α → Prop} :
   (∀ᶠ a in comap φ f, P a) ↔ ∀ᶠ b in f, ∀ a, φ a = b → P a :=
 begin
   split ; intro h,

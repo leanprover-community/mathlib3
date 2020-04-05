@@ -1440,14 +1440,15 @@ begin
   rw [vars, multiset.mem_to_finset] at h,
   rw ←not_mem_support_iff,
   by_contradiction,
-  have : v ∈ degrees f,
-  { unfold degrees,
+  have : v ∈ degrees f := begin
+    unfold degrees,
     rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
     rw finset.sup_insert,
     simp only [multiset.mem_union, multiset.sup_eq_union],
     left,
     rw [←to_finset_to_multiset, multiset.mem_to_finset] at a,
-    exact a },
+    exact a
+  end,
   contradiction,
 end
 
@@ -1461,8 +1462,7 @@ begin
   conv_lhs {
     apply_congr,
     skip,
-    rw (show x v = 0, from pderivative_eq_zero_of_not_mem_vars_aux h x H),
-  },
+    rw (show x v = 0, from pderivative_eq_zero_of_not_mem_vars_aux h x H) },
   simp,
 end
 

@@ -1,0 +1,41 @@
+name: Add "ready-to-merge" label
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  add_label:
+    name: Add label
+    if: startsWith(github.event.comment.body, 'bors r+') || contains(github.event.comment.body, '\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(github.event.comment.body, '\nbors merge')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2
+        name: Check comment author
+        id: check_user
+        with:
+          route: GET /repos/:repository/collaborators/:username/permission
+          repository: ${{ github.repository }}
+          username: ${{ github.event.comment.user.login }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Parse steps.check_user.outputs.data, since it is a string
+      - id: parse_check_user
+        name: Parse comment author permission
+        uses: gr2m/get-json-paths-action@v1
+        with:
+          json: ${{ steps.check_user.outputs.data }}
+          permission: 'permission'
+
+      - if: steps.parse_check_user.outputs.data.permission == 'admin'
+        uses: octokit/request-action@v2
+        id: add_label
+        name: Add label
+        with:
+          route: POST /repos/:repository/issues/:issue_number/labels
+          repository: ${{ github.repository }}
+          issue_number: ${{ github.event.issue.number }}
+          labels: '["ready-to-merge"]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

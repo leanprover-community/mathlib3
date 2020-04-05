@@ -1,0 +1,56 @@
+name: Add "bors r+" comment
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  add_label:
+    name: Add "bors r+" comment
+    if: startsWith(github.event.comment.body, 'bors r+') || contains(github.event.comment.body, '\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(github.event.comment.body, '\nbors merge')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2
+        name: Check approvals
+        id: check_approvals
+        with:
+          route: GET /repos/:repository/pulls/:pull_number/reviews
+          repository: ${{ github.repository }}
+          pull_number: ${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Parse steps.check_approvals.outputs.data, since it is a string
+      - id: parse_check_approvals
+        name: Parse PR approvals
+        run: |
+          RESULT=$(jq --raw-output 'map(select(.state == "APPROVED") | .user.login)' "${{ steps.check_approvals.outputs.data }}")
+          echo "::set-output name=approved_users::$RESULT"
+
+      - uses: octokit/request-action@v2
+        name: Get collaborators
+        id: get_collaborators
+        with:
+          route: GET /repos/:repository/collaborators
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # check if any approving users are admins
+      - id: get_admin_approvals
+        name: Get admin approvals
+        run: |
+          ADMINS=$(jq --raw-output 'map(select(.permissions.admin) | .login)' "${{ steps.get_collaborators.outputs.data }}")
+          echo "::set-output name=admin_approved::$(echo '{"admins":$ADMINS, "approved_users":${{ steps.parse_check_approvals.outputs.approved_users }}}' | jq --raw-output '.admins - (.admins - .approved_users) | length')"
+
+      - if: steps.parse_check_approvals.outputs.admin_approved > 0
+        uses: octokit/request-action@v2
+        id: add_comment
+        name: Add "bors r+" comment
+        with:
+          route: POST /repos/:repository/issues/:issue_number/comments
+          repository: ${{ github.repository }}
+          issue_number: ${{ github.event.issue.number }}
+          body: 'bors r+'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

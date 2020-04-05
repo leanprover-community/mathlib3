@@ -18,7 +18,7 @@ by refine_struct { .. }; exact λ _, 1
 open tactic
 
 run_cmd (do
-  (declaration.defn _ _ _ b _ _) ← resolve_constant `pi_has_one >>= get_decl,
+  (declaration.defn _ _ _ b _ _) ← get_decl ``pi_has_one,
   -- Make sure that `eq.mpr` really doesn't occur in the body:
   eq_mpr ← mk_const `eq.mpr,
   k ← kabstract b eq_mpr, -- `expr.occurs` doesn't work here, always giving `ff` even before the patch.

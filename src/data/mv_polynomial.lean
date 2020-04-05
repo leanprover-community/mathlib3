@@ -750,6 +750,24 @@ by rw [vars, degrees_C, multiset.to_finset_zero]
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
 by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
 
+lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
+  x v = 0 :=
+begin
+  rw [vars, multiset.mem_to_finset] at h,
+  rw ←not_mem_support_iff,
+  by_contradiction,
+  have : v ∈ degrees f := begin
+    unfold degrees,
+    rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+    rw finset.sup_insert,
+    simp only [multiset.mem_union, multiset.sup_eq_union],
+    left,
+    rw [←to_finset_to_multiset, multiset.mem_to_finset] at a,
+    exact a
+  end,
+  contradiction,
+end
+
 end vars
 
 section degree_of
@@ -1433,25 +1451,6 @@ lemma pderivative.add_monoid_hom_apply (v : S) (p : mv_polynomial S R) :
 rfl
 end
 
-private lemma pderivative_eq_zero_of_not_mem_vars_aux {v : S} {f : mv_polynomial S R}
-  (h : v ∉ vars f) (x : S →₀ ℕ) (H : x ∈ f.support) :
-  x v = 0 :=
-begin
-  rw [vars, multiset.mem_to_finset] at h,
-  rw ←not_mem_support_iff,
-  by_contradiction,
-  have : v ∈ degrees f := begin
-    unfold degrees,
-    rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
-    rw finset.sup_insert,
-    simp only [multiset.mem_union, multiset.sup_eq_union],
-    left,
-    rw [←to_finset_to_multiset, multiset.mem_to_finset] at a,
-    exact a
-  end,
-  contradiction,
-end
-
 lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v ∉ f.vars) :
   pderivative v f = 0 :=
 begin
@@ -1462,7 +1461,7 @@ begin
   conv_lhs {
     apply_congr,
     skip,
-    rw (show x v = 0, from pderivative_eq_zero_of_not_mem_vars_aux h x H) },
+    rw (mem_support_not_mem_vars_zero H h) },
   simp,
 end
 

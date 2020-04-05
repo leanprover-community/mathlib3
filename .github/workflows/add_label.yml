@@ -10,7 +10,7 @@ jobs:
     if: startsWith(github.event.comment.body, 'bors r+') || contains(github.event.comment.body, '\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(github.event.comment.body, '\nbors merge')
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2
+      - uses: octokit/request-action@v2.x
         name: Check comment author
         id: check_user
         with:
@@ -23,13 +23,13 @@ jobs:
       # Parse steps.check_user.outputs.data, since it is a string
       - id: parse_check_user
         name: Parse comment author permission
-        uses: gr2m/get-json-paths-action@v1
+        uses: gr2m/get-json-paths-action@v1.x
         with:
           json: ${{ steps.check_user.outputs.data }}
           permission: 'permission'
 
       - if: steps.parse_check_user.outputs.data.permission == 'admin'
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.x
         id: add_label
         name: Add label
         with:

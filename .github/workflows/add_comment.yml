@@ -10,7 +10,7 @@ jobs:
     if: startsWith(github.event.comment.body, 'bors r+') || contains(github.event.comment.body, '\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(github.event.comment.body, '\nbors merge')
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2
+      - uses: octokit/request-action@v2.x
         name: Check approvals
         id: check_approvals
         with:
@@ -27,7 +27,7 @@ jobs:
           RESULT=$(jq --raw-output 'map(select(.state == "APPROVED") | .user.login)' "${{ steps.check_approvals.outputs.data }}")
           echo "::set-output name=approved_users::$RESULT"
 
-      - uses: octokit/request-action@v2
+      - uses: octokit/request-action@v2.x
         name: Get collaborators
         id: get_collaborators
         with:
@@ -44,7 +44,7 @@ jobs:
           echo "::set-output name=admin_approved::$(echo '{"admins":$ADMINS, "approved_users":${{ steps.parse_check_approvals.outputs.approved_users }}}' | jq --raw-output '.admins - (.admins - .approved_users) | length')"
 
       - if: steps.parse_check_approvals.outputs.admin_approved > 0
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.x
         id: add_comment
         name: Add "bors r+" comment
         with:

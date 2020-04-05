@@ -826,13 +826,16 @@ by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 theorem filter_singleton (a : α) : filter p (singleton a) = if p a then singleton a else ∅ :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
-theorem filter_or (s : finset α) : s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
+theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
+  s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext.2 $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]
 
-theorem filter_and (s : finset α) : s.filter (λ a, p a ∧ q a) = s.filter p ∩ s.filter q :=
+theorem filter_and [decidable_pred (λ a, p a ∧ q a)] (s : finset α) :
+  s.filter (λ a, p a ∧ q a) = s.filter p ∩ s.filter q :=
 ext.2 $ λ _, by simp only [mem_filter, mem_inter, and_comm, and.left_comm, and_self]
 
-theorem filter_not (s : finset α) : s.filter (λ a, ¬ p a) = s \ s.filter p :=
+theorem filter_not [decidable_pred (λ a, ¬ p a)] (s : finset α) :
+  s.filter (λ a, ¬ p a) = s \ s.filter p :=
 ext.2 $ by simpa only [mem_filter, mem_sdiff, and_comm, not_and] using λ a, and_congr_right $
   λ h : a ∈ s, (imp_iff_right h).symm.trans imp_not_comm
 
@@ -849,7 +852,8 @@ by { simp [subset.antisymm_iff,sdiff_subset_self],
        ... ⊇ s₁ \ ∅         : by mono using [(⊇)]
        ... ⊇ s₁             : by simp [(⊇)] } }
 
-theorem filter_union_filter_neg_eq (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
+theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
+  (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
 by simp only [filter_not, union_sdiff_of_subset (filter_subset s)]
 
 theorem filter_inter_filter_neg_eq (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=

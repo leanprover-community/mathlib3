@@ -653,4 +653,3 @@ lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
 hf.nnnorm.ennreal_coe
 
 end normed_group
-#lint

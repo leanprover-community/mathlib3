@@ -368,6 +368,24 @@ begin
   exact ⟨x, ⟨hx, hf _⟩⟩,
 end
 
+lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t) (h : t ⊆ ⋃ i, s i) :
+  ∃ I : set ι, (finite I) ∧ ∃ σ : {i | i ∈ I} → set α,
+     (∀ i, finite (σ i)) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
+let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
+⟨I, Ifin, λ x, s x ∩ t,
+    λ i, finite_subset tfin (inter_subset_right _ _),
+    λ i, inter_subset_left _ _,
+    begin
+      ext x,
+      rw mem_Union,
+      split,
+      { intro x_in,
+        rcases mem_Union.mp (hI x_in) with ⟨i, _, ⟨hi, rfl⟩, H⟩,
+        use [i, hi, H, x_in] },
+      { rintros ⟨i, hi, H⟩,
+        exact H }
+    end⟩
+
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
   (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=
 finite_subset (finite_union hf hg) range_ite_subset

@@ -380,7 +380,7 @@ have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
 by filter_upwards [hs₁] assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩
 
-lemma inf_neq_bot_iff {f g : filter α} :
+lemma inf_ne_bot_iff {f g : filter α} :
   f ⊓ g ≠ ⊥ ↔ ∀ {U V}, U ∈ f → V ∈ g → set.nonempty (U ∩ V) :=
 begin
   rw ← forall_sets_nonempty_iff_ne_bot,
@@ -634,19 +634,6 @@ protected def frequently (p : α → Prop) (f : filter α) : Prop := ¬∀ᶠ x 
 
 notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r
 
-lemma frequently_iff {f : filter α} {P : α → Prop} :
-  (∃ᶠ x in f, P x) ↔ ∀ {U}, U ∈ f → ∃ x ∈ U, P x :=
-begin
-  split ; intro h,
-  { intros U U_in,
-    classical,
-    contrapose! h,
-    erw not_not,
-    exact mem_sets_of_superset U_in h },
-  { intro H,
-    simpa using h H },
-end
-
 lemma eventually.frequently {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ᶠ x in f, p x) :
   ∃ᶠ x in f, p x :=
 begin
@@ -690,6 +677,17 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
   (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
 ⟨assume hp q hq, (hp.and_eventually hq).exists,
   assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
+
+lemma frequently_iff {f : filter α} {P : α → Prop} :
+  (∃ᶠ x in f, P x) ↔ ∀ {U}, U ∈ f → ∃ x ∈ U, P x :=
+begin
+  rw frequently_iff_forall_eventually_exists_and,
+  split ; intro h,
+  { intros U U_in,
+    simpa [exists_prop, and_comm] using h U_in },
+  { intros H H',
+    simpa [and_comm] using h H' },
+end
 
 @[simp] lemma not_eventually {p : α → Prop} {f : filter α} :
   (¬ ∀ᶠ x in f, p x) ↔ (∃ᶠ x in f, ¬ p x) :=
@@ -742,10 +740,10 @@ by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
 lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=
 by simp [filter.frequently]
 
-lemma inf_neq_bot_iff_frequently_left {f g : filter α} :
-  f ⊓ g ≠ ⊥ ↔ ∀ {U}, U ∈ f → ∃ᶠ x in g, x ∈ U :=
+lemma inf_ne_bot_iff_frequently_left {f g : filter α} :
+  f ⊓ g ≠ ⊥ ↔ ∀ {p : α → Prop}, (∀ᶠ x in f, p x) → ∃ᶠ x in g, p x :=
 begin
-  rw filter.inf_neq_bot_iff,
+  rw filter.inf_ne_bot_iff,
   split ; intro h,
   { intros U U_in H,
     rcases h U_in H with ⟨x, hx, hx'⟩,
@@ -756,9 +754,9 @@ begin
     exact h U_in (mem_sets_of_superset V_in $ λ v v_in v_in', H ⟨v, v_in', v_in⟩) }
 end
 
-lemma inf_neq_bot_iff_frequently_right {f g : filter α} :
-  f ⊓ g ≠ ⊥ ↔ ∀ {V}, V ∈ g → ∃ᶠ x in f, x ∈ V :=
-by { rw inf_comm, exact filter.inf_neq_bot_iff_frequently_left }
+lemma inf_ne_bot_iff_frequently_right {f g : filter α} :
+  f ⊓ g ≠ ⊥ ↔ ∀ {p : α → Prop}, (∀ᶠ x in g, p x) → ∃ᶠ x in f, p x :=
+by { rw inf_comm, exact filter.inf_ne_bot_iff_frequently_left }
 
 @[simp]
 lemma frequently_principal {a : set α} {p : α → Prop} :

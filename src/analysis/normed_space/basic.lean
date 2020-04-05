@@ -243,6 +243,9 @@ lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 
+lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α), nnnorm (s.sum f) ≤ s.sum (λa, nnnorm (f a)) :=
+finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
+
 end nnnorm
 
 lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : nnreal} {f : α → β}

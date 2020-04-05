@@ -464,4 +464,28 @@ lemma surjective.surj_on (hf : surjective f) (s : set β) :
   surj_on f univ s :=
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
 
+lemma update_comp_eq_of_not_mem_range [decidable_eq β]
+  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
+  (function.update g i a) ∘ f = g ∘ f :=
+begin
+  ext p,
+  have : f p ≠ i,
+  { by_contradiction H,
+    push_neg at H,
+    rw ← H at h,
+    exact h (set.mem_range_self _) },
+  simp [this],
+end
+
+lemma update_comp_eq_of_injective [decidable_eq α] [decidable_eq β]
+  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp },
+  { have : f j ≠ f i := hf.ne h,
+    simp [h, this] }
+end
+
 end function

@@ -33,23 +33,22 @@ is not a local or if the target depends on any of the `hyps`.
 If there are local hypotheses or definitions, say `H`, which are not in `hyps`
 but depend on one of the `hyps`, what we do depends on `clear_dependent`. If it
 is true, `H` is implicitly also cleared. If it is false, `clear'` fails. -/
-meta def tactic.clear' (clear_dependent : bool) (hyps : expr_set) : tactic unit := do
-let hyps_list := hyps.to_list,
+meta def tactic.clear' (clear_dependent : bool) (hyps : list expr) : tactic unit := do
 tgt ← target,
 -- Check if the target depends on any of the hyps. Doing this (instead of
 -- letting one of the later tactics fail) lets us give a much more informative
 -- error message.
-hyps_list.mmap' (λ h, do
+hyps.mmap' (λ h, do
   dep ← kdepends_on tgt h,
   when dep $ fail $
     format!"Cannot clear hypothesis {h} since the target depends on it."),
-n ← revert_lst hyps_list,
+n ← revert_lst hyps,
 -- If revert_lst reverted more hypotheses than we wanted to clear, there must
 -- have been other hypotheses dependent on some of the hyps.
-when (! clear_dependent && (n ≠ hyps.size)) $ fail $ format.join
+when (! clear_dependent && (n ≠ hyps.length)) $ fail $ format.join
   [ "Some of the following hypotheses cannot be cleared because other "
   , "hypotheses depend on (some of) them:\n"
-  , format.intercalate ", " (hyps.to_list.map to_fmt)
+  , format.intercalate ", " (hyps.map to_fmt)
   ],
 v ← mk_meta_var tgt,
 intron n,
@@ -83,7 +82,7 @@ end
 -/
 meta def clear' (p : parse (many ident)) : tactic unit := do
 hyps ← p.mmap get_local,
-tactic.clear' false (rb_map.set_of_list hyps)
+tactic.clear' false hyps
 
 /-- `clear_dependent a b c` removes from the local context
 the given hypotheses and any other hypotheses that depend on them.
@@ -106,7 +105,7 @@ end
  -/
 meta def clear_dependent (p : parse (many ident)) : tactic unit := do
 hyps ← p.mmap get_local,
-tactic.clear' true (rb_map.set_of_list hyps)
+tactic.clear' true hyps
 
 add_tactic_doc
 { name       := "clear'",

@@ -437,7 +437,7 @@ to be interpreted suitably: instead of having a binomial coefficient, one should
 possible subsets `s` of `fin n` of cardinal `k`, and attribute `z` to the indices in `s` and
 `y` to the indices outside of `s`.
 
-In this paragraph, we implement this. The new power series is called `p.change_origin x`. Then, we
+In this paragraph, we implement this. The new power series is called `p.change_origin y`. Then, we
 check its convergence and the fact that its sum coincides with the original sum. The outcome of this
 discussion is that the set of points where a function is analytic is open.
 -/

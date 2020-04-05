@@ -452,7 +452,7 @@ begin
   exact λ hfi hgi, hfi.sub hfm hgm hgi
 end
 
-protected lemma is_add_subgroup [borel_space β] : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
+protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
 { zero_mem := integrable_zero,
   add_mem := λ _ _, integrable.add,
   neg_mem := λ _, integrable.neg }

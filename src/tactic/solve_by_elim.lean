@@ -132,21 +132,25 @@ Arguments for `solve_by_elim`:
 * `lemmas` specifies the list of lemmas to use in the backtracking search.
   If `none`, `solve_by_elim` uses the local hypotheses,
   along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
+* `lemma_thunks` provides the lemmas as a list of `tactic expr`,
+  which are used to regenerate the `expr` objects to avoid binding metavariables.
+  (If both `lemmas` and `lemma_thunks` are specified, only `lemma_thunks` is used.)
 * `max_depth` bounds the depth of the search.
 -/
 meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
-(lemmas : option (list (tactic expr)) := none)
+(lemmas : option (list expr) := none)
+(lemma_thunks : option (list (tactic expr)) := lemmas.map (λ l, l.map return))
 (max_depth : ℕ := 3)
 
 /--
 If no lemmas have been specified, generate the default set
 (local hypotheses, along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`).
 -/
-meta def opt.get_lemmas (opt : opt) : tactic (list (tactic expr)) :=
-match opt.lemmas with
+meta def opt.get_lemma_thunks (opt : opt) : tactic (list (tactic expr)) :=
+match opt.lemma_thunks with
 | none := mk_assumption_set ff [] []
-| some lemmas := return lemmas
+| some lemma_thunks := return lemma_thunks
 end
 
 end solve_by_elim
@@ -173,7 +177,7 @@ for each application.
 meta def solve_by_elim (opt : opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  lemmas ← opt.get_lemmas,
+  lemmas ← opt.get_lemma_thunks,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
     solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth)
@@ -254,10 +258,10 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :
   tactic unit :=
-do lemmas ← mk_assumption_set no_dflt hs attr_names,
+do lemma_thunks ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
-     lemmas := some lemmas,
+     lemma_thunks := some lemma_thunks,
      ..opt }
 
 add_tactic_doc

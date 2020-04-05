@@ -826,8 +826,8 @@ protected def prod {α β} (s : set α) (t : set β) :
 
 protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
-⟨λ ⟨x, h⟩, ⟨f x, mem_image_of_mem f h⟩,
- λ ⟨y, h⟩, ⟨classical.some h, (classical.some_spec h).1⟩,
+⟨λ p, ⟨f p, mem_image_of_mem f p.2⟩,
+ λ p, ⟨classical.some p.2, (classical.some_spec p.2).1⟩,
  λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).1 h
    (classical.some_spec (mem_image_of_mem f h)).2),
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩

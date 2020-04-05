@@ -396,7 +396,14 @@ le_trans hg $ map_mono hf
 
 lemma measurable_from_top [measurable_space β] {f : α → β} :
   @measurable _ _ ⊤ _ f :=
-λ s hs, by simp
+λ s hs, trivial
+
+lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
+  (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
+  @measurable α β ma' mb' f :=
+calc mb' ≤ mb : hb
+... ≤ ma.map f : hf
+... ≤ ma'.map f : map_mono ha
 
 lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
   (h : ∀t∈s, is_measurable (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
@@ -477,12 +484,13 @@ section subtype
 instance {p : α → Prop} [m : measurable_space α] : measurable_space (subtype p) :=
 m.comap subtype.val
 
-lemma measurable.subtype_val [measurable_space α] [measurable_space β] {p : β → Prop}
-  {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a).val) :=
+lemma measurable.subtype_coe [measurable_space α] [measurable_space β] {p : β → Prop}
+  {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a : β)) :=
 measurable.comp (measurable_space.comap_le_iff_le_map.mp (le_refl _)) hf
 
 lemma measurable.subtype_mk [measurable_space α] [measurable_space β] {p : β → Prop}
-  {f : α → subtype p} (hf : measurable (λa, (f a).val)) : measurable f :=
+  {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
+  measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
 measurable_space.comap_le_iff_le_map.mpr $ by rw [measurable_space.map_comp]; exact hf
 
 lemma is_measurable_subtype_image [measurable_space α] {s : set α} {t : set s}
@@ -533,9 +541,9 @@ lemma measurable.prod_mk [measurable_space α] [measurable_space β] [measurable
   {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) : measurable (λa:α, (f a, g a)) :=
 measurable.prod hf hg
 
-lemma is_measurable_set_prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
+lemma is_measurable.prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
   (hs : is_measurable s) (ht : is_measurable t) : is_measurable (set.prod s t) :=
-is_measurable.inter (measurable.fst measurable_id _ hs) (measurable.snd measurable_id _ ht)
+is_measurable.inter (measurable_id.fst _ hs) (measurable_id.snd _ ht)
 
 end prod
 
@@ -692,26 +700,28 @@ def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] 
       refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end }
 
+/-- `set.prod s t ≃ (s × t)` as a `measurable_equiv`. -/
 def set.prod [measurable_space α] [measurable_space β] (s : set α) (t : set β) :
-  measurable_equiv (set.prod s t) (s × t) :=
+  measurable_equiv (s.prod t) (s × t) :=
 { to_equiv := equiv.set.prod s t,
   measurable_to_fun := measurable.prod_mk
-    (measurable.subtype_mk $ measurable.fst $ measurable.subtype_val $ measurable_id)
-    (measurable.subtype_mk $ measurable.snd $ measurable.subtype_val $ measurable_id),
+    measurable_id.subtype_coe.fst.subtype_mk
+    measurable_id.subtype_coe.snd.subtype_mk,
   measurable_inv_fun := measurable.subtype_mk $ measurable.prod_mk
-    (measurable.subtype_val $ measurable.fst $ measurable_id)
-    (measurable.subtype_val $ measurable.snd $ measurable_id) }
+    measurable_id.fst.subtype_coe
+    measurable_id.snd.subtype_coe }
 
+/-- `univ α ≃ α` as a `measurable_equiv`. -/
 def set.univ (α : Type*) [measurable_space α] : measurable_equiv (univ : set α) α :=
 { to_equiv := equiv.set.univ α,
-  measurable_to_fun := measurable.subtype_val measurable_id,
-  measurable_inv_fun := measurable.subtype_mk measurable_id }
+  measurable_to_fun := measurable_id.subtype_coe,
+  measurable_inv_fun := measurable_id.subtype_mk }
 
+/-- `{a} ≃ unit` as a `measurable_equiv`. -/
 def set.singleton [measurable_space α] (a:α) : measurable_equiv ({a} : set α) unit :=
 { to_equiv := equiv.set.singleton a,
   measurable_to_fun := measurable_const,
-  measurable_inv_fun := measurable.subtype_mk $ show measurable (λu:unit, a), from
-    measurable_const }
+  measurable_inv_fun := measurable_const }
 
 noncomputable def set.image [measurable_space α] [measurable_space β]
   (f : α → β) (s : set α)
@@ -719,13 +729,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
   (hfm : measurable f) (hfi : ∀s, is_measurable s → is_measurable (f '' s)) :
   measurable_equiv s (f '' s) :=
 { to_equiv := equiv.set.image f s hf,
-  measurable_to_fun  :=
-  begin
-    have : measurable (λa:s, f a) := hfm.comp (measurable.subtype_val measurable_id),
-    refine measurable.subtype_mk _,
-    convert this,
-    ext ⟨a, h⟩, refl
-  end,
+  measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
     assume t ⟨u, (hu : is_measurable u), eq⟩,
     begin
@@ -735,7 +739,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
         λa ha h, (classical.some_spec h).2,
       rw show {x:f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u} = subtype.val ⁻¹' (f '' u),
         by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this _ hbs],
-      exact (measurable.subtype_val measurable_id) (f '' u) (hfi u hu)
+      exact (measurable.subtype_coe measurable_id) (f '' u) (hfi u hu)
     end }
 
 noncomputable def set.range [measurable_space α] [measurable_space β]
@@ -788,8 +792,8 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
     refine measurable_of_measurable_union_cover
       ((range sum.inl).prod univ)
       ((range sum.inr).prod univ)
-      (is_measurable_set_prod is_measurable_range_inl is_measurable.univ)
-      (is_measurable_set_prod is_measurable_range_inr is_measurable.univ)
+      (is_measurable_range_inl.prod is_measurable.univ)
+      (is_measurable_range_inr.prod is_measurable.univ)
       (assume ⟨ab, c⟩ s, by cases ab; simp [set.prod_eq])
       _
       _,

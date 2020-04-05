@@ -464,6 +464,10 @@ protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑p:Σa, β a, f p.1 p.2) = (∑a b, f a b) :=
 tsum_sigma (assume b, ennreal.summable) ennreal.summable
 
+protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ennreal) :
+  (∑p:(Σa, β a), f p) = (∑a b, f ⟨a, b⟩) :=
+tsum_sigma (assume b, ennreal.summable) ennreal.summable
+
 protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2) = (∑a, ∑b, f a b) :=
 let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
 let i : (Σa:α, β) → α × β := λp, (p.1, p.2) in

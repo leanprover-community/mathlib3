@@ -690,7 +690,7 @@ lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d :
   (n : ℕ) :
   dist (f n) a ≤ ∑ m, d (n + m) :=
 begin
-  refine le_of_tendsto at_top_ne_bot (tendsto_dist tendsto_const_nhds ha)
+  refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.dist ha)
     (eventually_at_top.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],

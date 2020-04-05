@@ -6,7 +6,6 @@ Authors: Kenny Lau
 Algebra over Commutative Ring (under category)
 -/
 
-import data.polynomial data.mv_polynomial
 import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
@@ -102,21 +101,6 @@ by rw [smul_def, smul_def, left_comm]
 @[simp] lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
-
-/-- R[X] is the generator of the category R-Alg. -/
-instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
-{ to_fun := polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.module }
-
-/-- The algebra of multivariate polynomials. -/
-instance mv_polynomial (R : Type u) [comm_ring R]
-  (ι : Type v) : algebra R (mv_polynomial ι R) :=
-{ to_fun := mv_polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. mv_polynomial.module }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
@@ -318,74 +302,6 @@ def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
   ..φ }
 
 end alg_hom
-
-namespace polynomial
-
-variables (R : Type u) (A : Type v)
-variables [comm_ring R] [comm_ring A] [algebra R A]
-variables (x : A)
-
-/-- A → Hom[R-Alg](R[X],A) -/
-def aeval : polynomial R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _,
-  ..ring_hom.of (eval₂ (algebra_map A) x) }
-
-theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
-
-@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
-
-@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
-
-instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
-by apply_instance
-
-theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
-  φ p = eval₂ (algebra_map A) (φ X) p :=
-begin
-  apply polynomial.induction_on p,
-  { intro r, rw eval₂_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [is_ring_hom.map_add φ, ih1, ih2, eval₂_add] },
-  { intros n r ih,
-    rw [pow_succ', ← mul_assoc, is_ring_hom.map_mul φ, eval₂_mul (algebra_map A : R → A), eval₂_X, ih] }
-end
-
-end polynomial
-
-namespace mv_polynomial
-
-variables (R : Type u) (A : Type v)
-variables [comm_ring R] [comm_ring A] [algebra R A]
-variables (σ : set A)
-
-/-- (ι → A) → Hom[R-Alg](R[ι],A) -/
-def aeval : mv_polynomial σ R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _ _
-  ..ring_hom.of (eval₂ (algebra_map A) subtype.val) }
-
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_map A) subtype.val p := rfl
-
-@[simp] lemma aeval_X (s : σ) : aeval R A σ (X s) = s := eval₂_X _ _ _
-
-@[simp] lemma aeval_C (r : R) : aeval R A σ (C r) = algebra_map A r := eval₂_C _ _ _
-
-instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
-by apply_instance
-
-variables (ι : Type w)
-
-theorem eval_unique (φ : mv_polynomial ι R →ₐ[R] A) (p) :
-  φ p = eval₂ (algebra_map A) (φ ∘ X) p :=
-begin
-  apply mv_polynomial.induction_on p,
-  { intro r, rw eval₂_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [is_ring_hom.map_add φ, ih1, ih2, eval₂_add] },
-  { intros p j ih,
-    rw [is_ring_hom.map_mul φ, eval₂_mul, eval₂_X, ih] }
-end
-
-end mv_polynomial
 
 namespace rat
 

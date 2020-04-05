@@ -951,6 +951,9 @@ def restrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N 
 @[to_additive]
 lemma restrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.restrict S x = f x := rfl
 
+@[simp, to_additive] lemma restrict_eq {N : Type} [monoid N] (f : M →* N) (x) :
+  f.restrict S x = f x := rfl
+
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
 def cod_restrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=

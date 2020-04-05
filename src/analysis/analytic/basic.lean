@@ -337,8 +337,8 @@ begin
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
-partial sums of this power series on strict subdisks of the disk of convergence, here seen with `0`
-as center. -/
+partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f (x + y)`
+is the uniform limit of `p.partial_sum n y` there. -/
 lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : nnreal}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
@@ -355,7 +355,8 @@ begin
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
-the partial sums of this power series on the disk of convergence, here seen with `0` as center. -/
+the partial sums of this power series on the disk of convergence, i.e., `f (x + y)`
+is the locally uniform limit of `p.partial_sum n y` there. -/
 lemma has_fpower_series_on_ball.tendsto_locally_uniformly_on
   (hf : has_fpower_series_on_ball f p x r) :
   tendsto_locally_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y))
@@ -370,8 +371,8 @@ begin
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
-partial sums of this power series on strict subdisks of the disk of convergence, here seen with `x`
-as center. -/
+partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f y`
+is the uniform limit of `p.partial_sum n (y - x)` there. -/
 lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : nnreal}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (metric.ball (x : E) r') :=
@@ -382,7 +383,8 @@ begin
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
-the  partial sums of this power series on the disk of convergence, here seen with `x` as center. -/
+the  partial sums of this power series on the disk of convergence, i.e., `f y`
+is the locally uniform limit of `p.partial_sum n (y - x)` there. -/
 lemma has_fpower_series_on_ball.tendsto_locally_uniformly_on'
   (hf : has_fpower_series_on_ball f p x r) :
   tendsto_locally_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (emetric.ball (x : E) r) :=

@@ -644,18 +644,18 @@ section id
 /-! ### Derivative of the identity -/
 
 theorem has_strict_fderiv_at_id (x : E) :
-  has_strict_fderiv_at id (id : E →L[𝕜] E) x :=
+  has_strict_fderiv_at id (id 𝕜 E) x :=
 (is_o_zero _ _).congr_left $ by simp
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
-  has_fderiv_at_filter id (id : E →L[𝕜] E) x L :=
+  has_fderiv_at_filter id (id 𝕜 E) x L :=
 (is_o_zero _ _).congr_left $ by simp
 
 theorem has_fderiv_within_at_id (x : E) (s : set E) :
-  has_fderiv_within_at id (id : E →L[𝕜] E) s x :=
+  has_fderiv_within_at id (id 𝕜 E) s x :=
 has_fderiv_at_filter_id _ _
 
-theorem has_fderiv_at_id (x : E) : has_fderiv_at id (id : E →L[𝕜] E) x :=
+theorem has_fderiv_at_id (x : E) : has_fderiv_at id (id 𝕜 E) x :=
 has_fderiv_at_filter_id _ _
 
 lemma differentiable_at_id : differentiable_at 𝕜 id x :=
@@ -670,11 +670,11 @@ lemma differentiable_id : differentiable 𝕜 (id : E → E) :=
 lemma differentiable_on_id : differentiable_on 𝕜 id s :=
 differentiable_id.differentiable_on
 
-lemma fderiv_id : fderiv 𝕜 id x = id :=
+lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 id s x = id :=
+  fderiv_within 𝕜 id s x = id 𝕜 E :=
 begin
   rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
@@ -1013,7 +1013,7 @@ variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 lemma has_strict_fderiv_at_fst : has_strict_fderiv_at prod.fst (fst 𝕜 E F) p :=
 (fst 𝕜 E F).has_strict_fderiv_at
 
-lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
+protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
   has_strict_fderiv_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x :=
 has_strict_fderiv_at_fst.comp x h
 
@@ -1021,14 +1021,14 @@ lemma has_fderiv_at_filter_fst {L : filter (E × F)} :
   has_fderiv_at_filter prod.fst (fst 𝕜 E F) p L :=
 (fst 𝕜 E F).has_fderiv_at_filter
 
-lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
+protected lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_fst.comp x h
 
 lemma has_fderiv_at_fst : has_fderiv_at prod.fst (fst 𝕜 E F) p :=
 has_fderiv_at_filter_fst
 
-lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
+protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
   has_fderiv_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x :=
 h.fst
 
@@ -1036,34 +1036,34 @@ lemma has_fderiv_within_at_fst {s : set (E × F)} :
   has_fderiv_within_at prod.fst (fst 𝕜 E F) s p :=
 has_fderiv_at_filter_fst
 
-lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
+protected lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
   has_fderiv_within_at (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') s x :=
 h.fst
 
 lemma differentiable_at_fst : differentiable_at 𝕜 prod.fst p :=
 has_fderiv_at_fst.differentiable_at
 
-lemma differentiable_at.fst (h : differentiable_at 𝕜 f₂ x) :
+protected lemma differentiable_at.fst (h : differentiable_at 𝕜 f₂ x) :
   differentiable_at 𝕜 (λ x, (f₂ x).1) x :=
 differentiable_at_fst.comp x h
 
 lemma differentiable_fst : differentiable 𝕜 (prod.fst : E × F → E) :=
 λ x, differentiable_at_fst
 
-lemma differentiable.fst (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).1) :=
+protected lemma differentiable.fst (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).1) :=
 differentiable_fst.comp h
 
 lemma differentiable_within_at_fst {s : set (E × F)} : differentiable_within_at 𝕜 prod.fst s p :=
 differentiable_at_fst.differentiable_within_at
 
-lemma differentiable_within_at.fst (h : differentiable_within_at 𝕜 f₂ s x) :
+protected lemma differentiable_within_at.fst (h : differentiable_within_at 𝕜 f₂ s x) :
   differentiable_within_at 𝕜 (λ x, (f₂ x).1) s x :=
 differentiable_at_fst.comp_differentiable_within_at x h
 
 lemma differentiable_on_fst {s : set (E × F)} : differentiable_on 𝕜 prod.fst s :=
 differentiable_fst.differentiable_on
 
-lemma differentiable_on.fst (h : differentiable_on 𝕜 f₂ s) :
+protected lemma differentiable_on.fst (h : differentiable_on 𝕜 f₂ s) :
   differentiable_on 𝕜 (λ x, (f₂ x).1) s :=
 differentiable_fst.comp_differentiable_on h
 
@@ -1090,7 +1090,7 @@ variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
 (snd 𝕜 E F).has_strict_fderiv_at
 
-lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
+protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
   has_strict_fderiv_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x :=
 has_strict_fderiv_at_snd.comp x h
 
@@ -1098,14 +1098,14 @@ lemma has_fderiv_at_filter_snd {L : filter (E × F)} :
   has_fderiv_at_filter prod.snd (snd 𝕜 E F) p L :=
 (snd 𝕜 E F).has_fderiv_at_filter
 
-lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
+protected lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_snd.comp x h
 
 lemma has_fderiv_at_snd : has_fderiv_at prod.snd (snd 𝕜 E F) p :=
 has_fderiv_at_filter_snd
 
-lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
+protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
   has_fderiv_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x :=
 h.snd
 
@@ -1113,34 +1113,34 @@ lemma has_fderiv_within_at_snd {s : set (E × F)} :
   has_fderiv_within_at prod.snd (snd 𝕜 E F) s p :=
 has_fderiv_at_filter_snd
 
-lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :
+protected lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :
   has_fderiv_within_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') s x :=
 h.snd
 
 lemma differentiable_at_snd : differentiable_at 𝕜 prod.snd p :=
 has_fderiv_at_snd.differentiable_at
 
-lemma differentiable_at.snd (h : differentiable_at 𝕜 f₂ x) :
+protected lemma differentiable_at.snd (h : differentiable_at 𝕜 f₂ x) :
   differentiable_at 𝕜 (λ x, (f₂ x).2) x :=
 differentiable_at_snd.comp x h
 
 lemma differentiable_snd : differentiable 𝕜 (prod.snd : E × F → F) :=
 λ x, differentiable_at_snd
 
-lemma differentiable.snd (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).2) :=
+protected lemma differentiable.snd (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).2) :=
 differentiable_snd.comp h
 
 lemma differentiable_within_at_snd {s : set (E × F)} : differentiable_within_at 𝕜 prod.snd s p :=
 differentiable_at_snd.differentiable_within_at
 
-lemma differentiable_within_at.snd (h : differentiable_within_at 𝕜 f₂ s x) :
+protected lemma differentiable_within_at.snd (h : differentiable_within_at 𝕜 f₂ s x) :
   differentiable_within_at 𝕜 (λ x, (f₂ x).2) s x :=
 differentiable_at_snd.comp_differentiable_within_at x h
 
 lemma differentiable_on_snd {s : set (E × F)} : differentiable_on 𝕜 prod.snd s :=
 differentiable_snd.differentiable_on
 
-lemma differentiable_on.snd (h : differentiable_on 𝕜 f₂ s) :
+protected lemma differentiable_on.snd (h : differentiable_on 𝕜 f₂ s) :
   differentiable_on 𝕜 (λ x, (f₂ x).2) s :=
 differentiable_snd.comp_differentiable_on h
 
@@ -1166,17 +1166,17 @@ variables {f₂ : G → G'} {f₂' : G →L[𝕜] G'} {y : G} (p : E × G)
 
 -- TODO (Lean 3.8): use `prod.map f f₂``
 
-theorem has_strict_fderiv_at.prod_map (hf : has_strict_fderiv_at f f' p.1)
+protected theorem has_strict_fderiv_at.prod_map (hf : has_strict_fderiv_at f f' p.1)
   (hf₂ : has_strict_fderiv_at f₂ f₂' p.2) :
   has_strict_fderiv_at (λ p : E × G, (f p.1, f₂ p.2)) (f'.prod_map f₂') p :=
 (hf.comp p has_strict_fderiv_at_fst).prod (hf₂.comp p has_strict_fderiv_at_snd)
 
-theorem has_fderiv_at.prod_map (hf : has_fderiv_at f f' p.1)
+protected theorem has_fderiv_at.prod_map (hf : has_fderiv_at f f' p.1)
   (hf₂ : has_fderiv_at f₂ f₂' p.2) :
   has_fderiv_at (λ p : E × G, (f p.1, f₂ p.2)) (f'.prod_map f₂') p :=
 (hf.comp p has_fderiv_at_fst).prod (hf₂.comp p has_fderiv_at_snd)
 
-theorem differentiable_at.prod_map (hf : differentiable_at 𝕜 f p.1)
+protected theorem differentiable_at.prod_map (hf : differentiable_at 𝕜 f p.1)
   (hf₂ : differentiable_at 𝕜 f₂ p.2) :
   differentiable_at 𝕜 (λ p : E × G, (f p.1, f₂ p.2)) p :=
 (hf.comp p differentiable_at_fst).prod (hf₂.comp p differentiable_at_snd)
@@ -2108,7 +2108,7 @@ lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
   apply h.unique_diff_within_at hs,
-  have : range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
+  have : set.range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
   rw [this, closure_univ]
 end
 

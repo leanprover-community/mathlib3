@@ -386,6 +386,47 @@ theorem inverse_function_has_strict_fderiv_at :
 
 end has_strict_fderiv_at
 
+open continuous_linear_map (fst snd subtype_val)
+
+namespace has_strict_fderiv_at
+
+variables [cs : complete_space E] {f : E → F} {f' : E →L[𝕜] F} {f'inv : F →L[𝕜] E}
+  {a : E} (hf : has_strict_fderiv_at f f' a) (hf' : right_inverse f'inv f')
+
+include hf hf'
+
+lemma implicit_aux_has_fderiv :
+  has_strict_fderiv_at (λ x, (continuous_linear_map.proj_ker_of_right_inverse f' f'inv hf' x, f x))
+    (continuous_linear_equiv.of_right_inverse f' f'inv hf' : E →L[𝕜] (f'.ker × F)) a :=
+(continuous_linear_map.has_strict_fderiv_at _).prod hf
+
+include cs
+
+section defs
+
+variables (f f' f'inv)
+
+/-- A local homeomorphism between E` and `f'.ker × F` sending level surfaces of `f`
+to horizontal subspaces. -/
+def implicit_to_local_homeomorph : local_homeomorph E (f'.ker × F) :=
+(hf.implicit_aux_has_fderiv hf').to_local_homeomorph _
+
+def implicit_function : 
+
+end defs
+
+@[simp] lemma implicit_to_local_homeomorph_snd (x : E) :
+  ((hf.implicit_to_local_homeomorph hf').to_fun x).snd = f x :=
+rfl
+
+@[simp] lemma implicit_to_local_homeomorph_ker_fst (x : f'.ker) :
+  ((hf.implicit_to_local_homeomorph hf').to_fun x).fst = x :=
+continuous_linear_map.proj_ker_of_right_inverse_apply_idem _ _ _ _
+
+variables (f f' f'inv)
+
+end has_strict_fderiv_at
+
 
 namespace has_strict_fderiv_at
 

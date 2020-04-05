@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
-
+Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 
 import topology.algebra.ring linear_algebra.basic ring_theory.algebra
@@ -173,6 +172,7 @@ notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological ring `R`. -/
+@[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   (R : Type*) [ring R]
   (M : Type*) [topological_space M] [add_comm_group M]
@@ -233,15 +233,21 @@ when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
 @[elim_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
 
+section
+
+variables (R M)
+
 /-- the identity map as a continuous linear map. -/
 def id : M →L[R] M :=
 ⟨linear_map.id, continuous_id⟩
 
-instance : has_one (M →L[R] M) := ⟨id⟩
+end
 
-lemma id_apply : (id : M →L[R] M) x = x := rfl
-@[simp, elim_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
-@[simp, elim_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
+instance : has_one (M →L[R] M) := ⟨id R M⟩
+
+lemma id_apply : id R M x = x := rfl
+@[simp, elim_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
+@[simp, elim_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
 
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 
@@ -281,10 +287,10 @@ def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
 @[simp, move_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
 @[simp, move_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
 
-@[simp] theorem comp_id : f.comp id = f :=
+@[simp] theorem comp_id : f.comp (id R M) = f :=
 ext $ λ x, rfl
 
-@[simp] theorem id_comp : id.comp f = f :=
+@[simp] theorem id_comp : (id R M₂).comp f = f :=
 ext $ λ x, rfl
 
 @[simp] theorem comp_zero : f.comp (0 : M₃ →L[R] M) = 0 :=
@@ -332,6 +338,51 @@ rfl
   f₁.prod f₂ x = (f₁ x, f₂ x) :=
 rfl
 
+/-- Kernel of a continuous linear map. -/
+def ker (f : M →L[R] M₂) : submodule R M := (f : M →ₗ[R] M₂).ker
+
+@[elim_cast] lemma ker_coe : (f : M →ₗ[R] M₂).ker = f.ker := rfl
+
+@[simp] lemma mem_ker {f : M →L[R] M₂} {x} : x ∈ f.ker ↔ f x = 0 := linear_map.mem_ker
+
+lemma is_closed_ker [t1_space M₂] : is_closed (f.ker : set M) :=
+continuous_iff_is_closed.1 f.cont _ is_closed_singleton
+
+@[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
+
+/-- Range of a continuous linear map. -/
+def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).range
+
+lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
+lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
+
+/-- Restrict codomain of a continuous linear map. -/
+def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
+  M →L[R] p :=
+{ cont := continuous_subtype_mk h f.continuous,
+  to_linear_map := (f : M →ₗ[R] M₂).cod_restrict p h}
+
+@[move_cast] lemma coe_cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
+  (f.cod_restrict p h : M →ₗ[R] p) = (f : M →ₗ[R] M₂).cod_restrict p h :=
+rfl
+
+@[simp] lemma coe_cod_restrict_apply (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) (x) :
+  (f.cod_restrict p h x : M₂) = f x :=
+rfl
+
+/-- Embedding of a submodule into the ambient space as a continuous linear map. -/
+def subtype_val (p : submodule R M) : p →L[R] M :=
+{ cont := continuous_subtype_val,
+  to_linear_map := p.subtype }
+
+@[simp, elim_cast] lemma coe_subtype_val (p : submodule R M) :
+  (subtype_val p : p →ₗ[R] M) = p.subtype :=
+rfl
+
+@[simp, move_cast] lemma subtype_val_apply (p : submodule R M) (x : p) :
+  (subtype_val p : p → M) x = x :=
+rfl
+
 variables (R M M₂)
 
 /-- `prod.fst` as a `continuous_linear_map`. -/
@@ -363,6 +414,41 @@ rfl
 @[simp, move_cast] lemma prod_map_apply (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) (x) :
   f₁.prod_map f₂ x = (f₁ x.1, f₂ x.2) :=
 rfl
+
+/-- The continuous linear map given by `(x, y) ↦ f₁ x + f₂ y`. -/
+def coprod [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
+  (M × M₂) →L[R] M₃ :=
+⟨linear_map.coprod f₁ f₂, (f₁.cont.comp continuous_fst).add (f₂.cont.comp continuous_snd)⟩
+
+@[move_cast, simp] lemma coe_coprod [topological_add_monoid M₃]
+  (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
+  (f₁.coprod f₂ : (M × M₂) →ₗ[R] M₃) = linear_map.coprod f₁ f₂ :=
+rfl
+
+@[simp] lemma coprod_apply [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
+  f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
+
+/-- Given a right inverse `f₂ : M₂ →L[R] M` to `f₁ : M →L[R] M₂`,
+`proj_ker_of_right_inverse f₁ f₂ h` is the projection `M →L[R] f₁.ker` along `f₂.range`. -/
+def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) :
+  M →L[R] f₁.ker :=
+(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
+
+@[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ h x) :
+  (f₁.proj_ker_of_right_inverse f₂ h x : M) = x - f₂ (f₁ x) :=
+rfl
+
+@[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ h) (x : f₁.ker) :
+  f₁.proj_ker_of_right_inverse f₂ h x = x :=
+subtype.coe_ext.2 $ by simp
+
+@[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ h) (y : M₂) :
+  f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
+subtype.coe_ext.2 $ by simp [h y]
 
 end general_ring
 
@@ -523,7 +609,7 @@ variables (R M)
 end
 
 @[simp, elim_cast] lemma coe_refl :
-  (continuous_linear_equiv.refl R M : M →L[R] M) = continuous_linear_map.id := rfl
+  (continuous_linear_equiv.refl R M : M →L[R] M) = continuous_linear_map.id R M := rfl
 
 @[simp, elim_cast] lemma coe_refl' :
   (continuous_linear_equiv.refl R M : M → M) = id := rfl
@@ -588,11 +674,11 @@ theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_e
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
 
 @[simp] theorem coe_comp_coe_symm (e : M ≃L[R] M₂) :
-  (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id :=
+  (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id R M₂ :=
 continuous_linear_map.ext e.apply_symm_apply
 
 @[simp] theorem coe_symm_comp_coe (e : M ≃L[R] M₂) :
-  (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id :=
+  (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id R M :=
 continuous_linear_map.ext e.symm_apply_apply
 
 lemma symm_comp_self (e : M ≃L[R] M₂) :
@@ -616,5 +702,48 @@ by { ext x, refl }
 
 @[simp] theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
+
+/-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
+inverse of each other. -/
+def of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.left_inverse f₂ f₁)
+  (h₂ : function.right_inverse f₂ f₁) :
+  M ≃L[R] M₂ :=
+{ to_fun := f₁,
+  continuous_to_fun := f₁.continuous,
+  inv_fun := f₂,
+  continuous_inv_fun := f₂.continuous,
+  left_inv := h₁,
+  right_inv := h₂,
+  .. f₁ }
+
+@[simp] lemma of_inverse_apply (f₁ : M →L[R] M₂) (f₂ h₁ h₂ x) :
+  of_inverse f₁ f₂ h₁ h₂ x = f₁ x :=
+rfl
+
+@[simp] lemma symm_of_inverse (f₁ : M →L[R] M₂) (f₂ h₁ h₂) :
+  (of_inverse f₁ f₂ h₁ h₂).symm = of_inverse f₂ f₁ h₂ h₁ :=
+rfl
+
+variables [topological_add_group M]
+
+open continuous_linear_map (id fst snd subtype_val mem_ker)
+
+/-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
+linear equivalence `e` between `M` and `f₁.ker × M₂` such that `(e x).1 = x` for `x ∈ f₁.ker`,
+`(e x).2 = f₁ x`, and `(e (f₂ y)).1 = 0`. The map is given by `e x = (x - f₂ (f₁ x), f₁ x)`. -/
+def of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
+  M ≃L[R] f₁.ker × M₂ :=
+of_inverse ((f₁.proj_ker_of_right_inverse f₂ h).prod f₁) ((subtype_val f₁.ker).coprod f₂)
+  (λ x, by simp)
+  (λ ⟨x, y⟩, by simp [h y])
+
+@[simp] lemma fst_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
+  ((of_right_inverse f₁ f₂ h x).1 : M) = x - f₂ (f₁ x) := rfl
+
+@[simp] lemma snd_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
+  (of_right_inverse f₁ f₂ h x).2 = f₁ x := rfl
+
+@[simp] lemma of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ h y) :
+  (of_right_inverse f₁ f₂ h).symm y = y.1 + f₂ y.2 := rfl
 
 end continuous_linear_equiv

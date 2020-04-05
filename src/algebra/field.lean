@@ -114,6 +114,20 @@ lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 ⟨λ h, by rw [← h, div_mul_cancel _ hb],
  λ h, by rw [← h, mul_div_cancel _ hb]⟩
 
+attribute [simp] inv_zero div_zero
+
+@[simp] lemma inv_eq_zero {a : α} : a⁻¹ = 0 ↔ a = 0 :=
+classical.by_cases (assume : a = 0, by simp [*]) (assume : a ≠ 0, by simp [*, inv_ne_zero])
+
+lemma div_mul_div_cancel (a : α) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+by rw [← mul_div_assoc, div_mul_cancel _ hc]
+
+lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+(div_eq_iff_mul_eq hb).trans eq_comm
+
+lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+eq_comm.trans $ div_eq_iff_mul_eq hb
+
 end division_ring
 
 @[priority 100] -- see Note [lower instance priority]
@@ -149,19 +163,10 @@ by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 lemma field.div_div_div_cancel_right (a : α) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
 by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
 
-lemma div_mul_div_cancel (a : α) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-by rw [← mul_div_assoc, div_mul_cancel _ hc]
-
 lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 (domain.mul_right_inj (mul_ne_zero' hb hd)).symm.trans $
 by rw [← mul_assoc, div_mul_cancel _ hb,
        ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
-
-lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
-
-lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
 
 lemma field.div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]
@@ -181,16 +186,6 @@ by rwa [add_comm, add_div', add_comm]
 lemma div_sub' (a b c : α) (hc : c ≠ 0) :
   a / c - b = (a - c * b) / c :=
 by simpa using div_sub_div a b hc one_ne_zero
-
-end
-
-section
-variables [field α] {a b c : α}
-
-attribute [simp] inv_zero div_zero
-
-@[simp] lemma inv_eq_zero {a : α} : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
 
 end
 

@@ -309,7 +309,7 @@ let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
 
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
 sums of this power series on strict subdisks of the disk of convergence. -/
-lemma has_fpower_series_on_ball.uniform_limit {r' : nnreal}
+lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : nnreal}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   ∃ (a C : nnreal), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
   ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
@@ -336,38 +336,72 @@ begin
     ... ≤ C * a ^ n : by exact_mod_cast hC n,
 end
 
+/-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
+partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f (x + y)`
+is the uniform limit of `p.partial_sum n y` there. -/
+lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : nnreal}
+  (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
+  tendsto_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
+begin
+  rcases hf.uniform_geometric_approx h with ⟨a, C, ha, hC⟩,
+  refine metric.tendsto_uniformly_on_iff.2 (λ ε εpos, _),
+  have L : tendsto (λ n, (C : ℝ) * a^n) at_top (𝓝 ((C : ℝ) * 0)) :=
+    tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 (a.2) ha),
+  rw mul_zero at L,
+  apply ((tendsto_order.1 L).2 ε εpos).mono (λ n hn, _),
+  assume y hy,
+  rw dist_eq_norm,
+  exact lt_of_le_of_lt (hC y hy n) hn
+end
+
+/-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
+the partial sums of this power series on the disk of convergence, i.e., `f (x + y)`
+is the locally uniform limit of `p.partial_sum n y` there. -/
+lemma has_fpower_series_on_ball.tendsto_locally_uniformly_on
+  (hf : has_fpower_series_on_ball f p x r) :
+  tendsto_locally_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y))
+  at_top (emetric.ball (0 : E) r) :=
+begin
+  assume u hu x hx,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
+  have : emetric.ball (0 : E) r' ∈ 𝓝 x :=
+    mem_nhds_sets emetric.is_open_ball xr',
+  refine ⟨emetric.ball (0 : E) r', mem_nhds_within_of_mem_nhds this, _⟩,
+  simpa [metric.emetric_ball_nnreal] using hf.tendsto_uniformly_on hr' u hu
+end
+
+/-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
+partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f y`
+is the uniform limit of `p.partial_sum n (y - x)` there. -/
+lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : nnreal}
+  (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
+  tendsto_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (metric.ball (x : E) r') :=
+begin
+  convert (hf.tendsto_uniformly_on h).comp (λ y, y - x),
+  { ext z, simp },
+  { ext z, simp [dist_eq_norm] }
+end
+
+/-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
+the  partial sums of this power series on the disk of convergence, i.e., `f y`
+is the locally uniform limit of `p.partial_sum n (y - x)` there. -/
+lemma has_fpower_series_on_ball.tendsto_locally_uniformly_on'
+  (hf : has_fpower_series_on_ball f p x r) :
+  tendsto_locally_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (emetric.ball (x : E) r) :=
+begin
+  have A : continuous_on (λ (y : E), y - x) (emetric.ball (x : E) r) :=
+    (continuous_id.sub continuous_const).continuous_on,
+  convert (hf.tendsto_locally_uniformly_on).comp (λ (y : E), y - x) _ A,
+  { ext z, simp },
+  { assume z, simp [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] }
+end
+
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
 lemma has_fpower_series_on_ball.continuous_on
   (hf : has_fpower_series_on_ball f p x r) : continuous_on f (emetric.ball x r) :=
 begin
-  have : ∀ n, continuous_on (λ y, p.partial_sum n (y - x)) (emetric.ball x r) :=
-    λ n, ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on,
-  apply continuous_on_of_locally_uniform_limit_of_continuous_on (λ y hy, _) this,
-  have : (nnnorm (y - x) : ennreal) < r,
-    by { rw ← edist_eq_coe_nnnorm_sub, exact hy },
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 this with ⟨r', xr', r'r⟩,
-  rw ennreal.coe_lt_coe at xr',
-  refine ⟨metric.ball x r', _, λ ε εpos, _⟩,
-  show metric.ball x r' ∈ nhds_within y (emetric.ball x r),
-  { apply mem_nhds_within_of_mem_nhds,
-    apply mem_nhds_sets metric.is_open_ball,
-    change dist y x < r',
-    rwa [dist_nndist, nnreal.coe_lt_coe, nndist_eq_nnnorm] },
-  show ∃ (n : ℕ),
-    ∀ z ∈ metric.ball x ↑r', dist (formal_multilinear_series.partial_sum p n (z - x)) (f z) ≤ ε,
-  { obtain ⟨a, C, ha, hC⟩ : ∃ (a C : nnreal), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
-      ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) := hf.uniform_limit r'r,
-    have L : tendsto (λ (n : ℕ), (C : ℝ) * a ^ n) at_top (𝓝 ((C : ℝ) * 0)) :=
-      tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 (a.2) ha),
-    rw mul_zero at L,
-    obtain ⟨n, hn⟩ : ∃ (n : ℕ), (C : ℝ) * a ^ n < ε :=
-      eventually.exists ((tendsto_order.1 L).2 _ εpos) at_top_ne_bot,
-    refine ⟨n, λ z hz, _⟩,
-    have : z - x ∈ metric.ball (0 : E) r',
-      by { rwa [metric.mem_ball, dist_eq_norm, ← dist_zero_right] at hz },
-    rw [dist_eq_norm, norm_sub_rev],
-    convert le_trans (hC _ this n) (le_of_lt hn),
-    abel }
+  apply hf.tendsto_locally_uniformly_on'.continuous_on _ at_top_ne_bot,
+  exact λ n, ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
 end
 
 lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) : continuous_at f x :=

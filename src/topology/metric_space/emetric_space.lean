@@ -338,7 +338,7 @@ theorem complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
 uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
 
-/-- Defining locally uniform convergence on a set using `edist`. -/
+/-- Expressing locally uniform convergence on a set using `edist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -351,7 +351,7 @@ begin
   exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
 end
 
-/-- Defining uniform convergence on a set using `edist`. -/
+/-- Expressing uniform convergence on a set using `edist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_on_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -362,7 +362,7 @@ begin
   exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
 end
 
-/-- Defining locally uniform convergence using `edist`. -/
+/-- Expressing locally uniform convergence using `edist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
@@ -370,7 +370,7 @@ lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
 by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
 
-/-- Defining uniform convergence using `edist`. -/
+/-- Expressing uniform convergence using `edist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} :

@@ -639,6 +639,11 @@ section
 variable [emetric_space α]
 open emetric
 
+lemma tendsto_iff_edist_tendsto_0 {l : filter β} {f : β → α} {y : α} :
+  tendsto f l (𝓝 y) ↔ tendsto (λ x, edist (f x) y) l (𝓝 0) :=
+by simp only [emetric.nhds_basis_eball.tendsto_right_iff, emetric.mem_ball,
+  @tendsto_order ennreal β _ _, forall_prop_of_false ennreal.not_lt_zero, forall_const, true_and]
+
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/
 lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s : β → α} :

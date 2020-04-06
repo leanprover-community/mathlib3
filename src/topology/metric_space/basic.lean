@@ -435,7 +435,7 @@ begin
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
 end
 
-/-- Defining locally uniform convergence on a set using `dist`. -/
+/-- Expressing locally uniform convergence on a set using `dist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -448,7 +448,7 @@ begin
   exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
 end
 
-/-- Defining uniform convergence on a set using `dist`. -/
+/-- Expressing uniform convergence on a set using `dist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_on_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -459,7 +459,7 @@ begin
   exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
 end
 
-/-- Defining locally uniform convergence using `dist`. -/
+/-- Expressing locally uniform convergence using `dist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
@@ -467,7 +467,7 @@ lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
 by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
 
-/-- Defining uniform convergence using `dist`. -/
+/-- Expressing uniform convergence using `dist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} :

@@ -65,13 +65,15 @@ We define uniform convergence and locally uniform convergence, on a set or in th
 variables {ι : Type*} [uniform_space β]
 {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
-/-- A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` if,
-for any entourage of the diagonal `u`, one has eventually `(f x, Fₙ x) ∈ u` for all `x ∈ s`. -/
+/-- A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` with
+respect to the filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
+`(f x, Fₙ x) ∈ u` for all `x ∈ s`. -/
 def tendsto_uniformly_on (F : ι → α → β) (f : α → β) (p : filter ι) (s : set α) :=
   ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x ∈ s, (f x, F n x) ∈ u
 
-/-- A sequence of functions `Fₙ` converges uniformly to a limiting function `f` if, for any
-entourage of the diagonal `u`, one has eventually `(f x, Fₙ x) ∈ u` for all `x`. -/
+/-- A sequence of functions `Fₙ` converges uniformly to a limiting function `f` with respect to a
+filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
+`(f x, Fₙ x) ∈ u` for all `x`. -/
 def tendsto_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
   ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
 
@@ -108,14 +110,14 @@ end
 variable [topological_space α]
 
 /-- A sequence of functions `Fₙ` converges locally uniformly on a set `s` to a limiting function
-`f` if, for any entourage of the diagonal `u`, for any `x ∈ s`, one has eventually `(f x, Fₙ x) ∈ u`
-for all `y` in a neighborhood of `x` in `s`. -/
+`f` with respect to a filter `p` if, for any entourage of the diagonal `u`, for any `x ∈ s`, one
+has `p`-eventually `(f x, Fₙ x) ∈ u` for all `y` in a neighborhood of `x` in `s`. -/
 def tendsto_locally_uniformly_on (F : ι → α → β) (f : α → β) (p : filter ι) (s : set α) :=
   ∀ u ∈ 𝓤 β, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, (f y, F n y) ∈ u
 
-/-- A sequence of functions `Fₙ` converges locally uniformly to a limiting function `f` if, for any
-entourage of the diagonal `u`, for any `x`, one has eventually `(f x, Fₙ x) ∈ u`
-for all `y` in a neighborhood of `x`. -/
+/-- A sequence of functions `Fₙ` converges locally uniformly to a limiting function `f` with respect
+to a filter `p` if, for any entourage of the diagonal `u`, for any `x`, one has `p`-eventually
+`(f x, Fₙ x) ∈ u` for all `y` in a neighborhood of `x`. -/
 def tendsto_locally_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
   ∀ u ∈ 𝓤 β, ∀ (x : α), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, (f y, F n y) ∈ u
 

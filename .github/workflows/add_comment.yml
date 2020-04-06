@@ -42,12 +42,14 @@ jobs:
       - id: get_admin_approvals
         name: Get admin approvals
         run: |
+          APPROVED='${{ steps.parse_check_approvals.outputs.approved_users }}'
           ADMINS=$(echo '${{ steps.get_collaborators.outputs.data }}' | jq -c --raw-output 'map(select(.permissions.admin) | .login)')
           echo $ADMINS
-          APPROVED='${{ steps.parse_check_approvals.outputs.approved_users }}'
-          echo "::set-output name=admin_approved::$(echo '{"admins":'"$ADMINS"', "approved_users":'"$APPROVED"'}' | jq --raw-output '.admins - (.admins - .approved_users) | length')"
+          RESULT=$(echo '{"admins":'"$ADMINS"', "approved_users":'"$APPROVED"'}' | jq --raw-output '.admins - (.admins - .approved_users) | length')
+          echo $RESULT
+          echo "::set-output name=num_admin_approvals::RESULT"
 
-      - if: steps.parse_check_approvals.outputs.admin_approved > 0
+      - if: steps.get_admin_approvals.outputs.num_admin_approvals > 0
         uses: octokit/request-action@v2.x
         id: add_comment
         name: Add "bors r+" comment

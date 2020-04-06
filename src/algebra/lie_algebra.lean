@@ -382,7 +382,7 @@ lemma is_quotient_mk (m : M) :
 
 /-- Given a Lie module $M$ over a Lie algebra $L$, together with a Lie submodule $N ⊆ M$, there
 is a natural linear map from $L$ to the endomorphisms of $M$ leaving $N$ invariant. -/
-def lie_submodule_invariant : L →ₗ[R] submodule.comap_submodule N.to_submodule N.to_submodule :=
+def lie_submodule_invariant : L →ₗ[R] submodule.comap_linear_maps N.to_submodule N.to_submodule :=
   linear_map.cod_restrict _ (α.to_linear_action.to_endo_map _ _ _) N.lie_mem
 
 instance lie_quotient_action : linear_action R L N.quotient :=
@@ -392,8 +392,8 @@ lemma lie_quotient_action_apply (z : L) (m : M) :
   linear_action.act R z (mk m : N.quotient) = quotient.mk' (linear_action.act R z m) := rfl
 
 /-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
-instance lie_quotient_lie_module : lie_module R L N.quotient := {
-  lie_act := λ x y m', by { apply quotient.induction_on' m', intros m, rw is_quotient_mk,
+instance lie_quotient_lie_module : lie_module R L N.quotient :=
+{ lie_act := λ x y m', by { apply quotient.induction_on' m', intros m, rw is_quotient_mk,
                             repeat { rw lie_quotient_action_apply, }, rw lie_act, refl, },
   ..quotient.lie_quotient_action, }
 

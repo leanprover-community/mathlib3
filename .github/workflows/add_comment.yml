@@ -27,7 +27,7 @@ jobs:
         run: |
           RESULT=$(echo '${{ steps.check_approvals.outputs.data }}' | jq --raw-output 'map(select(.state == "APPROVED") | .user.login)')
           echo $RESULT
-          echo "::set-output name=approved_users::$RESULT"
+          echo "::set-output name=approved_users::'$RESULT'"
 
       - uses: octokit/request-action@v2.x
         name: Get collaborators

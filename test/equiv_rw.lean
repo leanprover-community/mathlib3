@@ -224,9 +224,7 @@ def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β
 begin
   intro S, fconstructor,
   -- transport data fields using `equiv_rw`
-  -- { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  { --simp_result {
-    have mul := S.mul,
+  { have mul := S.mul,
     equiv_rw e at mul,
     -- This `equiv_rw` performs the following steps:
     -- have e' := (equiv.arrow_congr' e (equiv.arrow_congr' e e)),
@@ -237,7 +235,7 @@ begin
     -- clear_dependent mul,
     -- rename mul' mul,
     exact mul,
-  }, --},
+  },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end

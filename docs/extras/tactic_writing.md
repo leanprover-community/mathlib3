@@ -492,6 +492,5 @@ repeat {rw nat_trans.naturality}
 ]
 ```
 
-This creates a new tactic which just runs the tactics used in their definition. If you want to use such a tactic such as this in other files, you should put it in the `tactic.interactive` namespace.
-
+This creates a new tactic which just runs the tactic script between `` `[ `` and `]`.
 

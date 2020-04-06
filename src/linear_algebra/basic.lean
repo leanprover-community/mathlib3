@@ -1572,6 +1572,51 @@ end field
 
 end linear_equiv
 
+namespace submodule
+
+variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+variables (p : submodule R M) (q : submodule R M₂)
+
+lemma comap_smul_le (f : M →ₗ[R] M₂) (c : R) :
+  comap f q ≤ comap (c • f) q :=
+begin -- FIXME scum proof!
+rw le_def',
+intros x hx,
+simp only [linear_map.smul_apply, mem_comap],
+rw mem_comap at hx,
+apply submodule.smul,
+assumption,
+end
+
+lemma comap_add_le (f₁ f₂ : M →ₗ[R] M₂) :
+  comap f₁ q ⊓ comap f₂ q ≤ comap (f₁ + f₂) q :=
+begin -- FIXME scum proof!
+rw le_def',
+intros x hx,
+simp only [mem_comap, linear_map.add_apply],
+simp only [mem_inf, mem_comap] at hx,
+apply submodule.add; tauto,
+end
+
+/-- Given modules $M, N$ over a commutative ring, together with submodules $p ⊆ M$, $q ⊆ N$, the
+set of linear maps preserving the submodules $\{f ∈ \Hom(M, N) | f(p) ⊆ q \}$ is a submodule of
+$\Hom(M, N)$. -/
+def comap_submodule : submodule R (M →ₗ[R] M₂) :=
+{ carrier := λ f, p ≤ comap f q,
+  zero    := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
+  add     := λ f₁ f₂ h₁ h₂, by { apply le_trans _ (comap_add_le q f₁ f₂), rw le_inf_iff,
+                                 exact ⟨h₁, h₂⟩, },
+  smul    := λ c f h, le_trans h (comap_smul_le q f c), }
+
+/-- Given modules $M, N$ over a commutative ring, together with submodules $p ⊆ M$, $q ⊆ N$, the
+natural map $\{f ∈ \Hom(M, N) | f(p) ⊆ q \} \to \Hom(M/p, N/q)$ is linear. -/
+def mapqₗ : comap_submodule p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
+{ to_fun := λ f, mapq _ _ f.val f.property,
+  add    := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
+  smul   := λ c f, by { ext m', apply quotient.induction_on' m', intros m, refl, } }
+
+end submodule
+
 namespace equiv
 variables [ring R] [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
 

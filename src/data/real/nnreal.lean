@@ -19,6 +19,9 @@ namespace nnreal
 
 instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 
+/- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
+@[simp] lemma val_eq_coe (n : nnreal) : n.val = n := rfl
+
 instance : can_lift ℝ nnreal :=
 { coe := coe,
   cond := λ r, r ≥ 0,

@@ -47,7 +47,7 @@ jobs:
           echo $ADMINS
           RESULT=$(echo '{"admins":'"$ADMINS"', "approved_users":'"$APPROVED"'}' | jq --raw-output '.admins - (.admins - .approved_users) | length')
           echo $RESULT
-          echo "::set-output name=num_admin_approvals::RESULT"
+          echo "::set-output name=num_admin_approvals::$RESULT"
 
       - if: steps.get_admin_approvals.outputs.num_admin_approvals > 0
         uses: octokit/request-action@v2.x

@@ -214,10 +214,6 @@ end
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
 -- Observe that the next three declarations could easily be implemented by a tactic.
 
--- `semigroup.map` and `monoid.map` can now be synthesized automatically using the
--- `transport` tactic, but we leave these in the test file for `equiv_rw`,
--- to make sure we have differential diagnosis for `equiv_rw` and `transport`.
-
 -- This has been automated in the `transport` branch,
 -- so we won't attempt to write a deriver handler until we join with that.
 def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=

@@ -45,7 +45,7 @@ begin
   -- ⊢ 1 = 1
   -- rather than
   -- ⊢ {a := 1}.a = {a := 1}.a
-  target >>= pp >>= (λ t, guard $ to_string t = "1 = 1"),
+  guard_target 1 = 1,
   trivial
 end
 

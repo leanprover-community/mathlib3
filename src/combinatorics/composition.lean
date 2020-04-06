@@ -400,7 +400,7 @@ begin
       exact nat.add_sub_cancel' h.1 } }
 end
 
-/-- The embeddings of different blocks of a composition are dijoint. -/
+/-- The embeddings of different blocks of a composition are disjoint. -/
 lemma disjoint_range {i₁ i₂ : fin compo.max_index} (h : i₁ ≠ i₂) :
   disjoint (set.range (compo.embedding i₁)) (set.range (compo.embedding i₂)) :=
 begin

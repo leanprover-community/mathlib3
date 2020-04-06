@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Markus Himmel
 -/
 import algebra.homology.chain_complex
 import category_theory.limits.shapes.images
@@ -31,13 +31,39 @@ variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms.{v} V]
 include 𝒱
 
 variable [has_kernels.{v} V]
-/-- The map induceed by a chain map between the kernels of the differentials. -/
+/-- The map induced by a chain map between the kernels of the differentials. -/
 def induced_map_on_cycles {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
   rw [category.assoc, ←comm_at f, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
 end
+
+@[simp]
+lemma induced_map_on_cycles_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
+  induced_map_on_cycles f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
+by erw [limit.lift_π, fork.of_ι_app_zero]
+
+@[simp]
+lemma induced_map_on_cycles_id (C : cochain_complex.{v} V) (i : ℤ) :
+  induced_map_on_cycles (𝟙 C) i = 𝟙 _ :=
+(cancel_mono (kernel.ι (C.d i))).1 $ by simp
+
+@[simp]
+lemma induced_map_on_cycles_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
+  (g : C' ⟶ C'') (i : ℤ) :
+  induced_map_on_cycles (f ≫ g) i = induced_map_on_cycles f i ≫ induced_map_on_cycles g i :=
+(cancel_mono (kernel.ι (C''.d i))).1 $
+  by rw [induced_map_on_cycles_condition, category.assoc, induced_map_on_cycles_condition,
+    ←category.assoc, induced_map_on_cycles_condition, category.assoc, differential_object.comp_f,
+    graded_object.comp_apply]
+
+-- TODO: Actually, this is a functor `cochain_complex V ⥤ cochain_complex V`, but to state this
+-- properly we will need `has_shift` on `differential_object` first.
+/-- The kernels of the differentials of a cochain complex form a ℤ-graded object. -/
+def induced_maps_on_cycles_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
+{ obj := λ C i, kernel (C.d i),
+  map := λ X Y f i, induced_map_on_cycles f i }
 
 /-!
 At this point we assume that we have all images, and all equalizers.
@@ -68,7 +94,7 @@ end
 -- i.e. the coequalizer of the kernel pair,
 -- and that image has the appropriate mapping property.
 
--- def induced_map_on_boundaries {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- def induced_map_on_boundaries {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   image (C.d i) ⟶ image (C'.d i) :=
 -- sorry
 
@@ -92,7 +118,7 @@ cokernel (image_to_kernel_map C (i-1))
 -- the commented out code below will work
 -- (with whatever added assumptions are needed above.)
 
--- def induced_map_on_cohomology {C C' : chain_cocomplex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- def induced_map_on_cohomology {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   C.cohomology i ⟶ C'.cohomology i :=
 -- cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
 -- begin

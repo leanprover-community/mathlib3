@@ -56,7 +56,7 @@ jobs:
         with:
           route: POST /repos/:repository/issues/:issue_number/comments
           repository: ${{ github.repository }}
-          issue_number: ${{ github.event.issue.number }}
+          issue_number: ${{ github.event.number }}
           body: 'bors r+'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

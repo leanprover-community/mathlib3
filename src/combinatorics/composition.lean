@@ -17,7 +17,7 @@ that of a partition of `n`, but in a composition of `n` the order of the `iⱼ`s
 We represent a composition of `n` as a subset of `{0, ..., n}` containing `0` and `n`, where
 the elements of the subset (but `n`) correspond to the leftmost points of each block. This
 implementation works in the edge case `n = 0`, avoids most dependent type issues, and makes it
-possible to define the canonical isomorphism between `fin iₖ` and the `k`-th block of the
+possible to define the canonical isomorphism between `fin iⱼ` and the `j`-th block of the
 composition, which is an essential part of the API for applications.
 
 ## Main functions

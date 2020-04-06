@@ -1587,7 +1587,7 @@ begin
   apply submodule.smul _ _ h,
 end
 
-lemma comap_add_le (f₁ f₂ : M →ₗ[R] M₂) :
+lemma inf_comap_le_comap_add (f₁ f₂ : M →ₗ[R] M₂) :
   comap f₁ q ⊓ comap f₂ q ≤ comap (f₁ + f₂) q :=
 begin
   rw le_def',

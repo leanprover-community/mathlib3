@@ -479,6 +479,14 @@ begin
   exact ()
 end
 
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  -- Check we fail with an error (but don't segfault) if hypotheses are repeated.
+  success_if_fail { clear_dependent a a },
+  clear_dependent a,
+  exact ()
+end
+
 example {α} {β : α → Type} (a : α) : β a → unit :=
 begin
   success_if_fail { clear_dependent a }, -- fails since the target depends on `a`

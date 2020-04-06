@@ -7,9 +7,10 @@ on:
 jobs:
   add_label:
     name: Add "bors r+" comment
-    if: contains(github.event.pull_request.labels, 'ready-to-merge')
+    # if: contains(github.event.pull_request.labels, 'ready-to-merge')
     runs-on: ubuntu-latest
     steps:
+      - run: echo ${{ github.event }}
       - uses: octokit/request-action@v2.x
         name: Check approvals
         id: check_approvals

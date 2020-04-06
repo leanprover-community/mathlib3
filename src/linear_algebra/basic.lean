@@ -1577,7 +1577,7 @@ namespace submodule
 variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
 variables (p : submodule R M) (q : submodule R M₂)
 
-lemma comap_smul_le (f : M →ₗ[R] M₂) (c : R) :
+lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=
 begin
   rw le_def',

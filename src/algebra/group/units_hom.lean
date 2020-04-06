@@ -47,8 +47,15 @@ def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
   map_one' := units.ext $ (h 1).symm ▸ f.map_one,
   map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, f.map_mul] }
 
-@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, ↑(g x) = f x) (x) :
-  (lift_right f g h x : N) = f x :=
-h x
+@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N}
+  (h : ∀ x, ↑(g x) = f x) (x) : (lift_right f g h x : N) = f x := h x
+
+@[simp, to_additive] lemma mul_lift_right_inv {f : M →* N} {g : M → units N}
+  (h : ∀ x, ↑(g x) = f x) (x) : f x * ↑(lift_right f g h x)⁻¹ = 1 :=
+by rw [units.mul_inv_eq_iff_eq_mul, one_mul, coe_lift_right]
+
+@[simp, to_additive] lemma lift_right_inv_mul {f : M →* N} {g : M → units N}
+  (h : ∀ x, ↑(g x) = f x) (x) : ↑(lift_right f g h x)⁻¹ * f x = 1 :=
+by rw [units.inv_mul_eq_iff_eq_mul, mul_one, coe_lift_right]
 
 end units

@@ -252,7 +252,7 @@ lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α�
   t ∈ 𝓤 α ↔ ∃ i (hi : p i), ∀ a b, (a, b) ∈ s i → (a, b) ∈ t :=
 h.mem_iff.trans $ by simp only [prod.forall, subset_def]
 
-lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
+lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
     simp only [mem_nhds_sets_iff, is_open_uniformity, and_imp, exists_imp_distrib],
@@ -273,8 +273,12 @@ lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
         from tr this rfl,
     hs⟩⟩
 
+lemma mem_nhds_uniformity_iff_left {x : α} {s : set α} :
+  s ∈ 𝓝 x ↔ {p : α × α | p.2 = x → p.1 ∈ s} ∈ 𝓤 α :=
+by { rw [uniformity_eq_symm, mem_nhds_uniformity_iff_right], refl }
+
 lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
-by ext s; rw [mem_nhds_uniformity_iff, mem_comap_sets]; from iff.intro
+by ext s; rw [mem_nhds_uniformity_iff_right, mem_comap_sets]; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
   (assume ⟨t, h, ht⟩, (𝓤 α).sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
@@ -572,13 +576,13 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
     (comap_mono u.comp),
   is_open_uniformity := λ s, begin
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
-    simp [is_open_iff_nhds, nhds_induced, mem_nhds_uniformity_iff, filter.comap, and_comm],
+    simp [is_open_iff_nhds, nhds_induced, mem_nhds_uniformity_iff_right, filter.comap, and_comm],
     refine ball_congr (λ x hx, ⟨_, _⟩),
     { rintro ⟨t, hts, ht⟩, refine ⟨_, ht, _⟩,
       rintro ⟨x₁, x₂⟩ h rfl, exact hts (h rfl) },
     { rintro ⟨t, ht, hts⟩,
       exact ⟨{y | (f x, y) ∈ t}, λ y hy, @hts (x, y) hy rfl,
-        mem_nhds_uniformity_iff.1 $ mem_nhds_left _ ht⟩ }
+        mem_nhds_uniformity_iff_right.1 $ mem_nhds_left _ ht⟩ }
   end }
 
 lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
@@ -835,12 +839,12 @@ lemma uniformity_sum_of_open_aux {s : set (α ⊕ β)} (hs : is_open s) {x : α 
 begin
   cases x,
   { refine mem_sets_of_superset
-      (union_mem_uniformity_sum (mem_nhds_uniformity_iff.1 (mem_nhds_sets hs.1 xs)) univ_mem_sets)
+      (union_mem_uniformity_sum (mem_nhds_uniformity_iff_right.1 (mem_nhds_sets hs.1 xs)) univ_mem_sets)
       (union_subset _ _);
     rintro _ ⟨⟨_, b⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
   { refine mem_sets_of_superset
-      (union_mem_uniformity_sum univ_mem_sets (mem_nhds_uniformity_iff.1 (mem_nhds_sets hs.2 xs)))
+      (union_mem_uniformity_sum univ_mem_sets (mem_nhds_uniformity_iff_right.1 (mem_nhds_sets hs.2 xs)))
       (union_subset _ _);
     rintro _ ⟨⟨a, _⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
@@ -851,11 +855,11 @@ lemma open_of_uniformity_sum_aux {s : set (α ⊕ β)}
   is_open s :=
 begin
   split,
-  { refine (@is_open_iff_mem_nhds α _ _).2 (λ a ha, mem_nhds_uniformity_iff.2 _),
+  { refine (@is_open_iff_mem_nhds α _ _).2 (λ a ha, mem_nhds_uniformity_iff_right.2 _),
     rcases mem_map_sets_iff.1 (hs _ ha).1 with ⟨t, ht, st⟩,
     refine mem_sets_of_superset ht _,
     rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl },
-  { refine (@is_open_iff_mem_nhds β _ _).2 (λ b hb, mem_nhds_uniformity_iff.2 _),
+  { refine (@is_open_iff_mem_nhds β _ _).2 (λ b hb, mem_nhds_uniformity_iff_right.2 _),
     rcases mem_map_sets_iff.1 (hs _ hb).2 with ⟨t, ht, st⟩,
     refine mem_sets_of_superset ht _,
     rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl }
@@ -905,3 +909,66 @@ lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α}
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂
+
+/-!
+### Expressing continuity properties in uniform spaces
+
+We reformulate the various continuity properties of functions taking values in a uniform space
+in terms of the uniformity in the target. Since the same lemmas (essentially with the same names)
+also exist for metric spaces and emetric spaces (reformulating things in terms of the distance or
+the edistance in the target), we put them in a namespace `uniform` here.
+
+In the metric and emetric space setting, there are also similar lemmas where one assumes that
+both the source and the target are metric spaces, reformulating things in terms of the distance
+on both sides. These lemmas are generally written without primes, and the versions where only
+the target is a metric space is primed. We follow the same convention here, thus giving lemmas
+with primes.
+-/
+
+namespace uniform
+
+variables {α : Type*} {β : Type*} [uniform_space α]
+
+theorem tendsto_nhds_right {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (𝓝 a) ↔ tendsto (λ x, (a, u x)) f (𝓤 α)  :=
+⟨λ H, tendsto_left_nhds_uniformity.comp H,
+λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_right.1 hs)⟩
+
+theorem tendsto_nhds_left {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (𝓝 a) ↔ tendsto (λ x, (u x, a)) f (𝓤 α)  :=
+⟨λ H, tendsto_right_nhds_uniformity.comp H,
+λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_left.1 hs)⟩
+
+theorem continuous_at_iff'_right [topological_space β] {f : β → α} {b : β} :
+  continuous_at f b ↔ tendsto (λ x, (f b, f x)) (𝓝 b) (𝓤 α) :=
+by rw [continuous_at, tendsto_nhds_right]
+
+theorem continuous_at_iff'_left [topological_space β] {f : β → α} {b : β} :
+  continuous_at f b ↔ tendsto (λ x, (f x, f b)) (𝓝 b) (𝓤 α) :=
+by rw [continuous_at, tendsto_nhds_left]
+
+theorem continuous_within_at_iff'_right [topological_space β] {f : β → α} {b : β} {s : set β} :
+  continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+by rw [continuous_within_at, tendsto_nhds_right]
+
+theorem continuous_within_at_iff'_left [topological_space β] {f : β → α} {b : β} {s : set β} :
+  continuous_within_at f s b ↔ tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+by rw [continuous_within_at, tendsto_nhds_left]
+
+theorem continuous_on_iff'_right [topological_space β] {f : β → α} {s : set β} :
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+by simp [continuous_on, continuous_within_at_iff'_right]
+
+theorem continuous_on_iff'_left [topological_space β] {f : β → α} {s : set β} :
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+by simp [continuous_on, continuous_within_at_iff'_left]
+
+theorem continuous_iff'_right [topological_space β] {f : β → α} :
+  continuous f ↔ ∀ b, tendsto (λ x, (f b, f x)) (𝓝 b) (𝓤 α) :=
+continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_right
+
+theorem continuous_iff'_left [topological_space β] {f : β → α} :
+  continuous f ↔ ∀ b, tendsto (λ x, (f x, f b)) (𝓝 b) (𝓤 α) :=
+continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_left
+
+end uniform

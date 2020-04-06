@@ -476,28 +476,22 @@ reading available tactics.
 * `a $> mb`: same as `do mb, return a`
 * `ma <$ b`: same as `do ma, return b`
 
-## Cheap and dirty tactic cheat sheet
+## Cheap and dirty tactic trick
 
 If you just want one tactic to implement a few lines of tactic mode in Lean (e.g., because you are
 finding that you are having to type the same three or four lines several times in your proof)
 you can hack together a tactic like this:
 
 ```lean
-meta def crunch : tactic unit := do
-`[intros],
-`[rw eq_iff_re_eq_and_im_eq],
-`[split; simp [add_mul, mul_add, mul_assoc]]
+meta def rw_search_hack : tactic unit := do
+`[
+repeat {rw assoc},
+try {simp},
+repeat {rw comp_right_app},
+repeat {rw nat_trans.naturality},
+]
 ```
 
-or this:
+This creates a new tactic which just runs the tactics used in their definition. If you want to use such a tactic such as this in other files, you should put it in the `tactic.interactive` namespace.
 
-```lean
-meta def poor_mans_rewrite_search : tactic unit := do
-`[{ repeat {rw assoc},
-    try {simp},
-    repeat {rw comp_right_app},
-    repeat {rw nat_trans.naturality},
-  }]
-```
 
-Both of these methods create a new tactic which just runs the tactics used in their definition. 

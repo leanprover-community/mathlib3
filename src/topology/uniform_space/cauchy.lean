@@ -73,7 +73,7 @@ begin
   -- Consider a neighborhood `s` of `x`
   assume s hs,
   -- Take an entourage twice smaller than `s`
-  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
+  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 hs) with ⟨U, U_mem, hU⟩,
   -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
   rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
   apply mem_sets_of_superset t_mem,

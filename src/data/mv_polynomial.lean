@@ -389,6 +389,17 @@ end
 
 end coeff
 
+section as_sum
+
+@[simp]
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+finsupp.sum_single p
+
+lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+(support_sum_monomial_coeff p).symm
+
+end as_sum
+
 section eval₂
 variables [comm_semiring β]
 variables (f : α → β) (g : σ → β)
@@ -738,6 +749,20 @@ by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
 by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
+
+lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
+  x v = 0 :=
+begin
+  rw [vars, multiset.mem_to_finset] at h,
+  rw ←not_mem_support_iff,
+  contrapose! h,
+  unfold degrees,
+  rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+  rw finset.sup_insert,
+  simp only [multiset.mem_union, multiset.sup_eq_union],
+  left,
+  rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
+end
 
 end vars
 
@@ -1406,6 +1431,31 @@ by simp
 lemma pderivative_zero {v : S} : pderivative v (0 : mv_polynomial S R) = 0 :=
 suffices pderivative v (C 0 : mv_polynomial S R) = 0, by simpa,
 show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
+
+section
+variables (R)
+
+/-- `pderivative : S → mv_polynomial S R → mv_polynomial S R` as an `add_monoid_hom`  -/
+def pderivative.add_monoid_hom (v : S) : mv_polynomial S R →+ mv_polynomial S R :=
+{ to_fun := pderivative v,
+  map_zero' := pderivative_zero,
+  map_add' := λ x y, pderivative_add, }
+
+@[simp]
+lemma pderivative.add_monoid_hom_apply (v : S) (p : mv_polynomial S R) :
+  (pderivative.add_monoid_hom R v) p = pderivative v p :=
+rfl
+end
+
+lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v ∉ f.vars) :
+  pderivative v f = 0 :=
+begin
+  change (pderivative.add_monoid_hom R v) f = 0,
+  rw [f.as_sum, add_monoid_hom.map_sum],
+  apply finset.sum_eq_zero,
+  intros,
+  simp [mem_support_not_mem_vars_zero H h],
+end
 
 lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
   pderivative v (monomial (single v n) a) = monomial (single v (n-1)) (a * n) :=

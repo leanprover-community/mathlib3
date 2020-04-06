@@ -22,7 +22,7 @@ import measure_theory.measurable_space topology.instances.ennreal analysis.norme
 
 * `is_open.is_measurable`, `is_closed.is_measurable`: open and closed sets are measurable;
 * `continuous.measurable` : a continuous function is measurable;
-* `continuous.measurable2` : if `f : α → β` and `g : α → γ` and measurable and `op : β × γ → δ`
+* `continuous.measurable2` : if `f : α → β` and `g : α → γ` are measurable and `op : β × γ → δ`
   is continuous, then `λ x, op (f x, g y)` is measurable;
 * `measurable.add` etc : dot notation for arithmetic operations on `measurable` predicates,
   and similarly for `dist` and `edist`;

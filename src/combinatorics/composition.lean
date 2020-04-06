@@ -9,7 +9,7 @@ import data.fintype.card tactic.omega tactic.tidy
 /-!
 # Compositions
 
-A composition of an integer `n` is a decomposition of `{0, ..., n-1}` into blocks of consecutive
+A composition of an integer `n` is a decomposition of `{0, ..., n-1}` into non-empty blocks of consecutive
 integers. Equivalently, it is a decomposition `n = i₀ + ... + i_{k-1}` into a sum of positive
 integers, where the `iⱼ` are the lengths of the blocks. This notion is closely related to that
 of a partition of `n`, but in a composition of `n` the order of the `iⱼ`s matters.

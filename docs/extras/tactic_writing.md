@@ -488,7 +488,7 @@ meta def rw_search_hack : tactic unit := do
 repeat {rw assoc},
 try {simp},
 repeat {rw comp_right_app},
-repeat {rw nat_trans.naturality},
+repeat {rw nat_trans.naturality}
 ]
 ```
 

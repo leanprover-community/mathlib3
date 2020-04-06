@@ -359,7 +359,7 @@ end lie_module
 namespace lie_submodule
 
 variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables {M : Type v} [add_comm_group M] [module R M] [lie_module R L M]
+variables {M : Type v} [add_comm_group M] [module R M] [α : lie_module R L M]
 variables (N : lie_submodule R L M) (I : lie_ideal R L)
 
 /--
@@ -383,7 +383,7 @@ lemma is_quotient_mk (m : M) :
 /-- Given a Lie module $M$ over a Lie algebra $L$, together with a Lie submodule $N ⊆ M$, there
 is a natural linear map from $L$ to the endomorphisms of $M$ leaving $N$ invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.comap_submodule N.to_submodule N.to_submodule :=
-  linear_map.cod_restrict _ (_inst_6.to_linear_action.to_endo_map _ _ _) N.lie_mem -- FIXME _inst_6!
+  linear_map.cod_restrict _ (α.to_linear_action.to_endo_map _ _ _) N.lie_mem
 
 instance lie_quotient_action : linear_action R L N.quotient :=
   linear_action.of_endo_map _ _ _ (linear_map.comp (submodule.mapqₗ N N) lie_submodule_invariant)

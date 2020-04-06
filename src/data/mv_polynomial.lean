@@ -755,16 +755,13 @@ lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ
 begin
   rw [vars, multiset.mem_to_finset] at h,
   rw ←not_mem_support_iff,
-  by_contradiction,
-  have : v ∈ degrees f,
-  { unfold degrees,
-    rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
-    rw finset.sup_insert,
-    simp only [multiset.mem_union, multiset.sup_eq_union],
-    left,
-    rw [←to_finset_to_multiset, multiset.mem_to_finset] at a,
-    exact a },
-  contradiction,
+  contrapose! h,
+  unfold degrees,
+  rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+  rw finset.sup_insert,
+  simp only [multiset.mem_union, multiset.sup_eq_union],
+  left,
+  rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
 end
 
 end vars
@@ -1454,14 +1451,10 @@ lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v
   pderivative v f = 0 :=
 begin
   change (pderivative.add_monoid_hom R v) f = 0,
-  rw f.as_sum,
-  rw add_monoid_hom.map_sum,
-  simp,
-  conv_lhs {
-    apply_congr,
-    skip,
-    rw (mem_support_not_mem_vars_zero H h) },
-  simp,
+  rw [f.as_sum, add_monoid_hom.map_sum],
+  apply finset.sum_eq_zero,
+  intros,
+  simp [mem_support_not_mem_vars_zero H h],
 end
 
 lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :

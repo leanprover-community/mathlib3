@@ -37,7 +37,6 @@ universes u v
 
 variables {k l m n : Type u}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
--- variables [decidable_eq k] [decidable_eq l]
 variables {α : Type v}
 
 open_locale matrix

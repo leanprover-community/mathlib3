@@ -4540,6 +4540,33 @@ theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
 by rw [range_concat, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
+@[to_additive]
+theorem prod_range_succ' {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((range n.succ).map f).prod = f 0 * ((range n).map (λ i, f (succ i))).prod :=
+begin
+  induction n with d hd,
+  { show 1 * f 0 = f 0 * 1, rw [one_mul, mul_one]},
+  { rw [list.prod_range_succ, hd, mul_assoc, ←list.prod_range_succ]},
+end
+
+theorem list.sum_map_mul_left {α : Type u} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) (L : list β) :
+  (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
+begin
+  induction L with b L hL,
+  { exact (mul_zero r).symm},
+  { simp [mul_add, hL]}
+end
+
+theorem list.sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) (L : list β) :
+  (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
+begin
+  induction L with b L hL,
+  { exact (zero_mul r).symm},
+  { simp [add_mul, hL]}
+end
+
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.
 (Ico stands for "interval, closed-open".)

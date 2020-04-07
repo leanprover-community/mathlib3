@@ -831,6 +831,10 @@ nth_le_map f _ _
 have hn0 : n = 0 := le_zero_iff.1 (le_of_lt_succ hn),
 by subst hn0; refl
 
+lemma nth_le_zero {L : list α} (h : 0 < L.length) :
+  L.nth_le 0 h = L.head :=
+by { cases L, cases h, simp, }
+
 lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
   (l₁ ++ l₂).nth_le n hn₁ = l₁.nth_le n hn₂
 | []     _ n     hn₁ hn₂  := (not_lt_zero _ hn₂).elim

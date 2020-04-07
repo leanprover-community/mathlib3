@@ -1569,6 +1569,12 @@ lemma sum_take_succ [add_monoid α] :
 lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+/-- A list with positive sum must have positive length. -/
+-- This is an easy consequence of the previous, but often useful in applications.
+lemma length_pos_of_sum_pos [ordered_cancel_comm_monoid α] (L : list α) (h : 0 < L.sum) :
+  0 < L.length :=
+length_pos_of_sum_ne_zero L (ne_of_gt h)
+
 @[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod

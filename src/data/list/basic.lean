@@ -1221,7 +1221,7 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 | 0     (a::l) h := rfl
 | (n+1) (a::l) h := @drop_eq_nth_le_cons n _ _
 
-@[simp] lemma drop_all (l : list α) : l.drop l.length = [] :=
+@[simp] lemma drop_length (l : list α) : l.drop l.length = [] :=
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
 

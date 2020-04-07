@@ -750,10 +750,10 @@ theorem le_infi_lintegral {ι : Sort*} (f : ι → α → ennreal) :
 by { simp only [← infi_apply], exact (monotone_lintegral α).map_infi_le }
 
 theorem le_infi2_lintegral {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ennreal) :
-  (∫⁻ a, ⨅ i (h : ι' i), f i h a) ≤  (⨅ i (h : ι' i), ∫⁻ a, f i h a) :=
+  (∫⁻ a, ⨅ i (h : ι' i), f i h a) ≤ (⨅ i (h : ι' i), ∫⁻ a, f i h a) :=
 by { convert (monotone_lintegral α).map_infi2_le f, ext1 a, simp only [infi_apply] }
 
-/-- Monotone convergence theorem -- somtimes called Beppo-Levi convergence.
+/-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/
 theorem lintegral_supr

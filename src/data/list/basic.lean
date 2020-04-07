@@ -1584,6 +1584,24 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
+/-- A list of natural numbers with positive sum must have positive length. -/
+-- This could perhaps be generalised, to ordered additive monoids bounded below by zero.
+-- I'm not sure what those are called.
+lemma length_pos_of_sum_pos (L : list ℕ) (h : 0 < L.sum) : 0 < L.length :=
+by { cases L, { cases h, }, { simp, }, }
+
+-- Several lemmas about sum/head/tail for `list ℕ`.
+
+lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
+by { cases L, { simp, refl, }, { simp, }, }
+
+lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
+nat.le.intro (head_add_tail_sum L)
+
+@[simp]
+lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
+by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
+
 /- lexicographic ordering -/
 
 inductive lex (r : α → α → Prop) : list α → list α → Prop

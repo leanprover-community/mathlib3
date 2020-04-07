@@ -1569,6 +1569,9 @@ lemma sum_take_succ [add_monoid α] :
 lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+-- Now we tie those lemmas back to their multiplicative versions.
+attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_prod_ne_one
+
 /-- A list with positive sum must have positive length. -/
 -- This is an easy consequence of the previous, but often useful in applications.
 lemma length_pos_of_sum_pos [ordered_cancel_comm_monoid α] (L : list α) (h : 0 < L.sum) :

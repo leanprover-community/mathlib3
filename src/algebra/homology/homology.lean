@@ -32,7 +32,7 @@ include 𝒱
 
 variable [has_kernels.{v} V]
 /-- The map induced by a chain map between the kernels of the differentials. -/
-def induced_map_on_cycles {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
+def induced_map_on_cocycles {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
@@ -40,30 +40,30 @@ begin
 end
 
 @[simp]
-lemma induced_map_on_cycles_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
-  induced_map_on_cycles f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
+lemma induced_map_on_cocycles_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
+  induced_map_on_cocycles f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
 by erw [limit.lift_π, fork.of_ι_app_zero]
 
 @[simp]
-lemma induced_map_on_cycles_id (C : cochain_complex.{v} V) (i : ℤ) :
-  induced_map_on_cycles (𝟙 C) i = 𝟙 _ :=
+lemma induced_map_on_cocycles_id (C : cochain_complex.{v} V) (i : ℤ) :
+  induced_map_on_cocycles (𝟙 C) i = 𝟙 _ :=
 (cancel_mono (kernel.ι (C.d i))).1 $ by simp
 
 @[simp]
-lemma induced_map_on_cycles_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
+lemma induced_map_on_cocycles_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
   (g : C' ⟶ C'') (i : ℤ) :
-  induced_map_on_cycles (f ≫ g) i = induced_map_on_cycles f i ≫ induced_map_on_cycles g i :=
+  induced_map_on_cocycles (f ≫ g) i = induced_map_on_cocycles f i ≫ induced_map_on_cocycles g i :=
 (cancel_mono (kernel.ι (C''.d i))).1 $
-  by rw [induced_map_on_cycles_condition, category.assoc, induced_map_on_cycles_condition,
-    ←category.assoc, induced_map_on_cycles_condition, category.assoc, differential_object.comp_f,
+  by rw [induced_map_on_cocycles_condition, category.assoc, induced_map_on_cocycles_condition,
+    ←category.assoc, induced_map_on_cocycles_condition, category.assoc, differential_object.comp_f,
     graded_object.comp_apply]
 
 -- TODO: Actually, this is a functor `cochain_complex V ⥤ cochain_complex V`, but to state this
 -- properly we will need `has_shift` on `differential_object` first.
 /-- The kernels of the differentials of a cochain complex form a ℤ-graded object. -/
-def induced_maps_on_cycles_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
+def kernel_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
 { obj := λ C i, kernel (C.d i),
-  map := λ X Y f i, induced_map_on_cycles f i }
+  map := λ X Y f i, induced_map_on_cocycles f i }
 
 /-!
 At this point we assume that we have all images, and all equalizers.

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2018 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Simon Hudon
+-/
 import data.list.basic
 
 namespace list

@@ -221,7 +221,7 @@ theorem lookup_all_eq_nil {a : α} : ∀ {l : list (sigma β)},
 | []             := by simp
 | (⟨a', b⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp, exact λ H, H b (or.inl rfl) },
+  { subst a', simp, exact ⟨_, or.inl rfl⟩ },
   { simp [h, lookup_all_eq_nil] },
 end
 

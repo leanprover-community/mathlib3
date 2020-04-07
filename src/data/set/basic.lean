@@ -536,7 +536,7 @@ by finish [ext_iff, iff_def]
 
 lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} (h : a ∉ s) :
   s ≠ insert a t :=
-by { classical, contrapose! h, simp [h] }
+by { contrapose! h, simp [h] }
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp [subset_def, or_imp_distrib, forall_and_distrib]

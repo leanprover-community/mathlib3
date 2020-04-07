@@ -278,3 +278,13 @@ do tt ← is_prop d.type | return none,
 { test := decidable_classical,
   no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
   errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
+
+/- The file `logic/basic.lean` emphasizes the differences between what holds under classical
+and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
+to the list of lemmas which are not checked by the linter `decidable_classical`. -/
+attribute [nolint decidable_classical] dec_em by_contradiction not_not of_not_not of_not_imp
+not.imp_symm not_imp_comm or_iff_not_imp_left or_iff_not_imp_right not_imp_not not_or_of_imp
+imp_iff_not_or imp_or_distrib imp_or_distrib' not_imp peirce not_iff_not not_iff_comm not_iff
+iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_and_distrib'
+or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
+forall_or_distrib_right not_ball

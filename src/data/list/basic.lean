@@ -4561,8 +4561,8 @@ begin
   { rw [list.prod_range_succ, hd, mul_assoc, ←list.prod_range_succ]},
 end
 
-theorem list.sum_map_mul_left {α : Type u} [semiring α] {β : Type*} (L : list β)
-  (f : β → α) (r : α) (L : list β) :
+theorem sum_map_mul_left {α : Type u} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
   (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
 begin
   induction L with b L hL,
@@ -4570,8 +4570,8 @@ begin
   { simp [mul_add, hL]}
 end
 
-theorem list.sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
-  (f : β → α) (r : α) (L : list β) :
+theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 begin
   induction L with b L hL,

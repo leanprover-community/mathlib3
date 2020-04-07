@@ -31,14 +31,14 @@ jobs:
       - if: steps.parse_comments.outputs.num_bors_comments > 0
         uses: octokit/request-action@v2.x
         name: Get collaborators
-        id: get_collaborators
+        id: get_comments
         with:
           route: GET /repos/:repository/collaborators
           repository: ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.get_comments.outputs.num_bors_comments > 0
         uses: octokit/request-action@v2.x
         name: Check approvals
         id: check_approvals
@@ -50,7 +50,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Parse steps.check_approvals.outputs.data, since it is a string
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.get_comments.outputs.num_bors_comments > 0
         id: parse_check_approvals
         name: Parse PR approvals
         run: |
@@ -58,7 +58,7 @@ jobs:
           echo $RESULT
           echo "::set-output name=approved_users::$RESULT"
 
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.get_comments.outputs.num_bors_comments > 0
         uses: octokit/request-action@v2.x
         name: Get collaborators
         id: get_collaborators
@@ -69,7 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # check if any approving users are admins
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.get_comments.outputs.num_bors_comments > 0
         id: get_admin_approvals
         name: Get admin approvals
         run: |
@@ -80,7 +80,7 @@ jobs:
           echo $RESULT
           echo "::set-output name=num_admin_approvals::$RESULT"
 
-      - if: (steps.parse_comments.outputs.num_bors_comments > 0) && (steps.get_admin_approvals.outputs.num_admin_approvals > 0)
+      - if: (steps.get_comments.outputs.num_bors_comments > 0) && (steps.get_admin_approvals.outputs.num_admin_approvals > 0)
         uses: octokit/request-action@v2.x
         id: add_comment
         name: Add "bors r+" comment

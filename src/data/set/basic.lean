@@ -703,6 +703,9 @@ by rw [←compl_empty_iff, compl_compl]
 lemma nonempty_compl {s : set α} : (-s : set α).nonempty ↔ s ≠ univ :=
 ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
+lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
+by simp only [set.mem_singleton_iff, set.mem_compl_eq]
+
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
 
@@ -735,9 +738,12 @@ forall_congr $ λ a, imp_not_comm
 theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ -t ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
+lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ -({a} : set α) ↔ a ∉ s :=
+by { rw subset_compl_comm, simp }
+
 theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ -b ∪ c :=
 begin
-  haveI := classical.prop_decidable,
+  classical,
   split,
   { intros h x xa, by_cases h' : x ∈ b, simp [h ⟨xa, h'⟩], simp [h'] },
   intros h x, rintro ⟨xa, xb⟩, cases h xa, contradiction, assumption
@@ -1064,6 +1070,9 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by simp only [eq_empty_iff_forall_not_mem]; exact
 ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩
 
+lemma image_nonempty {s : set α} (f : α → β) (h : s.nonempty) : (f '' s).nonempty :=
+⟨f h.some, mem_image_of_mem _ h.some_mem⟩
+
 lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
 by finish [set.nonempty]
 
@@ -1289,6 +1298,10 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 ⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
+
+@[simp] lemma exists_range_iff' {p : α → Prop} :
+  (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
+⟨by rintros ⟨b, ⟨a, rfl⟩, h⟩ ; exact ⟨a, h⟩, λ ⟨a, h⟩, ⟨f a, mem_range_self a, h⟩⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
@@ -1648,6 +1661,8 @@ end
 
 end prod
 
+/-! ## Lemmas about set-indexed products of sets -/
+
 section pi
 variables {α : Type*} {π : α → Type*}
 
@@ -1677,6 +1692,8 @@ begin
 end
 
 end pi
+
+/-! ### Lemmas about `inclusion`, the injection of subtypes induced by `⊆` -/
 
 section inclusion
 variable {α : Type*}

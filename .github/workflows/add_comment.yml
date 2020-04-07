@@ -10,8 +10,36 @@ jobs:
     if: github.event.label.name == 'ready-to-merge'
     runs-on: ubuntu-latest
     steps:
-      # - run: echo '${{ toJSON(github.event) }}'
       - uses: octokit/request-action@v2.x
+        name: Check comments
+        id: check_comments
+        with:
+          route: GET /repos/:repository/issues/:pull_number/comments
+          repository: ${{ github.repository }}
+          pull_number: ${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Parse steps.check_approvals.outputs.data, since it is a string
+      - id: parse_comments
+        name: Parse comments
+        run: |
+          RESULT=$(echo '${{ steps.check_comments.outputs.data }}' | jq -c --raw-output 'map(select(test("\\n?bors:? (r\\+|merge)"; "m"))) | length')
+          echo $RESULT
+          echo "::set-output name=num_bors_comments::$RESULT"
+
+      - if: steps.parse_comments.outputs.num_bors_comments > 0
+        uses: octokit/request-action@v2.x
+        name: Get collaborators
+        id: get_collaborators
+        with:
+          route: GET /repos/:repository/collaborators
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.parse_comments.outputs.num_bors_comments > 0
+        uses: octokit/request-action@v2.x
         name: Check approvals
         id: check_approvals
         with:
@@ -22,14 +50,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Parse steps.check_approvals.outputs.data, since it is a string
-      - id: parse_check_approvals
+      - if: steps.parse_comments.outputs.num_bors_comments > 0
+        id: parse_check_approvals
         name: Parse PR approvals
         run: |
           RESULT=$(echo '${{ steps.check_approvals.outputs.data }}' | jq -c --raw-output 'map(select(.state == "APPROVED") | .user.login)')
           echo $RESULT
           echo "::set-output name=approved_users::$RESULT"
 
-      - uses: octokit/request-action@v2.x
+      - if: steps.parse_comments.outputs.num_bors_comments > 0
+        uses: octokit/request-action@v2.x
         name: Get collaborators
         id: get_collaborators
         with:
@@ -39,7 +69,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # check if any approving users are admins
-      - id: get_admin_approvals
+      - if: steps.parse_comments.outputs.num_bors_comments > 0
+        id: get_admin_approvals
         name: Get admin approvals
         run: |
           APPROVED='${{ steps.parse_check_approvals.outputs.approved_users }}'
@@ -49,7 +80,7 @@ jobs:
           echo $RESULT
           echo "::set-output name=num_admin_approvals::$RESULT"
 
-      - if: steps.get_admin_approvals.outputs.num_admin_approvals > 0
+      - if: (steps.parse_comments.outputs.num_bors_comments > 0) && (steps.get_admin_approvals.outputs.num_admin_approvals > 0)
         uses: octokit/request-action@v2.x
         id: add_comment
         name: Add "bors r+" comment

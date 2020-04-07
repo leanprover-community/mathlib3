@@ -10,11 +10,11 @@ topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
 import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
+
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity
-open_locale topological_space
+open_locale uniformity topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -435,6 +435,45 @@ begin
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
 end
 
+/-- Expressing locally uniform convergence on a set using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu x hx, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  rcases H ε εpos x hx with ⟨t, ht, Ht⟩,
+  exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
+end
+
+/-- Expressing uniform convergence on a set using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_on_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, dist (f x) (F n x) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
+end
+
+/-- Expressing locally uniform convergence using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_locally_uniformly F f p ↔
+  ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
+by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+
+/-- Expressing uniform convergence using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, dist (f x) (F n x) < ε :=
+by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
+
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
 uniformity_basis_dist.cauchy_iff
@@ -606,10 +645,19 @@ begin
   exact ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg
 end
 
+/-- Balls defined using the distance or the edistance coincide -/
+lemma metric.emetric_ball_nnreal {x : α} {ε : nnreal} : emetric.ball x ε = ball x ε :=
+by { convert metric.emetric_ball, simp }
+
 /-- Closed balls defined using the distance or the edistance coincide -/
 lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
   emetric.closed_ball x (ennreal.of_real ε) = closed_ball x ε :=
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
+
+/-- Closed balls defined using the distance or the edistance coincide -/
+lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
+  emetric.closed_ball x ε = closed_ball x ε :=
+by { convert metric.emetric_closed_ball ε.2, simp }
 
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
@@ -1395,7 +1443,7 @@ diam_subsingleton subsingleton_singleton
 lemma diam_pair : diam ({x, y} : set α) = dist x y :=
 by simp only [diam, emetric.diam_pair, dist_edist]
 
--- Does not work as a simp-lemma, since {x, y} reduces to (insert z (insert y {x}))
+-- Does not work as a simp-lemma, since {x, y, z} reduces to (insert z (insert y {x}))
 lemma diam_triple :
   metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
 begin

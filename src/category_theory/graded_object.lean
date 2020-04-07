@@ -187,8 +187,8 @@ end graded_object
 namespace graded_object
 
 variables (β : Type) [decidable_eq β]
-variables (C : Type (u+1))
-  [𝒞 : concrete_category C] [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
+variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
+  [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
 include 𝒞
 
 instance : concrete_category (graded_object β C) :=

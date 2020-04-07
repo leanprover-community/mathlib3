@@ -28,15 +28,15 @@ run_cmd do
   guard $ (⟨`foo2, [1]⟩ : t) ∈ l2,
   guard $ (⟨`foo.foo, [2]⟩ : t) ∈ l2,
   guard $ (⟨`foo.bar, [2]⟩ : t) ∈ l2,
-  l2 ← fold_over_with_cond l incorrect_def_lemma,
+  l2 ← fold_over_with_cond l linter.def_lemma.test,
   guard $ l2.length = 2,
   let l2 : list (name × _) := l2.map $ λ x, ⟨x.1.to_name, x.2⟩,
   guard $ ∃(x ∈ l2), (x : name × _).1 = `foo2,
   guard $ ∃(x ∈ l2), (x : name × _).1 = `foo3,
-  l3 ← fold_over_with_cond l dup_namespace,
+  l3 ← fold_over_with_cond l linter.dup_namespace.test,
   guard $ l3.length = 1,
   guard $ ∃(x ∈ l3), (x : declaration × _).1.to_name = `foo.foo,
-  l4 ← fold_over_with_cond l ge_or_gt_in_statement,
+  l4 ← fold_over_with_cond l linter.ge_or_gt.test,
   guard $ l4.length = 1,
   guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo.foo,
   -- guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,
@@ -68,7 +68,7 @@ def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_e
 
 run_cmd do
   d ← get_decl `incorrect_type_class_argument_test,
-  x ← incorrect_type_class_argument d,
+  x ← linter.incorrect_type_class_argument.test d,
   guard $ x = some "These are not classes. argument 3: [_inst_1 : x = x]"
 
 section
@@ -76,7 +76,7 @@ def impossible_instance_test {α β : Type} [add_group α] : has_add α := infer
 local attribute [instance] impossible_instance_test
 run_cmd do
   d ← get_decl `impossible_instance_test,
-  x ← impossible_instance d,
+  x ← linter.impossible_instance.test d,
   guard $ x = some "Impossible to infer argument 2: {β : Type}"
 
 def dangerous_instance_test {α β γ : Type} [ring α] [add_comm_group β] [has_coe α β]
@@ -84,7 +84,7 @@ def dangerous_instance_test {α β γ : Type} [ring α] [add_comm_group β] [has
 local attribute [instance] dangerous_instance_test
 run_cmd do
   d ← get_decl `dangerous_instance_test,
-  x ← dangerous_instance d,
+  x ← linter.dangerous_instance.test d,
   guard $ x = some "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"
 end
 
@@ -107,7 +107,7 @@ def foo_instance {α} (R : setoid α) : has_coe α (quotient R) := ⟨quotient.m
 local attribute [instance, priority 1] foo_instance
 run_cmd do
   d ← get_decl `foo_instance,
-  some "illegal instance" ← has_coe_variable d,
+  some "illegal instance" ← linter.has_coe_variable.test d,
   d ← get_decl `has_coe_to_fun,
   some s ← fails_quickly 3000 d,
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s

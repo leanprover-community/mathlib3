@@ -15,8 +15,6 @@ namespace list
 
 /- pairwise relation (generalized no duplicate) -/
 
-section pairwise
-
 run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
 
 variable {R : α → α → Prop}
@@ -305,7 +303,5 @@ theorem forall_mem_pw_filter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z
     { have := find_some e,
       exact (neg_trans (H k (find_mem e))).resolve_right this } }
 end, ball.imp_left (pw_filter_subset l)⟩
-
-end pairwise
 
 end list

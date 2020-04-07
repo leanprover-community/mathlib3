@@ -18,7 +18,39 @@ namespace func
 variables {a : α}
 variables {as as1 as2 as3 : list α}
 
+/- Definitions for using lists as finite
+   representations of functions with domain ℕ. -/
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
+variables [inhabited α] [inhabited β]
+
+@[simp] def set (a : α) : list α → ℕ → list α
+| (_::as) 0     := a::as
+| []      0     := [a]
+| (h::as) (k+1) := h::(set as k)
+| []      (k+1) := (default α)::(set ([] : list α) k)
+
 localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
+
+@[simp] def get : ℕ → list α → α
+| _ []          := default α
+| 0 (a::as)     := a
+| (n+1) (a::as) := get n as
+
+def equiv (as1 as2 : list α) : Prop :=
+∀ (m : nat), get m as1 = get m as2
+
+@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
+| []      []      := []
+| []      (b::bs) := map (f $ default α) (b::bs)
+| (a::as) []      := map (λ x, f x $ default β) (a::as)
+| (a::as) (b::bs) := (f a b)::(pointwise as bs)
+
+def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
+
+def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 /- set -/
 

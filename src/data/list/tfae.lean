@@ -7,9 +7,8 @@ import data.list.basic
 
 namespace list
 
-section tfae
-
 /- tfae: The Following (propositions) Are Equivalent -/
+def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
 theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
@@ -46,7 +45,5 @@ theorem tfae.out {l} (h : tfae l) (n₁ n₂)
  (h₂ : n₂ < list.length l . tactic.exact_dec_trivial) :
   list.nth_le l n₁ h₁ ↔ list.nth_le l n₂ h₂ :=
 h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
-
-end tfae
 
 end list

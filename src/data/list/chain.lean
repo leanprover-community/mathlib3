@@ -13,8 +13,6 @@ namespace list
 
 /- chain relation (conjunction of R a b ∧ R b c ∧ R c d ...) -/
 
-section chain
-
 run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
 
 variable {R : α → α → Prop}
@@ -153,7 +151,5 @@ theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [a] := by simp only [chain'_singleton, reverse_singleton]
 | (a :: b :: l) := by rw [chain'_cons, reverse_cons, reverse_cons, append_assoc, cons_append,
     nil_append, chain'_split, ← reverse_cons, @chain'_reverse (b :: l), and_comm, chain'_pair, flip]
-
-end chain
 
 end list

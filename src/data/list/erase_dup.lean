@@ -12,7 +12,6 @@ namespace list
 
 /- erase duplicates function -/
 
-section erase_dup
 variable [decidable_eq α]
 
 @[simp] theorem erase_dup_nil : erase_dup [] = ([] : list α) := rfl
@@ -59,7 +58,5 @@ begin
   [ rw [erase_dup_cons_of_mem' h, insert_of_mem h],
     rw [erase_dup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
-
-end erase_dup
 
 end list

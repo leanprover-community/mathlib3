@@ -143,7 +143,7 @@ You could download mathlib, and add a line to your `leanpkg.path` pointing to
 But of course you'll want to put your project under version control without versioning mathlib,
 which is already versioned somewhere else.
 And you want to update mathlib regularly to enjoy all the latest goodies.
-And mathlib is very long to compile (ie. making olean files), so you'd like to get a precompiled version.
+And mathlib is very long to compile (i.e., making olean files), so you'd like to get a precompiled version.
 
 All this means you need a Lean project manager.
 Your download at the very beginning does include such a tool, at

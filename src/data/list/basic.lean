@@ -1591,6 +1591,7 @@ lemma length_pos_of_sum_pos (L : list ℕ) (h : 0 < L.sum) : 0 < L.length :=
 by { cases L, { cases h, }, { simp, }, }
 
 -- Several lemmas about sum/head/tail for `list ℕ`.
+-- These rely on the fact that `default ℕ = 0`.
 
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl, }, { simp, }, }

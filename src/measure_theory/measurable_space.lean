@@ -93,6 +93,13 @@ lemma is_measurable.compl_iff : is_measurable (-s) ↔ is_measurable s :=
 lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
 
+lemma subsingleton.is_measurable [subsingleton α] {s : set α} : is_measurable s :=
+subsingleton.set_cases is_measurable.empty is_measurable.univ s
+
+lemma is_measurable.congr {s t : set α} (hs : is_measurable s) (h : s = t) :
+  is_measurable t :=
+by rwa ← h
+
 lemma encodable.Union_decode2 {α} [encodable β] (f : β → set α) :
   (⋃ b, f b) = ⋃ (i : ℕ) (b ∈ decode2 β i), f b :=
 ext $ by simp [mem_decode2, exists_swap]
@@ -385,6 +392,10 @@ open measurable_space
 def measurable [m₁ : measurable_space α] [m₂ : measurable_space β] (f : α → β) : Prop :=
 m₂ ≤ m₁.map f
 
+lemma subsingleton.measurable [measurable_space α] [measurable_space β] [subsingleton α]
+  {f : α → β} : measurable f :=
+λ s hs, @subsingleton.is_measurable α _ _ _
+
 lemma measurable_id [measurable_space α] : measurable (@id α) := le_refl _
 
 lemma measurable.preimage [measurable_space α] [measurable_space β]
@@ -514,6 +525,14 @@ begin
     (is_measurable_subtype_image hs (hc _ hu))
     (is_measurable_subtype_image ht (hd _ hu))
 end
+
+lemma measurable_of_measurable_on_compl_singleton [measurable_space α] [measurable_space β]
+  {f : α → β} (a : α) (ha : is_measurable ({a} : set α))
+  (hf : measurable (set.restrict f {x | x ≠ a})) :
+  measurable f :=
+have ha : is_measurable {x | x = a}, from ha.congr $ set.ext $ λ x, mem_singleton_iff,
+measurable_of_measurable_union_cover _ _ ha ha.compl (λ x hx, classical.em _)
+  (@subsingleton.measurable {x | x = a} _ _ _ ⟨λ x y, subtype.eq $ x.2.trans y.2.symm⟩ _) hf
 
 end subtype
 

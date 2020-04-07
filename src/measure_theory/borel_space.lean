@@ -203,6 +203,10 @@ is_measurable.compl_iff.1 $ h.is_measurable
 lemma is_measurable_singleton [t1_space α] {x : α} : is_measurable ({x} : set α) :=
 is_closed_singleton.is_measurable
 
+-- TODO (Lean 3.8): this will become `= is_measurable_singleton`
+lemma is_measurable_eq [t1_space α] {a : α} : is_measurable {x | x = a} :=
+by { convert is_measurable_singleton; try { apply_instance }, ext x, exact mem_singleton_iff.symm }
+
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_closed_closure.is_measurable
 
@@ -252,6 +256,21 @@ lemma continuous.measurable {f : α → γ} (hf : continuous f) :
   measurable f :=
 hf.borel_measurable.mono (opens_measurable_space.borel_le _)
   (le_of_eq $ borel_space.measurable_eq _)
+
+/-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
+def homeomorph.to_measurable_equiv {α : Type*} {β : Type*} [topological_space α]
+  [measurable_space α] [borel_space α] [topological_space β] [measurable_space β]
+  [borel_space β] (h : α ≃ₜ β) :
+  measurable_equiv α β :=
+{ measurable_to_fun := h.continuous_to_fun.measurable,
+  measurable_inv_fun := h.continuous_inv_fun.measurable,
+  .. h }
+
+lemma measurable_of_continuous_on_compl_singleton [t1_space α] {f : α → γ} (a : α)
+  (hf : continuous_on f {x | x ≠ a}) :
+  measurable f :=
+measurable_of_measurable_on_compl_singleton a is_measurable_singleton
+  (continuous_on_iff_continuous_restrict.1 hf).measurable
 
 lemma continuous.measurable2 [second_countable_topology α] [second_countable_topology β]
   {f : δ → α} {g : δ → β} {c : α → β → γ}
@@ -338,9 +357,22 @@ finset.induction_on s
   (assume i s his ih, by simpa [his] using (hf i).mul ih)
 
 @[to_additive]
+lemma measurable_inv [group α] [topological_group α] : measurable (has_inv.inv : α → α) :=
+continuous_inv.measurable
+
+@[to_additive]
 lemma measurable.inv [group α] [topological_group α] {f : δ → α} (hf : measurable f) :
   measurable (λa, (f a)⁻¹) :=
-continuous_inv.measurable.comp hf
+measurable_inv.comp hf
+
+lemma measurable_inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α] :
+  measurable (has_inv.inv : α → α) :=
+measurable_of_continuous_on_compl_singleton normed_field.continuous_on_inv
+
+lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
+  {f : δ → α} (hf : measurable f) :
+  measurable (λa, (f a)⁻¹) :=
+measurable_inv'.comp hf
 
 @[to_additive]
 lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}
@@ -539,49 +571,27 @@ lemma measurable.ennreal_of_real [measurable_space α] {f : α → ℝ} (hf : me
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
+/-- The set of finite `ennreal` numbers is `measurable_equiv` to `nnreal`. -/
+def measurable_equiv.ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r ≠ ⊤} nnreal :=
+ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
+
 namespace ennreal
 open filter
 
 lemma measurable_coe : measurable (coe : nnreal → ennreal) :=
 measurable_id.ennreal_coe
 
-def ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r < ⊤} nnreal :=
-{ to_fun    := λr, ennreal.to_nnreal r,
-  inv_fun   := λr, ⟨r, coe_lt_top⟩,
-  left_inv  := assume ⟨r, hr⟩, subtype.eq $ coe_to_nnreal (ne_of_lt hr),
-  right_inv := assume r, to_nnreal_coe,
-  measurable_to_fun  :=
-  begin
-    refine (continuous_iff_continuous_at.2 _).measurable,
-    rintros ⟨r, hr⟩,
-    simp [continuous_at, nhds_subtype_eq_comap],
-    refine tendsto.comp (tendsto_to_nnreal (ne_of_lt hr)) tendsto_comap
-  end,
-  measurable_inv_fun := measurable_id.ennreal_coe.subtype_mk }
-
 lemma measurable_of_measurable_nnreal [measurable_space α] {f : ennreal → α}
   (h : measurable (λp:nnreal, f p)) : measurable f :=
-begin
-  refine measurable_of_measurable_union_cover {⊤} {r : ennreal | r < ⊤}
-    is_closed_singleton.is_measurable
-    (is_open_gt' _).is_measurable
-    (assume r _, by cases r; simp [ennreal.none_eq_top, ennreal.some_eq_coe])
-    _
-    _,
-  exact (measurable_equiv.set.singleton ⊤).symm.measurable_coe_iff.1 (measurable_unit _),
-  exact (ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
-end
+measurable_of_measurable_on_compl_singleton ⊤ is_measurable_singleton
+  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
+/-- `ennreal` is `measurable_equiv` to `nnreal ⊕ unit`. -/
 def ennreal_equiv_sum :
-  @measurable_equiv ennreal (nnreal ⊕ unit) _ sum.measurable_space :=
-{ to_fun    :=
-    @option.rec nnreal (λ_, nnreal ⊕ unit) (sum.inr ()) (sum.inl : nnreal → nnreal ⊕ unit),
-  inv_fun   :=
-    @sum.rec nnreal unit (λ_, ennreal) (coe : nnreal → ennreal) (λ_, ⊤),
-  left_inv  := assume s, by cases s; refl,
-  right_inv := assume s, by rcases s with r | ⟨⟨⟩⟩; refl,
-  measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
-  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ennreal unit _ _ ⊤) }
+  measurable_equiv ennreal (nnreal ⊕ unit) :=
+{ measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
+  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ennreal unit _ _ ⊤),
+  .. equiv.option_equiv_sum_punit nnreal }
 
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space α] [measurable_space β]
   (f : ennreal → ennreal → β) {g : α → ennreal} {h : α → ennreal}

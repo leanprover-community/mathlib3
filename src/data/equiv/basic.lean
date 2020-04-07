@@ -9,6 +9,7 @@ We say two types are equivalent if they are isomorphic.
 Two equivalent types have the same cardinality.
 -/
 import tactic.split_ifs logic.function logic.unique data.set.function data.bool data.quot
+  data.option.basic
 
 open function
 
@@ -452,6 +453,13 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
+
+/-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
+def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
+{ to_fun := λ o, option.get o.2,
+  inv_fun := λ x, ⟨some x, dec_trivial⟩,
+  left_inv := λ o, subtype.eq $ option.some_get _,
+  right_inv := λ x, option.get_some _ _ }
 
 def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
 ⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,

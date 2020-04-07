@@ -831,7 +831,7 @@ nth_le_map f _ _
 have hn0 : n = 0 := le_zero_iff.1 (le_of_lt_succ hn),
 by subst hn0; refl
 
-lemma nth_le_zero {L : list α} (h : 0 < L.length) :
+lemma nth_le_zero [inhabited α] {L : list α} (h : 0 < L.length) :
   L.nth_le 0 h = L.head :=
 by { cases L, cases h, simp, }
 

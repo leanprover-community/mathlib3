@@ -1879,7 +1879,7 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
   monotone (λ f : α → β, tendsto f l at_top) :=
 λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
 
-section ordered_monoid
+section ordered_add_monoid
 
 variables [ordered_cancel_comm_monoid β] (l : filter α) {f g : α → β}
 
@@ -1929,11 +1929,11 @@ lemma tendsto_at_top_of_add_bdd_above_right (C) (hC : ∀ x, g x ≤ C) :
   tendsto (λ x, f x + g x) l at_top → tendsto f l at_top :=
 tendsto_at_top_of_add_bdd_above_right' l C (univ_mem_sets' hC)
 
-end ordered_monoid
+end ordered_add_monoid
 
 section ordered_group
 
-variables [ordered_comm_group β] (l : filter α) {f g : α → β}
+variables [ordered_add_comm_group β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_left_of_le' (C : β) (hf : {x | C ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=

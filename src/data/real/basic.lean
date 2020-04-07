@@ -117,9 +117,9 @@ instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
 instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_comm_group ℝ         := by apply_instance
+instance : ordered_add_comm_group ℝ         := by apply_instance
 instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_comm_monoid ℝ        := by apply_instance
+instance : ordered_add_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
 open_locale classical
@@ -135,7 +135,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
+noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance

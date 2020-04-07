@@ -1599,12 +1599,12 @@ instance [ordered_cancel_comm_monoid α] :
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
-lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+lemma le_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+@[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 begin
   split,

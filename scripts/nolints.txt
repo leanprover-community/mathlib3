@@ -125,8 +125,8 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint ordering.compares.eq_gt ge_or_gt
 
 -- algebra/ordered_group.lean
-apply_nolint nonneg_comm_group.to_decidable_linear_ordered_comm_group doc_blame
-apply_nolint with_zero.ordered_comm_monoid doc_blame
+apply_nolint nonneg_comm_group.to_decidable_linear_ordered_add_comm_group doc_blame
+apply_nolint with_zero.ordered_add_comm_monoid doc_blame
 
 -- algebra/ordered_ring.lean
 apply_nolint canonically_ordered_comm_semiring doc_blame

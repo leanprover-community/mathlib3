@@ -378,7 +378,7 @@ funext $ λ x, quotient.induction_on' x $ by apply λ a, quotient.sound (setoid.
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered commutative group.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def ordered_comm_group [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
+protected def ordered_add_comm_group [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   add_lt_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
@@ -394,7 +394,7 @@ protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_r
     exact mul_nonneg,
   mul_pos := λ x y, quotient.induction_on₂' x y $
     λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, mul_pos,
-  ..filter_product.ring, ..filter_product.ordered_comm_group U,
+  ..filter_product.ring, ..filter_product.ordered_add_comm_group U,
   ..filter_product.zero_ne_one_class U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
@@ -425,10 +425,10 @@ protected noncomputable def decidable_linear_order [decidable_linear_order β] (
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative group.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def decidable_linear_ordered_comm_group
-  [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) :
-  decidable_linear_ordered_comm_group β* :=
-{ ..filter_product.ordered_comm_group U, ..filter_product.decidable_linear_order U }
+protected noncomputable def decidable_linear_ordered_add_comm_group
+  [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) :
+  decidable_linear_ordered_add_comm_group β* :=
+{ ..filter_product.ordered_add_comm_group U, ..filter_product.decidable_linear_order U }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -436,7 +436,7 @@ protected noncomputable def decidable_linear_ordered_comm_ring
   [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) :
   decidable_linear_ordered_comm_ring β* :=
 { ..filter_product.linear_ordered_comm_ring U,
-  ..filter_product.decidable_linear_ordered_comm_group U }
+  ..filter_product.decidable_linear_ordered_add_comm_group U }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a discrete linear ordered field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -473,8 +473,8 @@ begin
     λ i hi, (min_eq_right hi).symm),
 end
 
-lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β*) :
-  @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
+lemma abs_def [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β*) :
+  @abs _ (filter_product.decidable_linear_ordered_add_comm_group U) x = (lift abs) x :=
 quotient.induction_on' x $ λ a, by unfold abs; rw max_def;
 exact quotient.sound' (show ∀* i, abs _ = _, by simp)
 
@@ -498,8 +498,8 @@ unfold min, split_ifs,
 { refl }
 end
 
-@[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) :
-  ((abs x : β) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (x : β*) :=
+@[simp] lemma of_abs [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β) :
+  ((abs x : β) : β*) = @abs _ (filter_product.decidable_linear_ordered_add_comm_group U) (x : β*) :=
 of_max U x (-x)
 
 end filter_product

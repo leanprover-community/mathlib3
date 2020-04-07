@@ -349,7 +349,7 @@ instance : add_semigroup surreal :=
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO construct the remaining instances:
---   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_comm_group,
+--   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
 -- as per the instances for `game`
 
 -- TODO define the inclusion of groups `surreal → game`

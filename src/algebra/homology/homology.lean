@@ -32,7 +32,7 @@ include 𝒱
 
 variable [has_kernels.{v} V]
 /-- The map induced by a chain map between the kernels of the differentials. -/
-def induced_map_on_cocycles {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
+def kernel_map {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
@@ -40,22 +40,22 @@ begin
 end
 
 @[simp]
-lemma induced_map_on_cocycles_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
-  induced_map_on_cocycles f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
+lemma kernel_map_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
+  kernel_map f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
 by erw [limit.lift_π, fork.of_ι_app_zero]
 
 @[simp]
-lemma induced_map_on_cocycles_id (C : cochain_complex.{v} V) (i : ℤ) :
-  induced_map_on_cocycles (𝟙 C) i = 𝟙 _ :=
+lemma kernel_map_id (C : cochain_complex.{v} V) (i : ℤ) :
+  kernel_map (𝟙 C) i = 𝟙 _ :=
 (cancel_mono (kernel.ι (C.d i))).1 $ by simp
 
 @[simp]
-lemma induced_map_on_cocycles_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
+lemma kernel_map_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
   (g : C' ⟶ C'') (i : ℤ) :
-  induced_map_on_cocycles (f ≫ g) i = induced_map_on_cocycles f i ≫ induced_map_on_cocycles g i :=
+  kernel_map (f ≫ g) i = kernel_map f i ≫ kernel_map g i :=
 (cancel_mono (kernel.ι (C''.d i))).1 $
-  by rw [induced_map_on_cocycles_condition, category.assoc, induced_map_on_cocycles_condition,
-    ←category.assoc, induced_map_on_cocycles_condition, category.assoc, differential_object.comp_f,
+  by rw [kernel_map_condition, category.assoc, kernel_map_condition,
+    ←category.assoc, kernel_map_condition, category.assoc, differential_object.comp_f,
     graded_object.comp_apply]
 
 -- TODO: Actually, this is a functor `cochain_complex V ⥤ cochain_complex V`, but to state this
@@ -63,7 +63,7 @@ lemma induced_map_on_cocycles_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶
 /-- The kernels of the differentials of a cochain complex form a ℤ-graded object. -/
 def kernel_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
 { obj := λ C i, kernel (C.d i),
-  map := λ X Y f i, induced_map_on_cocycles f i }
+  map := λ X Y f i, kernel_map f i }
 
 /-!
 At this point we assume that we have all images, and all equalizers.
@@ -94,15 +94,15 @@ end
 -- i.e. the coequalizer of the kernel pair,
 -- and that image has the appropriate mapping property.
 
--- def induced_map_on_boundaries {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- def image_map {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   image (C.d i) ⟶ image (C'.d i) :=
 -- sorry
 
 -- -- I'm not certain what the minimal assumptions required to prove the following
 -- -- lemma are:
 -- lemma induced_maps_commute {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
--- image_to_kernel_map C i ≫ induced_map_on_cycles f (i+1) =
---   induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
+-- image_to_kernel_map C i ≫ kernel_map f (i+1) =
+--   image_map f i ≫ image_to_kernel_map C' i :=
 -- sorry
 
 variables [has_cokernels.{v} V]
@@ -118,9 +118,9 @@ cokernel (image_to_kernel_map C (i-1))
 -- the commented out code below will work
 -- (with whatever added assumptions are needed above.)
 
--- def induced_map_on_cohomology {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- def cohomology_map {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   C.cohomology i ⟶ C'.cohomology i :=
--- cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
+-- cokernel.desc _ (kernel_map f (i-1) ≫ cokernel.π _)
 -- begin
 --   rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
 --   erw [has_zero_morphisms.comp_zero],
@@ -129,7 +129,7 @@ cokernel (image_to_kernel_map C (i-1))
 -- /-- The cohomology functor from chain complexes to `ℤ` graded objects in `V`. -/
 -- def cohomology_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
 -- { obj := λ C i, cohomology C i,
---   map := λ C C' f i, induced_map_on_cohomology f i,
+--   map := λ C C' f i, cohomology_map f i,
 --   map_id' := sorry,
 --   map_comp' := sorry, }
 

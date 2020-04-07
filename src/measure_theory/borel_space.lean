@@ -27,10 +27,6 @@ import measure_theory.measurable_space topology.instances.ennreal analysis.norme
 * `measurable.add` etc : dot notation for arithmetic operations on `measurable` predicates,
   and similarly for `dist` and `edist`;
 * `measurable.ennreal*` : special cases for arithmetic operations on `ennreal`s.
-
-## TODO
-
-Prove `measurable.inv'` and `measurable.div` for `normed_field`s.
 -/
 
 noncomputable theory

@@ -11,9 +11,6 @@ apply_nolint associates doc_blame
 apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
--- algebra/big_operators.lean
-apply_nolint finset.sum doc_blame
-
 -- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
@@ -107,10 +104,6 @@ apply_nolint with_zero.div doc_blame
 apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
-
--- algebra/group_power.lean
-apply_nolint add_monoid.smul doc_blame
-apply_nolint gsmul doc_blame
 
 -- algebra/lie_algebra.lean
 apply_nolint lie_algebra.morphism has_inhabited_instance
@@ -2091,9 +2084,6 @@ apply_nolint linear_map.map_finsupp_total unused_arguments
 -- linear_algebra/finsupp_vector_space.lean
 apply_nolint equiv_of_dim_eq_dim doc_blame
 apply_nolint fin_dim_vectorspace_equiv doc_blame
-
--- linear_algebra/matrix.lean
-apply_nolint linear_equiv_matrix unused_arguments
 
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame

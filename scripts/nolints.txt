@@ -2085,9 +2085,6 @@ apply_nolint linear_map.map_finsupp_total unused_arguments
 apply_nolint equiv_of_dim_eq_dim doc_blame
 apply_nolint fin_dim_vectorspace_equiv doc_blame
 
--- linear_algebra/matrix.lean
-apply_nolint linear_equiv_matrix unused_arguments
-
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame
 apply_nolint linear_map.compr₂ doc_blame

@@ -175,7 +175,7 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
-def ordered_add_comm_monoid [ordered_comm_monoid α]
+def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
   suffices, refine {
@@ -233,7 +233,7 @@ instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
   ..@additive.add_comm_monoid _ $
     @with_zero.comm_monoid (multiplicative α) _ }
 
-instance [ordered_add_comm_monoid α] : ordered_comm_monoid (with_top α) :=
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 begin
   suffices, refine {
     add_le_add_left := this,
@@ -281,7 +281,7 @@ begin
   apply classical.dec _,
 end
 
-instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (with_top α) :=
+instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
   | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
@@ -306,7 +306,7 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
 
-instance [ordered_add_comm_monoid α] : ordered_comm_monoid (with_bot α) :=
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
 begin
   suffices, refine {
     add_le_add_left := this,
@@ -700,7 +700,7 @@ variable [s : nonneg_comm_group α]
 include s
 
 @[reducible, priority 100] -- see Note [lower instance priority]
-instance to_ordered_add_comm_group : ordered_comm_group α :=
+instance to_ordered_add_comm_group : ordered_add_comm_group α :=
 { le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,
@@ -750,7 +750,7 @@ end nonneg_comm_group
 
 namespace order_dual
 
-instance [ordered_add_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (order_dual α) :=
 { add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
   lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
   ..order_dual.partial_order α,
@@ -762,7 +762,7 @@ instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dua
   add_right_cancel := @add_right_cancel α _,
   ..order_dual.ordered_add_comm_monoid }
 
-instance [ordered_add_comm_group α] : ordered_comm_group (order_dual α) :=
+instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 { add_lt_add_left := λ a b : α, ordered_add_comm_group.add_lt_add_left b a,
   add_left_neg := λ a : α, add_left_neg a,
   ..order_dual.ordered_add_comm_monoid,

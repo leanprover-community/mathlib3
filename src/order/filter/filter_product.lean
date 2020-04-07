@@ -378,7 +378,7 @@ funext $ λ x, quotient.induction_on' x $ by apply λ a, quotient.sound (setoid.
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered commutative group.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def ordered_add_comm_group [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
+protected def ordered_add_comm_group [ordered_add_comm_group β] (U : is_ultrafilter φ) : ordered_add_comm_group β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   add_lt_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z

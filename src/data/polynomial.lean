@@ -1,11 +1,13 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
+Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 
-Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
+Theory of univariate polynomials, represented as `add_monoid_algebra α ℕ`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
+import data.monoid_algebra ring_theory.algebra
+import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
+import tactic.ring_exp
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -16,9 +18,9 @@ local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
-def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
+def polynomial (α : Type*) [comm_semiring α] := add_monoid_algebra α ℕ
 
-open finsupp finset
+open finsupp finset add_monoid_algebra
 
 namespace polynomial
 universes u v
@@ -28,24 +30,27 @@ section comm_semiring
 variables [comm_semiring α] {p q r : polynomial α}
 
 instance : inhabited (polynomial α) := finsupp.inhabited
-instance : has_zero (polynomial α) := finsupp.has_zero
-instance : has_one (polynomial α) := finsupp.has_one
-instance : has_add (polynomial α) := finsupp.has_add
-instance : has_mul (polynomial α) := finsupp.has_mul
-instance : comm_semiring (polynomial α) := finsupp.comm_semiring
+instance : comm_semiring (polynomial α) := add_monoid_algebra.comm_semiring
+instance : has_scalar α (polynomial α) := add_monoid_algebra.has_scalar
+instance : semimodule α (polynomial α) := add_monoid_algebra.semimodule
 
+/-- the coercion turning a `polynomial` into the function which reports the coefficient of a given monomial `X^n` -/
 def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 
-local attribute [instance] finsupp.comm_semiring coeff_coe_to_fun
+local attribute [instance] coeff_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
 
+/-- `monomial s a` is the monomial `a * X^s` -/
+@[reducible]
+def monomial (n : ℕ) (a : α) : polynomial α := finsupp.single n a
+
 /-- `C a` is the constant polynomial `a`. -/
-def C (a : α) : polynomial α := single 0 a
+def C (a : α) : polynomial α := monomial 0 a
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
-def X : polynomial α := single 1 1
+def X : polynomial α := monomial 1 1
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial α) := p.to_fun
@@ -82,10 +87,10 @@ instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
 def nat_degree (p : polynomial α) : ℕ := (degree p).get_or_else 0
 
-lemma single_eq_C_mul_X : ∀{n}, single n a = C a * X^n
+lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
 | (n+1) :=
-  calc single (n + 1) a = single n a * X : by rw [X, single_mul_single, mul_one]
+  calc monomial (n + 1) a = monomial n a * X : by rw [X, single_mul_single, mul_one]
     ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
@@ -105,9 +110,9 @@ begin
   { exact h_monomial _ _ ih }
 end,
 finsupp.induction p
-  (suffices M (C 0), by simpa only [C, single_zero],
+  (suffices M (C 0), by { convert this, exact single_zero.symm, },
     h_C 0)
-  (assume n a p _ _ hp, suffices M (C a * X^n + p), by rwa [single_eq_C_mul_X],
+  (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
     h_add _ _ this hp)
 
 @[simp] lemma C_0 : C (0 : α) = 0 := single_zero
@@ -134,7 +139,7 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial α) n = 0 := rfl
 
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-by { dsimp [single], congr }
+by { dsimp [single, finsupp.single], congr }
 
 @[simp] lemma coeff_one_zero : coeff (1 : polynomial α) 0 = 1 :=
 coeff_single
@@ -146,7 +151,7 @@ instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomia
   map_zero := coeff_zero _ }
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by simp [coeff, eq_comm, C, single]; congr
+by simp [coeff, eq_comm, C, monomial, single]; congr
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_single
 
@@ -158,7 +163,7 @@ lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := coeff_si
 
 lemma coeff_C_mul_X (x : α) (k n : ℕ) :
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
-by rw [← single_eq_C_mul_X]; simp [single, eq_comm, coeff]; congr
+by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
 
 lemma coeff_sum [comm_semiring β] (n : ℕ) (f : ℕ → α → polynomial β) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
@@ -170,8 +175,14 @@ begin
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
-  simp
+  { simp [finsupp.sum], erw [add_monoid.smul_zero], }, -- TODO why doesn't simp do this?
 end
+
+@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+
+lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
+ext $ λ n, coeff_C_mul f
 
 @[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
@@ -186,9 +197,9 @@ lemma coeff_mul (p q : polynomial α) (n : ℕ) :
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
     → a.1 + a.2 = n, from λ a ha, by_contradiction
   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
+calc coeff (p * q) n = p.support.sum (λ a, q.support.sum
     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
-  by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
+  by simp only [mul_def, coeff_sum, coeff_single]; refl
 ... = (p.support.product q.support).sum
     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
   by rw sum_product
@@ -715,7 +726,7 @@ lemma degree_sum_le (s : finset β) (f : β → polynomial α) :
   degree (s.sum f) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $
   assume a s has ih,
-  calc degree (sum (insert a s) f) ≤ max (degree (f a)) (degree (s.sum f)) :
+  calc degree ((insert a s).sum f) ≤ max (degree (f a)) (degree (s.sum f)) :
     by rw sum_insert has; exact degree_add_le _ _
   ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
 
@@ -1124,7 +1135,7 @@ degree_C (show (1 : α) ≠ 0, from zero_ne_one.symm)
 
 @[simp] lemma degree_X : degree (X : polynomial α) = 1 :=
 begin
-  unfold X degree single finsupp.support,
+  unfold X degree monomial single finsupp.support,
   rw if_neg (zero_ne_one).symm,
   refl
 end
@@ -1272,18 +1283,8 @@ end comm_semiring
 
 section comm_ring
 variables [comm_ring α] {p q : polynomial α}
-instance : comm_ring (polynomial α) := finsupp.comm_ring
-instance : has_scalar α (polynomial α) := finsupp.has_scalar
--- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.module ℕ α
-
--- TODO -- this is OK for semimodules
-@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
-
--- TODO -- this is OK for semimodules
-lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
-ext $ λ n, coeff_C_mul f
+instance : comm_ring (polynomial α) := add_monoid_algebra.comm_ring
+instance : module α (polynomial α) := add_monoid_algebra.module
 
 variable (α)
 def lcoeff (n : ℕ) : polynomial α →ₗ α :=
@@ -1297,7 +1298,7 @@ variable {α}
 instance C.is_ring_hom : is_ring_hom (@C α _) := by apply is_ring_hom.of_semiring
 
 lemma int_cast_eq_C (n : ℤ) : (n : polynomial α) = C n :=
-congr_fun (int.eq_cast' _).symm n
+((ring_hom.of C).map_int_cast n).symm
 
 @[simp] lemma C_neg : C (-a) = -C a := is_ring_hom.map_neg C
 
@@ -1345,6 +1346,46 @@ is_ring_hom.map_neg _
 
 @[simp] lemma eval_sub (p q : polynomial α) (x : α) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
+
+section aeval
+/-- `R[X]` is the generator of the category `R-Alg`. -/
+instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
+{ to_fun := polynomial.C,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
+  .. polynomial.module }
+
+variables (R : Type u) (A : Type v)
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (x : A)
+
+/-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
+the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
+def aeval : polynomial R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _,
+  ..ring_hom.of (eval₂ (algebra_map A) x) }
+
+theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
+
+@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
+
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
+
+instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
+by apply_instance
+
+theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
+  φ p = eval₂ (algebra_map A) (φ X) p :=
+begin
+  apply polynomial.induction_on p,
+  { intro r, rw eval₂_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [is_ring_hom.map_add φ, ih1, ih2, eval₂_add] },
+  { intros n r ih,
+    rw [pow_succ', ← mul_assoc, is_ring_hom.map_mul φ, eval₂_mul (algebra_map A : R → A), eval₂_X, ih] }
+end
+
+end aeval
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

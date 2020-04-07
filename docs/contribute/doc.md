@@ -130,12 +130,14 @@ doc entry to the appropriate page in the online docs.
 
 Example:
 ```lean
+/--
+describe what the command does here
+-/
 add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"],
-  description := "describe what the command does here"
+  tags := ["tag_1", "tag_2"]
 }
 ```
 
@@ -148,12 +150,14 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
   Some entries may cover multiple declarations.
   It is only necessary to list the interactive versions of tactics.
 * `tags` is an optional list of strings used to categorize entries.
-* `description` is the body of the entry. Like doc strings, it can be formatted with markdown.
+* The doc string is the body of the entry. It can be formatted with markdown.
   What you are reading now is taken from the description of `add_tactic_doc`.
 
-If only one related declaration is listed in `decl_names` and it does not have a doc string,
-`description` will be automatically added as its doc string. If there are multiple declarations, you
-can select the one to be used by passing a name to the `inherit_description_from` field.
+If only one related declaration is listed in `decl_names` and if this
+invocation of `add_tactic_doc` does not have a doc string, the doc string of
+that declaration will become the body of the tactic doc entry. If there are
+multiple declarations, you can select the one to be used by passing a name to
+the `inherit_description_from` field.
 
 If you prefer a tactic to have a doc string that is different then the doc entry, then between
 the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
@@ -216,11 +220,10 @@ def map_prefix (f : name → option name) : name → name
 
 ## Theories documentation
 
-In addition to documentation living in Lean file, we have tactic documentation in
-[docs/tactics](../tactics.md), and theory documentation in [docs/theories](../theories) where we
-give overviews spanning several Lean files, and more mathematical explanations in cases where
-formalization requires slightly exotic points of view, see for instance the
-[topology documentation](../theories/topology.md).
+In addition to documentation living in Lean files, we have theory documentation in
+[docs/theories](../theories) where we give overviews spanning several Lean files, and
+more mathematical explanations in cases where formalization requires slightly exotic points of view,
+see for instance the [topology documentation](../theories/topology.md).
 
 ## Examples
 

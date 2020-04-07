@@ -615,7 +615,7 @@ begin
   { have H : (0:α) ≠ 1 := ‹is_local_ring α›.1, contrapose! H,
     simpa using congr_arg (constant_coeff σ α) H },
   { intro φ, rcases ‹is_local_ring α›.2 (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩; [left, right];
-    { refine is_unit_of_mul_one _ _ (mul_inv_of_unit _ u _),
+    { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
       simpa using h } }
 end
 
@@ -655,7 +655,7 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
   rw ← h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-  exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+  exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
 end⟩
 
 end local_ring
@@ -1467,8 +1467,6 @@ instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
 @[simp, elim_cast] lemma coeff_coe (φ : polynomial α) (n) :
   power_series.coeff α n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
-
-@[reducible] def monomial (n : ℕ) (a : α) : polynomial α := single n a
 
 @[simp, elim_cast] lemma coe_monomial (n : ℕ) (a : α) :
   (monomial n a : power_series α) = power_series.monomial α n a :=

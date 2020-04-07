@@ -5,8 +5,8 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
-import topology.bases
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding
+import topology.uniform_space.pi topology.bases topology.uniform_space.uniform_convergence
 
 /-!
 # Extended metric spaces
@@ -258,7 +258,8 @@ emetric.mk_uniformity_basis_le (λ _, and.left)
 theorem uniformity_basis_edist_nnreal :
   (𝓤 α).has_basis (λ ε : nnreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
-  (λ ε ε₀, let ⟨δ, hδ⟩ := with_top.dense_coe ε₀ in ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
+  ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
 theorem uniformity_basis_edist_inv_nat :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
@@ -337,6 +338,45 @@ theorem complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
 uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
 
+/-- Expressing locally uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu x hx, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  rcases H ε εpos x hx with ⟨t, ht, Ht⟩,
+  exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
+end
+
+/-- Expressing uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_on_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, edist (f x) (F n x) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
+end
+
+/-- Expressing locally uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_locally_uniformly F f p ↔
+  ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+
+/-- Expressing uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, edist (f x) (F n x) < ε :=
+by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
+
 end emetric
 
 open emetric
@@ -384,11 +424,11 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced subtype.val (λ x y, subtype.eq)
+t.induced coe (λ x y, subtype.coe_ext.2)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist (x : α) y := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -517,6 +557,13 @@ theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
 eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
+
+/-- Relation “two points are at a finite edistance” is an equivalence relation. -/
+def edist_lt_top_setoid : setoid α :=
+{ r := λ x y, edist x y < ⊤,
+  iseqv := ⟨λ x, by { rw edist_self, exact ennreal.coe_lt_top },
+    λ x y h, by rwa edist_comm,
+    λ x y z hxy hyz, lt_of_le_of_lt (edist_triangle x y z) (ennreal.add_lt_top.2 ⟨hxy, hyz⟩)⟩ }
 
 @[simp] lemma ball_zero : ball x 0 = ∅ :=
 by rw [emetric.ball_eq_empty_iff]

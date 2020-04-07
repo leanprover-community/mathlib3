@@ -403,7 +403,7 @@ localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
 
-lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) id :=
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
@@ -428,6 +428,10 @@ attribute [irreducible] nhds
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
+
+lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
+  (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
+mem_of_nhds h
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ 𝓝 a :=

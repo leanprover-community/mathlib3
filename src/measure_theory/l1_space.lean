@@ -241,9 +241,9 @@ lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ boun
 begin
   have F_le_bound := all_ae_of_real_F_le_bound h_bound,
   rw ← all_ae_all_iff at F_le_bound,
-  filter_upwards [all_ae_tendsto_of_real_norm h_lim, F_le_bound],
+  apply F_le_bound.mp ((all_ae_tendsto_of_real_norm h_lim).mono _),
   assume a tendsto_norm F_le_bound,
-  exact le_of_tendsto at_top_ne_bot tendsto_norm (univ_mem_sets' F_le_bound)
+  exact le_of_tendsto' at_top_ne_bot tendsto_norm (F_le_bound)
 end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}

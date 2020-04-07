@@ -157,7 +157,7 @@ begin
         rw [← mul_assoc, mul_inv_cancel, one_mul],
         exact ne_of_gt c_pos
       end },
-    { apply mul_pos (inv_pos c_pos) (pow_pos _ _),
+    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
@@ -197,7 +197,7 @@ begin
         rw [← mul_assoc, mul_inv_cancel, one_mul],
         exact ne_of_gt c_pos
       end },
-    { apply mul_pos (inv_pos c_pos) (pow_pos _ _),
+    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,

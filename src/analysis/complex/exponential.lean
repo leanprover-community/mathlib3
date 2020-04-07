@@ -342,13 +342,13 @@ continuous_iff_continuous_at.2 $ λ x,
 begin
   rw continuous_at,
   let f₁ := λ h:{h:ℝ // 0 < h}, log (x.1 * h.1),
-  let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos x.2) y.2),
+  let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos.2 x.2) y.2),
   have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
     simp only [this, log_mul x.2 zero_lt_one, log_one],
     exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
-  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
+  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos.2 x.2) x.2⟩),
     rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
@@ -1144,9 +1144,13 @@ else
     simp [sub_eq_add_neg, real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
 
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
-if hx : x = 0 then by simp [hx]
-else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
-    field.div_div_div_cancel_right _ (mt abs_eq_zero.1 hx)]
+begin
+  by_cases h : x = 0,
+  { simp only [h, euclidean_domain.zero_div,
+    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re]},
+  rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
+      div_div_div_cancel_right' _ (mt abs_eq_zero.1 h)]
+end
 
 lemma arg_cos_add_sin_mul_I {x : ℝ} (hx₁ : -π < x) (hx₂ : x ≤ π) :
   arg (cos x + sin x * I) = x :=
@@ -1765,7 +1769,7 @@ begin
     have : δ ≤ ε ^ (1 / q) := le_trans (min_le_left _ _) (min_le_right _ _),
     have : δ < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num),
     use δ, use δ0, rintros ⟨⟨x, y⟩, hy⟩,
-    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero],
+    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero, subtype.coe_mk],
     assume h, rw max_lt_iff at h, cases h with xδ yy₀,
     have qy : q < y, calc q < y₀ / 2 : q_lt
       ... = y₀ - y₀ / 2 : (sub_half _).symm

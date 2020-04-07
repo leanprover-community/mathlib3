@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Buzzard, Scott Morrison
+-/
 import category_theory.monoidal.category
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
@@ -67,7 +72,7 @@ end
 
 /-- (implementation) the left unitor for R-modules -/
 def left_unitor (M : Module R) : Module.of R (R ⊗[R] M) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self R M)
+(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self_iso M)
 
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
@@ -80,7 +85,7 @@ end
 
 /-- (implementation) the right unitor for R-modules -/
 def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self R M)
+(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self_iso M)
 
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
@@ -107,7 +112,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance : monoidal_category (Module.{u} R) :=
+instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -123,5 +128,26 @@ instance : monoidal_category (Module.{u} R) :=
   right_unitor_naturality' := λ M N f, right_unitor_naturality f,
   pentagon'                := λ M N K L, pentagon M N K L,
   triangle'                := λ M N, triangle M N, }
+
+/-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
+instance : comm_ring ((𝟙_ (Module R) : Module R) : Type u) := (by apply_instance : comm_ring R)
+
+namespace monoidal_category
+
+@[simp]
+lemma left_unitor_hom {M : Module.{u} R} (r : R) (m : M) :
+  ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) (r ⊗ₜ[R] m) = r • m :=
+tensor_product.lid_tmul m r
+
+@[simp]
+lemma right_unitor_hom {M : Module R} (m : M) (r : R) :
+  ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
+tensor_product.rid_tmul m r
+
+@[simp]
+lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :
+  ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
+
+end monoidal_category
 
 end Module

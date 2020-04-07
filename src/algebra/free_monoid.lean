@@ -18,7 +18,7 @@ import algebra.group.hom data.equiv.basic data.list.basic
 * `free_monoid.map`: embedding of `α → β` into `free_monoid α →* free_monoid β` given by `list.map`.
 -/
 
-variables {α : Type*} {β : Type*} {γ : Type*} {M : Type*} [monoid M]
+variables {α : Type*} {β : Type*} {γ : Type*} {M : Type*} [monoid M] {N : Type*} [monoid N]
 
 /-- Free monoid over a given alphabet. -/
 @[to_additive free_add_monoid "Free nonabelian additive monoid over a given alphabet"]
@@ -76,11 +76,22 @@ def lift : (α → M) ≃ (free_monoid α →* M) :=
   right_inv := λ f, hom_eq $ λ x, one_mul (f (of x)) }
 end
 
-lemma lift_eval_of (f : α → M) (x : α) : lift α M f (of x) = f x :=
-congr_fun ((lift α M).symm_apply_apply f) x
+@[to_additive]
+lemma lift_apply (f : α → M) (l : list α) : lift α M f l = (l.map f).prod := rfl
 
+@[to_additive]
+lemma lift_comp_of (f : α → M) : (lift α M f) ∘ of = f := (lift α M).symm_apply_apply f
+
+@[simp, to_additive]
+lemma lift_eval_of (f : α → M) (x : α) : lift α M f (of x) = f x :=
+congr_fun (lift_comp_of f) x
+
+@[simp, to_additive]
 lemma lift_restrict (f : free_monoid α →* M) : lift α M (f ∘ of) = f :=
 (lift α M).apply_symm_apply f
+
+lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift α M f) = lift α N (g ∘ f) :=
+hom_eq $ λ x, by simp
 
 /-- The unique monoid homomorphism `free_monoid α →* free_monoid β` that sends
 each `of x` to `of (f x)`. -/

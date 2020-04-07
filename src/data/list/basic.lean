@@ -1530,7 +1530,37 @@ theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
 by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
   exact l.foldl_hom _ _ _ 1 (is_monoid_hom.map_mul f) }
 
+-- `to_additive` chokes on this, so we do it by hand below
+@[simp]
+lemma prod_take_mul_prod_drop :
+  ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop], }
+
+-- `to_additive` chokes on this, so we do it by hand below
+@[simp]
+lemma prod_take_succ :
+  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
+| [] i p := by cases p
+| (h :: t) 0 _ := by simp
+| (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc], }
+
 end monoid
+
+@[simp]
+lemma sum_take_add_sum_drop [add_monoid α] :
+  ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [sum_cons, sum_cons, add_assoc, sum_take_add_sum_drop], }
+
+@[simp]
+lemma sum_take_succ [add_monoid α] :
+  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).sum = (L.take i).sum + L.nth_le i p
+| [] i p := by cases p
+| (h :: t) 0 _ := by simp
+| (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
 
 @[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :

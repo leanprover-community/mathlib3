@@ -1195,6 +1195,12 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
 
+lemma map_take {α β : Type*} (f : α → β) :
+  ∀ (L : list α) (i : ℕ), (L.take i).map f = (L.map f).take i
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [map_take], }
+
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
@@ -1254,6 +1260,12 @@ theorem drop_take : ∀ (m : ℕ) (n : ℕ) (l : list α),
 | (m+1) n (_::l) :=
   have h: m + 1 + n = (m+n) + 1, by ac_refl,
   by simpa [take_cons, h] using drop_take m n l
+
+lemma map_drop {α β : Type*} (f : α → β) :
+  ∀ (L : list α) (i : ℕ), (L.drop i).map f = (L.map f).drop i
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [map_drop], }
 
 theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
   ∀ n l, modify_nth_tail f n l = take n l ++ f (drop n l)

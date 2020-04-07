@@ -5,8 +5,8 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
-import topology.bases
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding
+import topology.uniform_space.pi topology.bases topology.uniform_space.uniform_convergence
 
 /-!
 # Extended metric spaces
@@ -337,6 +337,45 @@ uniform_space.complete_of_convergent_controlled_sequences
 theorem complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
 uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
+
+/-- Expressing locally uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu x hx, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  rcases H ε εpos x hx with ⟨t, ht, Ht⟩,
+  exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
+end
+
+/-- Expressing uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_on_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, edist (f x) (F n x) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
+end
+
+/-- Expressing locally uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_locally_uniformly F f p ↔
+  ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+
+/-- Expressing uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, edist (f x) (F n x) < ε :=
+by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
 
 end emetric
 

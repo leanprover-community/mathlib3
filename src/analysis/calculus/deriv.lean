@@ -1060,7 +1060,7 @@ begin
   have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
     by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  simp [div_eq_inv_mul, pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
+  simp [div_eq_inv_mul', pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
   ring
 end
 
@@ -1252,7 +1252,7 @@ begin
     lift m to ℕ using (le_of_lt hm),
     simp only [fpow_of_nat, int.cast_coe_nat],
     convert has_deriv_at_pow _ _ using 2,
-    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_of_nat],
+    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_coe_nat],
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,

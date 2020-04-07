@@ -126,6 +126,10 @@ theorem mul_inv_eq_one : a * b⁻¹ = 1 ↔ a = b :=
 by rw [mul_eq_one_iff_eq_inv, inv_inv]
 
 @[to_additive]
+theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
+by rw [mul_eq_one_iff_eq_inv, inv_inj']
+
+@[to_additive]
 theorem inv_comm_of_comm (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
 begin
   have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=

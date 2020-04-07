@@ -105,10 +105,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/group_power.lean
-apply_nolint add_monoid.smul doc_blame
-apply_nolint gsmul doc_blame
-
 -- algebra/lie_algebra.lean
 apply_nolint lie_algebra.morphism has_inhabited_instance
 apply_nolint lie_subalgebra has_inhabited_instance

@@ -175,6 +175,7 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
+/-! ### singleton -/
 /--
 `finset.singleton a` is the set `{a}` containing `a` and nothing else.
 

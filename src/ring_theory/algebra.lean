@@ -255,8 +255,6 @@ include R S A
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
 @[nolint unused_arguments] def comap : Type w := A
-def comap.to_comap : A → comap R S A := id
-def comap.of_comap : comap R S A → A := id
 
 omit R S A
 variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
@@ -275,6 +273,9 @@ instance comap.semimodule : semimodule S (comap R S A) := show semimodule S A, b
 instance comap.module (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A] :
   module S (comap R S A) := show module S A, by apply_instance
+
+def comap.to_comap : A →+* comap R S A := ring_hom.id A
+def comap.of_comap : comap R S A →+* A := ring_hom.id A
 
 set_option class.instance_max_depth 40
 
@@ -420,9 +421,11 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
-protected def range : subalgebra R B :=
-{ carrier := set.range φ.to_ring_hom,
-  range_le' := λ y ⟨r, hr⟩, ⟨algebra_map R A r, hr ▸ φ.commutes r⟩ }
+protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
+begin
+  haveI : is_subring (set.range φ) := show is_subring (set.range φ.to_ring_hom), by apply_instance,
+  exact ⟨set.range φ, λ y ⟨r, hr⟩, ⟨algebra_map R A r, hr ▸ φ.commutes r⟩⟩
+end
 
 end alg_hom
 

@@ -992,7 +992,7 @@ section aeval
 /-- The algebra of multivariate polynomials. -/
 instance mv_polynomial (R : Type u) [comm_ring R]
   (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ to_fun := mv_polynomial.C,
+{ to_fun := ring_hom.of mv_polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
   .. mv_polynomial.module }
@@ -1004,16 +1004,13 @@ variables [comm_ring R] [comm_ring A] [algebra R A]
 from multivariate polynomials over `σ` to `A`. -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _ _
-  ..ring_hom.of (eval₂ (algebra_map A) f) }
+  .. eval₂_hom (algebra_map R A) f }
 
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map A) f p := rfl
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
 
 @[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
 
-@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map A r := eval₂_C _ _ _
-
-instance aeval.is_ring_hom : is_ring_hom (aeval R A f) :=
-by apply_instance
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
 
 theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
   φ = aeval R A (φ ∘ X) :=

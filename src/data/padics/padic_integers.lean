@@ -280,8 +280,7 @@ instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
   map_mul := coe_mul,
   map_add := coe_add }
 
-instance : algebra ℤ_[p] ℚ_[p] :=
-@algebra.of_ring_hom ℤ_[p] _ _ _ (coe) padic_int.is_ring_hom_coe
+instance : algebra ℤ_[p] ℚ_[p] := algebra.of_ring_hom (ring_hom.of coe)
 
 end padic_int
 

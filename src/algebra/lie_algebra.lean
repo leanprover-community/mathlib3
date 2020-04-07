@@ -435,7 +435,6 @@ lie_ring.of_associative_ring (matrix n n R)
 
 local attribute [instance] matrix.lie_ring
 
--- set_option trace.class_instances true
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring.

@@ -260,8 +260,8 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- Checks whether a declaration is prop-valued and takes an `inhabited _` argument that is unused
-elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
+/-- Checks whether a declaration is prop-valued and takes a `decidable* _` argument that is unused
+elsewhere in the type. In this case, that argument can be replaced with `classical` in the proof. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    (binders, _) ← get_pi_binders_dep d.type,
@@ -273,7 +273,7 @@ do tt ← is_prop d.type | return none,
                       `classical`. " ++ s) <$>
       print_arguments deceq_binders
 
-/-- A linter object for `decidable_eq_classical`. -/
+/-- A linter object for `decidable_classical`. -/
 @[linter] meta def linter.decidable_classical : linter :=
 { test := decidable_classical,
   no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",

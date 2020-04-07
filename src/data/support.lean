@@ -49,6 +49,11 @@ support_binop_subset (has_sub.sub) (sub_self _) f g
 set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero, mem_set_of_eq,
   mem_inter_iff, not_or_distrib]
 
+@[simp] lemma support_mul' {A} [group_with_zero A] (f g : α → A) :
+  support (λ x, f x * g x) = support f ∩ support g :=
+set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero_iff', mem_set_of_eq,
+  mem_inter_iff, not_or_distrib]
+
 @[simp] lemma support_inv [division_ring A] (f : α → A) :
   support (λ x, (f x)⁻¹) = support f :=
 set.ext $ λ x, not_congr inv_eq_zero

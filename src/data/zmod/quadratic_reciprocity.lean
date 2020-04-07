@@ -36,7 +36,7 @@ variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
 by rw [card_units, card_zmodp]
 
 theorem fermat_little {p : ℕ} (hp : nat.prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
-by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
+by rw [← units.coe_mk0 ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
 lemma euler_criterion_units {x : units (zmodp p hp)} :

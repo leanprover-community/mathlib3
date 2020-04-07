@@ -26,6 +26,7 @@ theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
 
 def of_real (r : ℝ) : ℂ := ⟨r, 0⟩
+
 instance : has_coe ℝ ℂ := ⟨of_real⟩
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 

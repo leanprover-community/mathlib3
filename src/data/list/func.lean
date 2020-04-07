@@ -7,7 +7,7 @@ import data.list.defs
 import data.nat.basic
 import tactic.interactive
 
-open list list.func
+open list
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -54,17 +54,17 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 
 /- set -/
 
-lemma length_set [inhabited α] : ∀ {m : ℕ} {as : list α},
+lemma length_set : ∀ {m : ℕ} {as : list α},
   (as {m ↦ a}).length = _root_.max as.length (m+1)
 | 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
 | (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
 
-@[simp] lemma get_nil [inhabited α] {k : ℕ} : get k [] = default α :=
+@[simp] lemma get_nil {k : ℕ} : get k [] = default α :=
 by {cases k; refl}
 
-lemma get_eq_default_of_le [inhabited α] :
+lemma get_eq_default_of_le :
   ∀ (k : ℕ) {as : list α}, as.length ≤ k → get k as = default α
 | 0     []      h1 := rfl
 | 0     (a::as) h1 := by cases h1
@@ -75,12 +75,12 @@ lemma get_eq_default_of_le [inhabited α] :
     rw ← nat.succ_le_succ_iff, apply h1,
   end
 
-@[simp] lemma get_set [inhabited α] {a : α} :
+@[simp] lemma get_set {a : α} :
   ∀ {k : ℕ} {as : list α}, get k (as {k ↦ a}) = a
 | 0 as     := by {cases as; refl, }
 | (k+1) as := by {cases as; simp [get_set]}
 
-lemma eq_get_of_mem [inhabited α] {a : α} :
+lemma eq_get_of_mem {a : α} :
   ∀ {as : list α}, a ∈ as → ∃ n : nat, ∀ d : α, a = (get n as)
 | [] h := by cases h
 | (b::as) h :=
@@ -91,7 +91,7 @@ lemma eq_get_of_mem [inhabited α] {a : α} :
       existsi (n+1), apply h2 }
   end
 
-lemma mem_get_of_le [inhabited α] :
+lemma mem_get_of_le :
   ∀ {n : ℕ} {as : list α}, n < as.length → get n as ∈ as
 | _ [] h1 := by cases h1
 | 0 (a::as) _ := or.inl rfl
@@ -102,7 +102,7 @@ lemma mem_get_of_le [inhabited α] :
     apply nat.lt_of_succ_lt_succ h1,
   end
 
-lemma mem_get_of_ne_zero [inhabited α] :
+lemma mem_get_of_ne_zero :
   ∀ {n : ℕ} {as : list α},
   get n as ≠ default α → get n as ∈ as
 | _ [] h1 := begin exfalso, apply h1, rw get_nil end
@@ -114,7 +114,7 @@ lemma mem_get_of_ne_zero [inhabited α] :
     apply h1
   end
 
-lemma get_set_eq_of_ne [inhabited α] {a : α} :
+lemma get_set_eq_of_ne {a : α} :
   ∀ {as : list α} (k : ℕ) (m : ℕ),
   m ≠ k → get m (as {k ↦ a}) = get m as
 | as 0 m h1 :=
@@ -133,8 +133,7 @@ lemma get_set_eq_of_ne [inhabited α] {a : α} :
       intro hc, apply h1, simp [hc], }
   end
 
-lemma get_map [inhabited α] [inhabited β] {f : α → β} :
-  ∀ {n : ℕ} {as : list α}, n < as.length →
+lemma get_map {f : α → β} : ∀ {n : ℕ} {as : list α}, n < as.length →
   get n (as.map f) = f (get n as)
 | _ [] h := by cases h
 | 0 (a::as) h := rfl
@@ -146,8 +145,7 @@ lemma get_map [inhabited α] [inhabited β] {f : α → β} :
     apply get_map h2,
   end
 
-lemma get_map' [inhabited α] [inhabited β]
-  {f : α → β} {n : ℕ} {as : list α} :
+lemma get_map' {f : α → β} {n : ℕ} {as : list α} :
   f (default α) = (default β) →
   get n (as.map f) = f (get n as) :=
 begin
@@ -158,8 +156,7 @@ begin
     rw [length_map], apply h2 }
 end
 
-lemma forall_val_of_forall_mem [inhabited α]
-  {as : list α} {p : α → Prop} :
+lemma forall_val_of_forall_mem {as : list α} {p : α → Prop} :
   p (default α) → (∀ x ∈ as, p x) → (∀ n, p (get n as)) :=
 begin
   intros h1 h2 n,
@@ -171,20 +168,19 @@ end
 
 /- equiv -/
 
-lemma equiv_refl [inhabited α] : equiv as as := λ k, rfl
+lemma equiv_refl : equiv as as := λ k, rfl
 
-lemma equiv_symm [inhabited α] : equiv as1 as2 → equiv as2 as1 :=
+lemma equiv_symm : equiv as1 as2 → equiv as2 as1 :=
 λ h1 k, (h1 k).symm
 
-lemma equiv_trans [inhabited α] :
+lemma equiv_trans :
   equiv as1 as2 → equiv as2 as3 → equiv as1 as3 :=
 λ h1 h2 k, eq.trans (h1 k) (h2 k)
 
-lemma equiv_of_eq [inhabited α] : as1 = as2 → equiv as1 as2 :=
+lemma equiv_of_eq : as1 = as2 → equiv as1 as2 :=
 begin intro h1, rw h1, apply equiv_refl end
 
-lemma eq_of_equiv [inhabited α] :
-  ∀ {as1 as2 : list α}, as1.length = as2.length →
+lemma eq_of_equiv : ∀ {as1 as2 : list α}, as1.length = as2.length →
   equiv as1 as2 → as1 = as2
 | []     [] h1 h2 := rfl
 | (_::_) [] h1 h2 := by cases h1
@@ -199,35 +195,38 @@ lemma eq_of_equiv [inhabited α] :
     intro m, apply h2 (m+1)
   end
 
+end func
+-- We want to drop the `inhabited` instances for a moment,
+-- so we close and open the namespace
+
+namespace func
+
 /- neg -/
 
-@[simp] lemma get_neg [add_group α]
-  {k : ℕ} {as : list α} : @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
+@[simp] lemma get_neg [add_group α] {k : ℕ} {as : list α} :
+  @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
 by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
-@[simp] lemma length_neg
-  [has_neg α] (as : list α) :
-  (neg as).length = as.length :=
+@[simp] lemma length_neg [has_neg α] (as : list α) : (neg as).length = as.length :=
 by simp only [neg, length_map]
+
+variables [inhabited α] [inhabited β]
 
 /- pointwise -/
 
-lemma nil_pointwise [inhabited α] [inhabited β] {f : α → β → γ} :
-  ∀ bs : list β, pointwise f [] bs = bs.map (f $ default α)
+lemma nil_pointwise {f : α → β → γ} : ∀ bs : list β, pointwise f [] bs = bs.map (f $ default α)
 | []      := rfl
 | (b::bs) :=
   by simp only [nil_pointwise bs, pointwise,
      eq_self_iff_true, and_self, map]
 
-lemma pointwise_nil [inhabited α] [inhabited β] {f : α → β → γ} :
-  ∀ as : list α, pointwise f as [] = as.map (λ a, f a $ default β)
+lemma pointwise_nil {f : α → β → γ} : ∀ as : list α, pointwise f as [] = as.map (λ a, f a $ default β)
 | []      := rfl
 | (a::as) :=
   by simp only [pointwise_nil as, pointwise,
      eq_self_iff_true, and_self, list.map]
 
-lemma get_pointwise [inhabited α] [inhabited β] [inhabited γ]
-  {f : α → β → γ} (h1 : f (default α) (default β) = default γ) :
+lemma get_pointwise [inhabited γ] {f : α → β → γ} (h1 : f (default α) (default β) = default γ) :
   ∀ (k : nat) (as : list α) (bs : list β),
   get k (pointwise f as bs) = f (get k as) (get k bs)
 | k [] [] := by simp only [h1, get_nil, pointwise, get]
@@ -248,7 +247,7 @@ lemma get_pointwise [inhabited α] [inhabited β] [inhabited γ]
 | (k+1) (a::as) (b::bs) :=
   by simp only [pointwise, get, get_pointwise k]
 
-lemma length_pointwise [inhabited α] [inhabited β] {f : α → β → γ} :
+lemma length_pointwise {f : α → β → γ} :
   ∀ {as : list α} {bs : list β},
   (pointwise f as bs).length = _root_.max as.length bs.length
 | []      []      := rfl
@@ -262,6 +261,9 @@ lemma length_pointwise [inhabited α] [inhabited β] {f : α → β → γ} :
   by simp only [pointwise, length,
      nat.max_succ_succ, @length_pointwise as bs]
 
+end func
+
+namespace func
 /- add -/
 
 @[simp] lemma get_add {α : Type u} [add_monoid α] {k : ℕ} {xs ys : list α} :

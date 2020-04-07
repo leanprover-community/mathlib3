@@ -206,8 +206,8 @@ by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual :=
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
-not_not
+@[simp] theorem not_not_mem : ¬ (a ∉ s) ↔ a ∈ s :=
+by { classical, exact not_not }
 
 /-! ### Non-empty sets -/
 

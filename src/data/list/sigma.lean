@@ -92,6 +92,38 @@ end
 theorem nodup_enum_map_fst (l : list α) : (l.enum.map prod.fst).nodup :=
 by simp [list.nodup_range]
 
+lemma mem_ext {l₀ l₁ : list (sigma β)}
+  (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
+  (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
+begin
+  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
+  { constructor },
+  iterate 2
+  { specialize h x, simp at h,
+    cases h },
+  simp at nd₀ nd₁, rename x y, classical,
+  cases nd₀, cases nd₁,
+  by_cases h' : x = y,
+  { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
+    intro a, specialize h a, simp at h,
+    by_cases h' : a = x,
+    { subst a, rw ← not_iff_not, split; intro; assumption },
+    { simp [h'] at h, exact h } },
+  { transitivity x :: y :: ys.erase x,
+    { constructor, apply l₀_ih ‹ _ ›,
+      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase a },
+        apply nodup_erase_of_nodup; assumption },
+      { intro a, specialize h a, simp at h,
+        by_cases h' : a = x,
+        { subst a, rw ← not_iff_not, split; intro, simp [mem_erase_of_nodup,*], assumption },
+        { simp [h'] at h, simp [h], apply or_congr, refl,
+          simp [mem_erase_of_ne,*] } } },
+    transitivity y :: x :: ys.erase x,
+    { constructor },
+    { constructor, symmetry, apply perm_erase,
+      specialize h x, simp [h'] at h, exact h } }
+end
+
 variables [decidable_eq α]
 
 /- lookup -/
@@ -160,38 +192,6 @@ theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupke
 theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
 by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact mem_of_perm p
-
-lemma mem_ext {l₀ l₁ : list (sigma β)}
-  (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
-  (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
-begin
-  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
-  { constructor },
-  iterate 2
-  { specialize h x, simp at h,
-    cases h },
-  simp at nd₀ nd₁, rename x y, classical,
-  cases nd₀, cases nd₁,
-  by_cases h' : x = y,
-  { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
-    intro a, specialize h a, simp at h,
-    by_cases h' : a = x,
-    { subst a, rw ← not_iff_not, split; intro; assumption },
-    { simp [h'] at h, exact h } },
-  { transitivity x :: y :: ys.erase x,
-    { constructor, apply l₀_ih ‹ _ ›,
-      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase a },
-        apply nodup_erase_of_nodup; assumption },
-      { intro a, specialize h a, simp at h,
-        by_cases h' : a = x,
-        { subst a, rw ← not_iff_not, split; intro, simp [mem_erase_of_nodup,*], assumption },
-        { simp [h'] at h, simp [h], apply or_congr, refl,
-          simp [mem_erase_of_ne,*] } } },
-    transitivity y :: x :: ys.erase x,
-    { constructor },
-    { constructor, symmetry, apply perm_erase,
-      specialize h x, simp [h'] at h, exact h } }
-end
 
 lemma lookup_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodupkeys) (nd₁ : l₁.nodupkeys)

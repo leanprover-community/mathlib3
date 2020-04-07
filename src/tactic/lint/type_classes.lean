@@ -20,7 +20,9 @@ and the appropriate definition of instances:
  * `fails_quickly` checks that type class resolution finishes quickly
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
-   to `[inhabited α]`
+   to `[nonempty α]`
+ * `decidable_classical` checks whether `[decidable_... p]` arguments do not show up in the
+   statement, and could thus be removed by going classical in the proof.
 -/
 
 open tactic
@@ -257,3 +259,22 @@ do tt ← is_prop d.type | return none,
 { test := inhabited_nonempty,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
+
+/-- Checks whether a declaration is prop-valued and takes an `inhabited _` argument that is unused
+elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
+private meta def decidable_classical (d : declaration) : tactic (option string) :=
+do tt ← is_prop d.type | return none,
+   (binders, _) ← get_pi_binders_dep d.type,
+   let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
+     ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
+     ∨ pr.2.type.is_app_of `decidable,
+   if deceq_binders.length = 0 then return none
+   else (λ s, some $ "The following `decidable` instances should be replaced with
+                      `classical`. " ++ s) <$>
+      print_arguments deceq_binders
+
+/-- A linter object for `decidable_eq_classical`. -/
+@[linter] meta def linter.decidable_classical : linter :=
+{ test := decidable_classical,
+  no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
+  errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }

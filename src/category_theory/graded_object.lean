@@ -166,7 +166,7 @@ def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
-variables [decidable_eq β] [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms.{v} C]
 
 /--
 The `total` functor taking a graded object to the coproduct of its graded components is faithful.
@@ -176,6 +176,7 @@ which follows from the fact we have zero morphisms and decidable equality for th
 instance : faithful.{v} (total.{v u} β C) :=
 { injectivity' := λ X Y f g w,
   begin
+    classical,
     ext i,
     replace w := sigma.ι (λ i : ulift β, X i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
@@ -186,7 +187,7 @@ end graded_object
 
 namespace graded_object
 
-variables (β : Type) [decidable_eq β]
+variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
   [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
 include 𝒞

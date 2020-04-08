@@ -105,3 +105,34 @@ begin
     exact id 1, },
   guard_result_pp "(0, 1)",
 end
+
+-- Check that `simp_result` can cope with incomplete goals.
+example {α β : Type} (e : α ≃ β) (a : α) : β :=
+begin
+  simp_result { apply e.to_fun, apply e.inv_fun, apply e.to_fun, },
+  guard_result_pp "⇑e ?m_1",
+  exact a,
+end
+
+-- A bit strange here: the `pp` in `guard_result_pp` mistakenly
+-- thinks that the `mul` field of `has_mul` is a proof...?
+set_option pp.proofs true
+
+-- Check that we can:
+-- * cope with metavariables in the result
+-- * perform beta redex after `revert`
+-- * simplify `eq.rec` after `subst`
+example {α β : Type} (e : α ≃ β) (S : has_mul α) : has_mul β :=
+begin
+  fconstructor,
+  simp_result
+  { have mul := S.mul,
+    have e' := equiv.arrow_congr e (equiv.arrow_congr e e),
+    have h : mul = e'.symm (e' mul) := by simp,
+    revert h,
+    generalize : e' mul = mul',
+    intro h,
+    subst h, },
+  exact mul',
+  guard_result_pp "{mul := ⇑(equiv.arrow_congr e (equiv.arrow_congr e e)) has_mul.mul}",
+end

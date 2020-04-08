@@ -66,22 +66,15 @@ jobs:
           git config --unset http.https://github.com/.extraheader
 
       - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push'
+        if: always() && github.repository == 'leanprover-community/mathlib'
         run: |
-          branch=${GITHUB_REF#refs/heads/}
-          git fetch --depth=1 origin-bot $branch
-          remote_sha="$(git rev-parse origin-bot/$branch)"
-          if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/heads/master" ]; then
-            archive_name="$(git rev-parse HEAD).tar.gz"
-            tar czf "$archive_name" src
-            azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
-            python scripts/write_azure_table_entry.py "$lean_file_hash" "${{ github.sha }}" "${{ secrets.AZURE_TABLE_WRITE_TOKEN }}"
-          else
-            echo "archive is obsolete: branch has been updated"
-          fi
+          archive_name="$(git rev-parse HEAD).tar.gz"
+          tar czf "$archive_name" src
+          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
+          python scripts/write_azure_table_entry.py "$lean_file_hash" "${{ github.sha }}" "${{ secrets.AZURE_TABLE_WRITE_TOKEN }}"
 
       - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
         run: ./scripts/deploy_nightly.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
@@ -107,7 +100,7 @@ jobs:
           git diff
 
       - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
         run:
           ./scripts/update_nolints.sh
         env:

@@ -154,7 +154,165 @@ instance is_ring_hom_pi
   is_ring_hom (λ x b, f b x) :=
 (show γ →+* Π a, β a, from pi.ring_hom (λ a, ring_hom.of (f a))).is_ring_hom
 
+-- Note that we only define `single` here for dependent functions with additive fibres.
+section
+variables [decidable_eq I]
+variables [Π i, has_zero (f i)]
+
+/-- The function supported at `i`, with value `x` there. -/
+def single (i : I) (x : f i) : Π i, f i :=
+λ i', if h : i' = i then (by { subst h, exact x }) else 0
+
+@[simp]
+lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
+begin
+  dsimp [single],
+  split_ifs,
+  { refl, },
+  { exfalso, exact h rfl, }
+end
+@[simp]
+lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
+begin
+  dsimp [single],
+  split_ifs with h',
+  { exfalso, exact h h', },
+  { refl, }
+end
+
+end
+
 end pi
+
+section
+universes u v
+variable {I : Type u}     -- The indexing type
+variable (f : I → Type v) -- The family of types already equipped with instances
+variables [Π i, monoid (f i)]
+
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point is an additive monoid homomorphism."]
+def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
+{ to_fun := λ g, g i,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl, }
+
+@[simp, to_additive]
+lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) : (monoid_hom.apply f i) g = g i := rfl
+end
+
+section
+universes u v
+variable {I : Type u}     -- The indexing type
+variable (f : I → Type v) -- The family of types already equipped with instances
+variables [Π i, semiring (f i)]
+
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
+{ ..(monoid_hom.apply f i),
+  ..(add_monoid_hom.apply f i) }
+
+@[simp]
+lemma ring_hom.apply_apply (i : I) (g : Π i, f i) : (ring_hom.apply f i) g = g i := rfl
+end
+
+section
+variables {I : Type*} (Z : I → Type*)
+variables [Π i, comm_monoid (Z i)]
+
+@[simp, to_additive]
+lemma finset.prod_apply {γ : Type*} [decidable_eq γ] {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
+  (s.prod h) i = s.prod (λ g, h g i) :=
+begin
+  induction s using finset.induction_on with b s nmem ih,
+  { simp only [finset.prod_empty], refl },
+  { simp only [nmem, finset.prod_insert, not_false_iff],
+    rw pi.mul_apply (h b) _ i,
+    rw ih, }
+end
+end
+
+section
+-- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
+variables {I : Type*} [decidable_eq I] {Z : I → Type*}
+variables [Π i, add_comm_monoid (Z i)]
+
+lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
+  finset.univ.sum (λ i, pi.single i (f i)) = f :=
+begin
+  ext a,
+  rw [finset.sum_apply, finset.sum_eq_single a],
+  { simp, },
+  { intros b _ h, simp [h.symm], },
+  { intro h, exfalso, simpa using h, },
+end
+end
+
+section
+open pi
+
+variables {I : Type*} [decidable_eq I]
+variable (f : I → Type*)
+
+section
+variables [Π i, add_monoid (f i)]
+
+/-- The additive monoid homomorphism including a single additive monoid
+into a dependent family of additive monoids, as functions supported at a point. -/
+def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+{ to_fun := λ x, single i x,
+  map_zero' :=
+  begin
+    ext i', by_cases h : i' = i,
+    { subst h, simp only [single_eq_same], refl, },
+    { simp only [h, single_eq_of_ne, ne.def, not_false_iff], refl, },
+  end,
+  map_add' := λ x y,
+  begin
+    ext i', by_cases h : i' = i,
+    -- FIXME in the next two `simp only`s,
+    -- it would be really nice to not have to provide the arguments to `add_apply`.
+    { subst h, simp only [single_eq_same, add_apply (single i' x) (single i' y) i'], },
+    { simp only [h, add_zero, single_eq_of_ne, add_apply (single i x) (single i y) i', ne.def, not_false_iff], },
+  end, }
+
+@[simp]
+lemma add_monoid_hom.single_apply (i : I) (x : f i) : (add_monoid_hom.single f i) x = single i x := rfl
+end
+
+section
+variables {f}
+variables [Π i, add_comm_monoid (f i)]
+
+@[ext]
+lemma add_monoid_hom.functions_ext [fintype I] (G : Type*) [add_comm_monoid G] (g h : (Π i, f i) →+ G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+end
+
+section
+variables {f}
+variables [Π i, semiring (f i)]
+
+-- it is somewhat unfortunate that we can't easily use `add_monoid_hom.functions_ext` here
+@[ext]
+lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, ring_hom.map_sum, ring_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+end
+end
 
 namespace prod
 

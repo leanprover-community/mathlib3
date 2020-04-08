@@ -331,6 +331,9 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 @nat.lt_sub_right_iff_add_lt n 1 m
 
+lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
+lt_of_succ_lt (lt_pred_iff.1 h)
+
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
 

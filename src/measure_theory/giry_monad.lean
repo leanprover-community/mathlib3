@@ -77,12 +77,11 @@ begin
   funext μ,
   exact @lintegral_eq_supr_eapprox_integral α {μ := μ} f hf
 end,
-measurable.supr $ assume n,
+measurable_supr $ assume n,
   begin
     dunfold simple_func.integral,
-    refine measurable_finset_sum (simple_func.eapprox f n).range _,
-    assume i,
-    refine ennreal.measurable.mul measurable_const _,
+    refine finset.measurable_sum (simple_func.eapprox f n).range (λ i, _),
+    refine measurable_const.ennreal_mul _,
     exact measurable_coe ((simple_func.eapprox f n).preimage_measurable _)
   end
 
@@ -132,13 +131,13 @@ begin
     symmetry,
     transitivity,
     apply lintegral_supr,
-    { exact assume n,
-        measurable_finset_sum _ (assume r, ennreal.measurable.mul measurable_const (hf _ _)) },
+    { assume n,
+      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { exact assume r, ennreal.measurable.mul measurable_const (hf _ _) },
+    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },

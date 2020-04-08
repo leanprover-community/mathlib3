@@ -11,9 +11,6 @@ apply_nolint associates doc_blame
 apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
--- algebra/big_operators.lean
-apply_nolint finset.sum doc_blame
-
 -- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
@@ -107,10 +104,6 @@ apply_nolint with_zero.div doc_blame
 apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
-
--- algebra/group_power.lean
-apply_nolint add_monoid.smul doc_blame
-apply_nolint gsmul doc_blame
 
 -- algebra/lie_algebra.lean
 apply_nolint lie_algebra.morphism has_inhabited_instance
@@ -2092,9 +2085,6 @@ apply_nolint linear_map.map_finsupp_total unused_arguments
 apply_nolint equiv_of_dim_eq_dim doc_blame
 apply_nolint fin_dim_vectorspace_equiv doc_blame
 
--- linear_algebra/matrix.lean
-apply_nolint linear_equiv_matrix unused_arguments
-
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame
 apply_nolint linear_map.compr₂ doc_blame
@@ -2171,16 +2161,6 @@ apply_nolint relator.right_unique doc_blame
 -- logic/unique.lean
 apply_nolint unique doc_blame
 
--- measure_theory/ae_eq_fun.lean
-apply_nolint measure_theory.ae_eq_fun.add doc_blame
-apply_nolint measure_theory.ae_eq_fun.neg doc_blame
-apply_nolint measure_theory.ae_eq_fun.smul doc_blame
-
--- measure_theory/borel_space.lean
-apply_nolint ennreal.ennreal_equiv_nnreal doc_blame
-apply_nolint ennreal.ennreal_equiv_sum doc_blame
-apply_nolint homemorph.to_measurable_equiv doc_blame
-
 -- measure_theory/category/Meas.lean
 apply_nolint Meas doc_blame
 
@@ -2188,7 +2168,6 @@ apply_nolint Meas doc_blame
 apply_nolint measure_theory.lintegral_eq_nnreal ge_or_gt
 apply_nolint measure_theory.measure.integral doc_blame
 apply_nolint measure_theory.measure.with_density doc_blame
-apply_nolint measure_theory.simple_func.eapprox doc_blame
 apply_nolint measure_theory.simple_func.fin_vol_supp doc_blame
 apply_nolint measure_theory.simple_func.ite doc_blame
 
@@ -2200,12 +2179,9 @@ apply_nolint measurable_equiv.prod_congr doc_blame
 apply_nolint measurable_equiv.prod_sum_distrib doc_blame
 apply_nolint measurable_equiv.refl doc_blame
 apply_nolint measurable_equiv.set.image doc_blame
-apply_nolint measurable_equiv.set.prod doc_blame
 apply_nolint measurable_equiv.set.range doc_blame
 apply_nolint measurable_equiv.set.range_inl doc_blame
 apply_nolint measurable_equiv.set.range_inr doc_blame
-apply_nolint measurable_equiv.set.singleton doc_blame
-apply_nolint measurable_equiv.set.univ doc_blame
 apply_nolint measurable_equiv.sum_congr doc_blame
 apply_nolint measurable_equiv.sum_prod_distrib doc_blame
 apply_nolint measurable_equiv.sum_prod_sum doc_blame
@@ -3465,14 +3441,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/homeomorph.lean
 apply_nolint homeomorph has_inhabited_instance
-apply_nolint homeomorph.homeomorph_of_continuous_open doc_blame
-apply_nolint homeomorph.prod_assoc doc_blame
-apply_nolint homeomorph.prod_comm doc_blame
-apply_nolint homeomorph.prod_congr doc_blame
-apply_nolint homeomorph.refl doc_blame
-apply_nolint homeomorph.sigma_prod_distrib doc_blame
-apply_nolint homeomorph.symm doc_blame
-apply_nolint homeomorph.trans doc_blame
 
 -- topology/instances/ennreal.lean
 apply_nolint ennreal.nhds_of_ne_top ge_or_gt

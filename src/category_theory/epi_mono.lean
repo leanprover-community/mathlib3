@@ -116,6 +116,18 @@ instance split_mono.mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
 instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
 
+/-- Every split mono whose retraction is mono is an iso. -/
+def is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] [mono $ retraction f]
+  : is_iso f :=
+{ inv := retraction f,
+  inv_hom_id' := (cancel_mono_id $ retraction f).mp (by simp) }
+
+/-- Every split epi whose section is epi is an iso. -/
+def is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ f]
+  : is_iso f :=
+{ inv := section_ f,
+  hom_inv_id' := (cancel_epi_id $ section_ f).mp (by simp) }
+
 section
 variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟

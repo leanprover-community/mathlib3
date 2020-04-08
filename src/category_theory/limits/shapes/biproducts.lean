@@ -313,22 +313,6 @@ instance biprod.snd_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
   split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
 { section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
 
-instance biprod.mono_lift_of_mono_left {W X Y : C} [has_binary_biproduct.{v} X Y] (f : W ⟶ X)
-  (g : W ⟶ Y) [mono f] : mono (biprod.lift f g) :=
-mono_of_mono_fac $ show biprod.lift f g ≫ biprod.fst = f, by simp
-
-instance biprod.mono_lift_of_mono_right {W X Y : C} [has_binary_biproduct.{v} X Y] (f : W ⟶ X)
-  (g : W ⟶ Y) [mono g] : mono (biprod.lift f g) :=
-mono_of_mono_fac $ show biprod.lift f g ≫ biprod.snd = g, by simp
-
-instance biprod.epi_desc_of_epi_left {W X Y : C} [has_binary_biproduct.{v} X Y] (f : X ⟶ W)
-  (g : Y ⟶ W) [epi f] : epi (biprod.desc f g) :=
-epi_of_epi_fac $ show biprod.inl ≫ biprod.desc f g = f, by simp
-
-instance biprod.epi_desc_of_epi_right {W X Y : C} [has_binary_biproduct.{v} X Y] (f : X ⟶ W)
-  (g :Y ⟶ W) [epi g] : epi (biprod.desc f g) :=
-epi_of_epi_fac $ show biprod.inr ≫ biprod.desc f g = g, by simp
-
 -- TODO:
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts

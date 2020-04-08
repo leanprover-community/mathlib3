@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 
-import data.int.basic
+import data.int.basic data.equiv.basic
 
 /-!
 # Power operations on monoids and groups
@@ -647,3 +647,39 @@ end int
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
+
+@[simp] lemma pow_of_add [add_monoid A] (x : A) (n : ℕ) :
+  (multiplicative.of_add x)^n = multiplicative.of_add (n • x) := rfl
+
+@[simp] lemma gpow_of_add [add_group A] (x : A) (n : ℤ) :
+  (multiplicative.of_add x)^n = multiplicative.of_add (n •ℤ x) := rfl
+
+/-- Monoid homomorphisms from `multiplicative ℕ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def mnat_monoid_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := pow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_pow] } }
+
+/-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def mint_monoid_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := gpow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_gpow] } }
+
+/-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
+def nat_add_monoid_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n • x, add_monoid.zero_smul x, λ m n, add_monoid.add_smul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := add_monoid.one_smul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_smul] }
+
+/-- Additive homomorphisms from `ℤ` are defined by the image of `1`. -/
+def int_add_monoid_hom [add_group A] : A ≃ (ℤ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n •ℤ x, zero_gsmul x, λ m n, add_gsmul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := one_gsmul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_gsmul] }

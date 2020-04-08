@@ -20,11 +20,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Parse steps.check_approvals.outputs.data, since it is a string
+      # Parse steps.check_comments.outputs.data, since it is a string
       - id: parse_comments
         name: Parse comments
         run: |
-          RESULT=$(echo '${{ steps.check_comments.outputs.data }}' | jq -c --raw-output 'map(select(test("\\n?bors:? (r\\+|merge)"; "m"))) | length')
+          RESULT=$(echo '${{ steps.check_comments.outputs.data }}' | jq -c --raw-output 'map(select(.body | test("\\n?bors:? (r\\+|merge)"; "m"))) | length')
           echo $RESULT
           echo "::set-output name=num_bors_comments::$RESULT"
 

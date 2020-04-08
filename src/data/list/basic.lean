@@ -4011,7 +4011,7 @@ theorem chain_map_of_chain {S : β → β → Prop} (f : α → β)
   (p : chain R a l) : chain S (f a) (map f l) :=
 (chain_map f).2 $ p.imp H
 
-theorem chain_iff_nth_le {R} : ∀ {a : α}  {l : list α},
+theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
     R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h)))
 | a [] := by simp

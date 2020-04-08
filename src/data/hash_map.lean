@@ -72,6 +72,10 @@ parameters {α : Type u} {β : α → Type v} (hash_fn : α → nat)
 def reinsert_aux {n} (data : bucket_array α β n) (a : α) (b : β a) : bucket_array α β n :=
 data.modify hash_fn a (λl, ⟨a, b⟩ :: l)
 
+theorem mk_as_list (n : ℕ+) : bucket_array.as_list (mk_array n.1 [] : bucket_array α β n) = [] :=
+list.eq_nil_iff_forall_not_mem.mpr $ λ x m,
+let ⟨i, h⟩ := (bucket_array.mem_as_list _).1 m in h
+
 parameter [decidable_eq α]
 
 /-- Search a bucket for a key `a` and return the value -/
@@ -155,10 +159,6 @@ begin
   apply ij, rwa [← v.idx_enum_1 _ me₁ ml₁, ← v.idx_enum_1 _ me₂ ml₂]
 end
 
-theorem mk_as_list (n : ℕ+) : bucket_array.as_list (mk_array n.1 [] : bucket_array α β n) = [] :=
-list.eq_nil_iff_forall_not_mem.mpr $ λ x m,
-let ⟨i, h⟩ := (bucket_array.mem_as_list _).1 m in h
-
 theorem mk_valid (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=
 ⟨by simp [mk_as_list], λ i a h, by cases h, λ i, list.nodup_nil⟩
 
@@ -202,7 +202,8 @@ section
             (djwv : (w.map sigma.fst).disjoint (v2.map sigma.fst))
   include hvnd hal djuv djwv
 
-  theorem valid.modify {sz : ℕ} (v : valid bkts sz) : sz + v2.length ≥ v1.length ∧ valid bkts' (sz + v2.length - v1.length) :=
+  theorem valid.modify {sz : ℕ} (v : valid bkts sz) :
+    v1.length ≤ sz + v2.length ∧ valid bkts' (sz + v2.length - v1.length) :=
   begin
     rcases append_of_modify u v1 v2 w hl hfl with ⟨u', w', e₁, e₂⟩,
     rw [← v.len, e₁],

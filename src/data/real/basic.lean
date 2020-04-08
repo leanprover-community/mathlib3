@@ -227,7 +227,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
   choose f hf using begin
     refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
+      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,

@@ -347,9 +347,12 @@ lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
 
-lemma sum_mem {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
+lemma sum_mem {ι : Type w} {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
-finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
+begin
+  classical,
+  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
+end
 
 lemma smul_mem_iff' (u : units α) : (u:α) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩

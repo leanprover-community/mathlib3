@@ -69,7 +69,7 @@ begin
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
 
-theorem adjoin_eq_range [decidable_eq R] [decidable_eq A] :
+theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
@@ -79,7 +79,7 @@ le_antisymm
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ _ _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range [decidable_eq R] [decidable_eq A] (x : A) :
+theorem adjoin_singleton_eq_range (x : A) :
   adjoin R {x} = (polynomial.aeval R A x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
@@ -171,8 +171,6 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
-
-variables [decidable_eq R] [decidable_eq A]
 
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=

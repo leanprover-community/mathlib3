@@ -26,6 +26,7 @@ ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
 However here it extends module in order to preserve
 definitional equality in certain cases. -/
+@[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A] extends has_scalar R A :=
 (to_fun : R →+* A)
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
@@ -107,9 +108,11 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
+/-- The multiplication on the left in an algebra is a linear map. -/
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 
+/-- The multiplication on the right in an algebra is a linear map. -/
 def lmul_right (r : A) : A →ₗ A :=
 (lmul R A).flip r
 
@@ -144,9 +147,12 @@ instance matrix_algebra (n : Type u) (R : Type v)
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
+@[nolint has_inhabited_instance]
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
+
+run_cmd tactic.add_doc_string `alg_hom.to_ring_hom "Reinterpret an `alg_hom` as a `ring_hom`"
 
 infixr ` →ₐ `:25 := alg_hom _
 notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
@@ -190,6 +196,7 @@ ring_hom.ext $ φ.commutes
 section
 
 variables (R A)
+/-- Identity map as an `alg_hom`. -/
 protected def id : A →ₐ[R] A :=
 { commutes' := λ _, rfl,
   ..ring_hom.id A  }
@@ -254,32 +261,28 @@ include R S A
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
-@[nolint unused_arguments] def comap : Type w := A
+@[nolint unused_arguments]
+def comap : Type w := A
 
-omit R S A
+instance comap.inhabited [h : inhabited A] : inhabited (comap R S A) := h
+instance comap.semiring [h : semiring A] : semiring (comap R S A) := h
+instance comap.ring [h : ring A] : ring (comap R S A) := h
+instance comap.comm_semiring [h : comm_semiring A] : comm_semiring (comap R S A) := h
+instance comap.comm_ring [h : comm_ring A] : comm_ring (comap R S A) := h
+
+instance comap.algebra' [comm_semiring S] [semiring A] [h : algebra S A] :
+  algebra S (comap R S A) := h
+
+/-- Identity homomorphism `A →ₐ[S] comap R S A`. -/
+def comap.to_comap [comm_semiring S] [semiring A] [algebra S A] :
+  A →ₐ[S] comap R S A := alg_hom.id S A
+/-- Identity homomorphism `comap R S A →ₐ[S] A`. -/
+def comap.of_comap [comm_semiring S] [semiring A] [algebra S A] :
+  comap R S A →ₐ[S] A := alg_hom.id S A
+
 variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
 
-instance comap.semiring : semiring (comap R S A) := ‹semiring A›
-instance comap.ring (R : Type u) (S : Type v) (A : Type w)
-  [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A] :
-  ring (comap R S A) := ‹ring A›
-instance comap.comm_semiring (R : Type u) (S : Type v) (A : Type w)
-  [comm_semiring R] [comm_semiring S] [comm_semiring A] [algebra R S] [algebra S A] :
-  comm_semiring (comap R S A) := ‹comm_semiring A›
-instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
-  [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] :
-  comm_ring (comap R S A) := ‹comm_ring A›
-instance comap.semimodule : semimodule S (comap R S A) := show semimodule S A, by apply_instance
-instance comap.module (R : Type u) (S : Type v) (A : Type w)
-  [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A] :
-  module S (comap R S A) := show module S A, by apply_instance
-
-def comap.to_comap : A →+* comap R S A := ring_hom.id A
-def comap.of_comap : comap R S A →+* A := ring_hom.id A
-
-set_option class.instance_max_depth 40
-
-/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
+/-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map R S r • x : A),
   to_fun := (algebra_map S A).comp (algebra_map R S),
@@ -328,6 +331,7 @@ instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
 
 end complex
 
+/-- A subalgebra is a subring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
 (carrier : set A) [subring : is_subring carrier]
@@ -400,6 +404,7 @@ instance : partial_order (subalgebra R A) :=
   le_trans := λ _ _ _, le_trans,
   le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
 
+/-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
 def comap {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
   (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
@@ -407,6 +412,8 @@ def comap {R : Type u} {S : Type v} {A : Type w}
   subring := iSB.is_subring,
   range_le' := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
 
+/-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
+then `T` is an `R`-subalgebra of `A`. -/
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
@@ -421,6 +428,7 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
+/-- Range of an `alg_hom` as a subalgebra. -/
 protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
 begin
   haveI : is_subring (set.range φ) := show is_subring (set.range φ.to_ring_hom), by apply_instance,
@@ -446,6 +454,7 @@ namespace id
 
 end id
 
+/-- `algebra_map` as an `alg_hom`. -/
 def of_id : R →ₐ[R] A :=
 { commutes' := λ _, rfl, .. algebra_map R A }
 variables {R}
@@ -453,6 +462,7 @@ variables {R}
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
 variables (R) {A}
+/-- The minimal subalgebra that includes `s`. -/
 def adjoin (s : set A) : subalgebra R A :=
 { carrier := ring.closure (set.range (algebra_map R A) ∪ s),
   range_le' := le_trans (set.subset_union_left _ _) ring.subset_closure }
@@ -462,6 +472,7 @@ protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) ring.subset_closure) H,
 λ H, ring.closure_subset $ set.union_subset S.range_le H⟩
 
+/-- Galois insertion between `adjoin` and `coe`. -/
 protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 { choice := λ s hs, adjoin R s,
   gc := algebra.gc,
@@ -484,6 +495,7 @@ theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
+/-- `alg_hom` to `⊤ : subalgebra R A`. -/
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
 
@@ -491,9 +503,9 @@ end algebra
 
 section int
 
-variables (R : Type*) [comm_ring R]
+variables (R : Type*) [ring R]
 
-/-- CRing ⥤ ℤ-Alg -/
+/-- Reinterpret a `ring_hom` as a `ℤ`-algebra homomorphism. -/
 def alg_hom_int
   {R : Type u} [comm_ring R] [algebra ℤ R]
   {S : Type v} [comm_ring S] [algebra ℤ S]
@@ -503,11 +515,11 @@ def alg_hom_int
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
 { to_fun := int.cast_ring_hom R,
-  commutes' := λ _ _, mul_comm _ _,
+  commutes' := λ x y, commute.cast_int_right _ _,
   smul_def' := λ _ _, gsmul_eq_mul _ _ }
 
 variables {R}
-/-- CRing ⥤ ℤ-Alg -/
+/-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 { carrier := S,
   range_le' := by { rintros _ ⟨i, rfl⟩, rw [ring_hom.eq_int_cast, ← gsmul_one],

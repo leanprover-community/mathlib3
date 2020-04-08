@@ -42,6 +42,8 @@ The following linters are run by default:
 14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
 15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
+17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
+    in the statement, and could be removed using `classical`.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

@@ -75,7 +75,7 @@ instance separated_regular [separated α] : regular_space α :=
     have -s ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
     have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
-      from mem_nhds_uniformity_iff.mp this,
+      from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
     have hae : a ∈ closure e, from subset_closure $ refl_mem_uniformity hd,

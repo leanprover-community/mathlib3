@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 
 Bundled types.
 -/
+import tactic.doc_commands
 
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
@@ -31,8 +32,24 @@ namespace bundled
 -- Usually explicit instances will provide their own version of this, e.g. `Mon.of` and `Top.of`.
 def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
+/--
+In order for simp lemmas for bundled morphisms to apply correctly,
+it seems to be necessary for all the `has_coe_to_sort` instances for bundled categories
+to be marked `[reducible]`.
+
+Examples verifying correct behaviour are also marked with this
+note [reducible has_coe_to_sort instances for bundled categories].
+-/
+library_note "reducible has_coe_to_sort instances for bundled categories"
+
+/--
+has_coe_to_sort instances for bundled categories must be reducible,
+see note [reducible has_coe_to_sort instances for bundled categories].
+-/
+@[reducible]
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
+
 
 /-
 `bundled.map` is reducible so that, if we define a category

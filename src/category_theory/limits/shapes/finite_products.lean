@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.finite_limits
 import category_theory.discrete_category
-import data.fintype
+import data.fintype.basic
 
 universes v u
 

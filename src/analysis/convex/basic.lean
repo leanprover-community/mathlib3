@@ -163,9 +163,9 @@ lemma convex_iff_div:
   assume h x y hx hy a b ha hb hab,
   apply h hx hy,
   have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos.2 hab)),
-  rwa [mul_zero, ←div_eq_inv_mul] at ha',
+  rwa [mul_zero, ←div_eq_inv_mul'] at ha',
   have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos.2 hab)),
-  rwa [mul_zero, ←div_eq_inv_mul] at hb',
+  rwa [mul_zero, ←div_eq_inv_mul'] at hb',
   rw [←add_div],
   exact div_self (ne_of_lt hab).symm
 end,
@@ -539,7 +539,7 @@ by simp only [center_mass, sum_empty, smul_zero]
 
 lemma finset.center_mass_pair (hne : i ≠ j) :
   ({i, j} : finset ι).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
-by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul]
+by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul']
 
 variable {w}
 
@@ -694,7 +694,7 @@ begin
   have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
   rw ← sum_filter_ne_zero at hws,
   rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
+    ← div_eq_inv_mul', le_div_iff hws, mul_sum] at this,
   replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
     exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
   rcases this with ⟨i, hi, H⟩,

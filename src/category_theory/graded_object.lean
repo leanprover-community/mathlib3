@@ -136,7 +136,11 @@ instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift.{v} (gra
 instance has_zero_morphisms [has_zero_morphisms.{v} C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=
 { has_zero := λ X Y,
-  { zero := λ b, 0 } }.
+  { zero := λ b, 0 } }
+
+@[simp]
+lemma zero_apply [has_zero_morphisms.{v} C] (β : Type w) (X Y : graded_object β C) (b : β) :
+  (0 : X ⟶ Y) b = 0 := rfl
 
 section
 local attribute [instance] has_zero_object.has_zero

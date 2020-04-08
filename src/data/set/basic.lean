@@ -1296,7 +1296,7 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 ⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
 
-@[simp] lemma exists_range_iff' {p : α → Prop} :
+lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
 ⟨by rintros ⟨b, ⟨a, rfl⟩, h⟩ ; exact ⟨a, h⟩, λ ⟨a, h⟩, ⟨f a, mem_range_self a, h⟩⟩
 

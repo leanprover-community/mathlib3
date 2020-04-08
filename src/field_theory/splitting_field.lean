@@ -10,9 +10,6 @@ import ring_theory.unique_factorization_domain
 import data.polynomial ring_theory.principal_ideal_domain
        algebra.euclidean_domain
 
-local attribute [instance, priority 100000] is_ring_hom.id
-local attribute [instance, priority 100] is_ring_hom.comp
-
 universes u v w
 
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -38,7 +35,7 @@ f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g 
 if ha : a = 0 then ha.symm ▸ (@C_0 α _).symm ▸ splits_zero i
 else
 have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
-  (is_ring_hom.injective i) _) ha,
+  i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (classical.not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
@@ -98,7 +95,7 @@ suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset β, f.map i =
   (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
 is_noetherian_ring.irreducible_induction_on (f.map i)
-  (λ _, ⟨{37}, by simp [is_ring_hom.map_zero i]⟩)
+  (λ _, ⟨{37}, by simp [i.map_zero]⟩)
   (λ u hu _, ⟨0,
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
       simp [leading_coeff, nat_degree_eq_of_degree_eq_some (is_unit_iff_degree_eq_zero.1 hu)]⟩)

@@ -207,7 +207,7 @@ do
   generalize ex (by apply_opt_param) transparency.none,
   -- Reintroduce `x` (now of type `b`), and the hypothesis `h`.
   intro x,
-  h ← mk_fresh_name >>= intro,
+  h ← intro1,
   -- We may need to unfreeze `x` before we can `subst` or `clear` it.
   unfreeze x',
   -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,

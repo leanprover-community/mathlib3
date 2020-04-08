@@ -9,7 +9,7 @@ import data.finset data.set.finite algebra.big_operators algebra.module algebra.
 /-!
 # Dependent functions with finite support
 
-(see `data/finsupp.lean`).
+(see also `data/finsupp.lean`).
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l

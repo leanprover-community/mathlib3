@@ -352,10 +352,7 @@ do    tgt ← target,
       gs ← with_enable_tags (
         mzip_with (λ (n : name × name) v, do
            set_goals [v],
-           b ← target >>= is_prop,
-           if b then
-             try (interactive.dunfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none]))
-           else return (),
+           try (dsimp_target simp_lemmas.mk),
            apply_auto_param
              <|> apply_opt_param
              <|> (set_main_tag [`_field,n.2,n.1]),

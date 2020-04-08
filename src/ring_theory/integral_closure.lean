@@ -187,7 +187,7 @@ begin
     change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨ly jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hly1 _ hz))) },
   haveI : is_noetherian_ring ↥S₀ :=
-  by { convert is_noetherian_ring_closure _ (finset.finite_to_set _), apply_instance },
+    is_noetherian_ring_closure _ (finset.finite_to_set _),
   apply is_integral_of_noetherian
     (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw finset.coe_insert; convert this⟩),

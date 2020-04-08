@@ -2,15 +2,12 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
-
-The equivalence between matrices and linear maps.
 -/
 
 import data.matrix.basic
 import linear_algebra.dimension linear_algebra.tensor_product
 
 /-!
-
 # Linear maps and matrices
 
 This file defines the maps to send matrices to a linear map,
@@ -90,7 +87,7 @@ instance to_lin.is_add_monoid_hom :
 @[simp] lemma to_lin_apply (M : matrix m n R) (v : n → R) :
   (M.to_lin : (n → R) → (m → R)) v = mul_vec M v := rfl
 
-lemma mul_to_lin [decidable_eq l] (M : matrix m n R) (N : matrix n l R) :
+lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
 begin
   ext v x,
@@ -181,7 +178,7 @@ between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -
 def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
-  [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
+  [fintype ι] [decidable_eq ι] [fintype κ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
 linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) linear_equiv_matrix'
@@ -225,11 +222,10 @@ by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
-@[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
+@[simp] lemma trace_transpose_mul (A : matrix m n R) (B : matrix n m R) :
   trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
 
-lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n]
-  (A : matrix m n S) (B : matrix n m S) :
+lemma trace_mul_comm {S : Type v} [comm_ring S] (A : matrix m n S) (B : matrix n m S) :
   trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 
@@ -263,7 +259,7 @@ variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
-lemma rank_vec_mul_vec [decidable_eq n] (w : m → K) (v : n → K) :
+lemma rank_vec_mul_vec (w : m → K) (v : n → K) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, mul_to_lin],

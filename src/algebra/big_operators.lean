@@ -27,8 +27,9 @@ directed.finset_le (by apply_instance) directed_order.directed s
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-/-- `prod s f` is the product of `f x` as `x` ranges over the elements of the finite set `s`. -/
-@[to_additive]
+/-- `s.prod f` is the product of `f x` as `x` ranges over the elements of the finite set `s`. -/
+@[to_additive "`s.sum f` is the sum of `f x` as `x` ranges over the elements
+of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
 @[to_additive] lemma prod_eq_multiset_prod [comm_monoid β] (s : finset α) (f : α → β) :
@@ -98,7 +99,8 @@ by rw [h]; exact fold_congr
 attribute [congr] finset.sum_congr
 
 @[to_additive]
-lemma prod_union_inter [decidable_eq α] : (s₁ ∪ s₂).prod f * (s₁ ∩ s₂).prod f = s₁.prod f * s₂.prod f :=
+lemma prod_union_inter [decidable_eq α] :
+  (s₁ ∪ s₂).prod f * (s₁ ∩ s₂).prod f = s₁.prod f * s₂.prod f :=
 fold_union_inter
 
 @[to_additive]
@@ -190,10 +192,15 @@ lemma prod_mul_distrib : s.prod (λx, f x * g x) = s.prod f * s.prod g :=
 eq.trans (by rw one_mul; refl) fold_op_distrib
 
 @[to_additive]
-lemma prod_comm [decidable_eq γ] {s : finset γ} {t : finset α} {f : γ → α → β} :
+lemma prod_comm {s : finset γ} {t : finset α} {f : γ → α → β} :
   s.prod (λx, t.prod $ f x) = t.prod (λy, s.prod $ λx, f x y) :=
-finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
-λ _ _ H ih, by simp only [prod_insert H, prod_mul_distrib, ih]
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp only [prod_empty, prod_const_one] },
+  { intros _ _ H ih,
+    simp only [prod_insert H, prod_mul_distrib, ih] }
+end
 
 @[to_additive]
 lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) [is_monoid_hom g] :
@@ -570,9 +577,10 @@ lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
   ↑(s.prod f) = s.prod (λa, f a : α → β) :=
 (nat.cast_ring_hom β).map_prod f s
 
-protected lemma sum_nat_coe_enat [decidable_eq α] (s : finset α) (f : α → ℕ) :
+protected lemma sum_nat_coe_enat (s : finset α) (f : α → ℕ) :
   s.sum (λ x, (f x : enat)) = (s.sum f : ℕ) :=
 begin
+  classical,
   induction s using finset.induction with a s has ih h,
   { simp },
   { simp [has, ih] }
@@ -677,15 +685,16 @@ by simp
 end semiring
 
 section comm_semiring
-variables [decidable_eq α] [comm_semiring β]
+variables [comm_semiring β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : s.prod f = 0 :=
+by haveI := classical.dec_eq α;
 calc s.prod f = (insert a (erase s a)).prod f : by rw insert_erase ha
   ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
 /-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
   `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
-lemma prod_sum {δ : α → Type*} [∀a, decidable_eq (δ a)]
+lemma prod_sum {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa, finset (δ a)} {f : Πa, δ a → β} :
   s.prod (λa, (t a).sum (λb, f a b)) =
     (s.pi t).sum (λp, s.attach.prod (λx, f x.1 (p x.1 x.2))) :=
@@ -771,23 +780,32 @@ end
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [decidable_eq α] [integral_domain β]
+variables [integral_domain β]
 
 lemma prod_eq_zero_iff : s.prod f = 0 ↔ (∃a∈s, f a = 0) :=
-finset.induction_on s ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩ $ λ a s ha ih,
-by rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero,
-  bex_def, exists_mem_insert, ih, ← bex_def]
+begin
+  classical,
+  apply finset.induction_on s,
+  exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
+  assume a s ha ih,
+  rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
+end
 
 end integral_domain
 
 section ordered_comm_monoid
-variables [decidable_eq α] [ordered_comm_monoid β]
+variables [ordered_comm_monoid β]
 
 lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
-finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
-  have f a + s.sum f ≤ g a + s.sum g,
+begin
+  classical,
+  apply finset.induction_on s,
+  exact (λ _, le_refl _),
+  assume a s ha ih h,
+  have : f a + s.sum f ≤ g a + s.sum g,
     from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
+end
 
 lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
 
@@ -795,20 +813,25 @@ lemma sum_nonpos (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_s
 
 lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : s₁.sum f ≤ s₂.sum f :=
+by classical;
 calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
     le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union sdiff_disjoint).symm
   ... = s₂.sum f : by rw [sdiff_union_of_subset h]
 
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
-finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) $ λ a s ha ih H,
-have ∀ x ∈ s, 0 ≤ f x, from λ _, H _ ∘ mem_insert_of_mem,
-by rw [sum_insert ha,
-  add_eq_zero_iff' (H _ $ mem_insert_self _ _) (sum_nonneg this),
-  forall_mem_insert, ih this]
+begin
+  classical,
+  apply finset.induction_on s,
+  exact λ _, ⟨λ _ _, false.elim, λ _, rfl⟩,
+  assume a s ha ih H,
+  have : ∀ x ∈ s, 0 ≤ f x, from λ _, H _ ∘ mem_insert_of_mem,
+  rw [sum_insert ha, add_eq_zero_iff' (H _ $ mem_insert_self _ _) (sum_nonneg this),
+    forall_mem_insert, ih this]
+end
 
 lemma sum_eq_zero_iff_of_nonpos : (∀x∈s, f x ≤ 0) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
-@sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _ _
+@sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ s.sum f :=
 have (singleton a).sum f ≤ s.sum f,
@@ -819,13 +842,14 @@ by rwa sum_singleton at this
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [decidable_eq α] [canonically_ordered_monoid β]
+variables [canonically_ordered_monoid β]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
-lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
+lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
   s₁.sum f ≤ s₂.sum f :=
+by classical;
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
@@ -887,7 +911,8 @@ end
 end decidable_linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
-variables [decidable_eq α] [linear_ordered_comm_ring β]
+variables [linear_ordered_comm_ring β]
+open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_nonneg {s : finset α} {f : α → β}
@@ -925,11 +950,12 @@ end linear_ordered_comm_ring
 
 section canonically_ordered_comm_semiring
 
-variables [decidable_eq α] [canonically_ordered_comm_semiring β]
+variables [canonically_ordered_comm_semiring β]
 
 lemma prod_le_prod' {s : finset α} {f g : α → β} (h : ∀ i ∈ s, f i ≤ g i) :
   s.prod f ≤ s.prod g :=
 begin
+  classical,
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
@@ -1038,7 +1064,7 @@ end multiset
 
 namespace with_top
 open finset
-variables [decidable_eq α]
+open_locale classical
 
 /-- sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_comm_monoid β] {s : finset α} {f : α → with_top β} :

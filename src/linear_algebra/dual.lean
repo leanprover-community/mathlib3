@@ -186,9 +186,12 @@ begin
     { exfalso, apply ne.symm h₁ (by assumption) } }
 end
 
+omit de
+
 theorem dual_dim_eq [fintype ι] :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
+  classical,
   have :=  linear_equiv.dim_eq_lift  h.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],

@@ -1600,7 +1600,7 @@ end
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
 set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
 def comap_linear_maps : submodule R (M →ₗ[R] M₂) :=
-{ carrier := λ f, p ≤ comap f q,
+{ carrier := {f | p ≤ comap f q},
   zero    := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
   add     := λ f₁ f₂ h₁ h₂, by { apply le_trans _ (inf_comap_le_comap_add q f₁ f₂), rw le_inf_iff,
                                  exact ⟨h₁, h₂⟩, },

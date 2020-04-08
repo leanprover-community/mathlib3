@@ -5,6 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
+
 import data.real.basic order.lattice algebra.field
 
 noncomputable theory
@@ -277,6 +278,14 @@ begin
   { simp [bot_eq_zero] },
   { assume a s has ih, simp [has, ih, mul_sup], }
 end
+
+@[simp, move_cast] lemma coe_max (x y : nnreal) :
+  ((max x y : nnreal) : ℝ) = max (x : ℝ) (y : ℝ) :=
+by { delta max, split_ifs; refl }
+
+@[simp, move_cast] lemma coe_min (x y : nnreal) :
+  ((min x y : nnreal) : ℝ) = min (x : ℝ) (y : ℝ) :=
+by { delta min, split_ifs; refl }
 
 section of_real
 

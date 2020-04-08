@@ -146,6 +146,9 @@ by_contradiction
     from nat.mod_lt _ (order_of_pos _))
       ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
 
+lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : a ^ n = 1 ↔ order_of a ∣ n :=
+⟨order_of_dvd_of_pow_eq_one, λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero]⟩
+
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
 

@@ -17,7 +17,7 @@ and whether there is a more direct way of producing the result you wanted,
 before relying on these tactics.
 
 Both are implemented in terms of a generic `intercept_result` tactic,
-which allows you to run an arbitrary tactic to modify the returned results.
+which allows you to run an arbitrary tactic and modify the returned results.
 -/
 
 namespace tactic

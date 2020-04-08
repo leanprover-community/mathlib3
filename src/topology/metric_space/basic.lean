@@ -1443,7 +1443,7 @@ diam_subsingleton subsingleton_singleton
 lemma diam_pair : diam ({x, y} : set α) = dist x y :=
 by simp only [diam, emetric.diam_pair, dist_edist]
 
--- Does not work as a simp-lemma, since {x, y} reduces to (insert z (insert y {x}))
+-- Does not work as a simp-lemma, since {x, y, z} reduces to (insert z (insert y {x}))
 lemma diam_triple :
   metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
 begin

@@ -120,7 +120,10 @@ end denumerable
 namespace nat.subtype
 open function encodable
 
-variables {s : set ℕ} [decidable_pred s] [infinite s]
+variables {s : set ℕ} [infinite s]
+
+section classical
+open_locale classical
 
 lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
@@ -132,6 +135,10 @@ infinite.not_fintype
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
     by simpa [subtype.ext, multiset.mem_filter, -multiset.range_succ]⟩
+
+end classical
+
+variable [decidable_pred s]
 
 def succ (x : s) : s :=
 have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,

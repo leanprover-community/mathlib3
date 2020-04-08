@@ -480,10 +480,15 @@ namespace formal_multilinear_series
 
 variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : nnreal}
 
-/-- Changing the origin of a formal multilinear series `p`, so that
-`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. We don't use the bracket notation
-`⟨n, s, hs⟩` as it leads to a bad definition, but we will try to use it as much as possible in
-the proofs below to increase readability. -/
+/--
+Changing the origin of a formal multilinear series `p`, so that
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
+
+Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda, 
+as this leads to a bad definition with auxiliary `_match` statements, 
+but we will try to use pattern matching in lambdas as much as possible in the proofs below 
+to increase readability.
+-/
 def change_origin (x : E) :
   formal_multilinear_series 𝕜 E F :=
 λ k, tsum (λi, (p i.1).restr i.2.1 i.2.2 x :

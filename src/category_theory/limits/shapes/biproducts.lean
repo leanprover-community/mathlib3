@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.epi_mono
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 
@@ -170,6 +171,16 @@ abbreviation biproduct.map [fintype J] [decidable_eq J] {f g : J → C} [has_fin
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
 (@lim (discrete J) _ C _ _).map (nat_trans.of_function p)
 
+instance biproduct.ι_mono [decidable_eq J] (f : J → C) [has_bilimit (functor.of_function f)]
+  (b : J) : split_mono (biproduct.ι f b) :=
+{ retraction := biproduct.desc $
+    λ b', if h : b' = b then eq_to_hom (congr_arg f h) else biproduct.ι f b' ≫ biproduct.π f b }
+
+instance biproduct.π_epi [decidable_eq J] (f : J → C) [has_bilimit (functor.of_function f)]
+  (b : J) : split_epi (biproduct.π f b) :=
+{ section_ := biproduct.lift $
+    λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
+
 variables {C}
 
 /--
@@ -285,6 +296,22 @@ we obtain a map between the binary biproducts. -/
 abbreviation biprod.map {W X Y Z : C} [has_binary_biproducts.{v} C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
 (@lim (discrete walking_pair) _ C _ _).map (@map_pair _ _ (pair W X) (pair Y Z) f g)
+
+instance biprod.inl_mono {X Y : C} [has_binary_biproduct.{v} X Y] :
+  split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
+{ retraction := biprod.desc (𝟙 X) (biprod.inr ≫ biprod.fst) }
+
+instance biprod.inr_mono {X Y : C} [has_binary_biproduct.{v} X Y] :
+  split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
+{ retraction := biprod.desc (biprod.inl ≫ biprod.snd) (𝟙 Y)}
+
+instance biprod.fst_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
+  split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
+{ section_ := biprod.lift (𝟙 X) (biprod.inl ≫ biprod.snd) }
+
+instance biprod.snd_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
+  split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
+{ section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
 
 -- TODO:
 -- If someone is interested, they could provide the constructions:

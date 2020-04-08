@@ -1464,7 +1464,7 @@ theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
   f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
 nat.iterate₁ f.map_inv
 
-@[simp, to_additive]
+@[simp]
 theorem iterate_map_sub {A : Type*} [add_group A] (f : A →+ A) (n : ℕ) (x y) :
   f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
 nat.iterate₂ f.map_sub

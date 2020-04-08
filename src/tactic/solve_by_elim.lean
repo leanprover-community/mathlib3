@@ -56,9 +56,9 @@ that do not in fact produce metavariables with a simple `return` tactic.
 -/
 meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) :
   tactic (list (tactic expr)) :=
- -- We lock the tactic state so that any spurious goals generated during
- -- elaboration of pre-expressions are discarded
- lock_tactic_state $
+-- We lock the tactic state so that any spurious goals generated during
+-- elaboration of pre-expressions are discarded
+lock_tactic_state $
 do
   -- `hs` are expressions specified explicitly,
   -- `hex` are exceptions (specified via `solve_by_elim [-h]`) referring to local hypotheses,

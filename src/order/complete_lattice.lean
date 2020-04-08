@@ -43,7 +43,7 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
-that returns the greatest lower boundary of a set. Usually this constructor provides
+that returns the greatest lower bound of a set. Usually this constructor provides
 poor definitional equalities, so it should be used with
 `.. complete_lattice_of_Inf α _`. -/
 def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]

@@ -831,6 +831,10 @@ nth_le_map f _ _
 have hn0 : n = 0 := le_zero_iff.1 (le_of_lt_succ hn),
 by subst hn0; refl
 
+lemma nth_le_zero [inhabited α] {L : list α} (h : 0 < L.length) :
+  L.nth_le 0 h = L.head :=
+by { cases L, cases h, simp, }
+
 lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
   (l₁ ++ l₂).nth_le n hn₁ = l₁.nth_le n hn₂
 | []     _ n     hn₁ hn₂  := (not_lt_zero _ hn₂).elim
@@ -1542,7 +1546,53 @@ theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
 by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
   exact l.foldl_hom _ _ _ 1 (is_monoid_hom.map_mul f) }
 
+-- `to_additive` chokes on the next few lemmas, so we do them by hand below
+@[simp]
+lemma prod_take_mul_prod_drop :
+  ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop], }
+
+@[simp]
+lemma prod_take_succ :
+  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
+| [] i p := by cases p
+| (h :: t) 0 _ := by simp
+| (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc], }
+
+/-- A list with product not one must have positive length. -/
+lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
+by { cases L, { simp at h, cases h, }, { simp, }, }
+
 end monoid
+
+@[simp]
+lemma sum_take_add_sum_drop [add_monoid α] :
+  ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [sum_cons, sum_cons, add_assoc, sum_take_add_sum_drop], }
+
+@[simp]
+lemma sum_take_succ [add_monoid α] :
+  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).sum = (L.take i).sum + L.nth_le i p
+| [] i p := by cases p
+| (h :: t) 0 _ := by simp
+| (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
+
+/-- A list with sum not zero must have positive length. -/
+lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
+by { cases L, { simp at h, cases h, }, { simp, }, }
+
+-- Now we tie those lemmas back to their multiplicative versions.
+attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_prod_ne_one
+
+/-- A list with positive sum must have positive length. -/
+-- This is an easy consequence of the previous, but often useful in applications.
+lemma length_pos_of_sum_pos [ordered_cancel_comm_monoid α] (L : list α) (h : 0 < L.sum) :
+  0 < L.length :=
+length_pos_of_sum_ne_zero L (ne_of_gt h)
 
 @[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :

@@ -831,6 +831,10 @@ nth_le_map f _ _
 have hn0 : n = 0 := le_zero_iff.1 (le_of_lt_succ hn),
 by subst hn0; refl
 
+lemma nth_le_zero [inhabited α] {L : list α} (h : 0 < L.length) :
+  L.nth_le 0 h = L.head :=
+by { cases L, cases h, simp, }
+
 lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
   (l₁ ++ l₂).nth_le n hn₁ = l₁.nth_le n hn₂
 | []     _ n     hn₁ hn₂  := (not_lt_zero _ hn₂).elim
@@ -1167,9 +1171,9 @@ by cases l; refl
 
 theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take n l := rfl
 
-@[simp] theorem take_all : ∀ (l : list α), take (length l) l = l
+@[simp] theorem take_length : ∀ (l : list α), take (length l) l = l
 | []     := rfl
-| (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_all end
+| (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_length end
 
 theorem take_all_of_le : ∀ {n} {l : list α}, length l ≤ n → take n l = l
 | 0     []     h := rfl
@@ -1194,6 +1198,12 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | 0         m        l      := by rw [zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
+
+lemma map_take {α β : Type*} (f : α → β) :
+  ∀ (L : list α) (i : ℕ), (L.take i).map f = (L.map f).take i
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [map_take], }
 
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
@@ -1221,7 +1231,7 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 | 0     (a::l) h := rfl
 | (n+1) (a::l) h := @drop_eq_nth_le_cons n _ _
 
-@[simp] lemma drop_all (l : list α) : l.drop l.length = [] :=
+@[simp] lemma drop_length (l : list α) : l.drop l.length = [] :=
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
 
@@ -1254,6 +1264,12 @@ theorem drop_take : ∀ (m : ℕ) (n : ℕ) (l : list α),
 | (m+1) n (_::l) :=
   have h: m + 1 + n = (m+n) + 1, by ac_refl,
   by simpa [take_cons, h] using drop_take m n l
+
+lemma map_drop {α β : Type*} (f : α → β) :
+  ∀ (L : list α) (i : ℕ), (L.drop i).map f = (L.map f).drop i
+| [] i := by simp
+| L 0 := by simp
+| (h :: t) (n+1) := by { dsimp, rw [map_drop], }
 
 theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
   ∀ n l, modify_nth_tail f n l = take n l ++ f (drop n l)

@@ -274,23 +274,6 @@ end
 attribute [ext] monoid
 
 namespace tactic
-/--
-Attempts to run a tactic,
-intercepts any results it assigns to the goals,
-and runs `simp` on that
-before assigning the simplified values to the original goals.
--/
-meta def simp_result {α : Type} (t : tactic α)
-  (cfg : simp_config := {}) (discharger : tactic unit := failed)
-  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
-do
-  (gs, r) ← retrieve (do
-    gs ← get_goals,
-    r ← t,
-    gs ← gs.mmap instantiate_mvars,
-    return (gs, r)),
-  gs.mmap (λ g, try $ prod.fst <$> g.simp cfg discharger no_defaults attr_names hs >>= exact),
-  return r
 
 /--
 Attempts to run a tactic,

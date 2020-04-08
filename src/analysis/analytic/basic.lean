@@ -496,6 +496,9 @@ def change_origin (x : E) :
 
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, first version. -/
+-- Note here and below it is necessary to use `@` and provide implicit arguments using `_`,
+-- so that it is possible to use pattern matching in the lambda.
+-- Overall this seems a good trade-off in readability.
 lemma change_origin_summable_aux1 (h : (nnnorm x + r : ennreal) < p.radius) :
   @summable ℝ _ _ _ ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
     (Σ (n : ℕ), finset (fin n)) → ℝ) :=

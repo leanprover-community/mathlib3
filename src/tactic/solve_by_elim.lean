@@ -65,6 +65,9 @@ do
   -- `gex` are the other exceptions
   (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
   -- Recall, per the discussion above, we produce `tactic expr` thunks rather than actual `expr`s.
+  -- Note that while we evaluate these thunks on two occasions below while preparing the list,
+  -- this is a one-time cost during `mk_assumption_set`, rather than a cost proportional to the
+  -- length of the search `solve_by_elim` executes.
   let hs := hs.map (λ h, i_to_expr_for_apply h),
   l ← attr.mmap $ λ a, attribute.get_instances a,
   let l := l.join,
@@ -75,7 +78,8 @@ do
     ([`rfl, `trivial, `congr_fun, `congr_arg].map (λ n, (mk_const n))) ++ hs,
   hs ← if ¬ no_dflt ∨ all_hyps then do
     ctx ← local_context,
-    return $ hs.append ((ctx.filter (λ h : expr, h.local_uniq_name ∉ hex)).map return) -- remove local exceptions
+    -- Remove local exceptions specified in `hex`:
+    return $ hs.append ((ctx.filter (λ h : expr, h.local_uniq_name ∉ hex)).map return)
   else return hs,
   -- Finally, run all of the tactics: any that return an expression without metavariables can safely
   -- be replaced by a `return` tactic.

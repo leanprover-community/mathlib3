@@ -24,7 +24,9 @@ jobs:
       - id: parse_comments
         name: Parse comments
         run: |
-          RESULT=$(echo '${{ steps.check_comments.outputs.data }}' | jq -c --raw-output 'map(select(.body | test("\\n?bors:? (r\\+|merge)"; "m"))) | length')
+          RESULT=$(jq -c --raw-output 'map(select(.body | test("\\n?bors:? (r\\+|merge)"; "m"))) | length' <<'EOF'
+          ${{ steps.check_comments.outputs.data }}
+          EOF)
           echo $RESULT
           echo "::set-output name=num_bors_comments::$RESULT"
 
@@ -54,7 +56,9 @@ jobs:
         id: parse_check_approvals
         name: Parse PR approvals
         run: |
-          RESULT=$(echo '${{ steps.check_approvals.outputs.data }}' | jq -c --raw-output 'map(select(.state == "APPROVED") | .user.login)')
+          RESULT=$(jq -c --raw-output 'map(select(.state == "APPROVED") | .user.login)' <<'EOF'
+          ${{ steps.check_approvals.outputs.data }}
+          EOF)
           echo $RESULT
           echo "::set-output name=approved_users::$RESULT"
 

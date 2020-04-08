@@ -180,6 +180,11 @@ do
   -- to compress away some `map_equiv equiv.refl` subexpressions.
   prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
 
+mk_simp_attribute equiv_rw_simp "The simpset `equiv_rw_simp` is used by the tactic `equiv_rw` to
+simplify applications of equivalences and their inverses."
+
+attribute [equiv_rw_simp] equiv.symm_symm equiv.apply_symm_apply equiv.symm_apply_apply
+
 /--
 Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
@@ -200,12 +205,20 @@ do
   -- attempting to replace all occurrences of `e x`,
   -- calling it for now `j : β`, with `k : x = e.symm j`.
   generalize ex (by apply_opt_param) transparency.none,
-  -- Reintroduce `x` (now of type `b`).
+  -- Reintroduce `x` (now of type `b`), and the hypothesis `h`.
   intro x,
-  k ← mk_fresh_name,
-  -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
-  intro k >>= (λ k, subst k <|> unfreeze_local_instances >> subst k),
-  `[try { simp only [equiv.symm_symm, equiv.apply_symm_apply, equiv.symm_apply_apply] }],
+  h ← intro1,
+  -- We may need to unfreeze `x` before we can `subst` or `clear` it.
+  unfreeze x',
+  -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,
+  -- and if we're working on data, just throw out the old `x`.
+  b ← target >>= is_prop,
+  if b then do
+    subst h,
+    `[try { simp only [] with equiv_rw_simp }]
+  else
+    clear' tt (native.rb_map.set_of_list [x']) <|>
+      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip
 
 /-- Rewrite the goal using an equiv `e`. -/

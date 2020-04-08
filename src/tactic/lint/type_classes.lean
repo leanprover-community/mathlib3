@@ -259,8 +259,8 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- Checks whether a declaration is prop-valued and takes a `decidable* _` argument that is unused
-elsewhere in the type. In this case, that argument can be replaced with `classical` in the proof. -/
+/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
+elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    (binders, _) ← get_pi_binders_dep d.type,

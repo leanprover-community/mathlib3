@@ -1,8 +1,8 @@
-# Tactics writing in Lean tutorial
+# Tutorial: tactic writing in Lean
 
 ## Monadology
 
-Tactics are programs that act on the proof state.  But Lean is a
+Tactics are programs that act on the proof state. But Lean is a
 functional programming language. It means all you can do is
 define and evaluate functions. Each function takes input with a
 predefined type, and gives output with a predefined type. It seems to
@@ -52,7 +52,7 @@ begin
 end
 ```
 
-In the example, `my_first_tactic` is underlined in green (in VScode) and
+In the example, `my_first_tactic` is underlined in green (in VS Code) and
 moving the cursor on that line will display our message in the Lean
 messages buffer.
 
@@ -177,7 +177,7 @@ We have studied enough monadology to understand our first useful tactic:
 the `assumption` tactic, which searches the local context for an
 assumption which closes the current goal. It uses a couple more builtin
 tactics, both declared and briefly documented in the core library in
-[init/meta/tactic.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/tactic.lean) but actually implemented in C++.
+[init/meta/tactic.lean](https://github.com/leanprover-community/lean/blob/master/library/init/meta/tactic.lean) but actually implemented in C++.
 First `infer_type : expr → tactic expr`
 tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
@@ -267,7 +267,7 @@ end
 
 The first new concept we need is that of a name. In order to allow for
 namespace management, names in Lean are actually defined as an inductive
-type, in core library [meta/name.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/name.lean). Manpulating its constructors is not
+type, in core library [meta/name.lean](https://github.com/leanprover-community/lean/blob/master/library/init/meta/name.lean). Manipulating its constructors is not
 convenient, so we use instead the backtick notation (this is the first of
 many uses of backticks in tactic writing). Actually we already did that when
 discussing the `add_interactive` command at the very beginning. Accessing an
@@ -278,7 +278,8 @@ hence not a valid name. It takes two optional arguments that we ignore for
 now, and a pre-expression which is a proof of our new item. Such a
 pre-expression is constructed using the double-backtick-parenthesis notation:
 ``` ``(...) ```. Inside such a construction, previously assigned expressions
-are accessed using the anti-quotation prefix `%%`. This syntax is very close to the pattern matching syntax we saw above (but different).
+are accessed using the anti-quotation prefix `%%`. This syntax is very close
+to the pattern matching syntax we saw above (but different).
 
 ```lean
 open tactic.interactive («have»)
@@ -296,7 +297,8 @@ begin
   exact this
 end
 ```
-A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved when the tactic is executed. In order to trigger name resolution when
+A last remark about the above tactic: the names `` `h₁ `` and `` `h₂ `` are resolved
+when the tactic is executed. In order to trigger name resolution when
 the tactic is parsed, one should use double-backtick, as in ``` ``h₁ ```. Of course
 in the above context, that would trigger an error since nothing named `h₁` is
 in sight at tactic parsing time. But it can be useful in other cases.
@@ -332,8 +334,9 @@ The "followed by" is expressed by the `seq_right` combinator (there is again
 a monad lurking here), with notation `*>`. Parsing a token is introduced by
 `lean.parser.tk` followed by a string which must be taken from a
 predetermined list (the initial value of this list can be found in
-Lean source code, in [frontends/lean/token_table.cpp](https://github.com/leanprover/lean/blob/master/src/frontends/lean/token_table.cpp), elements are added to this list when literals are used in `notation`, `infix`, or `precedence`). And then the
-combination is wrapped into `optional` to make it optional. The term `h` we
+Lean source code, in [frontends/lean/token_table.cpp](https://github.com/leanprover-community/lean/blob/master/src/frontends/lean/token_table.cpp),
+elements are added to this list when literals are used in `notation`, `infix`, or `precedence`).
+And then the combination is wrapped into `optional` to make it optional. The term `h` we
 get below has then type `option name` and can be passed as the first argument
 of `«have»`, which will use it if provided, and otherwise use the name `this`.
 ```lean
@@ -366,7 +369,7 @@ end
 
 The main new skills here consist in indicating at what location we want to
 act, using the traditional token `at`, and passing an expression to the
-tactic. Locations are defined in the core library [meta/interactive_base.lean](https://github.com/leanprover/lean/blob/master/library/init/meta/interactive_base.lean) as
+tactic. Locations are defined in the core library [meta/interactive_base.lean](https://github.com/leanprover-community/lean/blob/master/library/init/meta/interactive_base.lean) as
 an inductive type having two constructors: `wildcard` which indicates all
 locations, and `loc.ns` which takes a `list (option name)`, where `none` in
 the `option name` means the current goal, whereas `some n` means the thing
@@ -401,7 +404,7 @@ As a last refinement, let us make a version of this tactic which names the
 multiplied equality by appending `.mul`, and optionally removes the original
 one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
-See [category/combinators.lean](https://github.com/leanprover/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.
+See [category/combinators.lean](https://github.com/leanprover-community/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.
 ```lean
 meta def tactic.interactive.mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
 parse location → tactic unit
@@ -427,51 +430,76 @@ the paper [A Metaprogramming Framework for Formal Verification](https://leanprov
 
 This section is a direct compilation of messages from Mario on Zulip.
 
-* `` `my.name `` is the way to refer to a name. It is essentially a form of string quoting; no checks are done besides parsing dots into namespaced names
+* `` `my.name `` is the way to refer to a name. It is essentially a form of string quoting; no
+  checks are done besides parsing dots into namespaced names.
 
-* ``` ``some ``` does name resolution at parse time, so this example expands to  `` `option.some `` and will error if the given name doesn't exist
-* `` `(my expr) `` constructs an expression at parse time, resolving what it can in the current (of the tactic) namespace
-* ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
-* ```` ```(my pexpr) ```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
-* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, ``` ``(pexpr) ```, ```` ```(pexpr) ````, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
-* The `reflect` function turns a term `t : T` into an `expr` that reflects `t`, if Lean can infer an instance `reflected t`. This can be used, for example, to refer to local variables from a tactic definition inside a quotation, using `%%(reflect n)`. As an example, we could write
-    ```
+* ``` ``some ``` does name resolution at parse time, so this example expands to  `` `option.some ``
+  and will error if the given name doesn't exist.
+* `` `(my expr) `` constructs an expression at parse time, resolving what it can in the current (of
+  the tactic) namespace.
+* ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the
+  tactic) namespace.
+* ```` ```(my pexpr) ```` constructs a `pexpr`, but defers resolution to run time (of the tactic),
+  meaning that any references will be resolved in the namespace of the `begin` `end` block of the
+  user, rather than the tactic itself.
+* `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting
+  expressions `` `(expr) ``, ``` ``(pexpr) ```, ```` ```(pexpr) ````, as well as `` `[tacs] ``.
+  Wherever an expression is expected inside one of these quoting constructs, you can use `%%e`
+  instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced
+  into the constructed `expr`/`pexpr`/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is
+  of type `expr`.
+* The `reflect` function turns a term `t : T` into an `expr` that reflects `t`, if Lean can infer
+  an instance `reflected t`. This can be used, for example, to refer to local variables from a
+  tactic definition inside a quotation, using `%%(reflect n)`. As an example, we could write
+    ```lean
     meta def assert_ge_zero (n : ℕ) : tactic unit :=
     do v ← to_expr ``(nat.zero_le %%(reflect n)),
        t ← infer_type v,
        assertv `h t v,
        skip
     ```
-    If you just wrote `n` directly here you'd get a "unexpected local in quotation expression" error.
-* `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
+    If you just wrote `n` directly here you'd get a "unexpected local in quotation expression"
+    error.
+* `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses `tac...`
+  using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just
+  wraps up the list of tactics as a single tactic of type `tactic unit`. This is useful for writing
+  "macros" or light-weight tactic writing
 
 
 Also worth mentioning are `expr` pattern matches, which have the same syntax
 like `` `(%%a + %%b) ``. These can be used in the pattern position of a match or on
 the left side of a `←` in do notation, and will destruct an expression and
 bind the antiquoted variables.
-For example, if `e` is an expression then `` do `(%%a = %%b) ← return e, ... `` will check that `e` is an equality, and bind the LHS and RHS to `a` and `b` (of type `expr`), and if it is not an equality the tactic will fail.
+For example, if `e` is an expression then `` do `(%%a = %%b) ← return e, ... `` will check that
+`e` is an equality, and bind the LHS and RHS to `a` and `b` (of type `expr`), and if it is not an
+equality the tactic will fail.
 
 (It's worth noting that this sort of pattern matching works at a syntactic level. Sometimes
 it is more flexible to use unification, instead.)
 
 ## Mario's monadic symbols cheat sheet
 
-All functions and notations from the list below apply to more general monads than `tactic`, so they are listed in a generic form but, for the purposes
+All functions and notations from the list below apply to more general monads than `tactic`, so they
+are listed in a generic form but, for the purposes
 of this tutorial `m` is always `tactic` (or `lean.parser`). Although
 everything can be done with the symbols introduced in this tutorials, more
 esoteric symbols allow to compress code, and understanding them is useful for
 reading available tactics.
 
 * `return`: produce a value in the monad (type: `A → m A`)
-* `ma >>= f`: get the value of type `A` from `ma : m A` and pass it to `f : A → m B`. Alternate syntax: `do a ← ma, f a`
-* `f <$> ma`: apply the function `f : A → B` to the value in `ma : m A` to get a `m B`. Same as `do a ← ma, return (f a)`
-* `ma >> mb`: same as `do a ← ma, mb`; here the return value of `ma` is ignored and then `mb` is called. Alternate syntax: `do ma, mb`
-* `mf <*> ma`: same as `do f ← mf, f <$> ma`, or `do f ← mf, a ← ma, return (f a)`.
+* `ma >>= f`: get the value of type `A` from `ma : m A` and pass it to `f : A → m B`. Alternate
+  syntax: `do a ← ma, f a`
+* `f <$> ma`: apply the function `f : A → B` to the value in `ma : m A` to get a `m B`. Same as
+  `do a ← ma, return (f a)`
+* `ma >> mb`: same as `do a ← ma, mb`; here the return value of `ma` is ignored and then `mb` is
+  called. Alternate syntax: `do ma, mb`
+* `mf <*> ma`: same as `do f ← mf, f <$> ma`, or `do f ← mf, a ← ma, return (f a)`
 * `ma <* mb`: same as `do a ← ma, mb, return a`
-* `ma *> mb`: same as `do ma, mb`, or `ma >> mb`. Why two notations for the same thing? Historical reasons
-* `pure`: same as `return`. Again, historical reasons
-* `failure`: failed value (specific monads usually have a more useful form of this, like `fail` and `failed` for tactics)
+* `ma *> mb`: same as `do ma, mb`, or `ma >> mb`. Why two notations for the same thing? Historical
+  reasons.
+* `pure`: same as `return`. Again, historical reasons.
+* `failure`: failed value (specific monads usually have a more useful form of this, like `fail` and
+  `failed` for tactics).
 * `ma <|> ma'` recover from failure: runs `ma` and if it fails then runs `ma'`.
 * `a $> mb`: same as `do mb, return a`
 * `ma <$ b`: same as `do ma, return b`

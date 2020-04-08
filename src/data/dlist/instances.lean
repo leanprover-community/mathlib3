@@ -23,4 +23,6 @@ equiv.traversable list_equiv_dlist
 instance : is_lawful_traversable dlist :=
 equiv.is_lawful_traversable list_equiv_dlist
 
+instance {α} : inhabited (dlist α) := ⟨dlist.empty⟩
+
 end dlist

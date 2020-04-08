@@ -6,12 +6,12 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 Characteristic of semirings.
 -/
 
-import data.padics.padic_norm data.nat.choose data.fintype
+import data.padics.padic_norm data.nat.choose data.fintype.basic
 import data.zmod.basic algebra.module
 
 universes u v
 
-/-- The generator of the kernel of the unique homomorphism ℤ → α for a semiring α -/
+/-- The generator of the kernel of the unique homomorphism ℕ → α for a semiring α -/
 class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 (cast_eq_zero_iff : ∀ x:ℕ, (x:α) = 0 ↔ p ∣ x)
 
@@ -122,10 +122,10 @@ lemma cast_eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :
 calc (k : α) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp[cast_eq_zero]
 
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
+theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] : p ≠ 0 :=
 assume h : p = 0,
 have char_zero α := @char_p_to_char_zero α _ (h ▸ hc),
-absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _ _)
+absurd (@nat.cast_injective α _ _ this) (not_injective_infinite_fintype coe)
 
 end
 
@@ -164,7 +164,7 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_is_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
+theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : nat.prime p :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain
@@ -173,16 +173,19 @@ end char_p
 
 namespace zmod
 
-variables {α : Type u} [ring α] {n : ℕ+}
+variables (α : Type u) [ring α] {n : ℕ+}
 
-instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast : zmod n → α) :=
-{ map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
-  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
+/-- `zmod.cast : zmod n →+* α` as a ring homomorphism. -/
+def cast_hom [char_p α n] : zmod n →+* α :=
+{ to_fun := cast,
+  map_zero' := rfl,
+  map_one' := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
+  map_mul' := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
     by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
-  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
+  map_add' := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
     by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
 
-instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
+instance to_module [char_p α n] : module (zmod n) α := (cast_hom α).to_module
 
 instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
 @zmod.to_module α _ ⟨m, hm⟩ hc

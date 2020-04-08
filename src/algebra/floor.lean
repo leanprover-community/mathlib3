@@ -32,7 +32,7 @@ rounding
 
 variables {α : Type*}
 
-/-
+/--
 A `floor_ring` is a linear ordered ring over `α` with a function
 `floor : α → ℤ` satisfying `∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)`.
 -/
@@ -88,8 +88,8 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
-  {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+  [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
   have : y < ⌊y⌋ + 1         :=  lt_floor_add_one y,
@@ -104,7 +104,7 @@ lemma floor_eq_iff {r : α} {z : ℤ} :
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
 int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
-lemma floor_ring_unique [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
+lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
   @floor _ _ inst1 = @floor _ _ inst2 :=
 begin
   ext v,
@@ -146,7 +146,7 @@ theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : 
     rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
     rcases h with ⟨hge, hlt, ⟨z, hz⟩⟩,
     rw [hz, int.cast_inj, floor_eq_iff, ←hz],
-    clear hz, split; linarith {discharger := `[simp]}
+    clear hz, split; simpa [sub_eq_add_neg]
   end⟩
 
 theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
@@ -160,14 +160,14 @@ theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z
   split, exact fract_lt_one _,
   use z + ⌊s⌋,
   rw [eq_add_of_sub_eq hz, int.cast_add],
-  unfold fract, simp
+  unfold fract, simp [sub_eq_add_neg]
 end⟩
 
 @[simp] lemma fract_fract (r : α) : fract (fract r) = fract r :=
-by rw fract_eq_fract; exact ⟨-⌊r⌋, by unfold fract;simp⟩
+by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, fract]⟩
 
 theorem fract_add (r s : α) : ∃ z : ℤ, fract (r + s) - fract r - fract s = z :=
-⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp⟩
+⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp [sub_eq_add_neg]; abel⟩
 
 theorem fract_mul_nat (r : α) (b : ℕ) : ∃ z : ℤ, fract r * b - fract (r * b) = z :=
 begin
@@ -191,6 +191,9 @@ by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
 theorem lt_ceil {x : α} {z : ℤ} : z < ⌈x⌉ ↔ (z:α) < x :=
 lt_iff_lt_of_le_iff_le ceil_le
+
+theorem ceil_le_floor_add_one (x : α) : ⌈x⌉ ≤ ⌊x⌋ + 1 :=
+by rw [ceil_le, int.cast_add, int.cast_one]; exact le_of_lt (lt_floor_add_one x)
 
 theorem le_ceil (x : α) : x ≤ ⌈x⌉ :=
 ceil_le.1 (le_refl _)
@@ -254,8 +257,14 @@ begin
   refl
 end
 
-theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable (↑(nat_ceil a) < a + 1)] :
-  ↑(nat_ceil a) < a + 1 :=
+theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable ((nat_ceil a : α) < a + 1)] :
+  (nat_ceil a : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
   show nat_ceil (a + 1) = nat_ceil a + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
   apply nat.lt_succ_self
+
+lemma lt_of_nat_ceil_lt {x : α} {n : ℕ} (h : nat_ceil x < n) : x < n :=
+lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
+
+lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
+le_trans (le_nat_ceil x) (by exact_mod_cast h)

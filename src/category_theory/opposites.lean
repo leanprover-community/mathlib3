@@ -163,17 +163,17 @@ include 𝒟
 section
 variables {F G : C ⥤ D}
 
-protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
+@[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
-protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+@[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma unop_app (α : F.op ⟶ G.op) (X) : (nat_trans.unop α).app X = (α.app (op X)).unop := rfl
+@[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
 end
 
@@ -220,6 +220,8 @@ variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
+/-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural
+isomorphism between the original functors `F ≅ G`. -/
 protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
@@ -228,6 +230,17 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 
 @[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
 @[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
+
+/-- The natural isomorphism between functors `G ≅ F` induced by a natural isomorphism
+between the opposite functors `F.op ≅ G.op`. -/
+protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
+{ hom := nat_trans.unop α.hom,
+  inv := nat_trans.unop α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma unop_hom (α : F.op ≅ G.op) : (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
+@[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
 
 end nat_iso
 

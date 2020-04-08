@@ -2,8 +2,12 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
+-/
 
-Extends theory on products
+/-!
+# Extra facts about `prod`
+
+This file defines `prod.swap : α × β → β × α` and proves various simple lemmas about `prod`.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -44,6 +48,18 @@ funext (λ p, ext (map_fst f g p) (map_snd f g p))
 
 lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
 funext $ λ ⟨a, b⟩, rfl
+
+lemma fst_surjective [h : nonempty β] : function.surjective (@fst α β) :=
+λ x, h.elim $ λ y, ⟨⟨x, y⟩, rfl⟩
+
+lemma snd_surjective [h : nonempty α] : function.surjective (@snd α β) :=
+λ y, h.elim $ λ x, ⟨⟨x, y⟩, rfl⟩
+
+lemma fst_injective [subsingleton β] : function.injective (@fst α β) :=
+λ x y h, ext h (subsingleton.elim _ _)
+
+lemma snd_injective [subsingleton α] : function.injective (@snd α β) :=
+λ x y h, ext (subsingleton.elim _ _) h
 
 /-- Swap the factors of a product. `swap (a, b) = (b, a)` -/
 def swap : α × β → β × α := λp, (p.2, p.1)
@@ -87,6 +103,6 @@ end prod
 
 open function
 
-lemma function.injective_prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
+lemma function.injective.prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
   injective (λ p : α × β, (f p.1, g p.2)) :=
 assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, by { simp [prod.mk.inj_iff],exact λ ⟨eq₁, eq₂⟩, ⟨hf eq₁, hg eq₂⟩ }

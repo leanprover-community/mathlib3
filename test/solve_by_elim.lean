@@ -11,6 +11,12 @@ begin
   apply_assumption,
 end
 
+example {X : Type} (x : X) : x = x :=
+by solve_by_elim
+
+example : true :=
+by solve_by_elim
+
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 
@@ -22,8 +28,8 @@ by solve_by_elim
 
 example {α : Type} {a b : α → Prop} (h₀ : b = a) (y : α) : a y = b y :=
 begin
-  success_if_fail { solve_by_elim only [] },
-  success_if_fail { solve_by_elim only [h₀] },
+  success_if_fail { solve_by_elim only [], },
+  success_if_fail { solve_by_elim only [h₀], },
   solve_by_elim only [h₀, congr_fun]
 end
 
@@ -96,3 +102,40 @@ begin
   repeat { split },
   solve_by_elim*,
 end
+
+example {a b c : ℕ} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
+begin
+  apply le_trans,
+  solve_by_elim { backtrack_all_goals := true },
+end
+
+/-
+We now test the `accept` feature of `solve_by_elim`.
+
+Recall that the `accept` parameter has type `list expr → tactic unit`.
+At each branch (not just leaf) of the backtracking search tree,
+`accept` is invoked with the list of metavariables
+reported by `get_goals` when `solve_by_elim` was called
+(which by now may have been partially solved by previous `apply` steps),
+and if it fails this branch of the search is ignored.
+
+Non-leaf nodes of the search tree will contain metavariables,
+so we can test using `expr.has_mvar` when we're only interesting in
+filtering complete solutions.
+
+In this example, we only accept solutions that contain
+a given subexpression.
+-/
+def solve_by_elim_use_b (a b : ℕ) : ℕ × ℕ × ℕ :=
+begin
+  split; [skip, split],
+  (do
+    b ← get_local `b,
+    tactic.solve_by_elim
+    { backtrack_all_goals := tt,
+      -- We require that in some goal, the expression `b` is used.
+      accept := (λ gs, gs.any_of (λ g, guard $ g.contains_expr_or_mvar b)) })
+end
+
+-- We verify that the solution did use `b`.
+example : solve_by_elim_use_b 1 2 = (1, 1, 2) := rfl

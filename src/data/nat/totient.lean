@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators data.nat.gcd
+import algebra.big_operators data.zmod.basic
 
 open finset
 
@@ -13,6 +13,8 @@ def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
 localized "notation `φ` := nat.totient" in nat
 
+@[simp] theorem totient_zero : φ 0 = 0 := rfl
+
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
            ... = n              : card_range _
@@ -20,8 +22,7 @@ calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := dec_trivial
-| (n+2) := λ h, card_pos.2 (mt eq_empty_iff_forall_not_mem.1
-(not_forall_of_exists_not ⟨1, not_not.2 $ mem_filter.2 ⟨mem_range.2 dec_trivial, by simp [coprime]⟩⟩))
+| (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma sum_totient (n : ℕ) : ((range n.succ).filter (∣ n)).sum φ = n :=
 if hn0 : n = 0 then by rw hn0; refl
@@ -60,7 +61,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
                 hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bind (by intros; apply disjoint_filter; cc)).symm
+  (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
   congr_arg card (finset.ext.2 (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
@@ -69,3 +70,20 @@ calc ((range n.succ).filter (∣ n)).sum φ
 ... = n : card_range _
 
 end nat
+
+namespace zmod
+
+open fintype
+open_locale nat
+
+@[simp] lemma card_units_eq_totient (n : ℕ+) :
+  card (units (zmod n)) = φ n :=
+calc card (units (zmod n)) = card {x : zmod n // x.1.coprime n} :
+  fintype.card_congr zmod.units_equiv_coprime
+... = φ n : finset.card_congr
+  (λ a _, a.1.1)
+  (λ a, by simp [a.1.2, a.2.symm] {contextual := tt})
+  (λ _ _ h, by simp [subtype.val_injective.eq_iff, (fin.eq_iff_veq _ _).symm])
+  (λ b hb, ⟨⟨⟨b, by finish⟩, nat.coprime.symm (by simp at hb; tauto)⟩, mem_univ _, rfl⟩)
+
+end zmod

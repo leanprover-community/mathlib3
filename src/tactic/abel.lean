@@ -2,10 +2,17 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+
+import algebra.group_power tactic.norm_num
+
+/-!
+# The `abel` tactic
 
 Evaluate expressions in the language of additive, commutative monoids and groups.
+
+
 -/
-import algebra.group_power tactic.norm_num
 
 namespace tactic
 namespace abel
@@ -87,10 +94,10 @@ meta def normal_expr.refl_conv (e : normal_expr) : tactic (normal_expr × expr) 
 do p ← mk_eq_refl e, return (e, p)
 
 theorem const_add_term {α} [add_comm_monoid α] (k n x a a') (h : k + a = a') :
-  k + @term α _ n x a = term n x a' := by simp [h.symm, term]
+  k + @term α _ n x a = term n x a' := by simp [h.symm, term]; ac_refl
 
 theorem const_add_termg {α} [add_comm_group α] (k n x a a') (h : k + a = a') :
-  k + @termg α _ n x a = termg n x a' := by simp [h.symm, termg]
+  k + @termg α _ n x a = termg n x a' := by simp [h.symm, termg]; ac_refl
 
 theorem term_add_const {α} [add_comm_monoid α] (n x a k a') (h : a + k = a') :
   @term α _ n x a + k = term n x a' := by simp [h.symm, term]
@@ -101,12 +108,12 @@ theorem term_add_constg {α} [add_comm_group α] (n x a k a') (h : a + k = a') :
 theorem term_add_term {α} [add_comm_monoid α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
   @term α _ n₁ x a₁ + @term α _ n₂ x a₂ = term n' x a' :=
-by simp [h₁.symm, h₂.symm, term, add_monoid.add_smul]
+by simp [h₁.symm, h₂.symm, term, add_monoid.add_smul]; ac_refl
 
 theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
   @termg α _ n₁ x a₁ + @termg α _ n₂ x a₂ = termg n' x a' :=
-by simp [h₁.symm, h₂.symm, termg, add_gsmul]
+by simp [h₁.symm, h₂.symm, termg, add_gsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
 by simp [term]
@@ -141,7 +148,7 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
 theorem term_neg {α} [add_comm_group α] (n x a n' a')
   (h₁ : -n = n') (h₂ : -a = a') :
   -@termg α _ n x a = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg]
+by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
@@ -259,6 +266,8 @@ do (e', p) ← eval c e, return (e', p)
 @[derive has_reflect]
 inductive normalize_mode | raw | term
 
+instance : inhabited normalize_mode := ⟨normalize_mode.term⟩
+
 meta def normalize (mode := normalize_mode.term) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
@@ -289,9 +298,9 @@ open tactic.abel
 local postfix `?`:9001 := optional
 
 /-- Tactic for solving equations in the language of
-  *additive*, commutative monoids and groups.
-  This version of `abel` fails if the target is not an equality
-  that is provable by the axioms of commutative monoids/groups. -/
+*additive*, commutative monoids and groups.
+This version of `abel` fails if the target is not an equality
+that is provable by the axioms of commutative monoids/groups. -/
 meta def abel1 : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
   c ← mk_cache e₁,
@@ -311,11 +320,25 @@ do mode ← ident?, match mode with
 end
 
 /-- Tactic for solving equations in the language of
-  *additive*, commutative monoids and groups.
-  Attempts to prove the goal outright if there is no `at`
-  specifier and the target is an equality, but if this
-  fails it falls back to rewriting all monoid expressions
-  into a normal form. -/
+*additive*, commutative monoids and groups.
+Attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails it falls back to rewriting all monoid expressions
+into a normal form.
+
+---
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
+-/
 meta def abel (SOP : parse abel.mode) (loc : parse location) : tactic unit :=
 match loc with
 | interactive.loc.ns [none] := abel1
@@ -325,6 +348,12 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (normalize SOP) ns loc.include_goal
       | fail "abel failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
+
+add_tactic_doc
+{ name        := "abel",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.abel],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end interactive
 end tactic

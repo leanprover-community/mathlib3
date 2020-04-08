@@ -108,11 +108,11 @@ by refine { .. }; intros; cases x; refl
 
 open bifunctor functor
 
-@[priority 0]
+@[priority 10]
 instance bifunctor.functor {α} : functor (F α) :=
 { map := λ _ _, snd }
 
-@[priority 0]
+@[priority 10]
 instance bifunctor.is_lawful_functor [is_lawful_bifunctor F] {α} : is_lawful_functor (F α) :=
 by refine {..}; intros; simp [functor.map] with functor_norm
 

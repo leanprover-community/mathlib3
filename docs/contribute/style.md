@@ -290,7 +290,7 @@ focussing braces and indented. Braces are not alone on their line.
 
 ```lean
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+  (hb : is_topological_basis b) : s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
   rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
   { simpa [and_comm, and.left_comm] },

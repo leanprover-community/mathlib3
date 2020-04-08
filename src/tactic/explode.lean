@@ -2,11 +2,16 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+
+import tactic.core
+/-!
+# `#explode` command
 
 Displays a proof term in a line by line format somewhat akin to a Fitch style
 proof or the Metamath proof style.
 -/
-import tactic.core meta.coinductive_predicates
+
 open expr tactic
 
 namespace tactic
@@ -17,6 +22,7 @@ namespace explode
 | []       := none
 | (a :: l) := some a
 
+@[derive inhabited]
 inductive status | reg | intro | lam | sintro
 
 meta structure entry :=
@@ -31,6 +37,7 @@ meta def pad_right (l : list string) : list string :=
 let n := l.foldl (λ r (s:string), max r s.length) 0 in
 l.map $ λ s, nat.iterate (λ s, s.push ' ') (n - s.length) s
 
+@[derive inhabited]
 meta structure entries := mk' ::
 (s : expr_map entry)
 (l : list entry)
@@ -42,8 +49,6 @@ meta def entries.add : entries → entry → entries
 | es@⟨s, l⟩ e := if s.contains e.expr then es else ⟨s.insert e.expr e, e :: l⟩
 
 meta def entries.head (es : entries) : option entry := head' es.l
-
-meta instance : inhabited entries := ⟨⟨expr_map.mk _, []⟩⟩
 
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do
@@ -137,11 +142,37 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
 
 open interactive lean lean.parser interaction_monad.result
 
+/--
+`#explode decl_name` displays a proof term in a line by line format somewhat akin to a Fitch style
+proof or the Metamath proof style.
+
+`#explode iff_true_intro` produces
+
+```lean
+iff_true_intro : ∀ {a : Prop}, a → (a ↔ true)
+0│   │ a         ├ Prop
+1│   │ h         ├ a
+2│   │ hl        │ ┌ a
+3│   │ trivial   │ │ true
+4│2,3│ ∀I        │ a → true
+5│   │ hr        │ ┌ true
+6│5,1│ ∀I        │ true → a
+7│4,6│ iff.intro │ a ↔ true
+8│1,7│ ∀I        │ a → (a ↔ true)
+9│0,8│ ∀I        │ ∀ {a : Prop}, a → (a ↔ true)
+```
+-/
 @[user_command]
 meta def explode_cmd (_ : parse $ tk "#explode") : parser unit :=
 do n ← ident,
   explode n
 .
+
+add_tactic_doc
+{ name                     := "#explode",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.explode_cmd],
+  tags                     := ["proof display"] }
 
 -- #explode iff_true_intro
 -- #explode nat.strong_rec_on

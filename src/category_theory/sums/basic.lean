@@ -55,20 +55,14 @@ include 𝒞 𝒟
 
 /-- `inl_` is the functor `X ↦ inl X`. -/
 -- Unfortunate naming here, suggestions welcome.
-def inl_ : C ⥤ C ⊕ D :=
+@[simps] def inl_ : C ⥤ C ⊕ D :=
 { obj := λ X, inl X,
   map := λ X Y f, f }
 
-@[simp] lemma inl_obj (X : C) : (inl_ C D).obj X = inl X := rfl
-@[simp] lemma inl_map {X Y : C} {f : X ⟶ Y} : (inl_ C D).map f = f := rfl
-
 /-- `inr_` is the functor `X ↦ inr X`. -/
-def inr_ : D ⥤ C ⊕ D :=
+@[simps] def inr_ : D ⥤ C ⊕ D :=
 { obj := λ X, inr X,
   map := λ X Y f, f }
-
-@[simp] lemma inr_obj (X : D) : (inr_ C D).obj X = inr X := rfl
-@[simp] lemma inr_map {X Y : D} {f : X ⟶ Y} : (inr_ C D).map f = f := rfl
 
 /-- The functor exchanging two direct summand categories. -/
 def swap : C ⊕ D ⥤ D ⊕ C :=

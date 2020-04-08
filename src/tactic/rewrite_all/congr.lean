@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Keeley Hoek
 -/
 import tactic.rewrite_all.basic
+import tactic.core
 
 namespace tactic
 

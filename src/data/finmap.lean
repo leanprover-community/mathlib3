@@ -90,7 +90,7 @@ induction_on s₁ $ λ l₁, induction_on s₂ $ λ l₂, H l₁ l₂
   (s₁ s₂ s₃ : finmap β) (H : ∀ (a₁ a₂ a₃ : alist β), C ⟦a₁⟧ ⟦a₂⟧ ⟦a₃⟧) : C s₁ s₂ s₃ :=
 induction_on₂ s₁ s₂ $ λ l₁ l₂, induction_on s₃ $ λ l₃, H l₁ l₂ l₃
 
-@[extensionality] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
+@[ext] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
 @[simp] theorem ext_iff {s t : finmap β} : s.entries = t.entries ↔ s = t :=
@@ -120,6 +120,8 @@ induction_on s $ λ s, alist.mem_keys
 
 /-- The empty map. -/
 instance : has_emptyc (finmap β) := ⟨⟨0, nodupkeys_nil⟩⟩
+
+instance : inhabited (finmap β) := ⟨∅⟩
 
 @[simp] theorem empty_to_finmap : (⟦∅⟧ : finmap β) = ∅ := rfl
 
@@ -229,8 +231,8 @@ induction_on s $ lookup_erase a
   lookup a (erase a' s) = lookup a s :=
 induction_on s $ λ s, lookup_erase_ne h
 
-@[simp] theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
-induction_on s $ λ s, ext (by simp)
+theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
+induction_on s $ λ s, ext (by simp [alist.erase_erase])
 
 lemma mem_iff {a : α} {s : finmap β} : a ∈ s ↔ ∃ b, s.lookup a = some b :=
 induction_on s $ λ s,
@@ -293,7 +295,7 @@ theorem mem_list_to_finmap (a : α) (xs : list (sigma β)) : a ∈ xs.to_finmap 
 by { induction xs with x xs; [skip, cases x];
      simp only [to_finmap_cons, *, not_mem_empty, exists_or_distrib, list.not_mem_nil, finmap.to_finmap_nil, iff_self,
                 exists_false, mem_cons_iff, mem_insert, exists_and_distrib_left];
-     apply or_congr _ (iff.refl _),
+     apply or_congr _ iff.rfl,
      conv { to_lhs, rw ← and_true (a = x_fst) },
      apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, iff_self, heq_iff_eq] }
 

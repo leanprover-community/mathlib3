@@ -22,5 +22,5 @@ scientists.
 * [Rings and fields](theories/rings_fields.md)
 * [Linear algebra](theories/linear_algebra.md)
 * [Number theory](theories/number_theory.md)
-* [Topological, uniform and metric spaces](theories/topological_spaces.md)
+* [Topological, uniform and metric spaces](theories/topology.md)
 * [Measure theory](theories/measure.md)

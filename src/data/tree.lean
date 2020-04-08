@@ -15,10 +15,10 @@ to be defined and is better suited for in-kernel computation.
 
 ## References
 
-https://leanprover-community.github.io/archive/113488general/62193tacticquestion.html
+<https://leanprover-community.github.io/archive/113488general/62193tacticquestion.html>
 -/
 
-@[derive has_reflect]
+@[derive has_reflect, derive decidable_eq]
 inductive {u} tree (α : Type u) : Type u
 | nil {} : tree
 | node : α → tree → tree → tree
@@ -34,6 +34,8 @@ def repr [has_repr α] : tree α → string
                     ++ " (" ++ repr t1 ++ ") (" ++ repr t2 ++ ")"
 
 instance [has_repr α] : has_repr (tree α) := ⟨tree.repr⟩
+
+instance : inhabited (tree α) := ⟨nil⟩
 
 /-- Makes a `tree α` out of a red-black tree. -/
 def of_rbnode : rbnode α → tree α

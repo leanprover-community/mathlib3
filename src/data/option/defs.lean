@@ -9,6 +9,11 @@ Extra definitions on option.
 namespace option
 variables {α : Type*} {β : Type*}
 
+/-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
+protected def elim : option α → β → (α → β) → β
+| (some x) y f := f x
+| none     y f := y
+
 instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 
 @[simp] theorem mem_def {a : α} {b : option α} : a ∈ b ↔ b = some a :=
@@ -89,5 +94,10 @@ instance lift_or_get_is_right_id (f : α → α → α) :
 inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
 | none {}    : rel none none
+
+protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  option α → F (option β)
+| none := pure none
+| (some x) := some <$> f x
 
 end option

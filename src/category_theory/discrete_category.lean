@@ -25,7 +25,13 @@ namespace discrete
 
 variables {α : Type u₁}
 
-instance [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
+instance [inhabited α] : inhabited (discrete α) :=
+by unfold discrete; apply_instance
+
+instance [fintype α] : fintype (discrete α) :=
+by { dsimp [discrete], apply_instance }
+
+instance fintype_fun [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
 by { apply ulift.fintype }
 
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
@@ -42,7 +48,7 @@ def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
 @[simp] lemma of_function_obj  {I : Type u₁} (F : I → C) (i : I) : (of_function F).obj i = F i := rfl
-@[simp] lemma of_function_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
+lemma of_function_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
   (of_function F).map f = 𝟙 (F i) :=
 by { cases f, cases f, cases f, refl }
 
@@ -53,6 +59,9 @@ namespace nat_trans
 def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
 { app := f }
+
+@[simp] lemma of_homs_app  {I : Type u₁} {F G : discrete I ⥤ C} (f : Π i : discrete I, F.obj i ⟶ G.obj i) (i) :
+  (of_homs f).app i = f i := rfl
 
 def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟶ (functor.of_function G) :=
@@ -94,7 +103,7 @@ include 𝒞
 @[simp] lemma functor_map_id
   (F : discrete J ⥤ C) {j : discrete J} (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
 begin
-  have h : f = 𝟙 j, cases f, cases f, ext,
+  have h : f = 𝟙 j, { cases f, cases f, ext, },
   rw h,
   simp,
 end

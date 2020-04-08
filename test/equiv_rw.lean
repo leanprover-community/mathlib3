@@ -273,10 +273,63 @@ end
 -- Now we do `monoid`, to try out a structure with constants.
 attribute [ext] monoid
 
+namespace tactic
+/--
+Attempts to run a tactic,
+intercepts any results it assigns to the goals,
+and runs `simp` on that
+before assigning the simplified values to the original goals.
+-/
+meta def simp_result {α : Type} (t : tactic α)
+  (cfg : simp_config := {}) (discharger : tactic unit := failed)
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
+do
+  (gs, r) ← retrieve (do
+    gs ← get_goals,
+    r ← t,
+    gs ← gs.mmap instantiate_mvars,
+    return (gs, r)),
+  gs.mmap (λ g, try $ prod.fst <$> g.simp cfg discharger no_defaults attr_names hs >>= exact),
+  return r
+
+/--
+Attempts to run a tactic,
+intercepts any results it assigns to the goals,
+and runs `dsimp` on that
+before assigning the simplified values to the original goals.
+-/
+meta def dsimp_result {α} (t : tactic α) : tactic α := do
+-- replace the first goal by a copy
+g :: gs ← get_goals,
+g' ← infer_type g >>= mk_meta_var,
+set_goals (g' :: gs),
+-- run the tactic on the copied goal
+a ← t,
+-- simplify the produced term
+g' ← instantiate_mvars g',
+g' ← with_local_goals' [g] $ g'.dsimp { fail_if_unchanged := ff },
+-- and assign it to the original goal
+unify g g',
+pure a
+
+namespace interactive
+
+meta def dsimp_result (t : itactic) : itactic :=
+tactic.dsimp_result t
+
+end interactive
+end tactic
+
 def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
 begin
   intro S, fconstructor,
-  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  { have mul := S.mul,
+    -- Without `dsimp_result` we get an unnecessary lambda in the result.
+    dsimp_result { equiv_rw e at mul },
+    -- With `dsimp_result` it looks great:
+    tactic.trace_result,
+    -- but we've lost the goal.
+    exact mul, },
   { /-
     The next line also works here,
     but this pattern doesn't work for axioms involving constants, e.g. one_mul:

@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/request-action@v2.x
-        name: Check comments
-        id: check_comments
+        name: Get comments
+        id: get_comments
         with:
           route: GET /repos/:repository/issues/:pull_number/comments
           repository: ${{ github.repository }}
@@ -20,28 +20,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Parse steps.check_approvals.outputs.data, since it is a string
+      # Parse steps.get_comments.outputs.data, since it is a string
       - id: parse_comments
         name: Parse comments
         run: |
-          RESULT=$(echo '${{ steps.check_comments.outputs.data }}' | jq -c --raw-output 'map(select(test("\\n?bors:? (r\\+|merge)"; "m"))) | length')
+          RESULT=$(jq -c --raw-output 'map(select(.body | test("\\n?bors:? (r\\+|merge)"; "m"))) | length' <<'EOF'
+          ${{ steps.get_comments.outputs.data }}
+          EOF
+          )
           echo $RESULT
           echo "::set-output name=num_bors_comments::$RESULT"
 
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.parse_comments.outputs.num_bors_comments == 0
         uses: octokit/request-action@v2.x
-        name: Get collaborators
-        id: get_collaborators
-        with:
-          route: GET /repos/:repository/collaborators
-          repository: ${{ github.repository }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
-        uses: octokit/request-action@v2.x
-        name: Check approvals
-        id: check_approvals
+        name: Get approvals
+        id: get_approvals
         with:
           route: GET /repos/:repository/pulls/:pull_number/reviews
           repository: ${{ github.repository }}
@@ -49,16 +42,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Parse steps.check_approvals.outputs.data, since it is a string
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
-        id: parse_check_approvals
+      # Parse steps.get_approvals.outputs.data, since it is a string
+      - if: steps.parse_comments.outputs.num_bors_comments == 0
+        id: parse_approvals
         name: Parse PR approvals
         run: |
-          RESULT=$(echo '${{ steps.check_approvals.outputs.data }}' | jq -c --raw-output 'map(select(.state == "APPROVED") | .user.login)')
+          RESULT=$(jq -c --raw-output 'map(select(.state == "APPROVED") | .user.login)' <<'EOF'
+          ${{ steps.get_approvals.outputs.data }}
+          EOF
+          )
           echo $RESULT
           echo "::set-output name=approved_users::$RESULT"
 
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.parse_comments.outputs.num_bors_comments == 0
         uses: octokit/request-action@v2.x
         name: Get collaborators
         id: get_collaborators
@@ -69,18 +65,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # check if any approving users are admins
-      - if: steps.parse_comments.outputs.num_bors_comments > 0
+      - if: steps.parse_comments.outputs.num_bors_comments == 0
         id: get_admin_approvals
         name: Get admin approvals
         run: |
-          APPROVED='${{ steps.parse_check_approvals.outputs.approved_users }}'
+          APPROVED='${{ steps.parse_approvals.outputs.approved_users }}'
           ADMINS=$(echo '${{ steps.get_collaborators.outputs.data }}' | jq -c --raw-output 'map(select(.permissions.admin) | .login)')
           echo $ADMINS
           RESULT=$(echo '{"admins":'"$ADMINS"', "approved_users":'"$APPROVED"'}' | jq --raw-output '.admins - (.admins - .approved_users) | length')
           echo $RESULT
           echo "::set-output name=num_admin_approvals::$RESULT"
 
-      - if: (steps.parse_comments.outputs.num_bors_comments > 0) && (steps.get_admin_approvals.outputs.num_admin_approvals > 0)
+      - if: (steps.parse_comments.outputs.num_bors_comments == 0) && (steps.get_admin_approvals.outputs.num_admin_approvals > 0)
         uses: octokit/request-action@v2.x
         id: add_comment
         name: Add "bors r+" comment

@@ -647,7 +647,7 @@ end
 theorem change_origin_eval (h : (nnnorm x + nnnorm y : ennreal) < p.radius) :
   has_sum ((λk:ℕ, p.change_origin x k (λ (i : fin k), y))) (p.sum (x + y)) :=
 begin
-  /- The series on the left is a series of series. If we order differently the terms, we get back
+  /- The series on the left is a series of series. If we order the terms differently, we get back
   to `p.sum (x + y)`, in which the `n`-th term is expanded by multilinearity. In the proof below,
   the term on the left is the sum of a series of terms `A`, the sum on the right is the sum of a
   series of terms `B`, and we show that they correspond to each other by reordering to conclude the

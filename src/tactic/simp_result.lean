@@ -53,9 +53,10 @@ intercepts any results it assigns to the goals,
 and runs `dsimp` on those results
 before assigning the simplified values to the original goals.
 -/
-meta def dsimp_result {α} (t : tactic α)
+meta def dsimp_result {α}
   (cfg : dsimp_config := { fail_if_unchanged := ff }) (no_defaults := ff)
-  (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
+  (attr_names : list name := []) (hs : list simp_arg_type := [])
+  (t : tactic α) : tactic α :=
 intercept_result (λ g,
   g.dsimp cfg no_defaults attr_names hs) t
 
@@ -66,9 +67,10 @@ intercepts any results `t` assigns to the goals,
 and runs `simp` on those results
 before assigning the simplified values to the original goals.
 -/
-meta def simp_result {α} (t : tactic α)
+meta def simp_result {α}
   (cfg : simp_config := { fail_if_unchanged := ff }) (discharger : tactic unit := failed) (no_defaults := ff)
-  (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
+  (attr_names : list name := []) (hs : list simp_arg_type := [])
+  (t : tactic α) : tactic α :=
 intercept_result (λ g, prod.fst <$>
   g.simp cfg discharger no_defaults attr_names hs) t
 
@@ -89,7 +91,7 @@ meta def dsimp_result
   (no_defaults : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (t : itactic) : itactic :=
-tactic.dsimp_result t { fail_if_unchanged := ff } no_defaults attr_names hs
+tactic.dsimp_result { fail_if_unchanged := ff } no_defaults attr_names hs t
 
 /--
 `simp_result { tac }`
@@ -105,7 +107,7 @@ meta def simp_result
   (no_defaults : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (t : itactic) : itactic :=
-tactic.simp_result t { fail_if_unchanged := ff } failed no_defaults attr_names hs
+tactic.simp_result { fail_if_unchanged := ff } failed no_defaults attr_names hs t
 
 add_tactic_doc
 { name       := "simp_result",

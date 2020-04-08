@@ -54,7 +54,7 @@ variables {R : Type u} {M : Type v}
 [semimodule R M] [topological_semimodule R M]
 
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
-topological_semimodule.continuous_smul R M
+topological_semimodule.continuous_smul
 
 lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=

@@ -367,7 +367,7 @@ local notation a * b := op a b
 local notation l <*> a := foldl op a l
 
 lemma fold_op_eq_of_perm {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
-foldl_eq_of_perm (right_comm _ (is_commutative.comm _) (is_associative.assoc _)) h _
+foldl_eq_of_perm (right_comm _ is_commutative.comm is_associative.assoc) h _
 end
 
 section comm_monoid

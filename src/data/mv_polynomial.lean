@@ -896,9 +896,9 @@ begin
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
   rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
   rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
-  { rw [mul_zero, finsupp.single_zero], refl },
+  { rw [mul_zero, finsupp.single_zero] },
   { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero], refl }, }
+    all_goals { rw [zero_mul, finsupp.single_zero] }, }
 end
 
 lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=

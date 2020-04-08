@@ -351,9 +351,9 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- zero
-    { erw ring_hom.map_zero ((s.ι).app r), refl },
+    { erw ring_hom.map_zero ((s.ι).app r) },
     -- one
-    { erw ring_hom.map_one ((s.ι).app r), refl },
+    { erw ring_hom.map_one ((s.ι).app r) },
     -- neg
     { rw ring_hom.map_neg ((s.ι).app r_j) },
     -- add

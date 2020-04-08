@@ -1575,7 +1575,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -1585,7 +1585,7 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -2671,7 +2671,7 @@ lemma forall₂_same {r : α → α → Prop} : ∀{l}, (∀x∈l, r x x) → fo
     (forall₂_same $ assume a ha, h a $ mem_cons_of_mem _ ha)
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
-forall₂_same $ assume a h, is_refl.refl _ _
+forall₂_same $ assume a h, is_refl.refl _
 
 lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
 begin

@@ -927,8 +927,7 @@ begin
         (tape.mk' (l₁ ++ L') (l₂ ++ R')) =
       step_aux (f ⟨l₂, h⟩) v
         (tape.mk' (l₂.reverse_core l₁ ++ L') R'),
-    { intro f, convert this n f _ _ _ _ (enc a).2;
-        simp only [subtype.eta]; refl },
+    { intro f, convert this n f _ _ _ _ (enc a).2; simp },
     clear f L a R, intros, subst i,
     induction l₂ with a l₂ IH generalizing l₁, {refl},
     change (tape.mk' (l₁ ++ L') (a :: (l₂ ++ R'))).1 with a,
@@ -1311,8 +1310,8 @@ local notation `cfg₂` := TM2.cfg Γ Λ σ
 
 inductive stackel (k : K)
 | val : Γ k → stackel
-| bottom : stackel
-| top : stackel
+| bottom [] : stackel
+| top [] : stackel
 
 instance stackel.inhabited (k) : inhabited (stackel k) :=
 ⟨stackel.top _⟩

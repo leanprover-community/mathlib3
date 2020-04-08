@@ -407,7 +407,7 @@ protected theorem add_left_cancel (s) {t u : multiset α} (h : s + t = s + u) : 
 le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
   ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
 
-instance : ordered_cancel_comm_monoid (multiset α) :=
+instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,
   add                   := (+),
   add_comm              := multiset.add_comm,
@@ -454,7 +454,7 @@ instance : canonically_ordered_monoid (multiset α) :=
   le_iff_exists_add     := @le_iff_exists_add _,
   bot                   := 0,
   bot_le                := multiset.zero_le,
-  ..multiset.ordered_cancel_comm_monoid }
+  ..multiset.ordered_cancel_add_comm_monoid }
 
 /- repeat -/
 
@@ -1694,7 +1694,8 @@ by simp [powerset_aux']
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
-  simp [revzip, reverse_append],
+  simp only [revzip, reverse_append, quot_mk_to_coe, coe_eq_coe, powerset_aux'_cons, cons_coe,
+    coe_map, antidiagonal_coe', coe_add],
   rw [← zip_map, ← zip_map, zip_append, (_ : _++_=_)],
   {congr; simp}, {simp}
 end

@@ -73,7 +73,7 @@ section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 
 @[simp] lemma inv_zero' : (0 : G₀)⁻¹ = 0 :=
-group_with_zero.inv_zero G₀
+group_with_zero.inv_zero
 
 @[simp] lemma mul_inv_cancel' (a : G₀) (h : a ≠ 0) : a * a⁻¹ = 1 :=
 group_with_zero.mul_inv_cancel a h

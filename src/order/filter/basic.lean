@@ -1881,7 +1881,7 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
 
 section ordered_monoid
 
-variables [ordered_cancel_comm_monoid β] (l : filter α) {f g : α → β}
+variables [ordered_cancel_add_comm_monoid β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_nonneg_left' (hf : {x | 0 ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
@@ -1933,7 +1933,7 @@ end ordered_monoid
 
 section ordered_group
 
-variables [ordered_comm_group β] (l : filter α) {f g : α → β}
+variables [ordered_add_comm_group β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_left_of_le' (C : β) (hf : {x | C ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
@@ -2299,7 +2299,7 @@ instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, subtype.eq (id_map f.val),
   pure_bind := assume α β a f, subtype.eq (pure_bind a (subtype.val ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, subtype.eq (filter_eq rfl),
-  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map _ f x.val) }
+  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map f x.val) }
 
 end
 

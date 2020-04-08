@@ -343,9 +343,9 @@ end ordered_comm_monoid
 
 /-! ### Pointwise negation and subtraction -/
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables [ordered_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.neg (hf : is_min_filter f l a) : is_max_filter (λ x, -f x) l a :=
 hf.comp_antimono (λ x y hx, neg_le_neg hx)
@@ -381,7 +381,7 @@ lemma is_max_on.sub (hf : is_max_on f s a) (hg : is_min_on g s a) :
   is_max_on (λ x, f x - g x) s a :=
 hf.add hg.neg
 
-end ordered_comm_group
+end ordered_add_comm_group
 
 /-! ### Pointwise `sup`/`inf` -/
 

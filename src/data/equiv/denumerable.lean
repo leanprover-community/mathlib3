@@ -28,7 +28,7 @@ open encodable
 theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
-(decode_inv α n).imp $ λ a, Exists.fst
+(decode_inv n).imp $ λ a, Exists.fst
 
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
@@ -43,7 +43,7 @@ option.eq_some_of_is_some _
 option.some.inj $ (decode_eq_of_nat _ _).symm.trans h
 
 @[simp] theorem encode_of_nat (n) : encode (of_nat α n) = n :=
-let ⟨a, h, e⟩ := decode_inv α n in
+let ⟨a, h, e⟩ := decode_inv n in
 by rwa [of_nat_of_decode h]
 
 @[simp] theorem of_nat_encode (a) : of_nat α (encode a) = a :=

@@ -22,8 +22,8 @@ class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
 class has_bot (α : Type u) := (bot : α)
 
-notation `⊤` := has_top.top _
-notation `⊥` := has_bot.bot _
+notation `⊤` := has_top.top
+notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 

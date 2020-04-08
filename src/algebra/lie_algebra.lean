@@ -295,7 +295,7 @@ end prio
   (l l' : L) (m : M) : linear_action.act R ⁅l, l'⁆ m =
                        linear_action.act R l (linear_action.act R l' m) -
                        linear_action.act R l' (linear_action.act R l m) :=
-  lie_module.lie_act R l l' m
+  lie_module.lie_act l l' m
 
 protected lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
   @linear_action.act R _ _ _ _ _ _ _ (linear_action.of_endo_map R L M α) x m = α x m := rfl

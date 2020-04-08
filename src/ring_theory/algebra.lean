@@ -27,7 +27,7 @@ setting we have a forgetful functor R-Alg ⥤ R-Mod.
 However here it extends module in order to preserve
 definitional equality in certain cases. -/
 class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scalar R A :=
-(to_fun : R → A) [hom : is_ring_hom to_fun]
+(to_fun [] : R → A) [hom [] : is_ring_hom to_fun]
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
@@ -512,9 +512,9 @@ variables {R}
 /-- CRing ⥤ ℤ-Alg -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 { carrier := S, range_le' := λ x ⟨i, h⟩, h ▸ int.induction_on i
-    (by rw algebra.map_zero; exact is_add_submonoid.zero_mem _)
-    (λ i hi, by rw [algebra.map_add, algebra.map_one]; exact is_add_submonoid.add_mem hi (is_submonoid.one_mem _))
-    (λ i hi, by rw [algebra.map_sub, algebra.map_one]; exact is_add_subgroup.sub_mem _ _ _ hi (is_submonoid.one_mem _)) }
+    (by rw algebra.map_zero; exact is_add_submonoid.zero_mem)
+    (λ i hi, by rw [algebra.map_add, algebra.map_one]; exact is_add_submonoid.add_mem hi is_submonoid.one_mem)
+    (λ i hi, by rw [algebra.map_sub, algebra.map_one]; exact is_add_subgroup.sub_mem _ _ _ hi is_submonoid.one_mem) }
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
@@ -527,7 +527,7 @@ lemma span_int_eq_add_group_closure (s : set R) :
   ↑(span ℤ s) = add_group.closure s :=
 set.subset.antisymm (λ x hx, span_induction hx
   (λ _, add_group.mem_closure)
-  (is_add_submonoid.zero_mem _)
+  is_add_submonoid.zero_mem
   (λ a b ha hb, is_add_submonoid.add_mem ha hb)
   (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
   (add_group.closure_subset subset_span)

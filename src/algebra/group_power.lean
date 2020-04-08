@@ -64,12 +64,9 @@ by split_ifs; refl
   (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
 by split_ifs; refl
 
--- In this lemma we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
 @[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
   a ^ (if P then 1 else 0) = if P then a else 1 :=
-by { simp, congr }
+by simp
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],

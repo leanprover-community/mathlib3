@@ -13,7 +13,7 @@ universes u v
 /-- A perfect field is a field of characteristic p that has p-th root. -/
 class perfect_field (α : Type u) [field α] (p : ℕ) [char_p α p] : Type u :=
 (pth_root : α → α)
-(frobenius_pth_root : ∀ x, frobenius α p (pth_root x) = x)
+(frobenius_pth_root [] : ∀ x, frobenius α p (pth_root x) = x)
 
 theorem frobenius_pth_root (α : Type u) [field α] (p : ℕ) [char_p α p] [perfect_field α p] (x : α) :
   frobenius α p (perfect_field.pth_root p x) = x :=
@@ -50,7 +50,7 @@ private lemma mul_aux_left [comm_monoid α] (p : ℕ) (x1 x2 y : ℕ × α) (H :
   quot.mk (r α p) (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) * ((frobenius α p)^[x1.1] y.2)) =
   quot.mk (r α p) (x2.1 + y.1, ((frobenius α p)^[y.1] x2.2) * ((frobenius α p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro _ n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_mul, nat.succ_add]; apply r.intro
 end
 
@@ -58,7 +58,7 @@ private lemma mul_aux_right [comm_monoid α] (p : ℕ) (x y1 y2 : ℕ × α) (H 
   quot.mk (r α p) (x.1 + y1.1, ((frobenius α p)^[y1.1] x.2) * ((frobenius α p)^[x.1] y1.2)) =
   quot.mk (r α p) (x.1 + y2.1, ((frobenius α p)^[y2.1] x.2) * ((frobenius α p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro _ n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_mul]; apply r.intro
 end
 
@@ -89,7 +89,7 @@ private lemma add_aux_left [comm_ring α] (p : ℕ) (hp : nat.prime p) [char_p �
   quot.mk (r α p) (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) + ((frobenius α p)^[x1.1] y.2)) =
   quot.mk (r α p) (x2.1 + y.1, ((frobenius α p)^[y.1] x2.2) + ((frobenius α p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro _ n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_add, nat.succ_add]; apply r.intro
 end
 
@@ -98,7 +98,7 @@ private lemma add_aux_right [comm_ring α] (p : ℕ) (hp : nat.prime p) [char_p 
   quot.mk (r α p) (x.1 + y1.1, ((frobenius α p)^[y1.1] x.2) + ((frobenius α p)^[x.1] y1.2)) =
   quot.mk (r α p) (x.1 + y2.1, ((frobenius α p)^[y2.1] x.2) + ((frobenius α p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro _ n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_add]; apply r.intro
 end
 
@@ -110,12 +110,12 @@ add_aux_left α p hp x1 x2 y H)⟩
 
 instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : has_neg (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, -x.2)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by rw ← frobenius_neg; apply r.intro
+| _, _, r.intro n x := quot.sound $ by rw ← frobenius_neg; apply r.intro
 end)⟩
 
 theorem mk_zero [comm_ring α] (p : ℕ) [nat.prime p] (n : ℕ) : quot.mk (r α p) (n, 0) = quot.mk (r α p) (0, 0) :=
 by induction n with n ih; [refl, rw ← ih]; symmetry; apply quot.sound;
-have := r.intro p n (0:α); rwa [frobenius_zero α p] at this
+have := r.intro n (0:α); rwa [frobenius_zero α p] at this
 
 theorem r.sound [monoid α] (p m n : ℕ) (x y : α) (H : frobenius α p^[m] x = y) :
   quot.mk (r α p) (n, x) = quot.mk (r α p) (m + n, y) :=
@@ -152,7 +152,7 @@ instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : comm_ring (perfe
 
 instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : has_inv (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, x.2⁻¹)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw ← inv_pow'; apply r.intro
+| _, _, r.intro n x := quot.sound $ by simp only [frobenius]; rw ← inv_pow'; apply r.intro
 end)⟩
 
 theorem eq_iff' [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p]
@@ -224,7 +224,7 @@ def frobenius_equiv [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] :
 { to_fun := frobenius (perfect_closure α p) p,
   inv_fun := λ e, quot.lift_on e (λ x, quot.mk (r α p) (x.1 + 1, x.2)) (λ x y H,
     match x, y, H with
-    | _, _, r.intro _ n x := quot.sound (r.intro _ _ _)
+    | _, _, r.intro n x := quot.sound (r.intro _ _)
     end),
   left_inv := λ e, quot.induction_on e (λ ⟨m, x⟩, by rw frobenius_mk;
     symmetry; apply quot.sound; apply r.intro),
@@ -290,7 +290,7 @@ def UMP [field α] (p : ℕ) [nat.prime p] [char_p α p]
   (β : Type v) [field β] [char_p β p] [perfect_field β p] :
   { f : α → β // is_ring_hom f } ≃ { f : perfect_closure α p → β // is_ring_hom f } :=
 { to_fun := λ f, ⟨λ e, quot.lift_on e (λ x, perfect_field.pth_root p^[x.1] (f.1 x.2))
-      (λ x y H, match x, y, H with | _, _, r.intro _ n x := by letI := f.2;
+      (λ x y H, match x, y, H with | _, _, r.intro n x := by letI := f.2;
         simp only [is_monoid_hom.map_frobenius f.1, nat.iterate_succ, pth_root_frobenius]
       end),
     show f.1 1 = 1, from f.2.1,

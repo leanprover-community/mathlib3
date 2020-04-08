@@ -59,7 +59,7 @@ inductive generate_open (g : set (set α)) : set α → Prop
 /-- The smallest topological space containing the collection `g` of basic sets -/
 def generate_from (g : set (set α)) : topological_space α :=
 { is_open        := generate_open g,
-  is_open_univ   := generate_open.univ g,
+  is_open_univ   := generate_open.univ,
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
 
@@ -141,7 +141,7 @@ iff.intro
 protected def mk_of_closure (s : set (set α))
   (hs : {u | (topological_space.generate_from s).is_open u} = s) : topological_space α :=
 { is_open        := λu, u ∈ s,
-  is_open_univ   := hs ▸ topological_space.generate_open.univ _,
+  is_open_univ   := hs ▸ topological_space.generate_open.univ,
   is_open_inter  := hs ▸ topological_space.generate_open.inter,
   is_open_sUnion := hs ▸ topological_space.generate_open.sUnion }
 
@@ -192,7 +192,7 @@ instance : complete_lattice (topological_space α) :=
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
-(eq_bot : t = ⊥)
+(eq_bot [] : t = ⊥)
 
 @[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_open s :=

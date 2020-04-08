@@ -1658,7 +1658,7 @@ end
 
 end prod
 
-/-! ## Lemmas about set-indexed products of sets -/
+/-! ### Lemmas about set-indexed products of sets -/
 
 section pi
 variables {α : Type*} {π : α → Type*}

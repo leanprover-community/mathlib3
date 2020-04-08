@@ -713,31 +713,6 @@ meta structure apply_any_opt :=
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
 /--
-`apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
-
-`apply_any lemmas opt` allows control over how lemmas are applied.
-`opt` has fields:
-* `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
-* `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
-* `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
-
-`apply_any lemmas tac` calls the tactic `tac` after a successful application.
-Defaults to `skip`. This is used, for example, by `solve_by_elim` to arrange
-recursive invocations of `apply_any`.
--/
-meta def apply_any
-  (lemmas : list expr)
-  (opt : apply_any_opt := {})
-  (tac : tactic unit := skip) : tactic unit :=
-do
-  let modes := [skip]
-    ++ (if opt.use_symmetry then [symmetry] else [])
-    ++ (if opt.use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, opt.apply H >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
-
-/--
 This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
 and evaluates these as thunks before trying to apply them.
 
@@ -754,6 +729,25 @@ do
   modes.any_of (λ m, do m,
     lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
   fail "apply_any tactic failed; no lemma could be applied"
+
+/--
+`apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
+
+`apply_any lemmas opt` allows control over how lemmas are applied.
+`opt` has fields:
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
+* `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
+
+`apply_any lemmas tac` calls the tactic `tac` after a successful application.
+Defaults to `skip`. This is used, for example, by `solve_by_elim` to arrange
+recursive invocations of `apply_any`.
+-/
+meta def apply_any
+  (lemmas : list expr)
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+apply_any_thunk (lemmas.map pure) opt tac
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
 meta def apply_assumption : tactic unit :=

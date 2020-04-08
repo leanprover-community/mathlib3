@@ -268,8 +268,8 @@ do tt ← is_prop d.type | return none,
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
      ∨ pr.2.type.is_app_of `decidable,
    if deceq_binders.length = 0 then return none
-   else (λ s, some $ "The following `decidable` instances should be replaced with
-                      `classical`. " ++ s) <$>
+   else (λ s, some $ "The following `decidable` hypotheses should be replaced with
+                      `classical` in the proof. " ++ s) <$>
       print_arguments deceq_binders
 
 /-- A linter object for `decidable_classical`. -/

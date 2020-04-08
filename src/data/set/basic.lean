@@ -1298,7 +1298,7 @@ theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
-⟨by rintros ⟨b, ⟨a, rfl⟩, h⟩ ; exact ⟨a, h⟩, λ ⟨a, h⟩, ⟨f a, mem_range_self a, h⟩⟩
+by simpa only [exists_prop] using exists_range_iff
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall

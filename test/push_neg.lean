@@ -73,6 +73,6 @@ end
 example : ∀ x : ℕ, x = x :=
 begin
   success_if_fail_with_msg { contrapose }
-    "contrapose only applies to nondependent arrows between decidable props",
+    "contrapose only applies to nondependent arrows between props",
   intro, refl
 end

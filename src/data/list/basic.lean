@@ -1646,6 +1646,27 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
+-- Several lemmas about sum/head/tail for `list ℕ`.
+-- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
+
+-- We'd like to state this as `L.head * L.tail.prod = L.prod`,
+-- but because `L.head` relies on an inhabited instances and
+-- returns a garbage value for the empty list, this is not possible.
+-- Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
+-- and below, restate the lemma just for `ℕ`.
+@[to_additive]
+lemma head_mul_tail_prod' [monoid α] (L : list α) : (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
+by { cases L, { simp, refl, }, { simp, }, }
+
+lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
+by { cases L, { simp, refl, }, { simp, }, }
+
+lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
+nat.le.intro (head_add_tail_sum L)
+
+lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
+by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
+
 /- lexicographic ordering -/
 
 inductive lex (r : α → α → Prop) : list α → list α → Prop

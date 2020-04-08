@@ -57,7 +57,7 @@ A `c : bicone F` is:
 * a natural transformation `c.ι : F ⟶ c.X` from `F` to the constant `c.X` functor.
 -/
 @[nolint has_inhabited_instance]
-structure bicone {J : Type v} [small_category J](F : J ⥤ C) :=
+structure bicone {J : Type v} [small_category J] (F : J ⥤ C) :=
 (X : C)
 (π : (const J).obj X ⟶ F)
 (ι : F ⟶ (const J).obj X)
@@ -103,7 +103,7 @@ variables (J C)
 a particular limit and a particular colimit, with the same cone points,
 of every functor `F : J ⥤ C`.
 
-(This is only interesting `J` is discrete.)
+(This is only interesting if `J` is discrete.)
 -/
 class has_bilimits_of_shape :=
 (has_bilimit : Π F : J ⥤ C, has_bilimit F)
@@ -120,7 +120,8 @@ instance [has_bilimits_of_shape J C] : has_colimits_of_shape J C :=
 /-- `has_finite_biproducts C` represents a choice of biproduct for every family of objects in `C`
 indexed by a finite type with decidable equality. -/
 class has_finite_biproducts :=
-(has_bilimits_of_shape : Π (J : Type v) [fintype J] [decidable_eq J], has_bilimits_of_shape.{v} (discrete J) C)
+(has_bilimits_of_shape : Π (J : Type v) [fintype J] [decidable_eq J],
+  has_bilimits_of_shape.{v} (discrete J) C)
 
 attribute [instance] has_finite_biproducts.has_bilimits_of_shape
 
@@ -139,10 +140,11 @@ variables {J : Type v}
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-/-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an abbreviation
-   for `limit (functor.of_function f)`, so for most facts about `biproduct f`, you will just use general facts
-   about limits and colimits.) -/
-abbreviation biproduct (f : J → C) [has_bilimit (functor.of_function f)] := limit (functor.of_function f)
+/-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an
+   abbreviation for `limit (functor.of_function f)`, so for most facts about `biproduct f`, you will
+   just use general facts about limits and colimits.) -/
+abbreviation biproduct (f : J → C) [has_bilimit (functor.of_function f)] :=
+limit (functor.of_function f)
 
 notation `⨁ ` f:20 := biproduct f
 
@@ -221,11 +223,13 @@ end
 
 variables {P Q : C}
 
-instance has_binary_biproduct.has_limit_pair [has_binary_biproduct.{v} P Q] : has_limit (pair P Q) :=
+instance has_binary_biproduct.has_limit_pair [has_binary_biproduct.{v} P Q] :
+  has_limit (pair P Q) :=
 { cone := (has_binary_biproduct.bicone P Q).to_cone,
   is_limit := has_binary_biproduct.is_limit.{v} P Q, }
 
-instance has_binary_biproduct.has_colimit_pair [has_binary_biproduct.{v} P Q] : has_colimit (pair P Q) :=
+instance has_binary_biproduct.has_colimit_pair [has_binary_biproduct.{v} P Q] :
+  has_colimit (pair P Q) :=
 { cocone := (has_binary_biproduct.bicone P Q).to_cocone,
   is_colimit := has_binary_biproduct.is_colimit.{v} P Q, }
 
@@ -267,11 +271,13 @@ colimit.ι (pair X Y) walking_pair.right
 
 /-- Given a pair of maps into the summands of a binary biproduct,
 we obtain a map into the binary biproduct. -/
-abbreviation biprod.lift {W X Y : C} [has_binary_biproduct.{v} X Y] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⊞ Y :=
+abbreviation biprod.lift {W X Y : C} [has_binary_biproduct.{v} X Y] (f : W ⟶ X) (g : W ⟶ Y) :
+  W ⟶ X ⊞ Y :=
 limit.lift _ (binary_fan.mk f g)
 /-- Given a pair of maps out of the summands of a binary biproduct,
 we obtain a map out of the binary biproduct. -/
-abbreviation biprod.desc {W X Y : C} [has_binary_biproduct.{v} X Y] (f : X ⟶ W) (g : Y ⟶ W) : X ⊞ Y ⟶ W :=
+abbreviation biprod.desc {W X Y : C} [has_binary_biproduct.{v} X Y] (f : X ⟶ W) (g : Y ⟶ W) :
+  X ⊞ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
 /-- Given a pair of maps between the summands of a pair of binary biproducts,

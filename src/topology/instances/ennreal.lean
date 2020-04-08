@@ -2,10 +2,12 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Extended non-negative reals
 -/
 import topology.instances.nnreal data.real.ennreal
+/-!
+# Extended non-negative reals
+-/
+
 noncomputable theory
 open classical set filter metric
 open_locale classical
@@ -25,8 +27,7 @@ open topological_space
 
 Note: this is different from the `emetric_space` topology. The `emetric_space` topology has
 `is_open {⊤}`, while this topology doesn't have singleton elements. -/
-instance : topological_space ennreal :=
-topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
+instance : topological_space ennreal := preorder.topology ennreal
 
 instance : order_topology ennreal := ⟨rfl⟩
 
@@ -110,6 +111,10 @@ begin
   exact tendsto_id
 end
 
+lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
+continuous_on_iff_continuous_restrict.2 $ continuous_iff_continuous_at.2 $ λ x,
+  (tendsto_to_nnreal x.2).comp continuous_at_subtype_val
+
 lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (𝓝 a) (𝓝 a.to_real) :=
 λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
   (tendsto_to_nnreal ha)
@@ -135,6 +140,20 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 
 lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, principal (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+/-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
+def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ nnreal :=
+{ to_fun := λ x, ennreal.to_nnreal x,
+  inv_fun := λ x, ⟨x, coe_ne_top⟩,
+  left_inv := λ ⟨x, hx⟩, subtype.eq $ coe_to_nnreal hx,
+  right_inv := λ x, to_nnreal_coe,
+  continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
+  continuous_inv_fun := continuous_subtype_mk _ (continuous_coe.2 continuous_id) }
+
+/-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
+def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ nnreal :=
+by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
+  simp only [mem_set_of_eq, lt_top_iff_ne_top]
 
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
@@ -634,6 +653,11 @@ end
 section
 variable [emetric_space α]
 open emetric
+
+lemma tendsto_iff_edist_tendsto_0 {l : filter β} {f : β → α} {y : α} :
+  tendsto f l (𝓝 y) ↔ tendsto (λ x, edist (f x) y) l (𝓝 0) :=
+by simp only [emetric.nhds_basis_eball.tendsto_right_iff, emetric.mem_ball,
+  @tendsto_order ennreal β _ _, forall_prop_of_false ennreal.not_lt_zero, forall_const, true_and]
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/

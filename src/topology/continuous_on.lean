@@ -76,6 +76,10 @@ lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ 
   a ∈ t :=
 let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
 
+lemma filter.eventually.self_of_nhds_within {p : α → Prop} {s : set α} {x : α}
+  (h : ∀ᶠ y in nhds_within x s, p y) (hx : x ∈ s) : p x :=
+mem_of_mem_nhds_within hx h
+
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm

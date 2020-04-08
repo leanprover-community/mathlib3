@@ -263,12 +263,10 @@ lemma one_to_fun [has_one β] : ∀ₘ a, (1 : α →ₘ β).to_fun a = 1 := con
 
 section add_monoid
 variables {γ : Type*}
-  [topological_space γ] [second_countable_topology γ] [add_monoid γ] [topological_add_monoid γ]
+  [topological_space γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
+  [add_monoid γ] [topological_add_monoid γ]
 
-protected def add : (α →ₘ γ) → (α →ₘ γ) → (α →ₘ γ) :=
-comp₂ (+) (measurable.add (measurable.fst measurable_id) (measurable.snd  measurable_id))
-
-instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
+instance : has_add (α →ₘ γ) := ⟨comp₂ (+) measurable_add⟩
 
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
    (mk f hf) + (mk g hg) = mk (f + g) (measurable.add hf hg) := rfl
@@ -278,17 +276,18 @@ comp₂_to_fun _ _ _ _
 
 instance : add_monoid (α →ₘ γ) :=
 { zero      := 0,
-  add       := ae_eq_fun.add,
-  add_zero  := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_zero _),
-  zero_add  := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, zero_add _),
+  add       := (+),
+  add_zero  := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, add_zero _),
+  zero_add  := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, zero_add _),
   add_assoc :=
-    by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_assoc _ _ _) }
+    by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (all_ae_of_all $ assume a, add_assoc _ _ _) }
 
 end add_monoid
 
 section add_comm_monoid
 variables {γ : Type*}
-  [topological_space γ] [second_countable_topology γ] [add_comm_monoid γ] [topological_add_monoid γ]
+  [topological_space γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
+  [add_comm_monoid γ] [topological_add_monoid γ]
 
 instance add_comm_monoid : add_comm_monoid (α →ₘ γ) :=
 { add_comm := by rintros ⟨a⟩ ⟨b⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_comm _ _),
@@ -298,11 +297,10 @@ end add_comm_monoid
 
 section add_group
 
-variables {γ : Type*} [topological_space γ] [add_group γ] [topological_add_group γ]
+variables {γ : Type*} [topological_space γ] [measurable_space γ] [borel_space γ]
+  [add_group γ] [topological_add_group γ]
 
-protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable.neg measurable_id)
-
-instance : has_neg (α →ₘ γ) := ⟨ae_eq_fun.neg⟩
+instance : has_neg (α →ₘ γ) := ⟨comp has_neg.neg measurable_id.neg⟩
 
 @[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable.neg hf) := rfl
 
@@ -310,10 +308,9 @@ lemma neg_to_fun (f : α →ₘ γ) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := 
 
 variables [second_countable_topology γ]
 instance : add_group (α →ₘ γ) :=
-{ neg          := ae_eq_fun.neg,
-  add_left_neg := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_left_neg _),
-  .. ae_eq_fun.add_monoid
- }
+{ neg          := has_neg.neg,
+  add_left_neg := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, add_left_neg _),
+  .. ae_eq_fun.add_monoid }
 
 @[simp] lemma mk_sub_mk (f g : α → γ) (hf hg) :
    (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable.sub hf hg) := rfl
@@ -333,27 +330,25 @@ end add_group
 section add_comm_group
 
 variables {γ : Type*}
-  [topological_space γ] [second_countable_topology γ] [add_comm_group γ] [topological_add_group γ]
+  [topological_space γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
+  [add_comm_group γ] [topological_add_group γ]
 
 instance : add_comm_group (α →ₘ γ) :=
-{ add_comm := ae_eq_fun.add_comm_monoid.add_comm
-  .. ae_eq_fun.add_group
-}
+{ .. ae_eq_fun.add_group, .. ae_eq_fun.add_comm_monoid }
 
 end add_comm_group
 
 section semimodule
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
-variables {γ : Type*} [topological_space γ]
+variables {γ : Type*} [topological_space γ] [measurable_space γ] [borel_space γ]
           [add_comm_monoid γ] [semimodule 𝕜 γ] [topological_semimodule 𝕜 γ]
 
-protected def smul : 𝕜 → (α →ₘ γ) → (α →ₘ γ) :=
-λ c f, comp (has_scalar.smul c) (measurable.smul _ measurable_id) f
+instance : has_scalar 𝕜 (α →ₘ γ) :=
+⟨λ c f, comp (has_scalar.smul c) (measurable_id.const_smul _) f⟩
 
-instance : has_scalar 𝕜 (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
-
-@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable.smul _ hf) :=
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
+  c • (mk f hf) = mk (c • f) (hf.const_smul _) :=
 rfl
 
 lemma smul_to_fun (c : 𝕜) (f : α →ₘ γ) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
@@ -386,8 +381,9 @@ end semimodule
 section module
 
 variables {𝕜 : Type*} [ring 𝕜] [topological_space 𝕜]
-variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
-          [topological_add_group γ] [module 𝕜 γ] [topological_semimodule 𝕜 γ]
+variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [measurable_space γ]
+  [borel_space γ] [add_comm_group γ] [topological_add_group γ] [module 𝕜 γ]
+  [topological_semimodule 𝕜 γ]
 
 instance : module 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
@@ -396,8 +392,9 @@ end module
 section vector_space
 
 variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
-variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
-          [topological_add_group γ] [vector_space 𝕜 γ] [topological_semimodule 𝕜 γ]
+variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [measurable_space γ]
+  [borel_space γ] [add_comm_group γ] [topological_add_group γ] [vector_space 𝕜 γ]
+  [topological_semimodule 𝕜 γ]
 
 instance : vector_space 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
@@ -439,7 +436,8 @@ begin
 end
 
 section
-variables {γ : Type*} [emetric_space γ] [second_countable_topology γ]
+variables {γ : Type*} [emetric_space γ] [second_countable_topology γ] [measurable_space γ]
+  [opens_measurable_space γ]
 
 /-- `comp_edist [f] [g] a` will return `edist (f a) (g a) -/
 def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist f g
@@ -462,7 +460,7 @@ instance : emetric_space (α →ₘ γ) :=
   begin
     rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
     simp only [comp_edist, quot_mk_eq_mk, comp₂_mk_mk, (eintegral_add _ _).symm],
-    exact lintegral_le_lintegral _ _ (assume a, edist_triangle _ _ _)
+    exact lintegral_mono (assume a, edist_triangle _ _ _)
   end,
   eq_of_edist_eq_zero :=
   begin
@@ -491,7 +489,8 @@ end
 end
 
 section metric
-variables {γ : Type*} [metric_space γ] [second_countable_topology γ]
+variables {γ : Type*} [metric_space γ] [second_countable_topology γ] [measurable_space γ]
+  [opens_measurable_space γ]
 
 lemma edist_mk_mk' {f g : α → γ} (hf hg) :
   edist (mk f hf) (mk g hg) = ∫⁻ x, nndist (f x) (g x) :=
@@ -505,7 +504,8 @@ end metric
 
 section normed_group
 
-variables {γ : Type*} [normed_group γ] [second_countable_topology γ]
+variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [measurable_space γ]
+  [borel_space γ]
 
 lemma edist_eq_add_add : ∀ {f g h : α →ₘ γ}, edist f g = edist (f + h) (g + h) :=
 begin
@@ -523,6 +523,7 @@ set_option class.instance_max_depth 100
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ]
+  [measurable_space γ] [borel_space γ]
 
 lemma edist_smul (x : 𝕜) : ∀ f : α →ₘ γ, edist (x • f) 0 = (ennreal.of_real ∥x∥) * edist f 0 :=
 begin
@@ -530,7 +531,7 @@ begin
   exact calc
     (∫⁻ (a : α), nndist (x • f a) 0) = (∫⁻ (a : α), (nnnorm x) * nnnorm (f a)) :
       lintegral_congr_ae $ by { filter_upwards [], assume a, simp [nndist_eq_nnnorm, nnnorm_smul] }
-    ... = _ : lintegral_const_mul _ (measurable.coe_nnnorm hf)
+    ... = _ : lintegral_const_mul _ hf.ennnorm
     ... = _ :
     begin
       convert rfl,
@@ -544,16 +545,16 @@ end normed_space
 section pos_part
 
 variables {γ : Type*} [topological_space γ] [decidable_linear_order γ] [order_closed_topology γ]
-  [second_countable_topology γ] [has_zero γ]
+  [second_countable_topology γ] [has_zero γ] [measurable_space γ] [opens_measurable_space γ]
 
 /-- Positive part of an `ae_eq_fun`. -/
 def pos_part (f : α →ₘ γ) : α →ₘ γ :=
-comp₂ max (measurable.max (measurable.fst measurable_id) (measurable.snd measurable_id)) f 0
+comp₂ max (measurable_id.fst.max measurable_id.snd) f 0
 
 lemma pos_part_to_fun (f : α →ₘ γ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
 begin
-  filter_upwards [comp₂_to_fun max (measurable.max (measurable.fst measurable_id)
-    (measurable.snd measurable_id)) f 0, @ae_eq_fun.zero_to_fun α γ],
+  filter_upwards [comp₂_to_fun max (measurable_id.fst.max measurable_id.snd) f 0,
+    @ae_eq_fun.zero_to_fun α γ],
   simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [pos_part, h₁, h₂]

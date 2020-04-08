@@ -1070,9 +1070,6 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by simp only [eq_empty_iff_forall_not_mem]; exact
 ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩
 
-lemma image_nonempty {s : set α} (f : α → β) (h : s.nonempty) : (f '' s).nonempty :=
-⟨f h.some, mem_image_of_mem _ h.some_mem⟩
-
 lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
 by finish [set.nonempty]
 

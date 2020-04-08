@@ -23,8 +23,10 @@ We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for
 We adopt the convention that `0^0 = 1`.
 -/
 
-variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
-  {R : Type*} {S : Type*}
+universes u v w x y z u₁ u₂
+
+variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+  {R : Type u₁} {S : Type u₂}
 
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
@@ -654,31 +656,33 @@ by simp [pow, monoid.pow]
 @[simp] lemma gpow_of_add [add_group A] (x : A) (n : ℤ) :
   (multiplicative.of_add x)^n = multiplicative.of_add (n •ℤ x) := rfl
 
+variables (M G A)
+
 /-- Monoid homomorphisms from `multiplicative ℕ` are defined by the image
 of `multiplicative.of_add 1`. -/
-def mnat_monoid_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
+def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := pow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_pow] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow] } }
 
 /-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
 of `multiplicative.of_add 1`. -/
-def mint_monoid_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
+def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := gpow_one,
   right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_gpow] } }
 
 /-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
-def nat_add_monoid_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
+def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
 { to_fun := λ x, ⟨λ n, n • x, add_monoid.zero_smul x, λ m n, add_monoid.add_smul _ _ _⟩,
   inv_fun := λ f, f 1,
   left_inv := add_monoid.one_smul,
   right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_smul] }
 
 /-- Additive homomorphisms from `ℤ` are defined by the image of `1`. -/
-def int_add_monoid_hom [add_group A] : A ≃ (ℤ →+ A) :=
+def gmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
 { to_fun := λ x, ⟨λ n, n •ℤ x, zero_gsmul x, λ m n, add_gsmul _ _ _⟩,
   inv_fun := λ f, f 1,
   left_inv := one_gsmul,

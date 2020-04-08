@@ -213,11 +213,12 @@ do
   -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,
   -- and if we're working on data, just throw out the old `x`.
   b ← target >>= is_prop,
-  if b then (do
+  if b then do
     subst h,
-    `[try { simp only [] with equiv_rw_simp }])
+    `[try { simp only [] with equiv_rw_simp }]
   else
-    clear' tt (native.rb_map.set_of_list [x']),
+    clear' tt (native.rb_map.set_of_list [x']) <|>
+      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip
 
 /-- Rewrite the goal using an equiv `e`. -/

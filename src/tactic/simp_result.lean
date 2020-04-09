@@ -9,10 +9,28 @@ import tactic.core
 # simp_result
 
 `dsimp_result` and `simp_result` are a pair of tactics for
-cleaning up the results produced by other tactics.
+applying `dsimp` or `simp` to the result produced by other tactics.
 
-They should be used with some caution.
-You should consider whether there is any real need for this clean-up,
+As examples, tactics which use `revert` and `intro`
+may insert additional `id` terms in the result they produce.
+If there is some reason these are undesirable
+(e.g. the result term needs to be human-readable, or
+satisfying syntactic rather than just definitional properties),
+wrapping those tactics in `dsimp_result`
+can remove the `id` terms "after the fact".
+
+Similarly, tactics using `subst` and `rw` will nearly always introduce `eq.rec` terms,
+but sometimes these will be easy to remove,
+for example by simplifying using `eq_rec_constant`.
+This is a non-definitional simplification lemma,
+and so wrapping these tactics in `simp_result` will result
+in a definitionally different result.
+
+There are several examples in the associated test file,
+demonstrating these interactions with `revert` and `subst`.
+
+These tactics should be used with some caution.
+You should consider whether there is any real need for the simplification of the result,
 and whether there is a more direct way of producing the result you wanted,
 before relying on these tactics.
 
@@ -28,6 +46,12 @@ attempts to run a tactic `t`,
 intercepts any results `t` assigns to the goals,
 and runs `m : expr → tactic expr` on each of the expressions
 before assigning the returned values to the original goals.
+
+Because `intercept_result` uses `unsafe.type_context.assign` rather than `unify`,
+if the tactic `m` does something unreasonable
+you may produce terms that don't typecheck,
+possibly with mysterious error messages.
+Be careful!
 -/
 meta def intercept_result {α} (m : expr → tactic expr) (t : tactic α) : tactic α := do
 -- Replace the goals with copies.
@@ -42,7 +66,7 @@ a ← t,
   g'' ← with_local_goals' gs $ m g',
   -- and assign to the original goals.
   -- (We have to use `assign` here, as `unify` and `exact` are apparently
-  -- a bit unreliable about which way they do the assignment!)
+  -- unreliable about which way they do the assignment!)
   unsafe.type_context.run $ unsafe.type_context.assign g g''),
 pure a
 

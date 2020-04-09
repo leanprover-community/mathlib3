@@ -169,7 +169,11 @@ if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
+     fail
+     ("A tactic doc entry must either:\n" ++
+     " 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or\n" ++
+     " 2. have a single declaration in the `decl_names` field, to inherit a description from, or\n" ++
+     " 3. explicitly indicate the declaration to inherit the description from using `inherit_description_from`."),
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
@@ -210,9 +214,8 @@ that declaration will become the body of the tactic doc entry. If there are
 multiple declarations, you can select the one to be used by passing a name to
 the `inherit_description_from` field.
 
-If you prefer a tactic to have a doc string that is different then the doc entry, then between
-the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
-and then the doc entry.
+If you prefer a tactic to have a doc string that is different then the doc entry,
+you should write the doc entry as a doc string for the `add_tactic_doc` invocation.
 
 Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
 messages.
@@ -340,7 +343,7 @@ See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more det
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
-* `ring` and `ring2`,
+* `ring`, `ring2` and `ring_exp`,
 * `norm_num`,
 * `norm_cast`,
 * `apply_congr`, and

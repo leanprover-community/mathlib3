@@ -249,7 +249,7 @@ def left_mul {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := mul_zero r,
   map_add' := mul_add r }
 
-/-- Right multiplication by an element of a (semi)ring is an add_monoid_hom -/
+/-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
 def right_mul {R : Type*} [semiring R] (r : R) : R →+ R :=
 { to_fun := λ a, a * r,
   map_zero' := zero_mul r,

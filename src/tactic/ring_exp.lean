@@ -1490,6 +1490,9 @@ open tactic.ring_exp (normalize)
 
 local postfix `?`:9001 := optional
 
+/--
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring_exp`.
+-/
 meta def ring_exp (red : parse (lean.parser.tk "!")?) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
 discharge_eq_lhs (ring_exp_eq red)

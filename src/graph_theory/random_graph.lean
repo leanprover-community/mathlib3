@@ -4,18 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
--- TODO: rename this file
-
-import graph_theory.basic
+import graph_theory.paths
+import graph_theory.cycle
 import measure_theory.probability_mass_function
+import measure_theory.borel_space
+import measure_theory.integration
 import .to_mathlib
 
 /-!
 # Graphs with high chromatic number and girth
 -/
-
-open_locale classical
-noncomputable theory
 
 universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
 
@@ -33,6 +31,11 @@ begin
   have : G₁ = G₂, { ext, apply h },
   cases this, congr, ext, refl,
 end
+
+section
+
+open_locale classical
+noncomputable theory
 
 def graph_from_sets (E : set ({s : finset V // s.card = 1 ∨ s.card = 2})) : graph V :=
 { edge := assume x y, ∃ e ∈ E, ({x,y} : finset V) = e,
@@ -76,8 +79,9 @@ begin
     use [x, y], finish, }
 end
 
-example (X : Type*) (a b c d : X) (h : ({a, b} : finset X) = {c, d}) :
-  (a = c ∧ b = d) ∨ (a = d ∧ b = c) := sorry
+lemma needs_a_name {X : Type*} (a b c d : X) (h : ({a, b} : finset X) = {c, d}) :
+  (a = c ∧ b = d) ∨ (a = d ∧ b = c) :=
+by finish [finset.ext] using [h a, h b, h c, h d]
 
 lemma graph_from_sets_bijective : function.bijective (@graph_from_sets V) :=
 begin
@@ -101,12 +105,41 @@ begin
       { rcases this with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
         { exact hab },
         { exact G.symm hab } },
-      rw classical.or_iff_not_imp_right,
-      simp at H,
-       },
-    { intro e, use [x, y, e] }
-  }
+      exact needs_a_name _ _ _ _ H, },
+    { intro e, use [x, y, e] } }
 end
+
+end
+
+namespace graph
+
+variables [fintype V] (G : graph V)
+
+lemma cycle_coe_inj (n : ℕ+) :
+  @function.injective (G.cycle n) (zmod n → V) coe_fn :=
+assume c₁ c₂ h, by ext1; exact h
+
+instance cycle_fintype (n : ℕ+) : fintype (G.cycle n) :=
+fintype.of_injective _ $ G.cycle_coe_inj n
+
+-- lemma nr_of_cycles (n : ℕ+) :
+--   fintype.card (G.cycle n) ≤ (fintype.card V)^(n : ℕ) :=
+-- begin
+--   apply le_trans (fintype.card_le_of_injective _ (G.cycle_coe_inj n)),
+--   apply le_of_eq,
+--   rw fintype.card,
+-- end
+
+end graph
+
+namespace pmf
+
+variables {α : Type*}
+
+lemma measurable (p : pmf α) : @measurable α nnreal ⊤ _ p :=
+assume s hs, by { rw measurable_space.map_top, trivial }
+
+end pmf
 
 abbreviation random_graph (V : Type u) := pmf (graph V)
 
@@ -117,5 +150,12 @@ def with_edge_prob (V : Type u) [fintype V] (p : nnreal) (hp : p ≤ 1) :
   random_graph V :=
 pmf.map (graph_from_sets ∘ coe) $ pmf.binomial {s : finset V // s.card = 1 ∨ s.card = 2} p hp
 
+variables [fintype V] (p : nnreal) (hp : p ≤ 1)
+
+def number_of_cycles (n : ℕ+) : pmf ℕ :=
+pmf.map (λ G, fintype.card (graph.cycle n G)) (with_edge_prob V p hp)
+
+lemma foo (n : ℕ+) :=
+measure_theory.mul_volume_ge_le_lintegral (number_of_cycles p hp n).measurable
 
 end random_graph

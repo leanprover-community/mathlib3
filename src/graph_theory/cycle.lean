@@ -29,4 +29,17 @@ def cyclic (n : ℕ+) : graph (zmod n) :=
 structure cycle (n : ℕ+) (G : graph V) extends hom (cyclic n) G :=
 (inj : function.injective to_fun)
 
+namespace cycle
+
+instance (n : ℕ+) (G : graph V) : has_coe_to_fun (G.cycle n) :=
+{ F := λ c, zmod n → V,
+  coe := λ c, c.to_fun }
+
+@[ext]
+lemma ext {n : ℕ+} (c₁ c₂ : G.cycle n) (h : (c₁ : zmod n → V) = c₂) :
+  c₁ = c₂ :=
+by { cases c₁, cases c₂, congr, apply graph.hom.ext, exact h }
+
+end cycle
+
 end graph

@@ -175,6 +175,9 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
+/--
+If `0` is the least element in `α`, then `with_zero α` is an `ordered_comm_monoid`.
+-/
 def ordered_comm_monoid [ordered_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_comm_monoid (with_zero α) :=
 begin
@@ -720,6 +723,10 @@ theorem nonneg_total_iff :
 ⟨λ h a b, by have := h (b - a); rwa [neg_sub] at this,
  λ h a, by rw [nonneg_def, nonneg_def, neg_nonneg]; apply h⟩
 
+/--
+A `nonneg_comm_group` is a `decidable_linear_ordered_add_comm_group`
+if `nonneg` is total and decidable.
+-/
 def to_decidable_linear_ordered_add_comm_group
   [decidable_pred (@nonneg α _)]
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))

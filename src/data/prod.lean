@@ -20,13 +20,9 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace prod
 
-attribute [simp] prod.map
+@[simp] lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 
-@[simp] lemma map_fst (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).1 = f (p.1)
-| ⟨a, b⟩ := rfl
-
-@[simp] lemma map_snd (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).2 = g (p.2)
-| ⟨a, b⟩ := rfl
+@[simp] lemma map_snd (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).2 = g (p.2) := rfl
 
 @[simp] lemma map_fst' (f : α → γ) (g : β → δ) : (prod.fst ∘ map f g) = f ∘ prod.fst :=
 funext $ map_fst f g
@@ -94,7 +90,7 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
    by change a = c at e; subst e; exact lex.right _ h
  end⟩
 
-instance lex.decidable [decidable_eq α] [decidable_eq β]
+instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
   decidable_rel (prod.lex r s) :=
 λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
@@ -105,4 +101,7 @@ open function
 
 lemma function.injective.prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
   injective (λ p : α × β, (f p.1, g p.2)) :=
-assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, by { simp [prod.mk.inj_iff],exact λ ⟨eq₁, eq₂⟩, ⟨hf eq₁, hg eq₂⟩ }
+assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
+  have a₁ = a₂, from hf (by cc),
+  have b₁ = b₂, from hg (by cc),
+  by cc

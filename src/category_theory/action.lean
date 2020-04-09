@@ -6,61 +6,89 @@ Authors: David Wärn
 
 import category_theory.groupoid
 import category_theory.endomorphism
+import category_theory.elements
 import group_theory.group_action
 import category_theory.single_obj
 
 /-!
-# The action category and the action groupoid.
+# Actions as functors and as categories
 
-Defines the action category associated with a multiplicative action
-and the action groupoid associated with a group action.
+From a multiplicative action M ↻ X, we can construct a functor from M to the category of
+types, mapping the single object of M to X and an element `m : M` to map `X → X` given by
+multiplication by `m`.
+  This functor induces a category structure on X -- a special case of the category of elements.
+A morphism `x → y` in this category is simply a scalar `m : M` such that `m • x = y`. In the case
+where M is a group, this category is a groupoid -- the `action groupoid'.
 -/
 
 open mul_action
 namespace category_theory
 
-variables (M : Type*) [monoid M] (X : Type*) [𝒜 : mul_action M X] (x : X)
+universes u
+
+variables (M : Type*) [monoid M] (X : Type u) [𝒜 : mul_action M X]
 include 𝒜
 
-/-- A multiplicative action of `M` on `X` induces a category structure on `X` where
-  a morphism `x ⟶ y` is a scalar `m : M` such that `m • x = y`. To prevent conflicts,
-  the object type of this category is an inductive type wrapping `X`. -/
-structure action_category := (as : X)
+/-- A multiplicative action M ↻ X viewed as a functor in the natural way. -/
+@[reducible]
+def action_as_functor : single_obj M ⥤ Type u :=
+{ obj := λ _, X,
+  map := λ _ _, (•),
+  map_id' := λ _, funext $ mul_action.one_smul M,
+  map_comp' := λ _ _ _ f g, funext $ λ x, (smul_smul g f x).symm }
+
+/-- A multiplicative action M ↻ X induces a category strucure on X, where a morphism
+ from x to y is a scalar taking x to y. Due to implementation details, the object type
+ of this category is not equal to X, but is in bijection with X. -/
+def action_category := (action_as_functor M X).elements
 
 namespace action_category
 
-instance [inhabited X] : inhabited (action_category M X) := ⟨{as := default X}⟩
-
-@[simps]
 instance : category (action_category M X) :=
-{ hom := λ x y, {m : M // m • x.as = y.as },
-  id := λ x, ⟨1, mul_action.one_smul _ x.as⟩,
-  comp := λ x y z f g, ⟨g.val * f.val, by rw [←smul_smul, f.2, g.2] ⟩,
-  assoc' := λ x y z w f g h, by simp only [mul_assoc] }
+category_theory.category_of_elements _
 
-/-- The functor from the action category to the single object category,
-  mapping a morphism to its label. -/
-def projection : action_category M X ⥤ single_obj M :=
-{ obj := λ _, single_obj.star M,
-  map := λ _ _ f, f.val }
-
-instance : faithful (projection M X) := by obviously
-
-/-- The stabilizer of a point is isomorphic to the Endomorphism monoid at
-  the corresponding point. In fact they are defeq. -/
-def stabilizer_iso_End : stabilizer M x ≃* End ({as := x} : action_category M X) :=
-mul_equiv.refl _
+example (p q : action_category M X) : (p ⟶ q) = { m : M // m • p.2 = q.2 } := rfl
 
 omit 𝒜
-variables (G : Type*) [group G] [mul_action G X]
+instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
+category_theory.groupoid_of_elements _
+include 𝒜
 
-/-- The action category associated with a group action is a groupoid. -/
-@[simps]
-instance : groupoid (action_category G X) :=
-{ inv := λ x y f, ⟨f.val⁻¹, calc f.val⁻¹ • y.as = f.val⁻¹ • f.val • x.as : by rw f.2
-                                            ... = x.as : by {rw smul_smul, simp} ⟩,
-  inv_comp' := by { intros, rw subtype.ext, simp, },
-  comp_inv' := by { intros, rw subtype.ext, simp, } }
+/-- The projection from the action category to the monoid, mapping a morphism to its
+  label. -/
+def π : action_category M X ⥤ single_obj M :=
+category_of_elements.π _
+
+@[simp]
+lemma π_map (p q : action_category M X) (f : p ⟶ q) : (π M X).map f = f.val := rfl
+
+@[simp]
+lemma π_obj (p : action_category M X) : (π M X).obj p = single_obj.star M :=
+@subsingleton.elim unit _ _ _
+
+/-- An object of the action category given by M ↻ X corresponds to an element of X. -/
+def obj_equiv : X ≃ action_category M X:=
+{ to_fun := λ x, ⟨single_obj.star M, x⟩,
+  inv_fun := λ p, p.2,
+  left_inv := by {intro, refl},
+  right_inv := by { rintro ⟨⟨_⟩, _⟩, refl } }
+
+instance [inhabited X] : inhabited (action_category M X) :=
+{ default := obj_equiv M X (default X) }
+
+variables {X} (x : X)
+/-- The stabilizer of a point is isomorphic to the endomorphism monoid at the
+  corresponding point. In fact they are definitionally equivalent. -/
+def stabilizer_iso_End : stabilizer M x ≃* End (obj_equiv M X x) :=
+mul_equiv.refl _
+
+@[simp]
+lemma stabilizer_iso_End_apply (f : stabilizer M x) :
+  (stabilizer_iso_End M x).to_fun f = f := rfl
+
+@[simp]
+lemma stabilizer_iso_End_symm_apply (f : End _) :
+  (stabilizer_iso_End M x).inv_fun f = f := rfl
 
 end action_category
 end category_theory

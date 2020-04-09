@@ -85,6 +85,31 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
 end, chain_of_pairwise⟩
 
+theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
+  chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
+    R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h)))
+| a [] := by simp
+| a (b :: t) :=
+begin
+  rw [chain_cons, chain_iff_nth_le],
+  split,
+  { rintros ⟨R, ⟨h0, h⟩⟩,
+    split,
+    { intro w, exact R, },
+    { intros i w,
+      cases i,
+      { apply h0, },
+      { convert h i _ using 1,
+        simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
+        exact lt_pred_iff.mpr w, } } },
+  { rintros ⟨h0, h⟩, split,
+    { apply h0, simp, },
+    { split,
+      { apply h 0, },
+      { intros i w, convert h (i+1) _,
+        exact lt_pred_iff.mp w, } } },
+end
+
 theorem chain'.imp {S : α → α → Prop}
   (H : ∀ a b, R a b → S a b) {l : list α} (p : chain' R l) : chain' S l :=
 by cases l; [trivial, exact p.imp H]
@@ -151,5 +176,29 @@ theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [a] := by simp only [chain'_singleton, reverse_singleton]
 | (a :: b :: l) := by rw [chain'_cons, reverse_cons, reverse_cons, append_assoc, cons_append,
     nil_append, chain'_split, ← reverse_cons, @chain'_reverse (b :: l), and_comm, chain'_pair, flip]
+
+theorem chain'_iff_nth_le {R} : ∀ {l : list α},
+  chain' R l ↔ ∀ i (h : i < length l - 1),
+    R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h))
+| [] := by simp
+| (a :: nil) := by simp
+| (a :: b :: t) :=
+begin
+  rw [chain'_cons, chain'_iff_nth_le],
+  split,
+  { rintros ⟨R, h⟩ i w,
+    cases i,
+    { exact R, },
+    { convert h i _ using 1,
+      simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
+      simpa using w, },
+   },
+  { rintros h, split,
+    { apply h 0, simp, },
+    { intros i w, convert h (i+1) _,
+      simp only [add_zero, length, add_succ_sub_one] at w,
+      simpa using w, }
+    },
+end
 
 end list

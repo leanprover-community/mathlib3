@@ -1475,25 +1475,25 @@ namespace ring_hom
 
 variables {R : Type*} [semiring R] {S : Type*} [ring S]
 
-theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
+@[simp] theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
 nat.iterate₀ f.map_one
 
-theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
+@[simp] theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
 nat.iterate₀ f.map_zero
 
-theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
+@[simp] theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
   f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
 nat.iterate₂ f.map_mul
 
-theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
+@[simp] theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
   f^[n] (x + y) = (f^[n] x) + (f^[n] y) :=
 nat.iterate₂ f.map_add
 
-theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
+@[simp] theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
   f^[n] (-x) = -(f^[n] x) :=
 nat.iterate₁ f.map_neg
 
-theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
+@[simp] theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
   f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
 nat.iterate₂ f.map_sub
 

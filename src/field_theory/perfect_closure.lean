@@ -39,10 +39,10 @@ variables {α : Type u} [field α] {β : Type v} [field β] (f : α →* β) (g 
 
 @[simp] lemma  coe_frobenius_equiv_symm : ⇑(frobenius_equiv α p).symm = pth_root α p := rfl
 
-theorem frobenius_pth_root (x : α) : frobenius α p (pth_root α p x) = x :=
+@[simp] theorem frobenius_pth_root (x : α) : frobenius α p (pth_root α p x) = x :=
 (frobenius_equiv α p).apply_symm_apply x
 
-theorem pth_root_frobenius (x : α) : pth_root α p (frobenius α p x) = x :=
+@[simp] theorem pth_root_frobenius (x : α) : pth_root α p (frobenius α p x) = x :=
 (frobenius_equiv α p).symm_apply_apply x
 
 theorem eq_pth_root_iff {x y : α} : x = pth_root α p y ↔ frobenius α p x = y :=

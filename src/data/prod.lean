@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import tactic.ext
+
 /-!
 # Extra facts about `prod`
 
@@ -19,6 +21,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 namespace prod
+
+@[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 
 @[simp] lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 
@@ -36,6 +40,7 @@ funext $ map_snd f g
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 
+@[ext]
 lemma ext {α β} {p q : α × β} (h₁ : p.1 = q.1) (h₂ : p.2 = q.2) : p = q :=
 ext_iff.2 ⟨h₁, h₂⟩
 

@@ -170,6 +170,11 @@ instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
 
 instance : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
+@[simp, elim_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
+  ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
+
+@[simp, squash_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
+
 variables (φ : A →ₐ[R] B)
 
 @[ext]
@@ -192,6 +197,13 @@ ring_hom.ext $ φ.commutes
 
 @[simp] lemma map_one : φ 1 = 1 :=
 φ.to_ring_hom.map_one
+
+@[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
+by simp only [algebra.smul_def, map_mul, commutes]
+
+lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (s.sum f) = s.sum (λx, φ (f x)) :=
+φ.to_ring_hom.map_sum f s
 
 section
 
@@ -238,7 +250,7 @@ variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 def to_linear_map : A →ₗ B :=
 { to_fun := φ,
   add := φ.map_add,
-  smul := λ (c : R) x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
+  smul := φ.map_smul }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 

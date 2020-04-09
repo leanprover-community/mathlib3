@@ -467,14 +467,20 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 section add_monoid
 variables [add_monoid β]
 
+/-- This version of `prod_single_index'` assumex `b ≠ 0` instead of `h a 0 = 1`. -/
+@[to_additive]
+lemma prod_single_index' [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (hb : b ≠ 0) :
+  (single a b).prod h = h a b :=
+by simp only [finsupp.prod, support_single_ne_zero hb, insert_empty_eq_singleton,
+      prod_singleton, single_eq_same]
+
 @[to_additive]
 lemma prod_single_index [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (h_zero : h a 0 = 1) :
   (single a b).prod h = h a b :=
 begin
   by_cases h : b = 0,
   { simp only [h, h_zero, single_zero]; refl },
-  { simp only [finsupp.prod, support_single_ne_zero h, insert_empty_eq_singleton,
-      prod_singleton, single_eq_same] }
+  { exact prod_single_index' h }
 end
 
 instance : has_add (α →₀ β) := ⟨zip_with (+) (add_zero 0)⟩

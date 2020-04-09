@@ -296,7 +296,10 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebr
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance comap.algebra : algebra R (comap R S A) :=
-((algebra_map S A).comp (algebra_map R S)).to_algebra $ λ r x, algebra.commutes _ _
+{ smul := λ r x, (algebra_map R S r • x : A),
+  commutes' := λ r x, algebra.commutes _ _,
+  smul_def' := λ _ _, algebra.smul_def _ _,
+  .. (algebra_map S A).comp (algebra_map R S) }
 
 /-- Embedding of `S` into `comap R S A`. -/
 def to_comap : S →ₐ[R] comap R S A :=

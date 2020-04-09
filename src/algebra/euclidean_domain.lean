@@ -128,6 +128,22 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
+section
+open_locale classical
+
+@[elab_as_eliminator]
+theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
+  (∀ x, P 0 x) →
+  (∀ a b, a ≠ 0 → P (b % a) a → P a b) →
+  P a b
+| a := λ b H0 H1, if a0 : a = 0 then by rw [a0]; apply H0 else
+  have h:_ := mod_lt b a0,
+  H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
+using_well_founded {dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+
+end
+
 section gcd
 variable [decidable_eq α]
 
@@ -146,17 +162,6 @@ by rw gcd; split_ifs; simp only [h, zero_mod, gcd_zero_left]
 
 theorem gcd_val (a b : α) : gcd a b = gcd (b % a) a :=
 by rw gcd; split_ifs; [simp only [h, mod_zero, gcd_zero_right], refl]
-
-@[elab_as_eliminator]
-theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
-  (∀ x, P 0 x) →
-  (∀ a b, a ≠ 0 → P (b % a) a → P a b) →
-  P a b
-| a := λ b H0 H1, if a0 : a = 0 then by rw [a0]; apply H0 else
-  have h:_ := mod_lt b a0,
-  H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
-using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
 theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b

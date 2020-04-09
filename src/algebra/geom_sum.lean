@@ -6,7 +6,7 @@ Authors: Neil Strickland
 Sums of finite geometric series
 -/
 
-import algebra.big_operators algebra.commute
+import algebra.big_operators algebra.commute algebra.group_with_zero_power
 
 universe u
 variable {α : Type u}

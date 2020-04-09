@@ -24,6 +24,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
+@[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 

@@ -2,11 +2,15 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
-
-Dependent functions with finite support (see `data/finsupp.lean`).
 -/
 
 import data.finset data.set.finite algebra.big_operators algebra.module algebra.pi_instances
+
+/-!
+# Dependent functions with finite support
+
+(see also `data/finsupp.lean`).
+-/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
 
@@ -24,6 +28,9 @@ structure pre : Type (max u v) :=
 (to_fun : Π i, β i)
 (pre_support : multiset ι)
 (zero : ∀ i, i ∈ pre_support ∨ to_fun i = 0)
+
+instance inhabited_pre : inhabited (pre ι β) :=
+⟨⟨λ i, 0, ∅, λ i, or.inr rfl⟩⟩
 
 instance : setoid (pre ι β) :=
 { r := λ x y, ∀ i, x.to_fun i = y.to_fun i,
@@ -220,15 +227,21 @@ ext $ λ i, by simp only [sub_apply, subtype_domain_apply]
 end filter_and_subtype_domain
 
 
-variable [decidable_eq ι]
+variable [dec : decidable_eq ι]
+include dec
 
 section basic
 variable [Π i, has_zero (β i)]
 
+omit dec
 lemma finite_supp (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
-quotient.induction_on f $ λ x, set.finite_subset
-  (finset.finite_to_set x.2.to_finset) $ λ i H,
-multiset.mem_to_finset.2 $ (x.3 i).resolve_right H
+begin
+  classical,
+  exact quotient.induction_on f (λ x, set.finite_subset
+  (finset.finite_to_set x.2.to_finset) (λ i H,
+    multiset.mem_to_finset.2 ((x.3 i).resolve_right H)))
+end
+include dec
 
 def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
@@ -473,9 +486,9 @@ section map_range_and_zip_with
 
 variables {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
 variables [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
-variables [Π i, decidable_pred (eq (0 : β₁ i))] [Π i, decidable_pred (eq (0 : β₂ i))]
 
-lemma map_range_def {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} :
+lemma map_range_def [Π i, decidable_pred (eq (0 : β₁ i))]
+  {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} :
   map_range f hf g = mk g.support (λ i, f i.1 (g i.1)) :=
 begin
   ext i,
@@ -484,15 +497,18 @@ begin
   { simp at h, simp [h, hf] }
 end
 
-lemma support_map_range {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} :
-  (map_range f hf g).support ⊆ g.support :=
-by simp [map_range_def]
-
 @[simp] lemma map_range_single {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {i : ι} {b : β₁ i} :
   map_range f hf (single i b) = single i (f i b) :=
 dfinsupp.ext $ λ i', by by_cases i = i'; [{subst i', simp}, simp [h, hf]]
 
-lemma zip_with_def {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0} {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} :
+variables [Π i, decidable_pred (eq (0 : β₁ i))] [Π i, decidable_pred (eq (0 : β₂ i))]
+
+lemma support_map_range {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} :
+  (map_range f hf g).support ⊆ g.support :=
+by simp [map_range_def]
+
+lemma zip_with_def {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
+  {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} :
   zip_with f hf g₁ g₂ = mk (g₁.support ∪ g₂.support) (λ i, f i.1 (g₁ i.1) (g₂ i.1)) :=
 begin
   ext i,
@@ -500,7 +516,8 @@ begin
   try {simp at h1 h2}; simp [h1, h2, hf]
 end
 
-lemma support_zip_with {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0} {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} :
+lemma support_zip_with {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
+  {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} :
   (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
 by simp [zip_with_def]
 
@@ -566,7 +583,7 @@ lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, 
   {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
 support_map_range
 
-instance [decidable_eq ι] [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
+instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
       if h : i ∈ f.support then h₂ i h else
@@ -629,12 +646,14 @@ lemma prod_neg_index [Π i, add_group (β i)] [Π i, decidable_pred (eq (0 : β 
   (-g).prod h = g.prod (λi b, h i (- b)) :=
 prod_map_range_index h0
 
+omit dec
 @[simp] lemma sum_apply {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i, decidable_pred (eq (0 : β₁ i))]
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
 (f.support.sum_hom (λf : Π₀ i, β i, f i₂)).symm
+include dec
 
 lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i, decidable_pred (eq (0 : β₁ i))]
@@ -707,13 +726,16 @@ simp [@sum_neg ι β _ γ _ _ _ g h]
 @[to_additive]
 lemma prod_finset_sum_index {γ : Type w} {α : Type x}
   [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
-  [comm_monoid γ] [decidable_eq α]
+  [comm_monoid γ]
   {s : finset α} {g : α → Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
-finset.induction_on s
+begin
+  classical,
+  exact finset.induction_on s
   (by simp [prod_zero_index])
   (by simp [prod_add_index, h_zero, h_add] {contextual := tt})
+end
 
 @[to_additive]
 lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
@@ -746,14 +768,15 @@ finset.prod_bij (λp _, p.val)
   (assume ⟨a₀, ha₀⟩ ⟨a₁, ha₁⟩, by simp)
   (λ i hi, ⟨⟨i, hp i hi⟩, by simpa using hi, rfl⟩)
 
-lemma subtype_domain_sum [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
+omit dec
+lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
 eq.symm (s.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c, decidable_pred (eq (0 : δ c))]
-  [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
+  [Π i, add_comm_monoid (β i)]
   {p : ι → Prop} [decidable_pred p]
   {s : Π₀ c, δ c} {h : Π c, δ c → Π₀ i, β i} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=

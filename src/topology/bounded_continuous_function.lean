@@ -2,95 +2,25 @@
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro
-
-Type of bounded continuous functions taking values in a metric space, with
-the uniform distance.
- -/
+-/
 
 import analysis.normed_space.basic topology.metric_space.lipschitz
 
+/-!
+# Bounded continuous functions
+
+The type of bounded continuous functions taking values in a metric space, with
+the uniform distance.
+
+-/
+
 noncomputable theory
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
-open_locale topological_space
+open_locale topological_space classical
 
 open set filter metric
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-section uniform_limit
-/-!
-### Continuity of uniform limits
-
-In this section, we discuss variations around the continuity of a uniform limit of continuous
-functions when the target space is a metric space. Specifically, we provide statements giving the
-continuity within a set at a point, the continuity at a point, the continuity on a set, and the
-continuity, assuming either locally uniform convergence or globally uniform convergence when this
-makes sense.
--/
-
-variables {ι : Type*} [topological_space α] [metric_space β]
-{F : ι → α → β} {f : α → β} {s : set α} {x : α}
-
-/-- A locally uniform limit of continuous functions within a set at a point is continuous
-within this set at this point -/
-lemma continuous_within_at_of_locally_uniform_limit_of_continuous_within_at
-  (hx : x ∈ s) (L : ∃t ∈ nhds_within x s, ∀ε>(0:ℝ), ∃n, ∀y∈t, dist (F n y) (f y) ≤ ε)
-  (C : ∀ n, continuous_within_at (F n) s x) : continuous_within_at f s x :=
-begin
-  apply metric.continuous_within_at_iff'.2 (λ ε εpos, _),
-  rcases L with ⟨r, rx, hr⟩,
-  rcases hr (ε/2/2) (half_pos $ half_pos εpos) with ⟨n, hn⟩,
-  filter_upwards [rx, metric.continuous_within_at_iff'.1 (C n) (ε/2) (half_pos εpos)],
-  simp only [mem_set_of_eq],
-  rintro y yr ys,
-  calc dist (f y) (f x)
-        ≤ dist (F n y) (F n x) + (dist (F n y) (f y) + dist (F n x) (f x)) : dist_triangle4_left _ _ _ _
-    ... < ε/2 + (ε/2/2 + ε/2/2) :
-      add_lt_add_of_lt_of_le ys (add_le_add (hn _ yr) (hn _ (mem_of_mem_nhds_within hx rx)))
-    ... = ε : by rw [add_halves, add_halves]
-end
-
-/-- A locally uniform limit of continuous functions at a point is continuous at this point -/
-lemma continuous_at_of_locally_uniform_limit_of_continuous_at
-  (L : ∃t ∈ 𝓝 x, ∀ε>(0:ℝ), ∃n, ∀y∈t, dist (F n y) (f y) ≤ ε) (C : ∀ n, continuous_at (F n) x) :
-  continuous_at f x :=
-begin
-  simp only [← continuous_within_at_univ] at C ⊢,
-  apply continuous_within_at_of_locally_uniform_limit_of_continuous_within_at (mem_univ _) _ C,
-  simpa [nhds_within_univ] using L
-end
-
-/-- A locally uniform limit of continuous functions on a set is continuous on this set -/
-lemma continuous_on_of_locally_uniform_limit_of_continuous_on
-  (L : ∀ (x ∈ s), ∃t ∈ nhds_within x s, ∀ε>(0:ℝ), ∃n, ∀y∈t, dist (F n y) (f y) ≤ ε)
-  (C : ∀ n, continuous_on (F n) s) : continuous_on f s :=
-λ x hx, continuous_within_at_of_locally_uniform_limit_of_continuous_within_at hx
-  (L x hx) (λ n, C n x hx)
-
-/-- A uniform limit of continuous functions on a set is continuous on this set -/
-lemma continuous_on_of_uniform_limit_of_continuous_on
-  (L : ∀ε>(0:ℝ), ∃N, ∀y ∈ s, dist (F N y) (f y) ≤ ε) :
-  (∀ n, continuous_on (F n) s) → continuous_on f s :=
-continuous_on_of_locally_uniform_limit_of_continuous_on (λ x hx, ⟨s, self_mem_nhds_within, L⟩)
-
-/-- A locally uniform limit of continuous functions is continuous -/
-lemma continuous_of_locally_uniform_limit_of_continuous
-  (L : ∀x:α, ∃s ∈ 𝓝 x, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
-  (C : ∀ n, continuous (F n)) : continuous f :=
-begin
-  simp only [continuous_iff_continuous_on_univ] at ⊢ C,
-  apply continuous_on_of_locally_uniform_limit_of_continuous_on _ C,
-  simpa [nhds_within_univ] using L
-end
-
-/-- A uniform limit of continuous functions is continuous -/
-lemma continuous_of_uniform_limit_of_continuous (L : ∀ε>(0:ℝ), ∃N, ∀y, dist (F N y) (f y) ≤ ε) :
-  (∀ n, continuous (F n)) → continuous f :=
-continuous_of_locally_uniform_limit_of_continuous $ λx,
-  ⟨univ, by simpa [filter.univ_mem_sets] using L⟩
-
-end uniform_limit
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
@@ -213,13 +143,13 @@ begin
       (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
-  { /- Check that `F` is continuous -/
-    refine continuous_of_uniform_limit_of_continuous (λ ε ε0, _) (λN, (f N).2.1),
-    rcases metric.tendsto_at_top.1 b_lim ε ε0 with ⟨N, hN⟩,
-    exact ⟨N, λy, calc
-      dist (f N y) (F y) ≤ b N : fF_bdd y N
-      ... ≤ dist (b N) 0 : begin simp, show b N ≤ abs(b N), from le_abs_self _ end
-      ... ≤ ε : le_of_lt (hN N (le_refl N))⟩ },
+  { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
+    have : tendsto_uniformly (λn x, f n x) F at_top,
+    { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
+      refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
+      rw dist_comm,
+      exact lt_of_le_of_lt (fF_bdd x n) hn },
+    exact this.continuous (λN, (f N).2.1) at_top_ne_bot },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
     exact ⟨C + (b 0 + b 0), λ x y, calc

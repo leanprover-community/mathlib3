@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
+import category_theory.comma
 
 /-!
 # Categorical images
@@ -271,5 +272,89 @@ end
 -- `image f ⟶ image (f ≫ g)`.
 
 end
+
+section has_image_map
+variables {f} [has_image f]
+variables {P Q : C} {g : P ⟶ Q} [has_image g] (sq : arrow.mk f ⟶ arrow.mk g)
+
+include sq
+
+class has_image_map :=
+(map : image f ⟶ image g)
+(factor_map' : factor_thru_image f ≫ map = sq.left ≫ factor_thru_image g . obviously)
+(map_ι' : map ≫ image.ι g = image.ι f ≫ sq.right . obviously)
+
+restate_axiom has_image_map.factor_map'
+restate_axiom has_image_map.map_ι'
+attribute [simp, reassoc] has_image_map.factor_map has_image_map.map_ι
+
+section
+local attribute [ext] has_image_map
+
+instance : subsingleton (has_image_map sq) :=
+subsingleton.intro $ λ a b, has_image_map.ext a b $ (cancel_mono (image.ι g)).1 $
+  by simp only [has_image_map.map_ι]
+
+end
+
+variable [has_image_map sq]
+
+abbreviation image.map := has_image_map.map sq
+
+lemma image.factor_map : factor_thru_image f ≫ image.map sq = sq.left ≫ factor_thru_image g :=
+by simp
+lemma image.map_ι : image.map sq ≫ image.ι g = image.ι f ≫ sq.right :=
+by simp
+
+section
+variables {R S : C} {h : R ⟶ S} [has_image h] (sq' : arrow.mk g ⟶ arrow.mk h)
+variables [has_image_map sq] [has_image_map sq']
+
+def image.map_comp : has_image_map (sq ≫ sq') :=
+{ map := image.map sq ≫ image.map sq' }
+
+@[simp]
+lemma image.map_comp_eq_comp_map [has_image_map (sq ≫ sq')] :
+  image.map (sq ≫ sq') = image.map sq ≫ image.map sq' :=
+show (has_image_map.map (sq ≫ sq')) = (image.map_comp sq sq').map, by congr
+
+end
+
+section
+
+--set_option pp.implicit true
+--set_option pp.notation false
+
+def image.map_id : has_image_map (𝟙 (arrow.mk f)) :=
+{ map := 𝟙 (image f),
+  factor_map' := begin
+    simp only [arrow.id_left, category.comp_id],
+    erw category.id_comp,
+  end,
+  map_ι' := begin
+    simp only [arrow.id_right, category.id_comp],
+    erw category.comp_id,
+  end }
+
+end
+
+end has_image_map
+
+/-section
+variables (C) [has_images.{v} C]
+
+class has_image_maps :=
+(has_image_map : Π {X Y P Q : C} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : f ≫ v = u ≫ g), has_image_map w)
+
+end
+
+section has_image_maps
+variables [has_images.{v} C] [has_image_maps.{v} C]
+
+--def im : arrow C ⥤ C
+
+
+end has_image_maps-/
 
 end category_theory.limits

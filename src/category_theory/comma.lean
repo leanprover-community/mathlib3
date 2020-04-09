@@ -426,4 +426,30 @@ end
 
 end under
 
+section
+variables (T)
+
+/-- The arrow category of `T` has as objects all morphisms in `T` and as morphisms the commutative
+     squares. -/
+@[derive category]
+def arrow := comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)
+
+end
+
+namespace arrow
+
+@[simp] lemma id_left (f : arrow T) : comma_morphism.left (𝟙 f) = 𝟙 (f.left) := rfl
+@[simp] lemma id_right (f : arrow T) : comma_morphism.right (𝟙 f) = 𝟙 (f.right) := rfl
+
+def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
+⟨X, Y, f⟩
+
+def hom_mk {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : arrow.mk f ⟶ arrow.mk g :=
+{ left := u,
+  right := v,
+  w' := w }
+
+end arrow
+
 end category_theory

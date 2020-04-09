@@ -68,8 +68,8 @@ inductive all_list {α : Type} (p : α → Prop) : list α → Prop
 @[monotonicity]
 lemma monotonicity.all_list {α : Type} {p q : α → Prop} (h : ∀a, implies (p a) (q a)) :
   ∀xs, implies (all_list p xs) (all_list q xs)
-| ._ (all_list.nil ._)           := all_list.nil _
-| ._ (all_list.cons a xs ha hxs) := all_list.cons _ _ (h a ha) (monotonicity.all_list _ hxs)
+| _ (all_list.nil)              := all_list.nil
+| _ (all_list.cons a xs ha hxs) := all_list.cons _ _ (h a ha) (monotonicity.all_list _ hxs)
 
 mutual coinductive walk_a, walk_b {α β : Type} (f : α → list β) (g : β → α) (p : α → Prop) (t : α → Prop)
 with walk_a : α → Prop

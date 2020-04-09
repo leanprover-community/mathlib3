@@ -3196,7 +3196,6 @@ apply_nolint tactic.get_nth_rewrite doc_blame
 apply_nolint tactic.perform_nth_rewrite doc_blame
 
 -- tactic/ring.lean
-apply_nolint conv.interactive.ring doc_blame
 apply_nolint tactic.interactive.ring.mode doc_blame
 apply_nolint tactic.ring.add_atom doc_blame
 apply_nolint tactic.ring.cache doc_blame

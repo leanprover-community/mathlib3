@@ -107,16 +107,23 @@ meta def simp_result
   (t : itactic) : itactic :=
 tactic.simp_result t { fail_if_unchanged := ff } failed no_defaults attr_names hs
 
+/--
+`simp_result { tac }`
+attempts to run a tactic block `tac`,
+intercepts any results the tactic block would have assigned to the goals,
+and runs `simp` on those results
+before assigning the simplified values to the original goals.
+
+You can use the usual interactive syntax for `simp`, e.g.
+`simp_result only [a, b, c] with attr { tac }`.
+
+`dsimp_result { tac }` works similarly, internally using `dsimp`
+(and so only simplifiying along definitional lemmas).
+-/
 add_tactic_doc
 { name       := "simp_result",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.simp_result],
-  tags       := ["simplification"] }
-
-add_tactic_doc
-{ name       := "dsimp_result",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.dsimp_result],
+  decl_names := [``simp_result, ``dsimp_result],
   tags       := ["simplification"] }
 
 end interactive

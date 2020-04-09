@@ -44,8 +44,13 @@ begin
   (do `(0) ← result, skip),
 end
 
+-- This test tactic internally sets `pp.all ff`, and `pp.proofs tt`.
+-- This isn't very robust, as the user setting any other `pp` options
+-- will cause tests to break, but I don't think it needs to be.
 meta def guard_result_pp (s : string) : tactic unit :=
 do
+  o ← get_options,
+  set_options ((o.set_bool `pp.all ff).set_bool `pp.proofs tt),
   r ← (to_string <$> (result >>= pp)),
   guard (r = s) <|> fail format!"result was {r} but expected {s}"
 
@@ -113,10 +118,6 @@ begin
   guard_result_pp "⇑e ?m_1",
   exact a,
 end
-
--- A bit strange here: the `pp` in `guard_result_pp` mistakenly
--- thinks that the `mul` field of `has_mul` is a proof...?
-set_option pp.proofs true
 
 -- Check that we can:
 -- * cope with metavariables in the result

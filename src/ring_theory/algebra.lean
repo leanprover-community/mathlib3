@@ -1,9 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
-
-Algebra over Commutative Ring (under category)
+Authors: Kenny Lau, Yury Kudryashov
 -/
 
 import data.complex.basic
@@ -12,6 +10,9 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 import algebra.commute
 
+/-!
+# Algebra over Commutative Semiring (under category)
+-/
 noncomputable theory
 
 universes u v w u₁ v₁
@@ -27,15 +28,24 @@ setting we have a forgetful functor R-Alg ⥤ R-Mod.
 However here it extends module in order to preserve
 definitional equality in certain cases. -/
 @[nolint has_inhabited_instance]
-class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A] extends has_scalar R A :=
-(to_fun : R →+* A)
-(commutes' : ∀ r x, x * to_fun r = to_fun r * x)
+class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  extends has_scalar R A, R →+* A :=
+(commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
-algebra.to_fun R A
+algebra.to_ring_hom R A
+
+/-- Creating an algebra from a morphism in CRing. -/
+def ring_hom.to_algebra {R S} [comm_semiring R] [semiring S] (i : R →+* S)
+  (h : ∀ c x, i c * x = x * i c) :
+  algebra R S :=
+{ smul := λ c x, i c * x,
+  commutes' := h,
+  smul_def' := λ c x, rfl,
+  .. i}
 
 namespace algebra
 
@@ -44,13 +54,6 @@ variables {R : Type u} {S : Type v} {A : Type w}
 section semiring
 
 variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R A]
-
-/-- Creating an algebra from a morphism in CRing. -/
-def of_ring_hom (i : R →+* S) : algebra R S :=
-{ smul := λ c x, i c * x,
-  to_fun := i,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c x, rfl }
 
 lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -70,11 +73,11 @@ attribute [instance, priority 0] algebra.to_has_scalar
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
-theorem commutes (r : R) (x : A) : x * algebra_map R A r = algebra_map R A r * x :=
+theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
 theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
-by rw [← mul_assoc, commutes, mul_assoc]
+by rw [← mul_assoc, ← commutes, mul_assoc]
 
 @[simp] lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
@@ -97,7 +100,7 @@ instance to_module : module R A := { .. algebra.to_semimodule }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
-of_ring_hom ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ $ λ _, mul_comm  _
 
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
@@ -128,20 +131,21 @@ end algebra
 
 instance module.endomorphism_algebra (R : Type u) (M : Type v)
   [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
-{ to_fun    := 
-  { to_fun := λ r, r • linear_map.id,
-    map_one' := one_smul _ _,
-    map_zero' := zero_smul _ _,
-    map_add' := λ r₁ r₂, add_smul _ _ _,
-    map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] } },
-  -- TODO: `rw` succeedes but `simp` fails. Why?
-  commutes' := by { intros, ext, rw [ring_hom.coe_mk], simp },
-  smul_def' := by { intros, ext, rw [ring_hom.coe_mk], simp } }
+{ to_fun    := λ r, r • linear_map.id,
+  map_one' := one_smul _ _,
+  map_zero' := zero_smul _ _,
+  map_add' := λ r₁ r₂, add_smul _ _ _,
+  map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
+  commutes' := by { intros, ext, simp },
+  smul_def' := by { intros, ext, simp } }
 
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ to_fun    := ⟨λ r, r • 1, one_smul _ _, λ r₁ r₂, by { ext, simp [mul_assoc] },
-    zero_smul _ _, λ _ _, add_smul _ _ _⟩,
+{ to_fun    := λ r, r • 1,
+  map_one'  := one_smul _ _,
+  map_mul'  := λ r₁ r₂, by { ext, simp [mul_assoc] },
+  map_zero' :=  zero_smul _ _,
+  map_add'  := λ _ _, add_smul _ _ _,
   commutes' := by { intros, simp },
   smul_def' := by { intros, simp } }
 
@@ -284,10 +288,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebr
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance comap.algebra : algebra R (comap R S A) :=
-{ smul := λ r x, (algebra_map R S r • x : A),
-  to_fun := (algebra_map S A).comp (algebra_map R S),
-  commutes' := λ r x, algebra.commutes _ _,
-  smul_def' := λ _ _, algebra.smul_def _ _ }
+((algebra_map S A).comp (algebra_map R S)).to_algebra $ λ r x, algebra.commutes _ _
 
 /-- Embedding of `S` into `comap R S A`. -/
 def to_comap : S →ₐ[R] comap R S A :=
@@ -315,19 +316,15 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-{ smul := λ r x, (r : α) * x,
-  to_fun := rat.cast_hom α,
-  commutes' := λ r x, (commute.cast_int_right x r.1).div_right (commute.cast_nat_right x r.2),
-  smul_def' := λ _ _, rfl }
+(rat.cast_hom α).to_algebra $
+λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
 
 end rat
 
 namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ :=
-algebra.of_ring_hom $ ring_hom.of coe
-
-instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
+(ring_hom.of coe).to_algebra $ λ _, mul_comm _
 
 end complex
 
@@ -373,9 +370,9 @@ instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1,
     by rw algebra.smul_def; exact @@is_submonoid.mul_mem _ S.2.2 (S.3 ⟨c, rfl⟩) x.2⟩,
-  to_fun := (algebra_map R A).cod_restrict S $ λ x, S.range_le ⟨x, rfl⟩,
   commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
-  smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _ }
+  smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
+  .. (algebra_map R A).cod_restrict S $ λ x, S.range_le ⟨x, rfl⟩ }
 
 instance to_algebra (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
   [algebra R A] (S : subalgebra R A) : algebra S A :=
@@ -444,7 +441,7 @@ variables [comm_ring R] [ring A] [algebra R A]
 include R
 
 variables (R)
-instance id : algebra R R := algebra.of_ring_hom (ring_hom.id R)
+instance id : algebra R R := (ring_hom.id R).to_algebra mul_comm
 
 namespace id
 
@@ -514,9 +511,9 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-{ to_fun := int.cast_ring_hom R,
-  commutes' := λ x y, commute.cast_int_right _ _,
-  smul_def' := λ _ _, gsmul_eq_mul _ _ }
+{ commutes' := λ x y, commute.cast_int_left _ _,
+  smul_def' := λ _ _, gsmul_eq_mul _ _,
+  .. int.cast_ring_hom R }
 
 variables {R}
 /-- A subring is a `ℤ`-subalgebra. -/

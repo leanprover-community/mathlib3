@@ -1353,10 +1353,9 @@ is_ring_hom.map_sub _
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/
 instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ to_fun := ring_hom.of polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
+{ commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule }
+  .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]

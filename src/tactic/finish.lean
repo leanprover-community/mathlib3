@@ -251,7 +251,7 @@ meta def do_substs : tactic unit := do_subst >> repeat do_subst
  and returns `tt` if anything nontrivial has been added. -/
 meta def add_conjuncts : expr → expr → tactic bool :=
 λ pr t,
-let assert_consequences := λ e t, mcond (add_conjuncts e t) skip (assertv_fresh t e >> skip) in
+let assert_consequences := λ e t, mcond (add_conjuncts e t) skip (note_anon t e >> skip) in
 do t' ← whnf_reducible t,
    match t' with
    | `(%%a ∧ %%b) :=

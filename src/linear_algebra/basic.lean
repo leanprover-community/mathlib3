@@ -1599,7 +1599,7 @@ end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
 set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
-def comap_linear_maps : submodule R (M →ₗ[R] M₂) :=
+def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier := {f | p ≤ comap f q},
   zero    := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
   add     := λ f₁ f₂ h₁ h₂, by { apply le_trans _ (inf_comap_le_comap_add q f₁ f₂), rw le_inf_iff,
@@ -1608,7 +1608,7 @@ def comap_linear_maps : submodule R (M →ₗ[R] M₂) :=
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
 natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
-def mapqₗ : comap_linear_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
+def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun := λ f, mapq _ _ f.val f.property,
   add    := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
   smul   := λ c f, by { ext m', apply quotient.induction_on' m', intros m, refl, } }

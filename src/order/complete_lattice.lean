@@ -229,6 +229,17 @@ supr_le $ le_supr _ ∘ h
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
+lemma monotone.map_supr_ge [complete_lattice β] {f : α → β} (hf : monotone f) :
+  (⨆ i, f (s i)) ≤ f (supr s) :=
+supr_le $ λ i, hf $ le_supr _ _
+
+lemma monotone.map_supr2_ge [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  (⨆ i (h : ι' i), f (s i h)) ≤ f (⨆ i (h : ι' i), s i h) :=
+calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
+  supr_le_supr $ λ i, hf.map_supr_ge
+... ≤ f (⨆ i (h : ι' i), s i h) : hf.map_supr_ge
+
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -274,6 +285,16 @@ le_infi $ infi_le _ ∘ h
 
 @[simp] theorem le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
+
+lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
+  f (infi s) ≤ (⨅ i, f (s i)) :=
+le_infi $ λ i, hf $ infi_le _ _
+
+lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
+calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
+... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
 
 @[congr] theorem infi_congr_Prop {α : Type u} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=

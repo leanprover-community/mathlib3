@@ -119,7 +119,7 @@ end
 lemma pow_card_sub_one_eq_one [decidable_eq α] [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
-    by rw [units.coe_pow, units.mk0_val]
+    by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
 
 end finite_field
@@ -146,12 +146,9 @@ lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
 let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
   from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
 ⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
+  have := congr_arg ⇑(zmod.cast_hom α : zmod n →+* α) hab,
   rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
+  simpa using this
 end⟩
 
 end char_p

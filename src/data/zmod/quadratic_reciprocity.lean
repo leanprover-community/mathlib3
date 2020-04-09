@@ -36,7 +36,7 @@ variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
 by rw [card_units, card_zmodp]
 
 theorem fermat_little {p : ℕ} (hp : nat.prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
-by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
+by rw [← units.coe_mk0 ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
 lemma euler_criterion_units {x : units (zmodp p hp)} :
@@ -97,7 +97,7 @@ begin
   rw [← finset.prod_Ico_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
     ← prod_hom _ (coe : units (zmodp p hp) → zmodp p hp),
-    ← prod_hom _ (coe : ℕ → zmodp p hp)],
+    prod_nat_cast],
   exact eq.symm (prod_bij
     (λ a _, (a : zmodp p hp).1)
     (λ a ha, Ico.mem.2 ⟨nat.pos_of_ne_zero
@@ -116,8 +116,7 @@ end
 @[simp] lemma prod_Ico_one_prime {p : ℕ} (hp : nat.prime p) :
   (Ico 1 p).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub hp.pos] };
-  rw [prod_hom _ (coe : ℕ → zmodp p hp),
-    finset.prod_Ico_id_eq_fact, wilsons_lemma]
+  rw [← prod_nat_cast, finset.prod_Ico_id_eq_fact, wilsons_lemma]
 
 end zmodp
 

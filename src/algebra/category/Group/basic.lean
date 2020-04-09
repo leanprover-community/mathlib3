@@ -65,6 +65,9 @@ instance : unique (1 : Group.{u}) :=
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
 @[to_additive]
+instance : category Group := infer_instance -- short-circuit type class inference
+
+@[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
@@ -114,6 +117,8 @@ instance : unique (1 : CommGroup.{u}) :=
 
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
+
+@[to_additive] instance : category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 

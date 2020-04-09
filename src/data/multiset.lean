@@ -5,8 +5,9 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function order.boolean_algebra
-  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string.basic
+import logic.function order.boolean_algebra data.equiv.basic
+import data.list.sort data.list.intervals data.list.antidiagonal
+import data.quot data.string.basic
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
@@ -2506,12 +2507,12 @@ theorem mem_ndinsert_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ n
 mem_ndinsert.2 (or.inr h)
 
 @[simp, priority 980]
-theorem length_ndinsert_of_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∈ s) :
+theorem length_ndinsert_of_mem {a : α} {s : multiset α} (h : a ∈ s) :
   card (ndinsert a s) = card s :=
 by simp [h]
 
 @[simp, priority 980]
-theorem length_ndinsert_of_not_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∉ s) :
+theorem length_ndinsert_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) :
   card (ndinsert a s) = card s + 1 :=
 by simp [h]
 
@@ -2749,6 +2750,16 @@ fold_cons_left _ _ _ _
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
 
+lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
+sup_le.1 (le_refl _) _ h
+
+lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
+sup_le.2 $ assume b hb, le_sup (h hb)
+
 variables [decidable_eq α]
 
 @[simp] lemma sup_erase_dup (s : multiset α) : (erase_dup s).sup = s.sup :=
@@ -2765,16 +2776,6 @@ by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
 @[simp] lemma sup_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).sup = a ⊔ s.sup :=
 by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
-
-lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
-
-lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
-sup_le.1 (le_refl _) _ h
-
-lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
-sup_le.2 $ assume b hb, le_sup (h hb)
 
 end sup
 
@@ -2796,6 +2797,16 @@ fold_cons_left _ _ _ _
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)
 
+lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
+le_inf.1 (le_refl _) _ h
+
+lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
+le_inf.2 $ assume b hb, inf_le (h hb)
+
 variables [decidable_eq α]
 
 @[simp] lemma inf_erase_dup (s : multiset α) : (erase_dup s).inf = s.inf :=
@@ -2812,16 +2823,6 @@ by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
 @[simp] lemma inf_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).inf = a ⊓ s.inf :=
 by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_cons]; simp
-
-lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
-
-lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
-le_inf.1 (le_refl _) _ h
-
-lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
-le_inf.2 $ assume b hb, inf_le (h hb)
 
 end inf
 

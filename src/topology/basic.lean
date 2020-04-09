@@ -134,9 +134,6 @@ by_cases
 lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
 is_open_inter
 
-@[simp] lemma subsingleton.is_open [subsingleton α] (s : set α) : is_open s :=
-subsingleton.set_cases is_open_empty is_open_univ s
-
 /-- A set is closed if its complement is open -/
 def is_closed (s : set α) : Prop := is_open (-s)
 
@@ -190,9 +187,6 @@ by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
-
-@[simp] lemma subsingleton.is_closed [subsingleton α] (s : set α) : is_closed s :=
-subsingleton.set_cases is_closed_empty is_closed_univ s
 
 /-- The interior of a set `s` is the largest open subset of `s`. -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
@@ -434,6 +428,10 @@ attribute [irreducible] nhds
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
+
+lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
+  (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
+mem_of_nhds h
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ 𝓝 a :=

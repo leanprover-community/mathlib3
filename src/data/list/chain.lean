@@ -7,6 +7,8 @@ import data.list.pairwise
 
 universes u v
 
+open nat
+
 variables {α : Type u} {β : Type v}
 
 namespace list

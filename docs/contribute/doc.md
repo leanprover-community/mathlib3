@@ -159,7 +159,7 @@ that declaration will become the body of the tactic doc entry. If there are
 multiple declarations, you can select the one to be used by passing a name to
 the `inherit_description_from` field.
 
-If you prefer a tactic to have a doc string that is different then the doc entry,
+If you prefer a tactic to have a doc string that is different than the doc entry,
 you can either write the doc entry as a doc string for the `add_tactic_doc` invocation,
 or in the doc string for the tactic itself, betweeen
 the `/--` `-/` markers write the desired doc string first, then `---` surrounded by new lines,

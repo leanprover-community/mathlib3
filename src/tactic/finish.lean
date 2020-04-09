@@ -46,16 +46,6 @@ declare_trace auto.finish
 
 namespace tactic
 
-/-- call `(assert n t)` with a fresh name `n`. -/
-meta def assert_fresh (t : expr) : tactic expr :=
-do n ← get_unused_name `h none,
-   assert n t
-
-/-- call `(assertv n t v)` with a fresh name `n`. -/
-meta def assertv_fresh (t : expr) (v : expr) : tactic expr :=
-do h ← get_unused_name `h none,
-   assertv h t v
-
 namespace interactive
 
 meta def revert_all := tactic.revert_all

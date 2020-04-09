@@ -535,6 +535,16 @@ arguments or in the target. Also returns the argument position of each returned 
 meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
 get_pi_binders_dep_aux 0
 
+/-- call `assert n t` with a fresh name `n`. -/
+meta def assert_fresh (t : expr) : tactic expr :=
+do n ← get_unused_name `h none,
+   assert n t
+
+/-- call `assertv n t v` with a fresh name `n`. -/
+meta def assertv_fresh (t : expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   assertv h t v
+
 /-- A variation on `assert` where a (possibly incomplete)
 proof of the assertion is provided as a parameter.
 

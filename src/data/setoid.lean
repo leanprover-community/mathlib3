@@ -383,8 +383,8 @@ lemma empty_not_mem_classes {r : setoid α} : ∅ ∉ r.classes :=
 λ ⟨y, hy⟩, set.not_mem_empty y $ hy.symm ▸ r.refl' y
 
 /-- Equivalence classes partition the type. -/
-lemma classes_eqv_classes {r : setoid α} : ∀ a, ∃! b ∈ r.classes, a ∈ b :=
-λ a, exists_unique.intro2 {x | r.rel x a} (r.mem_classes a) (r.refl' _) $
+lemma classes_eqv_classes {r : setoid α} (a) : ∃! b ∈ r.classes, a ∈ b :=
+exists_unique.intro2 {x | r.rel x a} (r.mem_classes a) (r.refl' _) $
 begin
   rintros _ ⟨y, rfl⟩ ha,
   ext x,

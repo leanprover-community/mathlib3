@@ -273,16 +273,22 @@ end
 
 end
 
+end category_theory.limits
+
+namespace category_theory.limits
+
+variables {C : Type u} [𝒞 : category.{v} C]
+include 𝒞
+
 section has_image_map
-variables {f} [has_image f]
-variables {P Q : C} {g : P ⟶ Q} [has_image g] (sq : arrow.mk f ⟶ arrow.mk g)
+variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
-include sq
-
+/-- An image map is a morphism `image f → image g` fitting into a commutative square and satisfying
+    the obvious commutativity conditions. -/
 class has_image_map :=
-(map : image f ⟶ image g)
-(factor_map' : factor_thru_image f ≫ map = sq.left ≫ factor_thru_image g . obviously)
-(map_ι' : map ≫ image.ι g = image.ι f ≫ sq.right . obviously)
+(map : image f.hom ⟶ image g.hom)
+(factor_map' : factor_thru_image f.hom ≫ map = sq.left ≫ factor_thru_image g.hom . obviously)
+(map_ι' : map ≫ image.ι g.hom = image.ι f.hom ≫ sq.right . obviously)
 
 restate_axiom has_image_map.factor_map'
 restate_axiom has_image_map.map_ι'
@@ -292,24 +298,27 @@ section
 local attribute [ext] has_image_map
 
 instance : subsingleton (has_image_map sq) :=
-subsingleton.intro $ λ a b, has_image_map.ext a b $ (cancel_mono (image.ι g)).1 $
+subsingleton.intro $ λ a b, has_image_map.ext a b $ (cancel_mono (image.ι g.hom)).1 $
   by simp only [has_image_map.map_ι]
 
 end
 
 variable [has_image_map sq]
 
+/-- The map on images induced by a commutative square. -/
 abbreviation image.map := has_image_map.map sq
 
-lemma image.factor_map : factor_thru_image f ≫ image.map sq = sq.left ≫ factor_thru_image g :=
+lemma image.factor_map :
+  factor_thru_image f.hom ≫ image.map sq = sq.left ≫ factor_thru_image g.hom :=
 by simp
-lemma image.map_ι : image.map sq ≫ image.ι g = image.ι f ≫ sq.right :=
+lemma image.map_ι : image.map sq ≫ image.ι g.hom = image.ι f.hom ≫ sq.right :=
 by simp
 
 section
-variables {R S : C} {h : R ⟶ S} [has_image h] (sq' : arrow.mk g ⟶ arrow.mk h)
-variables [has_image_map sq] [has_image_map sq']
+variables {h : arrow C} [has_image h.hom] (sq' : g ⟶ h)
+variables [has_image_map sq']
 
+/-- Image maps for composable commutative squares induce an image map in the composite square. -/
 def image.map_comp : has_image_map (sq ≫ sq') :=
 { map := image.map sq ≫ image.map sq' }
 
@@ -321,40 +330,52 @@ show (has_image_map.map (sq ≫ sq')) = (image.map_comp sq sq').map, by congr
 end
 
 section
+variables (f)
 
---set_option pp.implicit true
---set_option pp.notation false
+/-- The identity `image f ⟶ image f` fits into the commutative square represented by the identity
+    morphism `𝟙 f` in the arrow category. -/
+def image.map_id : has_image_map (𝟙 f) :=
+{ map := 𝟙 (image f.hom),
+  factor_map' := by erw [arrow.id_left, category.id_comp, category.comp_id],
+  map_ι' := by erw [arrow.id_right, category.id_comp, category.comp_id] }
 
-def image.map_id : has_image_map (𝟙 (arrow.mk f)) :=
-{ map := 𝟙 (image f),
-  factor_map' := begin
-    simp only [arrow.id_left, category.comp_id],
-    erw category.id_comp,
-  end,
-  map_ι' := begin
-    simp only [arrow.id_right, category.id_comp],
-    erw category.comp_id,
-  end }
+@[simp]
+lemma image.map_id_eq_id [has_image_map (𝟙 f)] : image.map (𝟙 f) = 𝟙 (image f.hom) :=
+show (image.map (𝟙 f)) = (image.map_id f).map, by congr
 
 end
 
 end has_image_map
 
-/-section
+section
 variables (C) [has_images.{v} C]
 
+/-- If a category `has_image_maps`, then all commutative squares induce morphisms on images. -/
 class has_image_maps :=
-(has_image_map : Π {X Y P Q : C} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
-  (w : f ≫ v = u ≫ g), has_image_map w)
+(has_image_map : Π {f g : arrow C} (st : f ⟶ g), has_image_map st)
+
+attribute [instance, priority 100] has_image_maps.has_image_map
 
 end
 
 section has_image_maps
 variables [has_images.{v} C] [has_image_maps.{v} C]
 
---def im : arrow C ⥤ C
+set_option trace.simplify.rewrite true
 
+/-- The functor from the arrow category of `C` to `C` itself that maps a morphism to its image
+    and a commutative square to the induced morphism on images. -/
+def im : arrow C ⥤ C :=
+{ obj := λ f, image f.hom,
+  map := λ _ _ st, image.map st,
+  map_id' := by tidy,
+  map_comp' :=
+  begin
+    intros,
+    -- simp does not work here?
+    rw image.map_comp_eq_comp_map,
+  end }
 
-end has_image_maps-/
+end has_image_maps
 
 end category_theory.limits

@@ -12,6 +12,14 @@ import algebra.commute
 
 /-!
 # Algebra over Commutative Semiring (under category)
+
+In this file we define algebra over commutative (semi)rings, algebra homomorphisms `alg_hom`,
+and `subalgebra`s. We also define usual operations on `alg_hom`s (`id`, `comp`) and subalgebras
+(`map`, `comap`).
+
+## Notations
+
+* `A →ₐ[R] B` : `R`-algebra homomorphism from `A` to `B`.
 -/
 noncomputable theory
 

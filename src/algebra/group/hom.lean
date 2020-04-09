@@ -243,7 +243,7 @@ namespace add_monoid_hom
 @[simp] theorem map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
 
-/-- Left multiplication by an element of a (semi)ring is an add_monoid_hom -/
+/-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
 def left_mul {R : Type*} [semiring R] (r : R) : R →+ R :=
 { to_fun := (*) r,
   map_zero' := mul_zero r,

@@ -20,7 +20,8 @@ and the appropriate definition of instances:
  * `fails_quickly` checks that type class resolution finishes quickly
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
-   to `[inhabited α]`
+   to `[nonempty α]`
+ * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used in the statement, and could thus be removed by using `classical` in the proof.
 -/
 
 open tactic
@@ -257,3 +258,32 @@ do tt ← is_prop d.type | return none,
 { test := inhabited_nonempty,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
+
+/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
+elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
+private meta def decidable_classical (d : declaration) : tactic (option string) :=
+do tt ← is_prop d.type | return none,
+   (binders, _) ← get_pi_binders_dep d.type,
+   let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
+     ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
+     ∨ pr.2.type.is_app_of `decidable,
+   if deceq_binders.length = 0 then return none
+   else (λ s, some $ "The following `decidable` hypotheses should be replaced with
+                      `classical` in the proof. " ++ s) <$>
+      print_arguments deceq_binders
+
+/-- A linter object for `decidable_classical`. -/
+@[linter] meta def linter.decidable_classical : linter :=
+{ test := decidable_classical,
+  no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
+  errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
+
+/- The file `logic/basic.lean` emphasizes the differences between what holds under classical
+and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
+to the list of lemmas which are not checked by the linter `decidable_classical`. -/
+attribute [nolint decidable_classical] dec_em by_contradiction not_not of_not_not of_not_imp
+not.imp_symm not_imp_comm or_iff_not_imp_left or_iff_not_imp_right not_imp_not not_or_of_imp
+imp_iff_not_or imp_or_distrib imp_or_distrib' not_imp peirce not_iff_not not_iff_comm not_iff
+iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_and_distrib'
+or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
+forall_or_distrib_right not_ball

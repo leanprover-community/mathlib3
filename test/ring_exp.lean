@@ -152,7 +152,7 @@ conv_lhs
 end
 
 example (x y : ℤ) : x + id y - y + id x = x * 2 := begin
-  conv_lhs{ ring_exp!, },
+  conv_lhs { ring_exp!, },
 end
 end conv
 

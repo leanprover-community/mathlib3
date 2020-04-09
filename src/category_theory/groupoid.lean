@@ -55,13 +55,12 @@ variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
-def groupoid.of_is_iso
-  (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), @is_iso _ 𝒞 _ _ f) : groupoid.{v} C :=
+def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso.{v} f) : groupoid.{v} C :=
 { inv := λ X Y f, (all_is_iso f).inv }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
-def groupoid.of_trunc_split_mono
-  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc $ @split_mono _ 𝒞 _ _ f) : groupoid.{v} C :=
+def groupoid.of_trunc_split_mono (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc $ split_mono.{v} f) :
+  groupoid.{v} C :=
 groupoid.of_is_iso $ λ X Y f, trunc.rec_on_subsingleton (all_split_mono f) $
 by {introI, exact trunc.rec_on_subsingleton (all_split_mono $ retraction f)
   (by {introI, exact is_iso.of_mono_retraction})}

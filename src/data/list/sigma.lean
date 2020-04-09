@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Sean Leather
 
 Functions on lists of sigma types.
 -/
-import data.list.perm data.sigma
+import data.list.perm data.list.range data.sigma
 
 universes u v
 

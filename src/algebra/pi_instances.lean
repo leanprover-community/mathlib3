@@ -221,9 +221,10 @@ variables {I : Type*} (Z : I → Type*)
 variables [Π i, comm_monoid (Z i)]
 
 @[simp, to_additive]
-lemma finset.prod_apply {γ : Type*} [decidable_eq γ] {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
+lemma finset.prod_apply {γ : Type*} {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
   (s.prod h) i = s.prod (λ g, h g i) :=
 begin
+  classical,
   induction s using finset.induction_on with b s nmem ih,
   { simp only [finset.prod_empty], refl },
   { simp only [nmem, finset.prod_insert, not_false_iff],

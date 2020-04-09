@@ -345,7 +345,7 @@ See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more det
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
-* `ring` and `ring2`,
+* `ring`, `ring2` and `ring_exp`,
 * `norm_num`,
 * `norm_cast`,
 * `apply_congr`, and

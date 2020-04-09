@@ -138,7 +138,7 @@ section conv
 /-!
   ### `conv` section
 
-  Test that `ring_exp` work inside of `conv` both with and without `!`.
+  Test that `ring_exp` works inside of `conv`, both with and without `!`.
 -/
 
 example (n : ℕ) : (2^n * 2 + 1)^10 = (2^(n+1) + 1)^10 :=

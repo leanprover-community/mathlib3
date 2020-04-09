@@ -64,7 +64,6 @@ by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
 by ext; simp [to_matrix, one_val]; congr
 
-#print eq_some_iff
 lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin

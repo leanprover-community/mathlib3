@@ -5,7 +5,10 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic logic.relation
+import data.list.bag_inter
+import data.list.erase_dup
+import data.list.zip
+import logic.relation
 
 namespace list
 universe variables uu vv

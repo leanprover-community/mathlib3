@@ -295,7 +295,10 @@ meta def eval_div_ext (simp : expr → tactic (expr × expr)) : expr → tactic 
   | _ := failed
   end,
   p₁ ← mk_app ``propext [@expr.const tt n [] e₁ e₂],
-  (e', p₂) ← simp `(%%e₂ % %%e₁ = 0),
+  (c, el) ← c.mk_app ``has_mod.mod [e₂, e₁],
+  (c, z) ← c.mk_app ``has_zero.zero [],
+  e ← mk_app ``eq [el, z],
+  (e', p₂) ← simp e,
   p' ← mk_eq_trans p₁ p₂,
   return (e', p')
 | _ := failed

@@ -162,8 +162,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.push_neg],
   tags       := ["logic"] }
 
-lemma imp_of_not_imp_not (P Q : Prop) [decidable Q] : (¬ Q → ¬ P) → (P → Q) :=
-λ h hP, by_contradiction (λ h', h h' hP)
+lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
+λ h hP, classical.by_contradiction (λ h', h h' hP)
 
 /-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
 meta def name_with_opt : lean.parser (name × option name) :=
@@ -183,7 +183,7 @@ meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_wi
 | (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
 | none :=
   do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
 

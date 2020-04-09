@@ -7,7 +7,7 @@ Instances of `traversable` for types from the core library
 -/
 
 import category.traversable.basic category.basic category.functor category.applicative
-import data.list.basic data.set.lattice
+import data.list.forall2 data.set.lattice
 
 universes u v
 

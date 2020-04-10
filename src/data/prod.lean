@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import tactic.ext
+
 /-!
 # Extra facts about `prod`
 
@@ -20,13 +22,11 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace prod
 
-attribute [simp] prod.map
+@[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 
-@[simp] lemma map_fst (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).1 = f (p.1)
-| ⟨a, b⟩ := rfl
+@[simp] lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 
-@[simp] lemma map_snd (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).2 = g (p.2)
-| ⟨a, b⟩ := rfl
+@[simp] lemma map_snd (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).2 = g (p.2) := rfl
 
 @[simp] lemma map_fst' (f : α → γ) (g : β → δ) : (prod.fst ∘ map f g) = f ∘ prod.fst :=
 funext $ map_fst f g
@@ -40,6 +40,7 @@ funext $ map_snd f g
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 
+@[ext]
 lemma ext {α β} {p q : α × β} (h₁ : p.1 = q.1) (h₂ : p.2 = q.2) : p = q :=
 ext_iff.2 ⟨h₁, h₂⟩
 
@@ -89,12 +90,12 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
   {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
 ⟨λ h, by cases h; simp *,
  λ h, match p, q, h with
- | (a, b), (c, d), or.inl h := lex.left _ _ _ h
+ | (a, b), (c, d), or.inl h := lex.left _ _ h
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=
-   by change a = c at e; subst e; exact lex.right _ _ h
+   by change a = c at e; subst e; exact lex.right _ h
  end⟩
 
-instance lex.decidable [decidable_eq α] [decidable_eq β]
+instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
   decidable_rel (prod.lex r s) :=
 λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
@@ -105,4 +106,7 @@ open function
 
 lemma function.injective.prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
   injective (λ p : α × β, (f p.1, g p.2)) :=
-assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, by { simp [prod.mk.inj_iff],exact λ ⟨eq₁, eq₂⟩, ⟨hf eq₁, hg eq₂⟩ }
+assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
+  have a₁ = a₂, from hf (by cc),
+  have b₁ = b₂, from hg (by cc),
+  by cc

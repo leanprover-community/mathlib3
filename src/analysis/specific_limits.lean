@@ -328,7 +328,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -341,8 +341,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow'],
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end

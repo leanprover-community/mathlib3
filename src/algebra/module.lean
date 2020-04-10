@@ -44,7 +44,7 @@ include R
 
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (α)
-@[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
+@[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul x
 
 variable {α}
 
@@ -169,8 +169,8 @@ module.of_core
 class is_linear_map (α : Type u) {β : Type v} {γ : Type w}
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   (f : β → γ) : Prop :=
-(add  : ∀x y, f (x + y) = f x + f y)
-(smul : ∀(c : α) x, f (c • x) = c • f x)
+(add [] : ∀ x y, f (x + y) = f x + f y)
+(smul [] : ∀ (c : α) x, f (c • x) = c • f x)
 
 structure linear_map (α : Type u) (β : Type v) (γ : Type w)
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ] :=
@@ -347,9 +347,12 @@ lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
 
-lemma sum_mem {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
+lemma sum_mem {ι : Type w} {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
-finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
+begin
+  classical,
+  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
+end
 
 lemma smul_mem_iff' (u : units α) : (u:α) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
@@ -632,7 +635,7 @@ lemma sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
 
-variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
+variables {M : Type*} [decidable_linear_ordered_cancel_add_comm_monoid M]
   {s : finset α} (f : α → M)
 
 theorem exists_card_smul_le_sum (hs : s.nonempty) :

@@ -75,17 +75,13 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
--- In this lemma and the next we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
--- We expect in Lean 3.8 that this won't be necessary.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by { simp, congr }
+by simp
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by { simp, congr }
+by simp
 
 variable (α)
 
@@ -163,10 +159,10 @@ attribute [trans] dvd.trans
 
 /-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
-(map_zero : f 0 = 0)
-(map_one : f 1 = 1)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_zero [] : f 0 = 0)
+(map_one [] : f 1 = 1)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
 
@@ -294,9 +290,9 @@ end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_one [] : f 1 = 1)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
 
@@ -587,7 +583,7 @@ section
 
 /-- An integral domain is a domain. -/
   @[priority 100] -- see Note [lower instance priority]
-  instance integral_domain.to_domain : domain α := {..s}
+  instance integral_domain.to_domain : domain α := {..s, ..(by apply_instance : semiring α)}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=

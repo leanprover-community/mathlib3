@@ -259,7 +259,7 @@ class first_countable_topology : Prop :=
 
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
-(is_open_generated_countable : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
+(is_open_generated_countable [] : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_first_countable_topology

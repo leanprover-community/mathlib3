@@ -37,7 +37,7 @@ theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
 lemma uniform_continuous_sub : uniform_continuous (λp:α×α, p.1 - p.2) :=
-uniform_add_group.uniform_continuous_sub α
+uniform_add_group.uniform_continuous_sub
 
 lemma uniform_continuous.sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
@@ -225,8 +225,8 @@ variables [add_comm_group α] [add_comm_group β] [add_comm_group γ]
 /- TODO: when modules are changed to have more explicit base ring, then change replace `is_Z_bilin`
 by using `is_bilinear_map ℤ` from `tensor_product`. -/
 class is_Z_bilin (f : α × β → γ) : Prop :=
-(add_left  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
-(add_right : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))
+(add_left []  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
+(add_right [] : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))
 
 variables (f : α × β → γ) [is_Z_bilin f]
 

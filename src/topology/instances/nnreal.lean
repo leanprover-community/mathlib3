@@ -33,7 +33,7 @@ instance : order_topology ℝ≥0 :=
     end)
     begin
       apply coinduced_le_iff_le_induced.1,
-      rw [order_topology.topology_eq_generate_intervals ℝ],
+      rw @order_topology.topology_eq_generate_intervals ℝ _,
       apply le_generate_from,
       assume s hs,
       rcases hs with ⟨a, rfl | rfl⟩,
@@ -44,7 +44,7 @@ instance : order_topology ℝ≥0 :=
           have : {b : ℝ≥0 | a < b } = set.univ,
             from (set.eq_univ_iff_forall.2 $ assume b, lt_of_lt_of_le this b.2),
           rw [this],
-          exact topological_space.generate_open.univ _ } },
+          exact topological_space.generate_open.univ } },
       { show (topological_space.generate_from _).is_open {b : ℝ≥0 | a > b },
         by_cases ha : 0 ≤ a,
         { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inr rfl⟩ },

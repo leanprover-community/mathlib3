@@ -334,6 +334,7 @@ instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
 by pi_instance
 
+/-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
 namespace with_bot

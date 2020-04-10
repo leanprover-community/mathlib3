@@ -308,8 +308,16 @@ The default for `num` is `50`.
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+-/
+meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
+do L ← tactic.suggest_scripts (n.get_or_else 50),
+  when (¬ is_trace_enabled_for `silence_suggest)
+    (if L.length = 0 then
+      fail "There are no applicable declarations"
+    else
+      L.mmap trace >> skip)
 
----
+/--
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and
 `library_search`.
@@ -341,14 +349,6 @@ Try this: refine lt_of_not_ge _
 ...
 ```
 -/
-meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
-do L ← tactic.suggest_scripts (n.get_or_else 50),
-  when (¬ is_trace_enabled_for `silence_suggest)
-    (if L.length = 0 then
-      fail "There are no applicable declarations"
-    else
-      L.mmap trace >> skip)
-
 add_tactic_doc
 { name        := "suggest",
   category    := doc_category.tactic,
@@ -363,8 +363,15 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+-/
+meta def library_search : tactic unit :=
+tactic.library_search tactic.done >>=
+if is_trace_enabled_for `silence_library_search then
+  (λ _, skip)
+else
+  trace
 
----
+/--
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using
 `solve_by_elim`.
@@ -378,13 +385,6 @@ by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
 Typically you will then copy and paste this proof, replacing the call to `library_search`.
 -/
-meta def library_search : tactic unit :=
-tactic.library_search tactic.done >>=
-if is_trace_enabled_for `silence_library_search then
-  (λ _, skip)
-else
-  trace
-
 add_tactic_doc
 { name        := "library_search",
   category    := doc_category.tactic,

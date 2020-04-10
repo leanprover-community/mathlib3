@@ -11,9 +11,7 @@ import data.int.basic
 universe u
 
 section prio
--- Extra low priority since this instance could accidentally pull in an
--- unwanted classical decidability assumption.
-set_option default_priority 70 -- see Note [default priority]
+set_option default_priority 100 -- see Note [default priority]
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -345,15 +343,14 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [decidable_eq K] [field K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
 { quotient := (/),
-  remainder := λ a b, if b = 0 then a else 0,
+  remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,
-    if H : b = 0 then by rw [if_pos H, H, zero_mul, zero_add] else
-    by rw [if_neg H, add_zero, mul_div_cancel' _ H],
+    by classical; by_cases b = 0; simp [h, mul_div_cancel'],
   r := λ a b, a = 0 ∧ b ≠ 0,
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
-  remainder_lt := λ a b hnb, ⟨if_neg hnb, hnb⟩,
+  remainder_lt := λ a b hnb, by simp [hnb],
   mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }

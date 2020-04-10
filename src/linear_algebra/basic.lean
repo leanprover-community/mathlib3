@@ -1572,6 +1572,49 @@ end field
 
 end linear_equiv
 
+namespace submodule
+
+variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+variables (p : submodule R M) (q : submodule R M₂)
+
+lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
+  comap f q ≤ comap (c • f) q :=
+begin
+  rw le_def',
+  intros m h,
+  change c • (f m) ∈ q,
+  change f m ∈ q at h,
+  apply submodule.smul _ _ h,
+end
+
+lemma inf_comap_le_comap_add (f₁ f₂ : M →ₗ[R] M₂) :
+  comap f₁ q ⊓ comap f₂ q ≤ comap (f₁ + f₂) q :=
+begin
+  rw le_def',
+  intros m h,
+  change f₁ m + f₂ m ∈ q,
+  change f₁ m ∈ q ∧ f₂ m ∈ q at h,
+  apply submodule.add _ h.1 h.2,
+end
+
+/-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
+set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
+def compatible_maps : submodule R (M →ₗ[R] M₂) :=
+{ carrier := {f | p ≤ comap f q},
+  zero    := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
+  add     := λ f₁ f₂ h₁ h₂, by { apply le_trans _ (inf_comap_le_comap_add q f₁ f₂), rw le_inf_iff,
+                                 exact ⟨h₁, h₂⟩, },
+  smul    := λ c f h, le_trans h (comap_le_comap_smul q f c), }
+
+/-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
+natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
+def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
+{ to_fun := λ f, mapq _ _ f.val f.property,
+  add    := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
+  smul   := λ c f, by { ext m', apply quotient.induction_on' m', intros m, refl, } }
+
+end submodule
+
 namespace equiv
 variables [ring R] [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
 

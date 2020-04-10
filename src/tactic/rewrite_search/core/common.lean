@@ -1,6 +1,6 @@
 import tactic.rewrite_all
 
-import .data
+import tactic.rewrite_search.core.data
 
 universe u
 

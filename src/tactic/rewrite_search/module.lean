@@ -1,13 +1,13 @@
 -- This file almost qualifies for inclusion in the `core` dir, but
 -- the hooks into non-core pieces, i.e. providing defaults, and also
 -- the external interface it exports is enough to keep it out here.
-import .core
+import tactic.rewrite_search.core
 
 -- Default strategy, metric, and tracer used as a fallback by the engine
 -- (so must be present)
-import .strategy.pexplore
-import .metric.edit_distance
-import .tracer.unit
+import tactic.rewrite_search.strategy.pexplore
+import tactic.rewrite_search.metric.edit_distance
+import tactic.rewrite_search.tracer.unit
 
 namespace tactic.rewrite_search
 

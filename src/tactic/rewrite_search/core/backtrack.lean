@@ -1,5 +1,5 @@
-import .types
-import .debug
+import tactic.rewrite_search.core.types
+import tactic.rewrite_search.core.debug
 
 open tactic
 

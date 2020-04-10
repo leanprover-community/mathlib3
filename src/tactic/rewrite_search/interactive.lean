@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Keeley Hoek, Scott Morrison
 
-import .tactic
+import tactic.rewrite_search.tactic
 
 namespace tactic.interactive
 

@@ -1,6 +1,6 @@
-import .core
-import .module
-import .discovery
+import tactic.rewrite_search.core
+import tactic.rewrite_search.module
+import tactic.rewrite_search.discovery
 
 open tactic
 

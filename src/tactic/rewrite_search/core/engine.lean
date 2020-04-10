@@ -1,7 +1,7 @@
-import .types
-import .debug
-import .backtrack
-import .explain
+import tactic.rewrite_search.core.types
+import tactic.rewrite_search.core.debug
+import tactic.rewrite_search.core.backtrack
+import tactic.rewrite_search.core.explain
 
 universe u
 

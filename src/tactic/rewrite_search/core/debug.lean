@@ -1,4 +1,4 @@
-import .types
+import tactic.rewrite_search.core.types
 
 namespace tactic.rewrite_search
 

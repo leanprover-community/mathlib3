@@ -1,7 +1,7 @@
 import data.array.table data.rat.basic
 
-import .common
-import .hook
+import tactic.rewrite_search.core.common
+import tactic.rewrite_search.core.hook
 
 universes u v
 

@@ -1,2 +1,2 @@
-import .pexplore
-import .bfs
+import tactic.rewrite_search.strategy.pexplore
+import tactic.rewrite_search.strategy.bfs

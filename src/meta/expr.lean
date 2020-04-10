@@ -329,6 +329,12 @@ e.fold mk_name_set $ λ e' _ l,
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
+meta def is_eq_or_iff_after_binders : expr → bool
+| (expr.pi n bi d b) := is_eq_or_iff_after_binders b
+| `(%%a = %%b)       := tt
+| `(%%a ↔ %%b)       := tt
+| _                  := ff
+
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof
   `pr : e = new_e`. -/

@@ -9,6 +9,7 @@ open tactic
 
 namespace tactic.rewrite_search
 
+-- jmc: What's the purpose of `dnum`? Can't we just use `ℕ`?
 @[reducible] def dnum : Type := ℕ
 
 namespace dnum

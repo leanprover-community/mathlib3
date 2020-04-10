@@ -120,11 +120,9 @@ def desc (s : cocone F) :
   end,
   map_add' := λ x y,
   begin
-    conv {
-      to_lhs,
-      -- simulate "operand", from #1270, which was closed before it was merged; I wish I had it!
-      tactic.applyc `finset.sum_congr, skip, tactic.intro `j, tactic.intro `h,
-      rw [pi.add_apply x y j, add_monoid_hom.map_add],
+    conv_lhs {
+      apply_congr, skip,
+      rw [pi.add_apply x y x_1, add_monoid_hom.map_add],
     },
     rw finset.sum_add_distrib,
   end, }

@@ -31,7 +31,7 @@ add_tactic_doc
 { name       := "ac_refl",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.ac_refl, `tactic.interactive.ac_reflexivity],
-  tags       := ["core", "lemma application"] }
+  tags       := ["core", "lemma application", "finishing"] }
 
 add_tactic_doc
 { name       := "admit",

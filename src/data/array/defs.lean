@@ -44,6 +44,21 @@ The result is the modified array `y`, wrapped in the monad `k`. -/
 def mmap_copy (x : array n α) (y : array m β) (f : α → k β) : k (array m β) :=
 mmap_copy_aux f 0 x y
 
+/-- Auxiliary function for copying part of an array to another array while applying a function.
+If `k` is a monad, `x` and `y` are arrays of lengths `n` and `m`, and `r` is an index,
+then `map_copy_aux f r x y` will take the slice `x[r .. (min n m)]`,
+apply the function `f` to it, and write it to the corresponding slice of `y`.
+The result is the modified array `y`. -/
+def map_copy_aux (f : α → β) : ℕ → array n α → array m β → array m β
+| r x y := do if h : r < n ∧ r < m then do
+                let fn : fin n := ⟨r, and.elim_left h⟩,
+                let fm : fin m := ⟨r, and.elim_right h⟩,
+                have wf : m - (r + 1) < m - r,
+                  from nat.lt_of_succ_le $ by rw [← nat.succ_sub h.2, nat.succ_sub_succ],
+                map_copy_aux (r + 1) x (y.write fm (f (x.read fn)))
+              else y
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ a, m - a.1)⟩]}
+
 /-- Function for copying part of an array to another array while applying a function.
 If `x` is an array of length `n`, and `y` is an array of length `m`,
 then `array.map_copy f x y` will take the first `(min n m)` coefficients of `x`, apply `f` to them,
@@ -51,7 +66,7 @@ and write them to the corresponding of `y`.
 
 See `array.copy` for the version with `f = id`. -/
 def map_copy (x : array n α) (y : array m β) (f : α → β) : array m β :=
-@mmap_copy id _ _ _ _ _ x y f
+map_copy_aux f 0 x y
 
 /-- Function for copying part of an array to another array.
 If `x` is an array of length `n`, and `y` is an array of length `m`,

@@ -4,7 +4,7 @@ import tactic.doc_commands
 
 # Core tactic documentation
 
-This file adds the majority of the core lean interactive tactics to the API documentation.
+This file adds the majority of the interactive tactics from core Lean (i.e. pre-mathlib) to the API documentation.
 
 # TODO
 
@@ -25,8 +25,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.abstract],
   tags       := ["core"] }
 
-/-- Proves a goal with target `s = t` when `s` and `t` are equal up to the associativity and
-commutativity of their binary operations. -/
+/-- Proves a goal of the form `s = t` when `s` and `t` are expressions built up out of a binary operation,
+and equality can be proved using associativity and commutativity of that operation. -/
 add_tactic_doc
 { name       := "ac_refl",
   category   := doc_category.tactic,
@@ -106,7 +106,7 @@ add_tactic_doc
   tags       := ["core"] }
 
 /--
-`by_cases (h :)? p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch.
+`by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax `by_cases h : p`.
 
 This tactic requires that `p` is decidable. To ensure that all propositions are decidable via classical reasoning, use
 `open_locale classical` (or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using mathlib).
@@ -144,7 +144,7 @@ add_tactic_doc
 /--
 `cases_matching p` applies the `cases` tactic to a hypothesis `h : type` if `type` matches the pattern `p`.
 `cases_matching [p_1, ..., p_n]` applies the `cases` tactic to a hypothesis `h : type` if `type` matches one of the given patterns.
-`cases_matching* p` more efficient and compact version of `focus1 { repeat { cases_matching p } }`. It is more efficient because the pattern is compiled once.
+`cases_matching* p` is a more efficient and compact version of `focus1 { repeat { cases_matching p } }`. It is more efficient because the pattern is compiled once.
 
 Example: The following tactic destructs all conjunctions and disjunctions in the current context.
 ```
@@ -485,7 +485,7 @@ add_tactic_doc
   tags       := ["core", "basic"] }
 
 /--
-`rw e` applies identity `e` as a rewrite rule to the target of the main goal. If `e` is preceded by
+`rw e` applies an equation or iff `e` as a rewrite rule to the main goal. If `e` is preceded by
 left arrow (`←` or `<-`), the rewrite is applied in the reverse direction. If `e` is a defined
 constant, then the equational lemmas associated with `e` are used. This provides a convenient
 way to unfold `e`.

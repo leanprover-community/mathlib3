@@ -23,7 +23,7 @@ add_tactic_doc
 { name       := "abstract",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.abstract],
-  tags       := ["core"] }
+  tags       := ["core", "proof extraction"] }
 
 /-- Proves a goal of the form `s = t` when `s` and `t` are expressions built up out of a binary operation,
 and equality can be proved using associativity and commutativity of that operation. -/
@@ -103,7 +103,7 @@ add_tactic_doc
 { name       := "async",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.async],
-  tags       := ["core", "goal management", "combinator"] }
+  tags       := ["core", "goal management", "combinator", "proof extraction"] }
 
 /--
 `by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax `by_cases h : p`.

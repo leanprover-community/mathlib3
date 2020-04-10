@@ -313,7 +313,7 @@ end
 variable [has_image_map sq]
 
 /-- The map on images induced by a commutative square. -/
-abbreviation image.map := has_image_map.map sq
+abbreviation image.map : image f.hom ⟶ image g.hom := has_image_map.map sq
 
 lemma image.factor_map :
   factor_thru_image f.hom ≫ image.map sq = sq.left ≫ factor_thru_image g.hom :=

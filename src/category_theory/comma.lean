@@ -50,7 +50,7 @@ variables {B : Type u₂} [ℬ : category.{v₂} B]
 variables {T : Type u₃} [𝒯 : category.{v₃} T]
 include 𝒜 ℬ 𝒯
 
-/-- The objects of the comma category category are triples of an object `left : A`, an object
+/-- The objects of the comma category are triples of an object `left : A`, an object
    `right : B` and a morphism `hom : L.obj left ⟶ R.obj right`.  -/
 structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 (left : A . obviously)

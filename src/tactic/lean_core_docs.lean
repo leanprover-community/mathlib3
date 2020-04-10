@@ -115,7 +115,7 @@ add_tactic_doc
 { name       := "by_cases",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.by_cases],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 /--
 If the target of the main goal is a proposition `p`, `by_contra h` reduces the goal to proving `false` using the additional hypothesis `h : ¬ p`. If `h` is omitted, a name is generated automatically.

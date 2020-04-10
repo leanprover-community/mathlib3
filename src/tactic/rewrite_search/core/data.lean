@@ -4,7 +4,8 @@ universe u
 
 @[derive decidable_eq]
 structure sided_pair (α : Type u) :=
-  (l r : α)
+(l r : α)
+
 namespace sided_pair
 variables {α β : Type} (p : sided_pair α)
 

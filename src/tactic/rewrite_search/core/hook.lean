@@ -1,6 +1,6 @@
 import tactic.rewrite_all
 
-import .common
+import tactic.rewrite_search.core.common
 
 open tactic
 

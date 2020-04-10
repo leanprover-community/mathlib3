@@ -322,7 +322,7 @@ add_tactic_doc
 { name       := "focus",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.focus],
-  tags       := ["core", "goal management'] }
+  tags       := ["core", "goal management"] }
 
 add_tactic_doc
 { name       := "from",

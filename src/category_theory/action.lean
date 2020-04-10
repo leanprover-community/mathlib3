@@ -29,7 +29,8 @@ universes u
 variables (M : Type*) [monoid M] (X : Type u) [𝒜 : mul_action M X]
 include 𝒜
 
-/-- A multiplicative action M ↻ X viewed as a functor in the natural way. -/
+/-- A multiplicative action M ↻ X viewed as a functor mapping the single object of M to X
+  and an element `m : M` to the map `X → X` given by multiplication by `m`. -/
 @[reducible]
 def action_as_functor : single_obj M ⥤ Type u :=
 { obj := λ _, X,
@@ -47,7 +48,7 @@ namespace action_category
 instance : category (action_category M X) :=
 category_theory.category_of_elements _
 
-example (p q : action_category M X) : (p ⟶ q) = { m : M // m • p.2 = q.2 } := rfl
+lemma hom_as_subtype (p q : action_category M X) : (p ⟶ q) = { m : M // m • p.2 = q.2 } := rfl
 
 omit 𝒜
 instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
@@ -67,7 +68,7 @@ lemma π_obj (p : action_category M X) : (π M X).obj p = single_obj.star M :=
 @subsingleton.elim unit _ _ _
 
 /-- An object of the action category given by M ↻ X corresponds to an element of X. -/
-def obj_equiv : X ≃ action_category M X:=
+def obj_equiv : X ≃ action_category M X :=
 { to_fun := λ x, ⟨single_obj.star M, x⟩,
   inv_fun := λ p, p.2,
   left_inv := by {intro, refl},

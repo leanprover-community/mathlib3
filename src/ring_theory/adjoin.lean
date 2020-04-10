@@ -40,7 +40,7 @@ variables (s t)
 theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
 le_antisymm
   (closure_mono $ set.union_subset
-    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map (adjoin R s) r, rfl⟩)
+    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
     (set.union_subset_union_left _ $ λ x hxs, ⟨⟨_, subset_adjoin hxs⟩, rfl⟩))
   (closure_subset $ set.union_subset
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
@@ -62,7 +62,8 @@ begin
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨⟨hd, rfl⟩ | hs⟩ | rfl,
-    { refine ⟨hd * z, r, hr, _⟩, rw [smul_def, smul_def, map_mul, ring.mul_assoc], refl },
+    { refine ⟨hd * z, r, hr, _⟩,
+      rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
     { refine ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr, _⟩,
       rw [smul_def, smul_def, mul_left_comm] },
     { refine ⟨-z, r, hr, _⟩, rw [neg_smul, neg_one_mul] } },

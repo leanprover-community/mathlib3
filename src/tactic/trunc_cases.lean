@@ -8,6 +8,52 @@ import tactic.doc_commands
 import data.quot
 
 namespace tactic
+
+/-- Auxiliary tactic for `trunc_cases`. -/
+private meta def trunc_cases_subsingleton (e : expr) (ids : list name) : tactic expr :=
+do
+  -- When the target is a subsingleton,
+  -- we can just use induction along `trunc.rec_on_subsingleton`,
+  -- generating just a single goal.
+  [(_, [e], _)] ← tactic.induction e ids `trunc.rec_on_subsingleton,
+  return e
+
+/-- Auxiliary tactic for `trunc_cases`. -/
+private meta def trunc_cases_nondependent (e : expr) (ids : list name) : tactic expr :=
+do
+  -- We may as well just use `trunc.lift_on`.
+  -- (It would be nice if we could use the `induction` tactic with non-dependent recursors, too?)
+  -- (In fact, the general strategy works just as well here,
+  -- except that it leaves a beta redex in the invariance goal.)
+  to_expr ``(trunc.lift_on %%e) >>= tactic.fapply,
+  -- Replace the hypothesis `e` with the unboxed version.
+  tactic.clear e,
+  e ← tactic.intro e.local_pp_name,
+  -- In the invariance goal, introduce the two arguments using the specified identifiers
+  tactic.swap,
+  match ids.nth 1 with
+  | some n := tactic.intro n
+  | none := tactic.intro1
+  end,
+  match ids.nth 2 with
+  | some n := tactic.intro n
+  | none := tactic.intro1
+  end,
+  tactic.swap,
+  return e
+
+/-- Auxiliary tactic for `trunc_cases`. -/
+private meta def trunc_cases_dependent (e : expr) (ids : list name) : tactic expr :=
+do
+  -- If all else fails, just use the general induction principle.
+  [(_, [e], _), (_, [e_a, e_b, e_p], _)] ← tactic.induction e ids,
+  -- However even now we can do something useful:
+  -- the invariance goal has a useless `e_p : true` hypothesis,
+  -- and after casing on that we may be able to simplify away
+  -- the `eq.rec`.
+  swap, (tactic.cases e_p >> `[try { simp only [eq_rec_constant] }]), swap,
+  return e
+
 namespace interactive
 
 open interactive
@@ -49,45 +95,12 @@ do
   tgt ← target,
   ss ← succeeds (mk_app `subsingleton [tgt] >>= mk_instance),
   -- In each branch here, we're going to capture the name of the new unboxed hypothesis
-  -- so that we can check if it's a typeclass and if so unfreeze local instances.
-  e ← if ss then (do
-    -- When the target is a subsingleton,
-    -- we can just use induction along `trunc.rec_on_subsingleton`,
-    -- generating just a single goal.
-    [(_, [e], _)] ← tactic.induction e ids `trunc.rec_on_subsingleton,
-    return e)
+  -- so that we can later check if it's a typeclass and if so unfreeze local instances.
+  e ← if ss then trunc_cases_subsingleton e ids
   else (do
     -- Otherwise, we decide whether the goal depends on `e`.
-    if ¬ e.occurs tgt then (do
-      -- We may as well just use `trunc.lift_on`.
-      -- (It would be nice if we could use the `induction` tactic with non-dependent recursors, too?)
-      -- (In fact, the general strategy works just as well here,
-      -- except that it leaves a beta redex in the invariance goal.)
-      to_expr ``(trunc.lift_on %%e) >>= tactic.fapply,
-      -- Replace the hypothesis `e` with the unboxed version.
-      tactic.clear e,
-      e ← tactic.intro e.local_pp_name,
-      -- In the invariance goal, introduce the two arguments using the specified identifiers
-      tactic.swap,
-      match ids.nth 1 with
-      | some n := tactic.intro n
-      | none := tactic.intro1
-      end,
-      match ids.nth 2 with
-      | some n := tactic.intro n
-      | none := tactic.intro1
-      end,
-      tactic.swap,
-      return e)
-    else (do
-      -- If all else fails, just use the general induction principle.
-      [(_, [e], _), (_, [e_a, e_b, e_p], _)] ← tactic.induction e ids,
-      -- However even now we can do something useful:
-      -- the invariance goal has a useless `e_p : true` hypothesis,
-      -- and after casing on that we may be able to simplify away
-      -- the `eq.rec`.
-      swap, (tactic.cases e_p >> `[try { simp only [eq_rec_constant] }]), swap,
-      return e)),
+    if e.occurs tgt then trunc_cases_dependent e ids
+    else trunc_cases_nondependent e ids),
   c ← infer_type e >>= is_class,
   when c unfreeze_local_instances
 

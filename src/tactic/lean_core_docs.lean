@@ -470,12 +470,6 @@ add_tactic_doc
   tags       := ["core"] }
 
 add_tactic_doc
-{ name       := "rewrite",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.rewrite],
-  tags       := ["core"] }
-
-add_tactic_doc
 { name       := "right",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.right],

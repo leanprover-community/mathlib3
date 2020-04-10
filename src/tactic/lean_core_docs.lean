@@ -55,43 +55,43 @@ add_tactic_doc
 { name       := "apply",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.apply],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "lemma application"] }
 
 add_tactic_doc
 { name       := "apply_auto_param",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.apply_auto_param],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "apply_instance",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.apply_instance],
-  tags       := ["core"] }
+  tags       := ["core", "type class"] }
 
 add_tactic_doc
 { name       := "apply_opt_param",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.apply_opt_param],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "apply_with",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.apply_with],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "assume",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.assume],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "assumption",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.assumption],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "finishing"] }
 
 add_tactic_doc
 { name       := "assumption'",
@@ -103,7 +103,7 @@ add_tactic_doc
 { name       := "async",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.async],
-  tags       := ["core"] }
+  tags       := ["core", "goal management"] }
 
 /--
 `by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax `by_cases h : p`.
@@ -127,7 +127,7 @@ add_tactic_doc
 { name       := "by_contra",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.by_contra, `tactic.interactive.by_contradiction],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "case",
@@ -139,7 +139,7 @@ add_tactic_doc
 { name       := "cases",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.cases],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "induction"] }
 
 /--
 `cases_matching p` applies the `cases` tactic to a hypothesis `h : type` if `type` matches the pattern `p`.
@@ -155,7 +155,7 @@ add_tactic_doc
 { name       := "cases_matching",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.cases_matching],
-  tags       := ["core"] }
+  tags       := ["core", "induction", "context management"] }
 
 /--
 `cases_type I` applies the `cases` tactic to a hypothesis `h : (I ...)`
@@ -172,7 +172,7 @@ add_tactic_doc
 { name       := "cases_type",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.cases_type],
-  tags       := ["core"] }
+  tags       := ["core", "induction", "context management"] }
 
 add_tactic_doc
 { name       := "casesm",
@@ -184,13 +184,13 @@ add_tactic_doc
 { name       := "change",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.change],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "renaming"] }
 
 add_tactic_doc
 { name       := "clear",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.clear],
-  tags       := ["core"] }
+  tags       := ["core", "context management"] }
 
 add_tactic_doc
 { name       := "comp_val",
@@ -221,7 +221,7 @@ add_tactic_doc
 { name       := "contradiction",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.contradiction],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "finishing"] }
 
 add_tactic_doc
 { name       := "delta",
@@ -278,13 +278,13 @@ add_tactic_doc
 { name       := "exact",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.exact],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "finishing"] }
 
 add_tactic_doc
 { name       := "exacts",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.exacts],
-  tags       := ["core"] }
+  tags       := ["core", "finishing"] }
 
 add_tactic_doc
 { name       := "exfalso",
@@ -322,7 +322,7 @@ add_tactic_doc
 { name       := "focus",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.focus],
-  tags       := ["core"] }
+  tags       := ["core", "goal management'] }
 
 add_tactic_doc
 { name       := "from",
@@ -449,7 +449,7 @@ add_tactic_doc
 { name       := "refl",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.refl, `tactic.interactive.reflexivity],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "finishing"] }
 
 add_tactic_doc
 { name       := "rename",
@@ -605,7 +605,7 @@ add_tactic_doc
 { name       := "trivial",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.trivial],
-  tags       := ["core"] }
+  tags       := ["core", "finishing"] }
 
 add_tactic_doc
 { name       := "try",

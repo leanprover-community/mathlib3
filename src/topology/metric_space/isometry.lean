@@ -247,10 +247,10 @@ end
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : isometry (@algebra_map 𝕜 𝕜' _ _ _) :=
+  [normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
-  rw [dist_eq_norm, dist_eq_norm, ← algebra.map_sub, norm_algebra_map_eq],
+  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
 end
 
 /-- The space of bounded sequences, with its sup norm -/

@@ -433,10 +433,12 @@ def matrix.lie_ring (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : lie_ring (matrix n n R) :=
 lie_ring.of_associative_ring (matrix n n R)
 
+local attribute [instance] matrix.lie_ring
+
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring.
 -/
 def matrix.lie_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : @lie_algebra R (matrix n n R) _ (matrix.lie_ring _ _) :=
+  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
 lie_algebra.of_associative_algebra (matrix n n R)

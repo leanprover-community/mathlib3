@@ -22,11 +22,11 @@ section separation
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
-theorem exists_open_singleton_of_fintype [t0_space α]
-  [f : fintype α] [decidable_eq α] [ha : nonempty α] :
+theorem exists_open_singleton_of_fintype [t0_space α] [f : fintype α] [ha : nonempty α] :
   ∃ x:α, is_open ({x}:set α) :=
 have H : ∀ (T : finset α), T ≠ ∅ → ∃ x ∈ T, ∃ u, is_open u ∧ {x} = {y | y ∈ T} ∩ u :=
 begin
+  classical,
   intro T,
   apply finset.case_strong_induction_on T,
   { intro h, exact (h rfl).elim },

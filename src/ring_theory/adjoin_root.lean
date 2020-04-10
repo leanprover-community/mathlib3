@@ -73,7 +73,7 @@ instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
-@[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ coe (root f) = 0 :=
+@[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
 quotient.induction_on' (root f)
   (λ (g : polynomial R) (hg : mk f g = mk f X),
     show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,
@@ -82,7 +82,7 @@ quotient.induction_on' (root f)
         show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
   (show (root f) = mk f X, from rfl)
 
-lemma is_root_root (f : polynomial R) : is_root (f.map coe) (root f) :=
+lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=
 by rw [is_root, eval_map, eval₂_root]
 
 variables [comm_ring S]
@@ -90,10 +90,10 @@ variables [comm_ring S]
 /-- Lift a ring homomorphism `i : R →+* S` to `adjoin_root f →+* S`. -/
 def lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S :=
 begin
-  apply ideal.quotient.lift _ (ring_hom.of (eval₂ i x)),
+  apply ideal.quotient.lift _ (eval₂_ring_hom i x),
   intros g H,
   rcases mem_span_singleton.1 H with ⟨y, hy⟩,
-  rw [hy, ring_hom.map_mul, ring_hom.coe_of, h, zero_mul]
+  rw [hy, ring_hom.map_mul, coe_eval₂_ring_hom, h, zero_mul]
 end
 
 variables {i : R →+* S} {a : S} {h : f.eval₂ i a = 0}
@@ -122,7 +122,7 @@ lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
 variable (f)
 
 lemma mul_div_root_cancel :
-  (X - C (root f)) * (f.map coe / (X - C (root f))) = f.map coe :=
+  (X - C (root f)) * (f.map (of f) / (X - C (root f))) = f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end adjoin_root

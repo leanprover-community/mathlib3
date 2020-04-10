@@ -215,8 +215,11 @@ begin
   rw [h',reassoc_of h],
 end
 ```
----
+-/
+theorem category_theory.reassoc_of {α} (hh : α) {β}
+  (x : tactic.calculated_Prop β hh . tactic.derive_reassoc_proof) : β := x
 
+/--
 `reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of
 both sides of the equality. Instead of creating a new assumption from the result, `reassoc_of h`
 stands for the proof of that reassociated statement. This keeps complicated assumptions that are
@@ -239,11 +242,7 @@ end
 
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
-
 -/
-theorem category_theory.reassoc_of {α} (hh : α) {β}
-  (x : tactic.calculated_Prop β hh . tactic.derive_reassoc_proof) : β := x
-
 add_tactic_doc
 { name                     := "category_theory.reassoc_of",
   category                 := doc_category.tactic,

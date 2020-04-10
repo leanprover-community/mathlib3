@@ -17,6 +17,8 @@ namespace array
 
 variables {k : Type v → Type z} [monad k] {α : Type u} {β : Type v} {n m : ℕ}
 
+attribute [inline] array.read array.write
+
 /-- Auxiliary function for monadically copying
 part of an array to another array while applying a function.
 If `k` is a monad, `x` and `y` are arrays of lengths `n` and `m`, and `r` is an index,

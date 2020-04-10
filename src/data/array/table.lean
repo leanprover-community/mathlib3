@@ -18,9 +18,6 @@ which uses opaque references called `table_ref`s for access.
 
 universe variables u v w z
 
-attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
-attribute [inline] array.read array.write
-
 /-- `table_ref` is a type alias for `ℕ`. -/
 @[irreducible] def table_ref : Type := ℕ
 

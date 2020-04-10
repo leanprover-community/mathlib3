@@ -215,7 +215,7 @@ add_tactic_doc
 { name       := "constructor",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.constructor],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "contradiction",
@@ -227,19 +227,19 @@ add_tactic_doc
 { name       := "delta",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.delta],
-  tags       := ["core"] }
+  tags       := ["core", "simplification"] }
 
 add_tactic_doc
 { name       := "destruct",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.destruct],
-  tags       := ["core"] }
+  tags       := ["core", "induction"] }
 
 add_tactic_doc
 { name       := "done",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.done],
-  tags       := ["core"] }
+  tags       := ["core", "goal management"] }
 
 add_tactic_doc
 { name       := "dsimp",
@@ -251,19 +251,19 @@ add_tactic_doc
 { name       := "dunfold",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.dunfold],
-  tags       := ["core"] }
+  tags       := ["core", "simplification"] }
 
 add_tactic_doc
 { name       := "eapply",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.eapply],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "econstructor",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.econstructor],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 /--
 A variant of `rw` that uses the unifier more aggressively, unfolding semireducible definitions.
@@ -290,7 +290,7 @@ add_tactic_doc
 { name       := "exfalso",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.exfalso],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 /--
 `existsi e` will instantiate an existential quantifier in the target with `e` and leave the instantiated body as the new target. More generally, it applies to any inductive type with one constructor and at least two arguments, applying the constructor with `e` as the first argument and leaving the remaining arguments as goals.
@@ -304,19 +304,19 @@ add_tactic_doc
 { name       := "existsi",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.existsi],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "fail_if_success",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fail_if_success],
-  tags       := ["core"] }
+  tags       := ["core", "testing"] }
 
 add_tactic_doc
 { name       := "fapply",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fapply],
-  tags       := ["core"] }
+  tags       := ["core", "Lemma application"] }
 
 add_tactic_doc
 { name       := "focus",
@@ -328,13 +328,13 @@ add_tactic_doc
 { name       := "from",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.from],
-  tags       := ["core"] }
+  tags       := ["core", "finishing"] }
 
 add_tactic_doc
 { name       := "funext",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.funext],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "generalize",

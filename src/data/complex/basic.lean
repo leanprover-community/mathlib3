@@ -25,10 +25,7 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
 
-def of_real (r : ℝ) : ℂ := ⟨r, 0⟩
-
-instance : has_coe ℝ ℂ := ⟨of_real⟩
-@[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
+instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
 @[simp, elim_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
 @[simp, elim_cast] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
@@ -192,6 +189,11 @@ instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
+/-- Coercion `ℝ → ℂ` as a `ring_hom`. -/
+def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
+
+@[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
+
 @[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
 
 @[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := rfl
@@ -268,12 +270,10 @@ is_ring_hom.map_div coe
 is_ring_hom.map_fpow of_real r n
 
 @[simp, squash_cast] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
-int.eq_cast (λ n, ((n : ℝ) : ℂ))
-  (by rw [int.cast_one, of_real_one])
-  (λ _ _, by rw [int.cast_add, of_real_add])
+of_real.map_int_cast
 
 @[simp, squash_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
-by rw [← int.cast_coe_nat, of_real_int_cast]; refl
+of_real.map_nat_cast n
 
 @[simp] lemma conj_sub (z w : ℂ) : conj (z - w) = conj z - conj w :=
 by simp [sub_eq_add_neg]
@@ -298,7 +298,7 @@ add_group.char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 @[simp, squash_cast] theorem of_real_rat_cast : ∀ n : ℚ, ((n : ℝ) : ℂ) = n :=
-by apply rat.eq_cast (λ n, ((n : ℝ) : ℂ)); simp
+of_real.map_rat_cast
 
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']

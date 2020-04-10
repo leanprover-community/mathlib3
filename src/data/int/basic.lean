@@ -1071,6 +1071,9 @@ attribute [priority 1001] int.has_coe
 | 0     := rfl
 | (n+1) := congr_arg (+(1:ℤ)) (nat_cast_eq_coe_nat n)
 
+/-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
+def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
+
 section cast
 variables {α : Type*}
 
@@ -1197,21 +1200,6 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [linear_ordered_ring α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-theorem eq_cast [add_group α] [has_one α] (f : ℤ → α)
-  (H1 : f 1 = 1) (Hadd : ∀ x y, f (x + y) = f x + f y) (n : ℤ) : f n = n :=
-begin
-  have H : ∀ (n : ℕ), f n = n :=
-    nat.eq_cast' (λ n, f n) H1 (λ x y, Hadd x y),
-  cases n, {apply H},
-  apply eq_neg_of_add_eq_zero,
-  rw [← nat.cast_zero, ← H 0, int.coe_nat_zero,
-      ← show -[1+ n] + (↑n + 1) = 0, from neg_add_self (↑n+1),
-      Hadd, show f (n+1) = n+1, from H (n+1)]
-end
-
-@[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
-(eq_cast id rfl (λ _ _, rfl) n).symm
-
 @[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
@@ -1228,6 +1216,7 @@ end cast
 
 section decidable
 
+/-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r
 
@@ -1259,20 +1248,31 @@ end decidable
 
 end int
 
+open int
+
+theorem add_monoid_hom.eq_int_cast {A} [add_group A] [has_one A] (f : ℤ →+ A) (h1 : f 1 = 1)
+  (n : ℤ) : f n = n :=
+begin
+  have : ∀ n : ℕ, f n = n, from λ n, (f.comp of_nat_hom.to_add_monoid_hom).eq_nat_cast h1 n,
+  cases n,
+  { exact this n },
+  rw [cast_neg_succ_of_nat, neg_succ_of_nat_eq, f.map_neg, f.map_add, h1, this]
+end
+
 namespace ring_hom
 
-variables {α : Type*} {β : Type*} {rα : ring α} {rβ : ring β}
-include rα
+variables {α : Type*} {β : Type*} [ring α] [ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
-int.eq_cast f f.map_one f.map_add n
+f.to_add_monoid_hom.eq_int_cast f.map_one n
 
 lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
-ring_hom.ext $ int.eq_cast f f.map_one f.map_add
-
-include rβ
+ring_hom.ext f.eq_int_cast
 
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 end ring_hom
+
+@[simp, squash_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
+((ring_hom.id ℤ).eq_int_cast n).symm

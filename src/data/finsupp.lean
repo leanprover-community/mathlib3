@@ -166,9 +166,8 @@ lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
 lemma injective_single (a : α) : function.injective (single a : β → α →₀ β) :=
-assume b₁ b₂ eq,
-have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
-by rwa [single_eq_same, single_eq_same] at this
+function.injective_of_left_inverse $
+show ∀ b : β, (λ f : α →₀ β, f a) (single a b) = b, from λ _, single_eq_same
 
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
   single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
@@ -190,17 +189,15 @@ end
 
 lemma single_right_inj (h : b ≠ 0) :
   single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa only [h, single_eq_single_iff,
-  and_false, or_false, eq_self_iff_true, and_true] using H,
- λ H, by rw [H]⟩
+by simp only [h, single_eq_single_iff, and_false, or_false, eq_self_iff_true, and_true]
 
 lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-⟨λ h, by { rw ext_iff at h, simpa only [single_eq_same, zero_apply] using h a },
-λ h, by rw [h, single_zero]⟩
+calc single a b = 0 ↔ single a b = single a 0 : by rw [single_zero]
+... ↔ b = 0 : (injective_single a).eq_iff
 
 lemma single_swap {α β : Type*} [has_zero β] (a₁ a₂ : α) (b : β) :
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
-by simp only [single_apply]; ac_refl
+by { simp only [single_apply], ac_refl }
 
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp only [unique.eq_default i, single_eq_same]

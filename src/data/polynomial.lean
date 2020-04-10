@@ -1,9 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
-
-Theory of univariate polynomials, represented as `add_monoid_algebra α ℕ`, where α is a commutative semiring.
+Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Yury Kudryashov
 -/
 import data.monoid_algebra ring_theory.algebra
 import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
@@ -12,52 +10,66 @@ import tactic.ring_exp
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
+universes u v w x y
+variables {R : Type u} {S : Type v} {A : Type w} {B : Type x}
 
-/-- `polynomial α` is the type of univariate polynomials over `α`.
+/-- `polynomial R` is the type of univariate polynomials over `R`.
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
-def polynomial (α : Type*) [comm_semiring α] := add_monoid_algebra α ℕ
+def polynomial (R : Type*) [comm_semiring R] := monoid_algebra R (multiplicative ℕ)
 
-open finsupp finset add_monoid_algebra
+open finsupp finset monoid_algebra
 
 namespace polynomial
-universes u v
-variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 
-section comm_semiring
-variables [comm_semiring α] {p q r : polynomial α}
+variables [comm_semiring R] {a b : R} {m n : ℕ} {p q r : polynomial R}
 
-instance : inhabited (polynomial α) := finsupp.inhabited
-instance : comm_semiring (polynomial α) := add_monoid_algebra.comm_semiring
-instance : has_scalar α (polynomial α) := add_monoid_algebra.has_scalar
-instance : semimodule α (polynomial α) := add_monoid_algebra.semimodule
+instance : inhabited (polynomial R) := finsupp.inhabited
+instance : comm_semiring (polynomial R) := monoid_algebra.comm_semiring
 
-/-- the coercion turning a `polynomial` into the function which reports the coefficient of a given monomial `X^n` -/
-def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
-finsupp.has_coe_to_fun
+/-- `finset` of degrees of monomials of a polynomial. -/
+def support (p : polynomial R) : finset ℕ :=
+p.support.map ⟨multiplicative.to_add, to_add_inj⟩
 
-local attribute [instance] coeff_coe_to_fun
-
-@[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
+@[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
-@[reducible]
-def monomial (n : ℕ) (a : α) : polynomial α := finsupp.single n a
+def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single (multiplicative.of_add n) a
 
-/-- `C a` is the constant polynomial `a`. -/
-def C (a : α) : polynomial α := monomial 0 a
+instance : algebra R (polynomial R) :=
+{ to_fun := monomial 0, ..  monoid_algebra.algebra }
+
+@[simp] lemma single_eq_monomial (n : multiplicative ℕ) (a : R) :
+  single n a = monomial n.to_add a := rfl
+
+lemma smul_monomial : a • monomial n b = monomial n (a * b) :=
+monoid_algebra.smul_single _ _ _
+
+protected def sum {A : Type*} [add_comm_monoid A] (p : polynomial R) (f : ℕ → R → A) : A :=
+p.sum (λ n x, f n.to_add x)
+
+/-- `C R a` is the constant polynomial `a`. -/
+def C (R : Type u) [comm_semiring R] : R →ₐ[R] polynomial R :=
+algebra.of_id R (polynomial R)
+
+lemma C_def' : C R a = single 1 a := rfl
+
+lemma C_def : C R a = monomial 0 a := by erw [C_def', monomial, of_add_zero]
+
+/-- `C a * p = a • p`. Non-primed version says `C (a * b) = C a * C b`. -/
+lemma C_mul' : C R a * p = a • p := (algebra.smul_def _ _).symm
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
-def X : polynomial α := monomial 1 1
+def X : polynomial R := monomial 1 1
 
 /-- coeff p n is the coefficient of X^n in p -/
-def coeff (p : polynomial α) := p.to_fun
+def coeff (p : polynomial R) (n : ℕ) :=
+(@coe_fn (multiplicative ℕ →₀ R) _ p : multiplicative ℕ → R) (multiplicative.of_add n)
 
-@[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial α) = f := rfl
+@[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
-instance [has_repr α] : has_repr (polynomial α) :=
+instance [has_repr R] : has_repr (polynomial R) :=
 ⟨λ p, if p = 0 then "0"
   else (p.support.sort (≤)).foldr
     (λ n a, a ++ (if a = "" then "" else " + ") ++
@@ -68,41 +80,50 @@ instance [has_repr α] : has_repr (polynomial α) :=
           else if (coeff p n) = 1 then "X ^ " ++ repr n
             else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
 
-theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
+theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 
-@[ext] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
-(@ext_iff _ _ p q).2
+@[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
+ext_iff.2
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
-def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
+def degree (p : polynomial R) : with_bot ℕ := p.support.sup some
 
-lemma degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
+lemma degree_lt_wf : well_founded (λp q : polynomial R, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
-instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩
+instance : has_well_founded (polynomial R) := ⟨_, degree_lt_wf⟩
 
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
-def nat_degree (p : polynomial α) : ℕ := (degree p).get_or_else 0
+def nat_degree (p : polynomial R) : ℕ := (degree p).get_or_else 0
 
-lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
-| 0     := (mul_one _).symm
-| (n+1) :=
-  calc monomial (n + 1) a = monomial n a * X : by rw [X, single_mul_single, mul_one]
-    ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
-    ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
+lemma monomial_mul_monomial : monomial m a * monomial n b = monomial (m + n) (a * b) :=
+single_mul_single
 
-lemma sum_C_mul_X_eq (p : polynomial α) : p.sum (λn a, C a * X^n) = p :=
-eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) (finsupp.sum_single _)
+/-- `(a * X^m)^n = a^n * X^(n * m)`-/
+lemma pow_monomial : (monomial m a)^n = monomial (n * m) (a ^ n) :=
+by rw [monomial, single_pow, ← of_add_smul, nat.smul_eq_mul]
 
-@[elab_as_eliminator] protected lemma induction_on {M : polynomial α → Prop} (p : polynomial α)
-  (h_C : ∀a, M (C a))
+lemma pow_X : (X^n : polynomial R) = monomial n 1 := by rw [X, pow_monomial, mul_one, one_pow]
+
+lemma monomial_eq_C_mul_X {n} : monomial n a = C R a * X^n :=
+by rw [pow_X, C_mul', smul_monomial, mul_one]
+
+lemma sum_monomial : p.sum monomial = p := p.sum_single
+
+lemma sum_C_mul_X_eq (p : polynomial R) : p.sum (λn a, C R a * X^n) = p :=
+calc p.sum (λn a, C R a * X^n) = p.sum monomial :
+  sum_congr rfl $ assume n hn, monomial_eq_C_mul_X.symm
+... = _ : sum_monomial
+
+@[elab_as_eliminator] protected lemma induction_on {M : polynomial R → Prop} (p : polynomial R)
+  (h_C : ∀a, M (C R a))
   (h_add : ∀p q, M p → M q → M (p + q))
-  (h_monomial : ∀(n : ℕ) (a : α), M (C a * X^n) → M (C a * X^(n+1))) :
+  (h_monomial : ∀(n : ℕ) (a : R), M (C R a * X^n) → M (C R a * X^(n+1))) :
   M p :=
-have ∀{n:ℕ} {a}, M (C a * X^n),
+have ∀{n:ℕ} {a}, M (C R a * X^n),
 begin
   assume n a,
   induction n with n ih,
@@ -110,136 +131,194 @@ begin
   { exact h_monomial _ _ ih }
 end,
 finsupp.induction p
-  (suffices M (C 0), by { convert this, exact single_zero.symm, },
+  (suffices M (C R 0), by { convert this, exact single_zero.symm, },
     h_C 0)
-  (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
+  (assume n a p _ _ hp,
+    suffices M (C R a * X^n.to_add + p), by { convert this, exact monomial_eq_C_mul_X },
     h_add _ _ this hp)
 
-@[simp] lemma C_0 : C (0 : α) = 0 := single_zero
+lemma C_0 : C R 0 = 0 := single_zero
 
-@[simp] lemma C_1 : C (1 : α) = 1 := rfl
+lemma C_1 : C R 1 = 1 := rfl
 
-@[simp] lemma C_mul : C (a * b) = C a * C b :=
-(@single_mul_single _ _ _ _ 0 0 a b).symm
+lemma C_mul : C R (a * b) = C R a * C R b :=
+(C R).map_mul a b
 
-@[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
+lemma C_add : C R (a + b) = C R a + C R b := (C R).map_add a b
 
-instance C.is_semiring_hom : is_semiring_hom (C : α → polynomial α) :=
-⟨C_0, C_1, λ _ _, C_add, λ _ _, C_mul⟩
+lemma C_pow : C R (a ^ n) = C R a ^ n := (C R).map_pow a n
 
-@[simp] lemma C_pow : C (a ^ n) = C a ^ n := is_semiring_hom.map_pow _ _ _
-
-lemma nat_cast_eq_C (n : ℕ) : (n : polynomial α) = C n :=
-by refine (nat.eq_cast (λ n, C (n : α)) _ _ _ n).symm; simp
+lemma nat_cast_eq_C (n : ℕ) : (n : polynomial R) = C R n :=
+((C R).to_ring_hom.map_nat_cast n).symm
 
 section coeff
 
-lemma apply_eq_coeff : p n = coeff p n := rfl
+@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
-@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial α) n = 0 := rfl
+lemma coeff_monomial {n : ℕ} :
+  coeff (monomial n a) m = if m = n then a else 0 :=
+by { convert finsupp.single_apply using 2, exact propext eq_comm }
 
-lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-by { dsimp [single, finsupp.single], congr }
+@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 :=
+coeff_monomial
 
-@[simp] lemma coeff_one_zero : coeff (1 : polynomial α) 0 = 1 :=
-coeff_single
+@[simp] lemma coeff_add (p q : polynomial R) (n : ℕ) :
+  coeff (p + q) n = coeff p n + coeff q n := rfl
 
-@[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
-
-instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial α, p.coeff n) :=
+instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial R, p.coeff n) :=
 { map_add  := λ p q, coeff_add p q n,
   map_zero := coeff_zero _ }
 
-lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by simp [coeff, eq_comm, C, monomial, single]; congr
+lemma coeff_C : coeff (C R a) n = ite (n = 0) a 0 :=
+by { rw [C_def], exact coeff_monomial }
 
-@[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_single
+@[simp] lemma coeff_C_zero : coeff (C R a) 0 = a := coeff_monomial
 
-@[simp] lemma coeff_X_one : coeff (X : polynomial α) 1 = 1 := coeff_single
+@[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_monomial
 
-@[simp] lemma coeff_X_zero : coeff (X : polynomial α) 0 = 0 := coeff_single
+@[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_monomial
 
-lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := coeff_single
+lemma coeff_X : coeff (X : polynomial R) n = if n = 1 then 1 else 0 := coeff_monomial
 
-lemma coeff_C_mul_X (x : α) (k n : ℕ) :
-  coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
-by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
-
-lemma coeff_sum [comm_semiring β] (n : ℕ) (f : ℕ → α → polynomial β) :
+lemma coeff_sum [comm_semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
-@[simp] lemma coeff_C_mul (p : polynomial α) : coeff (C a * p) n = a * coeff p n :=
-begin
-  conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, C, sum_single_index],
-  { simp [coeff_single, finsupp.mul_sum, coeff_sum],
-    apply sum_congr rfl,
-    assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum], apply add_monoid.smul_zero }, -- TODO why doesn't simp do this?
-end
+@[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
+  coeff (r • p) n = r * coeff p n :=
+finsupp.smul_apply
 
-@[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
-
-lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
-ext $ λ n, coeff_C_mul f
-
-@[simp, priority 990]
-lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
-coeff_single
+@[simp] lemma coeff_C_mul (p : polynomial R) :
+  coeff (C R a * p) n = a * coeff p n :=
+by rw [C_mul', coeff_smul]
 
 @[simp] lemma coeff_X_pow (k n : ℕ) :
-  coeff (X^k : polynomial α) n = if n = k then 1 else 0 :=
-by simpa only [C_1, one_mul] using coeff_C_mul_X (1:α) k n
+  coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
+by rw [pow_X, coeff_monomial]
 
-lemma coeff_mul (p q : polynomial α) (n : ℕ) :
+lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+  coeff (C R x * X^k) n = if n = k then x else 0 :=
+by rw [← monomial_eq_C_mul_X, coeff_monomial]
+
+@[simp, priority 990]
+lemma coeff_one (n : ℕ) :
+  coeff (1 : polynomial R) n = if n = 0 then 1 else 0 :=
+coeff_C
+
+lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :=
-have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
-    → a.1 + a.2 = n, from λ a ha, by_contradiction
-  (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = p.support.sum (λ a, q.support.sum
-    (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
-  by simp only [mul_def, coeff_sum, coeff_single]; refl
-... = (p.support.product q.support).sum
-    (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
-  by rw sum_product
-... = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :
-begin
-  refine sum_bij_ne_zero (λ x _ _, x)
-  (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
-  (λ x h₁ h₂, ⟨x, _, _, rfl⟩) _,
-  { rw [mem_product, mem_support_iff, mem_support_iff],
-    exact ⟨ne_zero_of_mul_ne_zero_right h₂, ne_zero_of_mul_ne_zero_left h₂⟩ },
-  { rw nat.mem_antidiagonal at h₁, rwa [if_pos h₁] },
-  { intros x h hx, rw [if_pos (hite x hx)] }
-end
+mul_apply_antidiagonal _ _ _ _ (λ _, nat.mem_antidiagonal)
 
-theorem coeff_mul_X_pow (p : polynomial α) (n d : ℕ) :
+theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
-  rw [coeff_mul, sum_eq_single (d,n), coeff_X_pow, if_pos rfl, mul_one],
-  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, mul_zero], rintro rfl, apply h2,
-    rw [nat.mem_antidiagonal, add_right_cancel_iff] at h1, subst h1 },
-  { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
+  rw [pow_X, coeff, monomial, ← mul_one (coeff p d)],
+  exact p.mul_single_apply_aux (λ a, mul_right_cancel_iff)
 end
 
-theorem coeff_mul_X (p : polynomial α) (n : ℕ) :
+theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
-by simpa only [pow_one] using coeff_mul_X_pow p 1 n
+pow_one (X : polynomial R) ▸ coeff_mul_X_pow p 1 n
 
-theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
+theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
 
-lemma C_inj : C a = C b ↔ a = b :=
-⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+lemma C_inj : C R a = C R b ↔ a = b := (finsupp.injective_single _).eq_iff
 
+section aeval
+
+variables (R) (A) [semiring A] [algebra R A] [semiring B] [algebra R B] {x : A}
+
+/-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
+the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
+def aeval : A ≃ (polynomial R →ₐ[R] A) :=
+(powers_hom A).trans (monoid_algebra.lift R (multiplicative ℕ) A)
+
+variables {R A}
+
+theorem aeval_def' :
+  aeval R A x p = monoid_algebra.lift R (multiplicative ℕ) A (powers_hom A x) p := rfl
+
+theorem aeval_def : aeval R A x p = p.sum (λ n a, a • x^n) := rfl
+
+theorem aeval_symm_apply (φ : polynomial R →ₐ[R] A) :
+  (aeval R A).symm φ = φ X := rfl
+
+@[simp] lemma aeval_monomial :
+  aeval R A x (monomial n a) = a • x ^ n :=
+lift_single _ _ _
+
+@[simp] lemma aeval_X : aeval R A x X = x :=
+by rw [← aeval_symm_apply, equiv.symm_apply_apply]
+
+@[simp] lemma aeval_C : aeval R A x (C R a) = algebra_map R A a :=
+(aeval R A x).commutes a
+
+theorem alg_hom_ext ⦃φ φ' : polynomial R →ₐ[R] A⦄ (h : φ X = φ' X) :
+  φ = φ' :=
+(aeval R A).symm.injective h
+
+theorem aeval_unique (φ : polynomial R →ₐ[R] A) :
+  φ = aeval R A (φ X) :=
+alg_hom_ext $ aeval_X.symm
+
+lemma aeval_X_left' :
+  (aeval R (polynomial R) : polynomial R → polynomial R →ₐ[R] polynomial R) X = alg_hom.id _ _ :=
+alg_hom_ext $ by simp only [alg_hom.id_apply, aeval_X]
+
+@[simp] lemma aeval_X_left :
+  (aeval R (polynomial R) : polynomial R → polynomial R →ₐ[R] polynomial R) X p = p :=
+by rw [aeval_X_left', alg_hom.id_apply]
+
+theorem aeval_zero_eq_coeff_zero' : aeval R A 0 p = (coeff p 0) • 1 :=
+begin
+  rw [← one_pow 0, aeval_def],
+  apply finset.sum_eq_single; simp only [finsupp.mem_support_iff, not_not],
+  { intros n hpn hn0,
+    rw [zero_pow, smul_zero],
+    exact nat.pos_of_ne_zero hn0 },
+  { intro h,
+    rw [h, zero_smul] }
+end
+
+theorem aeval_zero_eq_coeff_zero : aeval R A 0 p = algebra_map R A (coeff p 0) :=
+by rw [aeval_zero_eq_coeff_zero', algebra.smul_def, mul_one]
+
+theorem aeval_alg_hom' (φ : A →ₐ[R] B) : aeval R B (φ x) = φ.comp (aeval R A x) :=
+alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
+
+theorem aeval_alg_hom (φ : A →ₐ[R] B) : aeval R B (φ x) p = φ (aeval R A x p) :=
+by rw [aeval_alg_hom', alg_hom.comp_apply]
+
+/-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
+def is_root (p : polynomial R) (x : A) : Prop := aeval R A x p = 0
+
+instance [decidable_eq A] : decidable (is_root p a) := by unfold is_root; apply_instance
+
+lemma is_root.eq (h : is_root p x) : aeval R A x p = 0 := h
+
+lemma is_root_def : is_root p x ↔ aeval R A x p = 0 := iff.rfl
+
+lemma is_root.mul_left (p : polynomial R) (h : is_root q x) :
+  is_root (p * q) x :=
+by simp [is_root, h.eq]
+
+lemma is_root.mul_right (h : is_root p x) (q : polynomial R) :
+  is_root (p * q) x :=
+by simp [is_root, h.eq]
+
+lemma is_root_zero' : is_root p (0:A) ↔ algebra_map R A (coeff p 0) = 0 :=
+eq_iff_eq_cancel_right.2 aeval_zero_eq_coeff_zero
+
+end aeval
+
+
+/-
 section eval₂
 variables [semiring β]
 variables (f : α → β) (x : β)
-open is_semiring_hom
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
@@ -307,95 +386,58 @@ finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
 end eval₂
-
+-/
 section eval
-variable {x : α}
+variables (R) {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
-def eval : α → polynomial α → α := eval₂ id
+def eval : R ≃ (polynomial R →ₐ[R] R) := aeval R R
 
-@[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
+variable {R}
 
-@[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
+@[simp] lemma eval_C : eval R x (C R a) = a := aeval_C
 
-@[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 :=  eval₂_zero _ _
+@[simp] lemma eval_X : eval R x X = x := aeval_X
 
-@[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
+lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
+  eval R x (p.sum f) = p.sum (λ n a, eval R x (f n a)) :=
+(eval R x).map_sum _ _
 
-@[simp] lemma eval_one : (1 : polynomial α).eval x = 1 := eval₂_one _ _
-
-@[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
-
-instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
-
-@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
-
-lemma eval_sum (p : polynomial α) (f : ℕ → α → polynomial α) (x : α) :
-  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
-eval₂_sum _ _ _ _
-
-lemma eval₂_hom [comm_semiring β] (f : α → β) [is_semiring_hom f] (x : α) :
-  p.eval₂ f (f x) = f (p.eval x) :=
+/-
+lemma eval_hom [semiring S] (f : R →+* S) (x : R) :
+  p.eval₂ f (f x) = f (eval R x p) :=
 polynomial.induction_on p
   (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f, eval_pow,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+  (by simp {contextual := tt})
+  (by simp [eval_pow, pow_succ', ← mul_assoc] {contextual := tt})
+-/
 
-/-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
-def is_root (p : polynomial α) (a : α) : Prop := p.eval a = 0
+lemma coeff_zero_eq_eval_zero : coeff p 0 = eval R 0 p :=
+(@aeval_zero_eq_coeff_zero R R _ p _ _).symm
 
-instance [decidable_eq α] : decidable (is_root p a) := by unfold is_root; apply_instance
-
-@[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
-
-lemma root_mul_left_of_is_root (p : polynomial α) {q : polynomial α} :
-  is_root q a → is_root (p * q) a :=
-λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
-
-lemma root_mul_right_of_is_root {p : polynomial α} (q : polynomial α) :
-  is_root p a → is_root (p * q) a :=
-λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
-
-lemma coeff_zero_eq_eval_zero (p : polynomial α) :
-  coeff p 0 = p.eval 0 :=
-calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
-... = p.eval 0 : eq.symm $
-  finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
-
-lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial α} (hp : p.coeff 0 = 0) :
-  is_root p 0 :=
-by rwa coeff_zero_eq_eval_zero at hp
+lemma is_root_zero : is_root p (0:R) ↔ coeff p 0 = 0 := is_root_zero'
 
 end eval
 
 section comp
 
-def comp (p q : polynomial α) : polynomial α := p.eval₂ C q
+/-- Composition of polynomials. -/
+def comp (p q : polynomial R) : polynomial R :=
+(aeval R (polynomial R) : polynomial R → polynomial R →ₐ[R] polynomial R) q p
 
-lemma eval₂_comp [comm_semiring β] (f : α → β) [is_semiring_hom f] {x : β} :
-  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
-by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
+lemma aeval_comp [semiring A] [algebra R A] (x : A) :
+  aeval R A x (p.comp q) = aeval R A (aeval R A x q) p :=
+by rw [comp, aeval_alg_hom]
 
-lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
+lemma eval_comp : eval R a (p.comp q) = eval R (eval R a q) p :=
+aeval_comp _
 
-@[simp] lemma comp_X : p.comp X = p :=
-begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  rw finsupp.sum_single
-end
+@[simp] lemma comp_X : p.comp X = p := aeval_X_left
 
-@[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
+@[simp] lemma X_comp : X.comp p = p := aeval_X
 
-@[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
-begin
-  dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← p.support.sum_hom (@C α _)],
-  apply finset.sum_congr rfl; simp
-end
+@[simp] lemma comp_C : p.comp (C R a) = C R (eval R a p) :=
+by rw [comp]
 
 @[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
 
@@ -1350,42 +1392,6 @@ is_ring_hom.map_neg _
 @[simp] lemma eval_sub (p q : polynomial α) (x : α) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
 
-section aeval
-/-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ to_fun := ring_hom.of polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule }
-
-variables (R : Type u) (A : Type v)
-variables [comm_ring R] [comm_ring A] [algebra R A]
-variables (x : A)
-
-/-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
-the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
-def aeval : polynomial R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom (algebra_map R A) x }
-
-theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map R A) x p := rfl
-
-@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
-
-@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map R A r := eval₂_C _ x
-
-theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
-  φ p = eval₂ (algebra_map R A) (φ X) p :=
-begin
-  apply polynomial.induction_on p,
-  { intro r, rw eval₂_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, eval₂_add] },
-  { intros n r ih,
-    rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
-end
-
-end aeval
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

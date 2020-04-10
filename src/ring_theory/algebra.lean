@@ -168,12 +168,16 @@ variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 
 instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
 
-instance : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
+instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
+
+instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
 
 @[simp, elim_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
 @[simp, squash_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
+
+@[simp, squash_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
 
@@ -200,6 +204,9 @@ ring_hom.ext $ φ.commutes
 
 @[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
 by simp only [algebra.smul_def, map_mul, commutes]
+
+@[simp] lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
+φ.to_ring_hom.map_pow x n
 
 lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (s.sum f) = s.sum (λx, φ (f x)) :=
@@ -451,11 +458,10 @@ end alg_hom
 
 namespace algebra
 
-variables {R : Type u} (A : Type v)
-variables [comm_ring R] [ring A] [algebra R A]
-include R
+variables (R : Type u) (A : Type v)
 
-variables (R)
+variables [comm_semiring R] [semiring A] [algebra R A]
+
 instance id : algebra R R := algebra.of_ring_hom (ring_hom.id R)
 
 namespace id
@@ -473,7 +479,12 @@ variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
-variables (R) {A}
+end algebra
+
+namespace algebra
+
+variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
+
 /-- The minimal subalgebra that includes `s`. -/
 def adjoin (s : set A) : subalgebra R A :=
 { carrier := ring.closure (set.range (algebra_map R A) ∪ s),

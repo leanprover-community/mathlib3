@@ -68,7 +68,7 @@ def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
 def from_list (l : list α) : table α :=
 let n := l.length in
 let buff : array n (option α) := mk_array n none in
-⟨table_ref.from_nat n, n, buff.list_map_copy (λ a, some a) l⟩
+⟨table_ref.from_nat n, n, buff.map_copy_from_list (λ a, some a) l⟩
 
 meta def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 let buff : array dim (option β) := mk_array dim none in

@@ -20,9 +20,9 @@ attempting the following strategies:
 1. when the goal is a subsingleton, calling `induction e using trunc.rec_on_subsingleton`,
 2. when the goal does not depend on `e`, calling `fapply trunc.lift_on`,
    and using `intro` and `clear` afterwards to make the goals look like we used `induction`,
-3. otherwise, falling through to `trunc.rec_on`, and in the invariance call
+3. otherwise, falling through to `trunc.rec_on`, and in the new invariance goal
    calling `cases h_p` on the useless `h_p : true` hypothesis,
-   and then attempting to simplify the `eq.rec` in the goal using `eq_rec_constant`.
+   and then attempting to simplify the `eq.rec`.
 
 `trunc_cases e with h` names the new hypothesis `h`.
 If `e` is a local hypothesis already,
@@ -32,7 +32,7 @@ If `e` is a local hypothesis already,
 in the invariance goal if `trunc_cases` uses `trunc.lift_on` or `trunc.rec_on`.
 
 Finally, if the new hypothesis from inside the `trunc` is a type class,
-`trunc_cases` resets the instance cache.
+`trunc_cases` resets the instance cache so that it is immediately available.
 -/
 meta def trunc_cases (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
 do
@@ -60,6 +60,7 @@ do
     -- Otherwise, we decide whether the goal depends on `e`.
     if ¬ e.occurs tgt then (do
       -- We may as well just use `trunc.lift_on`.
+      -- (It would be nice if we could use the `induction` tactic with non-dependent recursors, too?)
       -- (In fact, the general strategy works just as well here,
       -- except that it leaves a beta redex in the invariance goal.)
       to_expr ``(trunc.lift_on %%e) >>= tactic.fapply,

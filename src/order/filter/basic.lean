@@ -45,7 +45,7 @@ The examples of filters appearing in the description of the two motivating ideas
 * `μ.a_e` : made of sets whose complement has zero measure with respect to `μ` (defined in
   measure_theory.measure_space)
 
-The general notion of limit of a map with respect to filters one the source and target types
+The general notion of limit of a map with respect to filters on the source and target types
 is `filter.tendsto`. It is defined in terms of the order and the push-forward operation.
 The predicate "happening eventually" is `filter.eventually`, and "happening often" is
 `filter.frequently`, whose definitions are immediate after `filter` is defined (but they come

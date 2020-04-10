@@ -23,7 +23,7 @@ If one already has a filter `l` on `α`, `filter.has_basis l p s` (where `p : ι
 and `s : ι → set α` as above) means that a set belongs to `l` if and
 only if it contains some `s i` with `p i`. It implies `h : filter.is_basis p s`, and
 `l = h.filter_basis.filter`. The point of this definition is that checking statements
-involving elements of `l` often reduce to checking them on the basis elements.
+involving elements of `l` often reduces to checking them on the basis elements.
 
 This file also introduces more restricted classes of bases, involving monotonicity or
 countability. In particular, for `l : filter α`, `l.is_countably_generated` means

@@ -142,9 +142,16 @@ add_tactic_doc
   tags       := ["core", "basic", "induction"] }
 
 /--
-`cases_matching p` applies the `cases` tactic to a hypothesis `h : type` if `type` matches the pattern `p`.
-`cases_matching [p_1, ..., p_n]` applies the `cases` tactic to a hypothesis `h : type` if `type` matches one of the given patterns.
-`cases_matching* p` is a more efficient and compact version of `focus1 { repeat { cases_matching p } }`. It is more efficient because the pattern is compiled once.
+`cases_matching p` applies the `cases` tactic to a hypothesis `h : type`
+if `type` matches the pattern `p`.
+
+`cases_matching [p_1, ..., p_n]` applies the `cases` tactic to a hypothesis `h : type`
+if `type` matches one of the given patterns.
+
+`cases_matching* p` is a more efficient and compact version of `focus1 { repeat { cases_matching p } }`.
+It is more efficient because the pattern is compiled once.
+
+`casesm` is shorthand for `cases_matching`.
 
 Example: The following tactic destructs all conjunctions and disjunctions in the current context.
 ```
@@ -152,9 +159,9 @@ cases_matching* [_ ∨ _, _ ∧ _]
 ```
 -/
 add_tactic_doc
-{ name       := "cases_matching",
+{ name       := "cases_matching / casesm",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.cases_matching],
+  decl_names := [`tactic.interactive.cases_matching, `tactic.interactive.casesm],
   tags       := ["core", "induction", "context management"] }
 
 /--
@@ -173,12 +180,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.cases_type],
   tags       := ["core", "induction", "context management"] }
-
-add_tactic_doc
-{ name       := "casesm",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.casesm],
-  tags       := ["core"] }
 
 add_tactic_doc
 { name       := "change",

@@ -237,7 +237,7 @@ by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; re
 
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
-hl.mem_iff
+by simpa using hl.mem_iff
 
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
   (∀ {i}, p i → (s i).nonempty) ↔ l ≠ ⊥ :=
@@ -374,7 +374,7 @@ by simp only [tendsto, hlb.ge_iff, mem_map, filter.eventually]
 
 lemma has_basis.tendsto_iff (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   tendsto f la lb ↔ ∀ ib (hib : pb ib), ∃ ia (hia : pa ia), ∀ x ∈ sa ia, f x ∈ sb ib :=
-by simp only [hlb.tendsto_right_iff, hla.eventually_iff, subset_def, mem_set_of_eq]
+by simp [hlb.tendsto_right_iff, hla.eventually_iff]
 
 lemma tendsto.basis_left (H : tendsto f la lb) (hla : la.has_basis pa sa) :
   ∀ t ∈ lb, ∃ i (hi : pa i), ∀ x ∈ sa i, f x ∈ t :=

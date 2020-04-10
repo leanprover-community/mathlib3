@@ -3311,3 +3311,22 @@ end list
 theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* β) (l : list α) :
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
+
+namespace list
+
+@[to_additive]
+theorem prod_map_hom {α β γ : Type*} [monoid β] [monoid γ] (L : list α) (f : α → β) (g : β →* γ) :
+  (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
+by {rw g.map_list_prod, exact congr_arg _ (map_map _ _ _).symm}
+
+theorem sum_map_mul_left {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
+  (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
+sum_map_hom L f $ add_monoid_hom.mul_left r
+
+theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
+  (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
+sum_map_hom L f $ add_monoid_hom.mul_right r
+
+end list

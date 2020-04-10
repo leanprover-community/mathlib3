@@ -36,21 +36,13 @@ instance has_colimit_pair (G H : AddCommGroup.{u}) : has_colimit.{u} (pair G H) 
     ι := { app := λ j, walking_pair.cases_on j (add_monoid_hom.inl G H) (add_monoid_hom.inr G H) }},
   is_colimit :=
   { desc := λ s, add_monoid_hom.coprod (s.ι.app walking_pair.left) (s.ι.app walking_pair.right),
-    fac' :=
-    begin
-      rintros s (⟨⟩|⟨⟩); { ext x, dsimp, simp, erw [add_monoid_hom.map_zero], refl, }
-    end,
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, dsimp, simp, } },
     uniq' := λ s m w,
     begin
       ext,
       rw [←w, ←w],
-      simp only [binary_bicone.to_cocone, add_monoid_hom.coprod_apply, coe_comp], dsimp,
-      simp only [add_monoid_hom.inl_apply, add_monoid_hom.inr_apply],
-      erw [←add_monoid_hom.map_add],
-      cases x, dsimp,
-      rw prod.mk_add_mk,
-      erw [zero_add, add_zero],
-    end , }, }
+      simp [←add_monoid_hom.map_add],
+    end, }, }
 
 instance (G H : AddCommGroup.{u}) : has_binary_biproduct.{u} G H :=
 { bicone :=
@@ -77,8 +69,8 @@ to the cartesian product of those groups.
 def lift (s : cone F) :
   s.X ⟶ AddCommGroup.of (Π j, F.obj j) :=
 { to_fun := λ x j, s.π.app j x,
-  map_zero' := begin ext, dsimp, erw [add_monoid_hom.map_zero], refl, end, -- FIXME why can't simp do this, using pi.zero_apply?
-  map_add' := λ x y, begin ext, dsimp, erw [add_monoid_hom.map_add], refl, end, }
+  map_zero' := by { ext, dsimp, simp, refl, },
+  map_add' := λ x y, by { ext, dsimp, simp, refl, }, }
 
 @[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
 
@@ -88,13 +80,13 @@ instance has_limit_discrete : has_limit F :=
     π := nat_trans.of_homs (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit :=
   { lift := lift F,
-    fac' := λ s j, begin dsimp, ext, dsimp, simp, refl, end,
+    fac' := λ s j, by { ext, dsimp, simp, },
     uniq' := λ s m w,
     begin
       ext x j,
       dsimp only [has_limit.lift],
       simp only [add_monoid_hom.coe_mk],
-      convert congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j) x) (w j),
+      exact congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j) x) (w j),
     end, }, }
 
 end has_limit
@@ -111,20 +103,13 @@ def desc (s : cocone F) :
 { to_fun := λ f, finset.univ.sum (λ j : J, s.ι.app j (f j)),
   map_zero' :=
   begin
-    transitivity,
-    apply finset.sum_congr rfl,
-    swap 3,
-    exact finset.sum_const_zero,
-    intros j _,
-    apply add_monoid_hom.map_zero, -- FIXME why not by simp?
+    conv_lhs { apply_congr, skip, simp [@pi.zero_apply _ (λ j, F.obj j) x _], },
+    simp,
   end,
   map_add' := λ x y,
   begin
-    conv_lhs {
-      apply_congr, skip,
-      rw [pi.add_apply x y x_1, add_monoid_hom.map_add],
-    },
-    rw finset.sum_add_distrib,
+    conv_lhs { apply_congr, skip, simp [pi.add_apply x y _], },
+    simp [finset.sum_add_distrib],
   end, }
 
 @[simp] lemma desc_apply (s : cocone F) (f : Π j, F.obj j) :
@@ -145,7 +130,7 @@ instance has_colimit_discrete : has_colimit F :=
       simp only [pi.single, add_monoid_hom.coe_mk, desc_apply, coe_comp],
       rw finset.sum_eq_single j,
       { simp, },
-      { intros b _ h, simp only [dif_neg h], apply add_monoid_hom.map_zero, },
+      { intros b _ h, simp only [dif_neg h, add_monoid_hom.map_zero], },
       { simp, },
     end,
     uniq' := λ s m w,
@@ -157,9 +142,10 @@ instance has_colimit_discrete : has_colimit F :=
       dsimp [desc],
       simp,
       rw finset.sum_eq_single j,
-      { erw [pi.single_eq_same], rw ←w, simp,
+      { -- FIXME what prevents either of these `erw`s working by `simp`?
+        erw [pi.single_eq_same], rw ←w, simp,
         erw add_monoid_hom.single_apply, },
-      { intros j' _ h, erw [pi.single_eq_of_ne h, add_monoid_hom.map_zero], refl, },
+      { intros j' _ h, simp only [pi.single_eq_of_ne h, add_monoid_hom.map_zero], },
       { intros h, exfalso, simpa using h, },
     end, }, }.
 

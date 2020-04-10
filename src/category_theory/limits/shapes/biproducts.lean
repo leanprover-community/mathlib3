@@ -89,13 +89,13 @@ class has_bilimit (F : J ⥤ C) :=
 
 @[priority 100]
 instance has_limit_of_has_bilimit [has_bilimit F] : has_limit F :=
-{ cone := (has_bilimit.bicone F).to_cone,
-  is_limit := has_bilimit.is_limit F, }
+{ cone := has_bilimit.bicone.to_cone,
+  is_limit := has_bilimit.is_limit, }
 
 @[priority 100]
 instance has_colimit_of_has_bilimit [has_bilimit F] : has_colimit F :=
-{ cocone := (has_bilimit.bicone F).to_cocone,
-  is_colimit := has_bilimit.is_colimit F, }
+{ cocone := has_bilimit.bicone.to_cocone,
+  is_colimit := has_bilimit.is_colimit, }
 
 variables (J C)
 
@@ -236,13 +236,13 @@ variables {P Q : C}
 
 instance has_binary_biproduct.has_limit_pair [has_binary_biproduct.{v} P Q] :
   has_limit (pair P Q) :=
-{ cone := (has_binary_biproduct.bicone P Q).to_cone,
-  is_limit := has_binary_biproduct.is_limit.{v} P Q, }
+{ cone := has_binary_biproduct.bicone.to_cone,
+  is_limit := has_binary_biproduct.is_limit.{v}, }
 
 instance has_binary_biproduct.has_colimit_pair [has_binary_biproduct.{v} P Q] :
   has_colimit (pair P Q) :=
-{ cocone := (has_binary_biproduct.bicone P Q).to_cocone,
-  is_colimit := has_binary_biproduct.is_colimit.{v} P Q, }
+{ cocone := has_binary_biproduct.bicone.to_cocone,
+  is_colimit := has_binary_biproduct.is_colimit.{v}, }
 
 @[priority 100]
 instance has_limits_of_shape_walking_pair [has_binary_biproducts.{v} C] :

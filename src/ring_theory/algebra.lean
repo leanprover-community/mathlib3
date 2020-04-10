@@ -46,14 +46,19 @@ end prio
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
 algebra.to_ring_hom R A
 
-/-- Creating an algebra from a morphism in CRing. -/
-def ring_hom.to_algebra {R S} [comm_semiring R] [semiring S] (i : R →+* S)
+/-- Creating an algebra from a morphism to the center of a semiring. -/
+def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
   algebra R S :=
 { smul := λ c x, i c * x,
   commutes' := h,
   smul_def' := λ c x, rfl,
   .. i}
+
+/-- Creating an algebra from a morphism to a commutative semiring. -/
+def ring_hom.to_algebra {R S} [comm_semiring R] [comm_semiring S] (i : R →+* S) :
+  algebra R S :=
+i.to_algebra' $ λ _, mul_comm _
 
 namespace algebra
 
@@ -108,7 +113,7 @@ instance to_module : module R A := { .. algebra.to_semimodule }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
-ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ $ λ _, mul_comm  _
+ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
@@ -346,15 +351,14 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra $
+(rat.cast_hom α).to_algebra' $
 λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
 
 end rat
 
 namespace complex
 
-instance algebra_over_reals : algebra ℝ ℂ :=
-(ring_hom.of coe).to_algebra $ λ _, mul_comm _
+instance algebra_over_reals : algebra ℝ ℂ := (ring_hom.of coe).to_algebra
 
 end complex
 
@@ -470,7 +474,7 @@ variables (R : Type u) (A : Type v)
 
 variables [comm_semiring R] [semiring A] [algebra R A]
 
-instance id : algebra R R := (ring_hom.id R).to_algebra mul_comm
+instance id : algebra R R := (ring_hom.id R).to_algebra
 
 namespace id
 

@@ -1392,7 +1392,6 @@ is_ring_hom.map_neg _
 @[simp] lemma eval_sub (p q : polynomial α) (x : α) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
 
-
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :
   degree (p - q) < degree p :=

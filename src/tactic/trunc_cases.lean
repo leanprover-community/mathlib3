@@ -15,10 +15,10 @@ open interactive.types
 open tactic
 
 /--
-`trunc_cases e` performs case analysis on a `trunc` expression,
+`trunc_cases e` performs case analysis on a `trunc` expression `e`,
 attempting the following strategies:
 1. when the goal is a subsingleton, calling `induction e using trunc.rec_on_subsingleton`,
-2. when the goal does not depend on `e`, calling `fapply trunc.lift_on`,
+2. when the goal does not depend on `e`, calling `fapply trunc.lift_on e`,
    and using `intro` and `clear` afterwards to make the goals look like we used `induction`,
 3. otherwise, falling through to `trunc.rec_on`, and in the new invariance goal
    calling `cases h_p` on the useless `h_p : true` hypothesis,

@@ -80,49 +80,6 @@ note message
 -/
 library_note "note id"
 ```
-
----
-
-At various places in mathlib, we leave implementation notes that are referenced from many other
-files. To keep track of these notes, we use the command `library_note`. This makes it easy to
-retrieve a list of all notes, e.g. for documentation output.
-
-These notes can be referenced in mathlib with the syntax `Note [note id]`.
-Often, these references will be made in code comments (`--`) that won't be displayed in docs.
-If such a reference is made in a doc string or module doc, it will be linked to the corresponding
-note in the doc display.
-
-Syntax:
-```
-/--
-note message
--/
-library_note "note id"
-```
-
-An example from `meta.expr`:
-
-```
-/--
-Some declarations work with open expressions, i.e. an expr that has free variables.
-Terms will free variables are not well-typed, and one should not use them in tactics like
-`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-The reason for working with open types is for performance: instantiating variables requires
-iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
--/
-library_note "open expressions"
-```
-
-This note can be referenced near a usage of `pi_binders`:
-
-
-```
--- See Note [open expressions]
-/-- behavior of f -/
-def f := pi_binders ...
-```
-
 -/
 @[user_command] meta def library_note (mi : interactive.decl_meta_info)
   (_ : parse (tk "library_note")) : parser unit := do
@@ -274,6 +231,47 @@ let e : tactic_doc_entry := match mi.doc_string with
   end,
 tactic.add_tactic_doc e .
 
+/--
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Syntax:
+```
+/--
+note message
+-/
+library_note "note id"
+```
+
+An example from `meta.expr`:
+
+```
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
+```
+
+This note can be referenced near a usage of `pi_binders`:
+
+
+```
+-- See Note [open expressions]
+/-- behavior of f -/
+def f := pi_binders ...
+```
+-/
 add_tactic_doc
 { name                     := "library_note",
   category                 := doc_category.cmd,

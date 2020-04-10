@@ -103,7 +103,7 @@ add_tactic_doc
 { name       := "async",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.async],
-  tags       := ["core", "goal management"] }
+  tags       := ["core", "goal management", "combinator"] }
 
 /--
 `by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax `by_cases h : p`.
@@ -310,19 +310,19 @@ add_tactic_doc
 { name       := "fail_if_success",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fail_if_success],
-  tags       := ["core", "testing"] }
+  tags       := ["core", "testing", "combinator"] }
 
 add_tactic_doc
 { name       := "fapply",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.fapply],
-  tags       := ["core", "Lemma application"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "focus",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.focus],
-  tags       := ["core", "goal management"] }
+  tags       := ["core", "goal management", "combinator"] }
 
 add_tactic_doc
 { name       := "from",
@@ -346,25 +346,25 @@ add_tactic_doc
 { name       := "guard_hyp",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.guard_hyp],
-  tags       := ["core"] }
+  tags       := ["core", "testing", "context management"] }
 
 add_tactic_doc
 { name       := "guard_target",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.guard_target],
-  tags       := ["core"] }
+  tags       := ["core", "testing", "goal management"] }
 
 add_tactic_doc
 { name       := "have",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.have],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "context management"] }
 
 add_tactic_doc
 { name       := "induction",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.induction],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "induction"] }
 
 add_tactic_doc
 { name       := "injection",
@@ -382,31 +382,31 @@ add_tactic_doc
 { name       := "intro",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.intro],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 add_tactic_doc
 { name       := "intros",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.intros],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 add_tactic_doc
 { name       := "introv",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.introv],
-  tags       := ["core"] }
+  tags       := ["core", "logic"] }
 
 add_tactic_doc
 { name       := "iterate",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.iterate],
-  tags       := ["core"] }
+  tags       := ["core", "combinator"] }
 
 add_tactic_doc
 { name       := "left",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.left],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 /--
 `let h : t := p` adds the hypothesis `h : t := p` to the current goal if `p` a term of type `t`. If `t` is omitted, it will be inferred.
@@ -422,28 +422,30 @@ add_tactic_doc
 { name       := "let",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.let],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic", "context management"] }
 
 add_tactic_doc
 { name       := "mapply",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.mapply],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "match_target",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.match_target],
-  tags       := ["core"] }
+  tags       := ["core", "testing", "goal management"] }
 
 add_tactic_doc
 { name       := "refine",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.refine],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "lemma application"] }
 
 /--
-This tactic applies to a goal whose target has the form `t ~ u` where `~` is a reflexive relation, that is, a relation which has a reflexivity lemma tagged with the attribute `[refl]`. The tactic checks whether `t` and `u` are definitionally equal and then solves the goal.
+This tactic applies to a goal whose target has the form `t ~ u` where `~` is a reflexive relation,
+that is, a relation which has a reflexivity lemma tagged with the attribute `[refl]`.
+The tactic checks whether `t` and `u` are definitionally equal and then solves the goal.
 -/
 add_tactic_doc
 { name       := "refl",
@@ -455,25 +457,25 @@ add_tactic_doc
 { name       := "rename",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.rename],
-  tags       := ["core"] }
+  tags       := ["core", "renaming"] }
 
 add_tactic_doc
 { name       := "repeat",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.repeat],
-  tags       := ["core"] }
+  tags       := ["core", "combinator"] }
 
 add_tactic_doc
 { name       := "revert",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert],
-  tags       := ["core"] }
+  tags       := ["core", "context management", "goal management"] }
 
 add_tactic_doc
 { name       := "right",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.right],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 /--
 `rw e` applies an equation or iff `e` as a rewrite rule to the main goal. If `e` is preceded by
@@ -491,13 +493,13 @@ add_tactic_doc
 { name       := "rewrite / rw",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.rw, `tactic.interactive.rewrite],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "rewriting"] }
 
 add_tactic_doc
 { name       := "rwa",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.rwa],
-  tags       := ["core"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "show",

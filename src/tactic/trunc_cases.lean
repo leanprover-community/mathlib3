@@ -97,10 +97,8 @@ do
   -- In each branch here, we're going to capture the name of the new unboxed hypothesis
   -- so that we can later check if it's a typeclass and if so unfreeze local instances.
   e ← if ss then trunc_cases_subsingleton e ids
-  else (do
-    -- Otherwise, we decide whether the goal depends on `e`.
-    if e.occurs tgt then trunc_cases_dependent e ids
-    else trunc_cases_nondependent e ids),
+      else if e.occurs tgt then trunc_cases_dependent e ids
+      else trunc_cases_nondependent e ids,
   c ← infer_type e >>= is_class,
   when c unfreeze_local_instances
 

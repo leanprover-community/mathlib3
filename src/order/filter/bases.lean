@@ -226,7 +226,7 @@ lemma has_basis.is_basis (h : l.has_basis p s) : is_basis p s :=
 lemma has_basis.filter_eq (h : l.has_basis p s) : h.is_basis.filter = l :=
 by { ext U, simp [h.mem_iff, is_basis.mem_filter_iff] }
 
-lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p i ∧ s i = U} :=
+lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p i ∧ s i = U } :=
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
 lemma generate_eq_generate_inter (s : set (set α)) : generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
@@ -236,7 +236,7 @@ lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).f
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
-  (∀ᶠ x in l, q x) ↔ ∃ i (hi : p i), ∀ ⦃x⦄, x ∈ s i → q x :=
+  (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 hl.mem_iff
 
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
@@ -433,7 +433,6 @@ instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basi
 lemma antimono_seq_of_seq (s : ℕ → set α) :
   ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, principal $ s i) = ⨅ i, principal (t i) :=
 begin
-
   use λ n, ⋂ m ≤ n, s m, split,
   { intros i j hij a, simp, intros h i' hi'i, apply h, transitivity; assumption },
     apply le_antisymm; rw le_infi_iff; intro i,

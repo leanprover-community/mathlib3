@@ -1265,7 +1265,6 @@ apply_nolint list.to_alist doc_blame
 
 -- data/list/basic.lean
 apply_nolint list.lex doc_blame
-apply_nolint list.pairwise_gt_iota ge_or_gt
 apply_nolint list.reverse_rec_on doc_blame
 apply_nolint list.sublists_len doc_blame
 apply_nolint list.sublists_len_aux doc_blame
@@ -1277,13 +1276,6 @@ apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
-apply_nolint list.func.add doc_blame
-apply_nolint list.func.equiv doc_blame
-apply_nolint list.func.get doc_blame
-apply_nolint list.func.neg doc_blame
-apply_nolint list.func.pointwise doc_blame
-apply_nolint list.func.set doc_blame
-apply_nolint list.func.sub doc_blame
 apply_nolint list.head' doc_blame
 apply_nolint list.insert_nth doc_blame
 apply_nolint list.map_head doc_blame
@@ -1305,15 +1297,29 @@ apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.take' doc_blame
-apply_nolint list.tfae doc_blame
 apply_nolint list.transpose_aux doc_blame
 apply_nolint list.traverse doc_blame
+
+-- data/list/func.lean
+apply_nolint list.func.add doc_blame
+apply_nolint list.func.equiv doc_blame
+apply_nolint list.func.get doc_blame
+apply_nolint list.func.neg doc_blame
+apply_nolint list.func.pointwise doc_blame
+apply_nolint list.func.set doc_blame
+apply_nolint list.func.sub doc_blame
+
+-- data/list/range.lean
+apply_nolint list.pairwise_gt_iota ge_or_gt
 
 -- data/list/sigma.lean
 apply_nolint list.erase_dupkeys doc_blame
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
+
+-- data/list/tfae.lean
+apply_nolint list.tfae doc_blame
 
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame unused_arguments
@@ -1850,17 +1856,6 @@ apply_nolint mv_polynomial.indicator doc_blame
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
--- field_theory/perfect_closure.lean
-apply_nolint perfect_closure.UMP doc_blame
-apply_nolint perfect_closure.eq_iff' unused_arguments
-apply_nolint perfect_closure.frobenius_equiv doc_blame
-apply_nolint perfect_closure.has_inv unused_arguments
-apply_nolint perfect_closure.of doc_blame
-apply_nolint perfect_closure.r doc_blame
-
--- field_theory/splitting_field.lean
-apply_nolint polynomial.splits unused_arguments
-
 -- field_theory/subfield.lean
 apply_nolint field.closure doc_blame
 apply_nolint is_subfield doc_blame
@@ -2338,32 +2333,6 @@ apply_nolint pilex doc_blame
 
 -- ring_theory/adjoin.lean
 apply_nolint subalgebra.fg doc_blame
-
--- ring_theory/algebra.lean
-apply_nolint alg_hom has_inhabited_instance
-apply_nolint alg_hom.comp doc_blame
-apply_nolint alg_hom.id doc_blame
-apply_nolint alg_hom.range doc_blame
-apply_nolint alg_hom.to_ring_hom doc_blame
-apply_nolint algebra.adjoin doc_blame
-apply_nolint algebra.comap has_inhabited_instance
-apply_nolint algebra.comap.comm_ring unused_arguments
-apply_nolint algebra.comap.has_scalar unused_arguments
-apply_nolint algebra.comap.of_comap doc_blame
-apply_nolint algebra.comap.ring unused_arguments
-apply_nolint algebra.comap.to_comap doc_blame
-apply_nolint algebra.gi doc_blame
-apply_nolint algebra.lmul_left doc_blame
-apply_nolint algebra.lmul_right doc_blame
-apply_nolint algebra.of_id doc_blame
-apply_nolint algebra.to_comap doc_blame
-apply_nolint algebra.to_top doc_blame
-apply_nolint algebra_map doc_blame
-apply_nolint subalgebra doc_blame
-apply_nolint subalgebra.comap doc_blame
-apply_nolint subalgebra.to_submodule doc_blame
-apply_nolint subalgebra.under doc_blame
-apply_nolint subalgebra.val doc_blame
 
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame
@@ -3190,7 +3159,6 @@ apply_nolint tactic.get_nth_rewrite doc_blame
 apply_nolint tactic.perform_nth_rewrite doc_blame
 
 -- tactic/ring.lean
-apply_nolint conv.interactive.ring doc_blame
 apply_nolint tactic.interactive.ring.mode doc_blame
 apply_nolint tactic.ring.add_atom doc_blame
 apply_nolint tactic.ring.cache doc_blame

@@ -283,16 +283,15 @@ include 𝒞
 section
 
 instance {X Y : C} (f : X ⟶ Y) [has_image f] : has_image (arrow.mk f).hom :=
-by { rw arrow.mk_hom, apply_instance }
+show has_image f, by apply_instance
 
 end
 
 section has_image_map
-variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
 /-- An image map is a morphism `image f → image g` fitting into a commutative square and satisfying
     the obvious commutativity conditions. -/
-class has_image_map :=
+class has_image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) :=
 (map : image f.hom ⟶ image g.hom)
 (factor_map' : factor_thru_image f.hom ≫ map = sq.left ≫ factor_thru_image g.hom . obviously)
 (map_ι' : map ≫ image.ι g.hom = image.ι f.hom ≫ sq.right . obviously)
@@ -300,6 +299,8 @@ class has_image_map :=
 restate_axiom has_image_map.factor_map'
 restate_axiom has_image_map.map_ι'
 attribute [simp, reassoc] has_image_map.factor_map has_image_map.map_ι
+
+variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
 section
 local attribute [ext] has_image_map

@@ -1856,14 +1856,6 @@ apply_nolint mv_polynomial.indicator doc_blame
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
--- field_theory/perfect_closure.lean
-apply_nolint perfect_closure.UMP doc_blame
-apply_nolint perfect_closure.eq_iff' unused_arguments
-apply_nolint perfect_closure.frobenius_equiv doc_blame
-apply_nolint perfect_closure.has_inv unused_arguments
-apply_nolint perfect_closure.of doc_blame
-apply_nolint perfect_closure.r doc_blame
-
 -- field_theory/splitting_field.lean
 apply_nolint polynomial.splits unused_arguments
 
@@ -3196,7 +3188,6 @@ apply_nolint tactic.get_nth_rewrite doc_blame
 apply_nolint tactic.perform_nth_rewrite doc_blame
 
 -- tactic/ring.lean
-apply_nolint conv.interactive.ring doc_blame
 apply_nolint tactic.interactive.ring.mode doc_blame
 apply_nolint tactic.ring.add_atom doc_blame
 apply_nolint tactic.ring.cache doc_blame

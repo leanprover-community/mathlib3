@@ -132,8 +132,16 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := f.map_one
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
+theorem monoid_hom.iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
+show f^[n] ((λ x, x^m) a) = (λ x, x^m) (f^[n] a),
+from nat.iterate₁ $ λ x, f.map_pow x m
+
 theorem add_monoid_hom.map_smul (f : A →+ B) (a : A) (n : ℕ) : f (n • a) = n • f a :=
 f.to_multiplicative.map_pow a n
+
+theorem add_monoid_hom.iterate_map_smul (f : A →+ A) (a : A) (n m : ℕ) :
+  f^[n] (m • a) = m • (f^[n] a) :=
+f.to_multiplicative.iterate_map_pow a n m
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
@@ -394,9 +402,23 @@ by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', i
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
 by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, nat.pow_succ, ih]]
 
-@[simp] lemma ring_hom.map_pow [semiring R] [semiring S] (f : R →+* S) (a) :
+namespace ring_hom
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R →+* S) (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 f.to_monoid_hom.map_pow a
+
+variable (f : R →+* R)
+
+lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
+f.to_monoid_hom.iterate_map_pow a n m
+
+lemma iterate_map_smul (a) (n m : ℕ) : f^[n] (m • a) = m • (f^[n] a) :=
+f.to_add_monoid_hom.iterate_map_smul a n m
+
+end ring_hom
 
 lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=

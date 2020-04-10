@@ -193,19 +193,28 @@ add_tactic_doc
   decl_names := [`tactic.interactive.clear],
   tags       := ["core", "context management"] }
 
+/--
+Close goals of the form `n ≠ m` when `n` and `m` have type `nat`, `char`, `string`, `int` or `fin sz`,
+and they are literals. It also closes goals of the form `n < m`, `n > m`, `n ≤ m` and `n ≥ m` for `nat`.
+If the goal is of the form `n = m`, then it tries to close it using reflexivity.
+
+In mathlib, consider using `norm_num` instead for numeric types.
+-/
 add_tactic_doc
 { name       := "comp_val",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.comp_val],
-  tags       := ["core"] }
+  tags       := ["core", "arithmetic"] }
 
-/-- The `congr` tactic attempts to identify both sides of an equality goal `A = B`,
- leaving as new goals the subterms of `A` and `B` which are not definitionally equal.
- Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
- `x = g w` and `y = z`.
+/--
+The `congr` tactic attempts to identify both sides of an equality goal `A = B`,
+leaving as new goals the subterms of `A` and `B` which are not definitionally equal.
+Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
+`x = g w` and `y = z`.
 
- Note that `congr` can be over-aggressive at times; in mathlib the `congr'` tactic provides
- a more refined approach, by taking a parameter that limits the recursion depth.-/
+Note that `congr` can be over-aggressive at times; in mathlib the `congr'` tactic in mathlib
+provides a more refined approach, by taking a parameter that limits the recursion depth.
+-/
 add_tactic_doc
 { name       := "congr",
   category   := doc_category.tactic,
@@ -341,7 +350,7 @@ add_tactic_doc
 { name       := "generalize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize],
-  tags       := ["core"] }
+  tags       := ["core", "context management"] }
 
 add_tactic_doc
 { name       := "guard_hyp",
@@ -506,25 +515,25 @@ add_tactic_doc
 { name       := "show",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.show],
-  tags       := ["core"] }
+  tags       := ["core", "goal management", "renaming"] }
 
 add_tactic_doc
 { name       := "simp_intros",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.simp_intros],
-  tags       := ["core"] }
+  tags       := ["core", "simplification"] }
 
 add_tactic_doc
 { name       := "skip",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.skip],
-  tags       := ["core"] }
+  tags       := ["core", "combinator"] }
 
 add_tactic_doc
 { name       := "solve1",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.solve1],
-  tags       := ["core"] }
+  tags       := ["core", "combinator", "goal management"] }
 
 add_tactic_doc
 { name       := "sorry",
@@ -536,13 +545,13 @@ add_tactic_doc
 { name       := "specialize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.specialize],
-  tags       := ["core"] }
+  tags       := ["core", "hypothesis management", "lemma application"] }
 
 add_tactic_doc
 { name       := "split",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.split],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "logic"] }
 
 add_tactic_doc
 { name       := "subst",
@@ -554,13 +563,13 @@ add_tactic_doc
 { name       := "subst_vars",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.subst_vars],
-  tags       := ["core"] }
+  tags       := ["core", "rewrite"] }
 
 add_tactic_doc
 { name       := "success_if_fail",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.success_if_fail],
-  tags       := ["core"] }
+  tags       := ["core", "testing", "combinator"] }
 
 add_tactic_doc
 { name       := "suffices",
@@ -572,7 +581,7 @@ add_tactic_doc
 { name       := "symmetry",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.symmetry],
-  tags       := ["core", "basic"] }
+  tags       := ["core", "basic", "lemma application"] }
 
 add_tactic_doc
 { name       := "trace",
@@ -596,7 +605,7 @@ add_tactic_doc
 { name       := "transitivity",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.transitivity],
-  tags       := ["core"] }
+  tags       := ["core", "lemma application"] }
 
 add_tactic_doc
 { name       := "trivial",
@@ -608,13 +617,13 @@ add_tactic_doc
 { name       := "try",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.try],
-  tags       := ["core"] }
+  tags       := ["core", "combinator"] }
 
 add_tactic_doc
 { name       := "type_check",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.type_check],
-  tags       := ["core"] }
+  tags       := ["core", "debugging", "testing"] }
 
 add_tactic_doc
 { name       := "unfold",
@@ -632,10 +641,10 @@ add_tactic_doc
 { name       := "unfold_projs",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.unfold_projs],
-  tags       := ["core"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "with_cases",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.with_cases],
-  tags       := ["core"] }
+  tags       := ["core", "combinator"] }

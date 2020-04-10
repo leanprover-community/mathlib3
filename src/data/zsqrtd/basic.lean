@@ -9,7 +9,7 @@ import data.int.basic algebra.associated data.nat.gcd tactic.ring
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case,
   but of course both parts are real here since `d` is nonnegative. -/
-structure zsqrtd (d : ℤ) := mk {} ::
+structure zsqrtd (d : ℤ) :=
 (re : ℤ)
 (im : ℤ)
 

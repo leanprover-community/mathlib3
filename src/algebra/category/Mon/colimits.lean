@@ -50,7 +50,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| one {} : prequotient
+| one : prequotient
 | mul : prequotient → prequotient → prequotient
 
 instance : inhabited (prequotient F) := ⟨prequotient.one⟩

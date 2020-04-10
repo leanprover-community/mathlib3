@@ -1669,7 +1669,7 @@ by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
 /- lexicographic ordering -/
 
 inductive lex (r : α → α → Prop) : list α → list α → Prop
-| nil {} {a l} : lex [] (a :: l)
+| nil {a l} : lex [] (a :: l)
 | cons {a l₁ l₂} (h : lex l₁ l₂) : lex (a :: l₁) (a :: l₂)
 | rel {a₁ l₁ a₂ l₂} (h : r a₁ a₂) : lex (a₁ :: l₁) (a₂ :: l₂)
 

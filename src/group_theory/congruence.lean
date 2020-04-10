@@ -69,21 +69,21 @@ variables {M}
 /-- The inductively defined smallest additive congruence relation containing a given binary
     relation. -/
 inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → add_con_gen.rel x y
-| refl {} : Π x, add_con_gen.rel x x
-| symm {} : Π x y, add_con_gen.rel x y → add_con_gen.rel y x
-| trans {} : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
-| add {} : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
+| of : Π x y, r x y → add_con_gen.rel x y
+| refl : Π x, add_con_gen.rel x x
+| symm : Π x y, add_con_gen.rel x y → add_con_gen.rel y x
+| trans : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
+| add : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/
 @[to_additive add_con_gen.rel]
 inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → con_gen.rel x y
-| refl {} : Π x, con_gen.rel x x
-| symm {} : Π x y, con_gen.rel x y → con_gen.rel y x
-| trans {} : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
-| mul {} : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
+| of : Π x y, r x y → con_gen.rel x y
+| refl : Π x, con_gen.rel x x
+| symm : Π x y, con_gen.rel x y → con_gen.rel y x
+| trans : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
+| mul : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/

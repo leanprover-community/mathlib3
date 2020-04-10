@@ -334,8 +334,8 @@ parameters (Λ : Type*) [inhabited Λ] -- type of "labels" or TM states
   left or right, or write a symbol on the tape. -/
 @[derive inhabited]
 inductive stmt
-| move {} : dir → stmt
-| write {} : Γ → stmt
+| move : dir → stmt
+| write : Γ → stmt
 
 /-- A Post-Turing machine with symbol type `Γ` and label type `Λ`
   is a function which, given the current state `q : Λ` and
@@ -484,8 +484,8 @@ inductive stmt
 | write : (Γ → σ → Γ) → stmt → stmt
 | load : (Γ → σ → σ) → stmt → stmt
 | branch : (Γ → σ → bool) → stmt → stmt → stmt
-| goto {} : (Γ → σ → Λ) → stmt
-| halt {} : stmt
+| goto : (Γ → σ → Λ) → stmt
+| halt : stmt
 open stmt
 
 instance stmt.inhabited : inhabited stmt := ⟨halt⟩
@@ -1154,13 +1154,13 @@ parameters (σ : Type*) -- Type of variable settings
   internal state based on the result). `peek` modifies the
   internal state but does not remove an element. -/
 inductive stmt
-| push {} : ∀ k, (σ → Γ k) → stmt → stmt
-| peek {} : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
-| pop {} : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
+| push : ∀ k, (σ → Γ k) → stmt → stmt
+| peek : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
+| pop : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
 | load : (σ → σ) → stmt → stmt
 | branch : (σ → bool) → stmt → stmt → stmt
-| goto {} : (σ → Λ) → stmt
-| halt {} : stmt
+| goto : (σ → Λ) → stmt
+| halt : stmt
 open stmt
 
 instance stmt.inhabited : inhabited stmt := ⟨halt⟩
@@ -1353,8 +1353,8 @@ instance Γ'.fintype [fintype K] [∀ k, fintype (Γ k)] : fintype Γ' :=
 pi.fintype
 
 inductive st_act (k : K)
-| push {} : (σ → Γ k) → st_act
-| pop {} : bool → (σ → option (Γ k) → σ) → st_act
+| push : (σ → Γ k) → st_act
+| pop : bool → (σ → option (Γ k) → σ) → st_act
 
 section
 open st_act
@@ -1399,9 +1399,9 @@ by rcases s with _|_|_; refl
 end
 
 inductive Λ' : Type (max u_1 u_2 u_3 u_4)
-| normal {} : Λ → Λ'
+| normal : Λ → Λ'
 | go (k) : st_act k → stmt₂ → Λ'
-| ret {} : K → stmt₂ → Λ'
+| ret : K → stmt₂ → Λ'
 open Λ'
 instance : inhabited Λ' := ⟨normal (default _)⟩
 

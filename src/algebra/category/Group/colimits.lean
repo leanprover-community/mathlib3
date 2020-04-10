@@ -45,7 +45,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
+| zero : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 

@@ -269,7 +269,7 @@ section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
+| nil : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 
 attribute [simp] forall₂.nil
@@ -381,7 +381,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil {} : pairwise []
+| nil : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -411,7 +411,7 @@ variable (R : α → α → Prop)
 
      chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil {} {a : α} : chain a []
+| nil {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 
 /-- `chain' R l` means that `R` holds between adjacent elements of `l`.

@@ -6,7 +6,7 @@ import tactic.doc_commands
 
 This file adds the majority of the interactive tactics from core Lean (i.e. pre-mathlib) to the API documentation.
 
-# TODO
+## TODO
 
 * Make a PR to core changing core docstrings to the docstrings below,
 and also changing the docstrings of `cc`, `simp` and `conv` to the ones

@@ -1,6 +1,6 @@
 import tactic.rewrite_search.core
 
-import data.rat.basic
+-- import data.rat.basic
 
 open tactic.rewrite_search
 open tactic.rewrite_search.bound_progress

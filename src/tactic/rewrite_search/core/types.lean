@@ -1,4 +1,4 @@
-import data.array.table data.rat.basic
+import data.array.table -- data.rat.basic
 
 import tactic.rewrite_search.core.common
 import tactic.rewrite_search.core.hook

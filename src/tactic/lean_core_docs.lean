@@ -8,15 +8,15 @@ This file adds the majority of the interactive tactics from core Lean (i.e. pre-
 
 # TODO
 
-Make a PR to core changing core docstrings to the docstrings below,
-and also changing the docstrings of cc, simp and conv to the ones
+* Make a PR to core changing core docstrings to the docstrings below,
+and also changing the docstrings of `cc`, `simp` and `conv` to the ones
 already in the API docs.
 
-SMT tactics are currently not documented.
+* SMT tactics are currently not documented.
 
-`rsimp` and `constructor_matching` are currently not documented.
+* `rsimp` and `constructor_matching` are currently not documented.
 
-`dsimp` deserves better documentation.
+* `dsimp` deserves better documentation.
 -/
 
 add_tactic_doc
@@ -265,16 +265,13 @@ add_tactic_doc
   decl_names := [`tactic.interactive.econstructor],
   tags       := ["core"] }
 
+/--
+A variant of `rw` that uses the unifier more aggressively, unfolding semireducible definitions.
+-/
 add_tactic_doc
-{ name       := "erewrite",
+{ name       := "erewrite / erw",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.erewrite],
-  tags       := ["core", "rewriting"] }
-
-add_tactic_doc
-{ name       := "erw",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.erw],
+  decl_names := [`tactic.interactive.erewrite, `tactic.interactive.erw],
   tags       := ["core", "rewriting"] }
 
 add_tactic_doc
@@ -497,7 +494,7 @@ in the local context. In the latter case, a turnstile `⊢` or `|-` can also be 
 the target of the goal.
 -/
 add_tactic_doc
-{ name       := "rw",
+{ name       := "rewrite / rw",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.rw, `tactic.interactive.rewrite],
   tags       := ["core", "basic"] }

@@ -83,9 +83,17 @@ Guesses the correct domain by looking at the goal and hypotheses,
 and then reverts all relevant hypotheses and variables.
 Use `omega manual` to disable automatic reverts, and `omega int` or
 `omega nat` to specify the domain.
+-/
+meta def tactic.interactive.omega (opt : parse (many ident)) : tactic unit :=
+do is_int ← determine_domain opt,
+   let is_manual : bool := if `manual ∈ opt then tt else ff,
+   if is_int
+   then omega_int is_manual
+   else omega_nat is_manual
 
----
+add_hint_tactic "omega"
 
+/--
 `omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
 ```lean
 ∀ x₁, ... ∀ xₖ, P
@@ -112,15 +120,6 @@ by {revert h2 i, omega manual int}
 
 `omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
 -/
-meta def tactic.interactive.omega (opt : parse (many ident)) : tactic unit :=
-do is_int ← determine_domain opt,
-   let is_manual : bool := if `manual ∈ opt then tt else ff,
-   if is_int
-   then omega_int is_manual
-   else omega_nat is_manual
-
-add_hint_tactic "omega"
-
 add_tactic_doc
 { name       := "omega",
   category   := doc_category.tactic,

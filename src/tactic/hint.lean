@@ -73,9 +73,18 @@ do names ← attribute.get_instances `hint_tactic,
 
 namespace interactive
 
-/-- report a list of tactics that can make progress against the current goal
+/--
+report a list of tactics that can make progress against the current goal
+-/
+meta def hint : tactic unit :=
+do hints ← tactic.hint,
+   if hints.length = 0 then
+     fail "no hints available"
+   else
+     do trace "the following tactics make progress:\n----",
+        hints.mmap' (λ s, tactic.trace format!"Try this: {s}")
 
----
+/--
 `hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
 
 ```lean
@@ -98,14 +107,6 @@ You can add a tactic to the list that `hint` tries by either using
 tactic), or
 2. `add_hint_tactic "my_tactic"`, specifying a string which works as an interactive tactic.
 -/
-meta def hint : tactic unit :=
-do hints ← tactic.hint,
-   if hints.length = 0 then
-     fail "no hints available"
-   else
-     do trace "the following tactics make progress:\n----",
-        hints.mmap' (λ s, tactic.trace format!"Try this: {s}")
-
 add_tactic_doc
 { name        := "hint",
   category    := doc_category.tactic,

@@ -4,14 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek
 -/
 
-/- A `table` is a self-resizing array-backed list, which uses opaque references
-   called `table_ref`s for access.
--/
-
 import data.list
 import data.array.defs
 
-universes u v w z
+/-!
+# Tables
+
+A `table` is a self-resizing array-backed list,
+which uses opaque references called `table_ref`s for access.
+-/
+
+universe variables u v w z
 
 attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
 attribute [inline] array.read array.write
@@ -26,9 +29,9 @@ local attribute [reducible] table_ref
 
 def MAXIMUM := 0xFFFFFFFF
 
-def from_nat (r : ℕ) : table_ref := r
+def of_nat (r : ℕ) : table_ref := r
 def to_nat (r : table_ref) : ℕ := r
-def next (r : table_ref) : table_ref := from_nat (r + 1)
+def next (r : table_ref) : table_ref := of_nat (r + 1)
 
 instance : decidable_eq table_ref := by apply_instance
 
@@ -38,8 +41,8 @@ meta instance : has_to_format table_ref := by apply_instance
 end internal
 
 def to_string (r : table_ref) : string := to_string r.to_nat
-def null  : table_ref := from_nat MAXIMUM
-def first : table_ref := from_nat 0
+def null  : table_ref := of_nat MAXIMUM
+def first : table_ref := of_nat 0
 
 end table_ref
 
@@ -68,11 +71,11 @@ def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
 def from_list (l : list α) : table α :=
 let n := l.length in
 let buff : array n (option α) := mk_array n none in
-⟨table_ref.from_nat n, n, buff.map_copy_from_list (λ a, some a) l⟩
+⟨table_ref.of_nat n, n, buff.map_copy_from_list (λ a, some a) l⟩
 
 meta def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 let buff : array dim (option β) := mk_array dim none in
-⟨table_ref.from_nat dim, dim, x.map_copy buff (λ a, some $ f a)⟩
+⟨table_ref.of_nat dim, dim, x.map_copy buff (λ a, some $ f a)⟩
 
 meta def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 

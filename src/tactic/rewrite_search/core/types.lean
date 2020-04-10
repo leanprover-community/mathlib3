@@ -214,8 +214,8 @@ meta structure search_state (α β γ δ : Type) :=
 (tr_state     : δ)
 (stats        : statistics)
 
-def LHS_VERTEX_ID : table_ref := table_ref.from_nat 0
-def RHS_VERTEX_ID : table_ref := table_ref.from_nat 1
+def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
+def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 
 meta def update_fn (α β γ δ : Type) : Type := search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
 meta def init_bound_fn (α β γ δ : Type) := search_state α β γ δ → vertex → vertex → bound_progress γ

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton
+Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 
 import category_theory.category
@@ -59,11 +59,16 @@ def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso.{v} f) 
 { inv := λ X Y f, (all_is_iso f).inv }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
-def groupoid.of_trunc_split_mono (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc $ split_mono.{v} f) :
+def groupoid.of_trunc_split_mono
+  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono.{v} f)) :
   groupoid.{v} C :=
-groupoid.of_is_iso $ λ X Y f, trunc.rec_on_subsingleton (all_split_mono f) $
-by {introI, exact trunc.rec_on_subsingleton (all_split_mono $ retraction f)
-  (by {introI, exact is_iso.of_mono_retraction})}
+begin
+  apply groupoid.of_is_iso,
+  intros X Y f,
+  trunc_cases all_split_mono f,
+  trunc_cases all_split_mono (retraction f),
+  apply is_iso.of_mono_retraction,
+end
 
 end
 

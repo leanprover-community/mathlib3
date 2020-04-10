@@ -57,6 +57,18 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 (right : B . obviously)
 (hom : L.obj left ⟶ R.obj right)
 
+section
+omit 𝒜 ℬ
+
+-- Satisfying the inhabited linter
+instance comma.inhabited [inhabited T] : inhabited (comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)) :=
+{ default :=
+  { left := inhabited.default T,
+    right := inhabited.default T,
+    hom := 𝟙 (inhabited.default T) } }
+
+end
+
 variables {L : A ⥤ T} {R : B ⥤ T}
 
 /-- A morphism between two objects in the comma category is a commutative square connecting the
@@ -66,6 +78,13 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 (left : X.left ⟶ Y.left . obviously)
 (right : X.right ⟶ Y.right . obviously)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
+
+-- Satisfying the inhabited linter
+instance comma_morphism.inhabited [inhabited (comma L R)] :
+  inhabited (comma_morphism (inhabited.default (comma L R)) (inhabited.default (comma L R))) :=
+{ default :=
+  { left := 𝟙 _,
+    right := 𝟙 _ } }
 
 restate_axiom comma_morphism.w'
 attribute [simp] comma_morphism.w
@@ -245,6 +264,12 @@ omit 𝒜 ℬ
 @[derive category]
 def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
 
+-- Satisfying the inhabited linter
+instance over.inhabited [inhabited T] : inhabited (over (inhabited.default T)) :=
+{ default :=
+  { left := (inhabited.default T),
+    hom := 𝟙 _ } }
+
 namespace over
 
 variables {X : T}
@@ -360,6 +385,12 @@ end over
 @[derive category]
 def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
 
+-- Satisfying the inhabited linter
+instance under.inhabited [inhabited T] : inhabited (under (inhabited.default T)) :=
+{ default :=
+  { right := inhabited.default T,
+    hom := 𝟙 _ } }
+
 namespace under
 
 variables {X : T}
@@ -434,6 +465,13 @@ variables (T)
 @[derive category]
 def arrow := comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)
 
+-- Satisfying the inhabited linter
+instance arrow.inhabited [inhabited T] : inhabited (arrow T) :=
+{ default :=
+  { left := inhabited.default T,
+    right := inhabited.default T,
+    hom := 𝟙 (inhabited.default T) } }
+
 end
 
 namespace arrow
@@ -445,12 +483,32 @@ namespace arrow
 def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
 ⟨X, Y, f⟩
 
-/-- A morphism in the arrow category is a commutative square. -/
-def hom_mk {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+@[simp] lemma mk_hom {X Y : T} (f : X ⟶ Y) : (mk f).hom = f := rfl
+
+/-- A morphism in the arrow category is a commutative square connecting two objects of the arrow
+    category. -/
+def hom_mk {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : f ⟶ g :=
+{ left := u,
+  right := v,
+  w' := w }
+
+@[simp] lemma hom_mk_left {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : (hom_mk w).left = u := rfl
+@[simp] lemma hom_mk_right {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : (hom_mk w).right = v := rfl
+
+/-- We can also build a morphism in the arrow category out of any commutative square in `T`. -/
+def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (w : u ≫ g = f ≫ v) : arrow.mk f ⟶ arrow.mk g :=
 { left := u,
   right := v,
   w' := w }
+
+@[simp] lemma hom_mk'_left {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : (hom_mk' w).left = u := rfl
+@[simp] lemma hom_mk'_right {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : (hom_mk' w).right = v := rfl
 
 end arrow
 

@@ -280,6 +280,13 @@ namespace category_theory.limits
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+section
+
+instance {X Y : C} (f : X ⟶ Y) [has_image f] : has_image (arrow.mk f).hom :=
+by { rw arrow.mk_hom, apply_instance }
+
+end
+
 section has_image_map
 variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
@@ -313,19 +320,23 @@ lemma image.factor_map :
 by simp
 lemma image.map_ι : image.map sq ≫ image.ι g.hom = image.ι f.hom ≫ sq.right :=
 by simp
+lemma image.map_hom_mk'_ι {X Y P Q : C} {k : X ⟶ Y} [has_image k] {l : P ⟶ Q} [has_image l]
+  {m : X ⟶ P} {n : Y ⟶ Q} (w : m ≫ l = k ≫ n) [has_image_map (arrow.hom_mk' w)] :
+  image.map (arrow.hom_mk' w) ≫ image.ι l = image.ι k ≫ n :=
+image.map_ι _
 
 section
 variables {h : arrow C} [has_image h.hom] (sq' : g ⟶ h)
 variables [has_image_map sq']
 
 /-- Image maps for composable commutative squares induce an image map in the composite square. -/
-def image.map_comp : has_image_map (sq ≫ sq') :=
+def has_image_map_comp : has_image_map (sq ≫ sq') :=
 { map := image.map sq ≫ image.map sq' }
 
-@[simp]
-lemma image.map_comp_eq_comp_map [has_image_map (sq ≫ sq')] :
+-- This cannot be a simp lemma, see https://github.com/leanprover-community/lean/issues/181.
+lemma image.map_comp [has_image_map (sq ≫ sq')] :
   image.map (sq ≫ sq') = image.map sq ≫ image.map sq' :=
-show (has_image_map.map (sq ≫ sq')) = (image.map_comp sq sq').map, by congr
+show (has_image_map.map (sq ≫ sq')) = (has_image_map_comp sq sq').map, by congr
 
 end
 
@@ -334,14 +345,14 @@ variables (f)
 
 /-- The identity `image f ⟶ image f` fits into the commutative square represented by the identity
     morphism `𝟙 f` in the arrow category. -/
-def image.map_id : has_image_map (𝟙 f) :=
+def has_image_map_id : has_image_map (𝟙 f) :=
 { map := 𝟙 (image f.hom),
   factor_map' := by erw [arrow.id_left, category.id_comp, category.comp_id],
   map_ι' := by erw [arrow.id_right, category.id_comp, category.comp_id] }
 
 @[simp]
-lemma image.map_id_eq_id [has_image_map (𝟙 f)] : image.map (𝟙 f) = 𝟙 (image f.hom) :=
-show (image.map (𝟙 f)) = (image.map_id f).map, by congr
+lemma image.map_id [has_image_map (𝟙 f)] : image.map (𝟙 f) = 𝟙 (image f.hom) :=
+show (image.map (𝟙 f)) = (has_image_map_id f).map, by congr
 
 end
 
@@ -361,20 +372,12 @@ end
 section has_image_maps
 variables [has_images.{v} C] [has_image_maps.{v} C]
 
-set_option trace.simplify.rewrite true
-
 /-- The functor from the arrow category of `C` to `C` itself that maps a morphism to its image
     and a commutative square to the induced morphism on images. -/
 def im : arrow C ⥤ C :=
 { obj := λ f, image f.hom,
   map := λ _ _ st, image.map st,
-  map_id' := by tidy,
-  map_comp' :=
-  begin
-    intros,
-    -- simp does not work here?
-    rw image.map_comp_eq_comp_map,
-  end }
+  map_comp' := λ _ _ _ _ _, image.map_comp _ _ }
 
 end has_image_maps
 

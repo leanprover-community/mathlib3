@@ -1856,9 +1856,6 @@ apply_nolint mv_polynomial.indicator doc_blame
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
--- field_theory/splitting_field.lean
-apply_nolint polynomial.splits unused_arguments
-
 -- field_theory/subfield.lean
 apply_nolint field.closure doc_blame
 apply_nolint is_subfield doc_blame
@@ -2336,32 +2333,6 @@ apply_nolint pilex doc_blame
 
 -- ring_theory/adjoin.lean
 apply_nolint subalgebra.fg doc_blame
-
--- ring_theory/algebra.lean
-apply_nolint alg_hom has_inhabited_instance
-apply_nolint alg_hom.comp doc_blame
-apply_nolint alg_hom.id doc_blame
-apply_nolint alg_hom.range doc_blame
-apply_nolint alg_hom.to_ring_hom doc_blame
-apply_nolint algebra.adjoin doc_blame
-apply_nolint algebra.comap has_inhabited_instance
-apply_nolint algebra.comap.comm_ring unused_arguments
-apply_nolint algebra.comap.has_scalar unused_arguments
-apply_nolint algebra.comap.of_comap doc_blame
-apply_nolint algebra.comap.ring unused_arguments
-apply_nolint algebra.comap.to_comap doc_blame
-apply_nolint algebra.gi doc_blame
-apply_nolint algebra.lmul_left doc_blame
-apply_nolint algebra.lmul_right doc_blame
-apply_nolint algebra.of_id doc_blame
-apply_nolint algebra.to_comap doc_blame
-apply_nolint algebra.to_top doc_blame
-apply_nolint algebra_map doc_blame
-apply_nolint subalgebra doc_blame
-apply_nolint subalgebra.comap doc_blame
-apply_nolint subalgebra.to_submodule doc_blame
-apply_nolint subalgebra.under doc_blame
-apply_nolint subalgebra.val doc_blame
 
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame

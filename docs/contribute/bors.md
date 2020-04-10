@@ -1,5 +1,7 @@
 # bors for mathlib!
 
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
+
 In early April 2020, we had a stretch where the mergify queue was constantly 4-5 PRs deep, which
 meant that the time between setting a PR as "ready-to-merge" and its landing in `master` was 12+
 hours. With mergify, the amount of time it takes to finish merging `N` "ready-to-merge" PRs is

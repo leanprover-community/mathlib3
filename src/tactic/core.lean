@@ -339,23 +339,6 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
-
-/--
-Attempts to run a tactic (which should only operate on the main goal),
-intercepts any result it assigns to the goal,
-and runs `simp` on that
-before assigning the simplified value to the original goal.
--/
-meta def simp_result {α : Type} (t : tactic α) : tactic α :=
-do
-  (r, a) ← retrieve (do
-    v :: _ ← get_goals,
-    a ← t,
-    v ← instantiate_mvars v,
-    return (v, a)),
-  prod.fst <$> r.simp {fail_if_unchanged := ff} >>= exact,
-  return a
-
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t

@@ -79,7 +79,7 @@ structure filter_basis (α : Type*) :=
 @[reducible]
 instance {α : Type*}: has_mem (set α) (filter_basis α) := ⟨λ U B, U ∈ B.sets⟩
 
--- For illustration purposes
+-- For illustration purposes, the filter basis defining (at_top : filter ℕ)
 instance : inhabited (filter_basis ℕ) :=
 ⟨{ sets := range Ici,
   nonempty := ⟨Ici 0, mem_range_self 0⟩,
@@ -425,7 +425,7 @@ of the collection. -/
 structure countable_filter_basis (α : Type*) extends filter_basis α :=
 (countable : countable sets)
 
--- For illustration purposes
+-- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
 ⟨{ countable := countable_range (λ n, Ici n),
    ..(default $ filter_basis ℕ),}⟩

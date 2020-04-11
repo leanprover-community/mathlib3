@@ -56,11 +56,7 @@ def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 
 def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
-@[inline] private def try_fin (r : ℕ) : option (fin t.size) :=
-if h : r < t.size then some ⟨r, h⟩ else none
-
-@[inline] def get (r : ℕ) : option α :=
-t.read' r
+@[inline] def get (r : ℕ) : option α := t.read' r
 
 @[inline] def contains (r : ℕ) : bool := (t.get r).is_some
 
@@ -70,59 +66,47 @@ match t.get r with
 | some a := a
 end
 
-@[inline] def set (r : ℕ) (a : α) : table α :=
-match try_fin t r with
-| none := t
-| some r := t.write r a
-end
+@[inline] def set (r : ℕ) (a : α) : table α := t.write' r a
 
-@[inline] def push_back (a : α) : table α :=
-t.push_back a
+@[inline] def push_back (a : α) : table α := t.push_back a
 
-@[inline] def append_list : table α → list α → table α
-| t [] := t
-| t (a :: rest) := append_list (t.push_back a) rest
+@[inline] def append_list (l : list α) : table α :=
+buffer.append_list t $ l.map option.some
 
 @[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
 
 @[inline] def length : ℕ := t.size
 
-meta def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
-| ref := match t.get ref with
-         | none := none
-         | some a := if p a then some a else find_from (ref + 1)
-         end
+def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
+| i := if h : i < t.length then
+        have wf : t.length - (i + 1) < t.length - i,
+          from nat.lt_of_succ_le $ by rw [← nat.succ_sub h, nat.succ_sub_succ],
+        match t.get i with
+        | none   := find_from (i + 1)
+        | some a := if p a then some a else find_from (i + 1)
+         end else none
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i, t.length - i)⟩]}
 
-@[inline] meta def find (p : α → Prop) [decidable_pred p] : option α :=
+@[inline] def find (p : α → Prop) [decidable_pred p] : option α :=
 t.find_from p 0
 
-@[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
+@[inline] def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
 t.find (λ a, key = @keyed.key _ _ _ _ a)
 
-meta def foldl (f : β → α → β) (b : β) (t : table α) : β :=
+def foldl (f : β → α → β) (b : β) (t : table α) : β :=
 t.to_array.foldl b (λ a : option α, λ b : β,
   match a with
   | none := b
   | some a := f b a
   end)
 
-private meta def empty_buff (t : table α) : array t.length (option β) :=
-mk_array t.length none
-
--- meta def map (f : α → β) : table β :=
--- ⟨t.next_id, t.buff_len, t.entries.map_copy (empty_buff t) (option.map f)⟩
-
-meta def mmap {m : Type v → Type z} [monad m] (f : α → m β) : m (table β) :=
-do x ← t.to_array.mmap_copy (empty_buff t) (λ a : option α,
+def mmap {m : Type v → Type z} [monad m] (f : α → m β) : m (table β) :=
+do x ← t.to_array.mmap_copy (mk_array t.length none) (λ a : option α,
    match a with
    | none := pure none
    | some a := do v ← f a, pure $ some v
    end),
    return x.to_buffer
-
-def is_after_last (r : ℕ) : bool := t.length ≤ r
-
-meta def to_list : list α := t.foldl list.concat []
 
 meta instance [has_to_string α] : has_to_string (table α) := ⟨λ t, to_string t.to_list⟩
 

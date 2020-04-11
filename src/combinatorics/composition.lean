@@ -67,127 +67,12 @@ Composition, partition
 
 -/
 
-
-variables {α : Type*} {β : Type*}
-
-section
-set_option default_priority 100
-
-set_option old_structure_cmd true
-
-class add_left_cancel_monoid α extends add_left_cancel_semigroup α, add_monoid α
-
-instance ordered_cancel_comm_monoid.to_add_left_cancel_monoid [h : ordered_cancel_comm_monoid α] :
-  add_left_cancel_monoid α := { ..h }
-
-instance add_group.to_add_left_cancel_monoid [h : add_group α] :
-  add_left_cancel_monoid α := { ..h, .. add_group.to_left_cancel_add_semigroup}
-
-end
-
 namespace list
 
-lemma length_le_sum_of_one_le (l : list ℕ) (h : ∀ i ∈ l, 1 ≤ i) : l.length ≤ l.sum :=
-begin
-  induction l with j l IH h, { simp },
-  rw [sum_cons, length, add_comm],
-  exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
-end
-
-@[simp] theorem nth_le_of_fn' {n} (f : fin n → α) {i : ℕ} (h : i < (of_fn f).length) :
-  nth_le (of_fn f) i h = f ⟨i, ((length_of_fn f) ▸ h)⟩ :=
-nth_le_of_fn f ⟨i, ((length_of_fn f) ▸ h)⟩
-
-def to_fn (l : list α) : fin (l.length) → α :=
-λ i, l.nth_le i.1 i.2
-
-lemma to_fn_of_fn {n : ℕ} (f : fin n → α) : to_fn (of_fn f) == f :=
-fin.heq (length_of_fn f) (λ i, by simp [to_fn])
-
-lemma of_fn_to_fn (l : list α) : of_fn (to_fn l) = l :=
-of_fn_nth_le l
-
-@[simp] lemma map_of_fn {n : ℕ} (f : fin n → α) (g : α → β) :
-  map g (of_fn f) = of_fn (g ∘ f) :=
-ext_le (by simp) (λ i h h', by simp)
-
-lemma eq_of_take_sum_eq [add_left_cancel_monoid α] {l l' : list α} (h : l.length = l'.length)
-  (h' : ∀ i ≤ l.length, (l.take i).sum = (l'.take i).sum) : l = l' :=
-begin
-  apply ext_le h (λ i h₁ h₂, _),
-  have : (l.take (i + 1)).sum = (l'.take (i + 1)).sum := h' _ (nat.succ_le_of_lt h₁),
-  rw [sum_take_succ l i h₁, sum_take_succ l' i h₂, h' i (le_of_lt h₁)] at this,
-  exact add_left_cancel this
-end
-
-lemma monotone_sum_take [canonically_ordered_monoid α] (l : list α) :
-  monotone (λ i, (l.take i).sum) :=
-begin
-  apply monotone_of_monotone_nat (λ n, _),
-  by_cases h : n < l.length,
-  { rw sum_take_succ _ _ h,
-    exact le_add_right (le_refl _) },
-  { push_neg at h,
-    simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
-end
-
-lemma map_eq_iff_of_injective {l₁ l₂ : list α} {f : α → β} (h : function.injective f) :
-  map f l₁ = map f l₂ ↔ l₁ = l₂ :=
-begin
-  refine ⟨λ H, _, λ H, by rw H⟩,
-  have A : (map f l₁).length = (map f l₂).length := congr_arg _ H,
-  refine ext_le (by simpa using A) (λ i h₁ h₂, h _),
-  have h₁' : i < (map f l₁).length, by simpa using h₁,
-  have h₂' : i < (map f l₂).length, by simpa using h₂,
-  have : nth_le (map f l₁) i h₁' = nth_le (map f l₂) i h₂', by { congr, exact H },
-  simpa using this
-end
 
 end list
 
-namespace fin
-
-@[simp] lemma coe_last {n : ℕ} : ((fin.last n) : ℕ) = n := rfl
-
-lemma strict_mono_iff_lt_succ {n : ℕ} [preorder α] {f : fin n → α} :
-  strict_mono f ↔ ∀ i (h : i+1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
-begin
-  split,
-  { assume H i hi,
-    apply H,
-    exact nat.lt_succ_self _ },
-  { assume H,
-    have A : ∀ i j (h : i < j) (h' : j < n),
-      f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2;
-    simp [fin.ext_iff, fin.coe_eq_val] }
-end
-
-end fin
-
-namespace finset
-
-lemma mono_of_fin_injective [decidable_linear_order α] {k : ℕ} (s : finset α) (h : s.card = k) :
-  function.injective (s.mono_of_fin h) :=
-set.injective_iff_inj_on_univ.mpr (s.bij_on_mono_of_fin h).inj_on
-
-@[simp] lemma mono_of_fin_eq_mono_of_fin_iff [decidable_linear_order α]
-  {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
-  s.mono_of_fin h i = s.mono_of_fin h' j ↔ i.val = j.val :=
-begin
-  have A : k = l, by rw [← h', ← h],
-  have : s.mono_of_fin h = (s.mono_of_fin h') ∘ (λ j : (fin k), ⟨j.1, A ▸ j.2⟩) :=
-    mono_of_fin_unique h (s.bij_on_mono_of_fin h) (s.mono_of_fin_strict_mono h),
-  rw [this, function.comp_app, (s.mono_of_fin_injective h').eq_iff, fin.ext_iff]
-end
-
-end finset
-
+#exit
 
 open list
 
@@ -241,6 +126,16 @@ def length : ℕ := c.blocks.length
 by rw [← c.blocks_length, blocks, length_map]
 
 def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
+
+lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
+begin
+  conv_rhs { rw ← c.blocks_sum },
+  simp [blocks_fun, length],
+  have Z := sum
+
+end
+
+#exit
 
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
 begin
@@ -607,17 +502,17 @@ begin
   exact nat.lt_succ_self _
 end
 
-lemma mem_boundaries_iff_exists_blocks_take_sum_eq {j : fin (n+1)} :
+lemma mem_boundaries_iff_exists_blocks_sum_take_eq {j : fin (n+1)} :
   j ∈ c.boundaries ↔ ∃ i < c.boundaries.card, (c.blocks.take i).sum = j.val :=
 begin
   split,
   { assume hj,
-    rcases (c.boundaries.bij_on_mono_of_fin rfl).surj_on hj with ⟨i, _, hi⟩,
+    rcases (c.boundaries.mono_of_fin_bij_on rfl).surj_on hj with ⟨i, _, hi⟩,
     refine ⟨i.1, i.2, _⟩,
     rw [← hi, c.blocks_partial_sum i.2],
     refl },
   { rintros ⟨i, hi, H⟩,
-    convert (c.boundaries.bij_on_mono_of_fin rfl).maps_to (set.mem_univ ⟨i, hi⟩),
+    convert (c.boundaries.mono_of_fin_bij_on rfl).maps_to (set.mem_univ ⟨i, hi⟩),
     have : c.boundary ⟨i, hi⟩ = j, by rwa [fin.ext_iff, ← fin.coe_eq_val, ← c.blocks_partial_sum hi],
     exact this.symm }
 end
@@ -672,7 +567,7 @@ begin
   { convert c.to_composition_as_set_length,
     simp [composition_as_set.blocks] },
   suffices H : ∀ (i ≤ d.blocks.length), (d.blocks.take i).sum = (c.blocks.take i).sum,
-    from eq_of_take_sum_eq length_eq H,
+    from eq_of_sum_take_eq length_eq H,
   assume i hi,
   have i_lt : i < d.boundaries.card,
   { convert nat.lt_succ_iff.2 hi,
@@ -691,8 +586,7 @@ end
 @[simp] lemma composition.to_composition_as_set_blocks_pnat (c : composition n) :
   c.to_composition_as_set.blocks_pnat = c.blocks_pnat :=
 begin
-  have : function.injective (coe : ℕ+ → ℕ) := subtype.val_injective,
-  rw ← map_eq_iff_of_injective this,
+  rw ← (injective_map_iff.2 subtype.val_injective).eq_iff,
   convert c.to_composition_as_set_blocks,
   exact composition_as_set.coe_blocks_pnat_eq_blocks _
 end
@@ -708,7 +602,7 @@ by simp [composition.blocks, composition_as_set.coe_blocks_pnat_eq_blocks]
   c.to_composition.boundaries = c.boundaries :=
 begin
   ext j,
-  simp [c.mem_boundaries_iff_exists_blocks_take_sum_eq, c.card_boundaries_eq_succ_length,
+  simp [c.mem_boundaries_iff_exists_blocks_sum_take_eq, c.card_boundaries_eq_succ_length,
     composition.boundary, fin.ext_iff, composition.size_up_to, exists_prop, finset.mem_univ,
     take, exists_prop_of_true, finset.mem_image, composition_as_set.to_composition_blocks,
     composition.boundaries],

@@ -208,6 +208,8 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
+@[simp] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
+
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
@@ -280,6 +282,26 @@ begin
       rw [lt_iff_val_lt_val, succ_val] at h₁,
       exact h₀ (lt_trans (nat.lt_succ_self _) h₁) },
     { rw [pred_succ] } }
+end
+
+/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
+  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
+begin
+  split,
+  { assume H i hi,
+    apply H,
+    exact nat.lt_succ_self _ },
+  { assume H,
+    have A : ∀ i j (h : i < j) (h' : j < n),
+      f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
+    { assume i j h h',
+      induction h with k h IH,
+      { exact H _ _ },
+      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
+    assume i j hij,
+    convert A (i : ℕ) (j : ℕ) hij j.2;
+    simp [fin.ext_iff, fin.coe_eq_val] }
 end
 
 section rec

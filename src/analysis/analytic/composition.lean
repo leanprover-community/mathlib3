@@ -70,11 +70,11 @@ namespace formal_multilinear_series
 /-- Given a formal multilinear series `p`, an ordered partition `c` of `n` and the index `i` of a
 block of `c`, we may define a function on `fin n → E` by picking the variables in the `i`-th block
 of `n`, and applying the corresponding coefficient of `p` to these variables. This function is
-called `p.apply_composition c v i` for `v : fin n → E` and `i : fin c.max_index`. -/
+called `p.apply_composition c v i` for `v : fin n → E` and `i : fin c.length`. -/
 def apply_composition
   (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (c : composition n) :
-  (fin n → E) → (fin (c.max_index) → F) :=
-λ v i, p (c.size i) (v ∘ (c.embedding i))
+  (fin n → E) → (fin (c.length) → F) :=
+λ v i, p (c.blocks_fun i) (v ∘ (c.embedding i))
 
 /-- Technical lemma stating how `p.apply_composition` commutes with updating variables. This
 will be the key point to show that functions constructed from `apply_composition` retain
@@ -84,15 +84,15 @@ lemma apply_composition_update
   (j : fin n) (v : fin n → E) (z : E) :
   p.apply_composition c (function.update v j z)
   = function.update (p.apply_composition c v) (c.index j)
-    (p (c.size (c.index j))
+    (p (c.blocks_fun (c.index j))
   (function.update (v ∘ (c.embedding (c.index j))) (c.inv_embedding j) z)) :=
 begin
   ext k,
   by_cases h : k = c.index j,
   { rw h,
-    let r : fin (c.size (c.index j)) → fin n := c.embedding (c.index j),
+    let r : fin (c.blocks_fun (c.index j)) → fin n := c.embedding (c.index j),
     simp only [function.update_same],
-    change p (c.size (c.index j)) ((function.update v j z) ∘ r) = _,
+    change p (c.blocks_fun (c.index j)) ((function.update v j z) ∘ r) = _,
     let j' := c.inv_embedding j,
     suffices B : (function.update v j z) ∘ r = function.update (v ∘ r) j' z,
       by rw B,
@@ -100,8 +100,8 @@ begin
       by { convert C, exact c.embedding_comp_inv j },
     exact function.update_comp_eq_of_injective _ (c.embedding_inj _) _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
-    let r : fin (c.size k) → fin n := c.embedding k,
-    change p (c.size k) ((function.update v j z) ∘ r) = p (c.size k) (v ∘ r),
+    let r : fin (c.blocks_fun k) → fin n := c.embedding k,
+    change p (c.blocks_fun k) ((function.update v j z) ∘ r) = p (c.blocks_fun k) (v ∘ r),
     suffices B : (function.update v j z) ∘ r = v ∘ r, by rw B,
     apply function.update_comp_eq_of_not_mem_range,
     rwa c.mem_range_embedding_iff' }
@@ -109,13 +109,13 @@ end
 
 /-- Given two formal multilinear series `q` and `p` and an ordered partition `c` of `n`, one may
 form a multilinear map in `n` variables by applying the right coefficient of `p` to each block of
-the ordered partition, and then applying `q c.max_index` to the resulting vector. It is called
+the ordered partition, and then applying `q c.length` to the resulting vector. It is called
 `q.comp_along_composition_multilinear p c`. This function admits a version as a continuous
 multilinear map, called `q.comp_along_composition p c` below. -/
 def comp_along_composition_multilinear {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) : multilinear_map 𝕜 (λ i : fin n, E) G :=
-{ to_fun := λ v, q c.max_index (p.apply_composition c v),
+{ to_fun := λ v, q c.length (p.apply_composition c v),
   add    := λ v i x y, by simp [apply_composition_update],
   smul   := λ v i c x, by simp [apply_composition_update] }
 
@@ -125,25 +125,25 @@ lemma comp_along_composition_multilinear_bound {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) (v : fin n → E) :
   ∥q.comp_along_composition_multilinear p c v∥
-  ≤ ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p (c.size i)∥)
+  ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥)
     * (finset.univ : finset (fin n)).prod (λ i, ∥v i∥) :=
 begin
   -- main point: taking the product of the `∥v i∥` along each block, and then along all the blocks,
   -- gives the product of all the `∥v i∥`, as the blocks form a partition of the indices.
-  have A : finset.univ.prod (λ (i : fin c.max_index),
-    finset.univ.prod (λ (j : fin (c.size i)), ∥(v ∘ c.embedding i) j∥)) =
+  have A : finset.univ.prod (λ (i : fin c.length),
+    finset.univ.prod (λ (j : fin (c.blocks_fun i)), ∥(v ∘ c.embedding i) j∥)) =
     finset.prod finset.univ (λ (i : fin n), ∥v i∥),
   { -- The fact that a product over a partition gives the whole product is `finset.prod_bind`.
     -- We just need to check its disjointness and totality assumptions.
-    have : (∀ (i : fin c.max_index), i ∈ finset.univ → ∀ (j : fin c.max_index), j ∈ finset.univ →
+    have : (∀ (i : fin c.length), i ∈ finset.univ → ∀ (j : fin c.length), j ∈ finset.univ →
        i ≠ j → disjoint (finset.univ.image (c.embedding i)) (finset.univ.image (c.embedding j))),
     { assume i hi j hj i_ne_j,
       rw finset.disjoint_iff_disjoint_coe,
       convert c.disjoint_range i_ne_j;
       apply fintype.coe_image_univ },
     have Z := @finset.prod_bind _ _ _ (λ j, ∥v j∥) _ _ finset.univ
-      (λ (i : fin c.max_index), finset.univ.image (c.embedding i)) this,
-    have : (finset.bind finset.univ (λ (i : fin c.max_index), finset.univ.image (c.embedding i)))
+      (λ (i : fin c.length), finset.univ.image (c.embedding i)) this,
+    have : (finset.bind finset.univ (λ (i : fin c.length), finset.univ.image (c.embedding i)))
       = finset.univ,
     { ext j,
       simp only [finset.mem_univ, finset.mem_bind, iff_true, exists_prop_of_true, finset.mem_image],
@@ -158,26 +158,26 @@ begin
   -- Now that the main point is proved, write down the estimates using the definition of the norm
   -- of a multilinear map
   calc ∥q.comp_along_composition_multilinear p c v∥
-  = ∥q c.max_index (p.apply_composition c v)∥ : rfl
-  ... ≤ ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p.apply_composition c v i∥) :
+  = ∥q c.length (p.apply_composition c v)∥ : rfl
+  ... ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p.apply_composition c v i∥) :
     continuous_multilinear_map.le_op_norm _ _
-  ... ≤ ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p (c.size i)∥ *
-     (finset.univ : finset (fin (c.size i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
+  ... ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥ *
+     (finset.univ : finset (fin (c.blocks_fun i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
     begin
       apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
       refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
       apply continuous_multilinear_map.le_op_norm,
     end
-  ... = ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p (c.size i)∥) * finset.univ.prod (λ i,
-     (finset.univ : finset (fin (c.size i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
+  ... = ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥) * finset.univ.prod (λ i,
+     (finset.univ : finset (fin (c.blocks_fun i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
     by rw [finset.prod_mul_distrib, mul_assoc]
-  ... = ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p (c.size i)∥)
+  ... = ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥)
     * (finset.univ : finset (fin n)).prod (λ i, ∥v i∥) : by rw A
 end
 
 /-- Given two formal multilinear series `q` and `p` and an ordered partition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each
-block of the ordered partition, and then applying `q c.max_index` to the resulting vector. It is
+block of the ordered partition, and then applying `q c.length` to the resulting vector. It is
 called `q.comp_along_composition p c`. It is constructed from the analogous multilinear
 function `q.comp_along_composition_multilinear p c`, together with a norm control to get
 the continuity. -/
@@ -193,7 +193,7 @@ lemma comp_along_composition_norm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
   ∥q.comp_along_composition p c∥ ≤
-  ∥q c.max_index∥ * finset.univ.prod (λ i, ∥p (c.size i)∥) :=
+  ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥) :=
 multilinear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _))) _
 
@@ -201,7 +201,7 @@ lemma comp_along_composition_nnnorm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
   nnnorm (q.comp_along_composition p c) ≤
-  nnnorm (q c.max_index) * finset.univ.prod (λ i, nnnorm (p (c.size i))) :=
+  nnnorm (q c.length) * finset.univ.prod (λ i, nnnorm (p (c.blocks_fun i))) :=
 begin
   simp only [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_mul, coe_nnnorm, nnreal.coe_prod, coe_nnnorm],
   exact q.comp_along_composition_norm p c
@@ -253,27 +253,27 @@ begin
   { rintros ⟨n, c⟩,
     rw [← ennreal.coe_pow, ← ennreal.coe_mul, ennreal.coe_le_coe],
     calc nnnorm (q.comp_along_composition p c) * r ^ n
-    ≤ (nnnorm (q c.max_index) *
-        (finset.univ : finset (fin (c.max_index))).prod (λ i, nnnorm (p (c.size i)))) * r ^ n :
+    ≤ (nnnorm (q c.length) *
+        (finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i)))) * r ^ n :
       mul_le_mul_of_nonneg_right (q.comp_along_composition_nnnorm p c) (bot_le)
-    ... = (nnnorm (q c.max_index) * (min rq 1)^n) *
-      ((finset.univ : finset (fin (c.max_index))).prod (λ i, nnnorm (p (c.size i))) * (min rp 1) ^ n)
+    ... = (nnnorm (q c.length) * (min rq 1)^n) *
+      ((finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i))) * (min rp 1) ^ n)
       * r0 ^ n : by { dsimp [r], ring_exp }
-    ... ≤ (nnnorm (q c.max_index) * (min rq 1) ^ c.max_index) *
-      ((finset.univ : finset (fin c.max_index)).prod
-        (λ i, nnnorm (p (c.size i)) * (min rp 1) ^ (c.size i))) * r0 ^ n :
+    ... ≤ (nnnorm (q c.length) * (min rq 1) ^ c.length) *
+      ((finset.univ : finset (fin c.length)).prod
+        (λ i, nnnorm (p (c.blocks_fun i)) * (min rp 1) ^ (c.blocks_fun i))) * r0 ^ n :
       begin
-        apply_rules [mul_le_mul, bot_le, le_refl, pow_le_pow_of_le_one, min_le_right, c.max_index_le],
+        apply_rules [mul_le_mul, bot_le, le_refl, pow_le_pow_of_le_one, min_le_right, c.length_le],
         apply le_of_eq,
         rw finset.prod_mul_distrib,
         congr' 1,
         conv_lhs { rw [← c.sum_size, ← finset.prod_pow_eq_pow_sum] },
       end
-    ... ≤ Cq * ((finset.univ : finset (fin c.max_index)).prod (λ i, Cp)) * r0 ^ n :
+    ... ≤ Cq * ((finset.univ : finset (fin c.length)).prod (λ i, Cp)) * r0 ^ n :
       begin
-        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.max_index), le_refl, finset.prod_le_prod'],
+        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod'],
         { assume i hi,
-          refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.size i)),
+          refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.blocks_fun i)),
           exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ },
         { refine mul_le_mul (le_refl _) _ bot_le bot_le,
           exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ }
@@ -282,8 +282,8 @@ begin
       begin
         apply_rules [mul_le_mul, bot_le, le_refl],
         simp only [finset.card_fin, finset.prod_const],
-        refine le_trans (pow_le_pow_of_le_left bot_le (le_max_left Cp 1) c.max_index) _,
-        apply pow_le_pow (le_max_right Cp 1) c.max_index_le,
+        refine le_trans (pow_le_pow_of_le_left bot_le (le_max_left Cp 1) c.length) _,
+        apply pow_le_pow (le_max_right Cp 1) c.length_le,
       end
     ... = Cq * 4⁻¹ ^ n :
       begin
@@ -351,21 +351,21 @@ end
 /-- Auxiliary set appearing when composing the partial sums of two multilinear series. -/
 def comp_partial_sum_set (N : ℕ) : finset (Σ n, composition n) :=
 @set.finite.to_finset (Σ n, composition n)
-  {i | (i.2.max_index < N) ∧ (∀ (j : fin i.2.max_index), i.2.size j < N)}
+  {i | (i.2.length < N) ∧ (∀ (j : fin i.2.length), i.2.blocks_fun j < N)}
 begin
   let A : (Σ k, fin k → ℕ) → (Σ n, composition n) := λ i, ⟨_, composition.of_size i.2⟩,
-  have : ({i | (i.2.max_index < N) ∧ (∀ (j : fin i.2.max_index), i.2.size j < N)} :
+  have : ({i | (i.2.length < N) ∧ (∀ (j : fin i.2.length), i.2.blocks_fun j < N)} :
       set (Σ n, composition n))
     ⊆ A '' (↑(finset.sigma (finset.range N)
               (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), finset.Ico 1 N) : _))),
   { rintros ⟨n, c⟩ h,
-    have : ∀ (a : fin c.max_index), 1 ≤ c.size a := λ a, c.size_pos a,
-    exact ⟨⟨_, c.size⟩, by tidy, c.of_size_eq_self.symm⟩ },
+    have : ∀ (a : fin c.length), 1 ≤ c.blocks_fun a := λ a, c.blocks_fun_pos a,
+    exact ⟨⟨_, c.blocks_fun⟩, by tidy, c.of_size_eq_self.symm⟩ },
   exact set.finite_subset (set.finite_image _ (finset.finite_to_set _)) this
 end
 
 @[simp] lemma mem_comp_partial_sum_set_iff {N : ℕ} {a : Σ n, composition n} :
-  a ∈ comp_partial_sum_set N ↔ a.2.max_index < N ∧ (∀ (j : fin a.2.max_index), a.2.size j < N) :=
+  a ∈ comp_partial_sum_set N ↔ a.2.length < N ∧ (∀ (j : fin a.2.length), a.2.blocks_fun j < N) :=
 by simp [comp_partial_sum_set]
 
 /-- The auxiliary set corresponding to the composition of partial sums asymptotically contains
@@ -379,10 +379,10 @@ begin
     tidy },
   { rintros ⟨n, c⟩,
     simp only [mem_comp_partial_sum_set_iff],
-    have : bdd_above ↑(finset.univ.image (λ (i : fin c.max_index), c.size i)) :=
+    have : bdd_above ↑(finset.univ.image (λ (i : fin c.length), c.blocks_fun i)) :=
       finset.bdd_above _,
     rcases this with ⟨n, hn⟩,
-    refine ⟨max n c.max_index + 1, lt_of_le_of_lt (le_max_right n c.max_index) (lt_add_one _),
+    refine ⟨max n c.length + 1, lt_of_le_of_lt (le_max_right n c.length) (lt_add_one _),
       λ j, lt_of_le_of_lt (le_trans _ (le_max_left _ _)) (lt_add_one _)⟩,
     apply hn,
     simp only [finset.mem_image_of_mem, finset.mem_coe, finset.mem_univ] }
@@ -423,13 +423,13 @@ begin
     simp only [finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma, finset.mem_range] at H,
     let c := composition.of_size size,
     have one_le_size : ∀ (i : fin k), 1 ≤ size i := λ i, (H.2 i).1,
-    have max_index_eq_k : c.max_index = k :=
-      composition.of_size_max_index one_le_size,
+    have length_eq_k : c.length = k :=
+      composition.of_size_length one_le_size,
     simp only [comp_partial_sum_set, set.finite.mem_to_finset, set.mem_set_of_eq],
     refine ⟨by convert H.1, _⟩,
     assume a,
-    let a' : fin k := ⟨a.val, lt_of_lt_of_le a.2 (le_of_eq max_index_eq_k)⟩,
-    have : size a' = composition.size (composition.of_size size) a :=
+    let a' : fin k := ⟨a.val, lt_of_lt_of_le a.2 (le_of_eq length_eq_k)⟩,
+    have : size a' = composition.blocks_fun (composition.of_size size) a :=
       composition.of_size_size one_le_size a',
     rw ← this,
     exact (H.2 a').2 },
@@ -439,15 +439,15 @@ begin
     simp only [finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma, finset.mem_range] at H,
     let c := composition.of_size size,
     have one_le_size : ∀ (i : fin k), 1 ≤ size i := λ i, (H.2 i).1,
-    have max_index_eq_k : c.max_index = k :=
-      composition.of_size_max_index one_le_size,
+    have length_eq_k : c.length = k :=
+      composition.of_size_length one_le_size,
     dsimp [formal_multilinear_series.comp_along_composition_multilinear,
       formal_multilinear_series.apply_composition],
     unfold_coes,
-    congr' 1; try { rw max_index_eq_k },
-    apply fin.heq max_index_eq_k.symm,
+    congr' 1; try { rw length_eq_k },
+    apply fin.heq length_eq_k.symm,
     assume i,
-    have : size i = c.size ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq max_index_eq_k.symm)⟩ :=
+    have : size i = c.blocks_fun ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq length_eq_k.symm)⟩ :=
       composition.of_size_size one_le_size i,
     rw this },
   -- 3 - show that the map is injective
@@ -457,8 +457,8 @@ begin
   -- 4 - show that the map is surjective
   { rintros ⟨n, c⟩ H,
     dsimp [comp_partial_sum_set] at H,
-    have : ∀ (a : fin c.max_index), 1 ≤ c.size a := λ a, c.size_pos a,
-    exact ⟨⟨_, c.size⟩, by tidy, c.of_size_eq_self⟩ }
+    have : ∀ (a : fin c.length), 1 ≤ c.blocks_fun a := λ a, c.blocks_fun_pos a,
+    exact ⟨⟨_, c.blocks_fun⟩, by tidy, c.of_size_eq_self⟩ }
 end
 
 end formal_multilinear_series

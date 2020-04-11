@@ -1580,9 +1580,38 @@ lemma sum_take_succ [add_monoid α] :
 | (h :: t) 0 _ := by simp
 | (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
 
+lemma eq_of_sum_take_eq [add_left_cancel_monoid α] {L L' : list α} (h : L.length = L'.length)
+  (h' : ∀ i ≤ L.length, (L.take i).sum = (L'.take i).sum) : L = L' :=
+begin
+  apply ext_le h (λ i h₁ h₂, _),
+  have : (L.take (i + 1)).sum = (L'.take (i + 1)).sum := h' _ (nat.succ_le_of_lt h₁),
+  rw [sum_take_succ L i h₁, sum_take_succ L' i h₂, h' i (le_of_lt h₁)] at this,
+  exact add_left_cancel this
+end
+
+lemma monotone_sum_take [canonically_ordered_monoid α] (L : list α) :
+  monotone (λ i, (L.take i).sum) :=
+begin
+  apply monotone_of_monotone_nat (λ n, _),
+  by_cases h : n < L.length,
+  { rw sum_take_succ _ _ h,
+    exact le_add_right (le_refl _) },
+  { push_neg at h,
+    simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
+end
+
 /-- A list with sum not zero must have positive length. -/
 lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
+
+/-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
+by the sum of the elements. -/
+lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=
+begin
+  induction L with j L IH h, { simp },
+  rw [sum_cons, length, add_comm],
+  exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
+end
 
 -- Now we tie those lemmas back to their multiplicative versions.
 attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_prod_ne_one

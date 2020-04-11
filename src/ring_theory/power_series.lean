@@ -389,10 +389,9 @@ instance [ring α] : module α (mv_power_series σ α) :=
 { ..mv_power_series.semimodule }
 
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
-{ to_fun := C σ α,
-  commutes' := λ _ _, mul_comm _ _,
+{ commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, rfl,
-  .. mv_power_series.module }
+  .. C σ α, .. mv_power_series.module }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring α] [semiring β] [semiring γ]

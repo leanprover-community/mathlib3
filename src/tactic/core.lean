@@ -925,10 +925,16 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=

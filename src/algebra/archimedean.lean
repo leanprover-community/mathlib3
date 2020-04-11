@@ -12,7 +12,7 @@ variables {α : Type*}
 
 open_locale add_monoid
 
-class archimedean (α) [ordered_comm_monoid α] : Prop :=
+class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]

@@ -472,7 +472,7 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
+theorem add_monoid.smul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
@@ -484,7 +484,7 @@ lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 namespace add_monoid
-variable [ordered_comm_monoid A]
+variable [ordered_add_comm_monoid A]
 
 theorem smul_le_smul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
 let ⟨k, hk⟩ := nat.le.dest h in

@@ -317,9 +317,9 @@ hf.elim (λ hf, (hf.on_preimage g).is_extr) (λ hf, (hf.on_preimage g).is_extr)
 end preorder
 
 /-! ### Pointwise addition -/
-section ordered_comm_monoid
+section ordered_add_comm_monoid
 
-variables [ordered_comm_monoid β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [ordered_add_comm_monoid β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.add (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, f x + g x) l a :=
@@ -339,7 +339,7 @@ lemma is_max_on.add (hf : is_max_on f s a) (hg : is_max_on g s a) :
   is_max_on (λ x, f x + g x) s a :=
 hf.add hg
 
-end ordered_comm_monoid
+end ordered_add_comm_monoid
 
 /-! ### Pointwise negation and subtraction -/
 

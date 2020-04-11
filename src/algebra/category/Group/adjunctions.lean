@@ -46,7 +46,7 @@ def adj : free ⊣ forget AddCommGroup.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
   hom_equiv_naturality_left_symm' :=
-  by {intros, ext, dsimp at *, simp [types_comp, free_abelian_group.lift_comp],} }
+  by { intros, ext, simp [types_comp, free_abelian_group.lift_comp], } }
 
 /--
 As an example, we now give a high-powered proof that

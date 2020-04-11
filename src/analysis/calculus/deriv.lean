@@ -416,7 +416,7 @@ variables (s x L) [is_linear_map 𝕜 f]
 lemma is_linear_map.has_deriv_at_filter : has_deriv_at_filter f (f 1) x L :=
 (is_o_zero _ _).congr_left begin
   intro y,
-  simp [sub_smul],
+  simp only [sub_smul, continuous_linear_map.one_apply, continuous_linear_map.smul_right_apply],
   rw ← is_linear_map.smul f x,
   rw ← is_linear_map.smul f y,
   simp

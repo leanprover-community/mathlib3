@@ -42,3 +42,6 @@ example (x : ℕ) : ℕ := begin
   let n : ℕ, {apply_normed (2^32 - 71)},
   exact n
 end
+
+
+example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h

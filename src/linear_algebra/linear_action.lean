@@ -55,12 +55,12 @@ end
 @[simp] lemma linear_action_add_act [linear_action R M N] (m m' : M) (n : N) :
   linear_action.act R (m + m') n = linear_action.act R m n +
                                    linear_action.act R m' n :=
-linear_action.add_act R m m' n
+linear_action.add_act m m' n
 
 @[simp] lemma linear_action_act_add [linear_action R M N] (m : M) (n n' : N) :
   linear_action.act R m (n + n') = linear_action.act R m n +
                                    linear_action.act R m n' :=
-linear_action.act_add R m n n'
+linear_action.act_add m n n'
 
 @[simp] lemma linear_action_act_smul [linear_action R M N] (r : R) (m : M) (n : N) :
   linear_action.act R (r • m) n = r • (linear_action.act R m n) :=

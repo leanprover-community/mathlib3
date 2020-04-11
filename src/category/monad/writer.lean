@@ -84,11 +84,11 @@ end writer_t
     Note: This class can be seen as a simplification of the more "principled" definition
     ```
     class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
-    (lift {} {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
+    (lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
     ```
     -/
 class monad_writer (ω : out_param (Type u)) (m : Type u → Type v) :=
-(tell {} (w : ω) : m punit)
+(tell (w : ω) : m punit)
 (listen {α} : m α → m (α × ω))
 (pass {α : Type u} : m (α × (ω → ω)) → m α)
 
@@ -138,11 +138,11 @@ instance {ω : Type u} {m : Type u → Type v} [monad m] [monad_writer ω m] : m
     Note: This class can be seen as a simplification of the more "principled" definition
     ```
     class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
-    (map {} {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
+    (map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
     ```
     -/
 class monad_writer_adapter (ω ω' : out_param (Type u)) (m m' : Type u → Type v) :=
-(adapt_writer {} {α : Type u} : (ω → ω') → m α → m' α)
+(adapt_writer {α : Type u} : (ω → ω') → m α → m' α)
 export monad_writer_adapter (adapt_writer)
 
 section

@@ -303,10 +303,10 @@ given topological space. For instance, a complex manifold (modelled over ℂ^n) 
 sometimes as a real manifold over ℝ^(2n).
 -/
 class manifold (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
-(atlas            : set (local_homeomorph M H))
-(chart_at         : M → local_homeomorph M H)
-(mem_chart_source : ∀x, x ∈ (chart_at x).source)
-(chart_mem_atlas  : ∀x, chart_at x ∈ atlas)
+(atlas []         : set (local_homeomorph M H))
+(chart_at []      : M → local_homeomorph M H)
+(mem_chart_source [] : ∀x, x ∈ (chart_at x).source)
+(chart_mem_atlas [] : ∀x, chart_at x ∈ atlas)
 
 export manifold
 attribute [simp] mem_chart_source chart_mem_atlas
@@ -419,7 +419,7 @@ variables [topological_space H] [topological_space M] [manifold H M]
 /-- A manifold has an atlas in a groupoid G if the change of coordinates belong to the groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [manifold H M] (G : structure_groupoid H) : Prop :=
-(compatible : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
+(compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=

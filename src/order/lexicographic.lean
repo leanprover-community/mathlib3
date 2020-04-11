@@ -101,7 +101,7 @@ instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linea
 { decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases decidable_linear_order.decidable_le α a₁ a₂ with a_lt | a_le,
+    rcases decidable_linear_order.decidable_le a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -109,7 +109,7 @@ instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linea
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { rw h,
-        rcases decidable_linear_order.decidable_le _ b₁ b₂ with b_lt | b_le,
+        rcases decidable_linear_order.decidable_le b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₂, assumption },
@@ -208,7 +208,7 @@ instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidab
 { decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases decidable_linear_order.decidable_le α a₁ a₂ with a_lt | a_le,
+    rcases decidable_linear_order.decidable_le a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -216,7 +216,7 @@ instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidab
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
-        rcases decidable_linear_order.decidable_le _ b₁ b₂ with b_lt | b_le,
+        rcases decidable_linear_order.decidable_le b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₁, assumption },

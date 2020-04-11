@@ -9,7 +9,7 @@ import data.int.basic algebra.associated data.nat.gcd tactic.ring
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case,
   but of course both parts are real here since `d` is nonnegative. -/
-structure zsqrtd (d : ℤ) := mk {} ::
+structure zsqrtd (d : ℤ) :=
 (re : ℤ)
 (im : ℤ)
 
@@ -472,7 +472,7 @@ parameter {d : ℕ}
   /-- A nonsquare is a natural number that is not equal to the square of an
     integer. This is implemented as a typeclass because it's a necessary condition
     for much of the Pell equation theory. -/
-  class nonsquare (x : ℕ) : Prop := (ns : ∀n : ℕ, x ≠ n*n)
+  class nonsquare (x : ℕ) : Prop := (ns [] : ∀n : ℕ, x ≠ n*n)
 
   parameter [dnsq : nonsquare d]
   include dnsq
@@ -552,9 +552,7 @@ parameter {d : ℕ}
 
   instance : decidable_linear_ordered_comm_ring ℤ√d :=
   { add_le_add_left := @zsqrtd.add_le_add_left,
-    add_lt_add_left := @zsqrtd.add_lt_add_left,
     zero_ne_one     := zero_ne_one,
-    mul_nonneg      := @zsqrtd.mul_nonneg,
     mul_pos         := @zsqrtd.mul_pos,
     zero_lt_one     := dec_trivial,
     ..zsqrtd.comm_ring, ..zsqrtd.decidable_linear_order }

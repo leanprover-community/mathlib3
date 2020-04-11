@@ -268,7 +268,7 @@ namespace num
     mul      := (*),
     one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
-  instance : ordered_cancel_comm_monoid num :=
+  instance : ordered_cancel_add_comm_monoid num :=
   { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
     add_right_cancel           := by {intros a b c, transfer_rw, apply add_right_cancel},
     lt                         := (<),
@@ -284,14 +284,12 @@ namespace num
   instance : decidable_linear_ordered_semiring num :=
   { le_total                   := by {intros a b, transfer_rw, apply le_total},
     zero_lt_one                := dec_trivial,
-    mul_le_mul_of_nonneg_left  := by {intros a b c, transfer_rw, apply mul_le_mul_of_nonneg_left},
-    mul_le_mul_of_nonneg_right := by {intros a b c, transfer_rw, apply mul_le_mul_of_nonneg_right},
     mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
     mul_lt_mul_of_pos_right    := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_right},
     decidable_lt               := num.decidable_lt,
     decidable_le               := num.decidable_le,
     decidable_eq               := num.decidable_eq,
-    ..num.comm_semiring, ..num.ordered_cancel_comm_monoid }
+    ..num.comm_semiring, ..num.ordered_cancel_add_comm_monoid }
 
   theorem dvd_to_nat (m n : num) : (m : ℕ) ∣ n ↔ m ∣ n :=
   ⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_nat n, e]; simp⟩,
@@ -1008,11 +1006,7 @@ namespace znum
     mul_comm         := by transfer,
     zero_ne_one      := dec_trivial,
     add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
-    add_lt_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_lt_add_left h c},
-    mul_pos          := by {intros a b, transfer_rw, apply mul_pos},
-    mul_nonneg       := by {intros x y,
-      change 0 ≤ x → 0 ≤ y → 0 ≤ x * y,
-      transfer_rw, apply mul_nonneg},
+    mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
     zero_lt_one      := dec_trivial,
     ..znum.decidable_linear_order, ..znum.add_comm_group }
 

@@ -46,12 +46,12 @@ variables {α : Type u} {β : Type v}
 
 /-- Predicate for maps which preserve an addition. -/
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
-(map_add : ∀ x y, f (x + y) = f x + f y)
+(map_add [] : ∀ x y, f (x + y) = f x + f y)
 
 /-- Predicate for maps which preserve a multiplication. -/
 @[to_additive]
 class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-(map_mul : ∀ x y, f (x * y) = f x * f y)
+(map_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_mul_hom
 variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
@@ -87,12 +87,12 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
-(map_zero : f 0 = 0)
+(map_zero [] : f 0 = 0)
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 @[to_additive is_add_monoid_hom]
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
-(map_one : f 1 = 1)
+(map_one [] : f 1 = 1)
 end prio
 
 namespace monoid_hom

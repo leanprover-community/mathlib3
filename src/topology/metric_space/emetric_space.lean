@@ -117,7 +117,7 @@ variables [emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance emetric_space.to_uniform_space' : uniform_space α :=
-emetric_space.to_uniform_space α
+emetric_space.to_uniform_space
 
 export emetric_space (edist_self eq_of_edist_eq_zero edist_comm edist_triangle)
 
@@ -190,7 +190,7 @@ eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
   𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} :=
-emetric_space.uniformity_edist α
+emetric_space.uniformity_edist
 
 theorem uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε : ennreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
@@ -392,7 +392,7 @@ a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an emetric space with a
 specified uniformity. -/
 def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_space α)
-  (H : @uniformity _ U = @uniformity _ (emetric_space.to_uniform_space α)) :
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space) :
   emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -695,14 +695,14 @@ this as an instance, as there is already an instance going in the other directio
 from second countable spaces to separable spaces, and we want to avoid loops. -/
 lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_space α] :
   second_countable_topology α :=
-let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
+let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 ⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 { apply countable_bUnion S_countable,
   intros a aS,
   apply countable_Union,
   simp },
-show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
+show uniform_space.to_topological_space = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
 { have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ennreal)⁻¹)} : set (set α))) → is_open u,
   { simp only [and_imp, exists_prop, set.mem_Union, set.mem_singleton_iff, exists_imp_distrib],
     intros u x hx i u_ball,

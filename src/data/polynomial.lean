@@ -175,7 +175,7 @@ begin
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum], erw [add_monoid.smul_zero], }, -- TODO why doesn't simp do this?
+  { simp [finsupp.sum] }
 end
 
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
@@ -292,6 +292,12 @@ end
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
+
+/-- `eval₂` as a `ring_hom` -/
+def eval₂_ring_hom (f : α →+* β) (x) : polynomial α →+* β :=
+ring_hom.of (eval₂ f x)
+
+@[simp] lemma coe_eval₂_ring_hom (f : α →+* β) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
 
@@ -565,12 +571,10 @@ end
 
 section map
 variables [comm_semiring β]
-variables (f : α → β)
+variables (f : α →+* β)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
-
-variables [is_semiring_hom f]
 
 instance is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
 is_semiring_hom.comp _ _
@@ -601,8 +605,8 @@ begin
   split_ifs; simp [is_semiring_hom.map_zero f],
 end
 
-lemma map_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g]
-  (p : polynomial α) : (p.map f).map g = p.map (λ x, g (f x)) :=
+lemma map_map {γ : Type*} [comm_semiring γ] (g : β →+* γ)
+  (p : polynomial α) : (p.map f).map g = p.map (g.comp f) :=
 ext (by simp [coeff_map])
 
 lemma eval₂_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g] (x : γ) :
@@ -615,7 +619,7 @@ polynomial.induction_on p
 
 lemma eval_map (x : β) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
 
-@[simp] lemma map_id : p.map id = p := by simp [id, polynomial.ext_iff, coeff_map]
+@[simp] lemma map_id : p.map (ring_hom.id _) = p := by simp [polynomial.ext_iff, coeff_map]
 
 lemma mem_map_range {p : polynomial β} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
@@ -634,7 +638,7 @@ end map
 
 section
 variables {γ : Type*} [comm_semiring β] [comm_semiring γ]
-variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p)
+variables (f : α →+* β) (g : β →+* γ) (p)
 
 lemma hom_eval₂ (x : β) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
 begin
@@ -911,7 +915,7 @@ else with_bot.coe_le_coe.1 $
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
         (nat.zero_le _))
 
-lemma degree_map_le [comm_semiring β] (f : α → β) [is_semiring_hom f] :
+lemma degree_map_le [comm_semiring β] (f : α →+* β) :
   degree (p.map f) ≤ degree p :=
 if h : p.map f = 0 then by simp [h]
 else begin
@@ -927,8 +931,8 @@ by rw [monic.def, leading_coeff_zero] at h;
   exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
     λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
 
-lemma degree_map_eq_of_leading_coeff_ne_zero [comm_semiring β] (f : α → β)
-  [is_semiring_hom f] (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
+lemma degree_map_eq_of_leading_coeff_ne_zero [comm_semiring β] (f : α →+* β)
+  (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f) $
   have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
   begin
@@ -937,8 +941,7 @@ le_antisymm (degree_map_le f) $
     rw [coeff_map], exact hf
   end
 
-lemma monic_map [comm_semiring β] (f : α → β)
-  [is_semiring_hom f] (hp : monic p) : monic (p.map f) :=
+lemma monic_map [comm_semiring β] (f : α →+* β) (hp : monic p) : monic (p.map f) :=
 if h : (0 : β) = 1 then
   by haveI := subsingleton_of_zero_eq_one β h;
   exact subsingleton.elim _ _
@@ -998,7 +1001,7 @@ by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
 
 section injective
 open function
-variables [comm_semiring β] {f : α → β} [is_semiring_hom f] (hf : function.injective f)
+variables [comm_semiring β] {f : α →+* β} (hf : function.injective f)
 include hf
 
 lemma degree_map_eq_of_injective (p : polynomial α) : degree (p.map f) = degree p :=
@@ -1015,8 +1018,7 @@ lemma nat_degree_map' (p : polynomial α) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map' hf p)
 
-lemma map_injective (p : polynomial α) :
-  injective (map f : polynomial α → polynomial β) :=
+lemma map_injective (p : polynomial α) : injective (map f) :=
 λ p q h, ext $ λ m, hf $
 begin
   rw ext_iff at h,
@@ -1310,15 +1312,16 @@ by apply is_ring_hom.of_semiring
 
 instance eval.is_ring_hom {x : α} : is_ring_hom (eval x) := eval₂.is_ring_hom _
 
-instance map.is_ring_hom {β} [comm_ring β]
-  (f : α → β) [is_ring_hom f] : is_ring_hom (map f) :=
+instance map.is_ring_hom {β} [comm_ring β] (f : α →+* β) : is_ring_hom (map f) :=
 eval₂.is_ring_hom (C ∘ f)
 
-@[simp] lemma map_sub {β} [comm_ring β]
-  (f : α → β) [is_ring_hom f] : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+@[simp] lemma map_sub {β} [comm_ring β] (f : α →+* β) :
+  (p - q).map f = p.map f - q.map f :=
+is_ring_hom.map_sub _
 
-@[simp] lemma map_neg {β} [comm_ring β]
-  (f : α → β) [is_ring_hom f] : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
+@[simp] lemma map_neg {β} [comm_ring β] (f : α →+* β) :
+  (-p).map f = -(p.map f) :=
+is_ring_hom.map_neg _
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
@@ -1349,11 +1352,10 @@ is_ring_hom.map_sub _
 
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
-{ to_fun := polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
+instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
+{ commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.module }
+  .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
@@ -1363,26 +1365,23 @@ variables (x : A)
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..ring_hom.of (eval₂ (algebra_map A) x) }
+  ..eval₂_ring_hom (algebra_map R A) x }
 
-theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
+theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map R A) x p := rfl
 
 @[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
 
-@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
-
-instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
-by apply_instance
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map R A r := eval₂_C _ x
 
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
-  φ p = eval₂ (algebra_map A) (φ X) p :=
+  φ p = eval₂ (algebra_map R A) (φ X) p :=
 begin
   apply polynomial.induction_on p,
   { intro r, rw eval₂_C, exact φ.commutes r },
   { intros f g ih1 ih2,
-    rw [is_ring_hom.map_add φ, ih1, ih2, eval₂_add] },
+    rw [φ.map_add, ih1, ih2, eval₂_add] },
   { intros n r ih,
-    rw [pow_succ', ← mul_assoc, is_ring_hom.map_mul φ, eval₂_mul (algebra_map A : R → A), eval₂_X, ih] }
+    rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
 end
 
 end aeval
@@ -1618,7 +1617,7 @@ else
   ⟨eq.symm $ eq_of_sub_eq_zero h₅,
     eq.symm $ eq_of_sub_eq_zero $ by simpa [h₅] using h₁⟩
 
-lemma map_mod_div_by_monic [comm_ring β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+lemma map_mod_div_by_monic [comm_ring β] (f : α →+* β) (hq : monic q) :
   (p /ₘ q).map f = p.map f /ₘ q.map f ∧ (p %ₘ q).map f = p.map f %ₘ q.map f :=
 if h01 : (0 : β) = 1 then by haveI := subsingleton_of_zero_eq_one β h01;
   exact ⟨subsingleton.elim _ _, subsingleton.elim _ _⟩
@@ -1635,11 +1634,11 @@ have map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p
       (by rw [monic.def.1 hq, is_semiring_hom.map_one f]; exact ne.symm h01)⟩),
 ⟨this.1.symm, this.2.symm⟩
 
-lemma map_div_by_monic [comm_ring β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+lemma map_div_by_monic [comm_ring β] (f : α →+* β) (hq : monic q) :
   (p /ₘ q).map f = p.map f /ₘ q.map f :=
 (map_mod_div_by_monic f hq).1
 
-lemma map_mod_by_monic [comm_ring β] (f : α → β) [is_semiring_hom f] (hq : monic q) :
+lemma map_mod_by_monic [comm_ring β] (f : α →+* β) (hq : monic q) :
   (p %ₘ q).map f = p.map f %ₘ q.map f :=
 (map_mod_div_by_monic f hq).2
 
@@ -2222,32 +2221,32 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
+@[simp] lemma degree_map [field β] (p : polynomial α) (f : α →+* β) :
   degree (p.map f) = degree p :=
 p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma nat_degree_map [field β] (f : α →+* β) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma leading_coeff_map [field β] (f : α →+* β) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [field β] (f : α → β) [is_ring_hom f] :
+lemma map_div [field β] (f : α →+* β) :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [field β] (f : α → β) [is_ring_hom f] :
+lemma map_mod [field β] (f : α →+* β) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma map_eq_zero [field β] (f : α →+* β) :
   p.map f = 0 ↔ p = 0 :=
 by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 

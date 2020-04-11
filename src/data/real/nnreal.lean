@@ -89,7 +89,8 @@ instance : comm_group_with_zero ℝ≥0 :=
   inv_zero       := nnreal.eq $ inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
-  .. (_ : comm_semiring ℝ≥0) }
+  .. (_ : comm_semiring ℝ≥0),
+  .. (_ : semiring ℝ≥0) }
 
 @[move_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 is_monoid_hom.map_pow coe r n
@@ -148,7 +149,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
 instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.decidable_linear_order }
 
-instance : canonically_ordered_monoid ℝ≥0 :=
+instance : canonically_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
@@ -173,20 +174,18 @@ instance : linear_ordered_semiring ℝ≥0 :=
 { add_left_cancel            := assume a b c h, nnreal.eq $ @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
   add_right_cancel           := assume a b c h, nnreal.eq $ @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
-  mul_le_mul_of_nonneg_left  := assume a b c, @mul_le_mul_of_nonneg_left ℝ _ a b c,
-  mul_le_mul_of_nonneg_right := assume a b c, @mul_le_mul_of_nonneg_right ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_lt_one                := @zero_lt_one ℝ _,
   .. nnreal.decidable_linear_order,
-  .. nnreal.canonically_ordered_monoid,
+  .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
 { zero_ne_one     := assume h, @zero_ne_one ℝ _ $ congr_arg subtype.val $ h,
   mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
   .. nnreal.linear_ordered_semiring,
-  .. nnreal.canonically_ordered_monoid,
+  .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
 instance : densely_ordered ℝ≥0 :=
@@ -485,7 +484,7 @@ by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
 @[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
 by rw [mul_comm, div_mul_cancel h]
 
-@[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq inv_inv'
+@[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq (inv_inv' _)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h]

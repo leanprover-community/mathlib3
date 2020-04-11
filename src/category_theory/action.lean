@@ -31,7 +31,7 @@ include 𝒜
 
 /-- A multiplicative action M ↻ X viewed as a functor mapping the single object of M to X
   and an element `m : M` to the map `X → X` given by multiplication by `m`. -/
-@[reducible]
+@[simps]
 def action_as_functor : single_obj M ⥤ Type u :=
 { obj := λ _, X,
   map := λ _ _, (•),
@@ -45,8 +45,6 @@ def action_as_functor : single_obj M ⥤ Type u :=
 def action_category := (action_as_functor M X).elements
 
 namespace action_category
-
-lemma hom_as_subtype (p q : action_category M X) : (p ⟶ q) = { m : M // m • p.2 = q.2 } := rfl
 
 omit 𝒜
 instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
@@ -69,8 +67,11 @@ lemma π_obj (p : action_category M X) : (π M X).obj p = single_obj.star M :=
 def obj_equiv : X ≃ action_category M X :=
 { to_fun := λ x, ⟨single_obj.star M, x⟩,
   inv_fun := λ p, p.2,
-  left_inv := by {intro, refl},
-  right_inv := by { rintro ⟨⟨_⟩, _⟩, refl } }
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+lemma hom_as_subtype (p q : action_category M X) :
+  (p ⟶ q) = { m : M // m • (obj_equiv M X).symm p = (obj_equiv M X).symm q } := rfl
 
 instance [inhabited X] : inhabited (action_category M X) :=
 { default := obj_equiv M X (default X) }

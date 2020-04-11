@@ -397,16 +397,22 @@ add_tactic_doc
   decl_names := [`tactic.interactive.injections],
   tags       := ["core", "structures", "induction"] }
 
-add_tactic_doc
-{ name       := "intro",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.intro],
-  tags       := ["core", "basic", "logic"] }
+/--
+If the current goal is a Pi/forall `∀ x : t, u` (resp. `let x := t in u`) then `intro` puts `x : t` (resp. `x := t`) in the local context. The new subgoal target is `u`.
+
+If the goal is an arrow `t → u`, then it puts `h : t` in the local context and the new goal target is `u`.
+
+If the goal is neither a Pi/forall nor begins with a let binder, the tactic `intro` applies the tactic `whnf` until an introduction can be applied or the goal is not head reducible. In the latter case, the tactic fails.
+
+The variant `intros` will keep introducing new hypotheses until the goal target is not a Pi/forall or let binder.
+
+The variant `intros h₁ ... hₙ` introduces `n` new hypotheses using the given identifiers to name them.
+-/
 
 add_tactic_doc
-{ name       := "intros",
+{ name       := "intro / intros",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.intros],
+  decl_names := [`tactic.interactive.intro, `tactic.interactive.intros],
   tags       := ["core", "basic", "logic"] }
 
 add_tactic_doc
@@ -421,10 +427,16 @@ add_tactic_doc
   decl_names := [`tactic.interactive.iterate],
   tags       := ["core", "combinator"] }
 
+/--
+`left` applies the first constructor when the type of the target is an inductive data type with two constructors.
+
+Similarly, `right` applies the second constructor.
+-/
+
 add_tactic_doc
-{ name       := "left",
+{ name       := "left / right",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.left],
+  decl_names := [`tactic.interactive.left, `tactic.interactive.right],
   tags       := ["core", "basic", "logic"] }
 
 /--
@@ -490,12 +502,6 @@ add_tactic_doc
   decl_names := [`tactic.interactive.revert],
   tags       := ["core", "context management", "goal management"] }
 
-add_tactic_doc
-{ name       := "right",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.right],
-  tags       := ["core", "basic", "logic"] }
-
 /--
 `rw e` applies an equation or iff `e` as a rewrite rule to the main goal. If `e` is preceded by
 left arrow (`←` or `<-`), the rewrite is applied in the reverse direction. If `e` is a defined
@@ -507,6 +513,8 @@ way to unfold `e`.
 `rw e at l` rewrites `e` at location(s) `l`, where `l` is either `*` or a list of hypotheses
 in the local context. In the latter case, a turnstile `⊢` or `|-` can also be used, to signify
 the target of the goal.
+
+`rewrite` is synonymous with `rw`.
 -/
 add_tactic_doc
 { name       := "rw / rewrite",

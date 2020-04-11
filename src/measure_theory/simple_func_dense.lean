@@ -2,12 +2,16 @@
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
-
-Show that each Borel measurable function can be approximated,
-both pointwise and in L¹ norm, by a sequence of simple functions.
 -/
 
 import measure_theory.l1_space
+
+/-!
+# Density of simple functions
+
+Show that each Borel measurable function can be approximated,
+both pointwise and in `L¹` norm, by a sequence of simple functions.
+-/
 
 noncomputable theory
 open set filter topological_space
@@ -20,6 +24,7 @@ namespace measure_theory
 open ennreal nat metric
 open_locale measure_theory
 variables [measure_space α] [normed_group β] [second_countable_topology β]
+  [measurable_space β] [borel_space β]
 
 local infixr ` →ₛ `:25 := simple_func
 
@@ -252,7 +257,8 @@ have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
       (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
-    by rw [lintegral_add, lintegral_add]; simp only [measurable.coe_nnnorm hfm, measurable.add]
+    by { rw [lintegral_add, lintegral_nnnorm_add],
+      exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
 have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
   begin
@@ -265,10 +271,10 @@ begin
   { assume n, exact
     calc
       (∫⁻ a, nnnorm (F n a)) ≤ ∫⁻ a, nnnorm (f a) + nnnorm (f a) :
-        lintegral_le_lintegral _ _
+        lintegral_mono
           (by { assume a, simp only [coe_add.symm, coe_le_coe], exact (hF a).2 n })
        ... = (∫⁻ a, nnnorm (f a)) + (∫⁻ a, nnnorm (f a)) :
-         lintegral_add (measurable.coe_nnnorm hfm) (measurable.coe_nnnorm hfm)
+         lintegral_nnnorm_add hfm hfm
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
   convert @tendsto_lintegral_of_dominated_convergence _ _ G (λ a, 0) g
               hF_meas h_bound h_finite h_lim,

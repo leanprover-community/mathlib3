@@ -389,6 +389,17 @@ end
 
 end coeff
 
+section as_sum
+
+@[simp]
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+finsupp.sum_single p
+
+lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+(support_sum_monomial_coeff p).symm
+
+end as_sum
+
 section eval₂
 variables [comm_semiring β]
 variables (f : α → β) (g : σ → β)
@@ -739,6 +750,20 @@ by rw [vars, degrees_C, multiset.to_finset_zero]
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
 by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
 
+lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
+  x v = 0 :=
+begin
+  rw [vars, multiset.mem_to_finset] at h,
+  rw ←not_mem_support_iff,
+  contrapose! h,
+  unfold degrees,
+  rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+  rw finset.sup_insert,
+  simp only [multiset.mem_union, multiset.sup_eq_union],
+  left,
+  rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
+end
+
 end vars
 
 section degree_of
@@ -965,12 +990,10 @@ end map
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
-instance mv_polynomial (R : Type u) [comm_ring R]
-  (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ to_fun := mv_polynomial.C,
-  commutes' := λ _ _, mul_comm _ _,
+instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
+{ commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. mv_polynomial.module }
+  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
 
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_ring R] [comm_ring A] [algebra R A]
@@ -979,16 +1002,13 @@ variables [comm_ring R] [comm_ring A] [algebra R A]
 from multivariate polynomials over `σ` to `A`. -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _ _
-  ..ring_hom.of (eval₂ (algebra_map A) f) }
+  .. eval₂_hom (algebra_map R A) f }
 
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map A) f p := rfl
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
 
 @[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
 
-@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map A r := eval₂_C _ _ _
-
-instance aeval.is_ring_hom : is_ring_hom (aeval R A f) :=
-by apply_instance
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
 
 theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
   φ = aeval R A (φ ∘ X) :=
@@ -1406,6 +1426,31 @@ by simp
 lemma pderivative_zero {v : S} : pderivative v (0 : mv_polynomial S R) = 0 :=
 suffices pderivative v (C 0 : mv_polynomial S R) = 0, by simpa,
 show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
+
+section
+variables (R)
+
+/-- `pderivative : S → mv_polynomial S R → mv_polynomial S R` as an `add_monoid_hom`  -/
+def pderivative.add_monoid_hom (v : S) : mv_polynomial S R →+ mv_polynomial S R :=
+{ to_fun := pderivative v,
+  map_zero' := pderivative_zero,
+  map_add' := λ x y, pderivative_add, }
+
+@[simp]
+lemma pderivative.add_monoid_hom_apply (v : S) (p : mv_polynomial S R) :
+  (pderivative.add_monoid_hom R v) p = pderivative v p :=
+rfl
+end
+
+lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v ∉ f.vars) :
+  pderivative v f = 0 :=
+begin
+  change (pderivative.add_monoid_hom R v) f = 0,
+  rw [f.as_sum, add_monoid_hom.map_sum],
+  apply finset.sum_eq_zero,
+  intros,
+  simp [mem_support_not_mem_vars_zero H h],
+end
 
 lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
   pderivative v (monomial (single v n) a) = monomial (single v (n-1)) (a * n) :=

@@ -13,9 +13,9 @@ open function finset polynomial nat
 
 section
 
-variables [integral_domain α] [decidable_eq α] (S : set (units α)) [is_subgroup S] [fintype S]
+variables [integral_domain α] (S : set (units α)) [is_subgroup S] [fintype S]
 
-lemma card_nth_roots_subgroup_units {n : ℕ} (hn : 0 < n) (a : S) :
+lemma card_nth_roots_subgroup_units [decidable_eq α] {n : ℕ} (hn : 0 < n) (a : S) :
   (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units α) : α)).card :=
 card_le_card_of_inj_on (λ a, ((a : units α) : α))
   (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
@@ -87,8 +87,9 @@ end polynomial
 section
 variables [field α] [fintype α]
 
-lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
+lemma card_units : fintype.card (units α) = fintype.card α - 1 :=
 begin
+  classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
   haveI := set_fintype (@set.univ α),
@@ -104,23 +105,26 @@ haveI := set_fintype (@set.univ (units α)); exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units α)) in
 ⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
 
-lemma prod_univ_units_id_eq_neg_one [decidable_eq α] :
+lemma prod_univ_units_id_eq_neg_one :
   univ.prod (λ x, x) = (-1 : units α) :=
-have ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
-from prod_involution (λ x _, x⁻¹) (by simp)
-  (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-  (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
-  (by simp),
-by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
-    this, mul_one]
+begin
+  classical,
+  have : ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
+  from prod_involution (λ x _, x⁻¹) (by simp)
+    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (by simp),
+  rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
+      this, mul_one]
+end
 
 end
 
-lemma pow_card_sub_one_eq_one [decidable_eq α] [field α] [fintype α] (a : α) (ha : a ≠ 0) :
+lemma pow_card_sub_one_eq_one [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
-    by rw [units.coe_pow, units.mk0_val]
-  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
+    by rw [units.coe_pow, units.coe_mk0]
+  ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
 end finite_field
 

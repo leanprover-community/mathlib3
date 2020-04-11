@@ -229,7 +229,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
   choose f hf using begin
     refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
+      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,
@@ -439,7 +439,7 @@ end,
     have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
     refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
+      ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one_iff_le _30],

@@ -56,17 +56,9 @@ exact v,
 gs ← get_goals,
 set_goals $ v :: gs
 
-
 namespace tactic.interactive
 
-/-- `clear' a b c` removes the given hypotheses from the local context.
-In contrast to `clear`, the order of hypotheses
-does not matter, even if there are dependencies between them. Fails if the
-target or any local hypotheses (other than the given ones) depend on the given
-hypotheses.
-
----
-
+/--
 An improved version of the standard `clear` tactic. `clear` is sensitive to the
 order of its arguments: `clear x y` may fail even though both `x` and `y` could
 be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
@@ -84,13 +76,7 @@ meta def clear' (p : parse (many ident)) : tactic unit := do
 hyps ← p.mmap get_local,
 tactic.clear' false hyps
 
-/-- `clear_dependent a b c` removes from the local context
-the given hypotheses and any other hypotheses that depend on them.
-The hypotheses can be given in any order. Fails if the target depends on any of
-the given hypotheses.
-
----
-
+/--
 A variant of `clear'` which clears not only the given hypotheses, but also any
 other hypotheses depending on them.
 
@@ -113,12 +99,5 @@ add_tactic_doc
   decl_names := [`tactic.interactive.clear', `tactic.interactive.clear_dependent],
   tags       := ["context management"],
   inherit_description_from := `tactic.interactive.clear' }
-
-add_tactic_doc
-{ name       := "clear_dependent",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.clear', `tactic.interactive.clear_dependent],
-  tags       := ["context management"],
-  inherit_description_from := `tactic.interactive.clear_dependent }
 
 end tactic.interactive

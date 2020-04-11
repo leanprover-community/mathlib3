@@ -35,7 +35,7 @@ include 𝒜
 def action_as_functor : single_obj M ⥤ Type u :=
 { obj := λ _, X,
   map := λ _ _, (•),
-  map_id' := λ _, funext $ mul_action.one_smul M,
+  map_id' := λ _, funext $ mul_action.one_smul,
   map_comp' := λ _ _ _ f g, funext $ λ x, (smul_smul g f x).symm }
 
 /-- A multiplicative action M ↻ X induces a category strucure on X, where a morphism

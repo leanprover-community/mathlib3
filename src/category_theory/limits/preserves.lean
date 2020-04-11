@@ -52,11 +52,11 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
 def preserves_limit_iso (K : J ⥤ C) [has_limit.{v} K] (F : C ⥤ D) [has_limit.{v} (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
-is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves F (limit.is_limit K)) (limit.is_limit (K ⋙ F))
+is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
 def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
-is_colimit.cone_point_unique_up_to_iso (preserves_colimit.preserves F (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
+is_colimit.cone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
@@ -113,11 +113,11 @@ local attribute [elab_simple] preserves_limit.preserves preserves_colimit.preser
 
 instance comp_preserves_limit [preserves_limit K F] [preserves_limit (K ⋙ F) G] :
   preserves_limit K (F ⋙ G) :=
-⟨λ c h, preserves_limit.preserves G (preserves_limit.preserves F h)⟩
+⟨λ c h, preserves_limit.preserves (preserves_limit.preserves h)⟩
 
 instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K ⋙ F) G] :
   preserves_colimit K (F ⋙ G) :=
-⟨λ c h, preserves_colimit.preserves G (preserves_colimit.preserves F h)⟩
+⟨λ c h, preserves_colimit.preserves (preserves_colimit.preserves h)⟩
 
 end
 
@@ -175,20 +175,20 @@ by { split, intros, cases a, cases b, cc }
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)
   [H : reflects_limits_of_shape J F] : reflects_limit K F :=
-reflects_limits_of_shape.reflects_limit J F
+reflects_limits_of_shape.reflects_limit
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_colimit_of_reflects_colimits_of_shape (K : J ⥤ C) (F : C ⥤ D)
   [H : reflects_colimits_of_shape J F] : reflects_colimit K F :=
-reflects_colimits_of_shape.reflects_colimit J F
+reflects_colimits_of_shape.reflects_colimit
 
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_limits_of_shape_of_reflects_limits (F : C ⥤ D)
   [H : reflects_limits F] : reflects_limits_of_shape J F :=
-reflects_limits.reflects_limits_of_shape F
+reflects_limits.reflects_limits_of_shape
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
   [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
-reflects_colimits.reflects_colimits_of_shape F
+reflects_colimits.reflects_colimits_of_shape
 
 omit 𝒟
 instance id_reflects_limits : reflects_limits (𝟭 C) :=

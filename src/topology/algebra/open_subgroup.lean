@@ -48,7 +48,8 @@ variable (U)
 protected lemma is_open : is_open (U : set G) := U.2.1
 
 @[to_additive]
-protected lemma one_mem : (1 : G) ∈ U := is_submonoid.one_mem (U : set G)
+protected lemma one_mem : (1 : G) ∈ U :=
+@is_submonoid.one_mem _ _ (U : set G) _
 
 @[to_additive]
 protected lemma inv_mem {g : G} (h : g ∈ U) : g⁻¹ ∈ U :=
@@ -112,7 +113,7 @@ begin
     simp },
   split,
   { exact (continuous_mul_right _) _ U.is_open },
-  { simpa using is_submonoid.one_mem (U : set G) }
+  { simpa using @is_submonoid.one_mem _ _ (U : set G) _ }
 end
 
 section

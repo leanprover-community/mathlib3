@@ -143,10 +143,10 @@ theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
 is_submonoid.mul_mem hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
-is_add_submonoid.zero_mem _
+is_add_submonoid.zero_mem
 
 theorem is_supported_one : is_supported 1 s :=
-is_submonoid.one_mem _
+is_submonoid.one_mem
 
 theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
 int.induction_on i is_supported_zero

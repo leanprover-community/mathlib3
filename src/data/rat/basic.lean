@@ -531,11 +531,10 @@ begin
   existsi n / q.num,
   have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
   split,
-    { rw int.div_mul_cancel hqdn },
-    { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
-      {apply rat.num_ne_zero_of_ne_zero hq},
-      {simp [rat.denom_ne_zero]},
-      repeat {assumption} }
+  { rw int.div_mul_cancel hqdn },
+  { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
+    { apply rat.num_ne_zero_of_ne_zero hq },
+    repeat { assumption } }
 end
 
 theorem mk_pnat_num (n : ℤ) (d : ℕ+) :

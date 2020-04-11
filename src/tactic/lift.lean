@@ -44,7 +44,7 @@ instance : can_lift ℤ ℕ :=
 instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
   [Π i : ι, can_lift (α i) (β i)] :
   can_lift (Π i : ι, α i) (Π i : ι, β i) :=
-{ coe := λ f i, can_lift.coe (α i) (f i),
+{ coe := λ f i, can_lift.coe (f i),
   cond := λ f, ∀ i, can_lift.cond (β i) (f i),
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }

@@ -64,12 +64,9 @@ by split_ifs; refl
   (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
 by split_ifs; refl
 
--- In this lemma we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
 @[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
   a ^ (if P then 1 else 0) = if P then a else 1 :=
-by { simp, congr }
+by simp
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
@@ -135,8 +132,16 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := f.map_one
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
+theorem monoid_hom.iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
+show f^[n] ((λ x, x^m) a) = (λ x, x^m) (f^[n] a),
+from nat.iterate₁ $ λ x, f.map_pow x m
+
 theorem add_monoid_hom.map_smul (f : A →+ B) (a : A) (n : ℕ) : f (n • a) = n • f a :=
 f.to_multiplicative.map_pow a n
+
+theorem add_monoid_hom.iterate_map_smul (f : A →+ A) (a : A) (n m : ℕ) :
+  f^[n] (m • a) = m • (f^[n] a) :=
+f.to_multiplicative.iterate_map_pow a n m
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
@@ -397,9 +402,23 @@ by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', i
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
 by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, nat.pow_succ, ih]]
 
-@[simp] lemma ring_hom.map_pow [semiring R] [semiring S] (f : R →+* S) (a) :
+namespace ring_hom
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R →+* S) (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 f.to_monoid_hom.map_pow a
+
+variable (f : R →+* R)
+
+lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
+f.to_monoid_hom.iterate_map_pow a n m
+
+lemma iterate_map_smul (a) (n m : ℕ) : f^[n] (m • a) = m • (f^[n] a) :=
+f.to_add_monoid_hom.iterate_map_smul a n m
+
+end ring_hom
 
 lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
@@ -453,7 +472,7 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
+theorem add_monoid.smul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
@@ -465,7 +484,7 @@ lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 namespace add_monoid
-variable [ordered_comm_monoid A]
+variable [ordered_add_comm_monoid A]
 
 theorem smul_le_smul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
 let ⟨k, hk⟩ := nat.le.dest h in

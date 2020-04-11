@@ -38,7 +38,7 @@ class regular_mono (f : X ⟶ Y) :=
 /-- Every regular monomorphism is a monomorphism. -/
 @[priority 100]
 instance regular_mono.mono (f : X ⟶ Y) [regular_mono f] : mono f :=
-mono_of_is_limit_parallel_pair (regular_mono.is_limit f)
+mono_of_is_limit_parallel_pair regular_mono.is_limit
 
 /-- Every split monomorphism is a regular monomorphism. -/
 @[priority 100]
@@ -77,7 +77,7 @@ class regular_epi (f : X ⟶ Y) :=
 /-- Every regular epimorphism is an epimorphism. -/
 @[priority 100]
 instance regular_epi.epi (f : X ⟶ Y) [regular_epi f] : epi f :=
-epi_of_is_colimit_parallel_pair (regular_epi.is_colimit f)
+epi_of_is_colimit_parallel_pair regular_epi.is_colimit
 
 /-- Every split epimorphism is a regular epimorphism. -/
 @[priority 100]

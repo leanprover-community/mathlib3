@@ -419,7 +419,7 @@ eq.symm $ to_group.unique id (λ x, rfl)
 
 theorem to_group.range_subset {s : set β} [is_subgroup s] (H : set.range f ⊆ s) :
   set.range (to_group f) ⊆ s :=
-by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L (is_submonoid.one_mem s)
+by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L is_submonoid.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
     (by simp at ih ⊢; from is_submonoid.mul_mem
       (is_subgroup.inv_mem $ H ⟨x, rfl⟩) ih)

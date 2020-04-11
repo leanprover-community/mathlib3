@@ -12,18 +12,23 @@ def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)
 by transport using e
 
 -- Verify definitional equality of the new structure data.
-example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β)  :
-  (sup_top.map e).le =
-    (equiv.arrow_congr' e (equiv.arrow_congr' e (equiv.refl Prop))) semilattice_sup_top.le :=
+example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) (x y : β) :
+begin
+  haveI := sup_top.map e,
+  exact (x ≤ y) = (e.symm x ≤ e.symm y),
+end :=
 rfl
 
+-- And why not Lie rings while we're at it?
 def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
 by transport using e
 
 -- Verify definitional equality of the new structure data.
-example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) :
-  (lie_ring.map e).bracket =
-    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_bracket.bracket :=
+example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) (x y : β) :
+begin
+  haveI := lie_ring.map e,
+  exact ⁅x, y⁆ = e ⁅e.symm x, e.symm y⁆
+end :=
 rfl
 
 -- Below we verify in more detail that the transported structure for `semiring`

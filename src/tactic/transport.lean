@@ -122,7 +122,7 @@ do
       let n := t.get_app_fn.const_name,
       ctx ← local_context,
       ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e))) <|>
-        fail "`transport` could not find an appropriate source object. Try `transport S using e`."
+        fail "`transport` could not find an appropriate source object. Try `transport s using e`."
   end,
   e ← get_local e,
   tactic.transport s e

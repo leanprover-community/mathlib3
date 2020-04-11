@@ -1,9 +1,8 @@
+
+
 TO CONTRIBUTORS:
 
-Please include a summary of the changes made in this PR above "TO CONTRIBUTORS:", as
-that text will become the commit message. You are also encouraged to append the following
-[co-authorship template](https://help.github.com/en/github/committing-changes-to-your-project/creating-a-commit-with-multiple-authors)
-if you'd like to acknowledge suggestions / commits made by other users:
+Please include a summary of the changes made in this PR above "TO CONTRIBUTORS:", as that text will become the commit message. You are also encouraged to append the following [co-authorship template](https://help.github.com/en/github/committing-changes-to-your-project/creating-a-commit-with-multiple-authors) if you'd like to acknowledge suggestions / commits made by other users:
 
 Co-authored-by: name <name@example.com>
 
@@ -21,6 +20,4 @@ If this PR is related to a discussion on Zulip, please include a link in the dis
 
 For reviewers: [code review check list](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/code-review.md)
 
-If you're confused by comments on your PR like `bors r+` or `bors d+`, please see our
-[notes on bors](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/bors.md)
-for information on our merging workflow.
+If you're confused by comments on your PR like `bors r+` or `bors d+`, please see our [notes on bors](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/bors.md) for information on our merging workflow.

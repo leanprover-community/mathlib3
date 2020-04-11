@@ -30,7 +30,7 @@ jobs:
 
       # we skip the rest if this PR is from a fork,
       # since the GITHUB_TOKEN doesn't have write perms
-      - if: steps.parse_pr_head.head_user == 'leanprover-community'
+      - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
         uses: octokit/request-action@v2.x
         name: Get comment author
         id: get_user
@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Parse steps.get_user.outputs.data, since it is a string
-      - if: steps.parse_pr_head.head_user == 'leanprover-community'
+      - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
         id: parse_user
         name: Parse comment author permission
         uses: gr2m/get-json-paths-action@v1.x
@@ -50,7 +50,7 @@ jobs:
           json: ${{ steps.get_user.outputs.data }}
           permission: 'permission'
 
-      - if: (steps.parse_pr_head.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
+      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
         uses: octokit/request-action@v2.x
         id: add_label
         name: Add label

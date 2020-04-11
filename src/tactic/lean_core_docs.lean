@@ -211,7 +211,7 @@ leaving as new goals the subterms of `A` and `B` which are not definitionally eq
 Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
 `x = g w` and `y = z`.
 
-Note that `congr` can be over-aggressive at times; in mathlib the `congr'` tactic in mathlib
+Note that `congr` can be over-aggressive at times; the `congr'` tactic in mathlib
 provides a more refined approach, by taking a parameter that limits the recursion depth.
 -/
 add_tactic_doc
@@ -339,6 +339,16 @@ add_tactic_doc
   decl_names := [`tactic.interactive.from],
   tags       := ["core", "finishing"] }
 
+/--
+Apply function extensionality and introduce new hypotheses.
+The tactic `funext` will keep applying new the `funext` lemma until the goal target is not reducible to
+```
+  |-  ((fun x, ...) = (fun x, ...))
+```
+The variant `funext h₁ ... hₙ` applies `funext` `n` times, and uses the given identifiers to name the new hypotheses.
+
+Note also the mathlib tactic `ext`, which applies as many extensionality lemmas as possible.
+-/
 add_tactic_doc
 { name       := "funext",
   category   := doc_category.tactic,

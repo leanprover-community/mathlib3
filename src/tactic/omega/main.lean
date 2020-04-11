@@ -93,6 +93,8 @@ do is_int ← determine_domain opt,
 
 add_hint_tactic "omega"
 
+declare_trace omega
+
 /--
 `omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
 ```lean
@@ -119,6 +121,8 @@ by {revert h2 i, omega manual int}
 `omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
 
 `omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+
+You can enable `set_option trace.omega true` to see how `omega` interprets your goal.
 -/
 add_tactic_doc
 { name       := "omega",

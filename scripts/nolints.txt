@@ -124,10 +124,6 @@ apply_nolint ge_iff_le ge_or_gt
 apply_nolint gt_iff_lt ge_or_gt
 apply_nolint ordering.compares.eq_gt ge_or_gt
 
--- algebra/ordered_group.lean
-apply_nolint nonneg_comm_group.to_decidable_linear_ordered_comm_group doc_blame
-apply_nolint with_zero.ordered_comm_monoid doc_blame
-
 -- algebra/ordered_ring.lean
 apply_nolint canonically_ordered_comm_semiring doc_blame
 apply_nolint nonneg_ring.to_linear_nonneg_ring doc_blame
@@ -1638,9 +1634,6 @@ apply_nolint polynomial.pow_sub_pow_factor doc_blame
 apply_nolint polynomial.rec_on_horner doc_blame
 apply_nolint polynomial.root_multiplicity doc_blame
 
--- data/prod.lean
-apply_nolint prod.lex.decidable unused_arguments
-
 -- data/quot.lean
 apply_nolint quot.hrec_on₂ doc_blame
 apply_nolint quotient.choice doc_blame
@@ -1796,9 +1789,6 @@ apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
 apply_nolint set.seq doc_blame
 apply_nolint set.sigma_to_Union doc_blame
 
--- data/setoid.lean
-apply_nolint setoid.is_partition doc_blame
-
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 
@@ -1855,9 +1845,6 @@ apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
-
--- field_theory/splitting_field.lean
-apply_nolint polynomial.splits unused_arguments
 
 -- field_theory/subfield.lean
 apply_nolint field.closure doc_blame
@@ -2270,7 +2257,6 @@ apply_nolint well_founded.succ doc_blame
 apply_nolint well_founded.sup doc_blame
 
 -- order/bounded_lattice.lean
-apply_nolint with_bot doc_blame
 apply_nolint with_top doc_blame
 
 -- order/complete_lattice.lean
@@ -2336,32 +2322,6 @@ apply_nolint pilex doc_blame
 
 -- ring_theory/adjoin.lean
 apply_nolint subalgebra.fg doc_blame
-
--- ring_theory/algebra.lean
-apply_nolint alg_hom has_inhabited_instance
-apply_nolint alg_hom.comp doc_blame
-apply_nolint alg_hom.id doc_blame
-apply_nolint alg_hom.range doc_blame
-apply_nolint alg_hom.to_ring_hom doc_blame
-apply_nolint algebra.adjoin doc_blame
-apply_nolint algebra.comap has_inhabited_instance
-apply_nolint algebra.comap.comm_ring unused_arguments
-apply_nolint algebra.comap.has_scalar unused_arguments
-apply_nolint algebra.comap.of_comap doc_blame
-apply_nolint algebra.comap.ring unused_arguments
-apply_nolint algebra.comap.to_comap doc_blame
-apply_nolint algebra.gi doc_blame
-apply_nolint algebra.lmul_left doc_blame
-apply_nolint algebra.lmul_right doc_blame
-apply_nolint algebra.of_id doc_blame
-apply_nolint algebra.to_comap doc_blame
-apply_nolint algebra.to_top doc_blame
-apply_nolint algebra_map doc_blame
-apply_nolint subalgebra doc_blame
-apply_nolint subalgebra.comap doc_blame
-apply_nolint subalgebra.to_submodule doc_blame
-apply_nolint subalgebra.under doc_blame
-apply_nolint subalgebra.val doc_blame
 
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame

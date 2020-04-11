@@ -207,6 +207,7 @@ begin
   let F' : mono_factorisation f :=
   { I := equalizer g h,
     m := q ≫ image.ι f,
+    m_mono := by apply mono_comp,
     e := e' },
   let v := image.lift F',
   have t₀ : v ≫ q ≫ image.ι f = image.ι f := image.lift_fac F',

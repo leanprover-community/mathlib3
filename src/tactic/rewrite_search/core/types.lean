@@ -7,6 +7,22 @@ universes u v
 
 open tactic
 
+class indexed (α : Type u) :=
+(index : α → ℕ)
+
+class keyed (α : Type u) (κ : Type v) [decidable_eq κ] :=
+(key : α → κ)
+
+namespace table
+variables {α : Type u} {κ : Type v} (t : table α)
+
+@[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
+
+@[inline] def find_key [decidable_eq κ] [keyed α κ] (t : table α) (key : κ) : option α :=
+t.find (λ a, key = @keyed.key _ _ _ _ a)
+
+end table
+
 namespace tactic.rewrite_search
 
 -- jmc: What's the purpose of `dnum`? Can't we just use `ℕ`?

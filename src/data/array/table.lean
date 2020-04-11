@@ -27,20 +27,11 @@ def buffer.map' {α : Type u} {β : Type v} (f : α → β) (x : buffer α) :
   buffer β :=
 (x.to_array.map' f).to_buffer
 
--- TODO: inline these classes, they are almost never used.
-class indexed (α : Type u) :=
-(index : α → ℕ)
-class keyed (α : Type u) (κ : Type v) [decidable_eq κ] :=
-(key : α → κ)
-
 abbreviation table (α : Type u) := buffer (option α)
 
 namespace table
 
 variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table α)
-
--- TODO use push_back and pop_back builtins to avoid array preallocation
--- TODO several recusion-induced-meta can be removed from the file (given proofs)
 
 def create (len : ℕ := 0) : table α :=
 ⟨len, mk_array len none⟩
@@ -73,8 +64,6 @@ end
 @[inline] def append_list (l : list α) : table α :=
 buffer.append_list t $ l.map option.some
 
-@[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
-
 @[inline] def length : ℕ := t.size
 
 def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
@@ -90,9 +79,6 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i, t.length 
 @[inline] def find (p : α → Prop) [decidable_pred p] : option α :=
 t.find_from p 0
 
-@[inline] def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
-t.find (λ a, key = @keyed.key _ _ _ _ a)
-
 def foldl (f : β → α → β) (b : β) (t : table α) : β :=
 t.to_array.foldl b (λ a : option α, λ b : β,
   match a with
@@ -107,6 +93,8 @@ do x ← t.to_array.mmap_copy (mk_array t.length none) (λ a : option α,
    | some a := do v ← f a, pure $ some v
    end),
    return x.to_buffer
+
+def to_list : list α := t.foldl list.concat []
 
 meta instance [has_to_string α] : has_to_string (table α) := ⟨λ t, to_string t.to_list⟩
 

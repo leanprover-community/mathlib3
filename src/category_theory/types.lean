@@ -53,7 +53,7 @@ lemma types_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-notation  `↾` f : 200 := as_hom f
+notation  `↾` f : 200 := as_hom f -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)

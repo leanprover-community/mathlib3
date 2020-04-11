@@ -41,12 +41,10 @@ def action_as_functor : single_obj M ⥤ Type u :=
 /-- A multiplicative action M ↻ X induces a category strucure on X, where a morphism
  from x to y is a scalar taking x to y. Due to implementation details, the object type
  of this category is not equal to X, but is in bijection with X. -/
+@[derive category]
 def action_category := (action_as_functor M X).elements
 
 namespace action_category
-
-instance : category (action_category M X) :=
-category_theory.category_of_elements _
 
 lemma hom_as_subtype (p q : action_category M X) : (p ⟶ q) = { m : M // m • p.2 = q.2 } := rfl
 

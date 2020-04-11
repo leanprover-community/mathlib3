@@ -2138,6 +2138,8 @@ by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
 
 end max_min
 
+section exists_max_min
+
 variables [linear_order α]
 lemma exists_max (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
 begin
@@ -2154,6 +2156,8 @@ begin
   rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
   exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
 end
+
+end exists_max_min
 
 /-! ### sort -/
 section sort

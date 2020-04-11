@@ -484,9 +484,9 @@ variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : nnreal}
 Changing the origin of a formal multilinear series `p`, so that
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
 
-Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda, 
-as this leads to a bad definition with auxiliary `_match` statements, 
-but we will try to use pattern matching in lambdas as much as possible in the proofs below 
+Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda,
+as this leads to a bad definition with auxiliary `_match` statements,
+but we will try to use pattern matching in lambdas as much as possible in the proofs below
 to increase readability.
 -/
 def change_origin (x : E) :
@@ -566,6 +566,20 @@ begin
   refl
 end
 
+/-- An auxiliary definition for `change_origin_radius`. -/
+def change_origin_summable_aux_j (k : ℕ) :
+  (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k})
+    → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
+λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩
+
+lemma change_origin_summable_aux_j_inj (k : ℕ) : function.injective (change_origin_summable_aux_j k) :=
+begin
+  rintros ⟨_, ⟨_, _⟩⟩ ⟨_, ⟨_, _⟩⟩ a,
+  simp only [change_origin_summable_aux_j, true_and, eq_self_iff_true, heq_iff_eq, sigma.mk.inj_iff] at a,
+  rcases a with ⟨rfl, a⟩,
+  simpa using a,
+end
+
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, third version. -/
 lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ennreal) < p.radius) :
@@ -576,16 +590,15 @@ begin
     ennreal.lt_iff_exists_add_pos_lt.mp h,
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
-  { let j : (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k})
-      → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
-    λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩,
-    have j_inj : function.injective j, by tidy,
-    convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr) j_inj,
-    tidy },
+  { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
+      (change_origin_summable_aux_j_inj k),
+    -- again, cleanup that could be done by `tidy`:
+    ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl },
   have : (r : ℝ)^k ≠ 0, by simp [pow_ne_zero, nnreal.coe_eq_zero, ne_of_gt rpos],
   apply (summable_mul_right_iff this).2,
   convert S,
-  tidy
+  -- again, cleanup that could be done by `tidy`:
+  ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl,
 end
 
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
@@ -612,10 +625,6 @@ begin
   apply le_radius_of_bound _ (nnreal.of_real (tsum A)) (λ k, _),
   rw [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_pow, coe_nnnorm,
       nnreal.coe_of_real _ tsum_nonneg],
-  let j : (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k})
-      → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
-    λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩,
-  have j_inj : function.injective j, by tidy,
   calc ∥change_origin p x k∥ * ↑r ^ k
   = ∥@tsum (E [×k]→L[𝕜] F) _ _ _ (λ i, (p i.1).restr i.2.1 i.2.2 x :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → (E [×k]→L[𝕜] F))∥ * ↑r ^ k : rfl
@@ -631,8 +640,8 @@ begin
   ... = tsum (λ i, ∥(p i.1).restr i.2.1 i.2.2 x∥ * ↑r ^ k :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
       by { rw tsum_mul_right, convert p.change_origin_summable_aux3 k h, tidy }
-  ... = tsum (A ∘ j) : by { congr, tidy }
-  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg j_inj
+  ... = tsum (A ∘ change_origin_summable_aux_j k) : by { congr, tidy }
+  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_inj k)
 end
 
 -- From this point on, assume that the space is complete, to make sure that series that converge

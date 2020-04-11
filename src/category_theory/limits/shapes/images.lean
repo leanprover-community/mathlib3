@@ -288,8 +288,7 @@ lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
 image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc C f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
 begin
   apply (cancel_mono (image.ι h)).1,
-  dsimp [image.pre_comp, image.eq_to_hom],
-  simp,
+  simp [image.pre_comp, image.eq_to_hom],
 end
 
 -- Note that in general we don't have the other comparison map you might expect

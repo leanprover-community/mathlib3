@@ -178,7 +178,7 @@ instance : ordered_semiring ℚ                    := by apply_instance
 instance : decidable_linear_ordered_add_comm_group ℚ := by apply_instance
 instance : ordered_add_comm_group ℚ              := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
-instance : ordered_comm_monoid ℚ                 := by apply_instance
+instance : ordered_add_comm_monoid ℚ             := by apply_instance
 
 attribute [irreducible] rat.le
 

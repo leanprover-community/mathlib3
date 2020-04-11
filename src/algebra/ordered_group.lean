@@ -401,7 +401,7 @@ end canonically_ordered_add_monoid
 
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid
-  [H : ordered_cancel_add_comm_monoid α] : ordered_comm_monoid α :=
+  [H : ordered_cancel_add_comm_monoid α] : ordered_add_comm_monoid α :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
 section ordered_cancel_comm_monoid

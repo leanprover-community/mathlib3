@@ -730,14 +730,6 @@ apply_nolint category_theory.sum.associativity doc_blame
 apply_nolint category_theory.sum.associator doc_blame
 apply_nolint category_theory.sum.inverse_associator doc_blame
 
--- category_theory/types.lean
-apply_nolint category_theory.functor.sections doc_blame
-apply_nolint category_theory.hom_of_element doc_blame
-apply_nolint category_theory.iso.to_equiv doc_blame
-apply_nolint category_theory.ulift_functor doc_blame
-apply_nolint category_theory.ulift_trivial doc_blame
-apply_nolint equiv.to_iso doc_blame
-
 -- category_theory/whiskering.lean
 apply_nolint category_theory.functor.associator doc_blame
 apply_nolint category_theory.functor.left_unitor doc_blame

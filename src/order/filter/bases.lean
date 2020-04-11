@@ -42,9 +42,9 @@ and consequences are derived.
   of bases.
 * `has_basis.tendsto_right_iff`, `has_basis.tendsto_left_iff`, `has_basis.tendsto_iff` : restate
   `tendsto f l l'` in terms of bases.
-* `is_countable_generated_iff_exists_antimono_basis` : proves a filter is
+* `is_countably_generated_iff_exists_antimono_basis` : proves a filter is
   countably generated if and only if it admis a basis parametrized by a
-  decreasing sequence of sets.
+  decreasing sequence of sets indexed by `ℕ`.
 * `tendsto_iff_seq_tendsto ` : an abstract version of "sequentially continuous implies continuous".
 
 ## Implementation notes
@@ -562,7 +562,7 @@ lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B
   is_countably_generated (⨅ (s ∈ B), principal s) :=
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 
-lemma is_countable_generated_iff_exists_antimono_basis {f : filter α} : is_countably_generated f ↔
+lemma is_countably_generated_iff_exists_antimono_basis {f : filter α} : is_countably_generated f ↔
   ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
 begin
   split,

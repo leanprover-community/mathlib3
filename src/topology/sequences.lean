@@ -154,19 +154,19 @@ instance : sequential_space α :=
     from set.subset.antisymm (sequential_closure_subset_closure M) this,
   -- For every p ∈ closure M, we need to construct a sequence x in M that converges to p:
   assume (p : α) (hp : p ∈ closure M),
-  -- Since we are in a first-countable space, the neighborhood filter around p has a decreasing
-  -- basis U indexed by ℕ
+  -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
+  -- basis `U` indexed by `ℕ`.
   let ⟨U, hU ⟩ := (nhds_generated_countable p).has_antimono_basis in
-  -- Since p ∈ closure M, there is an element in each M ∩ U i
+  -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
   have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
     by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
   begin
     -- The axiom of (countable) choice builds our sequence from the later fact
     choose u hu using hp,
     rw forall_and_distrib at hu,
-    -- It clearly takes values in M
+    -- It clearly takes values in `M`
     use [u, hu.1],
-    -- and converges to p because the basis is decreasing.
+    -- and converges to `p` because the basis is decreasing.
     apply hU.tendsto hu.2,
   end⟩
 

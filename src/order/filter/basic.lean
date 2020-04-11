@@ -705,7 +705,7 @@ lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f) : f ⊓ 
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
 
 theorem mem_inf_principal (f : filter α) (s t : set α) :
-  s ∈ f ⊓ principal t ↔ { x | x ∈ t → x ∈ s } ∈ f :=
+  s ∈ f ⊓ principal t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
 begin
   simp only [mem_inf_sets, mem_principal_sets, exists_prop], split,
   { rintros ⟨u, ul, v, tsubv, uvinter⟩,
@@ -1558,7 +1558,7 @@ show join (map f (principal s)) = (⨆x ∈ s, f x),
 end bind
 
 section list_traverse
-/- This is a separate section in order to open liste, but mostly because of universe
+/- This is a separate section in order to open `list`, but mostly because of universe
    equality requirements in `traverse` -/
 
 open list

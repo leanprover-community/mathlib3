@@ -120,6 +120,8 @@ namespace comma
 section
 variables {X Y Z : comma L R} {f : X ⟶ Y} {g : Y ⟶ Z}
 
+@[simp] lemma id_left  : ((𝟙 X) : comma_morphism X X).left = 𝟙 X.left := rfl
+@[simp] lemma id_right : ((𝟙 X) : comma_morphism X X).right = 𝟙 X.right := rfl
 @[simp] lemma comp_left  : (f ≫ g).left  = f.left ≫ g.left   := rfl
 @[simp] lemma comp_right : (f ≫ g).right = f.right ≫ g.right := rfl
 

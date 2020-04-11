@@ -582,9 +582,6 @@ end
 
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, third version. -/
--- FIXME this causes a deterministic timeout with `-T50000`,
--- mostly because of the calls to `tidy`, which appear to be the price we pay
--- for using pattern matching in lambdas.
 lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ennreal) < p.radius) :
   @summable ℝ _ _ _ (λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ :
   (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=

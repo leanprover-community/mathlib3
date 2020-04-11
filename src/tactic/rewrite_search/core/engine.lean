@@ -30,14 +30,14 @@ meta def reset_all_estimates (init : init_bound_fn α β γ δ) : tactic (search
   new_estimates ← g.estimates.mmap $ g.reset_estimate init,
   return { g with estimates := new_estimates }
 
-private meta def register_tokens_aux (s : side) : table token → list string → table token × list table_ref
+private meta def register_tokens_aux (s : side) : table token → list string → table token × list ℕ
 | tokens [] := (tokens, [])
 | tokens (tstr :: rest) := do
   let (tokens, t) := find_or_create_token tokens s tstr,
   let (tokens, l) := register_tokens_aux tokens rest,
   (tokens, t.id :: l)
 
-meta def register_tokens (s : side) (strs : list string) : search_state α β γ δ × list table_ref :=
+meta def register_tokens (s : side) (strs : list string) : search_state α β γ δ × list ℕ :=
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
@@ -56,7 +56,7 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
 meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state α β γ δ × vertex) :=
 do (pp, tokens) ← tokenise_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
-   let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
+   let v : vertex := vertex.create g.vertices.length e pp token_refs root s,
    return ({ g with vertices := g.vertices.alloc v }, v)
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
@@ -126,7 +126,7 @@ meta def reveal_more_adjs (o : vertex) : tactic (search_state α β γ δ × ver
   | none := return (g, o, none)
   | some rw := do
     (g, o, (v, e)) ← g.commit_rewrite o rw,
-    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front.next},
+    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
     return (g, o, some (v, e))
   end
 
@@ -137,7 +137,7 @@ do
         g.mark_vertex_visited v
       else
         pure (g, v),
-  return ⟨g, ⟨v.id, table_ref.first⟩⟩
+  return ⟨g, ⟨v.id, 0⟩⟩
 
 meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) : tactic (search_state α β γ δ × dist_estimate γ) := do
   (vl, vr) ← g.get_estimate_verts de,
@@ -145,9 +145,9 @@ meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) : tact
   let new_de := {de with bnd := new_bnd},
   return ({g with estimates := g.estimates.update new_de}, new_de)
 
-meta def alloc_estimate (p : pair) : tactic (search_state α β γ δ × table_ref) := do
+meta def alloc_estimate (p : pair) : tactic (search_state α β γ δ × ℕ) := do
   (vl, vr) ← g.lookup_pair p,
-  let ref := g.estimates.next_id,
+  let ref := g.estimates.length,
   let new_estimates := g.estimates.alloc ⟨p, ref, m.init_bound g vl vr⟩,
   return ({g with estimates := new_estimates}, ref)
 
@@ -175,7 +175,7 @@ end search_state
 namespace rewriterator
 
 private meta def advance (it : rewriterator) : rewriterator :=
-{it with front := it.front.next}
+{it with front := it.front + 1}
 
 meta def next (it : rewriterator) (g : search_state α β γ δ) : tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,

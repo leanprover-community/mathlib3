@@ -14,8 +14,8 @@ structure pair_stream :=
 (its : sided_pair rewriterator)
 
 inductive ipair
-| unresolved (p : pair) (de : table_ref) : ipair
-| resolved (p : pair) (de : table_ref) (ps : pair_stream) : ipair
+| unresolved (p : pair) (de : ℕ) : ipair
+| resolved (p : pair) (de : ℕ) (ps : pair_stream) : ipair
 
 namespace ipair
 
@@ -23,7 +23,7 @@ def pair : ipair → pair
 | (ipair.unresolved p _)   := p
 | (ipair.resolved   p _ _) := p
 
-def de : ipair → table_ref
+def de : ipair → ℕ
 | (ipair.unresolved _ vde)   := vde
 | (ipair.resolved   _ vde _) := vde
 
@@ -155,7 +155,7 @@ meta def pop_ipairs (pop_size : ℕ) (ip : ipair) : tactic (search_state pexplor
   return (g, ip, new)
 
 meta def pexplore_init : tactic (init_result pexplore_state) :=
-  init_result.pure ⟨{}, ipair.unresolved pair.null table_ref.null, [], []⟩
+  init_result.pure ⟨{}, ipair.unresolved pair.null 0xFFFFFFFF, [], []⟩
 
 meta def pexplore_startup (m : metric pexplore_state β γ δ) (l r : vertex) : tactic (search_state pexplore_state β γ δ) := do
   let p : pair := ⟨l.id, r.id⟩,
@@ -169,7 +169,7 @@ meta def get_best_pairs : tactic (list pair) :=
   return g.strat_state.done_pairs
 
 meta def clear_vertex (v : vertex) : vertex :=
-  {v with rw_prog := none, rws := table.create, rw_front := table_ref.first, adj := table.create}
+  {v with rw_prog := none, rws := table.create, rw_front := 0, adj := table.create}
 
 meta def pexplore_step : search_state pexplore_state β γ δ → metric pexplore_state β γ δ → ℕ → tactic (search_state pexplore_state β γ δ × status)
 | g m itr := do
@@ -186,8 +186,8 @@ meta def pexplore_step : search_state pexplore_state β γ δ → metric pexplor
       -- FIXME this is a real hack: we currently use existance of an entry in the
       -- distance estimate table to determine if we have seen a given interesting
       -- pair before. This needs to change, and until then we have to do:
-      vl ← clear_vertex <$> g.vertices.get table_ref.first,
-      vr ← clear_vertex <$> g.vertices.get table_ref.first.next,
+      vl ← clear_vertex <$> g.vertices.get 0,
+      vr ← clear_vertex <$> g.vertices.get 1,
       let g := {g with vertices := table.from_list [vl, vr], estimates := table.create},
       g ← pexplore_startup g.strat_state.conf g m vl vr,
       return (g, status.repeat)

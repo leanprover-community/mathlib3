@@ -12,20 +12,20 @@ variables {α : Type} [decidable_eq α]
 @[derive decidable_eq]
 structure ed_partial :=
 (prefix_length : dnum)
-(suffix    : list (table_ref × dnum))
-(l₂_toks   : list (table_ref × dnum))
+(suffix    : list (ℕ × dnum))
+(l₂_toks   : list (ℕ × dnum))
 (distances : list dnum) -- distances from the prefix of l₁ to each non-empty prefix of l₂
 
-def compute_initial_distances_aux (weights : table dnum) : dnum → list table_ref → list dnum
+def compute_initial_distances_aux (weights : table dnum) : dnum → list ℕ → list dnum
 | _ [] := []
 | so_far (a :: rest) :=
   let so_far := so_far + (weights.iget a) in
   list.cons so_far (compute_initial_distances_aux so_far rest)
 
-@[inline] def compute_initial_distances (weights : table dnum) (l : list table_ref) : list dnum :=
+@[inline] def compute_initial_distances (weights : table dnum) (l : list ℕ) : list dnum :=
   compute_initial_distances_aux weights 0 l
 
-@[inline] def empty_partial_edit_distance_data (weights : table dnum) (l₁ l₂ : list table_ref) : ed_partial :=
+@[inline] def empty_partial_edit_distance_data (weights : table dnum) (l₁ l₂ : list ℕ) : ed_partial :=
   ⟨ 0, l₁.map (λ r, (r, weights.iget r)), l₂.map (λ r, (r, weights.iget r)), compute_initial_distances weights l₂ ⟩
 
 @[inline] def triples {α : Type} (p : ed_partial) (l₂ : list (α × dnum)): list (dnum × dnum × α × dnum) :=
@@ -34,7 +34,7 @@ p.distances.zip ((list.cons p.prefix_length p.distances).zip l₂)
 universe u
 
 --TODO explain me
-@[inline] meta def fold_fn (h : table_ref) (wh : dnum) (n : dnum × list dnum) : dnum × dnum × table_ref × dnum → dnum × list dnum
+@[inline] meta def fold_fn (h : ℕ) (wh : dnum) (n : dnum × list dnum) : dnum × dnum × ℕ × dnum → dnum × list dnum
 | (a, b, r, wr) :=
   let m := if h = r then b else dnum.minl [
     /- deletion     -/ a + wh,

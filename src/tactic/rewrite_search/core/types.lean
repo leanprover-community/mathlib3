@@ -52,7 +52,7 @@ def bound_progress.to_string {β : Type u} : bound_progress β → string
 | (at_least n _) := "≥ " ++ to_string n
 
 meta structure edge :=
-(f t   : table_ref)
+(f t   : ℕ)
 (proof : tactic expr)
 (how   : how)
 
@@ -62,7 +62,7 @@ variables (e : edge)
 -- TODO What to do about the how? Using this currently breaks backtracking
 meta def flip : edge := ⟨e.t, e.f, e.proof >>= tactic.mk_eq_symm, e.how⟩
 
-meta def other (r : table_ref) : option table_ref :=
+meta def other (r : ℕ) : option ℕ :=
   if e.f = r then e.t else
   if e.t = r then e.f else
   none
@@ -72,30 +72,32 @@ meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t
 end edge
 
 structure rewriterator :=
-(orig : table_ref)
-(front : table_ref)
+(orig : ℕ)
+(front : ℕ)
 
 meta structure vertex :=
-(id       : table_ref)
+(id       : ℕ)
 (exp      : expr)
 (pp       : string)
-(tokens   : list table_ref)
+(tokens   : list ℕ)
 (root     : bool)
 (visited  : bool)
 (s        : side)
 (parent   : option edge)
 (rw_prog  : option rewrite_progress)
 (rws      : table rewrite)
-(rw_front : table_ref)
+(rw_front : ℕ)
 (adj      : table edge)
 
 namespace vertex
 
 meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
-meta def create (id : table_ref) (e : expr) (pp : string) (token_refs : list table_ref) (root : bool) (s : side) : vertex := ⟨ id, e, pp, token_refs, root, ff, s, none, none, table.create, table_ref.first, table.create ⟩
+meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ) (root : bool) (s : side) :
+  vertex :=
+⟨ id, e, pp, token_refs, root, ff, s, none, none, table.create, 0, table.create ⟩
 
-meta def null : vertex := vertex.create table_ref.null (default expr) "__NULLEXPR" [] ff side.L
+meta def null : vertex := vertex.create 0xFFFFFFFF (default expr) "__NULLEXPR" [] ff side.L
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance indexed : indexed vertex := ⟨λ v, v.id⟩
@@ -104,18 +106,18 @@ meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
 
-def pair := sided_pair table_ref
-def pair.null : pair := ⟨table_ref.null, table_ref.null⟩
+def pair := sided_pair ℕ
+def pair.null : pair := ⟨0xFFFFFFFF, 0xFFFFFFFF⟩
 instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
 
-structure dist_estimate (state_type : Type u) extends sided_pair table_ref :=
-  (id : table_ref)
+structure dist_estimate (state_type : Type u) extends sided_pair ℕ :=
+  (id : ℕ)
   (bnd : bound_progress state_type)
 namespace dist_estimate
 variables {α : Type} (de : dist_estimate α)
 
 def to_pair : pair := de.to_sided_pair
-def side (s : side) : table_ref := de.to_pair.get s
+def side (s : side) : ℕ := de.to_pair.get s
 def set_bound (bnd : bound_progress α) : dist_estimate α := { de with bnd := bnd }
 def to_string : string := de.to_pair.to_string ++ "Δ" ++ de.bnd.to_string
 
@@ -126,7 +128,7 @@ instance {γ : Type} : keyed (dist_estimate γ) pair := ⟨λ v, v.to_pair⟩
 end dist_estimate
 
 structure token :=
-(id   : table_ref)
+(id   : ℕ)
 (str  : string)
 (freq : sided_pair ℕ)
 
@@ -134,7 +136,7 @@ namespace token
 
 def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq.get s) + 1}
 
-def null : token := ⟨ table_ref.null, "__NULLTOKEN", 0, 0 ⟩
+def null : token := ⟨ 0xFFFFFFFF, "__NULLTOKEN", 0, 0 ⟩
 
 instance inhabited : inhabited token := ⟨null⟩
 instance indexed : indexed token := ⟨λ t, t.id⟩
@@ -145,7 +147,7 @@ end token
 meta def find_or_create_token (tokens : table token) (s : side) (tstr : string) : table token × token :=
 match tokens.find_key tstr with
 | none := do
-  let t : token := ⟨tokens.next_id, tstr, ⟨0, 0⟩⟩,
+  let t : token := ⟨tokens.length, tstr, ⟨0, 0⟩⟩,
   let t := t.inc s in (tokens.alloc t, t)
 | (some t) := do
   let t := t.inc s in (tokens.update t, t)
@@ -215,8 +217,8 @@ meta structure search_state (α β γ δ : Type) :=
 (tr_state     : δ)
 (stats        : statistics)
 
-def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
-def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
+def LHS_VERTEX_ID : ℕ := 0
+def RHS_VERTEX_ID : ℕ := 1
 
 meta def update_fn (α β γ δ : Type) : Type := search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
 meta def init_bound_fn (α β γ δ : Type) := search_state α β γ δ → vertex → vertex → bound_progress γ

@@ -1,5 +1,8 @@
 import tactic.rewrite_search.core.types
 
+-- tmp def, refactor this away or move elsewhere
+def nat.to_string (n : ℕ) := to_string n
+
 namespace tactic.rewrite_search
 
 namespace search_state

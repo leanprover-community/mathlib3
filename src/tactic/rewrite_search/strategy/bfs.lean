@@ -10,7 +10,7 @@ structure bfs_config :=
 structure bfs_state :=
 (conf       : bfs_config)
 (curr_depth : ℕ)
-(queue      : list (option table_ref))
+(queue      : list (option ℕ))
 
 variables {β γ δ : Type} (g : search_state bfs_state β γ δ)
 

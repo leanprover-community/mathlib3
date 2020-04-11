@@ -11,7 +11,7 @@ import data.array.defs
 # Tables
 
 A `table` is a self-resizing array-backed list,
-which uses opaque references called `table_ref`s for access.
+which uses opaque references called `ℕ`s for access.
 -/
 
 universe variables u v w z
@@ -19,42 +19,51 @@ universe variables u v w z
 attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
 attribute [inline] array.read array.write
 
-@[irreducible] def table_ref : Type := ℕ
+-- @[irreducible] def ℕ : Type := ℕ
 
-namespace table_ref
+-- namespace ℕ
 
-section internal
+-- section internal
 
-local attribute [reducible] table_ref
+-- local attribute [reducible] ℕ
 
-def MAXIMUM := 0xFFFFFFFF
+-- def MAXIMUM := 0xFFFFFFFF
 
-def of_nat (r : ℕ) : table_ref := r
-def to_nat (r : table_ref) : ℕ := r
-def next (r : table_ref) : table_ref := of_nat (r + 1)
+-- def of_nat (r : ℕ) : ℕ := r
+-- def to_nat (r : ℕ) : ℕ := r
+-- def next (r : ℕ) : ℕ := of_nat (r + 1)
 
-instance : decidable_eq table_ref := by apply_instance
+-- instance : decidable_eq ℕ := by apply_instance
 
-instance : has_to_string table_ref := by apply_instance
-meta instance : has_to_format table_ref := by apply_instance
+-- instance : has_to_string ℕ := by apply_instance
+-- meta instance : has_to_format ℕ := by apply_instance
 
-end internal
+-- end internal
 
-def to_string (r : table_ref) : string := to_string r.to_nat
-def null  : table_ref := of_nat MAXIMUM
-def first : table_ref := of_nat 0
+-- def to_string (r : ℕ) : string := to_string r.to_nat
+-- def null  : ℕ := of_nat MAXIMUM
+-- def first : ℕ := of_nat 0
 
-end table_ref
+-- end ℕ
+
+def d_array.map' {n : ℕ} {α : fin n → Type u} {β : fin n → Type v} (f : Π (i : fin n), α i → β i) (x : d_array n α) :
+  d_array n β :=
+d_array.mk $ λ i, f i $ x.read i
+
+def array.map' {n : ℕ} {α : Type u} {β : Type v} (f : α → β) (x : array n α) :
+  array n β :=
+x.map' $ λ _, f
+
+def buffer.map' {α : Type u} {β : Type v} (f : α → β) (x : buffer α) :
+  buffer β :=
+(x.to_array.map' f).to_buffer
 
 class indexed (α : Type u) :=
-(index : α → table_ref)
+(index : α → ℕ)
 class keyed (α : Type u) (κ : Type v) [decidable_eq κ] :=
 (key : α → κ)
 
-structure table (α : Type u) :=
-(next_id : table_ref)
-(buff_len : ℕ)
-(entries : array buff_len (option α))
+abbreviation table (α : Type u) := buffer (option α)
 
 namespace table
 
@@ -63,106 +72,99 @@ variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table
 -- TODO use push_back and pop_back builtins to avoid array preallocation
 -- TODO several recusion-induced-meta can be removed from the file (given proofs)
 
-def DEFAULT_BUFF_LEN := 10
+def DEFAULT_TABLE_LEN := 10
 
-def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
-⟨table_ref.first, buff_len, mk_array buff_len none⟩
+def create (len : ℕ := DEFAULT_TABLE_LEN) : table α :=
+⟨len, mk_array len none⟩
 
+-- TODO(jmc): Is this fast? Otherwise optimise.
 def from_list (l : list α) : table α :=
-let n := l.length in
-let buff : array n (option α) := mk_array n none in
-⟨table_ref.of_nat n, n, buff.map_copy_from_list (λ a, some a) l⟩
+(l.map (option.some)).to_buffer
 
-meta def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
-let buff : array dim (option β) := mk_array dim none in
-⟨table_ref.of_nat dim, dim, x.map_copy buff (λ a, some $ f a)⟩
+def map (f : α → β) : table β := buffer.map' (option.map f) t
 
-meta def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
+def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
+(x.map' (option.some ∘ f)).to_buffer
 
-@[inline] def is_full : bool := t.next_id.to_nat = t.buff_len
+def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
-@[inline] private def try_fin (r : table_ref) : option (fin t.buff_len) :=
-begin
-  let r := r.to_nat,
-  by_cases h : r < t.buff_len,
-  exact fin.mk r h,
-  exact none
-end
+-- @[inline] def is_full : bool := t.next_id.to_nat = t.buff_len
 
-@[inline] meta def grow : table α :=
-let new_len := t.buff_len * 2 in
-let new_buff : array new_len (option α) := mk_array new_len none in
-{t with buff_len := new_len, entries := array.copy t.entries new_buff}
+@[inline] private def try_fin (r : ℕ) : option (fin t.size) :=
+if h : r < t.size then some ⟨r, h⟩ else none
 
-@[inline] def at_ref (r : table_ref) : option α :=
+-- @[inline] meta def grow : table α :=
+-- let new_len := t.buff_len * 2 in
+-- let new_buff : array new_len (option α) := mk_array new_len none in
+-- {t with buff_len := new_len, entries := array.copy t.entries new_buff}
+
+@[inline] def at_ref (r : ℕ) : option α :=
 match try_fin t r with
 | none := none
-| some r := t.entries.read r
+| some r := t.read r
 end
 
-@[inline] def present (r : table_ref) : bool := (t.at_ref r).is_some
+@[inline] def present (r : ℕ) : bool := (t.at_ref r).is_some
 
-@[inline] meta def get (r : table_ref) : option α := t.at_ref r
+@[inline] def get (r : ℕ) : option α := t.at_ref r
 
-@[inline] def iget [inhabited α] (r : table_ref) : α :=
+@[inline] def iget [inhabited α] (r : ℕ) : α :=
 match t.at_ref r with
 | none := default α
 | some a := a
 end
 
-@[inline] def set (r : table_ref) (a : α) : table α :=
+@[inline] def set (r : ℕ) (a : α) : table α :=
 match try_fin t r with
 | none := t
-| some r := {t with entries := t.entries.write r a}
+| some r := t.write r a
 end
 
-@[inline] meta def alloc (a : α) : table α :=
-let t : table α := if t.is_full then t.grow else t in
-let t := t.set t.next_id a in
-{ t with next_id := t.next_id.next }
+@[inline] def alloc (a : α) : table α :=
+t.push_back a
 
-@[inline] meta def alloc_list : table α → list α → table α
+@[inline] def alloc_list : table α → list α → table α
 | t [] := t
 | t (a :: rest) := alloc_list (t.alloc a) rest
 
 @[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
 
-@[inline] def length : ℕ := t.next_id.to_nat
+@[inline] def length : ℕ := t.size
 
-meta def find_from (p : α → Prop) [decidable_pred p] : table_ref → option α
+meta def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
 | ref := match t.at_ref ref with
          | none := none
-         | some a := if p a then some a else find_from ref.next
+         | some a := if p a then some a else find_from (ref + 1)
          end
 
 @[inline] meta def find (p : α → Prop) [decidable_pred p] : option α :=
-t.find_from p table_ref.first
+t.find_from p 0
 
 @[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
 t.find (λ a, key = @keyed.key _ _ _ _ a)
 
 meta def foldl (f : β → α → β) (b : β) (t : table α) : β :=
-t.entries.foldl b (λ a : option α, λ b : β,
+t.to_array.foldl b (λ a : option α, λ b : β,
   match a with
   | none := b
   | some a := f b a
   end)
 
-private meta def empty_buff (t : table α) : array t.buff_len (option β) :=
-mk_array t.buff_len none
+private meta def empty_buff (t : table α) : array t.length (option β) :=
+mk_array t.length none
 
-meta def map (f : α → β) : table β :=
-⟨t.next_id, t.buff_len, t.entries.map_copy (empty_buff t) (option.map f)⟩
+-- meta def map (f : α → β) : table β :=
+-- ⟨t.next_id, t.buff_len, t.entries.map_copy (empty_buff t) (option.map f)⟩
 
 meta def mmap {m : Type v → Type z} [monad m] (f : α → m β) : m (table β) :=
-do new_buff ← t.entries.mmap_copy (empty_buff t) (λ a : option α,
+do x ← t.to_array.mmap_copy (empty_buff t) (λ a : option α,
    match a with
    | none := pure none
    | some a := do v ← f a, pure $ some v
    end),
-   return ⟨t.next_id, t.buff_len, new_buff⟩
+   return x.to_buffer
 
-def is_after_last (r : table_ref) : bool := t.next_id.to_nat <= r.to_nat
+def is_after_last (r : ℕ) : bool := t.length ≤ r
 
 meta def to_list : list α := t.foldl list.concat []
 

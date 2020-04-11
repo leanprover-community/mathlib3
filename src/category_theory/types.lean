@@ -40,8 +40,14 @@ instance types : large_category (Type u) :=
   comp    := λ _ _ _ f g, g ∘ f }
 
 lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl
-@[simp, priority 10] lemma types_id (X : Type u) : 𝟙 X = id := rfl
-@[simp, priority 10] lemma types_comp {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
+lemma types_id (X : Type u) : 𝟙 X = id := rfl
+lemma types_comp {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
+
+@[simp]
+lemma types_id_apply (X : Type u) (x : X) : ((𝟙 X) : X → X) x = x := rfl
+@[simp]
+lemma types_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f ≫ g) x = g (f x) := rfl
+
 
 /-- `as_hom f` helps Lean type check a function as a morphism in the category `Type`. -/
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.

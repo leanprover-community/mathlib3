@@ -84,7 +84,7 @@ variables (T : C ⥤ C) [monad.{v₁} T]
 { obj := λ X,
   { A := T.obj X,
     a := (μ_ T).app X,
-    assoc' := (monad.assoc T _).symm },
+    assoc' := (monad.assoc _).symm },
   map := λ X Y f,
   { f := T.map f,
     h' := by erw (μ_ T).naturality } }
@@ -175,7 +175,7 @@ variables (G : C ⥤ C) [comonad.{v₁} G]
 { obj := λ X,
   { A := G.obj X,
     a := (δ_ G).app X,
-    coassoc' := (comonad.coassoc G _).symm },
+    coassoc' := (comonad.coassoc _).symm },
   map := λ X Y f,
   { f := G.map f,
     h' := by erw (δ_ G).naturality; refl} }

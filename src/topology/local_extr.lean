@@ -278,9 +278,9 @@ end ordered_comm_monoid
 
 /-! ### Pointwise negation and subtraction -/
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables [ordered_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_local_min.neg (hf : is_local_min f a) : is_local_max (λ x, -f x) a :=
 hf.neg
@@ -316,7 +316,7 @@ lemma is_local_max_on.sub (hf : is_local_max_on f s a) (hg : is_local_min_on g s
   is_local_max_on (λ x, f x - g x) s a :=
 hf.sub hg
 
-end ordered_comm_group
+end ordered_add_comm_group
 
 
 /-! ### Pointwise `sup`/`inf` -/

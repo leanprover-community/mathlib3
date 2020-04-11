@@ -75,7 +75,7 @@ variables [metric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
-metric_space.to_uniform_space α
+metric_space.to_uniform_space
 
 @[priority 200] -- see Note [lower instance priority]
 instance metric_space.to_has_edist : has_edist α := ⟨metric_space.edist⟩
@@ -88,7 +88,7 @@ metric_space.eq_of_dist_eq_zero
 theorem dist_comm (x y : α) : dist x y = dist y x := metric_space.dist_comm x y
 
 theorem edist_dist (x y : α) : edist x y = ennreal.of_real (dist x y) :=
-metric_space.edist_dist _ x y
+metric_space.edist_dist x y
 
 @[simp] theorem dist_eq_zero {x y : α} : dist x y = 0 ↔ x = y :=
 iff.intro eq_of_dist_eq_zero (assume : x = y, this ▸ dist_self _)
@@ -281,7 +281,7 @@ not_lt_of_le (dist_triangle_left x y z)
   (lt_of_lt_of_le (add_lt_add h₁ h₂) h)
 
 theorem ball_disjoint_same (h : ε ≤ dist x y / 2) : ball x ε ∩ ball y ε = ∅ :=
-ball_disjoint $ by rwa [← two_mul, ← le_div_iff' two_pos]
+ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@two_pos ℝ _)]
 
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact
@@ -303,11 +303,13 @@ by rw [← metric.ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
-(metric_space.uniformity_dist α).symm ▸ has_basis_binfi_principal
-  (λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-    λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-    λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩) $
-  nonempty_Ioi
+begin
+  rw ← metric_space.uniformity_dist.symm,
+  refine has_basis_binfi_principal _ nonempty_Ioi,
+  exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
+     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
+     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩
+end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
 accumulating to zero, then `f i`-neighborhoods of the diagonal form a basis of `𝓤 α`.
@@ -660,7 +662,7 @@ lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
 by { convert metric.emetric_closed_ball ε.2, simp }
 
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
-  (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -670,7 +672,7 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   edist              := edist,
   edist_dist         := edist_dist,
   to_uniform_space   := U,
-  uniformity_dist    := H.trans (metric_space.uniformity_dist α) }
+  uniformity_dist    := H.trans metric_space.uniformity_dist }
 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the

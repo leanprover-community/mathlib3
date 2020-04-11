@@ -38,14 +38,14 @@ end struct
 
 /-- Endomorphisms of an object form a monoid -/
 instance monoid {C : Type u} [category.{v} C] {X : C} : monoid (End X) :=
-{ mul_one := category.id_comp C,
-  one_mul := category.comp_id C,
-  mul_assoc := λ x y z, (category.assoc C z y x).symm,
+{ mul_one := category.id_comp,
+  one_mul := category.comp_id,
+  mul_assoc := λ x y z, (category.assoc z y x).symm,
   ..End.has_mul X, ..End.has_one X }
 
 /-- In a groupoid, endomorphisms form a group -/
 instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
-{ mul_left_inv := groupoid.comp_inv C, inv := groupoid.inv, ..End.monoid }
+{ mul_left_inv := groupoid.comp_inv, inv := groupoid.inv, ..End.monoid }
 
 end End
 

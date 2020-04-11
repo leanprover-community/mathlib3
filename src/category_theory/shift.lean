@@ -27,7 +27,7 @@ class has_shift :=
 variables [has_shift.{v} C]
 
 /-- The shift autoequivalence, moving objects and morphisms 'up'. -/
-def shift : C ≌ C := has_shift.shift.{v} C
+def shift : C ≌ C := has_shift.shift.{v}
 
 -- Any better notational suggestions?
 notation X`⟦`n`⟧`:20 := ((shift _)^(n : ℤ)).functor.obj X

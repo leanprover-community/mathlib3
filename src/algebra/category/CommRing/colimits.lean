@@ -64,8 +64,8 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
-| one {} : prequotient
+| zero : prequotient
+| one : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 | mul : prequotient → prequotient → prequotient
@@ -351,9 +351,9 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- zero
-    { erw ring_hom.map_zero ((s.ι).app r), refl },
+    { erw ring_hom.map_zero ((s.ι).app r) },
     -- one
-    { erw ring_hom.map_one ((s.ι).app r), refl },
+    { erw ring_hom.map_one ((s.ι).app r) },
     -- neg
     { rw ring_hom.map_neg ((s.ι).app r_j) },
     -- add

@@ -151,14 +151,14 @@ begin
 end
 
 instance : is_subring (closure s) :=
-{ one_mem := add_group.mem_closure (is_submonoid.one_mem _),
+{ one_mem := add_group.mem_closure is_submonoid.one_mem,
   mul_mem := λ a b ha hb, add_group.in_closure.rec_on hb
     (λ b hb, add_group.in_closure.rec_on ha
       (λ a ha, add_group.subset_closure (is_submonoid.mul_mem ha hb))
-      ((zero_mul b).symm ▸ is_add_submonoid.zero_mem _)
+      ((zero_mul b).symm ▸ is_add_submonoid.zero_mem)
       (λ a ha hab, (neg_mul_eq_neg_mul a b) ▸ is_add_subgroup.neg_mem hab)
       (λ a c ha hc hab hcb, (add_mul a c b).symm ▸ is_add_submonoid.add_mem hab hcb))
-    ((mul_zero a).symm ▸ is_add_submonoid.zero_mem _)
+    ((mul_zero a).symm ▸ is_add_submonoid.zero_mem)
     (λ b hb hab, (neg_mul_eq_mul_neg a b) ▸ is_add_subgroup.neg_mem hab)
     (λ b c hb hc hab hac, (mul_add a b c).symm ▸ is_add_submonoid.add_mem hab hac),
   .. add_group.closure.is_add_subgroup _ }

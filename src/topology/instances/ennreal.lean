@@ -52,7 +52,7 @@ instance : second_countable_topology ennreal :=
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
 ⟨⟨begin
   refine le_antisymm _ _,
-  { rw [order_topology.topology_eq_generate_intervals ennreal,
+  { rw [@order_topology.topology_eq_generate_intervals ennreal _,
       ← coinduced_le_iff_le_induced],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
@@ -60,7 +60,7 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
     { cases a; simp [none_eq_top, some_eq_coe, is_open_lt'] },
     show is_open {b : nnreal | ↑b < a},
     { cases a; simp [none_eq_top, some_eq_coe, is_open_gt', is_open_const] } },
-  { rw [order_topology.topology_eq_generate_intervals nnreal],
+  { rw [@order_topology.topology_eq_generate_intervals nnreal _],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,

@@ -192,7 +192,7 @@ do
   e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
-  h ← assertv_fresh eq prf,
+  h ← note_anon eq prf,
   -- Revert the new hypothesis, so it is also part of the goal.
   revert h,
   ex ← to_expr ``(equiv.to_fun %%e %%x'),

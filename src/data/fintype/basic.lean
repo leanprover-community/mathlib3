@@ -16,7 +16,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
   is a finset `elems` (a list up to permutation without duplicates),
   together with a proof that everything of type `α` is in the list. -/
 class fintype (α : Type*) :=
-(elems : finset α)
+(elems [] : finset α)
 (complete : ∀ x : α, x ∈ elems)
 
 namespace finset

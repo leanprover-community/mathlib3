@@ -105,7 +105,7 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
-(prim : nat.primrec (λ n, encodable.encode (decode n)))
+(prim [] : nat.primrec (λ n, encodable.encode (decode n)))
 end prio
 
 namespace primcodable
@@ -973,7 +973,7 @@ theorem list_find_index {f : α → list β} {p : α → β → Prop}
   ite (hp.comp fst $ fst.comp snd) (const 0)
     (succ.comp $ snd.comp snd)).of_eq $
 λ a, eq.symm $ by dsimp; induction f a with b l;
-  [refl, { simp [*, list.find_index], congr }]
+  [refl, simp [*, list.find_index]]
 
 theorem list_index_of [decidable_eq α] : primrec₂ (@list.index_of α _) :=
 to₂ $ list_find_index snd $ primrec.eq.comp₂ (fst.comp fst).to₂ snd.to₂

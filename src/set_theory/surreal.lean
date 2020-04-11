@@ -70,7 +70,7 @@ instance : has_mul pgame := ⟨mul⟩
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive inv_ty (l r : Type u) : bool → Type u
-| zero {} : inv_ty ff
+| zero : inv_ty ff
 | left₁ : r → inv_ty ff → inv_ty ff
 | left₂ : l → inv_ty tt → inv_ty ff
 | right₁ : l → inv_ty ff → inv_ty tt

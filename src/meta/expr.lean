@@ -221,7 +221,7 @@ namespace expr
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
 protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
+| `(has_one.one) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
 | `(bit1 %%e) := bit1 <$> e.to_pos_nat
 | _           := none
@@ -229,7 +229,7 @@ protected meta def to_pos_nat : expr → option ℕ
 /-- Turns an expression into a natural number, assuming it is only built up from
   `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
 protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
+| `(has_zero.zero) := some 0
 | e                  := e.to_pos_nat
 
 /-- Turns an expression into a integer, assuming it is only built up from

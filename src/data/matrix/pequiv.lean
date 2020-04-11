@@ -64,7 +64,6 @@ by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
 by ext; simp [to_matrix, one_val]; congr
 
-
 lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin
@@ -72,8 +71,10 @@ begin
   cases h : f.symm j with fj,
   { simp [h, f.eq_some_iff.symm] },
   { conv in (_ ∈ _) { rw ← f.mem_iff_mem },
-    rw finset.sum_eq_single fj;
-    simp [h, eq_comm] {contextual := tt} }
+    rw finset.sum_eq_single fj,
+    { simp [h, f.eq_some_iff.symm], },
+    { intros b H n, simp [h, f.eq_some_iff.symm, n.symm], },
+    { simp, } }
 end
 
 lemma to_pequiv_mul_matrix [decidable_eq m] [semiring α] (f : m ≃ m) (M : matrix m n α) :

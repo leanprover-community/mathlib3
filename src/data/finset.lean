@@ -2089,12 +2089,6 @@ theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ 
 by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
-lemma exists_max (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
-begin
-  cases max_of_nonempty (h.image f) with y hy,
-  rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
-  exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
-end
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
@@ -2142,33 +2136,23 @@ theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ 
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
+end max_min
+
+variables [linear_order α]
+lemma exists_max (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
+begin
+  letI := classical.DLO α,
+  cases max_of_nonempty (h.image f) with y hy,
+  rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
+  exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
+end
+
 lemma exists_min (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
 begin
+  letI := classical.DLO α,
   cases min_of_nonempty (h.image f) with y hy,
   rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
   exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
-end
-
-end max_min
-
-/-- An alternate version of `exists_max` with different typeclass requirements. -/
-lemma exists_max_of_decidable_range [linear_order α] [decidable_eq β] (s : finset β) (f : β → α) :
-  s.nonempty → ∃ x ∈ s, ∀ y ∈ s, f y ≤ f x :=
-begin
-  apply finset.induction_on s,
-    intro a, exfalso, simp only [finset.nonempty, exists_false, not_mem_empty] at a,
-    assumption,
-  intros i B hi ih _, cases eq_empty_or_nonempty B,
-    rw h, refine ⟨i, mem_insert_self _ _, λ t th, _⟩,
-    rw [mem_insert] at th, rw or.resolve_right th (not_mem_empty t),
-  specialize ih h, rcases ih with ⟨k, kB, q⟩,
-  cases (le_total (f i) (f k)) with ik ki,
-    refine ⟨k, mem_insert_of_mem kB, λ t th, _⟩,
-    rw mem_insert at th, cases th,
-      rwa th,
-    apply q _ th,
-  refine ⟨i, mem_insert_self _ _,  λ t th, _⟩,
-  rw mem_insert at th, cases th, rwa th, apply trans (q _ th) ki,
 end
 
 /-! ### sort -/
@@ -2405,17 +2389,18 @@ begin
 end
 
 /--
-If there's more than 1 element, the min' is different to the max'. An alternate version of
+If there's more than 1 element, the min' is less than the max'. An alternate version of
 `min'_lt_max'` which is sometimes more convenient.
 -/
-lemma min_ne_max_of_card (h₂ : 1 < card s) : s.min' H ≠ s.max' H :=
+lemma min'_lt_max'_of_card (h₂ : 1 < card s) : s.min' H < s.max' H :=
 begin
+  apply lt_of_not_ge,
   intro a,
   apply not_le_of_lt h₂ (le_of_eq _),
   rw card_eq_one,
   use max' s H,
   rw eq_singleton_iff_unique_mem,
-  exact ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (a ▸ min'_le s H t Ht)⟩
+  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (le_trans a (min'_le s H t Ht))⟩,
 end
 
 end decidable_linear_order

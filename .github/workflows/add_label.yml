@@ -63,12 +63,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - if: (steps.parse_pr_head.outputs.head_user == 'bryangingechen') && (steps.parse_user.outputs.permission == 'admin')
-        uses: octokit/request-action@v2.x
-        id: remove_not_ready_to_merge
-        name: Remove "not-ready-to-merge"
-        with:
-          route: DELETE /repos/:repository/issues/:issue_number/labels/not-ready-to-merge
-          repository: ${{ github.repository }}
-          issue_number: ${{ github.event.issue.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl --request DELETE \
+          --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/request-review \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
+        # uses: octokit/request-action@v2.x
+        # id: remove_request_review
+        # name: Remove "request-review"
+        # with:
+        #   route: DELETE /repos/:repository/issues/:issue_number/labels/request-review
+        #   repository: ${{ github.repository }}
+        #   issue_number: ${{ github.event.issue.number }}
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

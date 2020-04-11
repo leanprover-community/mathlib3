@@ -148,7 +148,7 @@ lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
 
 variables (α β)
 @[simp] lemma integrable_zero : integrable (λa:α, (0:β)) :=
-by { have := coe_lt_top, simpa [integrable] }
+by simp [integrable]
 variables {α β}
 
 lemma lintegral_nnnorm_add [measurable_space β] [opens_measurable_space β]

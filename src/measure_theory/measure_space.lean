@@ -799,7 +799,7 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
-(μ {} : measure α)
+(μ : measure α)
 end prio
 
 section measure_space

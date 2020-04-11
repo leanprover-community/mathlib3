@@ -79,7 +79,7 @@ class split_epi {X Y : C} (f : X ⟶ Y) :=
 def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction.{v₁} f
 @[simp, reassoc]
 lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
-split_mono.id' f
+split_mono.id'
 /-- The retraction of a split monomorphism is itself a split epimorphism. -/
 instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi (retraction f) :=
 { section_ := f }
@@ -91,7 +91,7 @@ The chosen section of a split epimorphism.
 def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_.{v₁} f
 @[simp, reassoc]
 lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
-split_epi.id' f
+split_epi.id'
 /-- The section of a split epimorphism is itself a split monomorphism. -/
 instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (section_ f) :=
 { retraction := f }

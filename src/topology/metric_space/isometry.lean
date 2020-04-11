@@ -316,7 +316,7 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with basepoint,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ _,
+    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
     have : closure (range x) = univ :=

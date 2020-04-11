@@ -60,7 +60,7 @@ def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
 { obj       := m,
   map       := λ α β f, (equiv_functor.map_equiv m f.to_equiv).to_iso,
   -- These are not very pretty.
-  map_id' := λ α, begin ext, exact (congr_fun (equiv_functor.map_refl _ _) x), end,
+  map_id' := λ α, begin ext, exact (congr_fun (equiv_functor.map_refl _) x), end,
   map_comp' := λ α β γ f g,
   begin
     ext,

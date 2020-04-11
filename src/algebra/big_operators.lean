@@ -861,7 +861,7 @@ end canonically_ordered_monoid
 
 section ordered_cancel_comm_monoid
 
-variables [ordered_cancel_comm_monoid β]
+variables [ordered_cancel_add_comm_monoid β]
 
 theorem sum_lt_sum (Hle : ∀ i ∈ s, f i ≤ g i) (Hlt : ∃ i ∈ s, f i < g i) :
   s.sum f < s.sum g :=
@@ -897,7 +897,7 @@ end ordered_cancel_comm_monoid
 
 section decidable_linear_ordered_cancel_comm_monoid
 
-variables [decidable_linear_ordered_cancel_comm_monoid β]
+variables [decidable_linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : s.sum f ≤ s.sum g) :
   ∃ i ∈ s, f i ≤ g i :=

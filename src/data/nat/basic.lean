@@ -570,7 +570,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1], congr },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,

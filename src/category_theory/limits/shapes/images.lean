@@ -116,9 +116,9 @@ section
 variable [has_image f]
 
 /-- The chosen factorisation of `f` through a monomorphism. -/
-def image.mono_factorisation : mono_factorisation f := has_image.F f
+def image.mono_factorisation : mono_factorisation f := has_image.F
 /-- The witness of the universal property for the chosen factorisation of `f` through a monomorphism. -/
-def image.is_image : is_image (image.mono_factorisation f) := has_image.is_image f
+def image.is_image : is_image (image.mono_factorisation f) := has_image.is_image
 
 /-- The categorical image of a morphism. -/
 def image : C := (image.mono_factorisation f).I
@@ -260,7 +260,7 @@ agrees with the one step comparison map
 lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
   [has_image (g ≫ h)] [has_image (f ≫ g ≫ h)]
   [has_image h] [has_image ((f ≫ g) ≫ h)] :
-image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc C f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
+image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
 begin
   apply (cancel_mono (image.ι h)).1,
   dsimp [image.pre_comp, image.eq_to_hom],

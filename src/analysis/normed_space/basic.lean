@@ -785,7 +785,7 @@ end prio
 
 @[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
-normed_algebra.norm_algebra_map_eq _ _
+normed_algebra.norm_algebra_map_eq _
 
 end normed_algebra
 

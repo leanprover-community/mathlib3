@@ -1589,7 +1589,7 @@ attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_pro
 
 /-- A list with positive sum must have positive length. -/
 -- This is an easy consequence of the previous, but often useful in applications.
-lemma length_pos_of_sum_pos [ordered_cancel_comm_monoid α] (L : list α) (h : 0 < L.sum) :
+lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid α] (L : list α) (h : 0 < L.sum) :
   0 < L.length :=
 length_pos_of_sum_ne_zero L (ne_of_gt h)
 
@@ -1624,7 +1624,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -1634,7 +1634,7 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -1669,7 +1669,7 @@ by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
 /- lexicographic ordering -/
 
 inductive lex (r : α → α → Prop) : list α → list α → Prop
-| nil {} {a l} : lex [] (a :: l)
+| nil {a l} : lex [] (a :: l)
 | cons {a l₁ l₂} (h : lex l₁ l₂) : lex (a :: l₁) (a :: l₂)
 | rel {a₁ l₁ a₂ l₂} (h : r a₁ a₂) : lex (a₁ :: l₁) (a₂ :: l₂)
 

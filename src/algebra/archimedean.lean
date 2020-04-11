@@ -96,7 +96,7 @@ lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
-have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
+have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
 by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
 by rwa [neg_add, neg_add_cancel_right, fpow_neg,

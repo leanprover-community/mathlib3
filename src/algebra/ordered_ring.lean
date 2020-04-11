@@ -300,9 +300,7 @@ instance to_ordered_ring : ordered_ring α :=
   le_refl := @le_refl _ _,
   le_trans := @le_trans _ _,
   le_antisymm := @le_antisymm _ _,
-  add_lt_add_left := @add_lt_add_left _ _,
   add_le_add_left := @add_le_add_left _ _,
-  mul_nonneg := λ a b, by simp [nonneg_def.symm]; exact mul_nonneg,
   mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..s }
 
@@ -322,8 +320,8 @@ def to_linear_nonneg_ring
       (λ pa, classical.by_cases
         (λ nnb : nonneg (-b), or.inr (nonneg_antisymm nb nnb))
         (λ pb, absurd z $ ne_of_gt $ pos_def.1 $ mul_pos
-          ((pos_iff _ _).2 ⟨na, pa⟩)
-          ((pos_iff _ _).2 ⟨nb, pb⟩))),
+          ((pos_iff _).2 ⟨na, pa⟩)
+          ((pos_iff _).2 ⟨nb, pb⟩))),
   ..s }
 
 end nonneg_ring
@@ -335,10 +333,10 @@ variable [s : linear_nonneg_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance to_nonneg_ring : nonneg_ring α :=
 { mul_pos := λ a b pa pb,
-  let ⟨a1, a2⟩ := (pos_iff α a).1 pa,
-      ⟨b1, b2⟩ := (pos_iff α b).1 pb in
+  let ⟨a1, a2⟩ := (pos_iff a).1 pa,
+      ⟨b1, b2⟩ := (pos_iff b).1 pb in
   have ab : nonneg (a * b), from mul_nonneg a1 b1,
-  (pos_iff α _).2 ⟨ab, λ hn,
+  (pos_iff _).2 ⟨ab, λ hn,
     have a * b = 0, from nonneg_antisymm ab hn,
     (eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).elim
       (ne_of_gt (pos_def.1 pa))
@@ -365,14 +363,12 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
   le_trans := @le_trans _ _,
   le_antisymm := @le_antisymm _ _,
   le_total := @le_total _ _,
-  add_lt_add_left := @add_lt_add_left _ _,
   add_le_add_left := @add_le_add_left _ _,
-  mul_nonneg := by simp [nonneg_def.symm]; exact @mul_nonneg _ _,
   mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
   zero_lt_one := lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
     rw [zero_sub] at h,
     have := mul_nonneg h h, simp at this,
-    exact zero_ne_one _ (nonneg_antisymm this h).symm
+    exact zero_ne_one (nonneg_antisymm this h).symm
   end, ..s }
 
 /-- Convert a `linear_nonneg_ring` with a commutative multiplication and
@@ -383,7 +379,7 @@ def to_decidable_linear_ordered_comm_ring
   : decidable_linear_ordered_comm_ring α :=
 { decidable_le := by apply_instance,
   decidable_lt := by apply_instance,
-  mul_comm := is_commutative.comm (*),
+  mul_comm := is_commutative.comm,
   ..@linear_nonneg_ring.to_linear_ordered_ring _ s }
 
 end linear_nonneg_ring

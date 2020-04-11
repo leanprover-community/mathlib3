@@ -32,7 +32,7 @@ lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] 
   a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
 
 variable (α)
-@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul α _
+@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
 
 variables {α} (p : Prop) [decidable p]
 
@@ -129,7 +129,7 @@ lemma orbit_eq_iff {a b : β} :
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
 instance (b : β) : is_subgroup (stabilizer α b) :=
-{ one_mem := mul_action.one_smul _ _,
+{ one_mem := mul_action.one_smul _,
   mul_mem := λ x y (hx : x • b = b) (hy : y • b = b),
     show (x * y) • b = b, by rw mul_action.mul_smul; simp *,
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
@@ -190,7 +190,7 @@ set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
-(smul_zero {} : ∀(r : α), r • (0 : β) = 0)
+(smul_zero : ∀(r : α), r • (0 : β) = 0)
 end prio
 
 section

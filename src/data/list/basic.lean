@@ -19,6 +19,8 @@ namespace list
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+attribute [inline] list.head
+
 instance : is_left_id (list α) has_append.append [] :=
 ⟨ nil_append ⟩
 

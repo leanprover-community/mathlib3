@@ -12,9 +12,33 @@ import category_theory.comma
 We define the categorical image of `f` as a factorisation `f = e ≫ m` through a monomorphism `m`,
 so that `m` factors through the `m'` in any other such factorisation.
 
+## Main definitions
+
+* A `mono_factorisation` is a factorisation `f = e ≫ m`, where `m` is a monomorphism
+* `is_image F` means that a given mono factorisation `F` has the universal property of the image.
+* `has_image f` means that we have chosen an image for the morphism `f : X ⟶ Y`.
+  * In this case, `image f` is the image object, `image.ι f : image f ⟶ Y` is the monomorphism `m`
+    of the factorisation and `factor_thru_image f : X ⟶ image f` is the morphism `e`.
+* `has_images C` means that every morphism in `C` has an image.
+* Let `f : X ⟶ Y` and `g : P ⟶ Q` be morphisms in `C`, which we will represent as objects of the
+  arrow category `arrow C`. Then `sq : f ⟶ g` is a commutative square in `C`. If `f` and `g` have
+  images, then `has_image_map sq` represents the fact that there is a morphism
+  `i : image f ⟶ image g` making the diagram
+
+  X ----→ image f ----→ Y
+  |         |           |
+  |         |           |
+  ↓         ↓           ↓
+  P ----→ image g ----→ Q
+
+  commute, where the top row is the image factorisation of `f`, the bottom row is the image
+  factorisation of `g`, and the outer rectangle is the commutative square `sq`.
+* If a category `has_images`, then `has_image_maps` means that every commutative square admits an
+  image map.
+
 ## Main statements
 
-* When `C` has equalizers, the morphism `m` is an epimorphism.
+* When `C` has equalizers, the morphism `e` appearing in an image factorisation is an epimorphism.
 
 ## Future work
 * TODO: coimages, and abelian categories.
@@ -347,9 +371,7 @@ variables (f)
 /-- The identity `image f ⟶ image f` fits into the commutative square represented by the identity
     morphism `𝟙 f` in the arrow category. -/
 def has_image_map_id : has_image_map (𝟙 f) :=
-{ map := 𝟙 (image f.hom),
-  factor_map' := by erw [arrow.id_left, category.id_comp, category.comp_id],
-  map_ι' := by erw [arrow.id_right, category.id_comp, category.comp_id] }
+{ map := 𝟙 (image f.hom) }
 
 @[simp]
 lemma image.map_id [has_image_map (𝟙 f)] : image.map (𝟙 f) = 𝟙 (image f.hom) :=
@@ -375,6 +397,7 @@ variables [has_images.{v} C] [has_image_maps.{v} C]
 
 /-- The functor from the arrow category of `C` to `C` itself that maps a morphism to its image
     and a commutative square to the induced morphism on images. -/
+@[simps]
 def im : arrow C ⥤ C :=
 { obj := λ f, image f.hom,
   map := λ _ _ st, image.map st,

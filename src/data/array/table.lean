@@ -27,11 +27,11 @@ def buffer.map' {α : Type u} {β : Type v} (f : α → β) (x : buffer α) :
   buffer β :=
 (x.to_array.map' f).to_buffer
 
-abbreviation table (α : Type u) := buffer (option α)
+@[reducible] def table (α : Type u) := buffer (option α)
 
 namespace table
 
-variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table α)
+variables {α : Type u} {β : Type v} (t : table α)
 
 def create (len : ℕ := 0) : table α :=
 ⟨len, mk_array len none⟩
@@ -80,7 +80,7 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i, t.length 
 t.find_from p 0
 
 def foldl (f : β → α → β) (b : β) (t : table α) : β :=
-t.to_array.foldl b (λ a : option α, λ b : β,
+t.foldl b (λ a : option α, λ b : β,
   match a with
   | none := b
   | some a := f b a

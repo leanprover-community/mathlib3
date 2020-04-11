@@ -23,10 +23,11 @@ We provide various simplification lemmas for functors and natural transformation
 We define `ulift_functor`, from `Type u` to `Type (max u v)`, and show that it is fully faithful
 (but not, of course, essentially surjective).
 
-We prove some basic facts about the category `Type`,
-in particular that epimorphisms are surjections and monomorphisms are injections,
-and show that `iso` is both `iso` and `equiv` to `equiv`!
-(At least for `equiv` with a fixed universe level.)
+We prove some basic facts about the category `Type`:
+*  epimorphisms are surjections and monomorphisms are injections,
+* `iso` is both `iso` and `equiv` to `equiv` (at least within a fixed universe),
+* every type level `is_lawful_functor` gives a categorical functor `Type ⥤ Type`
+  (the corresponding fact about monads is in `src/category_theory/monad/types.lean`).
 -/
 
 namespace category_theory

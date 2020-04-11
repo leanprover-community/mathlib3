@@ -10,41 +10,10 @@ import data.array.defs
 /-!
 # Tables
 
-A `table` is a self-resizing array-backed list,
-which uses opaque references called `ℕ`s for access.
+TODO(jmc): fix the documentation
 -/
 
 universe variables u v w z
-
-attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
-attribute [inline] array.read array.write
-
--- @[irreducible] def ℕ : Type := ℕ
-
--- namespace ℕ
-
--- section internal
-
--- local attribute [reducible] ℕ
-
--- def MAXIMUM := 0xFFFFFFFF
-
--- def of_nat (r : ℕ) : ℕ := r
--- def to_nat (r : ℕ) : ℕ := r
--- def next (r : ℕ) : ℕ := of_nat (r + 1)
-
--- instance : decidable_eq ℕ := by apply_instance
-
--- instance : has_to_string ℕ := by apply_instance
--- meta instance : has_to_format ℕ := by apply_instance
-
--- end internal
-
--- def to_string (r : ℕ) : string := to_string r.to_nat
--- def null  : ℕ := of_nat MAXIMUM
--- def first : ℕ := of_nat 0
-
--- end ℕ
 
 def d_array.map' {n : ℕ} {α : fin n → Type u} {β : fin n → Type v} (f : Π (i : fin n), α i → β i) (x : d_array n α) :
   d_array n β :=
@@ -58,6 +27,7 @@ def buffer.map' {α : Type u} {β : Type v} (f : α → β) (x : buffer α) :
   buffer β :=
 (x.to_array.map' f).to_buffer
 
+-- TODO: inline these classes, they are almost never used.
 class indexed (α : Type u) :=
 (index : α → ℕ)
 class keyed (α : Type u) (κ : Type v) [decidable_eq κ] :=
@@ -72,9 +42,7 @@ variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table
 -- TODO use push_back and pop_back builtins to avoid array preallocation
 -- TODO several recusion-induced-meta can be removed from the file (given proofs)
 
-def DEFAULT_TABLE_LEN := 10
-
-def create (len : ℕ := DEFAULT_TABLE_LEN) : table α :=
+def create (len : ℕ := 0) : table α :=
 ⟨len, mk_array len none⟩
 
 -- TODO(jmc): Is this fast? Otherwise optimise.
@@ -88,28 +56,16 @@ def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 
 def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
--- @[inline] def is_full : bool := t.next_id.to_nat = t.buff_len
-
 @[inline] private def try_fin (r : ℕ) : option (fin t.size) :=
 if h : r < t.size then some ⟨r, h⟩ else none
 
--- @[inline] meta def grow : table α :=
--- let new_len := t.buff_len * 2 in
--- let new_buff : array new_len (option α) := mk_array new_len none in
--- {t with buff_len := new_len, entries := array.copy t.entries new_buff}
+@[inline] def get (r : ℕ) : option α :=
+t.read' r
 
-@[inline] def at_ref (r : ℕ) : option α :=
-match try_fin t r with
-| none := none
-| some r := t.read r
-end
-
-@[inline] def present (r : ℕ) : bool := (t.at_ref r).is_some
-
-@[inline] def get (r : ℕ) : option α := t.at_ref r
+@[inline] def contains (r : ℕ) : bool := (t.get r).is_some
 
 @[inline] def iget [inhabited α] (r : ℕ) : α :=
-match t.at_ref r with
+match t.get r with
 | none := default α
 | some a := a
 end
@@ -120,19 +76,19 @@ match try_fin t r with
 | some r := t.write r a
 end
 
-@[inline] def alloc (a : α) : table α :=
+@[inline] def push_back (a : α) : table α :=
 t.push_back a
 
-@[inline] def alloc_list : table α → list α → table α
+@[inline] def append_list : table α → list α → table α
 | t [] := t
-| t (a :: rest) := alloc_list (t.alloc a) rest
+| t (a :: rest) := append_list (t.push_back a) rest
 
 @[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
 
 @[inline] def length : ℕ := t.size
 
 meta def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
-| ref := match t.at_ref ref with
+| ref := match t.get ref with
          | none := none
          | some a := if p a then some a else find_from (ref + 1)
          end

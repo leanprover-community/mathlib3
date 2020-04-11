@@ -57,7 +57,7 @@ meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state
 do (pp, tokens) ← tokenise_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
    let v : vertex := vertex.create g.vertices.length e pp token_refs root s,
-   return ({ g with vertices := g.vertices.alloc v }, v)
+   return ({ g with vertices := g.vertices.push_back v }, v)
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
 -- not already present.
@@ -81,7 +81,7 @@ meta def register_solved (e : edge) : search_state α β γ δ :=
 { g with solving_edge := some e }
 
 meta def add_adj (v : vertex) (e : edge) : search_state α β γ δ × vertex :=
-g.set_vertex { v with adj := v.adj.alloc e }
+g.set_vertex { v with adj := v.adj.push_back e }
 
 meta def publish_parent (f t : vertex) (e : edge) : search_state α β γ δ × vertex :=
 if t.root then
@@ -113,12 +113,12 @@ meta def commit_rewrite (f : vertex) (r : rewrite) : tactic (search_state α β 
 
 meta def reveal_more_rewrites (v : vertex) : tactic (search_state α β γ δ × vertex × option rewrite) := do
   (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.rwall_conf v.s v.rw_prog,
-  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.alloc_list new_rws},
+  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rws},
   return (g, v, new_rws.nth 0)
 
 -- TODO implement a table-backed queue?
 meta def reveal_more_adjs (o : vertex) : tactic (search_state α β γ δ × vertex × option (vertex × edge)) := do
-  (g, o, rw) ← match o.rws.at_ref o.rw_front with
+  (g, o, rw) ← match o.rws.get o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)
   end,
@@ -148,7 +148,7 @@ meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) : tact
 meta def alloc_estimate (p : pair) : tactic (search_state α β γ δ × ℕ) := do
   (vl, vr) ← g.lookup_pair p,
   let ref := g.estimates.length,
-  let new_estimates := g.estimates.alloc ⟨p, ref, m.init_bound g vl vr⟩,
+  let new_estimates := g.estimates.push_back ⟨p, ref, m.init_bound g vl vr⟩,
   return ({g with estimates := new_estimates}, ref)
 
 /-- Check if `eq.refl _` suffices to prove the two sides are equal. -/
@@ -179,7 +179,7 @@ private meta def advance (it : rewriterator) : rewriterator :=
 
 meta def next (it : rewriterator) (g : search_state α β γ δ) : tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,
-  match o.adj.at_ref it.front with
+  match o.adj.get it.front with
   | some e := do
     v ← g.vertices.get e.t,
     return (g, advance it, some (v, e))

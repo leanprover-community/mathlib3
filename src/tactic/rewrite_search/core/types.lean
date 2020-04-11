@@ -148,7 +148,7 @@ meta def find_or_create_token (tokens : table token) (s : side) (tstr : string) 
 match tokens.find_key tstr with
 | none := do
   let t : token := ⟨tokens.length, tstr, ⟨0, 0⟩⟩,
-  let t := t.inc s in (tokens.alloc t, t)
+  let t := t.inc s in (tokens.push_back t, t)
 | (some t) := do
   let t := t.inc s in (tokens.update t, t)
 end

@@ -42,7 +42,7 @@ meta def search_step (me : ℕ) : table edge → list edge → tactic (table edg
   | none := fail "bad edge in adjacency table!"
   | some id := do
     (been, queue_head) ← pure $
-      if been.present id ∨ id = LHS_VERTEX_ID then (been, [])
+      if been.contains id ∨ id = LHS_VERTEX_ID then (been, [])
       else (been.set id e, [id]),
     (been, queue) ← search_step been rest,
     return (been, queue_head ++ queue)
@@ -64,7 +64,7 @@ meta def search : tactic (table edge) :=
 meta def crawl (t : table edge) : ℕ → tactic (list edge)
 | id :=
   if id = LHS_VERTEX_ID then return [] else do
-  match t.at_ref id with
+  match t.get id with
   | none := fail "bug: broken chain while bfs crawling!"
   | some e :=
     match e.other id with

@@ -235,8 +235,8 @@ image.lift.{v}
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
 { inv := image.eq_to_hom h.symm,
-  hom_inv_id' := begin apply (cancel_mono (image.ι f)).1, dsimp [image.eq_to_hom], simp, end,
-  inv_hom_id' := begin apply (cancel_mono (image.ι f')).1, dsimp [image.eq_to_hom], simp, end, }
+  hom_inv_id' := begin apply (cancel_mono (image.ι f)).1, simp [image.eq_to_hom], end,
+  inv_hom_id' := begin apply (cancel_mono (image.ι f')).1, simp [image.eq_to_hom], end, }
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -347,9 +347,7 @@ variables (f)
 /-- The identity `image f ⟶ image f` fits into the commutative square represented by the identity
     morphism `𝟙 f` in the arrow category. -/
 def has_image_map_id : has_image_map (𝟙 f) :=
-{ map := 𝟙 (image f.hom),
-  factor_map' := by erw [arrow.id_left, category.id_comp, category.comp_id],
-  map_ι' := by erw [arrow.id_right, category.id_comp, category.comp_id] }
+{ map := 𝟙 (image f.hom) }
 
 @[simp]
 lemma image.map_id [has_image_map (𝟙 f)] : image.map (𝟙 f) = 𝟙 (image f.hom) :=

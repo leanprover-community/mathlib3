@@ -97,13 +97,11 @@ by pi_instance
 instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] : add_right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
+instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] : ordered_cancel_add_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
-{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
-    λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
-  add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
+instance ordered_comm_group [∀ i, ordered_add_comm_group $ f i] : ordered_add_comm_group (Π i : I, f i) :=
+{ add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
   ..pi.partial_order }
 
@@ -221,9 +219,10 @@ variables {I : Type*} (Z : I → Type*)
 variables [Π i, comm_monoid (Z i)]
 
 @[simp, to_additive]
-lemma finset.prod_apply {γ : Type*} [decidable_eq γ] {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
+lemma finset.prod_apply {γ : Type*} {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
   (s.prod h) i = s.prod (λ g, h g i) :=
 begin
+  classical,
   induction s using finset.induction_on with b s nmem ih,
   { simp only [finset.prod_empty], refl },
   { simp only [nmem, finset.prod_insert, not_false_iff],

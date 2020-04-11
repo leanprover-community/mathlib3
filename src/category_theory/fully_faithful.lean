@@ -26,7 +26,7 @@ attribute [simp] full.witness
 
 /-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
 class faithful (F : C ⥤ D) : Prop :=
-(injectivity' : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
+(injectivity' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 
 restate_axiom faithful.injectivity'
 

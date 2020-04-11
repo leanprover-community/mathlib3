@@ -114,7 +114,7 @@ open_locale interval
 
 section ordered_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_comm_group α] {a b x y : α}
+variables {α : Type u} [decidable_linear_ordered_add_comm_group α] {a b x y : α}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/

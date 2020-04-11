@@ -163,7 +163,7 @@ variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
 begin
   erw [Hausdorff_edist_def, sup_idem, ← le_bot_iff],
   apply Sup_le _,
-  simp [le_bot_iff, inf_edist_zero_of_mem] {contextual := tt},
+  simp [le_bot_iff, inf_edist_zero_of_mem, le_refl] {contextual := tt},
 end
 
 /-- The Haudorff edistances of `s` to `t` and of `t` to `s` coincide -/

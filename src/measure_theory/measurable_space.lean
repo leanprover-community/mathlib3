@@ -207,7 +207,7 @@ inductive generate_measurable (s : set (set α)) : set α → Prop
 /-- Construct the smallest measure space containing a collection of basic sets -/
 def generate_from (s : set (set α)) : measurable_space α :=
 { is_measurable       := generate_measurable s,
-  is_measurable_empty := generate_measurable.empty s,
+  is_measurable_empty := generate_measurable.empty,
   is_measurable_compl := generate_measurable.compl,
   is_measurable_Union := generate_measurable.union }
 
@@ -939,7 +939,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
 
 def generate (s : set (set α)) : dynkin_system α :=
 { has := generate_has s,
-  has_empty := generate_has.empty s,
+  has_empty := generate_has.empty,
   has_compl := assume a, generate_has.compl,
   has_Union_nat := assume f, generate_has.Union }
 
@@ -993,7 +993,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
     from generate_le _ $ assume s₂ hs₂,
       show (generate s).has (s₂ ∩ s₁), from
         (s₂ ∩ s₁).eq_empty_or_nonempty.elim
-        (λ h,  h.symm ▸ generate_has.empty _)
+        (λ h,  h.symm ▸ generate_has.empty)
         (λ h, generate_has.basic _ (hs _ _ hs₂ hs₁ h)),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category.equiv_functor
+import tactic.simp_result
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -190,14 +191,15 @@ Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
 meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=
-do
+-- We call `dsimp_result` to perform the beta redex introduced by `revert`
+dsimp_result (do
   x' ← get_local x,
   x_ty ← infer_type x',
   -- Adapt `e` to an equivalence with left-hand-side `x_ty`.
   e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
-  h ← assertv_fresh eq prf,
+  h ← note_anon eq prf,
   -- Revert the new hypothesis, so it is also part of the goal.
   revert h,
   ex ← to_expr ``(equiv.to_fun %%e %%x'),
@@ -219,7 +221,8 @@ do
   else
     clear' tt (native.rb_map.set_of_list [x']) <|>
       fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
-  skip
+  skip)
+  {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.
 
 /-- Rewrite the goal using an equiv `e`. -/
 meta def equiv_rw_target (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=

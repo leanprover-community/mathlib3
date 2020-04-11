@@ -187,3 +187,29 @@ def closed_neighbourhood.graph (G : graph V) (x : V) : graph (closed_neighbourho
 induced_graph G subtype.val
 
 end graph
+
+section
+
+structure graph_hom {V V'} (G : directed_multigraph V) (G' : directed_multigraph V') :=
+(obj : V → V')
+(edge : Π {s t}, G.edge s t → G'.edge (obj s) (obj t))
+
+variables {V : Type*} (G : directed_multigraph.{v+1} V)
+
+/-- A subgraph of a directed multigraph, obtained by deleting edges. -/
+def subgraph := Π a b, set (G.edge a b) -- how to allow for Prop-valued edge-sets?
+instance : inhabited (subgraph G) := ⟨λ a b, ∅⟩
+
+variable {G}
+
+/-- A subgraph is genuinely a graph. -/
+def graph_of_subgraph (S : subgraph G) : directed_multigraph V :=
+⟨λ s t, S s t⟩
+
+def subgraph_embedding (S : subgraph G) : graph_hom (graph_of_subgraph S) G :=
+{ obj := id, edge := λ _ _ e, e.val }
+
+def as_graph (C) [category_theory.category C] : directed_multigraph C :=
+{ edge := λ x y, x ⟶ y }
+
+end

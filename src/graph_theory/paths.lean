@@ -10,6 +10,9 @@ inductive path : V → V → Type (max v u)
 | nil  : Π (h : V), path h h
 | cons : Π {h s t : V} (e : G.edge h s) (l : path s t), path h t
 
+notation a :: b := path.cons a b
+notation `p[` l:(foldr `, ` (h t, path.cons h t) path.nil _ `]`) := l
+
 abbreviation tour (x : V) : Type (max v u) := path G x x
 
 end directed_multigraph
@@ -27,29 +30,27 @@ namespace path
 variables {G}
 
 def length : Π {s t}, path G s t → ℕ
-| _ _ (path.nil _ _) := 0
-| _ _ (@path.cons _ _ _ _ _ e l) := length l + 1
+| _ _ p[] := 0
+| _ _ (_ :: l) := length l + 1
 
-notation a :: b := path.cons a b
-notation `p[` l:(foldr `, ` (h t, path.cons h t) path.nil _ _ `]`) := l
-
--- The pattern matching trick used here was explained by Jeremy Avigad
--- at https://groups.google.com/d/msg/lean-user/JqaI12tdk3g/F9MZDxkFDAAJ
 @[simp]
 def concat : Π {x y z}, G.path x y → G.path y z → G.path x z
-| ._ ._ _ (path.nil _ _)               q := q
-| ._ ._ _ (@path.cons ._ _ _ _ _ e p') q := path.cons e (concat p' q)
+| _ _ _ p[]               q := q
+| _ _ _ (e :: p') q := e :: concat p' q
+
+lemma cons_as_concat {x y z} (e : G.edge x y) (l : G.path y z) :
+  e :: l = concat p[e] l := rfl
 
 @[simp]
-lemma concat_nil : ∀ {x y} (p : G.path x y), concat p (path.nil G y) = p
-| x ._ (path.nil G y) := rfl
-| x y (e :: p') := begin dsimp, congr, apply concat_nil, end
+lemma concat_nil : ∀ {x y} (p : G.path x y), concat p p[] = p
+| _ _ p[] := rfl
+| _ _ (_ :: _) := by rw [concat, concat_nil]
 
 @[simp]
 lemma concat_assoc : ∀ {w x y z} (p : G.path w x) (q : G.path x y) (r : G.path y z),
   concat p (concat q r) = concat (concat p q) r
-| ._ ._ y z (path.nil G x) q r := rfl
-| w x y z (e :: p) q r := begin dsimp, congr' 1, apply concat_assoc, end
+| _ _ _ _ p[] _ _ := rfl
+| _ _ _ _ (_ :: _) _ _ := by rw [concat, concat, concat, concat_assoc]
 
 /-- A based version of path.rec_on. -/
 def based_rec_on {t : V} {C : Π s (p : G.path s t), Sort*}
@@ -63,6 +64,8 @@ by { induction p with _ s h t e l ih, { exact hn }, { exact hc s h e l (ih hn hc
 def is_nil : Π {s t} (p : G.path s t), Prop
 | _ _ (p[]) := true
 | _ _ (_ :: _) := false
+-- Maybe we should instead have an inductive type saying "this list is not nil", and pattern
+-- match on the inhabitant on this type instead of this "false.elim" nonsense.
 
 def mid : Π {s t} {p : G.path s t}, ¬ is_nil p → V
 | _ _ (p[]) h := false.elim $ h trivial
@@ -73,7 +76,7 @@ def head : Π {s t} {p : G.path s t} (h : ¬ is_nil p), G.edge s (mid h)
 | _ _ (e :: _) _ := e
 
 def tail : Π {s t} {p : G.path s t} (h : ¬ is_nil p), G.path (mid h) t
-| _ _ (path.nil _ _) h := false.elim $ h trivial
+| _ _ p[] h := false.elim $ h trivial
 | _ _ (_ :: l) _ := l
 
 lemma length_eq_length_tail_plus_one {s t} {p : G.path s t} (h : ¬ is_nil p) :
@@ -91,7 +94,7 @@ inductive mem : Π {w x y z : V} (e : H.edge x y) (p : H.path w z), Prop
 | tail : ∀ {v w x y z} (e : H.edge v w) (e' : H.edge x y) (p : H.path w z) (m : mem e' p), mem e' (e :: p)
 
 inductive is_trail : Π {x y} (p : H.path x y), Prop
-| nil : ∀ (x), is_trail (path.nil H.to_directed_multigraph x) -- fixme
+| nil : ∀ (x), is_trail (path.nil x)
 | cons : ∀ {x y z} (e : H.edge x y) (p : H.path y z) (h : ¬ mem e p), is_trail (e :: p)
 
 def is_Eulerian {x y} (p : H.path x y) : Prop :=

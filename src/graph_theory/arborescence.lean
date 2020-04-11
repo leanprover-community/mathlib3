@@ -2,10 +2,10 @@ import graph_theory.paths
 import order.basic
 
 /-!
-  We define subgraphs and (anti-)arborescences, or directed rooted trees.
-    We show that any directed multigraph has a subarborescence coverging to `root : V`,
-  assuming that every vertex has some path to `root` to begin with. The proof essentially
-  works by assigning to each non-root vertex a parent vertex that is closer to `root`.
+  We define (anti-)arborescences, or directed rooted trees. We show that any directed
+  multigraph has a subarborescence coverging to `root : V`, assuming that every vertex
+  has some path to `root` to begin with. The proof essentially works by assigning to
+  each non-root vertex a parent vertex that is closer to `root`.
 -/
 
 open path directed_multigraph
@@ -21,15 +21,7 @@ class arborescence :=
 (path : Π s, G.path s root) -- reversing this would be non-trivial due to how paths are defined
 (unique : ∀ s (p : G.path s root), p = path s)
 
-/-- A subgraph of a directed multigraph, obtained by deleting edges. -/
-def subgraph := Π a b, set (G.edge a b) -- how to allow for Prop-valued edge-sets?
-instance : inhabited (subgraph G) := ⟨λ a b, ∅⟩
-
 variable {G}
-
-/-- A subgraph is genuinely a graph. -/
-def graph_of_subgraph (S : subgraph G) : directed_multigraph V :=
-⟨λ s t, S s t⟩
 
 variables {root} (H : ∀ s, nonempty (G.path s root))
 include H
@@ -82,26 +74,20 @@ variable [decidable_eq V]
 noncomputable def geodesic_path : Π s, path (geodesic_graph H) s root
 | s := dite (s = root) (λ h, path_of_eq h)
        (λ h, have _ := parent_height_lt H h,
-            ⟨_, geodesic_subgraph.intro H s h⟩ :: geodesic_path _)
+            ⟨_, geodesic_subgraph.intro s h⟩ :: geodesic_path _)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (height H)⟩], }
-
-/-- The recursive definition of the path to `root`. -/
-lemma geodesic_path_def : Π s, geodesic_path H s = dite (s = root) (λ h, path_of_eq h)
-       (λ h, ⟨_, geodesic_subgraph.intro H s h⟩ :: geodesic_path H _) :=
-well_founded.fix_eq _ _
 
 /-- By induction, there is no other path to `root`. -/
 lemma geodesic_path_unique (s) (p : path (geodesic_graph H) s root) :
   p = geodesic_path H s :=
 @based_rec_on V (geodesic_graph H) root
 (λ s p, p = geodesic_path H s) s p
-(by { rw [geodesic_path_def, dif_pos rfl], simpa })
+(by { rw [geodesic_path, dif_pos rfl], simpa })
 begin
   intros s m e l h,
   cases e with e p,
   cases p with _ n,
-  rw geodesic_path_def,
-  rw dif_neg n,
+  rw [geodesic_path, dif_neg n],
   simpa using h,
 end
 

@@ -148,7 +148,7 @@ end CommRing
 
 -- This example verifies an improvement possible in Lean 3.8.
 -- Before that, to have `add_ring_hom.map_zero` usable by `simp` here,
--- we have to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
 -- Now, it just works.
 example {R S : CommRing} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 by simp [h]

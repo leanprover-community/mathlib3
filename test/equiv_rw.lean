@@ -249,6 +249,8 @@ begin
 end :=
 rfl
 
+attribute [ext] semigroup
+
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
 
@@ -288,18 +290,18 @@ def monoid.map {α β : Type} (e : α ≃ β) (S : monoid α) : monoid β :=
 begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  { unfold_projs,
+  { try { unfold_projs },
     simp only [] with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
-  { unfold_projs,
+  { try { unfold_projs },
     simp only [] with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
     solve_by_elim, },
-  { unfold_projs,
+  { try { unfold_projs },
     simp only [] with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,

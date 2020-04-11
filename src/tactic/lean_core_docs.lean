@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Kevin Buzzard. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Buzzard, Bryan Gin-ge Chen, Robert Y. Lewis, Scott Morrison
+-/
 import tactic.doc_commands
 
 /-!
@@ -32,12 +37,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.ac_refl, `tactic.interactive.ac_reflexivity],
   tags       := ["core", "lemma application", "finishing"] }
-
-add_tactic_doc
-{ name       := "admit",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.admit],
-  tags       := ["core", "testing", "debugging"] }
 
 add_tactic_doc
 { name       := "all_goals",
@@ -124,7 +123,7 @@ This tactic requires that `p` is decidable. To ensure that all propositions are 
  `open_locale classical` (or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using mathlib).
 -/
 add_tactic_doc
-{ name       := "by_contra",
+{ name       := "by_contra / by_contradiction",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.by_contra, `tactic.interactive.by_contradiction],
   tags       := ["core", "logic"] }
@@ -458,7 +457,7 @@ that is, a relation which has a reflexivity lemma tagged with the attribute `[re
 The tactic checks whether `t` and `u` are definitionally equal and then solves the goal.
 -/
 add_tactic_doc
-{ name       := "refl",
+{ name       := "refl / reflexivity",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.refl, `tactic.interactive.reflexivity],
   tags       := ["core", "basic", "finishing"] }
@@ -500,7 +499,7 @@ in the local context. In the latter case, a turnstile `⊢` or `|-` can also be 
 the target of the goal.
 -/
 add_tactic_doc
-{ name       := "rewrite / rw",
+{ name       := "rw / rewrite",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.rw, `tactic.interactive.rewrite],
   tags       := ["core", "basic", "rewriting"] }
@@ -536,9 +535,10 @@ add_tactic_doc
   tags       := ["core", "combinator", "goal management"] }
 
 add_tactic_doc
-{ name       := "sorry",
+{ name       := "sorry / admit",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.sorry],
+  decl_names := [`tactic.interactive.sorry, `tactic.interactive.admit],
+  inherit_description_from := `tactic.interactive.sorry,
   tags       := ["core", "testing", "debugging"] }
 
 add_tactic_doc

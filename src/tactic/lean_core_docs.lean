@@ -404,6 +404,8 @@ If the goal is an arrow `t → u`, then it puts `h : t` in the local context and
 
 If the goal is neither a Pi/forall nor begins with a let binder, the tactic `intro` applies the tactic `whnf` until an introduction can be applied or the goal is not head reducible. In the latter case, the tactic fails.
 
+The variant `intro z` uses the identifier `z` to name the new hypothesis.
+
 The variant `intros` will keep introducing new hypotheses until the goal target is not a Pi/forall or let binder.
 
 The variant `intros h₁ ... hₙ` introduces `n` new hypotheses using the given identifiers to name them.
@@ -432,7 +434,6 @@ add_tactic_doc
 
 Similarly, `right` applies the second constructor.
 -/
-
 add_tactic_doc
 { name       := "left / right",
   category   := doc_category.tactic,

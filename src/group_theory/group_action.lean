@@ -95,7 +95,7 @@ def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
   mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
 
 instance (b : β) : is_submonoid (stabilizer α b) :=
-{ one_mem := one_smul _ b,
+{ one_mem := one_smul b,
   mul_mem := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 

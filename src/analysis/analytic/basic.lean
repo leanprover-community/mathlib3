@@ -484,9 +484,9 @@ variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : nnreal}
 Changing the origin of a formal multilinear series `p`, so that
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
 
-Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda, 
-as this leads to a bad definition with auxiliary `_match` statements, 
-but we will try to use pattern matching in lambdas as much as possible in the proofs below 
+Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda,
+as this leads to a bad definition with auxiliary `_match` statements,
+but we will try to use pattern matching in lambdas as much as possible in the proofs below
 to increase readability.
 -/
 def change_origin (x : E) :
@@ -568,6 +568,7 @@ end
 
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, third version. -/
+-- FIXME this causes a deterministic timeout with `-T50000`
 lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ennreal) < p.radius) :
   @summable ℝ _ _ _ (λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ :
   (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=

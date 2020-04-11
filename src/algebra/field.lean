@@ -14,15 +14,15 @@ instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,
       division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..s }
+  ..s, ..(by apply_instance : semiring α) }
 
 /-- Every division ring is a `group_with_zero`. -/
 @[priority 10] -- see Note [lower instance priority]
 instance division_ring.to_group_with_zero {K : Type*} [division_ring K] :
   group_with_zero K :=
-{ zero_mul := _,
-  mul_zero := _,
-  .. ‹division_ring K› }
+{ mul_inv_cancel := λ _, mul_inv_cancel,
+  .. ‹division_ring K›,
+  .. (by apply_instance : semiring K) }
 
 /-- Every field is a `comm_group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]

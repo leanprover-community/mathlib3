@@ -861,7 +861,7 @@ end canonically_ordered_add_monoid
 
 section ordered_cancel_comm_monoid
 
-variables [ordered_cancel_comm_monoid β]
+variables [ordered_cancel_add_comm_monoid β]
 
 theorem sum_lt_sum (Hle : ∀ i ∈ s, f i ≤ g i) (Hlt : ∃ i ∈ s, f i < g i) :
   s.sum f < s.sum g :=
@@ -897,7 +897,7 @@ end ordered_cancel_comm_monoid
 
 section decidable_linear_ordered_cancel_comm_monoid
 
-variables [decidable_linear_ordered_cancel_comm_monoid β]
+variables [decidable_linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : s.sum f ≤ s.sum g) :
   ∃ i ∈ s, f i ≤ g i :=
@@ -911,7 +911,8 @@ end
 end decidable_linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
-variables [decidable_eq α] [linear_ordered_comm_ring β]
+variables [linear_ordered_comm_ring β]
+open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_nonneg {s : finset α} {f : α → β}
@@ -949,11 +950,12 @@ end linear_ordered_comm_ring
 
 section canonically_ordered_comm_semiring
 
-variables [decidable_eq α] [canonically_ordered_comm_semiring β]
+variables [canonically_ordered_comm_semiring β]
 
 lemma prod_le_prod' {s : finset α} {f g : α → β} (h : ∀ i ∈ s, f i ≤ g i) :
   s.prod f ≤ s.prod g :=
 begin
+  classical,
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
@@ -1062,7 +1064,7 @@ end multiset
 
 namespace with_top
 open finset
-variables [decidable_eq α]
+open_locale classical
 
 /-- sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :

@@ -101,26 +101,24 @@ instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_nonneg := λ a b a0 b0,
-    match a0, b0 with
-    | or.inl a0, or.inl b0 := le_of_lt (real.mul_pos a0 b0)
-    | or.inr a0, _ := by simp [a0.symm]
-    | _, or.inr b0 := by simp [b0.symm]
-    end,
   mul_pos := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
-  add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
-  ..real.comm_ring, ..real.linear_order }
+  ..real.comm_ring, ..real.linear_order, ..real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
 instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ         := by apply_instance
-instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ        := by apply_instance
+instance : ordered_add_comm_group ℝ     := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
+instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
+instance : has_one ℝ                    := by apply_instance
+instance : has_zero ℝ                   := by apply_instance
+instance : has_mul ℝ                    := by apply_instance
+instance : has_add ℝ                    := by apply_instance
+instance : has_sub ℝ                    := by apply_instance
 
 open_locale classical
 
@@ -229,7 +227,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
   choose f hf using begin
     refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
+      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,

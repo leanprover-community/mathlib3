@@ -177,7 +177,10 @@ lemma continuous_within_at.closure_le [topological_space β]
 begin
   show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
   suffices : (f x, g x) ∈ closure {p : α × α | p.1 ≤ p.2},
-    by rwa ← closure_eq_iff_is_closed.2 (order_closed_topology.is_closed_le' α),
+    begin
+      rwa closure_eq_iff_is_closed.2 at this,
+      exact order_closed_topology.is_closed_le'
+    end,
   exact (continuous_within_at.prod hf hg).mem_closure hx h
 end
 

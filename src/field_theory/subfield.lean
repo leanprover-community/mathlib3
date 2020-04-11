@@ -53,7 +53,7 @@ def closure : set F :=
 variables {S}
 
 theorem ring_closure_subset : ring.closure S ⊆ closure S :=
-λ x hx, ⟨x, hx, 1, is_submonoid.one_mem _, div_one x⟩
+λ x hx, ⟨x, hx, 1, is_submonoid.one_mem, div_one x⟩
 
 instance closure.is_submonoid : is_submonoid (closure S) :=
 { mul_mem := by rintros _  _ ⟨p, hp, q, hq, hq0, rfl⟩ ⟨r, hr, s, hs, hs0, rfl⟩;
@@ -62,10 +62,10 @@ instance closure.is_submonoid : is_submonoid (closure S) :=
           q * s,
           is_submonoid.mul_mem hq hs,
           (div_mul_div _ _ _ _).symm⟩,
-  one_mem := ring_closure_subset $ is_submonoid.one_mem _ }
+  one_mem := ring_closure_subset $ is_submonoid.one_mem }
 
 instance closure.is_subfield : is_subfield (closure S) :=
-have h0 : (0:F) ∈ closure S, from ring_closure_subset $ is_add_submonoid.zero_mem _,
+have h0 : (0:F) ∈ closure S, from ring_closure_subset $ is_add_submonoid.zero_mem,
 { add_mem := begin
     intros a b ha hb,
     rcases (id ha) with ⟨p, hp, q, hq, rfl⟩,

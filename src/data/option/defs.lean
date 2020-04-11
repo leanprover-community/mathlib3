@@ -93,7 +93,7 @@ instance lift_or_get_is_right_id (f : α → α → α) :
 
 inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
-| none {}    : rel none none
+| none       : rel none none
 
 protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   option α → F (option β)

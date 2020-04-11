@@ -11,7 +11,7 @@ import data.set
 
 class binclass (T1 T2 : Type)
 
-instance : binclass ℤ ℤ := ⟨_, _⟩
+instance : binclass ℤ ℤ := ⟨⟩
 
 @[derive [ring, binclass ℤ]] def U := ℤ
 

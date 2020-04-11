@@ -120,7 +120,7 @@ functor.map_iso (cones.forget _) $ is_limit.unique_up_to_iso
 
 /-- The kernel morphism of a monomorphism is a zero morphism -/
 lemma kernel.ι_of_mono [has_limit (parallel_pair f 0)] [mono f] : kernel.ι f = 0 :=
-by rw [←category.id_comp _ (kernel.ι f), ←iso.hom_inv_id (kernel.of_mono f), category.assoc,
+by rw [←category.id_comp (kernel.ι f), ←iso.hom_inv_id (kernel.of_mono f), category.assoc,
   has_zero_object.zero_of_to_zero (kernel.of_mono f).hom, has_zero_morphisms.zero_comp]
 
 end has_zero_object
@@ -198,7 +198,7 @@ functor.map_iso (cocones.forget _) $ is_colimit.unique_up_to_iso
 
 /-- The cokernel morphism if an epimorphism is a zero morphism -/
 lemma cokernel.π_of_epi [has_colimit (parallel_pair f 0)] [epi f] : cokernel.π f = 0 :=
-by rw [←category.comp_id _ (cokernel.π f), ←iso.hom_inv_id (cokernel.of_epi f), ←category.assoc,
+by rw [←category.comp_id (cokernel.π f), ←iso.hom_inv_id (cokernel.of_epi f), ←category.assoc,
   has_zero_object.zero_of_from_zero (cokernel.of_epi f).inv, has_zero_morphisms.comp_zero]
 
 end has_zero_object

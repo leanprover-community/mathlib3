@@ -24,14 +24,17 @@ instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv�
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
+/-- Identity map is a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
 
+/-- Composition of two homeomorphisms. -/
 protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
 { continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
   continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
+/-- Inverse of a homeomorphism. -/
 protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
 { continuous_to_fun  := h.continuous_inv_fun,
   continuous_inv_fun := h.continuous_to_fun,
@@ -100,6 +103,7 @@ begin
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
 
+/-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :
   α ≃ₜ β :=
 { continuous_to_fun := h₁,
@@ -128,6 +132,13 @@ by simp [continuous_iff_continuous_on_univ, comp_continuous_on_iff]
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 
+/-- If two sets are equal, then they are homeomorphic. -/
+def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
+{ continuous_to_fun := continuous_subtype_mk _ continuous_subtype_val,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
+  .. equiv.set_congr h }
+
+/-- Product of two homeomorphisms. -/
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β × δ :=
 { continuous_to_fun  :=
     continuous.prod_mk (h₁.continuous.comp continuous_fst) (h₂.continuous.comp continuous_snd),
@@ -138,11 +149,13 @@ def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β 
 section
 variables (α β γ)
 
+/-- `α × β` is homeomorphic to `β × α`. -/
 def prod_comm : α × β ≃ₜ β × α :=
 { continuous_to_fun  := continuous.prod_mk continuous_snd continuous_fst,
   continuous_inv_fun := continuous.prod_mk continuous_snd continuous_fst,
   .. equiv.prod_comm α β }
 
+/-- `(α × β) × γ` is homeomorphic to `α × (β × γ)`. -/
 def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
 { continuous_to_fun  :=
     continuous.prod_mk (continuous_fst.comp continuous_fst)
@@ -157,6 +170,7 @@ end
 section distrib
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
+/-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/
 def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
 homeomorph.symm $
 homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm

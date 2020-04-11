@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 
-import tactic.basic tactic.finish data.subtype logic.unique
+import tactic.basic tactic.finish data.subtype logic.unique data.prod
 
 /-!
 
@@ -206,8 +206,8 @@ by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual :=
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
-not_not
+@[simp] theorem not_not_mem : ¬ (a ∉ s) ↔ a ∈ s :=
+by { classical, exact not_not }
 
 /-! ### Non-empty sets -/
 
@@ -536,7 +536,7 @@ by finish [ext_iff, iff_def]
 
 lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} (h : a ∉ s) :
   s ≠ insert a t :=
-by { classical, contrapose! h, simp [h] }
+by { contrapose! h, simp [h] }
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp [subset_def, or_imp_distrib, forall_and_distrib]
@@ -703,6 +703,9 @@ by rw [←compl_empty_iff, compl_compl]
 lemma nonempty_compl {s : set α} : (-s : set α).nonempty ↔ s ≠ univ :=
 ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
+lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
+not_iff_not_of_iff mem_singleton_iff
+
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
 
@@ -735,9 +738,12 @@ forall_congr $ λ a, imp_not_comm
 theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ -t ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
+lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ -({a} : set α) ↔ a ∉ s :=
+by { rw subset_compl_comm, simp }
+
 theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ -b ∪ c :=
 begin
-  haveI := classical.prop_decidable,
+  classical,
   split,
   { intros h x xa, by_cases h' : x ∈ b, simp [h ⟨xa, h'⟩], simp [h'] },
   intros h x, rintro ⟨xa, xb⟩, cases h xa, contradiction, assumption
@@ -1290,6 +1296,10 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 ⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
 
+lemma exists_range_iff' {p : α → Prop} :
+  (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
+by simpa only [exists_prop] using exists_range_iff
+
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
 
@@ -1648,6 +1658,8 @@ end
 
 end prod
 
+/-! ### Lemmas about set-indexed products of sets -/
+
 section pi
 variables {α : Type*} {π : α → Type*}
 
@@ -1677,6 +1689,8 @@ begin
 end
 
 end pi
+
+/-! ### Lemmas about `inclusion`, the injection of subtypes induced by `⊆` -/
 
 section inclusion
 variable {α : Type*}

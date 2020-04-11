@@ -40,7 +40,7 @@ variables (s t)
 theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
 le_antisymm
   (closure_mono $ set.union_subset
-    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map (adjoin R s) r, rfl⟩)
+    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
     (set.union_subset_union_left _ $ λ x hxs, ⟨⟨_, subset_adjoin hxs⟩, rfl⟩))
   (closure_subset $ set.union_subset
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
@@ -58,18 +58,19 @@ begin
     suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
-    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem _, one_smul _ _⟩ },
+    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨⟨hd, rfl⟩ | hs⟩ | rfl,
-    { refine ⟨hd * z, r, hr, _⟩, rw [smul_def, smul_def, map_mul, ring.mul_assoc], refl },
+    { refine ⟨hd * z, r, hr, _⟩,
+      rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
     { refine ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr, _⟩,
       rw [smul_def, smul_def, mul_left_comm] },
     { refine ⟨-z, r, hr, _⟩, rw [neg_smul, neg_one_mul] } },
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
 
-theorem adjoin_eq_range [decidable_eq R] [decidable_eq A] :
+theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
@@ -79,7 +80,7 @@ le_antisymm
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ _ _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range [decidable_eq R] [decidable_eq A] (x : A) :
+theorem adjoin_singleton_eq_range (x : A) :
   adjoin R {x} = (polynomial.aeval R A x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
@@ -171,8 +172,6 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
-
-variables [decidable_eq R] [decidable_eq A]
 
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=

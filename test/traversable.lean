@@ -43,7 +43,7 @@ meta structure meta_struct (α : Type u) : Type u :=
 
 @[derive [traversable,is_lawful_traversable]]
 inductive my_tree (α : Type)
-| leaf {} : my_tree
+| leaf : my_tree
 | node : my_tree → my_tree → α → my_tree
 
 section

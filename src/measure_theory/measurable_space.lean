@@ -84,11 +84,21 @@ lemma is_measurable.empty : is_measurable (∅ : set α) :=
 lemma is_measurable.compl : is_measurable s → is_measurable (-s) :=
 ‹measurable_space α›.is_measurable_compl s
 
+lemma is_measurable.of_compl (h : is_measurable (-s)) : is_measurable s :=
+s.compl_compl ▸ h.compl
+
 lemma is_measurable.compl_iff : is_measurable (-s) ↔ is_measurable s :=
-⟨λ h, by simpa using h.compl, is_measurable.compl⟩
+⟨is_measurable.of_compl, is_measurable.compl⟩
 
 lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
+
+lemma subsingleton.is_measurable [subsingleton α] {s : set α} : is_measurable s :=
+subsingleton.set_cases is_measurable.empty is_measurable.univ s
+
+lemma is_measurable.congr {s t : set α} (hs : is_measurable s) (h : s = t) :
+  is_measurable t :=
+by rwa ← h
 
 lemma encodable.Union_decode2 {α} [encodable β] (f : β → set α) :
   (⋃ b, f b) = ⋃ (i : ℕ) (b ∈ decode2 β i), f b :=
@@ -197,7 +207,7 @@ inductive generate_measurable (s : set (set α)) : set α → Prop
 /-- Construct the smallest measure space containing a collection of basic sets -/
 def generate_from (s : set (set α)) : measurable_space α :=
 { is_measurable       := generate_measurable s,
-  is_measurable_empty := generate_measurable.empty s,
+  is_measurable_empty := generate_measurable.empty,
   is_measurable_compl := generate_measurable.compl,
   is_measurable_Union := generate_measurable.union }
 
@@ -382,6 +392,10 @@ open measurable_space
 def measurable [m₁ : measurable_space α] [m₂ : measurable_space β] (f : α → β) : Prop :=
 m₂ ≤ m₁.map f
 
+lemma subsingleton.measurable [measurable_space α] [measurable_space β] [subsingleton α]
+  {f : α → β} : measurable f :=
+λ s hs, @subsingleton.is_measurable α _ _ _
+
 lemma measurable_id [measurable_space α] : measurable (@id α) := le_refl _
 
 lemma measurable.preimage [measurable_space α] [measurable_space β]
@@ -390,6 +404,17 @@ lemma measurable.preimage [measurable_space α] [measurable_space β]
 lemma measurable.comp [measurable_space α] [measurable_space β] [measurable_space γ]
   {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) : measurable (g ∘ f) :=
 le_trans hg $ map_mono hf
+
+lemma measurable_from_top [measurable_space β] {f : α → β} :
+  @measurable _ _ ⊤ _ f :=
+λ s hs, trivial
+
+lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
+  (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
+  @measurable α β ma' mb' f :=
+calc mb' ≤ mb : hb
+... ≤ ma.map f : hf
+... ≤ ma'.map f : map_mono ha
 
 lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
   (h : ∀t∈s, is_measurable (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
@@ -423,6 +448,15 @@ instance : measurable_space unit := ⊤
 instance : measurable_space bool := ⊤
 instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
+instance : measurable_space ℚ := ⊤
+
+lemma measurable_to_encodable [encodable α] [measurable_space α] [measurable_space β] {f : β → α}
+  (h : ∀ y, is_measurable {x | f x = y}) : measurable f :=
+begin
+  assume s hs, show is_measurable {x | f x ∈ s},
+  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
+  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
+end
 
 lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 have f = (λu, f ()) := funext $ assume ⟨⟩, rfl,
@@ -431,15 +465,11 @@ by rw this; exact measurable_const
 section nat
 
 lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f :=
-assume s hs, show is_measurable {n : ℕ | f n ∈ s}, from trivial
+measurable_from_top
 
 lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
-(∀ k, is_measurable {x | f x = k}) → measurable f :=
-begin
-  assume h s hs, show is_measurable {x | f x ∈ s},
-  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
-  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
-end
+  (∀ k, is_measurable {x | f x = k}) → measurable f :=
+measurable_to_encodable
 
 lemma measurable_find_greatest [measurable_space α] {p : ℕ → α → Prop} :
   ∀ {N}, (∀ k ≤ N, is_measurable {x | nat.find_greatest (λ n, p n x) N = k}) →
@@ -465,12 +495,13 @@ section subtype
 instance {p : α → Prop} [m : measurable_space α] : measurable_space (subtype p) :=
 m.comap subtype.val
 
-lemma measurable.subtype_val [measurable_space α] [measurable_space β] {p : β → Prop}
-  {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a).val) :=
+lemma measurable.subtype_coe [measurable_space α] [measurable_space β] {p : β → Prop}
+  {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a : β)) :=
 measurable.comp (measurable_space.comap_le_iff_le_map.mp (le_refl _)) hf
 
 lemma measurable.subtype_mk [measurable_space α] [measurable_space β] {p : β → Prop}
-  {f : α → subtype p} (hf : measurable (λa, (f a).val)) : measurable f :=
+  {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
+  measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
 measurable_space.comap_le_iff_le_map.mpr $ by rw [measurable_space.map_comp]; exact hf
 
 lemma is_measurable_subtype_image [measurable_space α] {s : set α} {t : set s}
@@ -494,6 +525,14 @@ begin
     (is_measurable_subtype_image hs (hc _ hu))
     (is_measurable_subtype_image ht (hd _ hu))
 end
+
+lemma measurable_of_measurable_on_compl_singleton [measurable_space α] [measurable_space β]
+  {f : α → β} (a : α) (ha : is_measurable ({a} : set α))
+  (hf : measurable (set.restrict f {x | x ≠ a})) :
+  measurable f :=
+have ha : is_measurable {x | x = a}, from ha.congr $ set.ext $ λ x, mem_singleton_iff,
+measurable_of_measurable_union_cover _ _ ha ha.compl (λ x hx, classical.em _)
+  (@subsingleton.measurable {x | x = a} _ _ _ ⟨λ x y, subtype.eq $ x.2.trans y.2.symm⟩ _) hf
 
 end subtype
 
@@ -521,9 +560,9 @@ lemma measurable.prod_mk [measurable_space α] [measurable_space β] [measurable
   {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) : measurable (λa:α, (f a, g a)) :=
 measurable.prod hf hg
 
-lemma is_measurable_set_prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
+lemma is_measurable.prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
   (hs : is_measurable s) (ht : is_measurable t) : is_measurable (set.prod s t) :=
-is_measurable.inter (measurable.fst measurable_id _ hs) (measurable.snd measurable_id _ ht)
+is_measurable.inter (measurable_id.fst _ hs) (measurable_id.snd _ ht)
 
 end prod
 
@@ -680,26 +719,28 @@ def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] 
       refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end }
 
+/-- `set.prod s t ≃ (s × t)` as a `measurable_equiv`. -/
 def set.prod [measurable_space α] [measurable_space β] (s : set α) (t : set β) :
-  measurable_equiv (set.prod s t) (s × t) :=
+  measurable_equiv (s.prod t) (s × t) :=
 { to_equiv := equiv.set.prod s t,
   measurable_to_fun := measurable.prod_mk
-    (measurable.subtype_mk $ measurable.fst $ measurable.subtype_val $ measurable_id)
-    (measurable.subtype_mk $ measurable.snd $ measurable.subtype_val $ measurable_id),
+    measurable_id.subtype_coe.fst.subtype_mk
+    measurable_id.subtype_coe.snd.subtype_mk,
   measurable_inv_fun := measurable.subtype_mk $ measurable.prod_mk
-    (measurable.subtype_val $ measurable.fst $ measurable_id)
-    (measurable.subtype_val $ measurable.snd $ measurable_id) }
+    measurable_id.fst.subtype_coe
+    measurable_id.snd.subtype_coe }
 
+/-- `univ α ≃ α` as a `measurable_equiv`. -/
 def set.univ (α : Type*) [measurable_space α] : measurable_equiv (univ : set α) α :=
 { to_equiv := equiv.set.univ α,
-  measurable_to_fun := measurable.subtype_val measurable_id,
-  measurable_inv_fun := measurable.subtype_mk measurable_id }
+  measurable_to_fun := measurable_id.subtype_coe,
+  measurable_inv_fun := measurable_id.subtype_mk }
 
+/-- `{a} ≃ unit` as a `measurable_equiv`. -/
 def set.singleton [measurable_space α] (a:α) : measurable_equiv ({a} : set α) unit :=
 { to_equiv := equiv.set.singleton a,
   measurable_to_fun := measurable_const,
-  measurable_inv_fun := measurable.subtype_mk $ show measurable (λu:unit, a), from
-    measurable_const }
+  measurable_inv_fun := measurable_const }
 
 noncomputable def set.image [measurable_space α] [measurable_space β]
   (f : α → β) (s : set α)
@@ -707,13 +748,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
   (hfm : measurable f) (hfi : ∀s, is_measurable s → is_measurable (f '' s)) :
   measurable_equiv s (f '' s) :=
 { to_equiv := equiv.set.image f s hf,
-  measurable_to_fun  :=
-  begin
-    have : measurable (λa:s, f a) := hfm.comp (measurable.subtype_val measurable_id),
-    refine measurable.subtype_mk _,
-    convert this,
-    ext ⟨a, h⟩, refl
-  end,
+  measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
     assume t ⟨u, (hu : is_measurable u), eq⟩,
     begin
@@ -723,7 +758,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
         λa ha h, (classical.some_spec h).2,
       rw show {x:f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u} = subtype.val ⁻¹' (f '' u),
         by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this _ hbs],
-      exact (measurable.subtype_val measurable_id) (f '' u) (hfi u hu)
+      exact (measurable.subtype_coe measurable_id) (f '' u) (hfi u hu)
     end }
 
 noncomputable def set.range [measurable_space α] [measurable_space β]
@@ -776,8 +811,8 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
     refine measurable_of_measurable_union_cover
       ((range sum.inl).prod univ)
       ((range sum.inr).prod univ)
-      (is_measurable_set_prod is_measurable_range_inl is_measurable.univ)
-      (is_measurable_set_prod is_measurable_range_inr is_measurable.univ)
+      (is_measurable_range_inl.prod is_measurable.univ)
+      (is_measurable_range_inr.prod is_measurable.univ)
       (assume ⟨ab, c⟩ s, by cases ab; simp [set.prod_eq])
       _
       _,
@@ -904,7 +939,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
 
 def generate (s : set (set α)) : dynkin_system α :=
 { has := generate_has s,
-  has_empty := generate_has.empty s,
+  has_empty := generate_has.empty,
   has_compl := assume a, generate_has.compl,
   has_Union_nat := assume f, generate_has.Union }
 
@@ -958,7 +993,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
     from generate_le _ $ assume s₂ hs₂,
       show (generate s).has (s₂ ∩ s₁), from
         (s₂ ∩ s₁).eq_empty_or_nonempty.elim
-        (λ h,  h.symm ▸ generate_has.empty _)
+        (λ h,  h.symm ▸ generate_has.empty)
         (λ h, generate_has.basic _ (hs _ _ hs₂ hs₁ h)),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],

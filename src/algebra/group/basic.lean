@@ -30,7 +30,7 @@ instance ordered_cancel_comm_monoid.to_add_left_cancel_monoid [h : ordered_cance
   add_left_cancel_monoid G := { ..h }
 
 instance add_group.to_add_left_cancel_monoid [h : add_group G] :
-  add_left_cancel_monoid G := { ..h, .. add_group.to_left_cancel_add_semigroup}
+  add_left_cancel_monoid G := { ..h, .. add_group.to_left_cancel_add_semigroup }
 
 end
 

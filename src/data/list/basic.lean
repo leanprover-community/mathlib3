@@ -1591,7 +1591,7 @@ begin
   exact add_left_cancel this
 end
 
-lemma monotone_sum_take [canonically_ordered_monoid α] (L : list α) :
+lemma monotone_sum_take [canonically_ordered_add_monoid α] (L : list α) :
   monotone (λ i, (L.take i).sum) :=
 begin
   apply monotone_of_monotone_nat (λ n, _),

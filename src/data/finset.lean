@@ -2267,7 +2267,7 @@ begin
   exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij
 end
 
-lemma bij_on_mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+lemma mono_of_fin_bij_on (s : finset α) {k : ℕ} (h : s.card = k) :
   set.bij_on (s.mono_of_fin h) set.univ ↑s :=
 begin
   have A : ∀ j, j ∈ s ↔ j ∈ (s.sort (≤)) := λ j, by simp,
@@ -2284,17 +2284,21 @@ begin
     exact ⟨⟨i, il⟩, set.mem_univ _, hi⟩ }
 end
 
+lemma mono_of_fin_injective (s : finset α) {k : ℕ} (h : s.card = k) :
+  function.injective (s.mono_of_fin h) :=
+set.injective_iff_inj_on_univ.mpr (s.mono_of_fin_bij_on h).inj_on
+
 /-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
   mono_of_fin s h ⟨0, hz⟩ = s.min' hs :=
 begin
   apply le_antisymm,
   { have : min' s hs ∈ s := min'_mem s hs,
-    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
     rw ← ha,
     apply (mono_of_fin_strict_mono s h).monotone,
     exact zero_le a.val },
-  { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+  { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
     exact min'_le s hs _ this }
 end
 
@@ -2304,10 +2308,10 @@ lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonemp
 begin
   have h'' : k - 1 < k := buffer.lt_aux_2 hz,
   apply le_antisymm,
-  { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+  { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
     exact le_max' s hs _ this },
   { have : max' s hs ∈ s := max'_mem s hs,
-    rcases (bij_on_mono_of_fin s h).surj_on this with ⟨a, _, ha⟩,
+    rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
     rw ← ha,
     apply (mono_of_fin_strict_mono s h).monotone,
     exact le_pred_of_lt a.2},
@@ -2324,7 +2328,7 @@ begin
   induction i using nat.strong_induction_on with i IH,
   rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
   { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),
-    rcases (bij_on_mono_of_fin s h).surj_on A with ⟨j, _, hj⟩,
+    rcases (mono_of_fin_bij_on s h).surj_on A with ⟨j, _, hj⟩,
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
     have : f j = mono_of_fin s h j,
@@ -2332,7 +2336,7 @@ begin
     rw ← this at hj,
     exact (ne_of_lt (hmono ji) hj).elim },
   { exact H },
-  { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (bij_on_mono_of_fin s h).maps_to (set.mem_univ _),
+  { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
     rcases hbij.surj_on A with ⟨j, _, hj⟩,
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
@@ -2342,13 +2346,25 @@ begin
     exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
 end
 
+/-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and
+only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l` (although
+necessarily `k = l`), the conclusion is rather written `i.val = j.val`. -/
+@[simp] lemma mono_of_fin_eq_mono_of_fin_iff
+  {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
+  s.mono_of_fin h i = s.mono_of_fin h' j ↔ i.val = j.val :=
+begin
+  have A : k = l, by rw [← h', ← h],
+  have : s.mono_of_fin h = (s.mono_of_fin h') ∘ (λ j : (fin k), ⟨j.1, A ▸ j.2⟩) := rfl,
+  rw [this, function.comp_app, (s.mono_of_fin_injective h').eq_iff, fin.ext_iff]
+end
+
 /-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`
 is the increasing bijection between `fin k` and `s` as an `s`-valued map. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
 casting issues in further uses of this function. -/
 noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   fin k ≃ {x // x ∈ s} :=
-(s.bij_on_mono_of_fin h).equiv _
+(s.mono_of_fin_bij_on h).equiv _
 
 end sort_linear_order
 

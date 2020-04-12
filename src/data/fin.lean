@@ -100,9 +100,13 @@ attribute [simp] val_zero
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
-protected lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
-  (H : ∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) : f == g :=
-by { induction h, rw heq_iff_eq, ext i, convert H i, exact (fin.ext_iff _ _).mpr rfl }
+protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
+  f == g ↔ (∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) :=
+by { induction h, simp [heq_iff_eq, function.funext_iff] }
+
+protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
+  i == j ↔ i.val = j.val :=
+by { induction h, simp [fin.ext_iff] }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)

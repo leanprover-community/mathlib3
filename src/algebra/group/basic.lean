@@ -26,7 +26,7 @@ Main examples are `ℕ` and groups. This is the right typeclass for many sum lem
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
 class add_left_cancel_monoid G extends add_left_cancel_semigroup G, add_monoid G
 
-instance ordered_cancel_comm_monoid.to_add_left_cancel_monoid [h : ordered_cancel_comm_monoid G] :
+instance ordered_cancel_comm_monoid.to_add_left_cancel_monoid [h : ordered_cancel_add_comm_monoid G] :
   add_left_cancel_monoid G := { ..h }
 
 instance add_group.to_add_left_cancel_monoid [h : add_group G] :

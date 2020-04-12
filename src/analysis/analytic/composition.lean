@@ -19,11 +19,11 @@ The argument is the following. Assume `g z = ∑ qₙ (z, ..., z)` and `f y = �
 
 For each `n` and `i₁, ..., iₙ`, define a `i₁ + ... + iₙ` multilinear function mapping
 `(y₀, ..., y_{i₁ + ... + iₙ - 1})` to
-`qₙ (p_{i₁} (y₀, ..., y_{i₁-1}), p_{i₂} (y_{i₁}, ..., y_{i₁ + i₂ - 1}, ..., p_{iₙ} (....)))`.
+`qₙ (p_{i₁} (y₀, ..., y_{i₁-1}), p_{i₂} (y_{i₁}, ..., y_{i₁ + i₂ - 1}), ..., p_{iₙ} (....)))`.
 Then `g ∘ f` is obtained by summing all these multilinear functions.
 
-To formalize this, we use ordered partitions of an integer `N`, as all its decompositions into
-a sum `i₁ + ... + iₙ` of positive integers. Given such an ordered partition `c` and two formal
+To formalize this, we use compositions of an integer `N`, i.e., its decompositions into
+a sum `i₁ + ... + iₙ` of positive integers. Given such a composition `c` and two formal
 multilinear series `q` and `p`, let `q.comp_along_composition p c` be the above multilinear
 function. Then the `N`-th coefficient in the power series expansion of `g ∘ f` is the sum of these
 terms over all `c : composition N`.
@@ -267,7 +267,7 @@ begin
         apply le_of_eq,
         rw finset.prod_mul_distrib,
         congr' 1,
-        conv_lhs { rw [← c.sum_size, ← finset.prod_pow_eq_pow_sum] },
+        conv_lhs { rw [← c.sum_blocks_fun, ← finset.prod_pow_eq_pow_sum] },
       end
     ... ≤ Cq * ((finset.univ : finset (fin c.length)).prod (λ i, Cp)) * r0 ^ n :
       begin
@@ -348,37 +348,100 @@ apply le_radius_of_bound _ (tsum (λ (i : Σ (n : ℕ), composition n),
     end
 end
 
-/-- Auxiliary set appearing when composing the partial sums of two multilinear series. -/
-def comp_partial_sum_set (N : ℕ) : finset (Σ n, composition n) :=
-@set.finite.to_finset (Σ n, composition n)
-  {i | (i.2.length < N) ∧ (∀ (j : fin i.2.length), i.2.blocks_fun j < N)}
+/-! Now, we will prove that the composition of the partial sums of `q` and `p` up to order `N` is
+given by a sum over some large subset of `Σ n, composition n` of `q.comp_along_composition p`, to
+deduce that the series for `q.comp p` indeed converges to `g ∘ f` when `q` is a power series for
+`g` and `p` is a power series for `f`.
+
+This proof is a big reindexing argument of a sum. Since it is a bit involved, we define first
+the source of the change of variables (`comp_partial_source`), its target
+(`comp_partial_target`) and the change of variables itself (`comp_change_of_variables`) before
+giving the main statement in `comp_partial_sum`. -/
+
+/-- Source set in the change of variables to compute the composition of partial sums of formal
+power series -/
+def comp_partial_sum_source (N : ℕ) : finset (Σ n, (fin n) → ℕ) :=
+finset.sigma (finset.range N) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), finset.Ico 1 N) : _)
+
+@[simp] lemma mem_comp_partial_sum_source_iff (N : ℕ) (i : Σ n, (fin n) → ℕ) :
+  i ∈ comp_partial_sum_source N ↔ i.1 < N ∧ ∀ (a : fin i.1), 1 ≤ i.2 a ∧ i.2 a < N :=
+by simp [comp_partial_sum_source]
+
+/-- Change of variables appearing to compute the composition of partial sums of formal
+power series -/
+def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ comp_partial_sum_source N) :
+  (Σn, composition n) :=
 begin
-  let A : (Σ k, fin k → ℕ) → (Σ n, composition n) := λ i, ⟨_, composition.of_size i.2⟩,
-  have : ({i | (i.2.length < N) ∧ (∀ (j : fin i.2.length), i.2.blocks_fun j < N)} :
-      set (Σ n, composition n))
-    ⊆ A '' (↑(finset.sigma (finset.range N)
-              (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), finset.Ico 1 N) : _))),
-  { rintros ⟨n, c⟩ h,
-    have : ∀ (a : fin c.length), 1 ≤ c.blocks_fun a := λ a, c.blocks_fun_pos a,
-    exact ⟨⟨_, c.blocks_fun⟩, by tidy, c.of_size_eq_self.symm⟩ },
-  exact set.finite_subset (set.finite_image _ (finset.finite_to_set _)) this
+  rcases i with ⟨n, f⟩,
+  rw mem_comp_partial_sum_source_iff at hi,
+  exact ⟨finset.univ.sum f, list.of_fn (λ a, ⟨f a, (hi.2 a).1⟩), by simp [list.of_fn_sum]⟩
 end
 
-@[simp] lemma mem_comp_partial_sum_set_iff {N : ℕ} {a : Σ n, composition n} :
-  a ∈ comp_partial_sum_set N ↔ a.2.length < N ∧ (∀ (j : fin a.2.length), a.2.blocks_fun j < N) :=
-by simp [comp_partial_sum_set]
+@[simp] lemma comp_change_of_variables_length
+  (N : ℕ) {i : Σ n, (fin n) → ℕ} (hi : i ∈ comp_partial_sum_source N) :
+  composition.length (comp_change_of_variables N i hi).2 = i.1 :=
+begin
+  rcases i with ⟨k, blocks_fun⟩,
+  dsimp [comp_change_of_variables],
+  simp only [composition.length, composition.blocks, list.map_of_fn, list.length_of_fn]
+end
+
+lemma comp_change_of_variables_blocks_fun
+  (N : ℕ) {i : Σ n, (fin n) → ℕ} (hi : i ∈ comp_partial_sum_source N) (j : fin i.1) :
+  (comp_change_of_variables N i hi).2.blocks_fun
+    ⟨j.val, (comp_change_of_variables_length N hi).symm ▸ j.2⟩ = i.2 j :=
+begin
+  rcases i with ⟨n, f⟩,
+  dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
+  simp only [list.map_of_fn, pnat.mk_coe, list.nth_le_of_fn', function.comp_app],
+  apply congr_arg,
+  rw fin.ext_iff
+end
+
+/-- Target set in the change of variables to compute the composition of partial sums of formal
+power series, here given a a set. -/
+def comp_partial_sum_target_set (N : ℕ) : set (Σ n, composition n) :=
+{i | (i.2.length < N) ∧ (∀ (j : fin i.2.length), i.2.blocks_fun j < N)}
+
+lemma comp_partial_sum_target_subset_image_comp_partial_sum_source
+  (N : ℕ) (i : Σ n, composition n) (hi : i ∈ comp_partial_sum_target_set N) :
+  ∃ j (hj : j ∈ comp_partial_sum_source N), i = comp_change_of_variables N j hj :=
+begin
+  rcases i with ⟨n, c⟩,
+  simp [comp_partial_sum_target_set] at hi,
+  refine ⟨⟨c.length, c.blocks_fun⟩, _, _⟩,
+  { simp only [mem_comp_partial_sum_source_iff, hi.left, hi.right, true_and, and_true],
+    exact λ a, c.one_le_blocks' _ },
+  { dsimp [comp_change_of_variables],
+    rw composition.sigma_eq_iff_blocks_eq,
+    simp [composition.blocks_fun, composition.blocks, ← list.map_of_fn, - list.map_of_fn, composition.length],
+    conv_lhs { rw ← list.of_fn_nth_le c.blocks_pnat },
+    congr' 2,
+    { exact c.blocks_pnat_length },
+    { exact (fin.heq_fun_iff c.blocks_pnat_length).2 (λ i, rfl) } }
+end
+
+/-- Target set in the change of variables to compute the composition of partial sums of formal
+power series, here given a a finset. -/
+def comp_partial_sum_target (N : ℕ) : finset (Σ n, composition n) :=
+set.finite.to_finset $ set.finite_dependent_image (finset.finite_to_set _)
+  (comp_partial_sum_target_subset_image_comp_partial_sum_source N)
+
+@[simp] lemma mem_comp_partial_sum_target_iff {N : ℕ} {a : Σ n, composition n} :
+  a ∈ comp_partial_sum_target N ↔ a.2.length < N ∧ (∀ (j : fin a.2.length), a.2.blocks_fun j < N) :=
+by simp [comp_partial_sum_target, comp_partial_sum_target_set]
 
 /-- The auxiliary set corresponding to the composition of partial sums asymptotically contains
 all possible ordered partitions. -/
-lemma comp_partial_sum_set_tendsto_at_top :
-  tendsto comp_partial_sum_set at_top at_top :=
+lemma comp_partial_sum_target_tendsto_at_top :
+  tendsto comp_partial_sum_target at_top at_top :=
 begin
   apply monotone.tendsto_at_top_finset,
   { assume m n hmn a ha,
     have : ∀ i, i < m → i < n := λ i hi, lt_of_lt_of_le hi hmn,
     tidy },
   { rintros ⟨n, c⟩,
-    simp only [mem_comp_partial_sum_set_iff],
+    simp only [mem_comp_partial_sum_target_iff],
     have : bdd_above ↑(finset.univ.image (λ (i : fin c.length), c.blocks_fun i)) :=
       finset.bdd_above _,
     rcases this with ⟨n, hn⟩,
@@ -389,18 +452,18 @@ begin
 end
 
 /-- Composing the partial sums of two multilinear series coincides with the sum over all ordered
-partitions in `comp_partial_sum_set N`. This is precisely the motivation for the definition of
-`comp_partial_sum_set N`. -/
+partitions in `comp_partial_sum_target N`. This is precisely the motivation for the definition of
+`comp_partial_sum_target N`. -/
 lemma comp_partial_sum
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (N : ℕ) (z : E) :
   q.partial_sum N ((finset.Ico 1 N).sum (λ a, p a (λ b, z)))
-    = (comp_partial_sum_set N).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, z)) :=
+    = (comp_partial_sum_target N).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, z)) :=
 begin
   -- we expand the composition, using the multilinearity of `q` to expand along each coordinate.
   suffices H : (finset.range N).sum
     (λ (n : ℕ), (fintype.pi_finset (λ (i : fin n), finset.Ico 1 N)).sum
           (λ (r : fin n → ℕ), q n (λ (i : fin n), p (r i) (λ (i : fin (r i)), z)))) =
-  (comp_partial_sum_set N).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, z)),
+  (comp_partial_sum_target N).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, z)),
     by simpa only [formal_multilinear_series.partial_sum,
                    continuous_multilinear_map.map_sum_finset] using H,
   -- rewrite the first sum as a big sum over a sigma type
@@ -410,55 +473,50 @@ begin
   -- show that the two sums correspond to each other by reindexing the variables. This is the
   -- content of `finset.sum_bij`, for which we spell out all parameters of the bijection
   -- explicitly as the setting is complicated.
-  apply @finset.sum_bij _ _ _ _
-    (finset.sigma (finset.range N) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), finset.Ico 1 N) : _))
-    (comp_partial_sum_set N)
+  apply @finset.sum_bij _ _ _ _ (comp_partial_sum_source N) (comp_partial_sum_target N)
     (λ i, q i.1 (λ (j : fin i.1), p (i.2 j) (λ (k : fin (i.2 j)), z)))
     (λ i, q.comp_along_composition_multilinear p i.2 (λ j, z))
-    (λ i hi, ⟨_, composition.of_size i.2⟩),
+    (comp_change_of_variables N),
   -- To conclude, we should show that the correspondance we have set up is indeed a bijection
   -- between the index sets of the two sums.
-  -- 1 - show that the image belongs to `comp_partial_sum_set N`
-  { rintros ⟨k, size⟩ H,
-    simp only [finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma, finset.mem_range] at H,
-    let c := composition.of_size size,
-    have one_le_size : ∀ (i : fin k), 1 ≤ size i := λ i, (H.2 i).1,
-    have length_eq_k : c.length = k :=
-      composition.of_size_length one_le_size,
-    simp only [comp_partial_sum_set, set.finite.mem_to_finset, set.mem_set_of_eq],
-    refine ⟨by convert H.1, _⟩,
-    assume a,
-    let a' : fin k := ⟨a.val, lt_of_lt_of_le a.2 (le_of_eq length_eq_k)⟩,
-    have : size a' = composition.blocks_fun (composition.of_size size) a :=
-      composition.of_size_size one_le_size a',
-    rw ← this,
-    exact (H.2 a').2 },
+  -- 1 - show that the image belongs to `comp_partial_sum_target N`
+  { rintros ⟨k, blocks_fun⟩ H,
+    rw mem_comp_partial_sum_source_iff at H,
+    simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
+               list.map_of_fn, list.length_of_fn, true_and, comp_change_of_variables],
+    assume j,
+    simp only [composition.blocks_fun, composition.blocks, (H.right _).right, pnat.mk_coe,
+               list.map_of_fn, list.nth_le_of_fn', function.comp_app] },
   -- 2 - show that the composition gives the `comp_along_composition` application
-  { dsimp,
-    rintros ⟨k, size⟩ H,
-    simp only [finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma, finset.mem_range] at H,
-    let c := composition.of_size size,
-    have one_le_size : ∀ (i : fin k), 1 ≤ size i := λ i, (H.2 i).1,
-    have length_eq_k : c.length = k :=
-      composition.of_size_length one_le_size,
+  { rintros ⟨k, blocks_fun⟩ H,
+    have L := comp_change_of_variables_length N H,
+    have B := comp_change_of_variables_blocks_fun N H,
+    rw mem_comp_partial_sum_source_iff at H,
     dsimp [formal_multilinear_series.comp_along_composition_multilinear,
-      formal_multilinear_series.apply_composition],
+      formal_multilinear_series.apply_composition, comp_change_of_variables] at L B ⊢,
     unfold_coes,
-    congr' 1; try { rw length_eq_k },
-    apply fin.heq length_eq_k.symm,
-    assume i,
-    have : size i = c.blocks_fun ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq length_eq_k.symm)⟩ :=
-      composition.of_size_size one_le_size i,
-    rw this },
+    congr' 1; try { rw L },
+    apply (fin.heq_fun_iff L.symm).2 (λ j, _),
+    rw ← B },
   -- 3 - show that the map is injective
-  { rintros ⟨k, size⟩ ⟨k', size'⟩ H H' heq,
-    simp at H H',
-    exact composition.of_size_inj (λ i, (H.2 i).1) ((λ i, (H'.2 i).1)) heq },
+  { assume i i' H H' heq,
+    have B := comp_change_of_variables_blocks_fun N H,
+    have B' := comp_change_of_variables_blocks_fun N H',
+    have A : i.1 = i'.1,
+    { rw [← comp_change_of_variables_length N H, ← comp_change_of_variables_length _ H', heq] },
+    rcases i with ⟨k, blocks_fun⟩,
+    rcases i' with ⟨k', blocks_fun'⟩,
+    dsimp at A B B',
+    simp only [A, fin.heq_fun_iff, true_and, eq_self_iff_true],
+    assume i,
+    rw [← B, ← B'],
+    congr' 1; try { rw heq },
+    rw fin.heq_ext_iff,
+    rw heq },
   -- 4 - show that the map is surjective
-  { rintros ⟨n, c⟩ H,
-    dsimp [comp_partial_sum_set] at H,
-    have : ∀ (a : fin c.length), 1 ≤ c.blocks_fun a := λ a, c.blocks_fun_pos a,
-    exact ⟨⟨_, c.blocks_fun⟩, by tidy, c.of_size_eq_self⟩ }
+  { assume i hi,
+    apply comp_partial_sum_target_subset_image_comp_partial_sum_source N i,
+    simpa [comp_partial_sum_target] using hi }
 end
 
 end formal_multilinear_series
@@ -508,7 +566,7 @@ begin
   /- Now starts the proof. To show that the sum of `q.comp p` at `y` is `g (f (x + y))`, we will
   write `q.comp p` applied to `y` as a big sum over all ordered partitions. Since the sum is
   summable, to get its convergence it suffices to get the convergence along some increasing sequence
-  of sets. We will use the sequence of sets `comp_partial_sum_set n`, along which the sum is
+  of sets. We will use the sequence of sets `comp_partial_sum_target n`, along which the sum is
   exactly the composition of the partial sums of `q` and `p`, by design. To show that it converges
   to `g (f (x + y))`, pointwise convergence would not be enough, but we have uniform convergence
   to save the day. -/
@@ -539,11 +597,11 @@ begin
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
-  -- Third step: the sum over all ordered partitions in `comp_partial_sum_set n` converges to
+  -- Third step: the sum over all ordered partitions in `comp_partial_sum_target n` converges to
   -- `g (f (x + y))`. As this sum is exactly the composition of the partial sum, this is a direct
   -- consequence of the second step
   have C : tendsto (λ n,
-    (comp_partial_sum_set n).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, y)))
+    (comp_partial_sum_target n).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, y)))
     at_top (𝓝 (g (f (x + y)))), by simpa [comp_partial_sum] using B,
   -- Fourth step: the sum over all ordered partitions is `g (f (x + y))`. This follows from the
   -- convergence along a subsequence proved in the third step, and the fact that the sum is Cauchy
@@ -568,7 +626,7 @@ begin
         rwa [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm] at this
       end },
     exact tendsto_nhds_of_cauchy_seq_of_subseq cau at_top_ne_bot
-          comp_partial_sum_set_tendsto_at_top C },
+          comp_partial_sum_target_tendsto_at_top C },
   -- Fifth step: the sum over `n` of `q.comp p n` can be expressed as a particular resummation of
   -- the sum over all ordered partitions, by grouping together the ordered partitions of the same
   -- integer `n`. The convergence of the whole sum therefore implies the converence of the sum

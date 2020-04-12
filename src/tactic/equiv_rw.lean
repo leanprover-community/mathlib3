@@ -3,8 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.functor
 import category_theory.concrete_category.basic
+import category.equiv_functor
+import tactic.simp_result
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -27,8 +28,7 @@ As an example, with `t = option α`, it will generate `functor.map_equiv option 
 This is achieved by generating a new synthetic goal `%%t ≃ _`,
 and calling `solve_by_elim` with an appropriate set of congruence lemmas.
 To avoid having to specify the relevant congruence lemmas by hand,
-we mostly rely on `functor.map_equiv` and `bifunctor.map_equiv`
-(and, in a future PR, `equiv_functor.map_equiv`, see below),
+we mostly rely on `equiv_functor.map_equiv` and `bifunctor.map_equiv`
 along with some structural congruence lemmas such as
 * `equiv.arrow_congr'`,
 * `equiv.subtype_equiv_of_subtype'`,
@@ -43,21 +43,9 @@ revert this, and then attempt to `generalize`, replacing all occurrences of `e x
 before `intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
 
 ## Future improvements
-While `equiv_rw` will rewrite under type-level functors (e.g. `option` and `list`),
-many constructions are only functorial with respect to equivalences
-(essentially, because of both positive and negative occurrences of the type being rewritten).
-At the moment, we only handle constructions of this form (e.g. `unique` or `ring`) by
-including explicit `equiv.*_congr` lemmas in the list provided to `solve_by_elim`.
-
-A (near) future PR will introduce `equiv_functor`,
-a typeclass for functions which are functorial with respect to equivalences,
-and use these instances rather than hard-coding the `congr` lemmas here.
-
-`equiv_functor` is not included in the initial implementation of `equiv_rw`, simply because
-the best way to construct an instance of `equiv_functor has_add` is to use `equiv_rw`!
-In fact, in a slightly more distant future PR I anticipate that
-`derive equiv_functor` should work on many examples, and
-we can incrementally bootstrap the strength of `equiv_rw`.
+In a future PR I anticipate that `derive equiv_functor` should work on many examples,
+(internally using `transport`, which is in turn based on `equiv_rw`)
+and we can incrementally bootstrap the strength of `equiv_rw`.
 
 An ambitious project might be to add `equiv_rw!`,
 a tactic which, when failing to find appropriate `equiv_functor` instances,
@@ -72,17 +60,16 @@ This will allow us to transport across more general types of equivalences,
 but this will wait for another subsequent PR.
 -/
 
+mk_simp_attribute functoriality
+"The simpset `functoriality` is used by the tactic `equiv_rw`
+to write expressions explicitly as applications of functors."
+
 namespace tactic
 
-/-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
+/-- A list of lemmas used for constructing congruence equivalences. -/
 
--- TODO: This should not be a hard-coded list.
--- We could accommodate the remaining "non-structural" lemmas using
--- `equiv_functor` instances.
--- Moreover, these instances can typically be `derive`d.
-
--- (Scott): I have not incorporated `equiv_functor` as part of this PR,
--- as the best way to construct instances, either by hand or using `derive`, is to use this tactic!
+-- Although this looks 'hard-coded', in fact the lemma `equiv_functor.map_equiv`
+-- allows us to extend `equiv_rw` simply by constructing new instance so `equiv_functor`.
 
 -- TODO: We should also use `category_theory.functorial` and `category_theory.hygienic` instances.
 -- (example goal: we could rewrite along an isomorphism of rings (either as `R ≅ S` or `R ≃+* S`)
@@ -93,10 +80,8 @@ do exprs ←
   [
   `equiv.of_iff,
   `category_theory.iso.to_equiv,
-  -- These are functorial w.r.t equiv,
-  -- and so will be subsumed by `equiv_functor.map_equiv` in a subsequent PR.
-  -- Many more could be added, but will wait for that framework.
-  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
+  -- TODO decide what to do with this; it's an equiv_bifunctor?
+  `equiv.equiv_congr,
   -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
   -- but the pattern matcher will never see this.
   `equiv.arrow_congr',
@@ -115,8 +100,8 @@ do exprs ←
   -- Handles `sum` and `prod`, and many others:
   `bifunctor.map_equiv,
   `and_congr, `or_congr, -- TODO a generic version of these?
-  -- Handles `list`, `option`, and many others:
-  `functor.map_equiv,
+  -- Handles `list`, `option`, `unique`, and many others:
+  `equiv_functor.map_equiv,
   `category_theory.map_iso,
   -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
   `equiv.refl,
@@ -160,14 +145,18 @@ do
   solve_by_elim
   { use_symmetry := false,
     use_exfalso := false,
-    lemmas := some (equiv_congr_lemmas.map return),
+    lemmas := equiv_congr_lemmas,
     max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
-    -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
+    discharger :=
+    -- If solve_by_elim gets stuck, check whether the simp-set `[functoriality]` can
+    -- adjust the goal into a "more functorial" form:
+    `[dsimp only [] with functoriality] <|>
+    -- Also, make sure it isn't because there's a later `≃` or `↔` goal
     -- that we should still attempt.
-    discharger :=  `[dsimp only [] with functoriality] <|> `[show _ ≃ _] <|> `[show _ ↔ _] <|>
+    `[show _ ≃ _] <|> `[show _ ↔ _] <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
     accept := λ goals, lock_tactic_state (do
@@ -205,19 +194,25 @@ do
   -- to compress away some `map_equiv equiv.refl` subexpressions.
   prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
 
+mk_simp_attribute equiv_rw_simp "The simpset `equiv_rw_simp` is used by the tactic `equiv_rw` to
+simplify applications of equivalences and their inverses."
+
+attribute [equiv_rw_simp] equiv.symm_symm equiv.apply_symm_apply equiv.symm_apply_apply
+
 /--
 Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
 meta def equiv_rw_hyp (x : name) (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=
-do
+-- We call `dsimp_result` to perform the beta redex introduced by `revert`
+dsimp_result (do
   x' ← get_local x,
   x_ty ← infer_type x',
   -- Adapt `e` to an equivalence with left-hand-side `x_ty`.
   e ← equiv_rw_type e x_ty cfg,
   eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
-  h ← assertv_fresh eq prf,
+  h ← note_anon eq prf,
   -- Revert the new hypothesis, so it is also part of the goal.
   revert h,
   ex ← to_expr ``(equiv.to_fun %%e %%x'),
@@ -225,20 +220,22 @@ do
   -- attempting to replace all occurrences of `e x`,
   -- calling it for now `j : β`, with `k : x = e.symm j`.
   generalize ex (by apply_opt_param) transparency.none,
-  -- Reintroduce `x` (now of type `b`).
+  -- Reintroduce `x` (now of type `b`), and the hypothesis `h`.
   intro x,
-  k ← mk_fresh_name,
-  -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
-  intro k >>= (λ k, do
-    subst_core k
-    -- If we're rewriting a typeclass instance we may need to unfreeze local instances
-    <|> unfreeze_local_instances >> subst_core k
-    -- Sometimes (because of Lean #165, hopefully fixed in Lean 3.8),
-    -- `subst` just doesn't work, so we clean up as best we can.
-    <|> infer_type k >>= pp >>= (λ kt, trace format!"`subst` failed: {kt}") >> clear k >> clear x'
-    ),
-  `[try { simp only [equiv.symm_symm, equiv.apply_symm_apply, equiv.symm_apply_apply] }],
-  skip
+  h ← intro1,
+  -- We may need to unfreeze `x` before we can `subst` or `clear` it.
+  unfreeze x',
+  -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,
+  -- and if we're working on data, just throw out the old `x`.
+  b ← target >>= is_prop,
+  if b then do
+    subst h,
+    `[try { simp only [] with equiv_rw_simp }]
+  else
+    clear' tt (native.rb_map.set_of_list [x']) <|>
+      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
+  skip)
+  {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.
 
 /-- Rewrite the goal using an equiv `e`. -/
 meta def equiv_rw_target (e : expr) (cfg : equiv_rw_cfg := {}) : tactic unit :=
@@ -266,9 +263,9 @@ with all occurrences of `h` in other hypotheses and the goal replaced with `e.sy
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under functors, so can turn
+`equiv_rw` will also try rewriting under (equiv_)functors, so can turn
 a hypothesis `h : list α` into `h : list β` or
-a goal `⊢ option α` into `⊢ option β`.
+a goal `⊢ unique α` into `⊢ unique β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw e {max_depth := n}`.

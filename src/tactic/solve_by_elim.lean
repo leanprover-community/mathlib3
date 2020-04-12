@@ -56,15 +56,18 @@ that do not in fact produce metavariables with a simple `return` tactic.
 -/
 meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) :
   tactic (list (tactic expr)) :=
- -- We lock the tactic state so that any spurious goals generated during
- -- elaboration of pre-expressions are discarded
- lock_tactic_state $
+-- We lock the tactic state so that any spurious goals generated during
+-- elaboration of pre-expressions are discarded
+lock_tactic_state $
 do
   -- `hs` are expressions specified explicitly,
   -- `hex` are exceptions (specified via `solve_by_elim [-h]`) referring to local hypotheses,
   -- `gex` are the other exceptions
   (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
   -- Recall, per the discussion above, we produce `tactic expr` thunks rather than actual `expr`s.
+  -- Note that while we evaluate these thunks on two occasions below while preparing the list,
+  -- this is a one-time cost during `mk_assumption_set`, rather than a cost proportional to the
+  -- length of the search `solve_by_elim` executes.
   let hs := hs.map (λ h, i_to_expr_for_apply h),
   l ← attr.mmap $ λ a, attribute.get_instances a,
   let l := l.join,
@@ -75,7 +78,8 @@ do
     ([`rfl, `trivial, `congr_fun, `congr_arg].map (λ n, (mk_const n))) ++ hs,
   hs ← if ¬ no_dflt ∨ all_hyps then do
     ctx ← local_context,
-    return $ hs.append ((ctx.filter (λ h : expr, h.local_uniq_name ∉ hex)).map return) -- remove local exceptions
+    -- Remove local exceptions specified in `hex`:
+    return $ hs.append ((ctx.filter (λ h : expr, h.local_uniq_name ∉ hex)).map return)
   else return hs,
   -- Finally, run all of the tactics: any that return an expression without metavariables can safely
   -- be replaced by a `return` tactic.
@@ -132,21 +136,25 @@ Arguments for `solve_by_elim`:
 * `lemmas` specifies the list of lemmas to use in the backtracking search.
   If `none`, `solve_by_elim` uses the local hypotheses,
   along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
+* `lemma_thunks` provides the lemmas as a list of `tactic expr`,
+  which are used to regenerate the `expr` objects to avoid binding metavariables.
+  (If both `lemmas` and `lemma_thunks` are specified, only `lemma_thunks` is used.)
 * `max_depth` bounds the depth of the search.
 -/
 meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
-(lemmas : option (list (tactic expr)) := none)
+(lemmas : option (list expr) := none)
+(lemma_thunks : option (list (tactic expr)) := lemmas.map (λ l, l.map return))
 (max_depth : ℕ := 3)
 
 /--
 If no lemmas have been specified, generate the default set
 (local hypotheses, along with `rfl`, `trivial`, `congr_arg`, and `congr_fun`).
 -/
-meta def opt.get_lemmas (opt : opt) : tactic (list (tactic expr)) :=
-match opt.lemmas with
+meta def opt.get_lemma_thunks (opt : opt) : tactic (list (tactic expr)) :=
+match opt.lemma_thunks with
 | none := mk_assumption_set ff [] []
-| some lemmas := return lemmas
+| some lemma_thunks := return lemma_thunks
 end
 
 end solve_by_elim
@@ -173,7 +181,7 @@ for each application.
 meta def solve_by_elim (opt : opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  lemmas ← opt.get_lemmas,
+  lemmas ← opt.get_lemma_thunks,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
     solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth)
@@ -254,10 +262,10 @@ optional arguments passed via a configuration argument as `solve_by_elim { ... }
 meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : solve_by_elim.opt := { }) :
   tactic unit :=
-do lemmas ← mk_assumption_set no_dflt hs attr_names,
+do lemma_thunks ← mk_assumption_set no_dflt hs attr_names,
    tactic.solve_by_elim
    { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
-     lemmas := some lemmas,
+     lemma_thunks := some lemma_thunks,
      ..opt }
 
 add_tactic_doc

@@ -84,15 +84,12 @@ protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι 
     end),
   ..pilex.partial_order }
 
-instance [linear_order ι] [∀ a, ordered_comm_group (β a)] : ordered_comm_group (pilex ι β) :=
+instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=
 { add_le_add_left := λ x y hxy z,
     hxy.elim
       (λ ⟨i, hi⟩,
         or.inl ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
           add_lt_add_left hi.2 _⟩)
       (λ hxy, hxy ▸ le_refl _),
-  add_lt_add_left := λ x y ⟨i, hi⟩ z,
-    ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
-      add_lt_add_left hi.2 _⟩,
   ..pilex.partial_order,
   ..pi.add_comm_group }

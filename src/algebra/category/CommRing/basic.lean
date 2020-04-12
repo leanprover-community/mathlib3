@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 
-import algebra.category.Group
+import algebra.category.Group.basic
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
@@ -55,6 +55,7 @@ instance (R : SemiRing) : semiring R := R.str
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
 
+instance : category SemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category SemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
@@ -79,15 +80,11 @@ instance : inhabited Ring := ⟨of punit⟩
 
 local attribute [reducible] Ring
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see Note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
-instance : has_coe_to_sort Ring := infer_instance -- short-circuit type class inference
+instance : has_coe_to_sort Ring := by apply_instance -- short-circuit type class inference
 
 instance (R : Ring) : ring R := R.str
 
+instance : category Ring := infer_instance -- short-circuit type class inference
 instance : concrete_category Ring := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance  -- short-circuit type class inference
@@ -120,6 +117,7 @@ instance : has_coe_to_sort CommSemiRing := infer_instance -- short-circuit type 
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
 
+instance : category CommSemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommSemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := infer_instance -- short-circuit type class inference
@@ -151,11 +149,12 @@ see Note [reducible has_coe_to_sort instances for bundled categories].
 @[reducible]
 instance : has_coe_to_sort CommRing := infer_instance -- short-circuit type class inference
 
--- TODO install this lemma everywhere else!
+-- TODO install this lemma in all the other concrete categories!
 @[simp] lemma coe_of (R : Type u) [comm_ring R] : (CommRing.of R : Type u) = R := rfl
 
 instance (R : CommRing) : comm_ring R := R.str
 
+instance : category CommRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := infer_instance -- short-circuit type class inference
@@ -166,12 +165,10 @@ has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂
 
 end CommRing
 
-/--
-We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
-so that `simp` lemmas for morphisms work.
-
-See Note [reducible has_coe_to_sort instances for bundled categories].
--/
+-- This example verifies an improvement possible in Lean 3.8.
+-- Before that, to have `add_ring_hom.map_zero` usable by `simp` here,
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- Now, it just works.
 example {R S : CommRing} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 by simp [h]
 

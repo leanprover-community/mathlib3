@@ -12,7 +12,7 @@ variables {α : Type*}
 
 open_locale add_monoid
 
-class archimedean (α) [ordered_comm_monoid α] : Prop :=
+class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
@@ -80,7 +80,7 @@ lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
@@ -96,10 +96,10 @@ lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
-have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
+have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg, one_div_eq_inv,
+by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]

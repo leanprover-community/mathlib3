@@ -13,7 +13,7 @@ open set function ideal
 open_locale classical
 
 class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
-(principal : ∃ a, S = span {a})
+(principal [] : ∃ a, S = span {a})
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -78,7 +78,7 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α 
 { principal := λ S, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0}.nonempty
     then
-    have wf : well_founded euclidean_domain.r := euclidean_domain.r_well_founded α,
+    have wf : well_founded (euclidean_domain.r : α → α → Prop) := euclidean_domain.r_well_founded,
     have hmin : well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ≠ 0,
       from well_founded.min_mem wf {x : α | x ∈ S ∧ x ≠ 0} h,

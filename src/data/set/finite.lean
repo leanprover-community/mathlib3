@@ -330,10 +330,10 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+lemma exists_min_image [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
-  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
+  using (finite.to_finset h1).exists_min_image f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 

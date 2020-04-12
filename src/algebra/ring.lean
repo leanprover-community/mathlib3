@@ -487,7 +487,7 @@ end prio
 -- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
 -- but it doesn't seem worth doing just for these lemmas.
 lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
-λ h, one_ne_zero ((add_left_inj a).mp (by { convert h, simp, }))
+λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
 
 -- As with succ_ne_self.
 lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=

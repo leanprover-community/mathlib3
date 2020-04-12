@@ -104,7 +104,7 @@ begin
     { exact λ w, pred_ne_self m.2 (congr_arg prod.snd w), },
     { have t := finset.mem_of_mem_inter_right h,
       dsimp [shift_up] at t,
-      simp only [exists_prop, finset.mem_map, add_comm, function.embedding.coe_fn_mk, prod.exists] at t,
+      simp only [finset.mem_map, prod.exists] at t,
       rcases t with ⟨x,y,w,h⟩,
       rw ←h,
       convert w,
@@ -122,7 +122,7 @@ begin
     { exact λ w, pred_ne_self m.1 (congr_arg prod.fst w), },
     { have t := finset.mem_of_mem_inter_right h,
       dsimp [shift_right] at t,
-      simp only [exists_prop, finset.mem_map, add_comm, function.embedding.coe_fn_mk, prod.exists] at t,
+      simp only [finset.mem_map, prod.exists] at t,
       rcases t with ⟨x,y,w,h⟩,
       rw ←h,
       convert w,
@@ -131,16 +131,10 @@ end
 
 lemma move_left_smaller {b : board} {m : ℤ × ℤ} (h : m ∈ left b) :
   finset.card (move_left b m) / 2 < finset.card b / 2 :=
-begin
-  rw ←move_left_card h,
-  simp [lt_add_one],
-end
+by simp [←move_left_card h, lt_add_one]
 lemma move_right_smaller {b : board} {m : ℤ × ℤ} (h : m ∈ right b) :
   finset.card (move_right b m) / 2 < finset.card b / 2 :=
-begin
-  rw ←move_right_card h,
-  simp [lt_add_one],
-end
+by simp [←move_right_card h, lt_add_one]
 
 /-- The instance describing allowed moves on a Domineering board. -/
 instance state : state board :=
@@ -149,13 +143,13 @@ instance state : state board :=
   R := λ s, (right s).image (move_right s),
   left_bound := λ s t m,
   begin
-    simp only [finset.mem_image, exists_prop, finset.mem_image, prod.exists] at m,
+    simp only [finset.mem_image, prod.exists] at m,
     rcases m with ⟨_, _, ⟨h, rfl⟩⟩,
     exact move_left_smaller h
   end,
   right_bound := λ s t m,
   begin
-    simp only [finset.mem_image, exists_prop, finset.mem_image, prod.exists] at m,
+    simp only [finset.mem_image, prod.exists] at m,
     rcases m with ⟨_, _, ⟨h, rfl⟩⟩,
     exact move_right_smaller h
   end, }

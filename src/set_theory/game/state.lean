@@ -86,22 +86,28 @@ def of_aux_relabelling : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) (hm : 
   begin
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso, exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
-    { intro j, dsimp at j, exfalso, exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
+    { intro i, dsimp at i, exfalso,
+      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
+    { intro j, dsimp at j, exfalso,
+      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
   end
 | s 0 (m+1) hn hm :=
   begin
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso, exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
-    { intro j, dsimp at j, exfalso, exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hn) }
+    { intro i, dsimp at i, exfalso,
+      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
+    { intro j, dsimp at j, exfalso,
+      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hn) }
   end
 | s (n+1) 0 hn hm :=
   begin
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso, exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hm) },
-    { intro j, dsimp at j, exfalso, exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
+    { intro i, dsimp at i, exfalso,
+      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hm) },
+    { intro j, dsimp at j, exfalso,
+      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
   end
 | s (n+1) (m+1) hn hm :=
   begin
@@ -116,28 +122,38 @@ def of_aux_relabelling : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) (hm : 
 /-- Construct a combinatorial `pgame` from a state. -/
 def of (s : S) : pgame := of_aux (turn_bound s) s (refl _)
 
-/-- The equivalence between `left_moves` for a `pgame` constructed using `of_aux _ s _`, and `L s`. -/
-def left_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) : left_moves (of_aux n s h) ≃ {t // t ∈ L s} :=
+/--
+The equivalence between `left_moves` for a `pgame` constructed using `of_aux _ s _`, and `L s`.
+-/
+def left_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
+  left_moves (of_aux n s h) ≃ {t // t ∈ L s} :=
 by induction n; refl
-/-- The equivalence between `left_moves` for a `pgame` constructed using `of s`, and `L s`. -/
+/--
+The equivalence between `left_moves` for a `pgame` constructed using `of s`, and `L s`.
+-/
 def left_moves_of (s : S) : left_moves (of s) ≃ {t // t ∈ L s} :=
 left_moves_of_aux _ _
-/-- The equivalence between `right_moves` for a `pgame` constructed using `of_aux _ s _`, and `R s`. -/
-def right_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) : right_moves (of_aux n s h) ≃ {t // t ∈ R s} :=
+/--
+The equivalence between `right_moves` for a `pgame` constructed using `of_aux _ s _`, and `R s`.
+-/
+def right_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
+  right_moves (of_aux n s h) ≃ {t // t ∈ R s} :=
 by induction n; refl
 /-- The equivalence between `right_moves` for a `pgame` constructed using `of s`, and `R s`. -/
 def right_moves_of (s : S) : right_moves (of s) ≃ {t // t ∈ R s} :=
 right_moves_of_aux _ _
 
 /--
-The relabelling showing `move_left` applied to a game constructed using `of_aux` has itself been constructed
-using `of_aux`.
+The relabelling showing `move_left` applied to a game constructed using `of_aux`
+has itself been constructed using `of_aux`.
 -/
 def relabelling_move_left_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
   (t : left_moves (of_aux n s h)) :
   relabelling
     (move_left (of_aux n s h) t)
-    (of_aux (n-1) (((left_moves_of_aux n h) t) : S) ((turn_bound_of_left ((left_moves_of_aux n h) t).2 (n-1) (nat.le_trans h (nat.le_sub_add n 1))))) :=
+    (of_aux (n-1) (((left_moves_of_aux n h) t) : S)
+      ((turn_bound_of_left ((left_moves_of_aux n h) t).2 (n-1)
+        (nat.le_trans h (nat.le_sub_add n 1))))) :=
 begin
   induction n,
   { have t' := (left_moves_of_aux 0 h) t,
@@ -145,8 +161,8 @@ begin
   { refl },
 end
 /--
-The relabelling showing `move_left` applied to a game constructed using `of` has itself been constructed
-using `of`.
+The relabelling showing `move_left` applied to a game constructed using `of`
+has itself been constructed using `of`.
 -/
 def relabelling_move_left (s : S) (t : left_moves (of s)) :
   relabelling
@@ -158,14 +174,16 @@ begin
   apply of_aux_relabelling,
 end
 /--
-The relabelling showing `move_right` applied to a game constructed using `of_aux` has itself been constructed
-using `of_aux`.
+The relabelling showing `move_right` applied to a game constructed using `of_aux`
+has itself been constructed using `of_aux`.
 -/
 def relabelling_move_right_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
   (t : right_moves (of_aux n s h)) :
   relabelling
     (move_right (of_aux n s h) t)
-    (of_aux (n-1) (((right_moves_of_aux n h) t) : S) ((turn_bound_of_right ((right_moves_of_aux n h) t).2 (n-1) (nat.le_trans h (nat.le_sub_add n 1))))) :=
+    (of_aux (n-1) (((right_moves_of_aux n h) t) : S)
+      ((turn_bound_of_right ((right_moves_of_aux n h) t).2 (n-1)
+        (nat.le_trans h (nat.le_sub_add n 1))))) :=
 begin
   induction n,
   { have t' := (right_moves_of_aux 0 h) t,
@@ -173,8 +191,8 @@ begin
   { refl },
 end
 /--
-The relabelling showing `move_right` applied to a game constructed using `of` has itself been constructed
-using `of`.
+The relabelling showing `move_right` applied to a game constructed using `of`
+has itself been constructed using `of`.
 -/
 def relabelling_move_right (s : S) (t : right_moves (of s)) :
   relabelling
@@ -186,12 +204,14 @@ begin
   apply of_aux_relabelling,
 end
 
-instance fintype_left_moves_of_aux (n : ℕ) (s : S) (h : turn_bound s ≤ n) : fintype (left_moves (of_aux n s h)) :=
+instance fintype_left_moves_of_aux (n : ℕ) (s : S) (h : turn_bound s ≤ n) :
+  fintype (left_moves (of_aux n s h)) :=
 begin
   apply fintype.of_equiv _ (left_moves_of_aux _ _).symm,
   apply_instance,
 end
-instance fintype_right_moves_of_aux (n : ℕ) (s : S) (h : turn_bound s ≤ n) : fintype (right_moves (of_aux n s h)) :=
+instance fintype_right_moves_of_aux (n : ℕ) (s : S) (h : turn_bound s ≤ n) :
+  fintype (right_moves (of_aux n s h)) :=
 begin
   apply fintype.of_equiv _ (right_moves_of_aux _ _).symm,
   apply_instance,
@@ -200,8 +220,16 @@ end
 instance short_of_aux : Π (n : ℕ) {s : S} (h : turn_bound s ≤ n), short (of_aux n s h)
 | 0 s h :=
   short.mk'
-  (λ i, begin have i := (left_moves_of_aux _ _).to_fun i, exfalso, exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp h), end)
-  (λ j, begin have j := (right_moves_of_aux _ _).to_fun j, exfalso, exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp h), end)
+  (λ i, begin
+    have i := (left_moves_of_aux _ _).to_fun i,
+    exfalso,
+    exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp h),
+  end)
+  (λ j, begin
+    have j := (right_moves_of_aux _ _).to_fun j,
+    exfalso,
+    exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp h),
+  end)
 | (n+1) s h :=
   short.mk'
   (λ i, short_of_relabelling (relabelling_move_left_aux (n+1) h i).symm (short_of_aux n _))

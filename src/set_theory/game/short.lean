@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import set_theory.game
-import data.fintype
+import data.fintype.basic
 
 /-!
 # Short games
@@ -41,7 +41,8 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- A synonym for `short.mk` that specifies the pgame in an implicit argument. -/
 def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
-  (sL : ∀ i : x.left_moves, short (x.move_left i)) (sR : ∀ j : x.right_moves, short (x.move_right j)) :
+  (sL : ∀ i : x.left_moves, short (x.move_left i))
+  (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=
 by { resetI, cases x, dsimp at *, exact short.mk sL sR }
 
@@ -51,7 +52,8 @@ attribute [class] short
 Extracting the `fintype` instance for the indexing type for Left's moves in a short game.
 This is an unindexed typeclass, so it can't be made a global instance.
 -/
-def fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype α :=
+def fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] :
+  fintype α :=
 by { resetI, cases S with _ _ _ _ _ _ F _, exact F }
 local attribute [instance] fintype_left
 instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
@@ -60,7 +62,8 @@ by { resetI, cases x, dsimp, apply_instance, }
 Extracting the `fintype` instance for the indexing type for Right's moves in a short game.
 This is an unindexed typeclass, so it can't be made a global instance.
 -/
-def fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype β :=
+def fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] :
+  fintype β :=
 by { resetI, cases S with _ _ _ _ _ _ _ F, exact F }
 local attribute [instance] fintype_right
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
@@ -104,12 +107,15 @@ inductive list_short : list pgame.{u} → Type (u+1)
 attribute [class] list_short
 attribute [instance] list_short.nil list_short.cons
 
-instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (list.length L)), short (list.nth_le L (i.val) i.is_lt)
+instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (list.length L)),
+  short (list.nth_le L (i.val) i.is_lt)
 | [] _ n := begin exfalso, rcases n with ⟨_, ⟨⟩⟩, end
 | (hd :: tl) (@list_short.cons _ S _ _) ⟨0, _⟩ := S
-| (hd :: tl) (@list_short.cons _ _ _ S) ⟨n+1, h⟩ := @list_short_nth_le tl S ⟨n, (add_lt_add_iff_right 1).mp h⟩
+| (hd :: tl) (@list_short.cons _ _ _ S) ⟨n+1, h⟩ :=
+  @list_short_nth_le tl S ⟨n, (add_lt_add_iff_right 1).mp h⟩
 
-instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R], short (pgame.of_lists L R)
+instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R],
+  short (pgame.of_lists L R)
 | L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
 
 /-- If `x` is a short game, and `y` is a relabelling of `x`, then `y` is also short. -/
@@ -125,7 +131,8 @@ begin
 end
 
 /-- If `x` has no left move or right moves, it is (very!) short. -/
-def short_of_equiv_empty {x : pgame.{u}} (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
+def short_of_equiv_empty {x : pgame.{u}}
+  (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
 short_of_relabelling (relabel_relabelling el er).symm short.of_pempty
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)

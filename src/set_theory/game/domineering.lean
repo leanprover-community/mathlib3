@@ -8,12 +8,15 @@ import set_theory.game.state
 /-!
 # Domineering as a combinatorial game.
 
-We define the game of Domineering, played on a chessboard of arbitrary shape (possibly even disconnected).
+We define the game of Domineering, played on a chessboard of arbitrary shape
+(possibly even disconnected).
 Left moves by placing a domino vertically, while Right moves by placing a domino horizontally.
 
-This is only a fragment of a full development; in order to successfully analyse positions we would
-need some more theorems. Most importantly, we need a general statement that allows us to discard irrelevant moves.
-Specifically to domineering, we need the fact the disjoint parts of the chessboard give sums of games.
+This is only a fragment of a full development;
+in order to successfully analyse positions we would need some more theorems.
+Most importantly, we need a general statement that allows us to discard irrelevant moves.
+Specifically to domineering, we need the fact that
+disjoint parts of the chessboard give sums of games.
 -/
 
 namespace pgame
@@ -176,7 +179,8 @@ instance short_L : short domineering.L := by { dsimp [domineering.L], apply_inst
 -- #eval to_bool (domineering.one ≈ 1)
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)
 
--- We can check that `decidable` instances reduce as expected, and so our implementation of domineering is computable.
+-- We can check that `decidable` instances reduce as expected,
+-- and so our implementation of domineering is computable.
 -- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
 
 -- dec_trivial can handle most of the dictionary of small games described in [conway2001]
@@ -187,7 +191,9 @@ example : (domineering ([(0,0), (0,1), (0,2), (0,3)].to_finset) ≈ 2) := dec_tr
 example : (domineering ([(0,0), (0,1), (1,0), (1,1)].to_finset) ≈ pgame.of_lists [1] [-1]) := dec_trivial.
 
 -- The 3x3 grid is doable, but takes a minute...
--- example : (domineering ([(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)].to_finset) ≈ pgame.of_lists [1] [-1]) := dec_trivial
+-- example :
+--   (domineering ([(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)].to_finset) ≈
+--     pgame.of_lists [1] [-1]) := dec_trivial
 
 -- The 5x5 grid is actually 0, but brute-forcing this is too challenging even for the VM.
 -- #eval to_bool (domineering ([

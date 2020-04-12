@@ -484,6 +484,15 @@ class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_c
 class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
 end prio
 
+-- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
+-- but it doesn't seem worth doing just for these lemmas.
+lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
+
+-- As with succ_ne_self.
+lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :

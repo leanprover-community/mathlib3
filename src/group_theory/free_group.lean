@@ -15,7 +15,7 @@ Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
 import algebra.group_power
-import data.fintype
+import data.fintype.basic
 import group_theory.subgroup
 open relation
 
@@ -419,7 +419,7 @@ eq.symm $ to_group.unique id (λ x, rfl)
 
 theorem to_group.range_subset {s : set β} [is_subgroup s] (H : set.range f ⊆ s) :
   set.range (to_group f) ⊆ s :=
-by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L (is_submonoid.one_mem s)
+by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L is_submonoid.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
     (by simp at ih ⊢; from is_submonoid.mul_mem
       (is_subgroup.inv_mem $ H ⟨x, rfl⟩) ih)
@@ -537,7 +537,8 @@ end prod
 
 theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
   to_group f x = prod (map f x) :=
-eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp
+have is_group_hom (prod ∘ map f) := is_group_hom.comp _ _, by exactI
+(eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp)
 
 section sum
 

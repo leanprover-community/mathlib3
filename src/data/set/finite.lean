@@ -6,10 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro
 Finite sets.
 -/
 import logic.function
-import data.nat.basic data.fintype data.set.lattice data.set.function
+import data.nat.basic data.fintype.basic data.set.lattice data.set.function
 import algebra.big_operators
 
-open set lattice function
+open set function
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -520,6 +520,14 @@ calc
                     assumption },
           end
   ... = s.prod g : by rw [image_preimage]
+
+/-- A finset is bounded above. -/
+lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=
+set.bdd_above_finite (finset.finite_to_set s)
+
+/-- A finset is bounded below. -/
+lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) : bdd_below (↑s : set α) :=
+set.bdd_below_finite (finset.finite_to_set s)
 
 end finset
 

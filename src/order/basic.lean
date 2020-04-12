@@ -472,16 +472,16 @@ instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_we
 { trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
   irrefl       := λ a, by cases a; simp; apply irrefl,
   trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
-  wf           := sum.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
     match @trichotomous _ r _ a₁ b₁ with
-    | or.inl h₁ := or.inl $ prod.lex.left _ _ _ h₁
-    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ _ h₁
+    | or.inl h₁ := or.inl $ prod.lex.left _ _ h₁
+    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ h₁
     | or.inr (or.inl e) := e ▸  match @trichotomous _ s _ a₂ b₂ with
-      | or.inl h := or.inl $ prod.lex.right _ _ h
-      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ _ h
+      | or.inl h := or.inl $ prod.lex.right _ h
+      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ h
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
@@ -490,12 +490,12 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
-    { exact prod.lex.left _ _ _ (trans ab bc) },
-    { exact prod.lex.left _ _ _ ab },
-    { exact prod.lex.left _ _ _ bc },
-    { exact prod.lex.right _ _ (trans ab bc) }
+    { exact prod.lex.left _ _ (trans ab bc) },
+    { exact prod.lex.left _ _ ab },
+    { exact prod.lex.left _ _ bc },
+    { exact prod.lex.right _ (trans ab bc) }
   end,
-  wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
 
 /-- An unbounded or cofinal set -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
@@ -573,6 +573,7 @@ local infix ` ≼ ` : 50 := r
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/
 def directed {ι : Sort v} (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
+
 /-- A subset of α is directed if there is an element of the set `≼`-above any
   pair of elements in the set. -/
 def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
@@ -580,17 +581,28 @@ def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧
 theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
+theorem directed_on_image {s} {f : β → α} :
+  directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
+by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
+
+theorem directed_on.mono {s : set α} (h : directed_on r s)
+  {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :
+  directed_on r' s :=
+λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
+
 theorem directed_comp {ι} (f : ι → β) (g : β → α) :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
 
-theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
+variable {r}
+
+theorem directed.mono {s : α → α → Prop} {ι} {f : ι → α}
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
 theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
   (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
   directed rb (g ∘ f) :=
-(directed_comp rb f g).2 $ directed_mono _ _ hg hf
+(directed_comp rb f g).2 $ hf.mono hg
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

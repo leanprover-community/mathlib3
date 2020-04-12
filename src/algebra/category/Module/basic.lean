@@ -5,7 +5,7 @@ Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.module
 import algebra.punit_instances
-import algebra.category.Group
+import algebra.category.Group.basic
 import category_theory.concrete_category
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
@@ -33,12 +33,13 @@ namespace Module
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 
+instance : category (Module.{u} R) :=
+{ hom   := λ M N, M →ₗ[R] N,
+  id    := λ M, 1,
+  comp  := λ A B C f g, g.comp f }
+
 instance : concrete_category (Module.{u} R) :=
-{ to_category :=
-  { hom   := λ M N, M →ₗ[R] N,
-    id    := λ M, 1,
-    comp  := λ A B C f g, g.comp f },
-  forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
+{ forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
 instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
@@ -47,15 +48,18 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
 /-- The object in the category of R-modules associated to an R-module -/
-def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
+def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
 @[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
-/-- Forgetting the underlying type and then building the bundled object returns the original module. -/
-def of_self (M : Module R) : Module.of R M ≅ M :=
+variables {R}
+
+/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
+@[simps]
+def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=
@@ -67,7 +71,7 @@ instance : has_zero_object.{u} (Module R) :=
   { default := (0 : punit →ₗ[R] X),
     uniq := λ _, linear_map.ext $ λ x,
       have h : x = 0, from subsingleton.elim _ _,
-      by simp [h] },
+      by simp only [h, linear_map.map_zero]},
   unique_from := λ X,
   { default := (0 : X →ₗ[R] punit),
     uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
@@ -120,10 +124,18 @@ def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group
 
 namespace Module
 
+section zero_morphisms
+
+instance : has_zero_morphisms.{u} (Module R) :=
+{ has_zero := λ M N, ⟨0⟩,
+  comp_zero' := λ M N f Z, by ext; erw linear_map.zero_apply,
+  zero_comp' := λ M N Z f, by ext; erw [linear_map.comp_apply, linear_map.zero_apply,
+    linear_map.zero_apply, linear_map.map_zero] }
+
+end zero_morphisms
+
 section kernel
 variables {R} {M N : Module R} (f : M ⟶ N)
-
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The cone on the equalizer diagram of f and 0 induced by the kernel of f -/
 def kernel_cone : cone (parallel_pair f 0) :=
@@ -140,7 +152,7 @@ def kernel_cone : cone (parallel_pair f 0) :=
 def kernel_is_limit : is_limit (kernel_cone f) :=
 { lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
   by { erw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
-    has_zero_morphisms.comp_zero _ (fork.ι s) N], refl }),
+    has_zero_morphisms.comp_zero (fork.ι s) N], refl }),
   fac' := λ s j, linear_map.ext $ λ x,
   begin
     rw [coe_comp, function.comp_app, ←linear_map.comp_apply],
@@ -154,8 +166,6 @@ def kernel_is_limit : is_limit (kernel_cone f) :=
     by convert @congr_fun _ _ _ _ h₁ x }
 
 end kernel
-
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 instance : has_kernels.{u} (Module R) :=
 ⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩

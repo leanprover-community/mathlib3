@@ -15,7 +15,7 @@ by extending the distance to the completion and checking that it is indeed a dis
 it defines the same uniformity as the already defined uniform structure on the completion
 -/
 
-open lattice set filter uniform_space uniform_space.completion
+open set filter uniform_space uniform_space.completion
 noncomputable theory
 
 universes u

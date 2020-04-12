@@ -23,7 +23,7 @@ has to be `dense_inducing` (not necessarily injective).
 
 noncomputable theory
 
-open set filter lattice
+open set filter
 open_locale classical topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}

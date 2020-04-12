@@ -241,14 +241,14 @@ begin
   cases h : argmax id l,
   { rw [if_neg], refl, exact not_le_of_gt (with_bot.bot_lt_some _) },
   change (coe : α → with_bot α) with some,
-  simp, congr
+  simp
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
 by simp only [min_comm _ (a : with_top α)]; exact @maximum_concat (order_dual α) _ _ _
 
 theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
-list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ lattice.bot_le])
+list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
   (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
 
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=

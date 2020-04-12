@@ -310,7 +310,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       (λ (p : E × E), (fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
             (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun) p.1 : E → E) p.2)
       ((I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun).prod univ) :=
-      times_cont_diff_on_fderiv_within_apply A B lattice.le_top,
+      times_cont_diff_on_fderiv_within_apply A B le_top,
     have D : ∀ x ∈ (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun),
       fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
             (range I.to_fun) x =
@@ -395,7 +395,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
         have B : differentiable_on 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
           (I.inv_fun ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I.to_fun),
-        { apply (A.differentiable_on (lattice.le_top)).mono,
+        { apply (A.differentiable_on (le_top)).mono,
           have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆ (i.1.symm.trans j.1).source :=
             inter_subset_left _ _,
           exact inter_subset_inter (preimage_mono this) (subset.refl (range I.to_fun)) },
@@ -408,7 +408,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
           (I.to_fun ∘ (j.1.symm.trans u.1).to_fun ∘ I.inv_fun)
           (I.inv_fun ⁻¹' (j.1.symm.trans u.1).source ∩ range I.to_fun) :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) j.2 u.2).1,
-        apply A.differentiable_on (lattice.le_top),
+        apply A.differentiable_on (le_top),
         rw [local_homeomorph.trans_source] at hx,
         simp [mem_inter_iff, -mem_image, -mem_range, mem_range_self],
         exact hx.2 },

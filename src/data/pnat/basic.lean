@@ -118,7 +118,7 @@ theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 
 @[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
 
-instance : lattice.order_bot ℕ+ :=
+instance : order_bot ℕ+ :=
 { bot := 1,
   bot_le := λ a, a.property,
   ..(by apply_instance : partial_order ℕ+) }

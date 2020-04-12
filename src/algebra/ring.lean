@@ -57,13 +57,31 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-@[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a : α) :
-  a * (if P then 1 else 0) = if P then a else 0 :=
-by split_ifs; simp
+@[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  a * (if P then b else c) = if P then a * b else a * c :=
+by split_ifs; refl
 
-@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  (if P then a else b) * c = if P then a * c else b * c :=
+by split_ifs; refl
+
+-- We make `mul_ite` and `ite_mul` simp lemmas,
+-- but not `add_ite` or `ite_add`.
+-- The problem we're trying to avoid is dealing with
+-- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- in which `add_ite` followed by `sum_ite` would needlessly slice up
+-- the `f x` terms according to whether `P` holds at `x`.
+-- There doesn't appear to be a corresponding difficulty so far with
+-- `mul_ite` and `ite_mul`.
+attribute [simp] mul_ite ite_mul
+
+@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by simp
+
+@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by split_ifs; simp
+by simp
 
 variable (α)
 
@@ -141,10 +159,10 @@ attribute [trans] dvd.trans
 
 /-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
-(map_zero : f 0 = 0)
-(map_one : f 1 = 1)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_zero [] : f 0 = 0)
+(map_one [] : f 1 = 1)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
 
@@ -155,8 +173,8 @@ variables (f : α → β) [is_semiring_hom f] {x y : α}
 instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two semiring homomorphisms is a semiring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   is_semiring_hom (g ∘ f) :=
 { map_zero := by simp [map_zero f]; exact map_zero g,
   map_one := by simp [map_one f]; exact map_one g,
@@ -272,9 +290,9 @@ end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_one [] : f 1 = 1)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
 
@@ -303,8 +321,8 @@ by simp [sub_eq_add_neg, map_add f, map_neg f]
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   is_ring_hom (g ∘ f) :=
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
@@ -565,7 +583,7 @@ section
 
 /-- An integral domain is a domain. -/
   @[priority 100] -- see Note [lower instance priority]
-  instance integral_domain.to_domain : domain α := {..s}
+  instance integral_domain.to_domain : domain α := {..s, ..(by apply_instance : semiring α)}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=

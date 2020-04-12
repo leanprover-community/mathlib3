@@ -75,7 +75,7 @@ infix ` ◫ `:80 := hcomp
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=
-by { ext, dsimp, rw [assoc, assoc, map_comp, ←assoc _ (δ.app _), ← naturality, assoc] }
+by ext; simp
 
 end nat_trans
 open nat_trans

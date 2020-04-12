@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 
 Bundled types.
 -/
+import tactic.doc_commands
 
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
@@ -33,6 +34,7 @@ def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, 
 
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
+
 
 /-
 `bundled.map` is reducible so that, if we define a category

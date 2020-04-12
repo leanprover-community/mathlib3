@@ -125,6 +125,18 @@ def convex (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
 
+lemma convex_iff_forall_pos :
+  convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
+begin
+  refine ⟨λ h x y hx hy a b ha hb hab, h hx hy (le_of_lt ha) (le_of_lt hb) hab, _⟩,
+  intros h x y hx hy a b ha hb hab,
+  cases eq_or_lt_of_le ha with ha ha,
+  { subst a, rw [zero_add] at hab, simp [hab, hy] },
+  cases eq_or_lt_of_le hb with hb hb,
+  { subst b, rw [add_zero] at hab, simp [hab, hx] },
+  exact h hx hy ha hb hab
+end
+
 lemma convex_iff_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
 by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
   mem_set_of_eq, and_imp]
@@ -150,10 +162,10 @@ lemma convex_iff_div:
 ⟨begin
   assume h x y hx hy a b ha hb hab,
   apply h hx hy,
-  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
-  rwa [mul_zero, ←div_eq_inv_mul] at ha',
-  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
-  rwa [mul_zero, ←div_eq_inv_mul] at hb',
+  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos.2 hab)),
+  rwa [mul_zero, ←div_eq_inv_mul'] at ha',
+  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos.2 hab)),
+  rwa [mul_zero, ←div_eq_inv_mul'] at hb',
   rw [←add_div],
   exact div_self (ne_of_lt hab).symm
 end,
@@ -527,7 +539,7 @@ by simp only [center_mass, sum_empty, smul_zero]
 
 lemma finset.center_mass_pair (hne : i ≠ j) :
   ({i, j} : finset ι).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
-by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul]
+by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul']
 
 variable {w}
 
@@ -682,7 +694,7 @@ begin
   have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
   rw ← sum_filter_ne_zero at hws,
   rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
+    ← div_eq_inv_mul', le_div_iff hws, mul_sum] at this,
   replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
     exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
   rcases this with ⟨i, hi, H⟩,
@@ -880,7 +892,7 @@ begin
   apply congr_arg,
   convert (subtype.range_val s).symm,
   ext x,
-  simp [linear_map.sum_apply, ite_smul, finset.sum_ite _ _ (λ x, x), finset.filter_eq]
+  simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/

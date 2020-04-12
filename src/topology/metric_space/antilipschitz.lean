@@ -22,6 +22,7 @@ we do not have a `posreal` type.
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 open_locale nnreal
+open set
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
 `K * edist x y ≤ edist (f x) (f y)`. -/
@@ -40,7 +41,7 @@ lemma antilipschitz_with.mul_le_dist [metric_space α] [metric_space β] {K : �
   ↑K⁻¹ * dist x y ≤ dist (f x) (f y) :=
 begin
   by_cases hK : K = 0, by simp [hK, dist_nonneg],
-  rw [nnreal.coe_inv, ← div_eq_inv_mul],
+  rw [nnreal.coe_inv, ← div_eq_inv_mul'],
   apply div_le_of_le_mul (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hK),
   exact hf.le_mul_dist x y
 end
@@ -63,7 +64,7 @@ begin
   exact hf x y
 end
 
-lemma id : antilipschitz_with 1 (id : α → α) :=
+protected lemma id : antilipschitz_with 1 (id : α → α) :=
 λ x y, by simp only [ennreal.coe_one, one_mul, id, le_refl]
 
 lemma comp {Kg : ℝ≥0} {g : β → γ} (hg : antilipschitz_with Kg g)
@@ -74,7 +75,26 @@ calc edist x y ≤ Kf * edist (f x) (f y) : hf x y
 ... ≤ Kf * (Kg * edist (g (f x)) (g (f y))) : ennreal.mul_left_mono (hg _ _)
 ... = _ : by rw [ennreal.coe_mul, mul_assoc]
 
-lemma to_inverse (hf : antilipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
+lemma restrict (hf : antilipschitz_with K f) (s : set α) :
+  antilipschitz_with K (s.restrict f) :=
+λ x y, hf x y
+
+lemma cod_restrict (hf : antilipschitz_with K f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  antilipschitz_with K (s.cod_restrict f hs) :=
+λ x y, hf x y
+
+lemma to_right_inv_on' {s : set α} (hf : antilipschitz_with K (s.restrict f))
+  {g : β → α} {t : set β} (g_maps : maps_to g t s) (g_inv : right_inv_on g f t) :
+  lipschitz_with K (t.restrict g) :=
+λ x y, by simpa only [restrict_apply, g_inv x.mem, g_inv y.mem, subtype.edist_eq, subtype.coe_mk]
+  using hf ⟨g x, g_maps x.mem⟩ ⟨g y, g_maps y.mem⟩
+
+lemma to_right_inv_on (hf : antilipschitz_with K f) {g : β → α} {t : set β}
+  (h : right_inv_on g f t) :
+  lipschitz_with K (t.restrict g) :=
+(hf.restrict univ).to_right_inv_on' (maps_to_univ g t) h
+
+lemma to_right_inverse (hf : antilipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   lipschitz_with K g :=
 begin
   intros x y,
@@ -96,9 +116,15 @@ begin
       rwa mul_comm } }
 end
 
+lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
+antilipschitz_with.id.restrict s
+
+lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
+λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
+
 end antilipschitz_with
 
-lemma lipschitz_with.to_inverse [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β}
+lemma lipschitz_with.to_right_inverse [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β}
   (hf : lipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   antilipschitz_with K g :=
 λ x y, by simpa only [hg _] using hf (g x) (g y)

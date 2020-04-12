@@ -7,7 +7,7 @@ Case bashing:
 * on `x ∈ A`, for `A : finset α` or `A : list α`, or
 * on `x : A`, with `[fintype A]`.
 -/
-import data.fintype
+import data.fintype.basic
 import tactic.norm_num
 
 namespace tactic
@@ -113,5 +113,11 @@ meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
     focus1 $ fin_cases_at with_list h
 
 end interactive
+
+add_tactic_doc
+{ name       := "fin_cases",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.fin_cases],
+  tags       := ["case bashing"] }
 
 end tactic

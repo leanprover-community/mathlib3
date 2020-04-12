@@ -30,7 +30,7 @@ Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics filter real
+open metric set asymptotics filter real
 open_locale classical
 
 /-! ### Technical lemmas about `gronwall_bound` -/

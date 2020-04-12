@@ -7,7 +7,7 @@ import algebra.associated linear_algebra.basic order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}
-open set function lattice
+open set function
 
 open_locale classical
 
@@ -504,6 +504,6 @@ instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
-  else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
+  else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
 
 end field

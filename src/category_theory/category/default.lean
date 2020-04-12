@@ -19,7 +19,7 @@ Introduces notations
 * `f ≫ g` for composition in the 'arrows' convention.
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
-```
+```lean
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
@@ -31,7 +31,7 @@ namespace category_theory
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
 which is defined here as a
-[`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
+[`replacer` tactic](https://leanprover-community.github.io/mathlib_docs/commands.html#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
 powerful tactics.
 -/
@@ -135,14 +135,14 @@ by { convert cancel_epi f, simp, }
 lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
 by { convert cancel_mono f, simp, }
 
-instance epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+lemma epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
 begin
   split, intros Z a b w,
   apply (cancel_epi g).1,
   apply (cancel_epi f).1,
   simpa using w,
 end
-instance mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+lemma mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
 begin
   split, intros Z a b w,
   apply (cancel_mono f).1,

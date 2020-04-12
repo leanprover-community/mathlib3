@@ -26,7 +26,7 @@ open_locale classical
 open_locale topological_space
 
 universe u
-open classical lattice set function topological_space filter
+open classical set function topological_space filter
 
 namespace emetric
 section
@@ -119,7 +119,7 @@ begin
       { assume l z,
         obtain ⟨z', z'_mem, hz'⟩ : ∃ z' ∈ (s (n+l+1)).val, edist (z:α) z' < B n / 2^l,
         { apply exists_edist_lt_of_Hausdorff_edist_lt z.2,
-          simp only [B, ennreal.div_def, ennreal.inv_pow'],
+          simp only [B, ennreal.div_def, ennreal.inv_pow],
           rw [← pow_add],
           apply hs; simp },
         exact ⟨⟨z', z'_mem⟩, le_of_lt hz'⟩ },
@@ -364,7 +364,7 @@ begin
       have Dtc : Hausdorff_edist t.val c < ε := lt_of_le_of_lt this δlt,
       -- the set `c` is not empty, as it is well approximated by a nonempty set
       have hc : c.nonempty,
-        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (lattice.ne_top_of_lt Dtc),
+        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
       let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
       have : c ⊆ s,

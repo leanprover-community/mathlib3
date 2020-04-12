@@ -10,7 +10,6 @@ import algebra.group.is_unit data.multiset
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-open lattice
 
 theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 
@@ -529,12 +528,12 @@ instance : partial_order (associates α) :=
         (h₂ ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)) h₁ h₂
   .. associates.preorder }
 
-instance : lattice.order_bot (associates α) :=
+instance : order_bot (associates α) :=
 { bot := 1,
   bot_le := assume a, one_le,
   .. associates.partial_order }
 
-instance : lattice.order_top (associates α) :=
+instance : order_top (associates α) :=
 { top := 0,
   le_top := assume a, ⟨0, mul_zero a⟩,
   .. associates.partial_order }
@@ -595,12 +594,12 @@ match h m d (le_refl _) with
   assume : m ≠ 0,
   have m * d ≤ m * 1, by simpa using h,
   have d ≤ 1, from associates.le_of_mul_le_mul_left m d 1 ‹m ≠ 0› this,
-  have d = 1, from lattice.bot_unique this,
+  have d = 1, from bot_unique this,
   by simp [this]
 | or.inr h := classical.by_cases (assume : d = 0, by simp [this] at hp0; contradiction) $
   assume : d ≠ 0,
   have d * m ≤ d * 1, by simpa [mul_comm] using h,
-  or.inl $ lattice.bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
+  or.inl $ bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
 
 end integral_domain

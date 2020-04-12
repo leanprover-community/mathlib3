@@ -139,7 +139,7 @@ theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
 congr_arg mk $ by split_ifs with h; try {simp [const_lim_zero.1 h]}; refl
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
-by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
+by simp only [div_eq_inv_mul', of_rat_inv, of_rat_mul]
 
 end
 end cau_seq.completion

@@ -61,12 +61,12 @@ left_adjoint_preserves_colimits E.adjunction
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
-preserves_colimit.preserves E h
+preserves_colimit.preserves h
 
 instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
 { cocone := E.map_cocone (colimit.cocone K),
-  is_colimit := preserves_colimit.preserves E (colimit.is_colimit K) }
+  is_colimit := preserves_colimit.preserves (colimit.is_colimit K) }
 
 def has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
@@ -116,12 +116,12 @@ right_adjoint_preserves_limits E.inv.adjunction
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
-preserves_limit.preserves E h
+preserves_limit.preserves h
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
 { cone := E.map_cone (limit.cone K),
-  is_limit := preserves_limit.preserves E (limit.is_limit K) }
+  is_limit := preserves_limit.preserves (limit.is_limit K) }
 
 def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=

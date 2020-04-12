@@ -8,7 +8,7 @@ Natural numbers with infinity, represented as roption ℕ.
 import data.pfun algebra.ordered_group
 import tactic.norm_cast tactic.norm_num
 
-open roption lattice
+open roption
 
 def enat : Type := roption ℕ
 
@@ -117,7 +117,7 @@ lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
 by classical; exact not_iff_comm.1 roption.eq_none_iff'.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
-ne_of_lt $ lt_of_lt_of_le h lattice.le_top
+ne_of_lt $ lt_of_lt_of_le h le_top
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
@@ -146,7 +146,7 @@ le_antisymm (sup_le (le_max_left _ _) (le_max_right _ _))
 
 lemma inf_eq_min {a b : enat} : a ⊓ b = min a b := rfl
 
-instance : ordered_comm_monoid enat :=
+instance : ordered_add_comm_monoid enat :=
 { add_le_add_left := λ a b ⟨h₁, h₂⟩ c,
     enat.cases_on c (by simp)
       (λ c, ⟨λ h, and.intro trivial (h₁ h.2),
@@ -162,7 +162,7 @@ instance : ordered_comm_monoid enat :=
   ..enat.decidable_linear_order,
   ..enat.add_comm_monoid }
 
-instance : canonically_ordered_monoid enat :=
+instance : canonically_ordered_add_monoid enat :=
 { le_iff_exists_add := λ a b, enat.cases_on b
     (iff_of_true le_top ⟨⊤, (add_top _).symm⟩)
     (λ b, enat.cases_on a
@@ -176,7 +176,7 @@ instance : canonically_ordered_monoid enat :=
             coe_le_coe.2 (by rw [← coe_add, coe_inj] at hc;
               rw hc; exact nat.le_add_right _ _)) hc)⟩)),
   ..enat.semilattice_sup_bot,
-  ..enat.ordered_comm_monoid }
+  ..enat.ordered_add_comm_monoid }
 
 protected lemma add_lt_add_right {x y z : enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=
 begin
@@ -201,14 +201,14 @@ by { rw [enat.lt_add_iff_pos_right hx], norm_cast, norm_num }
 
 lemma le_of_lt_add_one {x y : enat} (h : x < y + 1) : x ≤ y :=
 begin
-  induction y using enat.cases_on with n, apply lattice.le_top,
+  induction y using enat.cases_on with n, apply le_top,
   rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
   apply_mod_cast nat.le_of_lt_succ, apply_mod_cast h
 end
 
 lemma add_one_le_of_lt {x y : enat} (h : x < y) : x + 1 ≤ y :=
 begin
-  induction y using enat.cases_on with n, apply lattice.le_top,
+  induction y using enat.cases_on with n, apply le_top,
   rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
   apply_mod_cast nat.succ_le_of_lt, apply_mod_cast h
 end

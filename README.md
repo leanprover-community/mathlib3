@@ -1,7 +1,7 @@
 # Lean mathlib
 
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
-[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://borslein.herokuapp.com/repositories/1)
 
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).

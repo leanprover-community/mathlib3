@@ -436,9 +436,9 @@ lemma prod_flip {n : ℕ} (f : ℕ → β) :
   (range (nat.succ n)).prod (λ r, f (n - r)) = (range (nat.succ n)).prod f :=
 begin
   induction n with n ih,
-    rw [prod_range_one, prod_range_one],
-  rw prod_range_succ', rw prod_range_succ _ (nat.succ n),
-  rw [mul_comm], simp [← ih]
+  { rw [prod_range_one, prod_range_one] },
+  { rw [prod_range_succ', prod_range_succ _ (nat.succ n), mul_comm],
+    simp [← ih] }
 end
 
 @[to_additive]
@@ -568,7 +568,7 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
 attribute [to_additive] prod_range_succ'
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
-  sum (range (n+1)) (λ r, f (n - r)) = sum (range (n+1)) f :=
+  sum (range (nat.succ n)) (λ r, f (n - r)) = sum (range (nat.succ n)) f :=
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
 

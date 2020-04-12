@@ -371,7 +371,7 @@ fintype.of_equiv _ equiv.ulift.symm
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
-instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
+instance fintype.sum (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
 @fintype.of_equiv _ _ (@sigma.fintype _
     (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
     (λ b, by cases b; apply ulift.fintype))

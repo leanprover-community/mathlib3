@@ -45,6 +45,12 @@ instance has_neg [∀ i, has_neg $ f i] : has_neg (Π i : I, f i) := ⟨λ x, λ
 attribute [to_additive] pi.has_inv
 attribute [to_additive] pi.inv_apply
 
+instance has_sub [∀ i, has_sub $ f i] : has_sub (Π i : I, f i) := ⟨λ x y, λ i, x i - y i⟩
+@[simp] lemma sub_apply [∀ i, has_sub $ f i] : (x - y) i = x i - y i := rfl
+
+instance has_div [∀ i, has_div $ f i] : has_div (Π i : I, f i) := ⟨λ x y, λ i, x i / y i⟩
+@[simp] lemma div_apply [∀ i, has_div $ f i] : (x / y) i = x i / y i := rfl
+
 instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) := ⟨λ s x, λ i, s • (x i)⟩
 @[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
@@ -113,8 +119,6 @@ attribute [to_additive add_group]                  pi.group
 attribute [to_additive add_comm_group]             pi.comm_group
 attribute [to_additive add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive add_right_cancel_semigroup] pi.right_cancel_semigroup
-
-@[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
 
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :

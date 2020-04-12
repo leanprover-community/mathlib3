@@ -139,7 +139,9 @@ The equivalence between `right_moves` for a `pgame` constructed using `of_aux _ 
 def right_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
   right_moves (of_aux n s h) ≃ {t // t ∈ R s} :=
 by induction n; refl
-/-- The equivalence between `right_moves` for a `pgame` constructed using `of s`, and `R s`. -/
+/--
+The equivalence between `right_moves` for a `pgame` constructed using `of s`, and `R s`.
+-/
 def right_moves_of (s : S) : right_moves (of s) ≃ {t // t ∈ R s} :=
 right_moves_of_aux _ _
 

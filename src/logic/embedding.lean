@@ -138,18 +138,28 @@ def prod_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α 
 section sum
 open sum
 
+def inl {α β : Type*} : α ↪ α ⊕ β :=
+{ to_fun := sum.inl,
+  inj := sorry, }
+
+-- FIXME add inl_apply and inr_apply
+
+def inr {α β : Type*} : β ↪ α ⊕ β :=
+{ to_fun := sum.inr,
+  inj := sorry, }
+
 def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
-⟨assume s, match s with inl a := inl (e₁ a) | inr b := inr (e₂ b) end,
+⟨assume s, match s with sum.inl a := sum.inl (e₁ a) | sum.inr b := sum.inr (e₂ b) end,
     assume s₁ s₂ h, match s₁, s₂, h with
-    | inl a₁, inl a₂, h := congr_arg inl $ e₁.inj $ inl.inj h
-    | inr b₁, inr b₂, h := congr_arg inr $ e₂.inj $ inr.inj h
+    | sum.inl a₁, sum.inl a₂, h := congr_arg sum.inl $ e₁.inj $ sum.inl.inj h
+    | sum.inr b₁, sum.inr b₂, h := congr_arg sum.inr $ e₂.inj $ sum.inr.inj h
     end⟩
 
 @[simp] theorem sum_congr_apply_inl {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
+  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (sum.inl a) = sum.inl (e₁ a) := rfl
 
 @[simp] theorem sum_congr_apply_inr {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
+  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (sum.inr b) = sum.inr (e₂ b) := rfl
 
 end sum
 

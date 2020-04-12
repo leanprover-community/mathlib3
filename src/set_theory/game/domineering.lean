@@ -160,20 +160,16 @@ instance state : state board :=
 end domineering
 
 /-- Construct a pre-game from a Domineering board. -/
+@[derive short]
 def domineering (b : domineering.board) : pgame := pgame.of b
 
-/-- All games of Domineering are short, because each move removes two squares. -/
-instance short_domineering (b : domineering.board) : short (domineering b) :=
-by { dsimp [domineering], apply_instance }
-
 /-- The Domineering board with two squares arranged vertically, in which Left has the only move. -/
+@[derive short]
 def domineering.one := domineering ([(0,0), (0,1)].to_finset)
 
 /-- The `L` shaped Domineering board, in which Left is exactly half a move ahead. -/
+@[derive short]
 def domineering.L := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
-
-instance short_one : short domineering.one := by { dsimp [domineering.one], apply_instance }
-instance short_L : short domineering.L := by { dsimp [domineering.L], apply_instance }
 
 -- The VM can play small games successfully:
 -- #eval to_bool (domineering.one ≈ 1)
@@ -181,7 +177,7 @@ instance short_L : short domineering.L := by { dsimp [domineering.L], apply_inst
 
 -- We can check that `decidable` instances reduce as expected,
 -- and so our implementation of domineering is computable.
--- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
+run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
 
 -- dec_trivial can handle most of the dictionary of small games described in [conway2001]
 example : domineering.one ≈ 1 := dec_trivial

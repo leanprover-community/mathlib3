@@ -62,6 +62,26 @@ lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := 
 @[simp, to_additive]
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
+instance [has_sub M] [has_sub N] : has_sub (M × N) := ⟨λ p q, (p.1 - q.1, p.2 - q.2)⟩
+
+@[simp]
+lemma fst_sub [has_sub G] [has_sub H] (p q : G × H) : (p - q).1 = p.1 - q.1 := rfl
+@[simp]
+lemma snd_sub [has_sub G] [has_sub H] (p q : G × H) : (p - q).2 = p.2 - q.2 := rfl
+@[simp]
+lemma mk_sub_mk [has_sub G] [has_sub H] (a₁ a₂ : G) (b₁ b₂ : H) :
+  (a₁, b₁) - (a₂, b₂) = (a₁ - a₂, b₁ - b₂) := rfl
+
+instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, (p.1 / q.1, p.2 / q.2)⟩
+
+@[simp]
+lemma fst_div [has_div G] [has_div H] (p q : G × H) : (p / q).1 = p.1 / q.1 := rfl
+@[simp]
+lemma snd_div [has_div G] [has_div H] (p q : G × H) : (p / q).2 = p.2 / q.2 := rfl
+@[simp]
+lemma mk_div_mk [has_div G] [has_div H] (a₁ a₂ : G) (b₁ b₂ : H) :
+  (a₁, b₁) / (a₂, b₂) = (a₁ / a₂, b₁ / b₂) := rfl
+
 @[to_additive add_semigroup]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
@@ -77,11 +97,6 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.monoid, .. prod.has_inv }
-
-@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
-@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
-@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
-  (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
 
 @[to_additive add_comm_semigroup]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=

@@ -3,11 +3,13 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import tactic.ext
 
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
+@[ext]
 structure unique (α : Sort u) extends inhabited α :=
 (uniq : ∀ a:α, a = default)
 

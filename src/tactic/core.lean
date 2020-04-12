@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
-  tactic.derive_inhabited
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+  tactic.lean_core_docs tactic.derive_inhabited
 
 universe variable u
 
@@ -71,14 +71,28 @@ end expr
 namespace interaction_monad
 open result
 
-/-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it does not update the current state. -/
-meta def get_result {σ α} (tac : interaction_monad σ α) :
-  interaction_monad σ (interaction_monad.result σ α) | s :=
-match tac s with
-| r@(success _ s') := success r s'
-| r@(exception _ _ s') := success r s'
-end
+variables {σ : Type} {α : Type u}
+
+/-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.read` in core.
+meta def get_state : interaction_monad σ σ :=
+λ state, success state state
+
+/-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+-- Note that this is a generalization of `tactic.write` in core.
+meta def set_state (state : σ) : interaction_monad σ unit :=
+λ _, success () state
+
+/--
+`run_with_state state tac` applies `tac` to the given state `state` and returns the result,
+subsequently restoring the original state.
+If `tac` fails, then `run_with_state` does too.
+-/
+meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+λ s, match tac state with
+     | success val _      := success val s
+     | exception fn pos _ := exception fn pos s
+     end
 
 end interaction_monad
 
@@ -688,25 +702,52 @@ let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
 /--
-`apply_any` tries to apply one of a list of lemmas to the current goal.
+Configuration options for `apply_any`:
+* `use_symmetry`: if `apply_any` fails to apply any lemma, call `symmetry` and try again.
+* `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
+* `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
+-/
+meta structure apply_any_opt :=
+(use_symmetry : bool := tt)
+(use_exfalso : bool := tt)
+(apply : expr → tactic (list (name × expr)) := tactic.apply)
 
-Optional arguments:
-* `lemmas` controls which expressions are applied.
-* `tac` is called after a successful application. Defaults to `skip`.
-* `use_symmetry`: if no lemma applies, call `symmetry` and try again.
-* `use_exfalso`: if no lemma applies, call `exfalso` and try again.
+/--
+This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
+and evaluates these as thunks before trying to apply them.
+
+We need to do this to avoid metavariables getting stuck during subsequent rounds of `apply`.
+-/
+meta def apply_any_thunk
+  (lemmas : list (tactic expr))
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
+
+/--
+`apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
+
+`apply_any lemmas opt` allows control over how lemmas are applied.
+`opt` has fields:
+* `use_symmetry`: if no lemma applies, call `symmetry` and try again. (Defaults to `tt`.)
+* `use_exfalso`: if no lemma applies, call `exfalso` and try again. (Defaults to `tt`.)
+* `apply`: use a tactic other than `tactic.apply` (e.g. `tactic.fapply` or `tactic.eapply`).
+
+`apply_any lemmas tac` calls the tactic `tac` after a successful application.
+Defaults to `skip`. This is used, for example, by `solve_by_elim` to arrange
+recursive invocations of `apply_any`.
 -/
 meta def apply_any
   (lemmas : list expr)
-  (tac : tactic unit := skip)
-  (use_symmetry : bool := tt)
-  (use_exfalso : bool := tt) : tactic unit :=
-do
-  let modes := [skip]
-    ++ (if use_symmetry then [symmetry] else [])
-    ++ (if use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m, lemmas.any_of (λ H, apply H >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+apply_any_thunk (lemmas.map pure) opt tac
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
 meta def apply_assumption : tactic unit :=
@@ -860,7 +901,7 @@ add_tactic_doc
 { name                     := "fsplit",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.fsplit],
-  tags                     := [] }
+  tags                     := ["logic", "goal management"] }
 
 /-- Calls `injection` on each hypothesis, and then, for each hypothesis on which `injection`
 succeeds, clears the old hypothesis. -/
@@ -875,7 +916,7 @@ add_tactic_doc
 { name                     := "injections_and_clear",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.injections_and_clear],
-  tags                     := [] }
+  tags                     := ["context management"] }
 
 /-- Calls `cases` on every local hypothesis, succeeding if
 it succeeds on at least one hypothesis. -/
@@ -884,10 +925,16 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -1111,7 +1158,7 @@ add_tactic_doc
 { name                     := "Match Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.match_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 Invoking hole command "Equations Stub" ("Generate a list of equations for a recursive definition")
@@ -1183,7 +1230,7 @@ add_tactic_doc
 { name                     := "Equations Stub",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.eqn_stub],
-  tags                     := [] }
+  tags                     := ["pattern matching"] }
 
 /--
 This command lists the constructors that can be used to satisfy the expected type.
@@ -1236,7 +1283,7 @@ add_tactic_doc
 { name                     := "List Constructors",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.list_constructors_hole],
-  tags                     := [] }
+  tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/
@@ -1314,7 +1361,7 @@ add_tactic_doc
 { name                     := "higher_order",
   category                 := doc_category.attr,
   decl_names               := [`tactic.higher_order_attr],
-  tags                     := [] }
+  tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
 
@@ -1408,6 +1455,18 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
 
+/-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
+meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s :=
+  let msg (_ : unit) : format := match msg with
+    | some msg := add_msg ++ format.line ++ msg ()
+    | none := add_msg
+    end in
+  result.exception msg p s
+| ok := ok
+end
+
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/
 meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
@@ -1430,7 +1489,7 @@ add_tactic_doc
 { name                     := "setup_tactic_parser",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.setup_tactic_parser_cmd],
-  tags                     := [] }
+  tags                     := ["parsing", "notation"] }
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1790,7 +1849,7 @@ add_tactic_doc
 { name                     := "import_private",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.import_private_cmd],
-  tags                     := [] }
+  tags                     := ["renaming"] }
 
 /--
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.

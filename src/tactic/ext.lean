@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.rcases data.list.defs data.prod data.sum
+import tactic.rcases data.list.defs data.sum
 universes u₁ u₂
 
 open interactive interactive.types
@@ -267,10 +267,10 @@ add_tactic_doc
 { name                     := "ext",
   category                 := doc_category.attr,
   decl_names               := [`extensional_attribute],
-  tags                     := [] }
+  tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext prod.ext
+attribute [ext] array.ext propext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
@@ -395,6 +395,6 @@ add_tactic_doc
 { name        := "ext1 / ext",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := [] }
+  tags        := ["rewrite", "logic"] }
 
 end tactic

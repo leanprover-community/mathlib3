@@ -537,7 +537,7 @@ add_tactic_doc
 { name        := "ring",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ring],
-  tags        := ["arithmetic", "decision procedure"] }
+  tags        := ["arithmetic", "simplification", "decision procedure"] }
 
 end interactive
 end tactic
@@ -549,6 +549,9 @@ open tactic.ring (normalize)
 
 local postfix `?`:9001 := optional
 
+/--
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.
+-/
 meta def ring (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
 discharge_eq_lhs (ring1 red)

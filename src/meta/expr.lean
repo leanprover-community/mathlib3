@@ -221,7 +221,7 @@ namespace expr
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
 protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
+| `(has_one.one) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
 | `(bit1 %%e) := bit1 <$> e.to_pos_nat
 | _           := none
@@ -229,7 +229,7 @@ protected meta def to_pos_nat : expr → option ℕ
 /-- Turns an expression into a natural number, assuming it is only built up from
   `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
 protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
+| `(has_zero.zero) := some 0
 | e                  := e.to_pos_nat
 
 /-- Turns an expression into a integer, assuming it is only built up from
@@ -306,6 +306,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
+
+/--
+Test `t` contains the specified subexpression `e`, or a metavariable.
+This represents the notion that `e` "may occur" in `t`,
+possibly after subsequent unification.
+-/
+meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
+-- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
+¬ t.list_meta_vars.empty ∨ e.occurs t
 
 /-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=

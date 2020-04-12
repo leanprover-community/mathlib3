@@ -7,7 +7,7 @@ Adapted from the corresponding theory for complete lattices.
 
 import
   order.lattice order.complete_lattice order.bounds
-  tactic.finish data.set.finite
+  tactic.finish data.nat.enat
 /-!
 # Theory of conditionally complete lattices.
 
@@ -372,7 +372,7 @@ end conditionally_complete_linear_order
 section conditionally_complete_linear_order_bot
 
 lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
-conditionally_complete_linear_order_bot.cSup_empty α
+conditionally_complete_linear_order_bot.cSup_empty
 
 end conditionally_complete_linear_order_bot
 

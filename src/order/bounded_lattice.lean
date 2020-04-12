@@ -22,8 +22,8 @@ class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
 class has_bot (α : Type u) := (bot : α)
 
-notation `⊤` := has_top.top _
-notation `⊥` := has_bot.bot _
+notation `⊤` := has_top.top
+notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
@@ -334,6 +334,7 @@ instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
 by pi_instance
 
+/-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
 namespace with_bot
@@ -718,9 +719,11 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-lemma dense_coe [partial_order α] [densely_ordered α] [no_top_order α] {a b : with_top α}
-  (h : a < b) : ∃ x : α, a < ↑x ∧ ↑x < b :=
-let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩
+lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
+  {a b : with_top α} :
+  (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
+⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
+ λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top
 

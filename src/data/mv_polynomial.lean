@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
+Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
 
 import algebra.ring
 import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+import tactic.omega
 
 /-!
 # Multivariate polynomials
@@ -74,6 +75,8 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 
 * `total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials `X^s` occur
   in `p`. For example if `p = x⁴y+yz` then `total_degree p = 5`.
+
+* `pderivative i p` : the partial derivative of `p` with respect to `i`.
 
 ## Implementation notes
 
@@ -163,6 +166,26 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
+lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
+  monomial (single s n) a = C a * (X s)^n :=
+by rw [← zero_add (single s n), monomial_add_single, C]
+
+@[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
+  monomial s a + monomial s b = monomial s (a + b) :=
+by simp [monomial]
+
+@[simp] lemma monomial_mul {s s' : σ →₀ ℕ} {a b : α} :
+  monomial s a * monomial s' b = monomial (s + s') (a * b) :=
+by rw [monomial, monomial, monomial, add_monoid_algebra.single_mul_single]
+
+@[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : α) = 0 :=
+by rw [monomial, single_zero]; refl
+
+@[simp] lemma sum_monomial  {A : Type*} [add_comm_monoid A]
+  {u : σ →₀ ℕ} {r : α} {b : (σ →₀ ℕ) → α → A} (w : b u 0 = 0) :
+  sum (monomial u r) b = b u r :=
+sum_single_index w
+
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
   apply @finsupp.induction σ ℕ _ _ s,
@@ -194,6 +217,14 @@ end,
 finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
   (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
+
+theorem induction_on' {P : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
+    (h1 : ∀ (u : σ →₀ ℕ) (a : α), P (monomial u a))
+    (h2 : ∀ (p q : mv_polynomial σ α), P p → P q → P (p + q)) : P p :=
+finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
+                     show P (monomial 0 0), from h1 0 0)
+                    (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
+
 
 lemma hom_eq_hom [semiring γ]
   (f g : mv_polynomial σ α → γ) (hf : is_semiring_hom f) (hg : is_semiring_hom g)
@@ -358,6 +389,17 @@ end
 
 end coeff
 
+section as_sum
+
+@[simp]
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+finsupp.sum_single p
+
+lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+(support_sum_monomial_coeff p).symm
+
+end as_sum
+
 section eval₂
 variables [comm_semiring β]
 variables (f : α → β) (g : σ → β)
@@ -423,6 +465,12 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
+
+/-- `mv_polynomial.eval₂` as a `ring_hom`. -/
+def eval₂_hom (f : α →+* β) (g : σ → β) : mv_polynomial σ α →+* β := ring_hom.of (eval₂ f g)
+
+@[simp] lemma coe_eval₂_hom (f : α →+* β) (g : σ → β) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
+
 end
 
 section
@@ -702,6 +750,20 @@ by rw [vars, degrees_C, multiset.to_finset_zero]
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
 by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
 
+lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
+  x v = 0 :=
+begin
+  rw [vars, multiset.mem_to_finset] at h,
+  rw ←not_mem_support_iff,
+  contrapose! h,
+  unfold degrees,
+  rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
+  rw finset.sup_insert,
+  simp only [multiset.mem_union, multiset.sup_eq_union],
+  left,
+  rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
+end
+
 end vars
 
 section degree_of
@@ -811,7 +873,7 @@ instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
 
 variables (σ a a')
-lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
@@ -834,9 +896,9 @@ begin
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
   rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
   rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
-  { rw [mul_zero, finsupp.single_zero], refl },
+  { rw [mul_zero, finsupp.single_zero] },
   { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero], refl }, }
+    all_goals { rw [zero_mul, finsupp.single_zero] }, }
 end
 
 lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=
@@ -869,12 +931,12 @@ variables (f : α → β) [is_ring_hom f] (g : σ → β)
 instance eval₂.is_ring_hom : is_ring_hom (eval₂ f g) :=
 by apply is_ring_hom.of_semiring
 
-lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
+@[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ring_hom.map_sub _
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
-congr_fun (@int.eq_cast' _ _ (f ∘ C) (is_ring_hom.comp _ _)) n
+((ring_hom.of f).comp (ring_hom.of C)).eq_int_cast n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -882,7 +944,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C, int.eq_cast' c], refl })
+(λ n, by { rw [hom_C f, eval₂_C], exact (ring_hom.of c).eq_int_cast n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
@@ -890,9 +952,9 @@ mv_polynomial.induction_on x
 functions out of the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
-  inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
+  inv_fun := λ f, eval₂_hom (int.cast_ring_hom β) f,
   left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
-  right_inv := λ f, funext $ λ x, by simp only [ring_hom.coe_of, function.comp_app, eval₂_X] }
+  right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
 
@@ -902,7 +964,7 @@ variables (f : σ → α)
 
 instance eval.is_ring_hom : is_ring_hom (eval f) := eval₂.is_ring_hom _ _
 
-lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
+@[simp] lemma eval_sub : (p - q).eval f = p.eval f - q.eval f := is_ring_hom.map_sub _
 
 @[simp] lemma eval_neg : (-p).eval f = -(p.eval f) := is_ring_hom.map_neg _
 
@@ -919,11 +981,48 @@ is_ring_hom.comp _ _
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _
 
-lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+@[simp] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 
 @[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 
 end map
+
+section aeval
+
+/-- The algebra of multivariate polynomials. -/
+instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
+{ commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
+  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
+
+variables (R : Type u) (A : Type v) (f : σ → A)
+variables [comm_ring R] [comm_ring A] [algebra R A]
+
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `A`. -/
+def aeval : mv_polynomial σ R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _ _
+  .. eval₂_hom (algebra_map R A) f }
+
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
+
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+  φ = aeval R A (φ ∘ X) :=
+begin
+  ext p,
+  apply mv_polynomial.induction_on p,
+  { intro r, rw aeval_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
+  { intros p j ih,
+    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+end aeval
 
 end comm_ring
 
@@ -1291,5 +1390,111 @@ def fin_succ_equiv (n : ℕ) :
 end
 
 end equiv
+
+/-!
+## Partial derivatives
+-/
+section pderivative
+
+variables {R : Type} [comm_ring R]
+variable {S : Type}
+
+/-- `pderivative v p` is the partial derivative of `p` with respect to `v` -/
+def pderivative (v : S) (p : mv_polynomial S R) : mv_polynomial S R :=
+p.sum (λ A B, monomial (A - single v 1) (B * (A v)))
+
+@[simp]
+lemma pderivative_add {v : S} {f g : mv_polynomial S R} :
+  pderivative v (f + g) = pderivative v f + pderivative v g :=
+begin
+  refine sum_add_index _ _,
+  { simp },
+  simp [add_mul],
+end
+
+@[simp]
+lemma pderivative_monomial {v : S} {u : S →₀ ℕ} {a : R} :
+  pderivative v (monomial u a) = monomial (u - single v 1) (a * (u v)) :=
+by simp [pderivative]
+
+@[simp]
+lemma pderivative_C {v : S} {a : R} : pderivative v (C a) = 0 :=
+suffices pderivative v (monomial 0 a) = 0, by simpa,
+by simp
+
+@[simp]
+lemma pderivative_zero {v : S} : pderivative v (0 : mv_polynomial S R) = 0 :=
+suffices pderivative v (C 0 : mv_polynomial S R) = 0, by simpa,
+show pderivative v (C 0 : mv_polynomial S R) = 0, from pderivative_C
+
+section
+variables (R)
+
+/-- `pderivative : S → mv_polynomial S R → mv_polynomial S R` as an `add_monoid_hom`  -/
+def pderivative.add_monoid_hom (v : S) : mv_polynomial S R →+ mv_polynomial S R :=
+{ to_fun := pderivative v,
+  map_zero' := pderivative_zero,
+  map_add' := λ x y, pderivative_add, }
+
+@[simp]
+lemma pderivative.add_monoid_hom_apply (v : S) (p : mv_polynomial S R) :
+  (pderivative.add_monoid_hom R v) p = pderivative v p :=
+rfl
+end
+
+lemma pderivative_eq_zero_of_not_mem_vars {v : S} {f : mv_polynomial S R} (h : v ∉ f.vars) :
+  pderivative v f = 0 :=
+begin
+  change (pderivative.add_monoid_hom R v) f = 0,
+  rw [f.as_sum, add_monoid_hom.map_sum],
+  apply finset.sum_eq_zero,
+  intros,
+  simp [mem_support_not_mem_vars_zero H h],
+end
+
+lemma pderivative_monomial_single {a : R} {v : S} {n : ℕ} :
+  pderivative v (monomial (single v n) a) = monomial (single v (n-1)) (a * n) :=
+by simp
+
+private lemma monomial_sub_single_one_add {v : S} {u u' : S →₀ ℕ} {r r' : R} :
+  monomial (u - single v 1 + u') (r * (u v) * r') =
+    monomial (u + u' - single v 1) (r * (u v) * r') :=
+by by_cases h : u v = 0; simp [h, sub_single_one_add]
+
+private lemma monomial_add_sub_single_one {v : S} {u u' : S →₀ ℕ} {r r' : R} :
+  monomial (u + (u' - single v 1)) (r * (r' * (u' v))) =
+    monomial (u + u' - single v 1) (r * (r' * (u' v))) :=
+by by_cases h : u' v = 0; simp [h, add_sub_single_one]
+
+lemma pderivative_monomial_mul {v : S} {u u' : S →₀ ℕ} {r r' : R} :
+  pderivative v (monomial u r * monomial u' r') =
+    pderivative v (monomial u r) * monomial u' r' + monomial u r * pderivative v (monomial u' r') :=
+begin
+  simp [monomial_sub_single_one_add, monomial_add_sub_single_one],
+  congr,
+  ring,
+end
+
+@[simp]
+lemma pderivative_mul {v : S} {f g : mv_polynomial S R} :
+  pderivative v (f * g) = pderivative v f * g + f * pderivative v g :=
+begin
+  apply induction_on' f,
+  { apply induction_on' g,
+    { intros u r u' r', exact pderivative_monomial_mul },
+    { intros p q hp hq u r,
+      rw [mul_add, pderivative_add, hp, hq, mul_add, pderivative_add],
+      ring } },
+  { intros p q hp hq,
+    simp [add_mul, hp, hq],
+    ring, }
+end
+
+@[simp]
+lemma pderivative_C_mul {a : R} {f : mv_polynomial S R} {v : S} :
+  pderivative v (C a * f) = C a * pderivative v f :=
+by rw [pderivative_mul, pderivative_C, zero_mul, zero_add]
+
+end pderivative
 
 end mv_polynomial

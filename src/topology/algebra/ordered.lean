@@ -49,7 +49,8 @@ vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see th
 * `le_of_tendsto_of_tendsto` : if `f` converges to `a`, `g` converges to `b`, and eventually
   `f x ≤ g x`, then `a ≤ b`
 * `le_of_tendsto`, `ge_of_tendsto` : if `f` converges to `a` and eventually `f x ≤ b`
-  (resp., `b ≤ f x`), then `a ≤ b` (resp., `b ≤ a);
+  (resp., `b ≤ f x`), then `a ≤ b` (resp., `b ≤ a); we also provide primed versions
+  that assume the inequalities to hold for all `x`.
 
 ### Min, max, `Sup` and `Inf`
 
@@ -139,13 +140,26 @@ have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
 
+lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
+  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :
+  a₁ ≤ a₂ :=
+le_of_tendsto_of_tendsto hb hf hg (eventually_of_forall _ h)
+
 lemma le_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | c ≤ b} ∈ x) : a ≤ b :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, f c ≤ b) : a ≤ b :=
 le_of_tendsto_of_tendsto nt lim tendsto_const_nhds h
 
+lemma le_of_tendsto' {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, f c ≤ b) : a ≤ b :=
+le_of_tendsto nt lim (eventually_of_forall _ h)
+
 lemma ge_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | b ≤ c} ∈ x) : b ≤ a :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, b ≤ f c) : b ≤ a :=
 le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
+
+lemma ge_of_tendsto' {f : β → α} {a b : α} {x : filter β}
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, b ≤ f c) : b ≤ a :=
+ge_of_tendsto nt lim (eventually_of_forall _ h)
 
 @[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
@@ -163,7 +177,10 @@ lemma continuous_within_at.closure_le [topological_space β]
 begin
   show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
   suffices : (f x, g x) ∈ closure {p : α × α | p.1 ≤ p.2},
-    by rwa ← closure_eq_iff_is_closed.2 (order_closed_topology.is_closed_le' α),
+    begin
+      rwa closure_eq_iff_is_closed.2 at this,
+      exact order_closed_topology.is_closed_le'
+    end,
   exact (continuous_within_at.prod hf hg).mem_closure hx h
 end
 
@@ -859,7 +876,7 @@ funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section topological_add_group
 
-variables [topological_space α] [ordered_comm_group α] [topological_add_group α]
+variables [topological_space α] [ordered_add_comm_group α] [topological_add_group α]
 
 lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
 have (λr:α, -r) ∘ (λr:α, -r) = id, from funext neg_neg,
@@ -1527,7 +1544,7 @@ end order_topology
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma order_topology_of_nhds_abs
-  {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
+  {α : Type*} [decidable_linear_ordered_add_comm_group α] [topological_space α]
   (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, principal {b | abs (a - b) < r})) : order_topology α :=
 order_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
@@ -1576,14 +1593,14 @@ lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] 
   {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)
 
-lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_comm_group α] : tendsto (abs : α → α) at_top at_top :=
+lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] : tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma decidable_linear_ordered_comm_group.tendsto_nhds
-  [decidable_linear_ordered_comm_group α] [topological_space α] [order_topology α] {β : Type*}
+lemma decidable_linear_ordered_add_comm_group.tendsto_nhds
+  [decidable_linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
   (f : β → α) (x : filter β) (a : α) :
   filter.tendsto f x (nhds a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
 begin

@@ -3,10 +3,12 @@ import
   tactic.cache
   tactic.clear
   tactic.converter.interactive
+  tactic.converter.apply_congr
   tactic.core
   tactic.ext
   tactic.elide
   tactic.explode
+  tactic.show_term
   tactic.find
   tactic.generalize_proofs
   tactic.interactive
@@ -27,6 +29,6 @@ import
   tactic.simps
   tactic.split_ifs
   tactic.squeeze
-  tactic.well_founded_tactics
+  tactic.trunc_cases
   tactic.where
   tactic.hint

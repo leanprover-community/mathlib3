@@ -9,7 +9,6 @@ import order.complete_lattice
 universes u
 
 open category_theory
-open lattice
 
 namespace category_theory.limits
 

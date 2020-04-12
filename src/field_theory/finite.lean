@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.algebra data.zmod.basic
+import group_theory.order_of_element data.polynomial data.equiv.ring data.zmod.basic
 import algebra.char_p
 
 universes u v
@@ -13,9 +13,9 @@ open function finset polynomial nat
 
 section
 
-variables [integral_domain α] [decidable_eq α] (S : set (units α)) [is_subgroup S] [fintype S]
+variables [integral_domain α] (S : set (units α)) [is_subgroup S] [fintype S]
 
-lemma card_nth_roots_subgroup_units {n : ℕ} (hn : 0 < n) (a : S) :
+lemma card_nth_roots_subgroup_units [decidable_eq α] {n : ℕ} (hn : 0 < n) (a : S) :
   (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units α) : α)).card :=
 card_le_card_of_inj_on (λ a, ((a : units α) : α))
   (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
@@ -47,7 +47,7 @@ variables [fintype α] [integral_domain α]
 open finset polynomial
 
 /-- The cardinality of a field is at most n times the cardinality of the image of a degree n
-  polnyomial -/
+  polynomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
@@ -87,12 +87,9 @@ end polynomial
 section
 variables [field α] [fintype α]
 
-instance [decidable_eq α] : fintype (units α) :=
-by haveI := set_fintype {a : α | a ≠ 0}; exact
-fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
-
-lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
+lemma card_units : fintype.card (units α) = fintype.card α - 1 :=
 begin
+  classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
   haveI := set_fintype (@set.univ α),
@@ -108,23 +105,26 @@ haveI := set_fintype (@set.univ (units α)); exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units α)) in
 ⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
 
-lemma prod_univ_units_id_eq_neg_one [decidable_eq α] :
+lemma prod_univ_units_id_eq_neg_one :
   univ.prod (λ x, x) = (-1 : units α) :=
-have ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
-from prod_involution (λ x _, x⁻¹) (by simp)
-  (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-  (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
-  (by simp),
-by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
-    this, mul_one]
+begin
+  classical,
+  have : ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
+  from prod_involution (λ x _, x⁻¹) (by simp)
+    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (by simp),
+  rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
+      this, mul_one]
+end
 
 end
 
-lemma pow_card_sub_one_eq_one [decidable_eq α] [field α] [fintype α] (a : α) (ha : a ≠ 0) :
+lemma pow_card_sub_one_eq_one [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
-    by rw [units.coe_pow, units.mk0_val]
-  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
+    by rw [units.coe_pow, units.coe_mk0]
+  ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
 end finite_field
 
@@ -150,12 +150,30 @@ lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
 let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
   from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
 ⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
+  have := congr_arg ⇑(zmod.cast_hom α : zmod n →+* α) hab,
   rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
+  simpa using this
 end⟩
 
 end char_p
+
+open_locale nat
+open zmod
+
+/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+  of the same theorem. -/
+@[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
+by rw [← card_units_eq_totient, pow_card_eq_one]
+
+/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+  of the same theorem. -/
+lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
+  let n' : ℕ+ := ⟨n, h₁⟩,
+  let x' : units (zmod n') := zmod.unit_of_coprime _ h,
+  have := zmod.pow_totient x',
+  apply (zmod.eq_iff_modeq_nat' h₁).1,
+  apply_fun (coe:units (zmod n') → zmod n') at this,
+  simpa [show (x':zmod n') = x, from rfl],
+end

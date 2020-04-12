@@ -274,8 +274,8 @@ begin
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,
-      exact lattice.ne_bot_of_le_ne_bot f.2.1
-        (lattice.le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
+      exact ne_bot_of_le_ne_bot f.2.1
+        (le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,
     rw closure_prod_eq at this,
     refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }

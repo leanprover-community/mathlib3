@@ -16,7 +16,6 @@ universe u
 
 variables {α : Type u}
 
-open lattice
 
 namespace set
 

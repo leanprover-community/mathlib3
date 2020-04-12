@@ -69,8 +69,8 @@ protected meta def expr.to_rat : expr → option ℚ
 /-- Evaluates an expression into a rational number, if that expression is built up from
   numerals, +, -, *, /, ⁻¹  -/
 protected meta def expr.eval_rat : expr → option ℚ
-| `(has_zero.zero _) := some 0
-| `(has_one.one _) := some 1
+| `(has_zero.zero) := some 0
+| `(has_one.one) := some 1
 | `(bit0 %%q) := (*) 2 <$> q.eval_rat
 | `(bit1 %%q) := (+) 1 <$> (*) 2 <$> q.eval_rat
 | `(%%a + %%b) := (+) <$> a.eval_rat <*> b.eval_rat

@@ -86,7 +86,7 @@ lemma multiplicity_fact {p : ℕ} (hp : p.prime) :
     by rw [multiplicity_fact (le_of_succ_le hb),
       ← multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (succ_pos _) hb]
   ... = ((Ico 1 b).sum (λ i, n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
-    by rw [sum_add_distrib, sum_ite (λ _, 1) (λ _, 0) (λ x, x)]; simp
+    by rw [sum_add_distrib, sum_boole]; simp
   ... = ((Ico 1 b).sum (λ i, (n + 1) / p ^ i) : ℕ) :
     congr_arg coe $ finset.sum_congr rfl (by intros; simp [nat.succ_div]; congr)
 
@@ -105,7 +105,7 @@ calc (finset.Ico 1 b).sum (λ i, n / p ^ i)
     by simp only [nat.add_sub_cancel' hkn]
 ... = (finset.Ico 1 b).sum (λ i, k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (nat.pow_pos hp.pos _)]
-... = _ : by simp [sum_add_distrib, sum_ite (λ _, 1) (λ _, 0) (λ x, x)]
+... = _ : begin simp only [sum_add_distrib], simp [sum_boole], end -- we have to use `sum_add_distrib` before `add_ite` fires.
 
 /-- The multiplity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`

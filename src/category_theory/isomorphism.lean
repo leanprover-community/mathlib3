@@ -86,23 +86,18 @@ by cases α; refl
 ⟨λ h, symm_symm_eq α ▸ symm_symm_eq β ▸ congr_arg symm h, congr_arg symm⟩
 
 /-- Identity isomorphism. -/
-@[refl] def refl (X : C) : X ≅ X :=
+@[refl, simps] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
-@[simp] lemma refl_hom (X : C) : (iso.refl X).hom = 𝟙 X := rfl
-@[simp] lemma refl_inv (X : C) : (iso.refl X).inv = 𝟙 X := rfl
 @[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
 
 /-- Composition of two isomorphisms -/
-@[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
+@[trans, simps] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
-
-@[simp] lemma trans_hom (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).hom = α.hom ≫ β.hom := rfl
-@[simp] lemma trans_inv (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
 
 @[simp] lemma trans_mk {X Y Z : C}
   (hom : X ⟶ Y) (inv : Y ⟶ X) (hom_inv_id) (inv_hom_id)
@@ -175,9 +170,9 @@ def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
 namespace is_iso
 
 @[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X :=
-is_iso.hom_inv_id' f
+is_iso.hom_inv_id'
 @[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y :=
-is_iso.inv_hom_id' f
+is_iso.inv_hom_id'
 
 @[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) :
   f ≫ inv f ≫ g = g :=
@@ -218,7 +213,7 @@ instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 @[priority 100] -- see Note [lower instance priority]
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
-  by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
+  by rw [←category.comp_id g, ←category.comp_id h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
 
 end is_iso
 

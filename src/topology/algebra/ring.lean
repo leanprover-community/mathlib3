@@ -8,7 +8,7 @@ Theory of topological rings.
 
 import topology.algebra.group ring_theory.ideals
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical
 
 section topological_ring
@@ -31,17 +31,12 @@ class topological_ring extends topological_add_monoid α, topological_monoid α 
 (continuous_neg : continuous (λa:α, -a))
 end prio
 
+variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_semiring (α : Type u)
-  {s : topological_space α} {r : ring α}
-  [t : topological_ring α]
- : topological_semiring α := {..t}
+instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
 @[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_add_group (α : Type u)
-  {s : topological_space α} {r : ring α}
-  [t : topological_ring α] :
-  topological_add_group α := {..t}
+instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 
 end topological_ring
 

@@ -5,11 +5,11 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.finsupp linear_algebra.basic
+import data.monoid_algebra linear_algebra.basic
 
 noncomputable theory
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 open_locale classical
 
@@ -69,7 +69,7 @@ end
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
-  refine disjoint_mono
+  refine disjoint.mono
     (lsingle_range_le_ker_lapply _ _ $ disjoint_compl s)
     (lsingle_range_le_ker_lapply _ _ $ disjoint_compl t)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
@@ -114,7 +114,7 @@ lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
 
-lemma supported_eq_span_single [has_one M] (s : set α) :
+lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
 begin
   refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
@@ -324,8 +324,7 @@ begin
     rw finsupp.total_apply,
     unfold finsupp.sum,
     apply sum_mem (span R (range v)),
-    { exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
-    apply_instance },
+    exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -427,7 +426,7 @@ variables {R : Type*} {M : Type*} {N : Type*}
 variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 lemma linear_map.map_finsupp_total
-  (f : M →ₗ[R] N) {ι : Type*} [fintype ι] {g : ι → M} (l : ι →₀ R) :
+  (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
 by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
 

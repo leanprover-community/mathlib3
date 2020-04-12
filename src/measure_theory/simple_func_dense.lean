@@ -2,15 +2,19 @@
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
-
-Show that each Borel measurable function can be approximated,
-both pointwise and in L¹ norm, by a sequence of simple functions.
 -/
 
 import measure_theory.l1_space
 
+/-!
+# Density of simple functions
+
+Show that each Borel measurable function can be approximated,
+both pointwise and in `L¹` norm, by a sequence of simple functions.
+-/
+
 noncomputable theory
-open lattice set filter topological_space
+open set filter topological_space
 open_locale classical topological_space
 
 universes u v
@@ -20,13 +24,17 @@ namespace measure_theory
 open ennreal nat metric
 open_locale measure_theory
 variables [measure_space α] [normed_group β] [second_countable_topology β]
+  [measurable_space β] [borel_space β]
 
 local infixr ` →ₛ `:25 := simple_func
+
+-- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
+-- It should be broken in a sequence of more manageable pieces.
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
 -- enumerate a countable dense subset {e k} of β
-let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
+let ⟨D, ⟨D_countable, D_dense⟩⟩ := @separable_space.exists_countable_closure_eq_univ β _ _ in
 let e := enumerate_countable D_countable 0 in
 let E := range e in
 have E_dense : closure E = univ :=
@@ -244,12 +252,13 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
     ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) :
-      by { simp [nnreal.coe_le.symm, (hF x).2, add_comm] },
+      by { simp [nnreal.coe_le_coe.symm, (hF x).2, add_comm] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
       (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
-    by rw [lintegral_add, lintegral_add]; simp only [measurable.coe_nnnorm hfm, measurable.add]
+    by { rw [lintegral_add, lintegral_nnnorm_add],
+      exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
 have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
   begin
@@ -262,10 +271,10 @@ begin
   { assume n, exact
     calc
       (∫⁻ a, nnnorm (F n a)) ≤ ∫⁻ a, nnnorm (f a) + nnnorm (f a) :
-        lintegral_le_lintegral _ _
+        lintegral_mono
           (by { assume a, simp only [coe_add.symm, coe_le_coe], exact (hF a).2 n })
        ... = (∫⁻ a, nnnorm (f a)) + (∫⁻ a, nnnorm (f a)) :
-         lintegral_add (measurable.coe_nnnorm hfm) (measurable.coe_nnnorm hfm)
+         lintegral_nnnorm_add hfm hfm
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
   convert @tendsto_lintegral_of_dominated_convergence _ _ G (λ a, 0) g
               hF_meas h_bound h_finite h_lim,

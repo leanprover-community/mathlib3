@@ -167,7 +167,7 @@ end simple_func
 end measure_theory
 
 namespace measure_theory
-open set lattice filter topological_space ennreal emetric
+open set filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α] {β : Type v} {γ : Type w}
@@ -325,20 +325,20 @@ by rw [bintegral_eq_integral' hf h_pos, ← lintegral_eq_integral]
 
 lemma bintegral_add {f g : α →ₛ β} (hf : integrable f) (hg : integrable g) :
   bintegral (f + g) = bintegral f + bintegral g :=
-calc bintegral (f + g) = sum (pair f g).range
+calc bintegral (f + g) = (pair f g).range.sum
        (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • (x.fst + x.snd)) :
 begin
   rw [add_eq_map₂, map_bintegral (pair f g)],
   { exact integrable_pair hf hg },
   { simp only [add_zero, prod.fst_zero, prod.snd_zero] }
 end
-... = sum (pair f g).range
+... = (pair f g).range.sum
         (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst +
              ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
   finset.sum_congr rfl $ assume a ha, smul_add _ _ _
-... = sum (simple_func.range (pair f g))
+... = (simple_func.range (pair f g)).sum
         (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst) +
-      sum (simple_func.range (pair f g))
+      (simple_func.range (pair f g)).sum
         (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).bintegral + ((pair f g).map prod.snd).bintegral :
@@ -368,9 +368,9 @@ end
 
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
-calc bintegral (r • f) = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
+calc bintegral (r • f) = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
   by rw [smul_eq_map r f, map_bintegral f _ hf (smul_zero _)]
-... = (f.range).sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
+... = f.range.sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
   finset.sum_congr rfl $ λb hb, by apply smul_smul
 ... = r • bintegral f :
 begin
@@ -384,10 +384,10 @@ lemma norm_bintegral_le_bintegral_norm (f : α →ₛ β) (hf : integrable f) :
 begin
   rw map_bintegral f norm hf norm_zero,
   rw bintegral,
-  calc ∥sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
-       sum f.range (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
+  calc ∥f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
+       f.range.sum (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
     norm_sum_le _ _
-    ... = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
+    ... = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
     begin
       refine finset.sum_congr rfl (λb hb, _),
       rw [norm_smul, smul_eq_mul, real.norm_eq_abs, abs_of_nonneg to_real_nonneg]
@@ -402,14 +402,16 @@ namespace l1
 
 open ae_eq_fun
 
-variables [normed_group β] [second_countable_topology β]
-          [normed_group γ] [second_countable_topology γ]
+variables
+  [normed_group β] [second_countable_topology β] [measurable_space β] [borel_space β]
+  [normed_group γ] [second_countable_topology γ] [measurable_space γ] [borel_space γ]
 
 variables (α β)
 /-- `l1.simple_func` is a subspace of L1 consisting of equivalence classes of an integrable simple
     function. -/
 def simple_func : Type (max u v) :=
 { f : α →₁ β // ∃ (s : α →ₛ β),  integrable s ∧ ae_eq_fun.mk s s.measurable = f}
+-- TODO: it seems that `ae_eq_fun.mk s s.measurable = f` implies `integrable s`
 
 variables {α β}
 
@@ -852,7 +854,7 @@ def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
-local notation `Integral` := @integral_clm α _ β _ _ _
+local notation `Integral` := @integral_clm α _ β _ _ _ _ _
 
 open continuous_linear_map
 
@@ -981,8 +983,8 @@ map_sub integral_clm f g
 lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
 map_smul r integral_clm f
 
-local notation `Integral` := @integral_clm α _ β _ _ _ _
-local notation `sIntegral` := @simple_func.integral_clm α _ β _ _ _
+local notation `Integral` := @integral_clm α _ β _ _ _ _ _ _
+local notation `sIntegral` := @simple_func.integral_clm α _ β _ _ _ _ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 calc ∥Integral∥ ≤ (1 : nnreal) * ∥sIntegral∥ :
@@ -1021,8 +1023,10 @@ end integration_in_l1
 end l1
 
 variables [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
+  [measurable_space β] [borel_space β]
           [normed_group γ] [second_countable_topology γ] [normed_space ℝ γ] [complete_space γ]
-
+  [measurable_space γ] [borel_space γ]
+  
 /-- The Bochner integral -/
 def integral (f : α → β) : β :=
 if hf : measurable f ∧ integrable f
@@ -1073,7 +1077,7 @@ end
 lemma integral_sub
   (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
   (∫ a, f a - g a) = (∫ a, f a) - (∫ a, g a) :=
-by simp only [sub_eq_add_neg, integral_neg, integral_add, measurable_neg_iff, integrable_neg_iff, *]
+by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hfm hfi hgm.neg hgi.neg }
 
 lemma integral_smul (r : ℝ) (f : α → β) : (∫ a, r • (f a)) = r • (∫ a, f a) :=
 begin
@@ -1082,7 +1086,7 @@ begin
   { by_cases hr : r = 0,
     { simp only [hr, measure_theory.integral_zero, zero_smul] },
     have hf' : ¬(measurable (λa, r • f a) ∧ integrable (λa, r • f a)),
-    { rwa [← measurable_smul_iff hr f, ← integrable_smul_iff hr f] at hf },
+    { rwa [measurable_const_smul_iff hr, integrable_smul_iff hr f]; apply_instance },
     rw [integral_undef hf, integral_undef hf', smul_zero] }
 end
 
@@ -1297,7 +1301,7 @@ begin
   { simp only [integral_zero, finset.sum_empty] },
   { assume i s his ih,
     simp only [his, finset.sum_insert, not_false_iff],
-    rw [integral_add (hfm _) (hfi _) (measurable_finset_sum s hfm)
+    rw [integral_add (hfm _) (hfi _) (s.measurable_sum hfm)
         (integrable_finset_sum s hfm hfi), ih] }
 end
 

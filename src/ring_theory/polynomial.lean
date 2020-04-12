@@ -42,6 +42,7 @@ begin
   { intros p hp, replace hp := mem_degree_le.1 hp,
     rw [← finsupp.sum_single p, finsupp.sum, submodule.mem_coe],
     refine submodule.sum_mem _ (λ k hk, _),
+    show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
     rw [single_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
@@ -55,7 +56,7 @@ end
 the ring closure of the original coefficients. -/
 def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
 ⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
+  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
   else ring.subset_closure $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
 λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
 
@@ -88,7 +89,7 @@ variables (p : polynomial R) (T : set R) [is_subring T]
 return the corresponding polynomial whose coefficients are in `T. -/
 def to_subring (hp : ↑p.frange ⊆ T) : polynomial T :=
 ⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
+  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
   else hp $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
 λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
 
@@ -112,7 +113,7 @@ omit hp
 
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
-    (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
+    (set.singleton_subset_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 end to_subring
 
@@ -164,7 +165,7 @@ begin
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, lattice.bot_le, _⟩,
+    { refine ⟨0, I.zero_mem, bot_le, _⟩,
       rw [leading_coeff_zero, eq_comm],
       exact coeff_eq_zero_of_degree_lt hpdeg },
     { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,

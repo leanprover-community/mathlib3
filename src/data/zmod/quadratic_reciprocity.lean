@@ -36,13 +36,13 @@ variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
 by rw [card_units, card_zmodp]
 
 theorem fermat_little {p : ℕ} (hp : nat.prime p) {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
-by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
+by rw [← units.coe_mk0 ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow, ← units.ext_iff,
     ← card_units_zmodp hp, pow_card_eq_one]
 
 lemma euler_criterion_units {x : units (zmodp p hp)} :
   (∃ y : units (zmodp p hp), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 hp.eq_two_or_odd.elim
-  (λ h, by resetI; subst h; revert x; exact dec_trivial)
+  (λ h, by resetI; subst h; exact iff_of_true ⟨1, subsingleton.elim _ _⟩ (subsingleton.elim _ _))
   (λ hp1, let ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmodp p hp)) in
     let ⟨n, hn⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
     ⟨λ ⟨y, hy⟩, by rw [← hy, ← pow_mul, two_mul_odd_div_two hp1,
@@ -97,7 +97,7 @@ begin
   rw [← finset.prod_Ico_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
     ← prod_hom _ (coe : units (zmodp p hp) → zmodp p hp),
-    ← prod_hom _ (coe : ℕ → zmodp p hp)],
+    prod_nat_cast],
   exact eq.symm (prod_bij
     (λ a _, (a : zmodp p hp).1)
     (λ a ha, Ico.mem.2 ⟨nat.pos_of_ne_zero
@@ -116,8 +116,7 @@ end
 @[simp] lemma prod_Ico_one_prime {p : ℕ} (hp : nat.prime p) :
   (Ico 1 p).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub hp.pos] };
-  rw [prod_hom _ (coe : ℕ → zmodp p hp),
-    finset.prod_Ico_id_eq_fact, wilsons_lemma]
+  rw [← prod_nat_cast, finset.prod_Ico_id_eq_fact, wilsons_lemma]
 
 end zmodp
 
@@ -229,7 +228,7 @@ calc (((Ico 1 (p / 2).succ).sum (λ x, a * x) : ℕ) : zmod 2)
   ... = ((Ico 1 (p / 2).succ).filter
         (λ x : ℕ, p / 2 < (a * x : zmodp p hp).val)).card +
       (((Ico 1 (p / 2).succ).sum (λ x, (a * x : zmodp p hp).val_min_abs.nat_abs)) : ℕ) :
-    by simp [add_comm, sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast]
+    by simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast]
   ... = _ : by rw [finset.sum_eq_multiset_sum,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id hp _ hap,
       ← finset.sum_eq_multiset_sum];

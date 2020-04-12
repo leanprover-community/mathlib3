@@ -39,7 +39,7 @@ end
 nth_of_fn_aux f _ _ _ _ $ λ i,
 by simp only [of_fn_nth_val, dif_neg (not_lt.2 (le_add_left n i))]; refl
 
-@[simp] theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
+theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
   nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
 option.some.inj $ by rw [← nth_le_nth];
   simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.2]

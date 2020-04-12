@@ -594,7 +594,7 @@ set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
 end decidable_linear_order
 
-section ordered_comm_group
+section ordered_add_comm_group
 
 variables {α : Type u} [ordered_add_comm_group α]
 
@@ -647,9 +647,9 @@ begin
     exact neg_le.1 hz }
 end
 
-end ordered_comm_group
+end ordered_add_comm_group
 
-section decidable_linear_ordered_comm_group
+section decidable_linear_ordered_add_comm_group
 
 variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
 
@@ -662,7 +662,7 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section linear_ordered_field
 

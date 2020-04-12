@@ -181,7 +181,7 @@ lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section decidable_linear_ordered_comm_group
+section decidable_linear_ordered_add_comm_group
 variables [decidable_linear_ordered_add_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
@@ -283,7 +283,7 @@ end
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
 by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}

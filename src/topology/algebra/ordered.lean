@@ -1599,7 +1599,7 @@ tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
 local notation `|` x `|` := abs x
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma decidable_linear_ordered_comm_group.tendsto_nhds
+lemma decidable_linear_ordered_add_comm_group.tendsto_nhds
   [decidable_linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
   (f : β → α) (x : filter β) (a : α) :
   filter.tendsto f x (nhds a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=

@@ -390,31 +390,6 @@ apply_nolint category_theory.mono doc_blame
 apply_nolint category_theory.obviously' doc_blame
 apply_nolint obviously.attr doc_blame
 
--- category_theory/comma.lean
-apply_nolint category_theory.comma doc_blame has_inhabited_instance
-apply_nolint category_theory.comma.fst doc_blame
-apply_nolint category_theory.comma.map_left doc_blame
-apply_nolint category_theory.comma.map_left_comp doc_blame
-apply_nolint category_theory.comma.map_left_id doc_blame
-apply_nolint category_theory.comma.map_right doc_blame
-apply_nolint category_theory.comma.map_right_comp doc_blame
-apply_nolint category_theory.comma.map_right_id doc_blame
-apply_nolint category_theory.comma.nat_trans doc_blame
-apply_nolint category_theory.comma.snd doc_blame
-apply_nolint category_theory.comma_morphism doc_blame has_inhabited_instance
-apply_nolint category_theory.over doc_blame has_inhabited_instance
-apply_nolint category_theory.over.forget doc_blame
-apply_nolint category_theory.over.hom_mk doc_blame
-apply_nolint category_theory.over.map doc_blame
-apply_nolint category_theory.over.mk doc_blame
-apply_nolint category_theory.over.post doc_blame
-apply_nolint category_theory.under doc_blame has_inhabited_instance
-apply_nolint category_theory.under.forget doc_blame
-apply_nolint category_theory.under.hom_mk doc_blame
-apply_nolint category_theory.under.map doc_blame
-apply_nolint category_theory.under.mk doc_blame
-apply_nolint category_theory.under.post doc_blame
-
 -- category_theory/concrete_category/bundled.lean
 apply_nolint category_theory.bundled has_inhabited_instance
 

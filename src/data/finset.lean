@@ -2174,29 +2174,6 @@ theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ 
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
-end max_min
-
-section exists_max_min
-
-variables [linear_order α]
-lemma exists_max (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
-begin
-  letI := classical.DLO α,
-  cases max_of_nonempty (h.image f) with y hy,
-  rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
-  exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
-end
-
-lemma exists_min (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
-begin
-  letI := classical.DLO α,
-  cases min_of_nonempty (h.image f) with y hy,
-  rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
-  exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
-end
-
-end exists_max_min
-
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
 taking values in `option α`. -/
@@ -2241,7 +2218,43 @@ begin
     apply lt_of_lt_of_le H4 H6 }
 end
 
+/--
+If there's more than 1 element, the min' is less than the max'. An alternate version of
+`min'_lt_max'` which is sometimes more convenient.
+-/
+lemma min'_lt_max'_of_card (h₂ : 1 < card s) : s.min' H < s.max' H :=
+begin
+  apply lt_of_not_ge,
+  intro a,
+  apply not_le_of_lt h₂ (le_of_eq _),
+  rw card_eq_one,
+  use max' s H,
+  rw eq_singleton_iff_unique_mem,
+  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (le_trans a (min'_le s H t Ht))⟩,
+end
+
 end max_min
+
+section exists_max_min
+
+variables [linear_order α]
+lemma exists_max_image (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
+begin
+  letI := classical.DLO α,
+  cases max_of_nonempty (h.image f) with y hy,
+  rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
+  exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
+end
+
+lemma exists_min_image (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
+begin
+  letI := classical.DLO α,
+  cases min_of_nonempty (h.image f) with y hy,
+  rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
+  exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
+end
+
+end exists_max_min
 
 /-! ### sort -/
 section sort
@@ -2566,28 +2579,6 @@ have H : subrelation (@has_lt.lt (finset α) _)
     (inv_image (<) card),
   from λ x y hxy, card_lt_card hxy,
 subrelation.wf H $ inv_image.wf _ $ nat.lt_wf
-
-section decidable_linear_order
-
-variables {α} [decidable_linear_order α]
-
-
-/--
-If there's more than 1 element, the min' is less than the max'. An alternate version of
-`min'_lt_max'` which is sometimes more convenient.
--/
-lemma min'_lt_max'_of_card (h₂ : 1 < card s) : s.min' H < s.max' H :=
-begin
-  apply lt_of_not_ge,
-  intro a,
-  apply not_le_of_lt h₂ (le_of_eq _),
-  rw card_eq_one,
-  use max' s H,
-  rw eq_singleton_iff_unique_mem,
-  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (le_trans a (min'_le s H t Ht))⟩,
-end
-
-end decidable_linear_order
 
 /-! ### intervals -/
 /- Ico (a closed open interval) -/

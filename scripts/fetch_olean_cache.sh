@@ -3,19 +3,15 @@ set -x
 
 archive_url="https://oleanstorage.azureedge.net/mathlib/"
 
-if new_git_sha=$(python scripts/look_up_olean_hash.py $lean_file_hash); then
-  echo "equivalent Git sha: $new_git_sha"
-else
-  # GIT_HISTORY_DEPTH is set in .github/workflows/build.yml
-  for new_git_sha in $(git log -$GIT_HISTORY_DEPTH --first-parent --pretty=format:%H)
-  do
-    if curl -sfI "$archive_url$new_git_sha.tar.gz" ; then
-      echo "found ancestor Git sha: $new_git_sha"
-      break
-    fi
-    new_git_sha=""
-  done
-fi
+# GIT_HISTORY_DEPTH is set in .github/workflows/build.yml
+for new_git_sha in $(git log -$GIT_HISTORY_DEPTH --first-parent --pretty=format:%H)
+do
+  if curl -sfI "$archive_url$new_git_sha.tar.gz" ; then
+    echo "found ancestor Git sha: $new_git_sha"
+    break
+  fi
+  new_git_sha=""
+done
 # exit if there were no successful requests
 [ "$new_git_sha" != "" ] || exit 0
 

@@ -5,7 +5,10 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic logic.relation
+import data.list.bag_inter
+import data.list.erase_dup
+import data.list.zip
+import logic.relation
 
 namespace list
 universe variables uu vv
@@ -367,7 +370,7 @@ local notation a * b := op a b
 local notation l <*> a := foldl op a l
 
 lemma fold_op_eq_of_perm {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
-foldl_eq_of_perm (right_comm _ (is_commutative.comm _) (is_associative.assoc _)) h _
+foldl_eq_of_perm (right_comm _ is_commutative.comm is_associative.assoc) h _
 end
 
 section comm_monoid
@@ -721,7 +724,8 @@ begin
   { intros l₁ l₂ h, simp at h, simp [h] },
   { intros l a IH l₁ l₂ h,
     rw [sublists_concat, reverse_append, zip_append, ← map_reverse,
-        zip_map_right, zip_map_left] at h; [simp at h, simp],
+        zip_map_right, zip_map_left] at h; [skip, {simp}],
+    simp only [prod.mk.inj_iff, mem_map, mem_append, prod.map_mk, prod.exists] at h,
     rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
     { rw ← append_assoc,
       exact perm_app_left _ (IH _ _ h) },

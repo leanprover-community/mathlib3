@@ -56,7 +56,7 @@ theorem eq_iff_rel_eq {r₁ r₂ : setoid α} : r₁ = r₂ ↔ r₁.rel = r₂.
 ⟨λ h, h ▸ rfl, λ h, setoid.ext' $ λ x y, h ▸ iff.rfl⟩
 
 /-- Defining `≤` for equivalence relations. -/
-instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
+instance : has_le (setoid α) := ⟨λ r s, ∀ ⦃x y⦄, r.rel x y → s.rel x y⟩
 
 theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x y := iff.rfl
 
@@ -105,27 +105,36 @@ instance : has_Inf (setoid α) :=
 theorem Inf_def {s : set (setoid α)} : (Inf s).rel = Inf (rel '' s) :=
 by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
-/-- The infimum of a set of equivalence relations is contained in any element of the set. -/
-lemma Inf_le (S : set (setoid α)) (r ∈ S) : Inf S ≤ r :=
-λ _ _ h, h r H
+instance : partial_order (setoid α) :=
+{ le := (≤),
+  lt := λ r s, r ≤ s ∧ ¬s ≤ r,
+  le_refl := λ _ _ _, id,
+  le_trans := λ _ _ _ hr hs _ _ h, hs $ hr h,
+  lt_iff_le_not_le := λ _ _, iff.rfl,
+  le_antisymm := λ r s h1 h2, setoid.ext' $ λ x y, ⟨λ h, h1 h, λ h, h2 h⟩ }
 
-/-- If an equivalence relation r is contained in every element of a set of equivalence relations,
-    r is contained in the infimum of the set. -/
-lemma le_Inf (S : set (setoid α)) (r) : (∀ s ∈ S, r ≤ s) → r ≤ Inf S :=
-λ H _ _ h s hs, H s hs _ _ h
+/-- The complete lattice of equivalence relations on a type, with bottom element `=`
+    and top element the trivial equivalence relation. -/
+instance complete_lattice : complete_lattice (setoid α) :=
+{ inf := has_inf.inf,
+  inf_le_left := λ _ _ _ _ h, h.1,
+  inf_le_right := λ _ _ _ _ h, h.2,
+  le_inf := λ _ _ _ h1 h2 _ _ h, ⟨h1 h, h2 h⟩,
+  top := ⟨λ _ _, true, ⟨λ _, trivial, λ _ _ h, h, λ _ _ _ h1 h2, h1⟩⟩,
+  le_top := λ _ _ _ _, trivial,
+  bot := ⟨(=), ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h1 h2, h1.trans h2⟩⟩,
+  bot_le := λ r x y h, h ▸ r.2.1 x,
+  .. complete_lattice_of_Inf (setoid α) $ assume s,
+    ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) :
-  eqv_gen.setoid r = Inf {s : setoid α | ∀ x y, r x y → s.rel x y} :=
-setoid.ext' $ λ _ _,
-  ⟨λ H, eqv_gen.rec (λ _ _ h _ hs, hs _ _ h) (refl' _)
-    (λ _ _ _, symm' _) (λ _ _ _ _ _, trans' _) H,
-  Inf_le _ _ (λ _ _, eqv_gen.rel _ _) _ _⟩
-
-/-- The supremum of two equivalence relations, defined as the infimum of the set of
-    equivalence relations containing both. -/
-instance : has_sup (setoid α) := ⟨λ r s, Inf {x | r ≤ x ∧ s ≤ x}⟩
+  eqv_gen.setoid r = Inf {s : setoid α | ∀ ⦃x y⦄, r x y → s.rel x y} :=
+le_antisymm
+  (λ _ _ H, eqv_gen.rec (λ _ _ h _ hs, hs h) (refl' _)
+    (λ _ _ _, symm' _) (λ _ _ _ _ _, trans' _) H)
+  (Inf_le $ λ _ _ h, eqv_gen.rel _ _ h)
 
 /-- The supremum of two equivalence relations r and s is the equivalence closure of the binary
     relation `x is related to y by r or s`. -/
@@ -134,43 +143,13 @@ lemma sup_eq_eqv_gen (r s : setoid α) :
 begin
   rw eqv_gen_eq,
   apply congr_arg Inf,
-  ext,
-  exact ⟨λ h _ _ H, or.elim H (h.1 _ _) (h.2 _ _),
-         λ H, ⟨λ _ _ h, H _ _ $ or.inl h, λ _ _ h, H _ _ $ or.inr h⟩⟩
+  simp only [le_def, or_imp_distrib, ← forall_and_distrib]
 end
 
 /-- The supremum of 2 equivalence relations r and s is the equivalence closure of the
     supremum of the underlying binary operations. -/
 lemma sup_def {r s : setoid α} : r ⊔ s = eqv_gen.setoid (r.rel ⊔ s.rel) :=
 by rw sup_eq_eqv_gen; refl
-
-/-- The complete lattice of equivalence relations on a type, with bottom element `=`
-    and top element the trivial equivalence relation. -/
-instance complete_lattice : complete_lattice (setoid α) :=
-{ sup := has_sup.sup,
-  le := (≤),
-  lt := λ r s, r ≤ s ∧ ¬s ≤ r,
-  le_refl := λ _ _ _, id,
-  le_trans := λ _ _ _ hr hs _ _ h, hs _ _ $ hr _ _ h,
-  lt_iff_le_not_le := λ _ _, iff.rfl,
-  le_antisymm := λ r s h1 h2, setoid.ext' $ λ x y, ⟨h1 x y, h2 x y⟩,
-  le_sup_left := λ r s, le_Inf _ r $ λ _ hx, hx.1,
-  le_sup_right := λ r s, le_Inf _ s $ λ _ hx, hx.2,
-  sup_le := λ r s t h1 h2, Inf_le _ t ⟨h1, h2⟩,
-  inf := has_inf.inf,
-  inf_le_left := λ _ _ _ _ h, h.1,
-  inf_le_right := λ _ _ _ _ h, h.2,
-  le_inf := λ _ _ _ h1 h2 _ _ h, ⟨h1 _ _ h, h2 _ _ h⟩,
-  top := ⟨λ _ _, true, ⟨λ _, trivial, λ _ _ h, h, λ _ _ _ h1 h2, h1⟩⟩,
-  le_top := λ _ _ _ _, trivial,
-  bot := ⟨(=), ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h1 h2, h1.trans h2⟩⟩,
-  bot_le := λ r x y h, h ▸ r.2.1 x,
-  Sup := λ tt, Inf {t | ∀ t'∈tt, t' ≤ t},
-  Inf := has_Inf.Inf,
-  le_Sup := λ _ _ hs, le_Inf _ _ $ λ r hr, hr _ hs,
-  Sup_le := λ _ _ hs, Inf_le _ _ hs,
-  Inf_le := Inf_le,
-  le_Inf := le_Inf }
 
 /-- The supremum of a set S of equivalence relations is the equivalence closure of the binary
     relation `there exists r ∈ S relating x and y`. -/
@@ -179,9 +158,9 @@ lemma Sup_eq_eqv_gen (S : set (setoid α)) :
 begin
   rw eqv_gen_eq,
   apply congr_arg Inf,
+  simp only [upper_bounds, le_def, and_imp, exists_imp_distrib],
   ext,
-  exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2,
-         λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩
+  exact ⟨λ H x y r hr, H hr, λ H r hr x y, H r hr⟩
 end
 
 /-- The supremum of a set of equivalence relations is the equivalence closure of the
@@ -197,7 +176,7 @@ end
 
 /-- The equivalence closure of an equivalence relation r is r. -/
 @[simp] lemma eqv_gen_of_setoid (r : setoid α) : eqv_gen.setoid r.r = r :=
-le_antisymm (by rw eqv_gen_eq; exact Inf_le _ r (λ _ _, id)) eqv_gen.rel
+le_antisymm (by rw eqv_gen_eq; exact Inf_le (λ _ _, id)) eqv_gen.rel
 
 /-- Equivalence closure is idempotent. -/
 @[simp] lemma eqv_gen_idem (r : α → α → Prop) :
@@ -208,7 +187,7 @@ eqv_gen_of_setoid _
     relation containing r. -/
 theorem eqv_gen_le {r : α → α → Prop} {s : setoid α} (h : ∀ x y, r x y → s.rel x y) :
   eqv_gen.setoid r ≤ s :=
-by rw eqv_gen_eq; exact Inf_le _ _ h
+by rw eqv_gen_eq; exact Inf_le h
 
 /-- Equivalence closure of binary relations is monotonic. -/
 theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) :
@@ -219,7 +198,7 @@ eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr
     on α, with equivalence closure the lower adjoint. -/
 def gi : @galois_insertion (α → α → Prop) (setoid α) _ _ eqv_gen.setoid rel :=
 { choice := λ r h, eqv_gen.setoid r,
-  gc := λ r s, ⟨λ H _ _ h, H _ _ $ eqv_gen.rel _ _ h, λ H, eqv_gen_of_setoid s ▸ eqv_gen_mono H⟩,
+  gc := λ r s, ⟨λ H _ _ h, H $ eqv_gen.rel _ _ h, λ H, eqv_gen_of_setoid s ▸ eqv_gen_mono H⟩,
   le_l_u := λ x, (eqv_gen_of_setoid x).symm ▸ le_refl x,
   choice_eq := λ _ _, rfl }
 
@@ -295,7 +274,7 @@ def map_of_surjective (r) (f : α → β) (h : ker f ≤ r) (hf : surjective f) 
   ⟨λ x, let ⟨y, hy⟩ := hf x in ⟨y, y, hy, hy, r.refl' y⟩,
    λ _ _ ⟨x, y, hx, hy, h⟩, ⟨y, x, hy, hx, r.symm' h⟩,
    λ _ _ _ ⟨x, y, hx, hy, h₁⟩ ⟨y', z, hy', hz, h₂⟩,
-     ⟨x, z, hx, hz, r.trans' h₁ $ r.trans' (h y y' $ by rwa ←hy' at hy) h₂⟩⟩⟩
+     ⟨x, z, hx, hz, r.trans' h₁ $ r.trans' (h $ by rwa ←hy' at hy) h₂⟩⟩⟩
 
 /-- A special case of the equivalence closure of an equivalence relation r equalling r. -/
 lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
@@ -323,7 +302,7 @@ variables (r f)
 def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
   quotient (ker (quot.map_right h)) ≃ quotient s :=
 { to_fun := λ x, quotient.lift_on' x (λ w, quotient.lift_on' w (@quotient.mk _ s) $
-    λ x y H, quotient.sound $ h x y H) $ λ x y, quotient.induction_on₂' x y $ λ w z H,
+    λ x y H, quotient.sound $ h H) $ λ x y, quotient.induction_on₂' x y $ λ w z H,
       show @quot.mk _ _ _ = @quot.mk _ _ _, from H,
   inv_fun := λ x, quotient.lift_on' x
     (λ w, @quotient.mk _ (ker $ quot.map_right h) $ @quotient.mk _ r w) $
@@ -345,37 +324,38 @@ open quotient
     inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
     left_inv := λ s, subtype.ext.2 $ ext' $ λ _ _,
       ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
-        s.1.trans' (s.1.symm' $ s.2 a _ $ eq_rel.1 hx) $ s.1.trans' H $ s.2 b _ $ eq_rel.1 hy,
+        s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
        λ h, ⟨_, _, rfl, rfl, h⟩⟩,
     right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
         λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
       ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
         quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-    ord := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h _ _ Hs⟩,
-      λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟦x⟧ ⟦y⟧ ⟨x, y, rfl, rfl, hs⟩ in
-        t.1.trans' (t.1.symm' $ t.2 a x $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 b y $ eq_rel.1 hy⟩ }
-
+    ord := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+      λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
+        t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
 end
 
--- Partitions
+/-!
+### Partitions
+-/
 
 /-- If x ∈ α is in 2 elements of a set of sets partitioning α, those 2 sets are equal. -/
-lemma eq_of_mem_eqv_class {c : set (set α)}
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
+lemma eq_of_mem_eqv_class {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b)
   {x b b'} (hc : b ∈ c) (hb : x ∈ b) (hc' : b' ∈ c) (hb' : x ∈ b') :
   b = b' :=
-let ⟨_, _, _, h⟩ := H x in (h b hc hb).symm.trans $ h b' hc' hb'
+(H x).unique2 hc hb hc' hb'
 
 /-- Makes an equivalence relation from a set of sets partitioning α. -/
-def mk_classes (c : set (set α))
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') :
+def mk_classes (c : set (set α)) (H : ∀ a, ∃! b ∈ c, a ∈ b) :
   setoid α :=
-⟨λ x y, ∀ b ∈ c, x ∈ b → y ∈ b, ⟨λ _ _ _ hx, hx,
- λ x _ h _ hb hy, let ⟨z, hc, hx, hz⟩ := H x in
-    eq_of_mem_eqv_class H hc (h z hc hx) hb hy ▸ hx,
- λ x y z h1 h2 b hc hb, let ⟨v, hvc, hy, hv⟩ := H y in let ⟨w, hwc, hz, hw⟩ := H z in
-    (eq_of_mem_eqv_class H hwc hz hvc $ h2 v hvc hy).trans
-      (eq_of_mem_eqv_class H hvc hy hc $ h1 b hc hb) ▸ hz⟩⟩
+⟨λ x y, ∀ s ∈ c, x ∈ s → y ∈ s, ⟨λ _ _ _ hx, hx,
+ λ x y h s hs hy, (H x).elim2 $ λ t ht hx _,
+   have s = t, from eq_of_mem_eqv_class H hs hy ht (h t ht hx),
+   this.symm ▸ hx,
+ λ x y z h1 h2 s hs hx, (H y).elim2 $ λ t ht hy _, (H z).elim2 $ λ t' ht' hz _,
+   have hst : s = t, from eq_of_mem_eqv_class H hs (h1 _ hs hx) ht hy,
+   have htt' : t = t', from eq_of_mem_eqv_class H ht (h2 _ ht hy) ht' hz,
+   (hst.trans htt').symm ▸ hz⟩⟩
 
 /-- Makes the equivalence classes of an equivalence relation. -/
 def classes (r : setoid α) : set (set α) :=
@@ -388,27 +368,28 @@ lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ ∀ x, {y | r₁.rel x y} = {y | r₂.rel x y} :=
 ⟨λ h x, h ▸ rfl, λ h, ext' $ λ x, (set.ext_iff _ _).1 $ h x⟩
 
+lemma rel_iff_exists_classes (r : setoid α) {x y} :
+  r.rel x y ↔ ∃ c ∈ r.classes, x ∈ c ∧ y ∈ c :=
+⟨λ h, ⟨_, r.mem_classes y, h, r.refl' y⟩,
+  λ ⟨c, ⟨z, hz⟩, hx, hy⟩, by { subst c, exact r.trans' hx (r.symm' hy) }⟩
+
 /-- Two equivalence relations are equal iff their equivalence classes are equal. -/
 lemma classes_inj {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ r₁.classes = r₂.classes :=
-⟨λ h, h ▸ rfl, λ h, ext' $ λ a b,
-  ⟨λ h1, let ⟨w, hw⟩ := show _ ∈ r₂.classes, by rw ←h; exact r₁.mem_classes a in
-      r₂.trans' (show a ∈ {x | r₂.rel x w}, from hw ▸ r₁.refl' a) $
-        r₂.symm' (show b ∈ {x | r₂.rel x w}, by rw ←hw; exact r₁.symm' h1),
-   λ h1, let ⟨w, hw⟩ := show _ ∈ r₁.classes, by rw h; exact r₂.mem_classes a in
-      r₁.trans' (show a ∈ {x | r₁.rel x w}, from hw ▸ r₂.refl' a) $
-        r₁.symm' (show b ∈ {x | r₁.rel x w}, by rw ←hw; exact r₂.symm' h1)⟩⟩
+⟨λ h, h ▸ rfl, λ h, ext' $ λ a b, by simp only [rel_iff_exists_classes, exists_prop, h] ⟩
 
 /-- The empty set is not an equivalence class. -/
 lemma empty_not_mem_classes {r : setoid α} : ∅ ∉ r.classes :=
 λ ⟨y, hy⟩, set.not_mem_empty y $ hy.symm ▸ r.refl' y
 
 /-- Equivalence classes partition the type. -/
-lemma classes_eqv_classes {r : setoid α} :
-  ∀ a, ∃ b ∈ r.classes, a ∈ b ∧ ∀ b' ∈ r.classes, a ∈ b' → b = b' :=
-λ a, ⟨{x | r.rel x a}, r.mem_classes a,
-  ⟨r.refl' a, λ s ⟨y, h⟩ ha, by rw h at *; ext;
-    exact ⟨λ hx, r.trans' hx ha, λ hx, r.trans' hx $ r.symm' ha⟩⟩⟩
+lemma classes_eqv_classes {r : setoid α} (a) : ∃! b ∈ r.classes, a ∈ b :=
+exists_unique.intro2 {x | r.rel x a} (r.mem_classes a) (r.refl' _) $
+begin
+  rintros _ ⟨y, rfl⟩ ha,
+  ext x,
+  exact ⟨λ hx, r.trans' hx (r.symm' ha), λ hx, r.trans' hx ha⟩
+end
 
 /-- If x ∈ α is in 2 equivalence classes, the equivalence classes are equal. -/
 lemma eq_of_mem_classes {r : setoid α} {x b} (hc : b ∈ r.classes)
@@ -418,33 +399,31 @@ eq_of_mem_eqv_class classes_eqv_classes hc hb hc' hb'
 /-- The elements of a set of sets partitioning α are the equivalence classes of the
     equivalence relation defined by the set of sets. -/
 lemma eq_eqv_class_of_mem {c : set (set α)}
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
-  {s y} (hs : s ∈ c) (hy : y ∈ s) : s = {x | (mk_classes c H).rel x y} :=
+  (H : ∀ a, ∃! b ∈ c, a ∈ b) {s y} (hs : s ∈ c) (hy : y ∈ s) :
+  s = {x | (mk_classes c H).rel x y} :=
 set.ext $ λ x,
   ⟨λ hs', symm' (mk_classes c H) $ λ b' hb' h', eq_of_mem_eqv_class H hs hy hb' h' ▸ hs',
-   λ hx, let ⟨b', hc', hb', h'⟩ := H x in
+   λ hx, (H x).elim2 $ λ b' hc' hb' h',
      (eq_of_mem_eqv_class H hs hy hc' $ hx b' hc' hb').symm ▸ hb'⟩
 
 /-- The equivalence classes of the equivalence relation defined by a set of sets
     partitioning α are elements of the set of sets. -/
-lemma eqv_class_mem {c : set (set α)}
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') {y} :
+lemma eqv_class_mem {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {y} :
   {x | (mk_classes c H).rel x y} ∈ c :=
-let ⟨b, hc, hy, hb⟩ := H y in eq_eqv_class_of_mem H hc hy ▸ hc
+(H y).elim2 $ λ b hc hy hb, eq_eqv_class_of_mem H hc hy ▸ hc
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
-lemma eqv_classes_disjoint {c : set (set α)}
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') :
+lemma eqv_classes_disjoint {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) :
   set.pairwise_disjoint c :=
 λ b₁ h₁ b₂ h₂ h, set.disjoint_left.2 $
-  λ x hx1 hx2, let ⟨b, hc, hx, hb⟩ := H x in h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
+  λ x hx1 hx2, (H x).elim2 $ λ b hc hx hb, h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
 
 /-- A set of disjoint sets covering α partition α (classical). -/
 lemma eqv_classes_of_disjoint_union {c : set (set α)}
   (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
-  ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
+  ∃! b ∈ c, a ∈ b :=
 let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  ⟨b, hc, ha, λ b' hc' ha', H.elim hc hc' a ha ha'⟩
+  exists_unique.intro2 b hc ha $ λ b' hc' ha', H.elim hc' hc a ha' ha
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
@@ -460,8 +439,10 @@ ext' $ λ x y, ⟨λ h, r.symm' (h {z | r.rel z x} (r.mem_classes x) $ r.refl' x
 
 section partition
 
+/-- A collection `c : set (set α)` of sets is a partition of `α` into pairwise
+disjoint sets if `∅ ∉ c` and each element `a : α` belongs to a unique set `b ∈ c`. -/
 def is_partition (c : set (set α)) :=
-∅ ∉ c ∧ ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b'
+∅ ∉ c ∧ ∀ a, ∃! b ∈ c, a ∈ b
 
 /-- A partition of `α` does not contain the empty set. -/
 lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
@@ -479,8 +460,8 @@ let ⟨y, hy⟩ := nonempty_of_mem_partition hc hs in
 theorem classes_mk_classes (c : set (set α)) (hc : is_partition c) :
   (mk_classes c hc.2).classes = c :=
 set.ext $ λ s,
-  ⟨λ ⟨y, hs⟩, by rcases hc.2 y with ⟨b, hm, hb, hy⟩;
-    rwa (show s = b, from hs.symm ▸ set.ext
+  ⟨λ ⟨y, hs⟩, (hc.2 y).elim2 $ λ b hm hb hy,
+    by rwa (show s = b, from hs.symm ▸ set.ext
       (λ x, ⟨λ hx, symm' (mk_classes c hc.2) hx b hm hb,
              λ hx b' hc' hx', eq_of_mem_eqv_class hc.2 hm hx hc' hx' ▸ hb⟩)),
    exists_of_mem_partition hc⟩

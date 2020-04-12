@@ -105,7 +105,7 @@ instance [has_mul α] : has_scalar α (holor α ds) :=
 
 instance [ring α] : module α (holor α ds) := pi.module α
 
-instance [field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
+instance [field α] : vector_space α (holor α ds) := ⟨⟩
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=

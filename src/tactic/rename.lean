@@ -99,9 +99,11 @@ rename' [x → y, a → b]  -- ditto
 ```
 
 Brackets are necessary if multiple hypotheses should be renamed in parallel.
+-/
+meta def rename' (renames : parse rename'_args_parser) : tactic unit :=
+  tactic.rename' (rb_map.of_list renames)
 
----
-
+/--
 Renames one or more hypotheses in the context.
 
 ```lean
@@ -122,9 +124,6 @@ improvements:
 - Renaming a hypothesis always preserves its location in the context (whereas
   `rename` may reorder hypotheses).
 -/
-meta def rename' (renames : parse rename'_args_parser) : tactic unit :=
-  tactic.rename' (rb_map.of_list renames)
-
 add_tactic_doc
 { name       := "rename'",
   category   := doc_category.tactic,

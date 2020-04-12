@@ -298,9 +298,9 @@ lemma bdd_above_singleton : bdd_above ({a} : set α) := is_lub_singleton.bdd_abo
 
 lemma bdd_below_singleton : bdd_below ({a} : set α) := is_glb_singleton.bdd_below
 
-lemma upper_bounds_singleton : upper_bounds {a} = Ici a := is_lub_singleton.upper_bounds_eq
+@[simp] lemma upper_bounds_singleton : upper_bounds {a} = Ici a := is_lub_singleton.upper_bounds_eq
 
-lemma lower_bounds_singleton : lower_bounds {a} = Iic a := is_glb_singleton.lower_bounds_eq
+@[simp] lemma lower_bounds_singleton : lower_bounds {a} = Iic a := is_glb_singleton.lower_bounds_eq
 
 /-!
 #### Bounded intervals
@@ -432,7 +432,7 @@ lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : se
 by simp only [upper_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
 
 @[simp] lemma lower_bounds_empty : lower_bounds (∅ : set α) = univ :=
-by simp only [lower_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
+@upper_bounds_empty (order_dual α) _
 
 @[simp] lemma bdd_above_empty [nonempty α] : bdd_above (∅ : set α) :=
 by simp only [bdd_above, upper_bounds_empty, univ_nonempty]
@@ -493,11 +493,11 @@ lemma is_least.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_
   is_least (insert a s) (min a b) :=
 by { rw insert_eq, exact is_least_singleton.union hs }
 
-lemma upper_bounds_insert (a : α) (s : set α) :
+@[simp] lemma upper_bounds_insert (a : α) (s : set α) :
   upper_bounds (insert a s) = Ici a ∩ upper_bounds s :=
 by rw [insert_eq, upper_bounds_union, upper_bounds_singleton]
 
-lemma lower_bounds_insert (a : α) (s : set α) :
+@[simp] lemma lower_bounds_insert (a : α) (s : set α) :
   lower_bounds (insert a s) = Iic a ∩ lower_bounds s :=
 by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 

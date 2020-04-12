@@ -51,7 +51,11 @@ begin
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
   apply eq_iff_eq_cancel_right.mpr,
-  symmetry, apply hom_eval₂,
+  symmetry,
+  -- TODO: add an `aeval`-specific version of `hom_eval₂`
+  simp only [aeval_def],
+  convert hom_eval₂ p (algebra_map R S) ↑S.val ⟨x, hx⟩,
+  refl
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/

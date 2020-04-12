@@ -472,16 +472,16 @@ instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_we
 { trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
   irrefl       := λ a, by cases a; simp; apply irrefl,
   trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
-  wf           := sum.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
     match @trichotomous _ r _ a₁ b₁ with
-    | or.inl h₁ := or.inl $ prod.lex.left _ _ _ h₁
-    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ _ h₁
+    | or.inl h₁ := or.inl $ prod.lex.left _ _ h₁
+    | or.inr (or.inr h₁) := or.inr $ or.inr $ prod.lex.left _ _ h₁
     | or.inr (or.inl e) := e ▸  match @trichotomous _ s _ a₂ b₂ with
-      | or.inl h := or.inl $ prod.lex.right _ _ h
-      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ _ h
+      | or.inl h := or.inl $ prod.lex.right _ h
+      | or.inr (or.inr h) := or.inr $ or.inr $ prod.lex.right _ h
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
@@ -490,12 +490,12 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
-    { exact prod.lex.left _ _ _ (trans ab bc) },
-    { exact prod.lex.left _ _ _ ab },
-    { exact prod.lex.left _ _ _ bc },
-    { exact prod.lex.right _ _ (trans ab bc) }
+    { exact prod.lex.left _ _ (trans ab bc) },
+    { exact prod.lex.left _ _ ab },
+    { exact prod.lex.left _ _ bc },
+    { exact prod.lex.right _ (trans ab bc) }
   end,
-  wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
 
 /-- An unbounded or cofinal set -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a

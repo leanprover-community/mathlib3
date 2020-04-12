@@ -140,7 +140,7 @@ irreducible_of_prime (prime hx)
 
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
-@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map β a)) :
+@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
   minimal_polynomial ha = X - C a :=
 begin
   refine (unique ha (monic_X_sub_C a) (by simp [aeval_def]) _).symm,
@@ -155,11 +155,9 @@ begin
     rwa [← with_bot.coe_one, with_bot.coe_le_coe], },
   apply degree_pos_of_root (ne_zero_of_monic hq),
   show is_root q a,
-  apply is_ring_hom.injective (algebra_map β : α → β),
-  rw [is_ring_hom.map_zero (algebra_map β : α → β), ← H],
-  convert polynomial.hom_eval₂ _ _ _ _,
-  { exact is_semiring_hom.id },
-  { apply_instance }
+  apply (algebra_map α β).injective,
+  rw [(algebra_map α β).map_zero, ← H],
+  exact q.hom_eval₂ (ring_hom.id _) (algebra_map α β) _,
 end
 
 variable (β)
@@ -174,19 +172,19 @@ variable {β}
 /--The minimal polynomial of 0 is X.-/
 @[simp] lemma zero {h₀ : is_integral α (0:β)} :
   minimal_polynomial h₀ = X :=
-by simpa only [add_zero, polynomial.C_0, sub_eq_add_neg, neg_zero, algebra.map_zero]
+by simpa only [add_zero, polynomial.C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
   using algebra_map' β (0:α)
 
 /--The minimal polynomial of 1 is X - 1.-/
 @[simp] lemma one {h₁ : is_integral α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
-by simpa only [algebra.map_one, polynomial.C_1, sub_eq_add_neg]
+by simpa only [ring_hom.map_one, polynomial.C_1, sub_eq_add_neg]
   using algebra_map' β (1:α)
 
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/
 lemma root {x : β} (hx : is_integral α x) {y : α}
-  (h : is_root (minimal_polynomial hx) y) : algebra_map β y = x :=
+  (h : is_root (minimal_polynomial hx) y) : algebra_map α β y = x :=
 begin
   have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
@@ -199,7 +197,7 @@ begin
     simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
       is_root.def, finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using h, },
   subst y,
-  rw [algebra.map_neg, neg_eq_iff_add_eq_zero],
+  rw [ring_hom.map_neg, neg_eq_iff_add_eq_zero],
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
   simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,

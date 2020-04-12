@@ -445,6 +445,7 @@ lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
 
+-- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
   (range (nat.succ n)).prod (λ r, f (n - r)) = (range (nat.succ n)).prod f :=
 begin
@@ -586,7 +587,7 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
 attribute [to_additive] prod_range_succ'
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
-  sum (range (nat.succ n)) (λ r, f (n - r)) = sum (range (nat.succ n)) f :=
+  (range (nat.succ n)).sum (λ r, f (n - r)) = (range (nat.succ n)).sum f :=
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
 
@@ -898,7 +899,6 @@ begin
   exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
 end
 
-
 lemma sum_lt_sum_of_nonempty (hs : s.nonempty) (Hlt : ∀ x ∈ s, f x < g x) :
   s.sum f < s.sum g :=
 begin
@@ -906,7 +906,8 @@ begin
     intros i hi, apply le_of_lt (Hlt i hi),
   cases hs with i hi,
   exact ⟨i, hi, Hlt i hi⟩,
-  
+end
+
 lemma sum_lt_sum_of_subset [decidable_eq α]
   (h : s₁ ⊆ s₂) {i : α} (hi : i ∈ s₂ \ s₁) (hpos : 0 < f i) (hnonneg : ∀ j ∈ s₂ \ s₁, 0 ≤ f j) :
   s₁.sum f < s₂.sum f :=

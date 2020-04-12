@@ -1,31 +1,38 @@
-import tactic.transport_2
+import tactic.transport
 import order.bounded_lattice
 import algebra.lie_algebra
 
 -- We verify that `transport` can move a `semiring` across an equivalence.
 -- Note that we've never even mentioned the idea of addition or multiplication to `transport`.
 def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semiring β :=
-by transport
-.
+by transport using e
 
 -- Indeed, it can equally well move a `semilattice_sup_top`.
 def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) : semilattice_sup_top β :=
-by transport
-.
+by transport using e
 
+-- Verify definitional equality of the new structure data.
+example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) (x y : β) :
+begin
+  haveI := sup_top.map e,
+  exact (x ≤ y) = (e.symm x ≤ e.symm y),
+end :=
+rfl
+
+-- And why not Lie rings while we're at it?
 def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
-by transport.
+by transport using e
 
--- Below we verify that the transported structure is definitionally what you would hope for.
+-- Verify definitional equality of the new structure data.
+example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) (x y : β) :
+begin
+  haveI := lie_ring.map e,
+  exact ⁅x, y⁆ = e ⁅e.symm x, e.symm y⁆
+end :=
+rfl
 
--- FIXME
--- In fact, as defined in semiring.map above, it's _not_ definitionally what you want. :-(
--- However just taking the definition of `semiring.map` produced `by transport` above,
--- and simplifying it, gives something that _is_ definitionally what you want!
--- Surely it's possible to arrange this without making a new declaration...
-
-simp_defn semiring.map semiring.map'
-
+-- Below we verify in more detail that the transported structure for `semiring`
+-- is definitionally what you would hope for.
 
 inductive mynat : Type
 | zero : mynat
@@ -44,7 +51,7 @@ def mynat_equiv : ℕ ≃ mynat :=
 @[simp] lemma mynat_equiv_symm_apply_succ (n : mynat) :
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
-instance semiring_mynat : semiring mynat := semiring.map' mynat_equiv
+instance semiring_mynat : semiring mynat := semiring.map mynat_equiv
 
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 rfl
@@ -64,22 +71,11 @@ rfl
 lemma mynat_mul_def (a b : mynat) : a * b = mynat_equiv (mynat_equiv.symm a * mynat_equiv.symm b) :=
 rfl
 
-attribute [simp] mynat_zero_def mynat_one_def mynat_add_def mynat_mul_def
-
--- Verify that we can do computations with the transported structure.
 example : (3 : mynat) + (7 : mynat) = (10 : mynat) :=
-begin
-  simp [bit0, bit1],
-end
+rfl
 
--- I suspect these next two will work if we merge #2207.
+example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
+rfl
 
--- example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
--- begin
---   simp [bit0, bit1],
--- end
-
--- example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
--- begin
---   simp [bit0, bit1],
--- end
+example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
+rfl

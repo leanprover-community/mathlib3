@@ -147,7 +147,7 @@ lemma cohomology_map_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C') (g :
 by { ext, rw [cohomology_map_condition, ←category.assoc, cohomology_map_condition, category.assoc,
   cohomology_map_condition, kernel_map_comp, category.assoc] }
 
-/-- The cohomology functor from chain complexes to `ℤ` graded objects in `V`. -/
+/-- The cohomology functor from cochain complexes to `ℤ` graded objects in `V`. -/
 def cohomology_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
 { obj := λ C i, cohomology C i,
   map := λ C C' f i, cohomology_map f i }

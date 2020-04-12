@@ -38,7 +38,7 @@ variables [topological_space α] [group α]
 
 @[to_additive]
 lemma continuous_inv [topological_group α] : continuous (λx:α, x⁻¹) :=
-topological_group.continuous_inv α
+topological_group.continuous_inv
 
 @[to_additive]
 lemma continuous.inv [topological_group α] [topological_space β] {f : β → α}
@@ -56,7 +56,7 @@ that the limit is nonzero, use `tendsto.inv'`. -/
 @[to_additive]
 lemma filter.tendsto.inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (𝓝 a)) : tendsto (λx, (f x)⁻¹) x (𝓝 a⁻¹) :=
-tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
+tendsto.comp (continuous_iff_continuous_at.mp topological_group.continuous_inv a) hf
 
 @[to_additive]
 lemma continuous_at.inv [topological_group α] [topological_space β] {f : β → α} {x : β}
@@ -268,9 +268,9 @@ This is currently only available for commutative groups, but it can be extended 
 non-commutative groups too.
 -/
 class add_group_with_zero_nhd (α : Type u) extends add_comm_group α :=
-(Z : filter α)
-(zero_Z {} : pure 0 ≤ Z)
-(sub_Z {} : tendsto (λp:α×α, p.1 - p.2) (Z.prod Z) Z)
+(Z [] : filter α)
+(zero_Z : pure 0 ≤ Z)
+(sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z.prod Z) Z)
 end prio
 
 namespace add_group_with_zero_nhd

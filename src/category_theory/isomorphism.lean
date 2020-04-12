@@ -170,9 +170,9 @@ def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
 namespace is_iso
 
 @[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X :=
-is_iso.hom_inv_id' f
+is_iso.hom_inv_id'
 @[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y :=
-is_iso.inv_hom_id' f
+is_iso.inv_hom_id'
 
 @[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) :
   f ≫ inv f ≫ g = g :=
@@ -213,7 +213,7 @@ instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 @[priority 100] -- see Note [lower instance priority]
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
-  by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
+  by rw [←category.comp_id g, ←category.comp_id h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
 
 end is_iso
 

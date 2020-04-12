@@ -101,7 +101,6 @@ kernel.lift _ (image.ι (C.d i))
 begin
   rw ←cancel_epi (factor_thru_image (C.d i)),
   rw [has_zero_morphisms.comp_zero, image.fac_assoc, d_squared],
-  refl,
 end
 
 @[simp, reassoc]

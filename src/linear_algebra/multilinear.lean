@@ -125,9 +125,10 @@ instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-@[simp] lemma sum_apply {α : Type*} [decidable_eq α] (f : α → multilinear_map R M₁ M₂)
+@[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (s.sum f) m = s.sum (λ a, f a m) :=
 begin
+  classical,
   apply finset.induction,
   { rw finset.sum_empty, simp },
   { assume a s has H, rw finset.sum_insert has, simp [H, has] }

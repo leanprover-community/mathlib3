@@ -295,7 +295,7 @@ end prio
   (l l' : L) (m : M) : linear_action.act R ⁅l, l'⁆ m =
                        linear_action.act R l (linear_action.act R l' m) -
                        linear_action.act R l' (linear_action.act R l m) :=
-  lie_module.lie_act R l l' m
+  lie_module.lie_act l l' m
 
 protected lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
   @linear_action.act R _ _ _ _ _ _ _ (linear_action.of_endo_map R L M α) x m = α x m := rfl
@@ -359,7 +359,7 @@ end lie_module
 namespace lie_submodule
 
 variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables {M : Type v} [add_comm_group M] [module R M] [lie_module R L M]
+variables {M : Type v} [add_comm_group M] [module R M] [α : lie_module R L M]
 variables (N : lie_submodule R L M) (I : lie_ideal R L)
 
 /--
@@ -379,6 +379,23 @@ abbreviation mk : M → N.quotient := submodule.quotient.mk
 
 lemma is_quotient_mk (m : M) :
   quotient.mk' m = (mk m : N.quotient) := rfl
+
+/-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
+is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
+def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
+  linear_map.cod_restrict _ (α.to_linear_action.to_endo_map _ _ _) N.lie_mem
+
+instance lie_quotient_action : linear_action R L N.quotient :=
+  linear_action.of_endo_map _ _ _ (linear_map.comp (submodule.mapq_linear N N) lie_submodule_invariant)
+
+lemma lie_quotient_action_apply (z : L) (m : M) :
+  linear_action.act R z (mk m : N.quotient) = mk (linear_action.act R z m) := rfl
+
+/-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
+instance lie_quotient_lie_module : lie_module R L N.quotient :=
+{ lie_act := λ x y m', by { apply quotient.induction_on' m', intros m, rw is_quotient_mk,
+                            repeat { rw lie_quotient_action_apply, }, rw lie_act, refl, },
+  ..quotient.lie_quotient_action, }
 
 instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   intros x y,
@@ -433,10 +450,12 @@ def matrix.lie_ring (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : lie_ring (matrix n n R) :=
 lie_ring.of_associative_ring (matrix n n R)
 
+local attribute [instance] matrix.lie_ring
+
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring.
 -/
 def matrix.lie_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : @lie_algebra R (matrix n n R) _ (matrix.lie_ring _ _) :=
+  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
 lie_algebra.of_associative_algebra (matrix n n R)

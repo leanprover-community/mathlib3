@@ -50,7 +50,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| one {} : prequotient
+| one : prequotient
 | mul : prequotient → prequotient → prequotient
 
 instance : inhabited (prequotient F) := ⟨prequotient.one⟩
@@ -158,7 +158,7 @@ quot.mk _ (of j x)
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
-  map_one' := quot.sound (relation.one _ _),
+  map_one' := quot.sound (relation.one _),
   map_mul' := λ x y, quot.sound (relation.mul _ _ _) }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
@@ -203,7 +203,7 @@ begin
     -- mul
     { rw monoid_hom.map_mul ((s.ι).app r_j) },
     -- one
-    { erw monoid_hom.map_one ((s.ι).app r), refl },
+    { erw monoid_hom.map_one ((s.ι).app r) },
     -- mul_1
     { rw r_ih, },
     -- mul_2

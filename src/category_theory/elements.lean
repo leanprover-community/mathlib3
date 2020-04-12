@@ -7,6 +7,7 @@ import category_theory.equivalence
 import category_theory.comma
 import category_theory.punit
 import category_theory.eq_to_hom
+import category_theory.groupoid
 
 /-!
 # The category of elements
@@ -31,23 +32,32 @@ category of elements, Grothendieck construction, comma category
 
 namespace category_theory
 
-universes v u
+universes w v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
-def functor.elements (F : C ⥤ Type u) := (Σ c : C, F.obj c)
+def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
 
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.
     A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
  -/
-instance category_of_elements (F : C ⥤ Type u) : category F.elements :=
+instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
 
+omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
+-- to avoid conflicts.
+instance groupoid_of_elements [groupoid C] (F : C ⥤ Type w) : groupoid F.elements :=
+{ inv := λ p q f, ⟨inv f.val,
+      calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
+                             ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
+                             ... = p.2 : by {rw ←functor.map_comp, simp}⟩ }
+include 𝒞
+
 namespace category_of_elements
-variable (F : C ⥤ Type u)
+variable (F : C ⥤ Type w)
 
 /-- The functor out of the category of elements which forgets the element. -/
 def π : F.elements ⥤ C :=

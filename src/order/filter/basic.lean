@@ -193,7 +193,7 @@ theorem le_def {f g : filter α} : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
 /-- `generate_sets g s`: `s` is in the filter closure of `g`. -/
 inductive generate_sets (g : set (set α)) : set α → Prop
 | basic {s : set α}      : s ∈ g → generate_sets s
-| univ {}                : generate_sets univ
+| univ                   : generate_sets univ
 | superset {s t : set α} : generate_sets s → s ⊆ t → generate_sets t
 | inter {s t : set α}    : generate_sets s → generate_sets t → generate_sets (s ∩ t)
 
@@ -1879,9 +1879,9 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
   monotone (λ f : α → β, tendsto f l at_top) :=
 λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
 
-section ordered_monoid
+section ordered_add_monoid
 
-variables [ordered_cancel_comm_monoid β] (l : filter α) {f g : α → β}
+variables [ordered_cancel_add_comm_monoid β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_nonneg_left' (hf : {x | 0 ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
@@ -1929,11 +1929,11 @@ lemma tendsto_at_top_of_add_bdd_above_right (C) (hC : ∀ x, g x ≤ C) :
   tendsto (λ x, f x + g x) l at_top → tendsto f l at_top :=
 tendsto_at_top_of_add_bdd_above_right' l C (univ_mem_sets' hC)
 
-end ordered_monoid
+end ordered_add_monoid
 
 section ordered_group
 
-variables [ordered_comm_group β] (l : filter α) {f g : α → β}
+variables [ordered_add_comm_group β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_left_of_le' (C : β) (hf : {x | C ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
@@ -2299,7 +2299,7 @@ instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, subtype.eq (id_map f.val),
   pure_bind := assume α β a f, subtype.eq (pure_bind a (subtype.val ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, subtype.eq (filter_eq rfl),
-  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map _ f x.val) }
+  bind_pure_comp_eq_map := assume α β f x, subtype.eq (bind_pure_comp_eq_map f x.val) }
 
 end
 

@@ -32,6 +32,13 @@ Several important constructions are special cases of this construction.
   "coslice" or "under" category under the object `L` maps to.
 * If `L` and `R` both are the identity functor, then `comma L R` is the arrow category of `T`.
 
+## Main definitions
+
+* `comma L R`: the comma category of the functors `L` and `R`.
+* `over X`: the over category of the object `X`.
+* `under X`: the under category of the object `X`.
+* `arrow T`: the arrow category of the category `T`.
+
 ## References
 
 * https://ncatlab.org/nlab/show/comma+category
@@ -61,11 +68,11 @@ section
 omit 𝒜 ℬ
 
 -- Satisfying the inhabited linter
-instance comma.inhabited [inhabited T] : inhabited (comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)) :=
+instance comma.inhabited [inhabited T] : inhabited (comma (𝟭 T) (𝟭 T)) :=
 { default :=
-  { left := inhabited.default T,
-    right := inhabited.default T,
-    hom := 𝟙 (inhabited.default T) } }
+  { left := default T,
+    right := default T,
+    hom := 𝟙 (default T) } }
 
 end
 
@@ -81,7 +88,7 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 
 -- Satisfying the inhabited linter
 instance comma_morphism.inhabited [inhabited (comma L R)] :
-  inhabited (comma_morphism (inhabited.default (comma L R)) (inhabited.default (comma L R))) :=
+  inhabited (comma_morphism (default (comma L R)) (default (comma L R))) :=
 { default :=
   { left := 𝟙 _,
     right := 𝟙 _ } }
@@ -113,6 +120,8 @@ namespace comma
 section
 variables {X Y Z : comma L R} {f : X ⟶ Y} {g : Y ⟶ Z}
 
+@[simp] lemma id_left  : ((𝟙 X) : comma_morphism X X).left = 𝟙 X.left := rfl
+@[simp] lemma id_right : ((𝟙 X) : comma_morphism X X).right = 𝟙 X.right := rfl
 @[simp] lemma comp_left  : (f ≫ g).left  = f.left ≫ g.left   := rfl
 @[simp] lemma comp_right : (f ≫ g).right = f.right ≫ g.right := rfl
 
@@ -265,9 +274,9 @@ omit 𝒜 ℬ
 def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
 
 -- Satisfying the inhabited linter
-instance over.inhabited [inhabited T] : inhabited (over (inhabited.default T)) :=
+instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
 { default :=
-  { left := (inhabited.default T),
+  { left := default T,
     hom := 𝟙 _ } }
 
 namespace over
@@ -386,9 +395,9 @@ end over
 def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
 
 -- Satisfying the inhabited linter
-instance under.inhabited [inhabited T] : inhabited (under (inhabited.default T)) :=
+instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
 { default :=
-  { right := inhabited.default T,
+  { right := default T,
     hom := 𝟙 _ } }
 
 namespace under
@@ -467,10 +476,7 @@ def arrow := comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance arrow.inhabited [inhabited T] : inhabited (arrow T) :=
-{ default :=
-  { left := inhabited.default T,
-    right := inhabited.default T,
-    hom := 𝟙 (inhabited.default T) } }
+{ default := show comma (𝟭 T) (𝟭 T), from default (comma (𝟭 T) (𝟭 T)) }
 
 end
 

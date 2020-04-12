@@ -48,7 +48,7 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
 /-- The object in the category of R-modules associated to an R-module -/
-def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
+def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
@@ -71,7 +71,7 @@ instance : has_zero_object.{u} (Module R) :=
   { default := (0 : punit →ₗ[R] X),
     uniq := λ _, linear_map.ext $ λ x,
       have h : x = 0, from subsingleton.elim _ _,
-      by simp [h] },
+      by simp only [h, linear_map.map_zero]},
   unique_from := λ X,
   { default := (0 : X →ₗ[R] punit),
     uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
@@ -152,7 +152,7 @@ def kernel_cone : cone (parallel_pair f 0) :=
 def kernel_is_limit : is_limit (kernel_cone f) :=
 { lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
   by { erw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
-    has_zero_morphisms.comp_zero _ (fork.ι s) N], refl }),
+    has_zero_morphisms.comp_zero (fork.ι s) N], refl }),
   fac' := λ s j, linear_map.ext $ λ x,
   begin
     rw [coe_comp, function.comp_app, ←linear_map.comp_apply],

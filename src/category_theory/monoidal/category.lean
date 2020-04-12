@@ -40,7 +40,7 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
-(tensor_unit              : C)
+(tensor_unit []           : C)
 (notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
@@ -316,7 +316,7 @@ end
 
 lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
-monoidal_category.triangle C X Y
+monoidal_category.triangle X Y
 
 @[simp] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=

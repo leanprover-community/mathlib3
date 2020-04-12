@@ -220,7 +220,7 @@ lemma has_basis.mem_of_mem (hl : l.has_basis p s) (hi : p i) : s i ∈ l :=
 hl.mem_of_superset hi $ subset.refl _
 
 lemma has_basis.is_basis (h : l.has_basis p s) : is_basis p s :=
-{ nonempty := let ⟨i, hi, H⟩ := (h.mem_iff' univ).mp univ_mem_sets in ⟨i, hi⟩,
+{ nonempty := let ⟨i, hi, H⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, hi⟩,
   inter := λ i j hi hj, by simpa [h.mem_iff] using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
 
 lemma has_basis.filter_eq (h : l.has_basis p s) : h.is_basis.filter = l :=

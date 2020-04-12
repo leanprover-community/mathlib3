@@ -14,7 +14,7 @@ We provide a simple mechanism for constructing combinatorial (pre-)games, by des
 
 ## Implementation notes
 
-We're very careful to produce a computational definition, so small games can be evaluated
+We're very careful to produce a computable definition, so small games can be evaluated
 using `dec_trivial`. To achieve this, I've had to rely solely on induction on natural numbers:
 relying on general well-foundedness seems to be poisonous to computation?
 
@@ -27,7 +27,7 @@ namespace pgame
 
 /--
 `pgame_state S` describes how to interpret `s : S` as a state of a combinatorial game.
-Use `pgame.of s` or `game.of s` to construct the game.set_option
+Use `pgame.of s` or `game.of s` to construct the game.
 
 `pgame_state.L : S → finset S` and `pgame_state.R : S → finset S` describe the states reachable
 by a move by Left or Right. `pgame_state.turn_bound : S → ℕ` gives an upper bound on the number of
@@ -49,7 +49,6 @@ begin
   intro h,
   have t := state.left_bound m,
   rw h at t,
-  exfalso,
   exact nat.not_succ_le_zero _ t,
 end
 lemma turn_bound_ne_zero_of_right_move {s t : S} (m : t ∈ R s) : turn_bound s ≠ 0 :=
@@ -57,7 +56,6 @@ begin
   intro h,
   have t := state.right_bound m,
   rw h at t,
-  exfalso,
   exact nat.not_succ_le_zero _ t,
 end
 
@@ -123,13 +121,13 @@ def left_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) : left_moves (o
 by induction n; refl
 /-- The equivalence between `left_moves` for a `pgame` constructed using `of s`, and `L s`. -/
 def left_moves_of (s : S) : left_moves (of s) ≃ {t // t ∈ L s} :=
-by apply left_moves_of_aux
+left_moves_of_aux _ _
 /-- The equivalence between `right_moves` for a `pgame` constructed using `of_aux _ s _`, and `R s`. -/
 def right_moves_of_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) : right_moves (of_aux n s h) ≃ {t // t ∈ R s} :=
 by induction n; refl
 /-- The equivalence between `right_moves` for a `pgame` constructed using `of s`, and `R s`. -/
 def right_moves_of (s : S) : right_moves (of s) ≃ {t // t ∈ R s} :=
-by apply right_moves_of_aux
+right_moves_of_aux _ _
 
 /--
 The relabelling showing `move_left` applied to a game constructed using `of_aux` has itself been constructed

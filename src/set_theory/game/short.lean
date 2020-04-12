@@ -30,7 +30,7 @@ inductive short : pgame.{u} → Type (u+1)
 instance subsingleton_short : Π (x : pgame), subsingleton (short x)
 | (mk xl xr xL xR) :=
 ⟨λ a b, begin
-  cases a; cases b,
+  cases a, cases b,
   congr,
   { funext,
     apply @subsingleton.elim _ (subsingleton_short (xL x)) },
@@ -126,7 +126,7 @@ end
 
 /-- If `x` has no left move or right moves, it is (very!) short. -/
 def short_of_equiv_empty {x : pgame.{u}} (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
-@short_of_relabelling _ _ (relabel_relabelling el er).symm short.of_pempty
+short_of_relabelling (relabel_relabelling el er).symm short.of_pempty
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=

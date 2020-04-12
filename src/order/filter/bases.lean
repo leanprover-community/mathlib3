@@ -577,7 +577,7 @@ namespace is_countably_generated
 
 lemma exists_antimono_seq' {f : filter α} (cblb : f.is_countably_generated) :
   ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=
-let ⟨x, hx⟩ := is_countable_generated_iff_exists_antimono_basis.mp cblb in
+let ⟨x, hx⟩ := is_countably_generated_iff_exists_antimono_basis.mp cblb in
 ⟨x, λ i j, hx.decreasing trivial trivial, λ s, by simp [hx.to_has_basis.mem_iff]⟩
 
 protected lemma comap {l : filter β} (h : l.is_countably_generated) (f : α → β) :

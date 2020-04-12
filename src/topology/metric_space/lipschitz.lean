@@ -174,7 +174,7 @@ hf.comp hg
 endomorphism. -/
 protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [lipschitz_with.id]
+| [] := by simp [types_id, lipschitz_with.id]
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :

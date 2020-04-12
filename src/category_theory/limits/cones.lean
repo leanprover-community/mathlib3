@@ -355,7 +355,7 @@ def map_cone_inv [is_equivalence H]
   (c : cone (F ⋙ H)) : cone F :=
 let t := (inv H).map_cone c in
 let α : (F ⋙ H) ⋙ inv H ⟶ F :=
-  ((whisker_left F (is_equivalence.unit_iso H).inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
+  ((whisker_left F is_equivalence.unit_iso.inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
 { X := t.X,
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
 

@@ -1050,7 +1050,7 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
-    apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
+    apply s.cases_on _ (λ a s, _) (λ s, _); simp,
     exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1086,8 +1086,8 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
     c2 = (destruct s).bind (destruct_append.aux t)) _ ⟨s, t, rfl, rfl⟩,
   intros c1 c2 h, rcases h with ⟨s, t, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
-  { apply t.cases_on _ (λ b t, _) (λ t, _); simp; simp,
+  apply s.cases_on _ (λ a s, _) (λ s, _); simp,
+  { apply t.cases_on _ (λ b t, _) (λ t, _); simp,
     { refine ⟨nil, t, _, _⟩; simp } },
   { exact ⟨s, t, rfl, rfl⟩ }
 end
@@ -1104,7 +1104,7 @@ begin
   intros c1 c2 h, exact match c1, c2, h with
   | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
   | _, _, or.inr ⟨S, rfl, rfl⟩ := begin
-    apply S.cases_on _ (λ s S, _) (λ S, _); simp; simp,
+    apply S.cases_on _ (λ s S, _) (λ S, _); simp,
     { refine or.inr ⟨S, rfl, rfl⟩ }
   end end
 end
@@ -1228,7 +1228,7 @@ begin
   { exact λ c1 c2 h, match c1, c2, h with
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret]; simp [ret],
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret],
       { refine ⟨_, ret_mem _, _⟩, simp },
       { exact ⟨s, rfl, rfl⟩ }
     end end },
@@ -1250,9 +1250,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, T, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
-      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp; simp,
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp,
         { refine ⟨s, nil, T, _, _⟩; simp },
         { refine ⟨nil, nil, T, _, _⟩; simp } },
       { exact ⟨s, S, T, rfl, rfl⟩ },
@@ -1279,8 +1279,8 @@ begin
       s2 = append s (join (map (map f) S))),
   { intros s1 s2 h,
     exact match s1, s2, h with ._, ._, ⟨s, S, rfl, rfl⟩ := begin
-      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
+      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
         { exact ⟨map f s, S, rfl, rfl⟩ },
         { refine ⟨nil, S, _, _⟩; simp } },
       { exact ⟨_, _, rfl, rfl⟩ },
@@ -1305,9 +1305,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, SS, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
-      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp; simp,
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp,
         { refine ⟨nil, S, SS, _, _⟩; simp },
         { refine ⟨nil, nil, SS, _, _⟩; simp } },
       { exact ⟨s, S, SS, rfl, rfl⟩ },

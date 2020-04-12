@@ -175,7 +175,7 @@ begin
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum], apply add_monoid.smul_zero }, -- TODO why doesn't simp do this?
+  { simp [finsupp.sum] }
 end
 
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :

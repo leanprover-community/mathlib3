@@ -19,6 +19,8 @@ namespace list
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+attribute [inline] list.head
+
 instance : is_left_id (list α) has_append.append [] :=
 ⟨ nil_append ⟩
 
@@ -1589,7 +1591,7 @@ attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_pro
 
 /-- A list with positive sum must have positive length. -/
 -- This is an easy consequence of the previous, but often useful in applications.
-lemma length_pos_of_sum_pos [ordered_cancel_comm_monoid α] (L : list α) (h : 0 < L.sum) :
+lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid α] (L : list α) (h : 0 < L.sum) :
   0 < L.length :=
 length_pos_of_sum_ne_zero L (ne_of_gt h)
 
@@ -1624,7 +1626,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -1634,7 +1636,7 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -1669,7 +1671,7 @@ by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
 /- lexicographic ordering -/
 
 inductive lex (r : α → α → Prop) : list α → list α → Prop
-| nil {} {a l} : lex [] (a :: l)
+| nil {a l} : lex [] (a :: l)
 | cons {a l₁ l₂} (h : lex l₁ l₂) : lex (a :: l₁) (a :: l₂)
 | rel {a₁ l₁ a₂ l₂} (h : r a₁ a₂) : lex (a₁ :: l₁) (a₂ :: l₂)
 
@@ -3311,3 +3313,22 @@ end list
 theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* β) (l : list α) :
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
+
+namespace list
+
+@[to_additive]
+theorem prod_map_hom {α β γ : Type*} [monoid β] [monoid γ] (L : list α) (f : α → β) (g : β →* γ) :
+  (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
+by {rw g.map_list_prod, exact congr_arg _ (map_map _ _ _).symm}
+
+theorem sum_map_mul_left {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
+  (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
+sum_map_hom L f $ add_monoid_hom.mul_left r
+
+theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
+  (f : β → α) (r : α) :
+  (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
+sum_map_hom L f $ add_monoid_hom.mul_right r
+
+end list

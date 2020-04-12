@@ -130,7 +130,9 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 /-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
     `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
     `f(S)` to invertible elements of `P`. -/
-@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps elements of `f(S)` to invertible elements of `P`."]
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps
+elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps
+elements of `f(S)` to invertible elements of `P`."]
 lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
   (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
   ∃ x : P, g.comp f s * x = 1 :=
@@ -235,6 +237,22 @@ instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
 
 end monoid_hom
 
+namespace add_monoid_hom
+
 /-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem add_monoid_hom.map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
+@[simp] theorem map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
+
+/-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
+def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
+{ to_fun := (*) r,
+  map_zero' := mul_zero r,
+  map_add' := mul_add r }
+
+/-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
+def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
+{ to_fun := λ a, a * r,
+  map_zero' := zero_mul r,
+  map_add' := λ _ _, add_mul _ _ r }
+
+end add_monoid_hom

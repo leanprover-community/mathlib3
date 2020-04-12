@@ -460,7 +460,7 @@ def cocone_parallel_pair_self : cocone (parallel_pair f f) :=
     begin
       cases g,
       { refl },
-      { erw category.comp_id _ f },
+      { erw category.comp_id f },
       { dsimp, simp }
     end } }
 

@@ -86,7 +86,7 @@ show bind (f <$> x) g = bind x (g ∘ f),
 by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
-(bind_map_eq_seq m f x).symm
+(bind_map_eq_seq f x).symm
 
 /-- This is the Kleisli composition -/
 @[reducible] def fish {m} [monad m] {α β γ} (f : α → m β) (g : β → m γ) := λ x, f x >>= g
@@ -135,17 +135,17 @@ variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 lemma mjoin_map_map {α β : Type u} (f : α → β) (a : m (m α)) :
   mjoin (functor.map f <$> a) = f <$> (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
-  (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, map_bind, pure_bind]
+  (bind_pure_comp_eq_map _ _).symm, bind_assoc, map_bind, pure_bind]
 
 lemma mjoin_map_mjoin {α : Type u} (a : m (m (m α))) :
   mjoin (mjoin <$> a) = mjoin (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
-  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind]
+  map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind]
 
 @[simp] lemma mjoin_map_pure {α : Type u} (a : m α) :
   mjoin (pure <$> a) = a :=
 by simp only [mjoin, (∘), id.def,
-  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind, bind_pure]
+  map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind, bind_pure]
 
 @[simp] lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
 is_lawful_monad.pure_bind a id

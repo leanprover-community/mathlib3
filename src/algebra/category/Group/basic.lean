@@ -21,8 +21,7 @@ along with the relevant forgetful functors between them, and to the bundled mono
 
 ## Implementation notes
 
-See the note [locally reducible category instances]
-and the note [reducible has_coe_to_sort instances for bundled categories].
+See the note [locally reducible category instances].
 -/
 
 universes u v
@@ -40,11 +39,7 @@ namespace Group
 
 local attribute [reducible] Group
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible, to_additive]
+@[to_additive]
 instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
 
 @[to_additive add_group]
@@ -96,11 +91,7 @@ namespace CommGroup
 
 local attribute [reducible] CommGroup
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible, to_additive]
+@[to_additive]
 instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_group_instance]
@@ -137,12 +128,10 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
 
-/--
-We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
-so that `simp` lemmas for morphisms work.
-
-See note [reducible has_coe_to_sort instances for bundled categories].
--/
+-- This example verifies an improvement possible in Lean 3.8.
+-- Before that, to have `monoid_hom.map_map` usable by `simp` here,
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- Now, it just works.
 @[to_additive]
 example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=
 by simp [h]

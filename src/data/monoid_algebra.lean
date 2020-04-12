@@ -311,13 +311,7 @@ begin
   rw mul_apply_right,
   have t : ∀ a₂, x = y * a₂⁻¹ ↔ x⁻¹ * y = a₂ := by { intros, split; rintro rfl; simp, },
   simp [single_apply, t],
-  -- After this, `simp [finsupp.sum_ite_eq]` should surely progress, but doesn't. :-(
-  convert f.sum_ite_eq (x⁻¹ * y) (λ x v, r * v),
-  { funext, congr, },
-  { simp only [mem_support_iff, ne.def],
-    split_ifs,
-    { simp [h], },
-    { refl, }, }
+  split_ifs; simp *
 end
 
 end

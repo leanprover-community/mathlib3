@@ -22,7 +22,7 @@ by unfold prime_multiset; apply_instance
 instance : has_repr prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
-instance : canonically_ordered_monoid prime_multiset :=
+instance : canonically_ordered_add_monoid prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
 instance : distrib_lattice prime_multiset :=

@@ -124,10 +124,6 @@ apply_nolint ge_iff_le ge_or_gt
 apply_nolint gt_iff_lt ge_or_gt
 apply_nolint ordering.compares.eq_gt ge_or_gt
 
--- algebra/ordered_group.lean
-apply_nolint nonneg_comm_group.to_decidable_linear_ordered_comm_group doc_blame
-apply_nolint with_zero.ordered_comm_monoid doc_blame
-
 -- algebra/ordered_ring.lean
 apply_nolint canonically_ordered_comm_semiring doc_blame
 apply_nolint nonneg_ring.to_linear_nonneg_ring doc_blame
@@ -393,31 +389,6 @@ apply_nolint category_theory.has_hom doc_blame
 apply_nolint category_theory.mono doc_blame
 apply_nolint category_theory.obviously' doc_blame
 apply_nolint obviously.attr doc_blame
-
--- category_theory/comma.lean
-apply_nolint category_theory.comma doc_blame has_inhabited_instance
-apply_nolint category_theory.comma.fst doc_blame
-apply_nolint category_theory.comma.map_left doc_blame
-apply_nolint category_theory.comma.map_left_comp doc_blame
-apply_nolint category_theory.comma.map_left_id doc_blame
-apply_nolint category_theory.comma.map_right doc_blame
-apply_nolint category_theory.comma.map_right_comp doc_blame
-apply_nolint category_theory.comma.map_right_id doc_blame
-apply_nolint category_theory.comma.nat_trans doc_blame
-apply_nolint category_theory.comma.snd doc_blame
-apply_nolint category_theory.comma_morphism doc_blame has_inhabited_instance
-apply_nolint category_theory.over doc_blame has_inhabited_instance
-apply_nolint category_theory.over.forget doc_blame
-apply_nolint category_theory.over.hom_mk doc_blame
-apply_nolint category_theory.over.map doc_blame
-apply_nolint category_theory.over.mk doc_blame
-apply_nolint category_theory.over.post doc_blame
-apply_nolint category_theory.under doc_blame has_inhabited_instance
-apply_nolint category_theory.under.forget doc_blame
-apply_nolint category_theory.under.hom_mk doc_blame
-apply_nolint category_theory.under.map doc_blame
-apply_nolint category_theory.under.mk doc_blame
-apply_nolint category_theory.under.post doc_blame
 
 -- category_theory/concrete_category/bundled.lean
 apply_nolint category_theory.bundled has_inhabited_instance
@@ -733,14 +704,6 @@ apply_nolint category_theory.single_obj.star doc_blame
 apply_nolint category_theory.sum.associativity doc_blame
 apply_nolint category_theory.sum.associator doc_blame
 apply_nolint category_theory.sum.inverse_associator doc_blame
-
--- category_theory/types.lean
-apply_nolint category_theory.functor.sections doc_blame
-apply_nolint category_theory.hom_of_element doc_blame
-apply_nolint category_theory.iso.to_equiv doc_blame
-apply_nolint category_theory.ulift_functor doc_blame
-apply_nolint category_theory.ulift_trivial doc_blame
-apply_nolint equiv.to_iso doc_blame
 
 -- category_theory/whiskering.lean
 apply_nolint category_theory.functor.associator doc_blame
@@ -1638,9 +1601,6 @@ apply_nolint polynomial.pow_sub_pow_factor doc_blame
 apply_nolint polynomial.rec_on_horner doc_blame
 apply_nolint polynomial.root_multiplicity doc_blame
 
--- data/prod.lean
-apply_nolint prod.lex.decidable unused_arguments
-
 -- data/quot.lean
 apply_nolint quot.hrec_on₂ doc_blame
 apply_nolint quotient.choice doc_blame
@@ -1795,9 +1755,6 @@ apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
 apply_nolint set.seq doc_blame
 apply_nolint set.sigma_to_Union doc_blame
-
--- data/setoid.lean
-apply_nolint setoid.is_partition doc_blame
 
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
@@ -2267,7 +2224,6 @@ apply_nolint well_founded.succ doc_blame
 apply_nolint well_founded.sup doc_blame
 
 -- order/bounded_lattice.lean
-apply_nolint with_bot doc_blame
 apply_nolint with_top doc_blame
 
 -- order/complete_lattice.lean

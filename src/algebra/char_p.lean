@@ -13,7 +13,7 @@ universes u v
 
 /-- The generator of the kernel of the unique homomorphism ℕ → α for a semiring α -/
 class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
-(cast_eq_zero_iff : ∀ x:ℕ, (x:α) = 0 ↔ p ∣ x)
+(cast_eq_zero_iff [] : ∀ x:ℕ, (x:α) = 0 ↔ p ∣ x)
 
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)

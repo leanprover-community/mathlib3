@@ -32,7 +32,7 @@ theorem add_group.char_zero_of_inj_zero {α : Type*} [add_group α] [has_one α]
 char_zero_of_inj_zero (@add_left_cancel _ _) H
 
 theorem ordered_cancel_comm_monoid.char_zero_of_inj_zero {α : Type*}
-  [ordered_cancel_comm_monoid α] [has_one α]
+  [ordered_cancel_add_comm_monoid α] [has_one α]
   (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
 char_zero_of_inj_zero (@add_left_cancel _ _) H
 
@@ -47,7 +47,7 @@ namespace nat
 variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
 
 theorem cast_injective : function.injective (coe : ℕ → α) :=
-char_zero.cast_injective α
+char_zero.cast_injective
 
 @[simp, elim_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
 cast_injective.eq_iff

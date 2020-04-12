@@ -51,7 +51,8 @@ def mynat_equiv : ℕ ≃ mynat :=
 @[simp] lemma mynat_equiv_symm_apply_succ (n : mynat) :
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
-instance semiring_mynat : semiring mynat := semiring.map mynat_equiv
+instance semiring_mynat : semiring mynat :=
+by transport (by apply_instance : semiring ℕ) using mynat_equiv
 
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 rfl

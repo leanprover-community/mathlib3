@@ -113,7 +113,7 @@ to finish, rather than solving these goals by hand.
 there are several examples of "transport-by-hand" at the end of `test/equiv_rw.lean`,
 which `transport` is an abstraction of.)
 -/
-meta def transport (s : parse texpr?) (e : parse $ (tk "using" *> ident)) : itactic :=
+meta def transport (s : parse texpr?) (e : parse $ (tk "using" *> texpr)) : itactic :=
 do
   s ← match s with
   | some s := to_expr s
@@ -124,7 +124,7 @@ do
       ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e))) <|>
         fail "`transport` could not find an appropriate source object. Try `transport s using e`."
   end,
-  e ← get_local e,
+  e ← to_expr e,
   tactic.transport s e
 
 end interactive

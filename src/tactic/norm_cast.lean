@@ -27,6 +27,8 @@ Contrary to simp, it should be safe to use as a non-terminating tactic.
 * `tactic.interactive.assumption_mod_cast`
 -/
 
+setup_tactic_parser
+
 namespace tactic
 
 /--
@@ -261,7 +263,7 @@ The `norm_cast` attribute.
 { name      := `norm_cast,
   descr     := "attribute for norm_cast",
   parser    :=
-    (do some l <- (label.of_string ∘ to_string) <$> lean.parser.ident, return l)
+    (do some l <- (label.of_string ∘ to_string) <$> ident, return l)
       <|> return none,
   after_set := some (λ decl n b, do
     e ← mk_const decl,
@@ -291,7 +293,6 @@ do
 end norm_cast
 
 namespace tactic.interactive
-open tactic interactive tactic.interactive interactive.types expr lean.parser
 open norm_cast
 
 /--
@@ -499,8 +500,7 @@ do
 end norm_cast
 
 namespace tactic
-open tactic expr
-open norm_cast
+open expr norm_cast
 
 /-- `aux_mod_cast e` runs `norm_cast` on `e` and returns the result. If `include_goal` is true, it
 also normalizes the goal. -/
@@ -549,10 +549,7 @@ do {
 end tactic
 
 namespace tactic.interactive
-open tactic interactive tactic.interactive interactive.types expr lean.parser
-open norm_cast
-
-local postfix `?`:9001 := optional
+open tactic norm_cast
 
 /--
 Normalize casts at the given locations by moving them "upwards".
@@ -615,7 +612,7 @@ tactic.assumption_mod_cast
 end tactic.interactive
 
 namespace conv.interactive
-open conv tactic tactic.interactive interactive interactive.types
+open conv
 open norm_cast (derive)
 
 /-- the converter version of `norm_cast' -/

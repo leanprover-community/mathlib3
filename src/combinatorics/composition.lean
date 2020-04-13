@@ -380,7 +380,7 @@ begin
     exact c.mem_range_embedding j }
 end
 
-/-- Two compositions (possible of different integers) coincide if and only if they have the
+/-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks of positive integers. -/
 lemma sigma_eq_iff_blocks_pnat_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
   c = c' ↔ c.2.blocks_pnat = c'.2.blocks_pnat :=

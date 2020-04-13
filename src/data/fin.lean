@@ -87,7 +87,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
-@[simp] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, elim_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
@@ -101,7 +101,7 @@ attribute [simp] val_zero
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
 protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
-  f == g ↔ (∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) :=
+  f == g ↔ (∀ (i : fin k), f i = g ⟨i.val, h ▸ i.2⟩) :=
 by { induction h, simp [heq_iff_eq, function.funext_iff] }
 
 protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
@@ -212,7 +212,7 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
-@[simp] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
+@[simp, elim_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

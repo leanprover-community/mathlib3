@@ -214,13 +214,13 @@ def morphism.inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
   calc g ⁅x, y⁆ = g ⁅f (g x), f (g y)⁆ : by { conv_lhs { rw [←h₂ x, ←h₂ y], }, }
             ... = g (f ⁅g x, g y⁆) : by rw map_lie
             ... = ⁅g x, g y⁆ : (h₁ _), },
-  ..(linear_map.inverse f.to_linear_map g h₁ h₂) }
+  ..linear_map.inverse f.to_linear_map g h₁ h₂ }
 
 end morphism_properties
 
 /-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
-instead define an equivalence to morphism which is also a (plain) equivalence. However it is more
-convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
+instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
+more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
 @[nolint doc_blame has_inhabited_instance]
 structure equiv (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']

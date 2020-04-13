@@ -569,7 +569,7 @@ attribute [to_additive sum_smul'] prod_pow
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
 
-lemma sum_const_on_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
+lemma sum_const_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
   s.sum f = card s * m :=
 begin
   rw [← nat.smul_eq_mul, ← sum_const],
@@ -903,7 +903,7 @@ lemma sum_lt_sum_of_nonempty (hs : s.nonempty) (Hlt : ∀ x ∈ s, f x < g x) :
   s.sum f < s.sum g :=
 begin
   apply sum_lt_sum,
-    intros i hi, apply le_of_lt (Hlt i hi),
+  { intros i hi, apply le_of_lt (Hlt i hi) },
   cases hs with i hi,
   exact ⟨i, hi, Hlt i hi⟩,
 end

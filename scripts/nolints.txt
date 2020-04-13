@@ -3417,9 +3417,6 @@ apply_nolint topological_space.opens.gi doc_blame
 apply_nolint topological_space.opens.interior doc_blame
 apply_nolint topological_space.opens.is_basis doc_blame
 
--- topology/sequences.lean
-apply_nolint topological_space.seq_tendsto_iff ge_or_gt
-
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance
 apply_nolint Top.presheaf.pushforward doc_blame

@@ -217,6 +217,31 @@ The optional label is used to overwrite the classifier.
 -/
 meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
+-- The user attribute parameters in Lean 3 should not be used if performance
+-- matters in any way, since they use `eval_expr`.
+-- For example, using them disables the attribute cache.
+-- As a workaround, we encode `option label` as de Bruijn variables.
+section param_encoding_hack
+
+meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
+p ← attr.get_param_untyped decl,
+match p with
+| expr.var 0 := pure none
+| expr.var 1 := pure label.elim
+| expr.var 2 := pure label.move
+| expr.var 3 := pure label.squash
+| _ := fail p
+end
+
+local attribute [semireducible] reflected
+private meta def unsafe_reflect_label_param : has_reflect (option label)
+| none := expr.var 0
+| (some label.elim) := expr.var 1
+| (some label.move) := expr.var 2
+| (some label.squash) := expr.var 3
+
+end param_encoding_hack
+
 /--
 `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`.
 -/
@@ -225,7 +250,7 @@ meta def add_lemma (attr : norm_cast_attr_ty) (cache : norm_cast_cache) (decl : 
 do
   e ← mk_const decl,
   ty ← infer_type e,
-  param ← attr.get_param decl,
+  param ← get_label_param attr decl,
   l ← param <|> classify_type ty,
   match l with
   | elim   := add_elim cache e
@@ -265,10 +290,11 @@ The `norm_cast` attribute.
   parser    :=
     (do some l <- (label.of_string ∘ to_string) <$> ident, return l)
       <|> return none,
+  reflect_param := unsafe_reflect_label_param,
   after_set := some (λ decl n b, do
     e ← mk_const decl,
     ty ← infer_type e,
-    param ← norm_cast_attr.get_param decl,
+    param ← get_label_param norm_cast_attr decl,
     l ← param <|> classify_type ty,
     when (l ≠ elim) $ simp_attr.push_cast.set decl () tt),
   before_unset := some $ λ _ _, tactic.skip,
@@ -287,7 +313,7 @@ override specified on the attribute, if necessary.
 -/
 meta def get_label (decl : name) : tactic label :=
 do
-  param ← norm_cast_attr.get_param decl,
+  param ← get_label_param norm_cast_attr decl,
   param <|> make_guess decl
 
 end norm_cast

@@ -218,16 +218,18 @@ variables [ring α]
 end ring
 
 instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
-{ ..matrix.add_comm_group, ..matrix.semiring }
+{ ..matrix.semiring, ..matrix.add_comm_group }
 
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
+instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
+  semimodule α (matrix m n β) := pi.semimodule _ _ _
 instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
-  module α (matrix m n β) := pi.module _
+  module α (matrix m n β) := { .. matrix.semimodule }
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
-section comm_ring
-variables [comm_ring α]
+section comm_semiring
+variables [comm_semiring α]
 
 lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
   a • M = diagonal (λ _, a) ⬝ M :=
@@ -257,7 +259,7 @@ begin
   ac_refl
 end
 
-end comm_ring
+end comm_semiring
 
 section semiring
 variables [semiring α]

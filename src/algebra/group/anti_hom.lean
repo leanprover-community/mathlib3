@@ -12,7 +12,7 @@ variables {α : Type*} {β : Type*} [group α] [group β]
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
 class is_group_anti_hom (f : α → β) : Prop :=
-(map_mul : ∀ a b : α, f (a * b) = f b * f a)
+(map_mul [] : ∀ a b : α, f (a * b) = f b * f a)
 
 namespace is_group_anti_hom
 variables (f : α → β) [w : is_group_anti_hom f]

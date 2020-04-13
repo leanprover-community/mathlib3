@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott MorrisoE
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
@@ -122,12 +122,12 @@ we will show is the colimiting object. We use the cocone constructed by `c` and 
 -/
 @[reducible]
 def lambda : (functor.map_cocone T (colimit.cocone (D ⋙ forget T))).X ⟶ colimit (D ⋙ forget T) :=
-(preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))).desc (c D)
+(preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))).desc (c D)
 
 /-- The key property defining the map `λ : TL ⟶ L`. -/
 lemma commuting (j : J) :
 T.map (colimit.ι (D ⋙ forget T) j) ≫ lambda D = (D.obj j).a ≫ colimit.ι (D ⋙ forget T) j :=
-is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j
+is_colimit.fac (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))) (c D) j
 
 /--
 Construct the colimiting algebra from the map `λ : TL ⟶ L` given by `lambda`. We are required to
@@ -146,14 +146,15 @@ algebra T :=
   end,
   assoc' :=
   begin
-    apply is_colimit.hom_ext (preserves_colimit.preserves T (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T)))),
+    apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T)))),
     intro j,
     erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
          is_colimit.fac _ (c D) j],
     rw ← category.assoc,
     erw [← functor.map_comp, commuting],
     dsimp,
-    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting]
+    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting],
+    apply_instance, apply_instance
   end
 }
 
@@ -183,13 +184,14 @@ has_colimit D :=
       h' :=
       begin
         dsimp,
-        apply is_colimit.hom_ext (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))),
+        apply is_colimit.hom_ext (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))),
         intro j,
         rw ← category.assoc, erw ← functor.map_comp,
         erw colimit.ι_desc,
         rw ← category.assoc, erw forget_creates_colimits.commuting,
         rw category.assoc, rw colimit.ι_desc,
-        apply algebra.hom.h
+        apply algebra.hom.h,
+        apply_instance
       end },
     uniq' := λ s m J, by { ext1, ext1, simpa using congr_arg algebra.hom.f (J j) }
   }

@@ -468,12 +468,12 @@ has_limits_of_shape.has_limit F
 @[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
-has_limits.has_limits_of_shape C J
+has_limits.has_limits_of_shape J
 
 /- Interface to the `has_limit` class. -/
 
 /-- The chosen limit cone of a functor. -/
-def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone F
+def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone
 
 /-- The chosen limit object of a functor. -/
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -490,7 +490,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 
 /-- Evidence that the chosen cone is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
-has_limit.is_limit.{v} F
+has_limit.is_limit.{v}
 
 /-- The morphism from the cone point of any other cone to the chosen limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
@@ -706,7 +706,7 @@ by ext; rw [assoc, limit.pre_π, limit.map_π, assoc, limit.map_π, ←assoc, li
 lemma limit.map_pre' [has_limits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   limit.pre F E₂ = limit.pre F E₁ ≫ lim.map (whisker_right α F) :=
-by ext1; simp [(category.assoc _ _ _ _).symm]
+by ext1; simp [← category.assoc]
 
 lemma limit.id_pre (F : J ⥤ C) :
 limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
@@ -772,12 +772,12 @@ has_colimits_of_shape.has_colimit F
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
-has_colimits.has_colimits_of_shape C J
+has_colimits.has_colimits_of_shape J
 
 /- Interface to the `has_colimit` class. -/
 
 /-- The chosen colimit cocone of a functor. -/
-def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone F
+def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone
 
 /-- The chosen colimit object of a functor. -/
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -794,7 +794,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/
 def colimit.is_colimit (F : J ⥤ C) [has_colimit F] : is_colimit (colimit.cocone F) :=
-has_colimit.is_colimit.{v} F
+has_colimit.is_colimit.{v}
 
 /-- The morphism from the chosen colimit object to the cone point of any other cocone. -/
 def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.X :=
@@ -1032,7 +1032,7 @@ by ext; rw [←assoc, colimit.ι_pre, colimit.ι_map, ←assoc, colimit.ι_map, 
 lemma colimit.pre_map' [has_colimits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
-by ext1; simp [(category.assoc _ _ _ _).symm]
+by ext1; simp [← category.assoc]
 
 lemma colimit.pre_id (F : J ⥤ C) :
 colimit.pre F (𝟭 _) = colim.map (functor.left_unitor F).hom := by tidy

@@ -14,6 +14,26 @@ attribute [simp] sub_neg_eq_add
 universes u v w
 variables {M : Type u} {A : Type v} {G : Type w}
 
+
+section
+
+set_option default_priority 100
+
+set_option old_structure_cmd true
+
+/-- An algebraic class missing in core: an additive monoid in which addition is left-cancellative.
+Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
+is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
+class add_left_cancel_monoid G extends add_left_cancel_semigroup G, add_monoid G
+
+instance ordered_cancel_add_comm_monoid.to_add_left_cancel_monoid [h : ordered_cancel_add_comm_monoid G] :
+  add_left_cancel_monoid G := { ..h }
+
+instance add_group.to_add_left_cancel_monoid [h : add_group G] :
+  add_left_cancel_monoid G := { ..h, .. add_group.to_left_cancel_add_semigroup }
+
+end
+
 @[to_additive add_monoid_to_is_left_id]
 instance monoid_to_is_left_id [monoid M] : is_left_id M (*) 1 :=
 ⟨ monoid.one_mul ⟩
@@ -124,6 +144,10 @@ theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
 @[to_additive]
 theorem mul_inv_eq_one : a * b⁻¹ = 1 ↔ a = b :=
 by rw [mul_eq_one_iff_eq_inv, inv_inv]
+
+@[to_additive]
+theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
+by rw [mul_eq_one_iff_eq_inv, inv_inj']
 
 @[to_additive]
 theorem inv_comm_of_comm (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=

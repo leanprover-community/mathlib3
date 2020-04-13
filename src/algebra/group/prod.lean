@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 
-import algebra.group.hom
+import algebra.group.hom data.prod
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -136,7 +136,6 @@ variables {M N}
 @[simp, to_additive] lemma snd_comp_inl : (snd M N).comp (inl M N) = 1 := rfl
 @[simp, to_additive] lemma fst_comp_inr : (fst M N).comp (inr M N) = 1 := rfl
 @[simp, to_additive] lemma snd_comp_inr : (snd M N).comp (inr M N) = id N := rfl
-
 
 section prod
 

@@ -101,26 +101,24 @@ instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_nonneg := λ a b a0 b0,
-    match a0, b0 with
-    | or.inl a0, or.inl b0 := le_of_lt (real.mul_pos a0 b0)
-    | or.inr a0, _ := by simp [a0.symm]
-    | _, or.inr b0 := by simp [b0.symm]
-    end,
   mul_pos := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
-  add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
-  ..real.comm_ring, ..real.linear_order }
+  ..real.comm_ring, ..real.linear_order, ..real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
 instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_comm_group ℝ         := by apply_instance
-instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_comm_monoid ℝ        := by apply_instance
+instance : ordered_add_comm_group ℝ     := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
+instance : ordered_add_comm_monoid ℝ    := by apply_instance
 instance : domain ℝ                     := by apply_instance
+instance : has_one ℝ                    := by apply_instance
+instance : has_zero ℝ                   := by apply_instance
+instance : has_mul ℝ                    := by apply_instance
+instance : has_add ℝ                    := by apply_instance
+instance : has_sub ℝ                    := by apply_instance
 
 open_locale classical
 
@@ -135,7 +133,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
+noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
@@ -229,7 +227,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
   choose f hf using begin
     refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
+      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,
@@ -439,7 +437,7 @@ end,
     have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
     refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
+      ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one_iff_le _30],

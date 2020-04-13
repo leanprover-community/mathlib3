@@ -5,8 +5,9 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function order.boolean_algebra
-  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string.basic
+import logic.function order.boolean_algebra data.equiv.basic
+import data.list.sort data.list.intervals data.list.antidiagonal
+import data.quot data.string.basic
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
@@ -407,7 +408,7 @@ protected theorem add_left_cancel (s) {t u : multiset α} (h : s + t = s + u) : 
 le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
   ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
 
-instance : ordered_cancel_comm_monoid (multiset α) :=
+instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,
   add                   := (+),
   add_comm              := multiset.add_comm,
@@ -449,12 +450,12 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := exists_perm_append_of_sublist s in ⟨l, quot.sound p⟩,
 λ⟨u, e⟩, e.symm ▸ le_add_right s u⟩
 
-instance : canonically_ordered_monoid (multiset α) :=
+instance : canonically_ordered_add_monoid (multiset α) :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
   le_iff_exists_add     := @le_iff_exists_add _,
   bot                   := 0,
   bot_le                := multiset.zero_le,
-  ..multiset.ordered_cancel_comm_monoid }
+  ..multiset.ordered_cancel_add_comm_monoid }
 
 /- repeat -/
 
@@ -805,7 +806,7 @@ quotient.induction_on s $ λ l,
 lemma dvd_prod [comm_semiring α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
   f s.sum ≤ (s.map f).sum :=
 multiset.induction_on s (le_of_eq h_zero) $
@@ -1694,7 +1695,8 @@ by simp [powerset_aux']
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
-  simp [revzip, reverse_append],
+  simp only [revzip, reverse_append, quot_mk_to_coe, coe_eq_coe, powerset_aux'_cons, cons_coe,
+    coe_map, antidiagonal_coe', coe_add],
   rw [← zip_map, ← zip_map, zip_append, (_ : _++_=_)],
   {congr; simp}, {simp}
 end
@@ -1975,7 +1977,7 @@ section rel
 /-- `rel r s t` -- lift the relation `r` between two elements to a relation between `s` and `t`,
 s.t. there is a one-to-one mapping betweem elements in `s` and `t` following `r`. -/
 inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
-| zero {} : rel 0 0
+| zero : rel 0 0
 | cons {a b as bs} : r a b → rel as bs → rel (a :: as) (b :: bs)
 
 run_cmd tactic.mk_iff_of_inductive_prop `multiset.rel `multiset.rel_iff
@@ -2506,12 +2508,12 @@ theorem mem_ndinsert_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ n
 mem_ndinsert.2 (or.inr h)
 
 @[simp, priority 980]
-theorem length_ndinsert_of_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∈ s) :
+theorem length_ndinsert_of_mem {a : α} {s : multiset α} (h : a ∈ s) :
   card (ndinsert a s) = card s :=
 by simp [h]
 
 @[simp, priority 980]
-theorem length_ndinsert_of_not_mem {a : α} [decidable_eq α] {s : multiset α} (h : a ∉ s) :
+theorem length_ndinsert_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) :
   card (ndinsert a s) = card s + 1 :=
 by simp [h]
 
@@ -2749,6 +2751,16 @@ fold_cons_left _ _ _ _
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
 
+lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
+sup_le.1 (le_refl _) _ h
+
+lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
+sup_le.2 $ assume b hb, le_sup (h hb)
+
 variables [decidable_eq α]
 
 @[simp] lemma sup_erase_dup (s : multiset α) : (erase_dup s).sup = s.sup :=
@@ -2765,16 +2777,6 @@ by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
 @[simp] lemma sup_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).sup = a ⊔ s.sup :=
 by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
-
-lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
-
-lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
-sup_le.1 (le_refl _) _ h
-
-lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
-sup_le.2 $ assume b hb, le_sup (h hb)
 
 end sup
 
@@ -2796,6 +2798,16 @@ fold_cons_left _ _ _ _
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)
 
+lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
+multiset.induction_on s (by simp)
+  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
+
+lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
+le_inf.1 (le_refl _) _ h
+
+lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
+le_inf.2 $ assume b hb, inf_le (h hb)
+
 variables [decidable_eq α]
 
 @[simp] lemma inf_erase_dup (s : multiset α) : (erase_dup s).inf = s.inf :=
@@ -2812,16 +2824,6 @@ by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
 @[simp] lemma inf_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).inf = a ⊓ s.inf :=
 by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_cons]; simp
-
-lemma le_inf {s : multiset α} {a : α} : a ≤ s.inf ↔ (∀b ∈ s, a ≤ b) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
-
-lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
-le_inf.1 (le_refl _) _ h
-
-lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
-le_inf.2 $ assume b hb, inf_le (h hb)
 
 end inf
 

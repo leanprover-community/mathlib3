@@ -47,11 +47,6 @@ def induced_category : Type u₁ := C
 
 variables {D}
 
-/--
-has_coe_to_sort instances for bundled categories must be reducible,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
 instance induced_category.has_coe_to_sort [has_coe_to_sort D] :
   has_coe_to_sort (induced_category D F) :=
 ⟨_, λ c, ↥(F c)⟩

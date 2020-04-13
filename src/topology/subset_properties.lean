@@ -653,14 +653,14 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
 
 /-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
-(is_preirreducible_univ : is_preirreducible (univ : set α))
+(is_preirreducible_univ [] : is_preirreducible (univ : set α))
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- An irreducible space is one that is nonempty
 and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
-(to_nonempty : nonempty α)
+(to_nonempty [] : nonempty α)
 end prio
 
 attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
@@ -1181,7 +1181,7 @@ let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
-(is_totally_separated_univ : is_totally_separated (univ : set α))
+(is_totally_separated_univ [] : is_totally_separated (univ : set α))
 
 @[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]

@@ -6,9 +6,7 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
 Normalizing casts inside expressions.
 -/
 
-import tactic.basic tactic.interactive tactic.converter.interactive
-import data.buffer.parser data.num.basic
-import init.meta.lean.parser
+import tactic.basic tactic.interactive
 
 /-!
 # A tactic for normalizing casts inside expressions
@@ -504,9 +502,9 @@ meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
   success_if_fail $ is_def_eq α `(ℕ),
-  n ← e.to_num,
+  n ← e.to_nat,
   h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
-  new_e ← expr.of_num `(ℕ) n,
+  new_e ← expr.of_nat `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
   pr ← aux_down e new_e,
   return ((), new_e, pr)
@@ -516,8 +514,8 @@ do
 meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
-  n ← e'.to_num,
-  new_e ← expr.of_num α n,
+  n ← e'.to_nat,
+  new_e ← expr.of_nat α n,
   h ← to_expr ``(%%e = %%new_e),
   pr ← aux_down e new_e,
   return ((), new_e, pr)

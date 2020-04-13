@@ -47,7 +47,7 @@ We turn to the second viewpoint on compositions, that we realize as a finset of 
 `c : composition_as_set n` is a structure made of a finset of `fin (n+1)` called `c.boundaries`
 and proofs that it contains `0` and `n`. (Taking a finset of `fin n` containing `0` would not
 make sense in the edge case `n = 0`, while the previous description works in all cases).
-The elements of this set (but `n`) correspond to leftmost points of blocks.
+The elements of this set (other than `n`) correspond to leftmost points of blocks.
 Thus, there is an equiv between `composition n` and `composition_as_set n`. We
 only construct basic API on `composition_as_set` (notably `c.length` and `c.blocks`) to be able
 to construct this equiv, called `composition_equiv n`. Since there is a straightforward equiv

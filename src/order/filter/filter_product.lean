@@ -91,15 +91,15 @@ instance [add_right_cancel_semigroup β] : add_right_cancel_semigroup β* :=
 
 instance [add_monoid β] : add_monoid β* :=
 { zero_add := λ x, quotient.induction_on' x
-    (λ a, quotient.sound'(by simp only [zero_add]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound'(by simp only [zero_add]; apply setoid.iseqv.1)),
   add_zero := λ x, quotient.induction_on' x
-    (λ a, quotient.sound'(by simp only [add_zero]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound'(by simp only [add_zero]; apply setoid.iseqv.1)),
   ..filter_product.add_semigroup,
   ..filter_product.has_zero }
 
 instance [add_comm_semigroup β] : add_comm_semigroup β* :=
 { add_comm := λ x y, quotient.induction_on₂' x y
-    (λ a b, quotient.sound' (by simp only [add_comm]; apply (setoid.iseqv _).1)),
+    (λ a b, quotient.sound' (by simp only [add_comm]; apply setoid.iseqv.1)),
   ..filter_product.add_semigroup }
 
 instance [add_comm_monoid β] : add_comm_monoid β* :=
@@ -108,7 +108,7 @@ instance [add_comm_monoid β] : add_comm_monoid β* :=
 
 instance [add_group β] : add_group β* :=
 { add_left_neg := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [add_left_neg]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [add_left_neg]; apply setoid.iseqv.1)),
   ..filter_product.add_monoid,
   ..filter_product.has_neg }
 
@@ -130,15 +130,15 @@ instance [semigroup β] : semigroup β* :=
 
 instance [monoid β] : monoid β* :=
 { one_mul := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [one_mul]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [one_mul]; apply setoid.iseqv.1)),
   mul_one := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [mul_one]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [mul_one]; apply setoid.iseqv.1)),
   ..filter_product.semigroup,
   ..filter_product.has_one }
 
 instance [comm_semigroup β] : comm_semigroup β* :=
 { mul_comm := λ x y, quotient.induction_on₂' x y
-    (λ a b, quotient.sound' (by simp only [mul_comm]; apply (setoid.iseqv _).1)),
+    (λ a b, quotient.sound' (by simp only [mul_comm]; apply setoid.iseqv.1)),
   ..filter_product.semigroup }
 
 instance [comm_monoid β] : comm_monoid β* :=
@@ -147,7 +147,7 @@ instance [comm_monoid β] : comm_monoid β* :=
 
 instance [group β] : group β* :=
 { mul_left_inv := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [mul_left_inv]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [mul_left_inv]; apply setoid.iseqv.1)),
   ..filter_product.monoid,
   ..filter_product.has_inv }
 
@@ -157,17 +157,17 @@ instance [comm_group β] : comm_group β* :=
 
 instance [distrib β] : distrib β* :=
 { left_distrib := λ x y z, quotient.induction_on₃' x y z
-    (λ x y z, quotient.sound' (by simp only [left_distrib]; apply (setoid.iseqv _).1)),
+    (λ x y z, quotient.sound' (by simp only [left_distrib]; apply setoid.iseqv.1)),
   right_distrib := λ x y z, quotient.induction_on₃' x y z
-    (λ x y z, quotient.sound' (by simp only [right_distrib]; apply (setoid.iseqv _).1)),
+    (λ x y z, quotient.sound' (by simp only [right_distrib]; apply setoid.iseqv.1)),
   ..filter_product.has_add,
   ..filter_product.has_mul }
 
 instance [mul_zero_class β] : mul_zero_class β* :=
 { zero_mul := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [zero_mul]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [zero_mul]; apply setoid.iseqv.1)),
   mul_zero := λ x, quotient.induction_on' x
-    (λ a, quotient.sound' (by simp only [mul_zero]; apply (setoid.iseqv _).1)),
+    (λ a, quotient.sound' (by simp only [mul_zero]; apply setoid.iseqv.1)),
   ..filter_product.has_mul,
   ..filter_product.has_zero }
 
@@ -378,23 +378,17 @@ funext $ λ x, quotient.induction_on' x $ by apply λ a, quotient.sound (setoid.
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered commutative group.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def ordered_comm_group [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
+protected def ordered_add_comm_group [ordered_add_comm_group β] : ordered_add_comm_group β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
-  add_lt_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
-    (λ a b c hab, by rw lt_def U at hab ⊢;
-    filter_upwards [hab] λ i hi, add_lt_add_left hi (c i)),
   ..filter_product.partial_order, ..filter_product.add_comm_group }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
-{ mul_nonneg := λ x y, quotient.induction_on₂' x y $
-    λ a b ha hb, by filter_upwards [ha, hb] λ i, by simp only [set.mem_set_of_eq];
-    exact mul_nonneg,
-  mul_pos := λ x y, quotient.induction_on₂' x y $
+{ mul_pos := λ x y, quotient.induction_on₂' x y $
     λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, mul_pos,
-  ..filter_product.ring, ..filter_product.ordered_comm_group U,
+  ..filter_product.ring, ..filter_product.ordered_add_comm_group,
   ..filter_product.zero_ne_one_class U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
@@ -425,10 +419,10 @@ protected noncomputable def decidable_linear_order [decidable_linear_order β] (
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative group.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def decidable_linear_ordered_comm_group
-  [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) :
-  decidable_linear_ordered_comm_group β* :=
-{ ..filter_product.ordered_comm_group U, ..filter_product.decidable_linear_order U }
+protected noncomputable def decidable_linear_ordered_add_comm_group
+  [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) :
+  decidable_linear_ordered_add_comm_group β* :=
+{ ..filter_product.ordered_add_comm_group, ..filter_product.decidable_linear_order U }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -436,7 +430,7 @@ protected noncomputable def decidable_linear_ordered_comm_ring
   [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) :
   decidable_linear_ordered_comm_ring β* :=
 { ..filter_product.linear_ordered_comm_ring U,
-  ..filter_product.decidable_linear_ordered_comm_group U }
+  ..filter_product.decidable_linear_ordered_add_comm_group U }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a discrete linear ordered field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -445,7 +439,7 @@ protected noncomputable def discrete_linear_ordered_field [discrete_linear_order
 { ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U,
   ..filter_product.field U }
 
-instance ordered_cancel_comm_monoid [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
+instance ordered_cancel_comm_monoid [ordered_cancel_add_comm_monoid β] : ordered_cancel_add_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h,
@@ -473,8 +467,8 @@ begin
     λ i hi, (min_eq_right hi).symm),
 end
 
-lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β*) :
-  @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
+lemma abs_def [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β*) :
+  @abs _ (filter_product.decidable_linear_ordered_add_comm_group U) x = (lift abs) x :=
 quotient.induction_on' x $ λ a, by unfold abs; rw max_def;
 exact quotient.sound' (show ∀* i, abs _ = _, by simp)
 
@@ -498,8 +492,8 @@ unfold min, split_ifs,
 { refl }
 end
 
-@[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) :
-  ((abs x : β) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (x : β*) :=
+@[simp] lemma of_abs [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β) :
+  ((abs x : β) : β*) = @abs _ (filter_product.decidable_linear_ordered_add_comm_group U) (x : β*) :=
 of_max U x (-x)
 
 end filter_product

@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
-  tactic.derive_inhabited
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+  tactic.lean_core_docs tactic.derive_inhabited
 
 universe variable u
 
@@ -925,10 +925,16 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=

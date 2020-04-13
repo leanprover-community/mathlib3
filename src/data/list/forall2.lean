@@ -47,7 +47,7 @@ lemma forall₂_same {r : α → α → Prop} : ∀{l}, (∀x∈l, r x x) → fo
     (forall₂_same $ assume a ha, h a $ mem_cons_of_mem _ ha)
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
-forall₂_same $ assume a h, is_refl.refl _ _
+forall₂_same $ assume a h, is_refl.refl _
 
 lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
 begin

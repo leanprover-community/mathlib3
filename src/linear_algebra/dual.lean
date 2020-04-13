@@ -292,7 +292,7 @@ def coeffs (v : V) : ι →₀ K :=
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
 omit h
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
+private def help_tcs : has_scalar K V := mul_action.to_has_scalar
 
 local attribute [instance] help_tcs
 

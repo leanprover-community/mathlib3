@@ -151,7 +151,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
            ←functor_to_types.naturality,
            obj_map_id,
            functor_to_types.naturality,
-           functor_to_types.map_id]
+           functor_to_types.map_id_apply]
     end },
   inv :=
   { app := λ F x,
@@ -159,12 +159,12 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
       naturality' :=
       begin
         intros X Y f, ext, dsimp,
-        rw [functor_to_types.map_comp]
+        rw [functor_to_types.map_comp_apply]
       end },
     naturality' :=
     begin
       intros X Y f, ext, dsimp,
-      rw [←functor_to_types.naturality, functor_to_types.map_comp]
+      rw [←functor_to_types.naturality, functor_to_types.map_comp_apply]
     end },
   hom_inv_id' :=
   begin
@@ -172,13 +172,13 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     erw [←functor_to_types.naturality,
          obj_map_id,
          functor_to_types.naturality,
-         functor_to_types.map_id],
+         functor_to_types.map_id_apply],
     refl,
   end,
   inv_hom_id' :=
   begin
     ext, dsimp,
-    rw [functor_to_types.map_id]
+    rw [functor_to_types.map_id_apply]
   end }.
 
 variables {C}

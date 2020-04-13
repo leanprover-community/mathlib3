@@ -726,7 +726,7 @@ by simp [piecewise, hi]
 @[simp, priority 990]
 lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
-by { simp [piecewise, h], congr }
+by simp [piecewise, h]
 
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
@@ -1940,7 +1940,7 @@ lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot 
 have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
 begin
   assume x y,
-  cases (is_total.total (≤) x y) with h,
+  cases (@is_total.total _ (≤) _ x y) with h,
   { simp [sup_of_le_right h, sup_of_le_right (mono_g h)] },
   { simp [sup_of_le_left h, sup_of_le_left (mono_g h)] }
 end,
@@ -2023,7 +2023,7 @@ lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top 
 have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
 begin
   assume x y,
-  cases (is_total.total (≤) x y) with h,
+  cases (@is_total.total _ (≤) _ x y) with h,
   { simp [inf_of_le_left h, inf_of_le_left (mono_g h)] },
   { simp [inf_of_le_right h, inf_of_le_right (mono_g h)] }
 end,

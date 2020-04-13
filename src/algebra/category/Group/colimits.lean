@@ -45,7 +45,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
+| zero : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 
@@ -230,7 +230,7 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- zero
-    { erw ((s.ι).app r).map_zero, refl },
+    { erw ((s.ι).app r).map_zero },
     -- neg
     { rw ((s.ι).app r_j).map_neg },
     -- add

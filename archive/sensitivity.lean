@@ -299,8 +299,7 @@ begin
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
       simp [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_iff_proj_eq,
-            Q.adj_iff_proj_adj],
-      congr' 1 } }
+            Q.adj_iff_proj_adj] } }
 end
 
 /-- The linear operator $g_m$ corresponding to Knuth's matrix $B_m$. -/

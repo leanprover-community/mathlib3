@@ -54,7 +54,7 @@ variables {R : Type u} {M : Type v}
 [semimodule R M] [topological_semimodule R M]
 
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
-topological_semimodule.continuous_smul R M
+topological_semimodule.continuous_smul
 
 lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
@@ -432,9 +432,8 @@ instance : is_ring_hom (λ c : R, c • (1 : M₂ →L[R] M₂)) :=
   map_mul := λ _ _, ext $ λ _, mul_smul _ _ _ }
 
 instance : algebra R (M₂ →L[R] M₂) :=
-{ to_fun    := λ c, c • 1,
-  smul_def' := λ _ _, rfl,
-  commutes' := λ _ _, ext $ λ _, map_smul _ _ _ }
+(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra $
+  λ _ _, ext $ λ _, (map_smul _ _ _).symm
 
 end comm_ring
 

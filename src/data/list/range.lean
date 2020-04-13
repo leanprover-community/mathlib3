@@ -166,6 +166,16 @@ theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
 by rw [range_concat, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
+/-- A variant of `prod_range_succ` which pulls off the first
+  term in the product rather than the last.-/
+@[to_additive "A variant of `sum_range_succ` which pulls off the first term in the sum
+  rather than the last."]
+theorem prod_range_succ' {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((range n.succ).map f).prod = f 0 * ((range n).map (λ i, f (succ i))).prod :=
+nat.rec_on n
+  (show 1 * f 0 = f 0 * 1, by rw [one_mul, mul_one])
+  (λ _ hd, by rw [list.prod_range_succ, hd, mul_assoc, ←list.prod_range_succ])
+
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length
 | n []       := rfl

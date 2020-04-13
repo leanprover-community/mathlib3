@@ -146,6 +146,9 @@ by_contradiction
     from nat.mod_lt _ (order_of_pos _))
       ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
 
+lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
+⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
 
@@ -199,7 +202,7 @@ have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
 have ft_cosets : fintype (quotient (gpowers a)),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem (gpowers a)⟩⟩,
+  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem⟩⟩,
 have ft : fintype (quotient (gpowers a) × (gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
@@ -267,7 +270,7 @@ section cyclic
 local attribute [instance] set_fintype
 
 class is_cyclic (α : Type*) [group α] : Prop :=
-(exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
+(exists_generator [] : ∃ g : α, ∀ x, x ∈ gpowers g)
 
 def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
 { mul_comm := λ x y, show x * y = y * x,
@@ -331,7 +334,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
 else
   have H = is_subgroup.trivial α,
     from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
-      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem _⟩,
+      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
   by clear _let_match; subst this; apply_instance
 
 open finset nat

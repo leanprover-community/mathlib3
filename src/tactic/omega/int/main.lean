@@ -146,6 +146,7 @@ do xf ← to_exprform x,
 /-- Return expr of proof of current LIA goal -/
 meta def prove : tactic expr :=
 do (p,m) ← target >>= to_preform,
+   trace_if_enabled `omega p,
    prove_univ_close m p
 
 /-- Succeed iff argument is the expr of ℤ -/

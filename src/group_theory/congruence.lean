@@ -69,21 +69,21 @@ variables {M}
 /-- The inductively defined smallest additive congruence relation containing a given binary
     relation. -/
 inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → add_con_gen.rel x y
-| refl {} : Π x, add_con_gen.rel x x
-| symm {} : Π x y, add_con_gen.rel x y → add_con_gen.rel y x
-| trans {} : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
-| add {} : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
+| of : Π x y, r x y → add_con_gen.rel x y
+| refl : Π x, add_con_gen.rel x x
+| symm : Π x y, add_con_gen.rel x y → add_con_gen.rel y x
+| trans : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
+| add : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/
 @[to_additive add_con_gen.rel]
 inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → con_gen.rel x y
-| refl {} : Π x, con_gen.rel x x
-| symm {} : Π x y, con_gen.rel x y → con_gen.rel y x
-| trans {} : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
-| mul {} : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
+| of : Π x y, r x y → con_gen.rel x y
+| refl : Π x, con_gen.rel x x
+| symm : Π x y, con_gen.rel x y → con_gen.rel y x
+| trans : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
+| mul : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/
@@ -291,46 +291,29 @@ setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS,
 lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
 by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
-/-- If a congruence relation `c` is contained in every element of a set `s` of congruence relations
-    on the same type, `c` is contained in the infimum of `s`. -/
-@[to_additive "If an additive congruence relation `c` is contained in every element of a set `s` of additive congruence relations on the same type, `c` is contained in the infimum of `s`."]
-lemma le_Inf (s : set (con M)) (c) : (∀d ∈ s, c ≤ d) → c ≤ Inf s :=
-λ h _ _ hc r hr, h r hr _ _ hc
-
-/-- The infimum of a set of congruence relations on a given type is contained in every element
-    of the set. -/
-@[to_additive "The infimum of a set of additive congruence relations on a given type is contained in every element of the set."]
-lemma Inf_le (s : set (con M)) (c) : c ∈ s → Inf s ≤ c :=
-λ hc _ _ h, h c hc
+@[to_additive]
+instance : partial_order (con M) :=
+{ le := (≤),
+  lt := λ c d, c ≤ d ∧ ¬d ≤ c,
+  le_refl := λ c _ _, id,
+  le_trans := λ c1 c2 c3 h1 h2 x y h, h2 $ h1 h,
+  lt_iff_le_not_le := λ _ _, iff.rfl,
+  le_antisymm := λ c d hc hd, ext $ λ x y, ⟨λ h, hc h, λ h, hd h⟩ }
 
 /-- The complete lattice of congruence relations on a given type with a multiplication. -/
 @[to_additive "The complete lattice of additive congruence relations on a given type with an addition."]
 instance : complete_lattice (con M) :=
-{ sup := λ c d, Inf { x | c ≤ x ∧ d ≤ x},
-  le := (≤),
-  lt := λ c d, c ≤ d ∧ ¬d ≤ c,
-  le_refl := λ c _ _, id,
-  le_trans := λ c1 c2 c3 h1 h2 x y h, h2 x y $ h1 x y h,
-  lt_iff_le_not_le := λ _ _, iff.rfl,
-  le_antisymm := λ c d hc hd, ext $ λ x y, ⟨hc x y, hd x y⟩,
-  le_sup_left := λ _ _ _ _ h r hr, hr.1 _ _ h,
-  le_sup_right := λ _ _ _ _ h r hr, hr.2 _ _ h,
-  sup_le := λ _ _ c h1 h2, Inf_le _ c ⟨h1, h2⟩,
-  inf := λ c d, ⟨(c.to_setoid ⊓ d.to_setoid).1, (c.to_setoid ⊓ d.to_setoid).2,
+{ inf := λ c d, ⟨(c.to_setoid ⊓ d.to_setoid).1, (c.to_setoid ⊓ d.to_setoid).2,
                   λ _ _ _ _ h1 h2, ⟨c.mul h1.1 h2.1, d.mul h1.2 h2.2⟩⟩,
   inf_le_left := λ _ _ _ _ h, h.1,
   inf_le_right := λ _ _ _ _ h, h.2,
-  le_inf := λ _ _ _ hb hc _ _ h, ⟨hb _ _ h, hc _ _ h⟩,
+  le_inf := λ _ _ _ hb hc _ _ h, ⟨hb h, hc h⟩,
   top := { mul' := by tauto, ..setoid.complete_lattice.top},
   le_top := λ _ _ _ h, trivial,
   bot := { mul' := λ _ _ _ _ h1 h2, h1 ▸ h2 ▸ rfl, ..setoid.complete_lattice.bot},
   bot_le := λ c x y h, h ▸ c.refl x,
-  Sup := λ tt, Inf {t | ∀t'∈tt, t' ≤ t},
-  Inf := has_Inf.Inf,
-  le_Sup := λ _ _ hs, le_Inf _ _ $ λ c' hc', hc' _ hs,
-  Sup_le := λ _ _ hs, Inf_le _ _ hs,
-  Inf_le := λ  _ _, Inf_le _ _,
-  le_Inf := λ _ _, le_Inf _ _ }
+  .. complete_lattice_of_Inf (con M) $ assume s,
+    ⟨λ r hr x y h, (h : ∀ r ∈ s, (r : con M) x y) r hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
 /-- The infimum of two congruence relations equals the infimum of the underlying binary
     operations. -/
@@ -345,19 +328,19 @@ theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := i
     the infimum of the set of congruence relations containing `r`. -/
 @[to_additive add_con_gen_eq "The inductively defined smallest additive congruence relation containing a binary relation `r` equals the infimum of the set of additive congruence relations containing `r`."]
 theorem con_gen_eq (r : M → M → Prop) :
-  con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
-ext $ λ x y,
-  ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (con.refl _) (λ _ _ _, con.symm _)
+  con_gen r = Inf {s : con M | ∀ x y, r x y → s x y} :=
+le_antisymm
+  (λ x y H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (con.refl _) (λ _ _ _, con.symm _)
     (λ _ _ _ _ _, con.trans _)
-    $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc,
-  Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
+    $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc)
+  (Inf_le (λ _ _, con_gen.rel.of _ _))
 
 /-- The smallest congruence relation containing a binary relation `r` is contained in any
     congruence relation containing `r`. -/
 @[to_additive add_con_gen_le "The smallest additive congruence relation containing a binary relation `r` is contained in any additive congruence relation containing `r`."]
 theorem con_gen_le {r : M → M → Prop} {c : con M} (h : ∀ x y, r x y → c.r x y) :
   con_gen r ≤ c :=
-by rw con_gen_eq; exact Inf_le _ _ h
+by rw con_gen_eq; exact Inf_le h
 
 /-- Given binary relations `r, s` with `r` contained in `s`, the smallest congruence relation
     containing `s` contains the smallest congruence relation containing `r`. -/
@@ -368,14 +351,14 @@ con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
 
 /-- Congruence relations equal the smallest congruence relation in which they are contained. -/
 @[simp, to_additive add_con_gen_of_add_con "Additive congruence relations equal the smallest additive congruence relation in which they are contained."]
-lemma con_gen_of_con (c : con M) : con_gen c.r = c :=
-le_antisymm (by rw con_gen_eq; exact Inf_le _ c (λ _ _, id)) con_gen.rel.of
+lemma con_gen_of_con (c : con M) : con_gen c = c :=
+le_antisymm (by rw con_gen_eq; exact Inf_le (λ _ _, id)) con_gen.rel.of
 
 /-- The map sending a binary relation to the smallest congruence relation in which it is
     contained is idempotent. -/
 @[simp, to_additive add_con_gen_idem "The map sending a binary relation to the smallest additive congruence relation in which it is contained is idempotent."]
 lemma con_gen_idem (r : M → M → Prop) :
-  con_gen (con_gen r).r = con_gen r :=
+  con_gen (con_gen r) = con_gen r :=
 con_gen_of_con _
 
 /-- The supremum of congruence relations `c, d` equals the smallest congruence relation containing
@@ -386,9 +369,7 @@ lemma sup_eq_con_gen (c d : con M) :
 begin
   rw con_gen_eq,
   apply congr_arg Inf,
-  ext,
-  exact ⟨λ h _ _ H, or.elim H (h.1 _ _) (h.2 _ _),
-         λ H, ⟨λ _ _ h, H _ _ $ or.inl h, λ _ _ h, H _ _ $ or.inr h⟩⟩,
+  simp only [le_def, or_imp_distrib, ← forall_and_distrib]
 end
 
 /-- The supremum of two congruence relations equals the smallest congruence relation containing
@@ -407,7 +388,7 @@ begin
   rw con_gen_eq,
   apply congr_arg Inf,
   ext,
-  exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2,
+  exact ⟨λ h _ _ ⟨r, hr⟩, h hr.1 hr.2,
          λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩,
 end
 
@@ -431,7 +412,7 @@ variables (M)
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with an addition `M` into binary relations on `M`."]
 protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 { choice := λ r h, con_gen r,
- gc := λ r c, ⟨λ H _ _ h, H _ _ $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
+ gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
   choice_eq := λ _ _, rfl }
 
@@ -486,16 +467,16 @@ open quotient
       show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
     left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
       ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
-        d.1.trans (d.1.symm $ d.2 a _ $ c.eq.1 hx) $ d.1.trans H $ d.2 b _ $ c.eq.1 hy,
+        d.1.trans (d.1.symm $ d.2 $ c.eq.1 hx) $ d.1.trans H $ d.2 $ c.eq.1 hy,
        λ h, ⟨_, _, rfl, rfl, h⟩⟩,
     right_inv := λ d, let Hm : mul_ker (coe : M → c.quotient) (λ x y, rfl) ≤
           comap (coe : M → c.quotient) (λ x y, rfl) d :=
         λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
       ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
         con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-    ord := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h _ _ Hs⟩,
-      λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h _ _ ⟨_, _, rfl, rfl, hs⟩ in
-        t.1.trans (t.1.symm $ t.2 a _ $ eq_rel.1 hx) $ t.1.trans ht $ t.2 b _ $ eq_rel.1 hy⟩ }
+    ord := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+      λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+        t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
 
 end
 
@@ -563,7 +544,7 @@ ext $ λ x y, show (x, y) ∈ (c : submonoid (M × M)) ↔ (x, y) ∈ ↑d, by r
 
 @[to_additive]
 lemma le_iff {c d : con M} : c ≤ d ↔ (c : submonoid (M × M)) ≤ d :=
-⟨λ h x, h x.1 x.2, λ h x y hc, h $ show (x, y) ∈ c, from hc⟩
+⟨λ h x H, h H, λ h x y hc, h $ show (x, y) ∈ c, from hc⟩
 
 /-- The kernel of a monoid homomorphism as a congruence relation. -/
 @[to_additive "The kernel of an `add_monoid` homomorphism as an additive congruence relation."]
@@ -622,7 +603,7 @@ variables (c) (f : M →* P)
     homomorphism constant on `c`'s equivalence classes. -/
 @[to_additive "The homomorphism on the quotient of an `add_monoid` by an additive congruence relation `c` induced by a homomorphism constant on `c`'s equivalence classes."]
 def lift (H : c ≤ ker f) : c.quotient →* P :=
-{ to_fun := λ x, con.lift_on x f $ λ _ _, H _ _,
+{ to_fun := λ x, con.lift_on x f $ λ _ _ h, H h,
   map_one' := by rw ←f.map_one; refl,
   map_mul' := λ x y, con.induction_on₂ x y $ λ m n, f.map_mul m n ▸ rfl }
 
@@ -723,14 +704,14 @@ lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
 @[to_additive "Given additive congruence relations `c, d` on an `add_monoid` such that `d` contains `c`, `d`'s quotient map induces a homomorphism from the quotient by `c` to the quotient by `d`."]
 def map (c d : con M) (h : c ≤ d) : c.quotient →* d.quotient :=
 c.lift d.mk' $ λ x y hc, show (ker d.mk') x y, from
-  (mk'_ker d).symm ▸ h x y hc
+  (mk'_ker d).symm ▸ h hc
 
 /-- Given congruence relations `c, d` on a monoid such that `d` contains `c`, the definition of
     the homomorphism from the quotient by `c` to the quotient by `d` induced by `d`'s quotient
     map. -/
 @[to_additive "Given additive congruence relations `c, d` on an `add_monoid` such that `d` contains `c`, the definition of the homomorphism from the quotient by `c` to the quotient by `d` induced by `d`'s quotient map."]
 lemma map_apply {c d : con M} (h : c ≤ d) (x) :
-  c.map d h x = c.lift d.mk' (λ x y hc, d.eq.2 $ h x y hc) x := rfl
+  c.map d h x = c.lift d.mk' (λ x y hc, d.eq.2 $ h hc) x := rfl
 
 variables (c)
 

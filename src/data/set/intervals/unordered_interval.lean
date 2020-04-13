@@ -112,9 +112,9 @@ end decidable_linear_order
 
 open_locale interval
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_comm_group α] {a b x y : α}
+variables {α : Type u} [decidable_linear_ordered_add_comm_group α] {a b x y : α}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
@@ -135,6 +135,6 @@ that of `a` and `b`  -/
 lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b - a) :=
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
-end ordered_comm_group
+end ordered_add_comm_group
 
 end set

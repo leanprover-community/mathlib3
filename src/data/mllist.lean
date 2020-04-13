@@ -16,7 +16,7 @@ universes u v
 namespace tactic -- We hide this away in the tactic namespace, just because it's all meta.
 
 meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
-| nil {} : mllist
+| nil : mllist
 | cons : m (option α × mllist) → mllist
 
 namespace mllist

@@ -319,14 +319,7 @@ do mode ← ident?, match mode with
 | _          := failed
 end
 
-/-- Tactic for solving equations in the language of
-*additive*, commutative monoids and groups.
-Attempts to prove the goal outright if there is no `at`
-specifier and the target is an equality, but if this
-fails it falls back to rewriting all monoid expressions
-into a normal form.
-
----
+/--
 Evaluate expressions in the language of *additive*, commutative monoids and groups.
 It attempts to prove the goal outright if there is no `at`
 specifier and the target is an equality, but if this

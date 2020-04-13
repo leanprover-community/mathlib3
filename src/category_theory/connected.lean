@@ -21,6 +21,7 @@ open category_theory category_theory.category category_theory.limits
 namespace category_theory
 
 section connected
+-- See note [default priority]
 set_option default_priority 100
 /--
 We define a connected category as a _nonempty_ category for which every
@@ -41,7 +42,7 @@ variables {J : Type v₂} [𝒥 : category.{v₁} J]
 include 𝒥
 
 /-- If J is connected, any functor to a discrete category is constant on the nose. -/
-lemma any_functor_eq_constant [conn : connected J] {α : Type*} (F : J ⥤ discrete α) :
+lemma any_functor_eq_constant [conn : connected J] {α : Type v₂} (F : J ⥤ discrete α) :
   F = (functor.const J).obj (F.obj (default J)) :=
 begin
   apply functor.ext _ _,

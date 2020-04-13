@@ -43,7 +43,7 @@ Let `c : composition n` be a composition of `n`. Then
   `fin n`;
 * `c.index j`, for `j : fin n`, is the index of the block containing `j`.
 
-We turn two to the second viewpoint on compositions, that we realize as a finset of `fin (n+1)`.
+We turn to the second viewpoint on compositions, that we realize as a finset of `fin (n+1)`.
 `c : composition_as_set n` is a structure made of a finset of `fin (n+1)` called `c.boundaries`
 and proofs that it contains `0` and `n`. (Taking a finset of `fin n` containing `0` would not
 make sense in the edge case `n = 0`, while the previous description works in all cases).

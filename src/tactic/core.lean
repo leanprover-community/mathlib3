@@ -18,11 +18,6 @@ attribute [derive has_reflect] binder_info
 attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
-`of_num α n` creates the `α`-valued numeral expression corresponding to `n`. -/
-protected meta def of_num (α : expr) (n : num) : tactic expr :=
-to_expr $ num.to_pexpr α n
-
-/-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec

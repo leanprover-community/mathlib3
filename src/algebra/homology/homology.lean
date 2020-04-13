@@ -127,7 +127,11 @@ by simp [cohomology_map]
 @[simp]
 lemma cohomology_map_id (C : cochain_complex.{v} V) (i : ℤ) :
   cohomology_map (𝟙 C) i = 𝟙 (cohomology C i) :=
-by { ext, erw [cohomology_map_condition, kernel_map_id, category.id_comp, category.comp_id] }
+begin
+  ext,
+  simp only [cohomology_map_condition, kernel_map_id, category.id_comp],
+  erw [category.comp_id]
+end
 
 @[simp]
 lemma cohomology_map_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C') (g : C' ⟶ C'') (i : ℤ) :

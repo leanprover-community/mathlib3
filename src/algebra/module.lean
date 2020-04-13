@@ -122,6 +122,8 @@ begin
   all_goals { apply proof_irrel_heq },
 end
 
+/-- An auxiliary `structure` that is used to define `module`s without verifying
+`zero_smul` and `smul_zero`. -/
 structure module.core (R M) [ring R] [add_comm_group M] extends has_scalar R M :=
 (smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
@@ -192,12 +194,15 @@ def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodul
 def ring_hom.to_module [ring R] [ring S] (f : R →+* S) : module R S :=
 { to_semimodule := f.to_semimodule }
 
+/-- A class saying that `f` is an `R` linear map. Though it is a class,
+it is used as an explicit argument in most lemmas. -/
 class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
   (f : M → M₂) : Prop :=
 (add [] : ∀ x y, f (x + y) = f x + f y)
 (smul [] : ∀ (c : R) x, f (c • x) = c • f x)
 
+/-- A bundled `R`-linear map from `M` to `M₂`. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂] :=
 (to_fun : M → M₂)
@@ -399,6 +404,7 @@ instance : module R p :=
 by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
+/-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 

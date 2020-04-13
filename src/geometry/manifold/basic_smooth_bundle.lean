@@ -90,10 +90,10 @@ base. We do not require the change of coordinates of the fibers to be linear, on
 Therefore, the fibers of the resulting bundle will not inherit a canonical vector space structure
 in general. -/
 structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
-(F : Type u) [normed_group F] [normed_space 𝕜 F] :=
+(F : Type*) [normed_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → F → F)
 (coord_change_self :
   ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
@@ -107,10 +107,10 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
 namespace basic_smooth_bundle_core
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
-{F : Type u} [normed_group F] [normed_space 𝕜 F]
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_bundle_core I M F)
 
 /-- Fiber bundle core associated to a basic smooth bundle core -/
@@ -210,7 +210,7 @@ instance to_smooth_manifold :
   Z.to_topological_fiber_bundle_core.total_space :=
 begin
   /- We have to check that the charts belong to the smooth groupoid, i.e., they are smooth on their
-  source, and their inverses are smooth on the target. Since both objects are of the same type, it
+  source, and their inverses are smooth on the target. Since both objects are of the same kind, it
   suffices to prove the first statement in A below, and then glue back the pieces at the end. -/
   let J := model_with_corners.to_local_equiv (I.prod (model_with_corners_self 𝕜 F)),
   have A : ∀ (e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
@@ -218,11 +218,6 @@ begin
     (J.to_fun ∘ ((Z.chart he).symm.trans (Z.chart he')).to_fun ∘ J.inv_fun)
     (J.inv_fun ⁻¹' ((Z.chart he).symm.trans (Z.chart he')).source ∩ range J.to_fun),
   { assume e e' he he',
-    have U : unique_diff_on 𝕜
-             ((I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun).prod (univ : set F)),
-    { apply unique_diff_on.prod _ unique_diff_on_univ,
-      rw inter_comm,
-      exact I.unique_diff.inter (I.continuous_inv_fun _ (local_homeomorph.open_source _)) },
     have : J.inv_fun ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J.to_fun =
       (I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun).prod univ,
     { have : range (λ (p : H × F), (I.to_fun (p.fst), id p.snd)) =
@@ -236,7 +231,7 @@ begin
       { exact λ⟨⟨hx1, hx2⟩, hx3⟩, ⟨⟨⟨hx1, e.map_target hx1⟩, hx2⟩, hx3⟩ } },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
-    apply times_cont_diff_on.prod _ _ U,
+    apply times_cont_diff_on.prod,
     show times_cont_diff_on 𝕜 ⊤ (λ (p : E × F), (I.to_fun ∘ e'.to_fun ∘ e.inv_fun ∘ I.inv_fun) p.1)
          ((I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun).prod (univ : set F)),
     { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
@@ -247,8 +242,8 @@ begin
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) he he').1,
       have B : times_cont_diff_on 𝕜 ⊤ (λp : E × F, p.1)
         ((I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun).prod univ) :=
-      times_cont_diff_fst.times_cont_diff_on U,
-      exact times_cont_diff_on.comp A B U (prod_subset_preimage_fst _ _) },
+      times_cont_diff_fst.times_cont_diff_on,
+      exact times_cont_diff_on.comp A B (prod_subset_preimage_fst _ _) },
     show times_cont_diff_on 𝕜 ⊤ (λ (p : E × F),
       Z.coord_change ⟨chart_at H (e.inv_fun (I.inv_fun p.1)), _⟩ ⟨e', he'⟩
          ((chart_at H (e.inv_fun (I.inv_fun p.1))).to_fun (e.inv_fun (I.inv_fun p.1)))
@@ -261,7 +256,7 @@ begin
       cocycle as given in the definition of basic smooth bundles. -/
       have := Z.coord_change_smooth ⟨e, he⟩ ⟨e', he'⟩,
       rw model_with_corners.image at this,
-      apply times_cont_diff_on.congr this U,
+      apply times_cont_diff_on.congr this,
       rintros ⟨x, v⟩ hx,
       simp [local_equiv.trans_source] at hx,
       let f := chart_at H (e.inv_fun (I.inv_fun x)),
@@ -288,7 +283,7 @@ end basic_smooth_bundle_core
 section tangent_bundle
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
 
@@ -315,7 +310,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       (λ (p : E × E), (fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
             (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun) p.1 : E → E) p.2)
       ((I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun).prod univ) :=
-      times_cont_diff_on_fderiv_within_apply A B lattice.le_top,
+      times_cont_diff_on_fderiv_within_apply A B le_top,
     have D : ∀ x ∈ (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun),
       fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
             (range I.to_fun) x =
@@ -328,7 +323,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       symmetry,
       rw inter_comm,
       exact fderiv_within_inter N (I.unique_diff _ hx.2) },
-    apply times_cont_diff_on.congr C (unique_diff_on.prod B unique_diff_on_univ),
+    apply times_cont_diff_on.congr C,
     rintros ⟨x, v⟩ hx,
     have E : x ∈ I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun,
       by simpa using hx,
@@ -400,7 +395,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
         have B : differentiable_on 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
           (I.inv_fun ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I.to_fun),
-        { apply (A.differentiable_on (lattice.le_top)).mono,
+        { apply (A.differentiable_on (le_top)).mono,
           have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆ (i.1.symm.trans j.1).source :=
             inter_subset_left _ _,
           exact inter_subset_inter (preimage_mono this) (subset.refl (range I.to_fun)) },
@@ -413,7 +408,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
           (I.to_fun ∘ (j.1.symm.trans u.1).to_fun ∘ I.inv_fun)
           (I.inv_fun ⁻¹' (j.1.symm.trans u.1).source ∩ range I.to_fun) :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) j.2 u.2).1,
-        apply A.differentiable_on (lattice.le_top),
+        apply A.differentiable_on (le_top),
         rw [local_homeomorph.trans_source] at hx,
         simp [mem_inter_iff, -mem_image, -mem_range, mem_range_self],
         exact hx.2 },

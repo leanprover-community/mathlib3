@@ -50,7 +50,7 @@ does use ℝ).
 real numbers, completion, uniform spaces
 -/
 
-open set function lattice filter cau_seq uniform_space
+open set function filter cau_seq uniform_space
 
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/

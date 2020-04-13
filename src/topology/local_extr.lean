@@ -102,21 +102,21 @@ lemma is_local_extr_on.inter (hf : is_local_extr_on f s a) (t) : is_local_extr_o
 hf.on_subset (inter_subset_left s t)
 
 lemma is_min_on.localize (hf : is_min_on f s a) : is_local_min_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_max_on.localize (hf : is_max_on f s a) : is_local_max_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_extr_on.localize (hf : is_extr_on f s a) : is_local_extr_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
 have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
-hf.filter_mono $ lattice.le_inf (le_refl _) this
+hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_max_on.is_local_max (hf : is_local_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
 have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
-hf.filter_mono $ lattice.le_inf (le_refl _) this
+hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=
 hf.elim (λ hf, (hf.is_local_min hs).is_extr) (λ hf, (hf.is_local_max hs).is_extr)
@@ -254,9 +254,9 @@ hf.elim (λ hf, (hf.comp_continuous_on hg hb).is_extr)
 end preorder
 
 /-! ### Pointwise addition -/
-section ordered_comm_monoid
+section ordered_add_comm_monoid
 
-variables [ordered_comm_monoid β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [ordered_add_comm_monoid β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_local_min.add (hf : is_local_min f a) (hg : is_local_min g a) :
   is_local_min (λ x, f x + g x) a :=
@@ -274,13 +274,13 @@ lemma is_local_max_on.add (hf : is_local_max_on f s a) (hg : is_local_max_on g s
   is_local_max_on (λ x, f x + g x) s a :=
 hf.add hg
 
-end ordered_comm_monoid
+end ordered_add_comm_monoid
 
 /-! ### Pointwise negation and subtraction -/
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables [ordered_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_local_min.neg (hf : is_local_min f a) : is_local_max (λ x, -f x) a :=
 hf.neg
@@ -316,9 +316,8 @@ lemma is_local_max_on.sub (hf : is_local_max_on f s a) (hg : is_local_min_on g s
   is_local_max_on (λ x, f x - g x) s a :=
 hf.sub hg
 
-end ordered_comm_group
+end ordered_add_comm_group
 
-open lattice
 
 /-! ### Pointwise `sup`/`inf` -/
 

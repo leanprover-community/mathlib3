@@ -24,6 +24,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
+@[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
@@ -171,5 +173,11 @@ by cases a; refl
 
 @[simp] lemma lift_or_get_some_some {f} {a b : α} :
   lift_or_get f (some a) (some b) = f a b := rfl
+
+/-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
+function to `a` if it comes from `α`, and return `b` otherwise. -/
+def cases_on' : option α → β → (α → β) → β
+| none     n s := n
+| (some a) n s := s a
 
 end option

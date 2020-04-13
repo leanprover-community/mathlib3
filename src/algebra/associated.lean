@@ -3,14 +3,13 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.group algebra.group.is_unit data.multiset
+import algebra.group.is_unit data.multiset
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-open lattice
 
 theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 
@@ -49,8 +48,8 @@ by rw [mul_comm, mul_dvd_of_is_unit_left h]
 @[simp] lemma unit_mul_dvd_iff [comm_semiring α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
-@[simp] lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
-mul_dvd_of_is_unit_right (is_unit_unit _)
+lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
+units.coe_mul_dvd _ _ _
 
 theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
@@ -258,9 +257,8 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
 lemma dvd_iff_dvd_of_rel_left [comm_semiring α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ mul_unit_dvd_iff.symm
 
-@[simp] lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
-⟨λ ⟨d, hd⟩, ⟨d * (u⁻¹ : units α), by simp [(mul_assoc _ _ _).symm, hd.symm]⟩,
-  λ h, dvd.trans h (by simp)⟩
+lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
+units.dvd_coe_mul _ _ _
 
 lemma dvd_iff_dvd_of_rel_right [comm_semiring α] {a b c : α} (h : b ~ᵤ c) : a ∣ b ↔ a ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ dvd_mul_unit_iff.symm
@@ -530,12 +528,12 @@ instance : partial_order (associates α) :=
         (h₂ ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)) h₁ h₂
   .. associates.preorder }
 
-instance : lattice.order_bot (associates α) :=
+instance : order_bot (associates α) :=
 { bot := 1,
   bot_le := assume a, one_le,
   .. associates.partial_order }
 
-instance : lattice.order_top (associates α) :=
+instance : order_top (associates α) :=
 { top := 0,
   le_top := assume a, ⟨0, mul_zero a⟩,
   .. associates.partial_order }
@@ -596,12 +594,12 @@ match h m d (le_refl _) with
   assume : m ≠ 0,
   have m * d ≤ m * 1, by simpa using h,
   have d ≤ 1, from associates.le_of_mul_le_mul_left m d 1 ‹m ≠ 0› this,
-  have d = 1, from lattice.bot_unique this,
+  have d = 1, from bot_unique this,
   by simp [this]
 | or.inr h := classical.by_cases (assume : d = 0, by simp [this] at hp0; contradiction) $
   assume : d ≠ 0,
   have d * m ≤ d * 1, by simpa [mul_comm] using h,
-  or.inl $ lattice.bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
+  or.inl $ bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
 
 end integral_domain

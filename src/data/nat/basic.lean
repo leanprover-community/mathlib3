@@ -64,11 +64,19 @@ by rw succ_le_iff
 
 -- Just a restatement of `nat.lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
-nat.lt_succ_iff
+lt_succ_iff
 
 -- A flipped version of `lt_add_one_iff`.
 lemma lt_one_add_iff {a b : ℕ} : a < 1 + b ↔ a ≤ b :=
-by simp only [add_comm, nat.lt_succ_iff]
+by simp only [add_comm, lt_succ_iff]
+
+-- This is true reflexively, by the definition of `≤` on ℕ,
+-- but it's still useful to have, to convince Lean to change the syntactic type.
+lemma add_one_le_iff {a b : ℕ} : a + 1 ≤ b ↔ a < b :=
+iff.refl _
+
+lemma one_add_le_iff {a b : ℕ} : 1 + a ≤ b ↔ a < b :=
+by simp only [add_comm, add_one_le_iff]
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
@@ -129,6 +137,14 @@ by cases n; split; rintro ⟨⟩; refl
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
+
+@[simp]
+lemma add_succ_sub_one (n m : ℕ) : (n + succ m) - 1 = n + m :=
+by rw [add_succ, succ_sub_one]
+
+@[simp]
+lemma succ_add_sub_one (n m : ℕ) : (succ n + m) - 1 = n + m :=
+by rw [succ_add, succ_sub_one]
 
 lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
 
@@ -314,6 +330,9 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 @nat.lt_sub_right_iff_add_lt n 1 m
+
+lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
+lt_of_succ_lt (lt_pred_iff.1 h)
 
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
@@ -546,13 +565,12 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
         ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a)],
-      simp },
+        nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
     have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one], congr },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -568,16 +586,16 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
-@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
-(eq_zero_or_pos n).elim
-  (λ n0, by simp [n0])
-  (λ npos, mod_eq_of_lt (mod_lt _ npos))
-
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
 end
+
+@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
+(eq_zero_or_pos n).elim
+  (λ n0, by simp [n0])
+  (λ npos, mod_eq_of_lt (mod_lt _ npos))
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
@@ -707,6 +725,46 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
+@[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
+⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
+  bit0_lt_bit0, nat.lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
+
+@[simp] lemma bit0_lt_bit1_iff : bit0 k < bit1 n ↔ k ≤ n :=
+⟨λ h, bit0_le_bit1_iff.1 (le_of_lt h), nat.bit0_lt_bit1⟩
+
+@[simp] lemma bit1_le_bit0_iff : bit1 k ≤ bit0 n ↔ k < n :=
+⟨λ h, by rwa [k.bit1_eq_succ_bit0, succ_le_iff, bit0_lt_bit0] at h,
+  λ h, le_of_lt (nat.bit1_lt_bit0 h)⟩
+
+@[simp] lemma bit1_lt_bit0_iff : bit1 k < bit0 n ↔ k < n :=
+⟨λ h, bit1_le_bit0_iff.1 (le_of_lt h), nat.bit1_lt_bit0⟩
+
+@[simp] lemma one_le_bit0_iff : 1 ≤ bit0 n ↔ 0 < n :=
+by { convert bit1_le_bit0_iff, refl, }
+
+@[simp] lemma one_lt_bit0_iff : 1 < bit0 n ↔ 1 ≤ n :=
+by { convert bit1_lt_bit0_iff, refl, }
+
+@[simp] lemma bit_le_bit_iff : ∀ {b : bool}, bit b k ≤ bit b n ↔ k ≤ n
+| ff := bit0_le_bit0
+| tt := bit1_le_bit1
+
+@[simp] lemma bit_lt_bit_iff : ∀ {b : bool}, bit b k < bit b n ↔ k < n
+| ff := bit0_lt_bit0
+| tt := bit1_lt_bit1
+
+@[simp] lemma bit_le_bit1_iff : ∀ {b : bool}, bit b k ≤ bit1 n ↔ k ≤ n
+| ff := bit0_le_bit1_iff
+| tt := bit1_le_bit1
+
+lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
+by { cases n, cases h, apply succ_pos, }
+
+/-- Define a function on `ℕ` depending on parity of the argument. -/
+@[elab_as_eliminator]
+def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
+eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
+
 /- partial subtraction -/
 
 /-- Partial predecessor operation. Returns `ppred n = some m`
@@ -739,7 +797,12 @@ theorem sub_eq_psub (m : ℕ) : ∀ n, m - n = (psub m n).get_or_else 0
 
 theorem psub_eq_some {m : ℕ} : ∀ {n k}, psub m n = some k ↔ k + n = m
 | 0     k := by simp [eq_comm]
-| (n+1) k := by dsimp; apply option.bind_eq_some.trans; simp [psub_eq_some]
+| (n+1) k :=
+  begin
+    dsimp,
+    apply option.bind_eq_some.trans,
+    simp [psub_eq_some, add_comm, add_left_comm, nat.succ_eq_add_one]
+  end
 
 theorem psub_eq_none (m n : ℕ) : psub m n = none ↔ m < n :=
 begin
@@ -900,7 +963,7 @@ theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 begin
   rw size,
   conv { to_lhs, rw [binary_rec], simp [h] },
-  rw div2_bit, refl
+  rw div2_bit,
 end
 
 @[simp] theorem size_bit0 {n} (h : n ≠ 0) : size (bit0 n) = succ (size n) :=
@@ -987,9 +1050,9 @@ size_le.2 $ lt_of_le_of_lt h (lt_size_self _)
 
 @[simp] theorem fact_zero : fact 0 = 1 := rfl
 
-@[simp] theorem fact_one : fact 1 = 1 := rfl
-
 @[simp] theorem fact_succ (n) : fact (succ n) = succ n * fact n := rfl
+
+@[simp] theorem fact_one : fact 1 = 1 := rfl
 
 theorem fact_pos : ∀ n, 0 < fact n
 | 0        := zero_lt_one
@@ -1062,7 +1125,7 @@ coefficients. -/
 def choose : ℕ → ℕ → ℕ
 | _             0 := 1
 | 0       (k + 1) := 0
-| (n + 1) (k + 1) := choose n k + choose n (succ k)
+| (n + 1) (k + 1) := choose n k + choose n (k + 1)
 
 @[simp] lemma choose_zero_right (n : ℕ) : choose n 0 = 1 := by cases n; refl
 
@@ -1085,11 +1148,15 @@ by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
 choose_eq_zero_of_lt (lt_succ_self _)
 
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
-by induction n; simp [*, choose]
+by induction n; simp [*, choose, add_comm]
 
 /-- `choose n 2` is the `n`-th triangle number. -/
 lemma choose_two_right (n : ℕ) : choose n 2 = n * (n - 1) / 2 :=
-by { induction n, simp, simpa [n_ih, choose, add_one] using (triangle_succ n_n).symm }
+begin
+  induction n with n ih,
+  simp,
+  {rw triangle_succ n, simp [choose, ih], rw add_comm},
+end
 
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
@@ -1312,7 +1379,9 @@ end div
 lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
 | 0 0 h := ⟨0, by simp⟩
 | 0 (n+1) h := ⟨n+1, by simp⟩
-| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in ⟨k, by simp [hk]⟩
+| (m+1) (n+1) h :=
+  let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
+  ⟨k, by simp [hk, add_comm, add_left_comm]⟩
 
 lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
 | 0 0 h := false.elim $ lt_irrefl _ h
@@ -1379,3 +1448,56 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 end nat
+
+namespace monoid_hom
+
+variables {M : Type*} {G : Type*} [monoid M] [group G]
+
+@[simp, to_additive]
+theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
+nat.iterate₀ f.map_one
+
+@[simp, to_additive]
+theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
+  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
+nat.iterate₂ f.map_mul
+
+@[simp, to_additive]
+theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
+  f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
+nat.iterate₁ f.map_inv
+
+@[simp]
+theorem iterate_map_sub {A : Type*} [add_group A] (f : A →+ A) (n : ℕ) (x y) :
+  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
+nat.iterate₂ f.map_sub
+
+end monoid_hom
+
+namespace ring_hom
+
+variables {R : Type*} [semiring R] {S : Type*} [ring S]
+
+@[simp] theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
+nat.iterate₀ f.map_one
+
+@[simp] theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
+nat.iterate₀ f.map_zero
+
+@[simp] theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
+  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
+nat.iterate₂ f.map_mul
+
+@[simp] theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
+  f^[n] (x + y) = (f^[n] x) + (f^[n] y) :=
+nat.iterate₂ f.map_add
+
+@[simp] theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
+  f^[n] (-x) = -(f^[n] x) :=
+nat.iterate₁ f.map_neg
+
+@[simp] theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
+  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
+nat.iterate₂ f.map_sub
+
+end ring_hom

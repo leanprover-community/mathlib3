@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
+import tactic.lint
 
 -- Lean complains if this section is turned into a namespace
 open function
@@ -28,6 +29,8 @@ end subtype
 
 namespace subtype
 variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
+
+lemma val_eq_coe : @val _ p = coe := rfl
 
 protected lemma eq' : ∀ {a1 a2 : {x // p x}}, a1.val = a2.val → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
@@ -116,7 +119,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {p : α → Prop}
 @[simp] theorem coe_mk {α : Type*} {p : α → Prop}
  (a h) : (@mk α p a h : α) = a := rfl
 
-@[simp] theorem mk_eq_mk {α : Type*} {p : α → Prop}
+@[simp, nolint simp_nf] -- built-in reduction doesn't always work
+theorem mk_eq_mk {α : Type*} {p : α → Prop}
  {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ⟨λ H, by injection H, λ H, by congr; assumption⟩
 

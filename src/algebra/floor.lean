@@ -32,6 +32,8 @@ rounding
 
 variables {α : Type*}
 
+open_locale classical
+
 /--
 A `floor_ring` is a linear ordered ring over `α` with a function
 `floor : α → ℤ` satisfying `∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)`.
@@ -146,7 +148,7 @@ theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : 
     rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
     rcases h with ⟨hge, hlt, ⟨z, hz⟩⟩,
     rw [hz, int.cast_inj, floor_eq_iff, ←hz],
-    clear hz, split; linarith {discharger := `[simp]}
+    clear hz, split; simpa [sub_eq_add_neg]
   end⟩
 
 theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
@@ -160,14 +162,14 @@ theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z
   split, exact fract_lt_one _,
   use z + ⌊s⌋,
   rw [eq_add_of_sub_eq hz, int.cast_add],
-  unfold fract, simp
+  unfold fract, simp [sub_eq_add_neg]
 end⟩
 
 @[simp] lemma fract_fract (r : α) : fract (fract r) = fract r :=
-by rw fract_eq_fract; exact ⟨-⌊r⌋, by unfold fract;simp⟩
+by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, fract]⟩
 
 theorem fract_add (r s : α) : ∃ z : ℤ, fract (r + s) - fract r - fract s = z :=
-⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp⟩
+⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp [sub_eq_add_neg]; abel⟩
 
 theorem fract_mul_nat (r : α) (b : ℕ) : ∃ z : ℤ, fract r * b - fract (r * b) = z :=
 begin
@@ -221,7 +223,7 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 
 @[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
 
-lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
+lemma ceil_nonneg {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
 
@@ -234,7 +236,7 @@ def nat_ceil (a : α) : ℕ := int.to_nat (⌈a⌉)
 theorem nat_ceil_le {a : α} {n : ℕ} : nat_ceil a ≤ n ↔ a ≤ n :=
 by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
 
-theorem lt_nat_ceil {a : α} {n : ℕ} [decidable ((n : α) < a)] : n < nat_ceil a ↔ (n : α) < a :=
+theorem lt_nat_ceil {a : α} {n : ℕ} : n < nat_ceil a ↔ (n : α) < a :=
 not_iff_not.1 $ by rw [not_lt, not_lt, nat_ceil_le]
 
 theorem le_nat_ceil (a : α) : a ≤ nat_ceil a := nat_ceil_le.1 (le_refl _)
@@ -257,7 +259,7 @@ begin
   refl
 end
 
-theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable ((nat_ceil a : α) < a + 1)] :
+theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) :
   (nat_ceil a : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
   show nat_ceil (a + 1) = nat_ceil a + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));

@@ -809,3 +809,78 @@ do
 end norm_cast
 
 add_hint_tactic "norm_cast at *"
+
+/--
+The `norm_cast` family of tactics is used to normalize casts inside expressions.
+It is basically a simp tactic with a specific set of lemmas to move casts
+upwards in the expression.
+Therefore it can be used more safely as a non-terminating tactic.
+It also has special handling of numerals.
+
+For instance, given an assumption
+```lean
+a b : ℤ
+h : ↑a + ↑b < (10 : ℚ)
+```
+
+writing `norm_cast at h` will turn `h` into
+```lean
+h : a + b < 10
+```
+
+You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
+or `assumption_mod_cast`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `assumption_mod_cast` will normalize the goal and for every
+expression `h` in the context it will try to normalize `h` and use
+`exact h`.
+`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
+
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `norm_cast` lemmas in the forward direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+-/
+add_tactic_doc
+{ name := "norm_cast",
+  category   := doc_category.tactic,
+  decl_names := [``tactic.interactive.norm_cast, ``tactic.interactive.rw_mod_cast,
+                 ``tactic.interactive.apply_mod_cast, ``tactic.interactive.assumption_mod_cast,
+                 ``tactic.interactive.exact_mod_cast, ``tactic.interactive.push_cast],
+  tags       := ["coercions", "simplification"] }
+
+/--
+The `norm_cast` attribute should be given to lemmas that describe the
+behaviour of a coercion in regard to an operator, a relation, or a particular
+function.
+It only concerns lemmas involving `↑`, `⇑` and `↥`, and not the explicit
+functions that define the coercions.
+
+Examples:
+```lean
+@[norm_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n
+
+@[norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1
+
+@[norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
+
+@[norm_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
+
+@[norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
+
+@[norm_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
+
+@[norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n
+
+@[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
+```
+
+TODO: more details about the different categories of lemmas?
+TODO: bad examples?
+-/
+add_tactic_doc
+{ name := "norm_cast attributes",
+  category   := doc_category.attr,
+  decl_names := [``norm_cast.norm_cast_attr],
+  tags       := ["coercions", "simplification"] }

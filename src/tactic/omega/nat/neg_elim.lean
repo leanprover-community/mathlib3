@@ -1,10 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Negation elimination.
--/
+Negation elimination. -/
 
 import tactic.omega.nat.form
 
@@ -13,28 +11,33 @@ namespace nat
 
 open_locale omega.nat
 
-@[simp] def push_neg : form → form
+/-- push_neg p returns the result of normalizing ¬ p by
+    pushing the outermost negation all the way down,
+    until it reaches either a negation or an atom -/
+@[simp] def push_neg : preform → preform
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)
 | (p ∧* q) := (push_neg p) ∨* (push_neg q)
 | (¬*p)    := p
 | p        := ¬* p
 
 lemma push_neg_equiv :
-  ∀ {p : form}, form.equiv (push_neg p) (¬* p) :=
+  ∀ {p : preform}, preform.equiv (push_neg p) (¬* p) :=
 begin
-  form.induce `[intros v; try {refl}],
-  { simp only [classical.not_not, form.holds, push_neg] },
-  { simp only [form.holds, push_neg, not_or_distrib, ihp v, ihq v] },
-  { simp only [form.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
+  preform.induce `[intros v; try {refl}],
+  { simp only [classical.not_not, preform.holds, push_neg] },
+  { simp only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
+  { simp only [preform.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
 end
 
-def nnf : form → form
+/-- NNF transformation -/
+def nnf : preform → preform
 | (¬* p)   := push_neg (nnf p)
 | (p ∨* q) := (nnf p) ∨* (nnf q)
 | (p ∧* q) := (nnf p) ∧* (nnf q)
 | a        := a
 
-def is_nnf : form → Prop
+/-- Asserts that the given preform is in NNF -/
+def is_nnf : preform → Prop
 | (t =* s) := true
 | (t ≤* s) := true
 | ¬*(t =* s) := true
@@ -43,32 +46,32 @@ def is_nnf : form → Prop
 | (p ∧* q) := is_nnf p ∧ is_nnf q
 | _ := false
 
-lemma is_nnf_push_neg : ∀ p : form, is_nnf p → is_nnf (push_neg p) :=
+lemma is_nnf_push_neg : ∀ p : preform, is_nnf p → is_nnf (push_neg p) :=
 begin
-  form.induce `[intro h1; try {trivial}],
+  preform.induce `[intro h1; try {trivial}],
   { cases p; try {cases h1}; trivial },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption }
 end
 
-lemma is_nnf_nnf : ∀ p : form, is_nnf (nnf p) :=
+lemma is_nnf_nnf : ∀ p : preform, is_nnf (nnf p) :=
 begin
-  form.induce `[try {trivial}],
+  preform.induce `[try {trivial}],
   { apply is_nnf_push_neg _ ih },
   { constructor; assumption },
   { constructor; assumption }
 end
 
-lemma nnf_equiv : ∀ {p : form}, form.equiv (nnf p) p :=
+lemma nnf_equiv : ∀ {p : preform}, preform.equiv (nnf p) p :=
 begin
-  form.induce `[intros v; try {refl}; simp only [nnf]],
+  preform.induce `[intros v; try {refl}; simp only [nnf]],
   { rw push_neg_equiv,
     apply not_iff_not_of_iff, apply ih },
   { apply pred_mono_2' (ihp v) (ihq v) },
   { apply pred_mono_2' (ihp v) (ihq v) }
 end
 
-@[simp] def neg_elim_core : form → form
+@[simp] def neg_elim_core : preform → preform
 | (¬* (t =* s)) := (t.add_one ≤* s) ∨* (s.add_one ≤* t)
 | (¬* (t ≤* s)) := s.add_one ≤* t
 | (p ∨* q) := (neg_elim_core p) ∨* (neg_elim_core q)
@@ -77,7 +80,7 @@ end
 
 lemma neg_free_neg_elim_core : ∀ p, is_nnf p → (neg_elim_core p).neg_free :=
 begin
-  form.induce `[intro h1, try {simp only [neg_free, neg_elim_core]}, try {trivial}],
+  preform.induce `[intro h1, try {simp only [neg_free, neg_elim_core]}, try {trivial}],
   { cases p; try {cases h1}; try {trivial},
     constructor; trivial },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption },
@@ -92,30 +95,31 @@ begin
   { constructor; apply le_of_eq; rw h1  }
 end
 
-lemma implies_neg_elim_core : ∀ {p : form},
-  form.implies p (neg_elim_core p) :=
+lemma implies_neg_elim_core : ∀ {p : preform},
+  preform.implies p (neg_elim_core p) :=
 begin
-  form.induce `[intros v h, try {apply h}],
+  preform.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
     { have : preterm.val v (preterm.add_one t) ≤ preterm.val v s ∨
              preterm.val v (preterm.add_one s) ≤ preterm.val v t,
       { rw or.comm,
-        simpa only [form.holds, le_and_le_iff_eq.symm,
+        simpa only [preform.holds, le_and_le_iff_eq.symm,
           classical.not_and_distrib, not_le] using h },
       simpa only [form.holds, neg_elim_core, int.add_one_le_iff] },
-    simpa only [form.holds, not_le, int.add_one_le_iff] using h },
+    simpa only [preform.holds, not_le, int.add_one_le_iff] using h },
   { simp only [neg_elim_core], cases h;
     [{left, apply ihp}, {right, apply ihq}];
     assumption },
   apply and.imp (ihp _) (ihq _) h
 end
 
-def neg_elim : form → form := neg_elim_core ∘ nnf
+/-- Eliminate all negations in a preform -/
+def neg_elim : preform → preform := neg_elim_core ∘ nnf
 
-lemma neg_free_neg_elim {p : form} : (neg_elim p).neg_free :=
+lemma neg_free_neg_elim {p : preform} : (neg_elim p).neg_free :=
 neg_free_neg_elim_core _ (is_nnf_nnf _)
 
-lemma implies_neg_elim {p : form} : form.implies p (neg_elim p) :=
+lemma implies_neg_elim {p : preform} : preform.implies p (neg_elim p) :=
 begin
   intros v h1, apply implies_neg_elim_core,
   apply (nnf_equiv v).elim_right h1

@@ -8,7 +8,7 @@ Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
 import topology.uniform_space.cauchy topology.uniform_space.separation
 import topology.dense_embedding
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical
 open_locale uniformity topological_space
 
@@ -341,7 +341,7 @@ have de' : dense_embedding (dense_embedding.subtype_emb p e),
 have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
-  from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
+  from (closure_mono $ monotone_image $ hp) (mem_of_nhds hb),
 let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
@@ -414,7 +414,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   have set.prod (f '' preimage e m₁) (f '' preimage e m₂) ⊆ s,
     from calc set.prod (f '' preimage e m₁) (f '' preimage e m₂) =
       (λp:(β×β), (f p.1, f p.2)) '' (set.prod (preimage e m₁) (preimage e m₂)) : prod_image_image_eq
-    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : mono_image this
+    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : monotone_image this
     ... ⊆ s : image_subset_iff.mpr $ subset.refl _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),

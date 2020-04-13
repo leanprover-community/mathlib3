@@ -112,7 +112,7 @@ variables (A B : special_linear_group n R)
 
 @[simp] lemma det_coe_matrix : det A = 1 := A.2
 
-@[simp] lemma det_coe_fun : det ⇑A = 1 := A.2
+lemma det_coe_fun : det ⇑A = 1 := A.2
 
 @[simp] lemma to_lin_mul : to_lin (A * B) = (to_lin A).comp (to_lin B) := matrix.mul_to_lin A B
 

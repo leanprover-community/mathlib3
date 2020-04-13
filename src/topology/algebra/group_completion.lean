@@ -74,7 +74,8 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 
 lemma is_add_group_hom_map
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
-(is_add_group_hom_extension  ((continuous_coe _).comp hf) : _)
+@is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
+  ((continuous_coe _).comp hf)
 
 instance {α : Type*} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b

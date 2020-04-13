@@ -51,10 +51,10 @@ namespace interactive
 open interactive.types interactive lean.parser
 
 /-- The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
-  beyond depth `n` by replacing them with `hidden`, which is a variant
-  on the identity function. (Tactics should still mostly be able to see
-  through the abbreviation, but if you want to unhide the term you can use
-  `unelide`.) -/
+beyond depth `n` by replacing them with `hidden`, which is a variant
+on the identity function. (Tactics should still mostly be able to see
+through the abbreviation, but if you want to unhide the term you can use
+`unelide`.) -/
 meta def elide (n : parse small_nat) (loc : parse location) : tactic unit :=
 loc.apply
   (λ h, do t ← infer_type h >>= tactic.elide.replace n,
@@ -62,12 +62,28 @@ loc.apply
   (target >>= tactic.elide.replace n >>= tactic.change)
 
 /-- The `unelide (at ...)` tactic removes all `hidden` subterms in the target
-  types (usually added by `elide`). -/
+types (usually added by `elide`). -/
 meta def unelide (loc : parse location) : tactic unit :=
 loc.apply
   (λ h,  do t ← infer_type h,
             tactic.change_core (elide.unelide t) (some h))
   (target >>= tactic.change ∘ elide.unelide)
+
+/--
+The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
+beyond depth `n` by replacing them with `hidden`, which is a variant
+on the identity function. (Tactics should still mostly be able to see
+through the abbreviation, but if you want to unhide the term you can use
+`unelide`.)
+
+The `unelide (at ...)` tactic removes all `hidden` subterms in the target
+types (usually added by `elide`).
+-/
+add_tactic_doc
+{ name        := "elide / unelide",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
+  tags        := ["goal management", "context management", "rewrite"] }
 
 end interactive
 

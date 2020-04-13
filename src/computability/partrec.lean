@@ -68,7 +68,7 @@ h.snd ▸ (rfind_x p h.fst).2.2
   (rfind p).dom ↔ ∃ n, tt ∈ p n ∧ ∀ {m : ℕ}, m < n → (p m).dom :=
 iff.rfl
 
-@[simp] theorem rfind_dom' {p : ℕ →. bool} :
+theorem rfind_dom' {p : ℕ →. bool} :
   (rfind p).dom ↔ ∃ n, tt ∈ p n ∧ ∀ {m : ℕ}, m ≤ n → (p m).dom :=
 exists_congr $ λ n, and_congr_right $ λ pn,
 ⟨λ H m h, (eq_or_lt_of_le h).elim (λ e, e.symm ▸ pn.fst) (H _),

@@ -3,35 +3,38 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
-import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
+import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_theory.submonoid
 
 universes u v
 
+local attribute [instance, priority 10] is_ring_hom.comp
+
 namespace localization
-variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid S]
+variables (α : Type u) [comm_ring α] (S : set α)
 
 def r (x y : α × S) : Prop :=
 ∃ t ∈ S, ((x.2 : α) * y.1 - y.2 * x.1) * t = 0
 
 local infix ≈ := r α S
 
+theorem symm (x y : α × S) : x ≈ y → y ≈ x :=
+λ ⟨t, hts, ht⟩, ⟨t, hts, by rw [← neg_sub, ← neg_mul_eq_neg_mul, ht, neg_zero]⟩
+
+variable [is_submonoid S]
+
 section
 variables {α S}
 theorem r_of_eq {a₀ a₁ : α × S} (h : (a₀.2 : α) * a₁.1 = a₁.2 * a₀.1) : a₀ ≈ a₁ :=
-⟨1, is_submonoid.one_mem S, by rw [h, sub_self, mul_one]⟩
+⟨1, is_submonoid.one_mem, by rw [h, sub_self, mul_one]⟩
 end
 
 theorem refl (x : α × S) : x ≈ x := r_of_eq rfl
-
-theorem symm (x y : α × S) : x ≈ y → y ≈ x :=
-λ ⟨t, hts, ht⟩, ⟨t, hts, by rw [← neg_sub, ← neg_mul_eq_neg_mul, ht, neg_zero]⟩
 
 theorem trans : ∀ (x y z : α × S), x ≈ y → y ≈ z → x ≈ z :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨t, hts, ht⟩ ⟨t', hts', ht'⟩,
 ⟨s₂ * t' * t, is_submonoid.mul_mem (is_submonoid.mul_mem hs₂ hts') hts,
   calc (s₁ * r₃ - s₃ * r₁) * (s₂ * t' * t) =
-    t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') :
-      by simp [mul_left_comm, mul_add, mul_comm]
+    t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') : by ring
     ... = 0 : by simp only [subtype.coe_mk] at ht ht'; rw [ht, ht']; simp⟩
 
 instance : setoid (α × S) :=
@@ -70,7 +73,7 @@ instance : has_mul (localization α S) :=
   quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
     calc ((s₁ * s₂) * (r₃ * r₄) - (s₃ * s₄) * (r₁ * r₂)) * (t₆ * t₅) =
       t₆ * ((s₁ * r₃ - s₃ * r₁) * t₅) * r₂ * s₄ + t₅ * ((s₂ * r₄ - s₄ * r₂) * t₆) * r₃ * s₁ :
-        by simp [mul_left_comm, mul_add, mul_comm]
+        by ring
       ... = 0 : by simp only [subtype.coe_mk] at ht₅ ht₆; rw [ht₅, ht₆]; simp⟩⟩
 
 variables {α S}
@@ -103,13 +106,14 @@ by refine
   try {rcases b with ⟨r₂, s₂, hs₂⟩},
   try {rcases c with ⟨r₃, s₃, hs₃⟩},
   refine (quotient.sound $ r_of_eq _),
-  simp [mul_left_comm, mul_add, mul_comm] }
+  simp only [is_submonoid.coe_mul, is_submonoid.coe_one, subtype.coe_mk],
+  ring }
 
 instance : inhabited (localization α S) := ⟨0⟩
 
 instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
-{ map_add := λ x y, quotient.sound $ by simp,
-  map_mul := λ x y, quotient.sound $ by simp,
+{ map_add := λ x y, quotient.sound $ by simp [add_comm],
+  map_mul := λ x y, quotient.sound $ by simp [add_comm],
   map_one := rfl }
 
 variables {S}
@@ -148,11 +152,11 @@ by apply is_ring_hom.map_neg
 @[simp] lemma of_pow : (of (x ^ n) : localization α S) = (of x) ^ n :=
 by apply is_semiring_hom.map_pow
 
-@[simp] lemma of_is_unit (s : S) : is_unit (of s : localization α S) :=
-is_unit_unit $ to_units s
-
 @[simp] lemma of_is_unit' (s ∈ S) : is_unit (of s : localization α S) :=
 is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
+
+@[simp] lemma of_is_unit (s : S) : is_unit (of s : localization α S) :=
+is_unit_unit $ to_units s
 
 @[simp] lemma coe_zero : ((0 : α) : localization α S) = 0 := rfl
 @[simp] lemma coe_one : ((1 : α) : localization α S) = 1 := rfl
@@ -161,20 +165,20 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_mul : (↑(x * y) : localization α S) = x * y := of_mul _ _ _ _
 @[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := of_neg _ _ _
 @[simp] lemma coe_pow : (↑(x ^ n) : localization α S) = x ^ n := of_pow _ _ _ _
-@[simp] lemma coe_is_unit (s : S) : is_unit ((s : α) : localization α S) := of_is_unit _ _ _
 @[simp] lemma coe_is_unit' (s ∈ S) : is_unit ((s : α) : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
+@[simp] lemma coe_is_unit (s : S) : is_unit ((s : α) : localization α S) := of_is_unit _ _ _
 end
 
-@[simp] lemma mk_self {x : α} {hx : x ∈ S} :
+lemma mk_self {x : α} {hx : x ∈ S} :
   (mk x ⟨x, hx⟩ : localization α S) = 1 :=
-quotient.sound ⟨1, is_submonoid.one_mem S,
+quotient.sound ⟨1, is_submonoid.one_mem,
 by simp only [subtype.coe_mk, is_submonoid.coe_one, mul_one, one_mul, sub_self]⟩
 
-@[simp] lemma mk_self' {s : S} :
+lemma mk_self' {s : S} :
   (mk s s : localization α S) = 1 :=
 by cases s; exact mk_self
 
-@[simp] lemma mk_self'' {s : S} :
+lemma mk_self'' {s : S} :
   (mk s.1 s : localization α S) = 1 :=
 mk_self'
 
@@ -195,12 +199,12 @@ by rw [coe_mul_mk, mul_one]
 lemma mk_mul_mk (x y : α) (s t : S) :
   mk x s * mk y t = mk (x * y) (s * t) := rfl
 
-@[simp] lemma mk_mul_cancel_left (r : α) (s : S) :
+lemma mk_mul_cancel_left (r : α) (s : S) :
   mk (↑s * r) s = r :=
 by rw [mk_eq_mul_mk_one, mul_comm ↑s, coe_mul,
        mul_assoc, ← mk_eq_mul_mk_one, mk_self', mul_one]
 
-@[simp] lemma mk_mul_cancel_right (r : α) (s : S) :
+lemma mk_mul_cancel_right (r : α) (s : S) :
   mk (r * s) s = r :=
 by rw [mul_comm, mk_mul_cancel_left]
 
@@ -386,7 +390,7 @@ lift'.is_ring_hom _ _ _
 
 noncomputable def away_to_away_right (x y : α) : away x → away (x * y) :=
 localization.away.lift coe $
-is_unit_of_mul_one x (y * away.inv_self (x * y)) $
+is_unit_of_mul_eq_one x (y * away.inv_self (x * y)) $
 by rw [away.inv_self, coe_mul_mk, coe_mul_mk, mul_one, mk_self]
 
 instance away_to_away_right.is_ring_hom (x y : α) :
@@ -450,7 +454,7 @@ instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
 
 namespace fraction_ring
 open function
-variables {β : Type u} [integral_domain β] [decidable_eq β]
+variables {β : Type u} [integral_domain β]
 
 lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} :
   x ≠ 0 → y * x = 0 → y = 0 :=
@@ -461,7 +465,8 @@ lemma mem_non_zero_divisors_iff_ne_zero {x : β} :
 ⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
  λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
 
-variable (β)
+variables (β) [de : decidable_eq β]
+include de
 
 def inv_aux (x : β × (non_zero_divisors β)) : fraction_ring β :=
 if h : x.1 = 0 then 0 else ⟦⟨x.2, x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩⟧
@@ -501,15 +506,13 @@ from decidable_of_iff (s₁ * r₂ - s₂ * r₁ = 0)
 λ ⟨t, ht1, ht2⟩, or.resolve_right (mul_eq_zero.1 ht2) $ λ ht,
   one_ne_zero (ht1 1 ((one_mul t).symm ▸ ht))⟩
 
-instance : discrete_field (fraction_ring β) :=
+instance : field (fraction_ring β) :=
 by refine
 { inv            := has_inv.inv,
   zero_ne_one    := λ hzo,
     let ⟨t, hts, ht⟩ := quotient.exact hzo in
     zero_ne_one (by simpa using hts _ ht : 0 = 1),
   mul_inv_cancel := quotient.ind _,
-  inv_mul_cancel := quotient.ind _,
-  has_decidable_eq := fraction_ring.decidable_eq β,
   inv_zero := dif_pos rfl,
   .. localization.comm_ring };
 { intros x hnx,
@@ -519,7 +522,8 @@ by refine
   simp only [has_inv.inv, inv_aux, quotient.lift_beta, dif_neg this],
   exact (quotient.sound $ r_of_eq $ by simp [mul_comm]) }
 
-@[simp] lemma mk_eq_div {r s} : (mk r s : fraction_ring β) = (r / s : fraction_ring β) :=
+@[simp, nolint simp_nf] -- takes a crazy amount of time simplify lhs
+lemma mk_eq_div {r s} : (mk r s : fraction_ring β) = (r / s : fraction_ring β) :=
 show _ = _ * dite (s.1 = 0) _ _, by rw [dif_neg (mem_non_zero_divisors_iff_ne_zero.mp s.2)];
 exact localization.mk_eq_mul_mk_one _ _
 
@@ -535,13 +539,15 @@ begin
   simpa [mem_non_zero_divisors_iff_ne_zero.mp ht] using ht'
 end
 
+omit de
+
 lemma of.injective : function.injective (of : β → fraction_ring β) :=
-(is_add_group_hom.injective_iff _).mpr eq_zero_of
+(is_add_group_hom.injective_iff _).mpr $ by { classical, exact eq_zero_of }
 
 section map
 open function is_ring_hom
-variables {A : Type u} [integral_domain A] [decidable_eq A]
-variables {B : Type v} [integral_domain B] [decidable_eq B]
+variables {A : Type u} [integral_domain A]
+variables {B : Type v} [integral_domain B]
 variables (f : A → B) [is_ring_hom f]
 
 def map (hf : injective f) : fraction_ring A → fraction_ring B :=
@@ -578,7 +584,7 @@ end fraction_ring
 section ideals
 
 theorem map_comap (J : ideal (localization α S)) :
-  ideal.map coe (ideal.comap (coe : α → localization α S) J) = J :=
+  ideal.map (ring_hom.of coe) (ideal.comap (ring_hom.of (coe : α → localization α S)) J) = J :=
 le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
 localization.induction_on x $ λ r s hJ, (submodule.mem_coe _).2 $
 mul_one r ▸ coe_mul_mk r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
@@ -588,11 +594,86 @@ by rwa [coe_coe, coe_mul_mk, mk_mul_cancel_left] at this)
 def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
-{ to_fun := λ J, ideal.comap coe J,
+{ to_fun := λ J, ideal.comap (ring_hom.of coe) J,
   inj := function.injective_of_left_inverse (map_comap α),
   ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals
+
+section module
+/-! ### `module` section
+
+  Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
+-/
+
+set_option class.instance_max_depth 50
+
+variables (α S)
+
+instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra $ λ _, mul_comm _
+
+lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
+by { simp, refl }
+
+lemma coe_smul (c x : α) : (coe (c • x) : localization α S) = c • coe x :=
+of_smul α S c x
+
+lemma coe_mul_eq_smul (c : α) (x : localization α S) : coe c * x = c • x :=
+rfl
+
+lemma mul_coe_eq_smul (c : α) (x : localization α S) : x * coe c = c • x :=
+mul_comm x (coe c)
+
+/-- The embedding `coe : α → localization α S` induces a linear map. -/
+def lin_coe : α →ₗ[α] localization α S := ⟨coe, coe_add α S, coe_smul α S⟩
+
+@[simp] lemma lin_coe_apply (a : α) : lin_coe α S a = coe a := rfl
+
+instance coe_submodules : has_coe (ideal α) (submodule α (localization α S)) :=
+⟨submodule.map (lin_coe _ _)⟩
+
+@[simp] lemma of_id (a : α) : (algebra.of_id α (localization α S) : α → localization α S) a = ↑a :=
+rfl
+
+end module
+
+section is_integer
+
+/-- `a : localization α S` is an integer if it is an element of the original ring `α` -/
+def is_integer (S : set α) [is_submonoid S] (a : localization α S) : Prop :=
+a ∈ set.range (coe : α → localization α S)
+
+lemma is_integer_coe (a : α) : is_integer α S a :=
+⟨a, rfl⟩
+
+lemma is_integer_add {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a + b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' + b',
+  rw [coe_add, ha, hb]
+end
+
+lemma is_integer_mul {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a * b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' * b',
+  rw [coe_mul, ha, hb]
+end
+
+set_option class.instance_max_depth 50
+lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
+  is_integer α S (a • b) :=
+begin
+  rcases hb with ⟨b', hb⟩,
+  use a * b',
+  rw [←hb, ←coe_smul, smul_eq_mul]
+end
+
+end is_integer
 
 end localization

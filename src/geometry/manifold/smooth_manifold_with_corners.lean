@@ -271,23 +271,19 @@ def times_cont_diff_groupoid : structure_groupoid H :=
 pregroupoid.groupoid
 { property := λf s, times_cont_diff_on 𝕜 n (I.to_fun ∘ f ∘ I.inv_fun) (I.inv_fun ⁻¹' s ∩ range I.to_fun),
   comp     := λf g u v hf hg huv, begin
-    have A : unique_diff_on 𝕜 (I.inv_fun ⁻¹' (u ∩ (f ⁻¹' v)) ∩ range (I.to_fun)),
-      by { rw inter_comm, exact I.unique_diff.inter (I.continuous_inv_fun _ huv) },
     have : I.to_fun ∘ (g ∘ f) ∘ I.inv_fun = (I.to_fun ∘ g ∘ I.inv_fun) ∘ (I.to_fun ∘ f ∘ I.inv_fun),
       by { ext x, simp },
     rw this,
-    apply times_cont_diff_on.comp hg _ A,
+    apply times_cont_diff_on.comp hg _,
     { rintros x ⟨hx1, hx2⟩,
       simp at ⊢ hx1,
       exact ⟨hx1.2, (f (I.inv_fun x)), rfl⟩ },
-    { refine hf.mono _ A,
+    { refine hf.mono _,
       rintros x ⟨hx1, hx2⟩,
       exact ⟨hx1.1, hx2⟩ }
   end,
   id_mem   := begin
-    have A : unique_diff_on 𝕜 ((I.inv_fun ⁻¹' univ) ∩ (range I.to_fun)),
-      by simp [I.unique_diff],
-    apply times_cont_diff_on.congr (times_cont_diff_id.times_cont_diff_on A) A _,
+    apply times_cont_diff_on.congr (times_cont_diff_id.times_cont_diff_on),
     rintros x ⟨hx1, hx2⟩,
     rcases mem_range.1 hx2 with ⟨y, hy⟩,
     rw ← hy,
@@ -295,8 +291,6 @@ pregroupoid.groupoid
   end,
   locality := λf u hu H, begin
     apply times_cont_diff_on_of_locally_times_cont_diff_on,
-    show unique_diff_on 𝕜 ((I.inv_fun ⁻¹' u) ∩ (range (I.to_fun))),
-      by { rw inter_comm, exact I.unique_diff.inter (I.continuous_inv_fun _ hu) },
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
@@ -312,8 +306,6 @@ pregroupoid.groupoid
   end,
   congr    := λf g u hu fg hf, begin
     apply hf.congr,
-    show unique_diff_on 𝕜 ((I.inv_fun ⁻¹' u) ∩ (range (I.to_fun))),
-      by { rw inter_comm, exact I.unique_diff.inter (I.continuous_inv_fun _ hu) },
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
@@ -338,7 +330,7 @@ local homeomorphisms -/
 lemma times_cont_diff_groupoid_zero_eq :
   times_cont_diff_groupoid 0 I = continuous_groupoid H :=
 begin
-  apply le_antisymm lattice.le_top,
+  apply le_antisymm le_top,
   assume u hu,
   -- we have to check that every local homeomorphism belongs to `times_cont_diff_groupoid 0 I`,
   -- by unfolding its definition
@@ -365,12 +357,8 @@ begin
   suffices h : times_cont_diff_on 𝕜 n (I.to_fun ∘ I.inv_fun) (I.inv_fun ⁻¹' s ∩ range I.to_fun),
     by simp [h],
   have : times_cont_diff_on 𝕜 n id (univ : set E) :=
-    times_cont_diff_id.times_cont_diff_on is_open_univ.unique_diff_on,
-  apply this.congr_mono _ _ (subset_univ _),
-  { rw inter_comm,
-    exact I.unique_diff.inter (I.continuous_inv_fun s hs) },
-  { assume x hx,
-    simp [hx.2] }
+    times_cont_diff_id.times_cont_diff_on,
+  exact this.congr_mono (λ x hx, by simp [hx.2]) (subset_univ _)
 end
 
 /-- The composition of a local homeomorphism from `H` to `M` and its inverse belongs to

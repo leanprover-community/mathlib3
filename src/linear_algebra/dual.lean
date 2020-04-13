@@ -70,7 +70,7 @@ end module
 namespace is_basis
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
 instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
@@ -186,9 +186,12 @@ begin
     { exfalso, apply ne.symm h₁ (by assumption) } }
 end
 
+omit de
+
 theorem dual_dim_eq [fintype ι] :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
+  classical,
   have :=  linear_equiv.dim_eq_lift  h.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
@@ -201,7 +204,7 @@ namespace vector_space
 
 universes u v
 variables {K : Type u} {V : Type v}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 open module module.dual submodule linear_map cardinal is_basis
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
@@ -256,7 +259,7 @@ open vector_space module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 
 local notation `V'` := dual K V
 
@@ -274,7 +277,7 @@ open vector_space module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
 include h
@@ -289,7 +292,7 @@ def coeffs (v : V) : ι →₀ K :=
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
 omit h
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
+private def help_tcs : has_scalar K V := mul_action.to_has_scalar
 
 local attribute [instance] help_tcs
 

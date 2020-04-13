@@ -52,14 +52,13 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric lattice
+open function set premetric
 
 namespace metric
 section approx_gluing
 
 variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
-open lattice
 open sum (inl inr)
 
 /-- Define a predistance on α ⊕ β, for which Φ p and Ψ p are at distance ε -/
@@ -225,7 +224,8 @@ private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : �
   end
 | (inr x) (inl y) h := begin
     have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
-      le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
+      le_cinfi (λp, by simpa [add_comm]
+                         using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
     exfalso,
     linarith
@@ -272,7 +272,7 @@ def sum.dist : α ⊕ β → α ⊕ β → ℝ
 
 lemma sum.dist_eq_glue_dist {p q : α ⊕ β} :
   sum.dist p q = glue_dist (λ_ : unit, default α) (λ_ : unit, default β) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm]
+by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
 by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]

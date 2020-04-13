@@ -141,6 +141,14 @@ def last_string : name → string
 @[reducible] def is_coe (n : name) : Prop :=
 n = `has_coe.coe ∨ n = `coe ∨ n = `coe_fn
 
+/--
+Constructs a (non-simple) name from a string.
+
+Example: ``name.from_string "foo.bar" = `foo.bar``
+-/
+meta def from_string (s : string) : name :=
+from_components $ s.split (= '.')
+
 end name
 
 namespace level
@@ -245,7 +253,7 @@ protected meta def to_num : expr → option num
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
 protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
+| `(has_one.one) := some 1
 | `(bit0 %%e) := bit0 <$> e.to_pos_nat
 | `(bit1 %%e) := bit1 <$> e.to_pos_nat
 | _           := none
@@ -253,7 +261,7 @@ protected meta def to_pos_nat : expr → option ℕ
 /-- Turns an expression into a natural number, assuming it is only built up from
   `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
 protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
+| `(has_zero.zero) := some 0
 | e                  := e.to_pos_nat
 
 /-- Turns an expression into a integer, assuming it is only built up from
@@ -331,6 +339,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
 
+/--
+Test `t` contains the specified subexpression `e`, or a metavariable.
+This represents the notion that `e` "may occur" in `t`,
+possibly after subsequent unification.
+-/
+meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
+-- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
+¬ t.list_meta_vars.empty ∨ e.occurs t
+
 /-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
@@ -403,13 +420,15 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
@@ -686,8 +705,18 @@ e.is_constructor d.to_name ∨
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
 d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
 
+/--
+Returns true iff `d` is an automatically-generated or internal declaration.
+-/
+meta def is_auto_or_internal (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
+
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
+
+meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
+unchecked_cast
+expr.has_decidable_eq

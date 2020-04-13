@@ -33,8 +33,8 @@ include 𝒞 𝒟
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
   (α ≪≫ β).app X = α.app X ≪≫ β.app X := rfl
 
-@[simp] lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).hom = α.hom.app X := rfl
-@[simp] lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.app X := rfl
+lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).hom = α.hom.app X := rfl
+lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.app X := rfl
 
 @[simp] lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
 congr_fun (congr_arg app α.hom_inv_id) X
@@ -53,14 +53,10 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
   hom_inv_id' := begin rw [←comp_app, iso.inv_hom_id, ←id_app] end,
   inv_hom_id' := begin rw [←comp_app, iso.hom_inv_id, ←id_app] end }
 
-@[simp] lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
-begin
-  rw ←comp_app, simp,
-end
-@[simp] lemma inv_app_hom_app_id (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 _ :=
-begin
-  rw ←comp_app, simp,
-end
+lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
+hom_inv_id_app _ _
+lemma inv_app_hom_app_id (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 _ :=
+inv_hom_id_app _ _
 
 variables {X Y : C}
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :

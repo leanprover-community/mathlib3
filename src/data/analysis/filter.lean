@@ -226,10 +226,10 @@ theorem ne_bot_iff {f : filter α} (F : f.realizer) :
   f ≠ ⊥ ↔ ∀ a : F.σ, (F.F a).nonempty :=
 begin
   classical,
-  rw [not_iff_comm, ← lattice.le_bot_iff, F.le_iff realizer.bot, not_forall],
+  rw [not_iff_comm, ← le_bot_iff, F.le_iff realizer.bot, not_forall],
   simp only [set.not_nonempty_iff_eq_empty],
   exact ⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
-    λ h, let ⟨x, h⟩ := h () in ⟨x, lattice.le_bot_iff.1 h⟩⟩
+    λ h, let ⟨x, h⟩ := h () in ⟨x, le_bot_iff.1 h⟩⟩
 end
 
 end filter.realizer

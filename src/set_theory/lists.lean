@@ -14,7 +14,7 @@ variables {α : Type*}
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
-| nil {} : lists' tt
+| nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
 def lists (α : Type*) := Σ b, lists' α b
@@ -243,7 +243,6 @@ section decidable
 | (psum.inr $ psum.inl ⟨l₁, l₂⟩) := sizeof l₁ + sizeof l₂
 | (psum.inr $ psum.inr ⟨l₁, l₂⟩) := sizeof l₁ + sizeof l₂
 
-local attribute [-simp] add_comm add_assoc
 open well_founded_tactics
 
 theorem sizeof_pos {b} (l : lists' α b) : 0 < sizeof l :=

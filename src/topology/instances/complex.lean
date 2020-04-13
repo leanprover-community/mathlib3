@@ -18,7 +18,7 @@ namespace complex
 instance : metric_space ℂ :=
 { dist               := λx y, (x - y).abs,
   dist_self          := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
+  eq_of_dist_eq_zero := by simp [sub_eq_zero],
   dist_comm          := assume x y, complex.abs_sub _ _,
   dist_triangle      := assume x y z, complex.abs_sub_le _ _ _ }
 

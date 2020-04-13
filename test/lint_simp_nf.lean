@@ -24,11 +24,7 @@ res ← linter.simp_nf.test decl,
 guard $ res.is_some
 
 
-
-
-
--- TODO: there are some issues with `coe_to_fun` due to
--- the implementation using `mk_specialized_congr_lemma_simp`
+-- also works with `coe_to_fun`
 
 structure morphism :=
 (f : ℕ → ℕ)
@@ -52,5 +48,5 @@ open tactic
 #eval do
 decl ← get_decl ``h_c,
 res ← linter.simp_nf.test decl,
--- TODO: linter should complain
-guard $ res.is_none
+-- linter complains
+guard $ res.is_some

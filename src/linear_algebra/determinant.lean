@@ -7,6 +7,7 @@ import data.matrix.basic
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
+import tactic.ring
 
 universes u v
 open equiv equiv.perm finset function
@@ -71,18 +72,10 @@ begin
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
-calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
-    (λ (p : Π (a : n), a ∈ univ → n), ε σ *
-    univ.attach.prod (λ i, M (σ i.1) (p i.1 (mem_univ _)) * N (p i.1 (mem_univ _)) i.1))) :
-  by simp only [det, mul_val, prod_sum, mul_sum]
-... = univ.sum (λ σ : perm n, univ.sum
-    (λ p : n → n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  sum_congr rfl (λ σ _, sum_bij
-    (λ f h i, f i (mem_univ _)) (λ _ _, mem_univ _)
-    (by simp) (by simp [funext_iff]) (λ b _, ⟨λ i hi, b i, by simp⟩))
-... = univ.sum (λ p : n → n, univ.sum
+calc det (M ⬝ N) = univ.sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  finset.sum_comm
+  by simp only [det, mul_val, prod_univ_sum, mul_sum,
+    fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   eq.symm $ sum_subset (filter_subset _)
@@ -143,7 +136,7 @@ end
     conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
     conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
     congr,
-    { norm_num },
+    { simp [pow_two] },
     { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }

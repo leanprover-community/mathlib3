@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Scott Morrison
 -/
 
 import data.finset data.set.finite algebra.big_operators algebra.module
@@ -402,6 +402,19 @@ if_pos rfl
 @[simp] lemma erase_ne [has_zero β] {a a' : α} {f : α →₀ β} (h : a' ≠ a) : (f.erase a) a' = f a' :=
 if_neg h
 
+@[simp] lemma erase_single [has_zero β] {a : α} {b : β} : (erase a (single a b)) = 0 := begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same], refl },
+  { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
+end
+
+lemma erase_single_ne [has_zero β] {a a' : α} {b : β} (h : a ≠ a') : (erase a (single a' b)) = single a' b :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
+  { rw [erase_ne hs] }
+end
+
 end erase
 
 /-!
@@ -432,14 +445,24 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
   (0 : α →₀ β).prod h = 1 :=
 rfl
 
-section nat_sub
-instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+@[to_additive]
+lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β') [comm_monoid γ] (h : α → β → α' → β' → γ) :
+  f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
+begin
+  dsimp [finsupp.prod],
+  rw finset.prod_comm,
+end
 
-@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
-  (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
+@[simp, to_additive]
+lemma prod_ite_eq [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
+  f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 
-end nat_sub
+/-- A restatement of `prod_ite_eq` with the equality test reversed. -/
+@[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
+lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
+  f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 
 section add_monoid
 variables [add_monoid β]
@@ -502,6 +525,13 @@ ext $ λ a',
 if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
 else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
 
+@[simp] lemma erase_add (a : α) (f f' : α →₀ β) : erase a (f + f') = erase a f + erase a f' :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, add_apply, erase_same, erase_same, erase_same, add_zero] },
+  rw [add_apply, erase_ne hs, erase_ne hs, erase_ne hs, add_apply],
+end
+
 @[elab_as_eliminator]
 protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)
   (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
@@ -539,6 +569,47 @@ lemma map_range_add [add_monoid β₁] [add_monoid β₂]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 end add_monoid
+
+section nat_sub
+instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+
+@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
+  (g₁ - g₂) a = g₁ a - g₂ a :=
+rfl
+
+@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
+end
+
+-- These next two lemmas are used in developing
+-- the partial derivative on `mv_polynomial`.
+
+lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
+  u - single a 1 + u' = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
+  u + (u' - single a 1) = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+end nat_sub
+
 
 instance [add_comm_monoid β] : add_comm_monoid (α →₀ β) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
@@ -888,32 +959,6 @@ end
 
 end comap_domain
 
-/-! ### Declarations about the product of `finsupp`s -/
-
-/-- The product of `f g : α →₀ β` is the finitely supported function
-  whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
-  such that `x + y = a`. (Think of the product of multivariate
-  polynomials where `α` is the monoid of monomial exponents.) -/
-instance [has_add α] [semiring β] : has_mul (α →₀ β) :=
-⟨λf g, f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)⟩
-
-lemma mul_def [has_add α] [semiring β] {f g : α →₀ β} :
-  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
-rfl
-
-lemma support_mul [has_add α] [semiring β] (a b : α →₀ β) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
-
-/-- The unit of the multiplication is `single 0 1`, i.e. the function
-  that is `1` at `0` and zero elsewhere. -/
-instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
-⟨single 0 1⟩
-
-lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) :=
-rfl
-
 /-! ### Declarations about `filter` -/
 
 section filter
@@ -1151,7 +1196,7 @@ begin
       support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
       multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
     refl,
-    refine disjoint_mono support_single_subset (subset.refl _) _,
+    refine disjoint.mono_left support_single_subset _,
     rwa [finset.singleton_eq_singleton, finset.singleton_disjoint] }
 end
 
@@ -1277,77 +1322,6 @@ end
 
 end curry_uncurry
 
-/-!
-### Declarations related to semirings
-
-When `α` is an `add_monoid` and `β` is a `semiring`, there is a `semiring` instance on
-`α →₀ β`.
--/
-
-section
-variables [add_monoid α] [semiring β]
-
--- TODO: the simplifier unfolds 0 in the instance proof!
-private lemma zero_mul (f : α →₀ β) : 0 * f = 0 :=
-by simp only [mul_def, sum_zero_index]
-
-private lemma mul_zero (f : α →₀ β) : f * 0 = 0 :=
-by simp only [mul_def, sum_zero_index, sum_zero]
-
-private lemma left_distrib (a b c : α →₀ β) : a * (b + c) = a * b + a * c :=
-by simp only [mul_def, sum_add_index, mul_add, _root_.mul_zero, single_zero, single_add,
-  eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add]
-
-private lemma right_distrib (a b c : α →₀ β) : (a + b) * c = a * c + b * c :=
-by simp only [mul_def, sum_add_index, add_mul, _root_.mul_zero, _root_.zero_mul, single_zero,
-  single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
-
-instance : semiring (α →₀ β) :=
-{ one       := 1,
-  mul       := (*),
-  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.zero_mul,
-    single_zero, sum_zero, zero_add, one_mul, sum_single],
-  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := zero_mul,
-  mul_zero  := mul_zero,
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
-    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, _root_.zero_mul, _root_.mul_zero, sum_zero, sum_add],
-  left_distrib  := left_distrib,
-  right_distrib := right_distrib,
-  .. finsupp.add_comm_monoid }
-
-end
-
-instance [add_comm_monoid α] [comm_semiring β] : comm_semiring (α →₀ β) :=
-{ mul_comm := assume f g,
-  begin
-    simp only [mul_def, finsupp.sum, mul_comm],
-    rw [finset.sum_comm],
-    simp only [add_comm]
-  end,
-  .. finsupp.semiring }
-
-instance [add_monoid α] [ring β] : ring (α →₀ β) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  .. finsupp.semiring }
-
-instance [add_comm_monoid α] [comm_ring β] : comm_ring (α →₀ β) :=
-{ mul_comm := mul_comm, .. finsupp.ring}
-
-lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ : β}:
-  single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
-(sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
-  (sum_single_index (by rw [_root_.mul_zero, single_zero]))
-
-lemma prod_single [add_comm_monoid α] [comm_semiring β]
-  {s : finset ι} {a : ι → α} {b : ι → β} :
-  s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
-finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
-  single_mul_single, sum_insert has, prod_insert has]
-
 section
 
 instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) :=
@@ -1371,7 +1345,7 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
 instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..finsupp.semimodule α β }
 
-instance [discrete_field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
+instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
 { ..finsupp.module α β }
 
 variables {α β}
@@ -1411,7 +1385,7 @@ ext $ λ a', by by_cases a = a';
 
 end
 
-@[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :
+@[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :
   (b • v) a = b • (v a) :=
 rfl
 
@@ -1606,31 +1580,31 @@ instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_left_cancel_semigroup (σ →₀ α) :=
 { add_left_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_left_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_right_cancel_semigroup (σ →₀ α) :=
 { add_right_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_right_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
-  ordered_cancel_comm_monoid (σ →₀ α) :=
+instance [ordered_cancel_add_comm_monoid α] :
+  ordered_cancel_add_comm_monoid (σ →₀ α) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
-lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+lemma le_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+@[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 begin
   split,

@@ -33,7 +33,7 @@ instance : order_topology ℝ≥0 :=
     end)
     begin
       apply coinduced_le_iff_le_induced.1,
-      rw [order_topology.topology_eq_generate_intervals ℝ],
+      rw @order_topology.topology_eq_generate_intervals ℝ _,
       apply le_generate_from,
       assume s hs,
       rcases hs with ⟨a, rfl | rfl⟩,
@@ -44,7 +44,7 @@ instance : order_topology ℝ≥0 :=
           have : {b : ℝ≥0 | a < b } = set.univ,
             from (set.eq_univ_iff_forall.2 $ assume b, lt_of_lt_of_le this b.2),
           rw [this],
-          exact topological_space.generate_open.univ _ } },
+          exact topological_space.generate_open.univ } },
       { show (topological_space.generate_from _).is_open {b : ℝ≥0 | a > b },
         by_cases ha : 0 ≤ a,
         { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inr rfl⟩ },
@@ -103,15 +103,14 @@ open_locale classical
 
 @[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
 if hf : summable f
-then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf)
+then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ hf.has_sum)
 else by simp [tsum, hf, mt summable_coe.1 hf]
 
 lemma summable_comp_injective {β : Type*} {f : α → nnreal} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
   summable (f ∘ i) :=
 nnreal.summable_coe.1 $
-show summable ((coe ∘ f) ∘ i),
-from summable_comp_of_summable_of_injective _ (nnreal.summable_coe.2 hf) hi
+show summable ((coe ∘ f) ∘ i), from summable.summable_comp_of_injective (nnreal.summable_coe.2 hf) hi
 
 end coe
 

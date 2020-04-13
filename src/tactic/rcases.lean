@@ -393,7 +393,7 @@ The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
 uses the following recursive grammar:
 
-```
+```lean
 patt ::= (patt_list "|")* patt_list
 patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
 ```
@@ -426,6 +426,12 @@ meta def rcases : parse rcases_parse → tactic unit
   pe ← pp p,
   trace $ ↑"Try this: rcases " ++ pe ++ " with " ++ to_fmt patt
 
+add_tactic_doc
+{ name       := "rcases",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rcases],
+  tags       := ["induction"] }
+
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
@@ -437,6 +443,8 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 `rintro`, but will also print the `rintro` invocation that would have the same
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
+
+`rintros` is an alias for `rintro`.
 -/
 meta def rintro : parse rintro_parse → tactic unit
 | (sum.inl []) := intros []
@@ -448,6 +456,13 @@ meta def rintro : parse rintro_parse → tactic unit
 
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
+
+add_tactic_doc
+{ name       := "rintro",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rintro, `tactic.interactive.rintros],
+  tags       := ["induction"],
+  inherit_description_from := `tactic.interactive.rintro }
 
 setup_tactic_parser
 
@@ -461,15 +476,23 @@ with_desc "patt_list? (: expr)? (:= expr)?" $
 
 /--
 The `obtain` tactic is a combination of `have` and `rcases`.
-`obtain ⟨patt⟩ : type,
- { ... }`
+
+```lean
+obtain ⟨patt⟩ : type,
+{ ... }
+```
 is equivalent to
-`have h : type,
- { ... },
- rcases h with ⟨patt⟩`.
- The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
- If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
- If `type` is omitted, `:= proof` is required.
+```lean
+have h : type,
+{ ... },
+rcases h with ⟨patt⟩
+```
+
+The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+
+If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+If `type` is omitted, `:= proof` is required.
 -/
 meta def obtain : interactive.parse obtain_parse → tactic unit
 | (pat, tp, some val) :=
@@ -486,6 +509,12 @@ meta def obtain : interactive.parse obtain_parse → tactic unit
 | (pat, none, none) :=
   fail $ "`obtain` requires either an expected type or a value.\n" ++
          "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
+
+add_tactic_doc
+{ name       := "obtain",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.obtain],
+  tags       := ["induction"] }
 
 end interactive
 end tactic

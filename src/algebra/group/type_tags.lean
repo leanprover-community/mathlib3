@@ -2,15 +2,29 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Type tags `multiplicative` and `additive` that turn additive structures into multiplicative, and vice versa
 -/
 import algebra.group.hom
+/-!
+# Type tags that turn additive structures into multiplicative, and vice versa
+
+We define two type tags:
+
+* `additive α`: turns any multiplicative structure on `α` into the corresponding
+  additive structure on `additive α`;
+* `multiplicative α`: turns any additive structure on `α` into the corresponding
+  multiplicative structure on `multiplicative α`.
+
+We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
 
+/-- If `α` carries some multiplicative structure, then `additive α` carries the corresponding
+additive structure. -/
 def additive (α : Type*) := α
+/-- If `α` carries some additive structure, then `multiplicative α` carries the corresponding
+multiplicative structure. -/
 def multiplicative (α : Type*) := α
 
 instance [inhabited α] : inhabited (additive α) := ⟨(default _ : α)⟩
@@ -91,30 +105,6 @@ instance [comm_group α] : add_comm_group (additive α) :=
 instance [add_comm_group α] : comm_group (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.group }
-
-instance additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
-  @is_add_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
-
-instance multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
-  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
-
-instance additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
-  @is_add_monoid_hom (additive α) (additive β) _ _ f :=
-{ map_zero := @is_monoid_hom.map_one α β _ _ f _ }
-
-instance multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
-  @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_one := @is_add_monoid_hom.map_zero α β _ _ f _ }
-
-instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
-  @is_add_group_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
-
-instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
-  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
 
 /-- Reinterpret `f : α →+ β` as `multiplicative α →* multiplicative β`. -/
 def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] (f : α →+ β) :

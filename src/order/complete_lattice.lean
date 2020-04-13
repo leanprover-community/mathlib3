@@ -10,7 +10,6 @@ import order.bounded_lattice order.bounds data.set.basic tactic.pi_instances tac
 set_option old_structure_cmd true
 open set
 
-namespace lattice
 universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
@@ -43,6 +42,32 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
+/-- Create a `complete_lattice` from a `partial_order` and `Inf` function
+that returns the greatest lower bound of a set. Usually this constructor provides
+poor definitional equalities, so it should be used with
+`.. complete_lattice_of_Inf α _`. -/
+def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
+  [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
+  complete_lattice α :=
+{ bot := Inf univ,
+  bot_le := λ x, (is_glb_Inf univ).1 trivial,
+  top := Inf ∅,
+  le_top := λ a, (is_glb_Inf ∅).2 $ by simp,
+  sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
+  inf := λ a b, Inf {a, b},
+  le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
+  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
+  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
+  le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
+  le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
+  le_Inf := λ s a ha, (is_glb_Inf s).2 ha,
+  Inf_le := λ s a ha, (is_glb_Inf s).1 ha,
+  Sup := λ s, Inf (upper_bounds s),
+  le_Sup := λ s a ha, (is_glb_Inf (upper_bounds s)).2 $ λ b hb, hb ha,
+  Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
+  .. H1, .. H2 }
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 end prio
@@ -60,19 +85,11 @@ theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf 
 
 lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
 
--- Use `private lemma` + `alias` to escape `namespace lattice` without closing it
-
-private lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
-
-/-- If `a` is the least upper bound of `s`, then `Sup s = a` -/
-alias is_lub.Sup_eq ← is_lub.Sup_eq
+lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
 
 lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
 
-private lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
-
-/-- If `a` is the greatest lower bound of `s`, then `Inf s = a` -/
-alias is_glb.Inf_eq ← is_glb.Inf_eq
+lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_Sup hb)
@@ -133,10 +150,12 @@ is_glb_univ.Inf_eq
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
 
-@[simp] theorem Sup_singleton {a : α} : Sup {a} = a :=
+-- We will generalize this to conditionally complete lattices in `cSup_singleton`.
+theorem Sup_singleton {a : α} : Sup {a} = a :=
 is_lub_singleton.Sup_eq
 
-@[simp] theorem Inf_singleton {a : α} : Inf {a} = a :=
+-- We will generalize this to conditionally complete lattices in `cInf_singleton`.
+theorem Inf_singleton {a : α} : Inf {a} = a :=
 is_glb_singleton.Inf_eq
 
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
@@ -209,15 +228,11 @@ le_Sup ⟨i, rfl⟩
 
 lemma is_lub_supr : is_lub (range s) (⨆j, s j) := is_lub_Sup _
 
-private lemma is_lub.supr_eq (h : is_lub (range s) a) : (⨆j, s j) = a := h.Sup_eq
-
-alias is_lub.supr_eq ← is_lub.supr_eq
+lemma is_lub.supr_eq (h : is_lub (range s) a) : (⨆j, s j) = a := h.Sup_eq
 
 lemma is_glb_infi : is_glb (range s) (⨅j, s j) := is_glb_Inf _
 
-private lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
-
-alias is_glb.infi_eq ← is_glb.infi_eq
+lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
 
 theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
@@ -239,6 +254,17 @@ supr_le $ le_supr _ ∘ h
 
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
+
+lemma monotone.map_supr_ge [complete_lattice β] {f : α → β} (hf : monotone f) :
+  (⨆ i, f (s i)) ≤ f (supr s) :=
+supr_le $ λ i, hf $ le_supr _ _
+
+lemma monotone.map_supr2_ge [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  (⨆ i (h : ι' i), f (s i h)) ≤ f (⨆ i (h : ι' i), s i h) :=
+calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
+  supr_le_supr $ λ i, hf.map_supr_ge
+... ≤ f (⨆ i (h : ι' i), s i h) : hf.map_supr_ge
 
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
@@ -286,6 +312,16 @@ le_infi $ infi_le _ ∘ h
 @[simp] theorem le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
 
+lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
+  f (infi s) ≤ (⨅ i, f (s i)) :=
+le_infi $ λ i, hf $ infi_le _ _
+
+lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
+calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
+... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
+
 @[congr] theorem infi_congr_Prop {α : Type u} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 begin
@@ -298,10 +334,12 @@ begin
   exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
 end
 
-@[simp] theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
+-- We will generalize this to conditionally complete lattices in `cinfi_const`.
+theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
 by rw [infi, range_const, Inf_singleton]
 
-@[simp] theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
+-- We will generalize this to conditionally complete lattices in `csupr_const`.
+theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, Sup_singleton]
 
 @[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
@@ -562,9 +600,6 @@ theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
 
-@[simp] theorem insert_of_has_insert {α : Type*} (x : α) (a : set α) :
-  has_insert.insert x a = insert x a := rfl
-
 theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
 eq.trans infi_union $ congr_arg (λx:α, x ⊓ (⨅x∈s, f x)) infi_infi_eq_left
 
@@ -707,7 +742,7 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  ..lattice.bounded_lattice_Prop }
+  ..bounded_lattice_Prop }
 
 lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
@@ -757,7 +792,6 @@ assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, 
 end complete_lattice
 
 section ord_continuous
-open lattice
 variables [complete_lattice α] [complete_lattice β]
 
 /-- A function `f` between complete lattices is order-continuous
@@ -774,11 +808,9 @@ calc f a₁ ≤ f a₁ ⊔ f a₂ : le_sup_left
   ... = _ : by rw [sup_of_le_right h]
 
 end ord_continuous
-end lattice
 
 namespace order_dual
-open lattice
-variable (α : Type*)
+variable (α)
 
 instance [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
@@ -788,16 +820,15 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   Sup_le := @complete_lattice.le_Inf α _,
   Inf_le := @complete_lattice.le_Sup α _,
   le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.lattice.bounded_lattice α, ..order_dual.lattice.has_Sup α, ..order_dual.lattice.has_Inf α }
+  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
-{ .. order_dual.lattice.complete_lattice α, .. order_dual.decidable_linear_order α }
+{ .. order_dual.complete_lattice α, .. order_dual.decidable_linear_order α }
 
 end order_dual
 
 namespace prod
-open lattice
-variables (α : Type*) (β : Type*)
+variables (α β)
 
 instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
 ⟨λs, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
@@ -814,8 +845,8 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   le_Inf := assume s p h,
     ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
       le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  .. prod.lattice.bounded_lattice α β,
-  .. prod.lattice.has_Sup α β,
-  .. prod.lattice.has_Inf α β }
+  .. prod.bounded_lattice α β,
+  .. prod.has_Sup α β,
+  .. prod.has_Inf α β }
 
 end prod

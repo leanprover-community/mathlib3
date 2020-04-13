@@ -9,7 +9,7 @@ import logic.basic data.set.basic data.equiv.basic
 import order.complete_boolean_algebra category.basic
 import tactic.finish data.sigma.basic order.galois_connection
 
-open function tactic set lattice auto
+open function tactic set auto
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
@@ -36,6 +36,7 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+/-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
@@ -57,12 +58,13 @@ variables {f : α → β}
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
 
-def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
+/-- `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s` -/
+def kern_image (f : α → β) (s : set α) : set β := {y | ∀ ⦃x⦄, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
 assume a b,
 ⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
-  assume h x (hx : f x ∈ a), h hx x rfl⟩
+  assume h x (hx : f x ∈ a), h hx rfl⟩
 
 end galois_connection
 
@@ -84,9 +86,15 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
+ext $ λ i, mem_Union.symm
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨assume (h : ∀a ∈ {a : set β | ∃i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem set_of_forall (p : ι → β → Prop) : {x | ∀ i, p i x} = ⋂ i, {x | p i x} :=
+ext $ λ i, mem_Inter.symm
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
 -- TODO: should be simpler when sets' order is based on lattices
@@ -274,7 +282,7 @@ begin rw insert_eq, simp [bInter_union] end
 
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
-by rw insert_of_has_insert; simp [inter_comm]
+by simp [inter_comm]
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
@@ -300,7 +308,7 @@ begin rw [insert_eq], simp [bUnion_union] end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
-by rw insert_of_has_insert; simp [union_comm]
+by simp [union_comm]
 
 @[simp] -- complete_boolean_algebra
 theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
@@ -331,7 +339,7 @@ theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t
   x ∈ ⋃₀ S :=
 ⟨t, ⟨ht, hx⟩⟩
 
-@[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
+theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
 
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}
@@ -489,9 +497,9 @@ set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 instance : complete_boolean_algebra (set α) :=
 { neg                 := compl,
   sub                 := (\),
-  inf_neg_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_neg_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   le_sup_inf          := distrib_lattice.le_sup_inf,
+  inf_compl_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
+  sup_compl_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   sub_eq              := assume x y, rfl,
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,
@@ -603,18 +611,18 @@ set.ext $ assume a, by simp [@eq_comm α a]
 lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
 set.ext $ assume b, by simp [@eq_comm β b]
 
-lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
+@[simp] lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
 by rw [← sUnion_image, ← range_comp, sUnion_range]
 
-lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
+@[simp] lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
 by rw [← sInter_image, ← range_comp, sInter_range]
 
 variables {s : set γ} {f : γ → α} {g : α → set β}
 
-lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+@[simp] lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
 by rw [← sUnion_image, ← image_comp, sUnion_image]
 
-lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+@[simp] lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
 by rw [← sInter_image, ← image_comp, sInter_image]
 
 end image
@@ -771,19 +779,19 @@ disjoint.comm.1
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
 @[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
 
-theorem disjoint_mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
+theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
 
-theorem disjoint_mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint_mono h (le_refl _)
+theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
+disjoint.mono h (le_refl _)
 
-theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint_mono (le_refl _) h
+theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
+disjoint.mono (le_refl _) h
 
 @[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
 by simp [disjoint]
 
-lemma ne_of_disjoint {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
+lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
 end disjoint
@@ -816,22 +824,24 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
+are disjoint.  -/
 def pairwise_disjoint (s : set (set α)) : Prop :=
 pairwise_on s disjoint
 
-lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
+lemma pairwise_disjoint.subset {s t : set (set α)} (h : s ⊆ t)
   (ht : pairwise_disjoint t) : pairwise_disjoint s :=
 pairwise_on.mono h ht
 
-lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
+lemma pairwise_disjoint.range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
   (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
 begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_mono (hf x) (hf y) (ht _ x.2 _ y.2 _),
+  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine (ht _ x.2 _ y.2 _).mono (hf x) (hf y),
   intro h, apply hxy, apply congr_arg f, exact subtype.eq h
 end
 
 /- warning: classical -/
-lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
+lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
 

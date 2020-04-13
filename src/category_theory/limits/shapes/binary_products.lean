@@ -173,6 +173,34 @@ def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X
   has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
 
+@[ext] lemma prod.hom_ext [has_binary_products.{v} C] {Y A B : C} {a b : Y ⟶ A ⨯ B}
+  (h1 : a ≫ prod.fst = b ≫ prod.fst) (h2 : a ≫ prod.snd = b ≫ prod.snd) : a = b :=
+limit.hom_ext (by rintros (_ | _); simpa)
+
+@[simp, reassoc]
+lemma prod.lift_fst [has_binary_products.{v} C] {Y A B : C} (f : Y ⟶ A) (g : Y ⟶ B) :
+  prod.lift f g ≫ prod.fst = f :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma prod.lift_snd {Y A B : C} [has_binary_products.{v} C] (f : Y ⟶ A) (g : Y ⟶ B) :
+  prod.lift f g ≫ prod.snd = g :=
+limit.lift_π _ _
+
+@[ext] lemma coprod.hom_ext [has_binary_coproducts.{v} C] {Y A B : C} {a b : A ⨿ B ⟶ Y}
+  (h1 : coprod.inl ≫ a = coprod.inl ≫ b) (h2 : coprod.inr ≫ a = coprod.inr ≫ b) : a = b :=
+colimit.hom_ext (by rintros (_ | _); simpa)
+
+@[simp, reassoc]
+lemma coprod.inl_desc [has_binary_coproducts.{v} C] {Y A B : C} (f : A ⟶ Y) (g : B ⟶ Y) :
+  coprod.inl ≫ coprod.desc f g = f :=
+colimit.ι_desc _ _
+
+@[simp, reassoc]
+lemma coprod.inr_desc {Y A B : C} [has_binary_coproducts.{v} C] (f : A ⟶ Y) (g : B ⟶ Y) :
+  coprod.inr ≫ coprod.desc f g = g :=
+colimit.ι_desc _ _
+
 section
 
 variables {C} [has_binary_products.{v} C]

@@ -20,6 +20,8 @@ universes v₁ v₂ u₁ u₂
 open category_theory category_theory.category category_theory.limits
 namespace category_theory
 
+section connected
+set_option default_priority 100
 /--
 We define a connected category as a _nonempty_ category for which every
 functor to a discrete category is constant.
@@ -32,13 +34,14 @@ This allows us to show that the functor X ⨯ - preserves connected limits.
 -/
 class connected (J : Type v₂) [𝒥 : category.{v₁} J] extends inhabited J :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
+end connected
 
 section J
 variables {J : Type v₂} [𝒥 : category.{v₁} J]
 include 𝒥
 
 /-- If J is connected, any functor to a discrete category is constant on the nose. -/
-def any_functor_eq_constant [conn : connected J] {α : Type*} (F : J ⥤ discrete α) :
+lemma any_functor_eq_constant [conn : connected J] {α : Type*} (F : J ⥤ discrete α) :
   F = (functor.const J).obj (F.obj (default J)) :=
 begin
   apply functor.ext _ _,
@@ -61,7 +64,7 @@ This can be thought of as a local-to-global property.
 
 The converse is shown in `connected.of_constant_of_preserves_morphisms`
 -/
-def constant_function_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
+lemma constant_function_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
   F j = F (default J) :=
 @congr_arg (J ⥤ discrete α) _ _ _ (λ t, t.obj j) (any_functor_eq_constant { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) })
 
@@ -84,7 +87,7 @@ then `p` contains all of `J`.
 
 The converse is given in `connected.of_induct`.
 -/
-def induct_on_objects [connected J] (p : set J) (h0 : default J ∈ p)
+lemma induct_on_objects [connected J] (p : set J) (h0 : default J ∈ p)
   (h1 : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) (j : J) :
   j ∈ p :=
 begin
@@ -288,7 +291,7 @@ For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` fro
 category must be constant.
 This is the key property of connected categories which we use to establish properties about limits.
 -/
-def nat_trans_from_connected [conn : connected J] {X Y : C}
+lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
   ∀ (j : J), α.app j = (α.app (default J) : X ⟶ Y) :=
 @constant_function_of_preserves_morphisms _ _ _

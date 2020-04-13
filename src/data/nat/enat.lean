@@ -197,8 +197,7 @@ protected lemma lt_add_iff_pos_right {x y : enat} (hx : x ≠ ⊤) : x < x + y �
 by { conv_rhs { rw [← enat.add_lt_add_iff_left hx] }, rw [add_zero] }
 
 lemma lt_add_one {x : enat} (hx : x ≠ ⊤) : x < x + 1 :=
--- TODO: why doesn't norm_cast simplify 0 < 1 to 0 < 1?
-by { rw [enat.lt_add_iff_pos_right hx], apply coe_lt_coe.2, norm_num }
+by { rw [enat.lt_add_iff_pos_right hx], norm_cast, norm_num }
 
 lemma le_of_lt_add_one {x y : enat} (h : x < y + 1) : x ≤ y :=
 begin

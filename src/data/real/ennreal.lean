@@ -130,7 +130,7 @@ lemma coe_mono : monotone (coe : nnreal → ennreal) := λ _ _, coe_le_coe.2
 
 @[simp, norm_cast] lemma coe_bit0 : (↑(bit0 r) : ennreal) = bit0 r := coe_add
 @[simp, norm_cast] lemma coe_bit1 : (↑(bit1 r) : ennreal) = bit1 r := by simp [bit1]
-lemma coe_two : ((2:nnreal) : ennreal) = 2 := rfl -- TODO: by norm_cast
+lemma coe_two : ((2:nnreal) : ennreal) = 2 := by norm_cast
 
 protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one

@@ -411,7 +411,7 @@ end composition
 ### Compositions as sets
 
 Combinatorial viewpoints on compositions, seen as finite subsets of `fin (n+1)` containing `0` and
-`n`, where the points of the set (but `n`) correspond to the leftmost points of each block.
+`n`, where the points of the set (other than `n`) correspond to the leftmost points of each block.
 -/
 
 /-- Bijection between compositions of `n` and subsets of `{0, ..., n-2}`, defined by

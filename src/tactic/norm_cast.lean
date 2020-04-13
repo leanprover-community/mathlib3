@@ -103,7 +103,9 @@ protected def to_string : label → string
 | move   := "move"
 | squash := "squash"
 
-instance has_to_string : has_to_string label := ⟨label.to_string⟩
+instance : has_to_string label := ⟨label.to_string⟩
+instance : has_repr label := ⟨label.to_string⟩
+meta instance : has_to_format label := ⟨λ l, l.to_string⟩
 
 /-- Convert `string` into `label`. -/
 def of_string : string -> option label

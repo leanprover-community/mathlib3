@@ -314,6 +314,7 @@ lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := (lin.mk' f).map_smul
 
 end is_linear_map
 
+/-- Ring of linear endomorphismsms of a module. -/
 abbreviation module.End (R : Type u) (M : Type v)
   [comm_ring R] [add_comm_group M] [module R M] := M →ₗ[R] M
 

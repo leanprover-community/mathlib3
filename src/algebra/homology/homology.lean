@@ -76,7 +76,7 @@ image.map (arrow.hom_mk' (cochain_complex.comm_at f i).symm)
 @[simp]
 lemma image_map_ι {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
   image_map f i ≫ image.ι (C'.d i) = image.ι (C.d i) ≫ f.f (i + 1) :=
-by rw image.map_hom_mk'_ι (cochain_complex.comm_at f i).symm
+image.map_hom_mk'_ι (cochain_complex.comm_at f i).symm
 
 end
 

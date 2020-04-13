@@ -395,7 +395,7 @@ begin
   exact H
 end
 
-/-- Two compositions (possible of different integers) coincide if and only if they have the
+/-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks. -/
 lemma sigma_eq_iff_blocks_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
   c = c' ↔ c.2.blocks = c'.2.blocks :=

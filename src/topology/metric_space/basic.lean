@@ -320,7 +320,7 @@ protected theorem mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β →
   (hf₀ : ∀ i, p i → 0 < f i) (hf : ∀ ⦃ε⦄, 0 < ε → ∃ i (hi : p i), f i ≤ ε) :
   (𝓤 α).has_basis p (λ i, {p:α×α | dist p.1 p.2 < f i}) :=
 begin
-  refine λ s, uniformity_basis_dist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     obtain ⟨i, hi, H⟩ : ∃ i (hi : p i), f i ≤ ε, from hf ε₀,
@@ -348,7 +348,7 @@ protected theorem mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | dist p.1 p.2 ≤ f x}) :=
 begin
-  refine λ s, uniformity_basis_dist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases dense ε₀ with ⟨ε', hε'⟩,
@@ -606,7 +606,7 @@ distance coincide. -/
 /-- Expressing the uniformity in terms of `edist` -/
 protected lemma metric.uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε:ennreal, 0 < ε) (λ ε, {p | edist p.1 p.2 < ε}) :=
-begin
+⟨begin
   intro t,
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
   { use [ennreal.of_real ε, ennreal.of_real_pos.2 ε0],
@@ -617,7 +617,7 @@ begin
     rw [ennreal.of_real_pos] at ε0',
     refine ⟨ε', ε0', λ a b h, Hε (lt_trans _ hε)⟩,
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
-end
+end⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=

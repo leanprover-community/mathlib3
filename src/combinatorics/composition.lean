@@ -19,7 +19,7 @@ We implement two different structures covering these two viewpoints on compositi
 one, made of a list of positive integers summing to `n`, is the main one and is called
 `composition n`. The second one is useful for combinatorial arguments (for instance to show that
 the number of compositions of `n` is `2^(n-1)`). It is given by a subset of `{0, ..., n}`
-containing `0` and `n`, where the elements of the subset (but `n`) correspond to the leftmost
+containing `0` and `n`, where the elements of the subset (other than `n`) correspond to the leftmost
 points of each block. The main API is built on `composition n`, and we provide an equivalence
 between the two types.
 
@@ -43,11 +43,11 @@ Let `c : composition n` be a composition of `n`. Then
   `fin n`;
 * `c.index j`, for `j : fin n`, is the index of the block containing `j`.
 
-We turn two to the second viewpoint on compositions, that we realize as a finset of `fin (n+1)`.
+We turn to the second viewpoint on compositions, that we realize as a finset of `fin (n+1)`.
 `c : composition_as_set n` is a structure made of a finset of `fin (n+1)` called `c.boundaries`
 and proofs that it contains `0` and `n`. (Taking a finset of `fin n` containing `0` would not
 make sense in the edge case `n = 0`, while the previous description works in all cases).
-The elements of this set (but `n`) correspond to leftmost points of blocks.
+The elements of this set (other than `n`) correspond to leftmost points of blocks.
 Thus, there is an equiv between `composition n` and `composition_as_set n`. We
 only construct basic API on `composition_as_set` (notably `c.length` and `c.blocks`) to be able
 to construct this equiv, called `composition_equiv n`. Since there is a straightforward equiv
@@ -61,8 +61,8 @@ from a `composition_as_set` and called `composition_as_set_equiv n`), we deduce 
 The main motivation for this structure and its API is in the construction of the composition of
 formal multilinear series, and the proof that the composition of analytic functions is analytic.
 
-The representation of a composition as a list is very handy as lists are very flexible and have
-already a well developed API.
+The representation of a composition as a list is very handy as lists are very flexible and already
+have a well-developed API.
 
 ## Tags
 
@@ -262,6 +262,10 @@ def embedding (i : fin c.length) : fin (c.blocks_fun i) → fin n :=
 lemma embedding_inj (i : fin c.length) : function.injective (c.embedding i) :=
 λ a b hab, by simpa [embedding, fin.ext_iff] using hab
 
+/--
+`index_exists` asserts there is some `i` so `j < c.size_up_to (i+1)`.
+In the next definition we use `nat.find` to produce the minimal such index.
+-/
 lemma index_exists {j : ℕ} (h : j < n) :
   ∃ i : ℕ, j < c.size_up_to i.succ ∧ i < c.length :=
 begin
@@ -376,7 +380,7 @@ begin
     exact c.mem_range_embedding j }
 end
 
-/-- Two compositions (possible of different integers) coincide if and only if they have the
+/-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks of positive integers. -/
 lemma sigma_eq_iff_blocks_pnat_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
   c = c' ↔ c.2.blocks_pnat = c'.2.blocks_pnat :=
@@ -391,7 +395,7 @@ begin
   exact H
 end
 
-/-- Two compositions (possible of different integers) coincide if and only if they have the
+/-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks. -/
 lemma sigma_eq_iff_blocks_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
   c = c' ↔ c.2.blocks = c'.2.blocks :=
@@ -407,7 +411,7 @@ end composition
 ### Compositions as sets
 
 Combinatorial viewpoints on compositions, seen as finite subsets of `fin (n+1)` containing `0` and
-`n`, where the points of the set (but `n`) correspond to the leftmost points of each block.
+`n`, where the points of the set (other than `n`) correspond to the leftmost points of each block.
 -/
 
 /-- Bijection between compositions of `n` and subsets of `{0, ..., n-2}`, defined by

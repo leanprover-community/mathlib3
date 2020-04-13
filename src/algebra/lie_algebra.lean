@@ -182,6 +182,8 @@ structure morphism (R : Type u) (L : Type v) (L' : Type w)
   extends linear_map R L L' :=
 (map_lie : ∀ {x y : L}, to_fun ⁅x, y⁆ = ⁅to_fun x, to_fun y⁆)
 
+attribute [nolint doc_blame] lie_algebra.morphism.to_linear_map
+
 infixr ` →ₗ⁅⁆ `:25 := morphism _
 notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
 
@@ -231,6 +233,9 @@ more convenient to define via linear equivalence to get `.to_linear_equiv` for f
 structure equiv (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends L →ₗ⁅R⁆ L', L ≃ₗ[R] L'
+
+attribute [nolint doc_blame] lie_algebra.equiv.to_morphism
+attribute [nolint doc_blame] lie_algebra.equiv.to_linear_equiv
 
 notation L ` ≃ₗ⁅`:50 R `⁆ ` L' := equiv R L L'
 

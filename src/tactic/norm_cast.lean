@@ -6,7 +6,7 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
 Normalizing casts inside expressions.
 -/
 
-import tactic.basic tactic.interactive
+import tactic.converter.interactive tactic.hint
 
 /-!
 # A tactic for normalizing casts inside expressions
@@ -223,7 +223,7 @@ meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option labe
 -- As a workaround, we encode `option label` as de Bruijn variables.
 section param_encoding_hack
 
-meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
+private meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
 p ← attr.get_param_untyped decl,
 match p with
 | expr.var 0 := pure none

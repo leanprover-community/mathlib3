@@ -48,32 +48,6 @@ namespace expr
 
 open tactic expr
 
-/--
-`flip_aux tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
-`Π ..., b ↔ a`. It returns two `pexpr`s. The first is the Prop `Π ..., a = b` and the second
-is a proof of this prop.
--/
-meta def flip_aux : expr → expr → option (pexpr × pexpr)
-| `(%%a = %%b) e := some (``(%%b = %%a), ``(eq.symm %%e))
-| `(%%a ↔ %%b) e := some (``(%%b ↔ %%a), ``(iff.symm %%e))
-| (pi n bi d b) e := do
-  (b', e') ← flip_aux b (expr.lift_vars e 0 1 (var 0)),
-  let d' := pexpr.of_expr d,
-  let new_ty := pi n bi d' b',
-  let new_e := lam n bi d' e',
-  some (new_ty, new_e)
-| _ _ := none
-
-/--
-TODO: describe
--/
-meta def flip (ty e : expr) : tactic (expr × expr) :=
-do
-  (new_ty, new_e) ← flip_aux ty e,
-  new_ty ← to_expr new_ty,
-  new_e ← to_expr new_e,
-  return (new_ty, new_e)
-
 --TODO: don't count coercions inside implicit parts of the expression?
 /--
 `is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments.
@@ -218,8 +192,7 @@ do
 meta def add_move (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   ty ← infer_type e,
-  (rev_ty, rev_e) ← expr.flip ty e,
-  new_up ← simp_lemmas.add cache.up rev_e,
+  new_up ← cache.up.add e tt,
   new_down ← simp_lemmas.add cache.down e,
   return {
     up     := new_up,

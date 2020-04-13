@@ -250,12 +250,24 @@ lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} :
 by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
     @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
 
+section norm_cast_workaround
+
+local attribute [simp] private lemma two : (2 : ℝ*) = 1 + 1 := rfl
+local attribute [simp] private lemma two' : (2 : ℝ) = 1 + 1 := rfl
+
+-- Otherwise the following fails:
+-- #eval norm_cast.coe_to_numeral `((2 : ℕ) : ℝ*)
+-- #eval norm_cast.coe_to_numeral `((2 : ℕ) : ℝ)
+-- #eval norm_cast.numeral_to_coe `(2 : ℝ)
+
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,
 have hxr' : _ := hxr (d / 2) (half_pos hd),
 have hys' : _ := hys (d / 2) (half_pos hd),
 ⟨by convert add_lt_add hxr'.1 hys'.1 using 1; norm_cast; linarith,
  by convert add_lt_add hxr'.2 hys'.2 using 1; norm_cast; linarith⟩
+
+end norm_cast_workaround
 
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) :=
 λ d hd, by show -(r : ℝ*) - d < -x ∧ -x < -r + d; cases (hxr d hd); split; linarith

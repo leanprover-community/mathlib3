@@ -50,7 +50,7 @@ lemma pow_bit1_helper [monoid α] (a t : α) (b : ℕ) (h : a ^ b = t) :
   a ^ bit1 b = t * t * a :=
 by simp [pow_bit1, h]
 
-lemma lt_add_of_pos_helper [ordered_cancel_comm_monoid α]
+lemma lt_add_of_pos_helper [ordered_cancel_add_comm_monoid α]
   (a b c : α) (h : a + b = c) (h₂ : 0 < b) : a < c :=
 h ▸ (lt_add_iff_pos_right _).2 h₂
 
@@ -111,7 +111,7 @@ meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (exp
 | _ := failed
 
 meta def prove_pos : instance_cache → expr → tactic (instance_cache × expr)
-| c `(has_one.one _) := do (c, p) ← c.mk_app ``zero_lt_one [], return (c, p)
+| c `(has_one.one) := do (c, p) ← c.mk_app ``zero_lt_one [], return (c, p)
 | c `(bit0 %%e)      := do (c, p) ← prove_pos c e, (c, p) ← c.mk_app ``bit0_pos [e, p], return (c, p)
 | c `(bit1 %%e)      := do (c, p) ← prove_pos c e, (c, p) ← c.mk_app ``bit1_pos' [e, p], return (c, p)
 | c `(%%e₁ / %%e₂)   := do
@@ -125,7 +125,7 @@ meta def prove_lt (simp : expr → tactic (expr × expr)) : instance_cache → e
   (c, p) ← prove_lt c e₁ e₂,
   (c, p) ← c.mk_app ``neg_lt_neg [e₁, e₂, p],
   return (c, p)
-| c `(- %%e₁) `(has_zero.zero _) := do
+| c `(- %%e₁) `(has_zero.zero) := do
   (c, p) ← prove_pos c e₁,
   (c, p) ← c.mk_app ``neg_neg_of_pos [e₁, p],
   return (c, p)
@@ -137,7 +137,7 @@ meta def prove_lt (simp : expr → tactic (expr × expr)) : instance_cache → e
   (c, z) ← c.mk_app ``has_zero.zero [],
   (c, p) ← c.mk_app ``lt_trans [me₁, z, e₂, p₁, p₂],
   return (c, p)
-| c `(has_zero.zero _) e₂ := prove_pos c e₂
+| c `(has_zero.zero) e₂ := prove_pos c e₂
 | c e₁ e₂ := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   d ← expr.of_rat c.α (n₂ - n₁),
@@ -295,7 +295,10 @@ meta def eval_div_ext (simp : expr → tactic (expr × expr)) : expr → tactic 
   | _ := failed
   end,
   p₁ ← mk_app ``propext [@expr.const tt n [] e₁ e₂],
-  (e', p₂) ← simp `(%%e₂ % %%e₁ = 0),
+  (c, el) ← c.mk_app ``has_mod.mod [e₂, e₁],
+  (c, z) ← c.mk_app ``has_zero.zero [],
+  e ← mk_app ``eq [el, z],
+  (e', p₂) ← simp e,
   p' ← mk_eq_trans p₁ p₂,
   return (e', p')
 | _ := failed

@@ -584,17 +584,17 @@ section sum
 open finset
 
 /-- sum of finte numbers is still finite -/
-lemma sum_lt_top [decidable_eq α] {s : finset α} {f : α → ennreal} :
+lemma sum_lt_top {s : finset α} {f : α → ennreal} :
   (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
 with_top.sum_lt_top
 
 /-- sum of finte numbers is still finite -/
-lemma sum_lt_top_iff [decidable_eq α] {s : finset α} {f : α → ennreal} :
+lemma sum_lt_top_iff {s : finset α} {f : α → ennreal} :
   s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 with_top.sum_lt_top_iff
 
 /-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is infinity -/
-lemma to_nnreal_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
+lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
   ennreal.to_nnreal (s.sum f) = s.sum (λa, ennreal.to_nnreal (f a)) :=
 begin
   rw [← coe_eq_coe, coe_to_nnreal, coe_finset_sum, sum_congr],
@@ -604,7 +604,7 @@ begin
 end
 
 /-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
-lemma to_real_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
+lemma to_real_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
   ennreal.to_real (s.sum f) = s.sum (λa, ennreal.to_real (f a)) :=
 by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.coe_sum], refl }
 
@@ -704,11 +704,11 @@ by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 nnreal.inv_one
 @[simp] lemma div_one {a : ennreal} : a / 1 = a :=
 by simp [ennreal.div_def]
 
-protected lemma inv_pow' {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
+protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin
   by_cases a = 0; cases a; cases n; simp [*, none_eq_top, some_eq_coe,
     zero_pow, top_pow, nat.zero_lt_succ] at *,
-  rw [← coe_inv h, ← coe_pow, ← coe_inv, nnreal.inv_pow', coe_pow],
+  rw [← coe_inv h, ← coe_pow, ← coe_inv, nnreal.inv_pow, coe_pow],
   rw [← ne.def] at h,
   rw [← zero_lt_iff_ne_zero] at *,
   apply pow_pos h

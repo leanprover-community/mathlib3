@@ -69,10 +69,10 @@ section
   variables {ra rb}
 
   @[simp] theorem lex_inl_inl {a₁ a₂} : lex ra rb (inl a₁) (inl a₂) ↔ ra a₁ a₂ :=
-  ⟨λ h, by cases h; assumption, lex.inl _⟩
+  ⟨λ h, by cases h; assumption, lex.inl⟩
 
   @[simp] theorem lex_inr_inr {b₁ b₂} : lex ra rb (inr b₁) (inr b₂) ↔ rb b₁ b₂ :=
-  ⟨λ h, by cases h; assumption, lex.inr _⟩
+  ⟨λ h, by cases h; assumption, lex.inr⟩
 
   @[simp] theorem lex_inr_inl {b a} : ¬ lex ra rb (inr b) (inl a) :=
   λ h, by cases h

@@ -109,10 +109,10 @@ Note in particular the order! The "maps on the right" convention was chosen; `g 
 
 open category_theory.category
 
-example : 𝟙 X ≫ g = g := id_comp C g
-example : g ≫ 𝟙 Y = g := comp_id C g
-example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc C f g h
-example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc C f g h -- note \gg is right associative
+example : 𝟙 X ≫ g = g := id_comp g
+example : g ≫ 𝟙 Y = g := comp_id g
+example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc f g h
+example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc f g h -- note \gg is right associative
 
 -- All four examples above can also be proved with `simp`.
 

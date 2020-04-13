@@ -86,9 +86,15 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
+ext $ λ i, mem_Union.symm
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨assume (h : ∀a ∈ {a : set β | ∃i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem set_of_forall (p : ι → β → Prop) : {x | ∀ i, p i x} = ⋂ i, {x | p i x} :=
+ext $ λ i, mem_Inter.symm
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
 -- TODO: should be simpler when sets' order is based on lattices
@@ -190,6 +196,14 @@ by rw [diff_eq, compl_Union, inter_Inter]; refl
 theorem diff_Inter (s : set β) (t : ι → set β) :
   s \ (⋂ i, t i) = ⋃ i, s \ t i :=
 by rw [diff_eq, compl_Inter, inter_Union]; refl
+
+lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
+  (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
+by simp only [directed_on, exists_prop, mem_Union, exists_imp_distrib]; exact
+assume a₁ b₁ fb₁ a₂ b₂ fb₂,
+let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
+    ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
+⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 /- bounded unions and intersections -/
 
@@ -378,6 +392,13 @@ subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
 theorem sUnion_union (S T : set (set α)) : ⋃₀ (S ∪ T) = ⋃₀ S ∪ ⋃₀ T := Sup_union
 
 theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂₀ T := Inf_union
+
+theorem sInter_Union (s : ι → set (set α)) : ⋂₀ (⋃ i, s i) = ⋂ i, ⋂₀ s i :=
+begin
+  ext x,
+  simp only [mem_Union, mem_Inter, mem_sInter, exists_imp_distrib],
+  split ; tauto
+end
 
 @[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T := Sup_insert
 

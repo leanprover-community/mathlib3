@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
-  tactic.derive_inhabited
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+  tactic.lean_core_docs tactic.derive_inhabited
 
 universe variable u
 
@@ -713,6 +713,24 @@ meta structure apply_any_opt :=
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
 /--
+This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
+and evaluates these as thunks before trying to apply them.
+
+We need to do this to avoid metavariables getting stuck during subsequent rounds of `apply`.
+-/
+meta def apply_any_thunk
+  (lemmas : list (tactic expr))
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
+
+/--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
 
 `apply_any lemmas opt` allows control over how lemmas are applied.
@@ -729,13 +747,7 @@ meta def apply_any
   (lemmas : list expr)
   (opt : apply_any_opt := {})
   (tac : tactic unit := skip) : tactic unit :=
-do
-  let modes := [skip]
-    ++ (if opt.use_symmetry then [symmetry] else [])
-    ++ (if opt.use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, opt.apply H >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+apply_any_thunk (lemmas.map pure) opt tac
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
 meta def apply_assumption : tactic unit :=
@@ -913,10 +925,16 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -1436,6 +1454,18 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.success r s') := (finalizer >> pure r) s'
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
+
+/-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
+meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s :=
+  let msg (_ : unit) : format := match msg with
+    | some msg := add_msg ++ format.line ++ msg ()
+    | none := add_msg
+    end in
+  result.exception msg p s
+| ok := ok
+end
 
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/

@@ -7,15 +7,22 @@ import data.option.defs data.mllist tactic.core
 
 open tactic
 
+/-- Inductive type with two constructors `L` and `R`,
+that represent the left and right hand sides of equations and iffs.
+
+This type is used in the development of rewriting tactics such as
+`perform_nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
 @[derive decidable_eq, derive inhabited]
 inductive side
 | L
 | R
 
+/-- Involution on `side`, swaps `L` and `R`. -/
 def side.other : side → side
 | side.L := side.R
 | side.R := side.L
 
+/-- String representation of `side`. -/
 def side.to_string : side → string
 | side.L := "L"
 | side.R := "R"

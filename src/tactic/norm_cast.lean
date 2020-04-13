@@ -151,44 +151,6 @@ private meta def count_head_coes : expr → ℕ
 private meta def count_internal_coes (e : expr) : ℕ :=
 count_coes e - count_head_coes e
 
-/-- Auxiliary function for `norm_cast.classify_type`. -/
-private meta def classify_type_aux_old (lhs rhs : expr) : tactic label :=
-do
-  let lhs_head_coes := count_head_coes lhs,
-  let lhs_internal_coes := count_internal_coes lhs,
-  let rhs_head_coes := count_head_coes rhs,
-  let rhs_internal_coes := count_internal_coes rhs,
-  if lhs_head_coes = 0 ∧ lhs_internal_coes ≥ 1 then
-    if rhs_head_coes = 0 ∧ rhs_internal_coes = 0 then
-      return elim
-    else
-      fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"
-  else if lhs_head_coes = 1 ∧ lhs_internal_coes = 0 then
-    if rhs_head_coes = 0 then
-      if rhs_internal_coes ≥ 1 then
-        return move
-      else
-        return squash
-    else
-      fail "norm_cast: badly shaped lemma, rhs can't start with coe"
-  else if lhs_head_coes ≥ 2 ∧ lhs_internal_coes = 0 then
-    if rhs_head_coes ≤ lhs_head_coes ∧ rhs_internal_coes = 0 then
-      return squash
-    else
-      fail "norm_cast: badly shaped squash lemma"
-  else
-    fail "norm_cast: lhs must contain at least one coe"
-
---old version, kept for debuging purposes
-/-- TODO: update and describe -/
-meta def classify_type_old (ty : expr) : tactic label :=
-do (args, tp) ← mk_local_pis ty,
-match tp with
-| `(%%lhs = %%rhs) := classify_type_aux_old lhs rhs
-| `(%%lhs ↔ %%rhs) := classify_type_aux_old lhs rhs
-| _ := fail "norm_cast: lemma must be = or ↔"
-end
-
 /--
 aux function for `norm_cast.classify_type`
 
@@ -342,13 +304,6 @@ The `norm_cast` attribute.
     when (l ≠ elim) $ simp_attr.push_cast.set decl () tt),
   before_unset := some $ λ _ _, tactic.skip,
   cache_cfg := { mk_cache := mk_cache norm_cast_attr, dependencies := [] } }
-
-/-- run the old classifier on the type of a declaration -/
-meta def make_guess_old (decl : name) : tactic label :=
-do
-  e ← mk_const decl,
-  ty ← infer_type e,
-  classify_type_old ty
 
 /-- Classify a declaration as a `norm_cast` rule. -/
 meta def make_guess (decl : name) : tactic label :=

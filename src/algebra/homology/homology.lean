@@ -41,10 +41,10 @@ begin
   rw [category.assoc, ←comm_at f, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
 end
 
-@[simp]
+@[simp, reassoc]
 lemma kernel_map_condition {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   kernel_map f i ≫ kernel.ι (C'.d i) = kernel.ι (C.d i) ≫ f.f i :=
-by erw [limit.lift_π, fork.of_ι_app_zero]
+by simp [kernel_map]
 
 @[simp]
 lemma kernel_map_id (C : cochain_complex.{v} V) (i : ℤ) :
@@ -55,13 +55,8 @@ lemma kernel_map_id (C : cochain_complex.{v} V) (i : ℤ) :
 lemma kernel_map_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C')
   (g : C' ⟶ C'') (i : ℤ) :
   kernel_map (f ≫ g) i = kernel_map f i ≫ kernel_map g i :=
-(cancel_mono (kernel.ι (C''.d i))).1 $
-  by rw [kernel_map_condition, category.assoc, kernel_map_condition,
-    ←category.assoc, kernel_map_condition, category.assoc, differential_object.comp_f,
-    graded_object.comp_apply]
+(cancel_mono (kernel.ι (C''.d i))).1 $ by simp
 
--- TODO: Actually, this is a functor `cochain_complex V ⥤ cochain_complex V`, but to state this
--- properly we will need `has_shift` on `differential_object` first.
 /-- The kernels of the differentials of a cochain complex form a ℤ-graded object. -/
 def kernel_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=
 { obj := λ C i, kernel (C.d i),
@@ -97,17 +92,14 @@ The connecting morphism from the image of `d i` to the kernel of `d (i+1)`.
 -/
 def image_to_kernel_map (C : cochain_complex V) (i : ℤ) :
   image (C.d i) ⟶ kernel (C.d (i+1)) :=
-kernel.lift _ (image.ι (C.d i))
-begin
-  rw ←cancel_epi (factor_thru_image (C.d i)),
-  rw [has_zero_morphisms.comp_zero, image.fac_assoc, d_squared],
-end
+kernel.lift _ (image.ι (C.d i)) $ (cancel_epi (factor_thru_image (C.d i))).1 $ by simp
 
 @[simp, reassoc]
 lemma image_to_kernel_map_condition (C : cochain_complex V) (i : ℤ) :
   image_to_kernel_map C i ≫ kernel.ι (C.d (i + 1)) = image.ι (C.d i) :=
-by erw [limit.lift_π, fork.of_ι_app_zero]
+by simp [image_to_kernel_map]
 
+@[reassoc]
 lemma induced_maps_commute [has_image_maps.{v} V] {C C' : cochain_complex.{v} V} (f : C ⟶ C')
   (i : ℤ) :
   image_to_kernel_map C i ≫ kernel_map f (i + 1) = image_map f i ≫ image_to_kernel_map C' i :=
@@ -124,17 +116,13 @@ variables [has_image_maps.{v} V]
 /-- A morphism of cochain complexes induces a morphism in cohomology at every degree. -/
 def cohomology_map {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
   C.cohomology i ⟶ C'.cohomology i :=
-cokernel.desc _ (kernel_map f (i - 1 + 1) ≫ cokernel.π _)
-begin
-  rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
-  erw [has_zero_morphisms.comp_zero],
-end
+cokernel.desc _ (kernel_map f (i - 1 + 1) ≫ cokernel.π _) $ by simp [induced_maps_commute_assoc]
 
-@[simp]
+@[simp, reassoc]
 lemma cohomology_map_condition {C C' : cochain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
   cokernel.π (image_to_kernel_map C (i - 1)) ≫ cohomology_map f i =
     kernel_map f (i - 1 + 1) ≫ cokernel.π _ :=
-by erw [colimit.ι_desc, cofork.of_π_app_one]
+by simp [cohomology_map]
 
 @[simp]
 lemma cohomology_map_id (C : cochain_complex.{v} V) (i : ℤ) :
@@ -144,8 +132,7 @@ by { ext, erw [cohomology_map_condition, kernel_map_id, category.id_comp, catego
 @[simp]
 lemma cohomology_map_comp {C C' C'' : cochain_complex.{v} V} (f : C ⟶ C') (g : C' ⟶ C'') (i : ℤ) :
   cohomology_map (f ≫ g) i = cohomology_map f i ≫ cohomology_map g i :=
-by { ext, rw [cohomology_map_condition, ←category.assoc, cohomology_map_condition, category.assoc,
-  cohomology_map_condition, kernel_map_comp, category.assoc] }
+by { ext, simp }
 
 /-- The cohomology functor from cochain complexes to `ℤ` graded objects in `V`. -/
 def cohomology_functor : cochain_complex.{v} V ⥤ graded_object ℤ V :=

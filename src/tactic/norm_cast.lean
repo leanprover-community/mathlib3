@@ -269,7 +269,8 @@ for names in `names`, and collects the lemmas attributed with specific `norm_cas
 -/
 meta def mk_cache (attr : thunk norm_cast_attr_ty) (names : list name) : tactic norm_cast_cache :=
 do
-  cache ← monad.foldl (add_lemma (attr ())) empty_cache names,
+  -- names has the declarations in reverse order
+  cache ← names.mfoldr (λ name cache, add_lemma (attr ()) cache name) empty_cache,
 
   --some special lemmas to handle binary relations
   new_up ← simp_lemmas.add_simp cache.up ``ge_from_le,

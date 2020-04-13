@@ -5,7 +5,7 @@ Author: Sébastien Gouëzel
 -/
 
 import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
-topology.metric_space.completion
+  topology.metric_space.completion
 
 /-!
 # Gromov-Hausdorff distance

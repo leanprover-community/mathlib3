@@ -51,7 +51,7 @@ open tactic expr
 --TODO: don't count coercions inside implicit parts of the expression?
 /--
 `is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments.
-`coe has more implicit arguments than `coe_fn.
+`coe` has more implicit arguments than `coe_fn`.
 -/
 meta def is_coe' : expr → bool
 | (app (app (app (const `has_coe.coe _) _) _) _) := tt
@@ -62,8 +62,7 @@ meta def is_coe' : expr → bool
 | (app (app (const `coe_sort _) _) _)            := tt
 | _ := ff
 
-/-- auxiliary function for `count_coes' -/
-meta def count_coes_aux : ℕ → expr → ℕ
+private meta def count_coes_aux : ℕ → expr → ℕ
 | n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
 | n (lam _ _ _ e) := count_coes_aux n e
 | n (pi _ _ _ e) := count_coes_aux n e
@@ -84,10 +83,10 @@ to move casts toward the leaf nodes of the expression."
 
 /--
 `label` is a type used to classify `norm_cast` lemmas.
-elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
-move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
-push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
-suqash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+ - elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+ - move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+ - push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
+ - squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
 -/
 @[derive [decidable_eq, has_reflect, inhabited]]
 inductive label
@@ -132,9 +131,8 @@ aux function for `norm_cast.classify_type`
 
 remark: the classifier is a little bit less restrictive than the rules describing to the labels.
 This is a consequence of the fact that the rules apply to the explicit coercions appearing in the expression.
-'coe_to_sort' can tipically appear in type annotations that are implicit in the displayed expression, but
-will be accounted for in 'count_coes'.
-TODO: see 'count_coes'
+`coe_to_sort` can tipically appear in type annotations that are implicit in the displayed expression, but
+will be accounted for in `count_coes`.
 -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 do
@@ -158,7 +156,7 @@ do
   else do
     fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs"
 
-/-- TODO: update and describe -/
+/-- Classifies a declaration of type `ty` as a `norm_cast` rule. -/
 meta def classify_type (ty : expr) : tactic label :=
 do (args, tp) ← mk_local_pis ty,
 match tp with
@@ -256,21 +254,15 @@ do
     down   := cache.down,
     squash := cache.squash, }
 
-/-- parse the optional argument to the attribute -/
-meta def parse_label : lean.parser (option label) :=
-(do
-  n <- lean.parser.ident,
-  l <- label.of_string (to_string n) <|> failure,
-  return (some l)
-) <|> return none
-
 /--
 The `norm_cast` attribute.
 -/
 @[user_attribute] meta def norm_cast_attr : user_attribute norm_cast_cache (option label) :=
 { name      := `norm_cast,
   descr     := "attribute for norm_cast",
-  parser    := parse_label,
+  parser    :=
+    (do some l <- (label.of_string ∘ to_string) <$> lean.parser.ident, return l)
+      <|> return none,
   after_set := some (λ decl n b, do
     e ← mk_const decl,
     ty ← infer_type e,
@@ -663,7 +655,8 @@ h : a + b < 10
 
 You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
 or `assumption_mod_cast`.
-Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and
+`h` before using `exact h` or `apply h`.
 Writing `assumption_mod_cast` will normalize the goal and for every
 expression `h` in the context it will try to normalize `h` and use
 `exact h`.
@@ -700,7 +693,8 @@ Examples:
 
 @[norm_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
 
-@[norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
+@[norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
+  ((n - m : ℕ) : α) = n - m
 
 @[norm_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
 

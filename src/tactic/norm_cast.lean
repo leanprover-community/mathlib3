@@ -516,7 +516,7 @@ do
   -- step 4: post-processing of numerals
   ((), e4, pr4) ← simplify_top_down' () (λ _ e, prod.mk () <$> coe_to_numeral e) e3 cfg,
 
-  let new_e := e3,
+  let new_e := e4,
   guard (¬ new_e =ₐ e),
   pr ← mk_eq_trans pr1 pr2,
   pr ← mk_eq_trans pr pr3,

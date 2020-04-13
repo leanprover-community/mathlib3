@@ -61,8 +61,8 @@ from a `composition_as_set` and called `composition_as_set_equiv n`), we deduce 
 The main motivation for this structure and its API is in the construction of the composition of
 formal multilinear series, and the proof that the composition of analytic functions is analytic.
 
-The representation of a composition as a list is very handy as lists are very flexible and have
-already a well developed API.
+The representation of a composition as a list is very handy as lists are very flexible and already
+have a well-developed API.
 
 ## Tags
 

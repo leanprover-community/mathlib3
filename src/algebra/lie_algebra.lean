@@ -177,7 +177,6 @@ namespace lie_algebra
 
 set_option old_structure_cmd true
 /-- A morphism of Lie algebras is a linear map respecting the bracket operations. -/
-@[nolint doc_blame has_inhabited_instance]
 structure morphism (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends linear_map R L L' :=
@@ -198,6 +197,14 @@ lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x
 
 @[simp] lemma map_lie' (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : (f : L₁ →ₗ[R] L₂) ⁅x, y⁆ = ⁅f x, f y⁆ :=
 morphism.map_lie f
+
+/-- The constant 0 map is a Lie algebra morphism. -/
+instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
+
+/-- The identity map is a Lie algebra morphism. -/
+instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie := by simp, ..(1 : L₁ →ₗ[R] L₁)}⟩
+
+instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
 /-- The composition of morphisms is a morphism. -/
 def morphism.comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
@@ -221,7 +228,6 @@ end morphism_properties
 /-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
 instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
 more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
-@[nolint doc_blame has_inhabited_instance]
 structure equiv (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends L →ₗ⁅R⁆ L', L ≃ₗ[R] L'
@@ -234,10 +240,15 @@ variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
 variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
 variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
+instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
+⟨{ map_lie := λ x y, by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
+  ..(1 : L₁ ≃ₗ[R] L₁)}⟩
+
+instance : inhabited (L₁ ≃ₗ⁅R⁆ L₁) := ⟨1⟩
+
 /-- Lie algebra equivalences are reflexive. -/
 @[refl]
-def refl : L₁ ≃ₗ⁅R⁆ L₁ :=
-{ map_lie := λ x y, rfl, ..linear_equiv.refl _ _ }
+def refl : L₁ ≃ₗ⁅R⁆ L₁ := 1
 
 /-- Lie algebra equivalences are symmetric. -/
 @[symm]

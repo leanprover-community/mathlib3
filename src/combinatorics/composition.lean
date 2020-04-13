@@ -262,6 +262,10 @@ def embedding (i : fin c.length) : fin (c.blocks_fun i) → fin n :=
 lemma embedding_inj (i : fin c.length) : function.injective (c.embedding i) :=
 λ a b hab, by simpa [embedding, fin.ext_iff] using hab
 
+/--
+`index_exists` asserts there is some `i` so `j < c.size_up_to (i+1)`.
+In the next definition we use `nat.find` to produce the minimal such index.
+-/
 lemma index_exists {j : ℕ} (h : j < n) :
   ∃ i : ℕ, j < c.size_up_to i.succ ∧ i < c.length :=
 begin

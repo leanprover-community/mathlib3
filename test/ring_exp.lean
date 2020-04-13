@@ -1,4 +1,5 @@
 import tactic.ring_exp
+import algebra.group_with_zero_power
 
 universes u
 
@@ -132,6 +133,28 @@ begin
   ring_exp
 end
 end complicated
+
+section conv
+/-!
+  ### `conv` section
+
+  Test that `ring_exp` works inside of `conv`, both with and without `!`.
+-/
+
+example (n : ℕ) : (2^n * 2 + 1)^10 = (2^(n+1) + 1)^10 :=
+begin
+conv_rhs
+{ congr,
+  ring_exp, },
+conv_lhs
+{ congr,
+  ring_exp, },
+end
+
+example (x y : ℤ) : x + id y - y + id x = x * 2 := begin
+  conv_lhs { ring_exp!, },
+end
+end conv
 
 section benchmark
 /-!

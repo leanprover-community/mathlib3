@@ -14,7 +14,7 @@ variables {α : Type*}
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
-| nil {} : lists' tt
+| nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
 def lists (α : Type*) := Σ b, lists' α b

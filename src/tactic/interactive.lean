@@ -352,7 +352,7 @@ do    tgt ← target,
       gs ← with_enable_tags (
         mzip_with (λ (n : name × name) v, do
            set_goals [v],
-           try (interactive.unfold (provided.map $ λ ⟨s,f⟩, f.update_prefix s) (loc.ns [none])),
+           try (dsimp_target simp_lemmas.mk),
            apply_auto_param
              <|> apply_opt_param
              <|> (set_main_tag [`_field,n.2,n.1]),
@@ -1074,7 +1074,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management"] }
+  tags       := ["goal management", "proof extraction"] }
 
 
 /--

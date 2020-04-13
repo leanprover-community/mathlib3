@@ -142,7 +142,7 @@ section
 
 omit 𝒞
 variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+variables {C' : Type (u+1)} [large_category C'] [𝒞' : concrete_category C']
 include 𝒞'
 
 local attribute [instance] concrete_category.has_coe_to_sort
@@ -188,7 +188,7 @@ rfl
 section
 omit 𝒞
 variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+variables {C' : Type (u+1)} [large_category C'] [𝒞' : concrete_category C']
 include 𝒞'
 
 local attribute [instance] concrete_category.has_coe_to_sort
@@ -355,7 +355,7 @@ def map_cone_inv [is_equivalence H]
   (c : cone (F ⋙ H)) : cone F :=
 let t := (inv H).map_cone c in
 let α : (F ⋙ H) ⋙ inv H ⟶ F :=
-  ((whisker_left F (is_equivalence.unit_iso H).inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
+  ((whisker_left F is_equivalence.unit_iso.inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
 { X := t.X,
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
 

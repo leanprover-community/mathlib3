@@ -444,7 +444,7 @@ by simp [piecewise, hi]
 @[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
-by { simp [piecewise, h], congr }
+by simp [piecewise, h]
 
 end set
 

@@ -138,6 +138,14 @@ by cases n; split; rintro ⟨⟩; refl
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
+@[simp]
+lemma add_succ_sub_one (n m : ℕ) : (n + succ m) - 1 = n + m :=
+by rw [add_succ, succ_sub_one]
+
+@[simp]
+lemma succ_add_sub_one (n m : ℕ) : (succ n + m) - 1 = n + m :=
+by rw [succ_add, succ_sub_one]
+
 lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
@@ -322,6 +330,9 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 @nat.lt_sub_right_iff_add_lt n 1 m
+
+lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
+lt_of_succ_lt (lt_pred_iff.1 h)
 
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
@@ -559,7 +570,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1], congr },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -1437,3 +1448,56 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 end nat
+
+namespace monoid_hom
+
+variables {M : Type*} {G : Type*} [monoid M] [group G]
+
+@[simp, to_additive]
+theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
+nat.iterate₀ f.map_one
+
+@[simp, to_additive]
+theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
+  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
+nat.iterate₂ f.map_mul
+
+@[simp, to_additive]
+theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
+  f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
+nat.iterate₁ f.map_inv
+
+@[simp]
+theorem iterate_map_sub {A : Type*} [add_group A] (f : A →+ A) (n : ℕ) (x y) :
+  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
+nat.iterate₂ f.map_sub
+
+end monoid_hom
+
+namespace ring_hom
+
+variables {R : Type*} [semiring R] {S : Type*} [ring S]
+
+@[simp] theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
+nat.iterate₀ f.map_one
+
+@[simp] theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
+nat.iterate₀ f.map_zero
+
+@[simp] theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
+  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
+nat.iterate₂ f.map_mul
+
+@[simp] theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
+  f^[n] (x + y) = (f^[n] x) + (f^[n] y) :=
+nat.iterate₂ f.map_add
+
+@[simp] theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
+  f^[n] (-x) = -(f^[n] x) :=
+nat.iterate₁ f.map_neg
+
+@[simp] theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
+  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
+nat.iterate₂ f.map_sub
+
+end ring_hom

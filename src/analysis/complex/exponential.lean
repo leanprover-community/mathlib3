@@ -580,10 +580,10 @@ begin
   rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff],
   split,
   { rintro ⟨n, hn⟩, existsi -n,
-    rw [int.cast_neg, add_mul, add_div, mul_assoc, mul_div_cancel_left _ two_ne_zero,
+    rw [int.cast_neg, add_mul, add_div, mul_assoc, mul_div_cancel_left _ (@two_ne_zero ℝ _),
         one_mul, ←neg_mul_eq_neg_mul, hn, neg_sub, sub_add_cancel] },
   { rintro ⟨n, hn⟩, existsi -n,
-    rw [hn, add_mul, one_mul, add_div, mul_assoc, mul_div_cancel_left _ two_ne_zero,
+    rw [hn, add_mul, one_mul, add_div, mul_assoc, mul_div_cancel_left _ (@two_ne_zero ℝ _),
         sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_neg_mul, int.cast_neg] }
 end
 
@@ -755,10 +755,10 @@ begin
           ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
+    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
       mul_comm π _, sin_int_mul_pi, mul_zero],
     rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k,
-      mul_div_cancel_left _ two_ne_zero, mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
+      mul_div_cancel_left _ (@two_ne_zero ℝ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
 end
 
 theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} : sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
@@ -772,11 +772,11 @@ begin
     exact h.symm },
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
       mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ two_ne_zero,
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ (@two_ne_zero ℝ _),
       cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero] }
 end
 
@@ -1144,9 +1144,13 @@ else
     simp [sub_eq_add_neg, real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
 
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
-if hx : x = 0 then by simp [hx]
-else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
-    field.div_div_div_cancel_right _ (mt abs_eq_zero.1 hx)]
+begin
+  by_cases h : x = 0,
+  { simp only [h, euclidean_domain.zero_div,
+    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re]},
+  rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
+      div_div_div_cancel_right' _ (mt abs_eq_zero.1 h)]
+end
 
 lemma arg_cos_add_sin_mul_I {x : ℝ} (hx₁ : -π < x) (hx₂ : x ≤ π) :
   arg (cos x + sin x * I) = x :=

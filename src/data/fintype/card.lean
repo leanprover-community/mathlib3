@@ -147,3 +147,73 @@ lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : 
   finset.univ.sum (λ (s : finset (fin n)), a ^ s.card * b ^ (n - s.card)) =
   (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
+
+namespace list
+
+lemma of_fn_prod_take [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+  ((of_fn f).take i).prod = (finset.univ.filter (λ (j : fin n), j.val < i)).prod f :=
+begin
+  have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
+  induction i with i IH, { simp [A] },
+  by_cases h : i < n,
+  { have : i < length (of_fn f), by rwa [length_of_fn f],
+    rw prod_take_succ _ _ this,
+    have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
+      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ _root_.singleton (⟨i, h⟩ : fin n),
+        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+    have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
+      (_root_.singleton (⟨i, h⟩ : fin n)), by simp,
+    rw [A, finset.prod_union B, IH],
+    simp },
+  { have A : (of_fn f).take i = (of_fn f).take i.succ,
+    { rw ← length_of_fn f at h,
+      have : length (of_fn f) ≤ i := not_lt.mp h,
+      rw [take_all_of_le this, take_all_of_le (le_trans this (nat.le_succ _))] },
+    have B : ∀ (j : fin n), (j.val < i.succ) = (j.val < i),
+    { assume j,
+      have : j.val < i := lt_of_lt_of_le j.2 (not_lt.mp h),
+      simp [this, lt_trans this (nat.lt_succ_self _)] },
+    simp [← A, B, IH] }
+end
+
+-- `to_additive` does not work on `of_fn_prod_take` because of `0 : ℕ` in the proof. Copy-paste the
+-- proof instead...
+lemma of_fn_sum_take [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+  ((of_fn f).take i).sum = (finset.univ.filter (λ (j : fin n), j.val < i)).sum f :=
+begin
+  have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
+  induction i with i IH, { simp [A] },
+  by_cases h : i < n,
+  { have : i < length (of_fn f), by rwa [length_of_fn f],
+    rw sum_take_succ _ _ this,
+    have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
+      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ _root_.singleton (⟨i, h⟩ : fin n),
+        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+    have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
+      (_root_.singleton (⟨i, h⟩ : fin n)), by simp,
+    rw [A, finset.sum_union B, IH],
+    simp },
+  { have A : (of_fn f).take i = (of_fn f).take i.succ,
+    { rw ← length_of_fn f at h,
+      have : length (of_fn f) ≤ i := not_lt.mp h,
+      rw [take_all_of_le this, take_all_of_le (le_trans this (nat.le_succ _))] },
+    have B : ∀ (j : fin n), (j.val < i.succ) = (j.val < i),
+    { assume j,
+      have : j.val < i := lt_of_lt_of_le j.2 (not_lt.mp h),
+      simp [this, lt_trans this (nat.lt_succ_self _)] },
+    simp [← A, B, IH] }
+end
+
+attribute [to_additive] of_fn_prod_take
+
+@[to_additive]
+lemma of_fn_prod [comm_monoid α] {n : ℕ} {f : fin n → α} :
+  (of_fn f).prod = finset.univ.prod f :=
+begin
+  convert of_fn_prod_take f n,
+  { rw [take_all_of_le (le_of_eq (length_of_fn f))] },
+  { have : ∀ (j : fin n), j.val < n := λ j, j.2,
+    simp [this] }
+end
+
+end list

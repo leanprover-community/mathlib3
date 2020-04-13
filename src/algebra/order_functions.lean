@@ -149,7 +149,7 @@ le_trans (le_max_right _ _) h
 
 end
 
-lemma min_add {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_add {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b + c = min (a + c) (b + c) :=
 if hle : a ≤ b then
   have a - c ≤ b - c, from sub_le_sub hle (le_refl _),
@@ -158,7 +158,7 @@ else
   have b - c ≤ a - c, from sub_le_sub (le_of_lt (lt_of_not_ge hle)) (le_refl _),
   by simp * at *
 
-lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
 
@@ -181,8 +181,8 @@ lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section decidable_linear_ordered_comm_group
-variables [decidable_linear_ordered_comm_group α] {a b c : α}
+section decidable_linear_ordered_add_comm_group
+variables [decidable_linear_ordered_add_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
 
@@ -230,7 +230,7 @@ abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
   (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
 
-theorem abs_le_abs {α : Type*} [decidable_linear_ordered_comm_group α] {a b : α}
+theorem abs_le_abs {α : Type*} [decidable_linear_ordered_add_comm_group α] {a b : α}
   (h₀ : a ≤ b) (h₁ : -a ≤ b) :
   abs a ≤ abs b :=
 calc  abs a
@@ -283,7 +283,7 @@ end
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
 by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}

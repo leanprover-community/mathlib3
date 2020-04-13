@@ -19,7 +19,7 @@ We implement two different structures covering these two viewpoints on compositi
 one, made of a list of positive integers summing to `n`, is the main one and is called
 `composition n`. The second one is useful for combinatorial arguments (for instance to show that
 the number of compositions of `n` is `2^(n-1)`). It is given by a subset of `{0, ..., n}`
-containing `0` and `n`, where the elements of the subset (but `n`) correspond to the leftmost
+containing `0` and `n`, where the elements of the subset (other than `n`) correspond to the leftmost
 points of each block. The main API is built on `composition n`, and we provide an equivalence
 between the two types.
 

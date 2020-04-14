@@ -37,6 +37,9 @@ by library_search
 example (α : Prop) : α → α :=
 by library_search -- says: `exact id`
 
+example (p : Prop) [decidable p] : (¬¬p) → p :=
+by library_search -- says: `exact not_not.mp`
+
 example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 

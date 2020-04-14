@@ -9,7 +9,7 @@ import group_theory.subgroup
 /-!
 # Subgroups
 
-This file defines multiplicative and additive subgroups as an extention of submonoids, in an bundled
+This file defines multiplicative and additive subgroups as an extension of submonoids, in a bundled
 form (unbundled subgroups are in /subgroups.lean).
 
 We prove subgroups of a group form a complete lattice, and results about images and preimages of

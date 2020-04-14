@@ -220,6 +220,16 @@ instance distrib_mul_action.is_add_monoid_hom (r : α) :
 { map_zero := smul_zero r,
   map_add := smul_add r }
 
+/-- Scalar multiplication (using a distrib_mul_action) by a fixed element is an add_monoid_hom. -/
+def smul.add_monoid_hom (a : α) (β : Type v) [add_monoid β] [distrib_mul_action α β] : β →+ β :=
+{ to_fun := λ b, a • b,
+  map_zero' := smul_zero a,
+  map_add' := smul_add a, }
+
+@[simp]
+lemma smul.add_monoid_hom_apply (a : α) (β : Type v) [add_monoid β] [distrib_mul_action α β] (b : β) :
+  (smul.add_monoid_hom a β) b = a • b := rfl
+
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
 (list.sum_hom _ _).symm

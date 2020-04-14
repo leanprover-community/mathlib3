@@ -110,32 +110,68 @@ namespace monoid_algebra_equivalence
 section
 instance module_of_monoid_algebra_module
   (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : module R V :=
-module.restrict_scalars R (monoid_algebra R G) V
+module.restrict_scalars R (monoid_algebra R G) V.
+
+-- instance distrib_mul_action_of_monoid_algebra_module
+--   (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : distrib_mul_action G V :=
+-- { smul := λ g v, (g • (1 : monoid_algebra R G)) • v,
+--   one_smul := λ v, by { dsimp, rw [mul_action.one_smul (1 : monoid_algebra R G), mul_action.one_smul v], },
+--   mul_smul := λ g g' v, by { sorry },
+--   smul_zero := λ g, by { dsimp, erw [distrib_mul_action.smul_zero (g • (1 : monoid_algebra R G))], refl, },
+--   smul_add := λ g v w, by { dsimp, erw [distrib_mul_action.smul_add], refl, }, }
+
+def mas (g : G) (r : R) : monoid_algebra R G := finsupp.single g r
+
+instance distrib_mul_action_of_monoid_algebra_module
+  (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : distrib_mul_action G V :=
+{ smul := λ g v, (mas g 1) • v,
+  one_smul := λ v, sorry,
+  mul_smul := λ g g' v, sorry,
+  smul_zero := λ g, sorry,
+  smul_add := λ g v w, sorry, }.
+
+#exit
+
+@[simp]
+lemma group_action (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] (g : G) (v : V) :
+  g • v = (mas g (1 : R)) • v :=
+rfl
 
 def action_of_monoid_algebra_module (M : Module (monoid_algebra R G)) : Mon.of G ⟶ Mon.of (End (Module.of R M)) :=
-{ to_fun := λ g, sorry, -- we need the fact that multiplication by a group element in a monoid algebra is an `add_monoid_hom`.
+{ to_fun := λ g, linear_map.of_add_monoid_hom
+    (by { dsimp, change (G : Type u) at g, exact smul.add_monoid_hom g M, })
+    (λ r m,
+    begin
+      dsimp, change (G : Type u) at g,
+      dsimp [(•)],
+    -- change (g • (1 : monoid_algebra R G)) • ((r • m) : M) = r • (g • (1 : monoid_algebra R G)) • m, simp,
+    end),
   map_one' := sorry,
   map_mul' := λ g h, sorry, }
-end
-#check linear_map
+
+@[simp]
+lemma action_of_monoid_algebra_module_apply_apply (M : Module (monoid_algebra R G)) (g : G) (m : M) :
+  action_of_monoid_algebra_module M g m = (g • (1 : monoid_algebra R G)) • m :=
+rfl
+
+-- Do we need more simp lemmas about the action of `G` on `monoid_algebra R G`? e.g.
+-- `g • single g' r = single (g * g') r`
+-- `(g • f) h = f (g⁻¹ * h)`
+
 def functor : Rep R G ⥤ Module (monoid_algebra R G) :=
 { obj := λ V, Module.of _ V,
-  map := λ V W f, linear_map.of_add_monoid_hom f
+  map := λ V W f, linear_map.of_add_monoid_hom f.hom.to_add_monoid_hom
   begin
     sorry,
-  end,
-  map_id' := sorry,
-  map_comp' := sorry, }
+  end, }
 
 def inverse : Module (monoid_algebra R G) ⥤ Rep R G :=
 { obj := λ V,
   { V := Module.of R V,
     ρ := action_of_monoid_algebra_module V },
   map := λ V W f,
-  { hom := f.to_add_monoid_hom,
-    comm' := sorry, },
-  map_id' := sorry,
-  map_comp' := sorry, }
+  { hom := linear_map.restrict_scalars R f,
+    comm' := sorry, }, }
 
 end monoid_algebra_equivalence
 

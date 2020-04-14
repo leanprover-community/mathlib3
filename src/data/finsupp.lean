@@ -1351,6 +1351,8 @@ variables {α β}
 /--
 `finsupp.single.add_monoid_hom a` is the additive homomorphism `β →+ (α →₀ β)`,
 including `β` as functions supported at `a`.
+
+See also `finsupp.lsingle` for the version as a linear map.
 -/
 def single.add_monoid_hom [add_monoid β] (a : α) : β →+ (α →₀ β) :=
 { to_fun := λ b, single a b,
@@ -1360,28 +1362,6 @@ def single.add_monoid_hom [add_monoid β] (a : α) : β →+ (α →₀ β) :=
 @[simp]
 lemma single.add_monoid_hom_apply [add_monoid β] (a : α) (b : β) :
   (single.add_monoid_hom a : β →+ (α →₀ β)) b = single a b := rfl
-
-/--
-`finsupp.single.linear_map a` is the linear map `β →ₗ[γ] (α →₀ β)`,
-including `β` as functions supported at `a`.
--/
-def single.linear_map [ring γ] [add_comm_group β] [module γ β] (a : α) : β →ₗ[γ] (α →₀ β) :=
-{ to_fun := λ b, single a b,
-  add := by simp,
-  smul := λ c x,
-  begin
-    ext a',
-    -- This is just gross.
-    -- * We need `h` in one branch, but `h.symm` in the other.
-    -- * We need to rewrite by `←ne.def`.
-    by_cases h : a = a',
-    { simp [h.symm], },
-    { rw ←ne.def at h, simp [h], },
-  end, }
-
-@[simp]
-lemma single.linear_map_apply [ring γ] [add_comm_group β] [module γ β] (a : α) (b : β) :
-  (single.linear_map a : β →ₗ[γ] (α →₀ β)) b = single a b := rfl
 
 end
 

@@ -159,6 +159,10 @@ finsupp.semimodule G k
 instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
+instance [group G] [semiring k] :
+  distrib_mul_action G (monoid_algebra k G) :=
+finsupp.comap_distrib_mul_action_self
+
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
@@ -337,6 +341,9 @@ finsupp.semimodule G k
 
 instance [ring k] : module k (add_monoid_algebra k G) :=
 finsupp.module G k
+
+-- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
+-- because we've never discussed actions of additive groups.
 
 lemma single_mul_single [semiring k] [add_monoid G] {a₁ a₂ : G} {b₁ b₂ : k}:
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=

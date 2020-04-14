@@ -918,6 +918,7 @@ def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
       exact l.mem_support_to_fun (f a),
     end }
 
+@[simp]
 lemma comap_domain_apply {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) (a : α₁) :
   comap_domain f l hf a = l (f a) :=
@@ -1323,6 +1324,23 @@ end
 end curry_uncurry
 
 section
+
+instance comap_has_scalar [group γ] [mul_action γ α] [add_comm_monoid β] : has_scalar γ (α →₀ β) :=
+{ smul := λ g f, f.comap_domain (λ a, g⁻¹ • a)
+  (λ a a' m m' h, by simpa [←mul_smul] using (congr_arg (λ a, g • a) h)) }
+
+instance comap_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] : mul_action γ (α →₀ β) :=
+{ one_smul := λ f, by { ext, dsimp [(•)], simp, },
+  mul_smul := λ g g' f, by { ext, dsimp [(•)], simp [mul_smul], }, }
+
+instance comap_distrib_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] :
+  distrib_mul_action γ (α →₀ β) :=
+{ smul_zero := λ g, by { ext, dsimp [(•)], simp, },
+  smul_add := λ g f f', by { ext, dsimp [(•)], simp, }, }
+
+instance comap_distrib_mul_action_self [group γ] [add_comm_monoid β] :
+  distrib_mul_action γ (γ →₀ β) :=
+@finsupp.comap_distrib_mul_action γ β γ _ (mul_action.regular γ) _
 
 instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩

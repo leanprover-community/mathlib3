@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 import group_theory.Action
@@ -123,3 +128,6 @@ def monoid_algebra_equivalence : Rep R G ≌ Module (monoid_algebra R G) :=
   functor_unit_iso_comp' := sorry, }
 
 end Rep
+
+-- TODO the projection onto the trivial isotypic component, given by 1/|G| Σ g
+-- TODO regular representation, induction functors (adjoint to `res`)

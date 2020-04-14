@@ -30,6 +30,8 @@ structure Action (G : Mon.{u₁}) :=
 namespace Action
 variable {𝕍}
 
+-- TODO `of_mul_action`.
+
 @[simp]
 lemma ρ_1 {G : Mon.{u₁}} (A : Action 𝕍 G) : A.ρ 1 = 𝟙 A.V :=
 by { rw [monoid_hom.map_one], refl, }
@@ -174,7 +176,7 @@ def forget : Action 𝕍 G ⥤ 𝕍 :=
   map := λ M N f, f.hom, }
 
 omit 𝒱
-instance [concrete_category 𝕍] : concrete_category (Action 𝕍 G) :=
+instance [large_category 𝕍] [concrete_category 𝕍] : concrete_category (Action 𝕍 G) :=
 { forget := forget ⋙ (concrete_category.forget 𝕍),
   forget_faithful :=
   { injectivity' := λ M N f g w,
@@ -184,7 +186,7 @@ instance [concrete_category 𝕍] : concrete_category (Action 𝕍 G) :=
       exact w,
     end } }
 
-instance has_forget_to_𝕍 [concrete_category 𝕍] : has_forget₂ (Action 𝕍 G) 𝕍 :=
+instance has_forget_to_𝕍 [large_category 𝕍] [concrete_category 𝕍] : has_forget₂ (Action 𝕍 G) 𝕍 :=
 { forget₂ := forget }
 
 end forget
@@ -205,7 +207,7 @@ def res {G H : Mon} (f : G ⟶ H) : Action 𝕍 H ⥤ Action 𝕍 G :=
 
 /--
 The natural isomorphism from restriction along the identity homomorphism to
-the identity functor on `GroupModule G`.
+the identity functor on `Action 𝕍 G`.
 -/
 @[simps]
 def res_id {G : Mon} : res 𝕍 (𝟙 G) ≅ 𝟭 (Action 𝕍 G) :=
@@ -219,14 +221,13 @@ to the restriction along the composite homomorphism.
 @[simps]
 def res_comp {G H K : Mon} (f : G ⟶ H) (g : H ⟶ K) : res 𝕍 g ⋙ res 𝕍 f ≅ res 𝕍 (f ≫ g) :=
 { hom := { app := λ M, ⟨𝟙 M.V⟩ },
-  inv := { app := λ M, ⟨𝟙 M.V⟩ }, }
+  inv := { app := λ M, ⟨𝟙 M.V⟩ },
+  hom_inv_id' := by { ext, dsimp, simp, },
+  inv_hom_id' := by { ext, dsimp, simp, }, }
 
 -- TODO prove `Action 𝕍 punit ≅ 𝕍`
--- TODO after `monoid_algebra` lands, prove the equivalence of categories
---   `Action (Module R) G ≅ Module (monoid_algebra R G)`
 -- TODO limits, colimits, images, etc
 -- TODO symmetric monoidal category structure
--- TODO regular representation, induction functors (adjoint to `res`)
 
 end Action
 

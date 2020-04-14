@@ -41,18 +41,18 @@ section J
 variables {J : Type v₂} [𝒥 : category.{v₁} J]
 include 𝒥
 
-/-- If J is connected, any functor to a discrete category is constant on the nose. -/
-lemma any_functor_eq_constant [conn : connected J] {α : Type v₂} (F : J ⥤ discrete α) :
-  F = (functor.const J).obj (F.obj (default J)) :=
-begin
-  apply functor.ext _ _,
-    intro X,
-    have z := conn.iso_constant,
-    exact ((z F).hom.app X).down.1,
-  intros, apply subsingleton.elim
-end
+/--
+If J is connected, any functor to a discrete category is constant on objects.
+The converse is given in `connected.of_any_functor_const_on_obj`.
+-/
+lemma any_functor_const_on_obj [connected J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
+  F.obj j = F.obj (default J) :=
+((connected.iso_constant F).hom.app j).down.1
 
-/-- If any functor to a discrete category is constant on objects, J is connected. -/
+/--
+If any functor to a discrete category is constant on objects, J is connected.
+The converse of `any_functor_const_on_obj`.
+-/
 def connected.of_any_functor_const_on_obj [inhabited J]
   (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j : J), F.obj j = F.obj (default J)) :
   connected J :=
@@ -67,7 +67,7 @@ The converse is shown in `connected.of_constant_of_preserves_morphisms`
 -/
 lemma constant_function_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
   F j = F (default J) :=
-@congr_arg (J ⥤ discrete α) _ _ _ (λ t, t.obj j) (any_functor_eq_constant { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) })
+any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j
 
 /--
 `J` is connected if: given any function `F : J → α` which is constant for any
@@ -99,7 +99,7 @@ begin
 end
 
 /--
-In other words, this says that any maximal connected component of J containing the default must be all of J.
+If any maximal connected component of J containing the default is all of J, then J is connected.
 
 The converse of `induct_on_objects`.
 -/
@@ -160,7 +160,7 @@ end
 
 omit 𝒥
 
-/-- Analogous to `last'`. -/
+/-- Analogous to `last`. -/
 def head' {α : Type v₂} : Π l : list α, l ≠ list.nil → α
 | [] t := absurd rfl t
 | (a :: l) _ := a
@@ -199,7 +199,7 @@ That is, we can propagate the predicate up the chain.
 lemma prop_up_chain' {α : Type v₂} {r : α → α → Prop} (p : α → Prop) {a b : α}
   (l : list α) (hl : l ≠ []) (h : list.chain' r l)
   (ha : head' l hl = a) (hb : list.last l hl = b)
-  (carries : ∀ {x y : α}, r x y → (p x ↔ p y)) (final : p b) : p a :=
+  (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
 begin
   induction l generalizing a,
     exfalso, apply hl, refl,
@@ -207,7 +207,7 @@ begin
   cases l_tl,
   rw list.last_singleton at hb, rw hb, assumption,
   rw list.chain'_cons at h,
-  rw carries h.1,
+  apply carries h.1,
   apply l_ih _ h.2, rwa list.last_cons at hb, apply list.cons_ne_nil,
   refl
 end
@@ -238,7 +238,8 @@ begin
   obtain ⟨l, zags, nemp, hd, tl⟩ := h j (default J),
   apply prop_up_chain' p l nemp zags hd tl _ d,
   rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
-  apply k a, symmetry, apply k a
+  exact (k a).2,
+  exact (k a).1
 end
 
 end J

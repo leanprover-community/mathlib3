@@ -188,7 +188,9 @@ begin
   conv_lhs { rw [finsupp.sum_comm], },
   rw [finsupp.sum_single_index],
   { rw [finsupp.sum_single_index],
-    { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+    { simp only [mul_one, one_mul],
+      -- I had hoped that in Lean 3.8 `simp only [finsupp.sum_ite_eq']` would work here,
+      -- but it doesn't, and we have to muck about.
       convert finsupp.sum_ite_eq' f a (λ x v, v * r),
       funext, congr,
       convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
@@ -422,7 +424,9 @@ begin
   conv_lhs { rw [finsupp.sum_comm], },
   rw [finsupp.sum_single_index],
   { rw [finsupp.sum_single_index],
-    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
+    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'],
+      -- As in the multiplicative version,
+      -- it's unfortunate `simp only [finsupp.sum_ite_eq']` doesn't work.
       convert finsupp.sum_ite_eq' f a (λ x v, v * r),
       funext, congr,
       convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,

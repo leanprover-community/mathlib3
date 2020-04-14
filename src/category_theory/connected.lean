@@ -185,61 +185,6 @@ begin
   rwa this j (default J) (h _ _),
 end
 
-omit 𝒥
-
-/-- Analogous to `last`. -/
-def head_of_ne_nil {α : Type v₂} : Π l : list α, l ≠ list.nil → α
-| [] t := absurd rfl t
-| (a :: l) _ := a
-
-/--
-If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a sequence
-of related elements starting from `a` and ending on `b`.
-
-NB: This is easier to express with `list.chain'` and `head_of_ne_nil` than `list.chain` because of the
-`list.last` required for the end.
--/
-lemma exists_zigzag {α : Type v₂} {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
-  ∃ (l : list α), list.chain' r l ∧ ∃ (hl : l ≠ list.nil), head_of_ne_nil l hl = a ∧ list.last l hl = b :=
-begin
-  apply relation.refl_trans_gen.head_induction_on h,
-  refine ⟨[b], list.chain.nil, list.cons_ne_nil _ _, rfl, rfl⟩,
-  clear h a,
-  intros c d e t ih,
-  obtain ⟨l, hl₁, hl₂, hl₃, hl₄⟩ := ih,
-  refine ⟨c :: l, _, _, _, _⟩,
-  cases l,
-    apply list.chain'_singleton,
-    rw list.chain'_cons, split,
-      rw head_of_ne_nil at hl₃, rwa hl₃,
-      assumption,
-  apply list.cons_ne_nil,
-  refl,
-  rwa list.last_cons _ hl₂,
-end
-
-/--
-Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → (p x ↔ p y)` then
-the predicate is true at `a`.
-That is, we can propagate the predicate up the chain.
--/
-lemma prop_up_chain' {α : Type v₂} {r : α → α → Prop} (p : α → Prop) {a b : α}
-  (l : list α) (hl : l ≠ []) (h : list.chain' r l)
-  (ha : head_of_ne_nil l hl = a) (hb : list.last l hl = b)
-  (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
-begin
-  induction l generalizing a,
-  { exact (hl rfl).elim },
-  { cases ha,
-    cases l_tl,
-    { rw list.last_singleton at hb,
-      rwa hb },
-    { rw list.chain'_cons at h,
-      rw list.last_cons _ (list.cons_ne_nil _ _) at hb,
-      refine carries h.1 (l_ih _ h.2 hb rfl) } }
-end
-
-include 𝒥
 /--
 If J is connected, for any two objects there is a sequence of morphisms (some reversed) from one
 to the other.
@@ -247,8 +192,8 @@ to the other.
 Converse is given in `connected_of_zigzag`.
 -/
 lemma exists_zigzag' [connected J] (j₁ j₂ : J) :
-  ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂ :=
-exists_zigzag (connected_zigzag _ _)
+  ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), list.head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂ :=
+list.exists_zigzag (connected_zigzag _ _)
 
 /--
 If any two objects in an inhabited category are linked by a sequence of (potentially reversed)
@@ -257,13 +202,13 @@ morphisms, then J is connected.
 The converse of `exists_zigzag'`.
 -/
 def connected_of_zigzag [inhabited J]
-  (h : ∀ (j₁ j₂ : J), ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂) :
+  (h : ∀ (j₁ j₂ : J), ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), list.head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂) :
   connected J :=
 begin
   apply connected.of_induct,
   intros p d k j,
   obtain ⟨l, zags, nemp, hd, tl⟩ := h j (default J),
-  apply prop_up_chain' p l nemp zags hd tl _ d,
+  apply list.prop_up_chain' p l nemp zags hd tl _ d,
   rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
   { exact (k a).2 },
   { exact (k a).1 }

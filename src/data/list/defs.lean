@@ -53,9 +53,16 @@ as.split_on_p (=a)
 | []     a := [a]
 | (b::l) a := b :: concat l a
 
+/-- `head' xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
 @[simp] def head' : list α → option α
 | []       := none
 | (a :: l) := some a
+
+/-- `head_of_ne_nil` returns the first element of `xs` given that `xs` is non-empty. -/
+def head_of_ne_nil : Π l : list α, l ≠ list.nil → α
+| [] t := absurd rfl t
+| (a :: l) _ := a
 
 /-- Convert a list into an array (whose length is the length of `l`). -/
 def to_array (l : list α) : array l.length α :=

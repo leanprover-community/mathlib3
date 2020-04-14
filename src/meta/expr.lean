@@ -221,29 +221,30 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 
 namespace expr
 
-/-- Turns an expression into a positive natural number, assuming it is only built up from
-  `has_one.one`, `bit0` and `bit1`. -/
-protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one) := some 1
-| `(bit0 %%e) := bit0 <$> e.to_pos_nat
-| `(bit1 %%e) := bit1 <$> e.to_pos_nat
-| _           := none
-
-/-- Turns an expression into a natural number, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
+/--
+Turns an expression into a natural number, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero`, `nat.zero`, and `nat.succ`.
+-/
 protected meta def to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
-| e                  := e.to_pos_nat
+| `(has_one.one) := some 1
+| `(bit0 %%e) := bit0 <$> e.to_nat
+| `(bit1 %%e) := bit1 <$> e.to_nat
+| `(nat.succ %%e) := (+1) <$> e.to_nat
+| `(nat.zero) := some 0
+| _ := none
 
-/-- Turns an expression into a integer, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head. -/
+/--
+Turns an expression into a integer, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head.
+-/
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
 /--
- is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
- ignoring differences in type and type class arguments.
+`is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
+ignoring differences in type and type class arguments.
 -/
 meta def is_num_eq : expr → expr → bool
 | `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt

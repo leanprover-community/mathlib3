@@ -347,8 +347,7 @@ mk_eq_trans a_a' b'_b
 /-- Prove `a = b` by simplifying using move and squash lemmas. -/
 meta def prove_eq_using_down (a b : expr) : tactic expr := do
 cache ← norm_cast_attr.get_cache,
-s ← cache.down.add_simp ``eq_self_iff_true,
-prove_eq_using s a b
+prove_eq_using cache.down a b
 
 /--
 This is the main heuristic used alongside the elim and move lemmas.
@@ -474,6 +473,9 @@ meta def coe_to_numeral (e : expr) : tactic (expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_nat,
+  -- replace e' by normalized numeral
+  is_def_eq (reflect n) e' reducible,
+  let e := e.app_fn (reflect n),
   new_e ← expr.of_nat α n,
   pr ← prove_eq_using_down e new_e,
   return (new_e, pr)

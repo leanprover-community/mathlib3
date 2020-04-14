@@ -34,6 +34,9 @@ lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]
 example : lt_one 0 :=
 by library_search
 
+example (α : Prop) : α → α :=
+by library_search -- says: `exact id`
+
 example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 

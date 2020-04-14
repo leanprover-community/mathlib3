@@ -1455,6 +1455,15 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
 
+/--
+`on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.
+-/
+meta def on_exception {β} (handler : tactic β) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s' := (handler *> result.exception msg p) s'
+| ok := ok
+end
+
 /-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
 meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
 match tac s with

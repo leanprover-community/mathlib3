@@ -80,6 +80,16 @@ namespace norm_cast
 
 open tactic expr
 
+declare_trace norm_cast
+
+/--
+Output a trace message if `trace.norm_cast` is enabled.
+-/
+meta def trace_norm_cast {α} [has_to_tactic_format α] (msg : string) (a : α) : tactic unit :=
+when_tracing `norm_cast $ do
+a ← pp a,
+trace ("[norm_cast] " ++ msg ++ a : format)
+
 mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
 
@@ -340,13 +350,15 @@ open tactic expr
 meta def prove_eq_using (s : simp_lemmas) (a b : expr) : tactic expr := do
 (a', a_a') ← simplify s [] a {fail_if_unchanged := ff},
 (b', b_b') ← simplify s [] b {fail_if_unchanged := ff},
-is_def_eq a' b' reducible,
+on_exception (trace_norm_cast "failed: " (to_expr ``(%%a' = %%b') >>= pp)) $
+  is_def_eq a' b' reducible,
 b'_b ← mk_eq_symm b_b',
 mk_eq_trans a_a' b'_b
 
 /-- Prove `a = b` by simplifying using move and squash lemmas. -/
 meta def prove_eq_using_down (a b : expr) : tactic expr := do
 cache ← norm_cast_attr.get_cache,
+trace_norm_cast "proving: " (to_expr ``(%%a = %%b) >>= pp),
 prove_eq_using cache.down a b
 
 /--
@@ -510,15 +522,19 @@ do
 
   -- step 1: pre-processing of numerals
   ((), e1, pr1) ← simplify_top_down' () (λ _ e, prod.mk () <$> numeral_to_coe e) e0 cfg,
+  trace_norm_cast "after numeral_to_coe: " e1,
 
   -- step 2: casts are moved upwards and eliminated
   ((), e2, pr2) ← simplify_bottom_up () (λ _ e, prod.mk () <$> upward_and_elim cache.up e) e1 cfg,
+  trace_norm_cast "after upward_and_elim: " e2,
 
   -- step 3: casts are squashed
   (e3, pr3) ← simplify cache.squash [] e2 cfg,
+  trace_norm_cast "after squashing: " e3,
 
   -- step 4: post-processing of numerals
   ((), e4, pr4) ← simplify_top_down' () (λ _ e, prod.mk () <$> coe_to_numeral e) e3 cfg,
+  trace_norm_cast "after coe_to_numeral: " e4,
 
   let new_e := e4,
   guard (¬ new_e =ₐ e),

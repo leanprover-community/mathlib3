@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finsupp
+import ring_theory.algebra
 
 /-!
 # Monoid algebras
@@ -77,7 +78,7 @@ lemma mul_apply (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
 begin
   rw [mul_def],
-  simp only [sum_apply, single_apply],
+  simp only [finsupp.sum_apply, single_apply],
 end
 end
 
@@ -178,20 +179,22 @@ lemma single_one.ring_hom_apply [semiring k] [monoid G] (x : k) :
   (single_one.ring_hom : k →+* monoid_algebra k G) x = single 1 x := rfl
 
 lemma single_one.central [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
-  f * (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r =
-    (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r * f :=
+  (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r * f =
+    f * (monoid_algebra.single_one.ring_hom : k →+* monoid_algebra k G) r:=
 begin
   ext,
   -- It would be nice if this next step worked by `simp`.
   dsimp [monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
   simp only [monoid_algebra.mul_apply],
-  conv_lhs { rw [finsupp.sum_comm], },
+  conv_rhs { rw [finsupp.sum_comm], },
   rw [finsupp.sum_single_index],
   { rw [finsupp.sum_single_index],
-    { simp only [mul_one, one_mul, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
-      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+    { simp only [mul_one, one_mul],
+      -- I had hoped that in Lean 3.8 `simp only [finsupp.sum_ite_eq']` would work here,
+      -- but it doesn't, and we have to muck about.
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v),
       funext, congr,
-      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r) using 1,
       { congr, funext, congr, },
       { congr' 1, apply mul_comm, }, },
     simp, },
@@ -211,6 +214,13 @@ begin
     { simp, classical, split_ifs, simp [h], }, },
   { simp, }
 end
+
+/-- The monoid algebra R[G] is an algebra over R. -/
+instance algebra [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
+{ commutes' := single_one.central,
+  smul_def' := λ r f, module_smul_eq r f (by simp),
+  .. (single_one.ring_hom : k →+* monoid_algebra k G),
+  .. monoid_algebra.semimodule }
 
 universe ui
 variable {ι : Type ui}
@@ -315,7 +325,7 @@ lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
 begin
   rw [mul_def],
-  simp only [sum_apply, single_apply],
+  simp only [finsupp.sum_apply, single_apply],
 end
 
 lemma support_mul (a b : add_monoid_algebra k G) :
@@ -412,20 +422,22 @@ lemma single_one.ring_hom_apply [semiring k] [add_monoid G] (x : k) :
   (single_one.ring_hom : k →+* add_monoid_algebra k G) x = single 0 x := rfl
 
 lemma single_one.central [comm_semiring k] [add_monoid G] (r : k) (f : add_monoid_algebra k G) :
-  f * (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r =
-    (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r * f :=
+  (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r * f
+    = f * (add_monoid_algebra.single_one.ring_hom : k →+* add_monoid_algebra k G) r :=
 begin
   ext,
   -- It would be nice if this next step worked by `simp`.
   dsimp [add_monoid_algebra.single_one.ring_hom, finsupp.single.add_monoid_hom],
   simp only [add_monoid_algebra.mul_apply],
-  conv_lhs { rw [finsupp.sum_comm], },
+  conv_rhs { rw [finsupp.sum_comm], },
   rw [finsupp.sum_single_index],
   { rw [finsupp.sum_single_index],
-    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'], -- In Lean 3.8 this will hopefully handle the `sum_ite_eq'` below.
-      convert finsupp.sum_ite_eq' f a (λ x v, v * r),
+    { simp only [add_zero, zero_add, finsupp.sum_ite_eq'],
+      -- As in the multiplicative version,
+      -- it's unfortunate `simp only [finsupp.sum_ite_eq']` doesn't work.
+      convert finsupp.sum_ite_eq' f a (λ x v, r * v),
       funext, congr,
-      convert finsupp.sum_ite_eq' f a (λ x v, r * v) using 1,
+      convert finsupp.sum_ite_eq' f a (λ x v, v * r) using 1,
       { congr, funext, congr, },
       { congr' 1, apply mul_comm, }, },
     simp, },
@@ -445,6 +457,14 @@ begin
     { simp, classical, split_ifs, simp [h], }, },
   { simp, }
 end
+
+/-- The monoid algebra R[G] is an algebra over R. -/
+instance algebra [comm_semiring k] [add_monoid G] :
+  algebra k (add_monoid_algebra k G) :=
+{ commutes' := single_one.central,
+  smul_def' := λ r f, module_smul_eq r f (by simp),
+  .. (single_one.ring_hom : k →+* add_monoid_algebra k G),
+  .. add_monoid_algebra.semimodule }
 
 universe ui
 variable {ι : Type ui}

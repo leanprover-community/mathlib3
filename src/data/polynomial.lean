@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `add_monoid_algebra α ℕ`, where α is a commutative semiring.
 -/
-import data.monoid_algebra ring_theory.algebra
+import data.monoid_algebra
 import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
 import tactic.ring_exp
 
@@ -1353,9 +1353,7 @@ is_ring_hom.map_sub _
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/
 instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
+add_monoid_algebra.algebra
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]

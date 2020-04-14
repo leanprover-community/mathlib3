@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
 
-import algebra.ring
-import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+import data.polynomial data.equiv.ring data.equiv.fin
 import tactic.omega
 
 /-!
@@ -991,9 +990,7 @@ section aeval
 
 /-- The algebra of multivariate polynomials. -/
 instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
+add_monoid_algebra.algebra
 
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_ring R] [comm_ring A] [algebra R A]

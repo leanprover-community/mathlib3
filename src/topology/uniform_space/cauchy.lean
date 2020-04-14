@@ -73,7 +73,7 @@ begin
   -- Consider a neighborhood `s` of `x`
   assume s hs,
   -- Take an entourage twice smaller than `s`
-  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
+  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 hs) with ⟨U, U_mem, hU⟩,
   -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
   rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
   apply mem_sets_of_superset t_mem,
@@ -484,7 +484,7 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (H : has_countable_basis (𝓤 α))
+variables (H : is_countably_generated (𝓤 α))
 
 include H
 
@@ -494,7 +494,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases (𝓤 α).has_countable_basis_iff_mono_seq'.1 H with ⟨U', U'_mono, hU'⟩,
+  rcases H.exists_antimono_seq' with ⟨U', U'_mono, hU'⟩,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem_sets (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -509,7 +509,7 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := (𝓤 α).has_countable_basis_iff_mono_seq'.1 H in
+let ⟨U', U'_mono, hU'⟩ := H.exists_antimono_seq' in
 complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 

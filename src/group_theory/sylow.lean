@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import group_theory.group_action group_theory.quotient_group
 import group_theory.order_of_element data.zmod.basic
 import data.fintype.card
+import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
@@ -192,7 +193,7 @@ let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI
 have hcard : card (quotient H) = s * p :=
   (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, is_submonoid.one_mem H⟩⟩)).1
+      ⟨⟨1, is_submonoid.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
       nat.pow_succ, mul_assoc, mul_comm p]),
 have hm : s * p % p = card (quotient (subtype.val ⁻¹' H : set (normalizer H))) % p :=

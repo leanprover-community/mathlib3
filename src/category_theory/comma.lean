@@ -7,6 +7,48 @@ import category_theory.isomorphism
 import category_theory.equivalence
 import category_theory.punit
 
+/-!
+# Comma categories
+
+A comma category is a construction in category theory, which builds a category out of two functors
+with a common codomain. Specifically, for functors `L : A ⥤ T` and `R : B ⥤ T`, an object in
+`comma L R` is a morphism `hom : L.obj left ⟶ R.obj right` for some objects `left : A` and
+`right : B`, and a morphism in `comma L R` between `hom : L.obj left ⟶ R.obj right` and
+`hom' : L.obj left' ⟶ R.obj right'` is a commutative square
+
+L.obj left   ⟶   L.obj left'
+      |               |
+  hom |               | hom'
+      ↓               ↓
+R.obj right  ⟶   R.obj right',
+
+where the top and bottom morphism come from morphisms `left ⟶ left'` and `right ⟶ right'`,
+respectively.
+
+Several important constructions are special cases of this construction.
+* If `L` is the identity functor and `R` is a constant functor, then `comma L R` is the "slice" or
+  "over" category over the object `R` maps to.
+* Conversely, if `L` is a constant functor and `R` is the identity functor, then `comma L R` is the
+  "coslice" or "under" category under the object `L` maps to.
+* If `L` and `R` both are the identity functor, then `comma L R` is the arrow category of `T`.
+
+## Main definitions
+
+* `comma L R`: the comma category of the functors `L` and `R`.
+* `over X`: the over category of the object `X`.
+* `under X`: the under category of the object `X`.
+* `arrow T`: the arrow category of the category `T`.
+
+## References
+
+* https://ncatlab.org/nlab/show/comma+category
+
+## Tags
+
+comma, slice, coslice, over, under, arrow
+-/
+
+
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -15,17 +57,41 @@ variables {B : Type u₂} [ℬ : category.{v₂} B]
 variables {T : Type u₃} [𝒯 : category.{v₃} T]
 include 𝒜 ℬ 𝒯
 
+/-- The objects of the comma category are triples of an object `left : A`, an object
+   `right : B` and a morphism `hom : L.obj left ⟶ R.obj right`.  -/
 structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 (left : A . obviously)
 (right : B . obviously)
 (hom : L.obj left ⟶ R.obj right)
 
+section
+omit 𝒜 ℬ
+
+-- Satisfying the inhabited linter
+instance comma.inhabited [inhabited T] : inhabited (comma (𝟭 T) (𝟭 T)) :=
+{ default :=
+  { left := default T,
+    right := default T,
+    hom := 𝟙 (default T) } }
+
+end
+
 variables {L : A ⥤ T} {R : B ⥤ T}
 
+/-- A morphism between two objects in the comma category is a commutative square connecting the
+    morphisms coming from the two objects using morphisms in the image of the functors `L` and `R`.
+-/
 @[ext] structure comma_morphism (X Y : comma L R) :=
 (left : X.left ⟶ Y.left . obviously)
 (right : X.right ⟶ Y.right . obviously)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
+
+-- Satisfying the inhabited linter
+instance comma_morphism.inhabited [inhabited (comma L R)] :
+  inhabited (comma_morphism (default (comma L R)) (default (comma L R))) :=
+{ default :=
+  { left := 𝟙 _,
+    right := 𝟙 _ } }
 
 restate_axiom comma_morphism.w'
 attribute [simp] comma_morphism.w
@@ -54,6 +120,8 @@ namespace comma
 section
 variables {X Y Z : comma L R} {f : X ⟶ Y} {g : Y ⟶ Z}
 
+@[simp] lemma id_left  : ((𝟙 X) : comma_morphism X X).left = 𝟙 X.left := rfl
+@[simp] lemma id_right : ((𝟙 X) : comma_morphism X X).right = 𝟙 X.right := rfl
 @[simp] lemma comp_left  : (f ≫ g).left  = f.left ≫ g.left   := rfl
 @[simp] lemma comp_right : (f ≫ g).right = f.right ≫ g.right := rfl
 
@@ -61,10 +129,12 @@ end
 
 variables (L) (R)
 
+/-- The functor sending an object `X` in the comma category to `X.left`. -/
 def fst : comma L R ⥤ A :=
 { obj := λ X, X.left,
   map := λ _ _ f, f.left }
 
+/-- The functor sending an object `X` in the comma category to `X.right`. -/
 def snd : comma L R ⥤ B :=
 { obj := λ X, X.right,
   map := λ _ _ f, f.right }
@@ -74,12 +144,17 @@ def snd : comma L R ⥤ B :=
 @[simp] lemma fst_map {X Y : comma L R} {f : X ⟶ Y} : (fst L R).map f = f.left := rfl
 @[simp] lemma snd_map {X Y : comma L R} {f : X ⟶ Y} : (snd L R).map f = f.right := rfl
 
+/-- We can interpret the commutative square constituting a morphism in the comma category as a
+    natural transformation between the functors `fst ⋙ L` and `snd ⋙ R` from the comma category
+    to `T`, where the components are given by the morphism that constitutes an object of the comma
+    category. -/
 def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 { app := λ X, X.hom }
 
 section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}
 
+/-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
 def map_left (l : L₁ ⟶ L₂) : comma L₂ R ⥤ comma L₁ R :=
 { obj := λ X,
   { left  := X.left,
@@ -99,6 +174,8 @@ variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟶ L₂}
 @[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
 end
 
+/-- The functor `comma L R ⥤ comma L R` induced by the identity natural transformation on `L` is
+    naturally isomorphic to the identity functor. -/
 def map_left_id : map_left R (𝟙 L) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
@@ -113,8 +190,11 @@ variables {X : comma L R}
 @[simp] lemma map_left_id_inv_app_right : (((map_left_id L R).inv).app X).right = 𝟙 (X.right) := rfl
 end
 
+/-- The functor `comma L₁ R ⥤ comma L₃ R` induced by the composition of two natural transformations
+    `l : L₁ ⟶ L₂` and `l' : L₂ ⟶ L₃` is naturally isomorphic to the composition of the two functors
+    induced by these natural transformations. -/
 def map_left_comp (l : L₁ ⟶ L₂) (l' : L₂ ⟶ L₃) :
-(map_left R (l ≫ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
+  (map_left R (l ≫ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -128,6 +208,7 @@ variables {X : comma L₃ R} {l : L₁ ⟶ L₂} {l' : L₂ ⟶ L₃}
 @[simp] lemma map_left_comp_inv_app_right : (((map_left_comp R l l').inv).app X).right = 𝟙 (X.right) := rfl
 end
 
+/-- A natural transformation `R₁ ⟶ R₂` induces a functor `comma L R₁ ⥤ comma L R₂`. -/
 def map_right (r : R₁ ⟶ R₂) : comma L R₁ ⥤ comma L R₂ :=
 { obj := λ X,
   { left  := X.left,
@@ -147,6 +228,8 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟶ R₂}
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 end
 
+/-- The functor `comma L R ⥤ comma L R` induced by the identity natural transformation on `R` is
+    naturally isomorphic to the identity functor. -/
 def map_right_id : map_right L (𝟙 R) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
@@ -161,7 +244,11 @@ variables {X : comma L R}
 @[simp] lemma map_right_id_inv_app_right : (((map_right_id L R).inv).app X).right = 𝟙 (X.right) := rfl
 end
 
-def map_right_comp (r : R₁ ⟶ R₂) (r' : R₂ ⟶ R₃) : (map_right L (r ≫ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
+/-- The functor `comma L R₁ ⥤ comma L R₃` induced by the composition of the natural transformations
+    `r : R₁ ⟶ R₂` and `r' : R₂ ⟶ R₃` is naturally isomorphic to the composition of the functors
+    induced by these natural transformations. -/
+def map_right_comp (r : R₁ ⟶ R₂) (r' : R₂ ⟶ R₃) :
+  (map_right L (r ≫ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -181,8 +268,16 @@ end comma
 
 omit 𝒜 ℬ
 
+/-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
+    triangles. -/
 @[derive category]
 def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
+
+-- Satisfying the inhabited linter
+instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
+{ default :=
+  { left := default T,
+    hom := 𝟙 _ } }
 
 namespace over
 
@@ -202,12 +297,15 @@ by tidy
 @[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
 by have := f.w; tidy
 
+/-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 { left := Y, hom := f }
 
 @[simp] lemma mk_left {X Y : T} (f : Y ⟶ X) : (mk f).left = Y := rfl
 @[simp] lemma mk_hom {X Y : T} (f : Y ⟶ X) : (mk f).hom = f := rfl
 
+/-- To give a morphism in the over category, it suffices to give an arrow fitting in a commutative
+    triangle. -/
 def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obviously) :
   U ⟶ V :=
 { left := f }
@@ -216,11 +314,13 @@ def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obv
   (hom_mk f).left = f :=
 rfl
 
+/-- The forgetful functor mapping an arrow to its domain. -/
 def forget : (over X) ⥤ T := comma.fst _ _
 
 @[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
 
+/-- A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ (functor.const punit).map f
 
 section
@@ -278,6 +378,7 @@ section
 variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
+/-- A functor `F : T ⥤ D` induces a functor `over X ⥤ over (F.obj X)` in the obvious way. -/
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,
@@ -288,8 +389,16 @@ end
 
 end over
 
+/-- The under category has as objects arrows with domain `X` and as morphisms commutative
+    triangles. -/
 @[derive category]
 def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
+
+-- Satisfying the inhabited linter
+instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
+{ default :=
+  { right := default T,
+    hom := 𝟙 _ } }
 
 namespace under
 
@@ -309,12 +418,15 @@ by tidy
 @[simp] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
 by have := f.w; tidy
 
+/-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
 { right := Y, hom := f }
 
 @[simp] lemma mk_right {X Y : T} (f : X ⟶ Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom {X Y : T} (f : X ⟶ Y) : (mk f).hom = f := rfl
 
+/-- To give a morphism in the under category, it suffices to give a morphism fitting in a
+    commutative triangle. -/
 def hom_mk {U V : under X} (f : U.right ⟶ V.right) (w : U.hom ≫ f = V.hom . obviously) :
   U ⟶ V :=
 { right := f }
@@ -323,11 +435,13 @@ def hom_mk {U V : under X} (f : U.right ⟶ V.right) (w : U.hom ≫ f = V.hom . 
   (hom_mk f).right = f :=
 rfl
 
+/-- The forgetful functor mapping an arrow to its domain. -/
 def forget : (under X) ⥤ T := comma.snd _ _
 
 @[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
 @[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
 
+/-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ (functor.const punit).map f
 
 section
@@ -341,6 +455,7 @@ section
 variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
+/-- A functor `F : T ⥤ D` induces a functor `under X ⥤ under (F.obj X)` in the obvious way. -/
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,
@@ -350,5 +465,57 @@ def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 end
 
 end under
+
+section
+variables (T)
+
+/-- The arrow category of `T` has as objects all morphisms in `T` and as morphisms commutative
+     squares in `T`. -/
+@[derive category]
+def arrow := comma.{v₃ v₃ v₃} (𝟭 T) (𝟭 T)
+
+-- Satisfying the inhabited linter
+instance arrow.inhabited [inhabited T] : inhabited (arrow T) :=
+{ default := show comma (𝟭 T) (𝟭 T), from default (comma (𝟭 T) (𝟭 T)) }
+
+end
+
+namespace arrow
+
+@[simp] lemma id_left (f : arrow T) : comma_morphism.left (𝟙 f) = 𝟙 (f.left) := rfl
+@[simp] lemma id_right (f : arrow T) : comma_morphism.right (𝟙 f) = 𝟙 (f.right) := rfl
+
+/-- An object in the arrow category is simply a morphism in `T`. -/
+def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
+⟨X, Y, f⟩
+
+@[simp] lemma mk_hom {X Y : T} (f : X ⟶ Y) : (mk f).hom = f := rfl
+
+/-- A morphism in the arrow category is a commutative square connecting two objects of the arrow
+    category. -/
+def hom_mk {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : f ⟶ g :=
+{ left := u,
+  right := v,
+  w' := w }
+
+@[simp] lemma hom_mk_left {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : (hom_mk w).left = u := rfl
+@[simp] lemma hom_mk_right {f g : arrow T} {u : f.left ⟶ g.left} {v : f.right ⟶ g.right}
+  (w : u ≫ g.hom = f.hom ≫ v) : (hom_mk w).right = v := rfl
+
+/-- We can also build a morphism in the arrow category out of any commutative square in `T`. -/
+def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : arrow.mk f ⟶ arrow.mk g :=
+{ left := u,
+  right := v,
+  w' := w }
+
+@[simp] lemma hom_mk'_left {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : (hom_mk' w).left = u := rfl
+@[simp] lemma hom_mk'_right {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (w : u ≫ g = f ≫ v) : (hom_mk' w).right = v := rfl
+
+end arrow
 
 end category_theory

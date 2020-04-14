@@ -124,7 +124,7 @@ structure unique_irreducible_factorization (α : Type*) [integral_domain α] :=
 
 namespace unique_factorization_domain
 open unique_factorization_domain associated
-variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
+variables [integral_domain α] [unique_factorization_domain α]
 
 lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
   ∃ q ∈ factors a, p ~ᵤ q :=
@@ -191,7 +191,7 @@ end unique_factorization_domain
 
 namespace associates
 open unique_factorization_domain associated
-variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
+variables [integral_domain α]
 
 /-- `factor_set α` representation elements of unique factorization domain as multisets.
 
@@ -200,11 +200,51 @@ variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (a
 representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
 lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
 -/
-@[reducible] def {u} factor_set (α : Type u) [integral_domain α] [unique_factorization_domain α] :
+@[reducible] def {u} factor_set (α : Type u) [integral_domain α] :
   Type u :=
 with_top (multiset { a : associates α // irreducible a })
 
 local attribute [instance] associated.setoid
+
+@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
+  (↑a + ↑b : factor_set α) = ↑(a + b) :=
+with_top.coe_add
+
+lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
+  ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b
+| none     b        := show ⊤ ⊔ b + ⊤ ⊓ b = ⊤ + b, by simp
+| a        none     := show a ⊔ ⊤ + a ⊓ ⊤ = a + ⊤, by simp
+| (some a) (some b) := show (a : factor_set α) ⊔ b + a ⊓ b = a + b, from
+  begin
+    rw [← with_top.coe_sup, ← with_top.coe_inf, ← with_top.coe_add, ← with_top.coe_add,
+      with_top.coe_eq_coe],
+    exact multiset.union_add_inter _ _
+  end
+
+def factor_set.prod : factor_set α → associates α
+| none     := 0
+| (some s) := (s.map subtype.val).prod
+
+@[simp] theorem prod_top : (⊤ : factor_set α).prod = 0 := rfl
+
+@[simp] theorem prod_coe {s : multiset { a : associates α // irreducible a }} :
+  (s : factor_set α).prod = (s.map subtype.val).prod :=
+rfl
+
+@[simp] theorem prod_add : ∀(a b : factor_set α), (a + b).prod = a.prod * b.prod
+| none b    := show (⊤ + b).prod = (⊤:factor_set α).prod * b.prod, by simp
+| a    none := show (a + ⊤).prod = a.prod * (⊤:factor_set α).prod, by simp
+| (some a) (some b) :=
+  show (↑a + ↑b:factor_set α).prod = (↑a:factor_set α).prod * (↑b:factor_set α).prod,
+    by rw [factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
+
+theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
+| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _
+| a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
+| (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
+
+variable [unique_factorization_domain α]
 
 theorem unique' {p q : multiset (associates α)} :
   (∀a∈p, irreducible a) → (∀a∈q, irreducible a) → p.prod = q.prod → p = q :=
@@ -248,21 +288,6 @@ iff.intro
   end
   prod_le_prod
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
-theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
-  (↑a + ↑b : factor_set α) = ↑(a + b) :=
-with_top.coe_add
-
-lemma factor_set.sup_add_inf_eq_add : ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b
-| none     b        := show ⊤ ⊔ b + ⊤ ⊓ b = ⊤ + b, by simp
-| a        none     := show a ⊔ ⊤ + a ⊓ ⊤ = a + ⊤, by simp
-| (some a) (some b) := show (a : factor_set α) ⊔ b + a ⊓ b = a + b, from
-  begin
-    rw [← with_top.coe_sup, ← with_top.coe_inf, ← with_top.coe_add, ← with_top.coe_add,
-      with_top.coe_eq_coe],
-    exact multiset.union_add_inter _ _
-  end
-
 def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducible a } :=
 (factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk_iff _).2 ha⟩)
   (irreducible_factors $ ha)
@@ -277,6 +302,9 @@ have multiset.rel associated (factors a) (factors b), from
   unique (irreducible_factors ha) (irreducible_factors hb)
     ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
 by simpa [(multiset.map_eq_map subtype.val_injective).symm, rel_associated_iff_map_eq_map.symm]
+
+variable [dec : decidable_eq (associates α)]
+include dec
 
 def factors (a : associates α) : factor_set α :=
 begin
@@ -296,16 +324,6 @@ dif_pos rfl
 
 @[simp] theorem factors_mk (a : α) (h : a ≠ 0) : (associates.mk a).factors = factors' a h :=
 dif_neg (mt mk_eq_zero_iff_eq_zero.1 h)
-
-def factor_set.prod : factor_set α → associates α
-| none     := 0
-| (some s) := (s.map subtype.val).prod
-
-@[simp] theorem prod_top : (⊤ : factor_set α).prod = 0 := rfl
-
-@[simp] theorem prod_coe {s : multiset { a : associates α // irreducible a }} :
-  (s : factor_set α).prod = (s.map subtype.val).prod :=
-rfl
 
 theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
 | none     := by simp [factor_set.prod]; refl
@@ -345,21 +363,17 @@ theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factor
 have a.factors.prod = b.factors.prod, by rw h,
 by rwa [factors_prod, factors_prod] at this
 
+omit dec
+
 theorem eq_of_prod_eq_prod {a b : factor_set α} (h : a.prod = b.prod) : a = b :=
-have a.prod.factors = b.prod.factors, by rw h,
-by rwa [prod_factors, prod_factors] at this
+begin
+  classical,
+  have : a.prod.factors = b.prod.factors, by rw h,
+  rwa [prod_factors, prod_factors] at this
+end
 
-@[simp] theorem prod_add : ∀(a b : factor_set α), (a + b).prod = a.prod * b.prod
-| none b    := show (⊤ + b).prod = (⊤:factor_set α).prod * b.prod, by simp
-| a    none := show (a + ⊤).prod = a.prod * (⊤:factor_set α).prod, by simp
-| (some a) (some b) :=
-  show (↑a + ↑b:factor_set α).prod = (↑a:factor_set α).prod * (↑b:factor_set α).prod,
-    by rw [factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
+include dec
 
-theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
-| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _
-| a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
-| (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
 
 @[simp] theorem factors_mul (a b : associates α) : (a * b).factors = a.factors + b.factors :=
 eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
@@ -374,11 +388,18 @@ iff.intro
     by rwa [factors_prod, factors_prod] at this)
   factors_mono
 
+omit dec
+
 theorem prod_le {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
-iff.intro
+begin
+  classical,
+  exact iff.intro
   (assume h, have a.prod.factors ≤ b.prod.factors, from factors_mono h,
     by rwa [prod_factors, prod_factors] at this)
   prod_mono
+end
+
+include dec
 
 instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩

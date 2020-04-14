@@ -66,6 +66,33 @@ theorem coe_sort_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 
+/--
+Many structures such as bundled morphisms coerce to functions so that you can
+transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
+then you can write `e a` and this is elaborated as `⇑e a`. This type of
+coercion is implemented using the `has_coe_to_fun`type class. There is one
+important consideration:
+
+If a type coerces to another type which in turn coerces to a function,
+then it **must** implement `has_coe_to_fun` directly:
+```lean
+structure sparkling_equiv (α β) extends α ≃ β
+
+-- if we add a `has_coe` instance,
+instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
+⟨sparkling_equiv.to_equiv⟩
+
+-- then a `has_coe_to_fun` instance **must** be added as well:
+instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
+⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
+```
+
+(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
+simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
+often causes loops in the simplifier.)
+-/
+library_note "function coercion"
+
 @[simp] theorem coe_sort_coe_base
   {α β} [has_coe α β] [has_coe_to_sort β]
   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
@@ -168,7 +195,7 @@ theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
 theorem by_contradiction {p} [decidable p] : (¬p → false) → p :=
 decidable.by_contradiction
 
-@[simp] theorem not_not [decidable a] : ¬¬a ↔ a :=
+theorem not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro by_contradiction not_not_intro
 
 theorem of_not_not [decidable a] : ¬¬a → a :=
@@ -224,6 +251,12 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
 
+@[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
+⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩
+
+@[simp] lemma and_self_right : (a ∧ b) ∧ b ↔ a ∧ b :=
+⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
+
 /-! ### Declarations about `or` -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
@@ -267,6 +300,12 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 
+@[simp] lemma or_self_left : a ∨ a ∨ b ↔ a ∨ b :=
+⟨λ h, h.elim or.inl id, λ h, h.elim or.inl (or.inr ∘ or.inr)⟩
+
+@[simp] lemma or_self_right : (a ∨ b) ∨ b ↔ a ∨ b :=
+⟨λ h, h.elim id or.inr, λ h, h.elim (or.inl ∘ or.inl) or.inr⟩
+
 /-! Declarations about `iff` -/
 
 theorem iff_of_true (ha : a) (hb : b) : a ↔ b :=
@@ -302,7 +341,7 @@ by by_cases b; simp [h, or_iff_right_of_imp ((∘) false.elim)]
 theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 | ⟨ha, hb⟩ h := hb $ h ha
 
-@[simp] theorem not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
+theorem not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
 ⟨λ h, ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
 -- for monotonicity
@@ -469,13 +508,13 @@ theorem not_forall {p : α → Prop}
 ⟨not.imp_symm $ λ nx x, nx.imp_symm $ λ h, ⟨x, h⟩,
  not_forall_of_exists_not⟩
 
-@[simp] theorem not_forall_not [decidable (∃ x, p x)] :
+theorem not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
 (@not_iff_comm _ _ _ (decidable_of_iff (¬ ∃ x, p x) not_exists)).1 not_exists
 
-@[simp] theorem not_exists_not [∀ x, decidable (p x)] :
+theorem not_exists_not [∀ x, decidable (p x)] :
   (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
-by simp
+by simp [not_not]
 
 @[simp] theorem forall_true_iff : (α → true) ↔ true :=
 iff_true_intro (λ _, trivial)
@@ -577,6 +616,49 @@ iff_true_intro $ λ h, hn.elim h
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
 
+lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
+exists.elim h (λ x hx, ⟨x, and.left hx⟩)
+
+lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
+  {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
+unique_of_exists_unique h py₁ py₂
+
+@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
+  (∃! x, p x) ↔ ∃ x, p x :=
+⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
+
+lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
+  (h₁ : ∀ x (h : p x), q x h → (∀ y (hy : p y), q y hy → y = x) → b) : b :=
+begin
+  simp only [exists_unique_iff_exists] at h₂,
+  apply h₂.elim,
+  exact λ x ⟨hxp, hxq⟩ H, h₁ x hxp hxq (λ y hyp hyq, H y ⟨hyp, hyq⟩)
+end
+
+lemma exists_unique.intro2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (h : p x), Prop} (w : α) (hp : p w) (hq : q w hp)
+  (H : ∀ y (hy : p y), q y hy → y = w) :
+  ∃! x (hx : p x), q x hx :=
+begin
+  simp only [exists_unique_iff_exists],
+  exact exists_unique.intro w ⟨hp, hq⟩ (λ y ⟨hyp, hyq⟩, H y hyp hyq)
+end
+
+lemma exists_unique.exists2 {α : Sort*} {p : α → Sort*} {q : Π (x : α) (h : p x), Prop}
+  (h : ∃! x (hx : p x), q x hx) :
+  ∃ x (hx : p x), q x hx :=
+h.exists.imp (λ x hx, hx.exists)
+
+lemma exists_unique.unique2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
+  {q : Π (x : α) (hx : p x), Prop} (h : ∃! x (hx : p x), q x hx)
+  {y₁ y₂ : α} (hpy₁ : p y₁) (hqy₁ : q y₁ hpy₁)
+  (hpy₂ : p y₂) (hqy₂ : q y₂ hpy₂) : y₁ = y₂ :=
+begin
+  simp only [exists_unique_iff_exists] at h,
+  exact h.unique ⟨hpy₁, hqy₁⟩ ⟨hpy₂, hqy₂⟩
+end
+
 end quantifiers
 
 /-! ### Classical versions of earlier lemmas -/
@@ -586,9 +668,9 @@ variables {α : Sort*} {p : α → Prop}
 
 local attribute [instance] prop_decidable
 
-protected theorem not_forall : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall
+@[simp] protected theorem not_forall : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall
 
-protected theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := not_exists_not
+@[simp] protected theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := not_exists_not
 
 protected theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
@@ -614,7 +696,10 @@ or_iff_not_imp_left
 protected theorem or_iff_not_imp_right {p q : Prop} : q ∨ p ↔ (¬ p → q) :=
 or_iff_not_imp_right
 
-protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
+@[simp] protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
+
+@[simp] protected lemma not_imp {p q : Prop} : ¬(p → q) ↔ p ∧ ¬q :=
+not_imp
 
 protected theorem not_imp_not {p q : Prop} : (¬ p → ¬ q) ↔ (q → p) := not_imp_not
 

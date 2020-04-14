@@ -54,7 +54,7 @@ variables {R : Type u} {M : Type v}
 [semimodule R M] [topological_semimodule R M]
 
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
-topological_semimodule.continuous_smul R M
+topological_semimodule.continuous_smul
 
 lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
@@ -201,7 +201,8 @@ variables
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
 /-- Coerce continuous linear maps to functions. -/
-instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨_, λ f, f.to_fun⟩
+-- see Note [function coercion]
+instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
 
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
@@ -335,29 +336,33 @@ rfl
 variables (R M M₂)
 
 /-- `prod.fst` as a `continuous_linear_map`. -/
-protected def fst : M × M₂ →L[R] M :=
+def fst : M × M₂ →L[R] M :=
 { cont := continuous_fst, to_linear_map := linear_map.fst R M M₂ }
 
 /-- `prod.snd` as a `continuous_linear_map`. -/
-protected def snd : M × M₂ →L[R] M₂ :=
+def snd : M × M₂ →L[R] M₂ :=
 { cont := continuous_snd, to_linear_map := linear_map.snd R M M₂ }
 
 variables {R M M₂}
 
-@[simp, move_cast] lemma coe_fst :
-  (continuous_linear_map.fst R M M₂ : M × M₂ →ₗ[R] M) = linear_map.fst R M M₂ :=
+@[simp, move_cast] lemma coe_fst : (fst R M M₂ : M × M₂ →ₗ[R] M) = linear_map.fst R M M₂ := rfl
+
+@[simp, move_cast] lemma coe_fst' : (fst R M M₂ : M × M₂ → M) = prod.fst := rfl
+
+@[simp, move_cast] lemma coe_snd : (snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ := rfl
+
+@[simp, move_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
+
+/-- `prod.map` of two continuous linear maps. -/
+def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=
+(f₁.comp (fst R M M₃)).prod (f₂.comp (snd R M M₃))
+
+@[simp, move_cast] lemma coe_prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) :
+  (f₁.prod_map f₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = ((f₁ : M →ₗ[R] M₂).prod_map (f₂ : M₃ →ₗ[R] M₄)) :=
 rfl
 
-@[simp, move_cast] lemma coe_fst' :
-  (continuous_linear_map.fst R M M₂ : M × M₂ → M) = prod.fst :=
-rfl
-
-@[simp, move_cast] lemma coe_snd :
-  (continuous_linear_map.snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ :=
-rfl
-
-@[simp, move_cast] lemma coe_snd' :
-  (continuous_linear_map.snd R M M₂ : M × M₂ → M₂) = prod.snd :=
+@[simp, move_cast] lemma prod_map_apply (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) (x) :
+  f₁.prod_map f₂ x = (f₁ x.1, f₂ x.2) :=
 rfl
 
 end general_ring
@@ -427,9 +432,8 @@ instance : is_ring_hom (λ c : R, c • (1 : M₂ →L[R] M₂)) :=
   map_mul := λ _ _, ext $ λ _, mul_smul _ _ _ }
 
 instance : algebra R (M₂ →L[R] M₂) :=
-{ to_fun    := λ c, c • 1,
-  smul_def' := λ _ _, rfl,
-  commutes' := λ _ _, ext $ λ _, map_smul _ _ _ }
+(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra $
+  λ _ _, ext $ λ _, (map_smul _ _ _).symm
 
 end comm_ring
 
@@ -440,7 +444,8 @@ variables {R : Type*} [ring R]
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-[module R M] [module R M₂] [module R M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[module R M] [module R M₂] [module R M₃] [module R M₄]
 
 /-- A continuous linear equivalence induces a continuous linear map. -/
 def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
@@ -451,7 +456,10 @@ def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
 instance : has_coe (M ≃L[R] M₂) (M →L[R] M₂) := ⟨to_continuous_linear_map⟩
 
 /-- Coerce continuous linear equivs to maps. -/
-instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨_, λ f, ((f : M →L[R] M₂) : M → M₂)⟩
+-- see Note [function coercion]
+instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
+
+@[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
@@ -462,7 +470,6 @@ begin
   cases f; cases g,
   simp only [],
   ext x,
-  simp only [coe_fn_coe_base] at h,
   induction h,
   refl
 end
@@ -506,7 +513,7 @@ lemma comp_continuous_iff
 e.to_homeomorph.comp_continuous_iff _
 
 section
-variable (M)
+variables (R M)
 
 /-- The identity map as a continuous linear equivalence. -/
 @[refl] protected def refl : M ≃L[R] M :=
@@ -514,6 +521,12 @@ variable (M)
   continuous_inv_fun := continuous_id,
   .. linear_equiv.refl R M }
 end
+
+@[simp, elim_cast] lemma coe_refl :
+  ((continuous_linear_equiv.refl R M) : M →L[R] M) = continuous_linear_map.id := rfl
+
+@[simp, elim_cast] lemma coe_refl' :
+  ((continuous_linear_equiv.refl R M) : M → M) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
 @[symm] protected def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
@@ -534,6 +547,38 @@ by { ext, refl }
 @[simp] lemma trans_to_linear_equiv (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) :
   (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv :=
 by { ext, refl }
+
+/-- Product of two continuous linear equivalences. The map comes from `equiv.prod_congr`. -/
+def prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) : (M × M₃) ≃L[R] (M₂ × M₄) :=
+{ continuous_to_fun := e.continuous_to_fun.prod_map e'.continuous_to_fun,
+  continuous_inv_fun := e.continuous_inv_fun.prod_map e'.continuous_inv_fun,
+  .. e.to_linear_equiv.prod e'.to_linear_equiv }
+
+@[simp, move_cast] lemma prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (x) :
+  e.prod e' x = (e x.1, e' x.2) := rfl
+
+@[simp, move_cast] lemma coe_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) :
+  (e.prod e' : (M × M₃) →L[R] (M₂ × M₄)) = (e : M →L[R] M₂).prod_map (e' : M₃ →L[R] M₄) :=
+rfl
+
+variables [topological_add_group M₄]
+
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
+def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
+  (M × M₃) ≃L[R] M₂ × M₄ :=
+{ continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk
+    ((e'.continuous_to_fun.comp continuous_snd).add $ f.continuous.comp continuous_fst),
+  continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
+    (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
+      e.continuous_inv_fun.comp continuous_fst),
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+
+@[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+
+@[simp] lemma skew_prod_symm_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
 
 theorem bijective (e : M ≃L[R] M₂) : function.bijective e := e.to_linear_equiv.to_equiv.bijective
 theorem injective (e : M ≃L[R] M₂) : function.injective e := e.to_linear_equiv.to_equiv.injective

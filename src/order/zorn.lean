@@ -287,3 +287,13 @@ theorem chain.image {α β : Type*} (r : α → α → Prop)
     (or.inl ∘ h _ _) (or.inr ∘ h _ _)
 
 end zorn
+
+theorem directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
+  (h : zorn.chain (f ⁻¹'o r) c) :
+  directed r (λx:{a:α // a ∈ c}, f (x.val)) :=
+assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
+  (assume : a = b, by simp only [this, exists_prop, and_self, subtype.exists];
+    exact ⟨b, hb, refl _⟩)
+  (assume : a ≠ b, (h a ha b hb this).elim
+    (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
+    (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))

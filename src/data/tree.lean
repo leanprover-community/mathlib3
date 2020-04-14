@@ -20,7 +20,7 @@ to be defined and is better suited for in-kernel computation.
 
 @[derive has_reflect, derive decidable_eq]
 inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
+| nil : tree
 | node : α → tree → tree → tree
 
 namespace tree

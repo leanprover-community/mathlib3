@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import group_theory.free_abelian_group data.equiv.functor data.polynomial
+import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
 noncomputable theory
@@ -143,10 +143,10 @@ theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
 is_submonoid.mul_mem hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
-is_add_submonoid.zero_mem _
+is_add_submonoid.zero_mem
 
 theorem is_supported_one : is_supported 1 s :=
-is_submonoid.one_mem _
+is_submonoid.one_mem
 
 theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
 int.induction_on i is_supported_zero
@@ -306,7 +306,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
       refine multiset.induction_on s _ _,
@@ -330,7 +330,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
     { exact λ i, int.induction_on i
       (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])

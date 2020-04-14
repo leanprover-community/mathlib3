@@ -239,22 +239,7 @@ end comm_ring
 
 section integral_domain
 
-variables [integral_domain α] [decidable_rel ((∣) : α → α → Prop)]
-
-@[simp] lemma multiplicity_self {a : α} (ha : ¬is_unit a) (ha0 : a ≠ 0) :
-  multiplicity a a = 1 :=
-eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
-  ⟨b, (domain.mul_left_inj ha0).1 $ by clear _fun_match;
-    simpa [_root_.pow_succ, mul_assoc] using hb⟩)⟩
-
-@[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
-  get (multiplicity a a) ha = 1 :=
-roption.get_eq_iff_eq_some.2 (eq_some_iff.2
-  ⟨by simp, λ ⟨b, hb⟩,
-    by rw [← mul_one a, _root_.pow_add, _root_.pow_one, mul_assoc, mul_assoc,
-        domain.mul_left_inj (ne_zero_of_finite ha)] at hb;
-      exact mt is_unit_iff_dvd_one.2 (not_unit_of_finite ha)
-        ⟨b, by clear _fun_match; simp * at *⟩⟩)
+variables [integral_domain α]
 
 lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b
@@ -299,6 +284,23 @@ lemma finite_pow {p a : α} (hp : prime p) : Π {k : ℕ} (ha : finite p a), fin
 | 0     ha := ⟨0, by simp [mt is_unit_iff_dvd_one.2 hp.2.1]⟩
 | (k+1) ha := by rw [_root_.pow_succ]; exact finite_mul hp ha (finite_pow ha)
 
+variable [decidable_rel ((∣) : α → α → Prop)]
+
+@[simp] lemma multiplicity_self {a : α} (ha : ¬is_unit a) (ha0 : a ≠ 0) :
+  multiplicity a a = 1 :=
+eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
+  ⟨b, (domain.mul_left_inj ha0).1 $ by clear _fun_match;
+    simpa [_root_.pow_succ, mul_assoc] using hb⟩)⟩
+
+@[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
+  get (multiplicity a a) ha = 1 :=
+roption.get_eq_iff_eq_some.2 (eq_some_iff.2
+  ⟨by simp, λ ⟨b, hb⟩,
+    by rw [← mul_one a, _root_.pow_add, _root_.pow_one, mul_assoc, mul_assoc,
+        domain.mul_left_inj (ne_zero_of_finite ha)] at hb;
+      exact mt is_unit_iff_dvd_one.2 (not_unit_of_finite ha)
+        ⟨b, by clear _fun_match; simp * at *⟩⟩)
+
 protected lemma mul' {p a b : α} (hp : prime p)
   (h : (multiplicity p (a * b)).dom) :
   get (multiplicity p (a * b)) h =
@@ -336,12 +338,15 @@ else begin
     simp [eq_top_iff_not_finite.2 h]
 end
 
-lemma finset.prod {β : Type*} [decidable_eq β] {p : α} (hp : prime p) (s : finset β) (f : β → α) :
+lemma finset.prod {β : Type*} {p : α} (hp : prime p) (s : finset β) (f : β → α) :
   multiplicity p (s.prod f) = s.sum (λ x, multiplicity p (f x)) :=
 begin
+  classical,
   induction s using finset.induction with a s has ih h,
-  { simp [one_right hp.not_unit] },
-  { simp [has, multiplicity.mul hp, ih] }
+  { simp only [finset.sum_empty, finset.prod_empty],
+    convert one_right hp.not_unit },
+  { simp [has, ← ih],
+    convert multiplicity.mul hp }
 end
 
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},

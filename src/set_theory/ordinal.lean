@@ -58,8 +58,6 @@ def of_iso (f : r ≃o s) : r ≼i s :=
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
-@[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : (f : r ≼o s) x = f x := rfl
-
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
 @[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
@@ -79,7 +77,7 @@ end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_extensional
-  (@order_embedding.well_founded _ _ r s a (is_well_order.wf s))) a⟩
+  (@order_embedding.well_founded _ _ r s a is_well_order.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
@@ -101,7 +99,7 @@ order_iso.eq_of_to_fun_eq rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
-acc.rec_on ((is_well_order.wf s).apply b) $ λ x H IH,
+acc.rec_on (is_well_order.wf.apply b : acc s b) $ λ x H IH,
 not_forall_not.1 $ λ hn,
 h ⟨x, λ y, ⟨(IH _), λ ⟨a, e⟩, by rw ← e; exact
   (trichotomous _ _).resolve_right
@@ -195,9 +193,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
 ⟨@order_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
-    rw [←g.right_inv x],
-    simp only [order_iso.to_equiv_to_fun, coe_fn_coe_base, order_embedding.trans_apply],
-    rw [←order_iso.ord'' g, f.down', exists_congr],
+    rw [← g.right_inv x, order_iso.to_equiv_to_fun, ← order_iso.ord' g, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 
@@ -282,13 +278,13 @@ end
 namespace order_embedding
 
 def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :=
-(order_embedding.well_founded f $ is_well_order.wf s).fix $ λ a IH, begin
+(order_embedding.well_founded f $ is_well_order.wf).fix $ λ a IH, begin
   let S := {b | ∀ a h, s (IH a h).1 b},
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord'.1 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord'.1 h,
-  exact ⟨(is_well_order.wf s).min S ⟨_, this⟩,
-   (is_well_order.wf s).not_lt_min _ _ this⟩
+  exact ⟨is_well_order.wf.min S ⟨_, this⟩,
+   is_well_order.wf.not_lt_min _ _ this⟩
 end
 
 theorem collapse_F.lt [is_well_order β s] (f : r ≼o s) {a : α}
@@ -311,15 +307,15 @@ def collapse [is_well_order β s] (f : r ≼o s) : r ≼i s :=
 by haveI := order_embedding.is_well_order f; exact
 ⟨order_embedding.of_monotone
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
-λ a b, acc.rec_on ((is_well_order.wf s).apply b) (λ b H IH a h, begin
+λ a b, acc.rec_on (is_well_order.wf.apply b : acc s b) (λ b H IH a h, begin
   let S := {a | ¬ s (collapse_F f a).1 b},
   have : S.nonempty := ⟨_, asymm h⟩,
-  existsi (is_well_order.wf r).min S this,
+  existsi (is_well_order.wf : well_founded r).min S this,
   refine ((@trichotomous _ s _ _ _).resolve_left _).resolve_right _,
-  { exact (is_well_order.wf r).min_mem S this },
+  { exact (is_well_order.wf : well_founded r).min_mem S this },
   { refine collapse_F.not_lt f _ (λ a' h', _),
     by_contradiction hn,
-    exact (is_well_order.wf r).not_lt_min S this hn h' }
+    exact is_well_order.wf.not_lt_min S this hn h' }
 end) a⟩
 
 theorem collapse_apply [is_well_order β s] (f : r ≼o s)
@@ -648,7 +644,7 @@ theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
 induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
   λ _ _, sum.lex_inl_inl.symm⟩,
 sum.inr punit.star, λ b, sum.rec_on b
-  (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _ _ _⟩)
+  (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
   (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
 
 theorem succ_pos (o : ordinal) : 0 < succ o :=
@@ -1460,8 +1456,8 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
     (λ a, (f a.1, a.2))
     (λ a b h, _)⟩, clear_,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
-  { exact prod.lex.left _ _ _ (f.to_order_embedding.ord'.1 h') },
-  { exact prod.lex.right _ _ h' }
+  { exact prod.lex.left _ _ (f.to_order_embedding.ord'.1 h') },
+  { exact prod.lex.right _ h' }
 end
 
 theorem mul_le_mul_right {a b} (c : ordinal) : a ≤ b → a * c ≤ b * c :=
@@ -1471,8 +1467,8 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
     (λ a, (a.1, f a.2))
     (λ a b h, _)⟩,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
-  { exact prod.lex.left _ _ _ h' },
-  { exact prod.lex.right _ _ (f.to_order_embedding.ord'.1 h') }
+  { exact prod.lex.left _ _ h' },
+  { exact prod.lex.right _ (f.to_order_embedding.ord'.1 h') }
 end
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=

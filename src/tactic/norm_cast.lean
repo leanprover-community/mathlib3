@@ -277,20 +277,21 @@ private lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ 
 `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
 for names in `names`, and collects the lemmas attributed with specific `norm_cast` attributes.
 -/
-meta def mk_cache (attr : thunk norm_cast_attr_ty) (names : list name) : tactic norm_cast_cache :=
-do
-  -- names has the declarations in reverse order
-  cache ← names.mfoldr (λ name cache, add_lemma (attr ()) cache name) empty_cache,
+meta def mk_cache (attr : thunk norm_cast_attr_ty) (names : list name) :
+  tactic norm_cast_cache := do
+-- names has the declarations in reverse order
+cache ← names.mfoldr (λ name cache, add_lemma (attr ()) cache name) empty_cache,
 
-  --some special lemmas to handle binary relations
-  new_up ← simp_lemmas.add_simp cache.up ``ge_from_le,
-  new_up ← simp_lemmas.add_simp new_up   ``gt_from_lt,
-  new_up ← simp_lemmas.add_simp new_up   ``ne_from_not_eq,
+--some special lemmas to handle binary relations
+let up := cache.up,
+up ← up.add_simp ``ge_from_le,
+up ← up.add_simp ``gt_from_lt,
+up ← up.add_simp ``ne_from_not_eq,
 
-  return {
-    up     := new_up,
-    down   := cache.down,
-    squash := cache.squash, }
+let down := cache.down,
+down ← down.add_simp ``coe_coe,
+
+pure { up := up, down := down, squash := cache.squash }
 
 /--
 The `norm_cast` attribute.

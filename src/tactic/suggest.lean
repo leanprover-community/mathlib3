@@ -197,6 +197,29 @@ open suggest
 
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
+-- Call `apply_declaration`, then prepare the tactic script and
+-- count the number of local hypotheses used.
+private meta def apply_declaration_script
+  (g : expr) (hyps : list expr)
+  (discharger : tactic unit := done)
+  (d : decl_data) :
+  tactic application :=
+-- (This tactic block is only executed when we evaluate the mllist,
+-- so we need to do the `focus1` here.)
+lock_tactic_state $ focus1 $ do
+  apply_declaration ff discharger d,
+  ng ← num_goals,
+  g ← instantiate_mvars g,
+  state ← read,
+  m ← message g state,
+  return
+  { application .
+    state := state,
+    decl := d.d,
+    script := m,
+    num_goals := ng,
+    hyps_used := hyps.countp (λ h, h.occurs g) }
+
 -- implementation note: we produce a `tactic (mllist tactic application)` first,
 -- because it's easier to work in the tactic monad, but in a moment we squash this
 -- down to an `mllist tactic application`.
@@ -222,33 +245,22 @@ do g :: _ ← get_goals,
    trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
    trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
-   -- We now prepare a list of `tactic_state`s, consisting of
-   -- the current state, and the current state with `symmetry` applied (if it succeeds).
-   -- We'll then try applying every declaration in each of these states.
-   -- (This avoids the overhead of running `symmetry` once for every declaration.)
-   -- (This mechanism could also be used to allow other pre-processing alternatives.)
-   state ← read,
-   symm_state ← lock_tactic_state $ option.to_list <$> try_core (symmetry >> read),
-   let states := state :: symm_state,
+   let defs : mllist tactic _ := mllist.of_list defs,
 
    -- Try applying each lemma against the goal,
-   -- then record the number of remaining goals, and number of local hypotheses used.
-   return $ (mllist.of_list defs).mfilter_map
-   -- (This tactic block is only executed when we evaluate the mllist,
-   -- so we need to do the `focus1` here.)
-   (λ d, lock_tactic_state $ focus1 $ do
-     states.mfirst (λ s, set_state s >> apply_declaration ff discharger d),
-     ng ← num_goals,
-     g ← instantiate_mvars g,
-     state ← read,
-     m ← message g state,
-     return
-     { application .
-       state := state,
-       decl := d.d,
-       script := m,
-       num_goals := ng,
-       hyps_used := hyps.countp(λ h, h.occurs g) }))
+   -- recording the tactic script as a string,
+   -- the number of remaining goals,
+   -- and number of local hypotheses used.
+   let results := defs.mfilter_map (apply_declaration_script g hyps discharger),
+   -- Now call `symmetry` and try again.
+   -- (Because we are using `mllist`, this is essentially free if we've already found a lemma.)
+   symm_state ← lock_tactic_state $ try_core $ symmetry >> read,
+   let results_symm := match symm_state with
+   | (some s) :=
+     defs.mfilter_map (λ d, set_state s >> apply_declaration_script g hyps discharger d)
+   | none := mllist.nil
+   end,
+  return (results.append results_symm))
 
 /--
 The core `suggest` tactic.

@@ -62,8 +62,11 @@ begin
       mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le (le_of_lt hz)) (norm_nonneg _)
 end
 
-lemma differentiable_exp : differentiable ℂ exp :=
+@[simp] lemma differentiable_exp : differentiable ℂ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
+
+@[simp] lemma differentiable_at_exp {x : ℂ} : differentiable_at ℂ exp x :=
+differentiable_exp x
 
 @[simp] lemma deriv_exp : deriv exp = exp :=
 funext $ λ x, (has_deriv_at_exp x).deriv
@@ -128,8 +131,11 @@ begin
       I_mul_I, mul_neg_one, sub_neg_eq_add, add_comm]
 end
 
-lemma differentiable_sin : differentiable ℂ sin :=
+@[simp] lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
+
+@[simp] lemma differentiable_at_sin {x : ℂ} : differentiable_at ℂ sin x :=
+differentiable_sin x
 
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
@@ -147,8 +153,11 @@ begin
   ring
 end
 
-lemma differentiable_cos : differentiable ℂ cos :=
+@[simp] lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
+
+@[simp] lemma differentiable_at_cos {x : ℂ} : differentiable_at ℂ cos x :=
+differentiable_cos x
 
 lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 (has_deriv_at_cos x).deriv
@@ -171,8 +180,11 @@ begin
   rw [id, mul_neg_one, neg_neg]
 end
 
-lemma differentiable_sinh : differentiable ℂ sinh :=
+@[simp] lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
+
+@[simp] lemma differentiable_at_sinh {x : ℂ} : differentiable_at ℂ sinh x :=
+differentiable_sinh x
 
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
@@ -188,8 +200,11 @@ begin
   rw [id, mul_neg_one, sub_eq_add_neg]
 end
 
-lemma differentiable_cosh : differentiable ℂ cosh :=
+@[simp] lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
+
+@[simp] lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cos x :=
+differentiable_cos x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
@@ -355,8 +370,11 @@ variables {x y z : ℝ}
 lemma has_deriv_at_exp (x : ℝ) : has_deriv_at exp (exp x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_exp x)
 
-lemma differentiable_exp : differentiable ℝ exp :=
+@[simp] lemma differentiable_exp : differentiable ℝ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
+
+@[simp] lemma differentiable_at_exp : differentiable_at ℝ exp x :=
+differentiable_exp x
 
 @[simp] lemma deriv_exp : deriv exp = exp :=
 funext $ λ x, (has_deriv_at_exp x).deriv
@@ -371,8 +389,11 @@ differentiable_exp.continuous
 lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_sin x)
 
-lemma differentiable_sin : differentiable ℝ sin :=
+@[simp] lemma differentiable_sin : differentiable ℝ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
+
+@[simp] lemma differentiable_at_sin : differentiable_at ℝ sin x :=
+differentiable_sin x
 
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
@@ -383,8 +404,11 @@ differentiable_sin.continuous
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 (has_deriv_at_real_of_complex (complex.has_deriv_at_cos x) : _)
 
-lemma differentiable_cos : differentiable ℝ cos :=
+@[simp] lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
+
+@[simp] lemma differentiable_at_cos : differentiable_at ℝ cos x :=
+differentiable_cos x
 
 lemma deriv_cos : deriv cos x = - sin x :=
 (has_deriv_at_cos x).deriv
@@ -404,8 +428,11 @@ by simp only [tan_eq_sin_div_cos]; exact
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
 
-lemma differentiable_sinh : differentiable ℝ sinh :=
+@[simp] lemma differentiable_sinh : differentiable ℝ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
+
+@[simp] lemma differentiable_at_sinh : differentiable_at ℝ sinh x :=
+differentiable_sinh x
 
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
@@ -416,8 +443,11 @@ differentiable_sinh.continuous
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
 
-lemma differentiable_cosh : differentiable ℝ cosh :=
+@[simp] lemma differentiable_cosh : differentiable ℝ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
+
+@[simp] lemma differentiable_at_cosh : differentiable_at ℝ cosh x :=
+differentiable_cosh x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
@@ -429,11 +459,46 @@ end real
 
 
 section
-/-! Register lemmas for the derivatives of the composition of `real.cos`, `real.sin`,
+/-! Register lemmas for the derivatives of the composition of `real.exp`, `real.cos`, `real.sin`,
 `real.cosh` and `real.sinh` with a differentiable function, for standalone use and use with
 `simp`. -/
 
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
+
+/-! `real.exp`-/
+
+lemma has_deriv_at.exp (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ x, real.exp (f x)) (real.exp (f x) * f') x :=
+(real.has_deriv_at_exp (f x)).comp x hf
+
+lemma has_deriv_within_at.exp (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, real.exp (f x)) (real.exp (f x) * f') s x :=
+(real.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
+
+lemma differentiable_within_at.exp (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.exp (f x)) s x :=
+hf.has_deriv_within_at.exp.differentiable_within_at
+
+@[simp] lemma differentiable_at.exp (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λx, real.exp (f x)) x :=
+hc.has_deriv_at.exp.differentiable_at
+
+lemma differentiable_on.exp (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λx, real.exp (f x)) s :=
+λx h, (hc x h).exp
+
+@[simp] lemma differentiable.exp (hc : differentiable ℝ f) :
+  differentiable ℝ (λx, real.exp (f x)) :=
+λx, (hc x).exp
+
+lemma deriv_within_exp (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λx, real.exp (f x)) s x = real.exp (f x) * (deriv_within f s x) :=
+hf.has_deriv_within_at.exp.deriv_within hxs
+
+@[simp] lemma deriv_exp (hc : differentiable_at ℝ f x) :
+  deriv (λx, real.exp (f x)) x = real.exp (f x) * (deriv f x) :=
+hc.has_deriv_at.exp.deriv
 
 /-! `real.cos`-/
 

@@ -41,7 +41,8 @@ by { rw [measurable_on, indicator_empty], exact measurable_const }
 @[simp] lemma measurable.measurable_on_univ (hf : measurable f) : measurable_on univ f :=
 hf.if is_measurable.univ measurable_const
 
-@[simp] lemma measurable_on_singleton {α} [topological_space α] [t1_space α] {a : α} {f : α → β} :
+@[simp] lemma measurable_on_singleton {α} [topological_space α] [t1_space α]
+  [measurable_space α] [opens_measurable_space α] {a : α} {f : α → β} :
   measurable_on {a} f :=
 λ s hs, show is_measurable ((indicator {a} f)⁻¹' s),
 begin
@@ -132,18 +133,21 @@ lemma integrable_on.divide (s : set α) (r : ℝ) {f : α → ℝ} (hf : integra
   integrable_on s (λa, f a / r) :=
 by { simp only [div_eq_mul_inv], exact hf.mul_right _ _ }
 
-lemma integrable_on.add (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
+lemma integrable_on.add [measurable_space β] [opens_measurable_space β]
+  (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : integrable_on s (λa, f a + g a) :=
 by { rw [integrable_on, indicator_add], exact hfi.add hfm hgm hgi }
 
 lemma integrable_on.neg (hf : integrable_on s f) : integrable_on s (λa, -f a) :=
 by { rw [integrable_on, indicator_neg], exact hf.neg }
 
-lemma integrable_on.sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
+lemma integrable_on.sub [measurable_space β] [opens_measurable_space β]
+  (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : integrable_on s (λa, f a - g a) :=
 by { rw [integrable_on, indicator_sub], exact hfi.sub hfm hgm hgi }
 
-lemma integrable_on.union (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
+lemma integrable_on.union [measurable_space β] [opens_measurable_space β]
+  (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
   (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) :
   integrable_on (s ∪ t) f :=
 begin
@@ -160,9 +164,9 @@ lemma integrable_on_norm_iff (s : set α) (f : α → β) :
   integrable_on s (λa, ∥f a∥) ↔ integrable_on s f :=
 begin
   simp only [integrable_on],
-  convert integrable_norm_iff (indicator s f),
+  convert ← integrable_norm_iff (indicator s f),
   funext,
-  rw norm_indicator_eq_indicator_norm,
+  apply norm_indicator_eq_indicator_norm
 end
 
 end integrable_on
@@ -170,6 +174,7 @@ end integrable_on
 section integral_on
 variables [measure_space α]
   [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
+  [measurable_space β] [borel_space β]
   {s t : set α} {f g : α → β}
 open set
 
@@ -301,7 +306,7 @@ begin
 end
 
 -- TODO : prove this for an encodable type
--- by proving an encodable version of `filter.has_countable_basis_at_top_finset_nat`
+-- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
 lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
   (∫ a in (Union s), f a) = ∑i, ∫ a in s i, f a :=
@@ -317,7 +322,7 @@ begin
   rw this,
   refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
   { exact indicator (Union s) (λ a, ∥f a∥) },
-  { exact has_countable_basis_at_top_finset_nat },
+  { exact is_countably_generated_at_top_finset_nat },
   { refine univ_mem_sets' (λ n, _),
     simp only [mem_set_of_eq],
     refine hfm.subset (is_measurable.Union (λ i, is_measurable.Union_Prop (λh, hm _)))

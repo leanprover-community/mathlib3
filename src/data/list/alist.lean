@@ -147,7 +147,7 @@ lookup_kerase a s.nodupkeys
   lookup a (erase a' s) = lookup a s :=
 lookup_kerase_ne h
 
-@[simp] theorem erase_erase (a a' : α) (s : alist β) :
+theorem erase_erase (a a' : α) (s : alist β) :
   (s.erase a).erase a' = (s.erase a').erase a :=
 ext $ kerase_kerase
 

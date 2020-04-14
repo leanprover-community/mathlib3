@@ -51,7 +51,11 @@ begin
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
   apply eq_iff_eq_cancel_right.mpr,
-  symmetry, apply hom_eval₂,
+  symmetry,
+  -- TODO: add an `aeval`-specific version of `hom_eval₂`
+  simp only [aeval_def],
+  convert hom_eval₂ p (algebra_map R S) ↑S.val ⟨x, hx⟩,
+  refl
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/
@@ -73,7 +77,7 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [discrete_field K] [comm_ring A] [algebra K A]
+variables (K : Type u) {A : Type v} [field K] [comm_ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -89,7 +93,7 @@ end field
 
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
-variables [discrete_field K] [discrete_field L] [comm_ring A]
+variables [field K] [field L] [comm_ring A]
 variables [algebra K L] [algebra L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,

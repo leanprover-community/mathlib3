@@ -9,7 +9,7 @@ import topology.uniform_space.basic topology.bases data.set.intervals
 
 universes u v
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical
 variables {α : Type u} {β : Type v} [uniform_space α]
 
@@ -73,7 +73,7 @@ begin
   -- Consider a neighborhood `s` of `x`
   assume s hs,
   -- Take an entourage twice smaller than `s`
-  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
+  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 hs) with ⟨U, U_mem, hU⟩,
   -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
   rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
   apply mem_sets_of_superset t_mem,
@@ -132,7 +132,21 @@ lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} 
 cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
   by simp only [prod_at_top_at_top_eq, prod.map_def]
 
-@[nolint] -- see Note [nolint_ge]
+/-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
+lemma tendsto_nhds_of_cauchy_seq_of_subseq
+  [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
+  (hf : tendsto f p at_top) {a : α} (ha : tendsto (λ i, u (f i)) p (𝓝 a)) :
+  tendsto u at_top (𝓝 a) :=
+begin
+  apply le_nhds_of_cauchy_adhp hu,
+  rw ← bot_lt_iff_ne_bot,
+  have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
+    by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
+  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀m n≥N, (u m, u n) ∈ s i :=
@@ -143,7 +157,7 @@ begin
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
@@ -181,7 +195,7 @@ lemma complete_univ {α : Type u} [uniform_space α] [complete_space α] :
 begin
   assume f hf _,
   rcases complete_space.complete hf with ⟨x, hx⟩,
-  exact ⟨x, by simp, hx⟩
+  exact ⟨x, mem_univ x, hx⟩
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
@@ -190,8 +204,8 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
-        lattice.inf_assoc, lattice.inf_comm, lattice.inf_left_comm],
-  lattice.inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
+        inf_assoc, inf_comm, inf_left_comm],
+  inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=
@@ -207,6 +221,10 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
+
+lemma complete_space_iff_is_complete_univ :
+  complete_space α ↔ is_complete (univ : set α) :=
+⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
@@ -289,8 +307,8 @@ let ⟨c, hfc, hct⟩ := hs _ this in
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,
-    intros x hx, simp [-mem_image],
-    exact let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩
+    intros x hx, simp,
+    exact hct x hx
   end⟩
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
@@ -466,7 +484,7 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (H : has_countable_basis (𝓤 α))
+variables (H : is_countably_generated (𝓤 α))
 
 include H
 
@@ -476,7 +494,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases (𝓤 α).has_countable_basis_iff_mono_seq'.1 H with ⟨U', U'_mono, hU'⟩,
+  rcases H.exists_antimono_seq' with ⟨U', U'_mono, hU'⟩,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem_sets (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -491,7 +509,7 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := (𝓤 α).has_countable_basis_iff_mono_seq'.1 H in
+let ⟨U', U'_mono, hU'⟩ := H.exists_antimono_seq' in
 complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 

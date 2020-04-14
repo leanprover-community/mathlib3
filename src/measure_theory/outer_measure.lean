@@ -12,7 +12,7 @@ import algebra.big_operators algebra.module
 
 noncomputable theory
 
-open set lattice finset function filter encodable
+open set finset function filter encodable
 open_locale classical
 
 namespace measure_theory
@@ -137,33 +137,35 @@ instance : has_Sup (outer_measure α) :=
       ... ≤ (∑i, ⨆m:ms, m.val (f i)) :
         ennreal.tsum_le_tsum $ assume i, le_supr (λm:ms, m.val (f i)) m }⟩
 
-private lemma le_Sup (hm : m ∈ ms) : m ≤ Sup ms :=
+protected lemma le_Sup (hm : m ∈ ms) : m ≤ Sup ms :=
 λ s, le_supr (λm:ms, m.val s) ⟨m, hm⟩
 
-private lemma Sup_le (hm : ∀m' ∈ ms, m' ≤ m) : Sup ms ≤ m :=
+protected lemma Sup_le (hm : ∀m' ∈ ms, m' ≤ m) : Sup ms ≤ m :=
 λ s, (supr_le $ assume ⟨m', h'⟩, (hm m' h') s)
 
 instance : has_Inf (outer_measure α) := ⟨λs, Sup {m | ∀m'∈s, m ≤ m'}⟩
-private lemma Inf_le (hm : m ∈ ms) : Inf ms ≤ m := Sup_le $ assume m' h', h' _ hm
-private lemma le_Inf (hm : ∀m' ∈ ms, m ≤ m') : m ≤ Inf ms := le_Sup hm
+protected lemma Inf_le (hm : m ∈ ms) : Inf ms ≤ m := outer_measure.Sup_le $ assume m' h', h' _ hm
+protected lemma le_Inf (hm : ∀m' ∈ ms, m ≤ m') : m ≤ Inf ms := outer_measure.le_Sup hm
 
 instance : complete_lattice (outer_measure α) :=
 { top          := Sup univ,
-  le_top       := assume a, le_Sup (mem_univ a),
+  le_top       := assume a, outer_measure.le_Sup (mem_univ a),
   Sup          := Sup,
-  Sup_le       := assume s m, Sup_le,
-  le_Sup       := assume s m, le_Sup,
+  Sup_le       := assume s m, outer_measure.Sup_le,
+  le_Sup       := assume s m, outer_measure.le_Sup,
   Inf          := Inf,
-  Inf_le       := assume s m, Inf_le,
-  le_Inf       := assume s m, le_Inf,
+  Inf_le       := assume s m, outer_measure.Inf_le,
+  le_Inf       := assume s m, outer_measure.le_Inf,
   sup          := λa b, Sup {a, b},
-  le_sup_left  := assume a b, le_Sup $ by simp,
-  le_sup_right := assume a b, le_Sup $ by simp,
-  sup_le       := assume a b c ha hb, Sup_le $ by simp [or_imp_distrib, ha, hb] {contextual:=tt},
+  le_sup_left  := assume a b, outer_measure.le_Sup $ by simp,
+  le_sup_right := assume a b, outer_measure.le_Sup $ by simp,
+  sup_le       := assume a b c ha hb, outer_measure.Sup_le $
+    by simp [or_imp_distrib, ha, hb] {contextual:=tt},
   inf          := λa b, Inf {a, b},
-  inf_le_left  := assume a b, Inf_le $ by simp,
-  inf_le_right := assume a b, Inf_le $ by simp,
-  le_inf       := assume a b c ha hb, le_Inf $ by simp [or_imp_distrib, ha, hb] {contextual:=tt},
+  inf_le_left  := assume a b, outer_measure.Inf_le $ by simp,
+  inf_le_right := assume a b, outer_measure.Inf_le $ by simp,
+  le_inf       := assume a b c ha hb, outer_measure.le_Inf $
+    by simp [or_imp_distrib, ha, hb] {contextual:=tt},
   .. outer_measure.order_bot }
 
 @[simp] theorem Sup_apply (ms : set (outer_measure α)) (s : set α) :
@@ -234,7 +236,7 @@ instance : has_scalar ennreal (outer_measure α) :=
   measure_of := λs, a * m s,
   empty := by simp,
   mono := λ s t h, canonically_ordered_semiring.mul_le_mul (le_refl _) (m.mono' h),
-  Union_nat := λ s, by rw ennreal.mul_tsum; exact
+  Union_nat := λ s, by rw ennreal.tsum_mul_left; exact
     canonically_ordered_semiring.mul_le_mul (le_refl _) (m.Union_nat _) }⟩
 
 @[simp] theorem smul_apply (a : ennreal) (m : outer_measure α) (s : set α) :
@@ -330,7 +332,7 @@ by convert m.union _ _; rw inter_union_diff t s
 
 @[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 
-private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq]
+private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq, add_comm]
 
 @[simp] private lemma C_compl_iff : C (- s) ↔ C s :=
 ⟨λ h, by simpa using C_compl m h, C_compl⟩
@@ -448,7 +450,7 @@ top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
 
 theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
   m₁.caratheodory ⊓ m₂.caratheodory ≤ (m₁ + m₂ : outer_measure α).caratheodory :=
-λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t]
+λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t, add_left_comm]
 
 theorem le_sum_caratheodory {ι} (m : ι → outer_measure α) :
   (⨅ i, (m i).caratheodory) ≤ (sum m).caratheodory :=
@@ -492,9 +494,9 @@ lemma Inf_eq_of_function_Inf_gen (m : set (outer_measure α)) :
 begin
   refine le_antisymm
     (assume t', le_of_function.2 (assume t, _) _)
-    (lattice.le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
+    (_root_.le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
     cases t.eq_empty_or_nonempty with ht ht; simp [ht, Inf_gen_nonempty1],
-  { assume μ hμ, exact (show Inf m ≤ μ, from lattice.Inf_le hμ) t },
+  { assume μ hμ, exact (show Inf m ≤ μ, from _root_.Inf_le hμ) t },
   { exact infi_le_of_le μ (infi_le _ hμ) }
 end
 

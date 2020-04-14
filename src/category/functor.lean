@@ -42,7 +42,9 @@ def id.mk {α : Sort u} : α → id α := id
 
 namespace functor
 
-@[nolint] def const (α : Type*) (β : Type*) := α
+/-- `const α` is the constant functor, mapping every type to `α` -/
+@[nolint unused_arguments]
+def const (α : Type*) (β : Type*) := α
 
 @[pattern] def const.mk {α β} (x : α) : const α β := x
 
@@ -54,7 +56,9 @@ namespace const
 
 protected lemma ext {α β} {x y : const α β} (h : x.run = y.run) : x = y := h
 
-@[nolint] protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
+/-- The map operation of the `const γ` functor. -/
+@[nolint unused_arguments]
+protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
 
 instance {γ} : functor (const γ) :=
 { map := @const.map γ }

@@ -7,7 +7,7 @@ Lebesgue measure on the real line
 -/
 import measure_theory.measure_space measure_theory.borel_space
 noncomputable theory
-open classical set lattice filter
+open classical set filter
 open nnreal (of_real)
 
 namespace measure_theory
@@ -71,7 +71,7 @@ begin
     (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
   rw [sub_eq_add_neg, add_right_comm, ←ennreal.coe_add, ennreal.coe_le_coe],
   apply le_trans nnreal.of_real_add_le,
-  simp
+  simp [sub_eq_add_neg]
 end
 
 @[simp] lemma lebesgue_length_Icc (a b : ℝ) :

@@ -41,7 +41,7 @@ open map, closed map, embedding, quotient map, identification map
 
 -/
 
-open set filter lattice
+open set filter
 open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}

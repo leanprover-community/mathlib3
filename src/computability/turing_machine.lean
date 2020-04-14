@@ -7,7 +7,7 @@ Define a sequence of simple machine languages, starting with Turing
 machines and working up to more complex lanaguages based on
 Wang B-machines.
 -/
-import data.fintype data.pfun logic.relation
+import data.fintype.basic data.pfun logic.relation
 
 open relation
 
@@ -334,8 +334,8 @@ parameters (Λ : Type*) [inhabited Λ] -- type of "labels" or TM states
   left or right, or write a symbol on the tape. -/
 @[derive inhabited]
 inductive stmt
-| move {} : dir → stmt
-| write {} : Γ → stmt
+| move : dir → stmt
+| write : Γ → stmt
 
 /-- A Post-Turing machine with symbol type `Γ` and label type `Λ`
   is a function which, given the current state `q : Λ` and
@@ -484,8 +484,8 @@ inductive stmt
 | write : (Γ → σ → Γ) → stmt → stmt
 | load : (Γ → σ → σ) → stmt → stmt
 | branch : (Γ → σ → bool) → stmt → stmt → stmt
-| goto {} : (Γ → σ → Λ) → stmt
-| halt {} : stmt
+| goto : (Γ → σ → Λ) → stmt
+| halt : stmt
 open stmt
 
 instance stmt.inhabited : inhabited stmt := ⟨halt⟩
@@ -927,8 +927,7 @@ begin
         (tape.mk' (l₁ ++ L') (l₂ ++ R')) =
       step_aux (f ⟨l₂, h⟩) v
         (tape.mk' (l₂.reverse_core l₁ ++ L') R'),
-    { intro f, convert this n f _ _ _ _ (enc a).2;
-        simp only [subtype.eta]; refl },
+    { intro f, convert this n f _ _ _ _ (enc a).2; simp },
     clear f L a R, intros, subst i,
     induction l₂ with a l₂ IH generalizing l₁, {refl},
     change (tape.mk' (l₁ ++ L') (a :: (l₂ ++ R'))).1 with a,
@@ -1155,13 +1154,13 @@ parameters (σ : Type*) -- Type of variable settings
   internal state based on the result). `peek` modifies the
   internal state but does not remove an element. -/
 inductive stmt
-| push {} : ∀ k, (σ → Γ k) → stmt → stmt
-| peek {} : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
-| pop {} : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
+| push : ∀ k, (σ → Γ k) → stmt → stmt
+| peek : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
+| pop : ∀ k, (σ → option (Γ k) → σ) → stmt → stmt
 | load : (σ → σ) → stmt → stmt
 | branch : (σ → bool) → stmt → stmt → stmt
-| goto {} : (σ → Λ) → stmt
-| halt {} : stmt
+| goto : (σ → Λ) → stmt
+| halt : stmt
 open stmt
 
 instance stmt.inhabited : inhabited stmt := ⟨halt⟩
@@ -1311,8 +1310,8 @@ local notation `cfg₂` := TM2.cfg Γ Λ σ
 
 inductive stackel (k : K)
 | val : Γ k → stackel
-| bottom : stackel
-| top : stackel
+| bottom [] : stackel
+| top [] : stackel
 
 instance stackel.inhabited (k) : inhabited (stackel k) :=
 ⟨stackel.top _⟩
@@ -1354,8 +1353,8 @@ instance Γ'.fintype [fintype K] [∀ k, fintype (Γ k)] : fintype Γ' :=
 pi.fintype
 
 inductive st_act (k : K)
-| push {} : (σ → Γ k) → st_act
-| pop {} : bool → (σ → option (Γ k) → σ) → st_act
+| push : (σ → Γ k) → st_act
+| pop : bool → (σ → option (Γ k) → σ) → st_act
 
 section
 open st_act
@@ -1400,9 +1399,9 @@ by rcases s with _|_|_; refl
 end
 
 inductive Λ' : Type (max u_1 u_2 u_3 u_4)
-| normal {} : Λ → Λ'
+| normal : Λ → Λ'
 | go (k) : st_act k → stmt₂ → Λ'
-| ret {} : K → stmt₂ → Λ'
+| ret : K → stmt₂ → Λ'
 open Λ'
 instance : inhabited Λ' := ⟨normal (default _)⟩
 
@@ -1704,7 +1703,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
     have hgo := sub _ (or.inl $ or.inr rfl),
     have hret := sub _ (or.inl $ or.inl rfl),
@@ -1712,7 +1711,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
     { unfold TM1.supports_stmt TM2to1.tr,

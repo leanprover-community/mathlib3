@@ -120,7 +120,7 @@ instance [integral_domain α] : integral_domain (opposite α) :=
 
 instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_inj $ inv_mul_cancel $ λ hx', hx $ unop_inj hx',
-  inv_mul_cancel := λ x hx, unop_inj $ mul_inv_cancel $ λ hx', hx $ unop_inj hx',
+  inv_zero := unop_inj inv_zero,
   .. opposite.comm_ring α, .. opposite.zero_ne_one_class α, .. opposite.has_inv α }
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl

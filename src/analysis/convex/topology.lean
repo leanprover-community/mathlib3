@@ -39,7 +39,7 @@ lemma std_simplex_subset_closed_ball :
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
-  refine (nnreal.coe_one ▸ nnreal.coe_le.2 $ finset.sup_le $ λ x hx, _),
+  refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
   change abs (f x) ≤ 1,
   rw [abs_of_nonneg $ hf.1 x],
   exact (mem_Icc_of_mem_std_simplex hf x).2
@@ -132,7 +132,8 @@ calc
   dist (a • x + b • y) z = ∥ (a • x + b • y) - (a + b) • z ∥ :
     by rw [hab, one_smul, normed_group.dist_eq]
   ... = ∥a • (x - z) + b • (y - z)∥ :
-    by rw [add_smul, smul_sub, smul_sub]; simp
+    by rw [add_smul, smul_sub, smul_sub, sub_eq_add_neg, sub_eq_add_neg, sub_eq_add_neg, neg_add,
+           ←add_assoc, add_assoc (a • x), add_comm (b • y)]; simp only [add_assoc]
   ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥ :
     norm_add_le (a • (x - z)) (b • (y - z))
   ... = a * dist x z + b * dist y z :

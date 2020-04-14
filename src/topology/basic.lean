@@ -35,7 +35,7 @@ Topology in mathlib heavily uses filters (even more than in Bourbaki). See expla
 topological space, interior, closure, frontier, neighborhood, continuity, continuous function
 -/
 
-open set filter lattice classical
+open set filter classical
 open_locale classical
 
 universes u v w
@@ -358,7 +358,7 @@ by rw [closure_compl, frontier, diff_eq]
 
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
-by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
+by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
 
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
@@ -403,7 +403,7 @@ localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
 
-lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) id :=
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
@@ -428,6 +428,10 @@ attribute [irreducible] nhds
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
+
+lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
+  (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
+mem_of_nhds h
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
  s ∈ 𝓝 a :=
@@ -521,7 +525,7 @@ theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
 mem_closure_iff_nhds.trans
   ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
-    λ H t' ht', let ⟨i, hi, hit⟩ := (h t').1 ht', ⟨x, xt, hx⟩ := H i hi in
+    λ H t' ht', let ⟨i, hi, hit⟩ := h.mem_iff.1 ht', ⟨x, xt, hx⟩ := H i hi in
     ⟨x, hit hx, xt⟩⟩
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter

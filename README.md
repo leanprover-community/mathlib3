@@ -1,10 +1,8 @@
 # Lean mathlib
 
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
-[![Mergify Status][mergify-status]][mergify]
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
 
-[mergify]: https://mergify.io
-[mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
 It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
@@ -29,12 +27,17 @@ Besides the installation guides above and [Lean's general
 documentation](https://leanprover.github.io/documentation/), the documentation
 of mathlib consists of:
 
+- [The mathlib docs](https://leanprover-community.github.io/mathlib_docs): [documentation generated
+  automatically](https://github.com/leanprover-community/doc-gen) from the source `.lean` files.
+  In addition to the pages generated for each file in the library, the docs also include pages on:
+  - [tactics](https://leanprover-community.github.io/mathlib_docs/tactics.html),
+  - [commands](https://leanprover-community.github.io/mathlib_docs/commands.html),
+  - [hole commands](https://leanprover-community.github.io/mathlib_docs/hole_commands.html), and
+  - [attributes](https://leanprover-community.github.io/mathlib_docs/attributes.html).
 - A description of [currently covered theories](docs/theories.md),
   as well as an [overview](docs/mathlib-overview.md) for mathematicians.
 - A couple of [tutorials](docs/tutorial/)
 - Some [extra Lean documentation](docs/extras.md) not specific to mathlib
-- A description of [tactics](docs/tactics.md) introduced in mathlib,
-  and available [hole commands](docs/holes.md).
 - Documentation for people who would like to [contribute to mathlib](docs/contribute/index.md)
 
 Much of the discussion surrounding mathlib occurs in a
@@ -51,13 +54,14 @@ welcomed.
 * Jeremy Avigad (@avigad): analysis
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): all (lead maintainer)
+* Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
+* Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory
-* Yury G. Kudryashov (@urkud): analysis, topology

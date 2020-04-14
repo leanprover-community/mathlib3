@@ -10,8 +10,7 @@ import order.complete_lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace lattice
-
+/-- The set of fixed points of a self-map -/
 def fixed_points (f : α → α) : set α := { x | f x = x }
 
 section fixedpoint
@@ -209,5 +208,3 @@ protected def complete_lattice : complete_lattice (fixed_points f) :=
     (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }
 
 end fixed_points
-
-end lattice

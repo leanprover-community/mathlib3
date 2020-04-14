@@ -129,7 +129,7 @@ instance : partial_order (semiquot α) :=
   le_trans := λ s t u, set.subset.trans,
   le_antisymm := λ s t h₁ h₂, ext_s.2 (set.subset.antisymm h₁ h₂) }
 
-instance : lattice.semilattice_sup (semiquot α) :=
+instance : semilattice_sup (semiquot α) :=
 { sup := λ s, blur s.s,
   le_sup_left := λ s t, set.subset_union_left _ _,
   le_sup_right := λ s t, set.subset_union_right _ _,
@@ -184,13 +184,13 @@ ext.2 $ by simp
 @[simp] theorem is_pure_univ [inhabited α] : @is_pure α univ ↔ subsingleton α :=
 ⟨λ h, ⟨λ a b, h a b trivial trivial⟩, λ ⟨h⟩ a b _ _, h a b⟩
 
-instance [inhabited α] : lattice.order_top (semiquot α) :=
+instance [inhabited α] : order_top (semiquot α) :=
 { top := univ,
   le_top := λ s, set.subset_univ _,
   ..semiquot.partial_order }
 
-instance [inhabited α] : lattice.semilattice_sup_top (semiquot α) :=
-{ ..semiquot.lattice.order_top,
-  ..semiquot.lattice.semilattice_sup }
+instance [inhabited α] : semilattice_sup_top (semiquot α) :=
+{ ..semiquot.order_top,
+  ..semiquot.semilattice_sup }
 
 end semiquot

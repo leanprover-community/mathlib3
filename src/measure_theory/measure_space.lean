@@ -24,7 +24,7 @@ a complete measure.
 
 noncomputable theory
 
-open classical set lattice filter finset function
+open classical set filter finset function
 open_locale classical topological_space
 
 universes u v w x
@@ -371,7 +371,7 @@ begin
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
   cases n, {apply zero_le _},
-  suffices : sum (finset.range n.succ) (λ i, μ (disjointed s i)) = μ (s n),
+  suffices : (finset.range n.succ).sum (λ i, μ (disjointed s i)) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
   { apply sum_congr rfl, intros i hi,
@@ -586,7 +586,7 @@ instance : complete_lattice (measure α) :=
   inf_le_left  := assume a b, Inf_le $ by simp,
   inf_le_right := assume a b, Inf_le $ by simp,
   le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
-  .. measure.partial_order, .. measure.lattice.order_top, .. measure.lattice.order_bot }
+  .. measure.partial_order, .. measure.order_top, .. measure.order_bot }
 
 end
 
@@ -799,7 +799,7 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
-(μ {} : measure α)
+(μ : measure α)
 end prio
 
 section measure_space
@@ -880,6 +880,9 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
+lemma volume_zero_iff_all_ae_nmem {s : set α} : volume s = 0 ↔ ∀ₘ a, a ∉ s :=
+by simp only [all_ae_iff, not_not, set_of_mem_eq]
+
 lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
@@ -891,6 +894,21 @@ begin
     rw [← compl_Inter] at h,
     filter_upwards [h] assume a, mem_Inter.1 }
 end
+
+@[simp] lemma all_ae_and_iff {p q : α → Prop} : (∀ₘ a, p a ∧ q a) ↔ (∀ₘ a, p a) ∧ ∀ₘ a, q a :=
+eventually_and
+
+@[simp] lemma all_ae_imp_distrib_left {p : Prop} {q : α → Prop} :
+  (∀ₘ a, p → q a) ↔ (p → ∀ₘ a, q a) :=
+eventually_imp_distrib_left
+
+@[simp] lemma all_ae_or_distrib_left {p : Prop} {q : α → Prop} :
+  (∀ₘ a, p ∨ q a) ↔ (p ∨ ∀ₘ a, q a) :=
+eventually_or_distrib_left
+
+@[simp] lemma all_ae_or_distrib_right {p : α → Prop} {q : Prop} :
+  (∀ₘ a, p a ∨ q) ↔ ((∀ₘ a, p a) ∨ q) :=
+eventually_or_distrib_right
 
 variables {β : Type*}
 

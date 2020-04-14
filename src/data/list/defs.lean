@@ -269,7 +269,7 @@ section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
+| nil : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 
 attribute [simp] forall₂.nil
@@ -313,8 +313,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
     show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
-    by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
-  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
+    by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (lt_add_of_pos_left _ (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
 using_well_founded {
   dec_tac := tactic.assumption,
@@ -381,7 +381,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil {} : pairwise []
+| nil : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -411,7 +411,7 @@ variable (R : α → α → Prop)
 
      chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil {} {a : α} : chain a []
+| nil {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 
 /-- `chain' R l` means that `R` holds between adjacent elements of `l`.
@@ -480,9 +480,6 @@ it returns `none` otherwise -/
 | [a]    := some a
 | (b::l) := last' l
 
-/- tfae: The Following (propositions) Are Equivalent -/
-def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
-
 /-- `rotate l n` rotates the elements of `l` to the left by `n`
 
      rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
@@ -508,43 +505,6 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
-
-namespace func
-
-/- Definitions for using lists as finite
-   representations of functions with domain ℕ. -/
-
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
-
-variables [inhabited α] [inhabited β]
-
-@[simp] def set (a : α) : list α → ℕ → list α
-| (_::as) 0     := a::as
-| []      0     := [a]
-| (h::as) (k+1) := h::(set as k)
-| []      (k+1) := (default α)::(set ([] : list α) k)
-
-@[simp] def get : ℕ → list α → α
-| _ []          := default α
-| 0 (a::as)     := a
-| (n+1) (a::as) := get n as
-
-def equiv (as1 as2 : list α) : Prop :=
-∀ (m : nat), get m as1 = get m as2
-
-@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
-| []      []      := []
-| []      (b::bs) := map (f $ default α) (b::bs)
-| (a::as) []      := map (λ x, f x $ default β) (a::as)
-| (a::as) (b::bs) := (f a b)::(pointwise as bs)
-
-def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
-@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
-
-def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
-@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
-
-end func
 
 /-- Filters and maps elements of a list -/
 def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :

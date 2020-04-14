@@ -7,11 +7,6 @@ git remote add nightly "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITH
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands
 
-# By default, github actions overrides the credentials used to access any
-# github url so that it uses the github-actions[bot] user.  We want to access
-# github using a different username.
-git config --unset http.https://github.com/.extraheader
-
 # The checkout action produces a shallow repository from which we cannot push.
 git fetch --unshallow || true
 
@@ -36,7 +31,8 @@ fi
 
 # Try to update the lean-x.y.z branch on mathlib. This could fail if
 # a subsequent commit has already pushed an update.
-LEAN_VERSION="lean-3.5.1"
+# short_lean_version is of the form 3.5.1, set earlier in CI
+LEAN_VERSION="lean-$short_lean_version"
 
 git push mathlib HEAD:refs/heads/$LEAN_VERSION || \
     echo "mathlib rejected push to branch $LEAN_VERSION; maybe it already has a later version?" >&2

@@ -99,23 +99,14 @@ begin
     { assume s s_dim,
       rcases exists_is_basis_finite 𝕜 s with ⟨b, b_basis, b_finite⟩,
       letI : fintype b := finite.fintype b_finite,
-      have U : uniform_embedding (equiv_fun_basis b_basis).symm,
+      have U : uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv,
       { have : fintype.card b = n,
           by { rw ← s_dim, exact (findim_eq_card_basis b_basis).symm },
         have : continuous (equiv_fun_basis b_basis) := IH (subtype.val : b → s) this b_basis,
         exact (equiv_fun_basis b_basis).symm.uniform_embedding (linear_map.continuous_on_pi _) this },
-      have : is_complete (range ((equiv_fun_basis b_basis).symm)),
-      { rw [← image_univ, is_complete_image_iff U],
-        convert complete_univ,
-        change complete_space (b → 𝕜),
-        apply_instance },
-      have : is_complete (range (subtype.val : s → E)),
-      { change is_complete (range ((equiv_fun_basis b_basis).symm.to_equiv)) at this,
-        rw equiv.range_eq_univ at this,
-        rwa [← image_univ, is_complete_image_iff],
-        exact isometry_subtype_val.uniform_embedding },
-      apply is_closed_of_is_complete,
-      rwa subtype.val_range at this },
+      have : is_complete (s : set E),
+        from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
+      exact is_closed_of_is_complete this },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
@@ -204,10 +195,8 @@ begin
   have : uniform_embedding (equiv_fun_basis b_basis).symm :=
     linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
     (linear_map.continuous_of_finite_dimensional _),
-  have : is_complete ((equiv_fun_basis b_basis).symm.to_equiv '' univ) :=
-    (is_complete_image_iff this).mpr complete_univ,
-  rw [image_univ, equiv.range_eq_univ] at this,
-  exact complete_space_of_is_complete_univ this
+  change uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv at this,
+  exact (complete_space_congr this).1 (by apply_instance)
 end
 
 variables {𝕜 E}
@@ -252,7 +241,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz.dist_le _ _ }
+    exact f.lipschitz.dist_le_mul _ _ }
 end
 
 end proper_field

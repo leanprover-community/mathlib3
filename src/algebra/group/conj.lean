@@ -2,10 +2,11 @@
 Copyright (c) 2018  Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
-
-Conjugacy of group elements
 -/
 import tactic.basic algebra.group.hom
+/-!
+# Conjugacy of group elements
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -44,5 +45,5 @@ end
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
 
-protected lemma is_group_hom.is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a b → is_conj (f a) (f b)
-| ⟨c, hc⟩ := ⟨f c, by rw [← is_mul_hom.map_mul f, ← is_group_hom.map_inv f, ← is_mul_hom.map_mul f, hc]⟩
+protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
+| ⟨c, hc⟩ := ⟨f c, by rw [← f.map_mul, ← f.map_inv, ← f.map_mul, hc]⟩

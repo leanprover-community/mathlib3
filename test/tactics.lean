@@ -183,23 +183,13 @@ end
 
 variables P Q R : Prop
 
-example : tfae [P, Q, R] :=
+example (pq : P → Q) (qr : Q → R) (rp : R → P) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  --have : R → Q := sorry, -- uncommenting this makes the proof fail
   tfae_finish
 end
 
-example : tfae [P, Q, R] :=
+example (pq : P ↔ Q) (qr : Q ↔ R) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  have : R → Q := sorry, -- uncommenting this makes the proof fail
-  tfae_finish
-end
-
-example : tfae [P, Q, R] :=
-begin
-  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
   tfae_finish -- the success or failure of this tactic is nondeterministic!
 end
 
@@ -266,7 +256,8 @@ end swap
 
 section lift
 
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
+  (h : k + n = 2 + x) (f : false) :
   k + n = m + x :=
 begin
   lift n to ℕ using le_of_lt hn,
@@ -283,7 +274,8 @@ begin
     guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
   lift u to ℕ using hu with u rfl hu,
     guard_hyp hu := (0 : ℤ) ≤ ↑u,
-  all_goals { admit }
+
+  all_goals { exfalso, assumption },
 end
 
 -- test lift of functions
@@ -392,9 +384,9 @@ run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_ex
 
 structure my_str (n : ℕ) := (x y : ℕ)
 
-def dummy : my_str 3 := ⟨3, 1, 1⟩
-def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
-def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+def dummy : my_str 3 := ⟨1, 1⟩
+def wrong_param : my_str 2 := ⟨dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨dummy.1, dummy.2⟩
 
 run_cmd do e ← get_env,
   x ← e.get `wrong_param, o ← x.value.is_eta_expansion,

@@ -149,7 +149,7 @@ m.mod_two_eq_zero_or_one.elim
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one)
         ... = m ^ 2 : by conv_rhs {rw [← nat.mod_add_div m 2]};
           simp [-nat.mod_add_div, mul_add, add_mul, bit0, bit1, mul_comm, mul_assoc, mul_left_comm,
-            _root_.pow_add],
+            _root_.pow_add, add_comm, add_left_comm],
       have hwxyzabcd : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod mp) =
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod mp),
         by simp [w, x, y, z, pow_two],
@@ -173,11 +173,11 @@ m.mod_two_eq_zero_or_one.elim
       have hawbxcydz : ((mp : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
         from zmod.eq_zero_iff_dvd_int.1 $ by rw [← hwxyz0]; simp; ring,
       have haxbwczdy : ((mp : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
-        from zmod.eq_zero_iff_dvd_int.1 $ by simp; ring,
+        from zmod.eq_zero_iff_dvd_int.1 $ by simp [sub_eq_add_neg]; ring,
       have haybzcwdx : ((mp : ℕ) : ℤ) ∣ a * y + b * z - c * w - d * x,
-        from zmod.eq_zero_iff_dvd_int.1 $ by simp; ring,
+        from zmod.eq_zero_iff_dvd_int.1 $ by simp [sub_eq_add_neg]; ring,
       have hazbycxdw : ((mp : ℕ) : ℤ) ∣ a * z - b * y + c * x - d * w,
-        from zmod.eq_zero_iff_dvd_int.1 $ by simp; ring,
+        from zmod.eq_zero_iff_dvd_int.1 $ by simp [sub_eq_add_neg]; ring,
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_left

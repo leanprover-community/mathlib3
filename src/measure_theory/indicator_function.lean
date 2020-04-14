@@ -100,9 +100,8 @@ variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
 lemma indicator_le_indicator_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
   ∀ₘ a, indicator s f a ≤ indicator s g a :=
 begin
-  filter_upwards [h],
-  simp only [mem_set_of_eq, indicator],
-  assume a h,
+  refine h.mono (λ a h, _),
+  simp only [indicator],
   split_ifs with ha,
   { exact h ha },
   refl
@@ -111,7 +110,7 @@ end
 end order
 
 section tendsto
-variables {ι : Type*} [lattice.semilattice_sup ι] [has_zero β]
+variables {ι : Type*} [semilattice_sup ι] [has_zero β]
 
 lemma tendsto_indicator_of_monotone [nonempty ι] (s : ι → set α) (hs : monotone s) (f : α → β)
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=

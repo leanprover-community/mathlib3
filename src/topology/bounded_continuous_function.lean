@@ -2,49 +2,29 @@
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro
-
-Type of bounded continuous functions taking values in a metric space, with
-the uniform distance.
- -/
+-/
 
 import analysis.normed_space.basic topology.metric_space.lipschitz
 
-noncomputable theory
-local attribute [instance] classical.decidable_inhabited classical.prop_decidable
-open_locale topological_space
+/-!
+# Bounded continuous functions
 
-open set lattice filter metric
+The type of bounded continuous functions taking values in a metric space, with
+the uniform distance.
+
+-/
+
+noncomputable theory
+open_locale topological_space classical
+
+open set filter metric
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-/-- A locally uniform limit of continuous functions is continuous -/
-lemma continuous_of_locally_uniform_limit_of_continuous [topological_space α] [metric_space β]
-  {F : ℕ → α → β} {f : α → β}
-  (L : ∀x:α, ∃s ∈ 𝓝 x, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
-  (C : ∀ n, continuous (F n)) : continuous f :=
-continuous_iff'.2 $ λ x ε ε0, begin
-  rcases L x with ⟨r, rx, hr⟩,
-  rcases hr (ε/2/2) (half_pos $ half_pos ε0) with ⟨n, hn⟩,
-  filter_upwards [rx, continuous_iff'.1 (C n) x (ε/2) (half_pos ε0)],
-  simp only [mem_set_of_eq],
-  rintro y yr ys,
-  calc dist (f y) (f x)
-        ≤ dist (F n y) (F n x) + (dist (F n y) (f y) + dist (F n x) (f x)) : dist_triangle4_left _ _ _ _
-    ... < ε/2 + (ε/2/2 + ε/2/2) :
-      add_lt_add_of_lt_of_le ys (add_le_add (hn _ yr) (hn _ (mem_of_nhds rx)))
-    ... = ε : by rw [add_halves, add_halves]
-end
-
-/-- A uniform limit of continuous functions is continuous -/
-lemma continuous_of_uniform_limit_of_continuous [topological_space α] {β : Type v} [metric_space β]
-  {F : ℕ → α → β} {f : α → β} (L : ∀ε>(0:ℝ), ∃N, ∀y, dist (F N y) (f y) ≤ ε) :
-  (∀ n, continuous (F n)) → continuous f :=
-continuous_of_locally_uniform_limit_of_continuous $ λx,
-  ⟨univ, by simpa [filter.univ_mem_sets] using L⟩
-
 /-- The type of bounded continuous functions from a topological space to a metric space -/
-def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] : Type (max u v) :=
+def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
+  Type (max u v) :=
 {f : α → β // continuous f ∧ ∃C, ∀x y:α, dist (f x) (f y) ≤ C}
 
 local infixr ` →ᵇ `:25 := bounded_continuous_function
@@ -160,16 +140,16 @@ begin
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (by simp)
-      (tendsto_dist tendsto_const_nhds (hF x))
-      (filter.mem_at_top_sets.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
+      (tendsto_const_nhds.dist (hF x))
+      (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
-  { /- Check that `F` is continuous -/
-    refine continuous_of_uniform_limit_of_continuous (λ ε ε0, _) (λN, (f N).2.1),
-    rcases metric.tendsto_at_top.1 b_lim ε ε0 with ⟨N, hN⟩,
-    exact ⟨N, λy, calc
-      dist (f N y) (F y) ≤ b N : fF_bdd y N
-      ... ≤ dist (b N) 0 : begin simp, show b N ≤ abs(b N), from le_abs_self _ end
-      ... ≤ ε : le_of_lt (hN N (le_refl N))⟩ },
+  { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
+    have : tendsto_uniformly (λn x, f n x) F at_top,
+    { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
+      refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
+      rw dist_comm,
+      exact lt_of_le_of_lt (fF_bdd x n) hn },
+    exact this.continuous (λN, (f N).2.1) at_top_ne_bot },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
     exact ⟨C + (b 0 + b 0), λ x y, calc
@@ -187,16 +167,16 @@ def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
 ⟨λx, G (f x), H.continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
-    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le _ _
+    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le_mul _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
 lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
   lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-lipschitz_with.of_dist_le $ λ f g,
+lipschitz_with.of_dist_le_mul $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
-calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le _ _
+calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le_mul _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
@@ -415,7 +395,7 @@ instance : add_comm_group (α →ᵇ β) :=
   zero_add     := assume f, by ext; simp,
   add_zero     := assume f, by ext; simp,
   add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp,
+  add_comm     := assume f g, by ext; simp [add_comm],
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
   ..bounded_continuous_function.has_zero }

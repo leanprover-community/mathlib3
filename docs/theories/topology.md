@@ -1,7 +1,7 @@
 # Maths in lean : Topological Spaces.
 
 The `topological_space` typeclass is defined in mathlib,
-in `topology/basic.lean`. There are over 4500
+in `topology/basic.lean`. There are about 18000
 lines of code in `topology` at the time of writing,
 covering the basics of topological spaces, continuous functions,
 topological groups and rings, and infinite sums. These docs

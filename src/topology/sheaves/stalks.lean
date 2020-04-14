@@ -74,7 +74,7 @@ begin
   ext1,
   tactic.op_induction',
   cases j, cases j_val,
-  rw [colim.ι_map_assoc, colim.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
+  rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
        pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
   dsimp,
   -- FIXME A simp lemma which unfortunately doesn't fire:
@@ -92,7 +92,7 @@ begin
   op_induction U,
   cases U,
   cases U_val,
-  simp only [colim.ι_map_assoc, colimit.ι_pre_assoc,
+  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
              whisker_right_app, category.assoc],
   dsimp,
   -- FIXME: Some of these are simp lemmas, but don't fire successfully:

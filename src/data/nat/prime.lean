@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
+import data.nat.sqrt data.nat.gcd data.list.defs data.list.perm
 import algebra.group_power
 import tactic.wlog
 

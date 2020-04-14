@@ -39,10 +39,7 @@ def has_binary_products_of_terminal_and_pullbacks
         uniq' := λ s m J,
                  begin
                    rw [←J, ←J],
-                   ext,
-                   rw limit.lift_π,
-                   cases j,
-                   refl, refl,
-                   dsimp,
-                   apply subsingleton.elim,
+                   ext;
+                   rw limit.lift_π;
+                   refl
                  end } } } }

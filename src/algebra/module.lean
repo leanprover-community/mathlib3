@@ -261,6 +261,24 @@ f.to_add_monoid_hom.map_sub x y
   f (t.sum g) = t.sum (λi, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
+/--
+Lift an add_monoid_hom to a linear_map,
+by providing evidence that it commutes with scalar multiplication.
+-/
+def of_add_monoid_hom (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) : M →ₗ[R] M₂ :=
+{ to_fun := f,
+  add := f.map_add,
+  smul := smul, }
+
+@[simp]
+lemma of_add_monoid_hom_apply (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) (m : M) :
+  (of_add_monoid_hom f smul) m = f m := rfl
+
+@[simp]
+lemma to_add_monoid_hom_of_add_monoid_hom (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) :
+  (of_add_monoid_hom f smul).to_add_monoid_hom = f :=
+by { ext, simp }
+
 /-- Composition of two linear maps is a linear map -/
 def comp (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂) : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 

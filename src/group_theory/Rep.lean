@@ -51,32 +51,46 @@ variables (V : Rep R G)
 
 lemma one_smul (v : V) : (1 : monoid_algebra R G) • v = v :=
 begin
-  sorry
+  dsimp [(•)],
+  change finsupp.sum (finsupp.single _ _) _ = _,
+  rw finsupp.sum_single_index,
+  { simp,
+    rw Action.ρ_1, -- FIXME why can't simp do this?
+    simp, },
+  { simp, }
 end
 
 lemma mul_smul (x y : monoid_algebra R G) (v : V) : (x * y) • v = x • y • v :=
 begin
-  sorry
+  dsimp [(•)],
+  simp [monoid_algebra.mul_def],
+  sorry,
 end
 
 lemma add_smul (x y : monoid_algebra R G) (v : V) : (x + y) • v = x • v + y • v :=
 begin
-  sorry
+  dsimp [(•)],
+  rw [finsupp.sum_add_index],
+  { simp, },
+  { intros g r₁ r₂, simp [add_smul], }
 end
 
 lemma smul_add (x : monoid_algebra R G) (v w : V) : x • (v + w) = x • v + x • w :=
 begin
-  sorry
+  dsimp [(•)],
+  simp [smul_add],
 end
 
 lemma zero_smul (v : V) : (0 : monoid_algebra R G) • v = 0 :=
 begin
-  sorry
+  dsimp [(•)],
+  simp,
 end
 
 lemma smul_zero (x : monoid_algebra R G) : x • (0 : V) = 0 :=
 begin
-  admit
+  dsimp [(•)],
+  simp,
 end
 
 end monoid_algebra_module
@@ -99,14 +113,17 @@ instance module_of_monoid_algebra_module
 module.restrict_scalars R (monoid_algebra R G) V
 
 def action_of_monoid_algebra_module (M : Module (monoid_algebra R G)) : Mon.of G ⟶ Mon.of (End (Module.of R M)) :=
-{ to_fun := λ g, sorry,
+{ to_fun := λ g, sorry, -- we need the fact that multiplication by a group element in a monoid algebra is an `add_monoid_hom`.
   map_one' := sorry,
   map_mul' := λ g h, sorry, }
 end
-
+#check linear_map
 def functor : Rep R G ⥤ Module (monoid_algebra R G) :=
 { obj := λ V, Module.of _ V,
-  map := sorry,
+  map := λ V W f, linear_map.of_add_monoid_hom f
+  begin
+    sorry,
+  end,
   map_id' := sorry,
   map_comp' := sorry, }
 
@@ -114,7 +131,9 @@ def inverse : Module (monoid_algebra R G) ⥤ Rep R G :=
 { obj := λ V,
   { V := Module.of R V,
     ρ := action_of_monoid_algebra_module V },
-  map := sorry,
+  map := λ V W f,
+  { hom := f.to_add_monoid_hom,
+    comm' := sorry, },
   map_id' := sorry,
   map_comp' := sorry, }
 

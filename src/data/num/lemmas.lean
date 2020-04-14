@@ -395,7 +395,7 @@ namespace pos_num
   theorem cast_add [add_monoid α] [has_one α] (m n) : ((m + n : pos_num) : α) = m + n :=
   by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
-  @[simp, norm_cast]
+  @[simp, norm_cast, priority 500]
   theorem cast_succ [add_monoid α] [has_one α] (n : pos_num) : (succ n : α) = n + 1 :=
   by rw [← add_one, cast_add, cast_one]
 

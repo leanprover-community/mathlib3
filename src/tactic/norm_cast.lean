@@ -646,15 +646,6 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
--- lemmas defined in core
-attribute [norm_cast] int.coe_nat_zero
-attribute [norm_cast] int.coe_nat_one
-attribute [norm_cast] int.nat_abs_of_nat
-attribute [norm_cast] int.coe_nat_succ
-attribute [norm_cast] int.coe_nat_add
-attribute [norm_cast] int.coe_nat_sub
-attribute [norm_cast] int.coe_nat_mul
-
 -- TODO: move this elsewhere?
 @[norm_cast] lemma ite_cast {α β : Type} [has_coe α β]
   {c : Prop} [decidable c] {a b : α} :
@@ -739,3 +730,17 @@ add_tactic_doc
   category   := doc_category.attr,
   decl_names := [``norm_cast.norm_cast_attr],
   tags       := ["coercions", "simplification"] }
+
+-- Lemmas defined in core.
+attribute [norm_cast]
+  int.nat_abs_of_nat
+  int.coe_nat_sub
+  int.coe_nat_mul
+  int.coe_nat_zero
+  int.coe_nat_one
+  int.coe_nat_add
+
+-- Lemmas about nat.succ need to get a low priority, so that they are tried last.
+-- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
+-- Rewriting would then produce really wrong terms.
+attribute [norm_cast, priority 500] int.coe_nat_succ

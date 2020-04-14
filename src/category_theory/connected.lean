@@ -12,7 +12,34 @@ import category_theory.limits.preserves
 /-!
 # Connected category
 
-Define a connected category
+Define a connected category as a _nonempty_ category for which every functor
+to a discrete category is isomorphic to the constant functor.
+
+NB. Some authors include the empty category as connected, we do not.
+We instead are interested in categories with exactly one 'connected
+component'.
+
+We give some equivalent definitions:
+- A nonempty category for which every functor to a discrete category is
+  constant on objects.
+  See `any_functor_const_on_obj` and `connected.of_any_functor_const_on_obj`.
+- A nonempty category for which every function `F` for which the presence of a
+  morphism `f : j₁ ⟶ j₂` implies `F j₁ = F j₂` must be constant everywhere.
+  See `constant_of_preserves_morphisms` and `connected.of_constant_of_preserves_morphisms`.
+- A nonempty category for which any subset of its elements containing the
+  default and closed under morphisms is everything.
+  See `induct_on_objects` and `connected.of_induct`.
+- A nonempty category for which every object is related under the reflexive
+  transitive closure of the relation "there is a morphism in some direction
+  from `j₁` to `j₂`".
+  See `connected_zigzag` and `zigzag_connected`.
+- A nonempty category for which for any two objects there is a sequence of
+  morphisms (some reversed) from one to the other.
+  See `exists_zigzag'` and `connected_of_zigzag`.
+
+We also prove the result that the functor given by `(X × -)` preserves any
+connected limit. That is, any limit of shape `J` where `J` is a connected
+category is preserved by the functor `(X × -)`.
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -65,7 +92,7 @@ This can be thought of as a local-to-global property.
 
 The converse is shown in `connected.of_constant_of_preserves_morphisms`
 -/
-lemma constant_function_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
+lemma constant_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
   F j = F (default J) :=
 any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j
 
@@ -74,7 +101,7 @@ any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j
 `j₁, j₂` for which there is a morphism `j₁ ⟶ j₂`, then `F` is constant.
 This can be thought of as a local-to-global property.
 
-The converse of `constant_function_of_preserves_morphisms`.
+The converse of `constant_of_preserves_morphisms`.
 -/
 def connected.of_constant_of_preserves_morphisms [inhabited J]
   (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j : J, F j = F (default J))) :
@@ -92,7 +119,7 @@ lemma induct_on_objects [connected J] (p : set J) (h0 : default J ∈ p)
   (h1 : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) (j : J) :
   j ∈ p :=
 begin
-  injection (constant_function_of_preserves_morphisms (λ k, ulift.up (k ∈ p)) (λ j₁ j₂ f, _) j) with i,
+  injection (constant_of_preserves_morphisms (λ k, ulift.up (k ∈ p)) (λ j₁ j₂ f, _) j) with i,
   rwa i,
   dsimp,
   exact congr_arg ulift.up (propext (h1 f)),
@@ -161,7 +188,7 @@ end
 omit 𝒥
 
 /-- Analogous to `last`. -/
-def head' {α : Type v₂} : Π l : list α, l ≠ list.nil → α
+def head_of_ne_nil {α : Type v₂} : Π l : list α, l ≠ list.nil → α
 | [] t := absurd rfl t
 | (a :: l) _ := a
 
@@ -169,11 +196,11 @@ def head' {α : Type v₂} : Π l : list α, l ≠ list.nil → α
 If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a sequence
 of related elements starting from `a` and ending on `b`.
 
-NB: This is easier to express with `list.chain'` and `head'` than `list.chain` because of the
+NB: This is easier to express with `list.chain'` and `head_of_ne_nil` than `list.chain` because of the
 `list.last` required for the end.
 -/
 lemma exists_zigzag {α : Type v₂} {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
-  ∃ (l : list α), list.chain' r l ∧ ∃ (hl : l ≠ list.nil), head' l hl = a ∧ list.last l hl = b :=
+  ∃ (l : list α), list.chain' r l ∧ ∃ (hl : l ≠ list.nil), head_of_ne_nil l hl = a ∧ list.last l hl = b :=
 begin
   apply relation.refl_trans_gen.head_induction_on h,
   refine ⟨[b], list.chain.nil, list.cons_ne_nil _ _, rfl, rfl⟩,
@@ -184,7 +211,7 @@ begin
   cases l,
     apply list.chain'_singleton,
     rw list.chain'_cons, split,
-      rw head' at hl₃, rwa hl₃,
+      rw head_of_ne_nil at hl₃, rwa hl₃,
       assumption,
   apply list.cons_ne_nil,
   refl,
@@ -198,18 +225,18 @@ That is, we can propagate the predicate up the chain.
 -/
 lemma prop_up_chain' {α : Type v₂} {r : α → α → Prop} (p : α → Prop) {a b : α}
   (l : list α) (hl : l ≠ []) (h : list.chain' r l)
-  (ha : head' l hl = a) (hb : list.last l hl = b)
+  (ha : head_of_ne_nil l hl = a) (hb : list.last l hl = b)
   (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
 begin
   induction l generalizing a,
-    exfalso, apply hl, refl,
-  rw head' at ha, cases ha,
-  cases l_tl,
-  rw list.last_singleton at hb, rw hb, assumption,
-  rw list.chain'_cons at h,
-  apply carries h.1,
-  apply l_ih _ h.2, rwa list.last_cons at hb, apply list.cons_ne_nil,
-  refl
+  { exact (hl rfl).elim },
+  { cases ha,
+    cases l_tl,
+    { rw list.last_singleton at hb,
+      rwa hb },
+    { rw list.chain'_cons at h,
+      rw list.last_cons _ (list.cons_ne_nil _ _) at hb,
+      refine carries h.1 (l_ih _ h.2 hb rfl) } }
 end
 
 include 𝒥
@@ -220,7 +247,7 @@ to the other.
 Converse is given in `connected_of_zigzag`.
 -/
 lemma exists_zigzag' [connected J] (j₁ j₂ : J) :
-  ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head' l hl = j₁ ∧ list.last l hl = j₂ :=
+  ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂ :=
 exists_zigzag (connected_zigzag _ _)
 
 /--
@@ -230,7 +257,7 @@ morphisms, then J is connected.
 The converse of `exists_zigzag'`.
 -/
 def connected_of_zigzag [inhabited J]
-  (h : ∀ (j₁ j₂ : J), ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head' l hl = j₁ ∧ list.last l hl = j₂) :
+  (h : ∀ (j₁ j₂ : J), ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂) :
   connected J :=
 begin
   apply connected.of_induct,
@@ -238,8 +265,8 @@ begin
   obtain ⟨l, zags, nemp, hd, tl⟩ := h j (default J),
   apply prop_up_chain' p l nemp zags hd tl _ d,
   rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
-  exact (k a).2,
-  exact (k a).1
+  { exact (k a).2 },
+  { exact (k a).1 }
 end
 
 end J
@@ -296,7 +323,7 @@ This is the key property of connected categories which we use to establish prope
 lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
   ∀ (j : J), α.app j = (α.app (default J) : X ⟶ Y) :=
-@constant_function_of_preserves_morphisms _ _ _
+@constant_of_preserves_morphisms _ _ _
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
@@ -340,34 +367,23 @@ def prod_preserves_connected_limits [connected J] (X : C) :
   preserves_limits_of_shape J (prod_functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,
-    { lift := λ s, limits.prod.lift (s.π.app (default _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
+    { lift := λ s, prod.lift (s.π.app (default _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
       fac' := λ s j,
       begin
         apply prod.hom_ext,
-        { rw assoc,
-          erw limit.map_π,
-          erw comp_id,
-          rw limit.lift_π,
+        { erw [assoc, limit.map_π, comp_id, limit.lift_π],
           exact (nat_trans_from_connected (s.π ≫ γ₁ X) j).symm },
-        { have: l.lift (forget_cone s) ≫ c.π.app j = s.π.app j ≫ limits.prod.snd := l.fac (forget_cone s) j,
-          rw ← this,
-          simp }
+        { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,
       begin
         apply prod.hom_ext,
-        { rw limit.lift_π,
-          rw ← L (default J),
-          dsimp,
-          rw assoc,
-          rw limit.map_π,
-          erw comp_id },
+        { erw [limit.lift_π, ← L (default J), assoc, limit.map_π, comp_id],
+          refl },
         { rw limit.lift_π,
           apply l.uniq (forget_cone s),
           intro j,
-          dsimp,
-          rw ← L j,
-          simp }
+          simp [← L j] }
       end } } }
 
 end products

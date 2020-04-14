@@ -222,13 +222,22 @@ do g :: _ ← get_goals,
    trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
    trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
+   -- We now prepare a list of `tactic_state`s, consisting of
+   -- the current state, and the current state with `symmetry` applied (if it succeeds).
+   -- We'll then try applying every declaration in each of these states.
+   -- (This avoids the overhead of running `symmetry` once for every declaration.)
+   -- (This mechanism could also be used to allow other pre-processing alternatives.)
+   state ← read,
+   symm_state ← lock_tactic_state $ option.to_list <$> try_core (symmetry >> read),
+   let states := state :: symm_state,
+
    -- Try applying each lemma against the goal,
    -- then record the number of remaining goals, and number of local hypotheses used.
    return $ (mllist.of_list defs).mfilter_map
    -- (This tactic block is only executed when we evaluate the mllist,
    -- so we need to do the `focus1` here.)
    (λ d, lock_tactic_state $ focus1 $ do
-     apply_declaration ff discharger d,
+     states.mfirst (λ s, set_state s >> apply_declaration ff discharger d),
      ng ← num_goals,
      g ← instantiate_mvars g,
      state ← read,

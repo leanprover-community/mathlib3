@@ -525,7 +525,7 @@ theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
 mem_closure_iff_nhds.trans
   ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
-    λ H t' ht', let ⟨i, hi, hit⟩ := h.mem_iff.1 ht', ⟨x, xt, hx⟩ := H i hi in
+    λ H t' ht', let ⟨i, hi, hit⟩ := (h t').1 ht', ⟨x, xt, hx⟩ := H i hi in
     ⟨x, hit hx, xt⟩⟩
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter

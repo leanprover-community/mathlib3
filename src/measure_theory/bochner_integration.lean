@@ -1026,7 +1026,7 @@ variables [normed_group β] [second_countable_topology β] [normed_space ℝ β]
   [measurable_space β] [borel_space β]
           [normed_group γ] [second_countable_topology γ] [normed_space ℝ γ] [complete_space γ]
   [measurable_space γ] [borel_space γ]
-
+  
 /-- The Bochner integral -/
 def integral (f : α → β) : β :=
 if hf : measurable f ∧ integrable f
@@ -1151,7 +1151,7 @@ end
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → β} {f : α → β} (bound : α → ℝ)
-  (hl_cb : l.is_countably_generated)
+  (hl_cb : l.has_countable_basis)
   (hF_meas : ∀ᶠ n in l, measurable (F n))
   (f_measurable : measurable f)
   (h_bound : ∀ᶠ n in l, ∀ₘ a, ∥F n a∥ ≤ bound a)

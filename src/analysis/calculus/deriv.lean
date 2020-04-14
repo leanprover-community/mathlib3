@@ -57,11 +57,20 @@ For most binary operations we also define `const_op` and `op_const` theorems for
 the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,
 and they more frequently lead to the desired result.
 
+We set up the simplifier so that it can compute the derivative of simple functions. For instance,
+```lean
+example (x : ℝ) : deriv (λ x, cos (sin x) * exp x) x = (cos(sin(x))-sin(sin(x))*cos(x))*exp(x) :=
+by { simp, ring }
+```
+
 ## Implementation notes
 
 Most of the theorems are direct restatements of the corresponding theorems
 for Fréchet derivatives.
 
+The strategy to construct simp lemmas that give the simplifier the possibility to compute
+derivatives is the same as the one for differentiability statements, as explained in `fderiv.lean`.
+See the explanations there.
 -/
 
 universes u v w
@@ -1177,7 +1186,7 @@ lemma differentiable_within_at.div
 differentiable_within_at 𝕜 (λx, c x / d x) s x :=
 ((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).differentiable_within_at
 
-lemma differentiable_at.div
+@[simp] lemma differentiable_at.div
   (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
 differentiable_at 𝕜 (λx, c x / d x) x :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).differentiable_at

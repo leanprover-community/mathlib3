@@ -50,7 +50,7 @@ theorem cast_injective : function.injective (coe : ℕ → α) :=
 char_zero.cast_injective
 
 @[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
-⟨@cast_injective _ _ _ _ _ _, by rintro rfl; refl⟩
+cast_injective.eq_iff
 
 @[simp, norm_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]

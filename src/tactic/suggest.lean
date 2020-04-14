@@ -206,7 +206,7 @@ private meta def apply_declaration_script
   tactic application :=
 -- (This tactic block is only executed when we evaluate the mllist,
 -- so we need to do the `focus1` here.)
-lock_tactic_state $ focus1 $ do
+retrieve $ focus1 $ do
   apply_declaration ff discharger d,
   ng ← num_goals,
   g ← instantiate_mvars g,
@@ -229,12 +229,12 @@ do g :: _ ← get_goals,
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
-   (lock_tactic_state (do
+   (retrieve (do
      focus1 $ solve_by_elim { discharger := discharger },
      s ← read,
      m ← tactic_statement g,
      g ← instantiate_mvars g,
-     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
+     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp (λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
@@ -254,10 +254,10 @@ do g :: _ ← get_goals,
    let results := defs.mfilter_map (apply_declaration_script g hyps discharger),
    -- Now call `symmetry` and try again.
    -- (Because we are using `mllist`, this is essentially free if we've already found a lemma.)
-   symm_state ← lock_tactic_state $ try_core $ symmetry >> read,
+   symm_state ← retrieve $ try_core $ symmetry >> read,
    let results_symm := match symm_state with
    | (some s) :=
-     defs.mfilter_map (λ d, set_state s >> apply_declaration_script g hyps discharger d)
+     defs.mfilter_map (λ d, retrieve $ set_state s >> apply_declaration_script g hyps discharger d)
    | none := mllist.nil
    end,
   return (results.append results_symm))

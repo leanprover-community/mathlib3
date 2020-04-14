@@ -184,11 +184,10 @@ which we only separate out to keep the maximum compile time per declaration low.
 -/
 lemma has_deriv_at_real_of_complex_aux (h : has_deriv_at e e' z) :
   has_deriv_at (⇑continuous_linear_map.re ∘ λ {z : ℝ}, e (continuous_linear_map.of_real z))
-    ((continuous_linear_map.comp continuous_linear_map.re
+    ((continuous_linear_map.re.comp
           (continuous_linear_map.comp
              (continuous_linear_map.restrict_scalars ℝ (continuous_linear_map.smul_right 1 e'))
-             continuous_linear_map.of_real))
-       1)
+             continuous_linear_map.of_real)) 1)
     z :=
 begin
   have A : has_fderiv_at continuous_linear_map.of_real continuous_linear_map.of_real z :=

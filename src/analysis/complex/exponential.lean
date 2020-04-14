@@ -78,12 +78,12 @@ differentiable_exp.continuous
 end complex
 
 lemma has_deriv_at.cexp {f : ℂ → ℂ} {f' x : ℂ} (hf : has_deriv_at f f' x) :
-  has_deriv_at (complex.exp ∘ f) (f' * complex.exp (f x)) x :=
+  has_deriv_at (complex.exp ∘ f) (complex.exp (f x) * f') x :=
 (complex.has_deriv_at_exp (f x)).comp x hf
 
 lemma has_deriv_within_at.cexp {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
   (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (complex.exp ∘ f) (f' * complex.exp (f x)) s x :=
+  has_deriv_within_at (complex.exp ∘ f) (complex.exp (f x) * f') s x :=
 (complex.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
 
 namespace complex
@@ -95,8 +95,8 @@ begin
   convert ((((has_deriv_at_id x).neg.mul_const I).cexp.sub
     ((has_deriv_at_id x).mul_const I).cexp).mul_const I).mul_const (2:ℂ)⁻¹,
   simp only [function.comp, id],
-  rw [add_comm, one_mul, mul_comm (_ - _), mul_sub, mul_left_comm, ← mul_assoc, ← mul_assoc,
-    I_mul_I, mul_assoc (-1:ℂ), I_mul_I, neg_one_mul, neg_neg, one_mul, neg_one_mul, sub_neg_eq_add]
+  rw [sub_mul, mul_assoc, mul_assoc, I_mul_I, neg_one_mul, neg_neg, mul_one, one_mul, mul_assoc,
+      I_mul_I, mul_neg_one, sub_neg_eq_add, add_comm]
 end
 
 lemma differentiable_sin : differentiable ℂ sin :=
@@ -115,7 +115,7 @@ begin
   convert (((has_deriv_at_id x).mul_const I).cexp.add
     ((has_deriv_at_id x).neg.mul_const I).cexp).mul_const (2:ℂ)⁻¹,
   simp only [function.comp, id],
-  rw [one_mul, neg_one_mul, neg_sub, mul_comm, mul_sub, sub_eq_add_neg, neg_mul_eq_neg_mul]
+  ring
 end
 
 lemma differentiable_cos : differentiable ℂ cos :=
@@ -139,7 +139,7 @@ lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
   simp only [cosh, div_eq_mul_inv],
   convert ((has_deriv_at_exp x).sub (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, neg_one_mul, neg_neg]
+  rw [id, mul_neg_one, neg_neg]
 end
 
 lemma differentiable_sinh : differentiable ℂ sinh :=
@@ -156,7 +156,7 @@ lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 begin
   simp only [sinh, div_eq_mul_inv],
   convert ((has_deriv_at_exp x).add (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, neg_one_mul, sub_eq_add_neg]
+  rw [id, mul_neg_one, sub_eq_add_neg]
 end
 
 lemma differentiable_cosh : differentiable ℂ cosh :=
@@ -1901,12 +1901,12 @@ end exp
 end real
 
 lemma has_deriv_at.rexp {f : ℝ → ℝ} {f' x : ℝ} (hf : has_deriv_at f f' x) :
-  has_deriv_at (real.exp ∘ f) (f' * real.exp (f x)) x :=
+  has_deriv_at (real.exp ∘ f) (real.exp (f x) * f') x :=
 (real.has_deriv_at_exp (f x)).comp x hf
 
 lemma has_deriv_within_at.rexp {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
   (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (real.exp ∘ f) (f' * real.exp (f x)) s x :=
+  has_deriv_within_at (real.exp ∘ f) (real.exp (f x) * f') s x :=
 (real.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
 
 namespace nnreal

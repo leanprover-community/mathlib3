@@ -34,6 +34,18 @@ lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]
 example : lt_one 0 :=
 by library_search
 
+example (α : Prop) : α → α :=
+by library_search -- says: `exact id`
+
+example (p : Prop) [decidable p] : (¬¬p) → p :=
+by library_search -- says: `exact not_not.mp`
+
+example (a b : Prop) (h : a ∧ b) : a :=
+by library_search -- says: `exact h.left`
+
+example (P Q : Prop) [decidable P] [decidable Q]: (¬ Q → ¬ P) → (P → Q) :=
+by library_search -- says: `exact not_imp_not.mp`
+
 example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 

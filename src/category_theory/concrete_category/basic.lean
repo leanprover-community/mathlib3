@@ -165,10 +165,13 @@ def has_forget₂.hom_has_coe (C D : Type (u+1))
 ⟨λ f, (forget₂ C D).map f⟩
 end
 
--- FIXME Do we need this?
--- instance induced_category.has_forget₂ {C D : Type (u+1)} [large_category D] [concrete_category D] (f : C → D) :
---   has_forget₂ (induced_category D f) D :=
--- { forget₂ := induced_functor f }
+instance induced_category.concrete_category {C D : Type (u+1)} [large_category D] [concrete_category D] (f : C → D) :
+  concrete_category (induced_category D f) :=
+{ forget := induced_functor f ⋙ forget D }
+
+instance induced_category.has_forget₂ {C D : Type (u+1)} [large_category D] [concrete_category D] (f : C → D) :
+  has_forget₂ (induced_category D f) D :=
+{ forget₂ := induced_functor f }
 
 /--
 In order to construct a “partially forgetting” functor, we do not need to verify functor laws;

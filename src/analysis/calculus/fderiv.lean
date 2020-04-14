@@ -319,7 +319,10 @@ h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
   has_fderiv_at f f' x :=
-λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (hf hc)
+begin
+  rw [has_fderiv_at, has_fderiv_at_filter, is_o_iff],
+  exact (λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (is_o_iff.1 hf hc))
+end
 
 lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
   differentiable_at 𝕜 f x :=

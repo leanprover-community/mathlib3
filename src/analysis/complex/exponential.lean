@@ -50,6 +50,7 @@ begin
   rw has_deriv_at_iff_is_o_nhds_zero,
   have : (1 : ℕ) < 2 := by norm_num,
   refine is_O.trans_is_o ⟨∥exp x∥, _⟩ (is_o_pow_id this),
+  rw is_O_with_iff,
   have : metric.ball (0 : ℂ) 1 ∈ nhds (0 : ℂ) := metric.ball_mem_nhds 0 zero_lt_one,
   apply filter.mem_sets_of_superset this (λz hz, _),
   simp only [metric.mem_ball, dist_zero_right] at hz,

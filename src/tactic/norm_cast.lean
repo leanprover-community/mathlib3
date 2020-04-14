@@ -336,17 +336,19 @@ end tactic.interactive
 namespace norm_cast
 open tactic expr
 
+/-- Prove `a = b` using the given simp set. -/
+meta def prove_eq_using (s : simp_lemmas) (a b : expr) : tactic expr := do
+(a', a_a') ← simplify s [] a {fail_if_unchanged := ff},
+(b', b_b') ← simplify s [] b {fail_if_unchanged := ff},
+is_def_eq a' b' reducible,
+b'_b ← mk_eq_symm b_b',
+mk_eq_trans a_a' b'_b
+
 /-- Prove `a = b` by simplifying using move and squash lemmas. -/
-meta def aux_down (a b : expr) : tactic expr :=
-do
-  h ← to_expr ``(%%a = %%b),
-  cache ← norm_cast_attr.get_cache,
-  s ← simp_lemmas.mk_default, --TODO: only use norm_cast lemmas.
-  let s := simp_lemmas.join s cache.down,
-  (_, pr) ← simplify s [] h,
-  some (_, tmp) ← expr.is_eq <$> infer_type pr,
-  is_def_eq tmp `(true) reducible,
-  to_expr ``(eq.mpr %%pr trivial)
+meta def prove_eq_using_down (a b : expr) : tactic expr := do
+cache ← norm_cast_attr.get_cache,
+s ← cache.down.add_simp ``eq_self_iff_true,
+prove_eq_using s a b
 
 /--
 This is the main heuristic used alongside the elim and move lemmas.
@@ -367,7 +369,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
     coe3 ← mk_app `has_lift_t [α, β] >>= mk_instance_fast,
     new_x ← to_expr ``(@coe %%β %%δ %%coe2 (@coe %%α %%β %%coe3 %%xx)),
     let new_e := app (app op new_x) y,
-    eq_x ← aux_down x new_x,
+    eq_x ← prove_eq_using_down x new_x,
     pr ← mk_congr_arg op eq_x,
     pr ← mk_congr_fun pr y,
     return (new_e, pr)
@@ -375,7 +377,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
     coe3 ← mk_app `has_lift_t [β, α] >>= mk_instance_fast,
     new_y ← to_expr ``(@coe %%α %%δ %%coe1 (@coe %%β %%α %%coe3 %%yy)),
     let new_e := app (app op x) new_y,
-    eq_y ← aux_down y new_y,
+    eq_y ← prove_eq_using_down y new_y,
     pr ← mk_congr_arg (app op x) eq_y,
     return (new_e, pr)
   )
@@ -384,7 +386,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
   `(@has_one.one %%β %%h1) ← return y,
   h2 ← to_expr ``(has_one %%α) >>= mk_instance_fast,
   new_y ← to_expr ``(@coe %%α %%β %%coe1 (@has_one.one %%α %%h2)),
-  eq_y ← aux_down y new_y,
+  eq_y ← prove_eq_using_down y new_y,
   let new_e := app (app op x) new_y,
   pr ← mk_congr_arg (app op x) eq_y,
   return (new_e, pr)
@@ -393,7 +395,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
   `(@has_zero.zero %%β %%h1) ← return y,
   h2 ← to_expr ``(has_zero %%α) >>= mk_instance_fast,
   new_y ← to_expr ``(@coe %%α %%β %%coe1 (@has_zero.zero %%α %%h2)),
-  eq_y ← aux_down y new_y,
+  eq_y ← prove_eq_using_down y new_y,
   let new_e := app (app op x) new_y,
   pr ← mk_congr_arg (app op x) eq_y,
   return (new_e, pr)
@@ -402,7 +404,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
   `(@coe %%α %%β %%coe1 %%xx) ← return y,
   h1 ← to_expr ``(has_one %%α) >>= mk_instance_fast,
   new_x ← to_expr ``(@coe %%α %%β %%coe1 (@has_one.one %%α %%h1)),
-  eq_x ← aux_down x new_x,
+  eq_x ← prove_eq_using_down x new_x,
   let new_e := app (app op new_x) y,
   pr ← mk_congr_arg (lam `x binder_info.default β (app (app op (var 0)) y)) eq_x,
   return (new_e, pr)
@@ -411,7 +413,7 @@ meta def splitting_procedure : expr → tactic (expr × expr)
   `(@coe %%α %%β %%coe1 %%xx) ← return y,
   h1 ← to_expr ``(has_zero %%α) >>= mk_instance_fast,
   new_x ← to_expr ``(@coe %%α %%β %%coe1 (@has_zero.zero %%α %%h1)),
-  eq_x ← aux_down x new_x,
+  eq_x ← prove_eq_using_down x new_x,
   let new_e := app (app op new_x) y,
   pr ← mk_congr_arg (lam `x binder_info.default β (app (app op (var 0)) y)) eq_x,
   return (new_e, pr)
@@ -461,7 +463,7 @@ do
   h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance_fast,
   let new_e : expr := reflect n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
-  pr ← aux_down e new_e,
+  pr ← prove_eq_using_down e new_e,
   return (new_e, pr)
 
 /--
@@ -473,8 +475,7 @@ do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_nat,
   new_e ← expr.of_nat α n,
-  h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_down e new_e,
+  pr ← prove_eq_using_down e new_e,
   return (new_e, pr)
 
 /-- A local variant on `simplify_top_down`. -/
@@ -546,22 +547,20 @@ end
 
 /-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the goal. -/
 meta def exact_mod_cast (e : expr) : tactic unit :=
-(do
+decorate_error "exact_mod_cast failed:" $ do
   new_e ← aux_mod_cast e,
   exact new_e
-) <|> fail "exact_mod_cast failed"
 
 /-- `apply_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to apply `e`. -/
 meta def apply_mod_cast (e : expr) : tactic (list (name × expr)) :=
-(do
+decorate_error "apply_mod_cast failed:" $ do
   new_e ← aux_mod_cast e,
   apply new_e
-) <|> fail "apply_mod_cast failed"
 
 /-- `assumption_mod_cast` runs `norm_cast` on the goal. For each local hypothesis `h`, it also
 normalizes `h` and tries to use that to close the goal. -/
 meta def assumption_mod_cast : tactic unit :=
-do {
+decorate_error "assumption_mod_cast failed:" $ do
   let cfg : simp_config := {
     fail_if_unchanged := ff,
     canonize_instances := ff,
@@ -571,7 +570,6 @@ do {
   replace_at derive [] tt,
   ctx ← local_context,
   try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
-} <|> fail "assumption_mod_cast failed"
 
 end tactic
 
@@ -594,7 +592,7 @@ do
 Rewrite with the given rules and normalize casts between steps.
 -/
 meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit :=
-(do
+decorate_error "rw_mod_cast failed:" $ do
   let cfg_norm : simp_config := {},
   let cfg_rw : rewrite_cfg := {},
   ns ← loc.get_locals,
@@ -605,7 +603,6 @@ meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit 
   ) rs.rules,
   replace_at derive ns loc.include_goal,
   skip
-) <|> fail "rw_mod_cast failed"
 
 /--
 Normalize the goal and the given expression, then close the goal with exact.

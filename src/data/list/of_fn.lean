@@ -39,10 +39,18 @@ end
 nth_of_fn_aux f _ _ _ _ $ λ i,
 by simp only [of_fn_nth_val, dif_neg (not_lt.2 (le_add_left n i))]; refl
 
-@[simp] theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
+theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
   nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
 option.some.inj $ by rw [← nth_le_nth];
   simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.2]
+
+@[simp] theorem nth_le_of_fn' {n} (f : fin n → α) {i : ℕ} (h : i < (of_fn f).length) :
+  nth_le (of_fn f) i h = f ⟨i, ((length_of_fn f) ▸ h)⟩ :=
+nth_le_of_fn f ⟨i, ((length_of_fn f) ▸ h)⟩
+
+@[simp] lemma map_of_fn {β : Type*} {n : ℕ} (f : fin n → α) (g : α → β) :
+  map g (of_fn f) = of_fn (g ∘ f) :=
+ext_le (by simp) (λ i h h', by simp)
 
 theorem array_eq_of_fn {n} (a : array n α) : a.to_list = of_fn a.read :=
 suffices ∀ {m h l}, d_array.rev_iterate_aux a

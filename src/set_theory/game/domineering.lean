@@ -177,7 +177,11 @@ def domineering.L := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
 
 -- We can check that `decidable` instances reduce as expected,
 -- and so our implementation of domineering is computable.
+<<<<<<< HEAD
 run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
+=======
+-- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
+>>>>>>> origin/master
 
 -- dec_trivial can handle most of the dictionary of small games described in [conway2001]
 example : domineering.one ≈ 1 := dec_trivial

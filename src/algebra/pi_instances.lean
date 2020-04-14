@@ -280,7 +280,7 @@ def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
   end, }
 
 @[simp]
-lemma add_monoid_hom.single_apply (i : I) (x : f i) : (add_monoid_hom.single f i) x = single i x := rfl
+lemma add_monoid_hom.single_apply {i : I} (x : f i) : (add_monoid_hom.single f i) x = single i x := rfl
 end
 
 section

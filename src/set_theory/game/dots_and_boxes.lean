@@ -175,6 +175,10 @@ end
 
 -- /- We could alternatively define an inductive type here... -/
 
+-- This definition works, but makes no attempt to include the condition about finishing a box on all but the last move.
+-- It also doens't attempt to prove `fintype`. Hopefully this is easier for an inductive type, however.
+-- The current `fintype` instance provided below for the other definition is enormously inefficient.
+
 -- inductive with_edge_sequence : layout G → layout G → Type
 -- | single {L : layout G} {e : G.edges} (h : e ∈ L.remaining_edges) : with_edge_sequence L (L.add_edge h).1
 -- | cons {L L' : layout G}
@@ -266,21 +270,24 @@ def fintype_sigma_mem_finset {α : Type*} (s : finset α) (Z : Π a (h : a ∈ s
 fintype.of_equiv (Σ a : s.to_set, Z a.1 a.2) (sigma_finset_to_set_equiv_psigma_mem _ _)
 
 /-- This is a ridiculously convoluted statement, tuned to what we're faced with here... -/
-def fintype_edge_sequence'_aux {α : Type*} {W : α → Type*} {Y : α → Type*} {Z : α → Type*}
+def fintype_edge_sequence'_aux {α : Type*} {W : α → Type} {Y : α → Type} {Z : α → Type}
   (f : Π a, finset (Z a))
   (n : Π {a b} (h : b ∈ f a), α)
-  (w : α → ℕ) (h : ∀ {a b} (h : b ∈ f a), w (n h) < w a)
+  (w : α → ℕ) (k : ∀ {a b} (h : b ∈ f a), w (n h) < w a)
   (e : Π a, W a ≃ Y a ⊕ (Σ' b (h : b ∈ f a), W (n h)))
   [∀ a, fintype (Y a)] :
-  Π (a : α), fintype (W a) | a :=
+  Π (m : ℕ) (a : α) (u : w a < m), fintype (W a)
+| 0 a u := by { exfalso, cases u }
+| (m+1) a u :=
 begin
-  have : fintype (Y a ⊕ Σ' (b : Z a) (h : b ∈ f a), W (n h)),
+  have : fintype (Y a ⊕ Σ' b (h : b ∈ f a), W (n h)),
   { apply @fintype.sum (Y a) _ (by apply_instance) _,
-    apply @fintype_sigma_mem_finset (Z a) _ (λ a h, W (n h)) (λ a h, fintype_edge_sequence'_aux (n h)), },
+    apply @fintype_sigma_mem_finset (Z a) _ (λ a h, W (n h))
+      (λ a h, fintype_edge_sequence'_aux m (n h) begin apply lt_of_lt_of_le, apply k, exact nat.lt_succ_iff.mp u, end), },
   resetI,
   apply fintype.of_equiv _ (e a).symm,
 end
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf w⟩], dec_tac := `[solve_by_elim]}
+-- using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf w⟩], dec_tac := `[solve_by_elim]}
 
 instance fintype_edge_sequence' (L : layout G) : fintype (L.edge_sequence') :=
 fintype_edge_sequence'_aux
@@ -289,7 +296,9 @@ fintype_edge_sequence'_aux
   (λ L : layout G, L.remaining_edges.card)
   add_edge_remaining_edges_card_lt
   edge_sequence'_equiv
+  (L.remaining_edges.card + 1)
   L
+  (by simp)
 
 @[derive fintype]
 def edge_sequence (L : layout G) : Type :=
@@ -418,8 +427,20 @@ def dots_and_boxes.one : pgame := dots_and_boxes
 { layout := layout.rectangular 1 1,
   scores := (0,0) }
 
+/-- The one-by-one dots and boxes board, with three edges filled in. -/
+@[derive short]
+def dots_and_boxes.easiest : pgame := dots_and_boxes
+{ layout := {
+  boxes := [0].to_finset.product ([0].to_finset),
+  edges := [sum.inl (0,0), sum.inl (0,1), sum.inr (0,0)].to_finset,
+  edges_in_boxes := by tidy,
+  boxes_incomplete := by tidy, },
+  scores := (0,0) }
+
+
 -- We're not there yet! Is it just because we have `sorry`? Or did we mess up somewhere?
 
-run_cmd tactic.whnf `(by apply_instance : decidable (dots_and_boxes.one ≤ 1)) >>= tactic.trace
+run_cmd tactic.whnf `(by apply_instance : decidable (dots_and_boxes.easiest ≤ 1)) >>= tactic.trace
 
+#eval to_bool (dots_and_boxes.easiest ≈ 1)
 #eval to_bool (dots_and_boxes.one ≈ -1)

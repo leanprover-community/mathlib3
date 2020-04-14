@@ -107,30 +107,25 @@ instance monoid_algebra_module (V : Rep R G) : module (monoid_algebra R G) V :=
 
 namespace monoid_algebra_equivalence
 
-section
 instance module_of_monoid_algebra_module
   (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : module R V :=
 module.restrict_scalars R (monoid_algebra R G) V.
 
--- instance distrib_mul_action_of_monoid_algebra_module
---   (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : distrib_mul_action G V :=
--- { smul := λ g v, (g • (1 : monoid_algebra R G)) • v,
---   one_smul := λ v, by { dsimp, rw [mul_action.one_smul (1 : monoid_algebra R G), mul_action.one_smul v], },
---   mul_smul := λ g g' v, by { sorry },
---   smul_zero := λ g, by { dsimp, erw [distrib_mul_action.smul_zero (g • (1 : monoid_algebra R G))], refl, },
---   smul_add := λ g v w, by { dsimp, erw [distrib_mul_action.smul_add], refl, }, }
-
 def mas (g : G) (r : R) : monoid_algebra R G := finsupp.single g r
+
+instance has_scalar_of_monoid_algebra_module
+  (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : has_scalar G V :=
+{ smul := λ g v, (mas g (1 : R)) • v, }
+
+instance mul_action_of_monoid_algebra_module
+  (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : mul_action G V :=
+{ one_smul := λ v, begin change (1 : monoid_algebra R G) • v = v, simp, end,
+  mul_smul := λ g g' v, begin dsimp [mas], simp [←mul_action.mul_smul], sorry, end, }.
 
 instance distrib_mul_action_of_monoid_algebra_module
   (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] : distrib_mul_action G V :=
-{ smul := λ g v, (mas g 1) • v,
-  one_smul := λ v, sorry,
-  mul_smul := λ g g' v, sorry,
-  smul_zero := λ g, sorry,
-  smul_add := λ g v w, sorry, }.
-
-#exit
+{ smul_zero := λ g, begin dsimp, erw [distrib_mul_action.smul_zero], refl, end,
+  smul_add := λ g v w, begin dsimp, erw [distrib_mul_action.smul_add], refl, end, }.
 
 @[simp]
 lemma group_action (V : Type*) [add_comm_group V] [module (monoid_algebra R G) V] (g : G) (v : V) :
@@ -142,16 +137,19 @@ def action_of_monoid_algebra_module (M : Module (monoid_algebra R G)) : Mon.of G
     (by { dsimp, change (G : Type u) at g, exact smul.add_monoid_hom g M, })
     (λ r m,
     begin
+      -- This is really gross.
       dsimp, change (G : Type u) at g,
-      dsimp [(•)],
-    -- change (g • (1 : monoid_algebra R G)) • ((r • m) : M) = r • (g • (1 : monoid_algebra R G)) • m, simp,
+      erw [←mul_action.mul_smul],
+      erw [←mul_action.mul_smul],
+      congr' 1,
+      exact (monoid_algebra.single_one.central r _).symm,
     end),
-  map_one' := sorry,
-  map_mul' := λ g h, sorry, }
+  map_one' := begin ext, simp, dsimp, end,
+  map_mul' := λ g h, begin ext, simp, dsimp, end, }
 
 @[simp]
 lemma action_of_monoid_algebra_module_apply_apply (M : Module (monoid_algebra R G)) (g : G) (m : M) :
-  action_of_monoid_algebra_module M g m = (g • (1 : monoid_algebra R G)) • m :=
+  ((action_of_monoid_algebra_module M g : End (Module.of R M)) : M → M) m = (g • (1 : monoid_algebra R G)) • m :=
 rfl
 
 -- Do we need more simp lemmas about the action of `G` on `monoid_algebra R G`? e.g.

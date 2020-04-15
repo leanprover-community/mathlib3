@@ -49,36 +49,6 @@ try_for timeout (mk_instance e)
 
 end tactic
 
-namespace expr
-
-open tactic expr
-
---TODO: don't count coercions inside implicit parts of the expression?
-/--
-`is_coe e` returns `tt` if `e` is a coe function, including the implicit arguments.
-`coe` has more implicit arguments than `coe_fn`.
--/
-meta def is_coe : expr → bool
-| (app (app (app (const `has_coe.coe _) _) _) _) := tt
-| (app (app (app (const `coe _) _) _) _)         := tt
-| (app (app (const `has_coe_to_fun.coe _) _) _)  := tt
-| (app (app (const `coe_fn _) _) _)              := tt
-| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
-| (app (app (const `coe_sort _) _) _)            := tt
-| _ := ff
-
-private meta def count_coes_aux : ℕ → expr → ℕ
-| n (app f x) := if f.is_coe then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
-| n (lam _ _ _ e) := count_coes_aux n e
-| n (pi _ _ _ e) := count_coes_aux n e
-| n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
-| n x := n
-
-/-- count how many coercions are inside the expression -/
-meta def count_coes : expr → ℕ := count_coes_aux 0
-
-end expr
-
 namespace norm_cast
 
 open tactic expr
@@ -258,9 +228,8 @@ meta def add_lemma (attr : norm_cast_attr_ty) (cache : norm_cast_cache) (decl : 
   tactic norm_cast_cache :=
 do
   e ← mk_const decl,
-  ty ← infer_type e,
   param ← get_label_param attr decl,
-  l ← param <|> classify_type ty,
+  l ← param <|> (infer_type e >>= classify_type),
   match l with
   | elim   := add_elim cache e
   | move   := add_move cache e

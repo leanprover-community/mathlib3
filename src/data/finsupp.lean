@@ -1325,20 +1325,20 @@ end curry_uncurry
 
 section
 
-instance comap_has_scalar [group γ] [mul_action γ α] [add_comm_monoid β] : has_scalar γ (α →₀ β) :=
+def comap_has_scalar [group γ] [mul_action γ α] [add_comm_monoid β] : has_scalar γ (α →₀ β) :=
 { smul := λ g f, f.comap_domain (λ a, g⁻¹ • a)
   (λ a a' m m' h, by simpa [←mul_smul] using (congr_arg (λ a, g • a) h)) }
 
-instance comap_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] : mul_action γ (α →₀ β) :=
+def comap_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] : mul_action γ (α →₀ β) :=
 { one_smul := λ f, by { ext, dsimp [(•)], simp, },
   mul_smul := λ g g' f, by { ext, dsimp [(•)], simp [mul_smul], }, }
 
-instance comap_distrib_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] :
+def comap_distrib_mul_action [group γ] [mul_action γ α] [add_comm_monoid β] :
   distrib_mul_action γ (α →₀ β) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
   smul_add := λ g f f', by { ext, dsimp [(•)], simp, }, }
 
-instance comap_distrib_mul_action_self [group γ] [add_comm_monoid β] :
+def comap_distrib_mul_action_self [group γ] [add_comm_monoid β] :
   distrib_mul_action γ (γ →₀ β) :=
 @finsupp.comap_distrib_mul_action γ β γ _ (mul_action.regular γ) _
 

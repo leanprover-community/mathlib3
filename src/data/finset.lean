@@ -2551,6 +2551,8 @@ lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α]
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
+end disjoint
+
 /--
 Given a set A and a set B inside it, we can shrink A to any appropriate size, and keep B
 inside it.
@@ -2559,6 +2561,7 @@ lemma exists_intermediate_set {A B : finset α} (i : ℕ)
   (h₁ : i + card B ≤ card A) (h₂ : B ⊆ A) :
   ∃ (C : finset α), B ⊆ C ∧ C ⊆ A ∧ card C = i + card B :=
 begin
+  classical,
   rcases nat.le.dest h₁ with ⟨k, _⟩,
   clear h₁,
   induction k with k ih generalizing A,
@@ -2585,8 +2588,6 @@ end
 lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
-
-end disjoint
 
 instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 

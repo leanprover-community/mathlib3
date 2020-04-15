@@ -214,7 +214,7 @@ protected theorem emetric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 < f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases hf ε ε₀ with ⟨i, hi, H⟩,
@@ -230,7 +230,7 @@ protected theorem emetric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 ≤ f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases dense ε₀ with ⟨ε', hε'⟩,
@@ -274,8 +274,8 @@ mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric
 
-theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
-has_countable_basis_of_seq _ _ uniformity_basis_edist_inv_nat.eq_infi
+theorem uniformity_has_countable_basis : is_countably_generated (𝓤 α) :=
+is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :
@@ -574,7 +574,7 @@ nhds_basis_uniformity uniformity_basis_edist
 theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
-theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball s
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]

@@ -106,17 +106,11 @@ apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
 -- algebra/lie_algebra.lean
-apply_nolint lie_algebra.morphism has_inhabited_instance
 apply_nolint lie_subalgebra has_inhabited_instance
 apply_nolint lie_submodule has_inhabited_instance
 
 -- algebra/module.lean
-apply_nolint ideal doc_blame
-apply_nolint is_linear_map doc_blame
-apply_nolint linear_map doc_blame
-apply_nolint module.End doc_blame
-apply_nolint module.core doc_blame has_inhabited_instance
-apply_nolint submodule.subtype doc_blame
+apply_nolint module.core has_inhabited_instance
 
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
@@ -3421,9 +3415,6 @@ apply_nolint topological_space.nonempty_compacts has_inhabited_instance
 apply_nolint topological_space.opens.gi doc_blame
 apply_nolint topological_space.opens.interior doc_blame
 apply_nolint topological_space.opens.is_basis doc_blame
-
--- topology/sequences.lean
-apply_nolint topological_space.seq_tendsto_iff ge_or_gt
 
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance

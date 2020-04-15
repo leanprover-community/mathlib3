@@ -81,7 +81,7 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
                        end
 | (expr.app f _)    := match_head_symbol f
 | (expr.const n _)  := if list.mem hs (unfold_head_symbol n) then some ex else none
-| _ := none
+| _ := if hs = `_ then some ex else none
 
 meta structure decl_data :=
 (d : declaration)
@@ -197,6 +197,29 @@ open suggest
 
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
+-- Call `apply_declaration`, then prepare the tactic script and
+-- count the number of local hypotheses used.
+private meta def apply_declaration_script
+  (g : expr) (hyps : list expr)
+  (discharger : tactic unit := done)
+  (d : decl_data) :
+  tactic application :=
+-- (This tactic block is only executed when we evaluate the mllist,
+-- so we need to do the `focus1` here.)
+retrieve $ focus1 $ do
+  apply_declaration ff discharger d,
+  ng ← num_goals,
+  g ← instantiate_mvars g,
+  state ← read,
+  m ← message g state,
+  return
+  { application .
+    state := state,
+    decl := d.d,
+    script := m,
+    num_goals := ng,
+    hyps_used := hyps.countp (λ h, h.occurs g) }
+
 -- implementation note: we produce a `tactic (mllist tactic application)` first,
 -- because it's easier to work in the tactic monad, but in a moment we squash this
 -- down to an `mllist tactic application`.
@@ -206,12 +229,12 @@ do g :: _ ← get_goals,
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
-   (lock_tactic_state (do
+   (retrieve (do
      focus1 $ solve_by_elim { discharger := discharger },
      s ← read,
      m ← tactic_statement g,
      g ← instantiate_mvars g,
-     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
+     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp (λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
@@ -222,24 +245,22 @@ do g :: _ ← get_goals,
    trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
    trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
+   let defs : mllist tactic _ := mllist.of_list defs,
+
    -- Try applying each lemma against the goal,
-   -- then record the number of remaining goals, and number of local hypotheses used.
-   return $ (mllist.of_list defs).mfilter_map
-   -- (This tactic block is only executed when we evaluate the mllist,
-   -- so we need to do the `focus1` here.)
-   (λ d, lock_tactic_state $ focus1 $ do
-     apply_declaration ff discharger d,
-     ng ← num_goals,
-     g ← instantiate_mvars g,
-     state ← read,
-     m ← message g state,
-     return
-     { application .
-       state := state,
-       decl := d.d,
-       script := m,
-       num_goals := ng,
-       hyps_used := hyps.countp(λ h, h.occurs g) }))
+   -- recording the tactic script as a string,
+   -- the number of remaining goals,
+   -- and number of local hypotheses used.
+   let results := defs.mfilter_map (apply_declaration_script g hyps discharger),
+   -- Now call `symmetry` and try again.
+   -- (Because we are using `mllist`, this is essentially free if we've already found a lemma.)
+   symm_state ← retrieve $ try_core $ symmetry >> read,
+   let results_symm := match symm_state with
+   | (some s) :=
+     defs.mfilter_map (λ d, retrieve $ set_state s >> apply_declaration_script g hyps discharger d)
+   | none := mllist.nil
+   end,
+  return (results.append results_symm))
 
 /--
 The core `suggest` tactic.

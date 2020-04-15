@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jan-David Salchow
+Authors: Jan-David Salchow, Patrick Massot
 -/
 
 import topology.basic
 import topology.bases
+import topology.subset_properties
 
 /-!
 # Sequences in topological spaces
@@ -29,15 +30,16 @@ variables {α : Type*} {β : Type*}
 
 local notation f ` ⟶ ` limit := tendsto f at_top (𝓝 limit)
 
-/-! ### Statements about sequences in general topological spaces. -/
+/-! ### Sequential closures, sequential continuity, and sequential spaces. -/
 section topological_space
 variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (𝓝 limit) ↔
-    ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
+    ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
 (at_top_basis.tendsto_iff (nhds_basis_opens limit)).trans $
   by simp only [and_imp, exists_prop, true_and, set.mem_Ici, ge_iff_le, id]
 
@@ -142,39 +144,31 @@ namespace topological_space
 
 namespace first_countable_topology
 
+variables [topological_space α] [first_countable_topology α]
+
 /-- Every first-countable space is sequential. -/
 @[priority 100] -- see Note [lower instance priority]
-instance [topological_space α] [first_countable_topology α] : sequential_space α :=
+instance : sequential_space α :=
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
     from set.subset.antisymm (sequential_closure_subset_closure M) this,
   -- For every p ∈ closure M, we need to construct a sequence x in M that converges to p:
   assume (p : α) (hp : p ∈ closure M),
-  -- Since we are in a first-countable space, there exists a monotonically decreasing
-  -- sequence g of sets generating the neighborhood filter around p:
-  exists.elim (mono_seq_of_has_countable_basis _
-    (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
-  -- (g i) is a neighborhood of p and hence intersects M.
-  -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
-  have x : Π i, g i ∩ M,
-  { rw mem_closure_iff_nhds at hp,
-    intro i, apply classical.indefinite_description,
-    apply hp, rw gbasis, rw ← le_principal_iff, apply infi_le_of_le i _, apply le_refl _ },
-  -- It remains to show that x converges to p. Intuitively this is the case
-  -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
-  have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,
-  { intro s, rw gbasis, rw mem_infi,
-    { simp, intros i hi, use i, assumption },
-    { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
-    { apply_instance } },
-  -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
-  ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],
-    begin
-      rw tendsto_at_top', intros s nhdss,
-      rcases gssnhds s nhdss with ⟨i, hi⟩,
-      use i, intros j hij, apply hi, apply gmon _ _ hij,
-      simp [(x j).property.left]
-    end⟩⟩
+  -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
+  -- basis `U` indexed by `ℕ`.
+  let ⟨U, hU ⟩ := (nhds_generated_countable p).has_antimono_basis in
+  -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
+  have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
+    by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
+  begin
+    -- The axiom of (countable) choice builds our sequence from the later fact
+    choose u hu using hp,
+    rw forall_and_distrib at hu,
+    -- It clearly takes values in `M`
+    use [u, hu.1],
+    -- and converges to `p` because the basis is decreasing.
+    apply hU.tendsto hu.2,
+  end⟩
 
 end first_countable_topology
 

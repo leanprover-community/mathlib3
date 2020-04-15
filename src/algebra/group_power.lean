@@ -106,7 +106,9 @@ theorem add_monoid.mul_smul (a : A) (m n : ℕ) : m * n • a = m•(n•a) :=
 by rw [mul_comm, add_monoid.mul_smul']
 
 @[simp] theorem add_monoid.smul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
-nat.eq_cast _ (add_monoid.zero_smul _) (add_monoid.one_smul _) (add_monoid.add_smul _)
+add_monoid_hom.eq_nat_cast
+  ⟨λ n, n • (1 : A), add_monoid.zero_smul _, λ _ _, add_monoid.add_smul _ _ _⟩
+  (add_monoid.one_smul _)
 
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
 theorem bit0_smul (a : A) (n : ℕ) : bit0 n • a = n•a + n•a := add_monoid.add_smul _ _ _

@@ -80,7 +80,17 @@ In other words, `∥f∥ / ∥g∥` is eventually bounded, modulo division by ze
 by this definition. -/
 def is_O (f : α → E) (g : α → F) (l : filter α) : Prop := ∃ c : ℝ, is_O_with c f g l
 
-lemma is_O.of_bound {c : ℝ} {f : α → E} {g : α → F} {l : filter α}
+/-- Definition of `is_O` in terms of `is_O_with`. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff_is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, is_O_with c f g l := iff.rfl
+
+/-- Definition of `is_O` in terms of filters. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_O.of_bound (c : ℝ) {f : α → E} {g : α → F} {l : filter α}
   (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O f g l := ⟨c, h⟩
 
 /-- The Landau notation `is_o f g l` where `f` and `g` are two functions on a type `α` and `l` is
@@ -98,6 +108,10 @@ lemma is_o_iff_forall_is_O_with {f : α → E} {g : α → F} {l : filter α} :
 `is_o` to be irreducible at the end of this file. -/
 lemma is_o_iff {f : α → E} {g : α → F} {l : filter α} :
   is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
+h hc
 
 end defs
 
@@ -1080,4 +1094,4 @@ forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr
 
 end homeomorph
 
-attribute [irreducible] asymptotics.is_o asymptotics.is_O_with
+attribute [irreducible] asymptotics.is_o asymptotics.is_O asymptotics.is_O_with

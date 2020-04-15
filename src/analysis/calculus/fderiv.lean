@@ -1618,7 +1618,7 @@ begin
   apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
   refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
   refine is_o.mul_is_O _ (is_O_refl _ _),
-  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top).trans_is_o this).norm_left
+  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o this).norm_left
 end
 
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :

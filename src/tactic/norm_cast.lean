@@ -156,8 +156,6 @@ do
   let rhs_head_coes     := count_head_coes rhs,
   let rhs_internal_coes := count_internal_coes rhs,
   if lhs_head_coes = 0 then do
-    --TODO: second condition removed until 'count_coes' is updated
-    when (¬ (rhs_head_coes = 0 /-∧ rhs_internal_coes = 0-/)) (fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"),
     return elim
   else if lhs_head_coes = 1 then do
     guard (rhs_head_coes = 0) <|> fail "norm_cast: badly shaped lemma, rhs can't start with coe",

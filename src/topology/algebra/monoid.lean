@@ -36,7 +36,7 @@ variables [topological_space α] [monoid α] [topological_monoid α]
 
 @[to_additive]
 lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
-topological_monoid.continuous_mul α
+topological_monoid.continuous_mul
 
 @[to_additive]
 lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
@@ -65,7 +65,7 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 
 @[to_additive]
 lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
-continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
+continuous_iff_continuous_at.mp topological_monoid.continuous_mul (a, b)
 
 @[to_additive]
 lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
@@ -119,7 +119,7 @@ variables [topological_space α] [comm_monoid α]
 @[to_additive]
 lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
   β ∈ 𝓝 (1 : α) :=
-mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem⟩
 
 variable [topological_monoid α]
 

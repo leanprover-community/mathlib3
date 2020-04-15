@@ -44,7 +44,7 @@ end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
-algebra.to_ring_hom R A
+algebra.to_ring_hom
 
 /-- Creating an algebra from a morphism in CRing. -/
 def ring_hom.to_algebra {R S} [comm_semiring R] [semiring S] (i : R →+* S)
@@ -531,7 +531,7 @@ variables {R}
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 { carrier := S,
   range_le' := by { rintros _ ⟨i, rfl⟩, rw [ring_hom.eq_int_cast, ← gsmul_one],
-    exact is_add_subgroup.gsmul_mem (is_submonoid.one_mem _) } }
+    exact is_add_subgroup.gsmul_mem is_submonoid.one_mem } }
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
@@ -544,7 +544,7 @@ lemma span_int_eq_add_group_closure (s : set R) :
   ↑(span ℤ s) = add_group.closure s :=
 set.subset.antisymm (λ x hx, span_induction hx
   (λ _, add_group.mem_closure)
-  (is_add_submonoid.zero_mem _)
+  is_add_submonoid.zero_mem
   (λ a b ha hb, is_add_submonoid.add_mem ha hb)
   (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
   (add_group.closure_subset subset_span)

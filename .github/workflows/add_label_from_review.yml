@@ -1,13 +1,13 @@
-name: Add "ready-to-merge" label
+name: Add "ready-to-merge" label from PR review
 
 on:
-  issue_comment:
-    types: [created]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   add_label:
     name: Add label
-    if: (toJSON(github.event.issue.pull_request) != 'null') && (startsWith(github.event.comment.body, 'bors r+') || contains(toJSON(github.event.comment.body), '\r\nbors r+') || startsWith(github.event.comment.body, 'bors merge') || contains(toJSON(github.event.comment.body), '\r\nbors merge'))
+    if: (startsWith(github.event.review.body, 'bors r+') || contains(toJSON(github.event.review.body), '\r\nbors r+') || startsWith(github.event.review.body, 'bors merge') || contains(toJSON(github.event.review.body), '\r\nbors merge'))
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/request-action@v2.x
@@ -16,7 +16,7 @@ jobs:
         with:
           route: GET /repos/:repository/pulls/:pull_number
           repository: ${{ github.repository }}
-          pull_number: ${{ github.event.issue.number }}
+          pull_number: ${{ github.event.pull_request.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +37,7 @@ jobs:
         with:
           route: GET /repos/:repository/collaborators/:username/permission
           repository: ${{ github.repository }}
-          username: ${{ github.event.comment.user.login }}
+          username: ${{ github.event.review.user.login }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,7 +57,17 @@ jobs:
         with:
           route: POST /repos/:repository/issues/:issue_number/labels
           repository: ${{ github.repository }}
-          issue_number: ${{ github.event.issue.number }}
+          issue_number: ${{ github.event.pull_request.number }}
           labels: '["ready-to-merge"]'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
+        id: remove_request_review
+        name: Remove "request-review"
+        # we use curl rather than octokit/request-action so that the job won't fail
+        # (and send an annoying email) if the label doesn't exist
+        run: |
+          curl --request DELETE \
+          --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/request-review \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'

@@ -1,4 +1,4 @@
-import .store
+import tactic.tcache.store
 
 open tcache
 open lean.parser interactive interaction_monad

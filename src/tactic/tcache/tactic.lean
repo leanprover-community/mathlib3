@@ -1,5 +1,5 @@
 import tactic.basic
-import .store
+import tactic.tcache.store
 
 open tactic tcache
 
@@ -39,5 +39,4 @@ meta def tc (t : interactive.itactic) : tactic unit := tactic.tcache t
 end interactive
 
 end tactic
-
 

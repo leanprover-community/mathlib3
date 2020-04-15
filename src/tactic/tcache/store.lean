@@ -1,6 +1,6 @@
 import system.io
-import .io
-import .serial
+import tactic.tcache.io
+import tactic.tcache.serial
 
 universe u
 

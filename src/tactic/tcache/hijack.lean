@@ -1,4 +1,4 @@
-import .tactic
+import tactic.tcache.tactic
 
 namespace tcache
 

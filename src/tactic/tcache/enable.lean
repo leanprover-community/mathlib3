@@ -1,1 +1,1 @@
-import .hijack
+import tactic.tcache.hijack

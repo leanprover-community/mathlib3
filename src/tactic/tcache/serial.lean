@@ -1,5 +1,5 @@
 import data.option.defs
-import .common
+import tactic.tcache.common
 
 universe u
 

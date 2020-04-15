@@ -126,7 +126,7 @@ try (any_goals (independent_goal >> solve_by_elim { ..opt })) >>
   -- (because they weren't propositional, or contained a metavariable)
   -- as a second phase we attempt to solve all remaining goals at once (with backtracking across goals).
   any_goals (success_if_fail independent_goal) >>
-  solve_by_elim { backtrack_all_goals := tt, ..opt } <|>
+  solve_by_elim { ..opt } <|>
   -- and fail unless `close_goals = ff`
   guard ¬ close_goals)
 

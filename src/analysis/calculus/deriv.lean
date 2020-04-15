@@ -760,14 +760,22 @@ hf₁.prod hf₂
 end cartesian_product
 
 section composition
-/-! ### Derivative of the composition of a vector valued function and a scalar function -/
+/-!
+### Derivative of the composition of a vector function and a scalar function
 
-variables {h : 𝕜 → 𝕜} {h' : 𝕜}
+We use `scomp` in lemmas on composition of vector valued and scalar valued functions, and `comp`
+in lemmas on composition of scalar valued functions, in analogy for `smul` and `mul` (and also
+because the `comp` version with the shorter name will show up much more often in applications).
+The formula for the derivative involves `smul` in `scomp` lemmas, which can be reduced to
+usual multiplication in `comp` lemmas.
+-/
+
+variables {h h₁ h₂ : 𝕜 → 𝕜} {h' h₁' h₂' : 𝕜}
 /- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
 variable (x)
 
-theorem has_deriv_at_filter.comp
+theorem has_deriv_at_filter.scomp
   (hg : has_deriv_at_filter g g' (h x) (L.map h))
   (hh : has_deriv_at_filter h h' x L) :
   has_deriv_at_filter (g ∘ h) (h' • g') x L :=
@@ -780,46 +788,91 @@ begin
   exact has_fderiv_at_filter.comp x hg hh,
 end
 
-theorem has_deriv_within_at.comp {t : set 𝕜}
+theorem has_deriv_within_at.scomp {t : set 𝕜}
   (hg : has_deriv_within_at g g' t (h x))
   (hh : has_deriv_within_at h h' s x) (hst : s ⊆ h ⁻¹' t) :
   has_deriv_within_at (g ∘ h) (h' • g') s x :=
 begin
-  apply has_deriv_at_filter.comp _ (has_deriv_at_filter.mono hg _) hh,
+  apply has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg _) hh,
   calc map h (nhds_within x s)
       ≤ nhds_within (h x) (h '' s) : hh.continuous_within_at.tendsto_nhds_within_image
   ... ≤ nhds_within (h x) t        : nhds_within_mono _ (image_subset_iff.mpr hst)
 end
 
 /-- The chain rule. -/
-theorem has_deriv_at.comp
+theorem has_deriv_at.scomp
   (hg : has_deriv_at g g' (h x)) (hh : has_deriv_at h h' x) :
   has_deriv_at (g ∘ h) (h' • g') x :=
-(hg.mono hh.continuous_at).comp x hh
+(hg.mono hh.continuous_at).scomp x hh
 
-theorem has_deriv_at.comp_has_deriv_within_at
+theorem has_deriv_at.scomp_has_deriv_within_at
   (hg : has_deriv_at g g' (h x)) (hh : has_deriv_within_at h h' s x) :
   has_deriv_within_at (g ∘ h) (h' • g') s x :=
 begin
   rw ← has_deriv_within_at_univ at hg,
-  exact has_deriv_within_at.comp x hg hh subset_preimage_univ
+  exact has_deriv_within_at.scomp x hg hh subset_preimage_univ
 end
 
-lemma deriv_within.comp
+lemma deriv_within.scomp
   (hg : differentiable_within_at 𝕜 g t (h x)) (hh : differentiable_within_at 𝕜 h s x)
   (hs : s ⊆ h ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (g ∘ h) s x = deriv_within h s x • deriv_within g t (h x) :=
 begin
   apply has_deriv_within_at.deriv_within _ hxs,
-  exact has_deriv_within_at.comp x (hg.has_deriv_within_at) (hh.has_deriv_within_at) hs
+  exact has_deriv_within_at.scomp x (hg.has_deriv_within_at) (hh.has_deriv_within_at) hs
 end
 
-lemma deriv.comp
+lemma deriv.scomp
   (hg : differentiable_at 𝕜 g (h x)) (hh : differentiable_at 𝕜 h x) :
   deriv (g ∘ h) x = deriv h x • deriv g (h x) :=
 begin
   apply has_deriv_at.deriv,
-  exact has_deriv_at.comp x hg.has_deriv_at hh.has_deriv_at
+  exact has_deriv_at.scomp x hg.has_deriv_at hh.has_deriv_at
+end
+
+/-! ### Derivative of the composition of two scalar functions -/
+
+theorem has_deriv_at_filter.comp
+  (hh₁ : has_deriv_at_filter h₁ h₁' (h₂ x) (L.map h₂))
+  (hh₂ : has_deriv_at_filter h₂ h₂' x L) :
+  has_deriv_at_filter (h₁ ∘ h₂) (h₁' * h₂') x L :=
+by { rw mul_comm, exact hh₁.scomp x hh₂ }
+
+theorem has_deriv_within_at.comp {t : set 𝕜}
+  (hh₁ : has_deriv_within_at h₁ h₁' t (h₂ x))
+  (hh₂ : has_deriv_within_at h₂ h₂' s x) (hst : s ⊆ h₂ ⁻¹' t) :
+  has_deriv_within_at (h₁ ∘ h₂) (h₁' * h₂') s x :=
+by { rw mul_comm, exact hh₁.scomp x hh₂ hst, }
+
+/-- The chain rule. -/
+theorem has_deriv_at.comp
+  (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_at h₂ h₂' x) :
+  has_deriv_at (h₁ ∘ h₂) (h₁' * h₂') x :=
+(hh₁.mono hh₂.continuous_at).comp x hh₂
+
+theorem has_deriv_at.comp_has_deriv_within_at
+  (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_within_at h₂ h₂' s x) :
+  has_deriv_within_at (h₁ ∘ h₂) (h₁' * h₂') s x :=
+begin
+  rw ← has_deriv_within_at_univ at hh₁,
+  exact has_deriv_within_at.comp x hh₁ hh₂ subset_preimage_univ
+end
+
+lemma deriv_within.comp
+  (hh₁ : differentiable_within_at 𝕜 h₁ t (h₂ x)) (hh₂ : differentiable_within_at 𝕜 h₂ s x)
+  (hs : s ⊆ h₂ ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (h₁ ∘ h₂) s x = deriv_within h₁ t (h₂ x) * deriv_within h₂ s x :=
+begin
+  apply has_deriv_within_at.deriv_within _ hxs,
+  exact has_deriv_within_at.comp x (hh₁.has_deriv_within_at) (hh₂.has_deriv_within_at) hs
+end
+
+lemma deriv.comp
+  (hh₁ : differentiable_at 𝕜 h₁ (h₂ x)) (hh₂ : differentiable_at 𝕜 h₂ x) :
+  deriv (h₁ ∘ h₂) x = deriv h₁ (h₂ x) * deriv h₂ x :=
+begin
+  apply has_deriv_at.deriv,
+  exact has_deriv_at.comp x hh₁.has_deriv_at hh₂.has_deriv_at
 end
 
 end composition
@@ -998,7 +1051,7 @@ begin
   { ext y,
     rw [function.comp_apply, mul_inv', inv_inv', mul_comm, mul_assoc, mul_inv_cancel x_ne_zero,
       mul_one] },
-  { rw [pow_two, mul_inv', smul_eq_mul, mul_neg_one, neg_mul_eq_mul_neg] }
+  { field_simp [pow_two] }
 end
 
 theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :
@@ -1256,7 +1309,7 @@ begin
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
-  { have := (has_deriv_at_inv _).comp _ (this (-m) (neg_pos.2 hm));
+  { have := (has_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
     simp only [(∘), fpow_neg, one_div_eq_inv, inv_inv', smul_eq_mul] at this,
     convert this using 1,

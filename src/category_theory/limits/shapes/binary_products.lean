@@ -242,7 +242,7 @@ variables (C)
 class has_binary_products :=
 (has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
 
-/-- `has_binary_coproduct` represents a choice of coproduct for every pair of objects. -/
+/-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
 class has_binary_coproducts :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
 

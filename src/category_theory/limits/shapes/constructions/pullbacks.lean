@@ -33,9 +33,9 @@ let π₁ : X ⨯ Y ⟶ X := prod.fst, π₂ : X ⨯ Y ⟶ Y := prod.snd, e := e
       (s.π.app walking_cospan.right)) $ by
         rw [←category.assoc, limit.lift_π, ←category.assoc, limit.lift_π];
         exact pullback_cone.condition _)
-    (by simp) (by simp) $ λ s m h, by
-      ext; simp only [limit.lift_π, fork.of_ι_app_zero, category.assoc];
-      exact walking_pair.cases_on j (h walking_cospan.left) (h walking_cospan.right) }
+    (by simp) (by simp) $ λ s m h, by { ext,
+      { simpa using h walking_cospan.left },
+      { simpa using h walking_cospan.right } } }
 
 section
 
@@ -65,9 +65,9 @@ let ι₁ : Y ⟶ Y ⨿ Z := coprod.inl, ι₂ : Z ⟶ Y ⨿ Z := coprod.inr,
       (s.ι.app walking_span.right)) $ by
         rw [category.assoc, colimit.ι_desc, category.assoc, colimit.ι_desc];
         exact pushout_cocone.condition _)
-    (by simp) (by simp) $ λ s m h, by
-      ext; simp only [colimit.ι_desc, cofork.of_π_app_one]; rw [←category.assoc];
-      exact walking_pair.cases_on j (h walking_span.left) (h walking_span.right) }
+    (by simp) (by simp) $ λ s m h, by { ext,
+      { simpa using h walking_span.left },
+      { simpa using h walking_span.right } } }
 
 section
 

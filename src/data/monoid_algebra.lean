@@ -210,10 +210,13 @@ instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
 instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
-{ to_fun := ⟨single 1, rfl, λ x y, by rw [single_mul_single, one_mul], single_zero,
-    λ x y, single_add⟩,
+{ to_fun := single 1,
+  map_one' := rfl,
+  map_mul' := λ x y, by rw [single_mul_single, one_mul],
+  map_zero' := single_zero,
+  map_add' := λ x y, single_add,
   smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_one_mul_apply _ _ _).symm },
-  commutes' := λ r f, show f * single 1 r = single 1 r * f,
+  commutes' := λ r f, show single 1 r * f = f * single 1 r,
     by ext; rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :

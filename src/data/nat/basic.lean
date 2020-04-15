@@ -12,7 +12,7 @@ This files has some basic lemmas about natural numbers, definition of the `choic
 and extra recursors:
 
 * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
-* `decreasing_induction` : recursion gowing downwards.
+* `decreasing_induction` : recursion growing downwards.
 * `strong_rec'` : recursion based on strong inequalities.
 -/
 
@@ -1204,6 +1204,9 @@ by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_symm' {n a b : ℕ} (h : n = a + b) : nat.choose n a = nat.choose n b :=
+by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
 
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin

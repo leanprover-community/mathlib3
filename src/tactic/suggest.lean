@@ -81,7 +81,7 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
                        end
 | (expr.app f _)    := match_head_symbol f
 | (expr.const n _)  := if list.mem hs (unfold_head_symbol n) then some ex else none
-| _ := none
+| _ := if hs = `_ then some ex else none
 
 meta structure decl_data :=
 (d : declaration)

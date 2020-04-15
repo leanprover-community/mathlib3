@@ -130,6 +130,20 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 @[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.right = ι₂ := rfl
 
+/-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
+    `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
+    -/
+def binary_fan.is_limit.lift' {W X Y : C} {s : binary_fan X Y} (h : is_limit s) (f : W ⟶ X)
+  (g : W ⟶ Y) : {l : W ⟶ s.X // l ≫ s.fst = f ∧ l ≫ s.snd = g} :=
+⟨h.lift $ binary_fan.mk f g, h.fac _ _, h.fac _ _⟩
+
+/-- If `s` is a colimit binary cofan over `X` and `Y`,, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `l : s.X ⟶ W` satisfying `s.inl ≫ l = f` and `s.inr ≫ l = g`.
+    -/
+def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s) (f : X ⟶ W)
+  (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
+⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩
+
 /-- If we have chosen a product of `X` and `Y`, we can access it using `prod X Y` or
     `X ⨯ Y`. -/
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
@@ -235,6 +249,22 @@ lim.map (map_pair f g)
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
+
+@[reassoc]
+lemma prod.map_fst {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.fst = prod.fst ≫ f := by simp
+
+@[reassoc]
+lemma prod.map_snd {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.snd = prod.snd ≫ g := by simp
+
+@[reassoc]
+lemma coprod.inl_map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inl ≫ coprod.map f g = f ≫ coprod.inl := by simp
+
+@[reassoc]
+lemma coprod.inr_map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inr ≫ coprod.map f g = g ≫ coprod.inr := by simp
 
 variables (C)
 

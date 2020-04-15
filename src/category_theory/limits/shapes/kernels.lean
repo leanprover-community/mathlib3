@@ -188,7 +188,8 @@ abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 cokernel_cofork.condition _
 
-/-- Given any morphism `k` so `f ≫ k = 0`, `k` factors through `cokernel f`. -/
+/-- Given any morphism `k : Y ⟶ W` such that `f ≫ k = 0`, `k` factors through `cokernel.π f`
+    via `cokernel.desc : cokernel f ⟶ W`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
 colimit.desc (parallel_pair f 0) (cokernel_cofork.of_π k h)
 
@@ -197,6 +198,8 @@ lemma cokernel.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   cokernel.π f ≫ cokernel.desc f k h = k :=
 colimit.ι_desc _ _
 
+/-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = 0` induces `l : cokernel f ⟶ W` such that
+    `cokernel.π f ≫ l = k`. -/
 def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   {l : cokernel f ⟶ W // cokernel.π f ≫ l = k} :=
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩

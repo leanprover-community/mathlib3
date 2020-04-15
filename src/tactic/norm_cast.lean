@@ -106,7 +106,6 @@ meta def count_head_coes : expr → ℕ
 | `(coe %%e) := count_head_coes e + 1
 | `(coe_sort %%e) := count_head_coes e + 1
 | `(coe_fn %%e) := count_head_coes e + 1
-| (app `(coe_fn %%e) x) := count_head_coes e + count_head_coes x + 1
 | _ := 0
 
 /-- Count how many coercions are inside the expression, including the top ones. -/

@@ -413,7 +413,7 @@ has_deriv_at_filter_const _ _ _
 theorem has_deriv_at_const : has_deriv_at (λ x, c) 0 x :=
 has_deriv_at_filter_const _ _ _
 
-@[simp] lemma deriv_const : deriv (λ x, c) x = 0 :=
+lemma deriv_const : deriv (λ x, c) x = 0 :=
 has_deriv_at.deriv (has_deriv_at_const x c)
 
 @[simp] lemma deriv_const' : deriv (λ x:𝕜, c) = λ x, 0 :=
@@ -644,7 +644,7 @@ lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x)
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
 h.has_deriv_within_at.neg.deriv_within hxs
 
-@[simp] lemma deriv_neg : deriv (λy, -f y) x = - deriv f x :=
+lemma deriv_neg : deriv (λy, -f y) x = - deriv f x :=
 if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
 have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
 by simp only [deriv_zero_of_not_differentiable_at h,

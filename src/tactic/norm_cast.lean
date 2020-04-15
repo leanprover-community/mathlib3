@@ -270,7 +270,7 @@ The `norm_cast` attribute.
   parser    :=
     (do some l ← (label.of_string ∘ to_string) <$> ident, return l)
       <|> return none,
-  after_set := some (λ decl n b, do
+  after_set := some (λ decl prio persistent, do
     param ← get_label_param norm_cast_attr decl,
     match param with
     | some l :=
@@ -279,7 +279,7 @@ The `norm_cast` attribute.
       e ← mk_const decl,
       ty ← infer_type e,
       l ← classify_type ty,
-      norm_cast_attr.set decl l b
+      norm_cast_attr.set decl l persistent prio
     end),
   before_unset := some $ λ _ _, tactic.skip,
   cache_cfg := { mk_cache := mk_cache norm_cast_attr, dependencies := [] } }

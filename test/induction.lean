@@ -1,5 +1,8 @@
 import tactic.induction tactic.linarith
 
+set_option trace.app_builder true
+-- set_option pp.all true
+
 inductive le : ℕ → ℕ → Type
 | zero {n} : le 0 n
 | succ {n m} : le n m → le (n + 1) (m + 1)
@@ -30,6 +33,71 @@ def append {α} : List α → List α → List α
 
 end List
 
+inductive Vec (α : Sort*) : ℕ → Sort*
+| nil : Vec 0
+| cons {n} : α → Vec n → Vec (n + 1)
+
+inductive Two : Type | zero | one
+
+example (k) : 0 + k = k :=
+begin
+  induction' k,
+  { refl },
+  { simp [ih] }
+end
+
+example {k} (fk : Fin k) : Fin (k + 1) :=
+begin
+  induction' fk,
+  { exact Fin.zero },
+  { exact Fin.succ ih }
+end
+
+example {α} (l : List α) : l.append List.nil = l :=
+begin
+  induction' l,
+  { refl },
+  { simp [ih, List.append] }
+end
+
+example {k l} (h : lt k l) : le k l :=
+begin
+  induction' h,
+  { constructor },
+  { constructor,
+    assumption
+  }
+end
+
+-- This example tests whether `induction'` gets confused when there are
+-- additional cases around.
+example (k) (t : Two) : 0 + k = k :=
+begin
+  cases t,
+  induction' k,
+  { refl },
+  { simp [ih] },
+  induction' k,
+  { refl },
+  { simp [ih] }
+end
+
+-- The type of the induction premise can be a complex expression so long as it
+-- normalises to an inductive (possibly applied to params/indexes).
+example (n) : 0 + n = n :=
+begin
+  let T := ℕ,
+  change T at n,
+  induction' n; simp
+end
+
+-- Fail if the type of the induction premise is not an inductive type
+example {α} (x : α) (f : α → α) : unit :=
+begin
+  success_if_fail { induction' x },
+  success_if_fail { induction' f },
+  exact ()
+end
 
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
@@ -125,7 +193,7 @@ inductive palindrome {α : Type} : list α → Prop
 axiom reverse_append_sandwich {α : Type} (x : α) (ys : list α) :
   list.reverse ([x] ++ ys ++ [x]) = [x] ++ list.reverse ys ++ [x]
 
--- TODO case tags, better index-based renaming?
+-- TODO case tags, no type-changing index-based renaming
 lemma rev_palindrome {α : Type} (xs : list α) (hpal : palindrome xs) :
   palindrome (list.reverse xs) :=
 begin
@@ -136,9 +204,11 @@ begin
   },
   -- case palindrome.single {
   {
+    -- TODO Currently, the index-based renaming generates the name `xs`, which
+    -- is a bit of a misnomer. To prevent this, the index-based renaming should
+    -- only apply when the constructor argument being named has the same base
+    -- type as the index/indices for which it is named.
     rename xs x,
-    -- Note: This is one of those cases where the index-based naming is worse
-    -- than the constructor-name-based naming.
     exact palindrome.single _
   },
   -- case palindrome.sandwich {

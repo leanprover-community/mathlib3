@@ -115,6 +115,9 @@ meta def count_coes : expr → tactic ℕ
 | `(coe_sort %%e) := (+1) <$> count_coes e
 | `(coe_fn %%e) := (+1) <$> count_coes e
 | (app `(coe_fn %%e) x) := (+) <$> count_coes x <*> (+1) <$> count_coes e
+| (expr.lam n bi t e) := do
+  l ← mk_local' n bi t,
+  count_coes $ e.instantiate_var l
 | e := do
   as ← e.get_simp_args,
   list.sum <$> as.mmap count_coes

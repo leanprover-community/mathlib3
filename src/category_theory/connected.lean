@@ -64,7 +64,6 @@ class connected (J : Type v₂) [𝒥 : category.{v₁} J] extends inhabited J :
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
 end connected
 
-section J
 variables {J : Type v₂} [𝒥 : category.{v₁} J]
 include 𝒥
 
@@ -206,49 +205,6 @@ begin
   { exact (k a).1 }
 end
 
-end J
-
-section examples
-instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
-
-instance cospan_connected : connected (walking_cospan) :=
-begin
-  apply connected.of_induct,
-  introv _ t,
-  cases j,
-  { rwa t walking_cospan.hom.inl },
-  { rwa t walking_cospan.hom.inr },
-  { assumption }
-end
-
-instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩
-
-instance span_connected : connected (walking_span) :=
-begin
-  apply connected.of_induct,
-  introv _ t,
-  cases j,
-  { assumption },
-  { rwa ← t walking_span.hom.fst },
-  { rwa ← t walking_span.hom.snd },
-end
-
-instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
-
-instance parallel_pair_connected : connected (walking_parallel_pair) :=
-begin
-  apply connected.of_induct,
-  introv _ t, cases j,
-  { rwa t walking_parallel_pair_hom.left },
-  { assumption }
-end
-
-end examples
-
-section C
-variables {J : Type v₂} [𝒥 : category.{v₁} J]
-include 𝒥
-
 variables {C : Type u₂} [𝒞 : category.{v₂} C]
 include 𝒞
 
@@ -264,65 +220,5 @@ lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
-
-end C
-
-local attribute [tidy] tactic.case_bash
-
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
-
-section products
-
-variables [has_binary_products.{v₂} C]
-
-variables {J : Type v₂} [small_category J]
-
-/-- (Impl). The obvious natural transformation from (X × K -) to K. -/
-@[simps]
-def γ₂ {K : J ⥤ C} (X : C) : K ⋙ prod_functor.obj X ⟶ K :=
-{ app := λ Y, limits.prod.snd }
-
-/-- (Impl). The obvious natural transformation from (X × K -) to X -/
-@[simps]
-def γ₁ {K : J ⥤ C} (X : C) : K ⋙ prod_functor.obj X ⟶ (functor.const J).obj X :=
-{ app := λ Y, limits.prod.fst }
-
-/-- (Impl). Given a cone for (X × K -), produce a cone for K using the natural transformation `γ₂` -/
-@[simps]
-def forget_cone {X : C} {K : J ⥤ C} (s : cone (K ⋙ prod_functor.obj X)) : cone K :=
-{ X := s.X,
-  π := s.π ≫ γ₂ X }
-
-/--
-The functor `(X × -)` preserves any connected limit.
-Note that this functor does not preserve the two most obvious disconnected limits - that is,
-`(X × -)` does not preserve products or terminal object, eg `(X ⨯ A) ⨯ (X ⨯ B)` is not isomorphic to
-`X ⨯ (A ⨯ B)` and `X ⨯ 1` is not isomorphic to `1`.
--/
-def prod_preserves_connected_limits [connected J] (X : C) :
-  preserves_limits_of_shape J (prod_functor.obj X) :=
-{ preserves_limit := λ K,
-  { preserves := λ c l,
-    { lift := λ s, prod.lift (s.π.app (default _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
-      fac' := λ s j,
-      begin
-        apply prod.hom_ext,
-        { erw [assoc, limit.map_π, comp_id, limit.lift_π],
-          exact (nat_trans_from_connected (s.π ≫ γ₁ X) j).symm },
-        { simp [← l.fac (forget_cone s) j] }
-      end,
-      uniq' := λ s m L,
-      begin
-        apply prod.hom_ext,
-        { erw [limit.lift_π, ← L (default J), assoc, limit.map_π, comp_id],
-          refl },
-        { rw limit.lift_π,
-          apply l.uniq (forget_cone s),
-          intro j,
-          simp [← L j] }
-      end } } }
-
-end products
 
 end category_theory

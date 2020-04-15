@@ -27,7 +27,7 @@ open category_theory
 namespace category_theory.limits
 
 /-- The type of objects for the diagram indexing a binary (co)product. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive walking_pair : Type v
 | left | right
 
@@ -83,14 +83,40 @@ def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
   F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
 map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
 
+/-- A binary fan is just a cone on a diagram indexing a product. -/
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
+
+/-- The first projection of a binary fan. -/
+abbreviation binary_fan.fst {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.left
+
+/-- The second projection of a binary fan. -/
+abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.right
+
+lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
+  {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
+h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
+
+/-- A binary cofan is just a cocone on a diagram indexing a coproduct. -/
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
+
+/-- The first inclusion of a binary cofan. -/
+abbreviation binary_cofan.inl {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.left
+
+/-- The second inclusion of a binary cofan. -/
+abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.right
+
+lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
+  {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
+h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
 
 variables {X Y : C}
 
+/-- A binary fan with vertex `P` consists of the two projections `π₁ : P ⟶ X` and `π₂ : P ⟶ Y`. -/
 def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :=
 { X := P,
   π := { app := λ j, walking_pair.cases_on j π₁ π₂ }}
+
+/-- A binary cofan with vertex `P` consists of the two inclusions `ι₁ : X ⟶ P` and `ι₂ : Y ⟶ P`. -/
 def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
@@ -104,53 +130,119 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 @[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.right = ι₂ := rfl
 
+/-- If we have chosen a product of `X` and `Y`, we can access it using `prod X Y` or
+    `X ⨯ Y`. -/
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
+
+/-- If we have chosen a coproduct of `X` and `Y`, we can access it using `coprod X Y ` or
+    `X ⨿ Y`. -/
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
 notation X ` ⨯ `:20 Y:20 := prod X Y
 notation X ` ⨿ `:20 Y:20 := coprod X Y
 
+/-- The projection map to the first component of the product. -/
 abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
+
+/-- The projecton map to the second component of the product. -/
 abbreviation prod.snd {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ Y :=
 limit.π (pair X Y) walking_pair.right
+
+/-- The inclusion map from the first component of the coproduct. -/
 abbreviation coprod.inl {X Y : C} [has_colimit (pair X Y)] : X ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.left
+
+/-- The inclusion map from the second component of the coproduct. -/
 abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.right
 
+@[ext] lemma prod.hom_ext {W X Y : C} [has_limit (pair X Y)] {f g : W ⟶ X ⨯ Y}
+  (h₁ : f ≫ prod.fst = g ≫ prod.fst) (h₂ : f ≫ prod.snd = g ≫ prod.snd) : f = g :=
+binary_fan.is_limit.hom_ext (limit.is_limit _) h₁ h₂
+
+@[ext] lemma coprod.hom_ext {W X Y : C} [has_colimit (pair X Y)] {f g : X ⨿ Y ⟶ W}
+  (h₁ : coprod.inl ≫ f = coprod.inl ≫ g) (h₂ : coprod.inr ≫ f = coprod.inr ≫ g) : f = g :=
+binary_cofan.is_colimit.hom_ext (colimit.is_colimit _) h₁ h₂
+
+/-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
+    induces a morphism `prod.lift f g : W ⟶ X ⨯ Y`. -/
 abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
 limit.lift _ (binary_fan.mk f g)
+
+/-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `coprod.desc f g : X ⨿ Y ⟶ W`. -/
 abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
+@[simp, reassoc]
+lemma prod.lift_fst {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  prod.lift f g ≫ prod.fst = f :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  prod.lift f g ≫ prod.snd = g :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma coprod.inl_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  coprod.inl ≫ coprod.desc f g = f :=
+colimit.ι_desc _ _
+
+@[simp, reassoc]
+lemma coprod.inr_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  coprod.inr ≫ coprod.desc f g = g :=
+colimit.ι_desc _ _
+
 instance prod.mono_lift_of_mono_left {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
   [mono f] : mono (prod.lift f g) :=
-mono_of_mono_fac $ show prod.lift f g ≫ prod.fst = f, by simp
+mono_of_mono_fac $ prod.lift_fst _ _
 
 instance prod.mono_lift_of_mono_right {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
   [mono g] : mono (prod.lift f g) :=
-mono_of_mono_fac $ show prod.lift f g ≫ prod.snd = g, by simp
+mono_of_mono_fac $ prod.lift_snd _ _
 
 instance coprod.epi_desc_of_epi_left {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
   [epi f] : epi (coprod.desc f g) :=
-epi_of_epi_fac $ show coprod.inl ≫ coprod.desc f g = f, by simp
+epi_of_epi_fac $ coprod.inl_desc _ _
 
 instance coprod.epi_desc_of_epi_right {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
   [epi g] : epi (coprod.desc f g) :=
-epi_of_epi_fac $ show coprod.inr ≫ coprod.desc f g = g, by simp
+epi_of_epi_fac $ coprod.inr_desc _ _
 
+/-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
+    induces a morphism `l : W ⟶ X ⨯ Y` satisfying `l ≫ prod.fst = f` and `l ≫ prod.snd = g`. -/
+def prod.lift' {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  {l : W ⟶ X ⨯ Y // l ≫ prod.fst = f ∧ l ≫ prod.snd = g} :=
+⟨prod.lift f g, prod.lift_fst _ _, prod.lift_snd _ _⟩
+
+/-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `l : X ⨿ Y ⟶ W` satisfying `coprod.inl ≫ l = f` and
+    `coprod.inr ≫ l = g`. -/
+def coprod.desc' {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  {l : X ⨿ Y ⟶ W // coprod.inl ≫ l = f ∧ coprod.inr ≫ l = g} :=
+⟨coprod.desc f g, coprod.inl_desc _ _, coprod.inr_desc _ _⟩
+
+/-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
+    `g : X ⟶ Z` induces a morphism `prod.map f g : W ⨯ X ⟶ Y ⨯ Z`. -/
 abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
+
+/-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
+    `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
 
 variables (C)
 
+/-- `has_binary_products` represents a choice of product for every pair of objects. -/
 class has_binary_products :=
 (has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
+
+/-- `has_binary_coproduct` represents a choice of coproduct for every pair of objects. -/
 class has_binary_coproducts :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
 
@@ -172,34 +264,6 @@ def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
 def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
   has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
-
-@[ext] lemma prod.hom_ext [has_binary_products.{v} C] {Y A B : C} {a b : Y ⟶ A ⨯ B}
-  (h1 : a ≫ prod.fst = b ≫ prod.fst) (h2 : a ≫ prod.snd = b ≫ prod.snd) : a = b :=
-limit.hom_ext (by rintros (_ | _); simpa)
-
-@[simp, reassoc]
-lemma prod.lift_fst [has_binary_products.{v} C] {Y A B : C} (f : Y ⟶ A) (g : Y ⟶ B) :
-  prod.lift f g ≫ prod.fst = f :=
-limit.lift_π _ _
-
-@[simp, reassoc]
-lemma prod.lift_snd {Y A B : C} [has_binary_products.{v} C] (f : Y ⟶ A) (g : Y ⟶ B) :
-  prod.lift f g ≫ prod.snd = g :=
-limit.lift_π _ _
-
-@[ext] lemma coprod.hom_ext [has_binary_coproducts.{v} C] {Y A B : C} {a b : A ⨿ B ⟶ Y}
-  (h1 : coprod.inl ≫ a = coprod.inl ≫ b) (h2 : coprod.inr ≫ a = coprod.inr ≫ b) : a = b :=
-colimit.hom_ext (by rintros (_ | _); simpa)
-
-@[simp, reassoc]
-lemma coprod.inl_desc [has_binary_coproducts.{v} C] {Y A B : C} (f : A ⟶ Y) (g : B ⟶ Y) :
-  coprod.inl ≫ coprod.desc f g = f :=
-colimit.ι_desc _ _
-
-@[simp, reassoc]
-lemma coprod.inr_desc {Y A B : C} [has_binary_coproducts.{v} C] (f : A ⟶ Y) (g : B ⟶ Y) :
-  coprod.inr ≫ coprod.desc f g = g :=
-colimit.ι_desc _ _
 
 section
 

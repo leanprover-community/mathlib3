@@ -413,7 +413,7 @@ begin
     exact λ a, c.one_le_blocks' _ },
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
-    simp [composition.blocks_fun, composition.blocks, ← list.map_of_fn, - list.map_of_fn, composition.length],
+    simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, list.nth_le_map'],
     conv_lhs { rw ← list.of_fn_nth_le c.blocks_pnat },
     congr' 2,
     { exact c.blocks_pnat_length },

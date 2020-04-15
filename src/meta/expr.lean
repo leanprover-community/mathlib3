@@ -16,6 +16,8 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -328,6 +330,14 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
+meta def get_simp_args (e : expr) : tactic (list expr) := do
+cgr ← mk_specialized_congr_lemma_simp e,
+pure $ do
+  (arg_kind, arg) ← cgr.arg_kinds.zip e.get_app_args,
+  guard $ arg_kind = congr_arg_kind.eq,
+  pure arg
 
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof

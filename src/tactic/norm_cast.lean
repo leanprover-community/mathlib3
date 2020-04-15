@@ -132,13 +132,25 @@ end label
 open label
 
 /-- Count how many coercions are at the top of the expression. -/
-private meta def count_head_coes : expr → ℕ
-| (app f x) := if is_coe f then 1 + count_head_coes x else 0
+meta def count_head_coes : expr → ℕ
+| `(coe %%e) := count_head_coes e + 1
+| `(coe_sort %%e) := count_head_coes e + 1
+| `(coe_fn %%e) := count_head_coes e + 1
 | _ := 0
 
+/-- Count how many coercions are inside the expression, including the top ones. -/
+meta def count_coes : expr → tactic ℕ
+| `(coe %%e) := (+1) <$> count_coes e
+| `(coe_sort %%e) := (+1) <$> count_coes e
+| `(coe_fn %%e) := (+1) <$> count_coes e
+| e := do
+  as ← e.get_simp_args,
+  list.sum <$> as.mmap count_coes
+
 /-- Count how many coercions are inside the expression, excluding the top ones. -/
-private meta def count_internal_coes (e : expr) : ℕ :=
-count_coes e - count_head_coes e
+private meta def count_internal_coes (e : expr) : tactic ℕ := do
+ncoes ← count_coes e,
+pure $ ncoes - count_head_coes e
 
 /--
 aux function for `norm_cast.classify_type`
@@ -150,11 +162,12 @@ will be accounted for in `count_coes`.
 -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 do
-  when (count_coes lhs = 0) (fail "norm_cast: badly shaped lemma, lhs must contain at least one coe"),
-  let lhs_head_coes     := count_head_coes lhs,
-  let lhs_internal_coes := count_internal_coes lhs,
-  let rhs_head_coes     := count_head_coes rhs,
-  let rhs_internal_coes := count_internal_coes rhs,
+  lhs_coes ← count_coes lhs,
+  when (lhs_coes = 0) (fail "norm_cast: badly shaped lemma, lhs must contain at least one coe"),
+  let lhs_head_coes := count_head_coes lhs,
+  lhs_internal_coes ← count_internal_coes lhs,
+  let rhs_head_coes := count_head_coes rhs,
+  rhs_internal_coes ← count_internal_coes rhs,
   if lhs_head_coes = 0 then do
     return elim
   else if lhs_head_coes = 1 then do

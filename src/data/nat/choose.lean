@@ -8,6 +8,7 @@ import algebra.big_operators algebra.commute
 
 open nat
 
+/-- Based on Jeremy Avigad's choose file in lean 2 -/
 lemma nat.prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
 have h₁ : p ∣ fact p, from hp.dvd_fact.2 (le_refl _),
 have h₂ : ¬p ∣ fact k, from mt hp.dvd_fact.1 (not_le_of_gt hkp),
@@ -36,7 +37,7 @@ decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
         (λ t, t.symm ▸ le_refl _)
-        (λ h, trans (dominate_choose_lt h) (k h)))
+        (λ h, trans (choose_le_succ_of_lt_half_left h) (k h)))
   hr (λ _, le_refl _) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
@@ -44,15 +45,15 @@ lemma choose_le_middle {r n : ℕ} : nat.choose n r ≤ nat.choose n (n/2) :=
 begin
   cases le_or_gt r n with b b,
   { cases le_or_lt r (n/2) with a h,
-    { apply dominate_choose_lt' a },
-    { rw ← nat.choose_symm b,
-      apply dominate_choose_lt',
-      rw [nat.div_lt_iff_lt_mul' zero_lt_two] at h,
-      rw [nat.le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, nat.sub_le_iff,
+    { apply choose_le_middle_of_le_half_left a },
+    { rw ← choose_symm b,
+      apply choose_le_middle_of_le_half_left,
+      rw [div_lt_iff_lt_mul' zero_lt_two] at h,
+      rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, nat.sub_le_iff,
           mul_two, nat.add_sub_cancel],
       exact le_of_lt h } },
   { rw nat.choose_eq_zero_of_lt b,
-    apply zero_le }
+    apply nat.zero_le }
 end
 
 section binomial
@@ -60,7 +61,10 @@ open finset
 
 variables {α : Type*}
 
-/-- A version of the binomial theorem for noncommutative semirings. -/
+/--
+A version of the binomial theorem for noncommutative semirings.
+Based on Jeremy Avigad's choose file in lean 2
+-/
 theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
   (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
 begin

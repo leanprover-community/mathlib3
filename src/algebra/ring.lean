@@ -358,10 +358,12 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
-  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
-  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+@[simp, squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α}
+  {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →* β) = f := rfl
+@[simp, squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α}
+  {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →+ β) = f := rfl
 
 namespace ring_hom
 

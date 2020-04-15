@@ -1355,7 +1355,7 @@ section aeval
 instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
+  .. polynomial.semimodule, .. ring_hom.of polynomial.C }
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]

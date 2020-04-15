@@ -180,6 +180,10 @@ f.single_mul_apply_aux r _ _ _ $ λ a, by rw [one_mul]
 
 end
 
+lemma single_one_mul_comm [comm_semiring k] [monoid G] (f : monoid_algebra k G) (r : k) :
+  single 1 r * f = f * single 1 r :=
+by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
+
 instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
 { mul_comm := assume f g,
   begin
@@ -216,8 +220,7 @@ instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
   map_zero' := single_zero,
   map_add' := λ x y, single_add,
   smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_one_mul_apply _ _ _).symm },
-  commutes' := λ r f, show single 1 r * f = f * single 1 r,
-    by ext; rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
+  commutes' := λ r f, single_one_mul_comm _ _ }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :
   (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
@@ -256,7 +259,7 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
     begin
       ext f, dsimp,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one]
+      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one],
     end }
 
 
@@ -463,8 +466,11 @@ lemma single_zero_mul_apply (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
-
 end
+
+lemma single_zero_mul_comm [comm_semiring k] [add_monoid G] (f : add_monoid_algebra k G) (r : k) :
+  single 0 r * f = f * single 0 r :=
+by { ext, rw [single_zero_mul_apply, mul_single_zero_apply, mul_comm] }
 
 instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
 { mul_comm := assume f g,
@@ -505,8 +511,7 @@ instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :
   map_zero' := single_zero,
   map_add' := λ x y, single_add,
   smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_zero_mul_apply _ _ _).symm },
-  commutes' := λ r f, show single 0 r * f = f * single 0 r,
-    by ext; rw [single_zero_mul_apply, mul_single_zero_apply, mul_comm] }
+  commutes' := λ r f, single_zero_mul_comm _ _ }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [add_monoid G] :
   (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=

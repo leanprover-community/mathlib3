@@ -206,24 +206,17 @@ end
 
 /--
 If `a` and `b` are related by the reflexive transitive closure of `r`,
-then there is a chain starting from `a` and ending on `b`./
-
-NB: This is easier to express with `list.chain'` and `head_of_ne_nil` than
-`list.chain` because of the `list.last` required for the end.
+then there is a `r`-chain starting from `a` and ending on `b`.
 -/
-lemma exists_zigzag {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
-  ∃ (l : list α), chain' r l ∧ ∃ (hl : l ≠ nil), head_of_ne_nil l hl = a ∧ last l hl = b :=
+lemma exists_chain_of_relation_refl_trans_gen {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
+  ∃ l, chain r a l ∧ last (a :: l) (cons_ne_nil _ _) = b :=
 begin
   apply relation.refl_trans_gen.head_induction_on h,
-  { exact ⟨[b], chain.nil, cons_ne_nil _ _, rfl, rfl⟩ },
+  { exact ⟨[], chain.nil, rfl⟩ },
   { intros c d e t ih,
-    obtain ⟨l, hl₁, hl₂, rfl, hl₄⟩ := ih,
-    refine ⟨c :: l, _, cons_ne_nil _ _, rfl, _⟩,
-    { cases l,
-      { apply chain'_singleton },
-      { rw chain'_cons,
-        exact ⟨e, hl₁⟩ } },
-    { rwa last_cons _ hl₂ } },
+    obtain ⟨l, hl₁, hl₂⟩ := ih,
+    refine ⟨d :: l, chain.cons e hl₁, _⟩,
+    rwa last_cons_cons }
 end
 
 /--
@@ -231,22 +224,15 @@ Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y �
 the predicate is true at `a`.
 That is, we can propagate the predicate up the chain.
 -/
-lemma prop_up_chain' {r : α → α → Prop} (p : α → Prop) {a b : α}
-  (l : list α) (hl : l ≠ []) (h : chain' r l)
-  (ha : head_of_ne_nil l hl = a) (hb : last l hl = b)
+lemma chain.induction {r : α → α → Prop} (p : α → Prop) {a b : α}
+  (l : list α) (h : chain r a l)
+  (hb : last (a :: l) (cons_ne_nil _ _) = b)
   (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
 begin
   induction l generalizing a,
-  { exact (hl rfl).elim },
-  { cases ha,
-    cases l_tl,
-    { cases hb,
-      exact final },
-    { cases h with _ _ _ _ h₁ h₂,
-      rw last_cons _ (cons_ne_nil _ _) at hb,
-      exact carries h₁ (l_ih _ h₂ hb rfl) } }
+  { cases hb, exact final },
+  { rw chain_cons at h,
+    apply carries h.1 (l_ih h.2 hb) }
 end
-
-#print prop_up_chain'
 
 end list

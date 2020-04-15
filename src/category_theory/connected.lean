@@ -173,27 +173,19 @@ begin
   apply connected.of_induct,
   intros,
   have: ∀ (j₁ j₂ : J), zigzag j₁ j₂ → (j₁ ∈ p ↔ j₂ ∈ p),
-    introv k,
-    apply relation.refl_trans_gen.head_induction_on k,
-    refl,
-    intros,
-    rw ← a_3,
-    rcases h' with ⟨⟨_⟩⟩ | ⟨⟨_⟩⟩,
-    apply a_1 h',
-    symmetry,
-    apply a_1 h',
-  rwa this j (default J) (h _ _),
+  { introv k,
+    induction k,
+    { refl },
+    { rw k_ih,
+      rcases k_a_1 with ⟨⟨_⟩⟩ | ⟨⟨_⟩⟩,
+      apply a_1 k_a_1,
+      apply (a_1 k_a_1).symm } },
+  rwa this j (default J) (h _ _)
 end
 
-/--
-If J is connected, for any two objects there is a sequence of morphisms (some reversed) from one
-to the other.
-
-Converse is given in `connected_of_zigzag`.
--/
 lemma exists_zigzag' [connected J] (j₁ j₂ : J) :
-  ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), list.head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂ :=
-list.exists_zigzag (connected_zigzag _ _)
+  ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂ :=
+list.exists_chain_of_relation_refl_trans_gen (connected_zigzag _ _)
 
 /--
 If any two objects in an inhabited category are linked by a sequence of (potentially reversed)
@@ -202,13 +194,13 @@ morphisms, then J is connected.
 The converse of `exists_zigzag'`.
 -/
 def connected_of_zigzag [inhabited J]
-  (h : ∀ (j₁ j₂ : J), ∃ (l : list J), list.chain' zag l ∧ ∃ (hl : l ≠ []), list.head_of_ne_nil l hl = j₁ ∧ list.last l hl = j₂) :
+  (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   connected J :=
 begin
   apply connected.of_induct,
   intros p d k j,
-  obtain ⟨l, zags, nemp, hd, tl⟩ := h j (default J),
-  apply list.prop_up_chain' p l nemp zags hd tl _ d,
+  obtain ⟨l, zags, lst⟩ := h j (default J),
+  apply list.chain.induction p l zags lst _ d,
   rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
   { exact (k a).2 },
   { exact (k a).1 }

@@ -59,11 +59,6 @@ it returns `none` otherwise -/
 | []       := none
 | (a :: l) := some a
 
-/-- `head_of_ne_nil` returns the first element of `xs` given that `xs` is non-empty. -/
-def head_of_ne_nil : Π l : list α, l ≠ list.nil → α
-| [] t := absurd rfl t
-| (a :: l) _ := a
-
 /-- Convert a list into an array (whose length is the length of `l`). -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}

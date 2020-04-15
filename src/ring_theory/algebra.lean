@@ -261,6 +261,19 @@ ext $ λ x, rfl
 
 end semiring
 
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
+variables [algebra R A] [algebra R B]
+
+variables (φ : A →ₐ[R] B)
+
+lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+φ.to_ring_hom.map_prod f s
+
+end comm_semiring
+
 variables [comm_ring R] [ring A] [ring B] [ring C]
 variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 

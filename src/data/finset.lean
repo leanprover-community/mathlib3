@@ -2580,8 +2580,7 @@ begin
     { rintros t th,
       apply mem_erase_of_ne_of_mem _ (h₂ th),
       rintro rfl,
-      rw mem_sdiff at ha,
-      tauto } }
+      exact not_mem_sdiff_of_mem_right th ha } }
 end
 
 /-- We can shrink A to any smaller size. -/

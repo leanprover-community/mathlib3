@@ -77,7 +77,7 @@ lemma mul_apply (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
 begin
   rw [mul_def],
-  simp only [sum_apply, single_apply],
+  simp only [finsupp.sum_apply, single_apply],
 end
 end
 
@@ -159,13 +159,6 @@ finsupp.semimodule G k
 instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
-instance [group G] [semiring k] :
-  distrib_mul_action G (monoid_algebra k G) :=
-finsupp.comap_distrib_mul_action_self
-
--- TODO we should prove here that G and k commute;
--- presumably a `linear_mul_action` typeclass is in order
-
 lemma single_mul_single [semiring k] [monoid G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
@@ -235,6 +228,15 @@ begin
 end
 
 end
+
+instance [group G] [semiring k] :
+  distrib_mul_action G (monoid_algebra k G) :=
+finsupp.comap_distrib_mul_action_self
+
+@[simp]
+lemma comap_smul_eq_mul_single [group G] [semiring k] (g : G) (f : monoid_algebra k G) :
+  g • f = single g 1 * f :=
+by { ext g', simp, }
 
 end monoid_algebra
 

@@ -440,7 +440,7 @@ lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
 finset.prod_subset support_map_range $ λ _ _ H,
   by rw [not_mem_support_iff.1 H, h0]
 
-@[to_additive]
+@[simp, to_additive]
 lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → γ} :
   (0 : α →₀ β).prod h = 1 :=
 rfl

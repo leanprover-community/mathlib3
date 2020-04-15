@@ -251,6 +251,24 @@ def to_add_monoid_hom (f : M →ₗ[R] M₂) : M →+ M₂ :=
 @[simp] lemma to_add_monoid_hom_coe (f : M →ₗ[R] M₂) :
   ((f.to_add_monoid_hom) : M → M₂) = f := rfl
 
+/--
+Lift an add_monoid_hom to a linear_map,
+by providing evidence that it commutes with scalar multiplication.
+-/
+def of_add_monoid_hom (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) : M →ₗ[R] M₂ :=
+{ to_fun := f,
+  add := f.map_add,
+  smul := smul, }
+
+@[simp]
+lemma of_add_monoid_hom_apply (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) (m : M) :
+  (of_add_monoid_hom f smul) m = f m := rfl
+
+@[simp]
+lemma to_add_monoid_hom_of_add_monoid_hom (f : M →+ M₂) (smul : ∀(c : R) x, f (c • x) = c • f x) :
+  (of_add_monoid_hom f smul).to_add_monoid_hom = f :=
+by { ext, simp }
+
 @[simp] lemma map_neg (x : M) : f (- x) = - f x :=
 f.to_add_monoid_hom.map_neg x
 

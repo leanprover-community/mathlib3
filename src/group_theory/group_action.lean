@@ -54,6 +54,13 @@ def regular : mul_action α α :=
   one_smul := λ a, one_mul a,
   mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
 
+section
+local attribute [instance] regular
+
+@[simp]
+lemma regular_smul (a₁ a₂ : α) : a₁ • a₂ = a₁ * a₂ := rfl
+end
+
 variables [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
@@ -219,6 +226,16 @@ instance distrib_mul_action.is_add_monoid_hom (r : α) :
   is_add_monoid_hom ((•) r : β → β) :=
 { map_zero := smul_zero r,
   map_add := smul_add r }
+
+/-- Scalar multiplication (using a distrib_mul_action) by a fixed element is an add_monoid_hom. -/
+def smul.add_monoid_hom (a : α) (β : Type v) [add_monoid β] [distrib_mul_action α β] : β →+ β :=
+{ to_fun := λ b, a • b,
+  map_zero' := smul_zero a,
+  map_add' := smul_add a, }
+
+@[simp]
+lemma smul.add_monoid_hom_apply (a : α) (β : Type v) [add_monoid β] [distrib_mul_action α β] (b : β) :
+  (smul.add_monoid_hom a β) b = a • b := rfl
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=

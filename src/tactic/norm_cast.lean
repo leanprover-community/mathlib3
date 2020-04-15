@@ -18,6 +18,9 @@ It has special handling of numerals and a simple heuristic to help moving
 casts "past" binary operators.
 Contrary to simp, it should be safe to use as a non-terminating tactic.
 
+The algorithm implemented here is described in the paper
+<https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
+
 ## Important definitions
 * `tactic.interactive.norm_cast`
 * `tactic.interactive.push_cast`

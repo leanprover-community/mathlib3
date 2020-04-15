@@ -98,9 +98,9 @@ to move casts toward the leaf nodes of the expression."
 
 /--
 `label` is a type used to classify `norm_cast` lemmas.
-* elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
-* move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
-* squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+* elim lemma:   LHS has 0 head coes and ≥ 1 internal coe,  RHS has 0 coes
+* move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes
+* squash lemma: LHS has ≥ 2 head coes and 0 internal coes, RHS has fewer head coes
 -/
 @[derive [decidable_eq, has_reflect, inhabited]]
 inductive label
@@ -749,9 +749,9 @@ Examples:
 Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and `squash`.
 They are classified roughly as follows:
 
-* elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
-* move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
-* squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+* elim lemma:   LHS has 0 head coes and ≥ 1 internal coe,  RHS has 0 coes
+* move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes
+* squash lemma: LHS has ≥ 2 head coes and 0 internal coes, RHS has fewer head coes
 
 `norm_cast` uses `move` and `elim` lemmas to factor coercions toward the root of an expression
 and to cancel them from both sides of an equation or relation. It uses `squash` lemmas to clean

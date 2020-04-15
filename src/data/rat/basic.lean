@@ -609,7 +609,7 @@ by rw [← int.cast_coe_nat, coe_int_eq_mk]
 @[simp, norm_cast elim] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
 by rw [← int.cast_coe_nat, coe_int_num]
 
-@[simp, norm_cast elim] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+@[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 end casts

@@ -2556,19 +2556,19 @@ Given a set A and a set B inside it, we can shrink A to any appropriate size, an
 inside it.
 -/
 lemma exists_intermediate_set {A B : finset α} (i : ℕ)
-  (h₁ : card A ≥ i + card B) (h₂ : B ⊆ A) :
+  (h₁ : i + card B ≤ card A) (h₂ : B ⊆ A) :
   ∃ (C : finset α), B ⊆ C ∧ C ⊆ A ∧ card C = i + card B :=
 begin
   rcases nat.le.dest h₁ with ⟨k, _⟩,
   clear h₁,
   induction k with k ih generalizing A,
   { exact ⟨A, h₂, subset.refl _, h.symm⟩ },
-  { have: (A \ B).nonempty,
+  { have : (A \ B).nonempty,
     { rw [← card_pos, card_sdiff h₂, ← h, nat.add_right_comm,
           nat.add_sub_cancel, nat.add_succ],
       apply nat.succ_pos },
     rcases this with ⟨a, ha⟩,
-    have z: i + card B + k = card (erase A a),
+    have z : i + card B + k = card (erase A a),
     { rw [card_erase_of_mem, ← h, nat.add_succ, nat.pred_succ],
       rw mem_sdiff at ha,
       exact ha.1 },
@@ -2582,12 +2582,9 @@ begin
 end
 
 /-- We can shrink A to any smaller size. -/
-lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : card A ≥ i) :
+lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
-begin
-  obtain ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A),
-  exact ⟨B, x₁, x₂⟩,
-end
+let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
 
 end disjoint
 

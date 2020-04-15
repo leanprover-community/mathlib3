@@ -52,10 +52,10 @@ open tactic expr
 
 --TODO: don't count coercions inside implicit parts of the expression?
 /--
-`is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments.
+`is_coe e` returns `tt` if `e` is a coe function, including the implicit arguments.
 `coe` has more implicit arguments than `coe_fn`.
 -/
-meta def is_coe' : expr → bool
+meta def is_coe : expr → bool
 | (app (app (app (const `has_coe.coe _) _) _) _) := tt
 | (app (app (app (const `coe _) _) _) _)         := tt
 | (app (app (const `has_coe_to_fun.coe _) _) _)  := tt
@@ -65,7 +65,7 @@ meta def is_coe' : expr → bool
 | _ := ff
 
 private meta def count_coes_aux : ℕ → expr → ℕ
-| n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
+| n (app f x) := if f.is_coe then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
 | n (lam _ _ _ e) := count_coes_aux n e
 | n (pi _ _ _ e) := count_coes_aux n e
 | n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
@@ -130,7 +130,7 @@ open label
 
 /-- Count how many coercions are at the top of the expression. -/
 private meta def count_head_coes : expr → ℕ
-| (app f x) := if is_coe' f then 1 + count_head_coes x else 0
+| (app f x) := if is_coe f then 1 + count_head_coes x else 0
 | _ := 0
 
 /-- Count how many coercions are inside the expression, excluding the top ones. -/
@@ -703,7 +703,7 @@ For example, `↑(a + b)` will be written to `↑a + ↑b`.
 It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
 with `push_cast at h`.
 
-The implementation and behavior of the `norm_cast` family is described in detail at 
+The implementation and behavior of the `norm_cast` family is described in detail at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
 -/
 add_tactic_doc
@@ -752,9 +752,9 @@ They are classified roughly as follows:
 
 `norm_cast` uses `move` and `elim` lemmas to factor coercions toward the root of an expression
 and to cancel them from both sides of an equation or relation. It uses `squash` lemmas to clean
-up the result. 
+up the result.
 
-Occasionally you may want to override the automatic classification. 
+Occasionally you may want to override the automatic classification.
 You can do this by giving an optional `elim`, `move`, or `squash` parameter to the attribute.
 
 ```lean
@@ -762,7 +762,7 @@ You can do this by giving an optional `elim`, `move`, or `squash` parameter to t
 by rw [← of_real_nat_cast, of_real_re]
 ```
 
-Don't do this unless you understand what you are doing. 
+Don't do this unless you understand what you are doing.
 
 A full description of the tactic, and the use of each lemma category, can be found at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.

@@ -703,6 +703,9 @@ This uses `norm_cast` lemmas in the forward direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
 with `push_cast at h`.
+
+The implementation and behavior of the `norm_cast` family is described in detail at 
+<https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
 -/
 add_tactic_doc
 { name := "norm_cast",
@@ -716,8 +719,10 @@ add_tactic_doc
 The `norm_cast` attribute should be given to lemmas that describe the
 behaviour of a coercion in regard to an operator, a relation, or a particular
 function.
-It only concerns lemmas involving `↑`, `⇑` and `↥`, and not the explicit
-functions that define the coercions.
+
+It only concerns equality or iff lemmas involving `↑`, `⇑` and `↥`, describing the behavior of
+the coercion functions.
+It does not apply to the explicit functions that define the coercions.
 
 Examples:
 ```lean
@@ -739,8 +744,29 @@ Examples:
 @[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
 
-TODO: more details about the different categories of lemmas?
-TODO: bad examples?
+Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and `squash`.
+They are classified roughly as follows:
+
+* elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+* move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+* squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+
+`norm_cast` uses `move` and `elim` lemmas to factor coercions toward the root of an expression
+and to cancel them from both sides of an equation or relation. It uses `squash` lemmas to clean
+up the result. 
+
+Occasionally you may want to override the automatic classification. 
+You can do this by giving an optional `elim`, `move`, or `squash` parameter to the attribute.
+
+```lean
+@[simp, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+by rw [← of_real_nat_cast, of_real_re]
+```
+
+Don't do this unless you understand what you are doing. 
+
+A full description of the tactic, and the use of each lemma category, can be found at
+<https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
 -/
 add_tactic_doc
 { name := "norm_cast attributes",

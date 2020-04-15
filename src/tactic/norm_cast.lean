@@ -227,30 +227,16 @@ The optional label is used to overwrite the classifier.
 -/
 meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
--- The user attribute parameters in Lean 3 should not be used if performance
--- matters in any way, since they use `eval_expr`.
--- For example, using them disables the attribute cache.
--- As a workaround, we encode `option label` as de Bruijn variables.
-section param_encoding_hack
-
-private meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
+/-- Efficient getter for the `@[norm_cast]` attribute parameter that does not call `eval_expr`.  -/
+meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
 p ← attr.get_param_untyped decl,
 match p with
-| expr.var 0 := pure none
-| expr.var 1 := pure label.elim
-| expr.var 2 := pure label.move
-| expr.var 3 := pure label.squash
+| `(none) := pure none
+| `(some label.elim) := pure label.elim
+| `(some label.move) := pure label.move
+| `(some label.squash) := pure label.squash
 | _ := fail p
 end
-
-local attribute [semireducible] reflected
-private meta def unsafe_reflect_label_param : has_reflect (option label)
-| none := expr.var 0
-| (some label.elim) := expr.var 1
-| (some label.move) := expr.var 2
-| (some label.squash) := expr.var 3
-
-end param_encoding_hack
 
 /--
 `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`.
@@ -302,13 +288,17 @@ The `norm_cast` attribute.
   parser    :=
     (do some l ← (label.of_string ∘ to_string) <$> ident, return l)
       <|> return none,
-  reflect_param := unsafe_reflect_label_param,
   after_set := some (λ decl n b, do
-    e ← mk_const decl,
-    ty ← infer_type e,
     param ← get_label_param norm_cast_attr decl,
-    l ← param <|> classify_type ty,
-    when (l ≠ elim) $ simp_attr.push_cast.set decl () tt),
+    match param with
+    | some l :=
+      when (l ≠ elim) $ simp_attr.push_cast.set decl () tt
+    | none := do
+      e ← mk_const decl,
+      ty ← infer_type e,
+      l ← classify_type ty,
+      norm_cast_attr.set decl l b
+    end),
   before_unset := some $ λ _ _, tactic.skip,
   cache_cfg := { mk_cache := mk_cache norm_cast_attr, dependencies := [] } }
 

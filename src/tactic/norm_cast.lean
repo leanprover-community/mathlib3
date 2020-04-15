@@ -95,10 +95,9 @@ to move casts toward the leaf nodes of the expression."
 
 /--
 `label` is a type used to classify `norm_cast` lemmas.
- - elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
- - move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
- - push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
- - squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+* elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+* move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+* squash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
 -/
 @[derive [decidable_eq, has_reflect, inhabited]]
 inductive label
@@ -143,7 +142,7 @@ aux function for `norm_cast.classify_type`
 
 remark: the classifier is a little bit less restrictive than the rules describing to the labels.
 This is a consequence of the fact that the rules apply to the explicit coercions appearing in the expression.
-`coe_to_sort` can tipically appear in type annotations that are implicit in the displayed expression, but
+`coe_to_sort` can typically appear in type annotations that are implicit in the displayed expression, but
 will be accounted for in `count_coes`.
 -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
@@ -300,7 +299,7 @@ The `norm_cast` attribute.
 { name      := `norm_cast,
   descr     := "attribute for norm_cast",
   parser    :=
-    (do some l <- (label.of_string ∘ to_string) <$> ident, return l)
+    (do some l ← (label.of_string ∘ to_string) <$> ident, return l)
       <|> return none,
   reflect_param := unsafe_reflect_label_param,
   after_set := some (λ decl n b, do

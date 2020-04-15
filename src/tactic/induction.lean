@@ -198,17 +198,8 @@ e.fold (mk_rbtree ℕ) $ λ e depth vars,
   | _ := vars
   end
 
-meta def decompose_pi_aux
-  : ℕ → expr → list (name × binder_info × expr × bool) × ℕ × expr × rbtree ℕ
-| binder_depth (pi name binfo T rest) :=
-  let (args, n_args, ret, vars) := decompose_pi_aux (binder_depth + 1) rest in
-  let dep := vars.contains binder_depth in
-  let vars' := vars.merge (free_vars binder_depth T) in
-  ((name, binfo, T, dep) :: args, n_args + 1, ret, vars')
-| binder_depth e := ([], 0, e, free_vars binder_depth e)
-
-/-- Given a type of the form `∀ (x : T) ... (z : U), V`, this function returns a
-tuple `(args, n, V)` where
+/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
+returns a tuple `(args, n, V)` where
 
 - `args` is a list containing information about the arguments `x ... z`:
   argument name, binder info, argument type and whether the argument is
@@ -218,27 +209,40 @@ tuple `(args, n, V)` where
 
 Given any other expression `e`, this function returns an empty list and `e`.
 -/
-meta def decompose_pi (e : expr)
-  : list (name × binder_info × expr × bool) × ℕ × expr :=
-let (args, n_args, ret, _) := decompose_pi_aux 0 e in
-(args, n_args, ret)
+meta def decompose_pi
+  : expr → list (name × binder_info × expr × bool) × ℕ × expr
+| (pi name binfo T rest) :=
+  let (args, n_args, ret) := decompose_pi rest in
+  -- NOTE: the following makes this function quadratic in the size of the input
+  -- expression.
+  let dep := rest.has_var_idx 0 in
+  ((name, binfo, T, dep) :: args, n_args + 1, ret)
+| e := ([], 0, e)
 
-/-- Given a type of the form `∀ (x : T) ... (z : U), V`, this function returns
-information about each of the binders `x ... z` (binder name, binder info and
-type) and the return type `V`.
+/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
+returns a tuple `(args, n, V)` where
 
-Given any other expression `e`, it returns an empty list and `e`.
+- `args` is a list containing information about the arguments `x ... z`:
+  argument name, binder info, argument type and whether the argument is
+  dependent (i.e. whether the rest of the input `expr` depends on it).
+- `n` is the length of `args`.
+- `V` is the return type.
+
+Given any other expression `e`, this function returns an empty list and `e`.
 
 The input expression is normalised lazily. This means that the returned
 expressions are not necessarily in normal form.
 -/
 meta def decompose_pi_normalizing
-  : expr → tactic (list (name × binder_info × expr) × expr) := λ e, do
+  : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
 e ← whnf e,
 match e with
 | (pi n binfo T rest) := do
   (args, ret) ← decompose_pi_normalizing rest,
-  pure ((n , binfo, T) :: args, ret)
+  -- NOTE: the following makes this function quadratic in the size of the input
+  -- expression.
+  let dep := rest.has_var_idx 0,
+  pure ((n , binfo, T, dep) :: args, ret)
 | _ := pure ([] , e)
 end
 
@@ -467,10 +471,10 @@ auto-generated rather than chosen by the user.
 -/
 library_note "unnamed constructor arguments"
 
--- TODO as written, this rule always fires. See previous note.
 meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
 let arg_name := i.ainfo.aname in
-if arg_name = name.anonymous
+let arg_dep := i.ainfo.dependent in
+if ! arg_dep && arg_name.is_likely_generated_name
   then none
   else some arg_name
 

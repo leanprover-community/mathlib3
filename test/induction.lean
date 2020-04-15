@@ -127,14 +127,14 @@ begin
   -- case Var {
   {
     -- rename e s,
-    rename a s,
+    rename x s,
     /- Desired state here. -/
     rw [subst]
   },
   -- case Num {
   {
     -- rename e z,
-    rename a z,
+    rename x z,
     /- Desired state here. -/
     rw [subst]
   },

@@ -108,14 +108,17 @@ instance forget_creates_limits : creates_limits (forget T) :=
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
 include 𝒥
 
+/-- `D ⋙ forget T` has a limit, then `D` has a limit. -/
 def has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
 has_limit_of_created D (forget T)
 
 namespace forget_creates_colimits
+
 -- Let's hide the implementation details in a namespace
-variables (D : J ⥤ algebra T)
--- We have a diagram D of shape J in the category of algebras, and we assume that its image
--- D ⋙ forget T under the forgetful functor has a colimit (written L).
+variables {D : J ⥤ algebra T} (c : cocone (D ⋙ forget T)) (t : is_colimit c)
+
+-- We have a diagram D of shape J in the category of algebras, and we assume that we are given a
+-- colimit for its image D ⋙ forget T under the forgetful functor, say its apex is L.
 
 -- We'll construct a colimiting coalgebra for D, whose carrier will also be L.
 -- To do this, we must find a map TL ⟶ L. Since T preserves colimits, TL is also a colimit.
@@ -126,104 +129,124 @@ variables (D : J ⥤ algebra T)
 -- suffices to give a natural transformation `((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T)`:
 
 /--
+(Impl)
 The natural transformation given by the algebra structure maps, used to construct a cocone `c` with
 apex `colimit (D ⋙ forget T)`.
  -/
 @[simps] def γ : ((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
-variable [has_colimit.{v₁} (D ⋙ forget T)]
 /--
+(Impl)
 A cocone for the diagram `(D ⋙ forget T) ⋙ T` found by composing the natural transformation `γ`
 with the colimiting cocone for `D ⋙ forget T`.
 -/
 @[simps]
-def c : cocone ((D ⋙ forget T) ⋙ T) :=
-{ X := colimit (D ⋙ forget T),
-  ι := γ D ≫ (colimit.cocone (D ⋙ forget T)).ι }
+def new_cocone : cocone ((D ⋙ forget T) ⋙ T) :=
+{ X := c.X,
+  ι := γ ≫ c.ι }
 
 variable [preserves_colimits_of_shape J T]
 
 /--
+(Impl)
 Define the map `λ : TL ⟶ L`, which will serve as the structure of the coalgebra on `L`, and
 we will show is the colimiting object. We use the cocone constructed by `c` and the fact that
 `T` preserves colimits to produce this morphism.
 -/
 @[reducible]
-def lambda : (functor.map_cocone T (colimit.cocone (D ⋙ forget T))).X ⟶ colimit (D ⋙ forget T) :=
-(preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))).desc (c D)
+def lambda : (functor.map_cocone T c).X ⟶ c.X :=
+(preserves_colimit.preserves t).desc (new_cocone c)
 
-/-- The key property defining the map `λ : TL ⟶ L`. -/
+/-- (Impl) The key property defining the map `λ : TL ⟶ L`. -/
 lemma commuting (j : J) :
-T.map (colimit.ι (D ⋙ forget T) j) ≫ lambda D = (D.obj j).a ≫ colimit.ι (D ⋙ forget T) j :=
-is_colimit.fac (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))) (c D) j
+T.map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
+is_colimit.fac (preserves_colimit.preserves t) (new_cocone c) j
 
 /--
+(Impl)
 Construct the colimiting algebra from the map `λ : TL ⟶ L` given by `lambda`. We are required to
 show it satisfies the two algebra laws, which follow from the algebra laws for the image of `D` and
 our `commuting` lemma.
 -/
 @[simps] def cocone_point :
 algebra T :=
-{ A := colimit (D ⋙ forget T),
-  a := lambda D,
+{ A := c.X,
+  a := lambda c t,
   unit' :=
   begin
-    ext1,
+    apply t.hom_ext,
+    intro j,
     erw [comp_id, ← category.assoc, (η_ T).naturality, category.assoc, commuting, ← category.assoc],
     erw algebra.unit, apply id_comp
   end,
   assoc' :=
   begin
-    apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T)))),
+    apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves t)),
     intro j,
     erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
-         is_colimit.fac _ (c D) j],
+         is_colimit.fac _ (new_cocone c) j],
     rw ← category.assoc,
     erw [← functor.map_comp, commuting],
     dsimp,
     erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting],
     apply_instance, apply_instance
-  end
-}
+  end }
+
+/-- (Impl) Construct the lifted cocone in `algebra T` which will be colimiting. -/
+@[simps] def lifted_cocone : cocone D :=
+{ X := cocone_point c t,
+  ι := { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
+         naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } }
+
+/-- (Impl) Prove that the lifted cocone is colimiting. -/
+@[simps]
+def lifted_cocone_is_colimit : is_colimit (lifted_cocone c t) :=
+{ desc := λ s,
+  { f := t.desc ((forget T).map_cocone s),
+    h' :=
+    begin
+      dsimp,
+      apply is_colimit.hom_ext (preserves_colimit.preserves t),
+      intro j,
+      rw ← category.assoc, erw ← functor.map_comp,
+      erw t.fac',
+      rw ← category.assoc, erw forget_creates_colimits.commuting,
+      rw category.assoc, rw t.fac',
+      apply algebra.hom.h,
+      apply_instance
+    end },
+  uniq' := λ s m J, by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }
 
 end forget_creates_colimits
+
+open forget_creates_colimits
 
 -- TODO: the converse of this is true as well
 -- TODO: generalise to monadic functors, as for creating limits
 /--
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.
+-/
+instance forget_creates_colimits [preserves_colimits_of_shape J T] : creates_colimits_of_shape J (forget T) :=
+{ creates_colimit := λ D,
+  creates_colimit_of_reflects_iso $ λ c t,
+  { lifted_cocone :=
+    { X := cocone_point c t,
+      ι :=
+      { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
+        naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } },
+    valid_lift := cocones.ext (iso.refl _) (by tidy),
+    makes_colimit := lifted_cocone_is_colimit _ _ } }
 
-The colimiting algebra itself has been constructed in `cocone_point`. We now must show it
-actually forms a cocone, and that this is colimiting.
+/--
+For `D : J ⥤ algebra T`, `D ⋙ forget T` has a colimit, then `D` has a colimit provided colimits
+of shape `J` are preserved by `T`.
 -/
 def forget_creates_colimits_of_monad_preserves
   [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit (D ⋙ forget T)] :
 has_colimit D :=
-{ cocone :=
-  { X := forget_creates_colimits.cocone_point D,
-    ι :=
-    { app := λ j, { f := colimit.ι (D ⋙ forget T) j,
-                    h' := forget_creates_colimits.commuting _ _ },
-      naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, colimit.w (D ⋙ forget T)] } } },
-  is_colimit :=
-  { desc := λ s,
-    { f := colimit.desc _ ((forget T).map_cocone s),
-      h' :=
-      begin
-        dsimp,
-        apply is_colimit.hom_ext (preserves_colimit.preserves (colimit.is_colimit (D ⋙ forget T))),
-        intro j,
-        rw ← category.assoc, erw ← functor.map_comp,
-        erw colimit.ι_desc,
-        rw ← category.assoc, erw forget_creates_colimits.commuting,
-        rw category.assoc, rw colimit.ι_desc,
-        apply algebra.hom.h,
-        apply_instance
-      end },
-    uniq' := λ s m J, by { ext1, ext1, simpa using congr_arg algebra.hom.f (J j) }
-  }
-}
+has_colimit_of_created D (forget T)
+
 
 end monad
 
@@ -252,6 +275,7 @@ omit 𝒥
 
 section
 
+/-- If C has limits then any reflective subcategory has limits -/
 def has_limits_of_reflective (R : D ⥤ C) [has_limits.{v₁} C] [reflective R] : has_limits.{v₁} D :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, monadic_creates_limits F R } }

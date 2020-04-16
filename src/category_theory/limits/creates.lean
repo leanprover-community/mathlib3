@@ -125,6 +125,28 @@ def has_limit_of_created (K : J ⥤ C) (F : C ⥤ D) [has_limit (K ⋙ F)] [crea
 { cone := lift_limit (limit.is_limit (K ⋙ F)),
   is_limit := lifted_limit_is_limit _ }
 
+/- Interface to the `creates_colimit` class. -/
+
+/-- `lift_colimit t` is the cocone for `K` given by lifting the colimit `t` for `K ⋙ F`. -/
+def lift_colimit {K : J ⥤ C} {F : C ⥤ D} [creates_colimit K F] {c : cocone (K ⋙ F)} (t : is_colimit c) :
+  cocone K :=
+(creates_colimit.lifts c t).lifted_cocone
+
+/-- The lifted cocone has an image isomorphic to the original cocone. -/
+def lifted_colimit_maps_to_original {K : J ⥤ C} {F : C ⥤ D} [creates_colimit K F] {c : cocone (K ⋙ F)} (t : is_colimit c) :
+  F.map_cocone (lift_colimit t) ≅ c :=
+(creates_colimit.lifts c t).valid_lift
+
+/-- The lifted cocone is a colimit. -/
+def lifted_colimit_is_colimit {K : J ⥤ C} {F : C ⥤ D} [creates_colimit K F] {c : cocone (K ⋙ F)} (t : is_colimit c) :
+  is_colimit (lift_colimit t) :=
+reflects_colimit.reflects (is_colimit.of_iso_colimit t (lifted_colimit_maps_to_original t).symm)
+
+/-- If `F` creates the limit of `K` and `K ⋙ F` has a limit, then `K` has a limit. -/
+def has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D) [has_colimit (K ⋙ F)] [creates_colimit K F] : has_colimit K :=
+{ cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
+  is_colimit := lifted_colimit_is_colimit _ }
+
 /--
 A helper to show a functor creates limits. In particular, if we can show
 that for any limit cone `c` for `K ⋙ F`, there is a lift of it which is
@@ -134,6 +156,16 @@ here we only need to show that our particular lift of `c` is a limit.
 -/
 structure lifts_to_limit (K : J ⥤ C) (F : C ⥤ D) (c : cone (K ⋙ F)) (t : is_limit c) extends liftable_cone K F c :=
 (makes_limit : is_limit lifted_cone)
+
+/--
+A helper to show a functor creates colimits. In particular, if we can show
+that for any limit cocone `c` for `K ⋙ F`, there is a lift of it which is
+a limit and `F` reflects isomorphisms, then `F` creates colimits.
+Usually, `F` creating colimits says that _any_ lift of `c` is a colimit, but
+here we only need to show that our particular lift of `c` is a colimit.
+-/
+structure lifts_to_colimit (K : J ⥤ C) (F : C ⥤ D) (c : cocone (K ⋙ F)) (t : is_colimit c) extends liftable_cocone K F c :=
+(makes_colimit : is_colimit lifted_cocone)
 
 /--
 If `F` reflects isomorphisms and we can lift any limit cone to a limit cone,
@@ -157,6 +189,30 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
       haveI : is_iso ((cones.functoriality K F).map f) := this,
       haveI := is_iso_of_reflects_iso f (cones.functoriality K F),
       exact is_limit.of_iso_limit hd'₂ (as_iso f).symm,
+    end } }
+
+/--
+If `F` reflects isomorphisms and we can lift any limit cocone to a limit cocone,
+then `F` creates colimits.
+In particular here we don't need to assume that F reflects colimits.
+-/
+def creates_colimit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorphisms F]
+  (h : Π c t, lifts_to_colimit K F c t) :
+  creates_colimit K F :=
+{ lifts := λ c t, (h c t).to_liftable_cocone,
+  to_reflects_colimit :=
+  { reflects := λ (d : cocone K) (hd : is_colimit (F.map_cocone d)),
+    begin
+      let d' : cocone K := (h (F.map_cocone d) hd).to_liftable_cocone.lifted_cocone,
+      let hd'₁ : F.map_cocone d' ≅ F.map_cocone d := (h (F.map_cocone d) hd).to_liftable_cocone.valid_lift,
+      let hd'₂ : is_colimit d' := (h (F.map_cocone d) hd).makes_colimit,
+      let f : d' ⟶ d := hd'₂.desc_cocone_morphism d,
+      have : F.map_cocone_morphism f = hd'₁.hom := (hd.of_iso_colimit hd'₁.symm).uniq_cocone_morphism,
+      have : @is_iso _ cocone.category _ _ (F.map_cocone_morphism f),
+        rw this, apply_instance,
+      haveI : is_iso ((cocones.functoriality K F).map f) := this,
+      haveI := is_iso_of_reflects_iso f (cocones.functoriality K F),
+      exact is_colimit.of_iso_colimit hd'₂ (as_iso f),
     end } }
 
 -- For the inhabited linter later.

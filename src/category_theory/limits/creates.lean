@@ -223,6 +223,14 @@ def lifts_to_limit_of_creates (K : J ⥤ C) (F : C ⥤ D) [creates_limit K F] (c
   valid_lift := lifted_limit_maps_to_original t,
   makes_limit := lifted_limit_is_limit t }
 
+-- For the inhabited linter later.
+/-- If F creates the colimit of K, any cocone lifts to a colimit. -/
+def lifts_to_colimit_of_creates (K : J ⥤ C) (F : C ⥤ D) [creates_colimit K F] (c : cocone (K ⋙ F)) (t : is_colimit c) :
+  lifts_to_colimit K F c t :=
+{ lifted_cocone := lift_colimit t,
+  valid_lift := lifted_colimit_maps_to_original t,
+  makes_colimit := lifted_colimit_is_colimit t }
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
@@ -267,7 +275,9 @@ include 𝒟
 instance inhabited_lifts_to_limit (K : J ⥤ C) (F : C ⥤ D) [creates_limit K F] (c : cone (K ⋙ F)) (t : is_limit c) :
   inhabited (lifts_to_limit _ _ _ t) :=
 ⟨lifts_to_limit_of_creates K F c t⟩
-
+instance inhabited_lifts_to_colimit (K : J ⥤ C) (F : C ⥤ D) [creates_colimit K F] (c : cocone (K ⋙ F)) (t : is_colimit c) :
+  inhabited (lifts_to_colimit _ _ _ t) :=
+⟨lifts_to_colimit_of_creates K F c t⟩
 
 section comp
 

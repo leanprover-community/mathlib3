@@ -211,11 +211,11 @@ do g :: _ ← get_goals,
    (λ d, lock_tactic_state $ focus1 $ do
      apply_declaration ff opt d,
      ng ← num_goals,
-     state ← read,
+     s ← read,
      m ← tactic_statement g, 
      return
      { application .
-       state := state,
+       state := s,
        decl := d.d,
        script := m,
        num_goals := ng,

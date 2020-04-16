@@ -195,11 +195,7 @@ variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
 instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphism.to_linear_map⟩
 
-/-- It may seem redundant that we define a coercion to a function given that we already have
-a coercion to a linear map, which in turn coerces to a function. In fact it is not redundant,
-since otherwise an expression like `f z` is not in simp-normal form, and so should not appear on
-the LHS of a simp lemma (as it does in `map_lie` below). The reason is because Lean collapses
-chains of coercions to a single coercion whereas the simplifier undoes this. -/
+/-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 
 @[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f

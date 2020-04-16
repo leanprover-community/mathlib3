@@ -319,7 +319,10 @@ h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
   has_fderiv_at f f' x :=
-λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (hf hc)
+begin
+  rw [has_fderiv_at, has_fderiv_at_filter, is_o_iff],
+  exact (λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (is_o_iff.1 hf hc))
+end
 
 lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
   differentiable_at 𝕜 f x :=
@@ -1615,7 +1618,7 @@ begin
   apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
   refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
   refine is_o.mul_is_O _ (is_O_refl _ _),
-  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top).trans_is_o this).norm_left
+  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o this).norm_left
 end
 
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :

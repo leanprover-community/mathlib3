@@ -46,6 +46,7 @@ begin
   by_cases hx : x ∉ closure s,
   { rw ← closure_closure at hx, exact has_fderiv_within_at_of_not_mem_closure hx },
   push_neg at hx,
+  rw [has_fderiv_within_at, has_fderiv_at_filter, asymptotics.is_o_iff],
   /- One needs to show that `∥f y - f x∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure s`, where
   `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to prove this
   for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is arbitrarily small

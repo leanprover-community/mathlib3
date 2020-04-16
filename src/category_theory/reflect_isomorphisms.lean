@@ -67,11 +67,11 @@ If `F` reflects isomorphisms, then `cones.functoriality F` reflects isomorphisms
 as well.
 -/
 instance reflects_cone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
-  reflects_isomorphisms (@cones.functoriality _ _ _ _ K _ _ F) :=
+  reflects_isomorphisms (cones.functoriality K F) :=
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) := (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality F).map f),
+  haveI : is_iso (F.map f.hom) := (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
   haveI := reflects_isomorphisms.reflects F f.hom,
   apply cone_iso_of_hom_iso
 end
@@ -81,11 +81,11 @@ If `F` reflects isomorphisms, then `cocones.functoriality F` reflects isomorphis
 as well.
 -/
 instance reflects_cocone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
-  reflects_isomorphisms (@cocones.functoriality _ _ _ _ K _ _ F) :=
+  reflects_isomorphisms (cocones.functoriality K F) :=
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) := (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality F).map f),
+  haveI : is_iso (F.map f.hom) := (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
   haveI := reflects_isomorphisms.reflects F f.hom,
   apply cocone_iso_of_hom_iso
 end

@@ -213,9 +213,7 @@ variable (F)
 @[simps]
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
-end
 
-section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
@@ -276,9 +274,7 @@ variable (F)
 @[simps]
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
-end
 
-section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
@@ -302,9 +298,9 @@ variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 open category_theory.limits
 
 /-- The image of a cone in C under a functor G : C ⥤ D is a cone in D. -/
-def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality H).obj c
+def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality F H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
-def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).obj c
+def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality F H).obj c
 
 @[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
 @[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
@@ -319,9 +315,9 @@ let α : (F ⋙ H) ⋙ inv H ⟶ F :=
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
 
 def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
-  cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f
+  cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality F H).map f
 def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
-  cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality H).map f
+  cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (c : cone F) (j : J) :
   (map_cone H c).π.app j = H.map (c.π.app j) := rfl

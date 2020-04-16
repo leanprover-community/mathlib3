@@ -26,12 +26,15 @@ namespace forget_creates_limits
 
 variables (D : J ⥤ algebra T) (c : cone (D ⋙ forget T)) (t : is_limit c)
 
+/-- (Impl) The natural transformation used to define the new cone -/
 @[simps] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
+/-- (Impl) This new cone is used to construct the algebra structure -/
 @[simps] def new_cone : cone (D ⋙ forget T) :=
 { X := T.obj c.X,
   π := (functor.const_comp _ _ T).inv ≫ whisker_right c.π T ≫ (γ D) }
 
+/-- The algebra structure which will be the apex of the new limit cone for `D`. -/
 @[simps] def cone_point : algebra T :=
 { A := c.X,
   a := t.lift (new_cone D c),
@@ -59,11 +62,13 @@ variables (D : J ⥤ algebra T) (c : cone (D ⋙ forget T)) (t : is_limit c)
     erw [id_comp, T.map_comp, category.assoc]
   end }
 
+/-- (Impl) Construct the lifted cone in `algebra T` which will be limiting. -/
 @[simps] def lifted_cone : cone D :=
 { X := cone_point D c t,
   π := { app := λ j, { f := c.π.app j },
          naturality' := λ X Y f, by { ext1, dsimp, erw c.w f, simp } } }
 
+/-- (Impl) Prove that the lifted cone is limiting. -/
 @[simps]
 def lifted_cone_is_limit : is_limit (lifted_cone D c t) :=
 { lift := λ s,

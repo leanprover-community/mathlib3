@@ -25,19 +25,19 @@ section preservation_colimits
 variables {J : Type v} [small_category J] (K : J ⥤ C)
 
 def functoriality_right_adjoint : cocone (K ⋙ F) ⥤ cocone K :=
-(cocones.functoriality G) ⋙
+(cocones.functoriality _ G) ⋙
   (cocones.precompose (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv))
 
 local attribute [reducible] functoriality_right_adjoint
 
-@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality F ⋙ functoriality_right_adjoint adj K :=
+@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
 { app := λ c, { hom := adj.unit.app c.X } }
 
-@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality F ⟶ 𝟭 (cocone (K ⋙ F)) :=
+@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
 { app := λ c, { hom := adj.counit.app c.X } }
 
 def functoriality_is_left_adjoint :
-  is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
+  is_left_adjoint (cocones.functoriality K F) :=
 { right := functoriality_right_adjoint adj K,
   adj := mk_of_unit_counit
   { unit := functoriality_unit adj K,
@@ -80,19 +80,19 @@ section preservation_limits
 variables {J : Type v} [small_category J] (K : J ⥤ D)
 
 def functoriality_left_adjoint : cone (K ⋙ G) ⥤ cone K :=
-(cones.functoriality F) ⋙ (cones.postcompose
+(cones.functoriality _ F) ⋙ (cones.postcompose
     ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom))
 
 local attribute [reducible] functoriality_left_adjoint
 
-@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality G :=
+@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
 { app := λ c, { hom := adj.unit.app c.X, } }
 
-@[simps] def functoriality_counit' : cones.functoriality G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
+@[simps] def functoriality_counit' : cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
 { app := λ c, { hom := adj.counit.app c.X, } }
 
 def functoriality_is_right_adjoint :
-  is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
+  is_right_adjoint (cones.functoriality K G) :=
 { left := functoriality_left_adjoint adj K,
   adj := mk_of_unit_counit
   { unit := functoriality_unit' adj K,

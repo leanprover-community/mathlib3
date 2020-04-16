@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.limits
-import category_theory.limits.preserves
-import category_theory.monad.adjunction
 import category_theory.adjunction.limits
 import category_theory.reflect_isomorphisms
 
@@ -157,8 +155,8 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
       have : F.map_cone_morphism f = hd'₁.inv := (hd.of_iso_limit hd'₁.symm).uniq_cone_morphism,
       have : @is_iso _ cone.category _ _ (functor.map_cone_morphism F f),
         rw this, apply_instance,
-      haveI : is_iso ((cones.functoriality F).map f) := this,
-      haveI := is_iso_of_reflects_iso f (cones.functoriality F),
+      haveI : is_iso ((cones.functoriality K F).map f) := this,
+      haveI := is_iso_of_reflects_iso f (cones.functoriality K F),
       exact is_limit.of_iso_limit hd'₂ (as_iso f).symm,
     end } }
 
@@ -179,7 +177,7 @@ instance comp_creates_limit [i₁ : creates_limit K F] [i₂ : creates_limit (K 
   creates_limit K (F ⋙ G) :=
 { lifts := λ c t,
   { lifted_cone := lift_limit (lifted_limit_is_limit t),
-    valid_lift := (cones.functoriality G).map_iso (lifted_limit_maps_to_original F (lifted_limit_is_limit t)) ≪≫ (lifted_limit_maps_to_original G t),
+    valid_lift := (cones.functoriality (K ⋙ F) G).map_iso (lifted_limit_maps_to_original F (lifted_limit_is_limit t)) ≪≫ (lifted_limit_maps_to_original G t),
   } }
 
 end comp

@@ -195,10 +195,14 @@ variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
 instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphism.to_linear_map⟩
 
-lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
+/-- It may seem redundant that we define a coercion to a function given that we already have
+a coercion to a linear map, which in turn coerces to a function. In fact it is not redundant,
+since otherwise an expression like `f z` is not in simp-normal form, and so should not appear on
+the LHS of a simp lemma (as it does in `map_lie` below). The reason is because Lean collapses
+chains of coercions to a single coercion whereas the simplifier undoes this. -/
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 
-@[simp] lemma map_lie' (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : (f : L₁ →ₗ[R] L₂) ⁅x, y⁆ = ⁅f x, f y⁆ :=
-morphism.map_lie f
+@[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
 /-- The constant 0 map is a Lie algebra morphism. -/
 instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
@@ -353,6 +357,14 @@ This is a sufficient condition for the subset itself to form a Lie algebra.
 structure lie_subalgebra extends submodule R L :=
 (lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
 
+/-- The zero algebra is a subalgebra of any Lie algebra. -/
+instance : has_zero (lie_subalgebra R L) :=
+⟨{ lie_mem := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
+                                exact submodule.zero_mem (0 : submodule R L), },
+   ..(0 : submodule R L) }⟩
+
+instance : inhabited (lie_subalgebra R L) := ⟨0⟩
+
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
@@ -418,6 +430,14 @@ This is a sufficient condition for the subset itself to form a Lie module.
 -/
 structure lie_submodule [lie_module R L M] extends submodule R M :=
 (lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → linear_action.act R x m ∈ carrier)
+
+/-- The zero module is a Lie submodule of any Lie module. -/
+instance [lie_module R L M] : has_zero (lie_submodule R L M) :=
+⟨{ lie_mem := λ x m h, by { rw [((submodule.mem_bot R).1 h), linear_action_zero],
+                            exact submodule.zero_mem (0 : submodule R M), },
+   ..(0 : submodule R M)}⟩
+
+instance [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
 
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩

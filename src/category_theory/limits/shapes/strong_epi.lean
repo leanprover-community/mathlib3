@@ -17,7 +17,7 @@ a diagonal morphism making the two triangles commute. This lift is necessarily u
 
 Besides the definition, we show that
 * the composition of two strong epimorphisms is a strong epimorphism,
-* the if `f ≫ g` is a strong epimorphism, then so is `g`,
+* if `f ≫ g` is a strong epimorphism, then so is `g`,
 * if `f` is both a strong epimorphism and a monomorphism, then it is an isomorphism
 
 ## Future work
@@ -63,7 +63,6 @@ def strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
     have h₁ : w ≫ z = g ≫ v, by rw arrow.lift_mk'_right,
     exact ⟨(arrow.lift (arrow.hom_mk' h₁) : R ⟶ X), by simp, by simp⟩
   end }
-
 
 /-- If `f ≫ g` is a strong epimorphism, then so is g. -/
 def strong_epi_of_strong_epi [epi (f ≫ g)] [strong_epi (f ≫ g)] : strong_epi g :=

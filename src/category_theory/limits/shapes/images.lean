@@ -36,10 +36,13 @@ so that `m` factors through the `m'` in any other such factorisation.
   factorisation of `g`, and the outer rectangle is the commutative square `sq`.
 * If a category `has_images`, then `has_image_maps` means that every commutative square admits an
   image map.
+* If a category `has_images`, then `has_strong_epi_images` means that the morphism to the image is
+  always a strong epimorphism.
 
 ## Main statements
 
 * When `C` has equalizers, the morphism `e` appearing in an image factorisation is an epimorphism.
+* When `C` has strong epi images, then these images admit image maps.
 
 ## Future work
 * TODO: coimages, and abelian categories.

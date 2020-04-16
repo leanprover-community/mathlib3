@@ -68,6 +68,7 @@ infix ` ≤₁ `:1000 := one_one_reducible
 theorem one_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α → β} (q : β → Prop)
   (h : computable f) (i : injective f) : (λ a, q (f a)) ≤₁ q := ⟨f, h, i, λ a, iff.rfl⟩
 
+@[refl]
 theorem one_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
   p ≤₁ p := ⟨id, computable.id, injective_id, by simp⟩
 

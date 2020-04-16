@@ -2,9 +2,14 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import data.equiv.list
+
+/-!
+# The primitive recursive functions
 
 The primitive recursive functions are the least collection of functions
-nat → nat which are closed under projections (using the mkpair
+`nat → nat` which are closed under projections (using the mkpair
 pairing function), composition, zero, successor, and primitive recursion
 (i.e. nat.rec where the motive is C n := nat).
 
@@ -14,8 +19,11 @@ which we implement through the type class `encodable`. (More precisely,
 we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
-import data.equiv.list
 
 open denumerable encodable
 

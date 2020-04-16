@@ -164,18 +164,6 @@ do g ← instantiate_mvars g,
    then return (sformat!"Try this: refine {r}")
    else return (sformat!"Try this: exact {r}")
 
-/--
-Assuming that a goal `g` has been (partially) solved in the tactic_state `l`,
-this function prepares a string of the form `exact ...` or `refine ...` (possibly with underscores)
-that will reproduce that result.
--/
-meta def message (g : expr) (l : tactic_state) : tactic string :=
-do s ← read,
-   write l,
-   r ← tactic_statement g,
-   write s,
-   return r
-
 /-- An `application` records the result of a successful application of a library lemma. -/
 meta structure application :=
 (state     : tactic_state)
@@ -202,8 +190,7 @@ do g :: _ ← get_goals,
    (lock_tactic_state (do
      focus1 $ solve_by_elim { ..opt },
      s ← read,
-     m ← tactic_statement g,
-     g ← instantiate_mvars g,
+     m ← tactic_statement g,     
      return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
@@ -224,9 +211,8 @@ do g :: _ ← get_goals,
    (λ d, lock_tactic_state $ focus1 $ do
      apply_declaration ff opt d,
      ng ← num_goals,
-     g ← instantiate_mvars g,
      state ← read,
-     m ← message g state,
+     m ← tactic_statement g, 
      return
      { application .
        state := state,
@@ -303,8 +289,8 @@ meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
   tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
-   L ← tactic.suggest_scripts (n.get_or_else 50) 
-     {backtrack_all_goals := tt, 
+   L ← tactic.suggest_scripts (n.get_or_else 50)
+     {backtrack_all_goals := tt,
       assumptions := return asms,
       ..opt},
   if is_trace_enabled_for `silence_suggest then
@@ -324,11 +310,11 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 -/
-meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list) 
+meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : by_elim_opt := { }) : tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,  
-   tactic.library_search 
-     {backtrack_all_goals := tt, 
+do asms ← mk_assumption_set ff hs attr_names,
+   tactic.library_search
+     {backtrack_all_goals := tt,
       assumptions := return asms,
       ..opt} >>=
    if is_trace_enabled_for `silence_library_search then

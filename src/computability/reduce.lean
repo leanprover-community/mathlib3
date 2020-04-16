@@ -131,6 +131,7 @@ theorem many_one_equiv_refl {α} [primcodable α] (p : α → Prop) : many_one_e
 theorem many_one_equiv.symm {α β} [primcodable α] [primcodable β]
   {p : α → Prop} {q : β → Prop} : many_one_equiv p q → many_one_equiv q p := and.swap
 
+@[trans]
 theorem many_one_equiv.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {p : α → Prop} {q : β → Prop} {r : γ → Prop} :
   many_one_equiv p q → many_one_equiv q r → many_one_equiv p r

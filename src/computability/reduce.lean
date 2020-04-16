@@ -143,6 +143,7 @@ theorem equivalence_of_many_one_equiv {α} [primcodable α] : equivalence (@many
 theorem one_one_equiv_refl {α} [primcodable α] (p : α → Prop) : one_one_equiv p p :=
 ⟨one_one_reducible_refl _, one_one_reducible_refl _⟩
 
+@[symm]
 theorem one_one_equiv.symm {α β} [primcodable α] [primcodable β]
   {p : α → Prop} {q : β → Prop} : one_one_equiv p q → one_one_equiv q p := and.swap
 

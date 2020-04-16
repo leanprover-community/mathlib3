@@ -1297,7 +1297,6 @@ apply_nolint nat.totient doc_blame
 apply_nolint cast_num doc_blame
 apply_nolint cast_pos_num doc_blame unused_arguments
 apply_nolint cast_znum doc_blame
-apply_nolint int.of_snum doc_blame
 apply_nolint num.add doc_blame
 apply_nolint num.bit doc_blame
 apply_nolint num.bit0 doc_blame
@@ -1323,13 +1322,6 @@ apply_nolint num.succ doc_blame
 apply_nolint num.succ' doc_blame
 apply_nolint num.to_znum doc_blame
 apply_nolint num.to_znum_neg doc_blame
-apply_nolint nzsnum.bit0 doc_blame
-apply_nolint nzsnum.bit1 doc_blame
-apply_nolint nzsnum.drec' doc_blame
-apply_nolint nzsnum.head doc_blame
-apply_nolint nzsnum.not doc_blame
-apply_nolint nzsnum.sign doc_blame
-apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.add doc_blame
 apply_nolint pos_num.bit doc_blame
 apply_nolint pos_num.cmp doc_blame
@@ -1352,25 +1344,6 @@ apply_nolint pos_num.sqrt_aux1 doc_blame
 apply_nolint pos_num.sub doc_blame
 apply_nolint pos_num.sub' doc_blame
 apply_nolint pos_num.succ doc_blame
-apply_nolint snum.add doc_blame
-apply_nolint snum.bit doc_blame
-apply_nolint snum.bit0 doc_blame
-apply_nolint snum.bit1 doc_blame
-apply_nolint snum.bits doc_blame
-apply_nolint snum.cadd doc_blame
-apply_nolint snum.czadd doc_blame
-apply_nolint snum.drec' doc_blame
-apply_nolint snum.head doc_blame
-apply_nolint snum.mul doc_blame
-apply_nolint snum.neg doc_blame
-apply_nolint snum.not doc_blame
-apply_nolint snum.pred doc_blame
-apply_nolint snum.rec' doc_blame
-apply_nolint snum.sign doc_blame
-apply_nolint snum.sub doc_blame
-apply_nolint snum.succ doc_blame
-apply_nolint snum.tail doc_blame
-apply_nolint snum.test_bit doc_blame
 apply_nolint znum.abs doc_blame
 apply_nolint znum.add doc_blame
 apply_nolint znum.bit0 doc_blame
@@ -1395,6 +1368,13 @@ apply_nolint num.one_bits doc_blame
 apply_nolint num.shiftl doc_blame
 apply_nolint num.shiftr doc_blame
 apply_nolint num.test_bit doc_blame
+apply_nolint nzsnum.bit0 doc_blame
+apply_nolint nzsnum.bit1 doc_blame
+apply_nolint nzsnum.drec' doc_blame
+apply_nolint nzsnum.head doc_blame
+apply_nolint nzsnum.not doc_blame
+apply_nolint nzsnum.sign doc_blame
+apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.land doc_blame
 apply_nolint pos_num.ldiff doc_blame
 apply_nolint pos_num.lor doc_blame
@@ -1403,8 +1383,28 @@ apply_nolint pos_num.one_bits doc_blame
 apply_nolint pos_num.shiftl doc_blame
 apply_nolint pos_num.shiftr doc_blame
 apply_nolint pos_num.test_bit doc_blame
+apply_nolint snum.add doc_blame
+apply_nolint snum.bit doc_blame
+apply_nolint snum.bit0 doc_blame
+apply_nolint snum.bit1 doc_blame
+apply_nolint snum.bits doc_blame
+apply_nolint snum.cadd doc_blame
+apply_nolint snum.czadd doc_blame
+apply_nolint snum.drec' doc_blame
+apply_nolint snum.head doc_blame
+apply_nolint snum.mul doc_blame
+apply_nolint snum.neg doc_blame
+apply_nolint snum.not doc_blame
+apply_nolint snum.pred doc_blame
+apply_nolint snum.rec' doc_blame
+apply_nolint snum.sign doc_blame
+apply_nolint snum.sub doc_blame
+apply_nolint snum.succ doc_blame
+apply_nolint snum.tail doc_blame
+apply_nolint snum.test_bit doc_blame
 
 -- data/num/lemmas.lean
+apply_nolint int.of_snum doc_blame
 apply_nolint num.cmp_to_nat ge_or_gt
 apply_nolint num.transfer doc_blame
 apply_nolint num.transfer_rw doc_blame
@@ -2828,17 +2828,6 @@ apply_nolint tactic.interactive.unify_with_instance doc_blame
 
 -- tactic/monotonicity/lemmas.lean
 apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
-
--- tactic/norm_cast.lean
-apply_nolint conv.interactive.norm_cast doc_blame
-apply_nolint expr.flip_eq doc_blame
-apply_nolint expr.flip_iff doc_blame
-apply_nolint ge_from_le ge_or_gt
-apply_nolint gt_from_lt ge_or_gt
-apply_nolint norm_cast.derive doc_blame
-apply_nolint tactic.apply_mod_cast doc_blame
-apply_nolint tactic.assumption_mod_cast doc_blame
-apply_nolint tactic.exact_mod_cast doc_blame
 
 -- tactic/norm_num.lean
 apply_nolint conv.interactive.norm_num doc_blame

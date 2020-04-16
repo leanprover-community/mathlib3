@@ -56,8 +56,6 @@ instance regular_mono.of_split_mono (f : X ⟶ Y) [split_mono f] : regular_mono 
   w     := by tidy,
   is_limit := split_mono_equalizes f }
 
-set_option pp.universes true
-
 /-- If `f` is a regular mono, then any map `k : W ⟶ Y` equalizing `regular_mono.left` and
     `regular_mono.right` induces a morphism `l : W ⟶ X` such that `l ≫ f = k`. -/
 def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
@@ -119,6 +117,7 @@ def regular_epi.desc' {W : C} (f : X ⟶ Y) [regular_epi f] (k : X ⟶ W)
   {l : Y ⟶ W // f ≫ l = k} :=
 cofork.is_colimit.desc' (regular_epi.is_colimit) _ h
 
+@[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
 { epi := by apply_instance,
   has_lift :=

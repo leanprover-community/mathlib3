@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.strong_epi
 import category_theory.comma
 
 /-!
@@ -68,6 +69,7 @@ structure mono_factorisation (f : X ⟶ Y) :=
 
 restate_axiom mono_factorisation.fac'
 attribute [simp, reassoc] mono_factorisation.fac
+attribute [instance] mono_factorisation.m_mono
 
 namespace mono_factorisation
 
@@ -106,6 +108,10 @@ structure is_image (F : mono_factorisation f) :=
 
 restate_axiom is_image.lift_fac'
 attribute [simp, reassoc] is_image.lift_fac
+
+@[simp, reassoc] lemma is_image.fac_lift {F : mono_factorisation f} (hF : is_image F)
+  (F' : mono_factorisation f) : F.e ≫ hF.lift F' = F'.e :=
+(cancel_mono F'.m).1 $ by simp
 
 variable (f)
 
@@ -166,6 +172,9 @@ def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I := (image.is_image
 @[simp, reassoc]
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
 (image.is_image f).lift_fac' F'
+@[simp, reassoc]
+lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
+(image.is_image f).fac_lift F'
 
 -- TODO we could put a category structure on `mono_factorisation f`,
 -- with the morphisms being `g : I ⟶ I'` commuting with the `m`s
@@ -404,5 +413,110 @@ def im : arrow C ⥤ C :=
   map_comp' := λ _ _ _ _ _, image.map_comp _ _ }
 
 end has_image_maps
+
+section strong_epi_mono_factorisation
+
+/-- A strong epi-mono factorisation is a decomposition `f = e ≫ m` with `e` a strong epimorphism
+    and `m` a monomorphism. -/
+structure strong_epi_mono_factorisation {X Y : C} (f : X ⟶ Y) :=
+(I : C)
+(e : X ⟶ I)
+(m : I ⟶ Y)
+(fac : e ≫ m = f)
+[e_strong_epi : strong_epi e]
+[m_mono : mono m]
+
+attribute [instance] strong_epi_mono_factorisation.m_mono strong_epi_mono_factorisation.e_strong_epi
+
+/-- Satisfying the inhabited linter -/
+instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong_epi f] :
+  inhabited (strong_epi_mono_factorisation f) :=
+⟨⟨Y, f, 𝟙 Y, by simp⟩⟩
+
+/-- A strong epi-mono factorisation is in particular a mono factorisation. -/
+def strong_epi_mono_factorisation.to_mono_factorisation {X Y : C} {f : X ⟶ Y}
+  (F : strong_epi_mono_factorisation f) : mono_factorisation f :=
+⟨F.I, F.m, F.e, F.fac⟩
+
+/-- A mono factorisation coming from a strong epi-mono factorisation always has the universal
+    property of the image. -/
+def strong_epi_mono_factorisation.to_mono_is_image {X Y : C} {f : X ⟶ Y}
+  (F : strong_epi_mono_factorisation f) : is_image F.to_mono_factorisation :=
+{ lift := λ G, arrow.lift $ arrow.hom_mk' $ show G.e ≫ G.m = F.e ≫ F.m, by rw [F.fac, G.fac] }
+
+variable (C)
+
+/-- A category has strong epi-mono factorisations if every morphism admits a strong epi-mono
+    factorisation. -/
+class has_strong_epi_mono_factorisations :=
+(has_fact : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation.{v} f)
+
+@[priority 100]
+instance has_images_of_has_strong_epi_mono_factorisations
+  [has_strong_epi_mono_factorisations.{v} C] : has_images.{v} C :=
+{ has_image := λ X Y f,
+  let F' := has_strong_epi_mono_factorisations.has_fact f in
+  { F := F'.to_mono_factorisation,
+    is_image := F'.to_mono_is_image } }
+
+end strong_epi_mono_factorisation
+
+section has_strong_epi_images
+variables (C) [has_images.{v} C]
+
+/-- A category has strong epi images if it has all images and `factor_thru_image f` is a strong
+    epimorphism for all `f`. -/
+class has_strong_epi_images :=
+(strong_factor_thru_image : Π {X Y : C} (f : X ⟶ Y), strong_epi.{v} (factor_thru_image f))
+
+attribute [instance] has_strong_epi_images.strong_factor_thru_image
+end has_strong_epi_images
+
+section has_strong_epi_images
+
+/-- If we constructed our images from strong epi-mono factorisations, then these images are
+    strong epi images. -/
+@[priority 100]
+instance has_strong_epi_images_of_has_strong_epi_mono_factorisations
+  [has_strong_epi_mono_factorisations.{v} C] : has_strong_epi_images.{v} C :=
+{ strong_factor_thru_image := λ X Y f,
+    (has_strong_epi_mono_factorisations.has_fact f).e_strong_epi }
+
+end has_strong_epi_images
+
+section has_strong_epi_images
+variables [has_images.{v} C]
+
+/-- A category with strong epi images has image maps. The construction is taken from Borceux,
+    Handbook of Categorical Algebra 1, Proposition 4.4.5. -/
+@[priority 100]
+instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images.{v} C] :
+  has_image_maps.{v} C :=
+{ has_image_map := λ f g st,
+    let I := image (image.ι f.hom ≫ st.right),
+    I' := image (st.left ≫ factor_thru_image g.hom),
+    upper : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
+    { I := I,
+      e := factor_thru_image f.hom ≫ factor_thru_image (image.ι f.hom ≫ st.right),
+      m := image.ι (image.ι f.hom ≫ st.right),
+      fac := by simp,
+      e_strong_epi := strong_epi_comp _ _,
+      m_mono := by apply_instance },
+    lower : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
+    { I := I',
+      e := factor_thru_image (st.left ≫ factor_thru_image g.hom),
+      m := image.ι (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom,
+      fac := by simp [arrow.w],
+      e_strong_epi := by apply_instance,
+      m_mono := mono_comp _ _ },
+    s : I ⟶ I' := is_image.lift upper.to_mono_is_image lower.to_mono_factorisation in
+    { map := factor_thru_image (image.ι f.hom ≫ st.right) ≫ s ≫
+        image.ι (st.left ≫ factor_thru_image g.hom),
+      factor_map' := by erw [←category.assoc, ←category.assoc,
+        is_image.fac_lift upper.to_mono_is_image lower.to_mono_factorisation, image.fac],
+      map_ι' := by erw [category.assoc, category.assoc,
+        is_image.lift_fac upper.to_mono_is_image lower.to_mono_factorisation, image.fac] } }
+
+end has_strong_epi_images
 
 end category_theory.limits

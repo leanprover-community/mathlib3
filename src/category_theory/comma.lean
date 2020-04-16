@@ -516,6 +516,8 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 @[simp] lemma hom_mk'_right {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (w : u ≫ g = f ≫ v) : (hom_mk' w).right = v := rfl
 
+@[reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
+
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] class has_lift {f g : arrow T} (sq : f ⟶ g) :=
 (lift : f.right ⟶ g.left)

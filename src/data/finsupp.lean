@@ -1726,3 +1726,13 @@ lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidia
 by simpa only [mem_antidiagonal_support, add_comm, prod.swap] using hf
 
 end finsupp
+
+-- TODO where does this belong?
+@[to_additive]
+lemma monoid_hom.map_finsupp_prod [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (f : α →₀ β) (g : α → β → γ) (h : γ →* δ) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+begin
+  erw monoid_hom.map_prod h,
+  refl,
+end

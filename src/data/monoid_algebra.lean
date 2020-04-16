@@ -331,6 +331,10 @@ lemma comap_smul_eq_mul_single [group G] [semiring k] (g : G) (f : monoid_algebr
   g • f = single g 1 * f :=
 by { ext g', simp, }
 
+/-- A synonym for `finsupp.single` to help quide type checking. -/
+abbreviation single [monoid G] [semiring k] (g : G) (r : k) : monoid_algebra k G :=
+finsupp.single g r
+
 end monoid_algebra
 
 section
@@ -567,5 +571,9 @@ lemma prod_single [comm_semiring k] [add_comm_monoid G]
   s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
+
+/-- A synonym for `finsupp.single` to help quide type checking. -/
+abbreviation single [add_monoid G] [semiring k] (g : G) (r : k) : add_monoid_algebra k G :=
+finsupp.single g r
 
 end add_monoid_algebra

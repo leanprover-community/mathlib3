@@ -1166,7 +1166,6 @@ apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
-apply_nolint list.head' doc_blame
 apply_nolint list.insert_nth doc_blame
 apply_nolint list.map_head doc_blame
 apply_nolint list.map_last doc_blame

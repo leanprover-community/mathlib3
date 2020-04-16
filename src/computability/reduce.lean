@@ -44,6 +44,7 @@ theorem many_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α 
 theorem many_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
   p ≤₀ p := ⟨id, computable.id, by simp⟩
 
+@[trans]
 theorem many_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {p : α → Prop} {q : β → Prop} {r : γ → Prop} : p ≤₀ q → q ≤₀ r → p ≤₀ r
 | ⟨f, c₁, h₁⟩ ⟨g, c₂, h₂⟩ := ⟨g ∘ f, c₂.comp c₁,

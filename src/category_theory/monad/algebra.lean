@@ -117,6 +117,7 @@ adjunction.mk_of_hom_equiv
             category.assoc, Y.unit, comp_id],
     end }}
 
+/-- Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism. -/
 def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso f :=
 { inv :=
   { f := i.inv,

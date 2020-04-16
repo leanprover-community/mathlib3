@@ -137,6 +137,10 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
     apply G.map_comp
   end }
 
+/--
+If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit implies
+`G.map_cone c` is also a limit.
+-/
 def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
   (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
 { lift := λ s, t.lift ((cones.postcompose (iso_whisker_left K h).inv).obj s) ≫ h.hom.app c.X,

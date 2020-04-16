@@ -91,6 +91,7 @@ def lifted_cone_is_limit : is_limit (lifted_cone D c t) :=
 
 end forget_creates_limits
 
+omit 𝒥
 -- Theorem 5.6.5 from [Riehl][riehl2017]
 /-- The forgetful functor from the Eilenberg-Moore category creates limits. -/
 instance forget_creates_limits : creates_limits (forget T) :=
@@ -101,6 +102,7 @@ instance forget_creates_limits : creates_limits (forget T) :=
       { lifted_cone := forget_creates_limits.lifted_cone D c t,
         valid_lift := cones.ext (iso.refl _) (λ j, (id_comp _).symm) },
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _} ) } }
+include 𝒥
 
 def has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
 has_limit_of_created D (forget T)

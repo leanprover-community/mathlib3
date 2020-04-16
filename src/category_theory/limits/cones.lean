@@ -309,6 +309,7 @@ def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).ob
 @[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
 @[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
 
+@[simps]
 def map_cone_inv [is_equivalence H]
   (c : cone (F ⋙ H)) : cone F :=
 let t := (inv H).map_cone c in
@@ -316,8 +317,6 @@ let α : (F ⋙ H) ⋙ inv H ⟶ F :=
   ((whisker_left F is_equivalence.unit_iso.inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
 { X := t.X,
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
-
-@[simp] lemma map_cone_inv_X [is_equivalence H] (c : cone (F ⋙ H)) : (H.map_cone_inv c).X = (inv H).obj c.X := rfl
 
 def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
   cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f
@@ -328,6 +327,21 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
   (map_cone H c).π.app j = H.map (c.π.app j) := rfl
 @[simp] lemma map_cocone_ι (c : cocone F) (j : J) :
   (map_cocone H c).ι.app j = H.map (c.ι.app j) := rfl
+
+/-- `map_cone` is the left inverse to `map_cone_inv`. -/
+def map_cone_map_cone_inv {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c : cone (F ⋙ H)) :
+  map_cone H (map_cone_inv H c) ≅ c :=
+begin
+  apply cones.ext _ (λ j, _),
+  { exact H.inv_fun_id.app c.X },
+  { dsimp,
+    erw [comp_id, ← H.inv_fun_id.hom.naturality (c.π.app j), comp_map, H.map_comp],
+    congr' 1,
+    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), nat_iso.inv_hom_id_app,
+         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, nat_iso.hom_inv_id_app,
+         H.map_id],
+    refl }
+end
 
 end functor
 

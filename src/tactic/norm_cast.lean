@@ -127,42 +127,33 @@ ncoes ← count_coes e,
 pure $ ncoes - count_head_coes e
 
 /--
-aux function for `norm_cast.classify_type`
-
-remark: the classifier is a little bit less restrictive than the rules describing to the labels.
-This is a consequence of the fact that the rules apply to the explicit coercions appearing in the expression.
-`coe_to_sort` can typically appear in type annotations that are implicit in the displayed expression, but
-will be accounted for in `count_coes`.
+Classifies a declaration of type `ty` as a `norm_cast` rule.
 -/
-private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
-do
-  lhs_coes ← count_coes lhs,
-  when (lhs_coes = 0) (fail "norm_cast: badly shaped lemma, lhs must contain at least one coe"),
-  let lhs_head_coes := count_head_coes lhs,
-  lhs_internal_coes ← count_internal_coes lhs,
-  let rhs_head_coes := count_head_coes rhs,
-  rhs_internal_coes ← count_internal_coes rhs,
-  if lhs_head_coes = 0 then do
-    return elim
-  else if lhs_head_coes = 1 then do
-    guard (rhs_head_coes = 0) <|> fail "norm_cast: badly shaped lemma, rhs can't start with coe",
-    if rhs_internal_coes = 0 then
-      return squash
-    else
-      return move
-  else if (rhs_head_coes < lhs_head_coes) then do
+meta def classify_type (ty : expr) : tactic label := do
+(_, ty) ← mk_local_pis ty,
+(lhs, rhs) ← match ty with
+  | `(%%lhs = %%rhs) := pure (lhs, rhs)
+  | `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
+  | _ := fail "norm_cast: lemma must be = or ↔"
+  end,
+lhs_coes ← count_coes lhs,
+when (lhs_coes = 0) $ fail "norm_cast: badly shaped lemma, lhs must contain at least one coe",
+let lhs_head_coes := count_head_coes lhs,
+lhs_internal_coes ← count_internal_coes lhs,
+let rhs_head_coes := count_head_coes rhs,
+rhs_internal_coes ← count_internal_coes rhs,
+if lhs_head_coes = 0 then
+  return elim
+else if lhs_head_coes = 1 then do
+  when (rhs_head_coes ≠ 0) $ fail "norm_cast: badly shaped lemma, rhs can't start with coe",
+  if rhs_internal_coes = 0 then
     return squash
-  else do
-    fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs"
-
-/-- Classifies a declaration of type `ty` as a `norm_cast` rule. -/
-meta def classify_type (ty : expr) : tactic label :=
-do (args, tp) ← mk_local_pis ty,
-match tp with
-| `(%%lhs = %%rhs) := classify_type_aux lhs rhs
-| `(%%lhs ↔ %%rhs) := classify_type_aux lhs rhs
-| _ := fail "norm_cast: lemma must be = or ↔"
-end
+  else
+    return move
+else if rhs_head_coes < lhs_head_coes then do
+  return squash
+else do
+  fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs"
 
 /-- The cache for `norm_cast` attribute stores three `simp_lemma` objects. -/
 meta structure norm_cast_cache :=

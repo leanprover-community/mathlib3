@@ -1921,7 +1921,7 @@ noncomputable instance : has_pow nnreal ℝ := ⟨rpow⟩
 
 @[simp] lemma rpow_eq_pow (x : nnreal) (y : ℝ) : rpow x y = x ^ y := rfl
 
-@[simp, move_cast] lemma coe_rpow (x : nnreal) (y : ℝ) : ((x ^ y : nnreal) : ℝ) = (x : ℝ) ^ y := rfl
+@[simp, norm_cast] lemma coe_rpow (x : nnreal) (y : ℝ) : ((x ^ y : nnreal) : ℝ) = (x : ℝ) ^ y := rfl
 
 @[simp] lemma rpow_zero (x : nnreal) : x ^ (0 : ℝ) = 1 :=
 by { rw ← nnreal.coe_eq, exact real.rpow_zero _ }

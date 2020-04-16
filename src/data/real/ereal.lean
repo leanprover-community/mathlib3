@@ -42,11 +42,11 @@ def ereal := with_top (with_bot ℝ)
 
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
-@[simp, elim_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+@[simp, norm_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
+@[simp, norm_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
+@[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 
 /- neg -/
@@ -59,7 +59,7 @@ protected def neg : ereal → ereal
 
 instance : has_neg ereal := ⟨ereal.neg⟩
 
-@[move_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
+@[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 /-- - -a = a on ereal -/
 protected theorem neg_neg : ∀ (a : ereal), - (- a) = a

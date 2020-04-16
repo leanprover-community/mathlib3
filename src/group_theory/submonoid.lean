@@ -458,10 +458,10 @@ instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
 @[simp, to_additive]
 lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
-@[simp, squash_cast, to_additive, nolint simp_nf] -- `simp_nf: timeout`
+@[simp, norm_cast, to_additive, nolint simp_nf] -- `simp_nf: timeout`
 lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
 
-attribute [squash_cast, nolint simp_nf] add_submonoid.coe_coe
+attribute [norm_cast, nolint simp_nf] add_submonoid.coe_coe
 
 @[to_additive]
 instance is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩

@@ -382,11 +382,11 @@ instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp, move_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, elim_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
-@[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
-@[simp, move_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, elim_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
+@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
+@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
+@[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 
 @[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
@@ -399,7 +399,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set M) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 instance : module R p :=
 by refine {smul := (•), ..};

@@ -479,7 +479,7 @@ begin
       rw [← enat.coe_le_coe, enat.coe_get],
       apply multiplicity.le_multiplicity_of_pow_dvd,
       exact_mod_cast hd },
-    { exact_mod_cast hz }}
+    { exact_mod_cast hz }},
 end
 
 end padic_norm

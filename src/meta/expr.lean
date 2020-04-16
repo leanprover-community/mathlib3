@@ -16,6 +16,8 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -128,9 +130,8 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
-/--
-Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
--/
+/-- `last_string n` returns the rightmost component of `n`, ignoring numeral components.
+For example, ``last_string `a.b.c.33`` will return `` `c ``. -/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
@@ -218,29 +219,30 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 
 namespace expr
 
-/-- Turns an expression into a positive natural number, assuming it is only built up from
-  `has_one.one`, `bit0` and `bit1`. -/
-protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one) := some 1
-| `(bit0 %%e) := bit0 <$> e.to_pos_nat
-| `(bit1 %%e) := bit1 <$> e.to_pos_nat
-| _           := none
-
-/-- Turns an expression into a natural number, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
+/--
+Turns an expression into a natural number, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero`, `nat.zero`, and `nat.succ`.
+-/
 protected meta def to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
-| e                  := e.to_pos_nat
+| `(has_one.one) := some 1
+| `(bit0 %%e) := bit0 <$> e.to_nat
+| `(bit1 %%e) := bit1 <$> e.to_nat
+| `(nat.succ %%e) := (+1) <$> e.to_nat
+| `(nat.zero) := some 0
+| _ := none
 
-/-- Turns an expression into a integer, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head. -/
+/--
+Turns an expression into a integer, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head.
+-/
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
 /--
- is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
- ignoring differences in type and type class arguments.
+`is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
+ignoring differences in type and type class arguments.
 -/
 meta def is_num_eq : expr → expr → bool
 | `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
@@ -328,6 +330,14 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
+meta def get_simp_args (e : expr) : tactic (list expr) := do
+cgr ← mk_specialized_congr_lemma_simp e,
+pure $ do
+  (arg_kind, arg) ← cgr.arg_kinds.zip e.get_app_args,
+  guard $ arg_kind = congr_arg_kind.eq,
+  pure arg
 
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof

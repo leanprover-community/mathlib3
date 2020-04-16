@@ -221,18 +221,18 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 @[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
 
-@[simp, squash_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
+@[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
-@[simp, elim_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
 when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
-@[elim_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
+@[norm_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
 
 /-- the identity map as a continuous linear map. -/
 def id : M →L[R] M :=
@@ -241,8 +241,8 @@ def id : M →L[R] M :=
 instance : has_one (M →L[R] M) := ⟨id⟩
 
 lemma id_apply : (id : M →L[R] M) x = x := rfl
-@[simp, elim_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
-@[simp, elim_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
+@[simp, norm_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
+@[simp, norm_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
 
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 
@@ -253,23 +253,23 @@ instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp, move_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) + g := rfl
-@[move_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
+@[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) + g := rfl
+@[norm_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
 
 instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
-@[simp, move_cast] lemma coe_neg : (((-f) : M →L[R] M₂) : M →ₗ[R] M₂) = -(f : M →ₗ[R] M₂) := rfl
-@[move_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
+@[simp, norm_cast] lemma coe_neg : (((-f) : M →L[R] M₂) : M →ₗ[R] M₂) = -(f : M →ₗ[R] M₂) := rfl
+@[norm_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
 
 instance : add_comm_group (M →L[R] M₂) :=
 by { refine {zero := 0, add := (+), neg := has_neg.neg, ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
-@[simp, move_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
-@[simp, move_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
+@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
+@[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 end add
 
@@ -279,8 +279,8 @@ end add
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
 ⟨linear_map.comp g.to_linear_map f.to_linear_map, g.2.comp f.2⟩
 
-@[simp, move_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
-@[simp, move_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
+@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
+@[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
 
 @[simp] theorem comp_id : f.comp id = f :=
 ext $ λ x, rfl
@@ -325,11 +325,11 @@ protected def prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) : M →L[R] (
 { cont := f₁.2.prod_mk f₂.2,
   ..f₁.to_linear_map.prod f₂.to_linear_map }
 
-@[simp, move_cast] lemma coe_prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) :
+@[simp, norm_cast] lemma coe_prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) :
   (f₁.prod f₂ : M →ₗ[R] M₂ × M₃) = linear_map.prod f₁ f₂ :=
 rfl
 
-@[simp, move_cast] lemma prod_apply (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) (x : M) :
+@[simp, norm_cast] lemma prod_apply (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) (x : M) :
   f₁.prod f₂ x = (f₁ x, f₂ x) :=
 rfl
 
@@ -345,23 +345,23 @@ def snd : M × M₂ →L[R] M₂ :=
 
 variables {R M M₂}
 
-@[simp, move_cast] lemma coe_fst : (fst R M M₂ : M × M₂ →ₗ[R] M) = linear_map.fst R M M₂ := rfl
+@[simp, norm_cast] lemma coe_fst : (fst R M M₂ : M × M₂ →ₗ[R] M) = linear_map.fst R M M₂ := rfl
 
-@[simp, move_cast] lemma coe_fst' : (fst R M M₂ : M × M₂ → M) = prod.fst := rfl
+@[simp, norm_cast] lemma coe_fst' : (fst R M M₂ : M × M₂ → M) = prod.fst := rfl
 
-@[simp, move_cast] lemma coe_snd : (snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ := rfl
+@[simp, norm_cast] lemma coe_snd : (snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ := rfl
 
-@[simp, move_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
+@[simp, norm_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
 
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=
 (f₁.comp (fst R M M₃)).prod (f₂.comp (snd R M M₃))
 
-@[simp, move_cast] lemma coe_prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) :
+@[simp, norm_cast] lemma coe_prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) :
   (f₁.prod_map f₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = ((f₁ : M →ₗ[R] M₂).prod_map (f₂ : M₃ →ₗ[R] M₄)) :=
 rfl
 
-@[simp, move_cast] lemma prod_map_apply (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) (x) :
+@[simp, norm_cast] lemma prod_map_apply (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) (x) :
   f₁.prod_map f₂ x = (f₁ x.1, f₂ x.2) :=
 rfl
 
@@ -386,8 +386,8 @@ variables (c : R) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 variable [topological_module R M₂]
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp, move_cast] lemma coe_apply : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • (f : M →ₗ[R] M₂) := rfl
-@[move_cast] lemma coe_apply' : (((c • f) : M →L[R] M₂) : M → M₂) = c • (f : M → M₂) := rfl
+@[simp, norm_cast] lemma coe_apply : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • (f : M →ₗ[R] M₂) := rfl
+@[norm_cast] lemma coe_apply' : (((c • f) : M →L[R] M₂) : M → M₂) = c • (f : M → M₂) := rfl
 
 @[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
 
@@ -463,7 +463,7 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
-@[squash_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
+@[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 begin
@@ -522,10 +522,10 @@ variables (R M)
   .. linear_equiv.refl R M }
 end
 
-@[simp, elim_cast] lemma coe_refl :
+@[simp, norm_cast] lemma coe_refl :
   ((continuous_linear_equiv.refl R M) : M →L[R] M) = continuous_linear_map.id := rfl
 
-@[simp, elim_cast] lemma coe_refl' :
+@[simp, norm_cast] lemma coe_refl' :
   ((continuous_linear_equiv.refl R M) : M → M) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
@@ -554,10 +554,10 @@ def prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) : (M × M₃) ≃L[R] (M�
   continuous_inv_fun := e.continuous_inv_fun.prod_map e'.continuous_inv_fun,
   .. e.to_linear_equiv.prod e'.to_linear_equiv }
 
-@[simp, move_cast] lemma prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (x) :
+@[simp, norm_cast] lemma prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (x) :
   e.prod e' x = (e x.1, e' x.2) := rfl
 
-@[simp, move_cast] lemma coe_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) :
+@[simp, norm_cast] lemma coe_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) :
   (e.prod e' : (M × M₃) →L[R] (M₂ × M₄)) = (e : M →L[R] M₂).prod_map (e' : M₃ →L[R] M₄) :=
 rfl
 

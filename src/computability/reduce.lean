@@ -40,6 +40,7 @@ infix ` ≤₀ `:1000 := many_one_reducible
 theorem many_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α → β} (q : β → Prop)
   (h : computable f) : (λ a, q (f a)) ≤₀ q := ⟨f, h, λ a, iff.rfl⟩
 
+@[refl]
 theorem many_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
   p ≤₀ p := ⟨id, computable.id, by simp⟩
 

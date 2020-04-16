@@ -170,7 +170,7 @@ cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
 
 /-- If `s` is a colimit cokernel cofork, then every `k : Y ⟶ W` satisfying `f ≫ k = 0` induces
     `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
-def cokernel_cofork.is_limit.desc' {s : cokernel_cofork f} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
+def cokernel_cofork.is_colimit.desc' {s : cokernel_cofork f} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
   (h : f ≫ k = 0) : {l : s.X ⟶ W // cofork.π s ≫ l = k} :=
 ⟨hs.desc $ cokernel_cofork.of_π _ h, hs.fac _ _⟩
 

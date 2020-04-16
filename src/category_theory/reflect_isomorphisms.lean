@@ -27,6 +27,8 @@ Note that we do not assume or require that `F` is faithful.
 class reflects_isomorphisms (F : C ⥤ D) :=
 (reflects : Π {A B : C} (f : A ⟶ B) [is_iso (F.map f)], is_iso f)
 
+-- TODO: reflects iso is equivalent to reflecting limits of shape 1 (punit)
+
 -- Having this as an instance seems to break resolution, so let's not.
 /-- If `F` reflects isos and `F.map f` is an iso, then `f` is an iso. -/
 def is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
@@ -61,7 +63,6 @@ def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_i
 variables {D : Type u₂} [𝒟 : category.{v₁} D]
 include 𝒟
 
--- TODO: should cones.functoriality take K as an explicit argument? I think so...
 /--
 If `F` reflects isomorphisms, then `cones.functoriality F` reflects isomorphisms
 as well.

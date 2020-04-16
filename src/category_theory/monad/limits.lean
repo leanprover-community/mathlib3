@@ -103,10 +103,9 @@ instance forget_creates_limits : creates_limits (forget T) :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ D,
     creates_limit_of_reflects_iso (λ c t,
-    { lifted :=
-      { lifted_cone := forget_creates_limits.lifted_cone D c t,
-        valid_lift := cones.ext (iso.refl _) (λ j, (id_comp _).symm) },
-      makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _} ) } }
+    { lifted_cone := forget_creates_limits.lifted_cone D c t,
+      valid_lift := cones.ext (iso.refl _) (λ j, (id_comp _).symm),
+      makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
 include 𝒥
 
 def has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=

@@ -35,6 +35,7 @@ structure liftable_cone (K : J ⥤ C) (F : C ⥤ D) (c : cone (K ⋙ F)) :=
 (lifted_cone : cone K)
 (valid_lift : F.map_cone lifted_cone ≅ c)
 
+
 /--
 Define the lift of a cocone: For a cocone `c` for `K ⋙ F`, give a cocone for
 `K` which is a lift of `c`, i.e. the image of it under `F` is (iso) to `c`.
@@ -110,21 +111,19 @@ def lift_limit {K : J ⥤ C} {F : C ⥤ D} [creates_limit K F] {c : cone (K ⋙ 
 (creates_limit.lifts c t).lifted_cone
 
 /-- The lifted cone has an image isomorphic to the original cone. -/
-def lifted_limit_maps_to_original {K : J ⥤ C} (F : C ⥤ D) [creates_limit K F] {c : cone (K ⋙ F)} (t : is_limit c) :
+def lifted_limit_maps_to_original {K : J ⥤ C} {F : C ⥤ D} [creates_limit K F] {c : cone (K ⋙ F)} (t : is_limit c) :
   F.map_cone (lift_limit t) ≅ c :=
 (creates_limit.lifts c t).valid_lift
 
 /-- The lifted cone is a limit. -/
 def lifted_limit_is_limit {K : J ⥤ C} {F : C ⥤ D} [creates_limit K F] {c : cone (K ⋙ F)} (t : is_limit c) :
   is_limit (lift_limit t) :=
-reflects_limit.reflects (is_limit.of_iso_limit t (lifted_limit_maps_to_original F t).symm)
+reflects_limit.reflects (is_limit.of_iso_limit t (lifted_limit_maps_to_original t).symm)
 
 /-- If `F` creates the limit of `K` and `K ⋙ F` has a limit, then `K` has a limit. -/
 def has_limit_of_created (K : J ⥤ C) (F : C ⥤ D) [has_limit (K ⋙ F)] [creates_limit K F] : has_limit K :=
 { cone := lift_limit (limit.is_limit (K ⋙ F)),
   is_limit := lifted_limit_is_limit _ }
-
--- TODO: reflects iso is equivalent to reflecting limits of shape 1 (punit)
 
 /--
 A helper to show a functor creates limits. In particular, if we can show
@@ -133,32 +132,40 @@ a limit and `F` reflects isomorphisms, then `F` creates limits.
 Usually, `F` creating limits says that _any_ lift of `c` is a limit, but
 here we only need to show that our particular lift of `c` is a limit.
 -/
-structure lifts_to_limit (K : J ⥤ C) (F : C ⥤ D) (c : cone (K ⋙ F)) (t : is_limit c) :=
-(lifted : liftable_cone K F c)
-(makes_limit : is_limit lifted.lifted_cone)
+structure lifts_to_limit (K : J ⥤ C) (F : C ⥤ D) (c : cone (K ⋙ F)) (t : is_limit c) extends liftable_cone K F c :=
+(makes_limit : is_limit lifted_cone)
 
 /--
 If `F` reflects isomorphisms and we can lift any limit cone to a limit cone,
 then `F` creates limits.
+In particular here we don't need to assume that F reflects limits.
 -/
 def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorphisms F]
   (h : Π c t, lifts_to_limit K F c t) :
   creates_limit K F :=
-{ lifts := λ c t, (h c t).lifted,
+{ lifts := λ c t, (h c t).to_liftable_cone,
   to_reflects_limit :=
   { reflects := λ (d : cone K) (hd : is_limit (F.map_cone d)),
     begin
-      let d' : cone K := (h (F.map_cone d) hd).lifted.lifted_cone,
-      let hd'₁ : F.map_cone d' ≅ F.map_cone d := (h (F.map_cone d) hd).lifted.valid_lift,
+      let d' : cone K := (h (F.map_cone d) hd).to_liftable_cone.lifted_cone,
+      let hd'₁ : F.map_cone d' ≅ F.map_cone d := (h (F.map_cone d) hd).to_liftable_cone.valid_lift,
       let hd'₂ : is_limit d' := (h (F.map_cone d) hd).makes_limit,
       let f : d ⟶ d' := hd'₂.lift_cone_morphism d,
       have : F.map_cone_morphism f = hd'₁.inv := (hd.of_iso_limit hd'₁.symm).uniq_cone_morphism,
-      have : @is_iso _ cone.category _ _ (functor.map_cone_morphism F f),
+      have : @is_iso _ cone.category _ _ (F.map_cone_morphism f),
         rw this, apply_instance,
       haveI : is_iso ((cones.functoriality K F).map f) := this,
       haveI := is_iso_of_reflects_iso f (cones.functoriality K F),
       exact is_limit.of_iso_limit hd'₂ (as_iso f).symm,
     end } }
+
+-- For the inhabited linter later.
+/-- If F creates the limit of K, any cone lifts to a limit. -/
+def lifts_to_limit_of_creates (K : J ⥤ C) (F : C ⥤ D) [creates_limit K F] (c : cone (K ⋙ F)) (t : is_limit c) :
+  lifts_to_limit K F c t :=
+{ lifted_cone := lift_limit t,
+  valid_lift := lifted_limit_maps_to_original t,
+  makes_limit := lifted_limit_is_limit t }
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
@@ -167,6 +174,44 @@ instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : create
     { lifts := λ c t,
       { lifted_cone := H.map_cone_inv c,
         valid_lift := H.map_cone_map_cone_inv c } } } }
+
+omit 𝒟
+/-- Any cone lifts through the identity functor. -/
+def id_lifts_cone (c : cone (K ⋙ 𝟭 C)) : liftable_cone K (𝟭 C) c :=
+{ lifted_cone :=
+  { X := c.X,
+    π := c.π ≫ K.right_unitor.hom },
+  valid_lift := cones.ext (iso.refl _) (by tidy) }
+
+/-- The identity functor creates all limits. -/
+instance id_creates_limits : creates_limits (𝟭 C) :=
+{ creates_limits_of_shape := λ J 𝒥, by exactI
+  { creates_limit := λ F, { lifts := λ c t, id_lifts_cone c } } }
+
+/-- Any cocone lifts through the identity functor. -/
+def id_lifts_cocone (c : cocone (K ⋙ 𝟭 C)) : liftable_cocone K (𝟭 C) c :=
+{ lifted_cocone :=
+  { X := c.X,
+    ι := K.right_unitor.inv ≫ c.ι },
+  valid_lift := cocones.ext (iso.refl _) (by tidy) }
+
+/-- The identity functor creates all colimits. -/
+instance id_creates_colimits : creates_colimits (𝟭 C) :=
+{ creates_colimits_of_shape := λ J 𝒥, by exactI
+  { creates_colimit := λ F, { lifts := λ c t, id_lifts_cocone c } } }
+
+/-- Satisfy the inhabited linter -/
+instance inhabited_liftable_cone (c : cone (K ⋙ 𝟭 C)) : inhabited (liftable_cone K (𝟭 C) c) :=
+⟨id_lifts_cone c⟩
+instance inhabited_liftable_cocone (c : cocone (K ⋙ 𝟭 C)) : inhabited (liftable_cocone K (𝟭 C) c) :=
+⟨id_lifts_cocone c⟩
+include 𝒟
+
+/-- Satisfy the inhabited linter -/
+instance inhabited_lifts_to_limit (K : J ⥤ C) (F : C ⥤ D) [creates_limit K F] (c : cone (K ⋙ F)) (t : is_limit c) :
+  inhabited (lifts_to_limit _ _ _ t) :=
+⟨lifts_to_limit_of_creates K F c t⟩
+
 
 section comp
 
@@ -177,7 +222,7 @@ instance comp_creates_limit [i₁ : creates_limit K F] [i₂ : creates_limit (K 
   creates_limit K (F ⋙ G) :=
 { lifts := λ c t,
   { lifted_cone := lift_limit (lifted_limit_is_limit t),
-    valid_lift := (cones.functoriality (K ⋙ F) G).map_iso (lifted_limit_maps_to_original F (lifted_limit_is_limit t)) ≪≫ (lifted_limit_maps_to_original G t),
+    valid_lift := (cones.functoriality (K ⋙ F) G).map_iso (lifted_limit_maps_to_original (lifted_limit_is_limit t)) ≪≫ (lifted_limit_maps_to_original t),
   } }
 
 end comp

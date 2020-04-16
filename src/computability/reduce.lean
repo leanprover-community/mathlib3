@@ -139,6 +139,7 @@ theorem many_one_equiv.trans {α β γ} [primcodable α] [primcodable β] [primc
 theorem equivalence_of_many_one_equiv {α} [primcodable α] : equivalence (@many_one_equiv α α _ _) :=
 ⟨many_one_equiv_refl, λ x y, many_one_equiv.symm, λ x y z, many_one_equiv.trans⟩
 
+@[refl]
 theorem one_one_equiv_refl {α} [primcodable α] (p : α → Prop) : one_one_equiv p p :=
 ⟨one_one_reducible_refl _, one_one_reducible_refl _⟩
 

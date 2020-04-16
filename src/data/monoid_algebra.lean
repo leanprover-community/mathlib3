@@ -226,10 +226,6 @@ instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
   (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
 rfl
 
-@[simp] lemma smul_single [semiring k] (r : k) (a : G) (b : k) :
-  r • single a b = single a (r * b) :=
-finsupp.smul_single _ _ _
-
 /-- Any monoid homomorphism `G →* R` can be lifted to an algebra homomorphism
 `monoid_algebra k G →ₐ[k] R`. -/
 def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R] :
@@ -259,7 +255,7 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
     begin
       ext f, dsimp,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one],
+      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
     end }
 
 
@@ -521,10 +517,6 @@ instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :
   (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=
 rfl
 
-@[simp] lemma smul_single [semiring k] (r : k) (a : G) (b : k) :
-  r • single a b = single a (r * b) :=
-finsupp.smul_single _ _ _
-
 /-- Any monoid homomorphism `multiplicative G →* R` can be lifted to an algebra homomorphism
 `add_monoid_algebra k G →ₐ[k] R`. -/
 def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra k R] :
@@ -560,7 +552,7 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
     begin
       ext f, dsimp,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one]
+      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
     end }
 
 universe ui

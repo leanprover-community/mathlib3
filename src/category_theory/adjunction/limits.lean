@@ -113,6 +113,19 @@ omit adj
 instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
 right_adjoint_preserves_limits E.inv.adjunction
 
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : reflects_limits E :=
+{ reflects_limits_of_shape := λ J 𝒥, by exactI
+  { reflects_limit := λ K,
+    { reflects := λ c t,
+      begin
+        have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
+        convert is_limit.map_cone_equiv E.fun_inv_id l,
+        rw functor.comp_id,
+        cases c, cases c_π, dsimp [functor.map_cone, cones.functoriality],
+        congr; rw functor.comp_id
+      end } } }
+
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=

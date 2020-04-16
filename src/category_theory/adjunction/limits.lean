@@ -121,9 +121,10 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
       begin
         have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
         convert is_limit.map_cone_equiv E.fun_inv_id l,
-        rw functor.comp_id,
-        cases c, cases c_π, dsimp [functor.map_cone, cones.functoriality],
-        congr; rw functor.comp_id
+        { rw functor.comp_id },
+        { cases c,
+          cases c_π,
+          congr; rw functor.comp_id }
       end } } }
 
 -- verify the preserve_limits instance works as expected:

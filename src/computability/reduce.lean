@@ -146,6 +146,7 @@ theorem one_one_equiv_refl {α} [primcodable α] (p : α → Prop) : one_one_equ
 theorem one_one_equiv.symm {α β} [primcodable α] [primcodable β]
   {p : α → Prop} {q : β → Prop} : one_one_equiv p q → one_one_equiv q p := and.swap
 
+@[trans]
 theorem one_one_equiv.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {p : α → Prop} {q : β → Prop} {r : γ → Prop} :
   one_one_equiv p q → one_one_equiv q r → one_one_equiv p r

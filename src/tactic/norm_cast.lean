@@ -68,7 +68,7 @@ to move casts toward the leaf nodes of the expression."
 
 /--
 `label` is a type used to classify `norm_cast` lemmas.
-* elim lemma:   LHS has 0 head coes and ≥ 1 internal coe,  RHS has 0 coes
+* elim lemma:   LHS has 0 head coes and ≥ 1 internal coe
 * move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes
 * squash lemma: LHS has ≥ 2 head coes and 0 internal coes, RHS has fewer head coes
 -/

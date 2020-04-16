@@ -66,7 +66,7 @@ open_locale topological_space classical
 
 namespace formal_multilinear_series
 
-/-- Given a formal multilinear series `p`, an ordered partition `c` of `n` and the index `i` of a
+/-- Given a formal multilinear series `p`, a composition `c` of `n` and the index `i` of a
 block of `c`, we may define a function on `fin n → E` by picking the variables in the `i`-th block
 of `n`, and applying the corresponding coefficient of `p` to these variables. This function is
 called `p.apply_composition c v i` for `v : fin n → E` and `i : fin c.length`. -/
@@ -106,9 +106,9 @@ begin
     rwa c.mem_range_embedding_iff' }
 end
 
-/-- Given two formal multilinear series `q` and `p` and an ordered partition `c` of `n`, one may
+/-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a multilinear map in `n` variables by applying the right coefficient of `p` to each block of
-the ordered partition, and then applying `q c.length` to the resulting vector. It is called
+the composition, and then applying `q c.length` to the resulting vector. It is called
 `q.comp_along_composition_multilinear p c`. This function admits a version as a continuous
 multilinear map, called `q.comp_along_composition p c` below. -/
 def comp_along_composition_multilinear {n : ℕ}
@@ -174,9 +174,9 @@ begin
     * (finset.univ : finset (fin n)).prod (λ i, ∥v i∥) : by rw A
 end
 
-/-- Given two formal multilinear series `q` and `p` and an ordered partition `c` of `n`, one may
+/-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each
-block of the ordered partition, and then applying `q c.length` to the resulting vector. It is
+block of the composition, and then applying `q c.length` to the resulting vector. It is
 called `q.comp_along_composition p c`. It is constructed from the analogous multilinear
 function `q.comp_along_composition_multilinear p c`, together with a norm control to get
 the continuity. -/
@@ -207,7 +207,7 @@ begin
 end
 
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
-is defined to be the sum of `q.comp_along_composition p c` over all ordered partitions of
+is defined to be the sum of `q.comp_along_composition p c` over all compositions of
 `n`. In other words, this term (as a multilinear function applied to `v_0, ..., v_{n-1}`) is
 `∑_{k} ∑_{i₁ + ... + iₖ = n} pₖ (q_{i_1} (...), ..., q_{i_k} (...))`, where one puts all variables
 `v_0, ..., v_{n-1}` in increasing order in the dots.-/
@@ -226,7 +226,7 @@ theorem comp_summable_nnreal
 begin
   /- This follows from the fact that the growth rate of `∥qₙ∥` and `∥pₙ∥` is at most geometric,
   giving a geometric bound on each `∥q.comp_along_composition p op∥`, together with the
-  fact that there are `2^(n-1)` ordered partitions of `n`, giving at most a geometric loss. -/
+  fact that there are `2^(n-1)` compositions of `n`, giving at most a geometric loss. -/
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hq with ⟨rq, rq_pos, hrq⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hp with ⟨rp, rp_pos, hrp⟩,
   obtain ⟨Cq, hCq⟩ : ∃ (Cq : nnreal), ∀ n, nnnorm (q n) * rq^n ≤ Cq := q.bound_of_lt_radius hrq,
@@ -322,7 +322,7 @@ begin
 end
 
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
-summability over all ordered partitions. -/
+summability over all compositions. -/
 theorem le_comp_radius_of_summable
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : nnreal)
   (hr : summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
@@ -431,7 +431,7 @@ set.finite.to_finset $ set.finite_dependent_image (finset.finite_to_set _)
 by simp [comp_partial_sum_target, comp_partial_sum_target_set]
 
 /-- The auxiliary set corresponding to the composition of partial sums asymptotically contains
-all possible ordered partitions. -/
+all possible compositions. -/
 lemma comp_partial_sum_target_tendsto_at_top :
   tendsto comp_partial_sum_target at_top at_top :=
 begin
@@ -450,8 +450,8 @@ begin
     simp only [finset.mem_image_of_mem, finset.mem_coe, finset.mem_univ] }
 end
 
-/-- Composing the partial sums of two multilinear series coincides with the sum over all ordered
-partitions in `comp_partial_sum_target N`. This is precisely the motivation for the definition of
+/-- Composing the partial sums of two multilinear series coincides with the sum over all
+compositions in `comp_partial_sum_target N`. This is precisely the motivation for the definition of
 `comp_partial_sum_target N`. -/
 lemma comp_partial_sum
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (N : ℕ) (z : E) :
@@ -563,7 +563,7 @@ begin
       (emetric.ball_subset_ball (le_trans (min_le_left _ _) (min_le_right _ _))) hy,
     simpa [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm] },
   /- Now starts the proof. To show that the sum of `q.comp p` at `y` is `g (f (x + y))`, we will
-  write `q.comp p` applied to `y` as a big sum over all ordered partitions. Since the sum is
+  write `q.comp p` applied to `y` as a big sum over all compositions. Since the sum is
   summable, to get its convergence it suffices to get the convergence along some increasing sequence
   of sets. We will use the sequence of sets `comp_partial_sum_target n`, along which the sum is
   exactly the composition of the partial sums of `q` and `p`, by design. To show that it converges
@@ -596,13 +596,13 @@ begin
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
-  -- Third step: the sum over all ordered partitions in `comp_partial_sum_target n` converges to
+  -- Third step: the sum over all compositions in `comp_partial_sum_target n` converges to
   -- `g (f (x + y))`. As this sum is exactly the composition of the partial sum, this is a direct
   -- consequence of the second step
   have C : tendsto (λ n,
     (comp_partial_sum_target n).sum (λ i, q.comp_along_composition_multilinear p i.2 (λ j, y)))
     at_top (𝓝 (g (f (x + y)))), by simpa [comp_partial_sum] using B,
-  -- Fourth step: the sum over all ordered partitions is `g (f (x + y))`. This follows from the
+  -- Fourth step: the sum over all compositions is `g (f (x + y))`. This follows from the
   -- convergence along a subsequence proved in the third step, and the fact that the sum is Cauchy
   -- thanks to the summability properties.
   have D : has_sum (λ i : (Σ n, composition n),
@@ -627,7 +627,7 @@ begin
     exact tendsto_nhds_of_cauchy_seq_of_subseq cau at_top_ne_bot
           comp_partial_sum_target_tendsto_at_top C },
   -- Fifth step: the sum over `n` of `q.comp p n` can be expressed as a particular resummation of
-  -- the sum over all ordered partitions, by grouping together the ordered partitions of the same
+  -- the sum over all compositions, by grouping together the compositions of the same
   -- integer `n`. The convergence of the whole sum therefore implies the converence of the sum
   -- of `q.comp p n`
   have E : has_sum (λ n, (q.comp p) n (λ j, y)) (g (f (x + y))),

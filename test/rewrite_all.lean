@@ -13,7 +13,7 @@ structure F :=
 
 example (f : F) : f.v.val = [] :=
 begin
-  perform_nth_rewrite 0 [f.p],
+  nth_rewrite 0 [f.p],
 end
 
 structure cat :=
@@ -29,12 +29,12 @@ open tactic
 
 example (C : cat) (W X Y Z : C.O) (f : C.H X Y) (g : C.H W X) (h k : C.H Y Z) : C.c (C.c g f) h = C.c g (C.c f h) :=
 begin
-  perform_nth_rewrite 0 [C.a],
+  nth_rewrite 0 [C.a],
 end
 
 example (C : cat) (X Y : C.O) (f : C.H X Y) : C.c f (C.i Y) = f :=
 begin
-  perform_nth_rewrite 0 [C.ri],
+  nth_rewrite 0 [C.ri],
 end
 
 -- The next two examples fail when using the kabstract backend.

@@ -11,7 +11,7 @@ open tactic
 that represent the left and right hand sides of equations and iffs.
 
 This type is used in the development of rewriting tactics such as
-`perform_nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
+`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
 @[derive decidable_eq, derive inhabited]
 inductive side
 | L
@@ -31,12 +31,23 @@ instance : has_to_string side := ⟨side.to_string⟩
 
 namespace tactic.rewrite_all
 
+/-- Configuration options for rewriting tactics. The options are:
+* `try_simp`   (default: `ff`)
+* `discharger` (default: `skip`)
+* `simplifier` (default: `λ _, failed`)
+-/
 meta structure cfg extends rewrite_cfg :=
 (try_simp   : bool := ff)
 (discharger : tactic unit := skip)
  -- Warning: rewrite_search can't produce tactic scripts when the simplifier is used.
 (simplifier : expr → tactic (expr × expr) := λ e, failed)
 
+/-- `tracked_rewrite` is the main data structure in the `rewrite_all` suite of rewriting tactics.
+A term of type `tracked_rewrite` records
+an expression `exp`,
+another expression `proof` that is wrapped in the `tactic` monad,
+and an optional list of `side`s.
+The intuition is that `proof` records a TODO -/
 meta structure tracked_rewrite :=
 (exp : expr)
 (proof : tactic expr)
@@ -68,6 +79,31 @@ meta def replace_target_rhs (rw : tracked_rewrite) : tactic unit :=
 do (new_rhs, prf) ← rw.eval,
    `(%%lhs = %%_) ← target,
    replace_target_side ``(%%lhs = %%new_rhs) ``(λ R, %%lhs = R) prf
+
+variable (h : expr)
+
+meta def replace_hyp (rw : tracked_rewrite) : tactic unit :=
+do (exp, prf) ← rw.eval,
+   tactic.replace_hyp h exp prf,
+   skip
+
+private meta def replace_hyp_side (new_hyp lam : pexpr) (prf : expr) : tactic unit :=
+do new_hyp ← to_expr new_hyp tt ff,
+   prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
+   tactic.replace_hyp h new_hyp prf',
+   skip
+
+meta def replace_hyp_lhs (rw : tracked_rewrite) : tactic unit :=
+do (new_lhs, prf) ← rw.eval,
+   `(%%_ = %%rhs) ← infer_type h,
+   replace_hyp_side h ``(%%new_lhs = %%rhs) ``(λ L, L = %%rhs) prf,
+   skip
+
+meta def replace_hyp_rhs (rw : tracked_rewrite) : tactic unit :=
+do (new_rhs, prf) ← rw.eval,
+   `(%%lhs = %%_) ← infer_type h,
+   replace_hyp_side h ``(%%lhs = %%new_rhs) ``(λ R, %%lhs = R) prf,
+   skip
 
 end tracked_rewrite
 

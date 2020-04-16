@@ -72,6 +72,7 @@ theorem one_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α �
 theorem one_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
   p ≤₁ p := ⟨id, computable.id, injective_id, by simp⟩
 
+@[trans]
 theorem one_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {p : α → Prop} {q : β → Prop} {r : γ → Prop} : p ≤₁ q → q ≤₁ r → p ≤₁ r
 | ⟨f, c₁, i₁, h₁⟩ ⟨g, c₂, i₂, h₂⟩ := ⟨g ∘ f, c₂.comp c₁, injective_comp i₂ i₁,

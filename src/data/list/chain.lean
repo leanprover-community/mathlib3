@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau, Yury Kudryashov
 -/
 import data.list.pairwise
+import logic.relation
 
 universes u v
 
@@ -201,6 +202,37 @@ begin
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },
+end
+
+/--
+If `a` and `b` are related by the reflexive transitive closure of `r`,
+then there is a `r`-chain starting from `a` and ending on `b`.
+-/
+lemma exists_chain_of_relation_refl_trans_gen {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
+  ∃ l, chain r a l ∧ last (a :: l) (cons_ne_nil _ _) = b :=
+begin
+  apply relation.refl_trans_gen.head_induction_on h,
+  { exact ⟨[], chain.nil, rfl⟩ },
+  { intros c d e t ih,
+    obtain ⟨l, hl₁, hl₂⟩ := ih,
+    refine ⟨d :: l, chain.cons e hl₁, _⟩,
+    rwa last_cons_cons }
+end
+
+/--
+Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y → p x` then
+the predicate is true at `a`.
+That is, we can propagate the predicate up the chain.
+-/
+lemma chain.induction {r : α → α → Prop} (p : α → Prop) {a b : α}
+  (l : list α) (h : chain r a l)
+  (hb : last (a :: l) (cons_ne_nil _ _) = b)
+  (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
+begin
+  induction l generalizing a,
+  { cases hb, exact final },
+  { rw chain_cons at h,
+    apply carries h.1 (l_ih h.2 hb) }
 end
 
 end list

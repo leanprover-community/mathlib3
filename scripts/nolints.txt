@@ -534,47 +534,6 @@ apply_nolint category_theory.limits.reflects_limit doc_blame
 apply_nolint category_theory.limits.reflects_limits doc_blame
 apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 
--- category_theory/limits/shapes/binary_products.lean
-apply_nolint category_theory.limits.binary_cofan doc_blame
-apply_nolint category_theory.limits.binary_cofan.mk doc_blame
-apply_nolint category_theory.limits.binary_fan doc_blame
-apply_nolint category_theory.limits.binary_fan.mk doc_blame
-apply_nolint category_theory.limits.coprod doc_blame
-apply_nolint category_theory.limits.coprod.desc doc_blame
-apply_nolint category_theory.limits.coprod.inl doc_blame
-apply_nolint category_theory.limits.coprod.inr doc_blame
-apply_nolint category_theory.limits.coprod.map doc_blame
-apply_nolint category_theory.limits.has_binary_coproducts doc_blame
-apply_nolint category_theory.limits.has_binary_products doc_blame
-apply_nolint category_theory.limits.prod doc_blame
-apply_nolint category_theory.limits.prod.fst doc_blame
-apply_nolint category_theory.limits.prod.lift doc_blame
-apply_nolint category_theory.limits.prod.map doc_blame
-apply_nolint category_theory.limits.prod.snd doc_blame
-apply_nolint category_theory.limits.walking_pair has_inhabited_instance
-
--- category_theory/limits/shapes/equalizers.lean
-apply_nolint category_theory.limits.cocone.of_cofork doc_blame
-apply_nolint category_theory.limits.coequalizer doc_blame
-apply_nolint category_theory.limits.coequalizer.desc doc_blame
-apply_nolint category_theory.limits.coequalizer.π doc_blame
-apply_nolint category_theory.limits.cofork doc_blame
-apply_nolint category_theory.limits.cofork.of_cocone doc_blame
-apply_nolint category_theory.limits.cofork.of_π doc_blame
-apply_nolint category_theory.limits.cofork.π doc_blame
-apply_nolint category_theory.limits.cone.of_fork doc_blame
-apply_nolint category_theory.limits.equalizer doc_blame
-apply_nolint category_theory.limits.equalizer.lift doc_blame
-apply_nolint category_theory.limits.equalizer.ι doc_blame
-apply_nolint category_theory.limits.fork doc_blame
-apply_nolint category_theory.limits.fork.of_cone doc_blame
-apply_nolint category_theory.limits.fork.of_ι doc_blame
-apply_nolint category_theory.limits.fork.ι doc_blame
-apply_nolint category_theory.limits.parallel_pair doc_blame
-apply_nolint category_theory.limits.walking_parallel_pair has_inhabited_instance
-apply_nolint category_theory.limits.walking_parallel_pair_hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_parallel_pair_hom.comp doc_blame
-
 -- category_theory/limits/shapes/finite_limits.lean
 apply_nolint category_theory.limits.has_finite_colimits doc_blame
 apply_nolint category_theory.limits.has_finite_limits doc_blame
@@ -596,32 +555,6 @@ apply_nolint category_theory.limits.pi.π doc_blame
 apply_nolint category_theory.limits.sigma.desc doc_blame
 apply_nolint category_theory.limits.sigma.map doc_blame
 apply_nolint category_theory.limits.sigma.ι doc_blame
-
--- category_theory/limits/shapes/pullbacks.lean
-apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
-apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.pullback.fst doc_blame
-apply_nolint category_theory.limits.pullback.lift doc_blame
-apply_nolint category_theory.limits.pullback.snd doc_blame
-apply_nolint category_theory.limits.pullback_cone doc_blame
-apply_nolint category_theory.limits.pullback_cone.fst doc_blame
-apply_nolint category_theory.limits.pullback_cone.mk doc_blame
-apply_nolint category_theory.limits.pullback_cone.of_cone doc_blame
-apply_nolint category_theory.limits.pullback_cone.snd doc_blame
-apply_nolint category_theory.limits.pushout.desc doc_blame
-apply_nolint category_theory.limits.pushout.inl doc_blame
-apply_nolint category_theory.limits.pushout.inr doc_blame
-apply_nolint category_theory.limits.pushout_cocone doc_blame
-apply_nolint category_theory.limits.pushout_cocone.inl doc_blame
-apply_nolint category_theory.limits.pushout_cocone.inr doc_blame
-apply_nolint category_theory.limits.pushout_cocone.mk doc_blame
-apply_nolint category_theory.limits.pushout_cocone.of_cocone doc_blame
-apply_nolint category_theory.limits.walking_cospan has_inhabited_instance
-apply_nolint category_theory.limits.walking_cospan.hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_cospan.hom.comp doc_blame
-apply_nolint category_theory.limits.walking_span has_inhabited_instance
-apply_nolint category_theory.limits.walking_span.hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_span.hom.comp doc_blame
 
 -- category_theory/limits/shapes/terminal.lean
 apply_nolint category_theory.limits.initial doc_blame
@@ -1233,7 +1166,6 @@ apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
-apply_nolint list.head' doc_blame
 apply_nolint list.insert_nth doc_blame
 apply_nolint list.map_head doc_blame
 apply_nolint list.map_last doc_blame

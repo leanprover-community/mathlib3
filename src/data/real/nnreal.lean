@@ -29,6 +29,7 @@ instance : can_lift ℝ nnreal :=
   prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
+
 protected lemma eq_iff {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) ↔ n = m :=
 iff.intro nnreal.eq (congr_arg coe)
 
@@ -44,7 +45,7 @@ lemma le_coe_of_real (r : ℝ) : r ≤ nnreal.of_real r :=
 le_max_left r 0
 
 lemma coe_nonneg (r : nnreal) : (0 : ℝ) ≤ r := r.2
-@[elim_cast, simp, nolint simp_nf] -- takes a crazy amount of time simplify lhs
+@[norm_cast, simp, nolint simp_nf] -- takes a crazy amount of time simplify lhs
 theorem coe_mk (a : ℝ) (ha) : ((⟨a, ha⟩ : ℝ≥0) : ℝ) = a := rfl
 
 instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
@@ -58,20 +59,23 @@ instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
-@[simp] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
-@[simp] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
-@[simp, move_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
-@[simp, move_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
-@[simp, move_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
-@[simp, move_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
+@[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ := subtype.ext.symm
+@[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
+@[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
+@[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
+@[simp, norm_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
+@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
+@[simp, norm_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
+@[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := by unfold bit0; norm_cast
+@[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := by unfold bit1; norm_cast
 
-@[simp] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) : ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
+@[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) : ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
 max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
 @[simp] protected lemma zero_div (r : ℝ≥0) : 0 / r = 0 := nnreal.eq (zero_div _)
-@[simp, elim_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := @nnreal.eq_iff r 0
-@[elim_cast] lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by simp
+@[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := by norm_cast
+lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
 instance : comm_semiring ℝ≥0 :=
 begin
@@ -92,46 +96,45 @@ instance : comm_group_with_zero ℝ≥0 :=
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
 
-@[move_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+@[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 is_monoid_hom.map_pow coe r n
 
-@[move_cast] lemma coe_list_sum (l : list ℝ≥0) :
+@[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
   ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
 eq.symm $ l.sum_hom coe
 
-@[move_cast] lemma coe_list_prod (l : list ℝ≥0) :
+@[norm_cast] lemma coe_list_prod (l : list ℝ≥0) :
   ((l.prod : ℝ≥0) : ℝ) = (l.map coe).prod :=
 eq.symm $ l.prod_hom coe
 
-@[move_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
+@[norm_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
   ((s.sum : ℝ≥0) : ℝ) = (s.map coe).sum :=
 eq.symm $ s.sum_hom coe
 
-@[move_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
+@[norm_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
   ((s.prod : ℝ≥0) : ℝ) = (s.map coe).prod :=
 eq.symm $ s.prod_hom coe
 
-@[move_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
+@[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
 eq.symm $ s.sum_hom coe
 
-@[move_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
+@[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
 eq.symm $ s.prod_hom coe
 
-@[move_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
+@[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
 is_add_monoid_hom.map_smul coe r n
 
-@[simp, squash_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
+@[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 (ring_hom.of (coe : ℝ≥0 → ℝ)).map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
 decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
 
-@[elim_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
-@[elim_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
-@[elim_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
-@[elim_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ := subtype.ext.symm
+@[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
+@[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
+protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le_coe.2
 
@@ -278,11 +281,11 @@ begin
   { assume a s has ih, simp [has, ih, mul_sup], }
 end
 
-@[simp, move_cast] lemma coe_max (x y : nnreal) :
+@[simp, norm_cast] lemma coe_max (x y : nnreal) :
   ((max x y : nnreal) : ℝ) = max (x : ℝ) (y : ℝ) :=
 by { delta max, split_ifs; refl }
 
-@[simp, move_cast] lemma coe_min (x y : nnreal) :
+@[simp, norm_cast] lemma coe_min (x y : nnreal) :
   ((min x y : nnreal) : ℝ) = min (x : ℝ) (y : ℝ) :=
 by { delta min, split_ifs; refl }
 

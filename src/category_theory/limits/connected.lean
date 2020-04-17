@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.preserves
@@ -26,16 +27,14 @@ open category_theory category_theory.category category_theory.limits
 namespace category_theory
 
 section examples
-instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
 
-instance cospan_connected : connected (walking_cospan) :=
+instance wide_pullback_shape_connected (J : Type v₁) : connected (wide_pullback_shape J) :=
 begin
   apply connected.of_induct,
   introv _ t,
   cases j,
-  { rwa t walking_cospan.hom.inl },
-  { rwa t walking_cospan.hom.inr },
-  { assumption }
+  { exact a },
+  { rwa t (wide_pullback_shape.hom.term j) }
 end
 
 instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩

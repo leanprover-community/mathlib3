@@ -171,7 +171,7 @@ nonneg_of_mul_nonneg_left this two_pos
 by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y
 
 @[simp] theorem dist_pos {x y : α} : 0 < dist x y ↔ x ≠ y :=
-by simpa [-dist_le_zero] using not_congr (@dist_le_zero _ _ x y)
+by simpa only [not_le] using not_congr dist_le_zero
 
 @[simp] theorem abs_dist {a b : α} : abs (dist a b) = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -210,17 +210,17 @@ by rw [dist_nndist, nnreal.of_real_coe]
 
 /--Deduce the equality of points with the vanishing of the nonnegative distance-/
 theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, dist_eq_zero]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, dist_eq_zero]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
-by simpa [nnreal.eq_iff.symm] using dist_comm x y
+by simpa only [dist_nndist, nnreal.coe_eq] using dist_comm x y
 
 /--Characterize the equality of points with the vanishing of the nonnegative distance-/
 @[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, dist_eq_zero]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, dist_eq_zero]
 
 @[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, zero_eq_dist]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, zero_eq_dist]
 
 /--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
@@ -631,7 +631,7 @@ instance metric_space.to_emetric_space : emetric_space α :=
   eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
   edist_triangle      := assume x y z, begin
-    simp only [edist_dist, (ennreal.of_real_add _ _).symm, dist_nonneg],
+    simp only [edist_dist, ← ennreal.of_real_add, dist_nonneg],
     rw ennreal.of_real_le_of_real_iff _,
     { exact dist_triangle _ _ _ },
     { simpa using add_le_add (dist_nonneg : 0 ≤ dist x y) dist_nonneg }
@@ -749,7 +749,7 @@ by simp [real.dist_eq]
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x, begin
   simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
-    by simp [-sub_eq_add_neg, abs_sub, ball, real.dist_eq]],
+    by simp [abs_sub, ball, real.dist_eq]],
   apply le_antisymm,
   { simp [le_infi_iff],
     exact λ ε ε0, mem_nhds_sets (is_open_ball) (mem_ball_self ε0) },
@@ -921,7 +921,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_dist := assume x y, begin
     have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, this.map_max.symm]
+    rw [edist_dist, edist_dist, ← this.map_max]
   end,
   uniformity_dist := begin
     refine uniformity_prod.trans _,

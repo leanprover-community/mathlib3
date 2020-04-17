@@ -228,10 +228,6 @@ instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
   (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
 rfl
 
-@[simp] lemma smul_single [semiring k] (r : k) (a : G) (b : k) :
-  r • single a b = single a (r * b) :=
-finsupp.smul_single _ _ _
-
 /-- Any monoid homomorphism `G →* R` can be lifted to an algebra homomorphism
 `monoid_algebra k G →ₐ[k] R`. -/
 def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R] :
@@ -256,12 +252,19 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
     map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
     commutes' := λ r, by rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def,
       mul_one]; apply zero_smul },
-  left_inv := λ f, by { ext x, dsimp, rw [sum_single_index, one_smul], apply zero_smul},
+  left_inv := λ f,
+    begin
+      ext x, dsimp,
+      -- These `norm_cast`s used to not be necessary,
+      -- and I'm afraid I've broken something when merging with master.
+      norm_cast, dsimp,
+      rw [sum_single_index, one_smul], apply zero_smul
+    end,
   right_inv := λ F,
     begin
-      ext f, dsimp,
+      ext f, dsimp, norm_cast,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one]
+      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
     end }
 
 universe ui
@@ -507,10 +510,6 @@ instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :
   (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=
 rfl
 
-@[simp] lemma smul_single [semiring k] (r : k) (a : G) (b : k) :
-  r • single a b = single a (r * b) :=
-finsupp.smul_single _ _ _
-
 /-- Any monoid homomorphism `multiplicative G →* R` can be lifted to an algebra homomorphism
 `add_monoid_algebra k G →ₐ[k] R`. -/
 def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra k R] :
@@ -541,12 +540,19 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
       rw [algebra.smul_def, mul_one],
       apply zero_smul
     end, },
-  left_inv := λ f, by { ext x, dsimp, rw [sum_single_index, one_smul], apply zero_smul},
+  left_inv := λ f,
+    begin
+      ext x, dsimp,
+      norm_cast, dsimp,
+      rw [sum_single_index, one_smul],
+      apply zero_smul,
+    end,
   right_inv := λ F,
     begin
       ext f, dsimp,
+      norm_cast,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single, mul_one]
+      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
     end }
 
 universe ui

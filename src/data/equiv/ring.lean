@@ -54,10 +54,10 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-@[squash_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃* S) a = f a := rfl
 
-@[squash_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃+ S) a = f a := rfl
 
 variable (R)

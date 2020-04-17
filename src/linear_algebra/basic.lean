@@ -1436,7 +1436,7 @@ lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').
 @[simp] lemma prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (p) :
   e.prod e' p = (e p.1, e' p.2) := rfl
 
-@[simp, move_cast] lemma coe_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
+@[simp, norm_cast] lemma coe_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
   (e.prod e' : (M × M₃) →ₗ[R] M₂ × M₄) = (e : M →ₗ[R] M₂).prod_map (e' : M₃ →ₗ[R] M₄) :=
 rfl
 

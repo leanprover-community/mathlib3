@@ -49,13 +49,13 @@ variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
 theorem cast_injective : function.injective (coe : ℕ → α) :=
 char_zero.cast_injective
 
-@[simp, elim_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
+@[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
 cast_injective.eq_iff
 
-@[simp, elim_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
+@[simp, norm_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 
-@[elim_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+@[norm_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 end nat

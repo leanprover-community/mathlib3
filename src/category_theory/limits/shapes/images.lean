@@ -69,6 +69,8 @@ structure mono_factorisation (f : X ⟶ Y) :=
 restate_axiom mono_factorisation.fac'
 attribute [simp, reassoc] mono_factorisation.fac
 
+attribute [instance] mono_factorisation.m_mono
+
 namespace mono_factorisation
 
 /-- The obvious factorisation of a monomorphism through itself. -/
@@ -127,8 +129,8 @@ must factor through isomorphic objects. -/
 def iso_ext {F F' : mono_factorisation f} (hF : is_image F) (hF' : is_image F') : F.I ≅ F'.I :=
 { hom := hF.lift F',
   inv := hF'.lift F,
-  hom_inv_id' := begin haveI := F.m_mono, apply (cancel_mono F.m).1, simp end,
-  inv_hom_id' := begin haveI := F'.m_mono, apply (cancel_mono F'.m).1, simp end }
+  hom_inv_id' := (cancel_mono F.m).1 (by simp),
+  inv_hom_id' := (cancel_mono F'.m).1 (by simp) }
 
 end is_image
 
@@ -187,12 +189,7 @@ end
 lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :
   l = image.lift F' :=
-begin
-  haveI := F'.m_mono,
-  apply (cancel_mono F'.m).1,
-  rw w,
-  simp,
-end
+(cancel_mono F'.m).1 (by simp [w])
 end
 
 section
@@ -260,8 +257,8 @@ image.lift.{v}
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
 { inv := image.eq_to_hom h.symm,
-  hom_inv_id' := begin apply (cancel_mono (image.ι f)).1, simp [image.eq_to_hom], end,
-  inv_hom_id' := begin apply (cancel_mono (image.ι f')).1, simp [image.eq_to_hom], end, }
+  hom_inv_id' := (cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
+  inv_hom_id' := (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom]), }
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)

@@ -565,7 +565,7 @@ variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
 (E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
 
 /-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
-module structure over `R`, called `module.restrict S R E`.
+module structure over `R`, called `module.restrict_scalars R S E`.
 Not registered as an instance as `S` can not be inferred. -/
 def module.restrict_scalars : module R E :=
 { smul      := λc x, (algebra_map R S c) • x,
@@ -579,6 +579,16 @@ def module.restrict_scalars : module R E :=
 variables {S E}
 
 local attribute [instance] module.restrict_scalars
+
+/--
+The `R`-submodule of the `R`-module given by restriction of scalars,
+corresponding to an `S`-submodule of the original `S`-module.
+-/
+def submodule.restrict_scalars (V : submodule S E) : submodule R E :=
+{ carrier := V.carrier,
+  zero := V.zero,
+  smul := λ c e h, V.smul _ h,
+  add := λ x y hx hy, V.add hx hy, }
 
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=

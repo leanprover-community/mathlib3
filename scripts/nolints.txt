@@ -808,7 +808,6 @@ apply_nolint complex.cau_seq_re doc_blame
 apply_nolint complex.conj doc_blame
 apply_nolint complex.lim_aux doc_blame
 apply_nolint complex.norm_sq doc_blame
-apply_nolint complex.of_real doc_blame
 apply_nolint complex.real_prod_equiv doc_blame
 
 -- data/complex/exponential.lean
@@ -1125,7 +1124,6 @@ apply_nolint holor_index.take doc_blame
 -- data/int/basic.lean
 apply_nolint int.bit_cases_on doc_blame
 apply_nolint int.induction_on' doc_blame
-apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
 
 -- data/int/modeq.lean
@@ -1550,8 +1548,6 @@ apply_nolint rat.sqrt doc_blame
 apply_nolint real doc_blame
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
-apply_nolint real.mk doc_blame
-apply_nolint real.of_rat doc_blame
 apply_nolint real.sqrt doc_blame
 apply_nolint real.sqrt_aux doc_blame
 

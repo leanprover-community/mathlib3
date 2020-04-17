@@ -193,8 +193,7 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
       let f : d ⟶ d' := hd'.lift_cone_morphism d,
       have : (cones.functoriality K F).map f = i.inv := (hd.of_iso_limit i.symm).uniq_cone_morphism,
       haveI : is_iso ((cones.functoriality K F).map f) := (by { rw this, apply_instance }),
-      -- We could omit this line, but perhaps it's helpful.
-      haveI : is_iso f := category_theory.is_iso_of_reflects_iso f (cones.functoriality K F),
+      haveI : is_iso f := is_iso_of_reflects_iso f (cones.functoriality K F),
       exact is_limit.of_iso_limit hd' (as_iso f).symm,
     end } }
 
@@ -216,8 +215,7 @@ def creates_colimit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomor
       let f : d' ⟶ d := hd'.desc_cocone_morphism d,
       have : (cocones.functoriality K F).map f = i.hom := (hd.of_iso_colimit i.symm).uniq_cocone_morphism,
       haveI : is_iso ((cocones.functoriality K F).map f) := (by { rw this, apply_instance }),
-      -- We could omit this line, but perhaps it's helpful.
-      haveI := category_theory.is_iso_of_reflects_iso f (cocones.functoriality K F),
+      haveI := is_iso_of_reflects_iso f (cocones.functoriality K F),
       exact is_colimit.of_iso_colimit hd' (as_iso f),
     end } }
 

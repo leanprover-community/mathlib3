@@ -159,23 +159,6 @@ by rw [← cast_zero, cast_inj]
 theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-theorem eq_cast_of_ne_zero (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) :
-  ∀ n : ℚ, (n.denom : α) ≠ 0 → f n = n
-| ⟨n, d, h, c⟩ := λ (h₂ : ((d:ℤ):α) ≠ 0), show _ = (n / (d:ℤ) : α), begin
-  rw [num_denom', mk_eq_div, eq_div_iff_mul_eq _ _ h₂],
-  have : ∀ n : ℤ, f n = n, { apply int.eq_cast; simp [H1, Hadd] },
-  rw [← this, ← this, ← Hmul, div_mul_cancel],
-  exact int.cast_ne_zero.2 (int.coe_nat_ne_zero.2 $ ne_of_gt h),
-end
-
-theorem eq_cast [char_zero α] (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) (n : ℚ) : f n = n :=
-eq_cast_of_ne_zero _ H1 Hadd Hmul _ $
-  nat.cast_ne_zero.2 $ ne_of_gt n.pos
-
 @[simp, norm_cast] theorem cast_add [char_zero α] (m n) :
   ((m + n : ℚ) : α) = m + n :=
 cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)

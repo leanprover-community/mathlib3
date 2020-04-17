@@ -97,19 +97,6 @@ by rw [← cast_zero, cast_lt]
 lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
   add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
-theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)
-  (H0 : f 0 = 0) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n
-| 0     := H0
-| (n+1) := by rw [Hadd, H1, eq_cast]; refl
-
-theorem eq_cast' [add_group α] [has_one α] (f : ℕ → α)
-  (H1 : f 1 = 1) (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n :=
-eq_cast _ (by rw [← add_left_inj (f 0), add_zero, ← Hadd]) H1 Hadd
-
-@[simp, norm_cast] theorem cast_id (n : ℕ) : ↑n = n :=
-(eq_cast id rfl rfl (λ _ _, rfl) n).symm
-
 @[simp, norm_cast] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
@@ -133,6 +120,5 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
   f n = n :=
 (f.comp (nat.cast_ring_hom R)).eq_nat_cast n
 
-@[simp, squash_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
+@[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 ((ring_hom.id ℕ).eq_nat_cast n).symm
-

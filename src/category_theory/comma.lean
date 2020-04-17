@@ -548,11 +548,11 @@ by simp only [←arrow.mk_hom g, lift.fac_right, arrow.hom_mk'_right]
 
 section
 
-instance subsingleton_lift_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
+instance subsingleton_has_lift_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
   subsingleton (has_lift sq) :=
 subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_epi f.hom).1 $ by simp
 
-instance subsingleton_lifting_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
+instance subsingleton_has_lift_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
   subsingleton (has_lift sq) :=
 subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_mono g.hom).1 $ by simp
 

@@ -421,44 +421,35 @@ section strong_epi_mono_factorisation
 
 /-- A strong epi-mono factorisation is a decomposition `f = e ≫ m` with `e` a strong epimorphism
     and `m` a monomorphism. -/
-structure strong_epi_mono_factorisation {X Y : C} (f : X ⟶ Y) :=
-(I : C)
-(e : X ⟶ I)
-(m : I ⟶ Y)
-(fac : e ≫ m = f)
+structure strong_epi_mono_factorisation {X Y : C} (f : X ⟶ Y) extends mono_factorisation.{v} f :=
 [e_strong_epi : strong_epi e]
-[m_mono : mono m]
 
-attribute [instance] strong_epi_mono_factorisation.m_mono strong_epi_mono_factorisation.e_strong_epi
+attribute [instance] strong_epi_mono_factorisation.e_strong_epi
 
 /-- Satisfying the inhabited linter -/
 instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong_epi f] :
   inhabited (strong_epi_mono_factorisation f) :=
-⟨⟨Y, f, 𝟙 Y, by simp⟩⟩
-
-/-- A strong epi-mono factorisation is in particular a mono factorisation. -/
-def strong_epi_mono_factorisation.to_mono_factorisation {X Y : C} {f : X ⟶ Y}
-  (F : strong_epi_mono_factorisation f) : mono_factorisation f :=
-⟨F.I, F.m, F.e, F.fac⟩
+⟨⟨⟨Y, 𝟙 Y, f, by simp⟩⟩⟩
 
 /-- A mono factorisation coming from a strong epi-mono factorisation always has the universal
     property of the image. -/
 def strong_epi_mono_factorisation.to_mono_is_image {X Y : C} {f : X ⟶ Y}
   (F : strong_epi_mono_factorisation f) : is_image F.to_mono_factorisation :=
-{ lift := λ G, arrow.lift $ arrow.hom_mk' $ show G.e ≫ G.m = F.e ≫ F.m, by rw [F.fac, G.fac] }
+{ lift := λ G, arrow.lift $ arrow.hom_mk' $
+    show G.e ≫ G.m = F.e ≫ F.m, by rw [F.to_mono_factorisation.fac, G.fac] }
 
 variable (C)
 
 /-- A category has strong epi-mono factorisations if every morphism admits a strong epi-mono
     factorisation. -/
 class has_strong_epi_mono_factorisations :=
-(has_fact : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation.{v} f)
+(has_fac : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation.{v} f)
 
 @[priority 100]
 instance has_images_of_has_strong_epi_mono_factorisations
   [has_strong_epi_mono_factorisations.{v} C] : has_images.{v} C :=
 { has_image := λ X Y f,
-  let F' := has_strong_epi_mono_factorisations.has_fact f in
+  let F' := has_strong_epi_mono_factorisations.has_fac f in
   { F := F'.to_mono_factorisation,
     is_image := F'.to_mono_is_image } }
 
@@ -483,7 +474,7 @@ section has_strong_epi_images
 instance has_strong_epi_images_of_has_strong_epi_mono_factorisations
   [has_strong_epi_mono_factorisations.{v} C] : has_strong_epi_images.{v} C :=
 { strong_factor_thru_image := λ X Y f,
-    (has_strong_epi_mono_factorisations.has_fact f).e_strong_epi }
+    (has_strong_epi_mono_factorisations.has_fac f).e_strong_epi }
 
 end has_strong_epi_images
 
@@ -496,28 +487,27 @@ variables [has_images.{v} C]
 instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images.{v} C] :
   has_image_maps.{v} C :=
 { has_image_map := λ f g st,
-    let I := image (image.ι f.hom ≫ st.right),
-    I' := image (st.left ≫ factor_thru_image g.hom),
+    let I := image (image.ι f.hom ≫ st.right) in
+    let I' := image (st.left ≫ factor_thru_image g.hom),
     upper : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
     { I := I,
       e := factor_thru_image f.hom ≫ factor_thru_image (image.ι f.hom ≫ st.right),
       m := image.ι (image.ι f.hom ≫ st.right),
-      fac := by simp,
       e_strong_epi := strong_epi_comp _ _,
-      m_mono := by apply_instance },
-    lower : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
+      m_mono := by apply_instance } in
+    let lower : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
     { I := I',
       e := factor_thru_image (st.left ≫ factor_thru_image g.hom),
       m := image.ι (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom,
-      fac := by simp [arrow.w],
+      fac' := by simp [arrow.w],
       e_strong_epi := by apply_instance,
-      m_mono := mono_comp _ _ },
-    s : I ⟶ I' := is_image.lift upper.to_mono_is_image lower.to_mono_factorisation in
+      m_mono := mono_comp _ _ } in
+    let s : I ⟶ I' := is_image.lift upper.to_mono_is_image lower.to_mono_factorisation in
     { map := factor_thru_image (image.ι f.hom ≫ st.right) ≫ s ≫
         image.ι (st.left ≫ factor_thru_image g.hom),
-      factor_map' := by erw [←category.assoc, ←category.assoc,
+      factor_map' := by rw [←category.assoc, ←category.assoc,
         is_image.fac_lift upper.to_mono_is_image lower.to_mono_factorisation, image.fac],
-      map_ι' := by erw [category.assoc, category.assoc,
+      map_ι' := by rw [category.assoc, category.assoc,
         is_image.lift_fac upper.to_mono_is_image lower.to_mono_factorisation, image.fac] } }
 
 end has_strong_epi_images

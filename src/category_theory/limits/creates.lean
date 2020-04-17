@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.limits
-import category_theory.adjunction.limits
+-- import category_theory.adjunction.limits
 import category_theory.reflect_isomorphisms
 
 open category_theory category_theory.limits
@@ -236,14 +236,6 @@ def lifts_to_colimit_of_creates (K : J ⥤ C) (F : C ⥤ D)
 { lifted_cocone := lift_colimit t,
   valid_lift := lifted_colimit_maps_to_original t,
   makes_colimit := lifted_colimit_is_colimit t }
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
-{ creates_limits_of_shape := λ J 𝒥, by exactI
-  { creates_limit := λ F,
-    { lifts := λ c t,
-      { lifted_cone := H.map_cone_inv c,
-        valid_lift := H.map_cone_map_cone_inv c } } } }
 
 omit 𝒟
 /-- Any cone lifts through the identity functor. -/

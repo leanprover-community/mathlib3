@@ -221,6 +221,7 @@ lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
 
+omit 𝒞 𝒥
 section examples
 instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
 

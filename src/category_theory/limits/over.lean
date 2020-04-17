@@ -144,12 +144,20 @@ instance (B : C) : has_terminal.{v} (over B) :=
 
 namespace creates
 
+/--
+(Impl) Given a diagram in the over category, produce a natural transformation from the
+diagram legs to the specific object.
+-/
 def nat_trans_in_over {B : C} (F : J ⥤ over B) :
   F ⋙ forget ⟶ (category_theory.functor.const J).obj B :=
 { app := λ j, (F.obj j).hom }
 
 local attribute [tidy] tactic.case_bash
 
+/--
+(Impl) Given a cone in the base category, raise it to a cone in the over category. Note this is
+where the connected assumption is used.
+-/
 @[simps]
 def raise_cone [connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
   cone F :=

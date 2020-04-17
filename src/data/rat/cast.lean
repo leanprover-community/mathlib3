@@ -159,23 +159,6 @@ by rw [← cast_zero, cast_inj]
 theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-theorem eq_cast_of_ne_zero (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) :
-  ∀ n : ℚ, (n.denom : α) ≠ 0 → f n = n
-| ⟨n, d, h, c⟩ := λ (h₂ : ((d:ℤ):α) ≠ 0), show _ = (n / (d:ℤ) : α), begin
-  rw [num_denom', mk_eq_div, eq_div_iff_mul_eq _ _ h₂],
-  have : ∀ n : ℤ, f n = n, { apply int.eq_cast; simp [H1, Hadd] },
-  rw [← this, ← this, ← Hmul, div_mul_cancel],
-  exact int.cast_ne_zero.2 (int.coe_nat_ne_zero.2 $ ne_of_gt h),
-end
-
-theorem eq_cast [char_zero α] (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) (n : ℚ) : f n = n :=
-eq_cast_of_ne_zero _ H1 Hadd Hmul _ $
-  nat.cast_ne_zero.2 $ ne_of_gt n.pos
-
 @[simp, norm_cast] theorem cast_add [char_zero α] (m n) :
   ((m + n : ℚ) : α) = m + n :=
 cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
@@ -258,3 +241,17 @@ by by_cases a ≤ b; simp [h, max]
 by simp [abs]
 
 end rat
+
+open rat ring_hom
+
+lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
+calc f r = f (r.1 / r.2) : by conv_lhs { rw [← @num_denom r, mk_eq_div, int.cast_coe_nat] }
+     ... = (f.comp $ int.cast_ring_hom ℚ) r.1 / (f.comp $ nat.cast_ring_hom ℚ) r.2 : f.map_div
+     ... = r.1 / r.2     : by rw [eq_nat_cast, eq_int_cast]
+
+-- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
+-- but the proof would be much longer
+lemma ring_hom.map_rat_cast {k k'} [division_ring k] [char_zero k] [division_ring k']
+  (f : k →+* k') (r : ℚ) :
+  f r = r :=
+(f.comp (cast_hom k)).eq_rat_cast r

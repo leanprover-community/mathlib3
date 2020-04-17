@@ -65,7 +65,7 @@ def strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
   end }
 
 /-- If `f ≫ g` is a strong epimorphism, then so is g. -/
-def strong_epi_of_strong_epi [epi (f ≫ g)] [strong_epi (f ≫ g)] : strong_epi g :=
+def strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
 { epi := epi_of_epi f g,
   has_lift :=
   begin

@@ -43,6 +43,7 @@ instance : inhabited ℝ := ⟨0⟩
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
 def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
 
+/-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
 def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=

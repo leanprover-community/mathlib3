@@ -105,10 +105,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/lie_algebra.lean
-apply_nolint lie_subalgebra has_inhabited_instance
-apply_nolint lie_submodule has_inhabited_instance
-
 -- algebra/module.lean
 apply_nolint module.core has_inhabited_instance
 

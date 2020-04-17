@@ -314,10 +314,10 @@ let α : (F ⋙ H) ⋙ inv H ⟶ F :=
 { X := t.X,
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
 
-def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
-  cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality F H).map f
-def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
-  cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality F H).map f
+def map_cone_morphism   {c c' : cone F}   (f : c ⟶ c')   :
+  (H.map_cone c) ⟶ (H.map_cone c') := (cones.functoriality F H).map f
+def map_cocone_morphism {c c' : cocone F} (f : c ⟶ c') :
+  (H.map_cocone c) ⟶ (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (c : cone F) (j : J) :
   (map_cone H c).π.app j = H.map (c.π.app j) := rfl

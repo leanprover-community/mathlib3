@@ -29,10 +29,9 @@ class reflects_isomorphisms (F : C ⥤ D) :=
 
 -- TODO: reflects iso is equivalent to reflecting limits of shape 1 (punit)
 
--- Having this as an instance seems to break resolution, so let's not.
 /-- If `F` reflects isos and `F.map f` is an iso, then `f` is an iso. -/
-def is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
-  [h : reflects_isomorphisms F] [is_iso (F.map f)] :
+instance is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
+  [is_iso (F.map f)] [reflects_isomorphisms F] :
   is_iso f :=
 reflects_isomorphisms.reflects F f
 

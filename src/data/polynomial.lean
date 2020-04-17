@@ -20,7 +20,8 @@ Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
 def polynomial (α : Type*) [comm_semiring α] := add_monoid_algebra α ℕ
 
-open finsupp finset add_monoid_algebra
+open finsupp (hiding single)
+open finset add_monoid_algebra
 
 namespace polynomial
 universes u v
@@ -44,7 +45,7 @@ local attribute [instance] coeff_coe_to_fun
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 @[reducible]
-def monomial (n : ℕ) (a : α) : polynomial α := finsupp.single n a
+def monomial (n : ℕ) (a : α) : polynomial α := monoid_algebra.single n a
 
 /-- `C a` is the constant polynomial `a`. -/
 def C (a : α) : polynomial α := monomial 0 a
@@ -139,7 +140,7 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial α) n = 0 := rfl
 
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-by { dsimp [single, finsupp.single], congr }
+by convert finsupp.single_apply
 
 @[simp] lemma coeff_one_zero : coeff (1 : polynomial α) 0 = 1 :=
 coeff_single
@@ -151,7 +152,7 @@ instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomia
   map_zero := coeff_zero _ }
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by simp [coeff, eq_comm, C, monomial, single]; congr
+by simp [C, coeff_single, eq_comm]
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_single
 
@@ -163,7 +164,7 @@ lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := coeff_si
 
 lemma coeff_C_mul_X (x : α) (k n : ℕ) :
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
-by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
+by rw [← single_eq_C_mul_X]; simp [monomial, eq_comm, coeff]; congr
 
 lemma coeff_sum [comm_semiring β] (n : ℕ) (f : ℕ → α → polynomial β) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
@@ -1137,7 +1138,7 @@ degree_C (show (1 : α) ≠ 0, from zero_ne_one.symm)
 
 @[simp] lemma degree_X : degree (X : polynomial α) = 1 :=
 begin
-  unfold X degree monomial single finsupp.support,
+  dunfold X degree monomial monoid_algebra.single finsupp.single finsupp.support,
   rw if_neg (zero_ne_one).symm,
   refl
 end

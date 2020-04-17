@@ -23,7 +23,7 @@ There are two types defined, `zmod n`, which is for integers modulo a positive n
 * A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
 characteristic dividing `n`
 
-## Implentation notes
+## Implementation notes
 
 `zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
 synthesized. This leads to a lot of code duplication and most of the functions and theorems for

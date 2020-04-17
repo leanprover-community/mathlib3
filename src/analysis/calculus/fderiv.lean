@@ -54,6 +54,24 @@ a linear function from `𝕜` to `E` with its value at `1`). Results on the Fré
 translated to this more elementary point of view on the derivative in the file `deriv.lean`. The
 derivative of polynomials is handled there, as it is naturally one-dimensional.
 
+The simplifier is set up to prove automatically that some functions are differentiable, or
+differentiable at a point (but not differentiable on a set or within a set at a point, as checking
+automatically that the good domains are mapped one to the other when using composition is not
+something the simplifier can easily do). This means that one can write
+`example (x : ℝ) : differentiable ℝ (λ x, sin (exp (3 + x^2)) - 5 * cos x) := by simp`.
+If there are divisions, one needs to supply to the simplifier proofs that the denominators do
+not vanish, as in
+```lean
+example (x : ℝ) (h : 1 + sin x ≠ 0) : differentiable_at ℝ (λ x, exp x / (1 + sin x)) x :=
+by simp [h]
+```
+Of course, these examples only work once `exp`, `cos` and `sin` have been shown to be
+differentiable, in `analysis.complex.exponential`.
+
+The simplifier is not set up to compute the Fréchet derivative of maps (as these are in general
+complicated multidimensional linear maps), but it will compute one-dimensional derivatives,
+see `deriv.lean`.
+
 ## Implementation details
 
 The derivative is defined in terms of the `is_o` relation, but also
@@ -72,6 +90,18 @@ directions span a dense subset of the whole space. The predicates `unique_diff_w
 they imply the uniqueness of the derivative. This is satisfied for open subsets, and in particular
 for `univ`. This uniqueness only holds when the field is non-discrete, which we request at the very
 beginning: otherwise, a derivative can be defined, but it has no interesting properties whatsoever.
+
+To make sure that the simplifier can prove automatically that functions are differentiable, we tag
+many lemmas with the `simp` attribute, for instance those saying that the sum of differentiable
+functions is differentiable, as well as their product, their cartesian product, and so on. A notable
+exception is the chain rule: we do not mark as a simp lemma the fact that, if `f` and `g` are
+differentiable, then their composition also is: `simp` would always be able to match this lemma,
+by taking `f` or `g` to be the identity. Instead, for every reasonable function (say, `exp`),
+we add a lemma that if `f` is differentiable then so is `(λ x, exp (f x))`. This means adding
+some boilerplate lemmas, but these can also be useful in their own right.
+
+Tests for this ability of the simplifier (with more examples) are provided in
+`tests/differentiable.lean`.
 
 ## Tags
 
@@ -319,7 +349,10 @@ h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
   has_fderiv_at f f' x :=
-λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (hf hc)
+begin
+  rw [has_fderiv_at, has_fderiv_at_filter, is_o_iff],
+  exact (λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (is_o_iff.1 hf hc))
+end
 
 lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
   differentiable_at 𝕜 f x :=
@@ -658,13 +691,19 @@ has_fderiv_at_filter_id _ _
 theorem has_fderiv_at_id (x : E) : has_fderiv_at id (id : E →L[𝕜] E) x :=
 has_fderiv_at_filter_id _ _
 
-lemma differentiable_at_id : differentiable_at 𝕜 id x :=
+@[simp] lemma differentiable_at_id : differentiable_at 𝕜 id x :=
+(has_fderiv_at_id x).differentiable_at
+
+@[simp] lemma differentiable_at_id' : differentiable_at 𝕜 (λ x, x) x :=
 (has_fderiv_at_id x).differentiable_at
 
 lemma differentiable_within_at_id : differentiable_within_at 𝕜 id s x :=
 differentiable_at_id.differentiable_within_at
 
-lemma differentiable_id : differentiable 𝕜 (id : E → E) :=
+@[simp] lemma differentiable_id : differentiable 𝕜 (id : E → E) :=
+λx, differentiable_at_id
+
+@[simp] lemma differentiable_id' : differentiable 𝕜 (λ (x : E), x) :=
 λx, differentiable_at_id
 
 lemma differentiable_on_id : differentiable_on 𝕜 id s :=
@@ -701,7 +740,7 @@ theorem has_fderiv_at_const (c : F) (x : E) :
   has_fderiv_at (λ x, c) (0 : E →L[𝕜] F) x :=
 has_fderiv_at_filter_const _ _ _
 
-lemma differentiable_at_const (c : F) : differentiable_at 𝕜 (λx, c) x :=
+@[simp] lemma differentiable_at_const (c : F) : differentiable_at 𝕜 (λx, c) x :=
 ⟨0, has_fderiv_at_const c x⟩
 
 lemma differentiable_within_at_const (c : F) : differentiable_within_at 𝕜 (λx, c) s x :=
@@ -720,7 +759,7 @@ begin
   exact fderiv_const_apply _
 end
 
-lemma differentiable_const (c : F) : differentiable 𝕜 (λx : E, c) :=
+@[simp] lemma differentiable_const (c : F) : differentiable 𝕜 (λx : E, c) :=
 λx, differentiable_at_const _
 
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
@@ -749,7 +788,7 @@ e.has_fderiv_at_filter
 protected lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x :=
 e.has_fderiv_at_filter
 
-protected lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
+@[simp] protected lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
 e.has_fderiv_at.differentiable_at
 
 protected lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
@@ -765,7 +804,7 @@ begin
   exact e.fderiv
 end
 
-protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+@[simp]protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
 λx, e.differentiable_at
 
 protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
@@ -976,6 +1015,7 @@ lemma differentiable_within_at.prod
   differentiable_within_at 𝕜 (λx:E, (f₁ x, f₂ x)) s x :=
 (hf₁.has_fderiv_within_at.prod hf₂.has_fderiv_within_at).differentiable_within_at
 
+@[simp]
 lemma differentiable_at.prod (hf₁ : differentiable_at 𝕜 f₁ x) (hf₂ : differentiable_at 𝕜 f₂ x) :
   differentiable_at 𝕜 (λx:E, (f₁ x, f₂ x)) x :=
 (hf₁.has_fderiv_at.prod hf₂.has_fderiv_at).differentiable_at
@@ -984,6 +1024,7 @@ lemma differentiable_on.prod (hf₁ : differentiable_on 𝕜 f₁ s) (hf₂ : di
   differentiable_on 𝕜 (λx:E, (f₁ x, f₂ x)) s :=
 λx hx, differentiable_within_at.prod (hf₁ x hx) (hf₂ x hx)
 
+@[simp]
 lemma differentiable.prod (hf₁ : differentiable 𝕜 f₁) (hf₂ : differentiable 𝕜 f₂) :
   differentiable 𝕜 (λx:E, (f₁ x, f₂ x)) :=
 λ x, differentiable_at.prod (hf₁ x) (hf₂ x)
@@ -1043,14 +1084,14 @@ h.fst
 lemma differentiable_at_fst : differentiable_at 𝕜 prod.fst p :=
 has_fderiv_at_fst.differentiable_at
 
-lemma differentiable_at.fst (h : differentiable_at 𝕜 f₂ x) :
+@[simp] lemma differentiable_at.fst (h : differentiable_at 𝕜 f₂ x) :
   differentiable_at 𝕜 (λ x, (f₂ x).1) x :=
 differentiable_at_fst.comp x h
 
 lemma differentiable_fst : differentiable 𝕜 (prod.fst : E × F → E) :=
 λ x, differentiable_at_fst
 
-lemma differentiable.fst (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).1) :=
+@[simp] lemma differentiable.fst (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).1) :=
 differentiable_fst.comp h
 
 lemma differentiable_within_at_fst {s : set (E × F)} : differentiable_within_at 𝕜 prod.fst s p :=
@@ -1120,14 +1161,14 @@ h.snd
 lemma differentiable_at_snd : differentiable_at 𝕜 prod.snd p :=
 has_fderiv_at_snd.differentiable_at
 
-lemma differentiable_at.snd (h : differentiable_at 𝕜 f₂ x) :
+@[simp] lemma differentiable_at.snd (h : differentiable_at 𝕜 f₂ x) :
   differentiable_at 𝕜 (λ x, (f₂ x).2) x :=
 differentiable_at_snd.comp x h
 
 lemma differentiable_snd : differentiable 𝕜 (prod.snd : E × F → F) :=
 λ x, differentiable_at_snd
 
-lemma differentiable.snd (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).2) :=
+@[simp] lemma differentiable.snd (h : differentiable 𝕜 f₂) : differentiable 𝕜 (λ x, (f₂ x).2) :=
 differentiable_snd.comp h
 
 lemma differentiable_within_at_snd {s : set (E × F)} : differentiable_within_at 𝕜 prod.snd s p :=
@@ -1176,7 +1217,7 @@ theorem has_fderiv_at.prod_map (hf : has_fderiv_at f f' p.1)
   has_fderiv_at (λ p : E × G, (f p.1, f₂ p.2)) (f'.prod_map f₂') p :=
 (hf.comp p has_fderiv_at_fst).prod (hf₂.comp p has_fderiv_at_snd)
 
-theorem differentiable_at.prod_map (hf : differentiable_at 𝕜 f p.1)
+@[simp] theorem differentiable_at.prod_map (hf : differentiable_at 𝕜 f p.1)
   (hf₂ : differentiable_at 𝕜 f₂ p.2) :
   differentiable_at 𝕜 (λ p : E × G, (f p.1, f₂ p.2)) p :=
 (hf.comp p differentiable_at_fst).prod (hf₂.comp p differentiable_at_snd)
@@ -1259,7 +1300,7 @@ lemma differentiable_within_at.add
   differentiable_within_at 𝕜 (λ y, f y + g y) s x :=
 (hf.has_fderiv_within_at.add hg.has_fderiv_within_at).differentiable_within_at
 
-lemma differentiable_at.add
+@[simp] lemma differentiable_at.add
   (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 g x) :
   differentiable_at 𝕜 (λ y, f y + g y) x :=
 (hf.has_fderiv_at.add hg.has_fderiv_at).differentiable_at
@@ -1269,7 +1310,7 @@ lemma differentiable_on.add
   differentiable_on 𝕜 (λy, f y + g y) s :=
 λx hx, (hf x hx).add (hg x hx)
 
-lemma differentiable.add
+@[simp] lemma differentiable.add
   (hf : differentiable 𝕜 f) (hg : differentiable 𝕜 g) :
   differentiable 𝕜 (λy, f y + g y) :=
 λx, (hf x).add (hg x)
@@ -1407,7 +1448,7 @@ lemma differentiable_within_at.neg (h : differentiable_within_at 𝕜 f s x) :
   differentiable_within_at 𝕜 (λy, -f y) s x :=
 h.has_fderiv_within_at.neg.differentiable_within_at
 
-lemma differentiable_at.neg (h : differentiable_at 𝕜 f x) :
+@[simp] lemma differentiable_at.neg (h : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜 (λy, -f y) x :=
 h.has_fderiv_at.neg.differentiable_at
 
@@ -1415,7 +1456,7 @@ lemma differentiable_on.neg (h : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (λy, -f y) s :=
 λx hx, (h x hx).neg
 
-lemma differentiable.neg (h : differentiable 𝕜 f) :
+@[simp] lemma differentiable.neg (h : differentiable 𝕜 f) :
   differentiable 𝕜 (λy, -f y) :=
 λx, (h x).neg
 
@@ -1458,7 +1499,7 @@ lemma differentiable_within_at.sub
   differentiable_within_at 𝕜 (λ y, f y - g y) s x :=
 (hf.has_fderiv_within_at.sub hg.has_fderiv_within_at).differentiable_within_at
 
-lemma differentiable_at.sub
+@[simp] lemma differentiable_at.sub
   (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 g x) :
   differentiable_at 𝕜 (λ y, f y - g y) x :=
 (hf.has_fderiv_at.sub hg.has_fderiv_at).differentiable_at
@@ -1468,7 +1509,7 @@ lemma differentiable_on.sub
   differentiable_on 𝕜 (λy, f y - g y) s :=
 λx hx, (hf x hx).sub (hg x hx)
 
-lemma differentiable.sub
+@[simp] lemma differentiable.sub
   (hf : differentiable 𝕜 f) (hg : differentiable 𝕜 g) :
   differentiable 𝕜 (λy, f y - g y) :=
 λx, (hf x).sub (hg x)
@@ -1615,7 +1656,7 @@ begin
   apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
   refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
   refine is_o.mul_is_O _ (is_O_refl _ _),
-  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top).trans_is_o this).norm_left
+  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o this).norm_left
 end
 
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
@@ -1695,7 +1736,7 @@ lemma differentiable_within_at.smul
   differentiable_within_at 𝕜 (λ y, c y • f y) s x :=
 (hc.has_fderiv_within_at.smul hf.has_fderiv_within_at).differentiable_within_at
 
-lemma differentiable_at.smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
+@[simp] lemma differentiable_at.smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜 (λ y, c y • f y) x :=
 (hc.has_fderiv_at.smul hf.has_fderiv_at).differentiable_at
 
@@ -1703,7 +1744,7 @@ lemma differentiable_on.smul (hc : differentiable_on 𝕜 c s) (hf : differentia
   differentiable_on 𝕜 (λ y, c y • f y) s :=
 λx hx, (hc x hx).smul (hf x hx)
 
-lemma differentiable.smul (hc : differentiable 𝕜 c) (hf : differentiable 𝕜 f) :
+@[simp] lemma differentiable.smul (hc : differentiable 𝕜 c) (hf : differentiable 𝕜 f) :
   differentiable 𝕜 (λ y, c y • f y) :=
 λx, (hc x).smul (hf x)
 
@@ -1784,7 +1825,7 @@ lemma differentiable_within_at.mul
   differentiable_within_at 𝕜 (λ y, c y * d y) s x :=
 (hc.has_fderiv_within_at.mul hd.has_fderiv_within_at).differentiable_within_at
 
-lemma differentiable_at.mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
+@[simp] lemma differentiable_at.mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
   differentiable_at 𝕜 (λ y, c y * d y) x :=
 (hc.has_fderiv_at.mul hd.has_fderiv_at).differentiable_at
 
@@ -1792,7 +1833,7 @@ lemma differentiable_on.mul (hc : differentiable_on 𝕜 c s) (hd : differentiab
   differentiable_on 𝕜 (λ y, c y * d y) s :=
 λx hx, (hc x hx).mul (hd x hx)
 
-lemma differentiable.mul (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
+@[simp] lemma differentiable.mul (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
   differentiable 𝕜 (λ y, c y * d y) :=
 λx, (hc x).mul (hd x)
 

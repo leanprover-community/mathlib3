@@ -14,9 +14,6 @@ instance : has_lt pos :=
 namespace expr
 open tactic
 
-attribute [derive has_reflect] binder_info
-attribute [derive decidable_eq] binder_info congr_arg_kind
-
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
@@ -1454,6 +1451,15 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.success r s') := (finalizer >> pure r) s'
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
+
+/--
+`on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.
+-/
+meta def on_exception {β} (handler : tactic β) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s' := (handler *> result.exception msg p) s'
+| ok := ok
+end
 
 /-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
 meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=

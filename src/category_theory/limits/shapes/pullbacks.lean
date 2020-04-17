@@ -494,13 +494,11 @@ def pullback.desc' {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span 
 
 lemma pullback.condition {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
   (pullback.fst : pullback f g ⟶ X) ≫ f = pullback.snd ≫ g :=
-(limit.w (cospan f g) walking_cospan.hom.inl).trans
-(limit.w (cospan f g) walking_cospan.hom.inr).symm
+pullback_cone.condition _
 
 lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
-(colimit.w (span f g) walking_span.hom.fst).trans
-(colimit.w (span f g) walking_span.hom.snd).symm
+pushout_cocone.condition _
 
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
     equal -/

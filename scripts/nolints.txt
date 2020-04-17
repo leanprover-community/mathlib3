@@ -105,10 +105,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/lie_algebra.lean
-apply_nolint lie_subalgebra has_inhabited_instance
-apply_nolint lie_submodule has_inhabited_instance
-
 -- algebra/module.lean
 apply_nolint module.core has_inhabited_instance
 
@@ -534,47 +530,6 @@ apply_nolint category_theory.limits.reflects_limit doc_blame
 apply_nolint category_theory.limits.reflects_limits doc_blame
 apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 
--- category_theory/limits/shapes/binary_products.lean
-apply_nolint category_theory.limits.binary_cofan doc_blame
-apply_nolint category_theory.limits.binary_cofan.mk doc_blame
-apply_nolint category_theory.limits.binary_fan doc_blame
-apply_nolint category_theory.limits.binary_fan.mk doc_blame
-apply_nolint category_theory.limits.coprod doc_blame
-apply_nolint category_theory.limits.coprod.desc doc_blame
-apply_nolint category_theory.limits.coprod.inl doc_blame
-apply_nolint category_theory.limits.coprod.inr doc_blame
-apply_nolint category_theory.limits.coprod.map doc_blame
-apply_nolint category_theory.limits.has_binary_coproducts doc_blame
-apply_nolint category_theory.limits.has_binary_products doc_blame
-apply_nolint category_theory.limits.prod doc_blame
-apply_nolint category_theory.limits.prod.fst doc_blame
-apply_nolint category_theory.limits.prod.lift doc_blame
-apply_nolint category_theory.limits.prod.map doc_blame
-apply_nolint category_theory.limits.prod.snd doc_blame
-apply_nolint category_theory.limits.walking_pair has_inhabited_instance
-
--- category_theory/limits/shapes/equalizers.lean
-apply_nolint category_theory.limits.cocone.of_cofork doc_blame
-apply_nolint category_theory.limits.coequalizer doc_blame
-apply_nolint category_theory.limits.coequalizer.desc doc_blame
-apply_nolint category_theory.limits.coequalizer.π doc_blame
-apply_nolint category_theory.limits.cofork doc_blame
-apply_nolint category_theory.limits.cofork.of_cocone doc_blame
-apply_nolint category_theory.limits.cofork.of_π doc_blame
-apply_nolint category_theory.limits.cofork.π doc_blame
-apply_nolint category_theory.limits.cone.of_fork doc_blame
-apply_nolint category_theory.limits.equalizer doc_blame
-apply_nolint category_theory.limits.equalizer.lift doc_blame
-apply_nolint category_theory.limits.equalizer.ι doc_blame
-apply_nolint category_theory.limits.fork doc_blame
-apply_nolint category_theory.limits.fork.of_cone doc_blame
-apply_nolint category_theory.limits.fork.of_ι doc_blame
-apply_nolint category_theory.limits.fork.ι doc_blame
-apply_nolint category_theory.limits.parallel_pair doc_blame
-apply_nolint category_theory.limits.walking_parallel_pair has_inhabited_instance
-apply_nolint category_theory.limits.walking_parallel_pair_hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_parallel_pair_hom.comp doc_blame
-
 -- category_theory/limits/shapes/finite_limits.lean
 apply_nolint category_theory.limits.has_finite_colimits doc_blame
 apply_nolint category_theory.limits.has_finite_limits doc_blame
@@ -596,32 +551,6 @@ apply_nolint category_theory.limits.pi.π doc_blame
 apply_nolint category_theory.limits.sigma.desc doc_blame
 apply_nolint category_theory.limits.sigma.map doc_blame
 apply_nolint category_theory.limits.sigma.ι doc_blame
-
--- category_theory/limits/shapes/pullbacks.lean
-apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
-apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.pullback.fst doc_blame
-apply_nolint category_theory.limits.pullback.lift doc_blame
-apply_nolint category_theory.limits.pullback.snd doc_blame
-apply_nolint category_theory.limits.pullback_cone doc_blame
-apply_nolint category_theory.limits.pullback_cone.fst doc_blame
-apply_nolint category_theory.limits.pullback_cone.mk doc_blame
-apply_nolint category_theory.limits.pullback_cone.of_cone doc_blame
-apply_nolint category_theory.limits.pullback_cone.snd doc_blame
-apply_nolint category_theory.limits.pushout.desc doc_blame
-apply_nolint category_theory.limits.pushout.inl doc_blame
-apply_nolint category_theory.limits.pushout.inr doc_blame
-apply_nolint category_theory.limits.pushout_cocone doc_blame
-apply_nolint category_theory.limits.pushout_cocone.inl doc_blame
-apply_nolint category_theory.limits.pushout_cocone.inr doc_blame
-apply_nolint category_theory.limits.pushout_cocone.mk doc_blame
-apply_nolint category_theory.limits.pushout_cocone.of_cocone doc_blame
-apply_nolint category_theory.limits.walking_cospan has_inhabited_instance
-apply_nolint category_theory.limits.walking_cospan.hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_cospan.hom.comp doc_blame
-apply_nolint category_theory.limits.walking_span has_inhabited_instance
-apply_nolint category_theory.limits.walking_span.hom has_inhabited_instance
-apply_nolint category_theory.limits.walking_span.hom.comp doc_blame
 
 -- category_theory/limits/shapes/terminal.lean
 apply_nolint category_theory.limits.initial doc_blame
@@ -1233,7 +1162,6 @@ apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
-apply_nolint list.head' doc_blame
 apply_nolint list.insert_nth doc_blame
 apply_nolint list.map_head doc_blame
 apply_nolint list.map_last doc_blame
@@ -1365,7 +1293,6 @@ apply_nolint nat.totient doc_blame
 apply_nolint cast_num doc_blame
 apply_nolint cast_pos_num doc_blame unused_arguments
 apply_nolint cast_znum doc_blame
-apply_nolint int.of_snum doc_blame
 apply_nolint num.add doc_blame
 apply_nolint num.bit doc_blame
 apply_nolint num.bit0 doc_blame
@@ -1391,13 +1318,6 @@ apply_nolint num.succ doc_blame
 apply_nolint num.succ' doc_blame
 apply_nolint num.to_znum doc_blame
 apply_nolint num.to_znum_neg doc_blame
-apply_nolint nzsnum.bit0 doc_blame
-apply_nolint nzsnum.bit1 doc_blame
-apply_nolint nzsnum.drec' doc_blame
-apply_nolint nzsnum.head doc_blame
-apply_nolint nzsnum.not doc_blame
-apply_nolint nzsnum.sign doc_blame
-apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.add doc_blame
 apply_nolint pos_num.bit doc_blame
 apply_nolint pos_num.cmp doc_blame
@@ -1420,25 +1340,6 @@ apply_nolint pos_num.sqrt_aux1 doc_blame
 apply_nolint pos_num.sub doc_blame
 apply_nolint pos_num.sub' doc_blame
 apply_nolint pos_num.succ doc_blame
-apply_nolint snum.add doc_blame
-apply_nolint snum.bit doc_blame
-apply_nolint snum.bit0 doc_blame
-apply_nolint snum.bit1 doc_blame
-apply_nolint snum.bits doc_blame
-apply_nolint snum.cadd doc_blame
-apply_nolint snum.czadd doc_blame
-apply_nolint snum.drec' doc_blame
-apply_nolint snum.head doc_blame
-apply_nolint snum.mul doc_blame
-apply_nolint snum.neg doc_blame
-apply_nolint snum.not doc_blame
-apply_nolint snum.pred doc_blame
-apply_nolint snum.rec' doc_blame
-apply_nolint snum.sign doc_blame
-apply_nolint snum.sub doc_blame
-apply_nolint snum.succ doc_blame
-apply_nolint snum.tail doc_blame
-apply_nolint snum.test_bit doc_blame
 apply_nolint znum.abs doc_blame
 apply_nolint znum.add doc_blame
 apply_nolint znum.bit0 doc_blame
@@ -1463,6 +1364,13 @@ apply_nolint num.one_bits doc_blame
 apply_nolint num.shiftl doc_blame
 apply_nolint num.shiftr doc_blame
 apply_nolint num.test_bit doc_blame
+apply_nolint nzsnum.bit0 doc_blame
+apply_nolint nzsnum.bit1 doc_blame
+apply_nolint nzsnum.drec' doc_blame
+apply_nolint nzsnum.head doc_blame
+apply_nolint nzsnum.not doc_blame
+apply_nolint nzsnum.sign doc_blame
+apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.land doc_blame
 apply_nolint pos_num.ldiff doc_blame
 apply_nolint pos_num.lor doc_blame
@@ -1471,8 +1379,28 @@ apply_nolint pos_num.one_bits doc_blame
 apply_nolint pos_num.shiftl doc_blame
 apply_nolint pos_num.shiftr doc_blame
 apply_nolint pos_num.test_bit doc_blame
+apply_nolint snum.add doc_blame
+apply_nolint snum.bit doc_blame
+apply_nolint snum.bit0 doc_blame
+apply_nolint snum.bit1 doc_blame
+apply_nolint snum.bits doc_blame
+apply_nolint snum.cadd doc_blame
+apply_nolint snum.czadd doc_blame
+apply_nolint snum.drec' doc_blame
+apply_nolint snum.head doc_blame
+apply_nolint snum.mul doc_blame
+apply_nolint snum.neg doc_blame
+apply_nolint snum.not doc_blame
+apply_nolint snum.pred doc_blame
+apply_nolint snum.rec' doc_blame
+apply_nolint snum.sign doc_blame
+apply_nolint snum.sub doc_blame
+apply_nolint snum.succ doc_blame
+apply_nolint snum.tail doc_blame
+apply_nolint snum.test_bit doc_blame
 
 -- data/num/lemmas.lean
+apply_nolint int.of_snum doc_blame
 apply_nolint num.cmp_to_nat ge_or_gt
 apply_nolint num.transfer doc_blame
 apply_nolint num.transfer_rw doc_blame
@@ -2896,17 +2824,6 @@ apply_nolint tactic.interactive.unify_with_instance doc_blame
 
 -- tactic/monotonicity/lemmas.lean
 apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
-
--- tactic/norm_cast.lean
-apply_nolint conv.interactive.norm_cast doc_blame
-apply_nolint expr.flip_eq doc_blame
-apply_nolint expr.flip_iff doc_blame
-apply_nolint ge_from_le ge_or_gt
-apply_nolint gt_from_lt ge_or_gt
-apply_nolint norm_cast.derive doc_blame
-apply_nolint tactic.apply_mod_cast doc_blame
-apply_nolint tactic.assumption_mod_cast doc_blame
-apply_nolint tactic.exact_mod_cast doc_blame
 
 -- tactic/norm_num.lean
 apply_nolint conv.interactive.norm_num doc_blame

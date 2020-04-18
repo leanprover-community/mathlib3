@@ -577,29 +577,36 @@ def module.restrict_scalars : module R E :=
   zero_smul := by simp [zero_smul] }
 
 /--
-The identity function, considered as an `R`-linear map from an `R`-algebra `S` to itself,
+The identity function, considered as an `R`-linear equivalence from an `R`-algebra `S` to itself,
 with `module.restrict_scalars R S S` as the module structure in the source,
 and `algebra.to_module` as the module structure in the target.
 
 Unfortunately these structures are not generally definitionally equal,
 so we sometimes need to insert this map in order to typecheck.
 -/
-def algebra.restrict_scalars_iso :
-  @linear_map R S S _ _ _ (module.restrict_scalars R S S) (algebra.to_module) :=
+def algebra.restrict_scalars_equiv :
+  @linear_equiv R S S _ _ _ (module.restrict_scalars R S S) (algebra.to_module) :=
 { to_fun := λ s, s,
+  inv_fun := λ s, s,
+  left_inv := λ s, rfl,
+  right_inv := λ s, rfl,
   add := λ x y, rfl,
   smul := λ c x, (algebra.smul_def' _ _).symm,  }
 
 @[simp]
-lemma algebra.restrict_scalars_iso_apply (s : S) : algebra.restrict_scalars_iso R S s = s := rfl
+lemma algebra.restrict_scalars_equiv_apply (s : S) :
+  algebra.restrict_scalars_equiv R S s = s := rfl
+@[simp]
+lemma algebra.restrict_scalars_equiv_symm_apply (s : S) :
+  (algebra.restrict_scalars_equiv R S).symm s = s := rfl
 
 variables {S E}
 
 local attribute [instance] module.restrict_scalars
 
 /--
-The `R`-submodule of the `R`-module given by restriction of scalars,
-corresponding to an `S`-submodule of the original `S`-module.
+`V.restrict_scalars R` is the `R`-submodule of the `R`-module given by restriction of scalars,
+corresponding to `V`, an `S`-submodule of the original `S`-module.
 -/
 @[simps]
 def submodule.restrict_scalars (V : submodule S E) : submodule R E :=
@@ -607,6 +614,11 @@ def submodule.restrict_scalars (V : submodule S E) : submodule R E :=
   zero := V.zero,
   smul := λ c e h, V.smul _ h,
   add := λ x y hx hy, V.add hx hy, }
+
+@[simp]
+lemma submodule.restrict_scalars_mem (V : submodule S E) (e : E) :
+  e ∈ V.restrict_scalars R ↔ e ∈ V :=
+iff.refl _
 
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=

@@ -387,29 +387,29 @@ lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smu
 lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
 
 lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa using p.neg_mem h, p.neg_mem⟩
+⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
 
 lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
-⟨λ h₂, by simpa using p.sub_mem h₂ h₁, λ h₂, p.add_mem h₂ h₁⟩
+⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
 
 lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
-⟨λ h₂, by simpa using p.sub_mem h₂ h₁, p.add_mem h₁⟩
+⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
 
 lemma sum_mem {t : finset ι} {f : ι → M} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 begin
   classical,
-  exact finset.induction_on t (by simp [zero_mem]) (by simp [add_mem] {contextual := tt})
+  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
 end
 
 lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
-instance : has_add p := ⟨λx y, ⟨x.1 + y.1, p.add_mem x.2 y.2⟩⟩
-instance : has_zero p := ⟨⟨0, p.zero_mem⟩⟩
+instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
+instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_neg p := ⟨λx, ⟨-x.1, p.neg_mem x.2⟩⟩
-instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, p.smul_mem c x.2⟩⟩
+instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
+instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
 variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl

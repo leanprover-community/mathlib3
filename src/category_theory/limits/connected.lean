@@ -25,6 +25,43 @@ universes v₁ v₂ u₁ u₂
 open category_theory category_theory.category category_theory.limits
 namespace category_theory
 
+section examples
+instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
+
+instance cospan_connected : connected (walking_cospan) :=
+begin
+  apply connected.of_induct,
+  introv _ t,
+  cases j,
+  { rwa t walking_cospan.hom.inl },
+  { rwa t walking_cospan.hom.inr },
+  { assumption }
+end
+
+instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩
+
+instance span_connected : connected (walking_span) :=
+begin
+  apply connected.of_induct,
+  introv _ t,
+  cases j,
+  { assumption },
+  { rwa ← t walking_span.hom.fst },
+  { rwa ← t walking_span.hom.snd },
+end
+
+instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
+
+instance parallel_pair_connected : connected (walking_parallel_pair) :=
+begin
+  apply connected.of_induct,
+  introv _ t,
+  cases j,
+  { rwa t walking_parallel_pair_hom.left },
+  { assumption }
+end
+end examples
+
 local attribute [tidy] tactic.case_bash
 
 variables {C : Type u₂} [𝒞 : category.{v₂} C]

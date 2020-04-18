@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves
+import category_theory.const
+import category_theory.discrete_category
+import category_theory.eq_to_hom
 
 /-!
 # Connected category
@@ -44,7 +43,7 @@ category is preserved by the functor `(X × -)`.
 
 universes v₁ v₂ u₁ u₂
 
-open category_theory category_theory.category category_theory.limits
+open category_theory.category
 namespace category_theory
 
 section connected
@@ -220,43 +219,5 @@ lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
-
-omit 𝒞 𝒥
-section examples
-instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
-
-instance cospan_connected : connected (walking_cospan) :=
-begin
-  apply connected.of_induct,
-  introv _ t,
-  cases j,
-  { rwa t walking_cospan.hom.inl },
-  { rwa t walking_cospan.hom.inr },
-  { assumption }
-end
-
-instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩
-
-instance span_connected : connected (walking_span) :=
-begin
-  apply connected.of_induct,
-  introv _ t,
-  cases j,
-  { assumption },
-  { rwa ← t walking_span.hom.fst },
-  { rwa ← t walking_span.hom.snd },
-end
-
-instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
-
-instance parallel_pair_connected : connected (walking_parallel_pair) :=
-begin
-  apply connected.of_induct,
-  introv _ t, cases j,
-  { rwa t walking_parallel_pair_hom.left },
-  { assumption }
-end
-
-end examples
 
 end category_theory

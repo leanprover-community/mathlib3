@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.comma
-import category_theory.connected
+import category_theory.limits.connected
 import category_theory.limits.creates
+import category_theory.limits.limits
 import category_theory.limits.preserves
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.binary_products
@@ -142,7 +143,7 @@ instance (B : C) : has_terminal.{v} (over B) :=
               rwa [category.comp_id, category.comp_id] at this
             end } } } }
 
-namespace creates
+namespace creates_connected
 
 /--
 (Impl) Given a diagram in the over category, produce a natural transformation from the
@@ -177,15 +178,15 @@ def raised_cone_is_limit [connected J] {B : C} {F : J ⥤ over B} {c : cone (F �
                (by { dsimp, simp }),
   uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
 
-end creates
+end creates_connected
 
 /-- The forgetful functor from the over category creates any connected limit. -/
 instance forget_creates_connected_limits [connected J] {B : C} : creates_limits_of_shape J (forget : over B ⥤ C) :=
 { creates_limit := λ K,
     creates_limit_of_reflects_iso (λ c t,
-      { lifted_cone := creates.raise_cone c,
-        valid_lift := eq_to_iso (creates.raised_cone_lowers_to_original c t),
-        makes_limit := creates.raised_cone_is_limit t } ) }
+      { lifted_cone := creates_connected.raise_cone c,
+        valid_lift := eq_to_iso (creates_connected.raised_cone_lowers_to_original c t),
+        makes_limit := creates_connected.raised_cone_is_limit t } ) }
 
 /-- The over category has any connected limit which the original category has. -/
 instance has_connected_limits {B : C} [connected J] [has_limits_of_shape J C] : has_limits_of_shape J (over B) :=

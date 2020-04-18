@@ -331,14 +331,9 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
 
--- TODO: Tidy this proof?
--- I'd like to write
--- { reflects := λ X Y f t, by exactI
---   { inv := over.hom_mk t.inv ((as_iso (forget.map f)).inv_comp_eq.2 (over.w f).symm) } }
--- but it times out for some reason
 instance forget_reflects_iso : reflects_isomorphisms (forget : over X ⥤ T) :=
-{ reflects := λ X Y f t,
-  { inv := over.hom_mk t.inv (by { exact (@as_iso _ _ _ _ (forget.map f) t).inv_comp_eq.2 (over.w f).symm }) } }
+{ reflects := λ X Y f t, by exactI
+  { inv := over.hom_mk t.inv ((as_iso (forget.map f)).inv_comp_eq.2 (over.w f).symm) } }
 
 section iterated_slice
 variables (f : over X)

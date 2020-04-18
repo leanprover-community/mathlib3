@@ -52,7 +52,7 @@ instance : second_countable_topology ennreal :=
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
 ⟨⟨begin
   refine le_antisymm _ _,
-  { rw [order_topology.topology_eq_generate_intervals ennreal,
+  { rw [@order_topology.topology_eq_generate_intervals ennreal _,
       ← coinduced_le_iff_le_induced],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
@@ -60,7 +60,7 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
     { cases a; simp [none_eq_top, some_eq_coe, is_open_lt'] },
     show is_open {b : nnreal | ↑b < a},
     { cases a; simp [none_eq_top, some_eq_coe, is_open_gt', is_open_const] } },
-  { rw [order_topology.topology_eq_generate_intervals nnreal],
+  { rw [@order_topology.topology_eq_generate_intervals nnreal _],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
@@ -78,7 +78,7 @@ have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
   from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
 this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
 
-@[elim_cast] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
+@[norm_cast] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
@@ -429,7 +429,7 @@ section tsum
 
 variables {f g : α → ennreal}
 
-@[elim_cast] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
 have (λs:finset α, s.sum (coe ∘ f)) = (coe : nnreal → ennreal) ∘ (λs:finset α, s.sum f),
   from funext $ assume s, ennreal.coe_finset_sum.symm,
@@ -481,6 +481,10 @@ protected lemma ne_top_of_tsum_ne_top (h : (∑ a, f a) ≠ ∞) (a : α) : f a 
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑p:Σa, β a, f p.1 p.2) = (∑a b, f a b) :=
+tsum_sigma (assume b, ennreal.summable) ennreal.summable
+
+protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ennreal) :
+  (∑p:(Σa, β a), f p) = (∑a b, f ⟨a, b⟩) :=
 tsum_sigma (assume b, ennreal.summable) ennreal.summable
 
 protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2) = (∑a, ∑b, f a b) :=

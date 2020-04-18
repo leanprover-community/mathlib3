@@ -87,7 +87,7 @@ lemma borel_eq_generate_Iio (α)
   borel α = generate_from (range Iio) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
@@ -120,7 +120,7 @@ lemma borel_eq_generate_Ioi (α)
   borel α = generate_from (range Ioi) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x}))) {x | a < x} :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
@@ -170,7 +170,7 @@ class borel_space (α : Type*) [topological_space α] [measurable_space α] : Pr
 @[priority 100]
 instance borel_space.opens_measurable {α : Type*} [topological_space α] [measurable_space α]
   [borel_space α] : opens_measurable_space α :=
-⟨ge_of_eq $ borel_space.measurable_eq α⟩
+⟨ge_of_eq $ borel_space.measurable_eq⟩
 
 instance subtype.borel_space {α : Type*} [topological_space α] [measurable_space α]
   [hα : borel_space α] (s : set α) :
@@ -187,9 +187,9 @@ variables [topological_space α] [measurable_space α] [opens_measurable_space �
    [topological_space β] [measurable_space β] [opens_measurable_space β]
    [topological_space γ] [measurable_space γ] [borel_space γ]
    [measurable_space δ]
-   
+
 lemma is_open.is_measurable (h : is_open s) : is_measurable s :=
-opens_measurable_space.borel_le α _ $ generate_measurable.basic _ h
+opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
 lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is_measurable
 
@@ -250,8 +250,8 @@ end
 is measurable. -/
 lemma continuous.measurable {f : α → γ} (hf : continuous f) :
   measurable f :=
-hf.borel_measurable.mono (opens_measurable_space.borel_le _)
-  (le_of_eq $ borel_space.measurable_eq _)
+hf.borel_measurable.mono opens_measurable_space.borel_le
+  (le_of_eq $ borel_space.measurable_eq)
 
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
 def homeomorph.to_measurable_equiv {α : Type*} {β : Type*} [topological_space α]
@@ -297,7 +297,7 @@ lemma measurable_const_smul_iff {α : Type*} [topological_space α]
 
 lemma is_measurable_le' [partial_order α] [order_closed_topology α] [second_countable_topology α] :
   is_measurable {p : α × α | p.1 ≤ p.2} :=
-(order_closed_topology.is_closed_le' _).is_measurable
+order_closed_topology.is_closed_le'.is_measurable
 
 lemma is_measurable_le [partial_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
@@ -332,7 +332,7 @@ end
 
 instance prod.borel_space [second_countable_topology α] [second_countable_topology β] :
   borel_space (α × β) :=
-⟨le_antisymm prod_le_borel_prod (opens_measurable_space.borel_le (α × β))⟩
+⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
 @[to_additive]
 lemma measurable_mul [monoid α] [topological_monoid α] [second_countable_topology α] :

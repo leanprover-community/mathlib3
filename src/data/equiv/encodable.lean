@@ -14,7 +14,9 @@ open option list nat function
   `decode : nat → option α`. This makes the range of `encode` decidable,
   although it is not decidable if `α` is finite or not. -/
 class encodable (α : Type*) :=
-(encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
+(encode : α → nat)
+(decode [] : nat → option α)
+(encodek : ∀ a, decode (encode a) = some a)
 
 namespace encodable
 variables {α : Type*} {β : Type*}

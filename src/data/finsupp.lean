@@ -1580,31 +1580,31 @@ instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_left_cancel_semigroup (σ →₀ α) :=
 { add_left_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_left_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_right_cancel_semigroup (σ →₀ α) :=
 { add_right_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_right_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
-  ordered_cancel_comm_monoid (σ →₀ α) :=
+instance [ordered_cancel_add_comm_monoid α] :
+  ordered_cancel_add_comm_monoid (σ →₀ α) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
-lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+lemma le_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+@[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 begin
   split,

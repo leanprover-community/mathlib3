@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
-  tactic.derive_inhabited
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+  tactic.lean_core_docs tactic.derive_inhabited
 
 universe variable u
 
@@ -13,9 +13,6 @@ instance : has_lt pos :=
 
 namespace expr
 open tactic
-
-attribute [derive has_reflect] binder_info
-attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -925,10 +922,16 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -1448,6 +1451,15 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.success r s') := (finalizer >> pure r) s'
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
+
+/--
+`on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.
+-/
+meta def on_exception {β} (handler : tactic β) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s' := (handler *> result.exception msg p) s'
+| ok := ok
+end
 
 /-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
 meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=

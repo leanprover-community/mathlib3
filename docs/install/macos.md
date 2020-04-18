@@ -59,6 +59,8 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
    displayed.
 
 Note however that you cannot use mathlib, and in particular any imports,
-in the file `test.lean` created above. If you want to use mathlib you should
-now read instructions about creating and working on [Lean projects](project.md).
+in the file `test.lean` created above.
 
+## You're not done yet!
+
+👉 If you want to use mathlib, you should now read the instructions about creating and working on [Lean projects](project.md).

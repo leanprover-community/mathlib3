@@ -208,6 +208,18 @@ by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
 theorem finite_image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
 
+lemma finite_dependent_image {s : set α} (hs : finite s) {F : Π i ∈ s, β} {t : set β}
+  (H : ∀ y ∈ t, ∃ x (hx : x ∈ s), y = F x hx) : set.finite t :=
+begin
+  let G : s → β := λ x, F x.1 x.2,
+  have A : t ⊆ set.range G,
+  { assume y hy,
+    rcases H y hy with ⟨x, hx, xy⟩,
+    refine ⟨⟨x, hx⟩, xy.symm⟩ },
+  letI : fintype s := finite.fintype hs,
+  exact finite_subset (finite_range G) A
+end
+
 instance fintype_map {α β} [decidable_eq β] :
   ∀ (s : set α) (f : α → β) [fintype s], fintype (f <$> s) := set.fintype_image
 
@@ -330,10 +342,15 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
-  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
+  using (finite.to_finset h1).exists_min_image f ⟨x, finite.mem_to_finset.2 hx⟩
+
+lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f b ≤ f a
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using (finite.to_finset h1).exists_max_image f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 
@@ -367,6 +384,24 @@ begin
   simp,
   exact ⟨x, ⟨hx, hf _⟩⟩,
 end
+
+lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t) (h : t ⊆ ⋃ i, s i) :
+  ∃ I : set ι, (finite I) ∧ ∃ σ : {i | i ∈ I} → set α,
+     (∀ i, finite (σ i)) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
+let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
+⟨I, Ifin, λ x, s x ∩ t,
+    λ i, finite_subset tfin (inter_subset_right _ _),
+    λ i, inter_subset_left _ _,
+    begin
+      ext x,
+      rw mem_Union,
+      split,
+      { intro x_in,
+        rcases mem_Union.mp (hI x_in) with ⟨i, _, ⟨hi, rfl⟩, H⟩,
+        use [i, hi, H, x_in] },
+      { rintros ⟨i, hi, H⟩,
+        exact H }
+    end⟩
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
   (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=

@@ -214,18 +214,41 @@ end
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
 -- Observe that the next three declarations could easily be implemented by a tactic.
 
-attribute [ext] semigroup
-
 -- This has been automated in the `transport` branch,
 -- so we won't attempt to write a deriver handler until we join with that.
 def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
 begin
   intro S, fconstructor,
   -- transport data fields using `equiv_rw`
-  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  { have mul := S.mul,
+    equiv_rw e at mul,
+    -- This `equiv_rw` performs the following steps:
+    -- have e' := (equiv.arrow_congr' e (equiv.arrow_congr' e e)),
+    -- have h := (e'.symm_apply_apply mul).symm,
+    -- revert h,
+    -- generalize : (e' mul) = mul',
+    -- intro h,
+    -- clear_dependent mul,
+    -- rename mul' mul,
+    exact mul,
+  },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
+
+example {α β : Type} (e : α ≃ β) (S : semigroup α) :
+  (semigroup.map e S).mul =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_mul.mul :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : semigroup α) (x y : β) :
+begin
+  haveI := semigroup.map e S,
+  exact x * y = e (e.symm x * e.symm y)
+end :=
+rfl
+
+attribute [ext] semigroup
 
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
@@ -279,3 +302,22 @@ begin
     equiv_rw e at mul_one,
     apply mul_one, },
 end
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) :
+  (monoid.map e S).mul =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_mul.mul :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) (x y : β) :
+begin
+  haveI := monoid.map e S,
+  exact x * y = e (e.symm x * e.symm y)
+end :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) :
+begin
+  haveI := monoid.map e S,
+  exact (1 : β) = e (1 : α)
+end :=
+rfl

@@ -25,7 +25,7 @@ variable [is_submonoid S]
 section
 variables {α S}
 theorem r_of_eq {a₀ a₁ : α × S} (h : (a₀.2 : α) * a₁.1 = a₁.2 * a₀.1) : a₀ ≈ a₁ :=
-⟨1, is_submonoid.one_mem S, by rw [h, sub_self, mul_one]⟩
+⟨1, is_submonoid.one_mem, by rw [h, sub_self, mul_one]⟩
 end
 
 theorem refl (x : α × S) : x ≈ x := r_of_eq rfl
@@ -171,7 +171,7 @@ end
 
 lemma mk_self {x : α} {hx : x ∈ S} :
   (mk x ⟨x, hx⟩ : localization α S) = 1 :=
-quotient.sound ⟨1, is_submonoid.one_mem S,
+quotient.sound ⟨1, is_submonoid.one_mem,
 by simp only [subtype.coe_mk, is_submonoid.coe_one, mul_one, one_mul, sub_self]⟩
 
 lemma mk_self' {s : S} :
@@ -611,7 +611,7 @@ set_option class.instance_max_depth 50
 
 variables (α S)
 
-instance : algebra α (localization α S) := algebra.of_ring_hom coe (is_ring_hom.of_semiring coe)
+instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra $ λ _, mul_comm _
 
 lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
 by { simp, refl }

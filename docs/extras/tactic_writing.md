@@ -419,7 +419,7 @@ parse location → tactic unit
 
 ## What to read now?
 
-This is the end of this tutorial (although there are two cheat sheets below).
+This is the end of this tutorial (although there are three cheat sheets below).
 If you want to learn more, you can read the definitions of tactics in either
 the core library or mathlib, see what you can understand, and ask specific
 questions on Zulip. For more theory, especially a proper explanation of monads, you can read
@@ -503,3 +503,22 @@ reading available tactics.
 * `ma <|> ma'` recover from failure: runs `ma` and if it fails then runs `ma'`.
 * `a $> mb`: same as `do mb, return a`
 * `ma <$ b`: same as `do ma, return b`
+
+## Cheap and dirty tactic trick
+
+If you just want one tactic to implement a few lines of tactic mode in Lean (e.g., because you are
+finding that you are having to type the same three or four lines several times in your proof)
+you can hack together a tactic like this:
+
+```lean
+meta def rw_search_hack : tactic unit := do
+`[
+repeat {rw assoc},
+try {simp},
+repeat {rw comp_right_app},
+repeat {rw nat_trans.naturality}
+]
+```
+
+This creates a new tactic which just runs the tactic script between `` `[ `` and `]`.
+

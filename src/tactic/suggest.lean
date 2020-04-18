@@ -81,7 +81,7 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
                        end
 | (expr.app f _)    := match_head_symbol f
 | (expr.const n _)  := if list.mem hs (unfold_head_symbol n) then some ex else none
-| _ := none
+| _ := if hs = `_ then some ex else none
 
 meta structure decl_data :=
 (d : declaration)
@@ -197,6 +197,29 @@ open suggest
 
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
+-- Call `apply_declaration`, then prepare the tactic script and
+-- count the number of local hypotheses used.
+private meta def apply_declaration_script
+  (g : expr) (hyps : list expr)
+  (discharger : tactic unit := done)
+  (d : decl_data) :
+  tactic application :=
+-- (This tactic block is only executed when we evaluate the mllist,
+-- so we need to do the `focus1` here.)
+retrieve $ focus1 $ do
+  apply_declaration ff discharger d,
+  ng ← num_goals,
+  g ← instantiate_mvars g,
+  state ← read,
+  m ← message g state,
+  return
+  { application .
+    state := state,
+    decl := d.d,
+    script := m,
+    num_goals := ng,
+    hyps_used := hyps.countp (λ h, h.occurs g) }
+
 -- implementation note: we produce a `tactic (mllist tactic application)` first,
 -- because it's easier to work in the tactic monad, but in a moment we squash this
 -- down to an `mllist tactic application`.
@@ -206,12 +229,12 @@ do g :: _ ← get_goals,
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
-   (lock_tactic_state (do
+   (retrieve (do
      focus1 $ solve_by_elim { discharger := discharger },
      s ← read,
      m ← tactic_statement g,
      g ← instantiate_mvars g,
-     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
+     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp (λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
@@ -222,24 +245,22 @@ do g :: _ ← get_goals,
    trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
    trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
+   let defs : mllist tactic _ := mllist.of_list defs,
+
    -- Try applying each lemma against the goal,
-   -- then record the number of remaining goals, and number of local hypotheses used.
-   return $ (mllist.of_list defs).mfilter_map
-   -- (This tactic block is only executed when we evaluate the mllist,
-   -- so we need to do the `focus1` here.)
-   (λ d, lock_tactic_state $ focus1 $ do
-     apply_declaration ff discharger d,
-     ng ← num_goals,
-     g ← instantiate_mvars g,
-     state ← read,
-     m ← message g state,
-     return
-     { application .
-       state := state,
-       decl := d.d,
-       script := m,
-       num_goals := ng,
-       hyps_used := hyps.countp(λ h, h.occurs g) }))
+   -- recording the tactic script as a string,
+   -- the number of remaining goals,
+   -- and number of local hypotheses used.
+   let results := defs.mfilter_map (apply_declaration_script g hyps discharger),
+   -- Now call `symmetry` and try again.
+   -- (Because we are using `mllist`, this is essentially free if we've already found a lemma.)
+   symm_state ← retrieve $ try_core $ symmetry >> read,
+   let results_symm := match symm_state with
+   | (some s) :=
+     defs.mfilter_map (λ d, retrieve $ set_state s >> apply_declaration_script g hyps discharger d)
+   | none := mllist.nil
+   end,
+  return (results.append results_symm))
 
 /--
 The core `suggest` tactic.
@@ -308,8 +329,16 @@ The default for `num` is `50`.
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+-/
+meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
+do L ← tactic.suggest_scripts (n.get_or_else 50),
+  when (¬ is_trace_enabled_for `silence_suggest)
+    (if L.length = 0 then
+      fail "There are no applicable declarations"
+    else
+      L.mmap trace >> skip)
 
----
+/--
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and
 `library_search`.
@@ -341,14 +370,6 @@ Try this: refine lt_of_not_ge _
 ...
 ```
 -/
-meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
-do L ← tactic.suggest_scripts (n.get_or_else 50),
-  when (¬ is_trace_enabled_for `silence_suggest)
-    (if L.length = 0 then
-      fail "There are no applicable declarations"
-    else
-      L.mmap trace >> skip)
-
 add_tactic_doc
 { name        := "suggest",
   category    := doc_category.tactic,
@@ -363,8 +384,15 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+-/
+meta def library_search : tactic unit :=
+tactic.library_search tactic.done >>=
+if is_trace_enabled_for `silence_library_search then
+  (λ _, skip)
+else
+  trace
 
----
+/--
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using
 `solve_by_elim`.
@@ -378,13 +406,6 @@ by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
 Typically you will then copy and paste this proof, replacing the call to `library_search`.
 -/
-meta def library_search : tactic unit :=
-tactic.library_search tactic.done >>=
-if is_trace_enabled_for `silence_library_search then
-  (λ _, skip)
-else
-  trace
-
 add_tactic_doc
 { name        := "library_search",
   category    := doc_category.tactic,

@@ -1074,7 +1074,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management"] }
+  tags       := ["goal management", "proof extraction"] }
 
 
 /--

@@ -3,7 +3,7 @@ import data.stream meta.coinductive_predicates
 universe u
 
 coinductive all_stream {α : Type u} (s : set α) : stream α → Prop
-| step {} : ∀{a : α} {ω : stream α}, a ∈ s → all_stream ω → all_stream (a :: ω)
+| step : ∀{a : α} {ω : stream α}, a ∈ s → all_stream ω → all_stream (a :: ω)
 
 example : Π {α : Type u}, set α → stream α → Prop :=
 @all_stream
@@ -21,7 +21,7 @@ example : ∀ {α : Type u} (s : set α) (C : stream α → Prop),
 @all_stream.corec_functional
 
 coinductive all_stream' {α : Type u} (s : set α) : stream α → Prop
-| step {} : ∀{ω : stream α}, stream.head ω ∈ s → all_stream' (stream.tail ω) → all_stream' ω
+| step : ∀{ω : stream α}, stream.head ω ∈ s → all_stream' (stream.tail ω) → all_stream' ω
 
 coinductive alt_stream : stream bool → Prop
 | tt_step : ∀{ω : stream bool}, alt_stream (ff :: ω) → alt_stream (tt :: ff :: ω)
@@ -38,9 +38,9 @@ example : ∀ (C : stream bool → Prop),
 
 mutual coinductive tt_stream, ff_stream
 with tt_stream : stream bool → Prop
-| step {} : ∀{ω : stream bool}, ff_stream ω → tt_stream (stream.cons tt ω)
+| step : ∀{ω : stream bool}, ff_stream ω → tt_stream (stream.cons tt ω)
 with ff_stream : stream bool → Prop
-| step {} : ∀{ω : stream bool}, tt_stream ω → ff_stream (stream.cons ff ω)
+| step : ∀{ω : stream bool}, tt_stream ω → ff_stream (stream.cons ff ω)
 
 example : stream bool → Prop := @tt_stream
 example : stream bool → Prop := @ff_stream
@@ -57,9 +57,9 @@ example : ∀ (C_tt_stream C_ff_stream : stream bool → Prop),
 
 mutual coinductive tt_ff_stream, ff_tt_stream
 with tt_ff_stream : stream bool → Prop
-| step {} : ∀{ω : stream bool}, tt_ff_stream ω ∨ ff_tt_stream ω → tt_ff_stream (stream.cons tt ω)
+| step : ∀{ω : stream bool}, tt_ff_stream ω ∨ ff_tt_stream ω → tt_ff_stream (stream.cons tt ω)
 with ff_tt_stream : stream bool → Prop
-| step {} : ∀{ω : stream bool}, ff_tt_stream ω ∨ tt_ff_stream ω → ff_tt_stream (stream.cons ff ω)
+| step : ∀{ω : stream bool}, ff_tt_stream ω ∨ tt_ff_stream ω → ff_tt_stream (stream.cons ff ω)
 
 inductive all_list {α : Type} (p : α → Prop) : list α → Prop
 | nil  : all_list []
@@ -68,8 +68,8 @@ inductive all_list {α : Type} (p : α → Prop) : list α → Prop
 @[monotonicity]
 lemma monotonicity.all_list {α : Type} {p q : α → Prop} (h : ∀a, implies (p a) (q a)) :
   ∀xs, implies (all_list p xs) (all_list q xs)
-| ._ (all_list.nil ._)           := all_list.nil _
-| ._ (all_list.cons a xs ha hxs) := all_list.cons _ _ (h a ha) (monotonicity.all_list _ hxs)
+| _ (all_list.nil)              := all_list.nil
+| _ (all_list.cons a xs ha hxs) := all_list.cons _ _ (h a ha) (monotonicity.all_list _ hxs)
 
 mutual coinductive walk_a, walk_b {α β : Type} (f : α → list β) (g : β → α) (p : α → Prop) (t : α → Prop)
 with walk_a : α → Prop

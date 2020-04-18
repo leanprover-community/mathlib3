@@ -21,7 +21,7 @@ open finset (hiding singleton)
   i.e. `α` has an explicit bijection with `fin n` for some n. -/
 class fin_enum (α : Sort*) :=
 (card : ℕ)
-(equiv : α ≃ fin card)
+(equiv [] : α ≃ fin card)
 [dec_eq : decidable_eq α]
 
 attribute [instance, priority 100] fin_enum.dec_eq

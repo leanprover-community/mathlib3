@@ -17,10 +17,6 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def of_rat (x : ℚ) : ℝ := of_rat x
-
-def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
-
 def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
 
 instance : comm_ring ℝ := { ..comm_ring_aux }
@@ -42,6 +38,13 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
+is `cau_seq.completion.of_rat`, not `rat.cast`. -/
+def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
+
+/-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
+def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -154,7 +157,7 @@ calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
-eq_cast of_rat rfl of_rat_add of_rat_mul
+of_rat.eq_rat_cast
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=

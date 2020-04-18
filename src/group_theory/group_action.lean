@@ -57,7 +57,6 @@ def regular : mul_action α α :=
 section
 local attribute [instance] regular
 
-@[simp]
 lemma regular_smul (a₁ a₂ : α) : a₁ • a₂ = a₁ * a₂ := rfl
 end
 

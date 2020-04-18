@@ -85,14 +85,10 @@ do
       get_local f >>= exact))))
 
 namespace interactive
-open lean.parser
-open interactive interactive.types
-open tactic
-
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /--
-Given a goal `⊢ S β` for some parametrized structure type `S`, and an equivalence `e : α ≃ β`.
+Given a goal `⊢ S β` for some type class `S`, and an equivalence `e : α ≃ β`.
 `transport using e` will look for a hypothesis `s : S α`,
 and attempt to close the goal by transporting `s` across the equivalence `e`.
 

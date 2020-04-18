@@ -65,19 +65,25 @@ meta def replace_target (rw : tracked_rewrite) : tactic unit :=
 do (exp, prf) ← rw.eval,
    tactic.replace_target exp prf
 
-private meta def replace_target_side (new_target : expr) (lam : pexpr) (prf : expr) : tactic unit :=
-do prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
+private meta def replace_target_side (new_target lam prf : expr) : tactic unit :=
+do prf' ← mk_congr_arg lam prf,
    tactic.replace_target new_target prf'
 
 meta def replace_target_lhs (rw : tracked_rewrite) : tactic unit :=
 do expr.app (expr.app r lhs) rhs ← target,
    (new_lhs, prf) ← rw.eval,
-   replace_target_side (r new_lhs rhs) ``(λ L, %%r L %%rhs) prf
+   lt ← infer_type lhs,
+   L ← mk_local_def `L lt,
+   lam ← lambdas [L] (r lhs L),
+   replace_target_side (r new_lhs rhs) lam prf
 
 meta def replace_target_rhs (rw : tracked_rewrite) : tactic unit :=
 do expr.app (expr.app r lhs) rhs ← target,
    (new_rhs, prf) ← rw.eval,
-   replace_target_side (r lhs new_rhs) ``(λ R, %%r %%lhs R) prf
+   rt ← infer_type rhs,
+   R ← mk_local_def `R rt,
+   lam ← lambdas [R] (r lhs R),
+   replace_target_side (r lhs new_rhs) lam prf
 
 variable (h : expr)
 
@@ -86,7 +92,7 @@ do (exp, prf) ← rw.eval,
    tactic.replace_hyp h exp prf,
    skip
 
-private meta def replace_hyp_side (new_hyp : expr) (lam : expr) (prf : expr) : tactic unit :=
+private meta def replace_hyp_side (new_hyp lam prf : expr) : tactic unit :=
 trace_scope $
 do prf' ← mk_congr_arg lam prf,
    tactic.replace_hyp h new_hyp prf',

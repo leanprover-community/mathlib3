@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 import data.option.defs data.mllist tactic.core
-
+import .debug
 open tactic
 
 /-- Inductive type with two constructors `L` and `R`,
@@ -86,21 +86,29 @@ do (exp, prf) ← rw.eval,
    tactic.replace_hyp h exp prf,
    skip
 
-private meta def replace_hyp_side (new_hyp : expr) (lam : pexpr) (prf : expr) : tactic unit :=
-do prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
+private meta def replace_hyp_side (new_hyp : expr) (lam : expr) (prf : expr) : tactic unit :=
+trace_scope $
+do prf' ← mk_congr_arg lam prf,
    tactic.replace_hyp h new_hyp prf',
    skip
 
 meta def replace_hyp_lhs (rw : tracked_rewrite) : tactic unit :=
 do (new_lhs, prf) ← rw.eval,
    expr.app (expr.app r lhs) rhs ← infer_type h,
-   replace_hyp_side h (r new_lhs rhs) ``(λ L, %%r L %%rhs) prf,
+   lt ← infer_type lhs,
+   L ← mk_local_def `L lt,
+   lam ← lambdas [L] (r lhs L),
+   replace_hyp_side h (r new_lhs rhs) lam prf,
    skip
 
 meta def replace_hyp_rhs (rw : tracked_rewrite) : tactic unit :=
+trace_scope $
 do (new_rhs, prf) ← rw.eval,
    expr.app (expr.app r lhs) rhs ← infer_type h,
-   replace_hyp_side h (r lhs new_rhs) ``(λ R, %%r %%lhs R) prf,
+   rt ← infer_type rhs,
+   R ← mk_local_def `R rt,
+   lam ← lambdas [R] (r lhs R),
+   replace_hyp_side h (r lhs new_rhs) lam prf,
    skip
 
 end tracked_rewrite

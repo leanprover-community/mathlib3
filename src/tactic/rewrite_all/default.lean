@@ -88,9 +88,14 @@ do e ← infer_type h,
    get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_hyp_lhs h
 
 meta def nth_rw_hyp_rhs (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
+trace_scope $
 do e ← infer_type h,
+   trace "A",
    (r, lhs, rhs) ← relation_lhs_rhs e,
-   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_hyp_rhs h
+   trace "B",
+   r ← get_nth_rewrite' n q rhs,
+   trace "A",
+   tracked_rewrite.replace_hyp_rhs h r
 
 meta def nth_rw_goal (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
 do e ← target, get_nth_rewrite' n q e >>= tracked_rewrite.replace_target
@@ -142,6 +147,7 @@ values of arguments, the second match will not be identified.)
 
 See also: `nth_rewrite` and `nth_rewrite_lhs` -/
 meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+trace_scope $
 match l with
 | loc.wildcard := l.try_apply (nth_rw_hyp_rhs n q) (nth_rw_goal_rhs n q)
 | _            := l.apply     (nth_rw_hyp_rhs n q) (nth_rw_goal_rhs n q)
@@ -151,16 +157,16 @@ end >> tactic.try (tactic.reflexivity reducible)
 end interactive
 end tactic
 
-example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
+example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
 begin
-  nth_rewrite_rhs 1 [h₁] at h₂,
+  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
   nth_rewrite_rhs 0 [← h₁] at h₂,
   nth_rewrite_rhs 0 h₂,
 end
 
-example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
+example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
 begin
-  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
+  nth_rewrite_rhs 1 [h₁] at h₂,
   nth_rewrite_rhs 0 [← h₁] at h₂,
   nth_rewrite_rhs 0 h₂,
 end

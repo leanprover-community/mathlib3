@@ -31,4 +31,10 @@ do trace!"• begin {n}",
    trace!"• end {n}",
    pure r
 
+meta def trace_expr (e : expr) : tactic expr :=
+do t ← infer_type e >>= pp,
+   e' ← pp e,
+   trace format!"{e'} : {t}",
+   pure e
+
 end tactic

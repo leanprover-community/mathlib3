@@ -65,20 +65,19 @@ meta def replace_target (rw : tracked_rewrite) : tactic unit :=
 do (exp, prf) ← rw.eval,
    tactic.replace_target exp prf
 
-private meta def replace_target_side (new_target lam : pexpr) (prf : expr) : tactic unit :=
-do new_target ← to_expr new_target tt ff,
-   prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
+private meta def replace_target_side (new_target : expr) (lam : pexpr) (prf : expr) : tactic unit :=
+do prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
    tactic.replace_target new_target prf'
 
 meta def replace_target_lhs (rw : tracked_rewrite) : tactic unit :=
-do (new_lhs, prf) ← rw.eval,
-   `(%%_ = %%rhs) ← target,
-   replace_target_side ``(%%new_lhs = %%rhs) ``(λ L, L = %%rhs) prf
+do expr.app (expr.app r lhs) rhs ← target,
+   (new_lhs, prf) ← rw.eval,
+   replace_target_side (r new_lhs rhs) ``(λ L, %%r L %%rhs) prf
 
 meta def replace_target_rhs (rw : tracked_rewrite) : tactic unit :=
-do (new_rhs, prf) ← rw.eval,
-   `(%%lhs = %%_) ← target,
-   replace_target_side ``(%%lhs = %%new_rhs) ``(λ R, %%lhs = R) prf
+do expr.app (expr.app r lhs) rhs ← target,
+   (new_rhs, prf) ← rw.eval,
+   replace_target_side (r lhs new_rhs) ``(λ R, %%r %%lhs R) prf
 
 variable (h : expr)
 
@@ -87,22 +86,21 @@ do (exp, prf) ← rw.eval,
    tactic.replace_hyp h exp prf,
    skip
 
-private meta def replace_hyp_side (new_hyp lam : pexpr) (prf : expr) : tactic unit :=
-do new_hyp ← to_expr new_hyp tt ff,
-   prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
+private meta def replace_hyp_side (new_hyp : expr) (lam : pexpr) (prf : expr) : tactic unit :=
+do prf' ← to_expr ``(congr_arg %%lam %%prf) tt ff,
    tactic.replace_hyp h new_hyp prf',
    skip
 
 meta def replace_hyp_lhs (rw : tracked_rewrite) : tactic unit :=
 do (new_lhs, prf) ← rw.eval,
-   `(%%_ = %%rhs) ← infer_type h,
-   replace_hyp_side h ``(%%new_lhs = %%rhs) ``(λ L, L = %%rhs) prf,
+   expr.app (expr.app r lhs) rhs ← infer_type h,
+   replace_hyp_side h (r new_lhs rhs) ``(λ L, %%r L %%rhs) prf,
    skip
 
 meta def replace_hyp_rhs (rw : tracked_rewrite) : tactic unit :=
 do (new_rhs, prf) ← rw.eval,
-   `(%%lhs = %%_) ← infer_type h,
-   replace_hyp_side h ``(%%lhs = %%new_rhs) ``(λ R, %%lhs = R) prf,
+   expr.app (expr.app r lhs) rhs ← infer_type h,
+   replace_hyp_side h (r lhs new_rhs) ``(λ R, %%r %%lhs R) prf,
    skip
 
 end tracked_rewrite

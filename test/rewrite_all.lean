@@ -89,3 +89,17 @@ end
 -- miss any rewrites if we also look inside every thing we chunk-up into a metavariable as well.
 -- In almost every case this will bring up no results (with the exception of situations like this
 -- one), so there should be essentially no change in complexity.
+
+example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂,
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end
+
+example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end

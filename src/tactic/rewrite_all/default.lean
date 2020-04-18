@@ -79,23 +79,29 @@ do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= rewrite_all e,
    rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
 
 meta def nth_rw_hyp (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-do e ← infer_type h, get_nth_rewrite' n q e >>= tracked_rewrite.replace_hyp h
+do e ← infer_type h,
+   get_nth_rewrite' n q e >>= tracked_rewrite.replace_hyp h
 
--- TODO (also allow (%%lhs ↔ %%_))
 meta def nth_rw_hyp_lhs (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-do `(%%lhs = %%_) ← infer_type h, get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_hyp_lhs h
+do e ← infer_type h,
+   (r, lhs, rhs) ← relation_lhs_rhs e,
+   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_hyp_lhs h
 
 meta def nth_rw_hyp_rhs (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-do `(%%_ = %%rhs) ← infer_type h, get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_hyp_rhs h
+do e ← infer_type h,
+   (r, lhs, rhs) ← relation_lhs_rhs e,
+   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_hyp_rhs h
 
 meta def nth_rw_goal (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
 do e ← target, get_nth_rewrite' n q e >>= tracked_rewrite.replace_target
 
 meta def nth_rw_goal_lhs (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do `(%%lhs = %%_) ← target, get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_target_lhs
+do (r, lhs, rhs) ← target_lhs_rhs,
+   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_target_lhs
 
 meta def nth_rw_goal_rhs (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do `(%%_ = %%rhs) ← target, get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_target_rhs
+do (r, lhs, rhs) ← target_lhs_rhs,
+   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_target_rhs
 
 /-- `perform_nth_write n rules` performs only the `n`th possible rewrite using the `rules`.
 
@@ -144,3 +150,17 @@ end >> tactic.try (tactic.reflexivity reducible)
 
 end interactive
 end tactic
+
+example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂,
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end
+
+example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end

@@ -332,7 +332,9 @@ meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : b
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
-meta def get_simp_args (e : expr) : tactic (list expr) := do
+meta def get_simp_args (e : expr) : tactic (list expr) :=
+-- `mk_specialized_congr_lemma_simp` throws an assertion violation if its argument is not an app
+if ¬ e.is_app then pure [] else do
 cgr ← mk_specialized_congr_lemma_simp e,
 pure $ do
   (arg_kind, arg) ← cgr.arg_kinds.zip e.get_app_args,

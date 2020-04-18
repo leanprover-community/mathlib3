@@ -53,7 +53,8 @@ def fib (n : ℕ) : ℕ := (fib_aux_stream n).fst
 private lemma fib_aux_stream_succ {n : ℕ} :
     fib_aux_stream (n + 1) = fib_aux_step (fib_aux_stream n) :=
 begin
-  change (stream.nth _ $ stream.iterate _ _) = fib_aux_step (stream.nth _ $ stream.iterate _ _),
+  change (stream.nth (n + 1) $ stream.iterate fib_aux_step ⟨0, 1⟩) =
+      fib_aux_step (stream.nth n $ stream.iterate fib_aux_step ⟨0, 1⟩),
   rw [stream.nth_succ_iterate, stream.map_iterate, stream.nth_map]
 end
 

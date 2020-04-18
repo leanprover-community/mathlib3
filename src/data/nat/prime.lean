@@ -315,6 +315,16 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 
+lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] := begin
+  have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
+  rw [this, nat.factors],
+  simp only [eq.symm this],
+  have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
+  split,
+  exact this,
+  simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)],
+end
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩

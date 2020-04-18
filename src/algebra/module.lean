@@ -226,6 +226,8 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 end
 
+-- We can infer the module structure implicitly from the linear maps,
+-- rather than via typeclass resolution.
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (f g : M →ₗ[R] M₂)
 

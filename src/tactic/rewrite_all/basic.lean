@@ -74,7 +74,7 @@ do expr.app (expr.app r lhs) rhs ← target,
    (new_lhs, prf) ← rw.eval,
    lt ← infer_type lhs,
    L ← mk_local_def `L lt,
-   lam ← lambdas [L] (r lhs L),
+   lam ← lambdas [L] (r L rhs),
    replace_target_side (r new_lhs rhs) lam prf
 
 meta def replace_target_rhs (rw : tracked_rewrite) : tactic unit :=
@@ -103,7 +103,7 @@ do (new_lhs, prf) ← rw.eval,
    expr.app (expr.app r lhs) rhs ← infer_type h,
    lt ← infer_type lhs,
    L ← mk_local_def `L lt,
-   lam ← lambdas [L] (r lhs L),
+   lam ← lambdas [L] (r L rhs),
    replace_hyp_side h (r new_lhs rhs) lam prf,
    skip
 

@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves
+import category_theory.const
+import category_theory.discrete_category
+import category_theory.eq_to_hom
 
 /-!
 # Connected category
@@ -44,7 +43,7 @@ category is preserved by the functor `(X × -)`.
 
 universes v₁ v₂ u₁ u₂
 
-open category_theory category_theory.category category_theory.limits
+open category_theory.category
 namespace category_theory
 
 section connected

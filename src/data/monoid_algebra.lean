@@ -526,19 +526,12 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
       rw [algebra.smul_def, mul_one],
       apply zero_smul
     end, },
-  left_inv := λ f,
-    begin
-      ext x, dsimp,
-      norm_cast, dsimp,
-      rw [sum_single_index, one_smul],
-      apply zero_smul,
-    end,
+  left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
-      ext f, dsimp,
-      norm_cast,
+      ext f,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
+      simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
     end }
 
 universe ui

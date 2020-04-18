@@ -229,6 +229,18 @@ lemma coe_le_iff : ↑r ≤ a ↔ (∀p:nnreal, a = p → r ≤ p) := with_top.c
 
 lemma lt_iff_exists_coe : a < b ↔ (∃p:nnreal, a = p ∧ ↑p < b) := with_top.lt_iff_exists_coe a b
 
+lemma pow_le_pow {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
+begin
+  cases a,
+  { cases m,
+    { rw eq_bot_iff.mpr h,
+      exact le_refl _ },
+    { rw [none_eq_top, top_pow (nat.succ_pos m)],
+      exact le_top } },
+  { rw [some_eq_coe, ← coe_pow, ← coe_pow, coe_le_coe],
+    exact pow_le_pow (by simpa using ha) h }
+end
+
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
 by simp only [le_zero_iff_eq.symm, max_le_iff]
 

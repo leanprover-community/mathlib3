@@ -516,6 +516,48 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 @[simp] lemma hom_mk'_right {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (w : u ≫ g = f ≫ v) : (hom_mk' w).right = v := rfl
 
+@[reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
+
+/-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
+@[ext] class has_lift {f g : arrow T} (sq : f ⟶ g) :=
+(lift : f.right ⟶ g.left)
+(fac_left : f.hom ≫ lift = sq.left)
+(fac_right : lift ≫ g.hom = sq.right)
+
+attribute [simp, reassoc] has_lift.fac_left has_lift.fac_right
+
+/-- If we have chosen a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
+abbreviation lift {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.right ⟶ g.left :=
+has_lift.lift sq
+
+lemma lift.fac_left {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.hom ≫ lift sq = sq.left :=
+by simp
+
+lemma lift.fac_right {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift sq ≫ g.hom = sq.right :=
+by simp
+
+@[simp, reassoc]
+lemma lift_mk'_left {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : f ≫ lift (arrow.hom_mk' h) = u :=
+by simp only [←arrow.mk_hom f, lift.fac_left, arrow.hom_mk'_left]
+
+@[simp, reassoc]
+lemma lift_mk'_right {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
+  (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : lift (arrow.hom_mk' h) ≫ g = v :=
+by simp only [←arrow.mk_hom g, lift.fac_right, arrow.hom_mk'_right]
+
+section
+
+instance subsingleton_has_lift_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
+  subsingleton (has_lift sq) :=
+subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_epi f.hom).1 $ by simp
+
+instance subsingleton_has_lift_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
+  subsingleton (has_lift sq) :=
+subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_mono g.hom).1 $ by simp
+
+end
+
 end arrow
 
 end category_theory

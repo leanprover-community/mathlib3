@@ -616,6 +616,23 @@ def module.restrict_scalars : module R E :=
   add_smul  := by simp [add_smul],
   zero_smul := by simp [zero_smul] }
 
+/--
+The identity function, as an `R`-linear map from `S` to itself,
+with `module.restrict_scalars R S S` as the module structure in the source,
+and `algebra.to_module` as the module structure in the target.
+
+Unfortunately these structures are not generally definitionally equal,
+so we sometimes need to insert this map in order to typecheck.
+-/
+def algebra.restrict_scalars_iso :
+  @linear_map R S S _ _ _ (module.restrict_scalars R S S) (algebra.to_module) :=
+{ to_fun := λ s, s,
+  add := λ x y, rfl,
+  smul := λ c x, (algebra.smul_def' _ _).symm,  }
+
+@[simp]
+lemma algebra.restrict_scalars_iso_apply (s : S) : algebra.restrict_scalars_iso R S s = s := rfl
+
 variables {S E}
 
 local attribute [instance] module.restrict_scalars

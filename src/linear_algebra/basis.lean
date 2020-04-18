@@ -1188,8 +1188,7 @@ begin
   apply exists.elim (exists_is_basis K V),
   intros b hb,
   haveI := classical.dec_pred (λ x, x ∈ b),
-  use card b,
-  exact module.card_fintype hb,
+  exact ⟨_, module.card_fintype hb⟩,
 end
 
 end vector_space

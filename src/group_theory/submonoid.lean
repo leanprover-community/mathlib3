@@ -453,15 +453,18 @@ namespace submonoid
 instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 
 @[to_additive]
+instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, S.carrier⟩
+
+@[to_additive]
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
-@[simp, norm_cast, to_additive, nolint simp_nf] -- `simp_nf: timeout`
+@[simp, norm_cast, to_additive]
 lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
 
-attribute [norm_cast, nolint simp_nf] add_submonoid.coe_coe
+attribute [norm_cast] add_submonoid.mem_coe add_submonoid.coe_coe
 
 @[to_additive]
 instance is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩

@@ -23,6 +23,8 @@ open native
 
 namespace suggest
 
+open solve_by_elim
+
 /-- compute the head symbol of an expression, but normalise `>` to `<` and `≥` to `≤` -/
 -- We may want to tweak this further?
 meta def head_symbol : expr → name
@@ -117,7 +119,7 @@ and there are any goals remaining.
 -- whether or not `close_goals` is set,
 -- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
 -- on the remaining goals.
-meta def apply_and_solve (close_goals : bool) (opt : by_elim_opt := { }) (e : expr) : tactic unit :=
+meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic unit :=
 apply e >>
 -- Phase 1
 -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
@@ -140,7 +142,7 @@ try (any_goals (independent_goal >> solve_by_elim { ..opt })) >>
 Apply the declaration `d` (or the forward and backward implications separately, if it is an `iff`),
 and then attempt to solve the goal using `apply_and_solve`.
 -/
-meta def apply_declaration (close_goals : bool) (opt : by_elim_opt := { }) (d : decl_data) :
+meta def apply_declaration (close_goals : bool) (opt : opt := { }) (d : decl_data) :
   tactic unit :=
 let tac := apply_and_solve close_goals opt in
 do (e, t) ← decl_mk_const d.d,
@@ -181,6 +183,7 @@ meta structure application :=
 
 end suggest
 
+open solve_by_elim
 open suggest
 
 declare_trace suggest         -- Trace a list of all relevant lemmas
@@ -189,14 +192,14 @@ declare_trace suggest         -- Trace a list of all relevant lemmas
 -- count the number of local hypotheses used.
 private meta def apply_declaration_script
   (g : expr) (hyps : list expr)
-  (opt : by_elim_opt := { })
+  (opt : opt := { })
   (d : decl_data) :
   tactic application :=
 -- (This tactic block is only executed when we evaluate the mllist,
 -- so we need to do the `focus1` here.)
 retrieve $ focus1 $ do
   apply_declaration ff opt d,
-  ng ← num_goals,  
+  ng ← num_goals,
   s ← read,
   m ← tactic_statement g,
   return
@@ -210,7 +213,7 @@ retrieve $ focus1 $ do
 -- implementation note: we produce a `tactic (mllist tactic application)` first,
 -- because it's easier to work in the tactic monad, but in a moment we squash this
 -- down to an `mllist tactic application`.
-private meta def suggest_core' (opt : by_elim_opt := { }) :
+private meta def suggest_core' (opt : opt := { }) :
   tactic (mllist tactic application) :=
 do g :: _ ← get_goals,
    hyps ← local_context,
@@ -219,7 +222,7 @@ do g :: _ ← get_goals,
    (retrieve (do
      focus1 $ solve_by_elim { ..opt },
      s ← read,
-     m ← tactic_statement g,     
+     m ← tactic_statement g,
      return $ mllist.of_list [⟨s, m, none, 0, hyps.countp (λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
@@ -262,7 +265,7 @@ It returns a list of `application`s consisting of fields:
 * `num_goals`, the number of remaining goals, and
 * `hyps_used`, the number of local hypotheses used in the solution.
 -/
-meta def suggest_core (opt : by_elim_opt := { }) : mllist tactic application :=
+meta def suggest_core (opt : opt := { }) : mllist tactic application :=
 (mllist.monad_lift (suggest_core' opt)).join
 
 /--
@@ -271,7 +274,7 @@ See `suggest_core`.
 Returns a list of at most `limit` `application`s,
 sorted by number of goals, and then (reverse) number of hypotheses used.
 -/
-meta def suggest (limit : option ℕ := none) (opt : by_elim_opt := { }) : 
+meta def suggest (limit : option ℕ := none) (opt : opt := { }) :
   tactic (list application) :=
 do let results := suggest_core opt,
    -- Get the first n elements of the successful lemmas
@@ -284,7 +287,7 @@ do let results := suggest_core opt,
 Returns a list of at most `limit` strings, of the form `exact ...` or `refine ...`, which make
 progress on the current goal using a declaration from the library.
 -/
-meta def suggest_scripts (limit : option ℕ := none) (opt : by_elim_opt := { }) :
+meta def suggest_scripts (limit : option ℕ := none) (opt : opt := { }) :
   tactic (list string) :=
 do L ← suggest limit opt,
    return $ L.map application.script
@@ -292,7 +295,7 @@ do L ← suggest limit opt,
 /--
 Returns a string of the form `exact ...`, which closes the current goal.
 -/
-meta def library_search (opt : by_elim_opt := { }) : tactic string :=
+meta def library_search (opt : opt := { }) : tactic string :=
 (suggest_core opt).mfirst (λ a, do guard (a.num_goals = 0), write a.state, return a.script)
 
 namespace interactive
@@ -300,6 +303,7 @@ open tactic
 open interactive
 open lean.parser
 open interactive.types
+open solve_by_elim
 local postfix `?`:9001 := optional
 
 declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages for `suggest`
@@ -316,14 +320,19 @@ The default for `num` is `50`.
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+Because `suggest` attempts to close any remaining goals using `solve_by_elim`, any inputs
+accepted by `solve_by_elim` are also accepted by `suggest`. This allows the user to add
+lemmas to the list of hypotheses, either as a list of lemmas or as a list of attribute
+names.
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?)
-  (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) :
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : opt := { }) :
   tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
    L ← tactic.suggest_scripts (n.get_or_else 50)
      {backtrack_all_goals := tt,
-      assumptions := return asms,
+      lemma_thunks := return asms,
       ..opt},
   if is_trace_enabled_for `silence_suggest then
     skip
@@ -379,13 +388,18 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+
+Once `library_search` applies a lemma from the library it attempts to close any remaining
+goals using `solve_by_elim`. Thus any inputs accepted by `solve_by_elim` are also accepted
+by `suggest`. This allows the user to add lemmas to the list of hypotheses, either as a
+list of lemmas or as a list of attribute names.
 -/
 meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
-  (opt : by_elim_opt := { }) : tactic unit :=
+  (opt : opt := { }) : tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
    tactic.library_search
      {backtrack_all_goals := tt,
-      assumptions := return asms,
+      lemma_thunks := return asms,
       ..opt} >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)

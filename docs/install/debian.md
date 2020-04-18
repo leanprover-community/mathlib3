@@ -22,6 +22,6 @@ The fast way is: open a terminal and type:
 wget -q https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/install_debian.sh && bash install_debian.sh ; rm -f install_debian.sh && source ~/.profile
 ```
 
-## What's next
+## You're not done yet!
 
-:point_right: You should now read instructions about creating and working on [Lean projects](project.md)
+:point_right: You should now read the instructions about creating and working on [Lean projects](project.md).

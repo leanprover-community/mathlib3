@@ -94,7 +94,9 @@ polynomial, multivariate polynomial, multivariable polynomial
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open set function finsupp add_monoid_algebra
+open set function
+open finsupp
+open add_monoid_algebra (hiding single) -- FIXME I'm so sad: `data.polynomial` works fine using `add_monoid_algebra.single`, but here it doesn't.
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -127,7 +129,7 @@ def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 def C (a : α) : mv_polynomial σ α := monomial 0 a
 
 /-- `X n` is the degree `1` monomial `1*n` -/
-def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
+def X (n : σ) : mv_polynomial σ α := monomial (finsupp.single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ α) := by simp [C, monomial]; refl
 
@@ -152,7 +154,7 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
 
-lemma X_pow_eq_single : X n ^ e = monomial (single n e) (1 : α) :=
+lemma X_pow_eq_single : X n ^ e = monomial (finsupp.single n e) (1 : α) :=
 begin
   induction e,
   { simp [X], refl },
@@ -160,15 +162,15 @@ begin
     simp [X, monomial, single_mul_single, nat.succ_eq_add_one, add_comm] }
 end
 
-lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
+lemma monomial_add_single : monomial (s + finsupp.single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
-lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
+lemma monomial_single_add : monomial (finsupp.single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
-  monomial (single s n) a = C a * (X s)^n :=
-by rw [← zero_add (single s n), monomial_add_single, C]
+  monomial (finsupp.single s n) a = C a * (X s)^n :=
+by rw [← zero_add (finsupp.single s n), monomial_add_single, C]
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
   monomial s a + monomial s b = monomial s (a + b) :=

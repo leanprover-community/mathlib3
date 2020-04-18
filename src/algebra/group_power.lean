@@ -651,10 +651,10 @@ end int
 by simp [pow, monoid.pow]
 
 @[simp] lemma pow_of_add [add_monoid A] (x : A) (n : ℕ) :
-  (multiplicative.of_add x)^n = multiplicative.of_add (n • x) := rfl
+  multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
 @[simp] lemma gpow_of_add [add_group A] (x : A) (n : ℤ) :
-  (multiplicative.of_add x)^n = multiplicative.of_add (n •ℤ x) := rfl
+  multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
 
 variables (M G A)
 
@@ -664,7 +664,7 @@ def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := pow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← pow_of_add] } }
 
 /-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
 of `multiplicative.of_add 1`. -/
@@ -672,7 +672,7 @@ def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := gpow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_gpow] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← gpow_of_add] } }
 
 /-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
 def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=

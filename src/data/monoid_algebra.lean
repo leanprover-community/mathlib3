@@ -332,7 +332,7 @@ finsupp.comap_distrib_mul_action_self
 @[simp]
 lemma comap_smul_eq_mul_single [group G] [semiring k] (g : G) (f : monoid_algebra k G) :
   g • f = single g 1 * f :=
-by { ext g', simp, }
+by { ext g', simp [mul_action.regular_smul], }
 
 /-- A synonym for `finsupp.single` to help quide type checking. -/
 abbreviation single [monoid G] [semiring k] (g : G) (r : k) : monoid_algebra k G :=

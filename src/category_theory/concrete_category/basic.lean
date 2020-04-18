@@ -3,8 +3,10 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
-import category_theory.types category_theory.full_subcategory
+import category_theory.types
+import category_theory.full_subcategory
 import category_theory.eq_to_hom
+import category_theory.whiskering
 
 /-!
 # Concrete categories
@@ -128,7 +130,7 @@ instance concrete_category.types : concrete_category (Type u) :=
 -/
 class has_forget₂ (C D : Type (u+1)) [large_category C] [concrete_category C] [large_category D] [concrete_category D] :=
 (forget₂ : C ⥤ D)
-(forget_comp : forget₂ ⋙ (forget D) = forget C . obviously)
+(forget_comp : forget₂ ⋙ (forget D) ≅ forget C)
 
 /-- The forgetful functor `C ⥤ D` between concrete categories for which we have an instance
 `has_forget₂ C `. -/
@@ -177,7 +179,7 @@ instance induced_category.concrete_category {C D : Type (u+1)} [large_category D
 instance induced_category.has_forget₂ {C D : Type (u+1)} [large_category D] [concrete_category D] (f : C → D) :
   has_forget₂ (induced_category D f) D :=
 { forget₂ := induced_functor f,
-  forget_comp := rfl }
+  forget_comp := iso.refl _ }
 
 /--
 In order to construct a “partially forgetting” functor, we do not need to verify functor laws;
@@ -189,10 +191,10 @@ def has_forget₂.mk' {C D : Type (u+1)} [large_category C] [concrete_category C
   (h_map : ∀ {X Y} {f : X ⟶ Y}, (forget D).map (map f) == (forget C).map f) :
 has_forget₂ C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
-  forget_comp := by apply faithful.div_comp }
+  forget_comp := eq_to_iso (faithful.div_comp _ _ _ _ _ _) }
 
 instance has_forget_to_Type (C : Type (u+1)) [large_category C] [concrete_category C] : has_forget₂ C (Type u) :=
 { forget₂ := forget C,
-  forget_comp := functor.comp_id _ }
+  forget_comp := functor.right_unitor _ }
 
 end category_theory

@@ -139,7 +139,8 @@ instance concrete_category_of_differential_objects :
 { forget := forget C ⋙ category_theory.forget C }
 
 instance : has_forget₂ (differential_object.{u} C) C :=
-{ forget₂ := forget C }
+{ forget₂ := forget C,
+  forget_comp := iso.refl _ }
 
 end differential_object
 

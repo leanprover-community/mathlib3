@@ -201,7 +201,8 @@ instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }
 
 instance : has_forget₂ (graded_object β C) C :=
-{ forget₂ := total β C }
+{ forget₂ := total β C,
+  forget_comp := iso.refl _ }
 
 end graded_object
 

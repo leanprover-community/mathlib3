@@ -96,7 +96,9 @@ local attribute [instance, priority 100] classical.prop_decidable
 
 open set function
 open finsupp
-open add_monoid_algebra (hiding single) -- FIXME I'm so sad: `data.polynomial` works fine using `add_monoid_algebra.single`, but here it doesn't.
+-- FIXME I'm so sad: `data.polynomial` works fine using `add_monoid_algebra.single`,
+-- but `data.mv_polynomial` doesn't.
+open add_monoid_algebra (hiding single)
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}

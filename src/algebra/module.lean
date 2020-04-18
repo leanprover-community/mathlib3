@@ -441,7 +441,8 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+lemma subtype_eq_val :
+  ((submodule.subtype p) : p → M) = subtype.val := rfl
 
 end submodule
 

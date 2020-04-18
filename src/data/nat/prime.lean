@@ -315,7 +315,8 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 
-lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] := begin
+lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] := 
+begin
   have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
   rw [this, nat.factors],
   simp only [eq.symm this],

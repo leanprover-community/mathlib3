@@ -82,7 +82,7 @@ constant also tends to infinity. -/
 lemma tendsto_at_top_div [linear_ordered_field α]
   {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-tendsto_at_top_mul_right' (inv_pos hr) hf
+tendsto_at_top_mul_right' (inv_pos.2 hr) hf
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
@@ -106,8 +106,8 @@ begin
   rcases hs with ⟨C, C0, hC⟩,
   change 0 < C at C0,
   refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
-  have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
-  exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
+  have : 0 < x, from lt_of_lt_of_le (inv_pos.2 C0) hx,
+  exact ⟨inv_pos.2 this, (inv_le C0 this).1 hx⟩
 end
 
 lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
@@ -328,7 +328,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -341,8 +341,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow'],
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end

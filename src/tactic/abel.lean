@@ -67,6 +67,7 @@ meta def normal_expr.e : normal_expr → expr
 | (normal_expr.nterm e _ _ _) := e
 
 meta instance : has_coe normal_expr expr := ⟨normal_expr.e⟩
+meta instance : has_coe_to_fun normal_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
 meta def normal_expr.term' (c : cache) (n : expr × ℤ) (x : expr) (a : normal_expr) : normal_expr :=
 normal_expr.nterm (c.mk_term n.1 x a) n x a
@@ -319,14 +320,7 @@ do mode ← ident?, match mode with
 | _          := failed
 end
 
-/-- Tactic for solving equations in the language of
-*additive*, commutative monoids and groups.
-Attempts to prove the goal outright if there is no `at`
-specifier and the target is an equality, but if this
-fails it falls back to rewriting all monoid expressions
-into a normal form.
-
----
+/--
 Evaluate expressions in the language of *additive*, commutative monoids and groups.
 It attempts to prove the goal outright if there is no `at`
 specifier and the target is an equality, but if this

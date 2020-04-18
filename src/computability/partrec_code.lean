@@ -51,6 +51,12 @@ protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)
 
+theorem injective_const : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
+| 0 0 h := by simp
+| (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h, 
+                          injection h with h₁ h₂, 
+                          simp only [injective_const h₂] }
+
 protected def id : code := pair left right
 
 def curry (c : code) (n : ℕ) : code :=
@@ -136,8 +142,7 @@ theorem encode_lt_comp (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.bit0_lt (nat.lt_succ_self _),
+  change _, simp [encode_code_eq, encode_code]
 end
 
 theorem encode_lt_prec (cf cg) :
@@ -146,8 +151,7 @@ theorem encode_lt_prec (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code, -add_comm],
-  exact nat.lt_succ_self _,
+  change _, simp [encode_code_eq, encode_code],
 end
 
 theorem encode_lt_rfind' (cf) : encode cf < encode (rfind' cf) :=
@@ -508,6 +512,16 @@ theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $
 pair_prim.comp (const_prim.comp primrec.snd) (primrec.const code.id)
 
+theorem injective_curry {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
+⟨by injection h, by { injection h, 
+                      injection h with h₁ h₂, 
+                      injection h₂ with h₃ h₄, 
+                      exact injective_const h₃ }⟩
+
+theorem smn : ∃ f : code → ℕ → code, 
+  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) := 
+⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
+
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=
 ⟨λ h, begin
   induction h,
@@ -560,7 +574,6 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   x ← evaln (k+1) cf (mkpair a m),
   if x = 0 then pure m else
   evaln k (rfind' cf) (mkpair a (m+1)))
-using_well_founded wf_tacs
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | 0     c n x h := by simp [evaln] at h; cases h

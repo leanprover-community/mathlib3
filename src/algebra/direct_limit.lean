@@ -33,8 +33,8 @@ variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 This is used for abelian groups and rings and fields because their maps are not bundled.
 See module.directed_system -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
@@ -42,8 +42,8 @@ variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
@@ -187,7 +187,7 @@ variables [Π i, add_comm_group (G i)]
 def direct_limit (f : Π i j, i ≤ j → G i → G j)
   [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
 @module.direct_limit ℤ _ ι _ _ _ G _ _ _
-  (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+  (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map)
   ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 namespace direct_limit
@@ -195,19 +195,20 @@ namespace direct_limit
 variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
-lemma directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
+lemma directed_system :
+  module.directed_system G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map) :=
 ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 local attribute [instance] directed_system
 
 instance : add_comm_group (direct_limit G f) :=
-module.direct_limit.add_comm_group G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
 set_option class.instance_max_depth 50
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
-module.direct_limit.of ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) i
+module.direct_limit.of ℤ ι G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map) i
 variables {G f}
 
 instance of.is_add_group_hom (i) : is_add_group_hom (of G f i) :=
@@ -240,8 +241,8 @@ variables (G f)
 that respect the directed system structure (i.e. make some diagram commute) give rise
 to a unique map out of the direct limit. -/
 def lift : direct_limit G f → P :=
-module.direct_limit.lift ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
-  (λ i, is_add_group_hom.to_linear_map $ g i) Hg
+module.direct_limit.lift ℤ ι G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map)
+  (λ i, (add_monoid_hom.of $ g i).to_int_linear_map) Hg
 variables {G f}
 
 instance lift.is_add_group_hom : is_add_group_hom (lift G f P g Hg) :=

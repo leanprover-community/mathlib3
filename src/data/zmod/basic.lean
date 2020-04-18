@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 
-import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
+import data.int.modeq data.int.gcd data.fintype.basic data.pnat.basic tactic.ring
 
 /-!
 # Integers mod `n`
@@ -23,7 +23,7 @@ There are two types defined, `zmod n`, which is for integers modulo a positive n
 * A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
 characteristic dividing `n`
 
-## Implentation notes
+## Implementation notes
 
 `zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
 synthesized. This leads to a lot of code duplication and most of the functions and theorems for
@@ -158,7 +158,7 @@ by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
 @[simp, priority 980]
 lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
-cast_mod_nat _ _
+cast_mod_nat ⟨n, hn⟩ a
 
 @[simp] lemma cast_val {n : ℕ+} (a : zmod n) : (a.val : zmod n) = a :=
 by cases a; simp [mk_eq_cast]
@@ -168,7 +168,7 @@ by conv {to_rhs, rw ← int.mod_add_div a n}; simp
 
 @[simp, priority 980]
 lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
-  ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
+  ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int ⟨n, hn⟩ a
 
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=
 have h : nat_abs (a % (n : ℕ)) < n := int.coe_nat_lt.1 begin
@@ -513,7 +513,7 @@ private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 
   rw [mk_eq_cast, ne.def, ← @nat.cast_zero (zmodp p hp), eq_iff_modeq_nat, modeq_zero_iff] at ha0,
   have : nat.gcd p a = 1 := (prime.coprime_iff_not_dvd hp).2 ha0,
   rw [mk_eq_cast _ hap, mul_inv_eq_gcd, nat.gcd_comm],
-  simpa [nat.gcd_comm, this]
+  simp [nat.gcd_comm, this]
 end
 
 instance : field (zmodp p hp) :=

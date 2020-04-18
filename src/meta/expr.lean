@@ -16,6 +16,8 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -128,9 +130,8 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
-/--
-Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
--/
+/-- `last_string n` returns the rightmost component of `n`, ignoring numeral components.
+For example, ``last_string `a.b.c.33`` will return `` `c ``. -/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
@@ -218,29 +219,30 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 
 namespace expr
 
-/-- Turns an expression into a positive natural number, assuming it is only built up from
-  `has_one.one`, `bit0` and `bit1`. -/
-protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
-| `(bit0 %%e) := bit0 <$> e.to_pos_nat
-| `(bit1 %%e) := bit1 <$> e.to_pos_nat
-| _           := none
-
-/-- Turns an expression into a natural number, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
+/--
+Turns an expression into a natural number, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero`, `nat.zero`, and `nat.succ`.
+-/
 protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
-| e                  := e.to_pos_nat
+| `(has_zero.zero) := some 0
+| `(has_one.one) := some 1
+| `(bit0 %%e) := bit0 <$> e.to_nat
+| `(bit1 %%e) := bit1 <$> e.to_nat
+| `(nat.succ %%e) := (+1) <$> e.to_nat
+| `(nat.zero) := some 0
+| _ := none
 
-/-- Turns an expression into a integer, assuming it is only built up from
-  `has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head. -/
+/--
+Turns an expression into a integer, assuming it is only built up from
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero` and a optionally a single `has_neg.neg` as head.
+-/
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
 /--
- is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
- ignoring differences in type and type class arguments.
+`is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
+ignoring differences in type and type class arguments.
 -/
 meta def is_num_eq : expr → expr → bool
 | `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
@@ -307,6 +309,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
 
+/--
+Test `t` contains the specified subexpression `e`, or a metavariable.
+This represents the notion that `e` "may occur" in `t`,
+possibly after subsequent unification.
+-/
+meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
+-- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
+¬ t.list_meta_vars.empty ∨ e.occurs t
+
 /-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
@@ -319,6 +330,14 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
+meta def get_simp_args (e : expr) : tactic (list expr) := do
+cgr ← mk_specialized_congr_lemma_simp e,
+pure $ do
+  (arg_kind, arg) ← cgr.arg_kinds.zip e.get_app_args,
+  guard $ arg_kind = congr_arg_kind.eq,
+  pure arg
 
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof
@@ -379,13 +398,15 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
 Terms will free variables are not well-typed, and one should not use them in tactics like
 `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
 The reason for working with open types is for performance: instantiating variables requires
 iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
@@ -664,3 +685,7 @@ meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
+
+meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
+unchecked_cast
+expr.has_decidable_eq

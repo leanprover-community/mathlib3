@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import topology.metric_space.basic
-topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+  topology.bounded_continuous_function analysis.normed_space.basic topology.opens
 
 /-!
 # Isometries
@@ -126,6 +126,9 @@ lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
 h.isometry_to_fun.inv h.to_equiv
 
+@[ext] lemma ext : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (∀ x, h₁ x = h₂ x) → h₁ = h₂
+| ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := have e₁ = e₂ := equiv.ext _ _ H, by subst e₁
+
 /-- Alternative constructor for isometric bijections,
 taking as input an isometry, and a right inverse. -/
 def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometry f) : α ≃ᵢ β :=
@@ -134,6 +137,29 @@ def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometr
   left_inv := λ x, hf.injective $ hfg _,
   right_inv := hfg,
   isometry_to_fun := hf }
+
+section normed_group
+
+variables {G : Type*} [normed_group G]
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  .. equiv.add_left x }
+
+variable (G)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  .. equiv.neg G }
+
+end normed_group
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -157,12 +183,30 @@ protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :
 { isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
+@[simp] lemma trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : α) : h₁.trans h₂ x = h₂ (h₁ x) := rfl
+
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry_inv_fun,
   .. h.to_equiv.symm }
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
+
+protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+
+@[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=
+h.to_equiv.apply_symm_apply y
+
+@[simp] lemma symm_apply_apply (h : α ≃ᵢ β) (x : α) : h.symm (h x) = x :=
+h.to_equiv.symm_apply_apply x
+
+lemma symm_apply_eq (h : α ≃ᵢ β) {x : α} {y : β} :
+  h.symm y = x ↔ y = h x :=
+h.to_equiv.symm_apply_eq
+
+lemma eq_symm_apply (h : α ≃ᵢ β) {x : α} {y : β} :
+  x = h.symm y ↔ h x = y :=
+h.to_equiv.eq_symm_apply
 
 lemma symm_comp_self (h : α ≃ᵢ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
@@ -203,10 +247,10 @@ end
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : isometry (@algebra_map 𝕜 𝕜' _ _ _) :=
+  [normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
-  rw [dist_eq_norm, dist_eq_norm, ← algebra.map_sub, norm_algebra_map_eq],
+  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
 end
 
 /-- The space of bounded sequences, with its sup norm -/
@@ -272,7 +316,7 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with basepoint,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ _,
+    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
     have : closure (range x) = univ :=

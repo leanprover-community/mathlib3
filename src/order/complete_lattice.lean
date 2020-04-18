@@ -42,6 +42,32 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
+/-- Create a `complete_lattice` from a `partial_order` and `Inf` function
+that returns the greatest lower bound of a set. Usually this constructor provides
+poor definitional equalities, so it should be used with
+`.. complete_lattice_of_Inf α _`. -/
+def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
+  [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
+  complete_lattice α :=
+{ bot := Inf univ,
+  bot_le := λ x, (is_glb_Inf univ).1 trivial,
+  top := Inf ∅,
+  le_top := λ a, (is_glb_Inf ∅).2 $ by simp,
+  sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
+  inf := λ a b, Inf {a, b},
+  le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
+  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
+  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
+  le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
+  le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
+  le_Inf := λ s a ha, (is_glb_Inf s).2 ha,
+  Inf_le := λ s a ha, (is_glb_Inf s).1 ha,
+  Sup := λ s, Inf (upper_bounds s),
+  le_Sup := λ s a ha, (is_glb_Inf (upper_bounds s)).2 $ λ b hb, hb ha,
+  Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
+  .. H1, .. H2 }
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 end prio
@@ -229,6 +255,17 @@ supr_le $ le_supr _ ∘ h
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
+lemma monotone.map_supr_ge [complete_lattice β] {f : α → β} (hf : monotone f) :
+  (⨆ i, f (s i)) ≤ f (supr s) :=
+supr_le $ λ i, hf $ le_supr _ _
+
+lemma monotone.map_supr2_ge [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  (⨆ i (h : ι' i), f (s i h)) ≤ f (⨆ i (h : ι' i), s i h) :=
+calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
+  supr_le_supr $ λ i, hf.map_supr_ge
+... ≤ f (⨆ i (h : ι' i), s i h) : hf.map_supr_ge
+
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -274,6 +311,16 @@ le_infi $ infi_le _ ∘ h
 
 @[simp] theorem le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
+
+lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
+  f (infi s) ≤ (⨅ i, f (s i)) :=
+le_infi $ λ i, hf $ infi_le _ _
+
+lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone f)
+  {ι' : ι → Sort*} (s : Π i, ι' i → α) :
+  f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
+calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
+... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
 
 @[congr] theorem infi_congr_Prop {α : Type u} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
@@ -619,6 +666,10 @@ le_antisymm
 lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
+lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
+(⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
+infi_subtype
 
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

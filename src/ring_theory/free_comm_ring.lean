@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import group_theory.free_abelian_group data.equiv.functor data.polynomial
+import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
 noncomputable theory
@@ -143,10 +143,10 @@ theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
 is_submonoid.mul_mem hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
-is_add_submonoid.zero_mem _
+is_add_submonoid.zero_mem
 
 theorem is_supported_one : is_supported 1 s :=
-is_submonoid.one_mem _
+is_submonoid.one_mem
 
 theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
 int.induction_on i is_supported_zero
@@ -230,20 +230,20 @@ instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
 free_ring.to_free_comm_ring.is_ring_hom _
 
-@[simp] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
-@[simp] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
 
 variable {α}
 
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
 free_ring.lift_of _ _
-@[simp] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
+@[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 free_ring.lift_neg _ _
-@[simp] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
+@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
 free_ring.lift_add _ _ _
-@[simp] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
+@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
 free_ring.lift_sub _ _ _
-@[simp] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
+@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
 free_ring.lift_mul _ _ _
 
 variable (α)
@@ -279,7 +279,7 @@ end
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
 @ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
-  (@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α) $
+  (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
@@ -306,7 +306,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
       refine multiset.induction_on s _ _,
@@ -330,7 +330,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
   begin
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+      (int.cast_ring_hom _).is_semiring_hom,
     have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
     { exact λ i, int.induction_on i
       (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])

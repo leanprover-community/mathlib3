@@ -60,7 +60,7 @@ variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_trans_gen a
+| refl : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
@@ -69,7 +69,7 @@ run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_
 
 /-- `refl_gen r`: reflexive closure of `r` -/
 inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_gen a
+| refl : refl_gen a
 | single {b} : r a b → refl_gen b
 
 run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff

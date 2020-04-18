@@ -57,13 +57,31 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-@[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a : α) :
-  a * (if P then 1 else 0) = if P then a else 0 :=
-by split_ifs; simp
+@[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  a * (if P then b else c) = if P then a * b else a * c :=
+by split_ifs; refl
 
-@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[to_additive] lemma ite_mul {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
+  (if P then a else b) * c = if P then a * c else b * c :=
+by split_ifs; refl
+
+-- We make `mul_ite` and `ite_mul` simp lemmas,
+-- but not `add_ite` or `ite_add`.
+-- The problem we're trying to avoid is dealing with
+-- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- in which `add_ite` followed by `sum_ite` would needlessly slice up
+-- the `f x` terms according to whether `P` holds at `x`.
+-- There doesn't appear to be a corresponding difficulty so far with
+-- `mul_ite` and `ite_mul`.
+attribute [simp] mul_ite ite_mul
+
+@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by simp
+
+@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by split_ifs; simp
+by simp
 
 variable (α)
 
@@ -141,10 +159,10 @@ attribute [trans] dvd.trans
 
 /-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
-(map_zero : f 0 = 0)
-(map_one : f 1 = 1)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_zero [] : f 0 = 0)
+(map_one [] : f 1 = 1)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
 
@@ -272,9 +290,9 @@ end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_one [] : f 1 = 1)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
 
@@ -340,10 +358,15 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
+@[norm_cast] lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →* β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_monoid_hom }
+@[norm_cast] lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →+ β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_add_monoid_hom }
 
 namespace ring_hom
 
@@ -466,6 +489,15 @@ class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_c
 class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
 end prio
 
+-- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
+-- but it doesn't seem worth doing just for these lemmas.
+lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
+
+-- As with succ_ne_self.
+lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
@@ -565,7 +597,7 @@ section
 
 /-- An integral domain is a domain. -/
   @[priority 100] -- see Note [lower instance priority]
-  instance integral_domain.to_domain : domain α := {..s}
+  instance integral_domain.to_domain : domain α := {..s, ..(by apply_instance : semiring α)}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=

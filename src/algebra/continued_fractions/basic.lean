@@ -60,7 +60,7 @@ variables {α} {β : Type*} [has_coe α β]
 instance has_coe_to_generalized_continued_fraction_pair : has_coe (gcf.pair α) (gcf.pair β) :=
 ⟨λ ⟨a, b⟩, ⟨(a : β), (b : β)⟩⟩
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction_pair {a b : α} :
   (↑(gcf.pair.mk a b) : gcf.pair β) = gcf.pair.mk (a : β) (b : β) :=
 rfl
@@ -130,7 +130,7 @@ local attribute [instance] seq.coe_to_seq
 instance has_coe_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
 ⟨λ ⟨h, s⟩, ⟨(h : β), (s : seq $ gcf.pair β)⟩⟩
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : gcf α} :
   (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
 by { cases g, refl }
@@ -196,7 +196,7 @@ instance : inhabited (scf α) := ⟨of_integer 1⟩
 instance has_coe_to_generalized_continued_fraction : has_coe (scf α) (gcf α) :=
 by {unfold scf, apply_instance}
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {s : scf α} : (↑s : gcf α) = s.val := rfl
 
 end simple_continued_fraction
@@ -239,13 +239,13 @@ instance : inhabited (cf α) := ⟨of_integer 0⟩
 instance has_coe_to_simple_continued_fraction : has_coe (cf α) (scf α) :=
 by {unfold cf, apply_instance}
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_to_simple_continued_fraction {c : cf α} : (↑c : scf α) = c.val := rfl
 
 /-- Lift a cf to a scf using the inclusion map. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (cf α) (gcf α) := ⟨λ c, ↑(↑c : scf α)⟩
 
-@[simp, elim_cast]
+@[simp, norm_cast squash]
 lemma coe_to_generalized_continued_fraction {c : cf α} : (↑c : gcf α) = c.val := rfl
 
 end continued_fraction

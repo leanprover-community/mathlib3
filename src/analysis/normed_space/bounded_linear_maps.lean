@@ -128,8 +128,7 @@ open asymptotics filter
 
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
   is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := h.bound in
-⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+let ⟨M, hMp, hM⟩ := h.bound in is_O.of_bound _ (mem_sets_of_superset univ_mem_sets (λ x _, hM x))
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
@@ -219,6 +218,20 @@ structure is_bounded_bilinear_map (f : E × F → G) : Prop :=
 
 variable {𝕜}
 variable {f : E × F → G}
+
+protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
+  asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
+let ⟨C, Cpos, hC⟩ := h.bound in asymptotics.is_O.of_bound _ $
+filter.eventually_of_forall ⊤ $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y
+
+lemma is_bounded_bilinear_map.is_O_comp {α : Type*} (H : is_bounded_bilinear_map 𝕜 f)
+  {g : α → E} {h : α → F} {l : filter α} :
+  asymptotics.is_O (λ x, f (g x, h x)) (λ x, ∥g x∥ * ∥h x∥) l :=
+H.is_O.comp_tendsto le_top
+
+protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
+  asymptotics.is_O f (λ p : E × F, ∥p∥ * ∥p∥) ⊤ :=
+h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) -  f(y, z) :=

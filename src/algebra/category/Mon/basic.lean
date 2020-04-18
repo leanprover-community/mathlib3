@@ -21,15 +21,11 @@ along with the relevant forgetful functors between them.
 
 ## Implementation notes
 
-See Note [locally reducible category instances]
-
-TODO: Probably @[derive] should be able to create instances of the
-required form (without `id`), and then we could use that instead of
-this obscure `local attribute [reducible]` method.
+See the note [locally reducible category instances].
 -/
 
-library_note "locally reducible category instances"
-"We make SemiRing (and the other categories) locally reducible in order
+/--
+We make SemiRing (and the other categories) locally reducible in order
 to define its instances. This is because writing, for example,
 
 ```
@@ -43,7 +39,13 @@ SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
 to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that
-we always access `R.α` through the coercion rather than directly)."
+we always access `R.α` through the coercion rather than directly).
+
+TODO: Probably @[derive] should be able to create instances of the
+required form (without `id`), and then we could use that instead of
+this obscure `local attribute [reducible]` method.
+-/
+library_note "locally reducible category instances"
 
 universes u v
 

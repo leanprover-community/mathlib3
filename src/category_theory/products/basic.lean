@@ -27,8 +27,8 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
 @[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) :
   f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
-@[simp] lemma prod_id_fst (X : prod C D) : _root_.prod.fst (𝟙 X) = 𝟙 X.fst := rfl
-@[simp] lemma prod_id_snd (X : prod C D) : _root_.prod.snd (𝟙 X) = 𝟙 X.snd := rfl
+@[simp] lemma prod_id_fst (X : prod C D) : prod.fst (𝟙 X) = 𝟙 X.fst := rfl
+@[simp] lemma prod_id_snd (X : prod C D) : prod.snd (𝟙 X) = 𝟙 X.snd := rfl
 @[simp] lemma prod_comp_fst {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).1 = f.1 ≫ g.1 := rfl
 @[simp] lemma prod_comp_snd {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -47,20 +47,22 @@ end
 -- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
 namespace prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
-
-/-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
--- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for, 
+/-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
+-- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
 -- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
-@[simps obj map] def inl (Z : D) : C ⥤ C × D :=
+@[simps obj map] def sectl
+  (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
   map := λ X Y f, (f, 𝟙 Z) }
 
-/-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
-@[simps obj map] def inr (Z : C) : D ⥤ C × D :=
+/-- `sectr Z D` is the functor `D ⥤ C × D` given by `Y ↦ (Z, Y)` . -/
+@[simps obj map] def sectr
+  {C : Type u₁} [category.{v₁} C] (Z : C) (D : Type u₂) [category.{v₂} D] : D ⥤ C × D :=
 { obj := λ X, (Z, X),
   map := λ X Y f, (𝟙 Z, f) }
+
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+include 𝒞 𝒟
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 @[simps obj map] def fst : C × D ⥤ C :=

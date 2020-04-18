@@ -55,6 +55,16 @@ theorem inj' {α β} : ∀ (f : α ↪ β), injective f
 @[simp] theorem trans_apply {α β γ} (f : α ↪ β) (g : β ↪ γ) (a : α) :
   (f.trans g) a = g (f a) := rfl
 
+@[simp]
+lemma equiv_to_embedding_trans_symm_to_embedding {α β : Sort*} (e : α ≃ β) :
+  function.embedding.trans (e.to_embedding) (e.symm.to_embedding) = function.embedding.refl _ :=
+by { ext, simp, }
+
+@[simp]
+lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β) :
+  function.embedding.trans (e.symm.to_embedding) (e.to_embedding) = function.embedding.refl _ :=
+by { ext, simp, }
+
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
@@ -99,6 +109,18 @@ protected def some {α} : α ↪ option α :=
 
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨subtype.val, λ _ _, subtype.eq'⟩
+
+/-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
+def punit {β : Sort*} (b : β) : punit ↪ β :=
+⟨λ _, b, by { rintros ⟨⟩ ⟨⟩ _, refl, }⟩
+
+/-- Fixing an element `b : β` gives an embedding `α ↪ α × β`. -/
+def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
+⟨λ a, (a, b), λ a a' h, congr_arg prod.fst h⟩
+
+/-- Fixing an element `a : α` gives an embedding `β ↪ α × β`. -/
+def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
+⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
 
 /-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=

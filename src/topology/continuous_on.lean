@@ -52,11 +52,11 @@ nhds_within_has_basis (nhds_basis_opens a) t
 
 theorem mem_nhds_within {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u, is_open u ∧ a ∈ u ∧ u ∩ s ⊆ t  :=
-by simpa only [exists_prop, and_assoc, and_comm] using nhds_within_basis_open a s t
+by simpa only [exists_prop, and_assoc, and_comm] using (nhds_within_basis_open a s).mem_iff
 
 lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
-nhds_within_has_basis (𝓝 a).basis_sets s t
+(nhds_within_has_basis (𝓝 a).basis_sets s).mem_iff
 
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ nhds_within a t :=
@@ -75,6 +75,10 @@ inf_le_inf (le_refl _) (principal_mono.mpr h)
 lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ nhds_within a s) :
   a ∈ t :=
 let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
+
+lemma filter.eventually.self_of_nhds_within {p : α → Prop} {s : set α} {x : α}
+  (h : ∀ᶠ y in nhds_within x s, p y) (hx : x ∈ s) : p x :=
+mem_of_mem_nhds_within hx h
 
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
@@ -198,9 +202,8 @@ begin
 end
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
-  tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (𝓝 ⟨a, h⟩) l :=
-by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
-    ←(@filter.map_map _ _ _ _ subtype.val)]
+  tendsto f (nhds_within a s) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
+by { simp only [tendsto, nhds_within_eq_map_subtype_val h, filter.map_map], refl }
 
 variables [topological_space β] [topological_space γ]
 
@@ -228,7 +231,7 @@ theorem continuous_within_at_univ (f : α → β) (x : α) :
 by rw [continuous_at, continuous_within_at, nhds_within_univ]
 
 theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
-  continuous_within_at f s x ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
+  continuous_within_at f s x ↔ continuous_at (s.restrict f) ⟨x, h⟩ :=
 tendsto_nhds_within_iff_subtype h f _
 
 theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
@@ -244,7 +247,7 @@ theorem continuous_on_iff {f : α → β} {s : set α} :
 by simp only [continuous_on, continuous_within_at, tendsto_nhds, mem_nhds_within]
 
 theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
-  continuous_on f s ↔ continuous (function.restrict f s) :=
+  continuous_on f s ↔ continuous (s.restrict f) :=
 begin
   rw [continuous_on, continuous_iff_continuous_at], split,
   { rintros h ⟨x, xs⟩,
@@ -255,22 +258,22 @@ end
 
 theorem continuous_on_iff' {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_open t → ∃ u, is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
-have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
+have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
   begin
     intro t,
-    rw [is_open_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff],
+    rw [is_open_induced_iff, set.restrict_eq, set.preimage_comp],
+    simp only [preimage_coe_eq_preimage_coe_iff],
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
 theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
-have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
+have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
   begin
     intro t,
-    rw [is_closed_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff]
+    rw [is_closed_induced_iff, set.restrict_eq, set.preimage_comp],
+    simp only [preimage_coe_eq_preimage_coe_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
 
@@ -324,7 +327,7 @@ begin
 end
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
-  (h : is_open_map (function.restrict f s)) {finv : β → α} (hleft : left_inv_on finv f s) :
+  (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
   continuous_on finv (f '' s) :=
 begin
   rintros _ ⟨x, xs, rfl⟩ t ht,

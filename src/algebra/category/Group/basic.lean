@@ -128,6 +128,14 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
 
+-- This example verifies an improvement possible in Lean 3.8.
+-- Before that, to have `monoid_hom.map_map` usable by `simp` here,
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- Now, it just works.
+@[to_additive]
+example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=
+by simp [h]
+
 namespace AddCommGroup
 
 /-- Any element of an abelian group gives a unique morphism from `ℤ` sending

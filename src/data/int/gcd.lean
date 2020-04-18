@@ -1,19 +1,28 @@
 /-
 Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl
-
-Greatest common divisor (gcd) and least common multiple (lcm) for integers.
-
-This sets up ℤ to be a GCD domain, and introduces rules about `int.gcd`, as well as `int.lcm`.
-NOTE: If you add rules to this theory, check that the corresponding rules are available for
-`gcd_domain`.
+Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
 import data.int.basic data.nat.prime
+/-!
+# Extended GCD and divisibility over ℤ
 
-/- Extended Euclidean algorithm -/
+## Main definitions
+
+* Given `x y : ℕ`, `xgcd x y` computes the pair of integers `(a, b)` such that
+  `gcd x y = x * a + y * b`. `gcd_a x y` and `gcd_b x y` are defined to be `a` and `b`,
+  respectively.
+
+## Main statements
+
+* `gcd_eq_gcd_ab`: Bézout's lemma, given `x y : ℕ`, `gcd x y = x * gcd_a x y + y * gcd_b x y`.
+
+-/
+
+/-! ### Extended Euclidean algorithm -/
 namespace nat
 
+/-- Helper function for the extended GCD algorithm (`nat.xgcd`). -/
 def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
 | 0          s t r' s' t' := (r', s', t')
 | r@(succ _) s t r' s' t' :=
@@ -23,7 +32,8 @@ def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
 @[simp] theorem xgcd_zero_left {s t r' s' t'} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by simp [xgcd_aux]
 
-@[simp] theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) : xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
+@[simp] theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
+  xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by cases r; [exact absurd h (lt_irrefl _), {simp only [xgcd_aux], refl}]
 
 /-- Use the extended GCD algorithm to generate the `a` and `b` values
@@ -47,25 +57,31 @@ theorem xgcd_val (x y) : xgcd x y = (gcd_a x y, gcd_b x y) :=
 by unfold gcd_a gcd_b; cases xgcd x y; refl
 
 section
-parameters (a b : ℕ)
+parameters (x y : ℕ)
 
-private def P : ℕ × ℤ × ℤ → Prop | (r, s, t) := (r : ℤ) = a * s + b * t
+private def P : ℕ × ℤ × ℤ → Prop
+| (r, s, t) := (r : ℤ) = x * s + y * t
 
-theorem xgcd_aux_P {r r'} : ∀ {s t s' t'}, P (r, s, t) → P (r', s', t') → P (xgcd_aux r s t r' s' t') :=
-gcd.induction r r' (by simp) $ λ x y h IH s t s' t' p p', begin
+theorem xgcd_aux_P {r r'} : ∀ {s t s' t'}, P (r, s, t) → P (r', s', t') →
+  P (xgcd_aux r s t r' s' t') :=
+gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
-  rw [int.mod_def], generalize : (y / x : ℤ) = k,
+  rw [int.mod_def], generalize : (b / a : ℤ) = k,
   rw [p, p'],
   simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add]
 end
 
-theorem gcd_eq_gcd_ab : (gcd a b : ℤ) = a * gcd_a a b + b * gcd_b a b :=
-by have := @xgcd_aux_P a b a b 1 0 0 1 (by simp [P]) (by simp [P]);
+/-- Bézout's lemma: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
+`b = gcd_b x y` are computed by the extended Euclidean algorithm.
+-/
+theorem gcd_eq_gcd_ab : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
+by have := @xgcd_aux_P x y x y 1 0 0 1 (by simp [P]) (by simp [P]);
    rwa [xgcd_aux_val, xgcd_val] at this
 end
 
 end nat
 
+/-! ### Divisibility over ℤ -/
 namespace int
 
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=

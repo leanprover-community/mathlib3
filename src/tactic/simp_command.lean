@@ -26,7 +26,7 @@ You can specify additional simp lemmas as usual for example using
 so you will need to use lambda-expressions
 to introduce parameters.
 -/
-@[user_command] meta def simp_cmd (meta_info : decl_meta_info)
+@[user_command] meta def simp_cmd
   (_ : parse $ tk "#simp") : lean.parser unit :=
 do
   no_dflt ← only_flag,

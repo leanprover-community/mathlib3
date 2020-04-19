@@ -60,6 +60,9 @@ instance : unique (1 : Group.{u}) :=
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
 @[to_additive]
+instance : category Group := infer_instance -- short-circuit type class inference
+
+@[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
@@ -106,6 +109,8 @@ instance : unique (1 : CommGroup.{u}) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
+@[to_additive] instance : category CommGroup := infer_instance -- short-circuit type class inference
+
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
@@ -122,6 +127,14 @@ instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
+
+-- This example verifies an improvement possible in Lean 3.8.
+-- Before that, to have `monoid_hom.map_map` usable by `simp` here,
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- Now, it just works.
+@[to_additive]
+example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=
+by simp [h]
 
 namespace AddCommGroup
 

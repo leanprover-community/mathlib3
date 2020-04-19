@@ -52,11 +52,11 @@ nhds_within_has_basis (nhds_basis_opens a) t
 
 theorem mem_nhds_within {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u, is_open u ∧ a ∈ u ∧ u ∩ s ⊆ t  :=
-by simpa only [exists_prop, and_assoc, and_comm] using nhds_within_basis_open a s t
+by simpa only [exists_prop, and_assoc, and_comm] using (nhds_within_basis_open a s).mem_iff
 
 lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
-nhds_within_has_basis (𝓝 a).basis_sets s t
+(nhds_within_has_basis (𝓝 a).basis_sets s).mem_iff
 
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ nhds_within a t :=
@@ -75,6 +75,10 @@ inf_le_inf (le_refl _) (principal_mono.mpr h)
 lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ nhds_within a s) :
   a ∈ t :=
 let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
+
+lemma filter.eventually.self_of_nhds_within {p : α → Prop} {s : set α} {x : α}
+  (h : ∀ᶠ y in nhds_within x s, p y) (hx : x ∈ s) : p x :=
+mem_of_mem_nhds_within hx h
 
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=

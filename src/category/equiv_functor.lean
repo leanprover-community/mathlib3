@@ -47,8 +47,8 @@ def map_equiv :
   f α ≃ f β :=
 { to_fun := equiv_functor.map e,
   inv_fun := equiv_functor.map e.symm,
-  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_trans f e e.symm) x).symm, simp, end,
-  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_trans f e.symm e) y).symm, simp, end, }
+  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, end,
+  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, end, }
 
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
@@ -63,11 +63,5 @@ instance of_is_lawful_functor
 { map := λ α β e, functor.map e,
   map_refl' := λ α, by { ext, apply is_lawful_functor.id_map, },
   map_trans' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
-
--- TODO Include more examples here;
--- once `equiv_rw` is available these are hopefully easy to construct,
--- and in turn make `equiv_rw` more powerful.
-instance equiv_functor_unique : equiv_functor unique :=
-{ map := λ α β e, equiv.unique_congr e, }
 
 end equiv_functor

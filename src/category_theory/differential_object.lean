@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.zero
 import category_theory.shift
+import category_theory.concrete_category
 
 /-!
 # Differential objects in a category.
@@ -98,6 +99,11 @@ instance has_zero_morphisms : has_zero_morphisms.{v} (differential_object.{v} C)
 { has_zero := λ X Y,
   ⟨{ f := 0, }⟩}
 
+variables {C}
+
+@[simp]
+lemma zero_f (P Q : differential_object.{v} C) : (0 : P ⟶ Q).f = 0 := rfl
+
 end differential_object
 
 end category_theory
@@ -124,8 +130,8 @@ end differential_object
 
 namespace differential_object
 
-variables (C : Type (u+1))
-  [𝒞 : concrete_category C] [has_zero_morphisms.{u} C] [has_shift.{u} C]
+variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
+  [has_zero_morphisms.{u} C] [has_shift.{u} C]
 include 𝒞
 
 instance concrete_category_of_differential_objects :

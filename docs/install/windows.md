@@ -92,4 +92,8 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
    A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
    displayed.
 
-Note however that you cannot use mathlib, and in particular any imports, in the file `test.lean` created above. To use mathlib you will need to set up or download a Lean project. You should now read instructions about creating and working on [Lean projects](project.md).
+Note however that you cannot use mathlib, and in particular any imports, in the file `test.lean` created above.
+
+## You're not done yet!
+
+👉 If you want to use mathlib, you should now read the instructions about creating and working on [Lean projects](project.md).

@@ -192,7 +192,7 @@ Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, 
 `hu` should be of the form `n < b`, for some explicit `b`.
 -/
 meta def interval_cases_using (hl hu : expr) : tactic unit :=
-to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon >>= fin_cases_at none
+to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon none >>= fin_cases_at none
 
 setup_tactic_parser
 
@@ -219,8 +219,39 @@ You can also explicitly specify a lower and upper bound to use,
 as `interval_cases using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+-/
+meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) : tactic unit :=
+do
+  if h : n.is_some then (do
+    guard bounds.is_none <|> fail "Do not use the `using` keyword if specifying the variable explicitly.",
+    n ← to_expr (option.get h),
+    (hl, hu) ← get_bounds n,
+    tactic.interval_cases_using hl hu)
+  else if h' : bounds.is_some then (do
+    [hl, hu] ← [(option.get h').1, (option.get h').2].mmap get_local,
+    tactic.interval_cases_using hl hu)
+  else
+    fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
 
----
+/--
+`interval_cases n` searches for upper and lower bounds on a variable `n`,
+and if bounds are found,
+splits into separate cases for each possible value of `n`.
+
+As an example, in
+```
+example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
+begin
+  interval_cases n,
+  all_goals {simp}
+end
+```
+after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+
+You can also explicitly specify a lower and upper bound to use,
+as `interval_cases using hl hu`.
+The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
+in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 
 In particular, `interval_cases n`
 1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
@@ -238,19 +269,6 @@ The variable `n` can belong to any type `α`, with the following restrictions:
 * if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 -/
-meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) : tactic unit :=
-do
-  if h : n.is_some then (do
-    guard bounds.is_none <|> fail "Do not use the `using` keyword if specifying the variable explicitly.",
-    n ← to_expr (option.get h),
-    (hl, hu) ← get_bounds n,
-    tactic.interval_cases_using hl hu)
-  else if h' : bounds.is_some then (do
-    [hl, hu] ← [(option.get h').1, (option.get h').2].mmap get_local,
-    tactic.interval_cases_using hl hu)
-  else
-    fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
-
 add_tactic_doc
 { name       := "interval_cases",
   category   := doc_category.tactic,

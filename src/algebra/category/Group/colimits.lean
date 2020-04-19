@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
 import category_theory.limits.limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -45,7 +46,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
+| zero : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 
@@ -230,7 +231,7 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- zero
-    { erw ((s.ι).app r).map_zero, refl },
+    { erw ((s.ι).app r).map_zero },
     -- neg
     { rw ((s.ι).app r_j).map_neg },
     -- add

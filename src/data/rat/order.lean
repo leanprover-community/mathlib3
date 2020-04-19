@@ -159,13 +159,12 @@ by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 instance : discrete_linear_ordered_field ℚ :=
 { zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
-    not_le_of_lt ab $ rat.add_le_add_left.1 ba,
-  mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.field, ..rat.decidable_linear_order }
+  ..rat.field,
+  ..rat.decidable_linear_order,
+  ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_field ℚ                := by apply_instance
@@ -176,10 +175,10 @@ instance : ordered_ring ℚ                        := by apply_instance
 instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
 instance : linear_ordered_semiring ℚ             := by apply_instance
 instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
-instance : ordered_comm_group ℚ                  := by apply_instance
-instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
-instance : ordered_comm_monoid ℚ                 := by apply_instance
+instance : decidable_linear_ordered_add_comm_group ℚ := by apply_instance
+instance : ordered_add_comm_group ℚ              := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
+instance : ordered_add_comm_monoid ℚ             := by apply_instance
 
 attribute [irreducible] rat.le
 

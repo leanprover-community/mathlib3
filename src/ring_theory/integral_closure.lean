@@ -2,12 +2,13 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Integral closure of a subring.
 -/
 
 import ring_theory.adjoin linear_algebra.finsupp
 
+/-!
+# Integral closure of a subring.
+-/
 universes u v
 
 open_locale classical
@@ -24,7 +25,7 @@ def is_integral (x : A) : Prop :=
 ∃ p : polynomial R, monic p ∧ aeval R A x p = 0
 
 variables {R}
-theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map A x) :=
+theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
 by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 
@@ -58,7 +59,8 @@ begin
     rcases finset.mem_image.1 hs with ⟨k, hk, rfl⟩, clear hk,
     exact is_submonoid.pow_mem (algebra.subset_adjoin (set.mem_singleton _)) },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
-  rw algebra.adjoin_singleton_eq_range at hr, rcases hr with ⟨p, rfl⟩,
+  rw algebra.adjoin_singleton_eq_range at hr,
+  rcases hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
@@ -77,13 +79,11 @@ end
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
-  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem _)
+  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem)
   begin
     change ring.closure _ ⊆ _,
     simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
       algebra.smul_def, mul_one],
-    -- TODO drop the next `rw` once `algebra_map` will be a bundled `ring_hom`
-    rw [← ring_hom.coe_of (algebra_map A)]; try { apply_instance },
     exact ring.closure_subset (set.subset.refl _)
   end⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
@@ -160,7 +160,7 @@ begin
       (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,
     { rw [span_le, set.insert_subset, mem_coe], split,
-      change _ ∈ ring.closure _, exact is_submonoid.one_mem _, exact algebra.subset_adjoin },
+      change _ ∈ ring.closure _, exact is_submonoid.one_mem, exact algebra.subset_adjoin },
     rw [algebra.adjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
     { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
     { exact subset_span (set.mem_insert _ _) },
@@ -188,7 +188,7 @@ begin
     change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨ly jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hly1 _ hz))) },
   haveI : is_noetherian_ring ↥S₀ :=
-  by { convert is_noetherian_ring_closure _ (finset.finite_to_set _), apply_instance },
+    is_noetherian_ring_closure _ (finset.finite_to_set _),
   apply is_integral_of_noetherian
     (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw finset.coe_insert; convert this⟩),
@@ -215,10 +215,10 @@ begin
 end
 
 theorem is_integral_zero : is_integral R (0:A) :=
-algebra.map_zero R A ▸ is_integral_algebra_map
+(algebra_map R A).map_zero ▸ is_integral_algebra_map
 
 theorem is_integral_one : is_integral R (1:A) :=
-algebra.map_one R A ▸ is_integral_algebra_map
+(algebra_map R A).map_one ▸ is_integral_algebra_map
 
 theorem is_integral_add {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) :
@@ -275,18 +275,18 @@ begin
     change (coeff p n).1.1 ∈ ring.closure _,
     rcases ring.exists_list_of_mem_closure (coeff p n).2 with ⟨L, HL1, HL2⟩, rw ← HL2,
     clear HL2 hfs h1 hx n hmp hpx hr r p,
-    induction L with hd tl ih, { exact is_add_submonoid.zero_mem _ },
+    induction L with hd tl ih, { exact is_add_submonoid.zero_mem },
     rw list.forall_mem_cons at HL1,
     rw [list.map_cons, list.sum_cons],
     refine is_add_submonoid.add_mem _ (ih HL1.2),
     cases HL1 with HL HL', clear HL' ih tl,
-    induction hd with hd tl ih, { exact is_submonoid.one_mem _ },
+    induction hd with hd tl ih, { exact is_submonoid.one_mem },
     rw list.forall_mem_cons at HL,
     rw list.prod_cons,
     refine is_submonoid.mul_mem _ (ih HL.2),
     rcases HL.1 with hs | rfl,
     { exact algebra.subset_adjoin (set.mem_image_of_mem _ hs) },
-    exact is_add_subgroup.neg_mem (is_submonoid.one_mem _) },
+    exact is_add_subgroup.neg_mem (is_submonoid.one_mem) },
   replace hmp := congr_arg subtype.val hmp,
   replace hmp := congr_arg subtype.val hmp,
   exact subtype.eq hmp
@@ -308,34 +308,30 @@ lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : 
     (λ i, to_comap R A B (p.coeff i))) : set (comap R A B))) :
   is_integral (adjoin R S) (comap.to_comap R A B x) :=
 begin
-  have coeffs_mem : ∀ i, coeff (map (to_comap R A B) p) i ∈ adjoin R S,
+  have coeffs_mem : ∀ i, coeff (map ↑(to_comap R A B) p) i ∈ adjoin R S,
   { intro i,
     by_cases hi : i ∈ finset.range (p.nat_degree + 1),
     { apply algebra.subset_adjoin, subst S,
       rw [finset.mem_coe, finset.mem_image, coeff_map],
       exact ⟨i, hi, rfl⟩ },
     { rw [finset.mem_range, not_lt] at hi,
-      rw [coeff_map, coeff_eq_zero_of_nat_degree_lt hi, alg_hom.map_zero],
+      rw [coeff_map, coeff_eq_zero_of_nat_degree_lt hi, ring_hom.map_zero],
       exact submodule.zero_mem (adjoin R S : submodule R (comap R A B)) } },
-  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (comap R A B)) =
+  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) (comap R A B)) =
       (p.map $ to_comap R A B),
   { rw [← set.mem_range], dsimp only,
     apply (polynomial.mem_map_range _).2,
     { intros i, specialize coeffs_mem i, rw ← subalgebra.mem_coe at coeffs_mem,
-      convert coeffs_mem, exact subtype.val_range },
-    { apply is_ring_hom.is_semiring_hom } },
+      convert coeffs_mem, exact subtype.val_range } },
   use q,
   split,
-  { suffices h : (q.map (algebra_map (comap R A B))).monic,
-    { refine @monic_of_injective _ _ _ _ _
-        (by exact is_ring_hom.is_semiring_hom _) _ _ h,
+  { suffices h : (q.map (algebra_map (adjoin R S) (comap R A B))).monic,
+    { refine monic_of_injective _ h,
       exact subtype.val_injective },
     { rw hq, exact monic_map _ pmonic } },
   { convert hp using 1,
     replace hq := congr_arg (eval (comap.to_comap R A B x)) hq,
-    convert hq using 1; symmetry, swap,
-    exact eval_map _ _,
-    refine @eval_map _ _ _ _ _ _ (by exact is_ring_hom.is_semiring_hom _) _ },
+    convert hq using 1; symmetry; apply eval_map },
 end
 
 /-- If A is an R-algebra all of whose elements are integral over R,

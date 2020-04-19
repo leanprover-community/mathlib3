@@ -21,6 +21,11 @@ namespace tactic
 /-- Reset the instance cache for the main goal. -/
 meta def reset_instance_cache : tactic unit := unfreeze_local_instances
 
+/-- Unfreeze local instances, if the passed expression is amongst the frozen instances. -/
+meta def unfreeze (h : expr) : tactic unit :=
+do frozen ← frozen_local_instances,
+   if h ∈ frozen.get_or_else [] then unfreeze_local_instances else skip
+
 namespace interactive
 open interactive interactive.types
 

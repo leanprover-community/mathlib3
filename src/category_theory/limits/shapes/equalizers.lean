@@ -284,21 +284,6 @@ def cofork.is_colimit.mk (t : cofork f g)
     (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
   uniq' := uniq }
 
-section
-local attribute [ext] cone
-
-/-- The fork induced by the ι map of some fork `t` is the same as `t` -/
-lemma fork.eq_of_ι_ι (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
-begin
-  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π,
-  { ext j, cases j,
-    { refl },
-    { rw ←fork.app_zero_left, refl } },
-  tidy
-end
-
-end
-
 /-- This is a helper construction that can be useful when verifying that a category has all
     equalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as
     `parallel_pair (F.map left) (F.map right)`, and a fork on `F.map left` and `F.map right`,
@@ -312,21 +297,6 @@ def cone.of_fork
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
     naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
-
-section
-local attribute [ext] cocone
-
-/-- The cofork induced by the π map of some fork `t` is the same as `t` -/
-lemma cofork.eq_of_π_π (t : cofork f g) : t = cofork.of_π (cofork.π t) (cofork.condition t) :=
-begin
-  have h : t.ι = (cofork.of_π (cofork.π t) (cofork.condition t)).ι,
-  { ext j, cases j,
-    { rw ←cofork.left_app_one, refl },
-    { refl } },
-  tidy
-end
-
-end
 
 /-- This is a helper construction that can be useful when verifying that a category has all
     coequalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as

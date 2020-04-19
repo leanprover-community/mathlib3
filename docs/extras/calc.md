@@ -63,7 +63,7 @@ calc
     ... < b + 1 : nat.lt_succ_self b
     ... ≤ c + 1 : nat.succ_le_succ h2
     ... < d     : h3
- ```
+```
 
 What is actually going on here? The proofs themselves are not a mystery,
 for example `nat.succ_le_succ h2` is a proof of `b + 1  ≤ c + 1`. The

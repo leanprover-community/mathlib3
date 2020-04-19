@@ -322,8 +322,8 @@ begin
   simp only [eq.symm this],
   have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
   split,
-  exact this,
-  simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)],
+  { exact this, },
+  { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=

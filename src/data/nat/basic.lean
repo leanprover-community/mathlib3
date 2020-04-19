@@ -1367,7 +1367,7 @@ lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) :
 by rw [←nat.div_mul_cancel w, h, zero_mul]
 
 /-- If a larger natural number divides a natural number, it is
-    zero. -/
+zero. -/
 lemma eq_zero_of_dvd_of_gt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
 nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)

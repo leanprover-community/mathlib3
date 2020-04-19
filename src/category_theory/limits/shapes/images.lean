@@ -371,7 +371,7 @@ variables [has_image_map sq']
 def has_image_map_comp : has_image_map (sq ≫ sq') :=
 { map := image.map sq ≫ image.map sq' }
 
--- This cannot be a simp lemma, see https://github.com/leanprover-community/lean/issues/181.
+@[simp]
 lemma image.map_comp [has_image_map (sq ≫ sq')] :
   image.map (sq ≫ sq') = image.map sq ≫ image.map sq' :=
 show (has_image_map.map (sq ≫ sq')) = (has_image_map_comp sq sq').map, by congr
@@ -413,8 +413,7 @@ variables [has_images.{v} C] [has_image_maps.{v} C]
 @[simps]
 def im : arrow C ⥤ C :=
 { obj := λ f, image f.hom,
-  map := λ _ _ st, image.map st,
-  map_comp' := λ _ _ _ _ _, image.map_comp _ _ }
+  map := λ _ _ st, image.map st }
 
 end has_image_maps
 

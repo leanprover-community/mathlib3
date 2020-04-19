@@ -138,15 +138,7 @@ def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone (grow_di
 /-- Use the above equivalence to prove we have a limit. -/
 def has_over_limit_discrete_of_grown {B : C} {J : Type v} (F : discrete J ⥤ over B) [has_limit (grow_diagram B F)] :
   has_limit F :=
-{ cone := (cones_equiv B F).functor.obj (limit.cone (grow_diagram B F)),
-  is_limit := is_limit.mk_cone_morphism
-  (λ s, (cones_equiv B F).counit_iso.inv.app s ≫ (cones_equiv B F).functor.map (limit.cone_morphism ((cones_equiv B F).inverse.obj s)))
-  (λ s m,
-    begin
-      apply (cones_equiv B F).inverse.injectivity,
-      rw ← cancel_mono ((cones_equiv B F).unit_iso.app (limit.cone _)).inv,
-      apply is_limit.uniq_cone_morphism (limit.is_limit _),
-    end) }
+{ cone := _, is_limit := is_limit.of_cone_equiv (cones_equiv B F).symm (limit.is_limit (grow_diagram B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/
 def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape.{v} (wide_pullback_shape J) C] {B : C} :

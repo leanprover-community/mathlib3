@@ -7,6 +7,7 @@ import category_theory.whiskering
 import category_theory.yoneda
 import category_theory.limits.cones
 import category_theory.eq_to_hom
+import category_theory.adjunction.basic
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -176,6 +177,15 @@ def iso_unique_cone_morphism {t : cone F} :
   inv := λ h,
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+/--
+TODO: write me
+-/
+def of_cone_equiv {D : Type u'} [category.{v} D] {F : J ⥤ C} {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
+  is_limit (h.inverse.obj c) :=
+mk_cone_morphism
+  (λ s, (h.to_adjunction.hom_equiv s c) (t.lift_cone_morphism _))
+  (λ s m, by { rw adjunction.transpose_equality', apply t.uniq_cone_morphism} )
 
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)

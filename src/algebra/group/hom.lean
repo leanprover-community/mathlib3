@@ -164,10 +164,24 @@ protected def one : M →* N :=
 @[to_additive]
 instance : has_one (M →* N) := ⟨monoid_hom.one⟩
 
+@[simp, to_additive]
+lemma one_apply (m : M) : (1 : M →* N) m = (1 : N) := rfl
+
+include mP
+variables [mP]
+
+@[simp, to_additive]
+lemma comp_one (f : N →* P) : f.comp (1 : M →* N) = (1 : M →* P) :=
+by { ext, simp [one_apply], }
+
+@[simp, to_additive]
+lemma one_comp (f : M →* N) : (1 : N →* P).comp f = (1 : M →* P) :=
+by { ext, simp [one_apply], }
+
 @[to_additive]
 instance : inhabited (M →* N) := ⟨1⟩
 
-omit mM mN
+omit mM mN mP
 
 /-- The product of two monoid morphisms is a monoid morphism if the target is commutative. -/
 @[to_additive]
@@ -189,6 +203,10 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   one_mul := by intros; ext; apply one_mul,
   mul_one := by intros; ext; apply mul_one,
   mul_comm := by intros; ext; apply mul_comm }
+
+@[simp, to_additive]
+lemma mul_apply {M N} {mM : monoid M} {mN : comm_monoid N} (f g : M →* N) (m : M) :
+  (f * g) m = f m * g m := rfl
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]

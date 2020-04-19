@@ -3,20 +3,11 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 -/
-import category_theory.concrete_category.concrete_monoidal_category
+import category_theory.concrete_category
+import category_theory.eq_to_hom
 
 section
 universes u
-
--- @[simp]
--- lemma eq_mpr_mp {α α' : Sort u} (h : α = α') (a : α) :
---   eq.mpr h (eq.mp h a) = a :=
--- by { cases h, refl }
-
--- @[simp]
--- lemma eq_mp_mpr {α α' : Sort u} (h : α = α') (a : α') :
---   eq.mp h (eq.mpr h a) = a :=
--- by { cases h, refl }
 
 end
 

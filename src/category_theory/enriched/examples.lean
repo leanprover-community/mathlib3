@@ -20,17 +20,18 @@ end
 
 namespace AddCommGroup
 
--- Looks like some basic lemmas about `add_monoid_hom` are missing!
-#check add_monoid_hom.zero_comp
-#check add_monoid_hom.comp_zero
-#check add_monoid_hom.add_apply
-
 instance : preadditive AddCommGroup :=
 { e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
   e_comp_left := λ X Y f Z,
-  ⟨{ to_fun := λ g, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } }, rfl⟩,
+  ⟨{ to_fun := λ g, g.comp f,
+     map_zero' := add_monoid_hom.zero_comp f,
+     map_add' := λ x y, by { ext, simp [add_monoid_hom.add_apply], } },
+  rfl⟩,
   e_comp_right := λ X Y Z g,
-  ⟨{ to_fun := λ f, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } }, rfl⟩, }.
+  ⟨{ to_fun := λ f, g.comp f,
+     map_zero' := add_monoid_hom.comp_zero f,
+     map_add' := λ x y, by { ext, simp, } },
+  rfl⟩, }.
 
 end AddCommGroup
 
@@ -72,7 +73,7 @@ instance : enriched_over (Module R) (Module R) :=
   e_comp_left := λ X Y f Z, ⟨(linear_map.llcomp R X Y Z).flip f, rfl⟩,
   e_comp_right := λ X Y Z g, ⟨linear_map.llcomp R X Y Z g, rfl⟩, }
 
--- Out of the boxm, we can treat morphisms between R-modules as elements of an R-module.
+-- Out of the box, we can treat morphisms between R-modules as elements of an R-module.
 example (X Y : Module R) (r : R) (f g : X ⟶[Module R] Y) : r • (f + g) = r • g + r • f :=
 by simp [smul_add, add_comm]
 

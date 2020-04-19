@@ -29,6 +29,7 @@ import
   tactic.simps
   tactic.split_ifs
   tactic.squeeze
+  tactic.tcache
   tactic.trunc_cases
   tactic.where
   tactic.hint

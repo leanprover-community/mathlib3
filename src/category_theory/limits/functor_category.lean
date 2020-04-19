@@ -8,6 +8,8 @@ import category_theory.limits.preserves
 
 open category_theory category_theory.category
 
+cache_file?
+
 namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation

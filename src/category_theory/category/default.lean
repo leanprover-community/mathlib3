@@ -7,6 +7,8 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 import tactic.basic
 import tactic.tidy
 
+import tactic.tcache
+
 /-!
 # Categories
 
@@ -36,7 +38,7 @@ We then immediately set up `obviously` to call `tidy`. Later, this can be replac
 powerful tactics.
 -/
 def_replacer obviously
-@[obviously] meta def obviously' := tactic.tidy
+@[obviously] meta def obviously' := tactic.tcache tactic.tidy
 
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)

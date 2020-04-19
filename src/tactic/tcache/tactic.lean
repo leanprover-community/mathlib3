@@ -1,4 +1,4 @@
-import tactic.basic
+import tactic.core
 import tactic.tcache.store
 
 open tactic tcache

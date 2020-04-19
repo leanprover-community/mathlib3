@@ -30,6 +30,10 @@ io.proc.spawn {
   stderr := io.process.stdio.null
 } >> return ()
 
+meta def init_tcache : tactic unit := tactic.unsafe_run_io mk_cache_dir
+
+meta def clear_tcache : tactic unit := tactic.unsafe_run_io rm_cache_dir
+
 end io
 
 section
@@ -68,10 +72,10 @@ meta def sanitize_expr : expr → expr
 | (expr.pi n bi t v) := expr.pi n bi (sanitize_expr t) (sanitize_expr v)
 | (expr.lam n bi t v) := expr.lam n bi (sanitize_expr t) (sanitize_expr v)
 | (expr.var n) := expr.var n
-| (expr.local_const n₁ n₂ bi v) := expr.const n₂ []
+| (expr.local_const n₁ n₂ bi v) := expr.local_const n₂ n₂ bi (sanitize_expr v)
 | (expr.mvar _ _ _) := expr.const name.anonymous []
 | (expr.macro m _) := expr.const (expr.macro_def_name m) [] -- Do something with the `expr` list?
-| (expr.elet _ _ _ _) := error "cannot sanitize elet!"
+| (expr.elet n e₁ e₂ e₃) := expr.elet n (sanitize_expr e₁) (sanitize_expr e₂) (sanitize_expr e₃)
 
 meta def hash_goal (e : expr) : tactic ℕ := do
   t ← infer_type e,
@@ -106,6 +110,7 @@ meta def deserialise_proof : io expr := do
 
 meta def handle_recall_failed (pf : expr) (msg : string) : tactic unit := do
   s₂ ← infer_type pf,
+  init_tcache,
   trace hash sformat!"failed to recall proof: {msg}\n\n{pf.to_raw_fmt}\n\n{s₂.to_raw_fmt}"
 
 meta def try_cache (n : name) (lc : list expr) : tactic unit := do
@@ -139,9 +144,5 @@ meta def discharge_goals (t : tactic unit) : tactic unit := do
   lc ← local_context,
   try_cache hash n lc <|>
   try_recompute n lc hash t
-
-meta def init_tcache : tactic unit := tactic.unsafe_run_io mk_cache_dir
-
-meta def clear_tcache : tactic unit := tactic.unsafe_run_io rm_cache_dir
 
 end tcache

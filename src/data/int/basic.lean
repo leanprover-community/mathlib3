@@ -743,7 +743,7 @@ begin
 end
 
 /-- If an integer with larger absolute value divides an integer, it is
-    zero. -/
+zero. -/
 lemma eq_zero_of_dvd_of_nat_abs_gt_nat_abs {a b : ℤ} (w : a ∣ b) (h : nat_abs b < nat_abs a) :
   b = 0 :=
 begin

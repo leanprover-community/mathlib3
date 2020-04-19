@@ -530,7 +530,7 @@ theorem dvd_iff_mod_eq_zero (a b : ℤ) : a ∣ b ↔ b % a = 0 :=
 /-- If `a % b = c` then `b` divides `a - c`. -/
 lemma dvd_sub_of_mod_eq {a b c : ℤ} (h : a % b = c) : b ∣ a - c :=
 begin
-  have hx : a % b % b = c % b, {rw h},
+  have hx : a % b % b = c % b, { rw h },
   rw [mod_mod, ←mod_sub_cancel_right c, sub_self, zero_mod] at hx,
   exact dvd_of_mod_eq_zero hx
 end

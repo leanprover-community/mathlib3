@@ -753,7 +753,7 @@ begin
 end
 
 /-- If two integers are congruent to a sufficiently large modulus,
-    they are equal. -/
+they are equal. -/
 lemma eq_of_mod_eq_of_nat_abs_gt_nat_abs_sub {a b c : ℤ} (h1 : a % b = c)
     (h2 : nat_abs (a - c) < nat_abs b) :
   a = c :=

@@ -226,6 +226,8 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 end
 
+-- We can infer the module structure implicitly from the linear maps,
+-- rather than via typeclass resolution.
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (f g : M →ₗ[R] M₂)
 
@@ -275,11 +277,11 @@ end linear_map
 namespace linear_map
 variables [ring R] [add_comm_group M] [add_comm_group M₂]
 variables [add_comm_group M₃]
-variables {module_M : module R M} {module_M₂ : module R M₂} {module_M₃ : module R M₃} (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
+variables {module_M : module R M} {module_M₂ : module R M₂} {module_M₃ : module R M₃}
+variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 
 /-- Composition of two linear maps is a linear map -/
-def comp :
-  M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
+def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
@@ -439,9 +441,9 @@ by refine {smul := (•), ..};
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
-
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+
+lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
 end submodule
 

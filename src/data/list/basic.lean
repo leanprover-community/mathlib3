@@ -861,8 +861,8 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 
-@[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < n) :
-  (list.repeat a n).nth_le m (by rwa list.length_repeat) = a :=
+@[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < (list.repeat a n).length) :
+  (list.repeat a n).nth_le m h = a :=
 eq_of_mem_repeat (nth_le_mem _ _ _)
 
 lemma nth_append  {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
@@ -934,6 +934,15 @@ theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
 @[simp] theorem nth_le_reverse (l : list α) (i : nat) (h1 h2) :
   nth_le (reverse l) (length l - 1 - i) h1 = nth_le l i h2 :=
 nth_le_reverse_aux2 _ _ _ _ _
+
+lemma eq_cons_of_length_one {l : list α} (h : l.length = 1) :
+  l = [l.nth_le 0 (h.symm ▸ zero_lt_one)] :=
+begin
+  refine ext_le (by convert h) (λ n h₁ h₂, _),
+  simp only [nth_le_singleton],
+  congr,
+  exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
+end
 
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
   ∀n (l:list α), (l.modify_nth_tail f n).modify_nth_tail g (m + n) =
@@ -1199,6 +1208,11 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | 0         m        l      := by rw [zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
+
+theorem take_repeat (a : α) : ∀ (n m : ℕ), take n (repeat a m) = repeat a (min n m)
+| n        0        := by simp
+| 0        m        := by simp
+| (succ n) (succ m) := by simp [min_succ_succ, take_repeat]
 
 lemma map_take {α β : Type*} (f : α → β) :
   ∀ (L : list α) (i : ℕ), (L.take i).map f = (L.map f).take i

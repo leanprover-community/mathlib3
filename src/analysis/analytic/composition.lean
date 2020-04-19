@@ -59,12 +59,24 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
+
+namespace composition
+
+end composition
+
+
 open filter
 open_locale topological_space classical
 
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
+
+/-!
+In this paragraph, we define the composition of formal multilinear series, by summing over all
+possible compositions
+of `n`.
+-/
 
 /-- Given a formal multilinear series `p`, a composition `c` of `n` and the index `i` of a
 block of `c`, we may define a function on `fin n → E` by picking the variables in the `i`-th block
@@ -186,6 +198,11 @@ def comp_along_composition {n : ℕ}
 (q.comp_along_composition_multilinear p c).mk_continuous _
   (q.comp_along_composition_multilinear_bound p c)
 
+@[simp] lemma comp_along_composition_apply {n : ℕ}
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (c : composition n) (v : fin n → E) :
+  (q.comp_along_composition p c) v = q c.length (p.apply_composition c v) := rfl
+
 /-- The norm of `q.comp_along_composition p c` is controlled by the product of
 the norms of the relevant bits of `q` and `p`. -/
 lemma comp_along_composition_norm {n : ℕ}
@@ -214,6 +231,142 @@ is defined to be the sum of `q.comp_along_composition p c` over all compositions
 protected def comp (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) :
   formal_multilinear_series 𝕜 E G :=
 λ n, (finset.univ : finset (composition n)).sum (λ c, q.comp_along_composition p c)
+
+/-- The `0`-th coefficient of `q.comp p` is `q 0`. Since these maps are multilinear maps in zero
+variables, but on different spaces, we can not state this directly, so we state it when applied to
+arbitrary vectors (which have to be the zero vector). -/
+lemma comp_coeff_zero (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (v : fin 0 → E) (v' : fin 0 → F) :
+  (q.comp p) 0 v = q 0 v' :=
+begin
+  let c : composition 0 := composition.ones 0,
+  dsimp [formal_multilinear_series.comp],
+  have : finset.singleton c = (finset.univ : finset (composition 0)),
+  { apply finset.eq_of_subset_of_card_le; simp [finset.card_univ, composition_card 0] },
+  rw ← this,
+  simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
+  change q c.length (p.apply_composition c v) = q 0 v',
+  unfold_coes,
+  congr,
+  ext i,
+  simp only [composition.ones_length] at i,
+  exact fin_zero_elim i
+end
+
+@[simp] lemma comp_coeff_zero'
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (v : fin 0 → E) :
+  (q.comp p) 0 v = q 0 (λ i, 0) :=
+q.comp_coeff_zero p v _
+
+/-- The `0`-th coefficient of `q.comp p` is `q 0`. When `p` goes from `E` to `E`, this can be
+expressed as a direct equality -/
+lemma comp_coeff_zero'' (q : formal_multilinear_series 𝕜 E F) (p : formal_multilinear_series 𝕜 E E) :
+  (q.comp p) 0 = q 0 :=
+by { ext v, exact q.comp_coeff_zero p _ _ }
+
+
+/-!
+### The identity formal power series
+
+We will now define the identity power series, and show that it is a neutral element for left and
+right composition.
+-/
+
+section
+variables (𝕜 E)
+
+/-- The identity formal multilinear series, with all coefficients equal to `0` except for `n = 1`
+where it is (the continuous multilinear version of) the identity. -/
+def id : formal_multilinear_series 𝕜 E E := λ n,
+if h : n = 1 then
+  by { rw h, exact (continuous_multilinear_curry_fin1 𝕜 E E).symm (continuous_linear_map.id) }
+else 0
+
+/-- The first coefficient of `id 𝕜 E` is the identity. -/
+@[simp] lemma id_apply_one (v : fin 1 → E) : (formal_multilinear_series.id 𝕜 E) 1 v = v 0 := rfl
+
+/-- The `n`th coefficient of `id 𝕜 E` is the identity when `n = 1`. We state this in a dependent
+way, as it will often appear in this form. -/
+lemma id_apply_one' {n : ℕ} (h : n = 1) (v : fin n → E) :
+  (id 𝕜 E) n v = v ⟨0, h.symm ▸ zero_lt_one⟩ :=
+begin
+  let w : fin 1 → E := λ i, v ⟨i.1, h.symm ▸ i.2⟩,
+  have : v ⟨0, h.symm ▸ zero_lt_one⟩ = w 0 := rfl,
+  rw [this, ← id_apply_one 𝕜 E w],
+  unfold_coes,
+  congr; try { rw h },
+  apply (fin.heq_fun_iff h).2 (λ i, _),
+  dsimp [w],
+  simp
+end
+
+/-- For `n ≠ 1`, the `n`-th coefficient of `id 𝕜 E` is zero, by definition. -/
+@[simp] lemma id_apply_ne_one {n : ℕ} (h : n ≠ 1) : (formal_multilinear_series.id 𝕜 E) n = 0 :=
+by simp [id, h]
+end
+
+@[simp] theorem comp_id (p : formal_multilinear_series 𝕜 E F) : p.comp (id 𝕜 E) = p :=
+begin
+  ext1 n,
+  dsimp [formal_multilinear_series.comp],
+  rw finset.sum_eq_single (composition.ones n),
+  show comp_along_composition p (id 𝕜 E) (composition.ones n) = p n,
+  { ext v,
+    rw comp_along_composition_apply,
+    unfold_coes,
+    congr; try { rw composition.ones_length n },
+    apply (fin.heq_fun_iff (composition.ones_length n)).2 (λ i, _),
+    dsimp [apply_composition],
+    rw id_apply_one' _ _ (composition.ones_blocks_fun n _),
+    simp },
+  show ∀ (b : composition n),
+    b ∈ finset.univ → b ≠ composition.ones n → comp_along_composition p (id 𝕜 E) b = 0,
+  { assume b _ hb,
+    obtain ⟨k, hk, lt_k⟩ : ∃ (k : ℕ) (H : k ∈ composition.blocks b), 1 < k :=
+      composition.ne_ones_iff.1 hb,
+    obtain ⟨i, i_lt, hi⟩ : ∃ (i : ℕ) (h : i < b.blocks.length), b.blocks.nth_le i h = k :=
+      list.nth_le_of_mem hk,
+    let j : fin b.length := ⟨i, b.blocks_length ▸ i_lt⟩,
+    have A : 1 < b.blocks_fun j := by convert lt_k,
+    ext v,
+    rw [comp_along_composition_apply, continuous_multilinear_map.zero_apply],
+    apply continuous_multilinear_map.map_coord_zero _ j,
+    dsimp [apply_composition],
+    rw id_apply_ne_one _ _ (ne_of_gt A),
+    refl },
+  { simp }
+end
+
+theorem id_comp (p : formal_multilinear_series 𝕜 E F) (h : p 0 = 0) : (id 𝕜 F).comp p = p :=
+begin
+  ext1 n,
+  by_cases hn : n = 0,
+  { rw [hn, h],
+    ext v,
+    rw [comp_coeff_zero', id_apply_ne_one _ _ zero_ne_one],
+    refl },
+  { dsimp [formal_multilinear_series.comp],
+    have n_pos : 0 < n := bot_lt_iff_ne_bot.mpr hn,
+    rw finset.sum_eq_single (composition.single n n_pos),
+    show comp_along_composition (id 𝕜 F) p (composition.single n n_pos) = p n,
+    { ext v,
+      rw [comp_along_composition_apply, id_apply_one' _ _ (composition.single_length n_pos)],
+      dsimp [apply_composition],
+      unfold_coes,
+      congr,
+      ext i,
+      simp },
+    show ∀ (b : composition n),
+      b ∈ finset.univ → b ≠ composition.single n n_pos → comp_along_composition (id 𝕜 F) p b = 0,
+    { assume b _ hb,
+      have A : b.length ≠ 1, by simpa [composition.eq_single_iff] using hb,
+      ext v,
+      rw [comp_along_composition_apply, id_apply_ne_one _ _ A],
+      refl },
+    { simp } }
+end
+
+/-! ### Summability properties of the composition of formal power series-/
 
 /-- If two formal multilinear series have positive radius of convergence, then the terms appearing
 in the definition of their composition are also summable (when multiplied by a suitable positive
@@ -347,7 +500,10 @@ apply le_radius_of_bound _ (tsum (λ (i : Σ (n : ℕ), composition n),
     end
 end
 
-/-! Now, we will prove that the composition of the partial sums of `q` and `p` up to order `N` is
+/-!
+### Composing analytic functions
+
+Now, we will prove that the composition of the partial sums of `q` and `p` up to order `N` is
 given by a sum over some large subset of `Σ n, composition n` of `q.comp_along_composition p`, to
 deduce that the series for `q.comp p` indeed converges to `g ∘ f` when `q` is a power series for
 `g` and `p` is a power series for `f`.

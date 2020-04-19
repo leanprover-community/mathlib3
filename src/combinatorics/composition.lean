@@ -83,9 +83,6 @@ variable {n : ℕ}
 (blocks_pnat : list ℕ+)
 (blocks_pnat_sum : (blocks_pnat.map (λ n : ℕ+, (n : ℕ))).sum = n)
 
-instance {n : ℕ} : inhabited (composition n) :=
-⟨⟨repeat (1 : ℕ+) n, (by simp)⟩⟩
-
 /-- Combinatorial viewpoint on a composition of `n`, by seeing it as non-empty blocks of
 consecutive integers in `{0, ..., n-1}`. We register every block by its left end-point, yielding
 a finset containing `0`. As this does not make sense for `n = 0`, we add `n` to this finset, and
@@ -404,8 +401,101 @@ begin
   rwa [sigma_eq_iff_blocks_pnat_eq, ← (injective_map_iff.2 subtype.val_injective).eq_iff]
 end
 
-end composition
+/-- Two compositions (over the same integer) coincide if and only if they have the same sequence
+of blocks -/
+lemma eq_iff_blocks_eq {c c' : composition n} :
+  c = c' ↔ c.blocks = c'.blocks :=
+begin
+  rw [ext_iff c c', ← (injective_map_iff.2 subtype.val_injective).eq_iff],
+  refl
+end
 
+/-- The composition made of blocks all of size `1`. -/
+def ones (n : ℕ) : composition n :=
+⟨repeat (1 : ℕ+) n, (by simp)⟩
+
+instance {n : ℕ} : inhabited (composition n) :=
+⟨composition.ones n⟩
+
+@[simp] lemma ones_length (n : ℕ) : (ones n).length = n :=
+by { rw ← blocks_pnat_length, exact list.length_repeat 1 n }
+
+@[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = repeat (1 : ℕ) n :=
+by simp only [blocks, ones, map_repeat, pnat.one_coe]
+
+@[simp] lemma ones_blocks_fun (n : ℕ) (i : fin (ones n).length) :
+  (ones n).blocks_fun i = 1 :=
+by simp [blocks_fun, ones, blocks, i.2]
+
+@[simp] lemma ones_size_up_to (n : ℕ) (i : ℕ) : (ones n).size_up_to i = min i n :=
+by simp [size_up_to, ones_blocks, take_repeat]
+
+@[simp] lemma ones_embedding (i : fin (ones n).length) (h : 0 < (ones n).blocks_fun i) :
+  (ones n).embedding i ⟨0, h⟩ = ⟨i.1, lt_of_lt_of_le i.2 (ones n).length_le⟩ :=
+begin
+  have : i.val < n, by { convert i.2, exact (ones_length n).symm },
+  simp [embedding, le_of_lt this]
+end
+
+lemma eq_ones_iff {c : composition n} :
+  c = ones n ↔ ∀ i ∈ c.blocks, i = 1 :=
+begin
+  split,
+  { assume H,
+    rw [H, ones_blocks],
+    exact λ i, eq_of_mem_repeat },
+  { assume H,
+    apply eq_iff_blocks_eq.2,
+    have A : c.blocks = repeat 1 c.blocks.length := eq_repeat_of_mem H,
+    have : c.blocks.length = n, by { conv_rhs { rw [← c.blocks_sum, A] }, simp },
+    rw [A, this, ones_blocks] },
+end
+
+lemma ne_ones_iff {c : composition n} :
+  c ≠ ones n ↔ ∃ i ∈ c.blocks, 1 < i :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  rw eq_ones_iff,
+  have : ∀ j ∈ c.blocks, j = 1 ↔ j ≤ 1 := λ j hj, by simp [le_antisymm_iff, c.one_le_blocks hj],
+  simp [this] {contextual := tt}
+end
+
+/-- The composition made of a single block of size `n`. -/
+def single (n : ℕ) (h : 0 < n) : composition n :=
+{ blocks_pnat := [⟨n, h⟩],
+  blocks_pnat_sum := by simp }
+
+@[simp] lemma single_length {n : ℕ} (h : 0 < n) : (single n h).length = 1 :=
+by { rw ← blocks_pnat_length, simp [single] }
+
+@[simp] lemma single_blocks {n : ℕ} (h : 0 < n) : (single n h).blocks = [n] :=
+by simp [blocks, single]
+
+@[simp] lemma single_blocks_fun {n : ℕ} (h : 0 < n) (i : fin (single n h).length) :
+  (single n h).blocks_fun i = n :=
+by simp [blocks_fun, single, blocks, i.2]
+
+@[simp] lemma single_embedding {n : ℕ} (h : 0 < n) (i : fin n) :
+  (single n h).embedding ⟨0, single_length h ▸ zero_lt_one⟩ i = i :=
+by simp [embedding]
+
+lemma eq_single_iff {n : ℕ} {h : 0 < n} {c : composition n } :
+  c = single n h ↔ c.length = 1 :=
+begin
+  split,
+  { assume H,
+    rw H,
+    exact single_length h },
+  { assume H,
+    rw eq_iff_blocks_eq,
+    have A : c.blocks.length = 1 := H ▸ c.blocks_length,
+    have B : c.blocks.sum = n := c.blocks_sum,
+    rw eq_cons_of_length_one A at B ⊢,
+    simpa [single_blocks] using B }
+end
+
+end composition
 
 /-!
 ### Compositions as sets

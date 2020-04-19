@@ -110,7 +110,6 @@ meta def deserialise_proof : io expr := do
 
 meta def handle_recall_failed (pf : expr) (msg : string) : tactic unit := do
   s₂ ← infer_type pf,
-  init_tcache,
   trace hash sformat!"failed to recall proof: {msg}\n\n{pf.to_raw_fmt}\n\n{s₂.to_raw_fmt}"
 
 meta def try_cache (n : name) (lc : list expr) : tactic unit := do
@@ -118,14 +117,16 @@ meta def try_cache (n : name) (lc : list expr) : tactic unit := do
   let pf := timeit hash "loading proof took" (pf.replace $ fixup_local_consts lc),
   interaction_monad_orelse' (solve_goal pf) (handle_recall_failed hash pf)
 
+meta def try_put (e : expr) : tactic unit :=
+unsafe_run_io $ do {
+  h ← io.mk_file_handle (cache_file_name hash) io.mode.write tt,
+  io.serialize h e,
+  io.fs.close h
+}
+
 meta def put_cache (n : name) (lc : list expr) (e : expr) : tactic unit := do
-  interaction_monad_orelse' (do
-    unsafe_run_io $ do {
-      h ← io.mk_file_handle (cache_file_name hash) io.mode.write tt,
-      io.serialize h e,
-      io.fs.close h
-    }
-  ) $ λ msg,
+  interaction_monad_orelse' (try_put hash e) $ λ msg,
+  interaction_monad_orelse' (init_tcache >> try_put hash e) $ λ _,
   trace hash sformat!"proof serialisation failure: {msg}\n\n{e}\n\n{e.to_raw_fmt}"
 
 meta def execute_capture (n : name) (t : tactic unit) : tactic expr := do

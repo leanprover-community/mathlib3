@@ -64,11 +64,14 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 A k-linear representation of a group G.
 -/
-@[nolint dangerous_instance] -- k is an `out_param`, so this is a false positive.
 class representation
   (k : out_param $ Type v) [comm_ring k] (G : Type u) [monoid G] (M : Type w) [add_comm_group M] [module k M]
   extends distrib_mul_action G M : Type (max u v w) :=
 (smul_smul : ∀ (g : G) (r : k) (m : M), g • (r • m) = r • (g • m))
+
+-- k is an `out_param`, so this is a false positive.
+attribute [nolint dangerous_instance] representation.to_distrib_mul_action
+
 end prio
 
 section

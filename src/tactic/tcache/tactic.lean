@@ -22,14 +22,8 @@ do r ← are_goals_present,
      alt
 
 meta def tcache_core (t : tactic unit) : tactic unit := discharge_goals t
-meta def tcache (t : tactic unit) : tactic unit := if_goals_present t (discharge_goals t)
+meta def tcache (t : tactic unit) : tactic unit := if_goals_present t (tcache_core t)
 meta def tc : tactic unit → tactic unit := tactic.tcache
-
-meta def tcache_force {α : Type} (t : tactic α) : tactic α :=
-if_goals_present t $ do
-  init_tcache,
-  tcache_core $ @unchecked_cast (tactic α) (tactic unit) t,
-  return $ @unchecked_cast unit α ()
 
 namespace interactive
 
@@ -39,4 +33,3 @@ meta def tc (t : interactive.itactic) : tactic unit := tactic.tcache t
 end interactive
 
 end tactic
-

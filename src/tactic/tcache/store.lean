@@ -1,12 +1,36 @@
 import system.io
-import tactic.tcache.io
-import tactic.tcache.serial
 
 universe u
+
+declare_trace tcache
 
 open tactic
 
 namespace tcache
+
+meta def error {α : Sort u} (message : string) : α := undefined_core message
+
+section io
+
+def CACHE_DIR := ".cache"
+
+def mk_cache_dir : io unit :=
+io.proc.spawn {
+  cmd := "mkdir",
+  args := ["-p", CACHE_DIR],
+  stdout := io.process.stdio.null,
+  stderr := io.process.stdio.null
+} >> return ()
+
+def rm_cache_dir : io unit :=
+io.proc.spawn {
+  cmd := "rm",
+  args := ["-rf", CACHE_DIR],
+  stdout := io.process.stdio.null,
+  stderr := io.process.stdio.null
+} >> return ()
+
+end io
 
 section
 open interaction_monad

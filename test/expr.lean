@@ -18,7 +18,7 @@ expr.app
   (expr.app (expr.const `myfun2 []) (expr.const `myarg2 []))
 
 meta def test_expect_success (ls : list side) : tactic unit :=
-do (l, e) ← expr_lens.entire.descend my_test_expr ls,
+do (l, e) ← expr_lens.entire.descend ls my_test_expr,
    if ¬(l.to_sides = ls)   then tactic.fail "failed" else tactic.skip,
    if ¬(my_test_expr = l.fill e) then tactic.fail "failed" else tactic.skip
 

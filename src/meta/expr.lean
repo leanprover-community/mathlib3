@@ -667,10 +667,10 @@ meta def fill : expr_lens → expr → expr
 
 /-- Descend into `e : expr` given the context of an `expr_lens`, popping out an `expr` and a new
 zoomed `expr_lens`, if this is possible (`e` has to be an application). -/
-meta def descend : expr_lens → expr → list side → option (expr_lens × expr)
-| l e [] := (l, e)
-| l (expr.app f x) (side.L :: rest) := (expr_lens.app_arg l x).descend f rest
-| l (expr.app f x) (side.R :: rest) := (expr_lens.app_fun l f).descend x rest
+meta def descend : expr_lens → list side → expr → option (expr_lens × expr)
+| l [] e := (l, e)
+| l (side.L :: rest) (expr.app f x) := (expr_lens.app_arg l x).descend rest f
+| l (side.R :: rest) (expr.app f x) := (expr_lens.app_fun l f).descend rest x
 | _ _ _ := none
 
 /-- Convert an `expr_lens` into a list of instructions needed to build it; repeatedly inspecting a
@@ -729,8 +729,8 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
   option (expr_lens × expr) → tactic (list α)
 | (some (l, e)) := list.join <$> monad.sequence [
     F l e,
-    app_map_aux $ l.descend e [side.L],
-    app_map_aux $ l.descend e [side.R]
+    app_map_aux $ l.descend [side.L] e,
+    app_map_aux $ l.descend [side.R] e
   ] <|> pure []
 | none := pure []
 

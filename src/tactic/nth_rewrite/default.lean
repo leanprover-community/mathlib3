@@ -33,9 +33,17 @@ open tactic lean.parser interactive interactive.types
 
 namespace tactic
 
-namespace nth_rewrite
+/-- Returns the target of the goal when passed `none`,
+otherwise, return the type of `h` in `some h`. -/
+meta def target_or_hyp_type : option expr → tactic expr
+| none     := target
+| (some h) := infer_type h
 
-end nth_rewrite
+/-- Replace the target, or a hypothesis, depending on whether `none` or `some h` is given as the
+first argument. -/
+meta def replace_in_state : option expr → expr → expr → tactic unit
+| none     := tactic.replace_target
+| (some h) := λ e p, tactic.replace_hyp h e p >> skip
 
 open nth_rewrite nth_rewrite.congr nth_rewrite.tracked_rewrite
 open tactic.interactive
@@ -47,37 +55,37 @@ do r ← to_expr p.rule tt ff,
 
 /-- Get the `n`th rewrite of rewrite rules `q` in expression `e`,
 or fail if there are not enough such rewrites. -/
-private meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) :
-  tactic tracked_rewrite :=
+meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) : tactic tracked_rewrite :=
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
    rewrites.join.nth n <|> fail "failed: not enough rewrites found"
 
-/-- If we want to rewrite on one side of a target or hypothesis, return that side of the expression,
-otherwise, return the entire expression. -/
-meta def get_side : option side → option expr → tactic expr
-| none          := target_or_hyp_type
-| (some side.L) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return lhs
-| (some side.R) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return rhs
+private def rel_descent_instructions : option side → list side
+| none := []
+| (some side.L) := [side.L, side.R]
+| (some side.R) := [side.R]
 
-/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis `h`. -/
-meta def nth_rw_hyp_core
-  (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-get_side os h >>= get_nth_rewrite n q >>= λ rw, rw.replace os h
+/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis or
+target `h` which is an application of a relation. -/
+meta def get_nth_rewrite_in_rel
+  (n : ℕ) (q : rw_rules_t) (s : option side) (h : option expr) : tactic tracked_rewrite :=
+do e ← target_or_hyp_type h,
+   (ln, new_e) ← expr_lens.entire.descend (rel_descent_instructions s) e,
+   rw ← get_nth_rewrite n q new_e,
+   return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, s.to_list ++ l⟩
 
-/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of the target. -/
-meta def nth_rw_target_core
-  (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-get_side os none >>= get_nth_rewrite n q >>= λ rw, rw.replace os none
+  -- rw.proof >>= replace_in_state h rw.exp
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/
-meta def nth_rewrite_core (os : option side)
-  (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-match l with
-| loc.wildcard := l.try_apply (nth_rw_hyp_core os n q) (nth_rw_target_core os n q)
-| _            := l.apply     (nth_rw_hyp_core os n q) (nth_rw_target_core os n q)
-end >> tactic.try (tactic.reflexivity reducible)
-    >> (returnopt q.end_pos >>= save_info <|> skip)
+meta def nth_rewrite_core (s : option side) (n : parse small_nat) (q : parse rw_rules)
+  (l : parse location) : tactic unit :=
+do let fn := λ h, get_nth_rewrite_in_rel n q s h >>= λ rw, rw.proof >>= replace_in_state h rw.exp,
+   match l with
+   | loc.wildcard := l.try_apply (fn ∘ some) (fn none)
+   | _            := l.apply     (fn ∘ some) (fn none)
+   end,
+   tactic.try (tactic.reflexivity reducible),
+   (returnopt q.end_pos >>= save_info <|> skip)
 
 namespace interactive
 

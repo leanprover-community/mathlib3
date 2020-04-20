@@ -55,11 +55,11 @@ instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking
 instance parallel_pair_connected : connected (walking_parallel_pair) :=
 begin
   apply connected.of_induct,
-  introv _ t, cases j,
+  introv _ t,
+  cases j,
   { rwa t walking_parallel_pair_hom.left },
   { assumption }
 end
-
 end examples
 
 local attribute [tidy] tactic.case_bash

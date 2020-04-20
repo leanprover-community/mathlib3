@@ -744,7 +744,7 @@ end
 
 /-- If an integer with larger absolute value divides an integer, it is
 zero. -/
-lemma eq_zero_of_dvd_of_nat_abs_gt_nat_abs {a b : ℤ} (w : a ∣ b) (h : nat_abs b < nat_abs a) :
+lemma eq_zero_of_dvd_of_nat_abs_lt_nat_abs {a b : ℤ} (w : a ∣ b) (h : nat_abs b < nat_abs a) :
   b = 0 :=
 begin
   rw [←nat_abs_dvd, ←dvd_nat_abs, coe_nat_dvd] at w,

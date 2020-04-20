@@ -33,46 +33,6 @@ open tactic lean.parser interactive interactive.types
 
 namespace tactic
 
-/-- Returns the target of the goal when passed `none`,
-otherwise, return the type of `h` in `some h`. -/
-meta def target_or_hyp_type : option expr → tactic expr
-| none     := target
-| (some h) := infer_type h
-
-namespace nth_rewrite
-
-/-- Wrapper that will either replace the target, or a hypothesis,
-depending on whether `none` or `some h` is given as the first argument. -/
-meta def replace' : option expr → expr → expr → tactic unit
-| none     := tactic.replace_target
-| (some h) := λ e p, tactic.replace_hyp h e p >> skip
-
-/-- A helper function for building the proof witness of a rewrite
-on one side of an equation of iff. -/
-meta def mk_lambda (r lhs rhs : expr) : side → tactic expr
-| side.L := do L ← infer_type lhs >>= mk_local_def `L, lambdas [L] (r L rhs)
-| side.R := do R ← infer_type rhs >>= mk_local_def `R, lambdas [R] (r lhs R)
-
-/-- A helper function for building the new total expression
-starting from a rewrite of one side of an equation or iff. -/
-meta def new_exp (exp r lhs rhs : expr) : side → expr
-| side.L := r exp rhs
-| side.R := r lhs exp
-
-/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
-update the tactic state by replacing the corresponding part of the tactic state
-with the rewritten expression. -/
-meta def replace : option side → option expr → tracked_rewrite → tactic unit
-| none     := λ h rw, do (exp, prf) ← rw.eval, replace' h exp prf
-| (some s) := λ h rw,
-  do (exp, prf) ← rw.eval,
-     expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
-     lam ← mk_lambda r lhs rhs s,
-     new_prf ← mk_congr_arg lam prf,
-     replace' h (new_exp exp r lhs rhs s) new_prf
-
-end nth_rewrite
-
 open nth_rewrite nth_rewrite.congr nth_rewrite.tracked_rewrite
 open tactic.interactive
 
@@ -98,12 +58,12 @@ meta def get_side : option side → option expr → tactic expr
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis `h`. -/
 meta def nth_rw_hyp_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-get_side os h >>= get_nth_rewrite n q >>= nth_rewrite.replace os h
+get_side os h >>= get_nth_rewrite n q >>= λ rw, rw.replace h os
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of the target. -/
 meta def nth_rw_target_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-get_side os none >>= get_nth_rewrite n q >>= nth_rewrite.replace os none
+get_side os none >>= get_nth_rewrite n q >>= λ rw, rw.replace none none
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/

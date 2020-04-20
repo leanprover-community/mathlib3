@@ -29,7 +29,21 @@ def side.to_string : side → string
 
 instance : has_to_string side := ⟨side.to_string⟩
 
-namespace tactic.nth_rewrite
+namespace tactic
+
+/-- Returns the target of the goal when passed `none`,
+otherwise, return the type of `h` in `some h`. -/
+meta def target_or_hyp_type : option expr → tactic expr
+| none     := target
+| (some h) := infer_type h
+
+/-- Replace the target, or a hypothesis, depending on whether `none` or `some h` is given as the
+first argument. -/
+meta def replace_state_part : option expr → expr → expr → tactic unit
+| none     := tactic.replace_target
+| (some h) := λ e p, tactic.replace_hyp h e p >> skip
+
+namespace nth_rewrite
 
 /-- Configuration options for nth_rewrite. -/
 meta structure cfg extends rewrite_cfg :=
@@ -48,10 +62,45 @@ meta structure tracked_rewrite :=
 -- `rewrite_search` will not be able to produce tactic scripts.
 (addr : option (list side))
 
+namespace tracked_rewrite
+
 /-- Postprocess a tracked rewrite into a pair
 of a rewritten expression and a proof witness of the rewrite. -/
-meta def tracked_rewrite.eval (rw : tracked_rewrite) : tactic (expr × expr) :=
+meta def eval (rw : tracked_rewrite) : tactic (expr × expr) :=
 do prf ← rw.proof,
    return (rw.exp, prf)
 
-end tactic.nth_rewrite
+/-- A helper function for building the proof witness of a rewrite
+on one side of an equation of iff. -/
+meta def mk_lambda (r lhs rhs : expr) : side → tactic expr
+| side.L := do L ← infer_type lhs >>= mk_local_def `L, lambdas [L] (r L rhs)
+| side.R := do R ← infer_type rhs >>= mk_local_def `R, lambdas [R] (r lhs R)
+
+/-- A helper function for building the new total expression
+starting from a rewrite of one side of an equation or iff. -/
+meta def new_exp (exp r lhs rhs : expr) : side → expr
+| side.L := r exp rhs
+| side.R := r lhs exp
+
+/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
+pass to a new tracked rewrite obtained by replacing the corresponding expression
+with the rewritten expression. -/
+meta def to_side (rw : tracked_rewrite) (h : option expr) : option side → tactic tracked_rewrite
+| none     := return rw
+| (some s) := do expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
+                 let prf := do { lam ← mk_lambda r lhs rhs s,
+                                 rw.proof >>= mk_congr_arg lam },
+                 return ⟨new_exp rw.exp r lhs rhs s, prf, rw.addr.map $ λ l, s :: l⟩
+
+/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
+update the tactic state by replacing the corresponding part of the tactic state
+with the rewritten expression. -/
+meta def replace (rw : tracked_rewrite) (h : option expr) (s : option side) : tactic unit :=
+do (exp, prf) ← rw.to_side h s >>= tracked_rewrite.eval,
+   replace_state_part h exp prf
+
+end tracked_rewrite
+
+end nth_rewrite
+
+end tactic

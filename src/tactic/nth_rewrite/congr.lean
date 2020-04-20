@@ -27,17 +27,17 @@ meta inductive expr_lens
 | app_arg : expr_lens → expr → expr_lens
 | entire  : expr_lens
 
-open expr_lens
+namespace expr_lens
 
-meta def expr_lens.to_sides : expr_lens → list side
-| entire             := []
-| (app_fun l _)      := l.to_sides.concat side.R
-| (app_arg l _)      := l.to_sides.concat side.L
+meta def to_sides : expr_lens → list side
+| entire        := []
+| (app_fun l _) := l.to_sides.concat side.R
+| (app_arg l _) := l.to_sides.concat side.L
 
-meta def expr_lens.replace : expr_lens → expr → expr
+meta def replace : expr_lens → expr → expr
 | entire        e := e
-| (app_fun l f) x := expr_lens.replace l (expr.app f x)
-| (app_arg l x) f := expr_lens.replace l (expr.app f x)
+| (app_fun l f) x := l.replace (expr.app f x)
+| (app_arg l x) f := l.replace (expr.app f x)
 
 private meta def trace_congr_error (f : expr) (x_eq : expr) : tactic unit := do
   pp_f ← pp f,
@@ -46,19 +46,19 @@ private meta def trace_congr_error (f : expr) (x_eq : expr) : tactic unit := do
   pp_x_eq_t ← (infer_type x_eq >>= λ t, pp t),
   trace format!"expr_lens.congr failed on \n{pp_f} : {pp_f_t}\n{pp_x_eq} : {pp_x_eq_t}"
 
-meta def expr_lens.congr : expr_lens → expr → tactic expr
+meta def congr : expr_lens → expr → tactic expr
 | entire e_eq        := pure e_eq
 | (app_fun l f) x_eq := do
   fx_eq ← try_core $
     mk_congr_arg f x_eq
     <|> mk_congr_arg_using_dsimp' f x_eq [`has_coe_to_fun.F],
   match fx_eq with
-  | (some fx_eq) := expr_lens.congr l fx_eq
+  | (some fx_eq) := l.congr fx_eq
   | none         := trace_congr_error f x_eq >> failed
   end
-| (app_arg l x) f_eq := mk_congr_fun f_eq x >>= expr_lens.congr l
+| (app_arg l x) f_eq := mk_congr_fun f_eq x >>= l.congr
 
-meta def expr_lens.to_tactic_string : expr_lens → tactic string
+meta def to_tactic_string : expr_lens → tactic string
 | entire := return "(entire)"
 | (app_fun l f) := do
   pp ← pp f,
@@ -68,6 +68,8 @@ meta def expr_lens.to_tactic_string : expr_lens → tactic string
   pp ← pp x,
   rest ← l.to_tactic_string,
   return sformat!"(arg \"{pp}\" {rest})"
+
+end expr_lens
 
 private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) :
   expr_lens → expr → tactic (list α)

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_all.congr
+import tactic.nth_rewrite.congr
 
 /-!
 # Advanced rewriting tactics
@@ -36,74 +36,59 @@ open interactive.types
 
 namespace tactic
 
-open rewrite_all rewrite_all.congr
+meta def target_or_hyp_type : option expr → tactic expr
+| none     := target
+| (some h) := infer_type h
 
-/--
-Returns a lazy list of (t, n, k) where
-* `t` is a `tracked_rewrite` (i.e. a pair `(e' : expr, prf : e = e')`)
-* `n` is the index of the rule `r` used from `rs`, and
-* `k` is the index of `t` in `all_rewrites r e`.
--/
-meta def all_rewrites
-  (rs : list (expr × bool)) (e : expr)
-  (cfg : rewrite_all.cfg := {md := semireducible}) :
-  mllist tactic (tracked_rewrite × ℕ × ℕ) :=
-(mllist.of_list rs).enum.bind_ $ λ r,
-   ((rewrite_all_lazy e r.2 cfg).enum).map (λ p, (p.2, p.1, r.1))
+namespace nth_rewrite
 
-meta def get_nth_rewrite (r : expr × bool) (n : ℕ) : tactic tracked_rewrite :=
-do e ← target,
-   rewrites ← rewrite_all e r,
-   rewrites.nth n
+meta def replace' : option expr → expr → expr → tactic unit
+| none     := tactic.replace_target
+| (some h) := λ e p, tactic.replace_hyp h e p >> skip
 
-meta def nth_rewrite (r : expr × bool) (n : ℕ) : tactic unit :=
-get_nth_rewrite r n >>= tracked_rewrite.replace_target
+meta def mk_lambda (r lhs rhs : expr) : side → tactic expr
+| side.L := do L ← infer_type lhs >>= mk_local_def `L, lambdas [L] (r L rhs)
+| side.R := do R ← infer_type rhs >>= mk_local_def `R, lambdas [R] (r lhs R)
 
-meta def all_rewrites_using (a : name) (e : expr) :
-  tactic (list tracked_rewrite) :=
-do names ← attribute.get_instances a,
-   rules ← names.mmap mk_const,
-   let pairs := rules.map (λ e, (e, ff)) ++ rules.map (λ e, (e, tt)),
-   results ← pairs.mmap $ rewrite_all e,
-   pure results.join
+meta def new_exp (exp r lhs rhs : expr) : side → expr
+| side.L := r exp rhs
+| side.R := r lhs exp
 
-open tactic.interactive tactic.rewrite_all.tracked_rewrite
+meta def replace : option side → option expr → tracked_rewrite → tactic unit
+| none     := λ h rw, do (exp, prf) ← rw.eval, replace' h exp prf
+| (some s) := λ h rw,
+  do (exp, prf) ← rw.eval,
+     expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
+     lam ← mk_lambda r lhs rhs s,
+     new_prf ← mk_congr_arg lam prf,
+     replace' h (new_exp exp r lhs rhs s) new_prf
+
+end nth_rewrite
+
+open nth_rewrite nth_rewrite.congr nth_rewrite.tracked_rewrite
+open tactic.interactive
 
 private meta def unpack_rule (p : rw_rule) : tactic (expr × bool) :=
 do r ← to_expr p.rule tt ff,
    return (r, p.symm)
 
-private meta def get_nth_rewrite' (n : ℕ) (q : rw_rules_t) (e : expr) :
+private meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) :
   tactic tracked_rewrite :=
-do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= rewrite_all e,
+do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
    rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
 
-meta def nth_rw (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do e ← target_or_hyp_type h,
-   get_nth_rewrite' n q e >>= tracked_rewrite.replace h
-
-meta def nth_rw_lhs (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do e ← target_or_hyp_type h,
-   (r, lhs, rhs) ← relation_lhs_rhs e,
-   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_lhs h
-
-meta def nth_rw_rhs (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do e ← target_or_hyp_type h,
-   (r, lhs, rhs) ← relation_lhs_rhs e,
-   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_rhs h
-
-meta def nth_rw_core : option side → option expr → parse small_nat → parse rw_rules → tactic unit
-| none := nth_rw
-| (some side.L) := nth_rw_lhs
-| (some side.R) := nth_rw_rhs
+meta def get_side : option side → option expr → tactic expr
+| none          := target_or_hyp_type
+| (some side.L) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return lhs
+| (some side.R) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return rhs
 
 meta def nth_rw_hyp_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-nth_rw_core os h n q
+get_side os h >>= get_nth_rewrite n q >>= nth_rewrite.replace os h
 
 meta def nth_rw_target_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-nth_rw_core os none n q
+get_side os none >>= get_nth_rewrite n q >>= nth_rewrite.replace os none
 
 meta def nth_rewrite_core (os : option side)
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=

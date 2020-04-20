@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Keeley Hoek
 -/
-import tactic.rewrite_all.basic
+import tactic.nth_rewrite.basic
 import tactic.core
 
 namespace tactic
@@ -18,9 +18,9 @@ do s ← simp_lemmas.mk_default,
    definev `_mk_congr_arg_aux t' G,
    to_expr ```(congr_arg _mk_congr_arg_aux %%W)
 
-namespace rewrite_all.congr
+namespace nth_rewrite.congr
 
-open rewrite_all
+open nth_rewrite
 
 meta inductive expr_lens
 | app_fun : expr_lens → expr → expr_lens
@@ -81,7 +81,7 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
 meta def app_map {α} (F : expr_lens → expr → tactic (list α)) : expr → tactic (list α)
 | e := app_map_aux F expr_lens.entire e
 
-meta def rewrite_without_new_mvars (r : expr) (e : expr) (cfg : rewrite_all.cfg := {}) : tactic (expr × expr) :=
+meta def rewrite_without_new_mvars (r : expr) (e : expr) (cfg : nth_rewrite.cfg := {}) : tactic (expr × expr) :=
 lock_tactic_state $ -- This makes sure that we forget everything in between rewrites;
                     -- otherwise we don't correctly find everything!
 do (new_t, prf, metas) ← rewrite_core r e { cfg.to_rewrite_cfg with md := semireducible },
@@ -103,7 +103,7 @@ meta def rewrite_is_of_entire : expr → bool
 | _ := ff
 
 meta def rewrite_at_lens
-  (cfg : rewrite_all.cfg) (r : expr × bool) (l : expr_lens) (e : expr) :
+  (cfg : nth_rewrite.cfg) (r : expr × bool) (l : expr_lens) (e : expr) :
   tactic (list tracked_rewrite) :=
 do
   (v, pr) ← rewrite_without_new_mvars r.1 e {cfg with symm := r.2},
@@ -121,14 +121,14 @@ do
               end,
     return [⟨w, pure qr, l.to_sides⟩]
 
-meta def rewrite_all (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
+meta def nth_rewrite (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
   tactic (list tracked_rewrite) :=
 app_map (rewrite_at_lens cfg r) e
 
-meta def rewrite_all_lazy (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
+meta def nth_rewrite_lazy (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
   mllist tactic tracked_rewrite :=
-mllist.squash $ mllist.of_list <$> rewrite_all e r cfg
+mllist.squash $ mllist.of_list <$> nth_rewrite e r cfg
 
-end rewrite_all.congr
+end nth_rewrite.congr
 
 end tactic

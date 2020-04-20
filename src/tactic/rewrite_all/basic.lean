@@ -61,61 +61,49 @@ meta def eval (rw : tracked_rewrite) : tactic (expr × expr) :=
 do prf ← rw.proof,
    return (rw.exp, prf)
 
+meta def mk_lambda_lhs (r lhs rhs : expr) : tactic expr :=
+do t ← infer_type lhs,
+   L ← mk_local_def `L t,
+   lambdas [L] (r L rhs)
+
+meta def mk_lambda_rhs (r lhs rhs : expr) : tactic expr :=
+do t ← infer_type rhs,
+   R ← mk_local_def `R t,
+   lambdas [R] (r lhs R)
+
+meta def replace' : option expr → expr → expr → tactic unit
+| none     := tactic.replace_target
+| (some h) := λ e p, tactic.replace_hyp h e p >> skip
+
+meta def replace (h : option expr) (rw : tracked_rewrite) : tactic unit :=
+do (exp, prf) ← rw.eval,
+   replace' h exp prf
+
+meta def replace_hyp (h : expr) (rw : tracked_rewrite) : tactic unit :=
+replace h rw
+
 meta def replace_target (rw : tracked_rewrite) : tactic unit :=
-do (exp, prf) ← rw.eval,
-   tactic.replace_target exp prf
+replace none rw
 
-private meta def replace_target_side (new_target lam prf : expr) : tactic unit :=
+private meta def replace_side (h : option expr) (new_target lam prf : expr) : tactic unit :=
 do prf' ← mk_congr_arg lam prf,
-   tactic.replace_target new_target prf'
+   replace' h new_target prf'
 
-meta def replace_target_lhs (rw : tracked_rewrite) : tactic unit :=
-do expr.app (expr.app r lhs) rhs ← target,
+meta def target_or_hyp_type : option expr → tactic expr
+| none     := target
+| (some h) := infer_type h
+
+meta def replace_lhs (h : option expr) (rw : tracked_rewrite) : tactic unit :=
+do expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
    (new_lhs, prf) ← rw.eval,
-   lt ← infer_type lhs,
-   L ← mk_local_def `L lt,
-   lam ← lambdas [L] (r L rhs),
-   replace_target_side (r new_lhs rhs) lam prf
+   lam ← mk_lambda_lhs r lhs rhs,
+   replace_side h (r new_lhs rhs) lam prf
 
-meta def replace_target_rhs (rw : tracked_rewrite) : tactic unit :=
-do expr.app (expr.app r lhs) rhs ← target,
+meta def replace_rhs (h : option expr) (rw : tracked_rewrite) : tactic unit :=
+do expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
    (new_rhs, prf) ← rw.eval,
-   rt ← infer_type rhs,
-   R ← mk_local_def `R rt,
-   lam ← lambdas [R] (r lhs R),
-   replace_target_side (r lhs new_rhs) lam prf
-
-variable (h : expr)
-
-meta def replace_hyp (rw : tracked_rewrite) : tactic unit :=
-do (exp, prf) ← rw.eval,
-   tactic.replace_hyp h exp prf,
-   skip
-
-private meta def replace_hyp_side (new_hyp lam prf : expr) : tactic unit :=
-trace_scope $
-do prf' ← mk_congr_arg lam prf,
-   tactic.replace_hyp h new_hyp prf',
-   skip
-
-meta def replace_hyp_lhs (rw : tracked_rewrite) : tactic unit :=
-do (new_lhs, prf) ← rw.eval,
-   expr.app (expr.app r lhs) rhs ← infer_type h,
-   lt ← infer_type lhs,
-   L ← mk_local_def `L lt,
-   lam ← lambdas [L] (r L rhs),
-   replace_hyp_side h (r new_lhs rhs) lam prf,
-   skip
-
-meta def replace_hyp_rhs (rw : tracked_rewrite) : tactic unit :=
-trace_scope $
-do (new_rhs, prf) ← rw.eval,
-   expr.app (expr.app r lhs) rhs ← infer_type h,
-   rt ← infer_type rhs,
-   R ← mk_local_def `R rt,
-   lam ← lambdas [R] (r lhs R),
-   replace_hyp_side h (r lhs new_rhs) lam prf,
-   skip
+   lam ← mk_lambda_rhs r lhs rhs,
+   replace_side h (r lhs new_rhs) lam prf
 
 end tracked_rewrite
 

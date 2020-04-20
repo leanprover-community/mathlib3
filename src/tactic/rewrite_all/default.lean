@@ -14,7 +14,7 @@ that give the user more control over where to perform a rewrite.
 
 ## Main definitions
 
-* `perform_nth_write n rules`: performs only the `n`th possible rewrite using the `rules`.
+* `nth_write n rules`: performs only the `n`th possible rewrite using the `rules`.
 * `nth_rewrite_lhs`: as above, but only rewrites on the left hand side of an equation or iff.
 * `nth_rewrite_rhs`: as above, but only rewrites on the right hand side of an equation or iff.
 
@@ -67,7 +67,7 @@ do names ← attribute.get_instances a,
    results ← pairs.mmap $ rewrite_all e,
    pure results.join
 
-namespace interactive
+open tactic.interactive tactic.rewrite_all.tracked_rewrite
 
 private meta def unpack_rule (p : rw_rule) : tactic (expr × bool) :=
 do r ← to_expr p.rule tt ff,
@@ -78,35 +78,42 @@ private meta def get_nth_rewrite' (n : ℕ) (q : rw_rules_t) (e : expr) :
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= rewrite_all e,
    rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
 
-meta def nth_rw_hyp (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-do e ← infer_type h,
-   get_nth_rewrite' n q e >>= tracked_rewrite.replace_hyp h
+meta def nth_rw (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
+do e ← target_or_hyp_type h,
+   get_nth_rewrite' n q e >>= tracked_rewrite.replace h
 
-meta def nth_rw_hyp_lhs (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-do e ← infer_type h,
+meta def nth_rw_lhs (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
+do e ← target_or_hyp_type h,
    (r, lhs, rhs) ← relation_lhs_rhs e,
-   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_hyp_lhs h
+   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_lhs h
 
-meta def nth_rw_hyp_rhs (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-trace_scope $
-do e ← infer_type h,
-   trace "A",
+meta def nth_rw_rhs (h : option expr) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
+do e ← target_or_hyp_type h,
    (r, lhs, rhs) ← relation_lhs_rhs e,
-   trace "B",
-   r ← get_nth_rewrite' n q rhs,
-   trace "A",
-   tracked_rewrite.replace_hyp_rhs h r
+   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_rhs h
 
-meta def nth_rw_goal (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do e ← target, get_nth_rewrite' n q e >>= tracked_rewrite.replace_target
+meta def nth_rw_core : option side → option expr → parse small_nat → parse rw_rules → tactic unit
+| none := nth_rw
+| (some side.L) := nth_rw_lhs
+| (some side.R) := nth_rw_rhs
 
-meta def nth_rw_goal_lhs (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do (r, lhs, rhs) ← target_lhs_rhs,
-   get_nth_rewrite' n q lhs >>= tracked_rewrite.replace_target_lhs
+meta def nth_rw_hyp_core
+  (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
+nth_rw_core os h n q
 
-meta def nth_rw_goal_rhs (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-do (r, lhs, rhs) ← target_lhs_rhs,
-   get_nth_rewrite' n q rhs >>= tracked_rewrite.replace_target_rhs
+meta def nth_rw_target_core
+  (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
+nth_rw_core os none n q
+
+meta def nth_rewrite_core (os : option side)
+  (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+match l with
+| loc.wildcard := l.try_apply (nth_rw_hyp_core os n q) (nth_rw_target_core os n q)
+| _            := l.apply     (nth_rw_hyp_core os n q) (nth_rw_target_core os n q)
+end >> tactic.try (tactic.reflexivity reducible)
+    >> (returnopt q.end_pos >>= save_info <|> skip)
+
+namespace interactive
 
 /-- `perform_nth_write n rules` performs only the `n`th possible rewrite using the `rules`.
 
@@ -117,11 +124,7 @@ values of arguments, the second match will not be identified.)
 See also: `nth_rewrite_lhs` and `nth_rewrite_rhs` -/
 meta def nth_rewrite
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-match l with
-| loc.wildcard := l.try_apply (nth_rw_hyp n q) (nth_rw_goal n q)
-| _            := l.apply     (nth_rw_hyp n q) (nth_rw_goal n q)
-end >> tactic.try (tactic.reflexivity reducible)
-    >> (returnopt q.end_pos >>= save_info <|> skip)
+nth_rewrite_core none n q l
 
 /-- `nth_write_lhs n rules` performs only the `n`th possible rewrite using the `rules`,
 but only working on the left hand side.
@@ -132,11 +135,7 @@ values of arguments, the second match will not be identified.)
 
 See also: `nth_rewrite` and `nth_rewrite_rhs` -/
 meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-match l with
-| loc.wildcard := l.try_apply (nth_rw_hyp_lhs n q) (nth_rw_goal_lhs n q)
-| _            := l.apply     (nth_rw_hyp_lhs n q) (nth_rw_goal_lhs n q)
-end >> tactic.try (tactic.reflexivity reducible)
-    >> (returnopt q.end_pos >>= save_info <|> skip)
+nth_rewrite_core (some side.L) n q l
 
 /-- `nth_write_rhs n rules` performs only the `n`th possible rewrite using the `rules`,
 but only working on the right hand side.
@@ -147,26 +146,7 @@ values of arguments, the second match will not be identified.)
 
 See also: `nth_rewrite` and `nth_rewrite_lhs` -/
 meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-trace_scope $
-match l with
-| loc.wildcard := l.try_apply (nth_rw_hyp_rhs n q) (nth_rw_goal_rhs n q)
-| _            := l.apply     (nth_rw_hyp_rhs n q) (nth_rw_goal_rhs n q)
-end >> tactic.try (tactic.reflexivity reducible)
-    >> (returnopt q.end_pos >>= save_info <|> skip)
+nth_rewrite_core (some side.R) n q l
 
 end interactive
 end tactic
-
-example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
-begin
-  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
-  nth_rewrite_rhs 0 [← h₁] at h₂,
-  nth_rewrite_rhs 0 h₂,
-end
-
-example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
-begin
-  nth_rewrite_rhs 1 [h₁] at h₂,
-  nth_rewrite_rhs 0 [← h₁] at h₂,
-  nth_rewrite_rhs 0 h₂,
-end

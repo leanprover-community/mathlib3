@@ -59,25 +59,21 @@ meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) : tactic tracked_
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
    rewrites.join.nth n <|> fail "failed: not enough rewrites found"
 
-private def rel_descent_instructions : option side → list side
-| none := []
-| (some side.L) := [side.L, side.R]
-| (some side.R) := [side.R]
-
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis or
 target `h` which is an application of a relation. -/
 meta def get_nth_rewrite_in_rel
-  (n : ℕ) (q : rw_rules_t) (s : option side) (h : option expr) : tactic tracked_rewrite :=
+  (n : ℕ) (q : rw_rules_t) (path : list side) (h : option expr) : tactic tracked_rewrite :=
 do e ← target_or_hyp_type h,
-   (ln, new_e) ← expr_lens.entire.zoom (rel_descent_instructions s) e,
+   (ln, new_e) ← expr_lens.entire.zoom path e,
    rw ← get_nth_rewrite n q new_e,
-   return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, s.to_list ++ l⟩
+   return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, path ++ l⟩
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/
-meta def nth_rewrite_core (s : option side) (n : parse small_nat) (q : parse rw_rules)
+meta def nth_rewrite_core (path : list side) (n : parse small_nat) (q : parse rw_rules)
   (l : parse location) : tactic unit :=
-do let fn := λ h, get_nth_rewrite_in_rel n q s h >>= λ rw, rw.proof >>= replace_in_state h rw.exp,
+do let fn := λ h, get_nth_rewrite_in_rel n q path h
+                    >>= λ rw, (rw.proof >>= replace_in_state h rw.exp),
    match l with
    | loc.wildcard := l.try_apply (fn ∘ some) (fn none)
    | _            := l.apply     (fn ∘ some) (fn none)
@@ -96,7 +92,7 @@ values of arguments, the second match will not be identified.)
 See also: `nth_rewrite_lhs` and `nth_rewrite_rhs` -/
 meta def nth_rewrite
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-nth_rewrite_core none n q l
+nth_rewrite_core [] n q l
 
 /-- `nth_write_lhs n rules` performs only the `n`th possible rewrite using the `rules`,
 but only working on the left hand side.
@@ -107,7 +103,7 @@ values of arguments, the second match will not be identified.)
 
 See also: `nth_rewrite` and `nth_rewrite_rhs` -/
 meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-nth_rewrite_core (some side.L) n q l
+nth_rewrite_core [side.L, side.R] n q l
 
 /-- `nth_write_rhs n rules` performs only the `n`th possible rewrite using the `rules`,
 but only working on the right hand side.
@@ -118,7 +114,7 @@ values of arguments, the second match will not be identified.)
 
 See also: `nth_rewrite` and `nth_rewrite_lhs` -/
 meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
-nth_rewrite_core (some side.R) n q l
+nth_rewrite_core [side.R] n q l
 
 end interactive
 end tactic

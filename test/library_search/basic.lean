@@ -74,4 +74,28 @@ by library_search -- exact mul_dvd_mul_left a w
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
 
+-- We have control of how `library_search` uses `solve_by_elim`.
+
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
+begin
+  library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+end
+
+example {a b : ℕ} (h₁ : 0 < a) (h₂ : a < b) : b ≠ 0 :=
+by library_search [lt.trans] --Says: exact ne_of_gt (lt.trans h₁ h₂)
+
+-- In the following example `5` is the minimum `max_depth` for which the example works.
+example {a b c d: ℕ} (h₁ : a < b) (h₂ : b < c) : d < a → max d c = c :=
+begin
+  intro,
+  library_search [lt.trans] {max_depth := 5},
+    --Says: `exact max_eq_right_of_lt (lt.trans (lt.trans a_1 h₁) h₂)`
+end
+
+example (f g k: ℕ → ℕ) (h₁ : ∀ n : ℕ, f n = g n) (h₂ : ∀ n : ℕ, g n = k n) : f = k :=
+begin
+  library_search [eq.trans] { discharger := `[intro], max_depth := 4 },
+  --Says: `exact funext (λ (x : ℕ), eq.trans (h₁ x) (h₂ x))`
+end
+
 end test.library_search

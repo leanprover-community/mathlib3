@@ -9,7 +9,8 @@ Haskell's `Cont`, `ContT` and `MonadCont`:
 -/
 
 import tactic.ext
-import category.monad.basic category.monad.writer
+import category.monad.basic
+import category.monad.writer
 
 universes u v w
 

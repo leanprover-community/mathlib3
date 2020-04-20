@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.calculus.fderiv analysis.normed_space.multilinear
+import analysis.calculus.fderiv
+import analysis.normed_space.multilinear
 
 /-!
 # Higher differentiability

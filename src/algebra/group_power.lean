@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 
-import data.int.basic data.equiv.basic
+import data.int.basic
+import data.equiv.basic
 
 /-!
 # Power operations on monoids and groups

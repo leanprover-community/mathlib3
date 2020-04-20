@@ -5,7 +5,8 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
   Johannes Hölzl, Yury Kudryashov
 -/
 
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.to_additive
+import algebra.group.basic
 
 /-!
 # monoid and group homomorphisms

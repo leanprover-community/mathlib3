@@ -4,7 +4,8 @@ Author: Seul Baek
 
 Linear integer arithmetic terms in pre-normalized form. -/
 
-import tactic.split_ifs tactic.omega.term
+import tactic.split_ifs
+import tactic.omega.term
 
 namespace omega
 namespace int

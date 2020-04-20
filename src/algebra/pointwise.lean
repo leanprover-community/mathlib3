@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.set.finite data.set.lattice group_theory.group_action algebra.module
+import data.set.finite
+import data.set.lattice
+import group_theory.group_action
+import algebra.module
 
 /-!
 

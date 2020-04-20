@@ -5,7 +5,8 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import logic.embedding algebra.order_functions
+import logic.embedding
+import algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
   tactic.monotonicity tactic.apply
 

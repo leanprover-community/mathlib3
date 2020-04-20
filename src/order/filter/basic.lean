@@ -3,7 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
-import order.galois_connection order.zorn order.copy
+import order.galois_connection
+import order.zorn
+import order.copy
 import data.set.finite
 
 /-! # Theory of filters on sets

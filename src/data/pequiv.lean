@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import data.equiv.basic data.set.lattice tactic.tauto
+import data.equiv.basic
+import data.set.lattice
+import tactic.tauto
 
 universes u v w x
 

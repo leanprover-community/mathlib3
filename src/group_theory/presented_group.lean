@@ -6,7 +6,8 @@ Authors: Michael Howes
 Defining a group given by generators and relations
 -/
 
-import group_theory.free_group group_theory.quotient_group
+import group_theory.free_group
+import group_theory.quotient_group
 
 variables {α : Type}
 

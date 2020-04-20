@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import topology.metric_space.basic analysis.specific_limits
+import topology.metric_space.basic
+import analysis.specific_limits
 
 /-!
 # Baire theorem

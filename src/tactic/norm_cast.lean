@@ -6,7 +6,8 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
 Normalizing casts inside expressions.
 -/
 
-import tactic.converter.interactive tactic.hint
+import tactic.converter.interactive
+import tactic.hint
 
 /-!
 # A tactic for normalizing casts inside expressions

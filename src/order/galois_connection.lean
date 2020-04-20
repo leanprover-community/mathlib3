@@ -5,7 +5,9 @@ Author: Johannes Hölzl
 
 Galois connections - order theoretic adjoints.
 -/
-import order.complete_lattice order.bounds order.order_iso
+import order.complete_lattice
+import order.bounds
+import order.order_iso
 open function set
 
 universes u v w x

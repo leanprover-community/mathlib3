@@ -3,7 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.set.basic algebra.field order.conditionally_complete_lattice
+import data.set.basic
+import algebra.field
+import order.conditionally_complete_lattice
   algebra.big_operators
 
 /-!

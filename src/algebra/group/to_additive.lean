@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
 
-import tactic.basic tactic.transform_decl tactic.algebra
+import tactic.basic
+import tactic.transform_decl
+import tactic.algebra
 
 /-!
 # Transport multiplicative to additive

@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
 -/
 
-import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.set.countable
+import data.quot
+import logic.function
+import set_theory.schroeder_bernstein
 import data.fintype.card
 
 /-!

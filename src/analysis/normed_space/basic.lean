@@ -6,7 +6,8 @@ Authors: Patrick Massot, Johannes Hölzl
 
 import algebra.pi_instances
 import linear_algebra.basic
-import topology.instances.nnreal topology.instances.complex
+import topology.instances.nnreal
+import topology.instances.complex
 import topology.algebra.module
 import topology.metric_space.lipschitz
 import topology.metric_space.antilipschitz

@@ -12,7 +12,8 @@ of implications.
 -/
 
 import tactic.tauto
-import category.basic data.sum
+import category.basic
+import data.sum
 
 /-!
 # Strongly Connected Components

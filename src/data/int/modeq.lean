@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import data.int.basic data.nat.modeq
+import data.int.basic
+import data.nat.modeq
 import tactic
 
 namespace int

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Sébastien Gouëzel
 -/
 
-import topology.uniform_space.basic analysis.normed_space.basic data.real.cau_seq
+import topology.uniform_space.basic
+import analysis.normed_space.basic
+import data.real.cau_seq
 import tactic.linarith
 
 /-! # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences

@@ -3,7 +3,8 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs tactic.derive_inhabited
+import data.string.defs
+import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 

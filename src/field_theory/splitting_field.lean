@@ -7,7 +7,8 @@ Definition of splitting fields, and definition of homomorphism into any field th
 -/
 
 import ring_theory.unique_factorization_domain
-import data.polynomial ring_theory.principal_ideal_domain
+import data.polynomial
+import ring_theory.principal_ideal_domain
        algebra.euclidean_domain
 
 universes u v w

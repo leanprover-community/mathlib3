@@ -6,7 +6,8 @@ Authors: Mario Carneiro, Floris van Doorn
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq_completion
+import order.conditionally_complete_lattice
+import data.real.cau_seq_completion
   algebra.archimedean order.bounds
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _

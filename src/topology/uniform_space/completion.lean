@@ -35,7 +35,8 @@ This formalization is mostly based on
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
 import data.set.basic
-import topology.uniform_space.abstract_completion topology.uniform_space.separation
+import topology.uniform_space.abstract_completion
+import topology.uniform_space.separation
 
 noncomputable theory
 open filter set

@@ -9,7 +9,8 @@ Define the operator norm on the space of continuous linear maps between normed s
 its basic properties. In particular, show that this space is itself a normed space.
 -/
 
-import topology.metric_space.lipschitz analysis.normed_space.riesz_lemma
+import topology.metric_space.lipschitz
+import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
 open_locale classical

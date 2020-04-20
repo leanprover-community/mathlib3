@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.calculus.extend_deriv analysis.calculus.iterated_deriv analysis.complex.exponential
+import analysis.calculus.extend_deriv
+import analysis.calculus.iterated_deriv
+import analysis.complex.exponential
 
 /-!
 # Smoothness of specific functions

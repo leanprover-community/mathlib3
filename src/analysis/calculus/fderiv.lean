@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 
-import analysis.asymptotics analysis.calculus.tangent_cone
+import analysis.asymptotics
+import analysis.calculus.tangent_cone
 
 /-!
 # The Fréchet derivative

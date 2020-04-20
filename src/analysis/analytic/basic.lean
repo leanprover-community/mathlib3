@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.calculus.times_cont_diff tactic.omega analysis.complex.exponential
+import analysis.calculus.times_cont_diff
+import tactic.omega
+import analysis.complex.exponential
   analysis.specific_limits
 
 /-!

@@ -5,7 +5,9 @@ Author: Chris Hughes, Morenikeji Neri
 -/
 
 import algebra.euclidean_domain
-import ring_theory.ideals ring_theory.noetherian ring_theory.unique_factorization_domain
+import ring_theory.ideals
+import ring_theory.noetherian
+import ring_theory.unique_factorization_domain
 
 variables {α : Type*}
 

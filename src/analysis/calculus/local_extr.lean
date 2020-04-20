@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import topology.local_extr analysis.calculus.deriv
+import topology.local_extr
+import analysis.calculus.deriv
 
 /-! # Local extrema of smooth functions
 

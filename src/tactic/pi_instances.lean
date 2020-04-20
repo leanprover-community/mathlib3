@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 
-import tactic.solve_by_elim order.basic
+import tactic.solve_by_elim
+import order.basic
 
 /-!
 # `pi_instance`

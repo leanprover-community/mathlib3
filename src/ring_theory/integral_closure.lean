@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.adjoin linear_algebra.finsupp
+import ring_theory.adjoin
+import linear_algebra.finsupp
 
 /-!
 # Integral closure of a subring.

@@ -7,7 +7,8 @@ Construction of a good coupling between nonempty compact metric spaces, minimizi
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
 
-import topology.bounded_continuous_function topology.metric_space.gluing
+import topology.bounded_continuous_function
+import topology.metric_space.gluing
   topology.metric_space.hausdorff_distance
 
 noncomputable theory

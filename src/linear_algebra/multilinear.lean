@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import linear_algebra.basic tactic.omega data.fintype.card
+import linear_algebra.basic
+import tactic.omega
+import data.fintype.card
 
 /-!
 # Multilinear maps

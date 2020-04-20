@@ -5,7 +5,10 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
 
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+import data.finsupp
+import data.polynomial
+import data.equiv.ring
+import data.equiv.fin
 import tactic.omega
 
 /-!

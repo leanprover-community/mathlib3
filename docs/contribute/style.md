@@ -42,7 +42,8 @@ Author: Joe Cool.
 
 A theory of everything.
 -/
-import data.nat algebra.group
+import data.nat
+import algebra.group
 open nat eq.ops
 ```
 

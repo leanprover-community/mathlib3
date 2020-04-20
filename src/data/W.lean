@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
 
-import data.equiv.encodable data.equiv.list data.fin data.finset data.fintype.basic
+import data.equiv.encodable
+import data.equiv.list
+import data.fin
+import data.finset
+import data.fintype.basic
 
 /-!
 # W types

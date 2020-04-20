@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 -/
 
-import topology.bases topology.dense_embedding
+import topology.bases
+import topology.dense_embedding
 
 /-! # Stone-Čech compactification
 

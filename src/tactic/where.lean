@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek
 -/
 
-import data.list.defs tactic.core
+import data.list.defs
+import tactic.core
 
 /-!
 # The `where` command

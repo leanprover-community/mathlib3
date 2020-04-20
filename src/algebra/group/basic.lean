@@ -3,7 +3,8 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive logic.function
+import algebra.group.to_additive
+import logic.function
 
 attribute [simp] sub_neg_eq_add
 

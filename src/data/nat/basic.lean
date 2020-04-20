@@ -3,7 +3,10 @@ Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import logic.basic algebra.ordered_ring data.option.basic algebra.order_functions
+import logic.basic
+import algebra.ordered_ring
+import data.option.basic
+import algebra.order_functions
 
 /-!
 # Basic operations on the natural numbers

@@ -5,7 +5,8 @@ Gluing metric spaces
 Authors: Sébastien Gouëzel
 -/
 
-import topology.metric_space.isometry topology.metric_space.premetric_space
+import topology.metric_space.isometry
+import topology.metric_space.premetric_space
 
 /-!
 # Metric space gluing

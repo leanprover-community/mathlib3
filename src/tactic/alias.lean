@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.buffer.parser meta.expr tactic.core
+import data.buffer.parser
+import meta.expr
+import tactic.core
 
 /-!
 # The `alias` command

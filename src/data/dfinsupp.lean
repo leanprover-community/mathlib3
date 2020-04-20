@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
 
-import data.finset data.set.finite algebra.big_operators algebra.module algebra.pi_instances
+import data.finset
+import data.set.finite
+import algebra.big_operators
+import algebra.module
+import algebra.pi_instances
 
 /-!
 # Dependent functions with finite support

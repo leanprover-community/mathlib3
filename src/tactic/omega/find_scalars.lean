@@ -5,7 +5,8 @@ Author: Seul Baek
 Tactic for performing Fourier–Motzkin elimination to find
 a contradictory linear combination of input constraints. -/
 
-import tactic.omega.term data.list.min_max
+import tactic.omega.term
+import data.list.min_max
 
 open list.func
 

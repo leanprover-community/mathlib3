@@ -9,7 +9,8 @@ This file contains the Banach open mapping theorem, i.e., the fact that a biject
 bounded linear map between Banach spaces has a bounded inverse.
 -/
 
-import topology.metric_space.baire analysis.normed_space.bounded_linear_maps
+import topology.metric_space.baire
+import analysis.normed_space.bounded_linear_maps
 
 open function metric set filter finset
 open_locale classical topological_space

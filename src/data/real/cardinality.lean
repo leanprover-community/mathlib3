@@ -6,7 +6,10 @@ Authors: Floris van Doorn
 The cardinality of the reals.
 -/
 
-import data.real.basic set_theory.ordinal analysis.specific_limits data.rat.denumerable
+import data.real.basic
+import set_theory.ordinal
+import analysis.specific_limits
+import data.rat.denumerable
 
 open nat set
 noncomputable theory

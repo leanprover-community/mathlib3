@@ -6,7 +6,8 @@ Author: Mario Carneiro
 Bitwise operations using binary representation of integers.
 -/
 
-import data.num.basic data.bitvec
+import data.num.basic
+import data.bitvec
 
 namespace pos_num
 

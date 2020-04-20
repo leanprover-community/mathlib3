@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 
-import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
+import order.lattice
+import algebra.order_functions
+import algebra.ordered_field
+import tactic.tauto
 
 /-!
 # Intervals

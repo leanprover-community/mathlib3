@@ -5,7 +5,8 @@ Authors: Zhouhang Zhou
 -/
 
 import algebra.ordered_field
-import tactic.linarith tactic.ring
+import tactic.linarith
+import tactic.ring
 
 /-!
 # Quadratic discriminants and roots of a quadratic

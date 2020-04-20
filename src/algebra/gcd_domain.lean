@@ -7,7 +7,8 @@ GCD domain and integral domains with normalization functions
 
 TODO: abstract the domains to to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
 -/
-import algebra.associated data.int.gcd
+import algebra.associated
+import data.int.gcd
 
 variables {α : Type*}
 

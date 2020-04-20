@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import analysis.normed_space.operator_norm analysis.convex.cone
+import analysis.normed_space.operator_norm
+import analysis.convex.cone
 
 /-!
 # Hahn-Banach theorem
@@ -39,4 +40,3 @@ begin
   { simp only [← mul_add],
     exact mul_le_mul_of_nonneg_left (norm_add_le x y) (norm_nonneg f) }
 end
-

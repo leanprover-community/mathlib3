@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
 -/
 
-import topology.metric_space.hausdorff_distance topology.opens analysis.specific_limits
+import topology.metric_space.hausdorff_distance
+import topology.opens
+import analysis.specific_limits
 
 /-!
 # Closed subsets

@@ -5,7 +5,9 @@ Author: Mario Carneiro, Neil Strickland
 -/
 import tactic.basic
 
-import data.nat.basic data.nat.prime algebra.group_power
+import data.nat.basic
+import data.nat.prime
+import algebra.group_power
 
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 
-import order.filter order.filter.bases
+import order.filter
+import order.filter.bases
 
 /-!
 # Basic theory of topological spaces.

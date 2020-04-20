@@ -6,7 +6,8 @@ Author: Simon Hudon
 Functors with two arguments
 -/
 
-import logic.function data.sum
+import logic.function
+import data.sum
        category.basic category.functor
        tactic.basic
 

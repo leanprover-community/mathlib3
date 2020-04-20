@@ -4,8 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Mario Carneiro
 -/
 
-import algebra.group_power data.rat.order data.rat.cast data.rat.meta_defs data.nat.prime
-import tactic.interactive tactic.converter.interactive
+import algebra.group_power
+import data.rat.order
+import data.rat.cast
+import data.rat.meta_defs
+import data.nat.prime
+import tactic.interactive
+import tactic.converter.interactive
 
 /-!
 # `norm_num`

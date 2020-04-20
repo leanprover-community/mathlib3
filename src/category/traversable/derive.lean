@@ -9,7 +9,8 @@ Automation to construct `traversable` instances
 import category.traversable.basic
        category.traversable.lemmas
        category.basic data.list.basic
-import tactic.basic tactic.cache
+import tactic.basic
+import tactic.cache
 
 namespace tactic.interactive
 

@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import group_theory.group_action algebra.pi_instances data.set.disjointed data.support
+import group_theory.group_action
+import algebra.pi_instances
+import data.set.disjointed
+import data.support
 
 /-!
 # Indicator function

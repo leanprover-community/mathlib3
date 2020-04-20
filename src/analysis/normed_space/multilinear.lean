@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.normed_space.operator_norm topology.algebra.multilinear
+import analysis.normed_space.operator_norm
+import topology.algebra.multilinear
 import data.fintype.card
 
 /-!

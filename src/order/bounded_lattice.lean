@@ -8,7 +8,8 @@ Defines bounded lattice type class hierarchy.
 Includes the Prop and fun instances.
 -/
 
-import order.lattice data.option.basic
+import order.lattice
+import data.option.basic
        tactic.pi_instances
 
 set_option old_structure_cmd true

@@ -13,7 +13,8 @@ Introduces notations
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 
-import category_theory.category tactic.reassoc_axiom
+import category_theory.category
+import tactic.reassoc_axiom
 
 namespace category_theory
 

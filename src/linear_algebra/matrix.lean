@@ -5,7 +5,8 @@ Author: Johannes Hölzl, Casper Putz
 -/
 
 import data.matrix.basic
-import linear_algebra.dimension linear_algebra.tensor_product
+import linear_algebra.dimension
+import linear_algebra.tensor_product
 
 /-!
 # Linear maps and matrices

@@ -600,6 +600,11 @@ end
   (λ n0, by simp [n0])
   (λ npos, mod_eq_of_lt (mod_lt _ npos))
 
+/--  If `a` and `b` are equal mod `c`, `a - b` is zero mod `c`. -/
+lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
+by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
+       ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
   m + n > 0 + n : nat.add_lt_add_right h n
@@ -1363,6 +1368,12 @@ by rw [←nat.div_mul_cancel w, h, one_mul]
 
 lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
 by rw [←nat.div_mul_cancel w, h, zero_mul]
+
+/-- If a small natural number is divisible by a larger natural number,
+the small number is zero. -/
+lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
+nat.eq_zero_of_dvd_of_div_eq_zero w
+  ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
 (nat.le_div_iff_mul_le _ _ h₂).2 $

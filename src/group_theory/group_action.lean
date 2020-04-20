@@ -47,7 +47,15 @@ end
 
 namespace mul_action
 
-variables (α) [monoid α] [mul_action α β]
+variables (α) [monoid α]
+
+/-- The regular action of a monoid on itself by left multiplication. -/
+def regular : mul_action α α :=
+{ smul := λ a₁ a₂, a₁ * a₂,
+  one_smul := λ a, one_mul a,
+  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+
+variables [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 

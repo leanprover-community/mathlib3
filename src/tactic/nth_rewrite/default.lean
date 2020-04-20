@@ -69,7 +69,7 @@ target `h` which is an application of a relation. -/
 meta def get_nth_rewrite_in_rel
   (n : ℕ) (q : rw_rules_t) (s : option side) (h : option expr) : tactic tracked_rewrite :=
 do e ← target_or_hyp_type h,
-   (ln, new_e) ← expr_lens.entire.descend (rel_descent_instructions s) e,
+   (ln, new_e) ← expr_lens.entire.zoom (rel_descent_instructions s) e,
    rw ← get_nth_rewrite n q new_e,
    return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, s.to_list ++ l⟩
 

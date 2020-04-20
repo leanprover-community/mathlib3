@@ -17,10 +17,6 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def of_rat (x : ℚ) : ℝ := of_rat x
-
-def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
-
 def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
 
 instance : comm_ring ℝ := { ..comm_ring_aux }
@@ -42,6 +38,13 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
+is `cau_seq.completion.of_rat`, not `rat.cast`. -/
+def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
+
+/-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
+def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -101,26 +104,24 @@ instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_nonneg := λ a b a0 b0,
-    match a0, b0 with
-    | or.inl a0, or.inl b0 := le_of_lt (real.mul_pos a0 b0)
-    | or.inr a0, _ := by simp [a0.symm]
-    | _, or.inr b0 := by simp [b0.symm]
-    end,
   mul_pos := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
-  add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
-  ..real.comm_ring, ..real.linear_order }
+  ..real.comm_ring, ..real.linear_order, ..real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
 instance : ordered_ring ℝ               := by apply_instance
 instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_comm_group ℝ         := by apply_instance
-instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_comm_monoid ℝ        := by apply_instance
+instance : ordered_add_comm_group ℝ     := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
+instance : ordered_add_comm_monoid ℝ    := by apply_instance
 instance : domain ℝ                     := by apply_instance
+instance : has_one ℝ                    := by apply_instance
+instance : has_zero ℝ                   := by apply_instance
+instance : has_mul ℝ                    := by apply_instance
+instance : has_add ℝ                    := by apply_instance
+instance : has_sub ℝ                    := by apply_instance
 
 open_locale classical
 
@@ -135,7 +136,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
+noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
@@ -156,7 +157,7 @@ calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
-eq_cast of_rat rfl of_rat_add of_rat_mul
+of_rat.eq_rat_cast
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=

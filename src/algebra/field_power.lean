@@ -148,7 +148,7 @@ end ordered
 section
 variables {K : Type*} [field K]
 
-@[simp, move_cast] theorem rat.cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
+@[simp, norm_cast] theorem rat.cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=
 (rat.cast_hom K).map_fpow q n
 

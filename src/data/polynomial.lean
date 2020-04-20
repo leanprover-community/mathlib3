@@ -130,7 +130,7 @@ instance C.is_semiring_hom : is_semiring_hom (C : α → polynomial α) :=
 @[simp] lemma C_pow : C (a ^ n) = C a ^ n := is_semiring_hom.map_pow _ _ _
 
 lemma nat_cast_eq_C (n : ℕ) : (n : polynomial α) = C n :=
-by refine (nat.eq_cast (λ n, C (n : α)) _ _ _ n).symm; simp
+((ring_hom.of C).map_nat_cast n).symm
 
 section coeff
 
@@ -175,7 +175,7 @@ begin
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum], apply add_monoid.smul_zero }, -- TODO why doesn't simp do this?
+  { simp [finsupp.sum] }
 end
 
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :

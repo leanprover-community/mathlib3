@@ -16,7 +16,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
   is a finset `elems` (a list up to permutation without duplicates),
   together with a proof that everything of type `α` is in the list. -/
 class fintype (α : Type*) :=
-(elems : finset α)
+(elems [] : finset α)
 (complete : ∀ x : α, x ∈ elems)
 
 namespace finset
@@ -133,7 +133,7 @@ noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α
 have A : bijective (mono_of_fin univ h) := begin
   apply set.bijective_iff_bij_on_univ.2,
   rw ← @coe_univ α _,
-  exact bij_on_mono_of_fin (univ : finset α) h
+  exact mono_of_fin_bij_on (univ : finset α) h
 end,
 equiv.of_bijective A
 

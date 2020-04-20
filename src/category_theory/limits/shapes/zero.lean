@@ -99,10 +99,10 @@ section
 variables {C} [has_zero_morphisms.{v} C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←zero_comp.{v} C X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
 
 lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
 
 end
 
@@ -152,7 +152,7 @@ Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
 protected def has_zero : has_zero C :=
-{ zero := has_zero_object.zero.{v} C }
+{ zero := has_zero_object.zero.{v} }
 
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from

@@ -384,9 +384,9 @@ run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_ex
 
 structure my_str (n : ℕ) := (x y : ℕ)
 
-def dummy : my_str 3 := ⟨3, 1, 1⟩
-def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
-def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+def dummy : my_str 3 := ⟨1, 1⟩
+def wrong_param : my_str 2 := ⟨dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨dummy.1, dummy.2⟩
 
 run_cmd do e ← get_env,
   x ← e.get `wrong_param, o ← x.value.is_eta_expansion,

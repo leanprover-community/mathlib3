@@ -8,7 +8,7 @@ their Hausdorff distance. This construction is instrumental to study the Gromov-
 distance between nonempty compact metric spaces -/
 
 import topology.bounded_continuous_function topology.metric_space.gluing
-topology.metric_space.hausdorff_distance
+  topology.metric_space.hausdorff_distance
 
 noncomputable theory
 open_locale classical

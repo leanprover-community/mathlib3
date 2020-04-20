@@ -25,8 +25,7 @@ open real set
 
 /-- `exp` is convex on the whole real line -/
 lemma convex_on_exp : convex_on univ exp :=
-convex_on_univ_of_deriv2_nonneg differentiable_exp
-  (deriv_exp.symm ▸ differentiable_exp)
+convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/

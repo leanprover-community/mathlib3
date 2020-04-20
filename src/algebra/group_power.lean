@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 
-import data.int.basic
+import data.int.basic data.equiv.basic
 
 /-!
 # Power operations on monoids and groups
@@ -23,8 +23,10 @@ We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for
 We adopt the convention that `0^0 = 1`.
 -/
 
-variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
-  {R : Type*} {S : Type*}
+universes u v w x y z u₁ u₂
+
+variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+  {R : Type u₁} {S : Type u₂}
 
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
@@ -64,12 +66,9 @@ by split_ifs; refl
   (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
 by split_ifs; refl
 
--- In this lemma we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
 @[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
   a ^ (if P then 1 else 0) = if P then a else 1 :=
-by { simp, congr }
+by simp
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
@@ -109,7 +108,9 @@ theorem add_monoid.mul_smul (a : A) (m n : ℕ) : m * n • a = m•(n•a) :=
 by rw [mul_comm, add_monoid.mul_smul']
 
 @[simp] theorem add_monoid.smul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
-nat.eq_cast _ (add_monoid.zero_smul _) (add_monoid.one_smul _) (add_monoid.add_smul _)
+add_monoid_hom.eq_nat_cast
+  ⟨λ n, n • (1 : A), add_monoid.zero_smul _, λ _ _, add_monoid.add_smul _ _ _⟩
+  (add_monoid.one_smul _)
 
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
 theorem bit0_smul (a : A) (n : ℕ) : bit0 n • a = n•a + n•a := add_monoid.add_smul _ _ _
@@ -396,10 +397,10 @@ by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 lemma zero_pow [semiring R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
-@[simp, move_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact nat.cast_one, rw [nat.pow_succ, pow_succ', nat.cast_mul, ih]]
 
-@[simp, move_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -454,7 +455,7 @@ lemma gsmul_int_int (a b : ℤ) : a •ℤ b = a * b := by simp [gsmul_eq_mul]
 
 lemma gsmul_int_one (n : ℤ) : n •ℤ 1 = n := by simp
 
-@[simp, move_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact int.cast_one,
   rw [pow_succ, pow_succ, int.cast_mul, ih]]
 
@@ -475,7 +476,7 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
+theorem add_monoid.smul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
@@ -487,7 +488,7 @@ lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 namespace add_monoid
-variable [ordered_comm_monoid A]
+variable [ordered_add_comm_monoid A]
 
 theorem smul_le_smul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
 let ⟨k, hk⟩ := nat.le.dest h in
@@ -669,3 +670,41 @@ end int
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
+
+@[simp] lemma pow_of_add [add_monoid A] (x : A) (n : ℕ) :
+  multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
+
+@[simp] lemma gpow_of_add [add_group A] (x : A) (n : ℤ) :
+  multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
+
+variables (M G A)
+
+/-- Monoid homomorphisms from `multiplicative ℕ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := pow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← pow_of_add] } }
+
+/-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := gpow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← gpow_of_add] } }
+
+/-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
+def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n • x, add_monoid.zero_smul x, λ m n, add_monoid.add_smul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := add_monoid.one_smul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_smul] }
+
+/-- Additive homomorphisms from `ℤ` are defined by the image of `1`. -/
+def gmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n •ℤ x, zero_gsmul x, λ m n, add_gsmul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := one_gsmul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_gsmul] }

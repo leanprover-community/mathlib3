@@ -138,7 +138,7 @@ theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
   have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 end
 
@@ -150,7 +150,7 @@ def gcd : α → α → α
   have h:_ := mod_lt b a0,
   gcd (b%a) a
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 @[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
 by rw gcd; exact if_pos rfl
@@ -199,7 +199,7 @@ if hr : r = 0 then (r', s', t')
   have r' % r ≺ r, from mod_lt _ hr,
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 @[simp] theorem xgcd_zero_left {s t r' s' t' : α} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by unfold xgcd_aux; exact if_pos rfl

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Neil Strickland
 -/
 import tactic.basic
-
 import data.nat.basic
 import data.nat.prime
 import algebra.group_power

@@ -20,7 +20,6 @@ free monoid on two generators) and the theory of continued fractions.
 -/
 
 import tactic.basic
-
 import data.pnat.basic
 import tactic.ring
 import tactic.abel

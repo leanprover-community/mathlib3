@@ -749,7 +749,7 @@ lemma eq_zero_of_dvd_of_nat_abs_lt_nat_abs {a b : ℤ} (w : a ∣ b) (h : nat_ab
 begin
   rw [←nat_abs_dvd, ←dvd_nat_abs, coe_nat_dvd] at w,
   rw ←nat_abs_eq_zero,
-  exact eq_zero_of_dvd_of_gt w h
+  exact eq_zero_of_dvd_of_lt w h
 end
 
 /-- If two integers are congruent to a sufficiently large modulus,

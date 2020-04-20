@@ -133,7 +133,7 @@ identify what the current "parser context" is. The command `#where` identifies a
 information about the current location, including the active namespace, open namespaces, and
 declared variables.
 
-It is a bug for `#where` to incorrectly report this information (this was not formerly the case);'
+It is a bug for `#where` to incorrectly report this information (this was not formerly the case);
 please file an issue on GitHub if you observe a failure.
 -/
 @[user_command]

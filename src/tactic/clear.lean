@@ -28,7 +28,8 @@ Simon Hudon.
 open native tactic interactive lean.parser
 
 /-- Clears all the hypotheses in `hyps`. The tactic fails if any of the `hyps`
-is not a local or if the target depends on any of the `hyps`.
+is not a local or if the target depends on any of the `hyps`. It also fails if
+`hyps` contains duplicates.
 
 If there are local hypotheses or definitions, say `H`, which are not in `hyps`
 but depend on one of the `hyps`, what we do depends on `clear_dependent`. If it

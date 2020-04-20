@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 import data.option.defs data.mllist tactic.core
-import .debug
+
 open tactic
 
 /-- Inductive type with two constructors `L` and `R`,

@@ -460,28 +460,3 @@ add_tactic_doc
   tags        := ["search", "Try this"] }
 
 end tactic
-
-open tactic
-open nat
-open ring
-
--- example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
--- begin
---   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
--- end
-
--- example {a b c d: ℕ} (h₁ : a < b) (h₂ : b < c) : d < a → max d c = c :=
--- begin
---   intro,
---   library_search [lt.trans] {max_depth := 5},
---     --Says: `exact max_eq_right_of_lt (lt.trans (lt.trans a_1 h₁) h₂)`
--- end
-
--- example (f g k: ℕ → ℕ) (h₁ : ∀ n : ℕ, f n = g n) (h₂ : ∀ n : ℕ, g n = k n) : f = k :=
--- begin
---   library_search [eq.trans] { discharger := `[intro], max_depth := 4 },
---   --Says: `exact funext (λ (x : ℕ), eq.trans (h₁ x) (h₂ x))`
--- end
-
--- example {a b : ℕ} (h₁ : 0 < a) (h₂ : a < b) : b ≠ 0 :=
--- by library_search [lt.trans] --Says: exact ne_of_gt (lt.trans h₁ h₂)

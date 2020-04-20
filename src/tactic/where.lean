@@ -55,7 +55,7 @@ meta def collect_by {α β γ : Type} (l : list α) (p : α → β × γ) [decid
 collect_by_aux p (l.map $ prod.fst ∘ p).erase_dup l
 
 /-- Given `a : α` and `l : list β` form a new list by mapping `prod.mk a` over `l`. -/
-def inflate {α β : Type} : α → list β → list (α × β)
+private def inflate {α β : Type} : α → list β → list (α × β)
 | a l := l.map $ prod.mk a
 
 /-- Sort the variables by their priority as defined by `where.binder_priority`. -/

@@ -18,10 +18,6 @@ We introduce the bundled categories:
 * `CommGroup`
 * `AddCommGroup`
 along with the relevant forgetful functors between them, and to the bundled monoid categories.
-
-## Implementation notes
-
-See the note [locally reducible category instances].
 -/
 
 universes u v
@@ -32,15 +28,12 @@ open category_theory
 @[to_additive AddGroup]
 def Group : Type (u+1) := induced_category Mon (bundled.map group.to_monoid)
 
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+
 namespace Group
 
 /-- Construct a bundled Group from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
-
-local attribute [reducible] Group
-
-@[to_additive]
-instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
 
 @[to_additive add_group]
 instance (G : Group) : group G := G.str
@@ -59,20 +52,15 @@ instance : unique (1 : Group.{u}) :=
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive]
-instance : category Group := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category Group := infer_instance -- short-circuit type class inference
-
-@[to_additive,ext]
+@[to_additive, ext]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
+instance has_forget_to_Mon : has_forget₂ Group Mon :=
+by dsimp_result { delta Group, apply_instance, }
 
 end Group
 
@@ -81,6 +69,8 @@ end Group
 @[to_additive AddCommGroup]
 def CommGroup : Type (u+1) := induced_category Group (bundled.map comm_group.to_group)
 
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+
 /-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
 abbreviation Ab := AddCommGroup
 
@@ -88,11 +78,6 @@ namespace CommGroup
 
 /-- Construct a bundled CommGroup from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
-
-local attribute [reducible] CommGroup
-
-@[to_additive]
-instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_group_instance]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
@@ -109,10 +94,6 @@ instance : unique (1 : CommGroup.{u}) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive] instance : category CommGroup := infer_instance -- short-circuit type class inference
-
-@[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
-
 @[to_additive,ext]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
@@ -120,7 +101,8 @@ by { ext1, apply w }
 attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference
+instance has_forget_to_Group : has_forget₂ CommGroup Group :=
+by dsimp_result { delta CommGroup, apply_instance, }
 
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=

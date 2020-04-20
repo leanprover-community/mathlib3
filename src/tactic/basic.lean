@@ -5,6 +5,7 @@ import
   tactic.converter.interactive
   tactic.converter.apply_congr
   tactic.core
+  tactic.delta_instance
   tactic.ext
   tactic.elide
   tactic.explode

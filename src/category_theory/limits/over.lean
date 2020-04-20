@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.comma
+import category_theory.limits.connected
+import category_theory.limits.creates
+import category_theory.limits.limits
 import category_theory.limits.preserves
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.binary_products
@@ -140,51 +143,62 @@ instance (B : C) : has_terminal.{v} (over B) :=
               rwa [category.comp_id, category.comp_id] at this
             end } } } }
 
--- TODO: this should work for any connected limit, not just pullbacks
-/-- Given pullbacks in C, we have pullbacks in C/B -/
-instance {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    let X : over B := F.obj walking_cospan.one in
-    let Y : over B := F.obj walking_cospan.left in
-    let Z : over B := F.obj walking_cospan.right in
-    let f : Y ⟶ X := (F.map walking_cospan.hom.inl) in
-    let g : Z ⟶ X := (F.map walking_cospan.hom.inr) in
-    let L : over B := over.mk (pullback.fst ≫ Y.hom : pullback f.left g.left ⟶ B) in
-    let π₁ : L ⟶ Y := over.hom_mk pullback.fst in
-    let π₂ : L ⟶ Z := @over.hom_mk _ _ _ L Z (pullback.snd : L.left ⟶ Z.left)
-      (by {dsimp, rw [← over.w f, ← category.assoc, pullback.condition, category.assoc, over.w g]}) in
-    { cone := cone.of_pullback_cone (pullback_cone.mk π₁ π₂
-        (by { ext, rw [over.comp_left, over.hom_mk_left, pullback.condition], refl, })),
-      is_limit :=
-      { lift := λ s,
-      begin
-        apply over.hom_mk _ _,
-        { apply pullback.lift (s.π.app walking_cospan.left).left (s.π.app walking_cospan.right).left,
-          rw [← over.comp_left, ← over.comp_left, s.w, s.w], },
-        { show pullback.lift _ _ _ ≫ (pullback.fst ≫ Y.hom) = (s.X).hom,
-          rw [limit.lift_π_assoc, pullback_cone.mk_π_app_left, over.w], refl, }
-       end,
-       fac' := λ s j,
-       begin
-        ext1, dsimp,
-        cases j; simp only [limit.lift_π, limit.lift_π_assoc, over.hom_mk_left, over.id_left,
-          over.comp_left, pullback_cone.mk_π_app_one, pullback_cone.mk_π_app_left,
-          pullback_cone.mk_π_app_right, eq_to_hom_refl, category.comp_id],
-        rw [← over.comp_left, ← s.w walking_cospan.hom.inl],
-       end,
-       uniq' := λ s m J, over.over_morphism.ext
-       begin
-        simp only [over.hom_mk_left],
-        apply pullback.hom_ext,
-        { rw [limit.lift_π, pullback_cone.mk_π_app_left, ←(J walking_cospan.left)],
-          dsimp,
-          rw [category.comp_id], },
-        { rw [limit.lift_π, pullback_cone.mk_π_app_right, ←(J walking_cospan.right)],
-          dsimp,
-          rw [category.comp_id], }
-       end } },
-  } }
+namespace creates_connected
+
+/--
+(Impl) Given a diagram in the over category, produce a natural transformation from the
+diagram legs to the specific object.
+-/
+def nat_trans_in_over {B : C} (F : J ⥤ over B) :
+  F ⋙ forget ⟶ (category_theory.functor.const J).obj B :=
+{ app := λ j, (F.obj j).hom }
+
+local attribute [tidy] tactic.case_bash
+
+/--
+(Impl) Given a cone in the base category, raise it to a cone in the over category. Note this is
+where the connected assumption is used.
+-/
+@[simps]
+def raise_cone [connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
+  cone F :=
+{ X := over.mk (c.π.app (default J) ≫ (F.obj (default J)).hom),
+  π :=
+  { app := λ j, over.hom_mk (c.π.app j) (nat_trans_from_connected (c.π ≫ nat_trans_in_over F) j) } }
+
+lemma raised_cone_lowers_to_original [connected J] {B : C} {F : J ⥤ over B}
+  (c : cone (F ⋙ forget)) (t : is_limit c) :
+  forget.map_cone (raise_cone c) = c :=
+by tidy
+
+/-- (Impl) Show that the raised cone is a limit. -/
+def raised_cone_is_limit [connected J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget)} (t : is_limit c) :
+  is_limit (raise_cone c) :=
+{ lift := λ s, over.hom_mk (t.lift (forget.map_cone s))
+               (by { dsimp, simp }),
+  uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
+
+end creates_connected
+
+/-- The forgetful functor from the over category creates any connected limit. -/
+instance forget_creates_connected_limits [connected J] {B : C} : creates_limits_of_shape J (forget : over B ⥤ C) :=
+{ creates_limit := λ K,
+    creates_limit_of_reflects_iso (λ c t,
+      { lifted_cone := creates_connected.raise_cone c,
+        valid_lift := eq_to_iso (creates_connected.raised_cone_lowers_to_original c t),
+        makes_limit := creates_connected.raised_cone_is_limit t } ) }
+
+/-- The over category has any connected limit which the original category has. -/
+instance has_connected_limits {B : C} [connected J] [has_limits_of_shape J C] : has_limits_of_shape J (over B) :=
+{ has_limit := λ F, has_limit_of_created F (forget : over B ⥤ C) }
+
+/-- Make sure we can derive pullbacks in `over B`. -/
+example {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
+{ has_limits_of_shape := infer_instance }
+
+/-- Make sure we can derive equalizers in `over B`. -/
+example {B : C} [has_equalizers.{v} C] : has_equalizers.{v} (over B) :=
+{ has_limits_of_shape := infer_instance }
 
 /-- Given pullbacks in C, we have binary products in any over category -/
 instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :

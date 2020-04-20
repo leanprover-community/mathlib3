@@ -6,6 +6,7 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.basic
 import algebra.continued_fractions.translations
 import algebra.continued_fractions.continuants_recurrence
+import algebra.continued_fractions.terminated_stable
 /-!
 # Default Exports for Continued Fractions
 -/

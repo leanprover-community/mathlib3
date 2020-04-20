@@ -842,6 +842,19 @@ Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders {α : Type} (t : tactic α) : tactic α :=
+do
+  v ← intros,
+  r ← t,
+  revert_lst v,
+  return r
+
+namespace interactive
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders (i : itactic) : itactic := tactic.under_binders i
+end interactive
+
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
@@ -936,7 +949,8 @@ do h ← get_unused_name `h none,
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
-   prod.snd <$> solve_aux t' assumption
+   (prod.snd <$> solve_aux t' assumption >>= instantiate_mvars) <|>
+     fail format!"No hypothesis found of the form: {t'}"
 
 /-- `dependent_pose_core l`: introduce dependent hypotheses, where the proofs depend on the values
 of the previous local constants. `l` is a list of local constants and their values. -/

@@ -287,3 +287,32 @@ imp_iff_not_or imp_or_distrib imp_or_distrib' not_imp peirce not_iff_not not_iff
 iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_and_distrib'
 or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
 forall_or_distrib_right not_ball
+
+private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
+retrieve $ do
+reset_instance_cache,
+mk_meta_var d.type >>= set_goals ∘ pure,
+args ← intros,
+expr.sort _ ← target | pure none,
+let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
+some coe_fn_inst ←
+  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty) >>= mk_instance | pure none,
+some trans_inst@(expr.app (expr.app _ trans_inst_1) trans_inst_2) ←
+  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _) | pure none,
+tt ← succeeds $ unify trans_inst coe_fn_inst transparency.reducible | pure none,
+set_bool_option `pp.all true,
+trans_inst_1 ← pp trans_inst_1,
+trans_inst_2 ← pp trans_inst_2,
+pure $ format.to_string $
+  "`has_coe_to_fun` instance is definitionally equal to a transitive instance composed of: " ++
+  trans_inst_1.group.indent 2 ++
+  format.line ++ "and" ++
+  trans_inst_2.group.indent 2
+
+/-- Linter that checks whether `has_coe_to_fun` instances comply with Note [function coercion]. -/
+@[linter] meta def linter.has_coe_to_fun : linter :=
+{ test := has_coe_to_fun_linter,
+  no_errors_found := "has_coe_to_fun is used correctly",
+  errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
+You should add a `has_coe_to_fun` instance for the following types.
+See Note function coercions]." }

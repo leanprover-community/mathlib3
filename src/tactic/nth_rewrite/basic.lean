@@ -97,7 +97,7 @@ update the tactic state by replacing the corresponding part of the tactic state
 with the rewritten expression. -/
 meta def replace (rw : tracked_rewrite) (h : option expr) (s : option side) : tactic unit :=
 do (exp, prf) ← rw.to_side h s >>= tracked_rewrite.eval,
-   replace_state_part h exp prf
+   replace_in_state h exp prf
 
 end tracked_rewrite
 

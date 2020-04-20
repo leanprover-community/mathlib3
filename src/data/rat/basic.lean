@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import
-  data.nat.gcd
+import data.nat.gcd
   data.pnat.basic data.int.sqrt data.equiv.encodable
   algebra.group algebra.ordered_group algebra.group_power
   algebra.euclidean_domain

@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.set.lattice
 import data.set.finite
 import topology.instances.ennreal
-       measure_theory.outer_measure
+import measure_theory.outer_measure
 
 /-!
 # Measure spaces

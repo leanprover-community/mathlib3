@@ -1,5 +1,5 @@
 import
-  algebra.group
+import algebra.group
   algebra.ring
   algebra.field
   algebra.order

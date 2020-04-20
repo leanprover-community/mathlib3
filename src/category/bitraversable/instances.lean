@@ -5,7 +5,7 @@ Author(s): Simon Hudon
 -/
 
 import category.bitraversable.basic
-       category.bitraversable.lemmas
+import category.bitraversable.lemmas
        category.traversable.lemmas
        tactic.solve_by_elim
 

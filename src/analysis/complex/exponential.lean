@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 import tactic.linarith
 import data.complex.exponential
 import analysis.specific_limits
-      group_theory.quotient_group analysis.complex.basic
+import group_theory.quotient_group analysis.complex.basic
 
 
 /-!

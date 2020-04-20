@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 import analysis.calculus.mean_value
 import data.nat.parity
 import analysis.complex.exponential
-  analysis.convex.specific_functions
+import analysis.convex.specific_functions
 
 /-!
 # Mean value inequalities

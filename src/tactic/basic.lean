@@ -1,5 +1,5 @@
 import
-  tactic.alias
+import tactic.alias
   tactic.cache
   tactic.clear
   tactic.converter.interactive

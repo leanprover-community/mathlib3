@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
 
 import tactic.lint.frontend
-  tactic.lint.simp
+import tactic.lint.simp
   tactic.lint.type_classes
   tactic.lint.misc
 

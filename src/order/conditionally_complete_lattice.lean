@@ -6,7 +6,7 @@ Adapted from the corresponding theory for complete lattices.
 -/
 
 import
-  order.lattice order.complete_lattice order.bounds
+import order.lattice order.complete_lattice order.bounds
   tactic.finish data.nat.enat
 /-!
 # Theory of conditionally complete lattices.

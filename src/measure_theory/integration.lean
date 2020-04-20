@@ -9,7 +9,7 @@ We define simple functions and show that each Borel measurable function on `ennr
 approximated by a sequence of simple functions.
 -/
 import
-  algebra.pi_instances
+import algebra.pi_instances
   measure_theory.measure_space
   measure_theory.borel_space
 noncomputable theory

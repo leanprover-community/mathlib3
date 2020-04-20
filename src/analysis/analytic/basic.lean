@@ -7,7 +7,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.times_cont_diff
 import tactic.omega
 import analysis.complex.exponential
-  analysis.specific_limits
+import analysis.specific_limits
 
 /-!
 # Analytic functions

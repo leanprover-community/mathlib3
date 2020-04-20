@@ -18,7 +18,7 @@ As (non-exhaustive) examples, these includes things like:
 * order.complete_lattice
 -/
 import
-  tactic.basic
+import tactic.basic
   tactic.monotonicity.interactive
   tactic.finish
   tactic.tauto

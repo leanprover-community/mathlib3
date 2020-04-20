@@ -8,7 +8,7 @@ Additional equiv and encodable instances for lists, finsets, and fintypes.
 import data.equiv.denumerable
 import data.nat.pairing
 import order.order_iso
-  data.array.lemmas data.fintype.basic
+import data.array.lemmas data.fintype.basic
 
 open nat list
 

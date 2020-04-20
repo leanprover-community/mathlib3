@@ -6,7 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.list.basic
 import data.pnat.basic
 import data.array.lemmas
-   logic.basic algebra.group
+import logic.basic algebra.group
    data.list.defs data.nat.basic data.option.basic
    data.bool data.prod
 import tactic.finish

@@ -5,7 +5,7 @@ Author: Simon Hudon
 -/
 
 import category.functor
-       category.bifunctor
+import category.bifunctor
        category.traversable.basic
        tactic.basic
 

@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 import data.set.basic
 import algebra.field
 import order.conditionally_complete_lattice
-  algebra.big_operators
+import algebra.big_operators
 
 /-!
 # Support of a function

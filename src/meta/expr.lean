@@ -618,7 +618,30 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
 
 end expr
 
-/-! ### Declarations about `expr_lens` -/
+/-! ### Declarations about `expr` manipulations -/
+
+/-- Inductive type with two constructors `L` and `R`,
+that represent the left and right hand sides of equations and iffs, or more generally in an
+an application `f a` passing to the "right" (the argument `a`) or the "left" (the function `f`).
+
+This type is used in the development of rewriting tactics such as
+`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
+@[derive decidable_eq, derive inhabited]
+inductive side
+| L
+| R
+
+/-- Involution on `side`, swaps `L` and `R`. -/
+def side.other : side → side
+| side.L := side.R
+| side.R := side.L
+
+/-- String representation of `side`. -/
+def side.to_string : side → string
+| side.L := "L"
+| side.R := "R"
+
+instance : has_to_string side := ⟨side.to_string⟩
 
 /-- A "lens" for looking into the subterms of an expression, tracking where we've been, so that
 when we "zoom out" after making a change we know exactly which order of `congr_fun`s and
@@ -636,6 +659,27 @@ namespace expr_lens
 
 open tactic
 
+/-- Fill the function or argument hole in this lens with the given `expr`. -/
+meta def fill : expr_lens → expr → expr
+| entire        e := e
+| (app_fun l f) x := l.fill (expr.app f x)
+| (app_arg l x) f := l.fill (expr.app f x)
+
+/-- Descend into `e : expr` given the context of an `expr_lens`, popping out an `expr` and a new
+zoomed `expr_lens`, if this is possible (`e` has to be an application). -/
+meta def descend : expr_lens → expr → list side → option (expr_lens × expr)
+| l e [] := (l, e)
+| l (expr.app f x) (side.L :: rest) := (expr_lens.app_arg l x).descend f rest
+| l (expr.app f x) (side.R :: rest) := (expr_lens.app_fun l f).descend x rest
+| _ _ _ := none
+
+/-- Convert an `expr_lens` into a list of instructions needed to build it; repeatedly inspecting a
+function or its argument a finite number of times. -/
+meta def to_sides : expr_lens → list side
+| expr_lens.entire        := []
+| (expr_lens.app_fun l _) := l.to_sides.concat side.R
+| (expr_lens.app_arg l _) := l.to_sides.concat side.L
+
 /-- Sometimes `mk_congr_arg` fails, when the function is 'superficially dependent'.
 This hack `dsimp`s the function before building the `congr_arg` expression.
 
@@ -646,12 +690,6 @@ do s ← simp_lemmas.mk_default,
    t' ← s.dsimplify u t {fail_if_unchanged := ff},
    definev `_mk_congr_arg_aux t' G,
    to_expr ```(congr_arg _mk_congr_arg_aux %%W)
-
-/-- Fill the function or argument hole in this lens with the given `expr`. -/
-meta def fill : expr_lens → expr → expr
-| entire        e := e
-| (app_fun l f) x := l.fill (expr.app f x)
-| (app_arg l x) f := l.fill (expr.app f x)
 
 private meta def trace_congr_error (f : expr) (x_eq : expr) : tactic unit :=
 do pp_f ← pp f,
@@ -688,13 +726,13 @@ end expr_lens
 
 /-- The private internal function used by `app_map`, which "does the work". -/
 private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) :
-  expr_lens → expr → tactic (list α)
-| l (expr.app f x) := list.join <$> monad.sequence [
-    F l (expr.app f x),
-    app_map_aux (expr_lens.app_arg l x) f,
-    app_map_aux (expr_lens.app_fun l f) x
+  option (expr_lens × expr) → tactic (list α)
+| (some (l, e)) := list.join <$> monad.sequence [
+    F l e,
+    app_map_aux $ l.descend e [side.L],
+    app_map_aux $ l.descend e [side.R]
   ] <|> pure []
-| l e := F l e <|> pure []
+| none := pure []
 
 /-- Map a function `F` which understands `expr_lens`es over the given `e : expr` in the natural way;
 that is, make holes in `e` everywhere where that is possible (generating `expr_lens`es in the
@@ -703,8 +741,8 @@ process), and at each stage call the function `F` passing both the `expr_lens` g
 
 At each stage `F` returns a list of some type, and `app_map` collects these lists together and
 returns a concatenation of them all. -/
-meta def expr.app_map {α} (F : expr_lens → expr → tactic (list α)) : expr → tactic (list α) :=
-app_map_aux F expr_lens.entire
+meta def expr.app_map {α} (F : expr_lens → expr → tactic (list α)) (e : expr) : tactic (list α) :=
+app_map_aux F (expr_lens.entire, e)
 
 /-! ### Declarations about `declaration` -/
 

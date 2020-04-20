@@ -6,13 +6,6 @@ Authors: Scott Morrison, Keeley Hoek
 import tactic.core
 import tactic.nth_rewrite.basic
 
-/-- Convert an `expr_lens` into a list of instructions need to build it; repeatedly inspecting a
-function or its argument a finite number of times. -/
-meta def expr_lens.to_sides : expr_lens → list side
-| expr_lens.entire        := []
-| (expr_lens.app_fun l _) := l.to_sides.concat side.R
-| (expr_lens.app_arg l _) := l.to_sides.concat side.L
-
 namespace tactic
 
 namespace nth_rewrite.congr

@@ -5,30 +5,6 @@ Authors: Keeley Hoek, Scott Morrison
 -/
 import data.option.defs data.mllist tactic.core
 
-open tactic
-
-/-- Inductive type with two constructors `L` and `R`,
-that represent the left and right hand sides of equations and iffs.
-
-This type is used in the development of rewriting tactics such as
-`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
-@[derive decidable_eq, derive inhabited]
-inductive side
-| L
-| R
-
-/-- Involution on `side`, swaps `L` and `R`. -/
-def side.other : side → side
-| side.L := side.R
-| side.R := side.L
-
-/-- String representation of `side`. -/
-def side.to_string : side → string
-| side.L := "L"
-| side.R := "R"
-
-instance : has_to_string side := ⟨side.to_string⟩
-
 namespace tactic
 
 /-- Returns the target of the goal when passed `none`,
@@ -70,33 +46,24 @@ meta def eval (rw : tracked_rewrite) : tactic (expr × expr) :=
 do prf ← rw.proof,
    return (rw.exp, prf)
 
-/-- A helper function for building the proof witness of a rewrite
-on one side of an equation of iff. -/
-meta def mk_lambda (r lhs rhs : expr) : side → tactic expr
-| side.L := do L ← infer_type lhs >>= mk_local_def `L, lambdas [L] (r L rhs)
-| side.R := do R ← infer_type rhs >>= mk_local_def `R, lambdas [R] (r lhs R)
+private def rel_descent_instructions : side → list side
+| side.L := [side.L, side.R]
+| side.R := [side.R]
 
-/-- A helper function for building the new total expression
-starting from a rewrite of one side of an equation or iff. -/
-meta def new_exp (exp r lhs rhs : expr) : side → expr
-| side.L := r exp rhs
-| side.R := r lhs exp
-
-/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
-pass to a new tracked rewrite obtained by replacing the corresponding expression
-with the rewritten expression. -/
-meta def to_side (rw : tracked_rewrite) (h : option expr) : option side → tactic tracked_rewrite
+/-- Given a tracked rewrite of (optionally, a side under a relation of) the target or a hypothesis,
+produce a new tracked rewrite obtained by replacing the corresponding expression with the rewritten
+expression. -/
+meta def to_rel_side (rw : tracked_rewrite) (h : option expr) : option side → tactic tracked_rewrite
 | none     := return rw
-| (some s) := do expr.app (expr.app r lhs) rhs ← target_or_hyp_type h,
-                 let prf := do { lam ← mk_lambda r lhs rhs s,
-                                 rw.proof >>= mk_congr_arg lam },
-                 return ⟨new_exp rw.exp r lhs rhs s, prf, rw.addr.map $ λ l, s :: l⟩
+| (some s) := do e ← target_or_hyp_type h,
+                 (ln, _) ← expr_lens.entire.descend e (rel_descent_instructions s),
+                 return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, s :: l⟩
 
-/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
-update the tactic state by replacing the corresponding part of the tactic state
-with the rewritten expression. -/
+/-- Given a tracked rewrite of (optionally, a side under a relation of) the target or a hypothesis,
+update the tactic state by replacing the corresponding part of the tactic state with the rewritten
+expression. -/
 meta def replace (rw : tracked_rewrite) (s : option side) (h : option expr) : tactic unit :=
-do rw ← rw.to_side h s,
+do rw ← rw.to_rel_side h s,
    rw.proof >>= replace_in_state h rw.exp
 
 end tracked_rewrite

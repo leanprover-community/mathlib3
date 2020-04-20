@@ -118,7 +118,6 @@ do (new_t, prf, metas) ← rewrite_core r e { cfg.to_rewrite_cfg with md := semi
    prf ← instantiate_mvars prf, -- This is necessary because of the locked tactic state.
    return (new_t, prf)
 
-
 /-- Returns true if the argument is a proof that the entire expression was rewritten.
 
 This is a bit of a hack: we manually inspect the proof that `rewrite_core` produced, and deduce from

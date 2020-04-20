@@ -8,6 +8,23 @@ import category_theory.limits.limits
 import category_theory.limits.shapes.finite_limits
 import category_theory.sparse
 
+/-!
+# Wide pullbacks
+
+We define the category `wide_pullback_shape`, which is the category obtained from a discrete
+category of type `J` by adjoining a terminal element. Limits of this shape are wide pullbacks.
+The convenience method `wide_cospan` constructs a functor from this category, hitting the given
+morphisms.
+
+We use `wide_pullback_shape` to define ordinary (binary) pullbacks by using `J := walking_pair`,
+which allows easy proofs of some pullback lemmas.
+Furthermore, wide pullbacks are used to show the existence of limits in the slice category.
+Namely, if `C` has wide pullbacks then `C/B` has limits for any object `B` in `C`.
+
+Typeclasses `has_wide_pullbacks` and `has_finite_wide_pullbacks` assert the existence of wide
+pullbacks and finite wide pullbacks.
+-/
+
 universes v u
 
 open category_theory category_theory.limits
@@ -93,7 +110,7 @@ def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : w
 /-- Every diagram is naturally isomorphic (actually, equal) to a `wide_cospan` -/
 def diagram_iso_wide_cospan (F : wide_pullback_shape J ⥤ C) :
   F ≅ wide_cospan (F.obj none) (λ j, F.obj (some j)) (λ j, F.map (hom.term j)) :=
-nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
+nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
 
 end wide_pullback_shape
 

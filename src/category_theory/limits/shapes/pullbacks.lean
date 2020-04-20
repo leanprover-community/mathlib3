@@ -31,7 +31,10 @@ universes v u
 
 local attribute [tidy] tactic.case_bash
 
-/-- The type of objects for the diagram indexing a pullback. -/
+/--
+The type of objects for the diagram indexing a pullback, defined as a special case of
+`wide_pullback_shape`.
+-/
 abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
 
 /-- The left point of the walking cospan. -/

@@ -14,7 +14,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
 import category_theory.limits.shapes.constructions.equalizers
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits
 
@@ -129,6 +129,7 @@ def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
   map := λ c₁ c₂ f,
   { hom := over.hom_mk f.hom } }
 
+-- TODO: Can we add `. obviously` to the second arguments of `nat_iso.of_components` and `cones.ext`?
 /-- (Impl) Establish an equivalence between the category of cones for `F` and for the "grown" `F`. -/
 @[simps]
 def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) :

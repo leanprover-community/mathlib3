@@ -178,14 +178,17 @@ def iso_unique_cone_morphism {t : cone F} :
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
+-- TODO: this should actually hold for an adjunction between cone F and cone G, not just for
+-- equivalences
 /--
-TODO: write me
+Given two functors which have equivalent categories of cones, we can transport a limiting cone across
+the equivalence.
 -/
-def of_cone_equiv {D : Type u'} [category.{v} D] {F : J ⥤ C} {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
+def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
   is_limit (h.inverse.obj c) :=
 mk_cone_morphism
-  (λ s, (h.to_adjunction.hom_equiv s c) (t.lift_cone_morphism _))
-  (λ s m, by { rw adjunction.eq_hom_equiv_apply, apply t.uniq_cone_morphism} )
+  (λ s, h.to_adjunction.hom_equiv s c (t.lift_cone_morphism _))
+  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
 
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)

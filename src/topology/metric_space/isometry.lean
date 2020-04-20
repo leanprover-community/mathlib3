@@ -6,7 +6,9 @@ Authors: Sébastien Gouëzel
 -/
 
 import topology.metric_space.basic
-import topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+import topology.bounded_continuous_function
+import analysis.normed_space.basic
+import topology.opens
 
 /-!
 # Isometries

@@ -10,7 +10,7 @@ Includes the Prop and fun instances.
 
 import order.lattice
 import data.option.basic
-       tactic.pi_instances
+import tactic.pi_instances
 
 set_option old_structure_cmd true
 

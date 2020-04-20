@@ -9,7 +9,7 @@ distance between nonempty compact metric spaces -/
 
 import topology.bounded_continuous_function
 import topology.metric_space.gluing
-  topology.metric_space.hausdorff_distance
+import topology.metric_space.hausdorff_distance
 
 noncomputable theory
 open_locale classical

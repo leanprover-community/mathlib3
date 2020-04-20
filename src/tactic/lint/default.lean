@@ -6,8 +6,8 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 
 import tactic.lint.frontend
 import tactic.lint.simp
-  tactic.lint.type_classes
-  tactic.lint.misc
+import tactic.lint.type_classes
+import tactic.lint.misc
 
 open tactic
 

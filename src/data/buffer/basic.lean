@@ -10,7 +10,7 @@ import data.buffer
 import data.array.lemmas
 import category.traversable.instances
 import data.equiv.basic
-       tactic.ext
+import tactic.ext
 
 namespace buffer
 

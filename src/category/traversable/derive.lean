@@ -8,7 +8,8 @@ Automation to construct `traversable` instances
 
 import category.traversable.basic
 import category.traversable.lemmas
-       category.basic data.list.basic
+import category.basic
+import data.list.basic
 import tactic.basic
 import tactic.cache
 

@@ -8,8 +8,9 @@ Functors with two arguments
 
 import logic.function
 import data.sum
-       category.basic category.functor
-       tactic.basic
+import category.basic
+import category.functor
+import tactic.basic
 
 universes u₀ u₁ u₂ v₀ v₁ v₂
 

@@ -6,8 +6,8 @@ Author(s): Simon Hudon
 
 import category.bitraversable.basic
 import category.bitraversable.lemmas
-       category.traversable.lemmas
-       tactic.solve_by_elim
+import category.traversable.lemmas
+import tactic.solve_by_elim
 
 /-!
 # bitraversable instances

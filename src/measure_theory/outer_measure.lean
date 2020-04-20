@@ -8,8 +8,9 @@ Outer measures -- overapproximations of measures
 
 import algebra.big_operators
 import algebra.module
-       topology.instances.ennreal analysis.specific_limits
-       measure_theory.measurable_space
+import topology.instances.ennreal
+import analysis.specific_limits
+import measure_theory.measurable_space
 
 noncomputable theory
 

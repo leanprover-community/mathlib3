@@ -14,7 +14,7 @@ import logic.unique
 import data.set.function
 import data.bool
 import data.quot
-  data.option.basic
+import data.option.basic
 
 open function
 

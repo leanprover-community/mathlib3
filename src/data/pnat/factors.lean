@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Neil Strickland
 -/
 import tactic.basic
-
 import data.pnat.basic
 import data.nat.prime
 import data.multiset
 import data.int.basic
 import data.int.gcd
-import algebra.group algebra.group_power algebra.ordered_ring
+import algebra.group
+import algebra.group_power
+import algebra.ordered_ring
 
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize

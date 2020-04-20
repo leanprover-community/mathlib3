@@ -17,22 +17,21 @@ As (non-exhaustive) examples, these includes things like:
 * data.equiv.encodable
 * order.complete_lattice
 -/
-import
 import tactic.basic
-  tactic.monotonicity.interactive
-  tactic.finish
-  tactic.tauto
-  tactic.tidy
-  tactic.abel
-  tactic.ring
-  tactic.ring_exp
-  tactic.linarith
-  tactic.omega
-  tactic.wlog
-  tactic.tfae
-  tactic.apply_fun
-  tactic.apply
-  tactic.pi_instances
-  tactic.fin_cases
-  tactic.interval_cases
-  tactic.reassoc_axiom -- most likely useful only for category_theory
+import tactic.monotonicity.interactive
+import tactic.finish
+import tactic.tauto
+import tactic.tidy
+import tactic.abel
+import tactic.ring
+import tactic.ring_exp
+import tactic.linarith
+import tactic.omega
+import tactic.wlog
+import tactic.tfae
+import tactic.apply_fun
+import tactic.apply
+import tactic.pi_instances
+import tactic.fin_cases
+import tactic.interval_cases
+import tactic.reassoc_axiom -- most likely useful only for category_theory

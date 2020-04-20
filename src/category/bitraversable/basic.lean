@@ -6,8 +6,8 @@ Author: Simon Hudon
 
 import category.functor
 import category.bifunctor
-       category.traversable.basic
-       tactic.basic
+import category.traversable.basic
+import tactic.basic
 
 /-!
 # Bitraversable type class

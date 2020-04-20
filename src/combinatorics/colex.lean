@@ -108,9 +108,10 @@ instance [linear_order α] : is_trans (finset α) (≤ᶜ) :=
                         (λ k, k.symm ▸ BC)⟩
 instance [linear_order α] : is_strict_order (finset α) (<ᶜ) := {}
 
-instance [linear_order α] [decidable_eq α] : is_trichotomous (finset α) (<ᶜ) :=
+instance [linear_order α] : is_trichotomous (finset α) (<ᶜ) :=
 begin
   split, intros A B,
+  classical,
   by_cases (A = B), right, left, assumption,
   rcases (exists_max_image (A \ B ∪ B \ A) id _) with ⟨k, hk, z⟩,
     simp at hk, cases hk, right, right, swap, left, swap,
@@ -124,12 +125,12 @@ begin
   apply h (subset.antisymm a.1 a.2)
 end
 
-instance [linear_order α] [decidable_eq α] : is_total (finset α) (≤ᶜ) := ⟨λ A B,
+instance [linear_order α] : is_total (finset α) (≤ᶜ) := ⟨λ A B,
 (trichotomous A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl)⟩
 
-instance [linear_order α] [decidable_eq α] :
+instance [linear_order α] :
   is_linear_order (finset α) (≤ᶜ) := {}
-instance [linear_order α] [decidable_eq α] : is_incomp_trans (finset α) (<ᶜ) :=
+instance [linear_order α] : is_incomp_trans (finset α) (<ᶜ) :=
 begin
   constructor,
   rintros A B C ⟨nAB, nBA⟩ ⟨nBC, nCB⟩,
@@ -137,16 +138,16 @@ begin
   have: B = C := ((trichotomous B C).resolve_left nBC).resolve_right nCB,
   rw [‹A = B›, ‹B = C›], rw and_self, apply irrefl
 end
-instance [linear_order α] [decidable_eq α] :
+instance [linear_order α] :
   is_strict_weak_order (finset α) (<ᶜ) := {}
-instance [linear_order α] [decidable_eq α] :
+instance [linear_order α] :
   is_strict_total_order (finset α) (<ᶜ) := {}
 instance colex_order [has_lt α] : has_le (finset α) := {le := (≤ᶜ)}
 instance colex_preorder [linear_order α] : preorder (finset α) :=
 {le_refl := refl_of (≤ᶜ), le_trans := is_trans.trans, ..colex_order}
 instance colex_partial_order [linear_order α] : partial_order (finset α) :=
 {le_antisymm := is_antisymm.antisymm, ..colex_preorder}
-instance colex_linear_order [linear_order α] [decidable_eq α] :
+instance colex_linear_order [linear_order α] :
   linear_order (finset α) :=
 {le_total := is_total.total, ..colex_partial_order}
 
@@ -188,7 +189,7 @@ end
 If A is before B in colex, and everything in B is small, then everything in
 A is small.
 -/
-lemma max_colex [decidable_linear_order α] {A B : finset α} (t : α)
+lemma max_colex [linear_order α] {A B : finset α} (t : α)
   (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
   ∀ x ∈ A, x < t :=
 begin

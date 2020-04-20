@@ -393,21 +393,21 @@ So, |A#i|/(n choose i) represents how much of each that A can take up.
 Other proofs of LYM exist, but we'll do it by applying local LYM.
 -/
 section lym
-  variables [decidable_eq α] [fintype α]
+  variables [fintype α]
 
   /--
   An inductive definition, from the top down.
   `falling 𝒜 k` is all the sets with cardinality (card α - k) which are a
   subset of something in 𝒜.
   -/
-  def falling (𝒜 : finset (finset α)) : Π (k : ℕ), finset (finset α)
+  def falling [decidable_eq α] (𝒜 : finset (finset α)) : Π (k : ℕ), finset (finset α)
     | 0 := 𝒜#n
     | (k+1) := 𝒜#(n - (k+1)) ∪ shadow (falling k)
 
   /--
   Everything in the kth fallen has size `n-k`
   -/
-  lemma falling_sized (𝒜 : finset (finset α)) (k : ℕ) :
+  lemma falling_sized [decidable_eq α] (𝒜 : finset (finset α)) (k : ℕ) :
     all_sized (falling 𝒜 k) (n - k) :=
   begin
     induction k with k ih; rw falling,
@@ -422,7 +422,7 @@ section lym
   Here's the first key proposition, helping to give the disjointness
   property in the next lemma.
   -/
-  theorem antichain_prop {𝒜 : finset (finset α)} {r k : ℕ}
+  theorem antichain_prop [decidable_eq α] {𝒜 : finset (finset α)} {r k : ℕ}
     (hk : k ≤ n) (hr : r < k) (H : antichain 𝒜) :
     ∀ A ∈ 𝒜#(n - k), ∀ B ∈ ∂falling 𝒜 r, ¬(A ⊆ B) :=
   begin
@@ -445,7 +445,7 @@ section lym
   This tells us that `falling 𝒜 k` is disjoint from the n - (k+1) -sized
   elements of 𝒜, thanks to the antichain property.
   -/
-  lemma disjoint_of_antichain {𝒜 : finset (finset α)} {k : ℕ}
+  lemma disjoint_of_antichain [decidable_eq α] {𝒜 : finset (finset α)} {k : ℕ}
     (hk : k + 1 ≤ n) (H : antichain 𝒜) :
     disjoint (𝒜#(n - (k + 1))) (∂falling 𝒜 k) :=
   disjoint_left.2 $ λ A HA HB,
@@ -455,7 +455,7 @@ section lym
   In particular, we can use induction and local LYM to get a bound on any top
   part of the sum in LYM in terms of the size of `falling 𝒜 k`.
   -/
-  lemma card_falling {𝒜 : finset (finset α)} {k : ℕ} (hk : k ≤ card α)
+  lemma card_falling [decidable_eq α] {𝒜 : finset (finset α)} {k : ℕ} (hk : k ≤ card α)
     (H : antichain 𝒜) :
     (range (k+1)).sum
       (λ r, ((𝒜#(n - r)).card : ℚ) / nat.choose n (n - r))
@@ -472,7 +472,7 @@ section lym
   /--
   A stepping-stone lemma to get to LYM.
   -/
-  lemma card_fallen {𝒜 : finset (finset α)} (H : antichain 𝒜) :
+  lemma card_fallen [decidable_eq α] {𝒜 : finset (finset α)} (H : antichain 𝒜) :
     (range (n+1)).sum (λ r, ((𝒜#r).card : ℚ) / nat.choose n r)
   ≤ (falling 𝒜 n).card / nat.choose n 0 :=
   begin
@@ -492,6 +492,7 @@ section lym
   theorem lubell_yamamoto_meshalkin {𝒜 : finset (finset α)} (H : antichain 𝒜) :
     (range (n + 1)).sum (λ r, ((𝒜#r).card : ℚ) / nat.choose n r) ≤ 1 :=
   begin
+    classical,
     transitivity,
       apply card_fallen H,
     rw div_le_iff; norm_cast,
@@ -512,9 +513,10 @@ In other words,
 ∑_i |A#i|/(n choose (n/2)) ≤ 1, so
 ∑_i |A#i| ≤ (n choose (n/2)), as required.
 -/
-theorem sperner [fintype α] [decidable_eq α] {𝒜 : finset (finset α)} (H : antichain 𝒜) :
+theorem sperner [fintype α] {𝒜 : finset (finset α)} (H : antichain 𝒜) :
   𝒜.card ≤ nat.choose n (n / 2) :=
 begin
+  classical,
   have: (range (n + 1)).sum (λ (r : ℕ), ((𝒜#r).card : ℚ) / nat.choose n (n/2)) ≤ 1,
     transitivity, swap, exact lubell_yamamoto_meshalkin H,
     apply sum_le_sum, intros r hr,

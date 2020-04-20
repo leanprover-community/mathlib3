@@ -84,11 +84,12 @@ all_sized 𝒜 r ∧ (∀ A ∈ 𝒜, ∀ B, B <ᶜ A ∧ B.card = r → B ∈ �
 Initial segments are nested in some way. In particular, if they're the same
 size they're equal.
 -/
-lemma init_seg_total [decidable_eq α] [linear_order α]
+lemma init_seg_total [linear_order α]
   {𝒜₁ 𝒜₂ : finset (finset α)} (r : ℕ)
   (h₁ : is_init_seg_of_colex 𝒜₁ r) (h₂ : is_init_seg_of_colex 𝒜₂ r) :
   𝒜₁ ⊆ 𝒜₂ ∨ 𝒜₂ ⊆ 𝒜₁ :=
 begin
+  classical,
   rw [← sdiff_eq_empty_iff_subset, ← sdiff_eq_empty_iff_subset],
   by_contra a,
   push_neg at a,

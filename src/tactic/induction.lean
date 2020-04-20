@@ -6,6 +6,30 @@ Author: Jannis Limperg
 
 import category.basic data.sum data.list.defs tactic.basic
 
+/--
+After elaboration, Lean does not have non-dependent function types with
+unnamed arguments. This means that for the declaration
+
+```lean
+inductive test : Type :=
+| intro : unit → test
+```
+
+the type of `test.intro` becomes
+
+```lean
+test.intro : ∀ (a : unit), test
+```lean
+
+after elaboration, where `a` is an auto-generated name.
+
+This means that we can't know for sure whether a constructor argument was named
+by the user. Hence the following hack: If an argument is non-dependent *and* its
+name is `a` or `a_n` for some `n ∈ ℕ`, then we assume that this name was
+auto-generated rather than chosen by the user.
+-/
+library_note "unnamed constructor arguments"
+
 
 universes u v w
 
@@ -103,6 +127,7 @@ namespace rbtree
 def merge {α} {lt : α → α → Prop} [decidable_rel lt] (xs ys : rbtree α lt)
   : rbtree α lt :=
 ys.fold (λ a xs, xs.insert a) xs
+-- NOTE: horribly inefficient
 
 end rbtree
 
@@ -122,6 +147,152 @@ meta def local_names_option : expr → option (name × name)
 | _ := none
 
 meta def is_local (e : expr) : bool := e.local_unique_name_option.is_some
+
+/-- `match_variable e` returns `some n` if `e` is the `n`-th de Bruijn variable,
+and `none` otherwise. -/
+meta def match_variable : expr → option ℕ
+| (var n) := some n
+| _ := none
+
+meta def free_vars (binder_depth : ℕ) (e : expr) : rbtree ℕ :=
+e.fold (mk_rbtree ℕ) $ λ e depth vars,
+  match e with
+  | var n := if n ≥ binder_depth + depth then vars.insert n else vars
+  | _ := vars
+  end
+
+/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
+returns a tuple `(args, n, V)` where
+
+- `args` is a list containing information about the arguments `x ... z`:
+  argument name, binder info, argument type and whether the argument is
+  dependent (i.e. whether the rest of the input `expr` depends on it).
+- `n` is the length of `args`.
+- `V` is the return type.
+
+Given any other expression `e`, this function returns an empty list and `e`.
+-/
+meta def decompose_pi
+  : expr → list (name × binder_info × expr × bool) × ℕ × expr
+| (pi name binfo T rest) :=
+  let (args, n_args, ret) := decompose_pi rest in
+  -- NOTE: the following makes this function quadratic in the size of the input
+  -- expression.
+  let dep := rest.has_var_idx 0 in
+  ((name, binfo, T, dep) :: args, n_args + 1, ret)
+| e := ([], 0, e)
+
+/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
+returns a tuple `(args, n, V)` where
+
+- `args` is a list containing information about the arguments `x ... z`:
+  argument name, binder info, argument type and whether the argument is
+  dependent (i.e. whether the rest of the input `expr` depends on it).
+- `n` is the length of `args`.
+- `V` is the return type.
+
+Given any other expression `e`, this function returns an empty list and `e`.
+
+The input expression is normalised lazily. This means that the returned
+expressions are not necessarily in normal form.
+-/
+meta def decompose_pi_normalizing
+  : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
+e ← tactic.whnf e,
+match e with
+| (pi n binfo T rest) := do
+  (args, ret) ← decompose_pi_normalizing rest,
+  -- NOTE: the following makes this function quadratic in the size of the input
+  -- expression.
+  let dep := rest.has_var_idx 0,
+  pure ((n , binfo, T, dep) :: args, ret)
+| _ := pure ([] , e)
+end
+
+/-- Auxiliary function for `decompose_app`. -/
+meta def decompose_app_aux : expr → expr × list expr
+| (app t u) :=
+  let (f , args) := decompose_app_aux t in
+  (f , u :: args)
+| e := (e , [])
+
+/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
+result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
+`(e, [])`.
+-/
+meta def decompose_app (e : expr) : expr × list expr :=
+let (f , args) := decompose_app_aux e in
+(f , args.reverse)
+
+/-- Auxiliary function for `decompose_app_normalizing`. -/
+meta def decompose_app_normalizing_aux : expr → tactic (expr × list expr) := λ e, do
+e ← tactic.whnf e,
+match e with
+| (app t u) := do
+  (f , args) ← decompose_app_normalizing_aux t,
+  pure (f , u :: args)
+| _ := pure (e , [])
+end
+
+/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
+result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
+`(e, [])`.
+
+`e` is normalised lazily. This means that the returned expressions are not
+necessarily in normal form.
+-/
+meta def decompose_app_normalizing (e : expr) : tactic (expr × list expr) := do
+(f , args) ← decompose_app_normalizing_aux e,
+pure (f , args.reverse)
+
+/-- Matches any expression of the form `C x .. z` where `C` is a constant.
+Returns the name of `C`.
+-/
+meta def match_const_application : expr → option name
+| (app e₁ e₂) := match_const_application e₁
+| (const n _) := pure n
+| _ := none
+
+/-- Matches any expression of the form `C x .. z` where `C` is a constant.
+Returns the name of `C`.
+
+The input expression is normalised lazily. This means that the returned
+expressions are not necessarily in normal form.
+-/
+meta def match_const_application_normalizing : expr → tactic name := λ e, do
+e ← tactic.whnf e,
+match e with
+| (app e₁ e₂) := match_const_application_normalizing e₁
+| (const n _) := pure n
+| _ := tactic.fail $ format!
+    "Expected {e} to be a constant (possibly applied to some arguments)."
+end
+
+/-- Returns the set of variables occurring in `e`. -/
+meta def vars (e : expr) : rbtree ℕ :=
+e.fold (mk_rbtree ℕ)
+  (λ e _ occs,
+    match match_variable e with
+    | some n := occs.insert n
+    | none := occs
+    end)
+
+/-- Given an application `e = f x ... z`, this function returns a map
+associating each de Bruijn index that occurs in `e` with the application
+argument(s) that it occurs in. For instance, if `e = f (#2 + 1) #3 #3` then the
+returned map is
+
+    3 -> 1, 2
+    2 -> 0
+
+As shown in the example, arguments are counted from zero.
+-/
+meta def application_variable_occurrences (e : expr) : rbmultimap ℕ ℕ :=
+let (_, args) := decompose_app e in
+let occs := args.map vars in
+occs.foldl_with_index
+  (λ i occ_map occs, occs.fold (λ var occ_map, occ_map.insert var i) occ_map)
+  (mk_rbmultimap ℕ ℕ)
 
 end expr
 
@@ -173,7 +344,7 @@ open parser
 
 meta def likely_generated_name_p : parser unit := do
 str "a",
-optional (ch '_' *> parser.nat),
+optional (ch '_' *> nat),
 pure ()
 
 meta def is_likely_generated_name (n : name) : bool :=
@@ -189,162 +360,14 @@ end name
 
 namespace tactic
 
-open expr
-
-meta def free_vars (binder_depth : ℕ) (e : expr) : rbtree ℕ :=
-e.fold (mk_rbtree ℕ) $ λ e depth vars,
-  match e with
-  | var n := if n ≥ binder_depth + depth then vars.insert n else vars
-  | _ := vars
-  end
-
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
--/
-meta def decompose_pi
-  : expr → list (name × binder_info × expr × bool) × ℕ × expr
-| (pi name binfo T rest) :=
-  let (args, n_args, ret) := decompose_pi rest in
-  -- NOTE: the following makes this function quadratic in the size of the input
-  -- expression.
-  let dep := rest.has_var_idx 0 in
-  ((name, binfo, T, dep) :: args, n_args + 1, ret)
-| e := ([], 0, e)
-
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
-
-The input expression is normalised lazily. This means that the returned
-expressions are not necessarily in normal form.
--/
-meta def decompose_pi_normalizing
-  : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
-e ← whnf e,
-match e with
-| (pi n binfo T rest) := do
-  (args, ret) ← decompose_pi_normalizing rest,
-  -- NOTE: the following makes this function quadratic in the size of the input
-  -- expression.
-  let dep := rest.has_var_idx 0,
-  pure ((n , binfo, T, dep) :: args, ret)
-| _ := pure ([] , e)
-end
-
-/-- Auxiliary function for `decompose_app`. -/
-meta def decompose_app_aux : expr → expr × list expr
-| (app t u) :=
-  let (f , args) := decompose_app_aux t in
-  (f , u :: args)
-| e := (e , [])
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
--/
-meta def decompose_app (e : expr) : expr × list expr :=
-let (f , args) := decompose_app_aux e in
-(f , args.reverse)
-
-/-- Auxiliary function for `decompose_app_normalizing`. -/
-meta def decompose_app_normalizing_aux : expr → tactic (expr × list expr) := λ e, do
-e ← whnf e,
-match e with
-| (app t u) := do
-  (f , args) ← decompose_app_normalizing_aux t,
-  pure (f , u :: args)
-| _ := pure (e , [])
-end
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
-
-`e` is normalised lazily. This means that the returned expressions are not
-necessarily in normal form.
--/
-meta def decompose_app_normalizing (e : expr) : tactic (expr × list expr) := do
-(f , args) ← decompose_app_normalizing_aux e,
-pure (f , args.reverse)
-
-/-- Matches any expression of the form `C x .. z` where `C` is a constant.
-Returns the name of `C`.
--/
-meta def match_const_application : expr → option name
-| (app e₁ e₂) := match_const_application e₁
-| (const n _) := pure n
-| _ := none
-
-/-- Matches any expression of the form `C x .. z` where `C` is a constant.
-Returns the name of `C`.
-
-The input expression is normalised lazily. This means that the returned
-expressions are not necessarily in normal form.
--/
-meta def match_const_application_normalizing : expr → tactic name := λ e, do
-e ← whnf e,
-match e with
-| (app e₁ e₂) := match_const_application_normalizing e₁
-| (const n _) := pure n
-| _ := fail $ format!
-    "Expected {e} to be a constant (possibly applied to some arguments)."
-end
-
 /-- Returns true iff `arg_type` is the local constant named `type_name`
 (possibly applied to some arguments). If `arg_type` is the type of an argument
 of one of `type_name`'s constructors and this function returns true, then the
 constructor argument is a recursive occurrence. -/
 meta def is_recursive_constructor_argument (type_name : name) (arg_type : expr)
   : bool :=
-let base_type_name := match_const_application arg_type in
+let base_type_name := arg_type.match_const_application in
 base_type_name = type_name
-
-/-- `match_variable e` returns `some n` if `e` is the `n`-th de Bruijn variable,
-and `none` otherwise. -/
-meta def match_variable : expr → option ℕ
-| (var n) := some n
-| _ := none
-
-/-- Returns the set of variables occurring in `e`. -/
-meta def variable_occurrences (e : expr) : rbtree ℕ :=
-e.fold (mk_rbtree ℕ)
-  (λ e _ occs,
-    match match_variable e with
-    | some n := occs.insert n
-    | none := occs
-    end)
-
-/-- Given an application `e = f x ... z`, this function returns a map
-associating each de Bruijn index that occurs in `e` with the application
-argument(s) that it occurs in. For instance, if `e = f (#2 + 1) #3 #3` then the
-returned map is
-
-    3 -> 1, 2
-    2 -> 0
-
-As shown in the example, arguments are counted from zero.
--/
-meta def application_variable_occurrences (e : expr) : rbmultimap ℕ ℕ :=
-let (_, args) := decompose_app e in
-let occs := args.map variable_occurrences in
-occs.foldl_with_index
-  (λ i occ_map occs, occs.fold (λ var occ_map, occ_map.insert var i) occ_map)
-  (mk_rbmultimap ℕ ℕ)
 
 @[derive has_reflect]
 meta structure constructor_argument_info :=
@@ -388,8 +411,8 @@ meta def get_constructor_info (env : environment) (num_params : ℕ) (c : name)
 when (¬ env.is_constructor c) $ exceptional.fail format!
   "Expected {c} to be a constructor.",
 decl ← env.get c,
-let (args, n_args, return_type) := decompose_pi decl.type,
-let arg_occurrences := application_variable_occurrences return_type,
+let (args, n_args, return_type) := decl.type.decompose_pi,
+let arg_occurrences := return_type.application_variable_occurrences,
 pure
   { cname := decl.to_name,
     args := args.map_with_index $ λ i ⟨name, _, type, dep⟩,
@@ -424,10 +447,10 @@ meta structure eliminee_info :=
 (args : rbmap ℕ expr)
 
 meta def get_eliminee_info (e : expr) : tactic eliminee_info := do
-ename ← local_pp_name_option e <|> fail format!
+ename ← e.local_pp_name_option <|> fail format!
   "Expected {e} to be a local constant.",
 type ← infer_type e,
-⟨f, args⟩ ← decompose_app_normalizing type,
+⟨f, args⟩ ← type.decompose_app_normalizing,
 pure
   { ename := ename,
     type := type,
@@ -447,30 +470,6 @@ if is_recursive_constructor_argument i.iinfo.iname i.ainfo.type
   then some i.einfo.ename
   else none
 
-/--
-After elaboration, Lean does not have non-dependent function types with
-unnamed arguments. This means that for the declaration
-
-```lean
-inductive test : Type :=
-| intro : unit → test
-```
-
-the type of `test.intro` becomes
-
-```lean
-test.intro : ∀ (a : unit), test
-```lean
-
-after elaboration, where `a` is an auto-generated name.
-
-This means that we can't know for sure whether a constructor argument was named
-by the user. Hence the following hack: If an argument is non-dependent *and* its
-name is `a` or `a_n` for some `n ∈ ℕ`, then we assume that this name was
-auto-generated rather than chosen by the user.
--/
-library_note "unnamed constructor arguments"
-
 meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
 let arg_name := i.ainfo.aname in
 let arg_dep := i.ainfo.dependent in
@@ -482,7 +481,7 @@ meta def constructor_argument_naming_rule_index : constructor_argument_naming_ru
 let index_occs := i.ainfo.index_occurrences in
 let eliminee_args := i.einfo.args in
 let local_index_instantiations :=
-  (index_occs.map (eliminee_args.find >=> local_names_option)).all_some in
+  (index_occs.map (eliminee_args.find >=> expr.local_names_option)).all_some in
 -- TODO this needs to be updated when we allow complex indices
 match local_index_instantiations with
 | none := none
@@ -555,7 +554,7 @@ constructor_argument_intros einfo iinfo cinfo,
 ih_intros einfo iinfo cinfo
 
 meta def eliminee_args_valid (args : list expr) : bool :=
-args.all is_local
+args.all expr.is_local
 
 meta def induction'' (eliminee_name : name) : tactic unit := focus1 $ do
 eliminee ← get_local eliminee_name,
@@ -566,7 +565,7 @@ env ← get_env,
 
 -- Find the recursor and other info about the inductive type
 (rec_const, iinfo) ← (do
-  type_name ← match_const_application_normalizing eliminee_type,
+  type_name ← eliminee_type.match_const_application_normalizing,
   guard (env.is_inductive type_name),
   let rec_name := type_name ++ "rec_on",
   rec_const ← mk_const rec_name,

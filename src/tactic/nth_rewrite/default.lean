@@ -33,6 +33,10 @@ open tactic lean.parser interactive interactive.types
 
 namespace tactic
 
+namespace nth_rewrite
+
+end nth_rewrite
+
 open nth_rewrite nth_rewrite.congr nth_rewrite.tracked_rewrite
 open tactic.interactive
 
@@ -46,7 +50,7 @@ or fail if there are not enough such rewrites. -/
 private meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) :
   tactic tracked_rewrite :=
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
-   rewrites.join.nth n <|> fail "failed: not enough rewrites found"
+   rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
 
 /-- If we want to rewrite on one side of a target or hypothesis, return that side of the expression,
 otherwise, return the entire expression. -/
@@ -58,12 +62,12 @@ meta def get_side : option side → option expr → tactic expr
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis `h`. -/
 meta def nth_rw_hyp_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
-get_side os h >>= get_nth_rewrite n q >>= λ rw, rw.replace h os
+get_side os h >>= get_nth_rewrite n q >>= λ rw, rw.replace os h
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of the target. -/
 meta def nth_rw_target_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
-get_side os none >>= get_nth_rewrite n q >>= λ rw, rw.replace none none
+get_side os none >>= get_nth_rewrite n q >>= λ rw, rw.replace os none
 
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/

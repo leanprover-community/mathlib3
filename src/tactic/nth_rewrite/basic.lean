@@ -95,9 +95,9 @@ meta def to_side (rw : tracked_rewrite) (h : option expr) : option side → tact
 /-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
 update the tactic state by replacing the corresponding part of the tactic state
 with the rewritten expression. -/
-meta def replace (rw : tracked_rewrite) (h : option expr) (s : option side) : tactic unit :=
-do (exp, prf) ← rw.to_side h s >>= tracked_rewrite.eval,
-   replace_in_state h exp prf
+meta def replace (rw : tracked_rewrite) (s : option side) (h : option expr) : tactic unit :=
+do rw ← rw.to_side h s,
+   rw.proof >>= replace_in_state h rw.exp
 
 end tracked_rewrite
 

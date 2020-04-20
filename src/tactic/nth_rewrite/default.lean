@@ -50,7 +50,7 @@ or fail if there are not enough such rewrites. -/
 private meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) :
   tactic tracked_rewrite :=
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
-   rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
+   rewrites.join.nth n <|> fail "failed: not enough rewrites found"
 
 /-- If we want to rewrite on one side of a target or hypothesis, return that side of the expression,
 otherwise, return the entire expression. -/

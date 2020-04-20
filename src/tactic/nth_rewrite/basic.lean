@@ -39,7 +39,7 @@ meta def target_or_hyp_type : option expr → tactic expr
 
 /-- Replace the target, or a hypothesis, depending on whether `none` or `some h` is given as the
 first argument. -/
-meta def replace_state_part : option expr → expr → expr → tactic unit
+meta def replace_in_state : option expr → expr → expr → tactic unit
 | none     := tactic.replace_target
 | (some h) := λ e p, tactic.replace_hyp h e p >> skip
 

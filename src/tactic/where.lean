@@ -58,7 +58,7 @@ collect_by_aux p (l.map $ prod.fst ∘ p).erase_dup l
 def inflate {α β : Type} : α → list β → list (α × β)
 | a l := l.map $ prod.mk a
 
-/-- Sort the variables by their priority as defined above. -/
+/-- Sort the variables by their priority as defined by `where.binder_priority`. -/
 meta def sort_variable_list (l : list (name × binder_info × expr)) : list (expr × binder_info × list name) :=
 let l := collect_by l $ λ v, (v.2.2, (v.1, v.2.1)) in
 let l := l.map $ λ el, (el.1, collect_by el.2 $ λ v, (v.2, v.1)) in
@@ -71,7 +71,7 @@ meta def collect_implicit_names : list name → list string × list string
 let n := to_string n, (ns, ins) := collect_implicit_names ns in
 if n.front = '_' then (ns, n :: ins) else (n :: ns, ins)
 
-/-- Format an individual variable definitionfor printing. -/
+/-- Format an individual variable definition for printing. -/
 meta def format_variable : expr × binder_info × list name → tactic string
 | (e, bi, ns) := do let (l, r) := bi.brackets,
                     e ← pp e,

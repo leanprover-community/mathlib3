@@ -596,7 +596,6 @@ apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
 apply_nolint category_theory.nat_trans.unop doc_blame
-apply_nolint category_theory.op_op doc_blame
 
 -- category_theory/products/associator.lean
 apply_nolint category_theory.prod.associativity doc_blame

@@ -54,15 +54,11 @@ private meta def collect_by_aux {α β γ : Type} (p : α → β × γ) [decidab
 meta def collect_by {α β γ : Type} (l : list α) (p : α → β × γ) [decidable_eq β] : list (β × list γ) :=
 collect_by_aux p (l.map $ prod.fst ∘ p).erase_dup l
 
-/-- Given `a : α` and `l : list β` form a new list by mapping `prod.mk a` over `l`. -/
-private def inflate {α β : Type} : α → list β → list (α × β)
-| a l := l.map $ prod.mk a
-
 /-- Sort the variables by their priority as defined by `where.binder_priority`. -/
 meta def sort_variable_list (l : list (name × binder_info × expr)) : list (expr × binder_info × list name) :=
 let l := collect_by l $ λ v, (v.2.2, (v.1, v.2.1)) in
 let l := l.map $ λ el, (el.1, collect_by el.2 $ λ v, (v.2, v.1)) in
-(list.join $ l.map $ λ e, let (a,b) := e in inflate a b).qsort (λ v u, binder_less_important v.2.1 u.2.1)
+(list.join $ l.map $ λ e, prod.mk e.1 <$> e.2).qsort (λ v u, binder_less_important v.2.1 u.2.1)
 
 /-- Separate out the names of implicit variables (commonly instances with no name). -/
 meta def collect_implicit_names : list name → list string × list string
@@ -73,13 +69,14 @@ if n.front = '_' then (ns, n :: ins) else (n :: ns, ins)
 
 /-- Format an individual variable definition for printing. -/
 meta def format_variable : expr × binder_info × list name → tactic string
-| (e, bi, ns) := do let (l, r) := bi.brackets,
-                    e ← pp e,
-                    let (ns, ins) := collect_implicit_names ns,
-                    let ns := " ".intercalate $ ns.map to_string,
-                    let ns := if ns.length = 0 then [] else [sformat!"{l}{ns} : {e}{r}"],
-                    let ins := ins.map $ λ _, sformat!"{l}{e}{r}",
-                    return $ " ".intercalate $ ns ++ ins
+| (e, bi, ns) := do
+  let (l, r) := bi.brackets,
+  e ← pp e,
+  let (ns, ins) := collect_implicit_names ns,
+  let ns := " ".intercalate $ ns.map to_string,
+  let ns := if ns.length = 0 then [] else [sformat!"{l}{ns} : {e}{r}"],
+  let ins := ins.map $ λ _, sformat!"{l}{e}{r}",
+  return $ " ".intercalate $ ns ++ ins
 
 /-- Turn a list of triples of variable names, binder info, and types, into a pretty list. -/
 meta def compile_variable_list (l : list (name × binder_info × expr)) : tactic string :=

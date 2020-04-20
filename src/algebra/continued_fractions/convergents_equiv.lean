@@ -272,7 +272,7 @@ cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
         (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
     rw this,
     -- then compute the convergent of the original gcf by recursively unfolding the continuants
-    -- computatin twice
+    -- computation twice
     have : g.convergents (n' + 2)
          = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
     {

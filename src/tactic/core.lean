@@ -234,6 +234,18 @@ do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
 
+/--
+Replace every universe metavariable in an expression with a universe parameter.
+
+(This is useful when making new declarations.)
+-/
+meta def replace_univ_metas_with_univ_params (e : expr) : tactic expr :=
+do
+  e.list_univ_meta_vars.enum.mmap (λ n, do
+    let n' := (`u).append_suffix ("_" ++ to_string (n.1+1)),
+    unify (expr.sort (level.mvar n.2)) (expr.sort (level.param n'))),
+  instantiate_mvars e
+
 /-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/
@@ -1805,6 +1817,7 @@ do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
+   inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
    nm ← get_unused_decl_name $ new_decl_name ++
      match cls with

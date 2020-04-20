@@ -158,6 +158,18 @@ meta def nonzero : level → bool
 | (imax _ l₂) := l₂.nonzero
 | _ := ff
 
+/--
+`l.fold_mvar f` folds a function `f : name → α → α`
+over each `n : name` appearing in a `level.mvar n` in `l`.
+-/
+meta def fold_mvar {α} : level → (name → α → α) → α → α
+| zero f := id
+| (succ a) f := fold_mvar a f
+| (param a) f := id
+| (mvar a) f := f a
+| (max a b) f := fold_mvar a f ∘ fold_mvar b f
+| (imax a b) f := fold_mvar a f ∘ fold_mvar b f
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -308,6 +320,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
+
+/-- Returns a list of all universe meta-variables in an expression (without duplicates). -/
+meta def list_univ_meta_vars (e : expr) : list name :=
+native.rb_set.to_list $ e.fold native.mk_rb_set $ λ e' i s,
+match e' with
+| (sort u) := u.fold_mvar (flip native.rb_set.insert) s
+| (const _ ls) := ls.foldl (λ s' l, l.fold_mvar (flip native.rb_set.insert) s') s
+| _ := s
+end
 
 /--
 Test `t` contains the specified subexpression `e`, or a metavariable.

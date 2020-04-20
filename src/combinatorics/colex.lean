@@ -7,7 +7,6 @@ Authors: Bhavik Mehta
 import data.finset
 import data.fintype.basic
 import algebra.geom_sum
-import combinatorics.to_mathlib
 
 /-!
 # Colex

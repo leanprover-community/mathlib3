@@ -7,7 +7,6 @@ Authors: Bhavik Mehta
 import data.finset
 import data.fintype.basic
 import data.nat.choose
-import combinatorics.to_mathlib
 import combinatorics.basic
 
 /-!

@@ -6,7 +6,6 @@ Authors: Bhavik Mehta
 
 import data.finset
 import data.fintype.basic
-import combinatorics.to_mathlib
 import combinatorics.basic
 import combinatorics.shadows
 import combinatorics.colex

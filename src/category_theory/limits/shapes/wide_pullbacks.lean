@@ -7,8 +7,6 @@ import data.fintype.basic
 import category_theory.limits.limits
 import category_theory.limits.shapes.finite_limits
 import category_theory.sparse
-import category_theory.punit
--- import category_theory.connected
 
 universes v u
 

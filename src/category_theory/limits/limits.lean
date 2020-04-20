@@ -185,7 +185,7 @@ def of_cone_equiv {D : Type u'} [category.{v} D] {F : J ⥤ C} {G : K ⥤ D} (h 
   is_limit (h.inverse.obj c) :=
 mk_cone_morphism
   (λ s, (h.to_adjunction.hom_equiv s c) (t.lift_cone_morphism _))
-  (λ s m, by { rw adjunction.transpose_equality', apply t.uniq_cone_morphism} )
+  (λ s m, by { rw adjunction.eq_hom_equiv_apply, apply t.uniq_cone_morphism} )
 
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)

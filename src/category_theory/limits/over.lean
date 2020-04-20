@@ -94,16 +94,17 @@ instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
 
 namespace construct_products
 
-/-- (Impl) Given a product shape in `C/B`, construct the corresponding wide pullback shape in `C`. -/
+/-- (Impl) Given a product shape in `C/B`, construct the corresponding wide pullback diagram in `C`. -/
 @[reducible]
-def grow_diagram (B : C) {J : Type v} (F : discrete J ⥤ over B) : wide_pullback_shape J ⥤ C :=
+def wide_pullback_diagram_of_diagram_over (B : C) {J : Type v} (F : discrete J ⥤ over B) : wide_pullback_shape J ⥤ C :=
 wide_pullback_shape.wide_cospan B (λ j, (F.obj j).left) (λ j, (F.obj j).hom)
 
 local attribute [tidy] tactic.case_bash
 
 /-- (Impl) Pull these out to avoid timeouts. -/
 @[simps]
-def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone F ⥤ cone (grow_diagram B F) :=
+def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone F ⥤ cone (wide_pullback_diagram_of_diagram_over B F) :=
 { obj := λ c,
   { X := c.X.left,
     π := { app := λ X, option.cases_on X c.X.hom (λ (j : J), (c.π.app j).left) } },
@@ -120,7 +121,8 @@ def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone 
 
 /-- (Impl) Pull these out to avoid timeouts. -/
 @[simps]
-def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone (grow_diagram B F) ⥤ cone F :=
+def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone (wide_pullback_diagram_of_diagram_over B F) ⥤ cone F :=
 { obj := λ c,
   { X := over.mk (c.π.app none),
     π := { app := λ j, over.hom_mk (c.π.app (some j)) (by apply c.w (wide_pullback_shape.hom.term j)) } },
@@ -129,21 +131,24 @@ def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone 
 
 /-- (Impl) Establish an equivalence between the category of cones for `F` and for the "grown" `F`. -/
 @[simps]
-def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) : cone (grow_diagram B F) ≌ cone F :=
+def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone (wide_pullback_diagram_of_diagram_over B F) ≌ cone F :=
 { functor := cones_equiv_functor B F,
   inverse := cones_equiv_inverse B F,
   unit_iso := nat_iso.of_components (λ _, cones.ext {hom := 𝟙 _, inv := 𝟙 _} (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ _, cones.ext {hom := over.hom_mk (𝟙 _), inv := over.hom_mk (𝟙 _)} (by tidy)) (by tidy) }
 
 /-- Use the above equivalence to prove we have a limit. -/
-def has_over_limit_discrete_of_grown {B : C} {J : Type v} (F : discrete J ⥤ over B) [has_limit (grow_diagram B F)] :
+def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : discrete J ⥤ over B)
+  [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
   has_limit F :=
-{ cone := _, is_limit := is_limit.of_cone_equiv (cones_equiv B F).symm (limit.is_limit (grow_diagram B F)) }
+{ cone := _,
+  is_limit := is_limit.of_cone_equiv (cones_equiv B F).symm (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/
 def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape.{v} (wide_pullback_shape J) C] {B : C} :
   has_limits_of_shape.{v} (discrete J) (over B) :=
-{ has_limit := λ F, has_over_limit_discrete_of_grown F }
+{ has_limit := λ F, has_over_limit_discrete_of_wide_pullback_limit F }
 
 /-- Given a pullback in `C`, construct a binary product in `C/B`. -/
 def over_binary_product_of_pullback [has_pullbacks.{v} C] {B : C} :

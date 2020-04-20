@@ -34,8 +34,11 @@ local attribute [tidy] tactic.case_bash
 /-- The type of objects for the diagram indexing a pullback. -/
 abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
 
+/-- The left point of the walking cospan. -/
 abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
+/-- The right point of the walking cospan. -/
 abbreviation walking_cospan.right : walking_cospan := some walking_pair.right
+/-- The central point of the walking cospan. -/
 abbreviation walking_cospan.one : walking_cospan := none
 
 /-- The type of objects for the diagram indexing a pushout. -/
@@ -51,8 +54,11 @@ namespace walking_cospan
 /-- The type of arrows for the diagram indexing a pullback. -/
 abbreviation hom : walking_cospan → walking_cospan → Type v := wide_pullback_shape.hom
 
+/-- The left arrow of the walking cospan. -/
 abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
+/-- The right arrow of the walking cospan. -/
 abbreviation hom.inr : right ⟶ one := wide_pullback_shape.hom.term _
+/-- The identity arrows of the walking cospan. -/
 abbreviation hom.id (X : walking_cospan) : X ⟶ X := wide_pullback_shape.hom.id X
 
 instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
@@ -320,10 +326,6 @@ def cone.of_pullback_cone
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).inv }
 
-@[simp] lemma cone.of_pullback_cone_π_app
-  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j) :
-(cone.of_pullback_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
-
 /-- This is a helper construction that can be useful when verifying that a category has all
     pushout. Given `F : walking_span ⥤ C`, which is really the same as
     `span (F.map fst) (F.mal snd)`, and a pushout cocone on `F.map fst` and `F.map snd`,
@@ -354,9 +356,6 @@ def pullback_cone.of_cone
   {F : walking_cospan.{v} ⥤ C} (t : cone F) : pullback_cone (F.map inl) (F.map inr) :=
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
-
-@[simp] lemma pullback_cone.of_cone_π_app {F : walking_cospan.{v} ⥤ C} (t : cone F) (j) :
-  (pullback_cone.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
 /-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/

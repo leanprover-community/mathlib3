@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 
 Implementation of floating-point numbers (experimental).
 -/
-
 import data.rat
 import data.semiquot
 

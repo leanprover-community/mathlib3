@@ -5,7 +5,6 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Theory of topological rings with uniform structure.
 -/
-
 import topology.algebra.group_completion
 import topology.algebra.ring
 

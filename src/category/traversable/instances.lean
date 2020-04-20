@@ -5,7 +5,6 @@ Author: Simon Hudon
 
 Instances of `traversable` for types from the core library
 -/
-
 import category.traversable.basic
 import category.basic
 import category.functor

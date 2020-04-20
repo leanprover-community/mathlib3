@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Chris Hughes
 
 Adjoining roots of polynomials
 -/
-
 import data.polynomial
 import ring_theory.principal_ideal_domain
 

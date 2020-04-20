@@ -5,7 +5,6 @@ Author: Simon Hudon
 
 Automation to construct `traversable` instances
 -/
-
 import category.traversable.basic
 import category.traversable.lemmas
 import category.basic

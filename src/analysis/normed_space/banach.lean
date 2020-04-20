@@ -8,7 +8,6 @@ Banach spaces, i.e., complete vector spaces.
 This file contains the Banach open mapping theorem, i.e., the fact that a bijective
 bounded linear map between Banach spaces has a bounded inverse.
 -/
-
 import topology.metric_space.baire
 import analysis.normed_space.bounded_linear_maps
 

@@ -18,7 +18,6 @@ and that d is the gcd of a and b.
 This story is closely related to the structure of SL₂(ℕ) (as a
 free monoid on two generators) and the theory of continued fractions.
 -/
-
 import tactic.basic
 import data.pnat.basic
 import tactic.ring

@@ -5,7 +5,6 @@ Author: Johannes Hölzl
 
 Countable sets.
 -/
-
 import data.equiv.list
 import data.set.finite
 import logic.function

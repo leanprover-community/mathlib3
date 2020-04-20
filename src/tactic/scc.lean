@@ -10,7 +10,6 @@ in the context.
 They are used for finding the sets of equivalent propositions in a set
 of implications.
 -/
-
 import tactic.tauto
 import category.basic
 import data.sum

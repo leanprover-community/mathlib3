@@ -3,7 +3,6 @@ Copyright (c) 2020 Gabriel Ebner, Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Simon Hudon
 -/
-
 import tactic.ext
 import data.stream
 

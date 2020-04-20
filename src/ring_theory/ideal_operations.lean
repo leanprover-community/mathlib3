@@ -5,7 +5,6 @@ Authors: Kenny Lau
 
 More operations on modules and ideals.
 -/
-
 import ring_theory.ideals
 import data.nat.choose
 import order.zorn

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
-
 import topology.bases
 import topology.separation
 import order.copy

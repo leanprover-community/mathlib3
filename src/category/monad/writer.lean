@@ -6,7 +6,6 @@ Authors: Simon Hudon
 
 The writer monad transformer for passing immutable state.
 -/
-
 import tactic.basic
 import category.monad.basic
 universes u v w

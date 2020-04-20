@@ -5,7 +5,6 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 
 Characteristic of semirings.
 -/
-
 import data.padics.padic_norm
 import data.nat.choose
 import data.fintype.basic

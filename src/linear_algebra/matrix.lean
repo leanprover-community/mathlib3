@@ -3,7 +3,6 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
-
 import data.matrix.basic
 import linear_algebra.dimension
 import linear_algebra.tensor_product

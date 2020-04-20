@@ -5,7 +5,6 @@ Authors: Simon Hudon
 
 Traversable instance for buffers.
 -/
-
 import data.buffer
 import data.array.lemmas
 import category.traversable.instances

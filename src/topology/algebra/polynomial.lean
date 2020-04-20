@@ -5,7 +5,6 @@ Author: Robert Y. Lewis
 
 Analytic facts about polynomials.
 -/
-
 import topology.algebra.ring
 import data.polynomial
 import data.real.cau_seq

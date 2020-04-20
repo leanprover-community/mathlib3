@@ -5,7 +5,6 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
 
 Normalizing casts inside expressions.
 -/
-
 import tactic.converter.interactive
 import tactic.hint
 

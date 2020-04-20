@@ -5,7 +5,6 @@ Authors: Simon Hudon
 
 Traversable instance for lazy_lists.
 -/
-
 import category.traversable.equiv
 import category.traversable.instances
 import data.lazy_list

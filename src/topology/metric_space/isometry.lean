@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
-
 import topology.metric_space.basic
 import topology.bounded_continuous_function
 import analysis.normed_space.basic

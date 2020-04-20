@@ -7,7 +7,6 @@ Defines bounded lattice type class hierarchy.
 
 Includes the Prop and fun instances.
 -/
-
 import order.lattice
 import data.option.basic
 import tactic.pi_instances

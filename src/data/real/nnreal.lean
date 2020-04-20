@@ -5,7 +5,6 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-
 import data.real.basic
 import order.lattice
 import algebra.field

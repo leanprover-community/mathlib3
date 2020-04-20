@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
 -/
-
 import data.real.cau_seq_completion
 import data.padics.padic_norm
 import algebra.archimedean

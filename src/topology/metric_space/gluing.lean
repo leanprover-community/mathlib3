@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Gluing metric spaces
 Authors: Sébastien Gouëzel
 -/
-
 import topology.metric_space.isometry
 import topology.metric_space.premetric_space
 

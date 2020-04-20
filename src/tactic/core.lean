@@ -63,6 +63,8 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+/-- Strip-away the context-dependent unique id for the given local const and return: its friendly
+`name`, its `binder_info`, and its `type : expr`.-/
 meta def local_const_get_kind : expr → name × binder_info × expr
 | (expr.local_const _ n bi e) := (n, bi, e)
 | _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])

@@ -78,10 +78,11 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
   ] <|> pure []
 | l e := F l e <|> pure []
 
-meta def app_map {α} (F : expr_lens → expr → tactic (list α)) : expr → tactic (list α)
-| e := app_map_aux F expr_lens.entire e
+meta def app_map {α} (F : expr_lens → expr → tactic (list α)) : expr → tactic (list α) :=
+app_map_aux F expr_lens.entire
 
-meta def rewrite_without_new_mvars (r : expr) (e : expr) (cfg : nth_rewrite.cfg := {}) : tactic (expr × expr) :=
+meta def rewrite_without_new_mvars
+  (r : expr) (e : expr) (cfg : nth_rewrite.cfg := {}) : tactic (expr × expr) :=
 lock_tactic_state $ -- This makes sure that we forget everything in between rewrites;
                     -- otherwise we don't correctly find everything!
 do (new_t, prf, metas) ← rewrite_core r e { cfg.to_rewrite_cfg with md := semireducible },
@@ -94,6 +95,7 @@ do (new_t, prf, metas) ← rewrite_core r e { cfg.to_rewrite_cfg with md := semi
 
 -- This is a bit of a hack: we manually inspect the proof that `rewrite_core`
 -- produced, and deduce from that whether or not the entire expression was rewritten.
+/-- Returns true if the argument is a proof that the entire expression was rewritten. -/
 meta def rewrite_is_of_entire : expr → bool
 | `(@eq.rec _ %%term %%C %%p _ _) :=
   match C with
@@ -121,10 +123,14 @@ do
               end,
     return [⟨w, pure qr, l.to_sides⟩]
 
+/-- List of all rewrites of an expression `e` by `r : expr × bool`.
+Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/
 meta def nth_rewrite (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
   tactic (list tracked_rewrite) :=
 app_map (rewrite_at_lens cfg r) e
 
+/-- Lazy list of all rewrites of an expression `e` by `r : expr × bool`.
+Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/
 meta def nth_rewrite_lazy (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
   mllist tactic tracked_rewrite :=
 mllist.squash $ mllist.of_list <$> nth_rewrite e r cfg

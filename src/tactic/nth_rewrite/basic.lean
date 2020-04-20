@@ -31,12 +31,16 @@ instance : has_to_string side := ⟨side.to_string⟩
 
 namespace tactic.nth_rewrite
 
+/-- Configuration options for nth_rewrite. -/
 meta structure cfg extends rewrite_cfg :=
 (try_simp   : bool := ff)
 (discharger : tactic unit := skip)
  -- Warning: rewrite_search can't produce tactic scripts when the simplifier is used.
 (simplifier : expr → tactic (expr × expr) := λ e, failed)
 
+/-- A data structure to track rewrites of subexpressions.
+The field `exp` contains the new expression,
+while `proof` contains a proof that `exp` is equivalent to the expression that was rewritten. -/
 meta structure tracked_rewrite :=
 (exp : expr)
 (proof : tactic expr)
@@ -44,6 +48,8 @@ meta structure tracked_rewrite :=
 -- `rewrite_search` will not be able to produce tactic scripts.
 (addr : option (list side))
 
+/-- Postprocess a tracked rewrite into a pair
+of a rewritten expression and a proof witness of the rewrite. -/
 meta def tracked_rewrite.eval (rw : tracked_rewrite) : tactic (expr × expr) :=
 do prf ← rw.proof,
    return (rw.exp, prf)

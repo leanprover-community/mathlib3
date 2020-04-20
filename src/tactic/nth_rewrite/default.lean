@@ -29,31 +29,39 @@ and this isn't always what we want.
 (In particular, `rewrite_search` is much less capable on the `category_theory` library.)
 -/
 
-open tactic
-open lean.parser
-open interactive
-open interactive.types
+open tactic lean.parser interactive interactive.types
 
 namespace tactic
 
+/-- Returns the target of the goal when passed `none`,
+otherwise, return the type of -/
 meta def target_or_hyp_type : option expr → tactic expr
 | none     := target
 | (some h) := infer_type h
 
 namespace nth_rewrite
 
+/-- Wrapper that will either replace the target, or a hypothesis,
+depending on whether `none` or `some h` is given as the first argument. -/
 meta def replace' : option expr → expr → expr → tactic unit
 | none     := tactic.replace_target
 | (some h) := λ e p, tactic.replace_hyp h e p >> skip
 
+/-- A helper function for building the proof witness of a rewrite
+on one side of an equation of iff. -/
 meta def mk_lambda (r lhs rhs : expr) : side → tactic expr
 | side.L := do L ← infer_type lhs >>= mk_local_def `L, lambdas [L] (r L rhs)
 | side.R := do R ← infer_type rhs >>= mk_local_def `R, lambdas [R] (r lhs R)
 
+/-- A helper function for building the new total expression
+starting from a rewrite of one side of an equation or iff. -/
 meta def new_exp (exp r lhs rhs : expr) : side → expr
 | side.L := r exp rhs
 | side.R := r lhs exp
 
+/-- Given a tracked rewrite of (optionally, a side of) the target or a hypothesis,
+update the tactic state by replacing the corresponding part of the tactic state
+with the rewritten expression. -/
 meta def replace : option side → option expr → tracked_rewrite → tactic unit
 | none     := λ h rw, do (exp, prf) ← rw.eval, replace' h exp prf
 | (some s) := λ h rw,
@@ -68,28 +76,37 @@ end nth_rewrite
 open nth_rewrite nth_rewrite.congr nth_rewrite.tracked_rewrite
 open tactic.interactive
 
+/-- Preprocess a rewrite rule for use in `get_nth_rewrite`. -/
 private meta def unpack_rule (p : rw_rule) : tactic (expr × bool) :=
 do r ← to_expr p.rule tt ff,
    return (r, p.symm)
 
+/-- Get the `n`th rewrite of rewrite rules `q` in expression `e`,
+or fail if there are not enough such rewrites. -/
 private meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) :
   tactic tracked_rewrite :=
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
    rewrites.join.nth n <|> fail format!"failed: not enough rewrites found"
 
+/-- If we want to rewrite on one side of a target or hypothesis, return that side of the expression,
+otherwise, return the entire expression. -/
 meta def get_side : option side → option expr → tactic expr
 | none          := target_or_hyp_type
 | (some side.L) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return lhs
 | (some side.R) := λ h, do (r, lhs, rhs) ← target_or_hyp_type h >>= relation_lhs_rhs, return rhs
 
+/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of a hypothesis `h`. -/
 meta def nth_rw_hyp_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) (h : expr) : tactic unit :=
 get_side os h >>= get_nth_rewrite n q >>= nth_rewrite.replace os h
 
+/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side) of the target. -/
 meta def nth_rw_target_core
   (os : option side) (n : parse small_nat) (q : parse rw_rules) : tactic unit :=
 get_side os none >>= get_nth_rewrite n q >>= nth_rewrite.replace os none
 
+/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
+at all the locations `loc`. -/
 meta def nth_rewrite_core (os : option side)
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 match l with
@@ -100,7 +117,7 @@ end >> tactic.try (tactic.reflexivity reducible)
 
 namespace interactive
 
-/-- `perform_nth_write n rules` performs only the `n`th possible rewrite using the `rules`.
+/-- `nth_write n rules` performs only the `n`th possible rewrite using the `rules`.
 
 The core `rewrite` has a `occs` configuration setting intended to achieve a similar
 purpose, but this doesn't really work. (If a rule matches twice, but with different

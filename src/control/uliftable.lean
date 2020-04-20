@@ -34,6 +34,11 @@ universes u₀ u₁ v₀ v₁ v₂ w w₀ w₁
 
 /-- Given a universe polymorphic functor `M.{u}`, this class helps move from
 `M.{u}` to `M.{v}` and back -/
+-- class uliftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
+-- (H : Type.{max u₀ v₀} → Type.{max u₁ v₁})
+-- (congr_f {α} : f α ≃ H (ulift α))
+-- (congr_g {α} : g α ≃ H (ulift.{max v₀ u₀} α))
+
 class uliftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
 (congr [] {α β} : α ≃ β → f α ≃ g β)
 
@@ -64,6 +69,14 @@ def adapt_down {F : Type (max u₀ v₀) → Type u₁} {G : Type v₀ → Type 
   [L : uliftable G F] [monad F] {α β}
   (x : F α) (f : α → G β) : G β :=
 @down.{v₀ v₁ (max u₀ v₀)} G F L β $ x >>= @up.{v₀ v₁ (max u₀ v₀)} G F L β ∘ f
+
+def up_map {F : Type u₀ → Type u₁} {G : Type.{max u₀ v₀} → Type v₁} [inst : uliftable F G] [functor G]
+  {α β} (f : α → β) (x : F α) : G β :=
+functor.map (f ∘ ulift.down) (up x)
+
+def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type → Type v₁} [inst : uliftable G F] [functor F]
+  {α β} (f : α → β) (x : F α) : G β :=
+down (functor.map (ulift.up ∘ f) x : F (ulift β))
 
 @[simp]
 lemma up_down  {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [uliftable f g]

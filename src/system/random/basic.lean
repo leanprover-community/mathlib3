@@ -5,15 +5,15 @@ Author(s): Simon Hudon
 -/
 
 import algebra.group_power
-import category.uliftable
+import control.uliftable
 
-import data.bitvec
+import data.bitvec.basic
 import data.list.basic
 import data.set.intervals.basic
 import data.stream.basic
-import tactic.cache
 import data.fin
 
+import tactic.cache
 import tactic.interactive
 import tactic.norm_num
 
@@ -288,13 +288,6 @@ instance : random bool :=
 { to_preorder := by apply_instance,
   random   := λ g, @bool.get_random _,
   random_r := λ g _inst x y p, bool.coerce _ _ p <$> (@bool.get_random g _inst) }
-
-instance (n : ℕ) : preorder (bitvec n) :=
-preorder.lift bitvec.to_nat (by apply_instance)
-
-lemma bitvec.le_def {n : ℕ} (x y : bitvec n) :
-  x ≤ y ↔ x.to_nat ≤ y.to_nat :=
-by refl
 
 open nat (succ one_add mod_eq_of_lt zero_lt_succ add_one succ_le_succ)
 

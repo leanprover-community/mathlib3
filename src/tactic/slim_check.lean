@@ -62,6 +62,8 @@ match e with
          <|>
           (applye ``(slim_check.subtype_var_testable _ _ (some %%var)) ; apply_instance)
          <|>
+          (applye ``(slim_check.unused_var_testable) ; apply_instance)
+         <|>
           (applye ``(slim_check.var_testable _ _ (some %%var)) ; apply_instance))
  | _ := trace_error "is_testable" $ tactic.applyc ``slim_check.de_testable
 end)
@@ -71,40 +73,105 @@ open slim_check.test_result nat
 
 namespace interactive
 
+def io.slim_check (t : Prop) [testable t] (cfg : slim_check_cfg := {}) : io (option $ bool × string) :=
+do -- unfreeze_local_instances,
+   -- n ← revert_all,
+   -- t ← target,
+   -- p ← is_prop t,
+   -- when (¬ p) (fail "expecting a proposition"),
+   -- cl ←  to_expr ``(testable %%t),
+   -- hinst ← prod.snd <$> tactic.solve_aux cl is_testable,
+   -- e ← to_expr ``(psigma.mk %%t %%hinst : Σ' t', testable t'),
+   -- ⟨t',hinst⟩ ← eval_expr (psigma testable) e,
+   r ← testable.check t cfg,
+   match r with
+    -- | (success (psum.inl ())) := admit
+    | (success _) := pure none
+    | (failure _ xs) := do
+      -- intron n,
+      let err := string.intercalate "\n" $
+        [ "\n==================="
+        , "Found problems!"
+        , "" ] ++
+        xs ++
+        [ "-------------------" ],
+      pure $ some (tt,err)
+    | (gave_up n) :=
+      let err := "Gave up " ++ repr n ++ " time(s)" in
+      if n ≥ cfg.num_inst
+      then pure $ some (tt,err)
+      else pure $ some (ff,err)
+   end
+
+meta def mk_named_binder (s : string) (e : expr) : expr :=
+@expr.const tt ``named_binder []
+      ((`(@some string) : expr) (reflect s)) e
+
+meta def add_existential_name : expr → expr
+  | (expr.app (expr.app (@expr.const tt `Exists ls) α) (expr.lam n' bi' d' b')) :=
+    mk_named_binder (to_string n') $
+      (expr.app (expr.app (@expr.const tt `Exists ls) α)
+        (expr.lam n' bi' d' b'))
+  | e := e
+
+meta def annotate_binders : expr → expr
+| e :=
+expr.replace e $ λ e i,
+  match e with
+  | expr.pi n bi d b :=
+    mk_named_binder (to_string n)
+      (expr.pi n bi (add_existential_name d) (annotate_binders b))
+  | _ := none
+  end
+
+meta def slim_check_prop (t : expr) (cfg : slim_check_cfg := {}) : tactic unit :=
+do p ← is_prop t,
+   when (¬ p) (fail "expecting a proposition"),
+   t ← instantiate_mvars t,
+   let t' := annotate_binders t,
+   cl ←  to_expr ``(testable %%t'),
+   hinst ← mk_instance cl,
+   e ← mk_mapp ``io.slim_check [t,hinst,some (reflect cfg)],
+   run_slim_check ← eval_expr (io (option (bool × string))) e,
+   r ← unsafe_run_io $ run_slim_check,
+   match r with
+    | none := admit
+    | some (b,err) :=
+      if b then fail err
+           else trace err >> admit
+   end
+
+
 /-- in a goal of the shape `⊢ p` where `p` is testable, try to find
 counter-examples to falsify `p`. If one is found, an assignment to the
 local variables is printed and the tactic fails. Otherwise, the goal
 is `admit`-ed.  -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit :=
-do unfreeze_local_instances,
-   n ← revert_all,
+do n ← revert_all,
    t ← target,
-   p ← is_prop t,
-   when (¬ p) (fail "expecting a proposition"),
-   cl ←  to_expr ``(testable %%t),
-   hinst ← prod.snd <$> tactic.solve_aux cl is_testable,
-   e ← to_expr ``(psigma.mk %%t %%hinst : Σ' t', testable t'),
-   ⟨t',hinst⟩ ← eval_expr (psigma testable) e,
-   r ← unsafe_run_io (@testable.check t' hinst cfg),
-   match r with
-    | (success (psum.inl ())) := admit
-    | (success (psum.inr p)) := do `[apply @of_as_true %%t, exact trivial]
-                                -- if some testable instances are not based on decidable
-                                -- the above might fail. The best would be to run
-                                -- the gen
-    | (failure _ xs) := do
-      intron n,
-      fail $ string.intercalate "\n" $
-        [ "\n==================="
-        , "Found problems!"
-        , "" ] ++
-        xs ++
-        [ "-------------------" ]
-    | (gave_up n) :=
-      if n ≥ cfg.num_inst
-      then fail ("Gave up " ++ repr n ++ " time(s)")
-      else trace ("Gave up " ++ repr n ++ " time(s)") >> admit
-   end
+   intron n,
+   slim_check_prop t cfg
+
+setup_tactic_parser
+
+@[user_command]
+meta def conjecture_cmd (_ : parse $ tk "conjecture") : lean.parser unit :=
+do tk ":",
+   p ← texpr,
+   of_tactic $ do
+     p ← i_to_expr p,
+     slim_check_prop p
 
 end interactive
 end tactic
+
+conjecture : ∀ i, i < 10
+
+conjecture : ∀ i j, i < j → i < 10
+
+example (i j) : i < j → i < 10 := by slim_check
+
+example (i j) : i < j → i < 10 ∧ ∀ j, j < i := by slim_check
+
+example (i) : (∃ j, i < j) → i < 10 := by slim_check
+example (i) : (∃ j, i < j) → ∀ k, k > i → i < 10 := by slim_check

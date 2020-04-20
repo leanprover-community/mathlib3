@@ -105,7 +105,7 @@ begin
   rw [← mod_mul_mod_right _ _ hn,x_ih,mod_mul_mod_left _ _ hn,mod_mul_mod_right _ _ hn],
 end
 
-@[simp] theorem totient_zero : φ 0 = 0 := rfl
+-- @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
 open zmod
 

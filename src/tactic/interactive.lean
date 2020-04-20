@@ -495,13 +495,18 @@ meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)
 
-meta def field (n : parse ident) (tac : itactic) : tactic unit :=
-do gs ← get_goals,
-   ts ← gs.mmap get_tag,
-   ([g],gs') ← pure $ (list.zip gs ts).partition (λ x, x.snd.nth 1 = some n),
-   set_goals [g.1],
-   tac, done,
-   set_goals $ gs'.map prod.fst
+meta def many1 {f} [monad f] [alternative f] {α} (x : f α) : f (list α) :=
+(::) <$> x <*> many x
+meta def field (ns : parse $ many1 ident) (tac : itactic) : tactic unit :=
+if ns.empty
+then solve1 tac
+else ns.mmap' $ λ n, do
+       gs ← get_goals,
+       ts ← gs.mmap get_tag,
+       ([g],gs') ← pure $ (list.zip gs ts).partition (λ x, x.snd.nth 1 = some n),
+       set_goals [g.1],
+       tac, done,
+       set_goals $ gs'.map prod.fst
 
 /--
 `have_field`, used after `refine_struct _` poses `field` as a local constant

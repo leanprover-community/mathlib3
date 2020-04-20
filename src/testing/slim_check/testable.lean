@@ -58,6 +58,19 @@ def combine {p q : Prop} : psum unit (p → q) → psum unit p → psum unit q
 | (psum.inr f) (psum.inr x) := psum.inr (f x)
 | _ _ := psum.inl ()
 
+def and_counter_example {p q : Prop} :
+  test_result p →
+  test_result q →
+  test_result (p ∧ q)
+ | (failure Hce xs) _ := failure (λ h, Hce h.1) xs
+ | _ (failure Hce xs) := failure (λ h, Hce h.2) xs
+ | (success xs) (success ys) := success $ combine (combine (psum.inr and.intro) xs) ys
+ | (gave_up n) (gave_up m) := gave_up $ n + m
+ | (gave_up n) _ := gave_up n
+ | _ (gave_up n) := gave_up n
+ -- | (success Hp) Hpq := success (combine Hpq Hp)
+ -- | (gave_up n) _ := gave_up n
+
 /-- If `q → p`, then `¬ p → ¬ q` which means that testing `p` can allow us
 to find counter-examples to `q` -/
 def convert_counter_example {p q : Prop}
@@ -94,19 +107,34 @@ def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   test_result q :=
 @add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
 
-instance imp_dec_testable (p : Prop) [decidable p] (β : p → Prop)
+@[simp]
+def named_binder (n : option string) (p : Prop) : Prop := p
+
+/-- Is the given test result a failure? -/
+def is_failure {p} : test_result p → bool
+| (test_result.failure _ _) := tt
+| _ := ff
+
+instance and_testable (p q : Prop) [testable p] [testable q] :
+  testable (p ∧ q) :=
+⟨ λ min, do
+   xp ← testable.run p min,
+   xq ← testable.run q min,
+   pure $ and_counter_example xp xq ⟩
+
+instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
   [∀ h, testable (β h)]
-: testable (Π h, β h) :=
+: testable (named_binder var $ Π h, β h) :=
 ⟨ λ min, do
     if h : p
     then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) min
     else return $ gave_up 1 ⟩
 
-instance all_types_testable [testable (f ℤ)]
-: testable (Π x, f x) :=
+instance all_types_testable (var : string) [testable (f ℤ)]
+: testable (named_binder (some var) $ Π x, f x) :=
 ⟨ λ min, do
     r ← testable.run (f ℤ) min,
-    return $ add_to_counter_example "ℤ" ($ ℤ) r ⟩
+    return $ add_var_to_counter_example var "ℤ" ($ ℤ) r ⟩
 
 /-- testable instance for universal properties; use the chosen example and
 instantiate the universal quantification with it -/
@@ -119,9 +147,10 @@ def test_one (x : α) [testable (β x)] (var : option (string × string) := none
       end ⟩
 
 /-- testable instance for a property iterating over the element of a list -/
-def test_forall_in_list (var : string) [∀ x, testable (β x)] [has_to_string α] :
-  Π xs : list α, testable (∀ x, x ∈ xs → β x)
-| [] := ⟨ λ min, return $ success $ psum.inr (by { introv h, cases h} ) ⟩
+instance test_forall_in_list (var : string) (var' : option string)
+  [∀ x, testable (β x)] [has_to_string α] :
+  Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
+| [] := ⟨ λ min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
 | (x :: xs) :=
 ⟨ λ min, do
     r ← testable.run (β x) min,
@@ -136,14 +165,14 @@ def test_forall_in_list (var : string) [∀ x, testable (β x)] [has_to_string �
                                      right, apply h' })
                                rs
                                (combine (psum.inr
-                                $ by { intros j h, simp only [ball_cons],
+                                $ by { intros j h, simp only [ball_cons,named_binder],
                                        split ; assumption, } ) hp)
      | gave_up n := do
        rs ← @testable.run _ (test_forall_in_list xs) min,
        match rs with
         | (success _) := return $ gave_up n
         | (failure Hce xs) := return $ failure
-                    (by { simp only [ball_cons],
+                    (by { simp only [ball_cons,named_binder],
                           apply not_and_of_not_right _ Hce, }) xs
         | (gave_up n') := return $ gave_up (n + n')
        end
@@ -158,11 +187,6 @@ def combine_testable (p : Prop)
     by { rw [length_map], apply h },
   one_of (list.map (λ t, @testable.run _ t min) t) this ⟩
 
-/-- Is the given test result a failure? -/
-def is_failure {p} : test_result p → bool
-| (test_result.failure _ _) := tt
-| _ := ff
-
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user -/
 def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
@@ -173,11 +197,20 @@ def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_l
        then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
        else minimize $ xs ()
 
+@[priority 5000]
+instance exists_testable {p : Prop}
+  (var var' : option string)
+  [testable (named_binder var (∀ x, named_binder var' $ β x → p))] :
+  testable (named_binder var' (named_binder var (∃ x, β x) → p)) :=
+⟨ λ min, do
+    x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) min,
+    pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
+
 /-- Test a universal property by choosing arbitrary examples to instantiate the
 bound variable with -/
-def var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
-  (var : option string := none)
-: testable (Π x : α, β x) :=
+instance var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
+  (var : option string)
+: testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ min, do
    uliftable.adapt_down (arby α) $
    λ x, do
@@ -188,24 +221,33 @@ def var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
                       | (some v) := add_var_to_counter_example v x ($ x) r
                       end⟩
 
-def subtype_var_testable {p : α → Prop} [has_to_string α] [arbitrary (subtype p)]
+@[priority 3000]
+instance unused_var_testable {β} [inhabited α] [testable β]
+  (var : option string)
+: testable (named_binder var $ Π x : α, β) :=
+⟨ λ min, do
+  r ← testable.run β min,
+  pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
+
+@[priority 2000]
+instance subtype_var_testable {p : α → Prop} [has_to_string α] [arbitrary (subtype p)]
   [∀ x, testable (β x)]
-  (var : option string := none)
-: testable (Π x : α, p x → β x) :=
+  (var var' : option string)
+: testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ min,
-   do r ← @testable.run (∀ x : subtype p, β x.val) (var_testable _ _ var) min,
+   do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable _ _ var) min,
       pure $ convert_counter_example'
         ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
          λ h ⟨x,h'⟩, h x h'⟩
         r ⟩
 
-instance pi_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
-: testable (Π x : α, β x) :=
-var_testable α β
+-- instance pi_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
+-- : testable (Π x : α, β x) :=
+-- var_testable α β
 
-instance pi_testable' {p : α → Prop} [has_to_string α] [arbitrary (subtype p)] [∀ x, testable (β x)]
-: testable (Π x : α, p x → β x) :=
-subtype_var_testable α β
+-- instance pi_testable' {p : α → Prop} [has_to_string α] [arbitrary (subtype p)] [∀ x, testable (β x)]
+-- : testable (Π x : α, p x → β x) :=
+-- subtype_var_testable α β
 
 @[priority 100]
 instance de_testable {p : Prop} [decidable p] : testable p :=
@@ -242,6 +284,7 @@ variable (p)
 
 variable [testable p]
 
+@[derive has_reflect]
 structure slim_check_cfg :=
 (num_inst : ℕ := 100) -- number of examples
 (max_size : ℕ := 100) -- final size argument

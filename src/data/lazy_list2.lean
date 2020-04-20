@@ -108,5 +108,4 @@ def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → l
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
 | (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
 
-
 end lazy_list

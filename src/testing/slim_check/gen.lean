@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 
-import category.uliftable
+import control.uliftable
 import system.random
 import system.random.basic
 
@@ -90,6 +90,11 @@ namespace gen
 instance : uliftable gen.{u} gen.{v} :=
 reader_t.uliftable' (equiv.ulift.trans equiv.ulift.symm)
 
+instance : has_orelse gen.{u} :=
+⟨ λ α x y, do
+  b ← uliftable.up $ choose_any bool,
+  if b.down then x else y ⟩
+
 end gen
 
 variable {α}
@@ -109,7 +114,7 @@ def vector_of : ∀ (n : ℕ) (cmd : gen α), gen (vector α n)
 by the size parameter of `gen` -/
 def list_of (cmd : gen α) : gen (list α) :=
 sized $ λ sz, do
-do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 sz,
+do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 $ sz + 1,
    v ← vector_of n.val cmd,
    return v.to_list
 

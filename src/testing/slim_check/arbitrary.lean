@@ -85,7 +85,8 @@ def nat.shrink (n : ℕ) : list ℕ :=
 nat.shrink' n []
 
 instance arbitrary_nat : arbitrary ℕ :=
-{ arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)),
+{ arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
+                        fin.val <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
 /-- implementation of `arbitrary int` -/
@@ -107,6 +108,37 @@ instance arbitrary_int : arbitrary ℤ :=
        let k := sz^5 in
        (λ n : fin _, n.val - int.of_nat (k / 2) ) <$> choose_any (fin $ succ k),
   shrink := lazy_list.of_list ∘ int.shrink   }
+
+instance arbitrary_bool : arbitrary bool :=
+{ arby := do { x ← choose_any bool,
+               return x },
+  shrink := λ _, lazy_list.nil }
+
+instance arbitrary_prod {β} [arbitrary α] [arbitrary β] : arbitrary (α × β) :=
+{ arby := do { ⟨x⟩ ← uliftable.up $ arby α,
+               ⟨y⟩ ← uliftable.up $ arby β,
+               pure (x,y) },
+  shrink := λ x, lazy_list.lseq prod.mk (shrink x.1) (shrink x.2) }
+
+def sum.shrink {β} [arbitrary α] [arbitrary β] : α ⊕ β → lazy_list (α ⊕ β)
+| (sum.inr x) := (shrink x).map sum.inr
+| (sum.inl x) := (shrink x).map sum.inl
+
+instance arbitrary_sum {β} [arbitrary α] [arbitrary β] : arbitrary (α ⊕ β) :=
+{ arby := uliftable.up_map sum.inl (arby α) <|>
+               uliftable.up_map sum.inr (arby β),
+  shrink := sum.shrink _ }
+
+instance arbitrary_char : arbitrary char :=
+{ arby := do { x ← choose_nat 0 3,
+               let str := " 0123abcABC:,;`\\/",
+               if x.val = 0 then do
+                 n ← arby ℕ,
+                 pure $ char.of_nat n
+               else do
+                 i ← choose_nat 0 (str.length - 1),
+                 pure (str.mk_iterator.nextn i).curr },
+  shrink := λ _, lazy_list.nil }
 
 variables {α}
 
@@ -148,6 +180,10 @@ instance arbitrary_prop : arbitrary Prop :=
                return ↑x },
   shrink := λ _, lazy_list.nil }
 
+instance arbitrary_string : arbitrary string :=
+{ arby := do { x ← list_of (arby char), pure x.as_string },
+  shrink := λ s, (shrink s.to_list).map list.as_string }
+
 /-- implementation of `arbitrary (tree α)` -/
 def tree.arby (arby : gen α) : ℕ → gen (tree α) | n :=
 if h : n > 0
@@ -171,5 +207,26 @@ def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (t
 instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=
 { arby := sized $ tree.arby (arby α),
   shrink := tree.shrink_with shrink }
+
+setup_tactic_parser
+
+-- meta def reflect_arbitrary_inst (arby_inst : expr)
+--   (∀ (t ) ): tactic.{0} unit :=
+-- tactic.eval_expr (sigma arbitrary) arby_inst
+
+def print_samples (t : Type u) [arbitrary t] [has_to_string t] : io unit := do
+xs ← io.run_rand $ uliftable.down $
+  do { xs ← (list.range 10).mmap $ (arby t).run ∘ ulift.up,
+       pure ⟨xs.map to_string⟩ },
+xs.mmap' io.put_str_ln
+
+@[user_command]
+meta def sample_cmd (_ : parse $ tk "sample") : lean.parser unit :=
+do e ← texpr,
+   of_tactic $ do
+     e ← tactic.i_to_expr e,
+     print_samples ← tactic.mk_mapp ``print_samples [e,none,none],
+     arby ← tactic.eval_expr (io unit) print_samples,
+     tactic.unsafe_run_io arby
 
 end slim_check

@@ -108,6 +108,8 @@ induction_on₂ s₁ s₂ $ λ l₁ l₂, induction_on s₃ $ λ l₃, H l₁ l�
 @[ext] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
+local attribute [ext] ext
+
 @[simp] theorem ext_iff {s t : finmap β} : s.entries = t.entries ↔ s = t :=
 ⟨ext, congr_arg _⟩
 
@@ -487,3 +489,5 @@ theorem union_cancel {s₁ s₂ s₃ : finmap β} (h : disjoint s₁ s₃) (h' :
 end
 
 end finmap
+
+attribute [ext] finmap.ext_lookup

@@ -757,7 +757,7 @@ they are equal. -/
 lemma eq_of_mod_eq_of_nat_abs_sub_lt_nat_abs {a b c : ℤ} (h1 : a % b = c)
     (h2 : nat_abs (a - c) < nat_abs b) :
   a = c :=
-eq_of_sub_eq_zero (eq_zero_of_dvd_of_nat_abs_gt_nat_abs (dvd_sub_of_mod_eq h1) h2)
+eq_of_sub_eq_zero (eq_zero_of_dvd_of_nat_abs_lt_nat_abs (dvd_sub_of_mod_eq h1) h2)
 
 theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ}
   (h : m < n.succ) : of_nat m + -[1+n] = -[1+ n - m] :=

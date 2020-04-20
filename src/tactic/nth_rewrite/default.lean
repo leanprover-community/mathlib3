@@ -34,7 +34,7 @@ open tactic lean.parser interactive interactive.types
 namespace tactic
 
 /-- Returns the target of the goal when passed `none`,
-otherwise, return the type of -/
+otherwise, return the type of `h` in `some h`. -/
 meta def target_or_hyp_type : option expr → tactic expr
 | none     := target
 | (some h) := infer_type h

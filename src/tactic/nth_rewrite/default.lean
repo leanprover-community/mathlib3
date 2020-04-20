@@ -73,8 +73,6 @@ do e ← target_or_hyp_type h,
    rw ← get_nth_rewrite n q new_e,
    return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, s.to_list ++ l⟩
 
-  -- rw.proof >>= replace_in_state h rw.exp
-
 /-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/
 meta def nth_rewrite_core (s : option side) (n : parse small_nat) (q : parse rw_rules)

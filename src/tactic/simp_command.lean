@@ -35,7 +35,7 @@ do
   e ← types.texpr,
 
   /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
-    may be safely called with expected behaviour given the `variables` in the environment.  -/
+     may be safely called with expected behaviour given the `variables` in the environment. -/
   (ts, e) ← synthesize_tactic_state_with_variables_as_hyps e,
   /- Call `expr.simp` with `e`, *critically* using the synthesized tactic state `ts`. -/
   simp_result ← lean.parser.of_tactic $ λ _,

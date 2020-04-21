@@ -1104,8 +1104,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
       Once use case for this behaviour is running `simp` on the passed `pexpr`, since we do not want
       simp to use arbitrary hypotheses which were declared as `variables` in the local environment
       but not referenced in the expression to simplify (as one would be expect generally in tactic
-      mode).
-   -/
+      mode). -/
    included_vars ← list_include_var_names,
    let referenced_vars := fake_e.list_local_consts.map expr.local_pp_name,
    let vars := vars.filter $ λ var,

@@ -83,7 +83,7 @@ structure subgroup (G : Type*) [group G] extends submonoid G :=
 /-- An additive subgroup of an additive group `G` is a subset containing 0, closed
 under addition and additive inverse. -/
 structure add_subgroup (G : Type*) [add_group G] extends add_submonoid G:=
-(inv_mem' {x} : x ∈ carrier → -x ∈ carrier)
+(neg_mem' {x} : x ∈ carrier → -x ∈ carrier)
 
 attribute [to_additive add_subgroup] subgroup
 

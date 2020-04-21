@@ -93,53 +93,62 @@ meta def get_open_namespaces (ns : name) : tactic (list name) :=
 do opens ← list.erase_dup <$> tactic.open_namespaces,
    return $ (opens.erase ns).map $ strip_namespace ns
 
+/-- Give a slightly friendlier name for `name.anonymous` in the context of your current namespace.
+-/
+private meta def explain_anonymous_name : name → string
+| name.anonymous := "[root namespace]"
+| ns := to_string ns
+
 /-- `#where` output helper which traces the current namespace. -/
-meta def trace_namespace (ns : name) : lean.parser unit :=
-do let str := match ns with
-   | name.anonymous := "[root namespace]"
-   | ns := to_string ns
-   end,
-   trace format!"namespace {str}"
+meta def build_str_namespace (ns : name) : lean.parser string :=
+return sformat!"namespace {explain_anonymous_name ns}"
 
 /-- `#where` output helper which traces the open namespaces. -/
-meta def trace_open_namespaces (ns : name) : tactic unit :=
+meta def build_str_open_namespaces (ns : name) : tactic string :=
 do l ← get_open_namespaces ns,
    let str := " ".intercalate $ l.map to_string,
-   if l.empty then skip
-   else trace format!"open {str}"
+   if l.empty then return ""
+   else return sformat!"open {str}"
 
 /-- `#where` output helper which traces the variables. -/
-meta def trace_variables : lean.parser unit :=
+meta def build_str_variables : lean.parser string :=
 do l ← get_variables,
    str ← compile_variable_list l,
-   if l.empty then skip
-   else trace format!"variables {str}"
+   if l.empty then return ""
+   else return sformat!"variables {str}"
 
 /-- `#where` output helper which traces the includes. -/
-meta def trace_includes : lean.parser unit :=
+meta def build_str_includes : lean.parser string :=
 do l ← get_included_variables,
    let str := " ".intercalate $ l.map $ λ n, to_string n.1,
-   if l.empty then skip
-   else trace format!"include {str}"
-
-/-- `#where` output helper which traces newlines. -/
-meta def trace_nl (n : ℕ) : tactic unit :=
-(list.range n).mmap' $ λ _, trace ""
+   if l.empty then return ""
+   else return sformat!"include {str}"
 
 /-- `#where` output helper which traces the namespace end. -/
-meta def trace_end (ns : name) : tactic unit :=
-trace format!"end {ns}"
+meta def build_str_end (ns : name) : tactic string :=
+return sformat!"end {explain_anonymous_name ns}"
+
+/-- `#where` output helper which traces newlines. -/
+private meta def append_nl (s : string) (n : ℕ) : tactic string :=
+return $ s ++ (list.as_string $ (list.range n).map $ λ _, '\n')
+
+/-- `#where` output helper which traces lines, adding a newline if nonempty. -/
+private meta def append_line (s : string) (t : lean.parser string) : lean.parser string :=
+do v ← t,
+   return $ s ++ v ++ (if v.length = 0 then "" else "\n")
 
 /-- `#where` output main function. -/
-meta def trace_where : lean.parser unit :=
-do ns ← get_current_namespace,
-   trace_namespace ns,
-   trace_nl 1,
-   trace_open_namespaces ns,
-   trace_variables,
-   trace_includes,
-   trace_nl 3,
-   trace_end ns
+meta def build_msg : lean.parser string :=
+do let msg := "",
+   ns ← get_current_namespace,
+   msg ← append_line msg $ build_str_namespace ns,
+   msg ← append_nl   msg 1,
+   msg ← append_line msg $ build_str_open_namespaces ns,
+   msg ← append_line msg $ build_str_variables,
+   msg ← append_line msg $ build_str_includes,
+   msg ← append_nl   msg 3,
+   msg ← append_line msg $ build_str_end ns,
+   return msg
 
 open interactive
 
@@ -155,7 +164,9 @@ It is a bug for `#where` to incorrectly report this information (this was not fo
 please file an issue on GitHub if you observe a failure.
 -/
 @[user_command]
-meta def where_cmd (_ : decl_meta_info) (_ : parse $ tk "#where") : lean.parser unit := trace_where
+meta def where_cmd (_ : decl_meta_info) (_ : parse $ tk "#where") : lean.parser unit :=
+do msg ← build_msg,
+   trace msg
 
 add_tactic_doc
 { name                     := "#where",

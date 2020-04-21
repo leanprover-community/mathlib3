@@ -1,4 +1,5 @@
 import tactic.simp_command
+import tactic.basic
 import analysis.complex.exponential
 
 /-!
@@ -7,7 +8,9 @@ Tests for the #simp command.
 
 #simp 5 - 5
 
-def f (x : ℕ) := x + x - x
+section arith
+
+def f (x : ℤ) := x + (x - x)
 #simp [f] f 3
 
 mk_simp_attribute test ""
@@ -20,7 +23,28 @@ attribute [simp] f
 #simp f 3
 #simp only [f] f 3
 
+local attribute [simp] sub_self
+
+variables (x : ℤ)
+
+#simp with test : (f x)
+#simp f x
+#simp only [f] f x
+#simp only [f, sub_self] f x
+
+end arith
+
+section complex
+
 -- It would be really nice to be able to refer to local variables,
 -- rather than having to use lambdas.
 open real
 #simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
+
+variables (x : ℂ)
+
+-- You can refer to local variables, rather than having to use lambdas.
+open real
+#simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
+
+end complex

@@ -89,7 +89,7 @@ lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
 begin
   ext v x,
-  simp [to_lin_apply, mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum],
+  simp [to_lin_apply, mul_vec, matrix.mul_val, finset.sum_mul, finset.mul_sum],
   rw [finset.sum_comm],
   congr, funext x, congr, funext y,
   rw [mul_assoc]
@@ -114,6 +114,10 @@ end
 
 /-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
 def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
+
+@[simp] lemma to_matrix_id [decidable_eq n] :
+  (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
 
 end linear_map
 

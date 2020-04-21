@@ -24,7 +24,7 @@ meta structure tracked_rewrite :=
 (proof : tactic expr)
 -- If `addr` is not provided by the underlying implementation of `nth_rewrite` (i.e. kabstract)
 -- `rewrite_search` will not be able to produce tactic scripts.
-(addr : option (list side))
+(addr : option (list expr_lens.dir))
 
 namespace tracked_rewrite
 

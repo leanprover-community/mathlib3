@@ -620,29 +620,6 @@ end expr
 
 /-! ### Declarations about `expr` manipulations -/
 
-/-- Inductive type with two constructors `L` and `R`,
-that represent the left and right hand sides of equations and iffs, or more generally in an
-an application `f a` passing to the "right" (the argument `a`) or the "left" (the function `f`).
-
-This type is used in the development of rewriting tactics such as
-`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
-@[derive decidable_eq, derive inhabited]
-inductive side
-| L
-| R
-
-/-- Involution on `side`, swaps `L` and `R`. -/
-def side.other : side → side
-| side.L := side.R
-| side.R := side.L
-
-/-- String representation of `side`. -/
-def side.to_string : side → string
-| side.L := "L"
-| side.R := "R"
-
-instance : has_to_string side := ⟨side.to_string⟩
-
 /-- A "lens" for looking into the subterms of an expression, tracking where we've been, so that
 when we "zoom out" after making a change we know exactly which order of `congr_fun`s and
 `congr_arg`s we need to make things work.
@@ -657,6 +634,24 @@ meta inductive expr_lens
 
 namespace expr_lens
 
+/-- Inductive type with two constructors `F` and `A`,
+that represent the function-part `f` and arg-part `a` of an application `f a`. They specify the
+directions in which an `expr_lens` should zoom into an `expr`.
+
+This type is used in the development of rewriting tactics such as
+`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
+@[derive decidable_eq, derive inhabited]
+inductive dir
+| F
+| A
+
+/-- String representation of `dir`. -/
+def dir.to_string : dir → string
+| dir.F := "F"
+| dir.A := "A"
+
+instance : has_to_string dir := ⟨dir.to_string⟩
+
 open tactic
 
 /-- Fill the function or argument hole in this lens with the given `expr`. -/
@@ -667,18 +662,18 @@ meta def fill : expr_lens → expr → expr
 
 /-- Zoom into `e : expr` given the context of an `expr_lens`, popping out an `expr` and a new
 zoomed `expr_lens`, if this is possible (`e` has to be an application). -/
-meta def zoom : expr_lens → list side → expr → option (expr_lens × expr)
+meta def zoom : expr_lens → list dir → expr → option (expr_lens × expr)
 | l [] e := (l, e)
-| l (side.L :: rest) (expr.app f x) := (expr_lens.app_arg l x).zoom rest f
-| l (side.R :: rest) (expr.app f x) := (expr_lens.app_fun l f).zoom rest x
+| l (dir.F :: rest) (expr.app f x) := (expr_lens.app_arg l x).zoom rest f
+| l (dir.A :: rest) (expr.app f x) := (expr_lens.app_fun l f).zoom rest x
 | _ _ _ := none
 
 /-- Convert an `expr_lens` into a list of instructions needed to build it; repeatedly inspecting a
 function or its argument a finite number of times. -/
-meta def to_sides : expr_lens → list side
+meta def to_dirs : expr_lens → list dir
 | expr_lens.entire        := []
-| (expr_lens.app_fun l _) := l.to_sides.concat side.R
-| (expr_lens.app_arg l _) := l.to_sides.concat side.L
+| (expr_lens.app_fun l _) := l.to_dirs.concat dir.A
+| (expr_lens.app_arg l _) := l.to_dirs.concat dir.F
 
 /-- Sometimes `mk_congr_arg` fails, when the function is 'superficially dependent'.
 This hack `dsimp`s the function before building the `congr_arg` expression.
@@ -729,8 +724,8 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
   option (expr_lens × expr) → tactic (list α)
 | (some (l, e)) := list.join <$> monad.sequence [
     F l e,
-    app_map_aux $ l.zoom [side.L] e,
-    app_map_aux $ l.zoom [side.R] e
+    app_map_aux $ l.zoom [expr_lens.dir.F] e,
+    app_map_aux $ l.zoom [expr_lens.dir.A] e
   ] <|> pure []
 | none := pure []
 

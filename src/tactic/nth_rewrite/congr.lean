@@ -63,7 +63,7 @@ do
                 qr ← mk_eq_trans qr qr',
                 return (w', qr)
               end,
-    return [⟨w, pure qr, l.to_sides⟩]
+    return [⟨w, pure qr, l.to_dirs⟩]
 
 /-- List of all rewrites of an expression `e` by `r : expr × bool`.
 Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/

@@ -2,11 +2,19 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-More partial recursive functions using a universal program;
-Rice's theorem and the halting problem.
 -/
+
 import computability.partrec_code
+
+/-!
+# Computability theory and the halting problem
+
+A universal partial recursive function, Rice's theorem, and the halting problem.
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
+-/
 
 open encodable denumerable
 

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
+import category_theory.reflect_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -115,6 +116,21 @@ adjunction.mk_of_hom_equiv
       erw [←category.assoc, ←(η_ T).naturality, functor.id_map,
             category.assoc, Y.unit, comp_id],
     end }}
+
+/-- Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism. -/
+def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso f :=
+{ inv :=
+  { f := i.inv,
+    h' :=
+    begin
+      erw (as_iso f.f).eq_comp_inv,
+      slice_lhs 2 3 {erw ← f.h},
+      slice_lhs 1 2 {rw ← T.map_comp},
+      rw [is_iso.inv_hom_id, T.map_id, category.id_comp]
+    end } }
+
+instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
+{ reflects := λ A B, algebra_iso_of_iso T }
 
 end monad
 

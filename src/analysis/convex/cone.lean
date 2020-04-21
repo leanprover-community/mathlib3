@@ -78,7 +78,7 @@ instance : has_le (convex_cone E) := ⟨λ S T, S.carrier ⊆ T.carrier⟩
 
 instance : has_lt (convex_cone E) := ⟨λ S T, S.carrier ⊂ T.carrier⟩
 
-@[simp, elim_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
+@[simp, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma mem_mk {s : set E} {h₁ h₂ x} : x ∈ mk s h₁ h₂ ↔ x ∈ s := iff.rfl
 

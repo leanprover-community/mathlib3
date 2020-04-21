@@ -14,9 +14,6 @@ instance : has_lt pos :=
 namespace expr
 open tactic
 
-attribute [derive has_reflect] binder_info
-attribute [derive decidable_eq] binder_info congr_arg_kind
-
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
@@ -236,6 +233,18 @@ meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
 do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
+
+/--
+Replace every universe metavariable in an expression with a universe parameter.
+
+(This is useful when making new declarations.)
+-/
+meta def replace_univ_metas_with_univ_params (e : expr) : tactic expr :=
+do
+  e.list_univ_meta_vars.enum.mmap (λ n, do
+    let n' := (`u).append_suffix ("_" ++ to_string (n.1+1)),
+    unify (expr.sort (level.mvar n.2)) (expr.sort (level.param n'))),
+  instantiate_mvars e
 
 /-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
@@ -845,6 +854,19 @@ Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders {α : Type} (t : tactic α) : tactic α :=
+do
+  v ← intros,
+  r ← t,
+  revert_lst v,
+  return r
+
+namespace interactive
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders (i : itactic) : itactic := tactic.under_binders i
+end interactive
+
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
@@ -871,14 +893,14 @@ the value produced by a subsequent execution of the `sort_by` tactic,
 and reverting to the original `tactic_state`.
 -/
 meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) :
-  tactic (list α) :=
+  tactic (list (α × ℕ)) :=
 λ s, result.success
-(((tactics.map $
+((tactics.map $
 λ t : tactic α,
   match (do a ← t, n ← sort_by, return (a, n)) s with
   | result.success a s' := [a]
   | _ := []
-  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)) s
 
 /-- Return target after instantiating metavars and whnf. -/
 private meta def target' : tactic expr :=
@@ -939,7 +961,8 @@ do h ← get_unused_name `h none,
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
-   prod.snd <$> solve_aux t' assumption
+   (prod.snd <$> solve_aux t' assumption >>= instantiate_mvars) <|>
+     fail format!"No hypothesis found of the form: {t'}"
 
 /-- `dependent_pose_core l`: introduce dependent hypotheses, where the proofs depend on the values
 of the previous local constants. `l` is a list of local constants and their values. -/
@@ -1455,6 +1478,15 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
 
+/--
+`on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.
+-/
+meta def on_exception {β} (handler : tactic β) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s' := (handler *> result.exception msg p) s'
+| ok := ok
+end
+
 /-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
 meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
 match tac s with
@@ -1785,6 +1817,7 @@ do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
+   inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
    nm ← get_unused_decl_name $ new_decl_name ++
      match cls with

@@ -39,7 +39,7 @@ Notation used here:
 
 Definitions in the file:
 
-* `subgroup G` : the type of subgroups of `G`
+* `subgroup G` : the type of subgroups of a group `G`
 
 * `add_subgroup A` : the type of add_subgroups of `A`
 

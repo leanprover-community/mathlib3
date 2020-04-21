@@ -616,8 +616,6 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   let args := (val.get_app_args).drop type.get_app_args.length,
   is_eta_expansion_aux val (projs.zip args)
 
-end expr
-
 /-! ### Declarations about `expr` manipulations -/
 
 /-- Inductive type with two constructors `L` and `R`,
@@ -641,7 +639,9 @@ def side.to_string : side → string
 | side.L := "L"
 | side.R := "R"
 
-instance : has_to_string side := ⟨side.to_string⟩
+instance has_to_string_side : has_to_string side := ⟨side.to_string⟩
+
+end expr
 
 /-- A "lens" for looking into the subterms of an expression, tracking where we've been, so that
 when we "zoom out" after making a change we know exactly which order of `congr_fun`s and
@@ -657,6 +657,7 @@ meta inductive expr_lens
 
 namespace expr_lens
 
+open expr
 open tactic
 
 /-- Fill the function or argument hole in this lens with the given `expr`. -/
@@ -723,6 +724,8 @@ meta def to_tactic_string : expr_lens → tactic string
                       return sformat!"(arg \"{pp}\" {rest})"
 
 end expr_lens
+
+open expr
 
 /-- The private internal function used by `app_map`, which "does the work". -/
 private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) :

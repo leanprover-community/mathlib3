@@ -14,7 +14,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
 import category_theory.limits.shapes.constructions.equalizers
 
-universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits
 

@@ -63,12 +63,6 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
-/-- Strip-away the context-dependent unique id for the given local const and return: its friendly
-`name`, its `binder_info`, and its `type : expr`.-/
-meta def local_const_get_kind : expr → name × binder_info × expr
-| (expr.local_const _ n bi e) := (n, bi, e)
-| _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
-
 end expr
 
 namespace interaction_monad
@@ -1052,7 +1046,7 @@ do n ← tactic.mk_user_fresh_name,
 /-- `get_variables` returns a list of existing variable names, along with their types and binder
 info. -/
 meta def get_variables : lean.parser (list (name × binder_info × expr)) :=
-list.map expr.local_const_get_kind <$> list_available_include_vars
+list.map expr.get_local_const_kind <$> list_available_include_vars
 
 /-- `get_included_variables` returns those variables `v` returned by `get_variables` which have been
 "included" by an `include v` statement and are not (yet) `omit`ed. -/

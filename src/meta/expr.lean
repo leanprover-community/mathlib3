@@ -491,6 +491,12 @@ meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
 | _                       := default binder
 
+/-- Strip-away the context-dependent unique id for the given local const and return: its friendly
+`name`, its `binder_info`, and its `type : expr`.-/
+meta def get_local_const_kind : expr → name × binder_info × expr
+| (expr.local_const _ n bi e) := (n, bi, e)
+| _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
+
 end expr
 
 /-! ### Declarations about `environment` -/

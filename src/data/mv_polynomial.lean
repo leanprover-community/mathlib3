@@ -994,6 +994,7 @@ end map
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
+-- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
 instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,

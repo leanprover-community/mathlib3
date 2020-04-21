@@ -106,7 +106,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 /-- Every kernel of the zero morphism is an isomorphism -/
 def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
-limit_cone_parallel_pair_self_is_iso _ _ (limit.is_limit _)
+equalizer.ι_of_self _
 
 end
 
@@ -170,7 +170,7 @@ cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
 
 /-- If `s` is a colimit cokernel cofork, then every `k : Y ⟶ W` satisfying `f ≫ k = 0` induces
     `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
-def cokernel_cofork.is_limit.desc' {s : cokernel_cofork f} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
+def cokernel_cofork.is_colimit.desc' {s : cokernel_cofork f} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
   (h : f ≫ k = 0) : {l : s.X ⟶ W // cofork.π s ≫ l = k} :=
 ⟨hs.desc $ cokernel_cofork.of_π _ h, hs.fac _ _⟩
 
@@ -258,12 +258,12 @@ variables [has_zero_morphisms.{v} C]
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=
-equalizer.ι_of_self' _ _ $ cokernel.π_of_epi f
+equalizer.ι_of_eq $ cokernel.π_of_epi f
 
 /-- The cokernel of the kernel of a monomorphism is an isomorphism -/
 instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
   [has_colimit (parallel_pair (kernel.ι f) 0)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
-coequalizer.π_of_self' _ _ $ kernel.ι_of_mono f
+coequalizer.π_of_eq $ kernel.ι_of_mono f
 
 end has_zero_object
 

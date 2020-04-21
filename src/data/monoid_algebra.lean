@@ -250,21 +250,20 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
     map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
     commutes' := λ r, by rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def,
       mul_one]; apply zero_smul },
-  left_inv := λ f,
-    begin
-      ext x, dsimp,
-      -- These `norm_cast`s used to not be necessary,
-      -- and I'm afraid I've broken something when merging with master.
-      norm_cast, dsimp,
-      rw [sum_single_index, one_smul], apply zero_smul
-    end,
+  left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
-      ext f, dsimp, norm_cast,
+      ext f,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
+      simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
     end }
 
+instance [group G] [semiring k] :
+  distrib_mul_action G (monoid_algebra k G) :=
+finsupp.comap_distrib_mul_action_self
+
+-- TODO we should prove here that G and k commute;
+-- presumably a `linear_mul_action` typeclass is in order
 
 universe ui
 variable {ι : Type ui}
@@ -554,20 +553,16 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
       rw [algebra.smul_def, mul_one],
       apply zero_smul
     end, },
-  left_inv := λ f,
-    begin
-      ext x, dsimp,
-      norm_cast, dsimp,
-      rw [sum_single_index, one_smul],
-      apply zero_smul,
-    end,
+  left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
-      ext f, dsimp,
-      norm_cast,
+      ext f,
       conv_rhs { rw ← f.sum_single },
-      simp only [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self, mul_one]
+      simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
     end }
+
+-- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
+-- because we've never discussed actions of additive groups.
 
 universe ui
 variable {ι : Type ui}

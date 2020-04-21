@@ -264,7 +264,7 @@ def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
 
 variable {K}
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+@[simp]
 lemma coe_units_equiv_ne_zero (a : units K) :
   ((units_equiv_ne_zero K a) : K) = a := rfl
 

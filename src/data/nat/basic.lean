@@ -12,7 +12,7 @@ This files has some basic lemmas about natural numbers, definition of the `choic
 and extra recursors:
 
 * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
-* `decreasing_induction` : recursion gowing downwards.
+* `decreasing_induction` : recursion growing downwards.
 * `strong_rec'` : recursion based on strong inequalities.
 -/
 
@@ -596,6 +596,11 @@ end
 (eq_zero_or_pos n).elim
   (λ n0, by simp [n0])
   (λ npos, mod_eq_of_lt (mod_lt _ npos))
+
+/--  If `a` and `b` are equal mod `c`, `a - b` is zero mod `c`. -/
+lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
+by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
+       ←nat.mul_sub_left_distrib, nat.mul_mod_right]
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
@@ -1205,6 +1210,12 @@ by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
 
+lemma choose_symm_of_eq_add {n a b : ℕ} (h : n = a + b) : nat.choose n a = nat.choose n b :=
+by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
+
+lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
+choose_symm_of_eq_add rfl
+
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
@@ -1354,6 +1365,12 @@ by rw [←nat.div_mul_cancel w, h, one_mul]
 
 lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
 by rw [←nat.div_mul_cancel w, h, zero_mul]
+
+/-- If a small natural number is divisible by a larger natural number,
+the small number is zero. -/
+lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
+nat.eq_zero_of_dvd_of_div_eq_zero w
+  ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
 (nat.le_div_iff_mul_le _ _ h₂).2 $

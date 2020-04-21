@@ -206,10 +206,10 @@ with_top (multiset { a : associates α // irreducible a })
 
 local attribute [instance] associated.setoid
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+@[norm_cast]
 theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
-  (↑a + ↑b : factor_set α) = ↑(a + b) :=
-with_top.coe_add
+  (↑(a + b) : factor_set α) = a + b :=
+by simp
 
 lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
   ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b
@@ -237,7 +237,7 @@ rfl
 | a    none := show (a + ⊤).prod = a.prod * (⊤:factor_set α).prod, by simp
 | (some a) (some b) :=
   show (↑a + ↑b:factor_set α).prod = (↑a:factor_set α).prod * (↑b:factor_set α).prod,
-    by rw [factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
+    by rw [← factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
 
 theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
 | none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _

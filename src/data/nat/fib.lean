@@ -32,8 +32,11 @@ fib, fibonacci
 
 namespace nat
 
+/-- Auxiliary function used in the definition of `fib_aux_stream`. -/
+private def fib_aux_step : (ℕ × ℕ) → (ℕ × ℕ) := λ p, ⟨p.snd, p.fst + p.snd⟩
+
 /-- Auxiliary stream creating Fibonacci pairs `⟨Fₙ, Fₙ₊₁⟩`. -/
-private def fib_aux_stream : stream (ℕ × ℕ) := stream.iterate (λ p, ⟨p.snd, p.fst + p.snd⟩) ⟨0, 1⟩
+private def fib_aux_stream : stream (ℕ × ℕ) := stream.iterate fib_aux_step ⟨0, 1⟩
 
 /--
 Implementation of the fibonacci sequence satisfying
@@ -47,23 +50,17 @@ def fib (n : ℕ) : ℕ := (fib_aux_stream n).fst
 @[simp] lemma fib_zero : fib 0 = 0 := rfl
 @[simp] lemma fib_one : fib 1 = 1 := rfl
 
-private lemma fib_recurrence_aux {n : ℕ} : (fib_aux_stream (n + 1)).fst = (fib_aux_stream n).snd :=
+private lemma fib_aux_stream_succ {n : ℕ} :
+    fib_aux_stream (n + 1) = fib_aux_step (fib_aux_stream n) :=
 begin
-  change (stream.nth (n + 1) $ stream.iterate _ (0, 1)).fst = _,
-  rw [stream.nth_succ_iterate, stream.map_iterate, stream.nth_map, fib_aux_stream]
+  change (stream.nth (n + 1) $ stream.iterate fib_aux_step ⟨0, 1⟩) =
+      fib_aux_step (stream.nth n $ stream.iterate fib_aux_step ⟨0, 1⟩),
+  rw [stream.nth_succ_iterate, stream.map_iterate, stream.nth_map]
 end
 
 /-- Shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.` -/
 lemma fib_succ_succ {n : ℕ} : fib (n + 2) = fib n + fib (n + 1) :=
-begin
-  rw [fib, fib_recurrence_aux],
-  change (stream.nth (n + 1) $ stream.iterate (λ p, _) (0, 1)).snd = _,
-  rw [stream.nth_succ_iterate, stream.map_iterate, stream.nth_map],
-  suffices : (fib_aux_stream n).snd = (stream.iterate (λ p, _) (0, 1) (n + 1)).fst, by
-    simpa only [fib, fib.aux_stream],
-  rw ←fib_recurrence_aux,
-  refl
-end
+by simp only [fib, fib_aux_stream_succ, fib_aux_step]
 
 lemma fib_pos {n : ℕ} (n_pos : 0 < n) : 0 < fib n :=
 begin

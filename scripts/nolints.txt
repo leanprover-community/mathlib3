@@ -105,10 +105,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/lie_algebra.lean
-apply_nolint lie_subalgebra has_inhabited_instance
-apply_nolint lie_submodule has_inhabited_instance
-
 -- algebra/module.lean
 apply_nolint module.core has_inhabited_instance
 
@@ -568,12 +564,6 @@ apply_nolint category_theory.monad.comparison_forget doc_blame
 apply_nolint category_theory.monad.algebra has_inhabited_instance
 apply_nolint category_theory.monad.algebra.hom has_inhabited_instance
 
--- category_theory/monad/limits.lean
-apply_nolint category_theory.has_limits_of_reflective doc_blame
-apply_nolint category_theory.monad.forget_creates_limits.c doc_blame
-apply_nolint category_theory.monad.forget_creates_limits.cone_point doc_blame
-apply_nolint category_theory.monad.forget_creates_limits.γ doc_blame unused_arguments
-
 -- category_theory/monoidal/functor.lean
 apply_nolint category_theory.lax_monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor has_inhabited_instance
@@ -606,7 +596,6 @@ apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
 apply_nolint category_theory.nat_trans.unop doc_blame
-apply_nolint category_theory.op_op doc_blame
 
 -- category_theory/products/associator.lean
 apply_nolint category_theory.prod.associativity doc_blame
@@ -818,7 +807,6 @@ apply_nolint complex.cau_seq_re doc_blame
 apply_nolint complex.conj doc_blame
 apply_nolint complex.lim_aux doc_blame
 apply_nolint complex.norm_sq doc_blame
-apply_nolint complex.of_real doc_blame
 apply_nolint complex.real_prod_equiv doc_blame
 
 -- data/complex/exponential.lean
@@ -1135,7 +1123,6 @@ apply_nolint holor_index.take doc_blame
 -- data/int/basic.lean
 apply_nolint int.bit_cases_on doc_blame
 apply_nolint int.induction_on' doc_blame
-apply_nolint int.range doc_blame
 apply_nolint int.to_nat' doc_blame
 
 -- data/int/modeq.lean
@@ -1297,7 +1284,6 @@ apply_nolint nat.totient doc_blame
 apply_nolint cast_num doc_blame
 apply_nolint cast_pos_num doc_blame unused_arguments
 apply_nolint cast_znum doc_blame
-apply_nolint int.of_snum doc_blame
 apply_nolint num.add doc_blame
 apply_nolint num.bit doc_blame
 apply_nolint num.bit0 doc_blame
@@ -1323,13 +1309,6 @@ apply_nolint num.succ doc_blame
 apply_nolint num.succ' doc_blame
 apply_nolint num.to_znum doc_blame
 apply_nolint num.to_znum_neg doc_blame
-apply_nolint nzsnum.bit0 doc_blame
-apply_nolint nzsnum.bit1 doc_blame
-apply_nolint nzsnum.drec' doc_blame
-apply_nolint nzsnum.head doc_blame
-apply_nolint nzsnum.not doc_blame
-apply_nolint nzsnum.sign doc_blame
-apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.add doc_blame
 apply_nolint pos_num.bit doc_blame
 apply_nolint pos_num.cmp doc_blame
@@ -1352,25 +1331,6 @@ apply_nolint pos_num.sqrt_aux1 doc_blame
 apply_nolint pos_num.sub doc_blame
 apply_nolint pos_num.sub' doc_blame
 apply_nolint pos_num.succ doc_blame
-apply_nolint snum.add doc_blame
-apply_nolint snum.bit doc_blame
-apply_nolint snum.bit0 doc_blame
-apply_nolint snum.bit1 doc_blame
-apply_nolint snum.bits doc_blame
-apply_nolint snum.cadd doc_blame
-apply_nolint snum.czadd doc_blame
-apply_nolint snum.drec' doc_blame
-apply_nolint snum.head doc_blame
-apply_nolint snum.mul doc_blame
-apply_nolint snum.neg doc_blame
-apply_nolint snum.not doc_blame
-apply_nolint snum.pred doc_blame
-apply_nolint snum.rec' doc_blame
-apply_nolint snum.sign doc_blame
-apply_nolint snum.sub doc_blame
-apply_nolint snum.succ doc_blame
-apply_nolint snum.tail doc_blame
-apply_nolint snum.test_bit doc_blame
 apply_nolint znum.abs doc_blame
 apply_nolint znum.add doc_blame
 apply_nolint znum.bit0 doc_blame
@@ -1395,6 +1355,13 @@ apply_nolint num.one_bits doc_blame
 apply_nolint num.shiftl doc_blame
 apply_nolint num.shiftr doc_blame
 apply_nolint num.test_bit doc_blame
+apply_nolint nzsnum.bit0 doc_blame
+apply_nolint nzsnum.bit1 doc_blame
+apply_nolint nzsnum.drec' doc_blame
+apply_nolint nzsnum.head doc_blame
+apply_nolint nzsnum.not doc_blame
+apply_nolint nzsnum.sign doc_blame
+apply_nolint nzsnum.tail doc_blame
 apply_nolint pos_num.land doc_blame
 apply_nolint pos_num.ldiff doc_blame
 apply_nolint pos_num.lor doc_blame
@@ -1403,8 +1370,28 @@ apply_nolint pos_num.one_bits doc_blame
 apply_nolint pos_num.shiftl doc_blame
 apply_nolint pos_num.shiftr doc_blame
 apply_nolint pos_num.test_bit doc_blame
+apply_nolint snum.add doc_blame
+apply_nolint snum.bit doc_blame
+apply_nolint snum.bit0 doc_blame
+apply_nolint snum.bit1 doc_blame
+apply_nolint snum.bits doc_blame
+apply_nolint snum.cadd doc_blame
+apply_nolint snum.czadd doc_blame
+apply_nolint snum.drec' doc_blame
+apply_nolint snum.head doc_blame
+apply_nolint snum.mul doc_blame
+apply_nolint snum.neg doc_blame
+apply_nolint snum.not doc_blame
+apply_nolint snum.pred doc_blame
+apply_nolint snum.rec' doc_blame
+apply_nolint snum.sign doc_blame
+apply_nolint snum.sub doc_blame
+apply_nolint snum.succ doc_blame
+apply_nolint snum.tail doc_blame
+apply_nolint snum.test_bit doc_blame
 
 -- data/num/lemmas.lean
+apply_nolint int.of_snum doc_blame
 apply_nolint num.cmp_to_nat ge_or_gt
 apply_nolint num.transfer doc_blame
 apply_nolint num.transfer_rw doc_blame
@@ -1560,8 +1547,6 @@ apply_nolint rat.sqrt doc_blame
 apply_nolint real doc_blame
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
-apply_nolint real.mk doc_blame
-apply_nolint real.of_rat doc_blame
 apply_nolint real.sqrt doc_blame
 apply_nolint real.sqrt_aux doc_blame
 
@@ -2828,17 +2813,6 @@ apply_nolint tactic.interactive.unify_with_instance doc_blame
 
 -- tactic/monotonicity/lemmas.lean
 apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
-
--- tactic/norm_cast.lean
-apply_nolint conv.interactive.norm_cast doc_blame
-apply_nolint expr.flip_eq doc_blame
-apply_nolint expr.flip_iff doc_blame
-apply_nolint ge_from_le ge_or_gt
-apply_nolint gt_from_lt ge_or_gt
-apply_nolint norm_cast.derive doc_blame
-apply_nolint tactic.apply_mod_cast doc_blame
-apply_nolint tactic.assumption_mod_cast doc_blame
-apply_nolint tactic.exact_mod_cast doc_blame
 
 -- tactic/norm_num.lean
 apply_nolint conv.interactive.norm_num doc_blame

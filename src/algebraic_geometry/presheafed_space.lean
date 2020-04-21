@@ -124,12 +124,18 @@ variables {C}
 instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
 { coe := λ α, α.f }
 
+-- see Note [function coercion]
+instance {X Y : PresheafedSpace.{v} C} : has_coe_to_fun (X ⟶ Y) :=
+⟨λ _, X.to_Top → Y.to_Top, λ h, h⟩
+
 @[simp] lemma hom_mk_coe {X Y : PresheafedSpace.{v} C} (f) (c) :
   (({ f := f, c := c } : X ⟶ Y) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
 @[simp] lemma f_as_coe {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) :
   α.f = (α : (X : Top.{v}) ⟶ (Y : Top.{v})) := rfl
 @[simp] lemma id_coe (X : PresheafedSpace.{v} C) :
   (((𝟙 X) : X ⟶ X) : (X : Top.{v}) ⟶ X) = 𝟙 (X : Top.{v}) := rfl
+@[simp] lemma id_coe_fn (X : PresheafedSpace.{v} C) :
+  (((𝟙 X) : X ⟶ X) : (X : Top.{v}) → X) = 𝟙 (X : Top.{v}) := rfl
 @[simp] lemma comp_coe {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   ((α ≫ β : X ⟶ Z) : (X : Top.{v}) ⟶ Z) = (α : (X : Top.{v}) ⟶ Y) ≫ (β : Y ⟶ Z) := rfl
 

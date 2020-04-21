@@ -527,6 +527,14 @@ theorem mod_eq_zero_of_dvd : ∀ {a b : ℤ}, a ∣ b → b % a = 0
 theorem dvd_iff_mod_eq_zero (a b : ℤ) : a ∣ b ↔ b % a = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
+/-- If `a % b = c` then `b` divides `a - c`. -/
+lemma dvd_sub_of_mod_eq {a b c : ℤ} (h : a % b = c) : b ∣ a - c :=
+begin
+  have hx : a % b % b = c % b, { rw h },
+  rw [mod_mod, ←mod_sub_cancel_right c, sub_self, zero_mod] at hx,
+  exact dvd_of_mod_eq_zero hx
+end
+
 theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
 (nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
 
@@ -733,6 +741,23 @@ begin
   apply _root_.eq_of_mul_eq_mul_left _ h,
   repeat {assumption}
 end
+
+/-- If an integer with larger absolute value divides an integer, it is
+zero. -/
+lemma eq_zero_of_dvd_of_nat_abs_lt_nat_abs {a b : ℤ} (w : a ∣ b) (h : nat_abs b < nat_abs a) :
+  b = 0 :=
+begin
+  rw [←nat_abs_dvd, ←dvd_nat_abs, coe_nat_dvd] at w,
+  rw ←nat_abs_eq_zero,
+  exact eq_zero_of_dvd_of_lt w h
+end
+
+/-- If two integers are congruent to a sufficiently large modulus,
+they are equal. -/
+lemma eq_of_mod_eq_of_nat_abs_sub_lt_nat_abs {a b c : ℤ} (h1 : a % b = c)
+    (h2 : nat_abs (a - c) < nat_abs b) :
+  a = c :=
+eq_of_sub_eq_zero (eq_zero_of_dvd_of_nat_abs_lt_nat_abs (dvd_sub_of_mod_eq h1) h2)
 
 theorem of_nat_add_neg_succ_of_nat_of_lt {m n : ℕ}
   (h : m < n.succ) : of_nat m + -[1+n] = -[1+ n - m] :=
@@ -1071,6 +1096,9 @@ attribute [priority 1001] int.has_coe
 | 0     := rfl
 | (n+1) := congr_arg (+(1:ℤ)) (nat_cast_eq_coe_nat n)
 
+/-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
+def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
+
 section cast
 variables {α : Type*}
 
@@ -1197,21 +1225,6 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [linear_ordered_ring α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-theorem eq_cast [add_group α] [has_one α] (f : ℤ → α)
-  (H1 : f 1 = 1) (Hadd : ∀ x y, f (x + y) = f x + f y) (n : ℤ) : f n = n :=
-begin
-  have H : ∀ (n : ℕ), f n = n :=
-    nat.eq_cast' (λ n, f n) H1 (λ x y, Hadd x y),
-  cases n, {apply H},
-  apply eq_neg_of_add_eq_zero,
-  rw [← nat.cast_zero, ← H 0, int.coe_nat_zero,
-      ← show -[1+ n] + (↑n + 1) = 0, from neg_add_self (↑n+1),
-      Hadd, show f (n+1) = n+1, from H (n+1)]
-end
-
-@[simp, norm_cast] theorem cast_id (n : ℤ) : ↑n = n :=
-(eq_cast id rfl (λ _ _, rfl) n).symm
-
 @[simp, norm_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
@@ -1228,6 +1241,7 @@ end cast
 
 section decidable
 
+/-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r
 
@@ -1259,20 +1273,31 @@ end decidable
 
 end int
 
+open int
+
+theorem add_monoid_hom.eq_int_cast {A} [add_group A] [has_one A] (f : ℤ →+ A) (h1 : f 1 = 1)
+  (n : ℤ) : f n = n :=
+begin
+  have : ∀ n : ℕ, f n = n, from λ n, (f.comp of_nat_hom.to_add_monoid_hom).eq_nat_cast h1 n,
+  cases n,
+  { exact this n },
+  rw [cast_neg_succ_of_nat, neg_succ_of_nat_eq, f.map_neg, f.map_add, h1, this]
+end
+
 namespace ring_hom
 
-variables {α : Type*} {β : Type*} {rα : ring α} {rβ : ring β}
-include rα
+variables {α : Type*} {β : Type*} [ring α] [ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
-int.eq_cast f f.map_one f.map_add n
+f.to_add_monoid_hom.eq_int_cast f.map_one n
 
 lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
-ring_hom.ext $ int.eq_cast f f.map_one f.map_add
-
-include rβ
+ring_hom.ext f.eq_int_cast
 
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 end ring_hom
+
+@[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
+((ring_hom.id ℤ).eq_int_cast n).symm

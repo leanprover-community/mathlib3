@@ -158,6 +158,18 @@ meta def nonzero : level → bool
 | (imax _ l₂) := l₂.nonzero
 | _ := ff
 
+/--
+`l.fold_mvar f` folds a function `f : name → α → α`
+over each `n : name` appearing in a `level.mvar n` in `l`.
+-/
+meta def fold_mvar {α} : level → (name → α → α) → α → α
+| zero f := id
+| (succ a) f := fold_mvar a f
+| (param a) f := id
+| (mvar a) f := f a
+| (max a b) f := fold_mvar a f ∘ fold_mvar b f
+| (imax a b) f := fold_mvar a f ∘ fold_mvar b f
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -309,6 +321,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
 
+/-- Returns a list of all universe meta-variables in an expression (without duplicates). -/
+meta def list_univ_meta_vars (e : expr) : list name :=
+native.rb_set.to_list $ e.fold native.mk_rb_set $ λ e' i s,
+match e' with
+| (sort u) := u.fold_mvar (flip native.rb_set.insert) s
+| (const _ ls) := ls.foldl (λ s' l, l.fold_mvar (flip native.rb_set.insert) s') s
+| _ := s
+end
+
 /--
 Test `t` contains the specified subexpression `e`, or a metavariable.
 This represents the notion that `e` "may occur" in `t`,
@@ -332,7 +353,9 @@ meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : b
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
-meta def get_simp_args (e : expr) : tactic (list expr) := do
+meta def get_simp_args (e : expr) : tactic (list expr) :=
+-- `mk_specialized_congr_lemma_simp` throws an assertion violation if its argument is not an app
+if ¬ e.is_app then pure [] else do
 cgr ← mk_specialized_congr_lemma_simp e,
 pure $ do
   (arg_kind, arg) ← cgr.arg_kinds.zip e.get_app_args,

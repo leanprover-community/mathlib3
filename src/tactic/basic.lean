@@ -25,6 +25,7 @@ import
   tactic.rewrite
   tactic.lint
   tactic.simp_rw
+  tactic.simp_result
   tactic.simpa
   tactic.simps
   tactic.split_ifs

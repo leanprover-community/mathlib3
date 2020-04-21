@@ -128,10 +128,11 @@ instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 @[simp, norm_cast, to_additive]
 lemma mem_coe {K : subgroup G} [g : G] : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
 
-@[simp, norm_cast, to_additive]
+@[simp, norm_cast, to_additive, nolint simp_nf]
 lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 
-attribute [norm_cast] add_subgroup.mem_coe add_subgroup.coe_coe
+attribute [norm_cast] add_subgroup.mem_coe
+attribute [norm_cast, nolint simp_nf] add_subgroup.coe_coe
 
 @[to_additive]
 instance is_subgroup (K : subgroup G) : is_subgroup (K : set G) :=

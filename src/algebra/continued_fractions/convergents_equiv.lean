@@ -33,20 +33,21 @@ fractions.
 fractions, recurrence, equivalence
 -/
 
-variables {α : Type*} {n : ℕ}
+variables {K : Type*} {n : ℕ}
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
-variables {g : gcf α} {s : seq $ gcf.pair α}
+variables {g : gcf K} {s : seq $ gcf.pair K}
 
 /-!
 We will show the equivalence of the computations by induction. To make the induction work, we need
 to be able to *squash* the nth and (n + 1)th value of a sequence. This squashing itself and the
-lemmas about it are not very interesting. We hence keep them `private`.
+lemmas about it are not very interesting. As a reader, you hence might want to skip the `squash`
+section.
 -/
 
 section squash
 section with_division_ring
-variable [division_ring α]
+variable [division_ring K]
 
 /--
 Given a sequence of gcf.pairs `s = [(a₀, bₒ), (a₁, b₁), ...]`, `squash_seq s n`
@@ -54,7 +55,7 @@ combines `⟨aₙ, bₙ⟩` and `⟨aₙ₊₁, bₙ₊₁⟩` at position `n` t
 `squash_seq s 0 = [(a₀, bₒ + a₁ / b₁), (a₁, b₁),...]`.
 If `s.terminated_at (n + 1)`, then `squash_seq s n = s`.
 -/
-private def squash_seq (s : seq $ gcf.pair α) (n : ℕ) : seq (gcf.pair α) :=
+def squash_seq (s : seq $ gcf.pair K) (n : ℕ) : seq (gcf.pair K) :=
 match prod.mk (s.nth n) (s.nth (n + 1)) with
 | ⟨some gp_n, some gp_succ_n⟩ := seq.nats.zip_with
     -- return the squashed value at position `n`; otherwise, do nothing.
@@ -65,7 +66,7 @@ end
 /-! We now prove some simple lemmas about the squashed sequence -/
 
 /-- If the sequence already terminated at position `n + 1`, nothing gets squashed. -/
-private lemma squash_seq_eq_self_of_terminated
+lemma squash_seq_eq_self_of_terminated
 (terminated_at_succ_n : s.terminated_at (n + 1)) :
   squash_seq s n = s :=
 begin
@@ -76,13 +77,13 @@ end
 
 /-- If the sequence has not terminated before position `n + 1`, the value at `n + 1` gets
 squashed into position `n`. -/
-private lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : gcf.pair α}
+lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : gcf.pair K}
 (s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
   (squash_seq s n).nth n = some ⟨gp_n.a, gp_n.b + gp_succ_n.a / gp_succ_n.b⟩ :=
 by simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth n) s_nth_eq _)]
 
 /-- The values before the squashed position stay the same. -/
-private lemma squash_seq_nth_of_lt {m : ℕ} (m_lt_n : m < n) : (squash_seq s n).nth m = s.nth m :=
+lemma squash_seq_nth_of_lt {m : ℕ} (m_lt_n : m < n) : (squash_seq s n).nth m = s.nth m :=
 begin
   cases s_succ_nth_eq : s.nth (n + 1),
   case option.none { rw (squash_seq_eq_self_of_terminated s_succ_nth_eq) },
@@ -97,7 +98,7 @@ end
 
 /-- Squashing at position `n + 1` and taking the tail is the same as squashing the tail of the
 sequence at position `n`. -/
-private lemma squash_seq_succ_n_tail_eq_squash_seq_tail_n :
+lemma squash_seq_succ_n_tail_eq_squash_seq_tail_n :
   (squash_seq s (n + 1)).tail = squash_seq s.tail n :=
 begin
   cases s_succ_succ_nth_eq : s.nth (n + 2) with gp_succ_succ_n,
@@ -126,7 +127,7 @@ end
 
 /-- The auxiliary function `convergents'_aux` returns the same value for a sequence and the
 corresponding squashed sequence at the squashed position. -/
-private lemma succ_succ_nth_convergent'_aux_eq_succ_nth_convergent'_aux_squash_seq :
+lemma succ_succ_nth_convergent'_aux_eq_succ_nth_convergent'_aux_squash_seq :
   convergents'_aux s (n + 2) = convergents'_aux (squash_seq s n) (n + 1) :=
 begin
   cases s_succ_nth_eq : (s.nth $ n + 1) with gp_succ_n,
@@ -162,7 +163,7 @@ Given a gcf `g = [h; (a₀, bₒ), (a₁, b₁), ...]`, we have
 - `squash_nth.gcf g 0 = [h + a₀ / b₀); (a₀, bₒ), ...]`,
 - `squash_nth.gcf g (n + 1) = ⟨g.h, squash_seq g.s n⟩`
 -/
-private def squash_gcf (g : gcf α) : ℕ → gcf α
+def squash_gcf (g : gcf K) : ℕ → gcf K
 | 0 := match g.s.nth 0 with
   | none := g
   | some gp := ⟨g.h + gp.a / gp.b, g.s⟩
@@ -173,7 +174,7 @@ private def squash_gcf (g : gcf α) : ℕ → gcf α
 squashed gcf. -/
 
 /-- If the gcf already terminated at position `n`, nothing gets squashed. -/
-private lemma squash_gcf_eq_self_of_terminated (terminated_at_n : terminated_at g n) :
+lemma squash_gcf_eq_self_of_terminated (terminated_at_n : terminated_at g n) :
   squash_gcf g n = g :=
 begin
   cases n,
@@ -185,13 +186,13 @@ begin
 end
 
 /-- The values before the squashed position stay the same. -/
-private lemma squash_gcf_nth_of_lt {m : ℕ} (m_lt_n : m < n) :
+lemma squash_gcf_nth_of_lt {m : ℕ} (m_lt_n : m < n) :
   (squash_gcf g (n + 1)).s.nth m = g.s.nth m :=
 by simp only [squash_gcf, (squash_seq_nth_of_lt m_lt_n)]
 
 /-- `convergents'` returns the same value for a gcf and the corresponding squashed gcf at the
 squashed position. -/
-private lemma succ_nth_convergent'_eq_squash_gcf_nth_convergent' :
+lemma succ_nth_convergent'_eq_squash_gcf_nth_convergent' :
   g.convergents' (n + 1) = (squash_gcf g n).convergents' n :=
 begin
   cases n,
@@ -204,7 +205,7 @@ begin
 end
 
 /-- The auxiliary continuants before the squashed position stay the same. -/
-private lemma continuants_aux_eq_continuants_aux_squash_gcf_of_le {m : ℕ} :
+lemma continuants_aux_eq_continuants_aux_squash_gcf_of_le {m : ℕ} :
   m ≤ n → continuants_aux g m = (squash_gcf g n).continuants_aux m :=
 nat.strong_induction_on m
 (begin
@@ -231,8 +232,8 @@ end with_division_ring
 
 /-- The convergents coincide in the expected way at the squashed position if the partial denominator
 at the squashed position is not zero. -/
-private lemma succ_nth_convergent_eq_squash_gcf_nth_convergent [field α]
-(nth_part_denom_ne_zero : ∀ {b : α}, g.partial_denominators.nth n = some b → b ≠ 0) :
+lemma succ_nth_convergent_eq_squash_gcf_nth_convergent [field K]
+(nth_part_denom_ne_zero : ∀ {b : K}, g.partial_denominators.nth n = some b → b ≠ 0) :
   g.convergents (n + 1) = (squash_gcf g n).convergents n :=
 begin
 cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
@@ -327,8 +328,8 @@ In practice, one most commonly deals with (regular) continued fractions, which s
 positivity criterion required here. The analogous result for them
 (see `continued_fractions.convergents_eq_convergents`) hence follows directly from this theorem.
 -/
-theorem convergents_eq_convergents' [linear_ordered_field α]
-(s_pos : ∀ {gp : gcf.pair α} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
+theorem convergents_eq_convergents' [linear_ordered_field K]
+(s_pos : ∀ {gp : gcf.pair K} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
   g.convergents n = g.convergents' n :=
 begin
   induction n with n IH generalizing g,
@@ -394,14 +395,14 @@ open continued_fraction as cf
 
 /-- Shows that the recurrence relation (`convergents`) and direct evaluation (`convergents'`) of a
 (regular) continued fraction coincide. -/
-theorem convergents_eq_convergents' [linear_ordered_field α] {c : cf α} :
-  (↑c : gcf α).convergents = (↑c : gcf α).convergents' :=
+theorem convergents_eq_convergents' [linear_ordered_field K] {c : cf K} :
+  (↑c : gcf K).convergents = (↑c : gcf K).convergents' :=
 begin
   ext n,
   apply gcf.convergents_eq_convergents',
   assume gp m m_lt_n s_nth_eq,
   split,
-  { have : gp.a = 1, from (c : scf α).property m gp.a (gcf.part_num_eq_s_a s_nth_eq),
+  { have : gp.a = 1, from (c : scf K).property m gp.a (gcf.part_num_eq_s_a s_nth_eq),
     simp only [zero_lt_one, this] },
   { exact (c.property m gp.b $ gcf.part_denom_eq_s_b s_nth_eq) }
 end

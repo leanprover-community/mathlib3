@@ -106,7 +106,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 /-- Every kernel of the zero morphism is an isomorphism -/
 def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
-limit_cone_parallel_pair_self_is_iso _ _ (limit.is_limit _)
+equalizer.ι_of_self _
 
 end
 
@@ -258,12 +258,12 @@ variables [has_zero_morphisms.{v} C]
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=
-equalizer.ι_of_self' _ _ $ cokernel.π_of_epi f
+equalizer.ι_of_eq $ cokernel.π_of_epi f
 
 /-- The cokernel of the kernel of a monomorphism is an isomorphism -/
 instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
   [has_colimit (parallel_pair (kernel.ι f) 0)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
-coequalizer.π_of_self' _ _ $ kernel.ι_of_mono f
+coequalizer.π_of_eq $ kernel.ι_of_mono f
 
 end has_zero_object
 

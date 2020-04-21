@@ -73,6 +73,7 @@ meta def horner_expr.e : horner_expr → expr
 | (horner_expr.xadd e _ _ _ _) := e
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
+meta instance : has_coe_to_fun horner_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
 meta def horner_expr.xadd' (c : cache) (a : horner_expr)
   (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr :=

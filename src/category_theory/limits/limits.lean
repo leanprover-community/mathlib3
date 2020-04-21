@@ -31,7 +31,7 @@ structure is_limit (t : cone F) :=
   m = lift s . obviously)
 
 restate_axiom is_limit.fac'
-attribute [simp] is_limit.fac
+attribute [simp, reassoc] is_limit.fac
 restate_axiom is_limit.uniq'
 
 namespace is_limit

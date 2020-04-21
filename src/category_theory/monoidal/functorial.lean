@@ -49,9 +49,9 @@ include 𝒞 𝒟
 -- but that isn't the immediate plan.
 class lax_monoidal (F : C → D) [functorial.{v₁ v₂} F] :=
 -- unit morphism
-(ε               : 𝟙_ D ⟶ F (𝟙_ C))
+(ε              [] : 𝟙_ D ⟶ F (𝟙_ C))
 -- tensorator
-(μ                : Π X Y : C, (F X) ⊗ (F Y) ⟶ F (X ⊗ Y))
+(μ              []  : Π X Y : C, (F X) ⊗ (F Y) ⟶ F (X ⊗ Y))
 (μ_natural'       : ∀ {X Y X' Y' : C}
   (f : X ⟶ Y) (g : X' ⟶ Y'),
   ((map F f) ⊗ (map F g)) ≫ μ Y Y' = μ X X' ≫ map F (f ⊗ g)

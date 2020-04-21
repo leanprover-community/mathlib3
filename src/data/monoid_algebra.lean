@@ -255,6 +255,12 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
       simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
     end }
 
+instance [group G] [semiring k] :
+  distrib_mul_action G (monoid_algebra k G) :=
+finsupp.comap_distrib_mul_action_self
+
+-- TODO we should prove here that G and k commute;
+-- presumably a `linear_mul_action` typeclass is in order
 
 universe ui
 variable {ι : Type ui}
@@ -533,6 +539,9 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
       conv_rhs { rw ← f.sum_single },
       simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
     end }
+
+-- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
+-- because we've never discussed actions of additive groups.
 
 universe ui
 variable {ι : Type ui}

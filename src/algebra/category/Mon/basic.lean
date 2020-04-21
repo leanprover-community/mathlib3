@@ -112,7 +112,7 @@ instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class
 instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive]
-instance : category CommMon := infer_instance -- short-circuit type class inference
+instance : category CommMon := by apply_instance -- short-circuit type class inference
 
 @[to_additive]
 instance : concrete_category CommMon := infer_instance -- short-circuit type class inference
@@ -125,6 +125,14 @@ end CommMon
 -- We verify that the coercions of morphisms to functions work correctly:
 example {R S : Mon}     (f : R ⟶ S) : (R : Type) → (S : Type) := f
 example {R S : CommMon} (f : R ⟶ S) : (R : Type) → (S : Type) := f
+
+#print CommMon.category_theory.category
+example (R S : CommMon) : R ⟶ S :=
+begin
+  fconstructor,
+  dsimp [bundled.map],
+  dsimp,
+end
 
 
 variables {X Y : Type u}

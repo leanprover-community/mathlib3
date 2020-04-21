@@ -50,7 +50,7 @@ This instance generates the type-class problem `bundled_hom ?m` (which is why th
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
 @[nolint dangerous_instance] instance category : category (bundled c) :=
 by refine
-{ hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
+{ hom := λ X Y, @hom X Y X.str Y.str,
   id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
   comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X Y Z X.str Y.str Z.str g f,
   comp_id' := _,
@@ -84,6 +84,21 @@ has_forget₂.mk'
   (λ _, rfl)
   @map
   (by intros; apply heq_of_eq; apply h_map)
+
+
+
+-- omit 𝒞
+
+-- variables {d : Type u → Type u}
+
+-- def induced_bundled_category (f : Π {α}, d α → c α) := bundled d
+
+-- instance (f : Π {α}, d α → c α) : has_coe_to_sort (induced_bundled_category @f) :=
+-- { S := Type u, coe := bundled.α }
+
+-- instance (f : Π {α}, d α → c α) [category (bundled c)] : category (induced_bundled_category @f) :=
+-- { hom := λ X Y, @hom X Y (f X.str) (f Y.str),
+--   id := λ X, begin end }
 
 end bundled_hom
 

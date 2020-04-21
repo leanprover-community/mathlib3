@@ -29,7 +29,7 @@ and this isn't always what we want.
 (In particular, `rewrite_search` is much less capable on the `category_theory` library.)
 -/
 
-open tactic lean.parser interactive interactive.types
+open tactic lean.parser interactive interactive.types expr
 
 namespace tactic
 

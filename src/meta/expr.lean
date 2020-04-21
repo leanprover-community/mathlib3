@@ -719,6 +719,8 @@ meta def to_tactic_string : expr_lens → tactic string
 
 end expr_lens
 
+open expr
+
 /-- The private internal function used by `app_map`, which "does the work". -/
 private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) :
   option (expr_lens × expr) → tactic (list α)

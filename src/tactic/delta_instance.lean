@@ -19,7 +19,6 @@ first unfolding the definitions in `ids`.
 meta def delta_instance (ids : list name) : tactic unit :=
 dsimp_result
   (intros >> reset_instance_cache >> delta_target ids >> apply_instance >> done)
-  { fail_if_unchanged := ff, } tt [] [simp_arg_type.expr ``(id)] -- this is `dsimp_result only [id]`
 
 namespace interactive
 setup_tactic_parser

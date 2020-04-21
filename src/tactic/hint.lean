@@ -71,8 +71,9 @@ Report a list of tactics that can make progress against the current goal,
 and for each such tactic, the number of remaining goals afterwards.
 -/
 meta def hint : tactic (list (string × ℕ)) :=
-do names ← attribute.get_instances `hint_tactic,
-   try_all_sorted (names.reverse.map name_to_tactic)
+do
+  names ← attribute.get_instances `hint_tactic,
+  focus1 $ try_all_sorted (names.reverse.map name_to_tactic)
 
 namespace interactive
 

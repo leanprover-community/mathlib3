@@ -40,3 +40,13 @@ begin
   (do hints ← tactic.hint, guard $ ("solve_by_elim", 0) ∈ hints),
   solve_by_elim,
 end
+
+-- Check that `num_goals` is counted correctly, when `hint` is called with multiple goals.
+example : 1 = 1 ∧ 2 = 2 :=
+begin
+  split,
+  (do hints ← tactic.hint, guard $ ("solve_by_elim", 0) ∈ hints),
+  solve_by_elim,
+  (do hints ← tactic.hint, guard $ ("refl", 0) ∈ hints),
+  refl,
+end

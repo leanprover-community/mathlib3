@@ -87,7 +87,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
-@[simp, elim_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
@@ -212,7 +212,7 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
-@[simp, elim_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
+@[simp, norm_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

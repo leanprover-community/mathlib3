@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.zero
 import category_theory.shift
+import category_theory.concrete_category
 
 /-!
 # Differential objects in a category.

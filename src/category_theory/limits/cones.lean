@@ -5,7 +5,6 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
-import category_theory.concrete_category.bundled_hom
 import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -137,27 +136,6 @@ rfl
 { X := c.X,
   π := whisker_left E c.π }
 
--- We now prove a lemma about naturality of cones over functors into bundled categories.
-section
-
-omit 𝒞
-variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [large_category C'] [𝒞' : concrete_category C']
-include 𝒞'
-
-local attribute [instance] concrete_category.has_coe_to_sort
-local attribute [instance] concrete_category.has_coe_to_fun
-
-/-- Naturality of a cone over functors to a concrete category. -/
-@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cone G) {j j' : J'} (f : j ⟶ j') (x : s.X) :
-   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
-begin
-  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
-  { dsimp, simp },
-end
-
-end
-
 end cone
 
 namespace cocone
@@ -183,26 +161,6 @@ rfl
 @[simps] def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := whisker_left E c.ι }
-
--- We now prove a lemma about naturality of cocones over functors into bundled categories.
-section
-omit 𝒞
-variables {J' : Type u} [small_category J']
-variables {C' : Type (u+1)} [large_category C'] [𝒞' : concrete_category C']
-include 𝒞'
-
-local attribute [instance] concrete_category.has_coe_to_sort
-local attribute [instance] concrete_category.has_coe_to_fun
-
-/-- Naturality of a cocone over functors into a concrete category. -/
-@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cocone G) {j j' : J'} (f : j ⟶ j') (x : G.obj j) :
-  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-begin
-  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp },
-end
-
-end
 
 end cocone
 
@@ -255,9 +213,7 @@ variable (F)
 @[simps]
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
-end
 
-section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
@@ -318,9 +274,7 @@ variable (F)
 @[simps]
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
-end
 
-section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
@@ -344,13 +298,14 @@ variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 open category_theory.limits
 
 /-- The image of a cone in C under a functor G : C ⥤ D is a cone in D. -/
-def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality H).obj c
+def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality F H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
-def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).obj c
+def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality F H).obj c
 
 @[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
 @[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
 
+@[simps]
 def map_cone_inv [is_equivalence H]
   (c : cone (F ⋙ H)) : cone F :=
 let t := (inv H).map_cone c in
@@ -359,17 +314,30 @@ let α : (F ⋙ H) ⋙ inv H ⟶ F :=
 { X := t.X,
   π := ((category_theory.cones J C).map α).app (op t.X) t.π }
 
-@[simp] lemma map_cone_inv_X [is_equivalence H] (c : cone (F ⋙ H)) : (H.map_cone_inv c).X = (inv H).obj c.X := rfl
-
-def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
-  cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f
-def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
-  cocone_morphism (H.map_cocone c) (H.map_cocone c') := (cocones.functoriality H).map f
+def map_cone_morphism   {c c' : cone F}   (f : c ⟶ c')   :
+  (H.map_cone c) ⟶ (H.map_cone c') := (cones.functoriality F H).map f
+def map_cocone_morphism {c c' : cocone F} (f : c ⟶ c') :
+  (H.map_cocone c) ⟶ (H.map_cocone c') := (cocones.functoriality F H).map f
 
 @[simp] lemma map_cone_π (c : cone F) (j : J) :
   (map_cone H c).π.app j = H.map (c.π.app j) := rfl
 @[simp] lemma map_cocone_ι (c : cocone F) (j : J) :
   (map_cocone H c).ι.app j = H.map (c.ι.app j) := rfl
+
+/-- `map_cone` is the left inverse to `map_cone_inv`. -/
+def map_cone_map_cone_inv {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c : cone (F ⋙ H)) :
+  map_cone H (map_cone_inv H c) ≅ c :=
+begin
+  apply cones.ext _ (λ j, _),
+  { exact H.inv_fun_id.app c.X },
+  { dsimp,
+    erw [comp_id, ← H.inv_fun_id.hom.naturality (c.π.app j), comp_map, H.map_comp],
+    congr' 1,
+    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), nat_iso.inv_hom_id_app,
+         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, nat_iso.hom_inv_id_app,
+         H.map_id],
+    refl }
+end
 
 end functor
 

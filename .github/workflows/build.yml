@@ -6,6 +6,7 @@ on:
       # ignore tmp branches used by bors
       - 'staging.tmp*'
       - 'trying.tmp*'
+      - 'staging*.tmp'
 
 jobs:
   build:

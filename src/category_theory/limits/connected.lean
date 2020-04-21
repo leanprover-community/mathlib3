@@ -37,16 +37,13 @@ begin
   { rwa t (wide_pullback_shape.hom.term j) }
 end
 
-instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩
-
-instance span_connected : connected (walking_span) :=
+instance wide_pushout_shape_connected (J : Type v₁) : connected (wide_pushout_shape J) :=
 begin
   apply connected.of_induct,
   introv _ t,
   cases j,
-  { assumption },
-  { rwa ← t walking_span.hom.fst },
-  { rwa ← t walking_span.hom.snd },
+  { exact a },
+  { rwa ← t (wide_pushout_shape.hom.init j) }
 end
 
 instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩

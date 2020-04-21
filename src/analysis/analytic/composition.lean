@@ -529,7 +529,11 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  exact ⟨finset.univ.sum f, list.of_fn (λ a, ⟨f a, (hi.2 a).1⟩), by simp [list.of_fn_sum]⟩
+  refine ⟨finset.univ.sum f, list.of_fn (λ a, f a), λ i hi, _, by simp [list.sum_of_fn]⟩,
+  rw [list.mem_of_fn, set.mem_range] at hi,
+  rcases hi with ⟨j, hj⟩,
+  rw ← hj,
+  exact (hi.2 j).1
 end
 
 @[simp] lemma comp_change_of_variables_length
@@ -538,7 +542,7 @@ end
 begin
   rcases i with ⟨k, blocks_fun⟩,
   dsimp [comp_change_of_variables],
-  simp only [composition.length, composition.blocks, list.map_of_fn, list.length_of_fn]
+  simp only [composition.length, list.map_of_fn, list.length_of_fn]
 end
 
 lemma comp_change_of_variables_blocks_fun
@@ -570,10 +574,8 @@ begin
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
     simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, list.nth_le_map'],
-    conv_lhs { rw ← list.of_fn_nth_le c.blocks_pnat },
-    congr' 2,
-    { exact c.blocks_pnat_length },
-    { exact (fin.heq_fun_iff c.blocks_pnat_length).2 (λ i, rfl) } }
+    conv_lhs { rw ← list.of_fn_nth_le c.blocks },
+    refl }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal

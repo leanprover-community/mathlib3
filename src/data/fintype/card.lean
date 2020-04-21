@@ -150,7 +150,7 @@ by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
 namespace list
 
-lemma of_fn_prod_take [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).prod = (finset.univ.filter (λ (j : fin n), j.val < i)).prod f :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
@@ -178,7 +178,7 @@ end
 
 -- `to_additive` does not work on `of_fn_prod_take` because of `0 : ℕ` in the proof. Copy-paste the
 -- proof instead...
-lemma of_fn_sum_take [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = (finset.univ.filter (λ (j : fin n), j.val < i)).sum f :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
@@ -204,13 +204,13 @@ begin
     simp [← A, B, IH] }
 end
 
-attribute [to_additive] of_fn_prod_take
+attribute [to_additive] prod_take_of_fn
 
 @[to_additive]
-lemma of_fn_prod [comm_monoid α] {n : ℕ} {f : fin n → α} :
+lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :
   (of_fn f).prod = finset.univ.prod f :=
 begin
-  convert of_fn_prod_take f n,
+  convert prod_take_of_fn f n,
   { rw [take_all_of_le (le_of_eq (length_of_fn f))] },
   { have : ∀ (j : fin n), j.val < n := λ j, j.2,
     simp [this] }

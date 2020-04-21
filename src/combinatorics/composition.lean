@@ -25,16 +25,16 @@ between the two types.
 
 ## Main functions
 
-* `c : composition n` is a structure, made of a list of positive integers summing to `n`.
+* `c : composition n` is a structure, made of a list of integers which are all positive and
+  add up to `n`.
 * `composition_card` states that the cardinality of `composition n` is exactly
   `2^(n-1)`, which is proved by constructing an equiv with `composition_as_set n` (see below), which
   is itself in bijection with the subsets of `fin (n-1)` (this holds even for `n = 0`, where `-` is
   nat subtraction).
 
 Let `c : composition n` be a composition of `n`. Then
-* `c.blocks_pnat` is the list of blocks in `c`, as positive integers
-* `c.blocks` is the list of blocks in `c`, as elements of `ℕ`
-* `c.length` is the number of blocks in the composition;
+* `c.blocks` is the list of blocks in `c`.
+* `c.length` is the number of blocks in the composition.
 * `c.blocks_fun : fin c.length → ℕ` is the realization of `c.blocks` as a function on
   `fin c.length`. This is the main object when using compositions to understand the composition of
     analytic functions.
@@ -80,8 +80,9 @@ variable {n : ℕ}
 
 /-- A composition of `n` is a list of positive integers summing to `n`. -/
 @[ext] structure composition (n : ℕ) :=
-(blocks_pnat : list ℕ+)
-(blocks_pnat_sum : (blocks_pnat.map (λ n : ℕ+, (n : ℕ))).sum = n)
+(blocks : list ℕ)
+(blocks_pos : ∀ {i}, i ∈ blocks → 0 < i)
+(blocks_sum : blocks.sum = n)
 
 /-- Combinatorial viewpoint on a composition of `n`, by seeing it as non-empty blocks of
 consecutive integers in `{0, ..., n-1}`. We register every block by its left end-point, yielding
@@ -107,39 +108,26 @@ namespace composition
 
 variables (c : composition n)
 
-/-- The list of blocks in a composition, as natural numbers. -/
-def blocks : list ℕ := c.blocks_pnat.map (λ n : ℕ+, (n : ℕ))
-
-lemma blocks_sum : c.blocks.sum = n := c.blocks_pnat_sum
+instance (n : ℕ) : has_to_string (composition n) :=
+⟨λ c, to_string c.blocks⟩
 
 /-- The length of a composition, i.e., the number of blocks in the composition. -/
 def length : ℕ := c.blocks.length
 
 @[simp] lemma blocks_length : c.blocks.length = c.length := rfl
 
-@[simp] lemma blocks_pnat_length : c.blocks_pnat.length = c.length :=
-by rw [← c.blocks_length, blocks, length_map]
-
 /-- The blocks of a composition, seen as a function on `fin c.length`. When composing analytic
 functions using compositions, this is the main player. -/
 def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
 
+lemma of_fn_blocks_fun : of_fn c.blocks_fun = c.blocks :=
+of_fn_nth_le _
+
 lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
-begin
-  conv_rhs { rw [← c.blocks_sum, ← of_fn_nth_le c.blocks, of_fn_sum] },
-  simp [blocks_fun, length],
-  refl
-end
+by conv_rhs { rw [← c.blocks_sum, ← of_fn_blocks_fun, sum_of_fn] }
 
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
-begin
-  simp only [mem_map, blocks] at h,
-  rcases h with ⟨h, ha, rfl⟩,
-  exact h.2
-end
-
-@[simp] lemma blocks_pos {i : ℕ} (h : i ∈ c.blocks) : 0 < i :=
-c.one_le_blocks h
+c.blocks_pos h
 
 @[simp] lemma one_le_blocks' {i : ℕ} (h : i < c.length) : 1 ≤ nth_le c.blocks i h:=
 c.one_le_blocks (nth_le_mem (blocks c) i h)
@@ -191,6 +179,9 @@ c.size_up_to_succ i.2
 
 lemma size_up_to_strict_mono {i : ℕ} (h : i < c.length) : c.size_up_to i < c.size_up_to (i+1) :=
 by { rw c.size_up_to_succ h, simp }
+
+lemma monotone_size_up_to : monotone c.size_up_to :=
+monotone_sum_take _
 
 /-- The `i`-th boundary of a composition, i.e., the leftmost point of the `i`-th block. We include
 a virtual point at the right of the last block, to make for a nice equiv with
@@ -378,50 +369,32 @@ begin
 end
 
 /-- Two compositions (possibly of different integers) coincide if and only if they have the
-same sequence of blocks of positive integers. -/
-lemma sigma_eq_iff_blocks_pnat_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
-  c = c' ↔ c.2.blocks_pnat = c'.2.blocks_pnat :=
+same sequence of blocks. -/
+lemma sigma_eq_iff_blocks_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
+  c = c' ↔ c.2.blocks = c'.2.blocks :=
 begin
   refine ⟨λ H, by rw H, λ H, _⟩,
   rcases c with ⟨n, c⟩,
   rcases c' with ⟨n', c'⟩,
-  have : n = n', by { rw [← c.blocks_pnat_sum, ← c'.blocks_pnat_sum, H] },
+  have : n = n', by { rw [← c.blocks_sum, ← c'.blocks_sum, H] },
   induction this,
   simp only [true_and, eq_self_iff_true, heq_iff_eq],
   ext1,
   exact H
 end
 
-/-- Two compositions (possibly of different integers) coincide if and only if they have the
-same sequence of blocks. -/
-lemma sigma_eq_iff_blocks_eq {c : Σ n, composition n} {c' : Σ n, composition n} :
-  c = c' ↔ c.2.blocks = c'.2.blocks :=
-begin
-  refine ⟨λ H, by rw H, λ H, _⟩,
-  rwa [sigma_eq_iff_blocks_pnat_eq, ← (injective_map_iff.2 subtype.val_injective).eq_iff]
-end
-
-/-- Two compositions (over the same integer) coincide if and only if they have the same sequence
-of blocks -/
-lemma eq_iff_blocks_eq {c c' : composition n} :
-  c = c' ↔ c.blocks = c'.blocks :=
-begin
-  rw [ext_iff c c', ← (injective_map_iff.2 subtype.val_injective).eq_iff],
-  refl
-end
-
 /-- The composition made of blocks all of size `1`. -/
 def ones (n : ℕ) : composition n :=
-⟨repeat (1 : ℕ+) n, (by simp)⟩
+⟨repeat (1 : ℕ) n, λ i hi, by simp [list.eq_of_mem_repeat hi], by simp⟩
 
 instance {n : ℕ} : inhabited (composition n) :=
 ⟨composition.ones n⟩
 
 @[simp] lemma ones_length (n : ℕ) : (ones n).length = n :=
-by { rw ← blocks_pnat_length, exact list.length_repeat 1 n }
+list.length_repeat 1 n
 
 @[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = repeat (1 : ℕ) n :=
-by simp only [blocks, ones, map_repeat, pnat.one_coe]
+by simp only [blocks, ones, map_repeat]
 
 @[simp] lemma ones_blocks_fun (n : ℕ) (i : fin (ones n).length) :
   (ones n).blocks_fun i = 1 :=
@@ -445,7 +418,7 @@ begin
     rw [H, ones_blocks],
     exact λ i, eq_of_mem_repeat },
   { assume H,
-    apply eq_iff_blocks_eq.2,
+    ext1,
     have A : c.blocks = repeat 1 c.blocks.length := eq_repeat_of_mem H,
     have : c.blocks.length = n, by { conv_rhs { rw [← c.blocks_sum, A] }, simp },
     rw [A, this, ones_blocks] },
@@ -463,11 +436,10 @@ end
 
 /-- The composition made of a single block of size `n`. -/
 def single (n : ℕ) (h : 0 < n) : composition n :=
-{ blocks_pnat := [⟨n, h⟩],
-  blocks_pnat_sum := by simp }
+⟨[n], by simp [h], by simp⟩
 
 @[simp] lemma single_length {n : ℕ} (h : 0 < n) : (single n h).length = 1 :=
-by { rw ← blocks_pnat_length, simp [single] }
+by simp [single, length]
 
 @[simp] lemma single_blocks {n : ℕ} (h : 0 < n) : (single n h).blocks = [n] :=
 by simp [blocks, single]
@@ -488,7 +460,7 @@ begin
     rw H,
     exact single_length h },
   { assume H,
-    rw eq_iff_blocks_eq,
+    ext1,
     have A : c.blocks.length = 1 := H ▸ c.blocks_length,
     have B : c.blocks.sum = n := c.blocks_sum,
     rw eq_cons_of_length_one A at B ⊢,
@@ -652,25 +624,12 @@ begin
   refl
 end
 
-/-- List of the sizes of the blocks in a `composition_as_set`, seen as positive integers. -/
-def blocks_pnat : list (ℕ+ ) :=
-of_fn (λ i, ⟨c.blocks_fun i, c.blocks_fun_pos i⟩)
-
-lemma coe_blocks_pnat_eq_blocks : c.blocks_pnat.map coe = c.blocks :=
-by { simp [blocks_pnat, blocks], refl }
-
-@[simp] lemma blocks_pnat_length : c.blocks_pnat.length = c.length :=
-length_of_fn _
-
 /-- Associating a `composition n` to a `composition_as_set n`, by registering the sizes of the
 blocks as a list of positive integers. -/
 def to_composition : composition n :=
-{ blocks_pnat := c.blocks_pnat,
-  blocks_pnat_sum := begin
-    rw [blocks_pnat, map_of_fn],
-    conv_rhs { rw ← c.blocks_sum },
-    congr
-  end }
+{ blocks     := c.blocks,
+  blocks_pos := by simp only [blocks, forall_mem_of_fn_iff, blocks_fun_pos c, forall_true_iff],
+  blocks_sum := c.blocks_sum }
 
 end composition_as_set
 
@@ -717,20 +676,9 @@ begin
       c.mono_of_fin_boundaries, finset.mono_of_fin_eq_mono_of_fin_iff]
 end
 
-@[simp] lemma composition.to_composition_as_set_blocks_pnat (c : composition n) :
-  c.to_composition_as_set.blocks_pnat = c.blocks_pnat :=
-begin
-  rw ← (injective_map_iff.2 subtype.val_injective).eq_iff,
-  convert c.to_composition_as_set_blocks,
-  exact composition_as_set.coe_blocks_pnat_eq_blocks _
-end
-
-@[simp] lemma composition_as_set.to_composition_blocks_pnat (c : composition_as_set n) :
-  c.to_composition.blocks_pnat = c.blocks_pnat := rfl
 
 @[simp] lemma composition_as_set.to_composition_blocks (c : composition_as_set n) :
-  c.to_composition.blocks = c.blocks :=
-by simp [composition.blocks, composition_as_set.coe_blocks_pnat_eq_blocks]
+  c.to_composition.blocks = c.blocks := rfl
 
 @[simp] lemma composition_as_set.to_composition_boundaries (c : composition_as_set n) :
   c.to_composition.boundaries = c.boundaries :=
@@ -757,7 +705,7 @@ end
 def composition_equiv (n : ℕ) : composition n ≃ composition_as_set n :=
 { to_fun    := λ c, c.to_composition_as_set,
   inv_fun   := λ c, c.to_composition,
-  left_inv  := λ c, by { ext1, exact c.to_composition_as_set_blocks_pnat },
+  left_inv  := λ c, by { ext1, exact c.to_composition_as_set_blocks },
   right_inv := λ c, by { ext1, exact c.to_composition_boundaries } }
 
 instance composition_fintype (n : ℕ) : fintype (composition n) :=

@@ -63,7 +63,7 @@ begin
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
-#exit
+
 end dual
 end module
 

@@ -19,34 +19,42 @@ abbreviation preadditive := enriched_over.{v} AddCommGroup.{v} C
 end
 
 namespace AddCommGroup
-#check bundled.map
+
 instance : preadditive AddCommGroup :=
 begin
   fconstructor,
-  exact λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
-  intros X Y f Z,
-  fconstructor,
-  dsimp,
-  fconstructor,
-  dsimp,
-  exact ⟨{ to_fun := λ g, g.comp f,
-     map_zero' := add_monoid_hom.zero_comp f,
-     map_add' := λ x y, by { ext, simp [add_monoid_hom.add_apply], } },
-  rfl⟩
+  { exact λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩, },
+  { intros X Y f Z,
+    fconstructor,
+    { dsimp,
+      fconstructor,
+      { dsimp [bundled.map],
+        exact λ g, g.comp f, },
+      { exact add_monoid_hom.zero_comp f, },
+      { exact λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], }, }, },
+    { refl, } },
+  { intros X Y Z g,
+    fconstructor,
+    { dsimp,
+      fconstructor,
+      { dsimp [bundled.map],
+        exact λ f, g.comp f, },
+      { exact add_monoid_hom.comp_zero g, },
+      { exact λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], }, }, },
+    { refl, } },
 end
 
 instance : preadditive AddCommGroup :=
 { e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
-  e_comp_left := _,
-  -- λ X Y f Z,
-  -- ⟨{ to_fun := λ g, g.comp f,
-  --    map_zero' := add_monoid_hom.zero_comp f,
-  --    map_add' := λ x y, by { ext, simp [add_monoid_hom.add_apply], } },
-  -- rfl⟩,
+  e_comp_left := λ X Y f Z,
+  ⟨{ to_fun := λ g, g.comp f,
+     map_zero' := add_monoid_hom.zero_comp f,
+     map_add' := λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], } },
+  rfl⟩,
   e_comp_right := λ X Y Z g,
   ⟨{ to_fun := λ f, g.comp f,
      map_zero' := add_monoid_hom.comp_zero g,
-     map_add' := λ x y, by { ext, simp, } },
+     map_add' := λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], } },
   rfl⟩, }.
 
 end AddCommGroup

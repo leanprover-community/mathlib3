@@ -355,13 +355,23 @@ theorem subperm.count_le [decidable_eq α] {l₁ l₂ : list α}
   (s : l₁ <+~ l₂) (a) : count a l₁ ≤ count a l₂ :=
 s.countp_le _
 
+theorem perm.foldl_eq' {f : β → α → β} {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  (∀ (x ∈ l₁) (y ∈ l₁) z, f (f z x) y = f (f z y) x) → ∀ b, foldl f b l₁ = foldl f b l₂ :=
+perm_induction_on p
+  (λ H b, rfl)
+  (λ x t₁ t₂ p r H b, r (λ x hx y hy, H _ (or.inr hx) _ (or.inr hy)) _)
+  (λ x y t₁ t₂ p r H b,
+    begin
+      simp only [foldl],
+      rw [H x (or.inr $ or.inl rfl) y (or.inl rfl)],
+      exact r (λ x hx y hy, H _ (or.inr $ or.inr hx) _ (or.inr $ or.inr hy)) _
+    end)
+  (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂ H b, eq.trans (r₁ H b)
+    (r₂ (λ x hx y hy, H _ (p₁.symm.subset hx) _ (p₁.symm.subset hy)) b))
+
 theorem perm.foldl_eq {f : β → α → β} {l₁ l₂ : list α} (rcomm : right_commutative f) (p : l₁ ~ l₂) :
   ∀ b, foldl f b l₁ = foldl f b l₂ :=
-perm_induction_on p
-  (λ b, rfl)
-  (λ x t₁ t₂ p r b, r (f b x))
-  (λ x y t₁ t₂ p r b, by simp; rw rcomm; exact r (f (f b x) y))
-  (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂ b, eq.trans (r₁ b) (r₂ b))
+p.foldl_eq' $ λ x hx y hy z, rcomm z x y
 
 theorem perm.foldr_eq {f : α → β → β} {l₁ l₂ : list α} (lcomm : left_commutative f) (p : l₁ ~ l₂) :
   ∀ b, foldr f b l₁ = foldr f b l₂ :=
@@ -394,7 +404,16 @@ h.foldl_eq (right_comm _ is_commutative.comm is_associative.assoc) _
 end
 
 section comm_monoid
-open list
+
+/-- If elements of a list commute with each other, then their product does not
+depend on the order of elements-/
+@[to_additive]
+lemma perm.prod_eq' [monoid α] {l₁ l₂ : list α} (h : l₁ ~ l₂)
+  (hc : l₁.pairwise (λ x y, x * y = y * x)) :
+  l₁.prod = l₂.prod :=
+h.foldl_eq' (forall_of_forall_of_pairwise (λ x y h z, (h z).symm) (λ x hx z, rfl) $
+  hc.imp $ λ x y h z, by simp only [mul_assoc, h]) _
+
 variable [comm_monoid α]
 
 @[to_additive]

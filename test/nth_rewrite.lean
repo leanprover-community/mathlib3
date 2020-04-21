@@ -99,7 +99,7 @@ end
 
 example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
 begin
-  nth_rewrite_rhs 1 [h₁] at h₂, -- fails
+  nth_rewrite_rhs 1 [h₁] at h₂,
   nth_rewrite_rhs 0 [← h₁] at h₂,
   nth_rewrite_rhs 0 h₂,
 end

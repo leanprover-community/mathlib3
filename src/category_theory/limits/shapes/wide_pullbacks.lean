@@ -53,6 +53,8 @@ inductive hom : wide_pullback_shape J → wide_pullback_shape J → Type v
 | id : Π X, hom X X
 | term : Π (j : J), hom (some j) none
 
+attribute [nolint unused_arguments] hom.decidable_eq
+
 instance struct : category_struct (wide_pullback_shape J) :=
 { hom := hom,
   id := λ j, hom.id j,
@@ -129,6 +131,8 @@ variable {J}
 inductive hom : wide_pushout_shape J → wide_pushout_shape J → Type v
 | id : Π X, hom X X
 | init : Π (j : J), hom none (some j)
+
+attribute [nolint unused_arguments] hom.decidable_eq
 
 instance struct : category_struct (wide_pushout_shape J) :=
 { hom := hom,

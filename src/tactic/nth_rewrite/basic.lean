@@ -6,6 +6,7 @@ Authors: Keeley Hoek, Scott Morrison
 import data.option.defs data.mllist tactic.core
 
 namespace tactic
+open expr
 
 namespace nth_rewrite
 

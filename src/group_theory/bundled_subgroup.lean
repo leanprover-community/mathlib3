@@ -65,6 +65,8 @@ subgroup, subgroups
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
 
+set_option old_structure_cmd true
+
 /-- A subgroup of a group `G` is a subset containing 1, closed under multiplication
 and closed under multiplicative inverse. -/
 structure subgroup (G : Type*) [group G] extends submonoid G :=
@@ -76,6 +78,7 @@ structure add_subgroup (G : Type*) [add_group G] extends add_submonoid G:=
 (neg_mem' {x} : x ∈ carrier → -x ∈ carrier)
 
 attribute [to_additive add_subgroup] subgroup
+attribute [to_additive add_subgroup.to_add_submonoid] subgroup.to_submonoid
 
 /-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
 @[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
@@ -114,13 +117,13 @@ def subgroup.add_subgroup_equiv (G : Type*) [group G] :
 subgroup G ≃ add_subgroup (additive G) :=
 { to_fun := subgroup.to_add_subgroup,
   inv_fun := subgroup.of_add_subgroup,
-  left_inv := λ x, by cases x; cases x__to_submonoid; refl,
-  right_inv := λ x, by cases x; cases x__to_add_submonoid; refl }
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl }
 
 namespace subgroup
 
 @[to_additive]
-instance : has_coe (subgroup G) (set G) := { coe := λ K, K.to_submonoid.carrier }
+instance : has_coe (subgroup G) (set G) := { coe := subgroup.carrier }
 
 @[to_additive]
 instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
@@ -136,8 +139,8 @@ attribute [norm_cast, nolint simp_nf] add_subgroup.coe_coe
 
 @[to_additive]
 instance is_subgroup (K : subgroup G) : is_subgroup (K : set G) :=
-{ one_mem := K.to_submonoid.one_mem',
-  mul_mem := K.to_submonoid.mul_mem',
+{ one_mem := K.one_mem',
+  mul_mem := K.mul_mem',
   inv_mem := K.inv_mem' }
 
 end subgroup
@@ -154,7 +157,7 @@ variables (H K : subgroup G)
 /- Two subgroups are equal if the underlying set are the same. -/
 @[to_additive "Two `add_group`s are equal if the underlying subsets are equal."]
 theorem ext' {H K : subgroup G} (h : (H : set G) = K) : H = K :=
-by {cases H; cases K; congr', apply submonoid.ext', from h}
+by { cases H, cases K, congr, exact h }
 
 /- Two subgroups are equal if and only if the underlying subsets are equal. -/
 @[to_additive "Two `add_subgroup`s are equal if and only if the underlying subsets are equal."]
@@ -182,39 +185,41 @@ theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := λ hx, H.inv_mem' hx
 
 /-- Product of a list of elements in a subgroup is in the subgroup. -/
 @[to_additive "Sum of a list of elements in an `add_subgroup` is in the `add_subgroup`."]
-lemma list_prod_mem : ∀ {l : list G}, (∀ x ∈ l, x ∈ K) → l.prod ∈ K :=
-@submonoid.list_prod_mem _ _ K.to_submonoid
+lemma list_prod_mem {l : list G} : (∀ x ∈ l, x ∈ K) → l.prod ∈ K :=
+K.to_submonoid.list_prod_mem
 
 /-- Product of a multiset of elements in a subgroup of a `comm_group` is in the subgroup. -/
-@[to_additive "Sum of a multiset of elements in an `add_subgroup` of an `add_comm_group` is in the `add_subgroup`."]
+@[to_additive "Sum of a multiset of elements in an `add_subgroup` of an `add_comm_group`
+is in the `add_subgroup`."]
 lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
-  (∀ a ∈ g, a ∈ K) → g.prod ∈ K := submonoid.multiset_prod_mem _ _
+  (∀ a ∈ g, a ∈ K) → g.prod ∈ K := K.to_submonoid.multiset_prod_mem g
 
 /-- Product of elements of a subgroup of a `comm_group` indexed by a `finset` is in the
     subgroup. -/
-@[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset` is in the `add_subgroup`."]
+@[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset`
+is in the `add_subgroup`."]
 lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
   t.prod f ∈ K :=
-K.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
+K.to_submonoid.prod_mem h
 
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
 
 lemma gpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 | (int.of_nat n) := pow_mem _ hx n
-| -[1+ n]        := K.inv_mem $ by apply pow_mem; from hx
+| -[1+ n]        := K.inv_mem $ K.pow_mem hx n.succ
 
 /-- A subgroup of a group inherits a multiplication. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an addition."]
-instance has_mul : has_mul H := ⟨λ a b, ⟨a.1 * b.1, H.mul_mem' a.2 b.2⟩⟩
+instance has_mul : has_mul H := H.to_submonoid.has_mul
 
 /-- A subgroup of a group inherits a 1. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits a zero."]
-instance has_one : has_one H := ⟨⟨_, H.one_mem'⟩⟩
+instance has_one : has_one H := H.to_submonoid.has_one
 
 /-- A subgroup of a group inherits an inverse. -/
 @[to_additive "A `add_subgroup` of a `add_group` inherits an inverse."]
-instance has_inv : has_inv H := ⟨λ a, ⟨(a.1)⁻¹, H.inv_mem' a.2⟩⟩
+instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, H.inv_mem a.2⟩⟩
 
 @[simp, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
@@ -223,7 +228,9 @@ instance has_inv : has_inv H := ⟨λ a, ⟨(a.1)⁻¹, H.inv_mem' a.2⟩⟩
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive to_add_group "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
-by refine { mul := (*), one := 1, inv := has_inv.inv, ..}; by simp [mul_assoc]
+{ inv := has_inv.inv,
+  mul_left_inv := λ x, subtype.eq $ mul_left_inv x,
+  .. H.to_submonoid.to_monoid }
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
 @[to_additive to_add_comm_group "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
@@ -368,7 +375,8 @@ lemma closure_eq_of_le (h₁ : k ⊆ K) (h₂ : K ≤ closure k) : closure k = K
 le_antisymm ((closure_le $ K).2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of `k`, and
-is preserved under multiplication and inverse, then `p` holds for all elements of the closure of `k`. -/
+is preserved under multiplication and inverse, then `p` holds for all elements of the closure
+of `k`. -/
 @[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
 elements of `k`, and is preserved under addition and isvers, then `p` holds for all elements
 of the additive closure of `k`."]
@@ -450,15 +458,14 @@ end
 variables {N : Type*} [group N] {P : Type*} [group P]
 
 /-- The preimage of a subgroup along a monoid homomorphism is a subgroup. -/
-@[to_additive "The preimage of an `add_subgroup` along an `add_monoid` homomorphism is an `add_subgroup`."]
+@[to_additive "The preimage of an `add_subgroup` along an `add_monoid` homomorphism
+is an `add_subgroup`."]
 def comap {N : Type*} [group N] (f : G →* N)
   (H : subgroup N) : subgroup G :=
 { carrier := (f ⁻¹' H),
-  one_mem' := show f 1 ∈ H, by rw f.map_one; exact H.one_mem,
-  mul_mem' := λ a b ha hb,
-    show f (a * b) ∈ H, by rw f.map_mul; exact H.mul_mem ha hb,
   inv_mem' := λ a ha,
-    show f a⁻¹ ∈ H, by rw f.map_inv; exact H.inv_mem ha }
+    show f a⁻¹ ∈ H, by rw f.map_inv; exact H.inv_mem ha,
+  .. H.to_submonoid.comap f }
 
 @[simp, to_additive]
 lemma coe_comap (K : subgroup N) (f : G →* N) : (K.comap f : set G) = f ⁻¹' K := rfl
@@ -471,14 +478,13 @@ lemma comap_comap (K : subgroup P) (g : N →* P) (f : G →* N) :
   (K.comap g).comap f = K.comap (g.comp f) :=
 rfl
 
-  /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
-  @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism is an `add_subgroup`."]
+/-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
+@[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
+is an `add_subgroup`."]
 def map (f : G →* N) (H : subgroup G) : subgroup N :=
 { carrier := (f '' H),
-  one_mem' := ⟨1, H.one_mem, f.map_one⟩,
-  mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, H.mul_mem hx hy, by rw f.map_mul; refl⟩ end,
-  inv_mem' := begin rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, H.inv_mem hx, by rw f.map_inv; refl⟩, end
-   }
+  inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, H.inv_mem hx, f.map_inv x⟩ },
+  .. H.to_submonoid.map f }
 
 @[simp, to_additive]
 lemma coe_map (f : G →* N) (K : subgroup G) :
@@ -527,7 +533,8 @@ lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
 (gc_map_comap f).u_top
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
-@[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K` as an `add_subgroup` of `A × B`."]
+@[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
+as an `add_subgroup` of `A × B`."]
 def prod (H : subgroup G) (K : subgroup N) : subgroup (G × N) :=
 { inv_mem' := λ _ hx, ⟨H.inv_mem' hx.1, K.inv_mem' hx.2⟩,
   .. submonoid.prod H.to_submonoid K.to_submonoid}
@@ -641,7 +648,7 @@ range_top_iff_surjective.2 hf
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
 def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x hx, show f x⁻¹ = g x⁻¹, by replace hx : f x = g x := hx; rw [f.map_inv, g.map_inv, hx],
+{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
   .. eq_mlocus f g}
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
@@ -665,8 +672,8 @@ lemma gclosure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 (closure_le _).2 $ λ x hx, by rw [mem_coe, mem_comap]; exact subset_closure hx
 
-/-- The image under a monoid homomorphism of the subgroup generated by a set equals the subgroup generated
-    by the image of the set. -/
+/-- The image under a monoid homomorphism of the subgroup generated by a set equals the subgroup
+generated by the image of the set. -/
 @[to_additive "The image under an `add_monoid` hom of the `add_subgroup` generated by a set equals
 the `add_subgroup` generated by the image of the set."]
 lemma map_closure (f : G →* N) (s : set G) :
@@ -684,7 +691,8 @@ variables {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
     group are equal. -/
-@[to_additive add_subgroup_congr "Makes the identity additive isomorphism from a proof two subgroups of an additive group are equal."]
+@[to_additive add_subgroup_congr "Makes the identity additive isomorphism from a proof
+two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }
 

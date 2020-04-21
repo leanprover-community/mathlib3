@@ -33,9 +33,9 @@ Notation used here:
 
 - `x` is an element of type `G` or type `A`
 
-- `f : N →* G` is a group homomorphism
+- `f g : N →* G` are group homomorphisms
 
-- `s : set G` is a set of elements of type `G`
+- `s k` are sets of elements of type `G`
 
 Definitions in the file:
 
@@ -43,15 +43,28 @@ Definitions in the file:
 
 * `add_subgroup A` : the type of subgroups of an additive group `A`
 
-* `complete_lattice (subgroup G)` : the subgroups of `G` form a complete lattice.
+* `complete_lattice (subgroup G)` : the subgroups of `G` form a complete lattice
 
-* `comap f H` : the preimage of a subgroup `H` along the group homomorphism `f` is also a subgroup
+* `closure k` : the minimal subgroup that includes the set `k`
+
+* `subtype` : the natural group homomorphism from a subgroup of group `G` to `G`
+
+* `gi` : `closure` forms a Galois insertion with the coercion to set
+
+* `comap H f` : the preimage of a subgroup `H` along the group homomorphism `f` is also a subgroup
 
 * `map f H` : the image of a subgroup `H` along the group homomorphism `f` is also a subgroup
 
-* `monoid_hom.range f` the range of the group homomorphism `f` is a subgroup
+* `prod H K` : the product of subgroups `H`, `K` of groups `G`, `N` respectively, `H × K` is a
+subgroup of `G × N`
 
-* `closure s` : the minimal subgroup that includes the set `s`
+* `monoid_hom.range f` : the range of the group homomorphism `f` is a subgroup
+
+* `monoid_hom.ker f` : the kernel of a group homomorphism `f` is the subgroup of elements `x : G` such that
+`f x = 1`
+
+* `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that `f x = g x`
+form a subgroup of `G`
 
 ## Implementation notes
 
@@ -640,10 +653,22 @@ lemma range_top_iff_surjective {N} [group N] {f : G →* N} :
 subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
-@[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
+@[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]
 lemma rang_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
+
+/-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
+`f x = 1` -/
+@[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
+`f x = 0`"]
+def ker (f : G →* N) := (⊥ : subgroup N).comap f
+
+@[to_additive]
+lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_bot
+
+@[to_additive]
+lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

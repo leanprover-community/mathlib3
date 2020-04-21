@@ -42,7 +42,9 @@ begin
     { refl, } },
 end
 
-instance : preadditive AddCommGroup :=
+-- This seems to be broken because of
+-- https://github.com/leanprover-community/lean/issues/197
+instance fff : preadditive AddCommGroup :=
 { e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
   e_comp_left := λ X Y f Z,
   ⟨{ to_fun := λ g, g.comp f,

@@ -7,11 +7,11 @@ import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
 import tactic.linarith
 /-!
-# Equivalence of Convergent Computations for gcfs
+# Equivalence of Recursive and Direct Computations of `gcf` Convergents
 
 ## Summary
 
-We show the equivalence of the convergents computations (recurrence relation (`convergents`) vs.
+We show the equivalence of two computations of convergents (recurrence relation (`convergents`) vs.
 direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We follow the proof from
 [hardy1979introduction], Chapter 10.
 
@@ -74,14 +74,14 @@ begin
   simp only [*, squash_seq]
 end
 
-/-- If the sequence already did not terminate position `n + 1`, the value at `n + 1` gets
+/-- If the sequence has not terminated before position `n + 1`, the value at `n + 1` gets
 squashed into position `n`. -/
 private lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : gcf.pair α}
 (s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
   (squash_seq s n).nth n = some ⟨gp_n.a, gp_n.b + gp_succ_n.a / gp_succ_n.b⟩ :=
 by simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth n) s_nth_eq _)]
 
-/-- The values below the squashed position stay the same. -/
+/-- The values before the squashed position stay the same. -/
 private lemma squash_seq_nth_of_lt {m : ℕ} (m_lt_n : m < n) : (squash_seq s n).nth m = s.nth m :=
 begin
   cases s_succ_nth_eq : s.nth (n + 1),
@@ -95,7 +95,7 @@ begin
       (ne_of_lt m_lt_n)] }
 end
 
-/-- Squashing at position `n + 1` and taking the tail is the same as sqashing the tail of the
+/-- Squashing at position `n + 1` and taking the tail is the same as squashing the tail of the
 sequence at position `n`. -/
 private lemma squash_seq_succ_n_tail_eq_squash_seq_tail_n :
   (squash_seq s (n + 1)).tail = squash_seq s.tail n :=
@@ -121,7 +121,7 @@ begin
           (seq.zip_with_nth_none' s_tail_mth_eq)] },
       { simp [*, squash_seq, seq.nth_tail,
           (seq.zip_with_nth_some (seq.nats_nth (m + 1)) s_succ_mth_eq),
-          (seq.zip_with_nth_some (seq.nats_nth m) s_tail_mth_eq)] }}}
+          (seq.zip_with_nth_some (seq.nats_nth m) s_tail_mth_eq)] } } }
 end
 
 /-- The auxiliary function `convergents'_aux` returns the same value for a sequence and the
@@ -152,7 +152,7 @@ begin
         exact (IH _ this) },
       have : (squash_seq s (m + 1)).head = some gp_head, from
         (squash_seq_nth_of_lt m.succ_pos).trans s_head_eq,
-      simp only [*, convergents'_aux, squash_seq_succ_n_tail_eq_squash_seq_tail_n] }}
+      simp only [*, convergents'_aux, squash_seq_succ_n_tail_eq_squash_seq_tail_n] } }
 end
 
 /-! Let us now lift the squashing operation to gcfs. -/
@@ -169,7 +169,7 @@ private def squash_gcf (g : gcf α) : ℕ → gcf α
   end
 | (n + 1) := ⟨g.h, squash_seq g.s n⟩
 
-/-! Again, we derive some simple lemmas that are not really of interrest. This time for the
+/-! Again, we derive some simple lemmas that are not really of interest. This time for the
 squashed gcf. -/
 
 /-- If the gcf already terminated at position `n`, nothing gets squashed. -/
@@ -184,7 +184,7 @@ begin
   { cases g, simp [(squash_seq_eq_self_of_terminated terminated_at_n), squash_gcf] }
 end
 
-/-- The values below the squashed position stay the same. -/
+/-- The values before the squashed position stay the same. -/
 private lemma squash_gcf_nth_of_lt {m : ℕ} (m_lt_n : m < n) :
   (squash_gcf g (n + 1)).s.nth m = g.s.nth m :=
 by simp only [squash_gcf, (squash_seq_nth_of_lt m_lt_n)]
@@ -224,12 +224,12 @@ nat.strong_induction_on m
         have m''th_conts_aux_eq := IH m'' this (le_of_lt $ lt_of_lt_of_le (by linarith) n'.le_succ),
         have : (squash_gcf g (n' + 1)).s.nth m'' = g.s.nth m'', from
           squash_gcf_nth_of_lt (by linarith),
-        simp [continuants_aux, succ_m''th_conts_aux_eq, m''th_conts_aux_eq, this] }}}
+        simp [continuants_aux, succ_m''th_conts_aux_eq, m''th_conts_aux_eq, this] } } }
 end)
 
 end with_division_ring
 
-/-- The convergents coincide in the expected way at the squashed position if the parital denominator
+/-- The convergents coincide in the expected way at the squashed position if the partial denominator
 at the squashed position is not zero. -/
 private lemma succ_nth_convergent_eq_squash_gcf_nth_convergent [field α]
 (nth_part_denom_ne_zero : ∀ {b : α}, g.partial_denominators.nth n = some b → b ≠ 0) :
@@ -313,7 +313,7 @@ cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
                                                             add_comm (b * (pa * _))]
     ... = (b * (pb * pA + pa * ppA) + a * pA) /
           (b * (pb * pB + pa * ppB) + a * pB)          : by simp only [
-                                                            (mul_add b (pb * _) (pa * _))] }}
+                                                            (mul_add b (pb * _) (pa * _))] } }
 end
 
 end squash
@@ -373,7 +373,7 @@ begin
               have : g'.s.nth m = g.s.nth m, from squash_gcf_nth_of_lt succ_m_lt_n,
               rwa this at s_mth_eq'
             },
-            exact (s_pos (nat.lt.step $ nat.lt.step succ_m_lt_n) this) }},
+            exact s_pos (nat.lt.step $ nat.lt.step succ_m_lt_n) this } },
         rwa [(IH this).symm] },
       -- now the result follows from the fact that the convergents coincide at the squashed position
       -- as established in `succ_nth_convergent_eq_squash_gcf_nth_convergent`.
@@ -382,7 +382,7 @@ begin
         obtain ⟨gp, s_nth_eq, ⟨refl⟩⟩ : ∃ gp, g.s.nth n = some gp ∧ gp.b = b, from
           obtain_s_b_of_part_denom nth_part_denom_eq,
         exact (ne_of_lt (s_pos (lt_add_one n) s_nth_eq).right).symm },
-      exact (succ_nth_convergent_eq_squash_gcf_nth_convergent this) }}
+      exact succ_nth_convergent_eq_squash_gcf_nth_convergent this } }
 end
 
 end generalized_continued_fraction

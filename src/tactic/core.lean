@@ -1073,7 +1073,7 @@ meta def get_included_variables : lean.parser (list (name × binder_info × expr
 do ns ← list_include_var_names,
    list.filter (λ v, v.1 ∈ ns) <$> get_variables
 
-/-- From the `lean.parser` monad, synthesize a `tactic_state` which includes of all of the local
+/-- From the `lean.parser` monad, synthesize a `tactic_state` which includes all of the local
 variables referenced in `e : pexpr`, and those variables which have been `include`ed in the local
 context---precisely those variables which would be ambiently accessible if we were in a tactic block
 where the goal was `to_expr e`, for example.

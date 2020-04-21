@@ -39,7 +39,7 @@ instance : has_coe_to_sort (bundled c) :=
 lemma coe_mk (α) (str) : (@bundled.mk c α str : Type u) = α := rfl
 
 /-- Map over the bundled structure -/
-def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
+@[reducible] def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b, f b.str⟩
 
 end bundled

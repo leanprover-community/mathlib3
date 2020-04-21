@@ -93,24 +93,6 @@ meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interacti
 
 end interaction_monad
 
-namespace lean.parser
-open lean interaction_monad.result
-
-/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
-current line. -/
-meta def emit_command_here (str : string) : lean.parser string :=
-do (_, left) ← with_input command_like str,
-   return left
-
-/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
-source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
-
-end lean.parser
-
 namespace format
 
 /-- `join' [a,b,c]` produces the format object `abc`.
@@ -1044,6 +1026,51 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
   return ((p :: ps), r)
 | e := return ([], e)
+
+end tactic
+
+namespace lean.parser
+open lean interaction_monad.result
+
+/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
+current line. -/
+meta def emit_command_here (str : string) : lean.parser string :=
+do (_, left) ← with_input command_like str,
+   return left
+
+/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
+source code. -/
+meta def emit_code_here : string → lean.parser unit
+| str := do left ← emit_command_here str,
+            if left.length = 0 then return ()
+            else emit_code_here left
+
+/-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
+
+This function deserves a C++ implementation in core lean, and will fail if it is not called from
+the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
+meta def get_current_namespace : lean.parser name :=
+do n ← tactic.mk_user_fresh_name,
+   emit_code_here $ sformat!"def {n} := ()",
+   nfull ← tactic.resolve_constant n,
+   return $ nfull.get_nth_prefix n.components.length
+
+/-- `get_variables` returns a list of existing variable names, along with their types and binder
+info. -/
+meta def get_variables : lean.parser (list (name × binder_info × expr)) :=
+list.map expr.get_local_const_kind <$> list_available_include_vars
+
+/-- `get_included_variables` returns those variables `v` returned by `get_variables` which have been
+"included" by an `include v` statement and are not (yet) `omit`ed. -/
+meta def get_included_variables : lean.parser (list (name × binder_info × expr)) :=
+do ns ← list_include_var_names,
+   list.filter (λ v, v.1 ∈ ns) <$> get_variables
+
+end lean.parser
+
+namespace tactic
+
+variables {α : Type}
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.

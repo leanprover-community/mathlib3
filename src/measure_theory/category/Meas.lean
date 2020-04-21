@@ -29,6 +29,7 @@ noncomputable theory
 open category_theory measure_theory
 universes u v
 
+@[derive has_coe_to_sort]
 def Meas : Type (u+1) := bundled measurable_space
 
 namespace Meas

@@ -1819,14 +1819,12 @@ do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    inst ← instantiate_mvars inst,
    inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name ++
+   nm ← get_unused_decl_name $ new_decl_name <.>
      match cls with
-     -- the postfix is needed because we can't protect this name. using nm.last directly can
-     -- conflict with open namespaces
-     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | (expr.const nm _) := nm.last
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   add_protected_decl $ mk_definition nm inst.collect_univ_params tgt inst,
    set_basic_attribute `instance nm tt,
    return tt
 

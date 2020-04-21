@@ -712,7 +712,6 @@ protected meta def reducibility_hints : declaration → reducibility_hints
 | (declaration.defn _ _ _ _ red _) := red
 | _ := _root_.reducibility_hints.opaque
 
-
 end declaration
 
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=

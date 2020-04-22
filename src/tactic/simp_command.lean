@@ -12,6 +12,38 @@ A user command to run the simplifier.
 
 namespace tactic
 
+/- Strip all annotations of non local constants in the passed `expr`. (This is required in an
+incantation later on in order to make the C++ simplified happy.) -/
+private meta def strip_annotations_from_all_non_local_consts {elab : bool} (e : expr elab)
+  : expr elab :=
+expr.unsafe_cast $ e.unsafe_cast.replace $ λ e n,
+  match e.is_annotation with
+  | some (_, expr.local_const _ _ _ _) := none
+  | some (_, _) := e.erase_annotations
+  | _ := none
+  end
+
+/- `simp_arg_type.to_pexpr` retrieve the `pexpr` underlying the given `simp_arg_type`, if there is
+one. -/
+meta def simp_arg_type.to_pexpr : simp_arg_type → option pexpr
+| sat@(simp_arg_type.expr e) := e
+| sat@(simp_arg_type.symm_expr e) := e
+| sat := none
+
+/- Incantation which prepares a `pexpr` in a `simp_arg_type` for use by the simplifier after
+`expr.replace_subexprs` as been called to replace some of its local variables. -/
+private meta def replace_subexprs_for_simp_arg (e : pexpr) (rules : list (expr × expr)) : pexpr :=
+strip_annotations_from_all_non_local_consts $ pexpr.of_expr $ e.unsafe_cast.replace_subexprs rules
+
+/- `simp_arg_type.replace_subexprs` calls `expr.replace_subexprs` on the underlying `pexpr`, if
+there is one, and then prepares the result for use by the simplifier. -/
+meta def simp_arg_type.replace_subexprs : simp_arg_type → list (expr × expr) → simp_arg_type
+| (simp_arg_type.expr      e) rules :=
+    simp_arg_type.expr      $ replace_subexprs_for_simp_arg e rules
+| (simp_arg_type.symm_expr e) rules :=
+    simp_arg_type.symm_expr $ replace_subexprs_for_simp_arg e rules
+| sat rules := sat
+
 setup_tactic_parser
 
 /--
@@ -33,12 +65,27 @@ do
   o ← optional (tk ":"),
   e ← types.texpr,
 
+  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
+  let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
+
   /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
      may be safely called with expected behaviour given the `variables` in the environment. -/
-  (ts, e) ← synthesize_tactic_state_with_variables_as_hyps e,
-  /- Call `expr.simp` with `e`, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _,
-    (prod.fst <$> e.simp {} failed no_dflt attr_names hs) ts,
+  (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
+
+  /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
+  simp_result ← lean.parser.of_tactic $ λ _, do {
+    /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+       hypotheses added to the `ts : tactic_state` which we are using. -/
+    e ← to_expr e,
+
+    /- Elabourate the passed `simp_arg_list` against this new `ts : tactic_state`, so that if the
+       simp args include any variables they are correctly resolved to our local hypotheses before
+       being passed to the simplifier (else simp will issue an error). -/
+    let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
+
+    /- Finally, call `expr.simp` with `e` and return the result. -/
+    prod.fst <$> e.simp {} failed no_dflt attr_names hs
+  } ts,
 
   /- Trace the result. -/
   trace simp_result

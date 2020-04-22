@@ -1,5 +1,4 @@
 import tactic.simp_command
-import tactic.basic
 import analysis.complex.exponential
 
 /-!

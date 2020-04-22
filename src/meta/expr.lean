@@ -554,9 +554,9 @@ unsafe_cast $ e.unsafe_cast.replace $ λ e n,
     `is_implicitly_included_variable f vs = ff` but
     `is_implicitly_included_variable f (e :: vs) = tt`. This means that one usually wants to
     iteratively add a list of local constants (usually, the `variables` declared in the local scope)
-    which satisfy `is_implicitly_included_variable` to an initial `vs`, starting repeating if any
-    variables were added in a particular iteration. The function `all_implicitly_included_variables`
-    below implements this behaviour.
+    which satisfy `is_implicitly_included_variable` to an initial `vs`, repeating if any variables
+    were added in a particular iteration. The function `all_implicitly_included_variables` below
+    implements this behaviour.
 
     Note that if `e ∈ vs` then `is_implicitly_included_variable e vs = tt`. -/
 meta def is_implicitly_included_variable (e : expr) (vs : list expr) : bool :=

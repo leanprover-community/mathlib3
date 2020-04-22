@@ -41,7 +41,7 @@ structure bilin_form (R : Type u) (M : Type v) [ring R] [add_comm_group M] [modu
 (bilin_add_right : ∀ (x y z : M), bilin x (y + z) = bilin x y + bilin x z)
 (bilin_smul_right : ∀ (a : R) (x y : M), bilin x (a • y) = a * (bilin x y))
 
-/-- A linear map with two arguments is a bilinear form. -/
+/-- A map with two arguments that is linear in both is a bilinear form -/
 def linear_map.to_bilin {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
   (f : M →ₗ[R] M →ₗ[R] R) : bilin_form R M :=
 { bilin := λ x y, f x y,

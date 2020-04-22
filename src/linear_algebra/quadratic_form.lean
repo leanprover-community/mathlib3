@@ -193,7 +193,7 @@ def associated (Q : quadratic_form R₁ M) : bilin_form R₁ M :=
 @[simp] lemma associated_apply (Q : quadratic_form R₁ M) (x y : M) :
   Q.associated x y = 2⁻¹ * (Q (x + y) - Q x - Q y) := rfl
 
-lemma ssociated_is_sym (Q : quadratic_form R₁ M) : is_sym Q.associated :=
+lemma associated_is_sym (Q : quadratic_form R₁ M) : is_sym Q.associated :=
 λ x y, by simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_smul (a : R₁) (Q : quadratic_form R₁ M) :

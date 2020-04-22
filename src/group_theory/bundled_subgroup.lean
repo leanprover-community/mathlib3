@@ -667,7 +667,7 @@ range_top_iff_surjective.2 hf
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
-`f x = 0`"]
+such that `f x = 0`"]
 def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]

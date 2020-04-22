@@ -46,7 +46,6 @@ namespace interactive
 
 setup_tactic_parser
 
-local postfix `?`:9001 := optional
 
 /--
 Apply a function to some local assumptions which are either equalities

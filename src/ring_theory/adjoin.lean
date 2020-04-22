@@ -87,8 +87,9 @@ le_antisymm
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
     (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).3 ⟨r, rfl⟩)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ n r ih, by rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul, polynomial.aeval_def _ _ _ polynomial.X,
-      polynomial.eval₂_X]; exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl)))
+    (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
+      polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
+      exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl) }))
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=

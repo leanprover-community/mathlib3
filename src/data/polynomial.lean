@@ -1359,7 +1359,7 @@ instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
   .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
 
 variables (R) (A)
-variables [comm_ring R] [comm_ring A] [algebra R A]
+variables [comm_ring A] [algebra R A]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is

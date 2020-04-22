@@ -78,9 +78,21 @@ do
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
 
-    /- Elabourate the passed `simp_arg_list` against this new `ts : tactic_state`, so that if the
-       simp args include any variables they are correctly resolved to our local hypotheses before
-       being passed to the simplifier (else simp will issue an error). -/
+    /- Replace the variables referenced in the passed `simp_arg_list` with the `expr`s corresponding
+       to the local hypotheses we created.
+
+       We would prefer to just elabourate the `pexpr`s encoded in the `simp_arg_list` against the
+       tactic state we have created (as we could with `e` above), but the simplifier expects
+       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simp` do the
+       elabouration when the time comes.
+
+       You might think that we could just examine each of these `pexpr`s, call `to_expr` on them,
+       and then call `to_pexpr` afterward and save the results over the original `pexprs`. Due to
+       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simp`
+       framework is not robust enough to handle this method. When pieces of expressions like
+       annotation macros are injected, the direct patten matches in the `simp_lemmas.*` codebase
+       fail, and the lemmas we want don't get added.
+       -/
     let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
 
     /- Finally, call `expr.simp` with `e` and return the result. -/

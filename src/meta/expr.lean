@@ -640,7 +640,7 @@ directions in which an `expr_lens` should zoom into an `expr`.
 
 This type is used in the development of rewriting tactics such as
 `nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
-@[derive decidable_eq, derive inhabited]
+@[derive [decidable_eq, inhabited]]
 inductive dir
 | F
 | A

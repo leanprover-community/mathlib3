@@ -287,7 +287,7 @@ def lift : (G →* R) ≃ (monoid_algebra k G →ₐ[k] R) :=
     begin
       ext f,
       conv_rhs { rw ← f.sum_single },
-      simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
+      simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }
 
 variables {k G R}
@@ -581,7 +581,7 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
     begin
       ext f,
       conv_rhs { rw ← f.sum_single },
-      simp [← F.map_smul, finsupp.sum, ← F.map_sum, smul_single_self]
+      simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }
 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`

@@ -1442,10 +1442,6 @@ ext $ λ a', by by_cases a = a';
   [{ subst h, simp only [smul_apply', single_eq_same] },
    simp only [h, smul_apply', ne.def, not_false_iff, single_eq_of_ne, smul_zero]]
 
-@[simp] lemma smul_single_self {R : semiring γ}
-  (c : γ) (a : α) (b : γ) : c • finsupp.single a b = finsupp.single a (c * b) :=
-smul_single _ _ _
-
 end
 
 @[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :

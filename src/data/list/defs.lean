@@ -53,6 +53,8 @@ as.split_on_p (=a)
 | []     a := [a]
 | (b::l) a := b :: concat l a
 
+/-- `head' xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
 @[simp] def head' : list α → option α
 | []       := none
 | (a :: l) := some a

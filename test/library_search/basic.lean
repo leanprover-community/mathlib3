@@ -34,6 +34,18 @@ lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]
 example : lt_one 0 :=
 by library_search
 
+example (α : Prop) : α → α :=
+by library_search -- says: `exact id`
+
+example (p : Prop) [decidable p] : (¬¬p) → p :=
+by library_search -- says: `exact not_not.mp`
+
+example (a b : Prop) (h : a ∧ b) : a :=
+by library_search -- says: `exact h.left`
+
+example (P Q : Prop) [decidable P] [decidable Q]: (¬ Q → ¬ P) → (P → Q) :=
+by library_search -- says: `exact not_imp_not.mp`
+
 example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
@@ -43,9 +55,8 @@ by library_search -- says: `exact nat.le.intro rfl`
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
 
--- TODO this doesn't work yet, and would require `library_search` to use `symmetry`
--- example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
--- by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
+example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
+by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
 
 example {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search -- says: `exact nat.le_pred_of_lt h`

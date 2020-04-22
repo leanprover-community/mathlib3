@@ -295,26 +295,26 @@ lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ (x : β*) 
 
 lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ (x : β*) ≠ (0 : β*) := of_ne _ _ NT
 
-@[simp, move_cast] lemma of_zero [has_zero β] : ((0 : β) : β*) = 0 := rfl
+@[simp, norm_cast] lemma of_zero [has_zero β] : ((0 : β) : β*) = 0 := rfl
 
-@[simp, move_cast] lemma of_add [has_add β] (x y : β) : ((x + y : β) : β*) = x + y := rfl
+@[simp, norm_cast] lemma of_add [has_add β] (x y : β) : ((x + y : β) : β*) = x + y := rfl
 
-@[simp, move_cast] lemma of_bit0 [has_add β] (x : β) : ((bit0 x : β) : β*) = bit0 x := rfl
+@[simp, norm_cast] lemma of_bit0 [has_add β] (x : β) : ((bit0 x : β) : β*) = bit0 x := rfl
 
-@[simp, move_cast] lemma of_bit1 [has_add β] [has_one β] (x : β) :
+@[simp, norm_cast] lemma of_bit1 [has_add β] [has_one β] (x : β) :
   ((bit1 x : β) : β*) = bit1 x := rfl
 
-@[simp, move_cast] lemma of_neg [has_neg β] (x : β) : ((- x : β) : β*) = - x := rfl
+@[simp, norm_cast] lemma of_neg [has_neg β] (x : β) : ((- x : β) : β*) = - x := rfl
 
-@[simp, move_cast] lemma of_sub [add_group β] (x y : β) : ((x - y : β) : β*) = x - y := rfl
+@[simp, norm_cast] lemma of_sub [add_group β] (x y : β) : ((x - y : β) : β*) = x - y := rfl
 
-@[simp, move_cast] lemma of_one [has_one β] : ((1 : β) : β*) = 1 := rfl
+@[simp, norm_cast] lemma of_one [has_one β] : ((1 : β) : β*) = 1 := rfl
 
-@[simp, move_cast] lemma of_mul [has_mul β] (x y : β) : ((x * y : β) : β*) = x * y := rfl
+@[simp, norm_cast] lemma of_mul [has_mul β] (x y : β) : ((x * y : β) : β*) = x * y := rfl
 
-@[simp, move_cast] lemma of_inv [has_inv β] (x : β) : ((x⁻¹ : β) : β*) = x⁻¹ := rfl
+@[simp, norm_cast] lemma of_inv [has_inv β] (x : β) : ((x⁻¹ : β) : β*) = x⁻¹ := rfl
 
-@[simp, move_cast] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
+@[simp, norm_cast] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
   ((x / y : β) : β*) = @has_div.div _
   (@has_div_of_division_ring _ (filter_product.division_ring U))
   (x : β*) (y : β*) :=

@@ -1354,155 +1354,176 @@ notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
 namespace linear_equiv
 section ring
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
+
+section
+variables [module R M] [module R M₂]
 include R
 
 instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
 
-@[simp] theorem coe_apply (e : M ≃ₗ[R] M₂) (b : M) : (e : M →ₗ[R] M₂) b = e b := rfl
-
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+end
 
-@[ext] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
+section
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables (e e' : M ≃ₗ[R] M₂)
+
+@[simp] theorem coe_apply (b : M) : (e : M →ₗ[R] M₂) b = e b := rfl
+
+section
+variables {e e'}
+@[ext] lemma ext (h : (e : M → M₂) = e') : e = e' :=
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
+end
 
 section
 variables (M R)
 
 /-- The identity map is a linear equivalence. -/
 @[refl]
-def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+def refl [module R M] : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
-@[simp] lemma refl_apply (x : M) : refl R M x = x := rfl
+@[simp] lemma refl_apply [module R M] (x : M) : refl R M x = x := rfl
 
 /-- Linear equivalences are symmetric. -/
 @[symm]
-def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+def symm : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
+variables {module_M₃ : module R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
+
 /-- Linear equivalences are transitive. -/
 @[trans]
-def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 /-- A linear equivalence is an additive equivalence. -/
-def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
+def to_add_equiv : M ≃+ M₂ := { map_add' := e.add, .. e }
 
-@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) :
+@[simp] theorem trans_apply (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl
-@[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
-@[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
+@[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c
+@[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
 
-@[simp] theorem map_add (e : M ≃ₗ[R] M₂) (a b : M) : e (a + b) = e a + e b := e.add a b
-@[simp] theorem map_zero (e : M ≃ₗ[R] M₂) : e 0 = 0 := e.to_linear_map.map_zero
-@[simp] theorem map_neg (e : M ≃ₗ[R] M₂) (a : M) : e (-a) = -e a := e.to_linear_map.map_neg a
-@[simp] theorem map_sub (e : M ≃ₗ[R] M₂) (a b : M) : e (a - b) = e a - e b :=
+@[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.add a b
+@[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
+@[simp] theorem map_neg (a : M) : e (-a) = -e a := e.to_linear_map.map_neg a
+@[simp] theorem map_sub (a b : M) : e (a - b) = e a - e b :=
 e.to_linear_map.map_sub a b
-@[simp] theorem map_smul (e : M ≃ₗ[R] M₂) (c : R) (x : M) : e (c • x) = c • e x := e.smul c x
+@[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.smul c x
 
-@[simp] theorem map_eq_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
+@[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
-theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
+theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
-@[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
+@[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x :=
+@[simp] theorem symm_symm_apply (x : M) : e.symm.symm x = e x :=
 by { cases e, refl }
 
-protected lemma bijective (e : M ≃ₗ[R] M₂) : function.bijective e := e.to_equiv.bijective
-protected lemma injective (e : M ≃ₗ[R] M₂) : function.injective e := e.to_equiv.injective
-protected lemma surjective (e : M ≃ₗ[R] M₂) : function.surjective e := e.to_equiv.surjective
+protected lemma bijective : function.bijective e := e.to_equiv.bijective
+protected lemma injective : function.injective e := e.to_equiv.injective
+protected lemma surjective : function.surjective e := e.to_equiv.surjective
+end
 
 section prod
 
-variables [add_comm_group M₄] [module R M₄]
+variables [add_comm_group M₄]
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
+variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
-protected def prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
-  (M × M₃) ≃ₗ[R] M₂ × M₄ :=
-{ add := λ x y, prod.ext (e.map_add _ _) (e'.map_add _ _),
-  smul := λ c x, prod.ext (e.map_smul c _) (e'.map_smul c _),
-  .. equiv.prod_congr e.to_equiv e'.to_equiv }
+protected def prod :
+  (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
+{ add := λ x y, prod.ext (e₁.map_add _ _) (e₂.map_add _ _),
+  smul := λ c x, prod.ext (e₁.map_smul c _) (e₂.map_smul c _),
+  .. equiv.prod_congr e₁.to_equiv e₂.to_equiv }
 
-lemma prod_symm (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) : (e.prod e').symm = e.symm.prod e'.symm := rfl
+lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 
-@[simp] lemma prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (p) :
-  e.prod e' p = (e p.1, e' p.2) := rfl
+@[simp] lemma prod_apply (p) :
+  e₁.prod e₂ p = (e₁ p.1, e₂ p.2) := rfl
 
-@[simp, move_cast] lemma coe_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) :
-  (e.prod e' : (M × M₃) →ₗ[R] M₂ × M₄) = (e : M →ₗ[R] M₂).prod_map (e' : M₃ →ₗ[R] M₄) :=
+@[simp, norm_cast] lemma coe_prod :
+  (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) :=
 rfl
 
-/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+/-- Equivalence given by a block lower diagonal matrix. `e₁` and `e₂` are diagonal square blocks,
   and `f` is a rectangular block below the diagonal. -/
-protected def skew_prod (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) :
+protected def skew_prod (f : M →ₗ[R] M₄) :
   (M × M₃) ≃ₗ[R] M₂ × M₄ :=
-{ inv_fun := λ p : M₂ × M₄, (e.symm p.1, e'.symm (p.2 - f (e.symm p.1))),
+{ inv_fun := λ p : M₂ × M₄, (e₁.symm p.1, e₂.symm (p.2 - f (e₁.symm p.1))),
   left_inv := λ p, by simp,
   right_inv := λ p, by simp,
-  .. ((e : M →ₗ[R] M₂).comp (linear_map.fst R M M₃)).prod
-    ((e' : M₃ →ₗ[R] M₄).comp (linear_map.snd R M M₃) +
+  .. ((e₁ : M →ₗ[R] M₂).comp (linear_map.fst R M M₃)).prod
+    ((e₂ : M₃ →ₗ[R] M₄).comp (linear_map.snd R M M₃) +
       f.comp (linear_map.fst R M M₃)) }
 
-@[simp] lemma skew_prod_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
-  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+@[simp] lemma skew_prod_apply (f : M →ₗ[R] M₄) (x) :
+  e₁.skew_prod e₂ f x = (e₁ x.1, e₂ x.2 + f x.1) := rfl
 
-@[simp] lemma skew_prod_symm_apply (e : M ≃ₗ[R] M₂) (e' : M₃ ≃ₗ[R] M₄) (f : M →ₗ[R] M₄) (x) :
-  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
+@[simp] lemma skew_prod_symm_apply (f : M →ₗ[R] M₄) (x) :
+  (e₁.skew_prod e₂ f).symm x = (e₁.symm x.1, e₂.symm (x.2 - f (e₁.symm x.1))) := rfl
 
 end prod
 
+section
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables (f : M →ₗ[R] M₂)
+
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
-noncomputable def of_bijective
-  (f : M →ₗ[R] M₂) (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
+noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
 { ..f, ..@equiv.of_bijective _ _ f
   ⟨linear_map.ker_eq_bot.1 hf₁, linear_map.range_eq_top.1 hf₂⟩ }
 
-@[simp] theorem of_bijective_apply (f : M →ₗ[R] M₂) {hf₁ hf₂} (x : M) :
+@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
   of_bijective f hf₁ hf₂ x = f x := rfl
 
+variables (g : M₂ →ₗ[R] M)
+
 /-- If a linear map has an inverse, it is a linear equivalence. -/
-def of_linear (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M)
-  (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id) : M ≃ₗ[R] M₂ :=
+def of_linear (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id) : M ≃ₗ[R] M₂ :=
 { inv_fun   := g,
   left_inv  := linear_map.ext_iff.1 h₂,
   right_inv := linear_map.ext_iff.1 h₁,
   ..f }
 
-@[simp] theorem of_linear_apply (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) {h₁ h₂}
-  (x : M) : of_linear f g h₁ h₂ x = f x := rfl
+@[simp] theorem of_linear_apply {h₁ h₂} (x : M) : of_linear f g h₁ h₂ x = f x := rfl
 
-@[simp] theorem of_linear_symm_apply (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) {h₁ h₂}
-  (x : M₂) : (of_linear f g h₁ h₂).symm x = g x := rfl
+@[simp] theorem of_linear_symm_apply {h₁ h₂} (x : M₂) : (of_linear f g h₁ h₂).symm x = g x := rfl
 
-@[simp] protected theorem ker (f : M ≃ₗ[R] M₂) : (f : M →ₗ[R] M₂).ker = ⊥ :=
-linear_map.ker_eq_bot.2 f.to_equiv.injective
+variables (e : M ≃ₗ[R] M₂)
 
-@[simp] protected theorem range (f : M ≃ₗ[R] M₂) : (f : M →ₗ[R] M₂).range = ⊤ :=
-linear_map.range_eq_top.2 f.to_equiv.surjective
+@[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
+linear_map.ker_eq_bot.2 e.to_equiv.injective
+
+@[simp] protected theorem range : (e : M →ₗ[R] M₂).range = ⊤ :=
+linear_map.range_eq_top.2 e.to_equiv.surjective
+
+variables (p : submodule R M)
 
 /-- The top submodule of `M` is linearly equivalent to `M`. -/
-def of_top (p : submodule R M) (h : p = ⊤) : p ≃ₗ[R] M :=
+def of_top (h : p = ⊤) : p ≃ₗ[R] M :=
 { inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
   left_inv  := λ ⟨x, h⟩, rfl,
   right_inv := λ x, rfl,
   .. p.subtype }
 
-@[simp] theorem of_top_apply (p : submodule R M) {h} (x : p) :
-  of_top p h x = x := rfl
+@[simp] theorem of_top_apply {h} (x : p) : of_top p h x = x := rfl
 
-@[simp] theorem of_top_symm_apply (p : submodule R M) {h} (x : M) :
+@[simp] theorem of_top_symm_apply {h} (x : M) :
   (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
-lemma eq_bot_of_equiv (p : submodule R M) (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
+lemma eq_bot_of_equiv [module R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
   p = ⊥ :=
 begin
   refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
@@ -1510,6 +1531,7 @@ begin
   rw [← e.coe_apply, submodule.eq_zero_of_bot_submodule ((e : p →ₗ[R] (⊥ : submodule R M₂)) ⟨b, hb⟩),
     ← e.symm.coe_apply, linear_map.map_zero] at this,
   exact congr_arg (coe : p → M) this.symm
+end
 end
 
 end ring

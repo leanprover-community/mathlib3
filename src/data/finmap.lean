@@ -5,7 +5,9 @@ Authors: Sean Leather, Mario Carneiro
 
 Finite maps over `multiset`.
 -/
-import data.list.alist data.finset data.pfun
+import data.list.alist
+import data.finset
+import data.pfun
 
 universes u v w
 open list

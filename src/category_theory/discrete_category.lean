@@ -5,7 +5,8 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import data.ulift
 import data.fintype.basic
-import category_theory.opposites category_theory.equivalence
+import category_theory.opposites
+import category_theory.equivalence
 
 namespace category_theory
 

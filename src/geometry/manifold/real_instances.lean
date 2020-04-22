@@ -3,8 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import geometry.manifold.smooth_manifold_with_corners linear_algebra.finite_dimensional
+import geometry.manifold.smooth_manifold_with_corners
+import linear_algebra.finite_dimensional
 
 /-!
 # Constructing examples of manifolds over ℝ

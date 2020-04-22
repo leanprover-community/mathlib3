@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic.basic logic.relator
+import tactic.basic
+import logic.relator
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation

@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite group_theory.coset
+import data.set.finite
+import group_theory.coset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

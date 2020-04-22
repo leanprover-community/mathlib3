@@ -5,12 +5,21 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function order.boolean_algebra data.equiv.basic
-import data.list.sort data.list.intervals data.list.antidiagonal
-import data.quot data.string.basic
-  algebra.order_functions algebra.group_power algebra.ordered_group
-  category.traversable.lemmas tactic.interactive
-  category.traversable.instances category.basic
+import logic.function
+import order.boolean_algebra
+import data.equiv.basic
+import data.list.sort
+import data.list.intervals
+import data.list.antidiagonal
+import data.quot
+import data.string.basic
+import algebra.order_functions
+import algebra.group_power
+import algebra.ordered_group
+import category.traversable.lemmas
+import tactic.interactive
+import category.traversable.instances
+import category.basic
 
 open list subtype nat
 

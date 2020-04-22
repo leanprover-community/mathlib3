@@ -5,8 +5,9 @@ Authors: Kenny Lau
 
 More operations on modules and ideals.
 -/
-
-import ring_theory.ideals data.nat.choose order.zorn
+import ring_theory.ideals
+import data.nat.choose
+import order.zorn
 import linear_algebra.tensor_product
 import data.equiv.ring
 import ring_theory.algebra_operations

@@ -637,7 +637,7 @@ end
 end map
 
 section
-variables {T : Type*} [comm_semiring S] [comm_semiring T]
+variables [comm_semiring S] [comm_semiring T]
 variables (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=

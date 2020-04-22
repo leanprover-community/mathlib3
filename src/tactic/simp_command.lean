@@ -22,9 +22,8 @@ You can specify additional simp lemmas as usual for example using
 `#simp [f, g] : e`, or `#simp with attr : e`.
 (The colon is optional, but helpful for the parser.)
 
-`#simp` does not understand local variables,
-so you will need to use lambda-expressions
-to introduce parameters.
+`#simp` understands local variables, so you can use them to
+introduce parameters.
 -/
 @[user_command] meta def simp_cmd (_ : parse $ tk "#simp") : lean.parser unit :=
 do

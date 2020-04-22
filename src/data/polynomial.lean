@@ -23,8 +23,9 @@ def polynomial (R : Type*) [comm_semiring R] := add_monoid_algebra R ℕ
 open finsupp finset add_monoid_algebra
 
 namespace polynomial
-universes u v w x y
-variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {a b : R} {m n : ℕ}
+universes u v w x y z
+variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
+  {a b : R} {m n : ℕ}
 
 section comm_semiring
 variables [comm_semiring R] {p q r : polynomial R}
@@ -1357,7 +1358,7 @@ instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.semimodule, .. ring_hom.of polynomial.C, }
 
-variables (R : Type u) (A : Type v)
+variables (R) (A)
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (x : A)
 
@@ -1366,6 +1367,8 @@ the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
   ..eval₂_ring_hom (algebra_map R A) x }
+
+variables {R A}
 
 theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map R A) x p := rfl
 

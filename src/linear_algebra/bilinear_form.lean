@@ -142,7 +142,7 @@ lemma smul_apply (a : R₂) (x y : M) : (a • F) x y = a • (F x y) := rfl
 def to_linear_map : M →ₗ[R₂] M →ₗ[R₂] R₂ :=
 linear_map.mk₂ R₂ F.1 (bilin_add_left F) (bilin_smul_left F) (bilin_add_right F) (bilin_smul_right F)
 
-/-- Bilinear forms are equivalent to linear maps with two arguments. -/
+/-- Bilinear forms are equivalent to maps with two arguments that is linear in both. -/
 def bilin_linear_map_equiv : (bilin_form R₂ M) ≃ₗ[R₂] (M →ₗ[R₂] M →ₗ[R₂] R₂) :=
 { to_fun := to_linear_map,
   add := λ B D, rfl,
@@ -191,13 +191,13 @@ B.comp linear_map.id f
 @[simp] lemma comp_right_comp_left (B : bilin_form R M) (l r : M →ₗ[R] M) :
   (B.comp_right r).comp_left l = B.comp l r := rfl
 
-@[simp] lemma coe_fn_comp (B : bilin_form R N) (l r : M →ₗ[R] N) (v w) :
+@[simp] lemma comp_apply (B : bilin_form R N) (l r : M →ₗ[R] N) (v w) :
   B.comp l r v w = B (l v) (r w) := rfl
 
-@[simp] lemma coe_fn_comp_left (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
+@[simp] lemma comp_left_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_left f v w = B (f v) w := rfl
 
-@[simp] lemma coe_fn_comp_right (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
+@[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
 
 end comp
@@ -255,8 +255,7 @@ def matrix.to_bilin_formₗ : matrix n n R →ₗ[R] bilin_form R (n → R) :=
     bilin_add_left := λ x y z, by simp [matrix.add_mul],
     bilin_smul_left := λ a x y, by simp,
     bilin_add_right := λ x y z, by simp [matrix.mul_add],
-    bilin_smul_right := λ a x y, by simp,
-  },
+    bilin_smul_right := λ a x y, by simp },
   add := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
   smul := λ f g, by { ext, simp [smul_apply] } }
 
@@ -291,7 +290,7 @@ lemma bilin_form.to_matrix_comp (B : bilin_form R (n → R)) (l r : (o → R) �
   (B.comp l r).to_matrix = l.to_matrixᵀ ⬝ B.to_matrix ⬝ r.to_matrix :=
 begin
   ext i j,
-  simp only [to_matrix_apply, coe_fn_comp, mul_val, sum_mul],
+  simp only [to_matrix_apply, comp_apply, mul_val, sum_mul],
   have sum_smul_eq : Π (f : (o → R) →ₗ[R] (n → R)) (i : o),
     f (λ n, ite (n = i) 1 0) = univ.sum (λ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0),
   { intros f i,
@@ -328,7 +327,7 @@ def bilin_form_equiv_matrix : bilin_form R (n → R) ≃ₗ[R] matrix n n R :=
   left_inv := λ B, show B.to_matrix.to_bilin_form = B,
   begin
     ext,
-    rw [matrix.to_bilin_form_apply, B.mul_to_matrix_mul, bilin_form.to_matrix_apply, coe_fn_comp],
+    rw [matrix.to_bilin_form_apply, B.mul_to_matrix_mul, bilin_form.to_matrix_apply, comp_apply],
     { apply coe_fn_congr; ext; simp [mul_vec] },
     apply_instance
   end,

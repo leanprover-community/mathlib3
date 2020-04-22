@@ -55,7 +55,10 @@ universes u v w
 variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
 variables {R₁ : Type u} [comm_ring R₁] [module R₁ M]
 
-/-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`. -/
+/-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
+
+Source of this name: https://en.wikipedia.org/wiki/Quadratic_form#Generalization
+-/
 def quadratic_form.polar (f : M → R) (x y : M) :=
 f (x + y) - f x - f y
 

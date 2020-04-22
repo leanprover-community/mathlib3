@@ -1037,7 +1037,11 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
 end tactic
 
 namespace lean.parser
+<<<<<<< HEAD
 open tactic interaction_monad
+=======
+open lean interaction_monad.result
+>>>>>>> master
 
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/

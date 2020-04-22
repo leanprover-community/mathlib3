@@ -41,10 +41,10 @@ section complex
 open real
 #simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
 
-variables (x : ℂ)
+variables (x : ℝ)
 
 -- You can refer to local variables, rather than having to use lambdas.
 open real
-#simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
+#simp [exp_ne_zero] : deriv (λ x, (sin x) / (exp x)) x
 
 end complex

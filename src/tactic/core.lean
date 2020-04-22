@@ -128,10 +128,7 @@ open function
 
 /-- Add the given list of `expr.local_const`s to the tactic state. -/
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic unit :=
-vars.mmap' $ λ var, do {
-  tactic.assertv var.local_pp_name var.local_type var,
-  tactic.skip
-}
+vars.mmap' $ λ var, assertv var.local_pp_name var.local_type var >> skip
 
 /-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
 and returns the new local constants along with the instantiated expression. Fails if `e` does

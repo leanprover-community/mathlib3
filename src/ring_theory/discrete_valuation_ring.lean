@@ -91,13 +91,13 @@ def uniformizers : set R := { π | prime_ideal R = ideal.span {π} }
 
 lemma exists_uniformizer : ∃ π, π ∈ (uniformizers : set R) := (principal_ideal_domain.principal (prime_ideal R)).principal
 
-lemma uniformizers_differ_by_units (π₁ : R) (h1: π₁ ∈ (uniformizers : set R)) (π₂ : R) (h2: π₂ ∈ (uniformizers : set R)) : ∃ u : units R, π₁ = u * π₂ :=
+/-lemma uniformizers_differ_by_units (π₁ : R) (h1: π₁ ∈ (uniformizers : set R)) (π₂ : R) (h2: π₂ ∈ (uniformizers : set R)) : ∃ u : units R, π₁ = u * π₂ :=
 begin
   have h := eq.trans h1.symm h2,
   have h3 := is_nonzero,
   rw (show prime_ideal R = ideal.span ({π₁} : set R), from h1) at h3,
   exact integral_domain.principal_ideal_generators_differ_by_units _ _ (eq.trans h1.symm h2) is_nonzero,
-end
+end-/
 
 
 end discrete_valuation_ring

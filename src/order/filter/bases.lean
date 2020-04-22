@@ -355,8 +355,6 @@ lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
 ⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
   λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
 
-end
-
 variables [preorder ι] (l p s)
 
 /-- `is_antimono_basis p s` means the image of `s` bounded by `p` is a filter basis
@@ -372,6 +370,7 @@ structure has_antimono_basis [preorder ι] (l : filter α) (p : ι → Prop) (s 
   extends has_basis l p s : Prop :=
 (decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
 (mono : monotone p)
+
 end same_type
 
 section two_types

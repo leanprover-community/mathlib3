@@ -36,8 +36,6 @@ end arith
 
 section complex
 
--- It would be really nice to be able to refer to local variables,
--- rather than having to use lambdas.
 open real
 #simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
 

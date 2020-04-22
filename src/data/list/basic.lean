@@ -1247,10 +1247,16 @@ begin
 end
 
 /-- The `i`-th element of a list coincides with the `i`-th element of any of its prefixes of
-length `> i`. -/
+length `> i`. Version designed to rewrite from the big list to the small list. -/
 lemma nth_le_take (L : list α) {i j : ℕ} (hi : i < L.length) (hj : i < j) :
   nth_le L i hi = nth_le (L.take j) i (by { rw length_take, exact lt_min hj hi }) :=
 by { rw nth_le_of_eq (take_append_drop j L).symm hi, exact nth_le_append _ _ }
+
+/-- The `i`-th element of a list coincides with the `i`-th element of any of its prefixes of
+length `> i`. Version designed to rewrite from the small list to the big list. -/
+lemma nth_le_take' (L : list α) {i j : ℕ} (hi : i < (L.take j).length) :
+  nth_le (L.take j) i hi = nth_le L i (lt_of_lt_of_le hi (by simp [le_refl])) :=
+by { simp at hi, rw nth_le_take L _ hi.1 }
 
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
@@ -1301,7 +1307,7 @@ begin
 end
 
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
-dropping the first `i` elements. -/
+dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/
 lemma nth_le_drop (L : list α) {i j : ℕ} (h : i + j < L.length) :
   nth_le L (i + j) h = nth_le (L.drop i) j
 begin
@@ -1314,6 +1320,12 @@ begin
   rw [nth_le_of_eq (take_append_drop i L).symm h, nth_le_append_right];
   simp [A]
 end
+
+/--  The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
+dropping the first `i` elements. Version designed to rewrite from the small list to the big list. -/
+lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
+  nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
+by rw nth_le_drop
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
 | m     []     := by simp

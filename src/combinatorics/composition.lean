@@ -121,9 +121,9 @@ instance (n : ℕ) : has_to_string (composition n) :=
 ⟨λ c, to_string c.blocks⟩
 
 /-- The length of a composition, i.e., the number of blocks in the composition. -/
-def length : ℕ := c.blocks.length
+@[reducible] def length : ℕ := c.blocks.length
 
-@[simp] lemma blocks_length : c.blocks.length = c.length := rfl
+lemma blocks_length : c.blocks.length = c.length := rfl
 
 /-- The blocks of a composition, seen as a function on `fin c.length`. When composing analytic
 functions using compositions, this is the main player. -/
@@ -509,8 +509,7 @@ begin
   simp [split_wrt_composition, composition.size_up_to_le c, min_eq_left, nth_le_of_fn',
              map_of_fn, function.comp_app, length_drop, length_take],
   rw c.blocks_length at h₂,
-  simp only [composition.size_up_to_succ c h₂, nat.add_sub_cancel_left],
-  refl
+  simp only [composition.size_up_to_succ c h₂, nat.add_sub_cancel_left]
 end
 
 lemma length_pos_of_mem_split_wrt_composition {l l' : list α} {c : composition l.length}

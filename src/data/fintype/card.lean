@@ -160,6 +160,17 @@ begin
   { assume b hb, exact ⟨⟨b, list.mem_range.mp hb⟩, finset.mem_univ _, rfl⟩, }
 end
 
+@[to_additive]
+lemma prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
+  finset.univ.prod (f ∘ e) = finset.univ.prod f :=
+begin
+  apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),
+  { assume b hb,
+    rcases e.surjective b with ⟨a, ha⟩,
+    exact ⟨a, mem_univ _, ha.symm⟩, },
+  { simp }
+end
+
 namespace list
 
 lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :

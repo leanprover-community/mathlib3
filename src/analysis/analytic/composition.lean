@@ -40,6 +40,8 @@ summability of the norms, this implies the overall convergence.
 * `has_fpower_series_at.comp` states that if two functions `g` and `f` admit power series expansions
   `q` and `p`, then `g ∘ f` admits a power series expansion given by `q.comp p`.
 * `analytic_at.comp` states that the composition of analytic functions is analytic.
+* `formal_multilinear_series.comp_assoc` states that composition is associative on formal
+  multilinear series.
 
 ## Implementation details
 
@@ -50,6 +52,15 @@ the main difficulty is to reorder the sums, writing the composition of the parti
 over some subset of `Σ n, composition n`. We need to check that the reordering is a bijection,
 running over difficulties due to the dependent nature of the types under consideration, that are
 controlled thanks to the interface for `composition`.
+
+The associativity of composition on formal multilinear series is a nontrivial result: it does not
+follow from the associativity of composition of analytic functions, as there is no uniqueness for
+the formal multilinear series representing a function (and also, it holds even when the radius of
+convergence of the series is `0`). Instead, we give a direct proof, which amounts to reordering
+double sums in a careful way. The change of variables is a canonical (combinatorial) bijection
+`composition.sigma_equiv_sigma_pi` between `(Σ (a : composition n), composition a.length)` and
+`(Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i))`, and is described
+in more details below in the paragraph on associativity.
 -/
 
 noncomputable theory
@@ -58,14 +69,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
+{H : Type*} [normed_group H] [normed_space 𝕜 H]
 
-
-namespace composition
-
-end composition
-
-
-open filter
+open filter list
 open_locale topological_space classical
 
 /-! ### Composing formal multilinear series -/
@@ -264,7 +270,6 @@ lemma comp_coeff_zero'' (q : formal_multilinear_series 𝕜 E F) (p : formal_mul
   (q.comp p) 0 = q 0 :=
 by { ext v, exact q.comp_coeff_zero p _ _ }
 
-
 /-!
 ### The identity formal power series
 
@@ -325,7 +330,7 @@ begin
     obtain ⟨k, hk, lt_k⟩ : ∃ (k : ℕ) (H : k ∈ composition.blocks b), 1 < k :=
       composition.ne_ones_iff.1 hb,
     obtain ⟨i, i_lt, hi⟩ : ∃ (i : ℕ) (h : i < b.blocks.length), b.blocks.nth_le i h = k :=
-      list.nth_le_of_mem hk,
+      nth_le_of_mem hk,
     let j : fin b.length := ⟨i, b.blocks_length ▸ i_lt⟩,
     have A : 1 < b.blocks_fun j := by convert lt_k,
     ext v,
@@ -529,8 +534,8 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  refine ⟨finset.univ.sum f, list.of_fn (λ a, f a), λ i hi, _, by simp [list.sum_of_fn]⟩,
-  rw [list.mem_of_fn, set.mem_range] at hi,
+  refine ⟨finset.univ.sum f, of_fn (λ a, f a), λ i hi, _, by simp [sum_of_fn]⟩,
+  rw [mem_of_fn, set.mem_range] at hi,
   rcases hi with ⟨j, hj⟩,
   rw ← hj,
   exact (hi.2 j).1
@@ -542,7 +547,7 @@ end
 begin
   rcases i with ⟨k, blocks_fun⟩,
   dsimp [comp_change_of_variables],
-  simp only [composition.length, list.map_of_fn, list.length_of_fn]
+  simp only [composition.length, map_of_fn, length_of_fn]
 end
 
 lemma comp_change_of_variables_blocks_fun
@@ -552,7 +557,7 @@ lemma comp_change_of_variables_blocks_fun
 begin
   rcases i with ⟨n, f⟩,
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
-  simp only [list.map_of_fn, pnat.mk_coe, list.nth_le_of_fn', function.comp_app],
+  simp only [map_of_fn, pnat.mk_coe, nth_le_of_fn', function.comp_app],
   apply congr_arg,
   rw fin.ext_iff
 end
@@ -573,9 +578,8 @@ begin
     exact λ a, c.one_le_blocks' _ },
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
-    simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, list.nth_le_map'],
-    conv_lhs { rw ← list.of_fn_nth_le c.blocks },
-    refl }
+    simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, nth_le_map'],
+    conv_lhs { rw ← of_fn_nth_le c.blocks } }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -640,10 +644,10 @@ begin
   { rintros ⟨k, blocks_fun⟩ H,
     rw mem_comp_partial_sum_source_iff at H,
     simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
-               list.map_of_fn, list.length_of_fn, true_and, comp_change_of_variables],
+               map_of_fn, length_of_fn, true_and, comp_change_of_variables],
     assume j,
     simp only [composition.blocks_fun, composition.blocks, (H.right _).right, pnat.mk_coe,
-               list.map_of_fn, list.nth_le_of_fn', function.comp_app] },
+               map_of_fn, nth_le_of_fn', function.comp_app] },
   -- 2 - show that the composition gives the `comp_along_composition` application
   { rintros ⟨k, blocks_fun⟩ H,
     have L := comp_change_of_variables_length N H,
@@ -803,3 +807,367 @@ analytic at `x`. -/
 theorem analytic_at.comp {g : F → G} {f : E → F} {x : E}
   (hg : analytic_at 𝕜 g (f x)) (hf : analytic_at 𝕜 f x) : analytic_at 𝕜 (g ∘ f) x :=
 let ⟨q, hq⟩ := hg, ⟨p, hp⟩ := hf in (hq.comp hp).analytic_at
+
+
+/-!
+### Associativity of the composition of formal multilinear series
+
+In this paragraph, we us prove the associativity of the composition of formal power series.
+By definition,
+```
+(r.comp q).comp p n v
+= ∑_{i₁ + ... + iₖ = n} (r.comp q)ₖ (p_{i₁} (v₀, ..., v_{i₁ -1}), p_{i₂} (...), ..., p_{iₖ}(...))
+= ∑_{a : composition n} (r.comp q) a.length (apply_composition p a v)
+```
+decomposing `r.comp q` in the same way, we get
+```
+(r.comp q).comp p n v
+= ∑_{a : composition n} ∑_{b : composition a.length}
+  r b.length (apply_composition q b (apply_composition p a v))
+```
+On the other hand,
+```
+r.comp (q.comp p) n v = ∑_{c : composition n} r c.length (apply_composition (q.comp p) c v)
+```
+Here, `apply_composition (q.comp p) c v` is a vector of length `c.length`, whose `i`-th term is
+given by `(q.comp p) (c.blocks_fun i) (v_l, v_{l+1}, ..., v_{m-1})` where `{l, ..., m-1}` is the
+`i`-th block in the composition `c`, of length `c.blocks_fun i` by definition. To compute this term,
+we expand it as `∑_{dᵢ : composition (c.blocks_fun i)} q dᵢ.length (apply_composition p dᵢ v')`,
+where `v' = (v_l, v_{l+1}, ..., v_{m-1})`. Therefore, we get
+```
+r.comp (q.comp p) n v =
+∑_{c : composition n} ∑_{d₀ : composition (c.blocks_fun 0),
+  ..., d_{c.length - 1} : composition (c.blocks_fun (c.length - 1))}
+  r c.length (λ i, q dᵢ.length (apply_composition p dᵢ v'ᵢ))
+```
+To show that these terms coincide, we need to explain how to reindex the sums to put them in
+bijection (and then the terms we are summing will correspond to each other). Suppose we have a
+composition `a` of `n`, and a composition `b` of `a.length`. Then `b` indicates how to group
+together some blocks of `a`, giving altogether `b.length` blocks of blocks. These blocks of blocks
+can be called `d₀, ..., d_{a.length - 1}`, and one obtains a composition `c` of `n` by saying that
+each `dᵢ` is one single block. Conversely, if one starts from `c` and the `dᵢ`s, one can concatenate
+the `dᵢ`s to obtain a composition `a` of `n`, and register the lengths of the `dᵢ`s in a composition
+`b` of `a.length`.
+
+An example might be enlightening. Suppose `a = [2, 2, 3, 4, 2]`. It is a composition of
+length 5 of 13. The content of the blocks may be represented as `0011222333344`.
+Now take `b = [2, 3]` as a composition of `a.length = 5`. It says that the first 2 blocks of `a`
+should be merged, and the last 3 blocks of `a` should be merged, giving a new composition of `13`
+made of two blocks of length `4` and `9`, i.e., `c = [4, 7]`. But one can also remember that
+the new first block was initially made of two blocks of size `2`, so `d₀ = [2, 2]`, and the new
+second block was initially made of three blocks of size `3`, `4` and `2`, so `d₁ = [3, 4, 2]`.
+
+This equivalence is called `composition.sigma_equiv_sigma_pi n` below.
+
+We start with preliminary results on compositions, of a very specialized nature, then define the
+equivalence `composition.sigma_equiv_sigma_pi n`, and we deduce finally the associativity of
+composition of formal multilinear series in `formal_multilinear_series.comp_assoc`.
+-/
+
+namespace composition
+
+variable {n : ℕ}
+
+/-- Rewriting equality in the dependent type `Σ (a : composition n), composition a.length)` in
+non-dependent terms with lists, requiring that the blocks coincide. -/
+lemma sigma_composition_eq_iff (i j : Σ (a : composition n), composition a.length) :
+  i = j ↔ i.1.blocks = j.1.blocks ∧ i.2.blocks = j.2.blocks :=
+begin
+  split,
+  { assume H,
+    rw H,
+    simp only [eq_self_iff_true, and_self] },
+  { rcases i with ⟨a, b⟩,
+    rcases j with ⟨a', b'⟩,
+    rintros ⟨h, h'⟩,
+    have H : a = a', by { ext1, exact h },
+    induction H,
+    simp only [true_and, eq_self_iff_true, heq_iff_eq],
+    ext1,
+    exact h' }
+end
+
+/-- Rewriting equality in the dependent type
+`Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)` in
+non-dependent terms with lists, requiring that the lists of blocks coincide. -/
+lemma sigma_pi_composition_eq_iff
+  (u v : Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)) :
+  u = v ↔ of_fn (λ i, (u.2 i).blocks) = of_fn (λ i, (v.2 i).blocks) :=
+begin
+  refine ⟨λ H, by rw H, λ H, _⟩,
+  rcases u with ⟨a, b⟩,
+  rcases v with ⟨a', b'⟩,
+  dsimp at H,
+  have h : a = a',
+  { ext1,
+    have : map list.sum (of_fn (λ (i : fin (composition.length a)), (b i).blocks)) =
+      map list.sum (of_fn (λ (i : fin (composition.length a')), (b' i).blocks)), by rw H,
+    simp only [map_of_fn] at this,
+    change of_fn (λ (i : fin (composition.length a)), (b i).blocks.sum) =
+      of_fn (λ (i : fin (composition.length a')), (b' i).blocks.sum) at this,
+    simpa [composition.blocks_sum, composition.of_fn_blocks_fun] using this },
+  induction h,
+  simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  ext i : 2,
+  have : nth_le (of_fn (λ (i : fin (composition.length a)), (b i).blocks)) i.1 (by simp [i.2]) =
+         nth_le (of_fn (λ (i : fin (composition.length a)), (b' i).blocks)) i.1 (by simp [i.2]) :=
+    nth_le_of_eq H _,
+  rwa [nth_le_of_fn, nth_le_of_fn] at this
+end
+
+def join (a : composition n) (b : composition a.length) : composition n :=
+{ blocks := (a.blocks.split_wrt_composition b).map sum,
+  blocks_pos := begin
+    refine forall_mem_map_iff.2 (λ j hj, _),
+    refine lt_of_lt_of_le (length_pos_of_mem_split_wrt_composition hj)
+      (length_le_sum_of_one_le _ (λ i hi, _)),
+    have : i ∈ a.blocks,
+    { rw ← a.blocks.join_split_wrt_composition b,
+      exact mem_join_of_mem hj hi },
+    exact composition.one_le_blocks a this
+  end,
+  blocks_sum := by { rw [← sum_join, join_split_wrt_composition], exact a.blocks_sum } }
+
+lemma length_join (a : composition n) (b : composition a.length) :
+  length (a.join b) = b.length :=
+by { dsimp only [composition.length, composition.join], simp }
+
+/-- An auxiliary function used in the definition of
+`composition_sigma_composition_equiv_composition_sigma_pi_composition` below, associating to
+two compositions `a` of `n` and `b` of `a.length`, and an index `i` bounded by the length of
+`a.join b`, the subcomposition of `a` made of those blocks falling in the `i`-th block of
+`a.join b`.
+-/
+def sigma_composition_aux (a : composition n) (b : composition a.length) :
+  Π (i : fin (a.join b).length), composition ((a.join b).blocks_fun i) :=
+λ i,
+{ blocks := nth_le (a.blocks.split_wrt_composition b) i.val begin
+    rw [length_split_wrt_composition, ← length_join],
+    exact i.2
+  end,
+  blocks_pos := begin
+    assume i hi,
+    have : i ∈ (a.blocks.split_wrt_composition b).join :=
+      mem_join_of_mem (nth_le_mem _ _ _) hi,
+    rw join_split_wrt_composition at this,
+    exact a.blocks_pos this
+  end,
+  blocks_sum := by simp only [composition.blocks_fun, nth_le_map', composition.join] }
+
+lemma length_sigma_composition_aux
+  (a : composition n) (b : composition a.length) (i : fin b.length) :
+  composition.length (composition.sigma_composition_aux a b ⟨i.val, (length_join a b).symm ▸ i.2⟩)
+  = composition.blocks_fun b i :=
+begin
+  dsimp only [sigma_composition_aux, composition.length],
+  rw [nth_le_map_rev list.length, nth_le_of_eq (map_length_split_wrt_composition _ _)],
+  refl
+end
+
+lemma blocks_fun_sigma_composition_aux
+  (a : composition n) (b : composition a.length) (i : fin b.length) (j : fin (blocks_fun b i)) :
+  blocks_fun (sigma_composition_aux a b ⟨i.val, (length_join a b).symm ▸ i.2⟩)
+      ⟨j.val, (length_sigma_composition_aux a b i).symm ▸ j.2⟩ = blocks_fun a (embedding b i j) :=
+begin
+  dsimp [blocks_fun, sigma_composition_aux],
+  rw [nth_le_of_eq (nth_le_split_wrt_composition _ _ _), nth_le_drop', nth_le_take'],
+  refl
+end
+
+lemma size_up_to_size_up_to_add
+  (a : composition n) (b : composition a.length) {i j : ℕ} (hi : i < b.length)
+  (hj : j < blocks_fun b ⟨i, hi⟩) :
+  size_up_to a (size_up_to b i + j) = size_up_to (join a b) i
+    + (size_up_to (sigma_composition_aux a b ⟨i, (length_join a b).symm ▸ hi⟩) j) :=
+begin
+  induction j with j IHj,
+  { dsimp [sigma_composition_aux, size_up_to, composition.join],
+    simp only [add_zero, sum_nil],
+    induction i with i IH,
+    { simp },
+    { have A : i < b.length := nat.lt_of_succ_lt hi,
+      have B : i < list.length (map list.sum (split_wrt_composition a.blocks b)), by simp [A],
+      have C : 0 < blocks_fun b ⟨i, A⟩ := composition.blocks_pos' _ _ _,
+      rw [sum_take_succ _ _ B, ← IH A C],
+      have : take (sum (take i b.blocks)) a.blocks
+        = take (sum (take i b.blocks)) (take (sum (take (i+1) b.blocks)) a.blocks),
+      { rw [take_take, min_eq_left],
+        apply monotone_sum_take _ (nat.le_succ _) },
+      simp [split_wrt_composition, size_up_to, ← sum_append, this, take_append_drop] } },
+  { have A : j < blocks_fun b ⟨i, hi⟩ := lt_trans (lt_add_one j) hj,
+    have B : j < length (sigma_composition_aux a b ⟨i, (length_join a b).symm ▸ hi⟩),
+      by { convert A, rw ← length_sigma_composition_aux },
+    have C : size_up_to b i + j < size_up_to b (i + 1),
+    { simp only [size_up_to_succ b hi, add_lt_add_iff_left],
+      exact A },
+    have D : size_up_to b i + j < length a := lt_of_lt_of_le C (b.size_up_to_le _),
+    have : size_up_to b i + nat.succ j = (size_up_to b i + j).succ := rfl,
+    rw [this, size_up_to_succ _ D, IHj A, size_up_to_succ _ B],
+    simp only [sigma_composition_aux, add_assoc, add_left_inj],
+    rw [nth_le_of_eq (nth_le_split_wrt_composition _ _ _), nth_le_drop', nth_le_take _ _ C] }
+end
+
+/--
+Natural equivalence between `(Σ (a : composition n), composition a.length)` and
+`(Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i))`, that shows up as a
+change of variables in the proof that composition of formal multilinear series is associative.
+
+Consider a composition `a` of `n` and a composition `b` of `a.length`, Then `b` indicates how to
+group together some blocks of `a`, giving altogether `b.length` blocks of blocks. These blocks of
+blocks can be called `d₀, ..., d_{a.length - 1}`, and one obtains a composition `c` of `n` by
+saying that each `dᵢ` is one single block. The map `⟨a, b⟩ → ⟨c, (d₀, ..., d_{a.length - 1})⟩` is
+the direct map in the equiv.
+
+Conversely, if one starts from `c` and the `dᵢ`s, one can concatenate
+the `dᵢ`s to obtain a composition `a` of `n`, and register the lengths of the `dᵢ`s in a composition
+`b` of `a.length`. This is the inverse map of the equiv.
+
+An example might be enlightening. Suppose `a = [2, 2, 3, 4, 2]`. It is a composition of
+length `5` of `13`. The content of the blocks may be represented as `0011222333344`.
+Now take `b = [2, 3]` as a composition of `a.length = 5`. It says that the first 2 blocks of `a`
+should be merged, and the last 3 blocks of `a` should be merged, giving a new composition of `13`
+made of two blocks of length `4` and `9`, i.e., `c = [4, 9]`. But one can also remember that
+the new first block was initially made of two blocks of size `2`, so `d₀ = [2, 2]`, and the new
+second block was initially made of three blocks of size `3`, `4` and `2`, so `d₁ = [3, 4, 2]`.
+-/
+def sigma_equiv_sigma_pi (n : ℕ) :
+  (Σ (a : composition n), composition a.length) ≃
+  (Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)) :=
+{ to_fun := λ i, begin
+    rcases i with ⟨a, b⟩,
+    exact ⟨a.join b, a.sigma_composition_aux b⟩
+  end,
+  inv_fun := λ i, begin
+    rcases i with ⟨c, d⟩,
+    exact ⟨
+    { blocks := (of_fn (λ i, (d i).blocks)).join,
+      blocks_pos := begin
+        simp only [and_imp, mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
+        exact λ i j hj, composition.blocks_pos _ hj
+      end,
+      blocks_sum := by simp [sum_of_fn, composition.blocks_sum, composition.sum_blocks_fun] },
+    { blocks := of_fn (λ i, (d i).length),
+      blocks_pos := begin
+        refine forall_mem_of_fn_iff.2 (λ j, composition.length_pos_of_pos _ _),
+        exact composition.blocks_pos' _ _ _
+      end,
+      blocks_sum := begin
+        dsimp only [composition.length],
+        simp [sum_of_fn],
+      end }⟩
+  end,
+  left_inv := begin
+    -- the fact that we have a left inverse is essentially `join_split_wrt_composition`,
+    -- but we need to massage it to take care of the dependent setting.
+    rintros ⟨a, b⟩,
+    rw sigma_composition_eq_iff,
+    split,
+    { dsimp,
+      have A := length_map list.sum (split_wrt_composition a.blocks b),
+      conv_rhs { rw [← join_split_wrt_composition a.blocks b,
+        ← of_fn_nth_le (split_wrt_composition a.blocks b)] },
+      congr,
+      { exact A },
+      { exact (fin.heq_fun_iff A).2 (λ i, rfl) } },
+    { dsimp,
+      have B : composition.length (composition.join a b) = list.length b.blocks :=
+        composition.length_join _ _,
+      conv_rhs { rw [← of_fn_nth_le b.blocks] },
+      congr' 1,
+      { exact B },
+      { apply (fin.heq_fun_iff B).2 (λ i, _),
+        rw [sigma_composition_aux, composition.length, nth_le_map_rev list.length,
+            nth_le_of_eq (map_length_split_wrt_composition _ _)] } }
+  end,
+  right_inv := begin
+    -- the fact that we have a right inverse is essentially `split_wrt_composition_join`,
+    -- but we need to massage it to take care of the dependent setting.
+    rintros ⟨c, d⟩,
+    have : map list.sum (of_fn (λ (i : fin (composition.length c)), (d i).blocks)) = c.blocks,
+      by simp [map_of_fn, (∘), composition.blocks_sum, composition.of_fn_blocks_fun],
+    rw sigma_pi_composition_eq_iff,
+    dsimp,
+    congr,
+    { ext1,
+      dsimp [composition.join],
+      rwa split_wrt_composition_join,
+      simp [(∘)] },
+    { rw fin.heq_fun_iff,
+      { assume i,
+        dsimp [composition.sigma_composition_aux],
+        rw [nth_le_of_eq (split_wrt_composition_join _ _ _)],
+        { simp },
+        { simp [(∘)] } },
+      { congr,
+        ext1,
+        dsimp [composition.join],
+        rwa split_wrt_composition_join,
+        simp [(∘)] } }
+  end }
+
+end composition
+
+namespace formal_multilinear_series
+open composition
+
+theorem comp_assoc (r : formal_multilinear_series 𝕜 G H) (q : formal_multilinear_series 𝕜 F G)
+  (p : formal_multilinear_series 𝕜 E F) :
+  (r.comp q).comp p = r.comp (q.comp p) :=
+begin
+  ext n v,
+  /- First, rewrite the two compositions appearing in the theorem as two sums over complicated
+  sigma types, as in the description of the proof above. -/
+  let f : (Σ (a : composition n), composition a.length) → H :=
+    λ ⟨a, b⟩, r b.length (apply_composition q b (apply_composition p a v)),
+  let g : (Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)) → H :=
+    λ ⟨c, d⟩, r c.length
+      (λ (i : fin c.length), q (d i).length (apply_composition p (d i) (v ∘ c.embedding i))),
+  suffices A : finset.univ.sum f = finset.univ.sum g,
+  { dsimp [formal_multilinear_series.comp],
+    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply],
+    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ f,
+    dsimp [apply_composition],
+    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply,
+      continuous_multilinear_map.map_sum],
+    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ g,
+    exact A },
+  /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
+  variables in the second sum, and check that we get exactly the same sums. -/
+  rw ← sum_equiv (sigma_equiv_sigma_pi n),
+  /- To check that we have the same terms, we should check that we apply the same component of
+  `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
+  `v`. This is true by definition, but at each step one needs to convince Lean that the types
+  one considers are the same, using congruence, rewriting to assert that the lengths are the same,
+  and `fin.heq_fun_iff` to get rid of the `==` that shows up in the last term. This dance has to
+  be done three times, one for `r`, one for `q` and one for `p`.-/
+  congr,
+  ext i,
+  rcases i with ⟨a, b⟩,
+  dsimp [f, g, sigma_equiv_sigma_pi],
+  -- check that the `r` components are the same. Based on `composition.length_join`
+  unfold_coes,
+  have B := composition.length_join a b,
+  congr' 2; try { rw B },
+  dsimp [apply_composition],
+  apply (fin.heq_fun_iff B.symm).2 (λ i, _),
+  -- check that the `q` components are the same. Based on `length_sigma_composition_aux`
+  unfold_coes,
+  have C := length_sigma_composition_aux a b i,
+  congr' 1; try { rw C },
+  apply (fin.heq_fun_iff C.symm).2 (λ j, _),
+  -- check that the `p` components are the same. Based on `blocks_fun_sigma_composition_aux`
+  dsimp,
+  have D := blocks_fun_sigma_composition_aux a b i j,
+  congr' 1; try { rw D },
+  apply (fin.heq_fun_iff D.symm).2 (λ k, _),
+  -- finally, check that the coordinates of `v` one is using are the same. Based on
+  -- `size_up_to_size_up_to_add`.
+  dsimp,
+  congr' 1,
+  dsimp [composition.embedding],
+  rw fin.ext_iff,
+  dsimp,
+  rw [size_up_to_size_up_to_add _ _ i.2 j.2, add_assoc],
+end
+
+end formal_multilinear_series

@@ -5,10 +5,10 @@ Authors: Chris Hughes
 
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
-
 import ring_theory.unique_factorization_domain
-import data.polynomial ring_theory.principal_ideal_domain
-       algebra.euclidean_domain
+import data.polynomial
+import ring_theory.principal_ideal_domain
+import algebra.euclidean_domain
 
 universes u v w
 

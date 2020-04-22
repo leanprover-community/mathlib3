@@ -3,7 +3,8 @@ Copyright (c) 2018  Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import tactic.basic algebra.group.hom
+import tactic.basic
+import algebra.group.hom
 /-!
 # Conjugacy of group elements
 -/

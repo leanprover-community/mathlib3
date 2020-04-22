@@ -3,9 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import algebra.ordered_field
-import tactic.linarith tactic.ring
+import tactic.linarith
+import tactic.ring
 
 /-!
 # Quadratic discriminants and roots of a quadratic

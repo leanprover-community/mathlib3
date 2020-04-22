@@ -5,7 +5,9 @@ Author: Mario Carneiro
 
 Topology of the complex numbers.
 -/
-import data.complex.basic topology.metric_space.basic topology.instances.real
+import data.complex.basic
+import topology.metric_space.basic
+import topology.instances.real
 
 noncomputable theory
 open filter metric

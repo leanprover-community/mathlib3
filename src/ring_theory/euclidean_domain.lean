@@ -3,7 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
-import algebra.associated algebra.euclidean_domain ring_theory.ideals
+import algebra.associated
+import algebra.euclidean_domain
+import ring_theory.ideals
 noncomputable theory
 open_locale classical
 open euclidean_domain set ideal

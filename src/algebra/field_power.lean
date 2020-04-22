@@ -5,9 +5,11 @@ Authors: Robert Y. Lewis
 
 Integer power operation on fields.
 -/
-
-import algebra.group_power algebra.ordered_field algebra.group_with_zero_power
-import tactic.wlog tactic.linarith
+import algebra.group_power
+import algebra.ordered_field
+import algebra.group_with_zero_power
+import tactic.wlog
+import tactic.linarith
 
 universe u
 

@@ -87,25 +87,40 @@ by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
 
 -- We have control of how `library_search` uses `solve_by_elim`.
 
+-- In particular, we can add extra lemmas to the `solve_by_elim` step
+-- (i.e. for `library_search` to use to attempt to discharge subgoals
+-- after successfully applying a lemma from the library.)
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 
 example {a b : ℕ} (h₁ : 0 < a) (h₂ : a < b) : b ≠ 0 :=
-by library_search [lt.trans] --Says: exact ne_of_gt (lt.trans h₁ h₂)
+begin
+  library_search [lt.trans] --Says: exact ne_of_gt (lt.trans h₁ h₂)
+end
 
--- In the following example `5` is the minimum `max_depth` for which the example works.
+-- We can also use attributes:
+meta def ex_attr : user_attribute := {
+  name := `ex,
+  descr := "A lemma that should be applied by `library_search` when discharging subgoals."
+}
+
+run_cmd attribute.register ``ex_attr
+
+attribute [ex] lt.trans
+
+-- In the following example we need to increase the `max_depth`.
 example {a b c d: ℕ} (h₁ : a < b) (h₂ : b < c) : d < a → max d c = c :=
 begin
   intro,
-  library_search [lt.trans] {max_depth := 5},
+  library_search with ex {max_depth := 5},
     --Says: `exact max_eq_right_of_lt (lt.trans (lt.trans a_1 h₁) h₂)`
 end
 
 example (f g k: ℕ → ℕ) (h₁ : ∀ n : ℕ, f n = g n) (h₂ : ∀ n : ℕ, g n = k n) : f = k :=
 begin
-  library_search [eq.trans] { discharger := `[intro], max_depth := 4 },
+  library_search [eq.trans] { discharger := `[intro] },
   --Says: `exact funext (λ (x : ℕ), eq.trans (h₁ x) (h₂ x))`
 end
 

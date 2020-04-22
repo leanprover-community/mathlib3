@@ -37,3 +37,4 @@ import
   tactic.interval_cases
   tactic.reassoc_axiom -- most likely useful only for category_theory
   tactic.slice
+  tactic.subtype_instance

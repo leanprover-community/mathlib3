@@ -680,7 +680,7 @@ A potential extension to the tactic would also do this for the base of exponents
 e.g. to show `2^n * 2^n = 4^n`.
 -/
 meta inductive overlap : Type
-| none {} : overlap
+| none : overlap
 | nonzero : ex prod → overlap
 | zero : ex sum → overlap
 

@@ -677,7 +677,6 @@ begin
   { exact ((h.has_mfderiv_within_at).congr_of_mem_nhds_within hL hx).mfderiv_within hs },
   { unfold mfderiv_within,
     rw [dif_neg h, dif_neg],
-    refl,
     rwa ← mdifferentiable_within_at_congr_of_mem_nhds_within I I' hL hx }
 end
 

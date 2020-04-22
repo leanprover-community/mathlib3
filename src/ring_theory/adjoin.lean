@@ -58,7 +58,7 @@ begin
     suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
-    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem _, one_smul _ _⟩ },
+    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨⟨hd, rfl⟩ | hs⟩ | rfl,
@@ -87,8 +87,9 @@ le_antisymm
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
     (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).3 ⟨r, rfl⟩)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ n r ih, by rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul, polynomial.aeval_def _ _ _ polynomial.X,
-      polynomial.eval₂_X]; exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl)))
+    (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
+      polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
+      exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl) }))
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=

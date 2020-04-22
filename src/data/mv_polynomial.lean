@@ -896,9 +896,9 @@ begin
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
   rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
   rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
-  { rw [mul_zero, finsupp.single_zero], refl },
+  { rw [mul_zero, finsupp.single_zero] },
   { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero], refl }, }
+    all_goals { rw [zero_mul, finsupp.single_zero] }, }
 end
 
 lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=
@@ -990,6 +990,7 @@ end map
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
+-- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
 instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,

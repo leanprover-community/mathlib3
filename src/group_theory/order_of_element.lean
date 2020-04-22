@@ -202,7 +202,7 @@ have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
 have ft_cosets : fintype (quotient (gpowers a)),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem (gpowers a)⟩⟩,
+  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem⟩⟩,
 have ft : fintype (quotient (gpowers a) × (gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
@@ -270,7 +270,7 @@ section cyclic
 local attribute [instance] set_fintype
 
 class is_cyclic (α : Type*) [group α] : Prop :=
-(exists_generator : ∃ g : α, ∀ x, x ∈ gpowers g)
+(exists_generator [] : ∃ g : α, ∀ x, x ∈ gpowers g)
 
 def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
 { mul_comm := λ x y, show x * y = y * x,
@@ -334,7 +334,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
 else
   have H = is_subgroup.trivial α,
     from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
-      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem _⟩,
+      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
   by clear _let_match; subst this; apply_instance
 
 open finset nat

@@ -79,7 +79,7 @@ end
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
-  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem _)
+  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem)
   begin
     change ring.closure _ ⊆ _,
     simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
@@ -160,7 +160,7 @@ begin
       (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,
     { rw [span_le, set.insert_subset, mem_coe], split,
-      change _ ∈ ring.closure _, exact is_submonoid.one_mem _, exact algebra.subset_adjoin },
+      change _ ∈ ring.closure _, exact is_submonoid.one_mem, exact algebra.subset_adjoin },
     rw [algebra.adjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
     { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
     { exact subset_span (set.mem_insert _ _) },
@@ -275,18 +275,18 @@ begin
     change (coeff p n).1.1 ∈ ring.closure _,
     rcases ring.exists_list_of_mem_closure (coeff p n).2 with ⟨L, HL1, HL2⟩, rw ← HL2,
     clear HL2 hfs h1 hx n hmp hpx hr r p,
-    induction L with hd tl ih, { exact is_add_submonoid.zero_mem _ },
+    induction L with hd tl ih, { exact is_add_submonoid.zero_mem },
     rw list.forall_mem_cons at HL1,
     rw [list.map_cons, list.sum_cons],
     refine is_add_submonoid.add_mem _ (ih HL1.2),
     cases HL1 with HL HL', clear HL' ih tl,
-    induction hd with hd tl ih, { exact is_submonoid.one_mem _ },
+    induction hd with hd tl ih, { exact is_submonoid.one_mem },
     rw list.forall_mem_cons at HL,
     rw list.prod_cons,
     refine is_submonoid.mul_mem _ (ih HL.2),
     rcases HL.1 with hs | rfl,
     { exact algebra.subset_adjoin (set.mem_image_of_mem _ hs) },
-    exact is_add_subgroup.neg_mem (is_submonoid.one_mem _) },
+    exact is_add_subgroup.neg_mem (is_submonoid.one_mem) },
   replace hmp := congr_arg subtype.val hmp,
   replace hmp := congr_arg subtype.val hmp,
   exact subtype.eq hmp

@@ -667,6 +667,10 @@ lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
+lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
+(⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
+infi_subtype
+
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)

@@ -44,7 +44,7 @@ end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
-algebra.to_ring_hom R A
+algebra.to_ring_hom
 
 /-- Creating an algebra from a morphism to the center of a semiring. -/
 def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
@@ -189,12 +189,12 @@ instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_rin
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
 
-@[simp, elim_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
+@[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
-@[simp, squash_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
+@[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
-@[simp, squash_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
+@[simp, norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
 
@@ -260,6 +260,19 @@ theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A �
 ext $ λ x, rfl
 
 end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
+variables [algebra R A] [algebra R B]
+
+variables (φ : A →ₐ[R] B)
+
+lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+φ.to_ring_hom.map_prod f s
+
+end comm_semiring
 
 variables [comm_ring R] [ring A] [ring B] [ring C]
 variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
@@ -558,7 +571,7 @@ variables {R}
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 { carrier := S,
   range_le' := by { rintros _ ⟨i, rfl⟩, rw [ring_hom.eq_int_cast, ← gsmul_one],
-    exact is_add_subgroup.gsmul_mem (is_submonoid.one_mem _) } }
+    exact is_add_subgroup.gsmul_mem is_submonoid.one_mem } }
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
@@ -571,7 +584,7 @@ lemma span_int_eq_add_group_closure (s : set R) :
   ↑(span ℤ s) = add_group.closure s :=
 set.subset.antisymm (λ x hx, span_induction hx
   (λ _, add_group.mem_closure)
-  (is_add_submonoid.zero_mem _)
+  is_add_submonoid.zero_mem
   (λ a b ha hb, is_add_submonoid.add_mem ha hb)
   (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
   (add_group.closure_subset subset_span)
@@ -613,7 +626,7 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=
   add := λx y, f.map_add x y,
   smul := λc x, f.map_smul (algebra_map R S c) x }
 
-@[simp, squash_cast] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
+@[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
 
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real

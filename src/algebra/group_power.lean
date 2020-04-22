@@ -66,12 +66,9 @@ by split_ifs; refl
   (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
 by split_ifs; refl
 
--- In this lemma we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
 @[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
   a ^ (if P then 1 else 0) = if P then a else 1 :=
-by { simp, congr }
+by simp
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
@@ -400,10 +397,10 @@ by rw [add_monoid.smul_eq_mul, add_monoid.smul_eq_mul, mul_assoc]
 lemma zero_pow [semiring R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
-@[simp, move_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact nat.cast_one, rw [nat.pow_succ, pow_succ', nat.cast_mul, ih]]
 
-@[simp, move_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [nat.pow_succ, pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -458,7 +455,7 @@ lemma gsmul_int_int (a b : ℤ) : a •ℤ b = a * b := by simp [gsmul_eq_mul]
 
 lemma gsmul_int_one (n : ℤ) : n •ℤ 1 = n := by simp
 
-@[simp, move_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact int.cast_one,
   rw [pow_succ, pow_succ, int.cast_mul, ih]]
 
@@ -479,7 +476,7 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
+theorem add_monoid.smul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
@@ -491,7 +488,7 @@ lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 namespace add_monoid
-variable [ordered_comm_monoid A]
+variable [ordered_add_comm_monoid A]
 
 theorem smul_le_smul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
 let ⟨k, hk⟩ := nat.le.dest h in
@@ -696,7 +693,7 @@ def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := gpow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { dsimp, simp [← f.map_gpow, ← of_add_gsmul ] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← of_add_gsmul ] } }
 
 /-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
 def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=

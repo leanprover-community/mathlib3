@@ -637,7 +637,7 @@ end
 theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [integral_domain L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
 by letI := classical.dec_eq (G →* L);
-   letI : mul_action L L := distrib_mul_action.to_mul_action L L;
+   letI : mul_action L L := distrib_mul_action.to_mul_action;
 -- We prove linear independence by showing that only the trivial linear combination vanishes.
 exact linear_independent_iff'.2
 -- To do this, we use `finset` induction,

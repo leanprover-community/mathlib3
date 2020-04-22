@@ -34,7 +34,7 @@ lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
 -- enumerate a countable dense subset {e k} of β
-let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
+let ⟨D, ⟨D_countable, D_dense⟩⟩ := @separable_space.exists_countable_closure_eq_univ β _ _ in
 let e := enumerate_countable D_countable 0 in
 let E := range e in
 have E_dense : closure E = univ :=

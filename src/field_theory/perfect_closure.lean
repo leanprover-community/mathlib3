@@ -21,8 +21,8 @@ class perfect_field (α : Type u) [field α] (p : ℕ) [char_p α p] [nat.prime 
 def frobenius_equiv (α : Type u) [field α] (p : ℕ) [char_p α p] [nat.prime p] [perfect_field α p] :
   α ≃+* α :=
 { inv_fun := perfect_field.pth_root' p,
-  left_inv := λ x, frobenius_inj α p $ perfect_field.frobenius_pth_root' p _,
-  right_inv := perfect_field.frobenius_pth_root' p,
+  left_inv := λ x, frobenius_inj α p $ perfect_field.frobenius_pth_root' _,
+  right_inv := perfect_field.frobenius_pth_root',
   .. frobenius α p }
 
 /-- `p`-th root of a number in a `perfect_field` as a `ring_hom`. -/
@@ -120,7 +120,7 @@ private lemma mul_aux_left (x1 x2 y : ℕ × α) (H : r α p x1 x2) :
   mk α p (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) * ((frobenius α p)^[x1.1] y.2)) =
   mk α p (x2.1 + y.1, ((frobenius α p)^[y.1] x2.2) * ((frobenius α p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro _ n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_mul, nat.succ_add]; apply r.intro
 end
 
@@ -128,7 +128,7 @@ private lemma mul_aux_right (x y1 y2 : ℕ × α) (H : r α p y1 y2) :
   mk α p (x.1 + y1.1, ((frobenius α p)^[y1.1] x.2) * ((frobenius α p)^[x.1] y1.2)) =
   mk α p (x.1 + y2.1, ((frobenius α p)^[y2.1] x.2) * ((frobenius α p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro _ n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_mul]; apply r.intro
 end
 
@@ -165,7 +165,7 @@ private lemma add_aux_left (x1 x2 y : ℕ × α) (H : r α p x1 x2) :
   mk α p (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) + ((frobenius α p)^[x1.1] y.2)) =
   mk α p (x2.1 + y.1, ((frobenius α p)^[y.1] x2.2) + ((frobenius α p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro _ n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_add, nat.succ_add]; apply r.intro
 end
 
@@ -173,7 +173,7 @@ private lemma add_aux_right (x y1 y2 : ℕ × α) (H : r α p y1 y2) :
   mk α p (x.1 + y1.1, ((frobenius α p)^[y1.1] x.2) + ((frobenius α p)^[x.1] y1.2)) =
   mk α p (x.1 + y2.1, ((frobenius α p)^[y2.1] x.2) + ((frobenius α p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro _ n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
+| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ, nat.iterate_succ',
     nat.iterate_succ', ← frobenius_add]; apply r.intro
 end
 
@@ -189,7 +189,7 @@ add_aux_left α p x1 x2 y H)⟩
 
 instance : has_neg (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, mk α p (x.1, -x.2)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by rw ← frobenius_neg; apply r.intro
+| _, _, r.intro n x := quot.sound $ by rw ← frobenius_neg; apply r.intro
 end)⟩
 
 @[simp] lemma neg_mk (x : ℕ × α) : - mk α p x = mk α p (x.1, -x.2) := rfl
@@ -200,7 +200,7 @@ lemma zero_def : (0 : perfect_closure α p) = mk α p (0, 0) := rfl
 
 theorem mk_zero (n : ℕ) : mk α p (n, 0) = 0 :=
 by induction n with n ih; [refl, rw ← ih]; symmetry; apply quot.sound;
-have := r.intro p n (0:α); rwa [frobenius_zero α p] at this
+have := r.intro n (0:α); rwa [frobenius_zero α p] at this
 
 theorem r.sound (m n : ℕ) (x y : α) (H : frobenius α p^[m] x = y) :
   mk α p (n, x) = mk α p (m + n, y) :=
@@ -335,7 +335,7 @@ variables [field α] (p : ℕ) [nat.prime p] [char_p α p]
 
 instance : has_inv (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, x.2⁻¹)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius_def]; rw ← inv_pow'; apply r.intro
+| _, _, r.intro n x := quot.sound $ by simp only [frobenius_def]; rw ← inv_pow'; apply r.intro
 end)⟩
 
 instance : field (perfect_closure α p) :=
@@ -353,10 +353,10 @@ instance : field (perfect_closure α p) :=
 instance : perfect_field (perfect_closure α p) p :=
 { pth_root' := λ e, lift_on e (λ x, mk α p (x.1 + 1, x.2)) (λ x y H,
     match x, y, H with
-    | _, _, r.intro _ n x := quot.sound (r.intro _ _ _)
+    | _, _, r.intro n x := quot.sound (r.intro _ _)
     end),
   frobenius_pth_root' := λ e, induction_on e (λ ⟨n, x⟩,
-    by { simp only [lift_on_mk, frobenius_mk], exact (quot.sound $ r.intro _ _ _).symm }) }
+    by { simp only [lift_on_mk, frobenius_mk], exact (quot.sound $ r.intro _ _).symm }) }
 
 theorem eq_pth_root (x : ℕ × α) :
   mk α p x = (pth_root (perfect_closure α p) p^[x.1] (of α p x.2)) :=

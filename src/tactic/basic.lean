@@ -25,9 +25,12 @@ import
   tactic.rewrite
   tactic.lint
   tactic.simp_rw
+  tactic.simp_command
+  tactic.simp_result
   tactic.simpa
   tactic.simps
   tactic.split_ifs
   tactic.squeeze
+  tactic.trunc_cases
   tactic.where
   tactic.hint

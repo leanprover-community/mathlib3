@@ -9,6 +9,8 @@ Extra definitions on option.
 namespace option
 variables {α : Type*} {β : Type*}
 
+attribute [inline] option.is_some option.is_none
+
 /-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
 protected def elim : option α → β → (α → β) → β
 | (some x) y f := f x
@@ -93,11 +95,24 @@ instance lift_or_get_is_right_id (f : α → α → α) :
 
 inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
-| none {}    : rel none none
+| none       : rel none none
 
 protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   option α → F (option β)
 | none := pure none
 | (some x) := some <$> f x
+
+/- By analogy with `monad.sequence` in `init/category/combinators.lean`. -/
+
+/-- If you maybe have a monadic computation in a `[monad m]` which produces a term of type `α`, then
+there is a naturally associated way to always perform a computation in `m` which maybe produces a
+result. -/
+def {u v} maybe {m : Type u → Type v} [monad m] {α : Type u} : option (m α) → m (option α)
+| none := return none
+| (some fn) := some <$> fn
+
+/-- Map a monadic function `f : α → m β` over an `o : option α`, maybe producing a result. -/
+def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (f : α → m β)
+  (o : option α) : m (option β) := (o.map f).maybe
 
 end option

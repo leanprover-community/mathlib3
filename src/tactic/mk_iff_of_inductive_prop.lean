@@ -136,7 +136,7 @@ match s.length with
 end
 
 /--
-`mk_iff_of_inductive_prop i r` makes a iff rule for the inductively defined proposition `i`.
+`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
 The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
 parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
 parameters for each constructors, the equalities `is = cs` are the instantiations for each
@@ -182,7 +182,7 @@ section
 setup_tactic_parser
 
 /--
-`mk_iff_of_inductive_prop i r` makes a iff rule for the inductively defined proposition `i`.
+`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
 The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
 parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
 parameters for each constructors, the equalities `is = cs` are the instantiations for each

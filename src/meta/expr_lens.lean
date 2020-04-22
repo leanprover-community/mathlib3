@@ -75,8 +75,8 @@ meta def to_dirs : expr_lens → list dir
 | (expr_lens.app_arg l _) := l.to_dirs.concat dir.F
 
 /-- Sometimes `mk_congr_arg` fails, when the function is 'superficially dependent'.
-This hack `dsimp`s the function before building the `congr_arg` expression. -/
-meta def mk_congr_arg_using_dsimp' (G W : expr) (u : list name) : tactic expr :=
+Try to `dsimp` the function first before building the `congr_arg` expression. -/
+meta def mk_congr_arg_using_dsimp (G W : expr) (u : list name) : tactic expr :=
 do s ← simp_lemmas.mk_default,
    t ← infer_type G,
    t' ← s.dsimplify u t { fail_if_unchanged := ff },
@@ -95,7 +95,7 @@ meta def congr : expr_lens → expr → tactic expr
 | entire e_eq        := pure e_eq
 | (app_fun l f) x_eq := do fx_eq ← try_core $ do {
                              mk_congr_arg f x_eq
-                             <|> mk_congr_arg_using_dsimp' f x_eq [`has_coe_to_fun.F]
+                             <|> mk_congr_arg_using_dsimp f x_eq [`has_coe_to_fun.F]
                            },
                            match fx_eq with
                            | (some fx_eq) := l.congr fx_eq

@@ -5,7 +5,11 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto data.list.defs data.finset data.nat.enat
+import tactic.tauto
+import data.list.defs
+import data.finset
+import data.nat.enat
+import tactic.omega
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -357,6 +361,19 @@ lemma prod_range_succ' (f : ℕ → β) :
 | 0       := (prod_range_succ _ _).trans $ mul_comm _ _
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
+
+/-- A telescoping sum along `{0, ..., n-1}` reduces to the difference of the last and first terms
+when the function we are summing is monotone. -/
+lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
+  (finset.range n).sum (λ i, f (i+1) - f i) = f n - f 0 :=
+begin
+  induction n with n IH,
+  simp,
+  rw [finset.sum_range_succ, IH, nat.succ_eq_add_one],
+  have : f n ≤ f (n+1) := h (nat.le_succ _),
+  have : f 0 ≤ f n := h (nat.zero_le _),
+  omega
+end
 
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=

@@ -148,6 +148,18 @@ lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : 
   (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
+/-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
+@[to_additive]
+lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
+  finset.univ.prod (λ (i : fin n), f i.val) = (finset.range n).prod f :=
+begin
+  apply finset.prod_bij (λ (a : fin n) ha, a.val),
+  { assume a ha, simp [a.2] },
+  { assume a ha, refl },
+  { assume a b ha hb H, exact (fin.ext_iff _ _).2 H },
+  { assume b hb, exact ⟨⟨b, list.mem_range.mp hb⟩, finset.mem_univ _, rfl⟩, }
+end
+
 namespace list
 
 lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :

@@ -147,9 +147,10 @@ be just `c = i` for some index `i`.
 
 For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
 
-  ∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
-    chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
-
+```lean
+∀ {α : Type*} (R : α → α → Prop) (a : α) (l : list α),
+  chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
+```
 -/
 meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
   e ← get_env,
@@ -193,9 +194,10 @@ be just `c = i` for some index `i`.
 
 For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
 
-  ∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
-    chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
-
+```lean
+∀ {α : Type*} (R : α → α → Prop) (a : α) (l : list α),
+  chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
+```
 -/
 @[user_command] meta def mk_iff_of_inductive_prop_cmd (_ : parse (tk "mk_iff_of_inductive_prop")) :
   parser unit :=

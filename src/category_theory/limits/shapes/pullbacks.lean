@@ -30,10 +30,10 @@ universes v u
 local attribute [tidy] tactic.case_bash
 
 /-- The type of objects for the diagram indexing a pullback. -/
-@[derive decidable_eq] inductive walking_cospan : Type v
+@[derive decidable_eq, derive inhabited] inductive walking_cospan : Type v
 | left | right | one
 /-- The type of objects for the diagram indexing a pushout. -/
-@[derive decidable_eq] inductive walking_span : Type v
+@[derive decidable_eq, derive inhabited] inductive walking_span : Type v
 | zero | left | right
 
 instance fintype_walking_cospan : fintype walking_cospan :=
@@ -47,10 +47,14 @@ instance fintype_walking_span : fintype walking_span :=
 namespace walking_cospan
 
 /-- The arrows in a pullback diagram. -/
-@[derive _root_.decidable_eq] inductive hom : walking_cospan → walking_cospan → Type v
+@[derive decidable_eq] inductive hom : walking_cospan → walking_cospan → Type v
 | inl : hom left one
 | inr : hom right one
 | id : Π X : walking_cospan.{v}, hom X X
+
+/-- Satisfying the inhabited linter -/
+instance hom.inhabited : inhabited (hom left one) :=
+{ default := hom.inl }
 
 open hom
 
@@ -61,6 +65,7 @@ instance fintype_walking_cospan_hom (j j' : walking_cospan) : fintype (hom j j')
     (walking_cospan.rec_on j' ∅ ∅ [hom.id one].to_finset),
   complete := by tidy }
 
+/-- Composition of morphisms in the category indexing a pullback. -/
 def hom.comp : Π (X Y Z : walking_cospan) (f : hom X Y) (g : hom Y Z), hom X Z
 | _ _ _ (id _) h := h
 | _ _ _ inl    (id one) := inl
@@ -89,10 +94,13 @@ end walking_cospan
 namespace walking_span
 
 /-- The arrows in a pushout diagram. -/
-@[derive _root_.decidable_eq] inductive hom : walking_span → walking_span → Type v
+@[derive decidable_eq] inductive hom : walking_span → walking_span → Type v
 | fst : hom zero left
 | snd : hom zero right
 | id : Π X : walking_span.{v}, hom X X
+
+instance hom.inhabited : inhabited (hom zero left) :=
+{ default := hom.fst }
 
 open hom
 
@@ -103,6 +111,7 @@ instance fintype_walking_span_hom (j j' : walking_span) : fintype (hom j j') :=
     (walking_span.rec_on j' ∅ ∅ [hom.id right].to_finset),
   complete := by tidy }
 
+/-- Composition of morphisms in the category indexing a pushout. -/
 def hom.comp : Π (X Y Z : walking_span) (f : hom X Y) (g : hom Y Z), hom X Z
   | _ _ _ (id _) h := h
   | _ _ _ fst    (id left) := fst
@@ -203,14 +212,21 @@ variables {X Y Z : C}
 
 attribute [simp] walking_cospan.hom_id walking_span.hom_id
 
+/-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and
+    `g : Y ⟶ Z`.-/
 abbreviation pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 
 namespace pullback_cone
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
 
+/-- The first projection of a pullback cone. -/
 abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
+
+/-- The second projection of a pullback cone. -/
 abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
 
+/-- A pullback cone on `f` and `g` is determined by morphisms `fst : W ⟶ X` and `snd : W ⟶ Y`
+    such that `fst ≫ f = snd ≫ g`. -/
 def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pullback_cone f g :=
 { X := W,
   π :=
@@ -232,14 +248,24 @@ end
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/
 lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
-  (h₀ : k ≫ fst t = l ≫ fst t)
-  (h₁ : k ≫ snd t = l ≫ snd t) :
+  (h₀ : k ≫ fst t = l ≫ fst t) (h₁ : k ≫ snd t = l ≫ snd t) :
   ∀ (j : walking_cospan), k ≫ t.π.app j = l ≫ t.π.app j
 | left := h₀
 | right := h₁
 | one := calc k ≫ t.π.app one = k ≫ t.π.app left ≫ (cospan f g).map inl : by rw ←t.w
     ... = l ≫ t.π.app left ≫ (cospan f g).map inl : by rw [←category.assoc, h₀, category.assoc]
     ... = l ≫ t.π.app one : by rw t.w
+
+lemma is_limit.hom_ext {t : pullback_cone f g} (ht : is_limit t) {W : C} {k l : W ⟶ t.X}
+  (h₀ : k ≫ fst t = l ≫ fst t) (h₁ : k ≫ snd t = l ≫ snd t) : k = l :=
+ht.hom_ext $ equalizer_ext _ h₀ h₁
+
+/-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
+    `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
+    -/
+def is_limit.lift' {t : pullback_cone f g} (ht : is_limit t) {W : C} (h : W ⟶ X) (k : W ⟶ Y)
+  (w : h ≫ f = k ≫ g) : {l : W ⟶ t.X // l ≫ fst t = h ∧ l ≫ snd t = k} :=
+⟨ht.lift $ pullback_cone.mk _ _ w, ht.fac _ _, ht.fac _ _⟩
 
 /-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
@@ -256,15 +282,22 @@ def is_limit.mk (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X 
 
 end pullback_cone
 
+/-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and
+    `g : X ⟶ Z`.-/
 abbreviation pushout_cocone (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
 
 namespace pushout_cocone
 
 variables {f : X ⟶ Y} {g : X ⟶ Z}
 
+/-- The first inclusion of a pushout cocone. -/
 abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
+
+/-- The second inclusion of a pushout cocone. -/
 abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
 
+/-- A pushout cocone on `f` and `g` is determined by morphisms `inl : Y ⟶ W` and `inr : Z ⟶ W` such
+    that `f ≫ inl = g ↠ inr`. -/
 def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pushout_cocone f g :=
 { X := W,
   ι :=
@@ -286,14 +319,24 @@ end
 /-- To check whether a morphism is coequalized by the maps of a pushout cocone, it suffices to check
   it for `inl t` and `inr t` -/
 lemma coequalizer_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
-  (h₀ : inl t ≫ k = inl t ≫ l)
-  (h₁ : inr t ≫ k = inr t ≫ l) :
+  (h₀ : inl t ≫ k = inl t ≫ l) (h₁ : inr t ≫ k = inr t ≫ l) :
   ∀ (j : walking_span), t.ι.app j ≫ k = t.ι.app j ≫ l
 | left := h₀
 | right := h₁
 | zero := calc t.ι.app zero ≫ k = ((span f g).map fst ≫ t.ι.app left) ≫ k : by rw ←t.w
     ... = ((span f g).map fst ≫ t.ι.app left) ≫ l : by rw [category.assoc, h₀, ←category.assoc]
     ... = t.ι.app zero ≫ l : by rw t.w
+
+lemma is_colimit.hom_ext {t : pushout_cocone f g} (ht : is_colimit t) {W : C} {k l : t.X ⟶ W}
+  (h₀ : inl t ≫ k = inl t ≫ l) (h₁ : inr t ≫ k = inr t ≫ l) : k = l :=
+ht.hom_ext $ coequalizer_ext _ h₀ h₁
+
+/-- If `t` is a colimit pushout cocone over `f` and `g` and `h : Y ⟶ W` and `k : Z ⟶ W` are
+    morphisms satisfying `f ≫ h = g ≫ k`, then we have a factorization `l : t.X ⟶ W` such that
+    `inl t ≫ l = h` and `inr t ≫ l = k`. -/
+def is_colimit.desc' {t : pushout_cocone f g} (ht : is_colimit t) {W : C} (h : Y ⟶ W) (k : Z ⟶ W)
+  (w : f ≫ h = g ≫ k) : {l : t.X ⟶ W // inl t ≫ l = h ∧ inr t ≫ l = k } :=
+⟨ht.desc $ pushout_cocone.mk _ _ w, ht.fac _ _, ht.fac _ _⟩
 
 /-- This is a slightly more convenient method to verify that a pushout cocone is a colimit cocone.
     It only asks for a proof of facts that carry any mathematical content -/
@@ -310,6 +353,13 @@ def is_colimit.mk (t : pushout_cocone f g) (desc : Π (s : cocone (span f g)), t
 
 end pushout_cocone
 
+/-- This is a helper construction that can be useful when verifying that a category has all
+    pullbacks. Given `F : walking_cospan ⥤ C`, which is really the same as
+    `cospan (F.map inl) (F.map inr)`, and a pullback cone on `F.map inl` and `F.map inr`, we
+    get a cone on `F`.
+
+    If you're thinking about using this, have a look at `has_pullbacks_of_has_limit_cospan`,
+    which you may find to be an easier way of achieving your goal. -/
 def cone.of_pullback_cone
   {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) : cone F :=
 { X := t.X,
@@ -326,6 +376,13 @@ def cone.of_pullback_cone
   {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j) :
   (cone.of_pullback_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
+/-- This is a helper construction that can be useful when verifying that a category has all
+    pushout. Given `F : walking_span ⥤ C`, which is really the same as
+    `span (F.map fst) (F.mal snd)`, and a pushout cocone on `F.map fst` and `F.map snd`,
+    we get a cocone on `F`.
+
+    If you're thinking about using this, have a look at `has_pushouts_of_has_colimit_span`, which
+    you may find to be an easiery way of achieving your goal.  -/
 def cocone.of_pushout_cocone
   {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) : cocone F :=
 { X := t.X,
@@ -342,6 +399,8 @@ def cocone.of_pushout_cocone
   {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j) :
   (cocone.of_pushout_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+/-- Given `F : walking_cospan ⥤ C`, which is really the same as `cospan (F.map inl) (F.map inr)`,
+    and a cone on `F`, we get a pullback cone on `F.map inl` and `F.map inr`. -/
 def pullback_cone.of_cone
   {F : walking_cospan.{v} ⥤ C} (t : cone F) : pullback_cone (F.map inl) (F.map inr) :=
 { X := t.X,
@@ -350,6 +409,8 @@ def pullback_cone.of_cone
 @[simp] lemma pullback_cone.of_cone_π {F : walking_cospan.{v} ⥤ C} (t : cone F) (j) :
   (pullback_cone.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
+/-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
+    and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/
 def pushout_cocone.of_cocone
   {F : walking_span.{v} ⥤ C} (t : cocone F) : pushout_cocone (F.map fst) (F.map snd) :=
 { X := t.X,
@@ -365,31 +426,79 @@ limit (cospan f g)
 abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
 colimit (span f g)
 
-abbreviation pullback.fst {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ X :=
+/-- The first projection of the pullback of `f` and `g`. -/
+abbreviation pullback.fst {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
+  pullback f g ⟶ X :=
 limit.π (cospan f g) walking_cospan.left
-abbreviation pullback.snd {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ Y :=
+
+/-- The second projection of the pullback of `f` and `g`. -/
+abbreviation pullback.snd {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
+  pullback f g ⟶ Y :=
 limit.π (cospan f g) walking_cospan.right
-abbreviation pushout.inl {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Y ⟶ pushout f g :=
+
+/-- The first inclusion into the pushout of `f` and `g`. -/
+abbreviation pushout.inl {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
+  Y ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.left
-abbreviation pushout.inr {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Z ⟶ pushout f g :=
+
+/-- The second inclusion into the pushout of `f` and `g`. -/
+abbreviation pushout.inr {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
+  Z ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.right
 
+/-- A pair of morphisms `h : W ⟶ X` and `k : W ⟶ Y` satisfying `h ≫ f = k ≫ g` induces a morphism
+    `pullback.lift : W ⟶ pullback f g`. -/
 abbreviation pullback.lift {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : W ⟶ pullback f g :=
 limit.lift _ (pullback_cone.mk h k w)
+
+/-- A pair of morphisms `h : Y ⟶ W` and `k : Z ⟶ W` satisfying `f ≫ h = g ≫ k` induces a morphism
+    `pushout.desc : pushout f g ⟶ W`. -/
 abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
 colimit.desc _ (pushout_cocone.mk h k w)
 
+@[simp, reassoc]
+lemma pullback.lift_fst {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : pullback.lift h k w ≫ pullback.fst = h :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma pullback.lift_snd {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : pullback.lift h k w ≫ pullback.snd = k :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma pushout.inl_desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
+  (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout.inl ≫ pushout.desc h k w = h :=
+colimit.ι_desc _ _
+
+@[simp, reassoc]
+lemma pushout.inr_desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
+  (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout.inr ≫ pushout.desc h k w = k :=
+colimit.ι_desc _ _
+
+/-- A pair of morphisms `h : W ⟶ X` and `k : W ⟶ Y` satisfying `h ≫ f = k ≫ g` induces a morphism
+    `l : W ⟶ pullback f g` such that `l ≫ pullback.fst = h` and `l ≫ pullback.snd = k`. -/
+def pullback.lift' {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) :
+  {l : W ⟶ pullback f g // l ≫ pullback.fst = h ∧ l ≫ pullback.snd = k} :=
+⟨pullback.lift h k w, pullback.lift_fst _ _ _, pullback.lift_snd _ _ _⟩
+
+/-- A pair of morphisms `h : Y ⟶ W` and `k : Z ⟶ W` satisfying `f ≫ h = g ≫ k` induces a morphism
+    `l : pushout f g ⟶ W` such that `pushout.inl ≫ l = h` and `pushout.inr ≫ l = k`. -/
+def pullback.desc' {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
+  (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) :
+  {l : pushout f g ⟶ W // pushout.inl ≫ l = h ∧ pushout.inr ≫ l = k} :=
+⟨pushout.desc h k w, pushout.inl_desc _ _ _, pushout.inr_desc _ _ _⟩
+
 lemma pullback.condition {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
   (pullback.fst : pullback f g ⟶ X) ≫ f = pullback.snd ≫ g :=
-(limit.w (cospan f g) walking_cospan.hom.inl).trans
-(limit.w (cospan f g) walking_cospan.hom.inr).symm
+pullback_cone.condition _
 
 lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
-(colimit.w (span f g) walking_span.hom.fst).trans
-(colimit.w (span f g) walking_span.hom.snd).symm
+pushout_cocone.condition _
 
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
     equal -/

@@ -65,7 +65,7 @@ lemma has_deriv_at_gronwall_bound_shift (δ K ε x a : ℝ) :
   has_deriv_at (λ y, gronwall_bound δ K ε (y - a)) (K * (gronwall_bound δ K ε (x - a)) + ε) x :=
 begin
   convert (has_deriv_at_gronwall_bound δ K ε _).comp x ((has_deriv_at_id x).sub_const a),
-  rw [id, one_smul]
+  rw [id, mul_one]
 end
 
 lemma gronwall_bound_x0 (δ K ε : ℝ) : gronwall_bound δ K ε 0 = δ :=

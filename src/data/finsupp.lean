@@ -402,6 +402,19 @@ if_pos rfl
 @[simp] lemma erase_ne [has_zero β] {a a' : α} {f : α →₀ β} (h : a' ≠ a) : (f.erase a) a' = f a' :=
 if_neg h
 
+@[simp] lemma erase_single [has_zero β] {a : α} {b : β} : (erase a (single a b)) = 0 := begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same], refl },
+  { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
+end
+
+lemma erase_single_ne [has_zero β] {a a' : α} {b : β} (h : a ≠ a') : (erase a (single a' b)) = single a' b :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
+  { rw [erase_ne hs] }
+end
+
 end erase
 
 /-!
@@ -450,15 +463,6 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
-
-section nat_sub
-instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
-
-@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
-  (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
-
-end nat_sub
 
 section add_monoid
 variables [add_monoid β]
@@ -521,6 +525,13 @@ ext $ λ a',
 if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
 else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
 
+@[simp] lemma erase_add (a : α) (f f' : α →₀ β) : erase a (f + f') = erase a f + erase a f' :=
+begin
+  ext s, by_cases hs : s = a,
+  { rw [hs, add_apply, erase_same, erase_same, erase_same, add_zero] },
+  rw [add_apply, erase_ne hs, erase_ne hs, erase_ne hs, add_apply],
+end
+
 @[elab_as_eliminator]
 protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)
   (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
@@ -558,6 +569,47 @@ lemma map_range_add [add_monoid β₁] [add_monoid β₂]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 end add_monoid
+
+section nat_sub
+instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+
+@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
+  (g₁ - g₂) a = g₁ a - g₂ a :=
+rfl
+
+@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
+end
+
+-- These next two lemmas are used in developing
+-- the partial derivative on `mv_polynomial`.
+
+lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
+  u - single a 1 + u' = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
+  u + (u' - single a 1) = u + u' - single a 1 :=
+begin
+  ext b,
+  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
+  by_cases h : a = b,
+  { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
+  { simp [h], }
+end
+
+end nat_sub
+
 
 instance [add_comm_monoid β] : add_comm_monoid (α →₀ β) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
@@ -866,6 +918,7 @@ def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
       exact l.mem_support_to_fun (f a),
     end }
 
+@[simp]
 lemma comap_domain_apply {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) (a : α₁) :
   comap_domain f l hf a = l (f a) :=
@@ -1271,7 +1324,65 @@ end
 end curry_uncurry
 
 section
+variables [group γ] [mul_action γ α] [add_comm_monoid β]
 
+/--
+Scalar multiplication by a group element g,
+given by precomposition with the action of g⁻¹ on the domain.
+-/
+def comap_has_scalar : has_scalar γ (α →₀ β) :=
+{ smul := λ g f, f.comap_domain (λ a, g⁻¹ • a)
+  (λ a a' m m' h, by simpa [←mul_smul] using (congr_arg (λ a, g • a) h)) }
+
+local attribute [instance] comap_has_scalar
+
+/--
+Scalar multiplication by a group element,
+given by precomposition with the action of g⁻¹ on the domain,
+is multiplicative in g.
+-/
+def comap_mul_action : mul_action γ (α →₀ β) :=
+{ one_smul := λ f, by { ext, dsimp [(•)], simp, },
+  mul_smul := λ g g' f, by { ext, dsimp [(•)], simp [mul_smul], }, }
+
+local attribute [instance] comap_mul_action
+
+/--
+Scalar multiplication by a group element,
+given by precomposition with the action of g⁻¹ on the domain,
+is additive in the second argument.
+-/
+def comap_distrib_mul_action :
+  distrib_mul_action γ (α →₀ β) :=
+{ smul_zero := λ g, by { ext, dsimp [(•)], simp, },
+  smul_add := λ g f f', by { ext, dsimp [(•)], simp, }, }
+
+/--
+Scalar multiplication by a group element on finitely supported functions on a group,
+given by precomposition with the action of g⁻¹. -/
+def comap_distrib_mul_action_self :
+  distrib_mul_action γ (γ →₀ β) :=
+@finsupp.comap_distrib_mul_action γ β γ _ (mul_action.regular γ) _
+
+@[simp]
+lemma comap_smul_single (g : γ) (a : α) (b : β) :
+  g • single a b = single (g • a) b :=
+begin
+  ext a',
+  dsimp [(•)],
+  by_cases h : g • a = a',
+  { subst h, simp [←mul_smul], },
+  { simp [single_eq_of_ne h], rw [single_eq_of_ne],
+    rintro rfl, simpa [←mul_smul] using h, }
+end
+
+@[simp]
+lemma comap_smul_apply (g : γ) (f : α →₀ β) (a : α) :
+  (g • f) a = f (g⁻¹ • a) := rfl
+
+end
+
+section
 instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
@@ -1528,31 +1639,31 @@ instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_left_cancel_semigroup (σ →₀ α) :=
 { add_left_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_left_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
+instance [ordered_cancel_add_comm_monoid α] :
   add_right_cancel_semigroup (σ →₀ α) :=
 { add_right_cancel := λ a b c h, ext $ λ s,
   by { rw ext_iff at h, exact add_right_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] :
-  ordered_cancel_comm_monoid (σ →₀ α) :=
+instance [ordered_cancel_add_comm_monoid α] :
+  ordered_cancel_add_comm_monoid (σ →₀ α) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
-lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+lemma le_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+@[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid α] (f g : σ →₀ α) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 begin
   split,

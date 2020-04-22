@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
+import category_theory.reflect_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -84,7 +85,7 @@ variables (T : C ⥤ C) [monad.{v₁} T]
 { obj := λ X,
   { A := T.obj X,
     a := (μ_ T).app X,
-    assoc' := (monad.assoc T _).symm },
+    assoc' := (monad.assoc _).symm },
   map := λ X Y f,
   { f := T.map f,
     h' := by erw (μ_ T).naturality } }
@@ -115,6 +116,21 @@ adjunction.mk_of_hom_equiv
       erw [←category.assoc, ←(η_ T).naturality, functor.id_map,
             category.assoc, Y.unit, comp_id],
     end }}
+
+/-- Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism. -/
+def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso f :=
+{ inv :=
+  { f := i.inv,
+    h' :=
+    begin
+      erw (as_iso f.f).eq_comp_inv,
+      slice_lhs 2 3 {erw ← f.h},
+      slice_lhs 1 2 {rw ← T.map_comp},
+      rw [is_iso.inv_hom_id, T.map_id, category.id_comp]
+    end } }
+
+instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
+{ reflects := λ A B, algebra_iso_of_iso T }
 
 end monad
 
@@ -175,7 +191,7 @@ variables (G : C ⥤ C) [comonad.{v₁} G]
 { obj := λ X,
   { A := G.obj X,
     a := (δ_ G).app X,
-    coassoc' := (comonad.coassoc G _).symm },
+    coassoc' := (comonad.coassoc _).symm },
   map := λ X Y f,
   { f := G.map f,
     h' := by erw (δ_ G).naturality; refl} }

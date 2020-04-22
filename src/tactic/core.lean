@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.doc_commands
-  tactic.derive_inhabited
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+  tactic.lean_core_docs tactic.derive_inhabited
 
 universe variable u
 
@@ -13,9 +13,6 @@ instance : has_lt pos :=
 
 namespace expr
 open tactic
-
-attribute [derive has_reflect] binder_info
-attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -95,24 +92,6 @@ meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interacti
      end
 
 end interaction_monad
-
-namespace lean.parser
-open lean interaction_monad.result
-
-/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
-current line. -/
-meta def emit_command_here (str : string) : lean.parser string :=
-do (_, left) ← with_input command_like str,
-   return left
-
-/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
-source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
-
-end lean.parser
 
 namespace format
 
@@ -236,6 +215,18 @@ meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
 do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
+
+/--
+Replace every universe metavariable in an expression with a universe parameter.
+
+(This is useful when making new declarations.)
+-/
+meta def replace_univ_metas_with_univ_params (e : expr) : tactic expr :=
+do
+  e.list_univ_meta_vars.enum.mmap (λ n, do
+    let n' := (`u).append_suffix ("_" ++ to_string (n.1+1)),
+    unify (expr.sort (level.mvar n.2)) (expr.sort (level.param n'))),
+  instantiate_mvars e
 
 /-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
@@ -713,6 +704,24 @@ meta structure apply_any_opt :=
 (apply : expr → tactic (list (name × expr)) := tactic.apply)
 
 /--
+This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
+and evaluates these as thunks before trying to apply them.
+
+We need to do this to avoid metavariables getting stuck during subsequent rounds of `apply`.
+-/
+meta def apply_any_thunk
+  (lemmas : list (tactic expr))
+  (opt : apply_any_opt := {})
+  (tac : tactic unit := skip) : tactic unit :=
+do
+  let modes := [skip]
+    ++ (if opt.use_symmetry then [symmetry] else [])
+    ++ (if opt.use_exfalso then [exfalso] else []),
+  modes.any_of (λ m, do m,
+    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
+  fail "apply_any tactic failed; no lemma could be applied"
+
+/--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
 
 `apply_any lemmas opt` allows control over how lemmas are applied.
@@ -729,13 +738,7 @@ meta def apply_any
   (lemmas : list expr)
   (opt : apply_any_opt := {})
   (tac : tactic unit := skip) : tactic unit :=
-do
-  let modes := [skip]
-    ++ (if opt.use_symmetry then [symmetry] else [])
-    ++ (if opt.use_exfalso then [exfalso] else []),
-  modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, opt.apply H >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+apply_any_thunk (lemmas.map pure) opt tac
 
 /-- Try to apply a hypothesis from the local context to the goal. -/
 meta def apply_assumption : tactic unit :=
@@ -833,6 +836,19 @@ Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders {α : Type} (t : tactic α) : tactic α :=
+do
+  v ← intros,
+  r ← t,
+  revert_lst v,
+  return r
+
+namespace interactive
+/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
+meta def under_binders (i : itactic) : itactic := tactic.under_binders i
+end interactive
+
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
@@ -859,14 +875,14 @@ the value produced by a subsequent execution of the `sort_by` tactic,
 and reverting to the original `tactic_state`.
 -/
 meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) :
-  tactic (list α) :=
+  tactic (list (α × ℕ)) :=
 λ s, result.success
-(((tactics.map $
+((tactics.map $
 λ t : tactic α,
   match (do a ← t, n ← sort_by, return (a, n)) s with
   | result.success a s' := [a]
   | _ := []
-  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)) s
 
 /-- Return target after instantiating metavars and whnf. -/
 private meta def target' : tactic expr :=
@@ -913,15 +929,22 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-/-- Given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh. -/
-meta def note_anon (e : expr) : tactic expr :=
-do n ← get_unused_name "lh",
-   note n none e
+/--
+`note_anon t v`, given a proof `v : t`,
+adds `h : t` to the current context, where the name `h` is fresh.
+
+`note_anon none v` will infer the type `t` from `v`.
+-/
+-- While `note` provides a default value for `t`, it doesn't seem this could ever be used.
+meta def note_anon (t : option expr) (v : expr) : tactic expr :=
+do h ← get_unused_name `h none,
+   note h t v
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
 do t' ← to_expr t,
-   prod.snd <$> solve_aux t' assumption
+   (prod.snd <$> solve_aux t' assumption >>= instantiate_mvars) <|>
+     fail format!"No hypothesis found of the form: {t'}"
 
 /-- `dependent_pose_core l`: introduce dependent hypotheses, where the proofs depend on the values
 of the previous local constants. `l` is a list of local constants and their values. -/
@@ -1003,6 +1026,51 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
   return ((p :: ps), r)
 | e := return ([], e)
+
+end tactic
+
+namespace lean.parser
+open lean interaction_monad.result
+
+/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
+current line. -/
+meta def emit_command_here (str : string) : lean.parser string :=
+do (_, left) ← with_input command_like str,
+   return left
+
+/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
+source code. -/
+meta def emit_code_here : string → lean.parser unit
+| str := do left ← emit_command_here str,
+            if left.length = 0 then return ()
+            else emit_code_here left
+
+/-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
+
+This function deserves a C++ implementation in core lean, and will fail if it is not called from
+the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
+meta def get_current_namespace : lean.parser name :=
+do n ← tactic.mk_user_fresh_name,
+   emit_code_here $ sformat!"def {n} := ()",
+   nfull ← tactic.resolve_constant n,
+   return $ nfull.get_nth_prefix n.components.length
+
+/-- `get_variables` returns a list of existing variable names, along with their types and binder
+info. -/
+meta def get_variables : lean.parser (list (name × binder_info × expr)) :=
+list.map expr.get_local_const_kind <$> list_available_include_vars
+
+/-- `get_included_variables` returns those variables `v` returned by `get_variables` which have been
+"included" by an `include v` statement and are not (yet) `omit`ed. -/
+meta def get_included_variables : lean.parser (list (name × binder_info × expr)) :=
+do ns ← list_include_var_names,
+   list.filter (λ v, v.1 ∈ ns) <$> get_variables
+
+end lean.parser
+
+namespace tactic
+
+variables {α : Type}
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.
@@ -1437,6 +1505,27 @@ meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
      | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
      end
 
+/--
+`on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.
+-/
+meta def on_exception {β} (handler : tactic β) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s' := (handler *> result.exception msg p) s'
+| ok := ok
+end
+
+/-- `decorate_error add_msg tac` prepends `add_msg` to an exception produced by `tac` -/
+meta def decorate_error (add_msg : string) (tac : tactic α) : tactic α | s :=
+match tac s with
+| result.exception msg p s :=
+  let msg (_ : unit) : format := match msg with
+    | some msg := add_msg ++ format.line ++ msg ()
+    | none := add_msg
+    end in
+  result.exception msg p s
+| ok := ok
+end
+
 /-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
   returns the error message. -/
 meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
@@ -1755,6 +1844,7 @@ do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
+   inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
    nm ← get_unused_decl_name $ new_decl_name ++
      match cls with

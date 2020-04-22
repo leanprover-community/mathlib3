@@ -241,7 +241,7 @@ begin
   cases h : argmax id l,
   { rw [if_neg], refl, exact not_le_of_gt (with_bot.bot_lt_some _) },
   change (coe : α → with_bot α) with some,
-  simp, congr
+  simp
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=

@@ -214,18 +214,42 @@ end
 -- Demonstrate using `equiv_rw` to build new instances of `equiv_functor`
 -- Observe that the next three declarations could easily be implemented by a tactic.
 
-attribute [ext] semigroup
-
 -- This has been automated in the `transport` branch,
 -- so we won't attempt to write a deriver handler until we join with that.
 def semigroup.map {α β : Type} (e : α ≃ β) : semigroup α → semigroup β :=
 begin
-  intro S, fconstructor,
+  intro S,
+  refine_struct { .. },
   -- transport data fields using `equiv_rw`
-  { have mul := S.mul, equiv_rw e at mul, exact mul, },
+  { have mul := S.mul,
+    equiv_rw e at mul,
+    -- This `equiv_rw` performs the following steps:
+    -- have e' := (equiv.arrow_congr' e (equiv.arrow_congr' e e)),
+    -- have h := (e'.symm_apply_apply mul).symm,
+    -- revert h,
+    -- generalize : (e' mul) = mul',
+    -- intro h,
+    -- clear_dependent mul,
+    -- rename mul' mul,
+    exact mul,
+  },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
+
+example {α β : Type} (e : α ≃ β) (S : semigroup α) :
+  (semigroup.map e S).mul =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_mul.mul :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : semigroup α) (x y : β) :
+begin
+  haveI := semigroup.map e S,
+  exact x * y = e (e.symm x * e.symm y)
+end :=
+rfl
+
+attribute [ext] semigroup
 
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
@@ -248,34 +272,57 @@ begin
 end
 
 -- Now we do `monoid`, to try out a structure with constants.
-attribute [ext] monoid
 
-def monoid.map {α β : Type} (e : α ≃ β) : monoid α → monoid β :=
+-- The constructions and proofs here are written as uniformly as possible.
+-- This example is the blueprint for the `transport` tactic.
+
+mk_simp_attribute transport_simps "simps useful inside `transport`"
+
+attribute [transport_simps]
+  eq_rec_constant
+  eq_mpr_rfl
+  equiv.to_fun_as_coe
+  equiv.arrow_congr'_apply
+  equiv.symm_apply_apply
+  equiv.apply_eq_iff_eq_symm_apply
+
+def monoid.map {α β : Type} (e : α ≃ β) (S : monoid α) : monoid β :=
 begin
-  intro S, fconstructor,
+  refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
-  { /-
-    The next line also works here,
-    but this pattern doesn't work for axioms involving constants, e.g. one_mul:
-    -/
-    -- have mul_assoc := S.mul_assoc, equiv_rw e at mul_assoc, intros, dsimp, simp, apply mul_assoc,
-    intros,
-    apply e.symm.injective,
-    dsimp [(*)], simp,
+  { try { unfold_projs },
+    simp only [] with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
-    apply mul_assoc, },
+    solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
-  { intros,
-    apply e.symm.injective,
-    dsimp [(*)], simp,
+  { try { unfold_projs },
+    simp only [] with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
-    apply one_mul, },
-  { intros,
-    apply e.symm.injective,
-    dsimp [(*)], simp,
+    solve_by_elim, },
+  { try { unfold_projs },
+    simp only [] with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
-    apply mul_one, },
+    solve_by_elim, },
 end
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) :
+  (monoid.map e S).mul =
+    (equiv.arrow_congr' e (equiv.arrow_congr' e e)) has_mul.mul :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) (x y : β) :
+begin
+  haveI := monoid.map e S,
+  exact x * y = e (e.symm x * e.symm y)
+end :=
+rfl
+
+example {α β : Type} (e : α ≃ β) (S : monoid α) :
+begin
+  haveI := monoid.map e S,
+  exact (1 : β) = e (1 : α)
+end :=
+rfl

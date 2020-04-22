@@ -112,6 +112,15 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
+@[simp] lemma sum_apply {α : Type*} (f : α → continuous_multilinear_map R M₁ M₂)
+  (m : Πi, M₁ i) : ∀ {s : finset α}, (s.sum f) m = s.sum (λ a, f a m) :=
+begin
+  classical,
+  apply finset.induction,
+  { rw finset.sum_empty, simp },
+  { assume a s has H, rw finset.sum_insert has, simp [H, has] }
+end
+
 end topological_add_group
 
 /-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous
@@ -158,6 +167,39 @@ lemma cons_smul
   f (cons (c • x) m) = c • f (cons x m) :=
 f.to_multilinear_map.cons_smul m c x
 
+lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
+  f (t.piecewise (m + m') m') = t.powerset.sum (λ s, f (s.piecewise m m')) :=
+f.to_multilinear_map.map_piecewise_add _ _ _
+
+/-- Additivity of a continuous multilinear map along all coordinates at the same time,
+writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
+lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
+  f (m + m') = (finset.univ : finset (finset ι)).sum (λ s, f (s.piecewise m m')) :=
+f.to_multilinear_map.map_add_univ _ _
+
+section apply_sum
+
+open fintype finset
+
+variables {α : ι → Type*} [fintype ι] (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
+
+/-- If `f` is continuous multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum
+of `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
+`r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
+coordinate. -/
+lemma map_sum_finset  :
+  f (λ i, (A i).sum (g i)) = (pi_finset A).sum (λ r, f (λ i, g i (r i))) :=
+f.to_multilinear_map.map_sum_finset _ _
+
+/-- If `f` is continuous multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
+`f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
+multilinearity by expanding successively with respect to each coordinate. -/
+lemma map_sum [∀ i, fintype (α i)] :
+  f (λ i, finset.univ.sum (g i)) = finset.univ.sum (λ (r : Π i, α i), f (λ i, g i (r i))) :=
+f.to_multilinear_map.map_sum _
+
+end apply_sum
+
 end ring
 
 section comm_ring
@@ -177,16 +219,6 @@ writing `f (λ i, c i • m i)` as `univ.prod c • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λ i, c i • m i) = finset.univ.prod c • f m :=
 f.to_multilinear_map.map_smul_univ _ _
-
-lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
-  f (t.piecewise (m + m') m') = t.powerset.sum (λ s, f (s.piecewise m m')) :=
-f.to_multilinear_map.map_piecewise_add _ _ _
-
-/-- Additivity of a continuous multilinear map along all coordinates at the same time,
-writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
-lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
-  f (m + m') = (finset.univ : finset (finset ι)).sum (λ s, f (s.piecewise m m')) :=
-f.to_multilinear_map.map_add_univ _ _
 
 variables [topological_space R] [topological_module R M₂]
 

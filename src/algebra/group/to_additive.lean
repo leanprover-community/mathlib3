@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
 
-import tactic.basic tactic.transport tactic.algebra
+import tactic.basic tactic.transform_decl tactic.algebra
 
 /-!
 # Transport multiplicative to additive
@@ -193,7 +193,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transport_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict src tgt
         [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator],
       match val.doc with
       | some doc := add_doc_string tgt doc

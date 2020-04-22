@@ -64,13 +64,13 @@ follow automatically in `linear_map.mk_continuous_norm_le`. -/
 def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, elim_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, elim_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -567,10 +567,10 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
-@[simp, move_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
+@[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
-@[simp, squash_cast] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
+@[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
 end restrict_scalars

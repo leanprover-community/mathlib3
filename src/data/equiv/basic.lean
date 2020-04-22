@@ -9,6 +9,7 @@ We say two types are equivalent if they are isomorphic.
 Two equivalent types have the same cardinality.
 -/
 import tactic.split_ifs logic.function logic.unique data.set.function data.bool data.quot
+  data.option.basic
 
 open function
 
@@ -110,6 +111,13 @@ rfl
 
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
+
+theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
+  f x = y ↔ x = f.symm y :=
+begin
+  conv_lhs { rw ←apply_symm_apply f y, },
+  rw apply_eq_iff_eq,
+end
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
@@ -452,6 +460,13 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
+
+/-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
+def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
+{ to_fun := λ o, option.get o.2,
+  inv_fun := λ x, ⟨some x, dec_trivial⟩,
+  left_inv := λ o, subtype.eq $ option.some_get _,
+  right_inv := λ x, option.get_some _ _ }
 
 def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
 ⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
@@ -826,8 +841,8 @@ protected def prod {α β} (s : set α) (t : set β) :
 
 protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
-⟨λ ⟨x, h⟩, ⟨f x, mem_image_of_mem f h⟩,
- λ ⟨y, h⟩, ⟨classical.some h, (classical.some_spec h).1⟩,
+⟨λ p, ⟨f p, mem_image_of_mem f p.2⟩,
+ λ p, ⟨classical.some p.2, (classical.some_spec p.2).1⟩,
  λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).1 h
    (classical.some_spec (mem_image_of_mem f h)).2),
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩

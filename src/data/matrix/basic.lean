@@ -9,6 +9,7 @@ import algebra.pi_instances
 
 universes u v w
 
+@[nolint unused_arguments]
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
 m → n → α
 
@@ -307,13 +308,13 @@ by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 @[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
 by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 
-@[simp] lemma mul_vec_zero [decidable_eq m] (A : matrix m n α) : mul_vec A 0 = 0 :=
+@[simp] lemma mul_vec_zero (A : matrix m n α) : mul_vec A 0 = 0 :=
 by { ext, simp [mul_vec] }
 
-@[simp] lemma vec_mul_zero [decidable_eq m] (A : matrix m n α) : vec_mul 0 A = 0 :=
+@[simp] lemma vec_mul_zero (A : matrix m n α) : vec_mul 0 A = 0 :=
 by { ext, simp [vec_mul] }
 
-@[simp] lemma vec_mul_vec_mul [decidable_eq n] (v : m → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma vec_mul_vec_mul (v : m → α) (M : matrix m n α) (N : matrix n o α) :
   vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
 begin
   ext,
@@ -321,7 +322,7 @@ begin
   apply finset.sum_comm
 end
 
-@[simp] lemma mul_vec_mul_vec [decidable_eq n] (v : o → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma mul_vec_mul_vec (v : o → α) (M : matrix m n α) (N : matrix n o α) :
   mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
 begin
   ext,

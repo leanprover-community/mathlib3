@@ -247,20 +247,22 @@ matrix.
 The determinant of the matrix is the discriminant of the quadratic form.
 -/
 
-variables {n : Type w} [fintype n] [decidable_eq n]
-
-/-- A matrix representation of the quadratic form. -/
-def quadratic_form.to_matrix [has_inv R₁] (Q : quadratic_form R₁ (n → R₁)) : matrix n n R₁ :=
-Q.associated.to_matrix
-
-open quadratic_form
-lemma quadratic_form.to_matrix_smul [has_inv R₁] (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
-  (a • Q).to_matrix = (a * a) • Q.to_matrix :=
-by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
+variables {n : Type w} [fintype n]
 
 /-- `M.to_quadratic_form` is the map `λ x, col x ⬝ M ⬝ row x` as a quadratic form. -/
 def matrix.to_quadratic_form (M : matrix n n R₁) : quadratic_form R₁ (n → R₁) :=
 M.to_bilin_form.to_quadratic_form
+
+variables [decidable_eq n] [has_inv R₁]
+/-- A matrix representation of the quadratic form. -/
+def quadratic_form.to_matrix (Q : quadratic_form R₁ (n → R₁)) :
+  matrix n n R₁ :=
+Q.associated.to_matrix
+
+open quadratic_form
+lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
+  (a • Q).to_matrix = (a * a) • Q.to_matrix :=
+by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
 
 namespace quadratic_form
 
@@ -268,12 +270,12 @@ variables {m : Type w} [fintype m] [decidable_eq m]
 open_locale matrix
 
 @[simp]
-lemma to_matrix_comp [has_inv R₁] (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
+lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
   (Q.comp f).to_matrix = f.to_matrixᵀ ⬝ Q.to_matrix ⬝ f.to_matrix :=
 by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
 
 section discriminant
-variables [has_inv R₁] {Q : quadratic_form R₁ (n → R₁)}
+variables {Q : quadratic_form R₁ (n → R₁)}
 
 /-- The discriminant of a quadratic form generalizes the discriminant of a quadratic polynomial. -/
 def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix.det

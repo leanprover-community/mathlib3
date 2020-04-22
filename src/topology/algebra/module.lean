@@ -342,7 +342,7 @@ rfl
 /-- Kernel of a continuous linear map. -/
 def ker (f : M →L[R] M₂) : submodule R M := (f : M →ₗ[R] M₂).ker
 
-@[elim_cast] lemma ker_coe : (f : M →ₗ[R] M₂).ker = f.ker := rfl
+@[norm_cast] lemma ker_coe : (f : M →ₗ[R] M₂).ker = f.ker := rfl
 
 @[simp] lemma mem_ker {f : M →L[R] M₂} {x} : x ∈ f.ker ↔ f x = 0 := linear_map.mem_ker
 
@@ -363,7 +363,7 @@ def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈
 { cont := continuous_subtype_mk h f.continuous,
   to_linear_map := (f : M →ₗ[R] M₂).cod_restrict p h}
 
-@[move_cast] lemma coe_cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
+@[norm_cast] lemma coe_cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
   (f.cod_restrict p h : M →ₗ[R] p) = (f : M →ₗ[R] M₂).cod_restrict p h :=
 rfl
 
@@ -376,11 +376,11 @@ def subtype_val (p : submodule R M) : p →L[R] M :=
 { cont := continuous_subtype_val,
   to_linear_map := p.subtype }
 
-@[simp, elim_cast] lemma coe_subtype_val (p : submodule R M) :
+@[simp, norm_cast] lemma coe_subtype_val (p : submodule R M) :
   (subtype_val p : p →ₗ[R] M) = p.subtype :=
 rfl
 
-@[simp, move_cast] lemma subtype_val_apply (p : submodule R M) (x : p) :
+@[simp, norm_cast] lemma subtype_val_apply (p : submodule R M) (x : p) :
   (subtype_val p : p → M) x = x :=
 rfl
 
@@ -421,7 +421,7 @@ def coprod [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ �
   (M × M₂) →L[R] M₃ :=
 ⟨linear_map.coprod f₁ f₂, (f₁.cont.comp continuous_fst).add (f₂.cont.comp continuous_snd)⟩
 
-@[move_cast, simp] lemma coe_coprod [topological_add_monoid M₃]
+@[norm_cast, simp] lemma coe_coprod [topological_add_monoid M₃]
   (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
   (f₁.coprod f₂ : (M × M₂) →ₗ[R] M₃) = linear_map.coprod f₁ f₂ :=
 rfl

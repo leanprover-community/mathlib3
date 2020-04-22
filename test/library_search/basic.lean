@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_library_search true
+-- set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
 -- set_option trace.suggest true
 
@@ -122,6 +122,15 @@ example (f g k: ℕ → ℕ) (h₁ : ∀ n : ℕ, f n = g n) (h₂ : ∀ n : ℕ
 begin
   library_search [eq.trans] { discharger := `[intro] },
   --Says: `exact funext (λ (x : ℕ), eq.trans (h₁ x) (h₂ x))`
+end
+
+example (a b : ℕ) (h : 0 < b) : (a * b) / b = a :=
+by library_search
+
+example (a b : ℕ) (h : b ≠ 0) : (a * b) / b = a :=
+begin
+  success_if_fail { library_search },
+  library_search [nat.pos_iff_ne_zero.mpr],
 end
 
 end test.library_search

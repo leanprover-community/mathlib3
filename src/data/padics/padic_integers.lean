@@ -3,8 +3,10 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
-
-import data.int.modeq data.padics.padic_numbers ring_theory.ideals ring_theory.algebra
+import data.int.modeq
+import data.padics.padic_numbers
+import ring_theory.ideals
+import ring_theory.algebra
 
 /-!
 # p-adic integers
@@ -280,7 +282,7 @@ instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
   map_mul := coe_mul,
   map_add := coe_add }
 
-instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra $ λ _, mul_comm _
+instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
 
 end padic_int
 

@@ -3,8 +3,10 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-
-import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
+import data.finsupp
+import order.complete_lattice
+import algebra.ordered_group
+import data.mv_polynomial
 import algebra.order_functions
 import ring_theory.ideal_operations
 

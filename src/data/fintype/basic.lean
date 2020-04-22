@@ -5,7 +5,9 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset data.array.lemmas logic.unique
+import data.finset
+import data.array.lemmas
+import logic.unique
 import tactic.wlog
 universes u v
 

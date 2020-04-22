@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.to_additive
+import algebra.group.basic
 
 /-!
 # monoid and group homomorphisms

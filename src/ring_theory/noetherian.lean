@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-
 import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
@@ -182,9 +181,9 @@ end
 
 end submodule
 
-/-- 
+/--
 `is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module,
-implemented as the predicate that all `R`-submodules of `M` are finitely generated. 
+implemented as the predicate that all `R`-submodules of `M` are finitely generated.
 -/
 class is_noetherian (R M) [ring R] [add_comm_group M] [module R M] : Prop :=
 (noetherian : ∀ (s : submodule R M), s.fg)
@@ -359,8 +358,8 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
-/-- 
-A ring is Noetherian if it is Noetherian as a module over itself, 
+/--
+A ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
 -/
 @[class] def is_noetherian_ring (R) [ring R] : Prop := is_noetherian R R

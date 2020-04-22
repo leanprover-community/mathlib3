@@ -5,7 +5,11 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice order.bounds data.set.basic tactic.pi_instances tactic.alias
+import order.bounded_lattice
+import order.bounds
+import data.set.basic
+import tactic.pi_instances
+import tactic.alias
 
 set_option old_structure_cmd true
 open set

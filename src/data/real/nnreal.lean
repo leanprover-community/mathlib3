@@ -5,8 +5,9 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-
-import data.real.basic order.lattice algebra.field
+import data.real.basic
+import order.lattice
+import algebra.field
 
 noncomputable theory
 

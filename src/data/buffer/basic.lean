@@ -5,10 +5,11 @@ Authors: Simon Hudon
 
 Traversable instance for buffers.
 -/
-
-import data.buffer data.array.lemmas
-import category.traversable.instances data.equiv.basic
-       tactic.ext
+import data.buffer
+import data.array.lemmas
+import category.traversable.instances
+import data.equiv.basic
+import tactic.ext
 
 namespace buffer
 

@@ -3,7 +3,8 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs tactic.derive_inhabited
+import data.string.defs
+import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 
@@ -158,6 +159,18 @@ meta def nonzero : level → bool
 | (imax _ l₂) := l₂.nonzero
 | _ := ff
 
+/--
+`l.fold_mvar f` folds a function `f : name → α → α`
+over each `n : name` appearing in a `level.mvar n` in `l`.
+-/
+meta def fold_mvar {α} : level → (name → α → α) → α → α
+| zero f := id
+| (succ a) f := fold_mvar a f
+| (param a) f := id
+| (mvar a) f := f a
+| (max a b) f := fold_mvar a f ∘ fold_mvar b f
+| (imax a b) f := fold_mvar a f ∘ fold_mvar b f
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -308,6 +321,15 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
+
+/-- Returns a list of all universe meta-variables in an expression (without duplicates). -/
+meta def list_univ_meta_vars (e : expr) : list name :=
+native.rb_set.to_list $ e.fold native.mk_rb_set $ λ e' i s,
+match e' with
+| (sort u) := u.fold_mvar (flip native.rb_set.insert) s
+| (const _ ls) := ls.foldl (λ s' l, l.fold_mvar (flip native.rb_set.insert) s') s
+| _ := s
+end
 
 /--
 Test `t` contains the specified subexpression `e`, or a metavariable.
@@ -491,6 +513,12 @@ meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
 | _                       := default binder
 
+/-- Strip-away the context-dependent unique id for the given local const and return: its friendly
+`name`, its `binder_info`, and its `type : expr`.-/
+meta def get_local_const_kind : expr → name × binder_info × expr
+| (expr.local_const _ n bi e) := (n, bi, e)
+| _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
+
 end expr
 
 /-! ### Declarations about `environment` -/
@@ -635,6 +663,11 @@ end expr
 namespace declaration
 open tactic
 
+/-- 
+`declaration.update_with_fun f tgt decl` 
+sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
+of all `expr.const`s which appear in the value or type of `decl`. 
+-/
 protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
   declaration :=
 let decl := decl.update_name $ tgt in

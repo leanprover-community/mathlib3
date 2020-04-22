@@ -5,7 +5,10 @@ Author: Johannes Hölzl, Yury Kudryashov
 
 Extended non-negative reals
 -/
-import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
+import data.real.nnreal
+import order.bounds
+import data.set.intervals
+import tactic.norm_num
 noncomputable theory
 open classical set
 

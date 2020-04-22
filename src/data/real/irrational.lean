@@ -3,7 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
 -/
-import data.real.basic algebra.gcd_domain ring_theory.multiplicity tactic.alias
+import data.real.basic
+import algebra.gcd_domain
+import ring_theory.multiplicity
+import tactic.alias
 /-!
 # Irrational real numbers
 

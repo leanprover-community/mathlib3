@@ -7,8 +7,9 @@ Authors: Johan Commelin, Reid Barton, Simon Hudon
 Tactic for proving the equivalence of a set of proposition
 using various implications between them.
 -/
-
-import tactic.interactive data.list.tfae tactic.doc_commands
+import tactic.interactive
+import data.list.tfae
+import tactic.doc_commands
 import tactic.scc
 
 open expr tactic lean lean.parser

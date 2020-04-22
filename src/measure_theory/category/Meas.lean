@@ -2,7 +2,6 @@
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
 import topology.category.Top.basic
 import measure_theory.giry_monad
 import category_theory.monad.algebra

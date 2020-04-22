@@ -5,8 +5,11 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power algebra.field_power algebra.floor
-import data.rat tactic.linarith
+import algebra.group_power
+import algebra.field_power
+import algebra.floor
+import data.rat
+import tactic.linarith
 
 variables {α : Type*}
 

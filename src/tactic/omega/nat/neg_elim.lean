@@ -3,7 +3,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Negation elimination. -/
-
 import tactic.omega.nat.form
 
 namespace omega

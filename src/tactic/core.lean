@@ -3,8 +3,13 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
-  tactic.lean_core_docs tactic.derive_inhabited
+import data.dlist.basic
+import category.basic
+import meta.expr
+import meta.rb_map
+import data.bool
+import tactic.lean_core_docs
+import tactic.derive_inhabited
 
 universe variable u
 
@@ -92,24 +97,6 @@ meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interacti
      end
 
 end interaction_monad
-
-namespace lean.parser
-open lean interaction_monad.result
-
-/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
-current line. -/
-meta def emit_command_here (str : string) : lean.parser string :=
-do (_, left) ← with_input command_like str,
-   return left
-
-/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
-source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
-
-end lean.parser
 
 namespace format
 
@@ -233,6 +220,18 @@ meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
 do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
+
+/--
+Replace every universe metavariable in an expression with a universe parameter.
+
+(This is useful when making new declarations.)
+-/
+meta def replace_univ_metas_with_univ_params (e : expr) : tactic expr :=
+do
+  e.list_univ_meta_vars.enum.mmap (λ n, do
+    let n' := (`u).append_suffix ("_" ++ to_string (n.1+1)),
+    unify (expr.sort (level.mvar n.2)) (expr.sort (level.param n'))),
+  instantiate_mvars e
 
 /-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
@@ -881,14 +880,14 @@ the value produced by a subsequent execution of the `sort_by` tactic,
 and reverting to the original `tactic_state`.
 -/
 meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) :
-  tactic (list α) :=
+  tactic (list (α × ℕ)) :=
 λ s, result.success
-(((tactics.map $
+((tactics.map $
 λ t : tactic α,
   match (do a ← t, n ← sort_by, return (a, n)) s with
   | result.success a s' := [a]
   | _ := []
-  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)) s
 
 /-- Return target after instantiating metavars and whnf. -/
 private meta def target' : tactic expr :=
@@ -1032,6 +1031,51 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
   return ((p :: ps), r)
 | e := return ([], e)
+
+end tactic
+
+namespace lean.parser
+open lean interaction_monad.result
+
+/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
+current line. -/
+meta def emit_command_here (str : string) : lean.parser string :=
+do (_, left) ← with_input command_like str,
+   return left
+
+/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
+source code. -/
+meta def emit_code_here : string → lean.parser unit
+| str := do left ← emit_command_here str,
+            if left.length = 0 then return ()
+            else emit_code_here left
+
+/-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
+
+This function deserves a C++ implementation in core lean, and will fail if it is not called from
+the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
+meta def get_current_namespace : lean.parser name :=
+do n ← tactic.mk_user_fresh_name,
+   emit_code_here $ sformat!"def {n} := ()",
+   nfull ← tactic.resolve_constant n,
+   return $ nfull.get_nth_prefix n.components.length
+
+/-- `get_variables` returns a list of existing variable names, along with their types and binder
+info. -/
+meta def get_variables : lean.parser (list (name × binder_info × expr)) :=
+list.map expr.get_local_const_kind <$> list_available_include_vars
+
+/-- `get_included_variables` returns those variables `v` returned by `get_variables` which have been
+"included" by an `include v` statement and are not (yet) `omit`ed. -/
+meta def get_included_variables : lean.parser (list (name × binder_info × expr)) :=
+do ns ← list_include_var_names,
+   list.filter (λ v, v.1 ∈ ns) <$> get_variables
+
+end lean.parser
+
+namespace tactic
+
+variables {α : Type}
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.
@@ -1805,6 +1849,7 @@ do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
+   inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
    nm ← get_unused_decl_name $ new_decl_name ++
      match cls with

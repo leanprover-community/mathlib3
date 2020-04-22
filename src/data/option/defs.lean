@@ -102,4 +102,17 @@ protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Ty
 | none := pure none
 | (some x) := some <$> f x
 
+/- By analogy with `monad.sequence` in `init/category/combinators.lean`. -/
+
+/-- If you maybe have a monadic computation in a `[monad m]` which produces a term of type `α`, then
+there is a naturally associated way to always perform a computation in `m` which maybe produces a
+result. -/
+def {u v} maybe {m : Type u → Type v} [monad m] {α : Type u} : option (m α) → m (option α)
+| none := return none
+| (some fn) := some <$> fn
+
+/-- Map a monadic function `f : α → m β` over an `o : option α`, maybe producing a result. -/
+def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (f : α → m β)
+  (o : option α) : m (option β) := (o.map f).maybe
+
 end option

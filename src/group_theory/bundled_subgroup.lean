@@ -93,6 +93,12 @@ structure add_subgroup (G : Type*) [add_group G] extends add_submonoid G:=
 attribute [to_additive add_subgroup] subgroup
 attribute [to_additive add_subgroup.to_add_submonoid] subgroup.to_submonoid
 
+/-- Reinterpret a `subgroup` as a `submonoid`. -/
+add_decl_doc subgroup.to_submonoid
+
+/-- Reinterpred an `add_subgroup` as an `add_submonoid`. -/
+add_decl_doc add_subgroup.to_add_submonoid
+
 /-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
 @[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
 def subgroup.of (s : set G) [h : is_subgroup s] : subgroup G :=

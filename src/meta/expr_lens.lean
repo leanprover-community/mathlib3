@@ -75,9 +75,7 @@ meta def to_dirs : expr_lens → list dir
 | (expr_lens.app_arg l _) := l.to_dirs.concat dir.F
 
 /-- Sometimes `mk_congr_arg` fails, when the function is 'superficially dependent'.
-This hack `dsimp`s the function before building the `congr_arg` expression.
-
-Unfortunately it creates some dummy hypotheses that I can't work out how to dispose of cleanly. -/
+This hack `dsimp`s the function before building the `congr_arg` expression. -/
 meta def mk_congr_arg_using_dsimp' (G W : expr) (u : list name) : tactic expr :=
 do s ← simp_lemmas.mk_default,
    t ← infer_type G,

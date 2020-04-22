@@ -24,6 +24,7 @@ import tactic.restate_axiom
 import tactic.rewrite
 import tactic.lint
 import tactic.simp_rw
+import tactic.simp_command
 import tactic.simp_result
 import tactic.simpa
 import tactic.simps

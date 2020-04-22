@@ -513,6 +513,12 @@ meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
 | _                       := default binder
 
+/-- Strip-away the context-dependent unique id for the given local const and return: its friendly
+`name`, its `binder_info`, and its `type : expr`.-/
+meta def get_local_const_kind : expr → name × binder_info × expr
+| (expr.local_const _ n bi e) := (n, bi, e)
+| _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
+
 end expr
 
 /-! ### Declarations about `environment` -/
@@ -657,6 +663,11 @@ end expr
 namespace declaration
 open tactic
 
+/-- 
+`declaration.update_with_fun f tgt decl` 
+sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
+of all `expr.const`s which appear in the value or type of `decl`. 
+-/
 protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
   declaration :=
 let decl := decl.update_name $ tgt in

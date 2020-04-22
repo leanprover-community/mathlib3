@@ -662,6 +662,8 @@ end expr
 namespace declaration
 open tactic
 
+/-- Sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
+of all `expr.const`s which appear in the value or type of `decl`. -/
 protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
   declaration :=
 let decl := decl.update_name $ tgt in

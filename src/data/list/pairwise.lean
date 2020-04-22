@@ -15,7 +15,7 @@ namespace list
 
 /- pairwise relation (generalized no duplicate) -/
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
+mk_iff_of_inductive_prop list.pairwise list.pairwise_iff
 
 variable {R : α → α → Prop}
 

@@ -1980,7 +1980,7 @@ inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
 | zero : rel 0 0
 | cons {a b as bs} : r a b → rel as bs → rel (a :: as) (b :: bs)
 
-run_cmd tactic.mk_iff_of_inductive_prop `multiset.rel `multiset.rel_iff
+mk_iff_of_inductive_prop multiset.rel multiset.rel_iff
 
 variables {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
 

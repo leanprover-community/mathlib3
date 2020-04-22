@@ -81,9 +81,8 @@ Unfortunately it creates some dummy hypotheses that I can't work out how to disp
 meta def mk_congr_arg_using_dsimp' (G W : expr) (u : list name) : tactic expr :=
 do s ← simp_lemmas.mk_default,
    t ← infer_type G,
-   t' ← s.dsimplify u t {fail_if_unchanged := ff},
-   definev `_mk_congr_arg_aux t' G,
-   to_expr ```(congr_arg _mk_congr_arg_aux %%W)
+   t' ← s.dsimplify u t { fail_if_unchanged := ff },
+   to_expr ```(congr_arg (show %%t', from %%G) %%W)
 
 private meta def trace_congr_error (f : expr) (x_eq : expr) : tactic unit :=
 do pp_f ← pp f,

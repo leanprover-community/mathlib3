@@ -196,6 +196,7 @@ variables {B₁ : bilin_form R₁ M} (Q : quadratic_form R₁ M) (two_inv : {hal
 
 @[simp] lemma two_inv_mul_two : (two_inv : R₁) * 2 = 1 := two_inv.2
 
+/-- `2⁻¹` is an inverse of `2` in a field with characteristic 0 -/
 def two_inv_of_char_zero_field {K : Type u} [field K] [char_zero K] :
   {half : K // half * 2 = 1} :=
 ⟨2⁻¹, inv_mul_cancel two_ne_zero'⟩

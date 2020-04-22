@@ -2083,9 +2083,6 @@ apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
 
--- meta/expr.lean
-apply_nolint declaration.update_with_fun doc_blame
-
 -- number_theory/dioph.lean
 apply_nolint dioph.pell_dioph ge_or_gt
 apply_nolint dioph.xn_dioph ge_or_gt
@@ -2438,9 +2435,6 @@ apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 
 -- tactic/apply_fun.lean
 apply_nolint apply_fun_name doc_blame
-
--- tactic/auto_cases.lean
-apply_nolint auto_cases_at doc_blame
 
 -- tactic/chain.lean
 apply_nolint tactic.abstract_if_success doc_blame

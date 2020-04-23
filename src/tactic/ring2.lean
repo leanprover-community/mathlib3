@@ -478,7 +478,10 @@ open tactic.ring2
 
 local postfix `?`:9001 := optional
 
-/-- Tactic for solving equations in the language of rings.
+/-- `ring2` solves equations in the language of rings.
+
+It supports only the commutative semiring operations, i.e. it does not normalize subtraction or division.
+
   This variant on the `ring` tactic uses kernel computation instead
   of proof generation. In general, you should use `ring` instead of `ring2`. -/
 meta def ring2 : tactic unit :=

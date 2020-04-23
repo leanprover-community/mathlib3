@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 import tactic.ring
 import data.num.lemmas
 import data.tree
-import tactic.converter.interactive
 
 /-!
 # ring2

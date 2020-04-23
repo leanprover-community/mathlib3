@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.endomorphism
-import category_theory.groupoid
 import category_theory.category.Cat
-import data.equiv.mul_add
 import algebra.category.Mon.basic
 
 /-!

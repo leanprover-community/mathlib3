@@ -7,11 +7,7 @@ Ring-theoretic supplement of data.polynomial.
 
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
-import data.equiv.fin
-import data.polynomial
 import data.mv_polynomial
-import ring_theory.subring
-import ring_theory.ideals
 import ring_theory.noetherian
 
 noncomputable theory

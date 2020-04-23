@@ -10,7 +10,6 @@ Authors: Kenny Lau
 And finally, magma.free_semigroup (free_magma α) ≃ free_semigroup α.
 -/
 import data.equiv.basic
-import category.traversable.basic
 
 universes u v
 

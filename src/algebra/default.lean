@@ -1,9 +1,2 @@
 import algebra.group
-import algebra.ring
-import algebra.field
-import algebra.order
-import algebra.ordered_group
-import algebra.ordered_ring
-import algebra.order_functions
-import algebra.group_power
 import algebra.module

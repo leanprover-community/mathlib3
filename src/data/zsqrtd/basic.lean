@@ -3,9 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.basic
 import algebra.associated
-import data.nat.gcd
 import tactic.ring
 
 /-- The ring of integers adjoined with a square root of `d`.

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import field_theory.finite
-import data.zmod.basic
 import data.nat.parity
 
 /-!

@@ -3,11 +3,8 @@ Copyright (c) 2019 Robert A. Spencer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
-import algebra.module
-import algebra.punit_instances
 import algebra.category.Group.basic
 import category_theory.concrete_category
-import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import linear_algebra.basic
 

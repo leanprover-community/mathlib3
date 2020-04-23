@@ -5,7 +5,6 @@ Authors: Anne Baanen
 
 Fractional ideals of an integral domain.
 -/
-import ring_theory.algebra_operations
 import ring_theory.localization
 
 /-!

@@ -5,9 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Outer measures -- overapproximations of measures
 -/
-import algebra.big_operators
-import algebra.module
-import topology.instances.ennreal
 import analysis.specific_limits
 import measure_theory.measurable_space
 

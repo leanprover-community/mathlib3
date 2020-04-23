@@ -6,10 +6,6 @@ Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 import category_theory.comma
 import category_theory.limits.connected
 import category_theory.limits.creates
-import category_theory.limits.limits
-import category_theory.limits.preserves
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 

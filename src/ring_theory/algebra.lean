@@ -6,7 +6,6 @@ Authors: Kenny Lau, Yury Kudryashov
 import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
-import ring_theory.subring
 import algebra.commute
 
 /-!

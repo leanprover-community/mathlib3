@@ -9,7 +9,6 @@ Wang B-machines.
 -/
 import data.fintype.basic
 import data.pfun
-import logic.relation
 
 open relation
 

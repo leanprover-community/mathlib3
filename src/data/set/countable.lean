@@ -7,8 +7,6 @@ Countable sets.
 -/
 import data.equiv.list
 import data.set.finite
-import logic.function
-import data.set.function
 noncomputable theory
 
 open function set encodable

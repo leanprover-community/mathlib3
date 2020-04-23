@@ -5,8 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
 -/
 import algebra.pi_instances
 import data.finsupp
-import data.equiv.mul_add
-import order.order_iso
 
 /-!
 # Linear algebra

@@ -7,10 +7,6 @@ Provides a `subtype_instance` tactic which builds instances for algebraic substr
 (sub-groups, sub-rings...).
 -/
 import data.string.basic
-import tactic.interactive
-import tactic.algebra
-import data.subtype
-import data.set.basic
 open tactic expr name list
 
 namespace tactic

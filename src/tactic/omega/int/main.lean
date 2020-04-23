@@ -5,7 +5,6 @@ Author: Seul Baek
 Main procedure for linear integer arithmetic. -/
 import tactic.omega.prove_unsats
 import tactic.omega.int.dnf
-import tactic.omega.misc
 
 open tactic
 

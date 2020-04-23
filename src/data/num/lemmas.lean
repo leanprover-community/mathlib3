@@ -5,10 +5,7 @@ Author: Mario Carneiro
 
 Properties of the binary representation of integers.
 -/
-import data.num.basic
 import data.num.bitwise
-import algebra.ordered_ring
-import tactic.interactive
 import data.int.basic
 import data.nat.gcd
 

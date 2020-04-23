@@ -149,7 +149,7 @@ private meta def add_local_consts_as_local_hyps_aux
     add_local_consts_as_local_hyps_aux mappings (rest ++ [var])
   else do
     /- Otherwise, replace all of the local constants referenced by the type of `var` with the
-       respective new corresponding local hypotheses as recoreded in the list `mappings`. -/
+       respective new corresponding local hypotheses as recorded in the list `mappings`. -/
     let new_type := var.local_type.replace_subexprs mappings,
 
     /- Introduce a new local new local hypothesis `hyp` for `var`, with the correct type. -/
@@ -1147,7 +1147,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
       and b) together since we do not to recognise a hypothesis which is posited as a `variable`
       in the environment but not referenced in the `pexpr` we were passed.
 
-      Once use case for this behaviour is running `simp` on the passed `pexpr`, since we do not want
+      One use case for this behaviour is running `simp` on the passed `pexpr`, since we do not want
       simp to use arbitrary hypotheses which were declared as `variables` in the local environment
       but not referenced in the expression to simplify (as one would be expect generally in tactic
       mode). -/
@@ -1160,7 +1160,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
      (var.local_pp_name ∈ included_vars) ∨ (var.local_pp_name ∈ referenced_vars),
 
    /- Inflate the list `directly_included_vars` to include those variables which are "implicitly
-      included" by virtue of reference to one or multiple others. FFor example, given
+      included" by virtue of reference to one or multiple others. For example, given
       `variables (n : ℕ) [prime n] [ih : even n]`, a reference to `n` implies that the typeclass
       instance `prime n` should be included, but `ih : even n` should not. -/
    let all_implicitly_included_vars :=

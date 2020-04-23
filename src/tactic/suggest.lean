@@ -83,7 +83,7 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
 | _ := if hs = `_ then some ex else none
 
 /-- A package of `declaration` metadata, including the way in which its type matches the head symbol
-which are searching for. -/
+which we are searching for. -/
 meta structure decl_data :=
 (d : declaration)
 (n : name)

@@ -6,7 +6,8 @@ Author: Anne Baanen
 A typeclass for the two-sided multiplicative inverse.
 -/
 
-import tactic
+import algebra.char_zero
+import tactic.norm_cast
 
 /-!
 # Invertible elements
@@ -68,9 +69,6 @@ by simp [mul_assoc]
 @[simp]
 lemma mul_mul_inv_of_self_cancel [monoid α] (a b : α) [invertible b] : a * b * ⅟b = a :=
 by simp [mul_assoc]
-
-lemma left_inv_eq_right_inv [monoid α] {a b c : α} (hba : b * a = 1) (hac : a * c = 1) : b = c :=
-by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 lemma inv_of_eq_right_inv [monoid α] {a b : α} [invertible a] (hac : a * b = 1) : ⅟a = b :=
 left_inv_eq_right_inv (inv_of_mul_self _) hac

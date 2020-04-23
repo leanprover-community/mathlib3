@@ -25,8 +25,7 @@ fractions.
 ## References
 
 - https://en.wikipedia.org/wiki/Generalized_continued_fraction
-- [Hardy, Godfrey Harold and Wright, Edward Maitland, and others,
-*An introduction to the theory of numbers*][hardy1979introduction]
+- [*Hardy, GH and Wright, EM and Heath-Brown, Roger and Silverman, Joseph*][hardy2008introduction]
 
 ## Tags
 

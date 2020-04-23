@@ -3,10 +3,10 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-
 import algebra.pi_instances
 import linear_algebra.basic
-import topology.instances.nnreal topology.instances.complex
+import topology.instances.nnreal
+import topology.instances.complex
 import topology.algebra.module
 import topology.metric_space.lipschitz
 import topology.metric_space.antilipschitz
@@ -242,6 +242,9 @@ nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
+
+lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α), nnnorm (s.sum f) ≤ s.sum (λa, nnnorm (f a)) :=
+finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 end nnnorm
 
@@ -637,7 +640,7 @@ instance : normed_ring ℤ :=
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
   dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
 
-@[elim_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+@[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
 
 instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
@@ -647,9 +650,9 @@ instance : normed_field ℚ :=
 instance : nondiscrete_normed_field ℚ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
-@[elim_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
+@[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
 
-@[elim_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
+@[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space

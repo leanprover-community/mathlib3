@@ -5,7 +5,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 The Schröder-Bernstein theorem, and well ordering of cardinals.
 -/
-import order.fixed_points data.set.lattice logic.function logic.embedding order.zorn
+import order.fixed_points
+import data.set.lattice
+import logic.function
+import logic.embedding
+import order.zorn
 
 open set classical
 open_locale classical

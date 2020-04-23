@@ -3,7 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
-import order.galois_connection order.zorn order.copy
+import order.galois_connection
+import order.zorn
+import order.copy
 import data.set.finite
 
 /-! # Theory of filters on sets
@@ -2123,6 +2125,23 @@ alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
 
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
 finset.range_mono.tendsto_at_top_at_top.2 finset.exists_nat_subset_range
+
+lemma monotone.tendsto_at_top_finset [nonempty β] [semilattice_sup β]
+  {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
+  tendsto f at_top at_top :=
+begin
+  classical,
+  apply (tendsto_at_top_at_top_of_monotone h).2,
+  choose N hN using h',
+  assume b,
+  have : bdd_above ↑(b.image N) := finset.bdd_above _,
+  rcases this with ⟨n, hn⟩,
+  refine ⟨n, _⟩,
+  assume i ib,
+  have : N i ∈ ↑(finset.image N b),
+    by { rw finset.mem_coe, exact finset.mem_image_of_mem _ ib },
+  exact (h (hn this)) (hN i)
+end
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
   tendsto (finset.image j) at_top at_top :=

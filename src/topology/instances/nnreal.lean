@@ -5,7 +5,9 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.nnreal topology.instances.real topology.algebra.infinite_sum
+import data.real.nnreal
+import topology.instances.real
+import topology.algebra.infinite_sum
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -87,11 +89,11 @@ lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
 continuous_sub.comp (hf.prod_mk hg)
 
-@[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp [has_sum, coe_sum.symm, tendsto_coe]
 
-@[elim_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
+@[norm_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
   simp [summable],
   split,
@@ -101,7 +103,7 @@ end
 
 open_locale classical
 
-@[move_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
+@[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
 if hf : summable f
 then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ hf.has_sum)
 else by simp [tsum, hf, mt summable_coe.1 hf]

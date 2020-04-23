@@ -3,7 +3,12 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.split_ifs order.basic algebra.order algebra.ordered_group algebra.ring data.nat.cast
+import tactic.split_ifs
+import order.basic
+import algebra.order
+import algebra.ordered_group
+import algebra.ring
+import data.nat.cast
 
 universe u
 variable {α : Type u}

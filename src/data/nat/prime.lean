@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 -/
-import data.nat.sqrt data.nat.gcd data.list.defs data.list.perm
+import data.nat.sqrt
+import data.nat.gcd
+import data.list.defs
+import data.list.perm
 import algebra.group_power
 import tactic.wlog
 
@@ -314,6 +317,17 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
     have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+
+lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
+begin
+  have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
+  rw [this, nat.factors],
+  simp only [eq.symm this],
+  have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
+  split,
+  { exact this, },
+  { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
+end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),

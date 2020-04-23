@@ -5,9 +5,11 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 
 Characteristic of semirings.
 -/
-
-import data.padics.padic_norm data.nat.choose data.fintype.basic
-import data.zmod.basic algebra.module
+import data.padics.padic_norm
+import data.nat.choose
+import data.fintype.basic
+import data.zmod.basic
+import algebra.module
 
 universes u v
 

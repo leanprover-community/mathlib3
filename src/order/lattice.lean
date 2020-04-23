@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 
 Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
-
 import order.basic
 
 set_option old_structure_cmd true

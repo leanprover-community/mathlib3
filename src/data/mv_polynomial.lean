@@ -3,9 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
-
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+import data.finsupp
+import data.polynomial
+import data.equiv.ring
+import data.equiv.fin
 import tactic.omega
 
 /-!
@@ -990,6 +992,7 @@ end map
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
+-- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
 instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,

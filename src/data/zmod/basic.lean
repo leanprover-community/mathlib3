@@ -3,8 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
-
-import data.int.modeq data.int.gcd data.fintype.basic data.pnat.basic tactic.ring
+import data.int.modeq
+import data.int.gcd
+import data.fintype.basic
+import data.pnat.basic
+import tactic.ring
 
 /-!
 # Integers mod `n`
@@ -23,7 +26,7 @@ There are two types defined, `zmod n`, which is for integers modulo a positive n
 * A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
 characteristic dividing `n`
 
-## Implentation notes
+## Implementation notes
 
 `zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
 synthesized. This leads to a lot of code duplication and most of the functions and theorems for

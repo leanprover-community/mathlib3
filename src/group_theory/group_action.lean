@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite group_theory.coset
+import data.set.finite
+import group_theory.coset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -46,7 +47,15 @@ end
 
 namespace mul_action
 
-variables (α) [monoid α] [mul_action α β]
+variables (α) [monoid α]
+
+/-- The regular action of a monoid on itself by left multiplication. -/
+def regular : mul_action α α :=
+{ smul := λ a₁ a₂, a₁ * a₂,
+  one_smul := λ a, one_mul a,
+  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+
+variables [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 

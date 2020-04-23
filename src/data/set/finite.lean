@@ -6,7 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro
 Finite sets.
 -/
 import logic.function
-import data.nat.basic data.fintype.basic data.set.lattice data.set.function
+import data.nat.basic
+import data.fintype.basic
+import data.set.lattice
+import data.set.function
 import algebra.big_operators
 
 open set function
@@ -342,10 +345,15 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
-  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
+  using (finite.to_finset h1).exists_min_image f ⟨x, finite.mem_to_finset.2 hx⟩
+
+lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f b ≤ f a
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using (finite.to_finset h1).exists_max_image f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 

@@ -2,13 +2,22 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import computability.primrec
+import data.pfun
+
+/-!
+# The partial recursive functions
 
 The partial recursive functions are defined similarly to the primitive
 recursive functions, but now all functions are partial, implemented
 using the `roption` monad, and there is an additional operation, called
 μ-recursion, which performs unbounded minimization.
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
-import computability.primrec data.pfun
 
 open encodable denumerable roption
 

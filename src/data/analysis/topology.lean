@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 
 Computational realization of topological spaces (experimental).
 -/
-import topology.bases data.analysis.filter
+import topology.bases
+import data.analysis.filter
 open set
 open filter (hiding realizer)
 open_locale topological_space

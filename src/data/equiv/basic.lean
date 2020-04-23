@@ -8,8 +8,13 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import tactic.split_ifs logic.function logic.unique data.set.function data.bool data.quot
-  data.option.basic
+import tactic.split_ifs
+import logic.function
+import logic.unique
+import data.set.function
+import data.bool
+import data.quot
+import data.option.basic
 
 open function
 
@@ -111,6 +116,13 @@ rfl
 
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
 | ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
+
+theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
+  f x = y ↔ x = f.symm y :=
+begin
+  conv_lhs { rw ←apply_symm_apply f y, },
+  rw apply_eq_iff_eq,
+end
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 

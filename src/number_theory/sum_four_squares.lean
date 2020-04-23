@@ -12,7 +12,9 @@ a proof that every natural number is the sum of four square numbers.
 
 The proof used is close to Lagrange's original proof.
 -/
-import data.zmod.basic field_theory.finite group_theory.perm.sign
+import data.zmod.basic
+import field_theory.finite
+import group_theory.perm.sign
 import data.int.parity
 
 open finset polynomial finite_field equiv
@@ -60,14 +62,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           exact (lt_add_iff_pos_right _).2
             (add_pos_of_nonneg_of_pos (nat.zero_le _) (mul_pos dec_trivial
               (nat.div_pos hp.two_le dec_trivial)))
-      ... = p * p : begin
-        conv_rhs { rw [← nat.mod_add_div p 2] },
-        simp only [nat.pow_two],
-        rw [← int.coe_nat_inj'],
-        simp only [nat.pow_two, int.coe_nat_add, int.coe_nat_mul, int.coe_nat_bit0, int.coe_nat_one,
-          two_mul, mul_add, add_mul],
-        ring,
-      end)
+      ... = p * p : by { conv_rhs { rw [← nat.mod_add_div p 2] }, ring })
     (show 0 ≤ p, from nat.zero_le _)⟩
 
 end int

@@ -50,7 +50,7 @@ This instance generates the type-class problem `bundled_hom ?m` (which is why th
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
 @[nolint dangerous_instance] instance category : category (bundled c) :=
 by refine
-{ hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
+{ hom := λ X Y, @hom X Y X.str Y.str,
   id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
   comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X Y Z X.str Y.str Z.str g f,
   comp_id' := _,

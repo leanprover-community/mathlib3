@@ -7,7 +7,9 @@ A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
 set theory.
 -/
-import tactic.interactive data.list.basic data.sigma
+import tactic.interactive
+import data.list.basic
+import data.sigma
 
 variables {α : Type*}
 

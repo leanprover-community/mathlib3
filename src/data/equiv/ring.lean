@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.mul_add algebra.field
+import data.equiv.mul_add
+import algebra.field
 
 /-!
 # (Semi)ring equivs
@@ -54,10 +54,10 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-@[squash_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃* S) a = f a := rfl
 
-@[squash_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃+ S) a = f a := rfl
 
 variable (R)
@@ -264,7 +264,7 @@ def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
 
 variable {K}
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+@[simp]
 lemma coe_units_equiv_ne_zero (a : units K) :
   ((units_equiv_ne_zero K a) : K) = a := rfl
 

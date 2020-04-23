@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
-import data.equiv.basic algebra.field
+import data.equiv.basic
+import algebra.field
 
 /-!
 # Transfer algebraic structures across `equiv`s

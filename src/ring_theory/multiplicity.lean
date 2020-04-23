@@ -3,7 +3,9 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
-import algebra.associated data.int.gcd algebra.big_operators
+import algebra.associated
+import data.int.gcd
+import algebra.big_operators
 import tactic.converter.interactive
 
 variables {α : Type*}
@@ -33,9 +35,9 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
-@[move_cast]
+@[norm_cast]
 theorem int.coe_nat_multiplicity (a b : ℕ) :
-    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
+    multiplicity (a : ℤ) (b : ℤ) = multiplicity a b :=
 begin
     apply roption.ext',
     { repeat {rw [← finite_iff_dom, finite_def]},

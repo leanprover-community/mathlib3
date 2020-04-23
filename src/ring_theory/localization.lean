@@ -3,7 +3,11 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
-import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_theory.submonoid
+import tactic.ring
+import data.quot
+import data.equiv.ring
+import ring_theory.ideal_operations
+import group_theory.submonoid
 
 universes u v
 
@@ -522,10 +526,8 @@ by refine
   simp only [has_inv.inv, inv_aux, quotient.lift_beta, dif_neg this],
   exact (quotient.sound $ r_of_eq $ by simp [mul_comm]) }
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time simplify lhs
 lemma mk_eq_div {r s} : (mk r s : fraction_ring β) = (r / s : fraction_ring β) :=
-show _ = _ * dite (s.1 = 0) _ _, by rw [dif_neg (mem_non_zero_divisors_iff_ne_zero.mp s.2)];
-exact localization.mk_eq_mul_mk_one _ _
+by simp [div_eq_mul_inv]
 
 variables {β}
 
@@ -611,7 +613,7 @@ set_option class.instance_max_depth 50
 
 variables (α S)
 
-instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra $ λ _, mul_comm _
+instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra
 
 lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
 by { simp, refl }

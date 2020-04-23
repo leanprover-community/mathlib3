@@ -3,8 +3,9 @@ Copyright (c) 2019 Casper Putz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joey van Langen, Casper Putz
 -/
-
-import algebra.char_p data.zmod.basic linear_algebra.basis
+import algebra.char_p
+import data.zmod.basic
+import linear_algebra.basis
 
 universes u
 variables (α : Type u) [field α] [fintype α]

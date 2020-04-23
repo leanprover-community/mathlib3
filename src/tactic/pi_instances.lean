@@ -14,29 +14,32 @@ Automation for creating instances of mathematical structures for pi types
 
 namespace tactic
 
-open tactic.interactive
+open interactive interactive.types lean.parser expr
+open functor has_seq list nat tactic.interactive
 
-/-- Attempt to clear a goal obtained by refining a `pi_instance` goal. -/
-meta def pi_instance_derive_field : tactic unit :=
+meta def derive_field : tactic unit :=
 do b ← target >>= is_prop,
    field ← get_current_field,
    if b then do
+     field ← get_current_field,
      vs ← introv [] <|> pure [],
      hs ← intros <|> pure [],
-     reset_instance_cache,
-     xn ← get_unused_name,
-     try (() <$ ext1 [rcases_patt.one xn] <|> () <$ intro xn),
-     xv ← option.iget <$> try_core (get_local xn),
+     resetI,
+     x ← get_unused_name,
+     try (() <$ ext1 [rcases_patt.one x] <|> () <$ intro x),
+     x' ← try_core (get_local x),
      applyc field,
      hs.mmap (λ h, try $
-       () <$ (to_expr ``(congr_fun %%h %%xv) >>= apply) <|>
-       () <$ apply (h xv) <|>
+       () <$ (to_expr ``(congr_fun %%h %%(x'.iget)) >>= apply) <|>
+       () <$ apply (h x'.iget) <|>
        () <$ (to_expr ``(set.mem_image_of_mem _ %%h) >>= apply) <|>
-       () <$ solve_by_elim),
+       () <$ (solve_by_elim) ),
      return ()
    else focus1 $ do
-     expl_arity ← mk_const field >>= get_expl_arity,
-     xs ← (list.iota expl_arity).mmap $ λ _, intro1,
+     field ← get_current_field,
+     e ← mk_const field,
+     expl_arity ← get_expl_arity e,
+     xs ← (iota expl_arity).mmap $ λ _, intro1,
      x ← intro1,
      applyc field,
      xs.mmap' (λ h, try $
@@ -52,7 +55,7 @@ it defaults to `pi.partial_order`. Any field of the instance that
 -/
 meta def pi_instance : tactic unit :=
 refine_struct ``( {  ..pi.partial_order, .. } );
-  propagate_tags (try $ pi_instance_derive_field >> done)
+  propagate_tags (try (derive_field ; done))
 
 run_cmd add_interactive [`pi_instance]
 

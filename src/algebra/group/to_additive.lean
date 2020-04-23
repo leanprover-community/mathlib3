@@ -121,8 +121,8 @@ native.rb_map.of_list $
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
-string.map_tokens '_' $ list.map $
-string.map_tokens ''' $ list.map $
+string.map_tokens '_' $
+string.map_tokens ''' $
 λ s, (tokens_dict.find s).get_or_else s
 
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=

@@ -126,6 +126,18 @@ def is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ 
 { inv := section_ f,
   hom_inv_id' := (cancel_epi_id $ section_ f).mp (by simp) }
 
+instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_epi f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_mono f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_epi f).1 (has_hom.hom.op_inj eq))⟩
+
+instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_mono f).1 (has_hom.hom.op_inj eq))⟩
+
 section
 variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟

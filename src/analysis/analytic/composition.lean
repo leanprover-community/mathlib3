@@ -915,6 +915,10 @@ begin
   rwa [nth_le_of_fn, nth_le_of_fn] at this
 end
 
+/-- When `a` is a composition of `n` and `b` is a composition of `a.length`, `a.join b` is the
+composition of `n` obtained by joining all the blocks of `a` corresponding to a block of `b`.
+For instance, if `a = [6, 5, 3, 5, 2]` and `b = [2, 3]`, one should join together
+the first two blocks of `a` and its last three blocks, giving `a.join b = [11, 10]`. -/
 def join (a : composition n) (b : composition a.length) : composition n :=
 { blocks := (a.blocks.split_wrt_composition b).map sum,
   blocks_pos := begin
@@ -933,9 +937,9 @@ lemma length_join (a : composition n) (b : composition a.length) :
 by { dsimp only [composition.length, composition.join], simp }
 
 /-- An auxiliary function used in the definition of
-`composition_sigma_composition_equiv_composition_sigma_pi_composition` below, associating to
+`sigma_equiv_sigma_pi` below, associating to
 two compositions `a` of `n` and `b` of `a.length`, and an index `i` bounded by the length of
-`a.join b`, the subcomposition of `a` made of those blocks falling in the `i`-th block of
+`a.join b`, the subcomposition of `a` made of those blocks belonging to the `i`-th block of
 `a.join b`.
 -/
 def sigma_composition_aux (a : composition n) (b : composition a.length) :
@@ -974,9 +978,18 @@ begin
   refl
 end
 
-lemma size_up_to_size_up_to_add
-  (a : composition n) (b : composition a.length) {i j : ℕ} (hi : i < b.length)
-  (hj : j < blocks_fun b ⟨i, hi⟩) :
+/--
+Auxiliary lemma to prove that the composition of formal multilinear series is associative.
+
+Consider a composition `a` of `n` and a composition `b` of `a.length`. Grouping together some
+blocks of `a` according to `b` as in `a.join b`, one can compute the total size of the blocks of `a`
+up to an index `size_up_to b i + j` (where the `j` corresponds to a set of blocks of `a` that do
+not fill a whole block of `a.join b`). The first part corresponds to a sum of blocks in `a.join b`,
+and the second one to a sum of blocks in the next block of `sigma_composition_aux a b`. This is the
+content of this lemma.
+-/
+lemma size_up_to_size_up_to_add (a : composition n) (b : composition a.length)
+  {i j : ℕ} (hi : i < b.length) (hj : j < blocks_fun b ⟨i, hi⟩) :
   size_up_to a (size_up_to b i + j) = size_up_to (join a b) i
     + (size_up_to (sigma_composition_aux a b ⟨i, (length_join a b).symm ▸ hi⟩) j) :=
 begin
@@ -1012,23 +1025,15 @@ Natural equivalence between `(Σ (a : composition n), composition a.length)` and
 `(Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i))`, that shows up as a
 change of variables in the proof that composition of formal multilinear series is associative.
 
-Consider a composition `a` of `n` and a composition `b` of `a.length`, Then `b` indicates how to
+Consider a composition `a` of `n` and a composition `b` of `a.length`. Then `b` indicates how to
 group together some blocks of `a`, giving altogether `b.length` blocks of blocks. These blocks of
 blocks can be called `d₀, ..., d_{a.length - 1}`, and one obtains a composition `c` of `n` by
 saying that each `dᵢ` is one single block. The map `⟨a, b⟩ → ⟨c, (d₀, ..., d_{a.length - 1})⟩` is
 the direct map in the equiv.
 
-Conversely, if one starts from `c` and the `dᵢ`s, one can concatenate
-the `dᵢ`s to obtain a composition `a` of `n`, and register the lengths of the `dᵢ`s in a composition
-`b` of `a.length`. This is the inverse map of the equiv.
-
-An example might be enlightening. Suppose `a = [2, 2, 3, 4, 2]`. It is a composition of
-length `5` of `13`. The content of the blocks may be represented as `0011222333344`.
-Now take `b = [2, 3]` as a composition of `a.length = 5`. It says that the first 2 blocks of `a`
-should be merged, and the last 3 blocks of `a` should be merged, giving a new composition of `13`
-made of two blocks of length `4` and `9`, i.e., `c = [4, 9]`. But one can also remember that
-the new first block was initially made of two blocks of size `2`, so `d₀ = [2, 2]`, and the new
-second block was initially made of three blocks of size `3`, `4` and `2`, so `d₁ = [3, 4, 2]`.
+Conversely, if one starts from `c` and the `dᵢ`s, one can join the `dᵢ`s to obtain a composition
+`a` of `n`, and register the lengths of the `dᵢ`s in a composition `b` of `a.length`. This is the
+inverse map of the equiv.
 -/
 def sigma_equiv_sigma_pi (n : ℕ) :
   (Σ (a : composition n), composition a.length) ≃

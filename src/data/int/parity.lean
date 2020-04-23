@@ -5,7 +5,9 @@ Authors: Jeremy Avigad
 
 The `even` predicate on the integers.
 -/
-import .modeq data.nat.parity algebra.group_power
+import data.int.modeq
+import data.nat.parity
+import algebra.group_power
 
 namespace int
 

@@ -100,6 +100,14 @@ adj.counit.naturality f
   (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
 (adj.unit.naturality f).symm
 
+lemma hom_equiv_apply_eq {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
+  adj.hom_equiv A B f = g ↔ f = (adj.hom_equiv A B).symm g :=
+⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+
+lemma eq_hom_equiv_apply {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
+  g = adj.hom_equiv A B f ↔ (adj.hom_equiv A B).symm g = f :=
+⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+
 end
 
 end adjunction

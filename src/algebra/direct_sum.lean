@@ -5,7 +5,6 @@ Authors: Kenny Lau
 
 Direct sum of abelian groups, indexed by a discrete type.
 -/
-
 import data.dfinsupp
 
 universes u v w u₁

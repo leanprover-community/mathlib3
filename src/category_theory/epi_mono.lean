@@ -8,7 +8,6 @@ Facts about epimorphisms and monomorphisms.
 The definitions of `epi` and `mono` are in `category_theory.category`,
 since they are used by some lemmas for `iso`, which is used everywhere.
 -/
-
 import category_theory.adjunction.basic
 import category_theory.fully_faithful
 

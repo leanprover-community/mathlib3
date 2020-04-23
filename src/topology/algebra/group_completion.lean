@@ -5,7 +5,8 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Completion of topological groups:
 -/
-import topology.uniform_space.completion topology.algebra.uniform_group
+import topology.uniform_space.completion
+import topology.algebra.uniform_group
 noncomputable theory
 
 section group

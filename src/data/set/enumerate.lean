@@ -5,8 +5,8 @@ Author: Johannes Hölzl
 
 Enumerate elements of a set with a select function.
 -/
-
-import data.set.lattice tactic.wlog
+import data.set.lattice
+import tactic.wlog
 noncomputable theory
 
 open function set

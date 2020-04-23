@@ -3,7 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.order_functions data.set.intervals.basic
+import algebra.order_functions
+import data.set.intervals.basic
 /-!
 
 # Upper / lower bounds

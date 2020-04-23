@@ -5,7 +5,9 @@ Authors: Johannes Hölzl
 
 Theory of complete Boolean algebras.
 -/
-import order.complete_lattice order.boolean_algebra data.set.basic
+import order.complete_lattice
+import order.boolean_algebra
+import data.set.basic
 
 set_option old_structure_cmd true
 
@@ -118,4 +120,3 @@ theorem compl_Sup : - Sup s = (⨅i∈s, - i) :=
 by simp [Sup_eq_supr, compl_supr]
 
 end complete_boolean_algebra
-

@@ -3,7 +3,8 @@ Copyright (c) 2019 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
-import analysis.calculus.fderiv data.polynomial
+import analysis.calculus.fderiv
+import data.polynomial
 
 /-!
 

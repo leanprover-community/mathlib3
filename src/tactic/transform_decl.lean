@@ -1,4 +1,5 @@
-import meta.expr meta.rb_map
+import meta.expr
+import meta.rb_map
 
 namespace tactic
 

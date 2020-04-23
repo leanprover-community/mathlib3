@@ -20,11 +20,11 @@ def is_suffix_of (x y : string) : bool :=
 x.to_list.is_suffix_of y.to_list
 
 /-- `x.starts_with y` is true if `y` is a prefix of `x`, and is false otherwise. -/
-def starts_with (x y : string) : bool :=
+abbreviation starts_with (x y : string) : bool :=
 y.is_prefix_of x
 
 /-- `x.ends_with y` is true if `y` is a suffix of `x`, and is false otherwise. -/
-def ends_with (x y : string) : bool :=
+abbreviation ends_with (x y : string) : bool :=
 y.is_suffix_of x
 
 /-- `get_rest s t` returns `some r` if `s = t ++ r`.

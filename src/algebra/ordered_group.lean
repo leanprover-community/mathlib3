@@ -5,8 +5,11 @@ Authors: Mario Carneiro, Johannes Hölzl
 
 Ordered monoids and groups.
 -/
-import algebra.group.units algebra.group.with_one algebra.group.type_tags
-import order.bounded_lattice tactic.basic
+import algebra.group.units
+import algebra.group.with_one
+import algebra.group.type_tags
+import order.bounded_lattice
+import tactic.basic
 
 universe u
 variable {α : Type u}

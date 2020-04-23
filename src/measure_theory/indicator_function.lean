@@ -3,7 +3,6 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import data.indicator_function
 import measure_theory.measure_space
 import analysis.normed_space.basic

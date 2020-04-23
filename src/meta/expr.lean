@@ -3,7 +3,8 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs tactic.derive_inhabited
+import data.string.defs
+import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 
@@ -662,6 +663,11 @@ end expr
 namespace declaration
 open tactic
 
+/-- 
+`declaration.update_with_fun f tgt decl` 
+sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
+of all `expr.const`s which appear in the value or type of `decl`. 
+-/
 protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
   declaration :=
 let decl := decl.update_name $ tgt in

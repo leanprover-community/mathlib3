@@ -16,9 +16,15 @@ Reference:
 * Bourbaki: General Topology (1995), Chapter 3 §5 (Infinite sums in commutative groups)
 
 -/
-import logic.function algebra.big_operators data.set.lattice data.finset
-       topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
-       topology.algebra.ordered topology.instances.real
+import logic.function
+import algebra.big_operators
+import data.set.lattice
+import data.finset
+import topology.metric_space.basic
+import topology.algebra.uniform_group
+import topology.algebra.ring
+import topology.algebra.ordered
+import topology.instances.real
 
 noncomputable theory
 open finset filter function classical

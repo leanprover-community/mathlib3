@@ -3,7 +3,6 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
 import algebra.punit_instances
 import algebra.category.Mon.basic
 import category_theory.endomorphism

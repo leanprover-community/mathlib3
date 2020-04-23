@@ -40,9 +40,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
-import data.rat algebra.gcd_domain algebra.field_power
-import ring_theory.multiplicity tactic.ring
+import data.rat
+import algebra.gcd_domain
+import algebra.field_power
+import ring_theory.multiplicity
+import tactic.ring
 import data.real.cau_seq
 import tactic.norm_cast
 

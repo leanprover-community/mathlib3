@@ -3,7 +3,10 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
+import algebra.ring
+import algebra.big_operators
+import group_theory.subgroup
+import group_theory.group_action
 
 /-!
 # Modules over a ring

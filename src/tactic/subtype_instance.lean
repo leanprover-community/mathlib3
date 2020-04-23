@@ -6,10 +6,11 @@ Authors: Simon Hudon
 Provides a `subtype_instance` tactic which builds instances for algebraic substructures
 (sub-groups, sub-rings...).
 -/
-
 import data.string.basic
-import tactic.interactive tactic.algebra
-import data.subtype data.set.basic
+import tactic.interactive
+import tactic.algebra
+import data.subtype
+import data.set.basic
 open tactic expr name list
 
 namespace tactic

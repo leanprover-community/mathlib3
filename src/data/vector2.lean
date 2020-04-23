@@ -5,8 +5,12 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.nodup data.list.of_fn
-import category.traversable.basic data.set.basic tactic.tauto
+import data.vector
+import data.list.nodup
+import data.list.of_fn
+import category.traversable.basic
+import data.set.basic
+import tactic.tauto
 
 universes u
 variables {n : ℕ}

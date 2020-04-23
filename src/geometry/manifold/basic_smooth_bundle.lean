@@ -3,8 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import topology.topological_fiber_bundle geometry.manifold.smooth_manifold_with_corners
+import topology.topological_fiber_bundle
+import geometry.manifold.smooth_manifold_with_corners
 /-!
 # Basic smooth bundles
 

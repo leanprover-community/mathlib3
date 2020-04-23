@@ -3,8 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-
-import tactic.core data.string.defs data.list.defs
+import tactic.core
+import data.string.defs
+import data.list.defs
 
 /-!
 # `def_replacer`

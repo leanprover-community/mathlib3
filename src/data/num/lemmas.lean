@@ -5,9 +5,12 @@ Author: Mario Carneiro
 
 Properties of the binary representation of integers.
 -/
-import
-  data.num.basic data.num.bitwise algebra.ordered_ring
-  tactic.interactive data.int.basic data.nat.gcd
+import data.num.basic
+import data.num.bitwise
+import algebra.ordered_ring
+import tactic.interactive
+import data.int.basic
+import data.nat.gcd
 
 namespace pos_num
   variables {α : Type*}

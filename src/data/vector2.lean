@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
+import tactic.basic
 import data.vector
 import data.list.nodup
 import data.list.of_fn

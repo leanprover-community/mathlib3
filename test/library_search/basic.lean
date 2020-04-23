@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_library_search true
+-- set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
 -- set_option trace.suggest true
 
@@ -118,5 +118,14 @@ begin
   success_if_fail { library_search },
   library_search [nat.pos_iff_ne_zero.mpr],
 end
+
+-- Checking examples from issue #2220
+example {α : Sort*} (h : empty) : α :=
+by library_search
+
+example {α : Type*} (h : empty) : α :=
+by library_search
+
+def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C := by library_search
 
 end test.library_search

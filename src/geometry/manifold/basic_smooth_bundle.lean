@@ -536,7 +536,7 @@ topological_fiber_bundle_core.is_open_map_proj _
   (chart_at (H × E) p).to_local_equiv = local_equiv.refl (H × E) :=
 begin
   have A : ∀ x_fst, fderiv_within 𝕜 (I.to_fun ∘ I.inv_fun) (range I.to_fun) (I.to_fun x_fst)
-           = continuous_linear_map.id,
+           = continuous_linear_map.id 𝕜 E,
   { assume x_fst,
     have : fderiv_within 𝕜 (I.to_fun ∘ I.inv_fun) (range I.to_fun) (I.to_fun x_fst)
          = fderiv_within 𝕜 id (range I.to_fun) (I.to_fun x_fst),

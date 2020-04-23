@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.cones
+import category_theory.adjunction.basic
 
 open category_theory category_theory.category category_theory.functor opposite
 

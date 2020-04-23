@@ -7,6 +7,8 @@ import category_theory.comma
 import category_theory.pempty
 import category_theory.limits.connected
 import category_theory.limits.creates
+import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
+import category_theory.limits.shapes.constructions.equalizers
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 

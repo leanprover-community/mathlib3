@@ -451,6 +451,35 @@ subtype.coe_ext.2 $ by simp
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
 subtype.coe_ext.2 $ by simp [h y]
 
+variables [topological_space R] [topological_module R M₂]
+
+/-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
+`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`) -/
+def smul_right (c : M →L[R] R) (f : M₂) : M →L[R] M₂ :=
+{ cont := c.2.smul continuous_const,
+  ..c.to_linear_map.smul_right f }
+
+@[simp]
+lemma smul_right_apply {c : M →L[R] R} {f : M₂} {x : M} :
+  (smul_right c f : M → M₂) x = (c : M → R) x • f :=
+rfl
+
+@[simp]
+lemma smul_right_one_one (c : R →L[R] M₂) : smul_right 1 ((c : R → M₂) 1) = c :=
+by ext; simp [-continuous_linear_map.map_smul, (continuous_linear_map.map_smul _ _ _).symm]
+
+@[simp]
+lemma smul_right_one_eq_iff {f f' : M₂} :
+  smul_right (1 : R →L[R] R) f = smul_right 1 f' ↔ f = f' :=
+⟨λ h, have (smul_right (1 : R →L[R] R) f : R → M₂) 1 = (smul_right (1 : R →L[R] R) f' : R → M₂) 1,
+        by rw h,
+      by simp at this; assumption,
+  by cc⟩
+
+lemma smul_right_comp [topological_module R R] {x : M₂} {c : R} :
+  (smul_right 1 x : R →L[R] M₂).comp (smul_right 1 c : R →L[R] R) = smul_right 1 (c • x) :=
+by { ext, simp [mul_smul] }
+
 end general_ring
 
 section comm_ring
@@ -476,29 +505,6 @@ variable [topological_module R M₂]
 @[norm_cast] lemma coe_apply' : (((c • f) : M →L[R] M₂) : M → M₂) = c • (f : M → M₂) := rfl
 
 @[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
-
-/-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
-`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`) -/
-def smul_right (c : M →L[R] R) (f : M₂) : M →L[R] M₂ :=
-{ cont := c.2.smul continuous_const,
-  ..c.to_linear_map.smul_right f }
-
-@[simp]
-lemma smul_right_apply {c : M →L[R] R} {f : M₂} {x : M} :
-  (smul_right c f : M → M₂) x = (c : M → R) x • f :=
-rfl
-
-@[simp]
-lemma smul_right_one_one (c : R →L[R] M₂) : smul_right 1 ((c : R → M₂) 1) = c :=
-by ext; simp [-continuous_linear_map.map_smul, (continuous_linear_map.map_smul _ _ _).symm]
-
-@[simp]
-lemma smul_right_one_eq_iff {f f' : M₂} :
-  smul_right (1 : R →L[R] R) f = smul_right 1 f' ↔ f = f' :=
-⟨λ h, have (smul_right (1 : R →L[R] R) f : R → M₂) 1 = (smul_right (1 : R →L[R] R) f' : R → M₂) 1,
-        by rw h,
-      by simp at this; assumption,
-  by cc⟩
 
 variable [topological_add_group M₂]
 
@@ -597,6 +603,10 @@ lemma comp_continuous_iff
   {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
   continuous (e ∘ f) ↔ continuous f :=
 e.to_homeomorph.comp_continuous_iff _
+
+/-- An extensionality lemma for `R ≃L[R] R`. -/
+lemma ext₁ [topological_space R] {f g : R ≃L[R] M} (h : f 1 = g 1) : f = g :=
+ext $ funext $ λ x, mul_one x ▸ by rw [← smul_eq_mul, map_smul, h, map_smul]
 
 section
 variables (R M)
@@ -724,26 +734,54 @@ rfl
   (of_inverse f₁ f₂ h₁ h₂).symm = of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 
+section
+variables (R) [topological_space R] [topological_module R R]
+
+/-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `units R`. -/
+def equiv_units : units R ≃ (R ≃L[R] R) :=
+{ to_fun := λ u, of_inverse
+    (continuous_linear_map.smul_right 1 ↑u)
+    (continuous_linear_map.smul_right 1 ↑u⁻¹)
+    (λ x, by simp) (λ x, by simp),
+  inv_fun := λ e, ⟨e 1, e.symm 1,
+    by rw [← smul_eq_mul, ← map_smul, smul_eq_mul, mul_one, symm_apply_apply],
+    by rw [← smul_eq_mul, ← map_smul, smul_eq_mul, mul_one, apply_symm_apply]⟩,
+  left_inv := λ u, units.ext $ by simp,
+  right_inv := λ e, ext₁ $ by simp }
+
+variable {R}
+
+@[simp] lemma equiv_units_apply (u : units R) (x : R) : equiv_units R u x = x * u := rfl
+
+@[simp] lemma equiv_units_apply_symm (u : units R) (x : R) :
+  (equiv_units R u).symm x = x * ↑u⁻¹ := rfl
+
+@[simp] lemma equiv_units_symm_apply (e : R ≃L[R] R) :
+  ↑((equiv_units R).symm e) = e 1 :=
+rfl
+
+end
+
 variables [topological_add_group M]
 
 open continuous_linear_map (id fst snd subtype_val mem_ker)
 
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
-linear equivalence `e` between `M` and `f₁.ker × M₂` such that `(e x).1 = x` for `x ∈ f₁.ker`,
-`(e x).2 = f₁ x`, and `(e (f₂ y)).1 = 0`. The map is given by `e x = (x - f₂ (f₁ x), f₁ x)`. -/
+linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
+`(e x).1 = f₁ x`, and `(e (f₂ y)).2 = 0`. The map is given by `e x = (f₁ x, x - f₂ (f₁ x))`. -/
 def of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
-  M ≃L[R] f₁.ker × M₂ :=
-of_inverse ((f₁.proj_ker_of_right_inverse f₂ h).prod f₁) ((subtype_val f₁.ker).coprod f₂)
+  M ≃L[R] M₂ × f₁.ker :=
+of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (subtype_val f₁.ker))
   (λ x, by simp)
-  (λ ⟨x, y⟩, by simp [h y])
+  (λ ⟨x, y⟩, by simp [h x])
 
 @[simp] lemma fst_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
-  ((of_right_inverse f₁ f₂ h x).1 : M) = x - f₂ (f₁ x) := rfl
+  (of_right_inverse f₁ f₂ h x).1 = f₁ x := rfl
 
 @[simp] lemma snd_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
-  (of_right_inverse f₁ f₂ h x).2 = f₁ x := rfl
+  ((of_right_inverse f₁ f₂ h x).2 : M) = x - f₂ (f₁ x) := rfl
 
 @[simp] lemma of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ h y) :
-  (of_right_inverse f₁ f₂ h).symm y = y.1 + f₂ y.2 := rfl
+  (of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end continuous_linear_equiv

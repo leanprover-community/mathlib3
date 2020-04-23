@@ -121,6 +121,10 @@ lemma continuous_at_to_fun {x : α} (h : x ∈ e.source) : continuous_at e.to_fu
 lemma continuous_at_inv_fun {x : β} (h : x ∈ e.target) : continuous_at e.inv_fun x :=
 e.symm.continuous_at_to_fun h
 
+lemma inv_fun_tendsto (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  filter.tendsto e.inv_fun (𝓝 (e.to_fun x)) (𝓝 x) :=
+by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_inv_fun (e.map_source hx)
+
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
 lemma preimage_interior (s : set β) :

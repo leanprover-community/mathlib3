@@ -582,6 +582,10 @@ begin
   simp only [*]
 end
 
+theorem has_strict_fderiv_at.congr_of_mem_sets (h : has_strict_fderiv_at f f' x)
+  (h₁ : ∀ᶠ y in 𝓝 x, f y = f₁ y) : has_strict_fderiv_at f₁ f' x :=
+(has_strict_fderiv_at_congr_of_mem_sets h₁ (λ _, rfl)).1 h
+
 theorem has_fderiv_at_filter_congr_of_mem_sets
   (hx : f₀ x = f₁ x) (h₀ : ∀ᶠ x in L, f₀ x = f₁ x) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=

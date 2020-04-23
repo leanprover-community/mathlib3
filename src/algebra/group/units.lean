@@ -38,6 +38,8 @@ variables [monoid α]
 
 @[to_additive] instance : has_coe (units α) α := ⟨val⟩
 
+@[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
+
 @[ext, to_additive] theorem ext :
   function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=

@@ -5,8 +5,6 @@ Authors: Robert Y. Lewis, Mario Carneiro
 -/
 import data.int.modeq
 import data.padics.padic_numbers
-import ring_theory.ideals
-import ring_theory.algebra
 
 /-!
 # p-adic integers

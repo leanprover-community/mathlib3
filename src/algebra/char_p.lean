@@ -7,7 +7,6 @@ Characteristic of semirings.
 -/
 import data.padics.padic_norm
 import data.nat.choose
-import data.fintype.basic
 import data.zmod.basic
 import algebra.module
 

@@ -1,5 +1,4 @@
 import order.filter.lift
-import linear_algebra.basic
 import topology.opens
 import topology.algebra.ring
 

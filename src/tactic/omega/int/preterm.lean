@@ -3,7 +3,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Linear integer arithmetic terms in pre-normalized form. -/
-import tactic.split_ifs
 import tactic.omega.term
 
 namespace omega

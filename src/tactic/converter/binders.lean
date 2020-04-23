@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 Binder elimination
 -/
 import order
-import tactic.converter.old_conv
 
 namespace old_conv
 open tactic monad

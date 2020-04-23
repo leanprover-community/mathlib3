@@ -5,10 +5,8 @@ Authors: Kenny Lau
 
 Adjoining elements to form subalgebras.
 -/
-import ring_theory.algebra_operations
 import ring_theory.polynomial
 import ring_theory.principal_ideal_domain
-import algebra.pointwise
 
 universes u v w
 

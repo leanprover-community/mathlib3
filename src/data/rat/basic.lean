@@ -3,17 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.nat.gcd
-import data.pnat.basic
 import data.int.sqrt
 import data.equiv.encodable
 import algebra.group
-import algebra.ordered_group
-import algebra.group_power
 import algebra.euclidean_domain
 import algebra.ordered_field
-import tactic.norm_cast
-import tactic.lift
 
 /-!
 # Basics for the Rational Numbers

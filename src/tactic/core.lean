@@ -9,7 +9,6 @@ import meta.expr
 import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
-import tactic.derive_inhabited
 
 universe variable u
 

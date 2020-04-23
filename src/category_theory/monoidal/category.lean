@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.products.basic
-import category_theory.natural_isomorphism
-import tactic.basic
-import tactic.slice
 
 open category_theory
 

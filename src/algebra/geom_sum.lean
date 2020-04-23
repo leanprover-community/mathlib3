@@ -5,7 +5,6 @@ Authors: Neil Strickland
 
 Sums of finite geometric series
 -/
-import algebra.big_operators
 import algebra.commute
 import algebra.group_with_zero_power
 

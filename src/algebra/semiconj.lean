@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 
 Some proofs and docs came from `algebra/commute` (c) Neil Strickland
 -/
-import algebra.ring
 import algebra.group_power
 import data.equiv.mul_add
 

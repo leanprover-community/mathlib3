@@ -6,7 +6,6 @@ Authors: Chris Hughes
 import group_theory.order_of_element
 import data.polynomial
 import data.equiv.ring
-import data.zmod.basic
 import algebra.char_p
 
 universes u v

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
--- set_option trace.silence_library_search true
+set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
 -- set_option trace.suggest true
 
@@ -95,11 +95,6 @@ begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 
-example {a b : ℕ} (h₁ : 0 < a) (h₂ : a < b) : b ≠ 0 :=
-begin
-  library_search [lt.trans] --Says: exact ne_of_gt (lt.trans h₁ h₂)
-end
-
 -- We can also use attributes:
 meta def ex_attr : user_attribute := {
   name := `ex,
@@ -108,24 +103,15 @@ meta def ex_attr : user_attribute := {
 
 run_cmd attribute.register ``ex_attr
 
-attribute [ex] lt.trans
+attribute [ex] add_lt_add
 
--- In the following example we need to increase the `max_depth`.
-example {a b c d: ℕ} (h₁ : a < b) (h₂ : b < c) : d < a → max d c = c :=
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  intro,
-  library_search with ex {max_depth := 5},
-    --Says: `exact max_eq_right_of_lt (lt.trans (lt.trans a_1 h₁) h₂)`
-end
-
-example (f g k: ℕ → ℕ) (h₁ : ∀ n : ℕ, f n = g n) (h₂ : ∀ n : ℕ, g n = k n) : f = k :=
-begin
-  library_search [eq.trans] { discharger := `[intro] },
-  --Says: `exact funext (λ (x : ℕ), eq.trans (h₁ x) (h₂ x))`
+  library_search with ex, -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 
 example (a b : ℕ) (h : 0 < b) : (a * b) / b = a :=
-by library_search
+by library_search -- Says: `exact nat.mul_div_left a h`
 
 example (a b : ℕ) (h : b ≠ 0) : (a * b) / b = a :=
 begin

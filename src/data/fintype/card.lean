@@ -201,7 +201,7 @@ begin
     simp [← A, B, IH] }
 end
 
--- `to_additive` does not work on `of_fn_prod_take` because of `0 : ℕ` in the proof. Copy-paste the
+-- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof. Copy-paste the
 -- proof instead...
 lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = (finset.univ.filter (λ (j : fin n), j.val < i)).sum f :=

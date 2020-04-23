@@ -242,6 +242,12 @@ with_enable_tags $ tactic.focus1 $ do
   | none := skip
   end
 
+add_tactic_doc
+{ name := "wlog",
+  category := doc_category.tactic,
+  decl_names := [``wlog],
+  tags := ["logic"] }
+
 end interactive
 
 end tactic

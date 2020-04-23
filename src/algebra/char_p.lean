@@ -5,9 +5,10 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 
 Characteristic of semirings.
 -/
+
+import data.fintype.basic
 import data.padics.padic_norm
 import data.nat.choose
-import data.zmod.basic
 import algebra.module
 
 universes u v
@@ -18,6 +19,18 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
+
+lemma char_p.int_cast_eq_zero_iff (R : Type u) [ring R] (p : ℕ) [char_p R p] (a : ℤ) :
+  (a : R) = 0 ↔ (p:ℤ) ∣ a :=
+begin
+  rcases lt_trichotomy a 0 with h|rfl|h,
+  { rw [← neg_eq_zero, ← int.cast_neg, ← dvd_neg],
+    lift -a to ℕ using neg_nonneg.mpr (le_of_lt h) with b,
+    rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] },
+  { simp only [int.cast_zero, eq_self_iff_true, dvd_zero] },
+  { lift a to ℕ using (le_of_lt h) with b,
+    rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
+end
 
 theorem char_p.eq (α : Type u) [semiring α] {p q : ℕ} (c1 : char_p α p) (c2 : char_p α q) : p = q :=
 nat.dvd_antisymm
@@ -198,25 +211,23 @@ or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain
 
+section char_one
+
+variables {R : Type*}
+
+instance [semiring R] [char_p R 1] : subsingleton R :=
+subsingleton.intro $
+suffices ∀ (r : R), r = 0,
+  from assume a b, show a = b, by rw [this a, this b],
+assume r,
+calc r = 1 * r       : by rw one_mul
+   ... = (1 : ℕ) * r : by rw nat.cast_one
+   ... = 0 * r       : by rw char_p.cast_eq_zero
+   ... = 0           : by rw zero_mul
+
+lemma false_of_nonzero_of_char_one [nonzero_comm_ring R] [char_p R 1] : false :=
+zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+
+end char_one
+
 end char_p
-
-namespace zmod
-
-variables (α : Type u) [ring α] {n : ℕ+}
-
-/-- `zmod.cast : zmod n →+* α` as a ring homomorphism. -/
-def cast_hom [char_p α n] : zmod n →+* α :=
-{ to_fun := cast,
-  map_zero' := rfl,
-  map_one' := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
-  map_mul' := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
-    by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
-  map_add' := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
-    by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
-
-instance to_module [char_p α n] : module (zmod n) α := (cast_hom α).to_module
-
-instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
-@zmod.to_module α _ ⟨m, hm⟩ hc
-
-end zmod

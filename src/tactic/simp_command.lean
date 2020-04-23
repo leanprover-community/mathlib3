@@ -23,7 +23,7 @@ expr.unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   | _ := none
   end
 
-/-- `simp_arg_type.to_pexpr` retrieve the `pexpr` underlying the given `simp_arg_type`, if there is
+/-- `simp_arg_type.to_pexpr` retrieves the `pexpr` underlying the given `simp_arg_type`, if there is
 one. -/
 meta def simp_arg_type.to_pexpr : simp_arg_type → option pexpr
 | sat@(simp_arg_type.expr e) := e

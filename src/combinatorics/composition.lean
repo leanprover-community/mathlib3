@@ -129,7 +129,7 @@ def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
 
 lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
 begin
-  conv_rhs { rw [← c.blocks_sum, ← of_fn_nth_le c.blocks, of_fn_sum] },
+  conv_rhs { rw [← c.blocks_sum, ← of_fn_nth_le c.blocks, sum_of_fn] },
   simp [blocks_fun, length],
   refl
 end

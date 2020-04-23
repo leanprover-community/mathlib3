@@ -519,12 +519,7 @@ meta def get_local_const_kind : expr → name × binder_info × expr
 | (expr.local_const _ n bi e) := (n, bi, e)
 | _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
 
-/-- Returns an `expr.local_const`'s `binder_info`. -/
-meta def local_binder_info {elab : bool} : expr elab → binder_info
-| (expr.local_const x n bi t) := bi
-| e                           := binder_info.default
-
-/-- Set the `type : expr` of an `expr.local_const`. -/
+/-- `local_const_set_type e t` sets the type of `e` to `t`, if `e` is a `local_const`. -/
 meta def local_const_set_type {elab : bool} : expr elab → expr elab → expr elab
 | (expr.local_const x n bi t) new_t := expr.local_const x n bi new_t
 | e                           new_t := e

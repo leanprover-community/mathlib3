@@ -12,8 +12,8 @@ A user command to run the simplifier.
 
 namespace tactic
 
-/- Strip all annotations of non local constants in the passed `expr`. (This is required in an
-incantation later on in order to make the C++ simplified happy.) -/
+/-- Strip all annotations of non local constants in the passed `expr`. (This is required in an
+incantation later on in order to make the C++ simplifier happy.) -/
 private meta def strip_annotations_from_all_non_local_consts {elab : bool} (e : expr elab)
   : expr elab :=
 expr.unsafe_cast $ e.unsafe_cast.replace $ λ e n,
@@ -23,19 +23,19 @@ expr.unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   | _ := none
   end
 
-/- `simp_arg_type.to_pexpr` retrieve the `pexpr` underlying the given `simp_arg_type`, if there is
+/-- `simp_arg_type.to_pexpr` retrieve the `pexpr` underlying the given `simp_arg_type`, if there is
 one. -/
 meta def simp_arg_type.to_pexpr : simp_arg_type → option pexpr
 | sat@(simp_arg_type.expr e) := e
 | sat@(simp_arg_type.symm_expr e) := e
 | sat := none
 
-/- Incantation which prepares a `pexpr` in a `simp_arg_type` for use by the simplifier after
+/-- Incantation which prepares a `pexpr` in a `simp_arg_type` for use by the simplifier after
 `expr.replace_subexprs` as been called to replace some of its local variables. -/
 private meta def replace_subexprs_for_simp_arg (e : pexpr) (rules : list (expr × expr)) : pexpr :=
 strip_annotations_from_all_non_local_consts $ pexpr.of_expr $ e.unsafe_cast.replace_subexprs rules
 
-/- `simp_arg_type.replace_subexprs` calls `expr.replace_subexprs` on the underlying `pexpr`, if
+/-- `simp_arg_type.replace_subexprs` calls `expr.replace_subexprs` on the underlying `pexpr`, if
 there is one, and then prepares the result for use by the simplifier. -/
 meta def simp_arg_type.replace_subexprs : simp_arg_type → list (expr × expr) → simp_arg_type
 | (simp_arg_type.expr      e) rules :=

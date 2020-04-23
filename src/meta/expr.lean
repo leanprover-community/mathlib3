@@ -348,7 +348,7 @@ e.fold mk_name_set $ λ e' _ l,
   end
 
 /-- Returns true if `e` contains a name `n` where `p n` is true.
-  Returns `true` if `p name.anonymous` is true -/
+  Returns `true` if `p name.anonymous` is true. -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
@@ -528,15 +528,15 @@ meta def local_const_set_type {elab : bool} : expr elab → expr elab → expr e
 | (expr.local_const x n bi t) new_t := expr.local_const x n bi new_t
 | e                           new_t := e
 
-/-- `unsafe_convert e` freely changes the `elab : bool` parameter of the passed `expr`. Mainly used
-to access core `expr` manipulation functions for `pexpr`-based use, but which are restricted to
+/-- `unsafe_cast e` freely changes the `elab : bool` parameter of the passed `expr`. Mainly used to
+access core `expr` manipulation functions for `pexpr`-based use, but which are restricted to
 `expr tt` at the site of definition unnecessarily.
 
 DANGER: Unless you know exactly what you are doing, this is probably not the function you are
 looking for. For `pexpr → expr` see `tactic.to_expr`. For `expr → pexpr` see `to_pexpr`. -/
 meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ := unchecked_cast
 
-/-- `replace_subexpressions e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
+/-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
 a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
 `f` is encountered in `e` verbatim, replace it with `t`". -/
 meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=

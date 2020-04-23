@@ -283,37 +283,16 @@ cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
       rw [convergent_eq_conts_a_div_conts_b,
         (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
     rw this,
-    -- now use the fact that the continuants before position n are equal.
     suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
-             = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
+             = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB) * b/b, by
     { obtain ⟨eq1, eq2, eq3, eq4⟩ : pA' = pA ∧ pB' = pB ∧ ppA' = ppA ∧ ppB' = ppB, by
         simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
           (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm],
       symmetry,
-      simpa only [eq1, eq2, eq3, eq4] },
-    calc
-          ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
-        = (pa * ppA + (pb + a / b) * pA) / (pa * ppB + (pb + a / b) * pB) : by ac_refl
-    ... = (pa * ppA + (pb * b + a) / b * pA) /
-          (pa * ppB + (pb * b + a) / b * pB)           : by simp only [add_div_eq_mul_add_div
-                                                                       _ _ b_ne_zero]
-    ... = (pa * ppA + (pb * b + a) * pA / b) /
-          (pa * ppB + (pb * b + a) * pB / b)           : by simp only [div_mul_eq_mul_div]
-    ... = ((pa * ppA * b + (pb * b + a) * pA) / b) /
-          ((pa * ppB * b + (pb * b + a) * pB) / b)     : by simp only [add_div_eq_mul_add_div
-                                                                           _ _ b_ne_zero]
-    ... = ((pa * ppA * b + (pb * b + a) * pA) * b) /
-          ((pa * ppB * b + (pb * b + a) * pB) * b)     : by rw [div_div_div_div_eq, (mul_comm b)]
-    ... = (pa * ppA * b + (pb * b + a) * pA) /
-          (pa * ppB * b + (pb * b + a) * pB)           : by rw (mul_div_mul_right' _ _ b_ne_zero)
-    ... = (pa * ppA * b + pb * b * pA + a * pA) /
-          (pa * ppB * b + pb * b * pB + a * pB)        : by simp only [add_mul, add_assoc]
-    ... = (b * (pb * pA) + b * (pa * ppA) + a * pA) /
-          (b * (pb * pB) + b * (pa * ppB) + a * pB)    : by simp only [(mul_comm _ b), mul_assoc b,
-                                                            add_comm (b * (pa * _))]
-    ... = (b * (pb * pA + pa * ppA) + a * pA) /
-          (b * (pb * pB + pa * ppB) + a * pB)          : by simp only [
-                                                            (mul_add b (pb * _) (pa * _))] } }
+      simpa only [eq1, eq2, eq3, eq4, mul_div_cancel'' _  b_ne_zero] },
+    field_simp [b_ne_zero],
+    congr' 1;
+    ring } }
 end
 
 end squash

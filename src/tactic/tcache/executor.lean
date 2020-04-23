@@ -2,11 +2,9 @@ import tactic.tcache.tactic
 
 namespace tcache
 
-open tactic
-
-meta def execute_with (_ : unit) (tac : tactic unit) : tactic unit := tcache_core tac
-
+/-- The `interactive.executor` which first performs a tcache lookup before actually resorting to
+    executing the passed tactic. -/
 meta def executor : interactive.executor tactic :=
-{ config_type := unit, execute_with := execute_with }
+{ config_type := unit, execute_with := λ _, tactic.tcache_core }
 
 end tcache

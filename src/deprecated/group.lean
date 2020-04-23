@@ -1,4 +1,5 @@
-import algebra.group.type_tags algebra.group.is_unit
+import algebra.group.type_tags
+import algebra.group.is_unit
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)

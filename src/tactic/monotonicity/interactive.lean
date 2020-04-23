@@ -7,7 +7,6 @@ import tactic.monotonicity.basic
 import category.basic
 import category.traversable
 import category.traversable.derive
-
 import data.dlist
 import logic.basic
 import tactic.core

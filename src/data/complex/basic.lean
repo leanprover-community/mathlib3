@@ -5,7 +5,9 @@ Authors: Kevin Buzzard, Mario Carneiro
 
 The complex numbers, modelled as R^2 in the obvious way.
 -/
-import data.real.basic tactic.ring algebra.field_power
+import data.real.basic
+import tactic.ring
+import algebra.field_power
 import tactic.norm_cast
 
 structure complex : Type :=

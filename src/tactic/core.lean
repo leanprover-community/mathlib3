@@ -3,8 +3,13 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
-  tactic.lean_core_docs tactic.derive_inhabited
+import data.dlist.basic
+import category.basic
+import meta.expr
+import meta.rb_map
+import data.bool
+import tactic.lean_core_docs
+import tactic.derive_inhabited
 
 universe variable u
 

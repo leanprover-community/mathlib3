@@ -21,8 +21,10 @@ generalizations:
 * Archimedean fields
 
 -/
-import topology.metric_space.basic topology.algebra.uniform_group
-       topology.algebra.ring tactic.linarith
+import topology.metric_space.basic
+import topology.algebra.uniform_group
+import topology.algebra.ring
+import tactic.linarith
 
 noncomputable theory
 open classical set filter topological_space metric

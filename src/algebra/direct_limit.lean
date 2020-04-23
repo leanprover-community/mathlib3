@@ -14,11 +14,7 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 -/
-
-import linear_algebra.direct_sum_module
-import algebra.big_operators
 import ring_theory.free_comm_ring
-import ring_theory.ideal_operations
 
 universes u v w u₁
 

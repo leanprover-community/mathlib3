@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
-import algebra.archimedean algebra.geom_sum
-import data.nat.choose data.complex.basic
-import tactic.linarith
+import algebra.geom_sum
+import data.nat.choose
+import data.complex.basic
 
 local notation `abs'` := _root_.abs
 open is_absolute_value

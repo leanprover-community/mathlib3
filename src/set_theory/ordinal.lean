@@ -7,7 +7,7 @@ Ordinal arithmetic.
 
 Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 -/
-import order.order_iso set_theory.cardinal data.sum
+import set_theory.cardinal
 noncomputable theory
 
 open function cardinal set equiv

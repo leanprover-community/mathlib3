@@ -5,7 +5,6 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
-import category_theory.limits.creates
 
 namespace category_theory
 open category

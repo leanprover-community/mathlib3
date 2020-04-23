@@ -3,8 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
-
-import data.int.modeq data.int.gcd data.fintype.basic data.pnat.basic tactic.ring
+import data.int.modeq
 
 /-!
 # Integers mod `n`

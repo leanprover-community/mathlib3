@@ -5,7 +5,7 @@ Authors: Simon Hudon, Scott Morrison
 -/
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
-       tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+import tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
        tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=

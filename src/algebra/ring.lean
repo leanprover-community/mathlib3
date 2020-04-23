@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
-
 import algebra.group.with_one
 import deprecated.group
 import tactic.norm_cast
@@ -35,10 +34,10 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
-
-Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
+of type class `[]` brackets. This is done when the instances can be inferred because they are
+implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
+to use this method than to use type class inference.
 
 ## Tags
 
@@ -358,15 +357,21 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
 
-@[norm_cast] lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
-  ((f : α →* β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_monoid_hom }
-@[norm_cast] lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
-  ((f : α →+ β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_add_monoid_hom }
+@[simp, norm_cast]
+lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →* β) : α → β) = (f : α → β) := rfl
+
+@[simp, norm_cast]
+lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) :
+  ((f : α →+ β) : α → β) = (f : α → β) := rfl
 
 namespace ring_hom
 

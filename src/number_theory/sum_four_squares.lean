@@ -12,7 +12,8 @@ a proof that every natural number is the sum of four square numbers.
 
 The proof used is close to Lagrange's original proof.
 -/
-import data.zmod.basic field_theory.finite group_theory.perm.sign
+import field_theory.finite
+import group_theory.perm.sign
 import data.int.parity
 
 open finset polynomial finite_field equiv

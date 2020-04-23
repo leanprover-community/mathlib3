@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Separation properties of topological spaces.
 -/
-
 import topology.subset_properties
 
 open set filter

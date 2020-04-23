@@ -5,7 +5,6 @@ Author: Simon Hudon
 
 Instances for identity and composition functors
 -/
-
 import category.functor
 
 universe variables u v w

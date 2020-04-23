@@ -3,8 +3,8 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
-
-import analysis.normed_space.basic topology.local_homeomorph tactic.alias
+import analysis.normed_space.basic
+import topology.local_homeomorph
 
 /-!
 # Asymptotics

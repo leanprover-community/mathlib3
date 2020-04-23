@@ -3,11 +3,8 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import
-  tactic.interactive
-  logic.basic logic.function
-  algebra.group order.basic
-  data.list.defs data.nat.basic data.option.basic
+import algebra.group
+import data.nat.basic
 
 /-!
 # Basic properties of lists

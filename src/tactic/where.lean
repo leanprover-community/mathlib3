@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek
 -/
 
-import data.list.defs
 import tactic.core
 
 /-!
@@ -164,7 +163,7 @@ It is a bug for `#where` to incorrectly report this information (this was not fo
 please file an issue on GitHub if you observe a failure.
 -/
 @[user_command]
-meta def where_cmd (_ : decl_meta_info) (_ : parse $ tk "#where") : lean.parser unit :=
+meta def where_cmd (_ : parse $ tk "#where") : lean.parser unit :=
 do msg ← build_msg,
    trace msg
 

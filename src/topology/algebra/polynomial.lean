@@ -5,8 +5,8 @@ Author: Robert Y. Lewis
 
 Analytic facts about polynomials.
 -/
-
-import topology.algebra.ring data.polynomial data.real.cau_seq
+import topology.algebra.ring
+import data.polynomial
 
 open polynomial is_absolute_value
 

@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
-import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_theory.submonoid
+import ring_theory.ideal_operations
 
 universes u v
 
@@ -609,7 +609,7 @@ set_option class.instance_max_depth 50
 
 variables (α S)
 
-instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra $ λ _, mul_comm _
+instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra
 
 lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
 by { simp, refl }

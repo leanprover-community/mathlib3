@@ -3,7 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.measurable_space topology.instances.ennreal analysis.normed_space.basic
+import measure_theory.measurable_space
+import topology.instances.ennreal
+import analysis.normed_space.basic
 
 /-!
 # Borel (measurable) space

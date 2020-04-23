@@ -5,12 +5,13 @@ Author: Mario Carneiro
 
 Multisets.
 -/
-import logic.function order.boolean_algebra data.equiv.basic
-import data.list.sort data.list.intervals data.list.antidiagonal
-import data.quot data.string.basic
-  algebra.order_functions algebra.group_power algebra.ordered_group
-  category.traversable.lemmas tactic.interactive
-  category.traversable.instances category.basic
+import data.list.sort
+import data.list.intervals
+import data.list.antidiagonal
+import data.string.basic
+import algebra.group_power
+import category.traversable.lemmas
+import category.traversable.instances
 
 open list subtype nat
 
@@ -1980,7 +1981,7 @@ inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
 | zero : rel 0 0
 | cons {a b as bs} : r a b → rel as bs → rel (a :: as) (b :: bs)
 
-run_cmd tactic.mk_iff_of_inductive_prop `multiset.rel `multiset.rel_iff
+mk_iff_of_inductive_prop multiset.rel multiset.rel_iff
 
 variables {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
 

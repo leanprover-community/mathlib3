@@ -3,11 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-
 import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
-import ring_theory.subring
 import algebra.commute
 
 /-!
@@ -46,14 +44,19 @@ end prio
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
 algebra.to_ring_hom
 
-/-- Creating an algebra from a morphism in CRing. -/
-def ring_hom.to_algebra {R S} [comm_semiring R] [semiring S] (i : R →+* S)
+/-- Creating an algebra from a morphism to the center of a semiring. -/
+def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
   algebra R S :=
 { smul := λ c x, i c * x,
   commutes' := h,
   smul_def' := λ c x, rfl,
   .. i}
+
+/-- Creating an algebra from a morphism to a commutative semiring. -/
+def ring_hom.to_algebra {R S} [comm_semiring R] [comm_semiring S] (i : R →+* S) :
+  algebra R S :=
+i.to_algebra' $ λ _, mul_comm _
 
 namespace algebra
 
@@ -108,7 +111,7 @@ instance to_module : module R A := { .. algebra.to_semimodule }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
-ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ $ λ _, mul_comm  _
+ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
@@ -180,7 +183,16 @@ variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 
 instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
 
-instance : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
+instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
+
+instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
+
+@[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
+  ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
+
+@[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
+
+@[simp, norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
 
@@ -204,6 +216,16 @@ ring_hom.ext $ φ.commutes
 
 @[simp] lemma map_one : φ 1 = 1 :=
 φ.to_ring_hom.map_one
+
+@[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
+by simp only [algebra.smul_def, map_mul, commutes]
+
+@[simp] lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
+φ.to_ring_hom.map_pow x n
+
+lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (s.sum f) = s.sum (λx, φ (f x)) :=
+φ.to_ring_hom.map_sum f s
 
 section
 
@@ -237,6 +259,19 @@ ext $ λ x, rfl
 
 end semiring
 
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
+variables [algebra R A] [algebra R B]
+
+variables (φ : A →ₐ[R] B)
+
+lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+φ.to_ring_hom.map_prod f s
+
+end comm_semiring
+
 variables [comm_ring R] [ring A] [ring B] [ring C]
 variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 
@@ -250,7 +285,7 @@ variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 def to_linear_map : A →ₗ B :=
 { to_fun := φ,
   add := φ.map_add,
-  smul := λ (c : R) x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
+  smul := φ.map_smul }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
@@ -327,15 +362,14 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra $
+(rat.cast_hom α).to_algebra' $
 λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
 
 end rat
 
 namespace complex
 
-instance algebra_over_reals : algebra ℝ ℂ :=
-(ring_hom.of coe).to_algebra $ λ _, mul_comm _
+instance algebra_over_reals : algebra ℝ ℂ := (ring_hom.of coe).to_algebra
 
 end complex
 
@@ -447,12 +481,11 @@ end alg_hom
 
 namespace algebra
 
-variables {R : Type u} (A : Type v)
-variables [comm_ring R] [ring A] [algebra R A]
-include R
+variables (R : Type u) (A : Type v)
 
-variables (R)
-instance id : algebra R R := (ring_hom.id R).to_algebra mul_comm
+variables [comm_semiring R] [semiring A] [algebra R A]
+
+instance id : algebra R R := (ring_hom.id R).to_algebra
 
 namespace id
 
@@ -469,7 +502,12 @@ variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
-variables (R) {A}
+end algebra
+
+namespace algebra
+
+variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
+
 /-- The minimal subalgebra that includes `s`. -/
 def adjoin (s : set A) : subalgebra R A :=
 { carrier := ring.closure (set.range (algebra_map R A) ∪ s),

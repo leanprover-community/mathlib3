@@ -5,7 +5,8 @@ Authors: Simon Hudon
 
 Transferring `traversable` instances using isomorphisms.
 -/
-import data.equiv.basic category.traversable.lemmas
+import data.equiv.basic
+import category.traversable.lemmas
 
 universes u
 

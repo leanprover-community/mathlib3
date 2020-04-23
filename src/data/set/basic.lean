@@ -3,8 +3,11 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-
-import tactic.basic tactic.finish data.subtype logic.unique data.prod
+import tactic.basic
+import tactic.finish
+import data.subtype
+import logic.unique
+import data.prod
 
 /-!
 

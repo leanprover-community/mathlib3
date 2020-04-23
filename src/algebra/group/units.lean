@@ -3,7 +3,8 @@ Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
-import tactic.basic logic.function algebra.group.to_additive
+import logic.function
+import algebra.group.to_additive
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid

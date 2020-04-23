@@ -1490,7 +1490,7 @@ begin
       ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
     apply deriv_congr_of_mem_nhds,
     apply eventually.mono _ @ihk,
-    exact mem_nhds_sets (is_open_neg $ is_closed_eq continuous_id continuous_const) hx }
+    exact mem_nhds_sets is_open_ne hx }
 end
 
 end fpow

@@ -68,8 +68,7 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
   end⟩,
   assume a b, coe_eq_coe.1⟩
 
-lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
-is_open_neg (is_closed_eq continuous_id continuous_const)
+lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} := is_open_ne
 
 lemma is_open_Ico_zero : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 

@@ -121,7 +121,7 @@ lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
-by simpa using is_open_neg (t1_space.t1 x)
+compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=

@@ -53,8 +53,7 @@ do m ← localized_attr.get_cache,
    return (ns.bind $ λ nm, m.find nm)
 
 /-- Execute all commands in the given notation namespace -/
-@[user_command] meta def open_locale_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "open_locale") : parser unit :=
+@[user_command] meta def open_locale_cmd (_ : parse $ tk "open_locale") : parser unit :=
 do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
@@ -62,8 +61,7 @@ do ns ← many ident,
 /-- Add a new command to a notation namespace and execute it right now.
   The new command is added as a declaration to the environment with name `_localized_decl.<number>`.
   This declaration has attribute `_localized` and as value a name-string pair. -/
-@[user_command] meta def localized_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "localized") : parser unit :=
+@[user_command] meta def localized_cmd (_ : parse $ tk "localized") : parser unit :=
 do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    let cmd := "local " ++ cmd,
    emit_code_here cmd,

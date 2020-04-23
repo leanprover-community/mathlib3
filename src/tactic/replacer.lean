@@ -110,8 +110,7 @@ custom input and output types. In this case all subsequent redefinitions must ha
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
  -/
-@[user_command] meta def def_replacer_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "def_replacer") : lean.parser unit :=
+@[user_command] meta def def_replacer_cmd (_ : parse $ tk "def_replacer") : lean.parser unit :=
 do ntac ← ident,
   ty ← optional (tk ":" *> types.texpr),
   match ty with

@@ -73,12 +73,15 @@ by rw [← fintype.card_prod, fintype.card_congr
 
 namespace sylow
 
+/-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
+by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
 lemma mk_vector_prod_eq_one_inj (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
+/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
 def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
 {v | v.to_list.prod = 1}
 
@@ -99,7 +102,9 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
     vector.to_list_cons, list.prod_cons, inv_mul_self]⟩
 
-def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) [fact (0 < n)]
+/-- The rotation action of `zmod n` (viewed as multiplicative group) on
+`vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
+def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
   (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
 ⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 

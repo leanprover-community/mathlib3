@@ -373,7 +373,7 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  exact ⟨finset.univ.sum f, list.of_fn (λ a, ⟨f a, (hi.2 a).1⟩), by simp [list.of_fn_sum]⟩
+  exact ⟨finset.univ.sum f, list.of_fn (λ a, ⟨f a, (hi.2 a).1⟩), by simp [list.sum_of_fn]⟩
 end
 
 @[simp] lemma comp_change_of_variables_length

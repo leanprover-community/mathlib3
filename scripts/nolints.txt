@@ -1136,7 +1136,7 @@ apply_nolint lazy_list.list_equiv_lazy_list doc_blame
 apply_nolint lazy_list.traverse doc_blame
 
 -- data/list/alist.lean
-apply_nolint alist.disjoint doc_blame unused_arguments
+apply_nolint alist.disjoint unused_arguments
 apply_nolint alist.foldl unused_arguments
 apply_nolint list.to_alist doc_blame
 
@@ -1189,7 +1189,6 @@ apply_nolint list.func.sub doc_blame
 apply_nolint list.pairwise_gt_iota ge_or_gt
 
 -- data/list/sigma.lean
-apply_nolint list.erase_dupkeys doc_blame
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
@@ -1198,7 +1197,7 @@ apply_nolint list.nodupkeys doc_blame
 apply_nolint list.tfae doc_blame
 
 -- data/matrix/basic.lean
-apply_nolint matrix doc_blame unused_arguments
+apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame
 apply_nolint matrix.diagonal doc_blame
 apply_nolint matrix.minor doc_blame
@@ -1819,7 +1818,6 @@ apply_nolint equiv.perm.same_cycle doc_blame
 
 -- group_theory/perm/sign.lean
 apply_nolint equiv.perm.card_support_swap unused_arguments
-apply_nolint equiv.perm.disjoint doc_blame
 apply_nolint equiv.perm.eq_swap_of_is_cycle_of_apply_apply_eq_self unused_arguments
 apply_nolint equiv.perm.is_cycle doc_blame
 apply_nolint equiv.perm.is_cycle_swap unused_arguments
@@ -1878,11 +1876,6 @@ apply_nolint sylow.vectors_prod_eq_one doc_blame
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame
 apply_nolint linear_equiv.to_linear_map doc_blame
-
--- linear_algebra/bilinear_form.lean
-apply_nolint bilin_form.bilin_linear_map_equiv doc_blame
-apply_nolint bilin_form.to_linear_map doc_blame
-apply_nolint linear_map.to_bilin doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame
@@ -2716,8 +2709,6 @@ apply_nolint tactic.local_cache.internal.save_data doc_blame unused_arguments
 
 -- tactic/localized.lean
 apply_nolint localized_attr doc_blame
-apply_nolint localized_cmd unused_arguments
-apply_nolint open_locale_cmd unused_arguments
 
 -- tactic/mk_iff_of_inductive_prop.lean
 apply_nolint tactic.constr_to_prop doc_blame
@@ -2884,9 +2875,6 @@ apply_nolint omega.term.neg doc_blame
 apply_nolint omega.term.sub doc_blame
 apply_nolint omega.term.to_string doc_blame
 
--- tactic/pi_instances.lean
-apply_nolint tactic.derive_field doc_blame
-
 -- tactic/push_neg.lean
 apply_nolint push_neg.normalize_negations doc_blame
 apply_nolint push_neg.push_neg_at_goal doc_blame
@@ -2933,7 +2921,6 @@ apply_nolint tactic.calculated_Prop doc_blame unused_arguments
 apply_nolint tactic.derive_reassoc_proof doc_blame
 
 -- tactic/replacer.lean
-apply_nolint tactic.def_replacer_cmd unused_arguments
 apply_nolint tactic.mk_replacer doc_blame
 apply_nolint tactic.mk_replacer₁ doc_blame
 apply_nolint tactic.mk_replacer₂ doc_blame
@@ -2943,9 +2930,6 @@ apply_nolint tactic.replacer_attr doc_blame
 apply_nolint tactic.replacer_core doc_blame
 apply_nolint tactic.unprime doc_blame
 apply_nolint tactic.valid_types doc_blame
-
--- tactic/restate_axiom.lean
-apply_nolint restate_axiom_cmd unused_arguments
 
 -- tactic/rewrite.lean
 apply_nolint tactic.assoc_refl doc_blame

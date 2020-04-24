@@ -6,10 +6,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.nat.sqrt
 import data.nat.gcd
-import data.list.defs
-import data.list.perm
 import algebra.group_power
-import tactic.wlog
 
 /-!
 # Prime numbers
@@ -442,11 +439,11 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
   have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
   have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
     (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_erase ha,
+  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
   have hl : prod l₁ = prod ((b :: l₂).erase a) :=
   (nat.mul_left_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
-    by rwa [← prod_cons, ← prod_cons, ← prod_eq_of_perm hb],
-  perm.trans (perm.skip _ (perm_of_prod_eq_prod hl hl₁' hl₂')) hb.symm
+    by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
+  perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
 
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n :=
 have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin

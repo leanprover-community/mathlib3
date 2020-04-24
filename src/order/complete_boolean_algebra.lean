@@ -7,7 +7,6 @@ Theory of complete Boolean algebras.
 -/
 import order.complete_lattice
 import order.boolean_algebra
-import data.set.basic
 
 set_option old_structure_cmd true
 

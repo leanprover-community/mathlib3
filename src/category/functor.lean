@@ -7,7 +7,6 @@ Standard identity and composition functors
 -/
 import tactic.ext
 import tactic.lint
-import category.basic
 
 universe variables u v w
 

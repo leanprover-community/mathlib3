@@ -8,7 +8,6 @@ Lebesgue integral on `ennreal`.
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 -/
-import algebra.pi_instances
 import measure_theory.measure_space
 import measure_theory.borel_space
 

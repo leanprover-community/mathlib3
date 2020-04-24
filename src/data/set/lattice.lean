@@ -5,12 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic
-import data.set.basic
-import data.equiv.basic
 import order.complete_boolean_algebra
-import category.basic
-import tactic.finish
 import data.sigma.basic
 import order.galois_connection
 

@@ -131,7 +131,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
           have hxy : same_cycle f x y := not_not.1 (mt cycle_of_apply_of_not_same_cycle hfy),
           have hgm : g :: m.erase g ~ m := list.cons_perm_iff_perm_erase.2 ⟨hg, list.perm.refl _⟩,
           have ∀ h ∈ m.erase g, disjoint g h,
-            from (list.pairwise_cons.1 ((list.perm_pairwise (λ a b (h : disjoint a b), h.symm) hgm).2 hm₃)).1,
+            from (list.pairwise_cons.1 ((hgm.pairwise_iff (λ a b (h : disjoint a b), h.symm)).2 hm₃)).1,
           classical.by_cases id $ λ hgy : g y ≠ y,
             (disjoint_prod_right _ this y).resolve_right $
             have hsc : same_cycle f⁻¹ x (f y), by rwa [same_cycle_inv, same_cycle_apply],

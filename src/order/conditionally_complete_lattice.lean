@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 Adapted from the corresponding theory for complete lattices.
 -/
-import order.lattice
-import order.complete_lattice
-import order.bounds
-import tactic.finish
 import data.nat.enat
 
 /-!

@@ -8,8 +8,6 @@ Multiplication and division of submodules of an algebra.
 import ring_theory.algebra
 import ring_theory.ideals
 import algebra.pointwise
-import tactic.chain
-import tactic.monotonicity.basic
 
 universes u v
 

@@ -7,8 +7,6 @@ Finite types.
 -/
 import data.finset
 import data.array.lemmas
-import logic.unique
-import tactic.wlog
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -761,7 +759,7 @@ def perms_of_finset (s : finset α) : finset (perm α) :=
 quotient.hrec_on s.1 (λ l hl, ⟨perms_of_list l, nodup_perms_of_list hl⟩)
   (λ a b hab, hfunext (congr_arg _ (quotient.sound hab))
     (λ ha hb _, heq_of_eq $ finset.ext.2 $
-      by simp [mem_perms_of_list_iff,mem_of_perm hab]))
+      by simp [mem_perms_of_list_iff, hab.mem_iff]))
   s.2
 
 lemma mem_perms_of_finset_iff : ∀ {s : finset α} {f : perm α},

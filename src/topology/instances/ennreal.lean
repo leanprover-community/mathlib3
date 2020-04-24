@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import data.real.ennreal
 /-!
 # Extended non-negative reals
 -/

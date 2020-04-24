@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 Measurable spaces -- σ-algberas
 -/
 import data.set.disjointed
-import order.galois_connection
 import data.set.countable
 
 /-!

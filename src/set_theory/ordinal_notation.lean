@@ -6,7 +6,6 @@ Author: Mario Carneiro
 Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
 import set_theory.ordinal
-import data.pnat.basic
 open ordinal
 open_locale ordinal -- get notation for `ω`
 

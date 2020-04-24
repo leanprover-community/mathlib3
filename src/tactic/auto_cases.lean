@@ -3,9 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
-import logic.basic
-import tactic.core
-import data.option.defs
 import tactic.hint
 
 namespace tactic

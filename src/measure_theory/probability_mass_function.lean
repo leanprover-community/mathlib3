@@ -5,9 +5,7 @@ Author: Johannes Hölzl
 
 Probability mass function -- discrete probability measures
 -/
-import topology.instances.nnreal
 import topology.instances.ennreal
-import topology.algebra.infinite_sum
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
 open_locale classical

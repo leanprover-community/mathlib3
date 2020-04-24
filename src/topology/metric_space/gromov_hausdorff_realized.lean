@@ -6,7 +6,6 @@ Author: Sébastien Gouëzel
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
-import topology.bounded_continuous_function
 import topology.metric_space.gluing
 import topology.metric_space.hausdorff_distance
 

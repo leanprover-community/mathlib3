@@ -5,7 +5,6 @@ Authors: Zhouhang Zhou
 -/
 import data.indicator_function
 import measure_theory.measure_space
-import analysis.normed_space.basic
 
 /-!
 # Indicator function

@@ -5,11 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Finite sets.
 -/
-import logic.function
-import data.nat.basic
 import data.fintype.basic
-import data.set.lattice
-import data.set.function
 import algebra.big_operators
 
 open set function

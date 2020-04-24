@@ -6,9 +6,6 @@ Author: Simon Hudon
 Functors with two arguments
 -/
 import logic.function
-import data.sum
-import category.basic
-import category.functor
 import tactic.basic
 
 universes u₀ u₁ u₂ v₀ v₁ v₂

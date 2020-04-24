@@ -5,7 +5,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 
 -/
 import topology.algebra.ring
-import linear_algebra.basic
 import ring_theory.algebra
 
 /-!

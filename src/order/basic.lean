@@ -3,10 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import logic.basic
-import data.sum
 import data.set.basic
-import algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/

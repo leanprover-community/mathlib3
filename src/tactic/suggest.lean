@@ -335,9 +335,7 @@ meta def suggest (n : parse (with_desc "n" small_nat)?)
   tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
    L ← tactic.suggest_scripts (n.get_or_else 50)
-     {backtrack_all_goals := tt,
-      lemma_thunks := return asms,
-      ..opt},
+     { lemma_thunks := return asms, ..opt },
   if is_trace_enabled_for `silence_suggest then
     skip
   else

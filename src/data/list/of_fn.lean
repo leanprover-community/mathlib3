@@ -75,7 +75,7 @@ theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i.1 i.2) = l
 | [] := rfl
 | (a::l) := by rw of_fn_succ; congr; simp only [fin.succ_val]; exact of_fn_nth_le l
 
--- not registered as a simp lemma, as otherwise it fires before ` forall_mem_of_fn_iff` which
+-- not registered as a simp lemma, as otherwise it fires before `forall_mem_of_fn_iff` which
 -- is much more useful
 lemma mem_of_fn {n} (f : fin n → α) (a : α) :
   a ∈ of_fn f ↔ a ∈ set.range f :=

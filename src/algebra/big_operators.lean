@@ -362,13 +362,12 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-/-- A telescoping sum along `{0, ..., n-1}` reduces to the difference of the last and first terms
-when the function we are summing is monotone. -/
+/-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
+the last and first terms when the function we are summing is monotone. -/
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   (finset.range n).sum (λ i, f (i+1) - f i) = f n - f 0 :=
 begin
-  induction n with n IH,
-  simp,
+  induction n with n IH, { simp },
   rw [finset.sum_range_succ, IH, nat.succ_eq_add_one],
   have : f n ≤ f (n+1) := h (nat.le_succ _),
   have : f 0 ≤ f n := h (nat.zero_le _),

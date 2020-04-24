@@ -16,7 +16,7 @@ namespace list
 
 /- chain relation (conjunction of R a b ∧ R b c ∧ R c d ...) -/
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
+mk_iff_of_inductive_prop list.chain list.chain_iff
 
 variable {R : α → α → Prop}
 

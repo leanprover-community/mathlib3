@@ -540,8 +540,8 @@ by induction l; [refl, simp only [*, reverse_cons, mem_append, mem_singleton, me
 @[simp] theorem reverse_repeat (a : α) (n) : reverse (repeat a n) = repeat a n :=
 eq_repeat.2 ⟨by simp only [length_reverse, length_repeat], λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
-/-- Recurrence principle from the right for lists: if a property holds for the empty list, and
-for `l ++ [a]` if it holds for `l`, then it holds for all lists. The definition is given for
+/-- Induction principle from the right for lists: if a property holds for the empty list, and
+for `l ++ [a]` if it holds for `l`, then it holds for all lists. The principle is given for
 a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
 @[elab_as_eliminator] def reverse_rec_on {C : list α → Sort*}
   (l : list α) (H0 : C [])
@@ -1801,8 +1801,8 @@ begin
   simp [take_append, L_ih]
 end
 
-/-- In a join, taking all the elements starting from an index which is the sum of the lengths of the
-first `i` sublists, is the same as taking the join of the sublists starting from the `i`-th one. -/
+/-- In a join, dropping all the elements up to an index which is the sum of the lengths of the
+first `i` sublists, is the same as taking the join after dropping the first `i` sublists. -/
 lemma drop_sum_join (L : list (list α)) (i : ℕ) :
   L.join.drop ((L.map length).take i).sum = (L.drop i).join :=
 begin
@@ -1811,7 +1811,7 @@ begin
   simp [drop_append, L_ih],
 end
 
-/-- Taking only the first `i+1` elements in a list, and then removing the first `i` ones, one is
+/-- Taking only the first `i+1` elements in a list, and then dropping the first `i` ones, one is
 left with a list of length `1` made of the `i`-th element of the original list. -/
 lemma drop_take_succ_eq_cons_nth_le (L : list α) {i : ℕ} (hi : i < L.length) :
   (L.take (i+1)).drop i = [nth_le L i hi] :=
@@ -1878,9 +1878,9 @@ end
 
 /-! ### lexicographic ordering -/
 
-/-- Given an ordering `<` on `α`, the lexicographic order on `list α`, for which
+/-- Given a strict order `<` on `α`, the lexicographic strict order on `list α`, for which
 `[a0, ..., an] < [b0, ..., b_k]` if `a0 < b0` or `a0 = b0` and `[a1, ..., an] < [b1, ..., bk]`.
-The definition is given for any relation `r`, not only orders. -/
+The definition is given for any relation `r`, not only strict orders. -/
 inductive lex (r : α → α → Prop) : list α → list α → Prop
 | nil {a l} : lex [] (a :: l)
 | cons {a l₁ l₂} (h : lex l₁ l₂) : lex (a :: l₁) (a :: l₂)

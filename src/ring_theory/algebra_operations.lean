@@ -5,10 +5,9 @@ Authors: Kenny Lau
 
 Multiplication and division of submodules of an algebra.
 -/
-
-import ring_theory.algebra ring_theory.ideals algebra.pointwise
-import tactic.chain
-import tactic.monotonicity.basic
+import ring_theory.algebra
+import ring_theory.ideals
+import algebra.pointwise
 
 universes u v
 

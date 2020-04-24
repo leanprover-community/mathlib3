@@ -9,7 +9,8 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
+import topology.metric_space.emetric_space
+import topology.algebra.ordered
 
 open set filter classical topological_space
 noncomputable theory

@@ -5,7 +5,9 @@ Authors: Simon Hudon
 
 Traversable instance for dlists.
 -/
-import data.dlist category.traversable.equiv category.traversable.instances
+import data.dlist
+import category.traversable.equiv
+import category.traversable.instances
 
 namespace dlist
 

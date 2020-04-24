@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-
-import tactic.core data.string.defs data.list.defs
+import tactic.core
 
 /-!
 # `def_replacer`
@@ -126,7 +125,7 @@ add_tactic_doc
 
 meta def unprime : name → tactic name
 | nn@(name.mk_string s n) :=
-  let s' := s.over_list (list.take_while (≠ ''')) in
+  let s' := (s.split_on ''').head in
   if s'.length < s.length then pure (name.mk_string s' n)
                    else fail format!"expecting primed name: {nn}"
 | n := fail format!"invalid name: {n}"

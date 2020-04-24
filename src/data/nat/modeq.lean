@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 
 Modular equality relation.
 -/
-import data.int.gcd algebra.ordered_ring tactic.abel
+import data.int.gcd
+import tactic.abel
 import data.list.rotate
 
 namespace nat

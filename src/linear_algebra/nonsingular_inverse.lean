@@ -6,8 +6,6 @@
   Inverses for nonsingular square matrices.
 -/
 import algebra.associated
-import algebra.big_operators
-import data.matrix.basic
 import linear_algebra.determinant
 import tactic.linarith
 import tactic.ring_exp

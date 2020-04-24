@@ -5,10 +5,8 @@ Author: Simon Hudon
 
 Functors with two arguments
 -/
-
-import logic.function data.sum
-       category.basic category.functor
-       tactic.basic
+import logic.function
+import tactic.basic
 
 universes u₀ u₁ u₂ v₀ v₁ v₂
 

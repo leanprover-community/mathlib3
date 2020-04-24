@@ -34,8 +34,7 @@ This formalization is mostly based on
   I. M. James: Topologies and Uniformities
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
-import data.set.basic
-import topology.uniform_space.abstract_completion topology.uniform_space.separation
+import topology.uniform_space.abstract_completion
 
 noncomputable theory
 open filter set

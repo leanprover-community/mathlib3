@@ -4,7 +4,6 @@ Author: Seul Baek
 
 Correctness lemmas for equality elimination.
 See 5.5 of <http://www.decision-procedures.org/> for details. -/
-
 import tactic.omega.clause
 
 open list.func

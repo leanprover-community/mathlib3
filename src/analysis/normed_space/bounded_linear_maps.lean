@@ -5,8 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
-import algebra.field
-import analysis.normed_space.operator_norm analysis.normed_space.multilinear
+import analysis.normed_space.multilinear
 
 noncomputable theory
 open_locale classical filter

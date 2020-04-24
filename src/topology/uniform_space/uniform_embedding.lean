@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Sébastien Gouëzel, Patrick Massot
 
 Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
 -/
-import topology.uniform_space.cauchy topology.uniform_space.separation
+import topology.uniform_space.cauchy
+import topology.uniform_space.separation
 import topology.dense_embedding
 
 open filter topological_space set classical

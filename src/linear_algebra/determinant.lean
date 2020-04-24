@@ -3,11 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
-import data.matrix.basic
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
-import tactic.ring
 
 universes u v
 open equiv equiv.perm finset function

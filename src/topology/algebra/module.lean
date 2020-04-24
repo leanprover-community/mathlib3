@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 
 -/
-
-import topology.algebra.ring linear_algebra.basic ring_theory.algebra
+import topology.algebra.ring
+import ring_theory.algebra
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -432,7 +432,7 @@ instance : is_ring_hom (λ c : R, c • (1 : M₂ →L[R] M₂)) :=
   map_mul := λ _ _, ext $ λ _, mul_smul _ _ _ }
 
 instance : algebra R (M₂ →L[R] M₂) :=
-(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra $
+(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra' $
   λ _ _, ext $ λ _, (map_smul _ _ _).symm
 
 end comm_ring

@@ -3,8 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-
-import algebra.char_p data.equiv.ring
+import algebra.char_p
+import data.equiv.ring
 
 /-!
 # The perfect closure of a field
@@ -75,7 +75,8 @@ variables (α : Type u) [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p]
 /-- `perfect_closure α p` is the quotient by this relation. -/
 inductive perfect_closure.r : (ℕ × α) → (ℕ × α) → Prop
 | intro : ∀ n x, perfect_closure.r (n, x) (n+1, frobenius α p x)
-run_cmd tactic.mk_iff_of_inductive_prop `perfect_closure.r `perfect_closure.r_iff
+
+mk_iff_of_inductive_prop perfect_closure.r perfect_closure.r_iff
 
 /-- The perfect closure is the smallest extension that makes frobenius surjective. -/
 def perfect_closure : Type u := quot (perfect_closure.r α p)

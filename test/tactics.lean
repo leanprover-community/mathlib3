@@ -5,7 +5,7 @@ Authors: Simon Hudon, Scott Morrison
 -/
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
-       tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+import tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
        tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
@@ -452,37 +452,50 @@ end ring_exp
 
 section clear'
 
-example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+example (a : ℕ) (b : fin a) : unit :=
 begin
   success_if_fail { clear a b }, -- fails since `b` depends on `a`
   success_if_fail { clear' a },  -- fails since `b` depends on `a`
   clear' a b,
-  guard_hyp_nums 2,
+  guard_hyp_nums 0,
   exact ()
 end
 
-example {α} {β : α → Type} (a : α) : β a → unit :=
+example (a : ℕ) : fin a → unit :=
 begin
-  success_if_fail { clear' a }, -- fails since the target depends on `a`
+  success_if_fail { clear' a },          -- fails since the target depends on `a`
+  success_if_fail { clear_dependent a }, -- ditto
   exact λ _, ()
+end
+
+example (a : unit) : unit :=
+begin
+  -- Check we fail with an error (but don't segfault) if hypotheses are repeated.
+  success_if_fail { clear' a a },
+  success_if_fail { clear_dependent a a },
+  exact ()
+end
+
+example (a a a : unit) : unit :=
+begin
+  -- If there are multiple hypotheses with the same name,
+  -- `clear'`/`clear_dependent` currently clears only the last.
+  clear' a,
+  clear_dependent a,
+  guard_hyp_nums 1,
+  exact ()
 end
 
 end clear'
 
 section clear_dependent
 
-example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+example (a : ℕ) (b : fin a) : unit :=
 begin
   success_if_fail { clear' a }, -- fails since `b` depends on `a`
   clear_dependent a,
-  guard_hyp_nums 2,
+  guard_hyp_nums 0,
   exact ()
-end
-
-example {α} {β : α → Type} (a : α) : β a → unit :=
-begin
-  success_if_fail { clear_dependent a }, -- fails since the target depends on `a`
-  exact λ _, ()
 end
 
 end clear_dependent

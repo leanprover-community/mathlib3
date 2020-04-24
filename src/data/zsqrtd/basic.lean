@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.basic algebra.associated data.nat.gcd tactic.ring
+import algebra.associated
+import tactic.ring
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components

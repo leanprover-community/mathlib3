@@ -5,8 +5,7 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 
 Matrices
 -/
-import algebra.module algebra.pi_instances
-import data.fintype.basic
+import algebra.pi_instances
 
 universes u v w
 

@@ -3,8 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.list.basic
+import data.stream
+import data.lazy_list
+import data.seq.computation
 
 universes u v w
 

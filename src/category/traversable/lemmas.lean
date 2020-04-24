@@ -12,8 +12,6 @@ Inspired by:
     In Journal of Functional Programming. Vol. 19. No. 3&4. Pages 377−402. 2009.
     <http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf>
 -/
-
-import tactic.cache
 import category.traversable.basic
 
 universe variables u

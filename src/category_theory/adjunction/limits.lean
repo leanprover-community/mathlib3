@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.preserves
 import category_theory.limits.creates
 
 open opposite

@@ -3,8 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-
-import data.finset data.set.finite algebra.big_operators algebra.module algebra.pi_instances
+import algebra.pi_instances
 
 /-!
 # Dependent functions with finite support

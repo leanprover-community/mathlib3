@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
-import set_theory.ordinal data.pnat.basic
+import set_theory.ordinal
 open ordinal
 open_locale ordinal -- get notation for `ω`
 

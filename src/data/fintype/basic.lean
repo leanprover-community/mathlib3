@@ -5,8 +5,8 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset data.array.lemmas logic.unique
-import tactic.wlog
+import data.finset
+import data.array.lemmas
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}

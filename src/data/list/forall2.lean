@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
 import data.list.basic
-import logic.relator
-import tactic.mk_iff_of_inductive_prop
 
 universes u v w z
 
@@ -19,7 +17,7 @@ namespace list
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 open relator
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
+mk_iff_of_inductive_prop list.forall₂ list.forall₂_iff
 
 @[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=

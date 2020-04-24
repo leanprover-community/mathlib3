@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-
-import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
-import ring_theory.ideal_operations ring_theory.free_ring
+import data.equiv.functor
+import data.mv_polynomial
+import ring_theory.ideal_operations
+import ring_theory.free_ring
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable

@@ -33,6 +33,7 @@ namespace fin
 
 open nat nat.modeq int
 
+/-- Negation on `fin n` -/
 def has_neg (n : ℕ) : has_neg (fin n) :=
 ⟨λ a, ⟨nat_mod (-(a.1 : ℤ)) n,
 begin
@@ -43,6 +44,7 @@ begin
   rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
 end⟩⟩
 
+/-- Additive commutative semigroup structure on `fin (n+1)`. -/
 def add_comm_semigroup (n : ℕ) : add_comm_semigroup (fin (n+1)) :=
 { add_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
     (show ((a + b) % (n+1) + c) ≡ (a + (b + c) % (n+1)) [MOD (n+1)],
@@ -52,6 +54,7 @@ def add_comm_semigroup (n : ℕ) : add_comm_semigroup (fin (n+1)) :=
   add_comm := λ ⟨a, _⟩ ⟨b, _⟩, fin.eq_of_veq (show (a + b) % (n+1) = (b + a) % (n+1), by rw add_comm),
   ..fin.has_add }
 
+/-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
 def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
 { mul_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
     (calc ((a * b) % (n+1) * c) ≡ a * b * c [MOD (n+1)] : modeq_mul (nat.mod_mod _ _) rfl
@@ -89,6 +92,7 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = 
   ... ≡ (a * b) % (n+1) + (a * c) % (n+1) [MOD (n+1)] :
         modeq_add (nat.mod_mod _ _).symm (nat.mod_mod _ _).symm)
 
+/-- Commutative ring structure on `fin (n+1)`. -/
 def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
 { zero_add := λ ⟨a, ha⟩, fin.eq_of_veq (show (0 + a) % (n+1) = a,
     by rw zero_add; exact nat.mod_eq_of_lt ha),
@@ -157,6 +161,12 @@ instance comm_ring : Π (n : ℕ), comm_ring (zmod n)
 
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 
+/-- `val a` is a natural number defined as:
+  - for `a : zmod 0` it is the absolute value of `a`
+  - for `a : zmod n` with `0 < n` it is the least natural number in the equivalence class
+
+See `zmod.val_min_abs` for a variant that takes values in the integers.
+-/
 def val : Π {n : ℕ}, zmod n → ℕ
 | 0     := int.nat_abs
 | (n+1) := fin.val
@@ -206,6 +216,9 @@ variables {n : ℕ} {R : Type*}
 section
 variables [has_zero R] [has_one R] [has_add R] [has_neg R]
 
+/-- Cast an integer modulo `n` to another semiring.
+This function is a morphism if the characteristic of `R` divides `n`.
+See `zmod.cast_hom` for a bundled version. -/
 def cast : Π {n : ℕ}, zmod n → R
 | 0     := int.cast
 | (n+1) := λ i, i.val
@@ -248,7 +261,7 @@ begin
     refine ⟨k, _⟩, norm_cast }
 end
 
-@[simp] lemma cast_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
+lemma cast_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
   (a.val : zmod n) = a :=
 begin
   rcases nat_cast_surjective a with ⟨k, rfl⟩,
@@ -310,6 +323,7 @@ begin
   { apply nat.mod_le }
 end
 
+/-- The canonical ring homomorphism from `zmod n` to a ring of characteristic `n`. -/
 def cast_hom (n : ℕ) (R : Type*) [ring R] [char_p R n] : zmod n →+* R :=
 { to_fun := coe,
   map_zero' := cast_zero,
@@ -367,12 +381,14 @@ instance nonzero_comm_ring (n : ℕ) [fact (1 < n)] : nonzero_comm_ring (zmod n)
       ... = 1                : val_one n,
   .. zmod.comm_ring n }
 
+/-- The inversion on `zmod n`.
+It is setup in such a way that `a * a⁻¹` is equal to `gcd a.val n`.
+In particular, if `a` is coprime to `n`, and hence a unit, `a * a⁻¹ = 1`. -/
 def inv : Π (n : ℕ), zmod n → zmod n
 | 0     i := int.sign i
 | (n+1) i := nat.gcd_a i.val (n+1)
 
-instance (n : ℕ) : has_inv (zmod n) :=
-⟨inv n⟩
+instance (n : ℕ) : has_inv (zmod n) := ⟨inv n⟩
 
 lemma inv_zero : ∀ (n : ℕ), (0 : zmod n)⁻¹ = 0
 | 0     := int.sign_zero
@@ -402,10 +418,7 @@ begin
   { rw [fin.ext_iff, nat.modeq, ← val_cast_nat, ← val_cast_nat], exact iff.rfl, }
 end
 
-section totient
-open_locale nat
-
-lemma coe_mul_inv_eq_one {n : ℕ} [fact (0 < n)] (x : ℕ) (h : nat.coprime x n) :
+lemma coe_mul_inv_eq_one {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
   (x * x⁻¹ : zmod n) = 1 :=
 begin
   rw [nat.coprime, nat.gcd_comm, nat.gcd_rec] at h,
@@ -414,10 +427,10 @@ end
 
 /-- `unit_of_coprime` makes an element of `units (zmod n)` given
   a natural number `x` and a proof that `x` is coprime to `n`  -/
-def unit_of_coprime {n : ℕ} [fact (0 < n)] (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
+def unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
 ⟨x, x⁻¹, coe_mul_inv_eq_one x h, by rw [mul_comm, coe_mul_inv_eq_one x h]⟩
 
-@[simp] lemma cast_unit_of_coprime {n : ℕ} [fact (0 < n)] (x : ℕ) (h : nat.coprime x n) :
+@[simp] lemma cast_unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
   (unit_of_coprime x h : zmod n) = x := rfl
 
 lemma val_coe_unit_coprime {n : ℕ} (u : units (zmod n)) :
@@ -444,12 +457,28 @@ begin
   refl
 end
 
+lemma mul_inv_of_unit {n : ℕ} (a : zmod n) (h : is_unit a) :
+  a * a⁻¹ = 1 :=
+begin
+  rcases h with ⟨u, rfl⟩,
+  rw [inv_coe_unit, u.mul_inv],
+end
+
+lemma inv_mul_of_unit {n : ℕ} (a : zmod n) (h : is_unit a) :
+  a⁻¹ * a = 1 :=
+by rw [mul_comm, mul_inv_of_unit a h]
+
+/-- Equivalence between the units of `zmod n` and
+the subtype of terms `x : zmod n` for which `x.val` is comprime to `n` -/
 def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   units (zmod n) ≃ {x : zmod n // nat.coprime x.val n} :=
 { to_fun := λ x, ⟨x, val_coe_unit_coprime x⟩,
   inv_fun := λ x, unit_of_coprime x.1.val x.2,
   left_inv := λ ⟨_, _, _, _⟩, units.ext (cast_val _),
   right_inv := λ ⟨_, _⟩, by simp }
+
+section totient
+open_locale nat
 
 @[simp] lemma card_units_eq_totient (n : ℕ) [fact (0 < n)] :
   fintype.card (units (zmod n)) = φ n :=
@@ -669,6 +698,7 @@ begin
   rwa [nat.prime.coprime_iff_not_dvd ‹p.prime›, ← char_p.cast_eq_zero_iff (zmod p)]
 end
 
+/-- Field structure on `zmod p` if `p` is prime. -/
 instance : field (zmod p) :=
 { mul_inv_cancel := mul_inv_cancel_aux p,
   inv_zero := inv_zero p,

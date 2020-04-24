@@ -111,7 +111,7 @@ do env ← get_env,
 
 /--
 Apply the lemma `e`, then attempt to close all goals using
-`solve_by_elim { ..opt }`, failing if `close_goals = tt`
+`solve_by_elim opt`, failing if `close_goals = tt`
 and there are any goals remaining.
 -/
 -- Implementation note: as this is used by both `library_search` and `suggest`,
@@ -126,7 +126,7 @@ apply e >>
 -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
 -- backtracking search across all goals, allowing us to guess solutions that involve data, or
 -- unify metavariables, but only as long as we can finish all goals.)
-try (any_goals (independent_goal >> solve_by_elim { ..opt })) >>
+try (any_goals (independent_goal >> solve_by_elim opt)) >>
 -- Phase 2
 (done <|>
   -- If there were any goals that we did not attempt solving in the first phase
@@ -134,7 +134,7 @@ try (any_goals (independent_goal >> solve_by_elim { ..opt })) >>
   -- as a second phase we attempt to solve all remaining goals at once
   -- (with backtracking across goals).
   any_goals (success_if_fail independent_goal) >>
-  solve_by_elim { ..opt } <|>
+  solve_by_elim { backtrack_all_goals := tt, ..opt } <|>
   -- and fail unless `close_goals = ff`
   guard ¬ close_goals)
 
@@ -200,6 +200,8 @@ private meta def apply_declaration_script
 retrieve $ focus1 $ do
   apply_declaration ff opt d,
   ng ← num_goals,
+  -- This `instantiate_mvars` is necessary so that we count used hypotheses correctly.
+  g ← instantiate_mvars g,
   s ← read,
   m ← tactic_statement g,
   return
@@ -220,9 +222,11 @@ do g :: _ ← get_goals,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
    (retrieve (do
-     focus1 $ solve_by_elim { ..opt },
+     focus1 $ solve_by_elim opt,
      s ← read,
      m ← tactic_statement g,
+     -- This `instantiate_mvars` is necessary so that we count used hypotheses correctly.
+     g ← instantiate_mvars g,
      return $ mllist.of_list [⟨s, m, none, 0, hyps.countp (λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do

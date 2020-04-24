@@ -45,6 +45,8 @@ by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y :=
 by rw [eq_comm, eq_inv_iff_eq, eq_comm]
 
+/-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
+every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
 
 @[symm] lemma disjoint.symm {f g : perm α} : disjoint f g → disjoint g f :=
@@ -84,14 +86,7 @@ end
 
 lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoint)
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
-begin
-  induction hp,
-  { refl },
-  { rw [list.prod_cons, list.prod_cons, hp_ih (list.pairwise_cons.1 hl).2] },
-  { simp [list.prod_cons, disjoint_mul_comm, (mul_assoc _ _ _).symm, *,
-      list.pairwise_cons] at * },
-  { rw [hp_ih_a hl, hp_ih_a_1 ((list.perm_pairwise (λ x y (h : disjoint x y), disjoint.symm h) hp_a).1 hl)] }
-end
+hp.prod_eq' $ hl.imp $ λ f g, disjoint_mul_comm
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p] (h₁ : ∀ x, p x ↔ p (f x))
   (h₂ : ∀ x, f x ≠ x → p x) : of_subtype (subtype_perm f h₁) = f :=
@@ -429,7 +424,7 @@ def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) �
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
-      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp [list.mem_of_perm h])
+      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
 

@@ -150,7 +150,7 @@ meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse l
 nth_rewrite_core [dir.A] n q l
 
 add_tactic_doc
-{ name       := "erewrite / erw",
+{ name       := "nth_rewrite / nth_rewrite_lhs / nth_rewrite_rhs",
   category   := doc_category.tactic,
   inherit_description_from := ``nth_rewrite,
   decl_names := [``nth_rewrite, ``nth_rewrite_lhs, ``nth_rewrite_rhs],

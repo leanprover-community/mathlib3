@@ -39,7 +39,7 @@ theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
 theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 
-instance prime.fact_one_lt (p : ℕ) [hp : fact p.prime] : fact (1 < p) := hp.one_lt
+instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 ne.symm $ (ne_of_lt hp.one_lt)

@@ -156,7 +156,7 @@ namespace char_p
 lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
-  haveI := prime_of_pos_char_p_integral_domain R p,
+  haveI := char_is_prime_of_pos R p,
   obtain ⟨a, b, hab⟩ := zmod.sum_two_squares p x,
   refine ⟨a.val, b.val, _⟩,
   have := congr_arg (zmod.cast_hom p R) hab,

@@ -676,7 +676,7 @@ section facts
 -- Inject some simple facts into the typeclass system.
 -- This `fact` should not be confused with the factorial function `nat.fact`!
 
-instance succ_pos' (n : ℕ) : _root_.fact (0 < n.succ) := n.succ_pos
+instance succ_pos'' (n : ℕ) : _root_.fact (0 < n.succ) := n.succ_pos
 
 instance pos_of_one_lt (n : ℕ) [h : fact (1 < n)] : fact (0 < n) :=
 lt_trans zero_lt_one h

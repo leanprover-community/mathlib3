@@ -13,23 +13,20 @@ import data.nat.totient
 
 Definition of the integers mod n, and the field structure on the integers mod p.
 
-There are two types defined, `zmod n`, which is for integers modulo a positive nat `n : ℕ+`.
-`zmodp` is the type of integers modulo a prime number, for which a field structure is defined.
 
 ## Definitions
 
-* `val` is inherited from `fin` and returns the least natural number in the equivalence class
+* `zmod n`, which is for integers modulo a nat `n : ℕ`
+
+* `val a` is defined as a natural number:
+  - for `a : zmod 0` it is the absolute value of `a`
+  - for `a : zmod n` with `0 < n` it is the least natural number in the equivalence class
 
 * `val_min_abs` returns the integer closest to zero in the equivalence class.
 
-* A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
-characteristic dividing `n`
+* A coercion `cast` is defined from `zmod n` into any ring.
+This is a ring hom if the ring has characteristic dividing `n`
 
-## Implementation notes
-
-`zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
-synthesized. This leads to a lot of code duplication and most of the functions and theorems for
-`zmod` are restated for `zmodp`
 -/
 
 namespace fin
@@ -128,7 +125,8 @@ end
 
 end fin
 
-def zmod : ℕ →  Type
+/-- The integers modulo `n : ℕ`. -/
+def zmod : ℕ → Type
 | 0     := ℤ
 | (n+1) := fin (n+1)
 
@@ -256,7 +254,7 @@ begin
   rcases nat_cast_surjective a with ⟨k, rfl⟩,
   symmetry,
   rw [val_cast_nat, ← sub_eq_zero, ← nat.cast_sub, char_p.cast_eq_zero_iff (zmod n) n],
-  { apply dvd_sub_mod },
+  { apply nat.dvd_sub_mod },
   { apply nat.mod_le }
 end
 
@@ -296,7 +294,7 @@ begin
   symmetry, resetI,
   rw [fin.val_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub,
     @char_p.cast_eq_zero_iff R _ n.succ],
-  { apply dvd_sub_mod },
+  { apply nat.dvd_sub_mod },
   { apply nat.mod_le }
 end
 
@@ -308,7 +306,7 @@ begin
   symmetry, resetI,
   rw [fin.val_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub,
     @char_p.cast_eq_zero_iff R _ n.succ],
-  { apply dvd_sub_mod },
+  { apply nat.dvd_sub_mod },
   { apply nat.mod_le }
 end
 

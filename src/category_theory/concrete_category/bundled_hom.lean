@@ -88,6 +88,8 @@ has_forget₂.mk'
 variables {d : Type u → Type u}
 variables (hom)
 
+section
+omit 𝒞
 /--
 The `hom` corresponding to first forgetting along `F`, then taking the `hom` associated to `c`.
 
@@ -95,6 +97,7 @@ For typical usage, see the construction of `CommMon` from `Mon`.
 -/
 @[reducible] def map_hom (F : Π {α}, d α → c α) : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u :=
 λ α β iα iβ, hom (F iα) (F iβ)
+end
 
 /--
 Construct the `bundled_hom` induced by a map between type classes.
@@ -109,16 +112,20 @@ def map (F : Π {α}, d α → c α) : bundled_hom (map_hom hom @F) :=
 section
 omit 𝒞
 /--
-We used the empty `parent_projection` class to label functions like `comm_monoid.to_monoid`,
+We use the empty `parent_projection` class to label functions like `comm_monoid.to_monoid`,
 which we would like to use to automatically construct `bundled_hom` instances from.
 
 Once we've set up `Mon` as the category of bundled monoids,
-this allows us to set up `CommMon` by defining an instance `parent_project (comm_monoid.to_monoid)`.
+this allows us to set up `CommMon` by defining an instance
+```instance : parent_projection (comm_monoid.to_monoid) := ⟨⟩```
 -/
 class parent_projection (F : Π {α}, d α → c α)
 end
 
-instance (F : Π {α}, d α → c α) [parent_projection @F] : bundled_hom (map_hom hom @F) := map hom @F
+@[nolint unused_arguments] -- The `parent_projection` typeclass is just a marker, so won't be used.
+instance bundled_hom_of_parent_projection (F : Π {α}, d α → c α) [parent_projection @F] :
+  bundled_hom (map_hom hom @F) :=
+map hom @F
 
 instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] : has_forget₂ (bundled d) (bundled c) :=
 { forget₂ :=

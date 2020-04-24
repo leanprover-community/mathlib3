@@ -1,4 +1,5 @@
 import system.io
+import tactic.lint
 
 universe u
 
@@ -112,8 +113,9 @@ meta def find_local_const (n : name) : list expr → expr
   if e.local_pp_name = n then e else find_local_const rest
 
 /-- Use the list `lc` to replace the local constants we find in the passed `expr` by matching pretty
-name. -/
-meta def fixup_local_consts (lc : list expr) : expr → nat → option expr
+name; meant to be passed to `expr.replace`, thus we don't use the `ℕ` argument. -/
+@[nolint unused_arguments]
+meta def fixup_local_consts (lc : list expr) : expr → ℕ → option expr
 | (expr.local_const _ n _ _) _ := some $ find_local_const n lc
 | _ _ := none
 

@@ -94,7 +94,7 @@ add_tactic_doc {
   name := "apply_congr",
   category := doc_category.tactic,
   decl_names := [`conv.interactive.apply_congr],
-  tags := ["conv", "congruence", "rewrite"]
+  tags := ["conv", "congruence", "rewriting"]
 }
 
 end conv.interactive

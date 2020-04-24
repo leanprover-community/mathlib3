@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 Without loss of generality tactic.
 -/
 import tactic.tauto
-import tactic.core
 import data.list.perm
 
 open expr tactic lean lean.parser
@@ -242,6 +241,12 @@ with_enable_tags $ tactic.focus1 $ do
     set_goals (g :: gs)
   | none := skip
   end
+
+add_tactic_doc
+{ name := "wlog",
+  category := doc_category.tactic,
+  decl_names := [``wlog],
+  tags := ["logic"] }
 
 end interactive
 

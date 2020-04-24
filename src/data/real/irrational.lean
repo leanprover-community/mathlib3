@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury K
 import data.real.basic
 import algebra.gcd_domain
 import ring_theory.multiplicity
-import tactic.alias
 /-!
 # Irrational real numbers
 

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 import category_theory.category
-import category_theory.isomorphism
 import category_theory.epi_mono
-import data.equiv.basic
 
 namespace category_theory
 

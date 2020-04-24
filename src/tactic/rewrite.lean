@@ -207,7 +207,7 @@ add_tactic_doc
 { name                     := "assoc_rewrite",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.assoc_rewrite, `tactic.interactive.assoc_rw],
-  tags                     := ["rewrite"],
+  tags                     := ["rewriting"],
   inherit_description_from := `tactic.interactive.assoc_rewrite }
 
 end interactive

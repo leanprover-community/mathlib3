@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.rcases
-import data.list.defs
 import data.sum
 universes u₁ u₂
 
@@ -397,6 +396,6 @@ add_tactic_doc
 { name        := "ext1 / ext",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := ["rewrite", "logic"] }
+  tags        := ["rewriting", "logic"] }
 
 end tactic

@@ -6,7 +6,6 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import data.int.gcd
 import algebra.big_operators
-import tactic.converter.interactive
 
 variables {α : Type*}
 

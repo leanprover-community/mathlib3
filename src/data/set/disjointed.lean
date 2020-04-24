@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 Disjointed sets
 -/
 import data.set.lattice
-import data.nat.basic
 import tactic.wlog
 open set classical
 open_locale classical

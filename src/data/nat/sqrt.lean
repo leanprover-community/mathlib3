@@ -8,9 +8,6 @@ returns s s.t.
     s*s ≤ n ≤ s*s + s + s
 -/
 import data.nat.basic
-import algebra.ordered_group
-import algebra.ring
-import tactic.alias
 
 namespace nat
 

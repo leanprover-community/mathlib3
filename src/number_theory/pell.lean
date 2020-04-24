@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.nat.modeq
 import data.zsqrtd.basic
-import tactic.ring
 import tactic.omega
 
 namespace pell

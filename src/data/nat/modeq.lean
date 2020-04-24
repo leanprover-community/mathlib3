@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 Modular equality relation.
 -/
 import data.int.gcd
-import algebra.ordered_ring
 import tactic.abel
 import data.list.rotate
 

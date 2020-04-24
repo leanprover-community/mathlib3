@@ -5,8 +5,6 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto
-import data.list.defs
 import data.finset
 import data.nat.enat
 import tactic.omega

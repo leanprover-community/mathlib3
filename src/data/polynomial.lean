@@ -6,7 +6,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 Theory of univariate polynomials, represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
 -/
 import data.monoid_algebra
-import ring_theory.algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity

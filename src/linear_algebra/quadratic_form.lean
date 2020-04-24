@@ -6,6 +6,7 @@ Author: Anne Baanen
 Quadratic forms over modules.
 -/
 
+import algebra.invertible
 import linear_algebra.bilinear_form
 import linear_algebra.determinant
 import linear_algebra.special_linear_group
@@ -159,10 +160,10 @@ end quadratic_form
 
 /-! ### Associated bilinear forms
 
-Over a commutative ring with an inverse of 2 (`two_inv`), the theory of
-quadratic forms is basically identical to that of symmetric bilinear forms. The
-map from quadratic forms to bilinear forms giving this identification is called
-the `associated` quadratic form.
+Over a commutative ring with an inverse of 2, the theory of quadratic forms is
+basically identical to that of symmetric bilinear forms. The map from quadratic
+forms to bilinear forms giving this identification is called the `associated`
+quadratic form.
 -/
 
 variables {B : bilin_form R M}
@@ -192,51 +193,44 @@ namespace quadratic_form
 open bilin_form sym_bilin_form
 
 section associated
-variables {B₁ : bilin_form R₁ M} (Q : quadratic_form R₁ M) (two_inv : {half : R₁ // half * 2 = 1})
-
-@[simp] lemma two_inv_mul_two : (two_inv : R₁) * 2 = 1 := two_inv.2
-
-/-- `2⁻¹` is an inverse of `2` in a field with characteristic 0 -/
-def two_inv_of_char_zero_field {K : Type u} [field K] [char_zero K] :
-  {half : K // half * 2 = 1} :=
-⟨2⁻¹, inv_mul_cancel two_ne_zero'⟩
+variables [invertible (2 : R₁)] {B₁ : bilin_form R₁ M} (Q : quadratic_form R₁ M)
 
 /-- `Q.associated` is the symmetric bilinear form associated to a quadratic form `Q`. -/
 def associated : bilin_form R₁ M :=
-{ bilin := λ x y, two_inv * polar Q x y,
+{ bilin := λ x y, ⅟2 * polar Q x y,
   bilin_add_left := λ x y z, by { erw [← mul_add, Q.polar_add_left], refl },
   bilin_smul_left := λ x y z, by { erw [← mul_left_comm, Q.polar_smul_left], refl },
   bilin_add_right := λ x y z, by { erw [← mul_add, Q.polar_add_right], refl },
   bilin_smul_right := λ x y z, by { erw [← mul_left_comm, Q.polar_smul_right], refl } }
 
 @[simp] lemma associated_apply (x y : M) :
-  Q.associated two_inv x y = two_inv * (Q (x + y) - Q x - Q y) := rfl
+  Q.associated x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : is_sym (Q.associated two_inv) :=
+lemma associated_is_sym : is_sym Q.associated :=
 λ x y, by simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_smul (a : R₁) :
-  (a • Q).associated two_inv = (a * a) • Q.associated two_inv :=
+  (a • Q).associated = (a * a) • Q.associated :=
 by { ext, simp [bilin_form.smul_apply, map_smul, mul_sub, mul_left_comm] }
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
-  (Q.comp f).associated two_inv = (Q.associated two_inv).comp f f :=
+  (Q.comp f).associated = Q.associated.comp f f :=
 by { ext, simp }
 
 lemma associated_to_quadratic_form (B : bilin_form R₁ M) (x y : M) :
-  B.to_quadratic_form.associated two_inv x y = two_inv * (B x y + B y x) :=
+  B.to_quadratic_form.associated x y = ⅟2 * (B x y + B y x) :=
 by simp [associated_apply, ←polar_to_quadratic_form, polar]
 
-lemma associated_left_inverse_of_two_inv (h : is_sym B₁) :
-  B₁.to_quadratic_form.associated two_inv = B₁ :=
+lemma associated_left_inverse (h : is_sym B₁) :
+  B₁.to_quadratic_form.associated = B₁ :=
 bilin_form.ext $ λ x y,
-by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, two_inv_mul_two, one_mul]
+by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
 
-lemma associated_right_inverse_of_two_inv : (Q.associated two_inv).to_quadratic_form = Q :=
+lemma associated_right_inverse : Q.associated.to_quadratic_form = Q :=
 quadratic_form.ext $ λ x,
-  calc  (Q.associated two_inv).to_quadratic_form x
-      = two_inv * (Q x + Q x) : by simp [map_add_self, bit0, add_mul]
-  ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, two_inv_mul_two, one_mul]
+  calc  Q.associated.to_quadratic_form x
+      = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul]
+  ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 end associated
 
 section pos_def
@@ -271,16 +265,16 @@ variables {n : Type w} [fintype n]
 def matrix.to_quadratic_form (M : matrix n n R₁) : quadratic_form R₁ (n → R₁) :=
 M.to_bilin_form.to_quadratic_form
 
-variables [decidable_eq n] (two_inv : {half : R₁ // half * 2 = 1})
+variables [decidable_eq n] [invertible (2 : R₁)]
 
 /-- A matrix representation of the quadratic form. -/
 def quadratic_form.to_matrix (Q : quadratic_form R₁ (n → R₁)) :
   matrix n n R₁ :=
-(Q.associated two_inv).to_matrix
+Q.associated.to_matrix
 
 open quadratic_form
 lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
-  (a • Q).to_matrix two_inv = (a * a) • Q.to_matrix two_inv :=
+  (a • Q).to_matrix = (a * a) • Q.to_matrix :=
 by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
 
 namespace quadratic_form
@@ -290,20 +284,20 @@ open_locale matrix
 
 @[simp]
 lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
-  (Q.comp f).to_matrix two_inv = f.to_matrixᵀ ⬝ Q.to_matrix two_inv ⬝ f.to_matrix :=
+  (Q.comp f).to_matrix = f.to_matrixᵀ ⬝ Q.to_matrix ⬝ f.to_matrix :=
 by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
 
 section discriminant
 variables {Q : quadratic_form R₁ (n → R₁)}
 
 /-- The discriminant of a quadratic form generalizes the discriminant of a quadratic polynomial. -/
-def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := (Q.to_matrix two_inv).det
+def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix.det
 
-lemma discr_smul (a : R₁) : (a • Q).discr two_inv = (a * a) ^ fintype.card n * Q.discr two_inv :=
+lemma discr_smul (a : R₁) : (a • Q).discr = (a * a) ^ fintype.card n * Q.discr :=
 by simp [discr, to_matrix_smul]
 
 lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
-  (Q.comp f).discr two_inv = f.to_matrix.det * f.to_matrix.det * Q.discr two_inv :=
+  (Q.comp f).discr = f.to_matrix.det * f.to_matrix.det * Q.discr :=
 by simp [discr, mul_left_comm, mul_comm]
 
 end discriminant

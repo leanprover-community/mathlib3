@@ -90,6 +90,8 @@ variables (hom)
 
 /--
 The `hom` corresponding to first forgetting along `F`, then taking the `hom` associated to `c`.
+
+For typical usage, see the construction of `CommMon` from `Mon`.
 -/
 @[reducible] def map_hom (F : Π {α}, d α → c α) : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u :=
 λ α β iα iβ, hom (F iα) (F iβ)

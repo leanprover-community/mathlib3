@@ -195,11 +195,11 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fin
 
 local attribute [instance] set_fintype
 
-lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} (hp : fact p.prime)
+lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
 | 0 := λ _ _, ⟨trivial G, by apply_instance, by simp⟩
 | (n+1) := λ hp hdvd,
-let ⟨H, ⟨hH1, hH2⟩⟩ := exists_subgroup_card_pow_prime hp
+let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
   (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI

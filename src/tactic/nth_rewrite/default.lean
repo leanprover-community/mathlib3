@@ -85,38 +85,76 @@ namespace interactive
 
 open expr_lens
 
-/-- `nth_write n rules` performs only the `n`th possible rewrite using the `rules`.
+/-- `nth_rewrite n rules` performs only the `n`th possible rewrite using the `rules`.
+The tactics `nth_rewrite_lhs` and `nth_rewrite_rhs` are variants
+that operate on the left and right hand sides of an equation or iff.
+
+Note: `n` is zero-based, so `nth_rewrite 0 h`
+will rewrite along `h` at the first possible location.
+
+In more detail, given `rules = [h1, ..., hk]`,
+this tactic will search for all possible locations
+where one of `h1, ..., hk` can be rewritten,
+and perform the `n`th occurence.
+
+Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
+the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.
 
 The core `rewrite` has a `occs` configuration setting intended to achieve a similar
 purpose, but this doesn't really work. (If a rule matches twice, but with different
-values of arguments, the second match will not be identified.)
-
-See also: `nth_rewrite_lhs` and `nth_rewrite_rhs` -/
+values of arguments, the second match will not be identified.) -/
 meta def nth_rewrite
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 nth_rewrite_core [] n q l
 
-/-- `nth_write_lhs n rules` performs only the `n`th possible rewrite using the `rules`,
-but only working on the left hand side.
+/-- `nth_rewrite n rules` performs only the `n`th possible rewrite using the `rules`.
+The tactics `nth_rewrite_lhs` and `nth_rewrite_rhs` are variants
+that operate on the left and right hand sides of an equation or iff.
+
+Note: `n` is zero-based, so `nth_rewrite 0 h`
+will rewrite along `h` at the first possible location.
+
+In more detail, given `rules = [h1, ..., hk]`,
+this tactic will search for all possible locations
+where one of `h1, ..., hk` can be rewritten,
+and perform the `n`th occurence.
+
+Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
+the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.
 
 The core `rewrite` has a `occs` configuration setting intended to achieve a similar
 purpose, but this doesn't really work. (If a rule matches twice, but with different
-values of arguments, the second match will not be identified.)
-
-See also: `nth_rewrite` and `nth_rewrite_rhs` -/
+values of arguments, the second match will not be identified.) -/
 meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 nth_rewrite_core [dir.F, dir.A] n q l
 
-/-- `nth_write_rhs n rules` performs only the `n`th possible rewrite using the `rules`,
-but only working on the right hand side.
+/-- `nth_rewrite n rules` performs only the `n`th possible rewrite using the `rules`.
+The tactics `nth_rewrite_lhs` and `nth_rewrite_rhs` are variants
+that operate on the left and right hand sides of an equation or iff.
+
+Note: `n` is zero-based, so `nth_rewrite 0 h`
+will rewrite along `h` at the first possible location.
+
+In more detail, given `rules = [h1, ..., hk]`,
+this tactic will search for all possible locations
+where one of `h1, ..., hk` can be rewritten,
+and perform the `n`th occurence.
+
+Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
+the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.
 
 The core `rewrite` has a `occs` configuration setting intended to achieve a similar
 purpose, but this doesn't really work. (If a rule matches twice, but with different
-values of arguments, the second match will not be identified.)
-
-See also: `nth_rewrite` and `nth_rewrite_lhs` -/
+values of arguments, the second match will not be identified.) -/
 meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 nth_rewrite_core [dir.A] n q l
+
+add_tactic_doc
+{ name       := "erewrite / erw",
+  category   := doc_category.tactic,
+  inherit_description_from := ``nth_rewrite,
+  decl_names := [``nth_rewrite, ``nth_rewrite_lhs, ``nth_rewrite_rhs],
+  tags       := ["rewriting"] }
 
 end interactive
 end tactic

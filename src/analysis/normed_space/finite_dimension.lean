@@ -3,8 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.normed_space.operator_norm linear_algebra.finite_dimensional tactic.omega
+import analysis.normed_space.operator_norm
+import linear_algebra.finite_dimensional
+import tactic.omega
 
 /-!
 # Finite dimensional normed spaces over complete fields

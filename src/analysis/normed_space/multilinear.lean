@@ -3,9 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.normed_space.operator_norm topology.algebra.multilinear
-import data.fintype.card
+import analysis.normed_space.operator_norm
+import topology.algebra.multilinear
 
 /-!
 # Operator norm on the space of continuous multilinear maps

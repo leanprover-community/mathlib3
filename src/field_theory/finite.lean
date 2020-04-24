@@ -3,7 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.ring data.zmod.basic
+import group_theory.order_of_element
+import data.polynomial
+import data.equiv.ring
 import algebra.char_p
 
 universes u v

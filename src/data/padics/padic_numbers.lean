@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
 -/
-
-import data.real.cau_seq_completion
-import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
-import tactic.norm_cast
+import data.padics.padic_norm
+import analysis.normed_space.basic
 
 /-!
 # p-adic numbers

@@ -3,7 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv analysis.calculus.times_cont_diff
+import analysis.calculus.deriv
+import analysis.calculus.times_cont_diff
 
 /-!
 # One-dimensional iterated derivatives

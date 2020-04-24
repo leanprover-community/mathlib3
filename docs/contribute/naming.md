@@ -165,48 +165,49 @@ to guess the name of a theorem or find it using tab completion. Common
 multiplication are put in a namespace that begins with the name of the
 operation:
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 
-check and.comm
-check mul.comm
-check and.assoc
-check mul.assoc
-check @mul.left_cancel  -- multiplication is left cancelative
+#check and.comm
+#check mul.comm
+#check and.assoc
+#check mul.assoc
+#check @mul.left_cancel  -- multiplication is left cancelative
 ```
 In particular, this includes `intro` and `elim` operations for logical
 connectives, and properties of relations:
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 
-check and.intro
-check and.elim
-check or.intro_left
-check or.intro_right
-check or.elim
+#check and.intro
+#check and.elim
+#check or.intro_left
+#check or.intro_right
+#check or.elim
 
-check eq.refl
-check eq.symm
-check eq.trans
+#check eq.refl
+#check eq.symm
+#check eq.trans
 ```
 
 For the most part, however, we rely on descriptive names. Often the
 name of theorem simply describes the conclusion:
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 open nat
-check succ_ne_zero
-check mul_zero
-check mul_one
-check @sub_add_eq_add_sub
-check @le_iff_lt_or_eq
+
+#check succ_ne_zero
+#check mul_zero
+#check mul_one
+#check @sub_add_eq_add_sub
+#check @le_iff_lt_or_eq
 ```
 If only a prefix of the description is enough to convey the meaning,
 the name may be made even shorter:
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 
-check @neg_neg
-check nat.pred_succ
+#check @neg_neg
+#check nat.pred_succ
 ```
 When an operation is written as infix, the theorem names follow
 suit. For example, we write `neg_mul_neg` rather than `mul_neg_neg` to
@@ -216,12 +217,13 @@ Sometimes, to disambiguate the name of theorem or better convey the
 intended reference, it is necessary to describe some of the
 hypotheses. The word "of" is used to separate these hypotheses:
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 open nat
-check lt_of_succ_le
-check lt_of_not_ge
-check lt_of_le_of_ne
-check add_lt_add_of_lt_of_le
+
+#check lt_of_succ_le
+#check lt_of_not_ge
+#check lt_of_le_of_ne
+#check add_lt_add_of_lt_of_le
 ```
 The hypotheses are listed in the order they appear, _not_ reverse
 order. For example, the theorem `A → B → C` would be named
@@ -231,12 +233,13 @@ Sometimes abbreviations or alternative descriptions are easier to work
 with. For example, we use `pos`, `neg`, `nonpos`, `nonneg` rather than
 `zero_lt`, `lt_zero`, `le_zero`, and `zero_le`.
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 open nat
-check mul_pos
-check mul_nonpos_of_nonneg_of_nonpos
-check add_lt_of_lt_of_nonpos
-check add_lt_of_nonpos_of_lt
+
+#check mul_pos
+#check mul_nonpos_of_nonneg_of_nonpos
+#check add_lt_of_lt_of_nonpos
+#check add_lt_of_nonpos_of_lt
 ```
 
 These conventions are not perfect. They cannot distinguish compound
@@ -247,12 +250,12 @@ could be named either `add_sub_self` or `add_sub_cancel`.
 Sometimes the word "left" or "right" is helpful to describe variants
 of a theorem.
 ```lean
-import standard algebra.ordered_ring
+import algebra.ordered_ring
 
-check add_le_add_left
-check add_le_add_right
-check le_of_mul_le_mul_left
-check le_of_mul_le_mul_right
+#check add_le_add_left
+#check add_le_add_right
+#check le_of_mul_le_mul_left
+#check le_of_mul_le_mul_right
 ```
 
 ------

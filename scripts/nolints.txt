@@ -596,7 +596,6 @@ apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
 apply_nolint category_theory.nat_trans.unop doc_blame
-apply_nolint category_theory.op_op doc_blame
 
 -- category_theory/products/associator.lean
 apply_nolint category_theory.prod.associativity doc_blame
@@ -1137,7 +1136,7 @@ apply_nolint lazy_list.list_equiv_lazy_list doc_blame
 apply_nolint lazy_list.traverse doc_blame
 
 -- data/list/alist.lean
-apply_nolint alist.disjoint doc_blame unused_arguments
+apply_nolint alist.disjoint unused_arguments
 apply_nolint alist.foldl unused_arguments
 apply_nolint list.to_alist doc_blame
 
@@ -1190,7 +1189,6 @@ apply_nolint list.func.sub doc_blame
 apply_nolint list.pairwise_gt_iota ge_or_gt
 
 -- data/list/sigma.lean
-apply_nolint list.erase_dupkeys doc_blame
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
@@ -1199,7 +1197,7 @@ apply_nolint list.nodupkeys doc_blame
 apply_nolint list.tfae doc_blame
 
 -- data/matrix/basic.lean
-apply_nolint matrix doc_blame unused_arguments
+apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame
 apply_nolint matrix.diagonal doc_blame
 apply_nolint matrix.minor doc_blame
@@ -1671,11 +1669,6 @@ apply_nolint set.sigma_to_Union doc_blame
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 
--- data/string/defs.lean
-apply_nolint string.map_tokens doc_blame
-apply_nolint string.over_list doc_blame
-apply_nolint string.split_on doc_blame
-
 -- data/sum.lean
 apply_nolint sum.elim doc_blame
 apply_nolint sum.map doc_blame
@@ -1825,7 +1818,6 @@ apply_nolint equiv.perm.same_cycle doc_blame
 
 -- group_theory/perm/sign.lean
 apply_nolint equiv.perm.card_support_swap unused_arguments
-apply_nolint equiv.perm.disjoint doc_blame
 apply_nolint equiv.perm.eq_swap_of_is_cycle_of_apply_apply_eq_self unused_arguments
 apply_nolint equiv.perm.is_cycle doc_blame
 apply_nolint equiv.perm.is_cycle_swap unused_arguments
@@ -1884,11 +1876,6 @@ apply_nolint sylow.vectors_prod_eq_one doc_blame
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame
 apply_nolint linear_equiv.to_linear_map doc_blame
-
--- linear_algebra/bilinear_form.lean
-apply_nolint bilin_form.bilin_linear_map_equiv doc_blame
-apply_nolint bilin_form.to_linear_map doc_blame
-apply_nolint linear_map.to_bilin doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame
@@ -2083,9 +2070,6 @@ apply_nolint tactic.add_coinductive_predicate.coind_rule doc_blame
 apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
-
--- meta/expr.lean
-apply_nolint declaration.update_with_fun doc_blame
 
 -- number_theory/dioph.lean
 apply_nolint dioph.pell_dioph ge_or_gt
@@ -2437,12 +2421,6 @@ apply_nolint tactic.alias.get_lambda_body doc_blame
 apply_nolint tactic.alias.make_left_right doc_blame
 apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 
--- tactic/apply_fun.lean
-apply_nolint apply_fun_name doc_blame
-
--- tactic/auto_cases.lean
-apply_nolint auto_cases_at doc_blame
-
 -- tactic/chain.lean
 apply_nolint tactic.abstract_if_success doc_blame
 apply_nolint tactic.chain doc_blame
@@ -2731,8 +2709,6 @@ apply_nolint tactic.local_cache.internal.save_data doc_blame unused_arguments
 
 -- tactic/localized.lean
 apply_nolint localized_attr doc_blame
-apply_nolint localized_cmd unused_arguments
-apply_nolint open_locale_cmd unused_arguments
 
 -- tactic/mk_iff_of_inductive_prop.lean
 apply_nolint tactic.constr_to_prop doc_blame
@@ -2899,9 +2875,6 @@ apply_nolint omega.term.neg doc_blame
 apply_nolint omega.term.sub doc_blame
 apply_nolint omega.term.to_string doc_blame
 
--- tactic/pi_instances.lean
-apply_nolint tactic.derive_field doc_blame
-
 -- tactic/push_neg.lean
 apply_nolint push_neg.normalize_negations doc_blame
 apply_nolint push_neg.push_neg_at_goal doc_blame
@@ -2948,7 +2921,6 @@ apply_nolint tactic.calculated_Prop doc_blame unused_arguments
 apply_nolint tactic.derive_reassoc_proof doc_blame
 
 -- tactic/replacer.lean
-apply_nolint tactic.def_replacer_cmd unused_arguments
 apply_nolint tactic.mk_replacer doc_blame
 apply_nolint tactic.mk_replacer₁ doc_blame
 apply_nolint tactic.mk_replacer₂ doc_blame
@@ -2958,9 +2930,6 @@ apply_nolint tactic.replacer_attr doc_blame
 apply_nolint tactic.replacer_core doc_blame
 apply_nolint tactic.unprime doc_blame
 apply_nolint tactic.valid_types doc_blame
-
--- tactic/restate_axiom.lean
-apply_nolint restate_axiom_cmd unused_arguments
 
 -- tactic/rewrite.lean
 apply_nolint tactic.assoc_refl doc_blame
@@ -3081,9 +3050,6 @@ apply_nolint tactic.split_ifs doc_blame
 -- tactic/subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame
 
--- tactic/suggest.lean
-apply_nolint tactic.suggest.decl_data doc_blame
-
 -- tactic/tauto.lean
 apply_nolint tactic.add_edge doc_blame
 apply_nolint tactic.add_refl doc_blame
@@ -3118,46 +3084,6 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/where.lean
-apply_nolint lean.parser.get_includes doc_blame
-apply_nolint lean.parser.get_namespace doc_blame
-apply_nolint lean.parser.get_variables doc_blame
-apply_nolint where.binder_less_important doc_blame
-apply_nolint where.binder_priority doc_blame
-apply_nolint where.collect_by doc_blame
-apply_nolint where.collect_by_aux doc_blame
-apply_nolint where.collect_implicit_names doc_blame
-apply_nolint where.compile_variable_list doc_blame
-apply_nolint where.fetch_potential_variable_names doc_blame
-apply_nolint where.find_var doc_blame
-apply_nolint where.format_variable doc_blame
-apply_nolint where.get_all_in_namespace doc_blame
-apply_nolint where.get_def_variables doc_blame
-apply_nolint where.get_includes_core doc_blame
-apply_nolint where.get_namespace_core doc_blame
-apply_nolint where.get_opens doc_blame
-apply_nolint where.get_variables_core doc_blame
-apply_nolint where.inflate doc_blame
-apply_nolint where.is_in_namespace_nonsynthetic doc_blame
-apply_nolint where.is_variable_name doc_blame
-apply_nolint where.mk_flag doc_blame
-apply_nolint where.resolve_var doc_blame
-apply_nolint where.resolve_vars doc_blame
-apply_nolint where.resolve_vars_aux doc_blame
-apply_nolint where.select_for_which doc_blame
-apply_nolint where.sort_variable_list doc_blame
-apply_nolint where.strip_namespace doc_blame
-apply_nolint where.strip_pi_binders doc_blame
-apply_nolint where.strip_pi_binders_aux doc_blame
-apply_nolint where.trace_end doc_blame
-apply_nolint where.trace_includes doc_blame
-apply_nolint where.trace_namespace doc_blame
-apply_nolint where.trace_nl doc_blame
-apply_nolint where.trace_opens doc_blame
-apply_nolint where.trace_variables doc_blame
-apply_nolint where.trace_where doc_blame
-apply_nolint where.where_cmd unused_arguments
 
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame

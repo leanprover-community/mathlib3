@@ -3,7 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup data.equiv.basic data.quot
+import group_theory.subgroup
 open set function
 
 variable {α : Type*}

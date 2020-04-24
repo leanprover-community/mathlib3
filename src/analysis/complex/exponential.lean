@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import tactic.linarith data.complex.exponential analysis.specific_limits
-      group_theory.quotient_group analysis.complex.basic
+import data.complex.exponential
+import analysis.complex.basic
 
 
 /-!

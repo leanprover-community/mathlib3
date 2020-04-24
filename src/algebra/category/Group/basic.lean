@@ -3,11 +3,8 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import algebra.punit_instances
 import algebra.category.Mon.basic
 import category_theory.endomorphism
-import category_theory.epi_mono
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.

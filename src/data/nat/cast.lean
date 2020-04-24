@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import tactic.interactive algebra.order algebra.ordered_group algebra.ring
-import tactic.norm_cast
+import algebra.ordered_group
+import algebra.ring
 
 namespace nat
 variables {α : Type*}

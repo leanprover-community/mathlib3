@@ -6,7 +6,8 @@ Author: Johannes Hölzl
 Multivariate functions of the form `α^n → α` are isomorphic to multivariate polynomials in
 `n` variables.
 -/
-import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
+import linear_algebra.finsupp_vector_space
+import field_theory.finite
 noncomputable theory
 
 open_locale classical

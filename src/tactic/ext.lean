@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.rcases data.list.defs data.sum
+import tactic.rcases
+import data.sum
 universes u₁ u₂
 
 open interactive interactive.types
@@ -395,6 +396,6 @@ add_tactic_doc
 { name        := "ext1 / ext",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := ["rewrite", "logic"] }
+  tags        := ["rewriting", "logic"] }
 
 end tactic

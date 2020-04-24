@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 import category.monad.basic
-import data.list.basic
-import data.equiv.basic
-import data.finset
 import data.fintype.basic
 
 /-!

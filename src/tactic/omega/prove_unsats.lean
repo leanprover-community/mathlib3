@@ -4,7 +4,6 @@ Author: Seul Baek
 
 A tactic which constructs exprs to discharge
 goals of the form `clauses.unsat cs`. -/
-
 import tactic.omega.find_ees
 import tactic.omega.find_scalars
 import tactic.omega.lin_comb

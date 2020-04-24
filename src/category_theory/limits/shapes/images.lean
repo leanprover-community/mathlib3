@@ -5,7 +5,6 @@ Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.strong_epi
-import category_theory.comma
 
 /-!
 # Categorical images
@@ -326,12 +325,16 @@ section has_image_map
     the obvious commutativity conditions. -/
 class has_image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) :=
 (map : image f.hom ⟶ image g.hom)
-(factor_map' : factor_thru_image f.hom ≫ map = sq.left ≫ factor_thru_image g.hom . obviously)
 (map_ι' : map ≫ image.ι g.hom = image.ι f.hom ≫ sq.right . obviously)
 
-restate_axiom has_image_map.factor_map'
 restate_axiom has_image_map.map_ι'
-attribute [simp, reassoc] has_image_map.factor_map has_image_map.map_ι
+attribute [simp, reassoc] has_image_map.map_ι
+
+@[simp, reassoc]
+lemma has_image_map.factor_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
+  [has_image_map sq] :
+  factor_thru_image f.hom ≫ has_image_map.map sq = sq.left ≫ factor_thru_image g.hom :=
+(cancel_mono (image.ι g.hom)).1 $ by simp [arrow.w]
 
 variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
@@ -367,7 +370,7 @@ variables [has_image_map sq']
 def has_image_map_comp : has_image_map (sq ≫ sq') :=
 { map := image.map sq ≫ image.map sq' }
 
--- This cannot be a simp lemma, see https://github.com/leanprover-community/lean/issues/181.
+@[simp]
 lemma image.map_comp [has_image_map (sq ≫ sq')] :
   image.map (sq ≫ sq') = image.map sq ≫ image.map sq' :=
 show (has_image_map.map (sq ≫ sq')) = (has_image_map_comp sq sq').map, by congr
@@ -409,8 +412,7 @@ variables [has_images.{v} C] [has_image_maps.{v} C]
 @[simps]
 def im : arrow C ⥤ C :=
 { obj := λ f, image f.hom,
-  map := λ _ _ st, image.map st,
-  map_comp' := λ _ _ _ _ _, image.map_comp _ _ }
+  map := λ _ _ st, image.map st }
 
 end has_image_maps
 
@@ -485,8 +487,8 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images.{v} C] :
   has_image_maps.{v} C :=
 { has_image_map := λ f g st,
     let I := image (image.ι f.hom ≫ st.right) in
-    let I' := image (st.left ≫ factor_thru_image g.hom),
-    upper : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
+    let I' := image (st.left ≫ factor_thru_image g.hom) in
+    let upper : strong_epi_mono_factorisation (f.hom ≫ st.right) :=
     { I := I,
       e := factor_thru_image f.hom ≫ factor_thru_image (image.ι f.hom ≫ st.right),
       m := image.ι (image.ι f.hom ≫ st.right),
@@ -502,8 +504,6 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images.{v} C] :
     let s : I ⟶ I' := is_image.lift upper.to_mono_is_image lower.to_mono_factorisation in
     { map := factor_thru_image (image.ι f.hom ≫ st.right) ≫ s ≫
         image.ι (st.left ≫ factor_thru_image g.hom),
-      factor_map' := by rw [←category.assoc, ←category.assoc,
-        is_image.fac_lift upper.to_mono_is_image lower.to_mono_factorisation, image.fac],
       map_ι' := by rw [category.assoc, category.assoc,
         is_image.lift_fac upper.to_mono_is_image lower.to_mono_factorisation, image.fac] } }
 

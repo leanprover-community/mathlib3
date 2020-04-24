@@ -3,7 +3,6 @@ Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen and Scott Morrison
 -/
-
 import data.mllist
 import tactic.solve_by_elim
 
@@ -83,6 +82,8 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
 | (expr.const n _)  := if list.mem hs (unfold_head_symbol n) then some ex else none
 | _ := if hs = `_ then some ex else none
 
+/-- A package of `declaration` metadata, including the way in which its type matches the head symbol
+which we are searching for. -/
 meta structure decl_data :=
 (d : declaration)
 (n : name)

@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Robert Y. Lewis
 Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
 commutative ring with absolute value.
 -/
-
 import data.real.cau_seq
 
 namespace cau_seq.completion

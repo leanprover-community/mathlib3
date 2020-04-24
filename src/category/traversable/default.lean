@@ -1,3 +1,2 @@
-import category.traversable.basic
-       category.traversable.instances
-       category.traversable.lemmas
+import category.traversable.instances
+import category.traversable.lemmas

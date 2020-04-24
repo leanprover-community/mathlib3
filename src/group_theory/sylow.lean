@@ -3,10 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action group_theory.quotient_group
-import group_theory.order_of_element data.zmod.basic
+import group_theory.group_action
+import group_theory.quotient_group
+import group_theory.order_of_element
 import data.fintype.card
-import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group

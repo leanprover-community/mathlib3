@@ -6,7 +6,8 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.equiv.nat order.order_iso
+import data.equiv.nat
+import order.order_iso
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where

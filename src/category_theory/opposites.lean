@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.types
-import category_theory.natural_isomorphism
+import category_theory.equivalence
 import data.opposite
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -64,11 +64,25 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
 @[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
+/-- The functor from the double-opposite of a category to the underlying category. -/
+@[simps]
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, unop (unop X),
   map := λ X Y f, f.unop.unop }
 
--- TODO this is an equivalence
+/-- The functor from a category to its double-opposite.  -/
+@[simps]
+def unop_unop : C ⥤ Cᵒᵖᵒᵖ :=
+{ obj := λ X, op (op X),
+  map := λ X Y f, f.op.op }
+
+/-- The double opposite category is equivalent to the original. -/
+@[simps]
+def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
+{ functor := op_op,
+  inverse := unop_unop,
+  unit_iso := iso.refl (𝟭 Cᵒᵖᵒᵖ),
+  counit_iso := iso.refl (unop_unop ⋙ op_op) }
 
 def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 { inv := (inv (f.op)).unop,
@@ -150,6 +164,14 @@ instance {F : C ⥤ D} [full F] : full F.op :=
 instance {F : C ⥤ D} [faithful F] : faithful F.op :=
 { injectivity' := λ X Y f g h,
     has_hom.hom.unop_inj $ by simpa using injectivity F (has_hom.hom.op_inj h) }
+
+/-- If F is faithful then the right_op of F is also faithful. -/
+instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_op :=
+{ injectivity' := λ X Y f g h, has_hom.hom.op_inj (injectivity F (has_hom.hom.op_inj h)) }
+
+/-- If F is faithful then the left_op of F is also faithful. -/
+instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
+{ injectivity' := λ X Y f g h, has_hom.hom.unop_inj (injectivity F (has_hom.hom.unop_inj h)) }
 
 end
 

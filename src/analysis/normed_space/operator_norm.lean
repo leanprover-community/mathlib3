@@ -8,8 +8,7 @@ Operator norm on the space of continuous linear maps
 Define the operator norm on the space of continuous linear maps between normed spaces, and prove
 its basic properties. In particular, show that this space is itself a normed space.
 -/
-
-import topology.metric_space.lipschitz analysis.normed_space.riesz_lemma
+import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
 open_locale classical
@@ -265,13 +264,13 @@ by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
-lemma norm_id_le : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
+lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥(id : E →L[𝕜] E)∥ = 1 :=
+lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
-have _ := ratio_le_op_norm (id : E →L[𝕜] E) x,
+have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 /-- The operator norm is homogeneous. -/

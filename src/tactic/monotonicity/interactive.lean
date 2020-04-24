@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.monotonicity.basic
-import category.basic
 import category.traversable
 import category.traversable.derive
-
 import data.dlist
-import logic.basic
-import tactic.core
 
 variables {a b c p : Prop}
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 Construction of the hyperreal numbers as an ultraproduct of real sequences.
 -/
-
-import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
+import order.filter.filter_product
+import analysis.specific_limits
 
 open filter filter.filter_product
 open_locale topological_space classical

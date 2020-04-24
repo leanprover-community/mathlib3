@@ -11,7 +11,6 @@ Introduces notations
   `σ ≫ τ` for vertical compositions, and
   `σ ◫ τ` for horizontal compositions.
 -/
-
 import category_theory.functor
 
 namespace category_theory

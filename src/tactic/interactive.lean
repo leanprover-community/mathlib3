@@ -42,7 +42,7 @@ add_tactic_doc
 { name       := "substs",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.substs],
-  tags       := ["rewrite"] }
+  tags       := ["rewriting"] }
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=

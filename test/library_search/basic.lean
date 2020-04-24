@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
--- set_option trace.silence_library_search true
+set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
 -- set_option trace.suggest true
 
@@ -107,6 +107,7 @@ attribute [ex] add_lt_add
 
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
+  suggest with ex,
   library_search with ex, -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 

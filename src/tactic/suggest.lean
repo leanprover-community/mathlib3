@@ -325,10 +325,16 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 
-Because `suggest` attempts to close any remaining goals using `solve_by_elim`, any inputs
-accepted by `solve_by_elim` are also accepted by `suggest`. This allows the user to add
-lemmas to the list of hypotheses, either as a list of lemmas or as a list of attribute
-names.
+You can add additional lemmas to be used along with local hypotheses
+after the application of a library lemma,
+using the same syntax as for `solve_by_elim`, e.g.
+```
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
+begin
+  suggest [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+end
+```
+You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : opt := { }) :
@@ -391,10 +397,16 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 
-Once `library_search` applies a lemma from the library it attempts to close any remaining
-goals using `solve_by_elim`. Thus any inputs accepted by `solve_by_elim` are also accepted
-by `suggest`. This allows the user to add lemmas to the list of hypotheses, either as a
-list of lemmas or as a list of attribute names.
+You can add additional lemmas to be used along with local hypotheses
+after the application of a library lemma,
+using the same syntax as for `solve_by_elim`, e.g.
+```
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
+begin
+  library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+end
+```
+You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
 -/
 meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=

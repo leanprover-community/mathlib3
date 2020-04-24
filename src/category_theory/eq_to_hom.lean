@@ -3,10 +3,7 @@ Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
 -/
-import category_theory.isomorphism
-import category_theory.functor_category
 import category_theory.opposites
-import tactic.reassoc_axiom
 
 universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 

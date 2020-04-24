@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import category_theory.yoneda
-import ring_theory.subring
 import topology.algebra.continuous_functions
 
 universes v u

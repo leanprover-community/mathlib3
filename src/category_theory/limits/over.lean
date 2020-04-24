@@ -7,10 +7,6 @@ import category_theory.comma
 import category_theory.pempty
 import category_theory.limits.connected
 import category_theory.limits.creates
-import category_theory.limits.limits
-import category_theory.limits.preserves
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
 import category_theory.limits.shapes.constructions.equalizers
 

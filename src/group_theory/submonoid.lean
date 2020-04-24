@@ -7,7 +7,6 @@ Amelia Livingston, Yury Kudryashov
 import algebra.big_operators
 import algebra.free_monoid
 import algebra.group.prod
-import data.finset
 import data.equiv.mul_add
 
 /-!

@@ -8,7 +8,6 @@ Multivariate functions of the form `α^n → α` are isomorphic to multivariate 
 -/
 import linear_algebra.finsupp_vector_space
 import field_theory.finite
-import data.mv_polynomial
 noncomputable theory
 
 open_locale classical

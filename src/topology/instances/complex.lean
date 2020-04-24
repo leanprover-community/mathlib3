@@ -6,7 +6,6 @@ Author: Mario Carneiro
 Topology of the complex numbers.
 -/
 import data.complex.basic
-import topology.metric_space.basic
 import topology.instances.real
 
 noncomputable theory

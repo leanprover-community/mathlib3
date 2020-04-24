@@ -5,12 +5,8 @@ Authors: Simon Hudon, Patrick Massot
 
 Pi instances for algebraic structures.
 -/
-import order.basic
-import algebra.group.prod
 import algebra.module
-import data.finset
 import ring_theory.subring
-import tactic.pi_instances
 
 namespace pi
 universes u v w

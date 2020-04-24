@@ -7,9 +7,7 @@ import data.rat
 import algebra.gcd_domain
 import algebra.field_power
 import ring_theory.multiplicity
-import tactic.ring
 import data.real.cau_seq
-import tactic.norm_cast
 
 /-!
 # p-adic norm

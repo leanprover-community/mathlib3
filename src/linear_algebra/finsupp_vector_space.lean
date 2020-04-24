@@ -5,7 +5,6 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `ι →₀ β`.
 -/
-import data.finsupp
 import data.mv_polynomial
 import linear_algebra.dimension
 noncomputable theory

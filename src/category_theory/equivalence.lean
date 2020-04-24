@@ -5,7 +5,6 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
 import category_theory.whiskering
-import category_theory.natural_isomorphism
 import tactic.slice
 
 namespace category_theory

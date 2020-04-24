@@ -5,10 +5,6 @@ Author: Simon Hudon
 
 Instances of `traversable` for types from the core library
 -/
-import category.traversable.basic
-import category.basic
-import category.functor
-import category.applicative
 import data.list.forall2
 import data.set.lattice
 

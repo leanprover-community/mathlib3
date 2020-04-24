@@ -7,8 +7,6 @@ Finite types.
 -/
 import data.finset
 import data.array.lemmas
-import logic.unique
-import tactic.wlog
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}

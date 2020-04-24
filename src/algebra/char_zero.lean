@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import data.nat.cast
 import algebra.field
 import tactic.wlog
 

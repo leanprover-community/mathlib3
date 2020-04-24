@@ -31,6 +31,14 @@ This is a ring hom if the ring has characteristic dividing `n`
 
 namespace fin
 
+/-!
+## Ring structure on `fin n`
+
+We define a commutative ring structure on `fin n`, but we do not register it as instance.
+Afterwords, when we define `zmod n` in terms of `fin n`, we use these definitions
+to register the ring structure on `zmod n` as type class instance.
+-/
+
 open nat nat.modeq int
 
 /-- Negation on `fin n` -/

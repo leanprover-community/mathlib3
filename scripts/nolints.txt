@@ -1670,11 +1670,6 @@ apply_nolint set.sigma_to_Union doc_blame
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 
--- data/string/defs.lean
-apply_nolint string.map_tokens doc_blame
-apply_nolint string.over_list doc_blame
-apply_nolint string.split_on doc_blame
-
 -- data/sum.lean
 apply_nolint sum.elim doc_blame
 apply_nolint sum.map doc_blame

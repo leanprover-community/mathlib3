@@ -7,7 +7,6 @@ The `even` predicate on the integers.
 -/
 import data.int.modeq
 import data.nat.parity
-import algebra.group_power
 
 namespace int
 

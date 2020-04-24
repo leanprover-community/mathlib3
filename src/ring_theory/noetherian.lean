@@ -3,9 +3,7 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import linear_algebra.finsupp
 import ring_theory.ideal_operations
-import ring_theory.subring
 import linear_algebra.basis
 
 /-!

@@ -6,8 +6,6 @@ Authors: Chris Hughes
 Natural numbers with infinity, represented as roption ℕ.
 -/
 import data.pfun
-import algebra.ordered_group
-import tactic.norm_cast
 import tactic.norm_num
 
 open roption

@@ -5,7 +5,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 
 -/
 import topology.algebra.ring
-import linear_algebra.basic
 import ring_theory.algebra
 
 /-!
@@ -235,15 +234,21 @@ when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
 @[norm_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
 
+section
+
+variables (R M)
+
 /-- the identity map as a continuous linear map. -/
 def id : M →L[R] M :=
 ⟨linear_map.id, continuous_id⟩
 
-instance : has_one (M →L[R] M) := ⟨id⟩
+end
 
-lemma id_apply : (id : M →L[R] M) x = x := rfl
-@[simp, norm_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
-@[simp, norm_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
+instance : has_one (M →L[R] M) := ⟨id R M⟩
+
+lemma id_apply : id R M x = x := rfl
+@[simp, norm_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
+@[simp, norm_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
 
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 
@@ -283,10 +288,10 @@ def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
 @[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
 
-@[simp] theorem comp_id : f.comp id = f :=
+@[simp] theorem comp_id : f.comp (id R M) = f :=
 ext $ λ x, rfl
 
-@[simp] theorem id_comp : id.comp f = f :=
+@[simp] theorem id_comp : (id R M₂).comp f = f :=
 ext $ λ x, rfl
 
 @[simp] theorem comp_zero : f.comp (0 : M₃ →L[R] M) = 0 :=
@@ -524,10 +529,10 @@ variables (R M)
 end
 
 @[simp, norm_cast] lemma coe_refl :
-  ((continuous_linear_equiv.refl R M) : M →L[R] M) = continuous_linear_map.id := rfl
+  (continuous_linear_equiv.refl R M : M →L[R] M) = continuous_linear_map.id R M := rfl
 
 @[simp, norm_cast] lemma coe_refl' :
-  ((continuous_linear_equiv.refl R M) : M → M) = id := rfl
+  (continuous_linear_equiv.refl R M : M → M) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
 @[symm] protected def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
@@ -589,11 +594,11 @@ theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_e
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
 
 @[simp] theorem coe_comp_coe_symm (e : M ≃L[R] M₂) :
-  (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id :=
+  (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id R M₂ :=
 continuous_linear_map.ext e.apply_symm_apply
 
 @[simp] theorem coe_symm_comp_coe (e : M ≃L[R] M₂) :
-  (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id :=
+  (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id R M :=
 continuous_linear_map.ext e.symm_apply_apply
 
 lemma symm_comp_self (e : M ≃L[R] M₂) :

@@ -349,7 +349,7 @@ e.fold mk_name_set $ λ e' _ l,
   end
 
 /-- Returns true if `e` contains a name `n` where `p n` is true.
-  Returns `true` if `p name.anonymous` is true -/
+  Returns `true` if `p name.anonymous` is true. -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
@@ -514,10 +514,73 @@ meta def to_binder : expr → binder
 | _                       := default binder
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
-`name`, its `binder_info`, and its `type : expr`.-/
+`name`, its `binder_info`, and its `type : expr`. -/
 meta def get_local_const_kind : expr → name × binder_info × expr
 | (expr.local_const _ n bi e) := (n, bi, e)
 | _ := (name.anonymous, binder_info.default, expr.const name.anonymous [])
+
+/-- `local_const_set_type e t` sets the type of `e` to `t`, if `e` is a `local_const`. -/
+meta def local_const_set_type {elab : bool} : expr elab → expr elab → expr elab
+| (expr.local_const x n bi t) new_t := expr.local_const x n bi new_t
+| e                           new_t := e
+
+/-- `unsafe_cast e` freely changes the `elab : bool` parameter of the passed `expr`. Mainly used to
+access core `expr` manipulation functions for `pexpr`-based use, but which are restricted to
+`expr tt` at the site of definition unnecessarily.
+
+DANGER: Unless you know exactly what you are doing, this is probably not the function you are
+looking for. For `pexpr → expr` see `tactic.to_expr`. For `expr → pexpr` see `to_pexpr`. -/
+meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ := unchecked_cast
+
+/-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
+a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
+`f` is encountered in `e` verbatim, replace it with `t`". -/
+meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=
+unsafe_cast $ e.unsafe_cast.replace $ λ e n,
+  (mappings.filter $ λ ent : expr × expr, ent.1 = e).head'.map prod.snd
+
+/-- `is_implicitly_included_variable e vs` accepts `e`, an `expr.local_const`, and a list `vs` of
+    other `expr.local_const`s. It determines whether `e` should be considered "available in context"
+    as a variable by virtue of the fact that the variables `vs` have been deemed such.
+
+    For example, given `variables (n : ℕ) [prime n] [ih : even n]`, a reference to `n` implies that
+    the typeclass instance `prime n` should be included, but `ih : even n` should not.
+
+    DANGER: It is possible that for `f : expr` another `expr.local_const`, we have
+    `is_implicitly_included_variable f vs = ff` but
+    `is_implicitly_included_variable f (e :: vs) = tt`. This means that one usually wants to
+    iteratively add a list of local constants (usually, the `variables` declared in the local scope)
+    which satisfy `is_implicitly_included_variable` to an initial `vs`, repeating if any variables
+    were added in a particular iteration. The function `all_implicitly_included_variables` below
+    implements this behaviour.
+
+    Note that if `e ∈ vs` then `is_implicitly_included_variable e vs = tt`. -/
+meta def is_implicitly_included_variable (e : expr) (vs : list expr) : bool :=
+if ¬(e.local_pp_name.to_string.starts_with "_") then
+  e ∈ vs
+else e.local_type.fold tt $ λ se _ b,
+  if ¬b then ff
+  else if ¬se.is_local_constant then tt
+  else se ∈ vs
+
+/-- Private work function for `all_implicitly_included_variables`, performing the actual series of
+    iterations, tracking with a boolean whether any updates occured this iteration. -/
+private meta def all_implicitly_included_variables_aux
+  : list expr → list expr → list expr → bool → list expr
+| []          vs rs tt := all_implicitly_included_variables_aux rs vs [] ff
+| []          vs rs ff := vs
+| (e :: rest) vs rs b :=
+  let (vs, rs, b) := if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
+  all_implicitly_included_variables_aux rest vs rs b
+
+/-- `all_implicitly_included_variables es vs` accepts `es`, a list of `expr.local_const`, and `vs`,
+    another such list. It returns a list of all variables `e` in `es` or `vs` for which an inclusion
+    of the variables in `vs` into the local context implies that `e` should also be included. See
+    `is_implicitly_included_variable e vs` for the details.
+
+    In particular, those elements of `vs` are included automatically. -/
+meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
+all_implicitly_included_variables_aux es vs [] ff
 
 end expr
 
@@ -718,6 +781,11 @@ d.to_name.is_internal || d.is_auto_generated env
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
+
+/-- Returns the `reducibility_hints` field of a `defn`, and `reducibility_hints.opaque` otherwise -/
+protected meta def reducibility_hints : declaration → reducibility_hints
+| (declaration.defn _ _ _ _ red _) := red
+| _ := _root_.reducibility_hints.opaque
 
 end declaration
 

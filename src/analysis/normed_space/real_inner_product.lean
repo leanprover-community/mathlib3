@@ -3,10 +3,8 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import analysis.convex.basic
 import algebra.quadratic_discriminant
 import analysis.complex.exponential
-import analysis.specific_limits
 import tactic.monotonicity
 
 

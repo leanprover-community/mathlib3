@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 Theory of topological groups.
 
 -/
-import algebra.pointwise
 import order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid

@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import category_theory.category.Cat
 import category_theory.groupoid
-import data.quot
 
 /-!
 # Objects of a category up to an isomorphism

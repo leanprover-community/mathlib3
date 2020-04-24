@@ -6,8 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 Injective functions.
 -/
 import data.equiv.basic
-import data.option.basic
-import data.subtype
 
 universes u v w x
 

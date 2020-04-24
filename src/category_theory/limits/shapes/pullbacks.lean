@@ -3,8 +3,6 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel, Bhavik Mehta
 -/
-import data.fintype.basic
-import category_theory.limits.limits
 import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.binary_products

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import tactic.core
-import data.string.defs
-import data.list.defs
 
 /-!
 # `def_replacer`
@@ -110,8 +108,7 @@ custom input and output types. In this case all subsequent redefinitions must ha
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
  -/
-@[user_command] meta def def_replacer_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "def_replacer") : lean.parser unit :=
+@[user_command] meta def def_replacer_cmd (_ : parse $ tk "def_replacer") : lean.parser unit :=
 do ntac ← ident,
   ty ← optional (tk ":" *> types.texpr),
   match ty with
@@ -127,7 +124,7 @@ add_tactic_doc
 
 meta def unprime : name → tactic name
 | nn@(name.mk_string s n) :=
-  let s' := s.over_list (list.take_while (≠ ''')) in
+  let s' := (s.split_on ''').head in
   if s'.length < s.length then pure (name.mk_string s' n)
                    else fail format!"expecting primed name: {nn}"
 | n := fail format!"invalid name: {n}"

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 import data.zsqrtd.basic
-import data.complex.basic
 import ring_theory.principal_ideal_domain
 import data.zmod.quadratic_reciprocity
 /-!

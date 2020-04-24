@@ -7,7 +7,6 @@ Analytic facts about polynomials.
 -/
 import topology.algebra.ring
 import data.polynomial
-import data.real.cau_seq
 
 open polynomial is_absolute_value
 

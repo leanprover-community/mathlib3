@@ -5,7 +5,6 @@ Author: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
 import topology.instances.ennreal
-import topology.metric_space.lipschitz
 
 /-!
 # Hausdorff distance

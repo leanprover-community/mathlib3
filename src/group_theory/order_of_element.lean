@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import group_theory.coset
 import data.nat.totient
+import data.set.finite
 open function
 
 variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}

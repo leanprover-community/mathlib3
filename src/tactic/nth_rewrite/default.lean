@@ -23,7 +23,7 @@ that give the user more control over where to perform a rewrite.
 There are two alternative backends, provided by `.congr` and `.kabstract`.
 The kabstract backend is not currently available through mathlib.
 
-The kabstract backend is faster, but if there are multiple identical occurences of the
+The kabstract backend is faster, but if there are multiple identical occurrences of the
 same rewritable subexpression, all are rewritten simultaneously,
 and this isn't always what we want.
 (In particular, `rewrite_search` is much less capable on the `category_theory` library.)
@@ -59,7 +59,7 @@ meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) : tactic tracked_
 do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
    rewrites.join.nth n <|> fail "failed: not enough rewrites found"
 
-/-- Rewrite the `n`th occurence of the rewrite rules `q` of (optionally after zooming into) a
+/-- Rewrite the `n`th occurrence of the rewrite rules `q` of (optionally after zooming into) a
 hypothesis or target `h` which is an application of a relation. -/
 meta def get_nth_rewrite_with_zoom
   (n : ℕ) (q : rw_rules_t) (path : list expr_lens.dir) (h : option expr) : tactic tracked_rewrite :=
@@ -68,7 +68,7 @@ do e ← target_or_hyp_type h,
    rw ← get_nth_rewrite n q new_e,
    return ⟨ln.fill rw.exp, rw.proof >>= ln.congr, rw.addr.map $ λ l, path ++ l⟩
 
-/-- Rewrite the `n`th occurence of the rewrite rules `q` (optionally on a side)
+/-- Rewrite the `n`th occurrence of the rewrite rules `q` (optionally on a side)
 at all the locations `loc`. -/
 meta def nth_rewrite_core (path : list expr_lens.dir) (n : parse small_nat) (q : parse rw_rules)
   (l : parse location) : tactic unit :=
@@ -95,7 +95,7 @@ will rewrite along `h` at the first possible location.
 In more detail, given `rules = [h1, ..., hk]`,
 this tactic will search for all possible locations
 where one of `h1, ..., hk` can be rewritten,
-and perform the `n`th occurence.
+and perform the `n`th occurrence.
 
 Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
 the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.
@@ -117,7 +117,7 @@ will rewrite along `h` at the first possible location.
 In more detail, given `rules = [h1, ..., hk]`,
 this tactic will search for all possible locations
 where one of `h1, ..., hk` can be rewritten,
-and perform the `n`th occurence.
+and perform the `n`th occurrence.
 
 Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
 the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.
@@ -138,7 +138,7 @@ will rewrite along `h` at the first possible location.
 In more detail, given `rules = [h1, ..., hk]`,
 this tactic will search for all possible locations
 where one of `h1, ..., hk` can be rewritten,
-and perform the `n`th occurence.
+and perform the `n`th occurrence.
 
 Example: Given a goal of the form `a + x = x + b`, and hypothesis `h : x = y`,
 the tactic `nth_rewrite 1 h` will change the goal to `a + x = y + b`.

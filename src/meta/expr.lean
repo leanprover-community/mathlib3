@@ -782,6 +782,11 @@ d.to_name.is_internal || d.is_auto_generated env
 meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
+/-- Returns the `reducibility_hints` field of a `defn`, and `reducibility_hints.opaque` otherwise -/
+protected meta def reducibility_hints : declaration → reducibility_hints
+| (declaration.defn _ _ _ _ red _) := red
+| _ := _root_.reducibility_hints.opaque
+
 end declaration
 
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=

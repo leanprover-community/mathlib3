@@ -1916,20 +1916,45 @@ do d ← get_decl n,
      (eval_expr (tactic string) e) >>= (λ t, t)
    else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
-/-- auxiliary function for apply_under_pis -/
-private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
-| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
-| n _ :=
+/-- auxiliary function for `apply_under_n_pis` -/
+private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
+| n 0 _ :=
   let vars := ((list.range n).reverse.map (@expr.var ff)),
       bd := vars.foldl expr.app arg.mk_explicit in
   func bd
+| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_n_pis_aux (n+1) k bd)
+| n (k+1) t := apply_under_n_pis_aux n 0 t
+
+/--
+Assumes `pi_expr` is of the form `Π x1 ... xn xn+1..., _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_n_pis (func arg : pexpr) (pi_expr : expr) (n : ℕ) : pexpr :=
+apply_under_n_pis_aux func arg 0 n pi_expr
 
 /--
 Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
 Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
 All arguments (implicit and explicit) to `arg` should be supplied. -/
 meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
-apply_under_pis_aux func arg 0 pi_expr
+apply_under_n_pis func arg pi_expr pi_expr.pi_arity
+
+/--
+If `func` is a `pexpr` representing a function that takes an argument `a`,
+`get_pexpr_arg_arity_with_tgt func tgt` returns the arity of `a`.
+When `tgt` is a `pi` expr, `func` is elaborated in a context
+with the domain of `tgt`.
+
+Examples:
+* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function argument.
+* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument of type `α → α`.
+* ```get_pexpr_arg_arity_with_tgt ``(module R) `(Π (R : Type), comm_ring R → true)``` returns 0
+ -/
+private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
+lock_tactic_state $ do
+  mv ← mk_mvar,
+  solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
+  expr.pi_arity <$> (instantiate_mvars mv >>= infer_type)
 
 /--
 Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
@@ -1950,22 +1975,21 @@ handlers, which will fail on `def`s.
 λ cls new_decl_name,
 do env ← get_env,
 if env.is_inductive new_decl_name then return ff else
-do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+do new_decl ← get_decl new_decl_name,
    new_decl_pexpr ← resolve_name new_decl_name,
-   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
+   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
    inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name ++
+   nm ← get_unused_decl_name $ new_decl_name <.>
      match cls with
-     -- the postfix is needed because we can't protect this name. using nm.last directly can
-     -- conflict with open namespaces
-     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | (expr.const nm _) := nm.last
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
    set_basic_attribute `instance nm tt,
    return tt
 

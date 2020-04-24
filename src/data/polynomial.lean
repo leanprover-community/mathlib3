@@ -19,15 +19,17 @@ Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from `R` is called `C`. -/
 def polynomial (R : Type*) [comm_semiring R] := add_monoid_algebra R ℕ
 
-open finsupp finset monoid_algebra
+open finsupp finset add_monoid_algebra
 
 namespace polynomial
 
 variables [comm_semiring R] {a b : R} {m n : ℕ} {p q r : polynomial R}
 
 instance : inhabited (polynomial R) := finsupp.inhabited
-instance : comm_semiring (polynomial R) := monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := monoid_algebra.algebra
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : algebra R (polynomial R) := add_monoid_algebra.algebra
+
+#exit
 
 /-- `finset` of degrees of monomials of a polynomial. -/
 def support (p : polynomial R) : finset ℕ :=
@@ -42,15 +44,12 @@ def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single (multiplicative.
   single n a = monomial n.to_add a := rfl
 
 lemma smul_monomial : a • monomial n b = monomial n (a * b) :=
-monoid_algebra.smul_single _ _ _
+smul_single _ _ _
 
 lemma support_monomial_ne_zero (hb : b ≠ 0) : (monomial n b).support = {n} :=
 by simp only [monomial, support, support_single_ne_zero hb,
   finset.singleton_eq_singleton, finset.map_singleton, function.embedding.coe_fn_mk,
   to_add_of_add]
-
-protected def sum {A : Type*} [add_comm_monoid A] (p : polynomial R) (f : ℕ → R → A) : A :=
-p.sum (λ n x, f n.to_add x)
 
 /-- `C R a` is the constant polynomial `a`. -/
 def C (R : Type u) [comm_semiring R] : R →ₐ[R] polynomial R :=
@@ -58,6 +57,7 @@ algebra.of_id R (polynomial R)
 
 lemma C_def' : C R a = single 1 a := rfl
 
+set_option pp.all true
 lemma C_def : C R a = monomial 0 a := by erw [C_def', monomial, of_add_zero]
 
 /-- `C a * p = a • p`. Non-primed version says `C (a * b) = C a * C b`. -/
@@ -1293,8 +1293,8 @@ end comm_semiring
 
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
-instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
-instance : module R (polynomial R) := add_monoid_algebra.module
+instance : comm_ring (polynomial R) := monoid_algebra.comm_ring
+instance : module R (polynomial R) := monoid_algebra.module
 
 variable (R)
 def lcoeff (n : ℕ) : polynomial R →ₗ R :=

@@ -103,3 +103,12 @@ begin
   nth_rewrite_rhs 0 [← h₁] at h₂,
   nth_rewrite_rhs 0 h₂,
 end
+
+example (x y z : ℕ) (h1 : x = y) (h2 : y = z) :
+  x + x + x + y = y + y + x + x :=
+begin
+  nth_rewrite 2 [h1, h2], -- h2 is not used
+  nth_rewrite 2 [h2],
+  repeat { rw h1 },
+  repeat { rw h2 },
+end

@@ -153,12 +153,6 @@ end zmod
 
 namespace char_p
 
--- move this
-lemma prime_of_pos_char_p_integral_domain (R : Type*) [integral_domain R]
-  (n : ℕ) [fact (0 < n)] [char_p R n] :
-  fact n.prime :=
-(char_p.char_is_prime_or_zero R _).resolve_right (nat.pos_iff_ne_zero.1 ‹0 < n›)
-
 lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin

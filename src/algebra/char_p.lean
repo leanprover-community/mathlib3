@@ -206,7 +206,10 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : nat.prime p :=
+lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
+(char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 h)
+
+theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : fact p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain

@@ -117,10 +117,7 @@ def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
 
 local attribute [instance] fin.add_comm_semigroup
 
--- move this
-lemma nat.add_mod (x y n : ℕ) : (x + y) % n = ((x % n) + (y % n)) % n :=
-(modeq_add (mod_modeq x n) (mod_modeq y n)).symm
-
+@[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
 begin
   induction a with a ih, { refl },
@@ -221,13 +218,6 @@ instance (n : ℕ) : has_coe (zmod n) R := ⟨cast⟩
 by { cases n; refl }
 
 end
-
--- move this
-lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
-⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
-
--- move this
-instance nat.fact_succ_pos {n : ℕ} : fact (0 < n.succ) := n.succ_pos
 
 lemma nat_cast_surjective [fact (0 < n)] :
   function.surjective (coe : ℕ → zmod n) :=
@@ -351,10 +341,6 @@ begin
   ext,
   exact h
 end
-
--- move this
-instance pos_of_one_lt (n : ℕ) [fact (1 < n)] : fact (0 < n) :=
-lt_trans zero_lt_one ‹1 < n›
 
 lemma val_one_eq_one_mod (n : ℕ) : (1 : zmod n).val = 1 % n :=
 by rw [← nat.cast_one, val_cast_nat]
@@ -676,9 +662,6 @@ end zmod
 namespace zmod
 
 variables (p : ℕ) [fact p.prime]
-
--- move this
-instance prime.fact_one_lt : fact (1 < p) := nat.prime.one_lt ‹p.prime›
 
 private lemma mul_inv_cancel_aux (a : zmod p) (h : a ≠ 0) : a * a⁻¹ = 1 :=
 begin

@@ -124,6 +124,12 @@ end)
 
 end modeq
 
+lemma add_mod (a b n : ℕ) : (a + b) % n = ((a % n) + (b % n)) % n :=
+(modeq_add (mod_modeq a n) (mod_modeq b n)).symm
+
+lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
+(modeq_mul (mod_modeq a n) (mod_modeq b n)).symm
+
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 modeq.modeq_of_modeq_mul_right _ (modeq.mod_modeq _ _)
 

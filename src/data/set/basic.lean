@@ -709,6 +709,9 @@ ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
 not_iff_not_of_iff mem_singleton_iff
 
+lemma compl_singleton_eq (a : α) : -({a} : set α) = {x | x ≠ a} :=
+ext $ λ x,  mem_compl_singleton_iff
+
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
 

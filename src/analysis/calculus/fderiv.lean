@@ -676,18 +676,18 @@ section id
 /-! ### Derivative of the identity -/
 
 theorem has_strict_fderiv_at_id (x : E) :
-  has_strict_fderiv_at id (id : E →L[𝕜] E) x :=
+  has_strict_fderiv_at id (id 𝕜 E) x :=
 (is_o_zero _ _).congr_left $ by simp
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
-  has_fderiv_at_filter id (id : E →L[𝕜] E) x L :=
+  has_fderiv_at_filter id (id 𝕜 E) x L :=
 (is_o_zero _ _).congr_left $ by simp
 
 theorem has_fderiv_within_at_id (x : E) (s : set E) :
-  has_fderiv_within_at id (id : E →L[𝕜] E) s x :=
+  has_fderiv_within_at id (id 𝕜 E) s x :=
 has_fderiv_at_filter_id _ _
 
-theorem has_fderiv_at_id (x : E) : has_fderiv_at id (id : E →L[𝕜] E) x :=
+theorem has_fderiv_at_id (x : E) : has_fderiv_at id (id 𝕜 E) x :=
 has_fderiv_at_filter_id _ _
 
 @[simp] lemma differentiable_at_id : differentiable_at 𝕜 id x :=
@@ -708,11 +708,11 @@ differentiable_at_id.differentiable_within_at
 lemma differentiable_on_id : differentiable_on 𝕜 id s :=
 differentiable_id.differentiable_on
 
-lemma fderiv_id : fderiv 𝕜 id x = id :=
+lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 id s x = id :=
+  fderiv_within 𝕜 id s x = id 𝕜 E :=
 begin
   rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
@@ -1130,7 +1130,7 @@ variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
 (snd 𝕜 E F).has_strict_fderiv_at
 
-lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
+protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
   has_strict_fderiv_at (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x :=
 has_strict_fderiv_at_snd.comp x h
 

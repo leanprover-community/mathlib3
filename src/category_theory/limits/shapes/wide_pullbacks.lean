@@ -66,7 +66,7 @@ instance struct : category_struct (wide_pullback_shape J) :=
     apply hom.term _
   end }
 
-instance : inhabited (hom none none) := ⟨hom.id (none : wide_pullback_shape J)⟩
+instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pullback_shape J)⟩
 
 local attribute [tidy] tactic.case_bash
 
@@ -145,7 +145,7 @@ instance struct : category_struct (wide_pushout_shape J) :=
     apply hom.init _
   end }
 
-instance : inhabited (hom none none) := ⟨hom.id (none : wide_pushout_shape J)⟩
+instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pushout_shape J)⟩
 
 local attribute [tidy] tactic.case_bash
 

@@ -1681,15 +1681,6 @@ apply_nolint vector.to_array doc_blame
 apply_nolint vector.traverse doc_blame
 apply_nolint vector.traverse_def unused_arguments
 
--- data/zmod/basic.lean
-apply_nolint zmod doc_blame
-apply_nolint zmod.cast doc_blame
-apply_nolint zmod.units_equiv_coprime doc_blame
-apply_nolint zmodp doc_blame
-
--- data/zmod/quadratic_reciprocity.lean
-apply_nolint zmodp.legendre_sym doc_blame
-
 -- data/zsqrtd/basic.lean
 apply_nolint zsqrtd.le doc_blame
 apply_nolint zsqrtd.lt doc_blame
@@ -1863,9 +1854,6 @@ apply_nolint simple_group doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
-apply_nolint sylow.mk_vector_prod_eq_one doc_blame
-apply_nolint sylow.rotate_vectors_prod_eq_one doc_blame
-apply_nolint sylow.vectors_prod_eq_one doc_blame
 
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame

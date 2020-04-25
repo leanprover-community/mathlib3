@@ -103,7 +103,7 @@ attribute [simp] val_zero
 iff.rfl
 
 /-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
-@[norm_cast] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
 /-- Converting an in-range number to `fin (n + 1)` with `of_nat`

@@ -284,7 +284,7 @@ variables (𝕜 E)
 where it is (the continuous multilinear version of) the identity. -/
 def id : formal_multilinear_series 𝕜 E E := λ n,
 if h : n = 1 then
-  by { rw h, exact (continuous_multilinear_curry_fin1 𝕜 E E).symm (continuous_linear_map.id) }
+  by { rw h, exact (continuous_multilinear_curry_fin1 𝕜 E E).symm (continuous_linear_map.id 𝕜 E) }
 else 0
 
 /-- The first coefficient of `id 𝕜 E` is the identity. -/

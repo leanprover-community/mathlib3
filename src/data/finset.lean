@@ -1117,6 +1117,13 @@ mem_map_of_inj f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
+@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
+
+theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
+calc ↑(s.map f) = f '' ↑s     : coe_map f s
+            ... ⊆ set.range f : set.image_subset_range f ↑s
+
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
@@ -1261,13 +1268,6 @@ ext.2 $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_insert.1 hx)
 
 theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
 eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
-
-@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
-by rw [map_eq_image, coe_image]
-
-theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
-calc ↑(s.map f) = f '' ↑s     : coe_map f s
-            ... ⊆ set.range f : set.image_subset_range f ↑s
 
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,

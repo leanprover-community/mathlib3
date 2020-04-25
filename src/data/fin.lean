@@ -98,6 +98,43 @@ attribute [simp] val_zero
 @[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
+/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
+@[norm_cast] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+iff.rfl
+
+/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
+@[norm_cast] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+iff.rfl
+
+/-- Converting an in-range number to `fin (succ n)` with `of_nat`
+produces a result whose value is the original number.  -/
+lemma of_nat_val_of_lt {n : ℕ} {a : ℕ} (h : a < nat.succ n) :
+  ((of_nat a) : fin (nat.succ n)).val = a :=
+nat.mod_eq_of_lt h
+
+/-- Converting the value of a `fin (succ n)` to `fin (succ n)` with `of_nat`
+results in the same value.  -/
+lemma of_nat_val_eq_self {n : ℕ} (a : fin (nat.succ n)) : of_nat a.val = a :=
+begin
+  rw eq_iff_veq,
+  exact of_nat_val_of_lt a.is_lt
+end
+
+/-- `of_nat` of an in-range number, converted back to `ℕ`, is that
+number. -/
+lemma of_nat_coe_of_lt {n : ℕ} {a : ℕ} (h : a < nat.succ n) :
+  (((of_nat a) : fin (nat.succ n)) : ℕ) = a :=
+nat.mod_eq_of_lt h
+
+/-- Converting a `fin (succ n)` to `ℕ` and back with `of_nat` results in
+the same value. -/
+lemma of_nat_coe_eq_self {n : ℕ} (a : fin (nat.succ n)) : of_nat (a : ℕ) = a :=
+of_nat_val_eq_self a
+
+/-- `of_nat 0`, converted to `ℕ`, is 0. -/
+lemma of_nat_coe_zero {n : ℕ} : (((of_nat 0) : fin (nat.succ n)) : ℕ) = 0 :=
+rfl
+
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
 protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :

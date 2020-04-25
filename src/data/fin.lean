@@ -114,7 +114,7 @@ nat.mod_eq_of_lt h
 
 /-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` with `of_nat`
 results in the same value.  -/
-lemma of_nat_val_eq_self {n : ℕ} (a : fin (n + 1)) : of_nat a.val = a :=
+@[simp] lemma of_nat_val_eq_self {n : ℕ} (a : fin (n + 1)) : of_nat a.val = a :=
 begin
   rw eq_iff_veq,
   exact of_nat_val_of_lt a.is_lt

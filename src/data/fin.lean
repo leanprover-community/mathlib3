@@ -131,8 +131,10 @@ the same value. -/
 @[simp] lemma of_nat_coe_eq_self {n : ℕ} (a : fin (n + 1)) : of_nat (a : ℕ) = a :=
 of_nat_val_eq_self a
 
-/-- `of_nat 0`, converted to `ℕ`, is 0. -/
-@[simp] lemma of_nat_coe_zero {n : ℕ} : (((of_nat 0) : fin (n + 1)) : ℕ) = 0 :=
+attribute [simp] of_nat_zero
+
+/-- `of_nat 1` is `1 : fin (n + 1)`. -/
+@[simp] lemma of_nat_one {n : ℕ} : (of_nat 1 : fin (n + 1)) = 1 :=
 rfl
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,

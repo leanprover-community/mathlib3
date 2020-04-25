@@ -207,6 +207,13 @@ instance : topological_ring ℝ :=
 
 instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
+/-- Continuity at a point of the result of dividing two functions
+continuous at that point, where the denominator is nonzero. -/
+lemma continuous_at.div [topological_space α] {f : α → ℝ} {g : α → ℝ} {x : α}
+    (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
+  continuous_at (λ x, f x / g x) x :=
+continuous_at.mul hf (continuous_at.comp (real.tendsto_inv hnz) hg)
+
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
 real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk

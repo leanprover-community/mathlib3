@@ -78,11 +78,11 @@ instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ �
 
 theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1 := iff.rfl
 
-@[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
+@[refl, simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
 
-theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
+@[trans] theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
 
-theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
+@[trans] theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
 λ h' h, subset.trans h h'
 
 -- TODO: these should be global attributes, but this will require fixing other files
@@ -1197,7 +1197,7 @@ theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a
 mem_image.2 ⟨_, h, rfl⟩
 
 @[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
-set.ext $ λ _, mem_image.trans $ by simp only [exists_prop]; refl
+set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
@@ -1218,6 +1218,10 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
+
+theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
+calc ↑(s.image f) = f '' ↑s     : coe_image
+              ... ⊆ set.range f : set.image_subset_range f ↑s
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
@@ -1257,6 +1261,13 @@ ext.2 $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_insert.1 hx)
 
 theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
 eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
+
+@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+by rw [map_eq_image, coe_image]
+
+theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
+calc ↑(s.map f) = f '' ↑s     : coe_map f s
+            ... ⊆ set.range f : set.image_subset_range f ↑s
 
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,

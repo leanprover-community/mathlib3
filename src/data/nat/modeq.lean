@@ -50,7 +50,7 @@ theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
 
 /-- A variant of `modeq_iff_dvd` with `nat` divisibility -/
-theorem modeq_iff_dvd' {n : ℕ} {a b : ℕ} (h : a ≤ b) : a ≡ b [MOD n] ↔ n ∣ b - a :=
+theorem modeq_iff_dvd' (h : a ≤ b) : a ≡ b [MOD n] ↔ n ∣ b - a :=
 by rw [modeq_iff_dvd, ←int.coe_nat_dvd, int.coe_nat_sub h]
 
 theorem mod_modeq (a n) : a % n ≡ a [MOD n] := nat.mod_mod _ _

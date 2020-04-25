@@ -13,7 +13,7 @@ maxima and minima on a `decidable_linear_order`, and the absolute value
 function on linearly ordered add_comm_groups, semirings and rings.
 
 One useful result proved here is that if `f : ℕ → α` and `f n < f (n + 1)` for all `n`
-then f is strictly monotone.
+then f is strictly monotone (see `strict_mono.nat`).
 
 ## Definition
 

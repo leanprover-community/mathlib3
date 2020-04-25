@@ -99,7 +99,7 @@ attribute [simp] val_zero
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
 /-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
-@[norm_cast] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
 iff.rfl
 
 /-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/

@@ -7,7 +7,7 @@ import data.int.gcd
 import tactic.abel
 import data.list.rotate
 /-
-# nat.modeq -- congruences modulo a natural on ℕ.
+# Congruences modulo a natural number
 
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
 and proves basic properties about it such as the Chinese Remainder Theorem

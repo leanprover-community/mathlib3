@@ -5,6 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
+import algebra.continued_fractions.convergents_equiv
 /-!
 # Default Exports for Continued Fractions
 -/

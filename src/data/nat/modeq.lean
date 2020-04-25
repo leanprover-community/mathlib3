@@ -49,7 +49,7 @@ by rw [modeq, eq_comm, ← int.coe_nat_inj', int.coe_nat_mod, int.coe_nat_mod,
 theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
 
-/-- A variant of modeq_iff_dvd with nat divisibility -/
+/-- A variant of `modeq_iff_dvd` with `nat` divisibility -/
 theorem modeq_iff_dvd' {n : ℕ} {a b : ℕ} (h : a ≤ b) : a ≡ b [MOD n] ↔ n ∣ b - a :=
 by rw [modeq_iff_dvd, ←int.coe_nat_dvd, int.coe_nat_sub h]
 

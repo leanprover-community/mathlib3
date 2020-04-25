@@ -132,7 +132,7 @@ the same value. -/
 of_nat_val_eq_self a
 
 /-- `of_nat 0`, converted to `ℕ`, is 0. -/
-lemma of_nat_coe_zero {n : ℕ} : (((of_nat 0) : fin (n + 1)) : ℕ) = 0 :=
+@[simp] lemma of_nat_coe_zero {n : ℕ} : (((of_nat 0) : fin (n + 1)) : ℕ) = 0 :=
 rfl
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,

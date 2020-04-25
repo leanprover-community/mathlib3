@@ -164,4 +164,15 @@ instance has_forget_to_Type (C : Type (u+1)) [large_category C] [concrete_catego
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 
+local attribute [instance] concrete_category.has_coe_to_sort
+
+@[simp] lemma forget₂_coe
+  (C D : Type (u+1)) [large_category C] [concrete_category C]
+  [large_category D] [concrete_category D] [has_forget₂ C D] (X : C) :
+  ((forget₂ C D).obj X : Type u) = (X : Type u) :=
+begin
+  have := congr_arg functor.obj has_forget₂.forget_comp,
+  exact congr_fun this X,
+end
+
 end category_theory

@@ -3,20 +3,13 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Scott Morrison
 -/
-import category_theory.enriched.enriched_over
+import category_theory.enriched.preadditive
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 
 universes v u
 
 open category_theory
-
-section
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
-
-abbreviation preadditive := enriched_over.{v} AddCommGroup.{v} C
-end
 
 namespace AddCommGroup
 
@@ -33,16 +26,56 @@ begin
   { intros X Y f Z,
     { fsplit,
       { exact λ g, g.comp f, },
-      { exact add_monoid_hom.zero_comp f, },
-      { exact λ x y, by { ext, simp [add_monoid_hom.add_apply], }, }, }, },
+      { simp, },
+      { exact λ x y, by { ext, simp, }, }, }, },
   { intros X Y f Z, refl, },
   { intros X Y Z g,
     { fsplit,
       { exact λ f, g.comp f, },
-      { exact add_monoid_hom.comp_zero g, },
-      { exact λ x y, by { ext, simp [add_monoid_hom.add_apply], }, }, }, },
+      { simp, },
+      { exact λ x y, by { ext, simp, }, }, }, },
   { intros X Y Z g, refl, },
 end
+
+/-
+Building the outer structure causes a type mismatch even if we use `sorry`:
+-/
+-- instance : preadditive AddCommGroup :=
+-- { enriched_hom := λ X Y, AddCommGroup.of (X ⟶ Y),
+--   comp_left := sorry,
+--   comp_right := sorry, }.
+
+/-
+Building the inner structure causes projections to incorrectly unfold,
+replacing + with `add_group.add`, perhaps as in
+https://github.com/leanprover-community/lean/issues/197
+-/
+-- instance : preadditive AddCommGroup :=
+-- begin
+--   fsplit,
+--   { exact λ X Y, AddCommGroup.of (X ⟶ Y), },
+--   { intros X Y, refl, },
+--   { intros X Y f Z,
+--     exact
+--     { to_fun := λ g, g.comp f,
+--       map_zero' := by simp,
+--       map_add' := λ x y, by { ext, simp, }, }, },
+--   sorry, sorry, sorry
+-- end
+
+/-
+This is the one that we'd like to be using:
+-/
+-- instance : preadditive AddCommGroup :=
+-- { enriched_hom := λ X Y, AddCommGroup.of (X ⟶ Y),
+--   comp_left := λ X Y f Z,
+--   { to_fun := λ g, g.comp f,
+--     map_zero' := by simp,
+--     map_add' := λ x y, by { ext, simp, } },
+--   comp_right := λ X Y Z g,
+--   { to_fun := λ f, g.comp f,
+--     map_zero' := by simp,
+--     map_add' := λ x y, by { ext, simp, } }, }.
 
 end AddCommGroup
 

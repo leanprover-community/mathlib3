@@ -134,6 +134,12 @@ instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift.{v} (gra
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
 
+@[simp]
+lemma shift_graded_object_map {β : Type} [add_comm_group β] (s t : β)
+  (X Y : graded_object_with_shift s C) (f : X ⟶ Y) :
+  ((shift (graded_object_with_shift s C)).functor.map f) t = f (t + s) :=
+rfl
+
 instance has_zero_morphisms [has_zero_morphisms.{v} C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=
 { has_zero := λ X Y,

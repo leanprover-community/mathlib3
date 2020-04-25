@@ -24,8 +24,8 @@ The fields for `ring_equiv` now avoid the unbundled `is_mul_hom` and `is_add_hom
 deprecated.
 
 Definition of multiplication in the groups of automorphisms agrees with function composition,
-multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not with
-`category_theory.comp`.
+multiplication in `equiv.perm`, and multiplication in `category.End`, not with
+`category.comp`.
 
 ## Tags
 

@@ -4,7 +4,7 @@ Authors: Johannes Hölzl
 -/
 import topology.category.Top.basic
 import measure_theory.giry_monad
-import category_theory.monad.algebra
+import category.monad.algebra
 
 /-
 * Meas, the category of measurable spaces
@@ -25,7 +25,7 @@ measurable space, giry monad, borel
 
 noncomputable theory
 
-open category_theory measure_theory
+open category measure_theory
 universes u v
 
 @[reducible] def Meas : Type (u+1) := bundled measurable_space
@@ -56,7 +56,7 @@ def Measure : Meas ⥤ Meas :=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
 
 /-- The Giry monad, i.e. the monadic structure associated with `Measure`. -/
-instance : category_theory.monad Measure.{u} :=
+instance : category.monad Measure.{u} :=
 { η :=
   { app         := λX, ⟨@measure.dirac X.1 X.2, measure.measurable_dirac⟩,
     naturality' :=

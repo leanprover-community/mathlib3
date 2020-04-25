@@ -9,7 +9,7 @@ import topology.algebra.continuous_functions
 
 universes v u
 
-open category_theory
+open category
 open topological_space
 open opposite
 

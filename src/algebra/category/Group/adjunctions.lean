@@ -15,7 +15,7 @@ noncomputable theory
 
 universe u
 
-open category_theory
+open category
 
 namespace AddCommGroup
 

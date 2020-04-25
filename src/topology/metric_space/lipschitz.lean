@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
 import topology.metric_space.basic
-import category_theory.endomorphism
-import category_theory.types
+import category.endomorphism
+import category.types
 
 /-!
 # Lipschitz continuous functions
@@ -165,7 +165,7 @@ begin
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
-open category_theory
+open category
 
 protected lemma mul {f g : End α} {Kf Kg} (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf * Kg) (f * g : End α) :=

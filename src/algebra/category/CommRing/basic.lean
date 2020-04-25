@@ -24,7 +24,7 @@ See the note [locally reducible category instances].
 
 universes u v
 
-open category_theory
+open category
 
 /-- The category of semirings. -/
 def SemiRing : Type (u+1) := bundled semiring
@@ -165,7 +165,7 @@ variables {X Y : Type u}
 
 end ring_equiv
 
-namespace category_theory.iso
+namespace category.iso
 
 /-- Build a `ring_equiv` from an isomorphism in the category `Ring`. -/
 def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃+* Y :=
@@ -185,7 +185,7 @@ def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃+* Y :=
   map_add'  := by tidy,
   map_mul'  := by tidy }.
 
-end category_theory.iso
+end category.iso
 
 /-- ring equivalences between `ring`s are the same as (isomorphic to) isomorphisms in `Ring`. -/
 def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :

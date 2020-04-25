@@ -9,8 +9,8 @@ import algebra.category.Group
 # The category of commutative additive groups has images.
 -/
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 universe u
 

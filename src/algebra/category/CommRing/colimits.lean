@@ -15,8 +15,8 @@ by a tactic that analyses the shape of `comm_ring` and `ring_hom`.
 
 universes u v
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.

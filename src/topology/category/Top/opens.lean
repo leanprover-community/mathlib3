@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.category.Top.basic
-import category_theory.eq_to_hom
+import category.eq_to_hom
 
-open category_theory
+open category
 open topological_space
 open opposite
 

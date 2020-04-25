@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group
-import category_theory.limits.shapes.kernels
+import category.limits.shapes.kernels
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 /-!
 Some small examples of using limits and colimits in `Ab`, the category of additive commutative groups.

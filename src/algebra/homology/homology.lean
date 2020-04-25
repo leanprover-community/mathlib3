@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import algebra.homology.chain_complex
-import category_theory.limits.shapes.images
-import category_theory.limits.shapes.kernels
+import category.limits.shapes.images
+import category.limits.shapes.kernels
 
 /-!
 # Cohomology groups for cochain complexes
@@ -24,8 +24,8 @@ universes v u
 
 namespace cochain_complex
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms.{v} V]
 include 𝒱

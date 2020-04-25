@@ -17,11 +17,11 @@ presheaves.
 
 universes v u
 
-open category_theory
+open category
 open Top
 open topological_space
 open opposite
-open category_theory.category category_theory.functor
+open category.category category.functor
 
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
@@ -168,7 +168,7 @@ open algebraic_geometry algebraic_geometry.PresheafedSpace
 
 variables {C}
 
-namespace category_theory
+namespace category
 
 variables {D : Type u} [𝒟 : category.{v} D]
 include 𝒟
@@ -241,4 +241,4 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 --   `(C ⥤ D) ⥤ (PresheafedSpace C ⥤ PresheafedSpace D)`
 end nat_trans
 
-end category_theory
+end category

@@ -65,7 +65,7 @@ namespace tactic
 -- Although this looks 'hard-coded', in fact the lemma `equiv_functor.map_equiv`
 -- allows us to extend `equiv_rw` simply by constructing new instance so `equiv_functor`.
 
--- TODO: We should also use `category_theory.functorial` and `category_theory.hygienic` instances.
+-- TODO: We should also use `category.functorial` and `category.hygienic` instances.
 -- (example goal: we could rewrite along an isomorphism of rings (either as `R ≅ S` or `R ≃+* S`)
 -- and turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 

@@ -1,20 +1,22 @@
-import category_theory.functor_category -- this transitively imports
--- category_theory.category
--- category_theory.functor
--- category_theory.natural_transformation
+import category.functor_category -- this transitively imports
+-- category.category
+-- category.functor
+-- category.natural_transformation
 
 /-!
 # An introduction to category theory in Lean
 
 This is an introduction to the basic usage of category theory (in the mathematical sense) in Lean.
 We cover how the basic theory of categories, functors and natural transformations is set up in Lean.
-Most of the below is not hard to read off from the files `category_theory/category.lean`,
-`category_theory/functor.lean` and `category_theory/natural_transformation.lean`.
+Most of the below is not hard to read off from the files `category/category.lean`,
+`category/functor.lean` and `category/natural_transformation.lean`.
 
-First a word of warning. In `mathlib`, in the `/src` directory, there is a subdirectory called
-`category`. This is *not* where categories, in the sense of mathematics, are defined; it's for use
-by computer scientists. The directory we will be concerned with here is the `category_theory`
-subdirectory.
+First a word of warning. Both in core Lean and in `mathlib`, in the `control/` directory,
+there are definitions of `functor` and `monad`.
+These are the computer science version of the notions (both more specialised, restricted
+to the category of types, and more general, allowing more flexible universe levels) rather than
+the usual mathematical notions. They are connected with the development in `category/` in
+`category/types.lean` and `category/monad/types.lean`.
 
 ## Overview
 
@@ -55,7 +57,7 @@ for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphi
 We set this up as follows:
 -/
 
-open category_theory
+open category
 
 section category
 
@@ -107,7 +109,7 @@ Note in particular the order! The "maps on the right" convention was chosen; `g 
 `h`". Type `≫` with `\gg` in VS Code. Here are the theorems which ensure that we have a category.
 -/
 
-open category_theory.category
+open category.category
 
 example : 𝟙 X ≫ g = g := id_comp g
 example : g ≫ 𝟙 Y = g := comp_id g
@@ -161,8 +163,8 @@ example : F.map (f ≫ g) = (F.map f) ≫ (F.map g) := F.map_comp f g
 example : C ⥤ C := 𝟭 C
 
 -- The identity functor is (definitionally) the identity on objects and morphisms:
-example : (𝟭 C).obj X = X := category_theory.functor.id_obj X
-example : (𝟭 C).map f = f := category_theory.functor.id_map f
+example : (𝟭 C).obj X = X := category.functor.id_obj X
+example : (𝟭 C).map f = f := category.functor.id_map f
 
 -- Composition of functors; note order:
 example : C ⥤ E := F ⋙ G -- typeset with `\ggg`
@@ -180,14 +182,14 @@ end functor -- end of section
 /-!
 One can also check that associativity of composition of functors is definitionally true,
 although we've observed that relying on this can result in slow proofs. (One should
-rather use the natural isomorphisms provided in `src/category_theory/whiskering.lean`.)
+rather use the natural isomorphisms provided in `src/category/whiskering.lean`.)
 
 ## Getting started with natural transformations
 
 A natural transformation is a morphism between functors. If `F` and `G` are functors from `C` to `D`
 then a natural transformation is a map `F X ⟶ G X` for each object `X : C` plus the theorem that if
 `f : X ⟶ Y` is a morphism then the two routes from `F X` to `G Y` are the same. One might imagine
-that this is now another layer of notation, but fortunately the `category_theory.functor_category`
+that this is now another layer of notation, but fortunately the `category.functor_category`
 import gives the type of functors from `C` to `D` a category structure, which means that we can just
 use morphism notation for natural transformations.
 -/
@@ -257,6 +259,6 @@ typeclass resolution error.
 ## What next?
 
 There are several lean files in the [category theory docs directory of
-mathlib](https://github.com/leanprover-community/mathlib/tree/master/docs/tutorial/category_theory)
+mathlib](https://github.com/leanprover-community/mathlib/tree/master/docs/tutorial/category)
 which give further examples of using the category theory library in Lean.
 -/

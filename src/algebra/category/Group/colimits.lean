@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
-import category_theory.limits.limits
-import category_theory.limits.concrete_category
+import category.limits.limits
+import category.limits.concrete_category
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -21,8 +21,8 @@ of finitely supported functions, and we really should implement this as well (or
 
 universes u v
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.

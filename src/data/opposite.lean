@@ -7,7 +7,7 @@ Opposites.
 -/
 import data.list.defs
 
-universes v u -- declare the `v` first; see `category_theory.category` for an explanation
+universes v u -- declare the `v` first; see `category.category` for an explanation
 variable (α : Sort u)
 
 /-- The type of objects of the opposite of `α`; used to defined opposite category/group/...

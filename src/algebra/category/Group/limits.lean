@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
-import category_theory.limits.types
+import category.limits.types
 import algebra.pi_instances
 
 /-!
@@ -18,8 +18,8 @@ A lot of this should be generalised / automated, as it's quite common for concre
 categories that the forgetful functor preserves limits.
 -/
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 universe u
 

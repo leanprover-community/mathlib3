@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import topology.category.Top.basic
-import category_theory.limits.types
+import category.limits.types
 
 open topological_space
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 universe u
 

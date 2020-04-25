@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-import category_theory.monad.limits
+import category.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
 
@@ -18,7 +18,7 @@ TODO: show that uniform spaces actually have all limits!
 
 universes u
 
-open category_theory
+open category
 
 /-- A (bundled) uniform space. -/
 @[reducible] def UniformSpace : Type (u+1) := bundled uniform_space
@@ -35,7 +35,7 @@ instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuou
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
 
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
-{ F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
+{ F := λ _, X → Y, coe := category.functor.map (forget UniformSpace) }
 
 @[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g : X → Z) = g ∘ f := rfl
@@ -150,7 +150,7 @@ noncomputable instance : is_right_adjoint (forget₂ CpltSepUniformSpace Uniform
 ⟨completion_functor, adj⟩
 noncomputable instance : reflective (forget₂ CpltSepUniformSpace UniformSpace) := {}
 
-open category_theory.limits
+open category.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
 noncomputable example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=

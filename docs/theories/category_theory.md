@@ -1,21 +1,21 @@
 # Maths in Lean : category theory
 
-The `category` typeclass is defined in [category_theory/category.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/category.lean).
+The `category` typeclass is defined in [category_theory/category.lean](https://github.com/leanprover-community/mathlib/blob/master/category/category.lean).
 It depends on the type of the objects, so for example we might write `category (Type u)` if we're talking about a category whose objects are types (in universe `u`).
 Some care is needed with universes (see the section [Universes](##markdown-header-universes)), and end users may often prefer the abbreviations `small_category` and `large_category`.
 
-Functors (which are a structure, not a typeclass) are defined in [category_theory/functor.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/functor/default.lean),
+Functors (which are a structure, not a typeclass) are defined in [category/functor.lean](https://github.com/leanprover-community/mathlib/blob/master/category/functor/default.lean),
 along with identity functors and functor composition.
 
-Natural transformations, and their compositions, are defined in [category_theory/natural_transformation.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/natural_transformation.lean).
+Natural transformations, and their compositions, are defined in [category/natural_transformation.lean](https://github.com/leanprover-community/mathlib/blob/master/category/natural_transformation.lean).
 
 The category of functors and natural transformations between fixed categories `C` and `D`
-is defined in [category_theory/functor_category.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/functor_category.lean).
+is defined in [category/functor_category.lean](https://github.com/leanprover-community/mathlib/blob/master/category/functor_category.lean).
 
 Cartesian products of categories, functors, and natural transformations appear in
-[category_theory/products.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/products.lean). (Product in the sense of limits will appear elsewhere soon!)
+[category/products.lean](https://github.com/leanprover-community/mathlib/blob/master/category/products.lean).
 
-The category of types, and the hom pairing functor, are defined in [category_theory/types.lean](https://github.com/leanprover-community/mathlib/blob/master/category_theory/types.lean).
+The category of types, and the hom pairing functor, are defined in [category/types.lean](https://github.com/leanprover-community/mathlib/blob/master/category/types.lean).
 
 ## Universes
 

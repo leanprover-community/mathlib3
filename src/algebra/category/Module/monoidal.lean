@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Scott Morrison
 -/
-import category_theory.monoidal.category
+import category.monoidal.category
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 
@@ -20,7 +20,7 @@ use this as an interface and not need to interact much with the implementation d
 
 universe u
 
-open category_theory
+open category
 
 namespace Module
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
-import category_theory.limits.limits
-import category_theory.limits.concrete_category
+import category.limits.limits
+import category.limits.concrete_category
 
 /-!
 # The category of monoids has all colimits.
@@ -30,8 +30,8 @@ A slightly bolder claim is that we could do this with tactics, as well.
 
 universes v
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 namespace Mon.colimits
 /-!

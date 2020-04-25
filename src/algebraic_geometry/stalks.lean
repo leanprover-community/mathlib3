@@ -15,8 +15,8 @@ the category of presheafed spaces.
 
 universes v u v' u'
 
-open category_theory
-open category_theory.limits category_theory.category category_theory.functor
+open category
+open category.limits category.category category.functor
 open algebraic_geometry
 open topological_space
 
@@ -61,8 +61,8 @@ begin
   dsimp,
   simp only [map_id, assoc, pushforward.comp_inv_app],
   -- FIXME Why doesn't simp do this:
-  erw [category_theory.functor.map_id],
-  erw [category_theory.functor.map_id],
+  erw [category.functor.map_id],
+  erw [category.functor.map_id],
   erw [id_comp, id_comp, id_comp],
 end
 end stalk_map

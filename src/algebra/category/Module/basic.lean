@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
-import category_theory.limits.shapes.kernels
+import category.concrete_category
+import category.limits.shapes.kernels
 import linear_algebra.basic
 
-open category_theory
-open category_theory.limits
-open category_theory.limits.walking_parallel_pair
+open category
+open category.limits
+open category.limits.walking_parallel_pair
 
 universe u
 
@@ -98,7 +98,7 @@ def linear_equiv.to_Module_iso
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
 
-namespace category_theory.iso
+namespace category.iso
 
 /-- Build a `linear_equiv` from an isomorphism in the category `Module R`. -/
 @[simps]
@@ -110,7 +110,7 @@ def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
   add       := by tidy,
   smul      := by tidy, }.
 
-end category_theory.iso
+end category.iso
 
 /-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
 @[simps]

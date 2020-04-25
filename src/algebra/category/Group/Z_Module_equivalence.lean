@@ -14,8 +14,8 @@ either use this equivalence to transport the monoidal structure from `Module ℤ
 or, having constructed that monoidal structure directly, show this functor is monoidal.
 -/
 
-open category_theory
-open category_theory.equivalence
+open category
+open category.equivalence
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
 instance : full (forget₂ (Module ℤ) AddCommGroup) :=

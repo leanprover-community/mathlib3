@@ -9,7 +9,7 @@ import topology.instances.complex
 
 universes u
 
-open category_theory
+open category
 
 /-- A bundled topological commutative ring. -/
 structure TopCommRing :=

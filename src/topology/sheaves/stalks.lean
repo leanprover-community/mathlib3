@@ -5,13 +5,13 @@ Authors: Scott Morrison
 -/
 import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
-import category_theory.limits.limits
+import category.limits.limits
 
 universes v u v' u'
 
-open category_theory
+open category
 open Top
-open category_theory.limits
+open category.limits
 open topological_space
 
 variables {C : Type u} [𝒞 : category.{v} C]
@@ -78,7 +78,7 @@ begin
        pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
   dsimp,
   -- FIXME A simp lemma which unfortunately doesn't fire:
-  erw [category_theory.functor.map_id],
+  erw [category.functor.map_id],
 end
 
 -- This proof is sadly not at all robust:
@@ -96,7 +96,7 @@ begin
              whisker_right_app, category.assoc],
   dsimp,
   -- FIXME: Some of these are simp lemmas, but don't fire successfully:
-  erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
+  erw [category.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
        colimit.ι_pre, colimit.ι_pre],
   refl,
 end

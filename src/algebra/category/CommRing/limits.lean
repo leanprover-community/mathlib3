@@ -16,8 +16,8 @@ A lot of this should be generalised / automated, as it's quite common for concre
 categories that the forgetful functor preserves limits.
 -/
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 universe u
 

@@ -24,7 +24,7 @@ instance : binclass ℤ ℤ := ⟨⟩
 
 @[derive decidable_eq] inductive P | a | b | c
 
-open category_theory
+open category
 
 -- Test that `delta_instance` works in the presence of universe metavariables.
 attribute [derive large_category] Mon

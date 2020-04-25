@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.category.Mon.basic
-import category_theory.endomorphism
+import category.endomorphism
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
@@ -23,7 +23,7 @@ See the note [locally reducible category instances].
 
 universes u v
 
-open category_theory
+open category
 
 /-- The category of groups and group morphisms. -/
 @[to_additive AddGroup]
@@ -195,7 +195,7 @@ def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) : Co
 
 attribute [simps] mul_equiv.to_CommGroup_iso add_equiv.to_AddCommGroup_iso
 
-namespace category_theory.iso
+namespace category.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddGroup`."]
@@ -219,7 +219,7 @@ def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
 
 attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
-end category_theory.iso
+end category.iso
 
 /-- multiplicative equivalences between `group`s are the same as (isomorphic to) isomorphisms in `Group` -/
 @[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same as (isomorphic to) isomorphisms in `AddGroup`"]
@@ -235,7 +235,7 @@ def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
 { hom := λ e, e.to_CommGroup_iso,
   inv := λ i, i.CommGroup_iso_to_mul_equiv, }
 
-namespace category_theory.Aut
+namespace category.Aut
 
 /-- The (bundled) group of automorphisms of a type is isomorphic to the (bundled) group of permutations. -/
 def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
@@ -246,4 +246,4 @@ def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
 def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
 iso_perm.Group_iso_to_mul_equiv
 
-end category_theory.Aut
+end category.Aut

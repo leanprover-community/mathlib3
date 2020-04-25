@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
-import category_theory.limits.shapes.zero
+import category.limits.shapes.zero
 
 /-!
 # The category of commutative additive groups has a zero object and zero morphism.
 -/
 
-open category_theory
-open category_theory.limits
+open category
+open category.limits
 
 universe u
 

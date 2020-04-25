@@ -16,7 +16,7 @@ noncomputable theory
 universe u
 
 open mv_polynomial
-open category_theory
+open category
 
 namespace CommRing
 

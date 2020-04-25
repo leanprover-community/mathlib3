@@ -7,7 +7,7 @@ import topology.category.Top.opens
 
 universes v u
 
-open category_theory
+open category
 open topological_space
 open opposite
 

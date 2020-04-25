@@ -8,7 +8,7 @@ Authors: Keeley Hoek, Scott Morrison
 -- The kabstract backend is faster, but if there are multiple identical occurences of the
 -- same rewritable subexpression, all are rewritten simultaneously, and this isn't always
 -- what we want.
--- (In particular, rewrite_search is much less capable on the category_theory library.)
+-- (In particular, rewrite_search is much less capable on the category library.)
 import tactic.rewrite_all.congr
 
 open tactic

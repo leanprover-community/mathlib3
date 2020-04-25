@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-import category_theory.category
+import category.category
 
 /-!
 # Tools to reformulate category-theoretic axioms in a more associativity-friendly way
@@ -49,7 +49,7 @@ attribute [simp, reassoc] some_class.bar
 
 namespace tactic
 
-open interactive lean.parser category_theory
+open interactive lean.parser category
 
 /-- From an expression `f ≫ g`, extract the expression representing the category instance. -/
 meta def get_cat_inst : expr → tactic expr
@@ -216,7 +216,7 @@ begin
 end
 ```
 -/
-theorem category_theory.reassoc_of {α} (hh : α) {β}
+theorem category.reassoc_of {α} (hh : α) {β}
   (x : tactic.calculated_Prop β hh . tactic.derive_reassoc_proof) : β := x
 
 /--
@@ -244,7 +244,7 @@ Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 -/
 add_tactic_doc
-{ name                     := "category_theory.reassoc_of",
+{ name                     := "category.reassoc_of",
   category                 := doc_category.tactic,
-  decl_names               := [`category_theory.reassoc_of],
+  decl_names               := [`category.reassoc_of],
   tags                     := ["category theory"] }

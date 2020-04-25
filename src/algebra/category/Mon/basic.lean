@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.concrete_category
+import category.concrete_category
 import algebra.punit_instances
 
 /-!
@@ -46,7 +46,7 @@ library_note "locally reducible category instances"
 
 universes u v
 
-open category_theory
+open category
 
 /-- The category of monoids and monoid morphisms. -/
 @[to_additive AddMon]
@@ -156,7 +156,7 @@ lemma mul_equiv.to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e.to_
 lemma mul_equiv.to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm.to_monoid_hom := rfl
 end
 
-namespace category_theory.iso
+namespace category.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
 @[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddMon`."]
@@ -176,7 +176,7 @@ def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
   right_inv := by tidy,
   map_mul'  := by tidy }.
 
-end category_theory.iso
+end category.iso
 
 /-- multiplicative equivalences between `monoid`s are the same as (isomorphic to) isomorphisms in `Mon` -/
 @[to_additive add_equiv_iso_AddMon_iso "additive equivalences between `add_monoid`s are the same as (isomorphic to) isomorphisms in `AddMon`"]

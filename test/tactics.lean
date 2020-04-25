@@ -334,8 +334,8 @@ do
 -- run and succeed silently.
 test_parser1
 
-section category_theory
-open category_theory
+section category
+open category
 variables {C : Type} [category.{1} C]
 
 example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
@@ -346,7 +346,7 @@ begin
   rw [h',reassoc_of h],
 end
 
-end category_theory
+end category
 
 section is_eta_expansion
 /- test the is_eta_expansion tactic -/

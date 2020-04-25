@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.category.Top.opens
 
-open category_theory
+open category
 open topological_space
 open opposite
 

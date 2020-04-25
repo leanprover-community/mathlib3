@@ -9,7 +9,7 @@ import data.list.rotate
 /-
 # nat.modeq -- congruences modulo a natural on ℕ.
 
-This file defines the equivalence relation a ≡ b [MOD n] on the natural numbers,
+This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
 and proves basic properties about it such as the Chinese Remainder Theorem
 `modeq_and_modeq_iff_modeq_mul`.
 

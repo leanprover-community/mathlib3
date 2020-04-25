@@ -9,22 +9,6 @@ import algebra.group.hom
 import data.equiv.mul_add
 import algebra.punit_instances
 
-
-namespace tactic.interactive
-setup_tactic_parser
-open tactic
-
-/--
-`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
-We use this tactic for writing tests.
--/
-meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
-do
-  h ← get_local n >>= infer_type >>= instantiate_mvars,
-  match_expr p h m
-
-end tactic.interactive
-
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
 

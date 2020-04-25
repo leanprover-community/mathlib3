@@ -2148,7 +2148,7 @@ lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
   apply h.unique_diff_within_at hs,
-  have : range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
+  have : set.range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
   rw [this, closure_univ]
 end
 

@@ -27,8 +27,8 @@ Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),..
                                       b₃ + ...
 
 One can compute the convergents of `c` in two ways:
-1. Directly evaluating the fraction described by `c` up to a given `n`
-2. Using the recurrence
+1. Directly evaluating the fraction described by `c` up to a given `n` (`convergents'`)
+2. Using the recurrence (`convergents`)
   `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
   `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
 

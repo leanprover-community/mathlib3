@@ -73,7 +73,7 @@ end generalized_continued_fraction.pair
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
 
                                 a₀
-                h + --------------------------
+                h + ---------------------------
                                   a₁
                       b₀ + --------------------
                                     a₂
@@ -144,7 +144,7 @@ A generalized continued fraction is a *simple continued fraction* if all partial
 equal to one.
 
                                 1
-                h + --------------------------
+                h + ---------------------------
                                   1
                       b₀ + --------------------
                                     1
@@ -164,7 +164,7 @@ A *simple continued fraction* (scf) is a generalized continued fraction (gcf) wh
 numerators are equal to one.
 
                                 1
-                h + --------------------------
+                h + ---------------------------
                                   1
                       b₀ + --------------------
                                     1

@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 
-import data.equiv.algebra
+import data.equiv.ring
 import data.polynomial
 import data.zmod.basic
-import algebra.char_p
 import algebra.geom_sum
 import linear_algebra.basis
 import group_theory.order_of_element

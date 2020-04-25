@@ -13,7 +13,7 @@ import tactic.linarith
 
 We show the equivalence of two computations of convergents (recurrence relation (`convergents`) vs.
 direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We follow the proof from
-[hardy1979introduction], Chapter 10.
+[hardy2008introduction], Chapter 10.
 
 ## Main Theorems
 
@@ -65,8 +65,7 @@ end
 /-! We now prove some simple lemmas about the squashed sequence -/
 
 /-- If the sequence already terminated at position `n + 1`, nothing gets squashed. -/
-lemma squash_seq_eq_self_of_terminated
-(terminated_at_succ_n : s.terminated_at (n + 1)) :
+lemma squash_seq_eq_self_of_terminated (terminated_at_succ_n : s.terminated_at (n + 1)) :
   squash_seq s n = s :=
 begin
   change s.nth (n + 1) = none at terminated_at_succ_n,
@@ -77,7 +76,7 @@ end
 /-- If the sequence has not terminated before position `n + 1`, the value at `n + 1` gets
 squashed into position `n`. -/
 lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : gcf.pair K}
-(s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
+  (s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
   (squash_seq s n).nth n = some ⟨gp_n.a, gp_n.b + gp_succ_n.a / gp_succ_n.b⟩ :=
 by simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth n) s_nth_eq _)]
 
@@ -232,7 +231,7 @@ end with_division_ring
 /-- The convergents coincide in the expected way at the squashed position if the partial denominator
 at the squashed position is not zero. -/
 lemma succ_nth_convergent_eq_squash_gcf_nth_convergent [field K]
-(nth_part_denom_ne_zero : ∀ {b : K}, g.partial_denominators.nth n = some b → b ≠ 0) :
+  (nth_part_denom_ne_zero : ∀ {b : K}, g.partial_denominators.nth n = some b → b ≠ 0) :
   g.convergents (n + 1) = (squash_gcf g n).convergents n :=
 begin
 cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
@@ -275,8 +274,7 @@ cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
     -- computation twice
     have : g.convergents (n' + 2)
          = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
-    {
-      -- use the recurrence once
+    { -- use the recurrence once
       have : g.continuants_aux (n' + 2) = ⟨pb * pA + pa * ppA, pb * pB + pa * ppB⟩, from
         continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
       -- and a second time
@@ -345,13 +343,11 @@ begin
               { have : 0 < gp_succ_m.a ∧ 0 < gp_succ_m.b, from
                   s_pos (lt_add_one $ m + 1) s_succ_mth_eq,
                 exact (div_pos this.left this.right) },
-              linarith }
-          },
+              linarith } },
           { -- the easy case: before the squashed position, nothing changes
             have : g.s.nth m = some gp', by {
               have : g'.s.nth m = g.s.nth m, from squash_gcf_nth_of_lt succ_m_lt_n,
-              rwa this at s_mth_eq'
-            },
+              rwa this at s_mth_eq' },
             exact s_pos (nat.lt.step $ nat.lt.step succ_m_lt_n) this } },
         rwa [(IH this).symm] },
       -- now the result follows from the fact that the convergents coincide at the squashed position

@@ -702,27 +702,3 @@ begin
 end
 
 end legendre_sym
-
-example : legendre_sym 43 29 = -1 :=
-begin
-  haveI : fact (nat.prime 29) := by norm_num,
-  haveI : fact (nat.prime  7) := by norm_num,
-  haveI : fact (29 % 2 = 1)   := by norm_num,
-  haveI : fact ( 7 % 2 = 1)   := by norm_num,
-  calc legendre_sym 43 29 = legendre_sym 14 29 :
-                            by { rw [legendre_sym_mod, show 43 % 29 = 14, by norm_num] }
-                      ... = legendre_sym (2 * 7) 29 :
-                            by { rw [show 14 = 2 * 7, by norm_num] }
-                      ... = legendre_sym 2 29 * legendre_sym 7 29 :
-                            by { rw [legendre_sym_mul] }
-                      ... = -legendre_sym 7 29 :
-                            by { rw [legendre_sym_two, show (-1:ℤ)^(29/4 + 29/2) = -1, by norm_num],
-                                 rw [neg_one_mul] }
-                      ... = -legendre_sym 29 7 :
-                            by { rw [legendre_sym_swap 7 29 dec_trivial],
-                                 rw [show (-1:ℤ) ^ (7 / 2 * (29 / 2)) = 1, by norm_num, mul_one] }
-                      ... = -legendre_sym 1 7 :
-                            by { rw [legendre_sym_mod, show 29 % 7 = 1, by norm_num] }
-                      ... = -1 :
-                            by { rw [legendre_sym_one] }
-end

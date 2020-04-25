@@ -51,7 +51,7 @@ instance (V : Type (v+1)) [large_category V] [concrete_category V] : decorated_c
 
 variables (V : Type (v+1)) [large_category V] [concrete_category V]
 variables (C : Type u) [𝒞 : category.{v} C]
-include  𝒞
+include 𝒞
 
 open decorated_category
 
@@ -65,6 +65,24 @@ variable [enriched_over V C]
 
 notation X ` ⟶[`V`] ` Y:10 := (obj_equiv V).inv_fun ⟨X ⟶ Y, enriched_over.e_hom V X Y⟩
 example [enriched_over V C] (X Y : C) : V := X ⟶[V] Y
+
+section
+omit 𝒞
+variables (D : Type (v+1)) [large_category D] [concrete_category D]
+variables [enriched_over V D]
+
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
+
+instance (X Y : D) : has_coe_to_fun (X ⟶[V] Y) :=
+{ F := λ f, X → Y,
+  coe := λ f,
+  begin
+    change (forget V).obj _ at f,
+    simp only [forget_obj_eq, equiv.inv_fun_as_coe] at f,
+    exact (f : X → Y),
+  end }
+end
 
 variables {C}
 

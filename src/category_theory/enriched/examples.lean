@@ -42,19 +42,28 @@ begin
     { refl, } },
 end
 
--- This seems to be broken because of
+-- This is gross because of
 -- https://github.com/leanprover-community/lean/issues/197
+-- If it weren't for that, we could replace the `erw` with `simp`.
 instance fff : preadditive AddCommGroup :=
 { e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
   e_comp_left := λ X Y f Z,
   ⟨{ to_fun := λ g, g.comp f,
      map_zero' := add_monoid_hom.zero_comp f,
-     map_add' := λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], } },
+     map_add' := λ x y, by { ext, dsimp, erw [add_monoid_hom.add_apply], } },
   rfl⟩,
   e_comp_right := λ X Y Z g,
   ⟨{ to_fun := λ f, g.comp f,
      map_zero' := add_monoid_hom.comp_zero g,
-     map_add' := λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], } },
+     map_add' := λ x y,
+     begin
+       ext,
+       dsimp,
+       erw [add_monoid_hom.add_apply],
+       simp,
+       erw [add_monoid_hom.add_apply],
+       simp,
+     end },
   rfl⟩, }.
 
 end AddCommGroup
@@ -83,10 +92,10 @@ example : AddCommGroup := M ⟶[Ab] N
 example (f g : M ⟶[Ab] N) : M ⟶ N := f + g
 -- We can see that composition is additive in either argument:
 example (f : M ⟶[Ab] N) : (N ⟶[Ab] P) →+ (M ⟶[Ab] P) := comp_left Ab f P
--- Coercions to functions seem to be broken,
+-- Coercions to functions isn't as good as we'd like,
 -- but we can verify that `comp_left` is definitionally what we expect:
 example (f : M ⟶[Ab] N) (g : N ⟶[Ab] P) (m : M) :
-  ((comp_left Ab f P).to_fun g).to_fun m = g.to_fun (f.to_fun m) := rfl
+  ((comp_left Ab f P : (N ⟶[Ab] P) → (M ⟶[Ab] P)) g).to_fun m = g (f m) := rfl
 end
 
 section
@@ -101,8 +110,8 @@ instance : enriched_over (Module R) (Module R) :=
 example (X Y : Module R) (r : R) (f g : X ⟶[Module R] Y) : r • (f + g) = r • g + r • f :=
 by simp [smul_add, add_comm]
 
--- Unfortunately, the coercion to functions seems to be broken:
-example (X Y : Module R) (f : X ⟶[Module R] Y) (x : X) : f x = f x := sorry
+-- Check that the coercion to functions works:
+example (X Y : Module R) (f : X ⟶[Module R] Y) : f (0 : X) = (0 : Y) := by simp
 
 end
 

@@ -196,7 +196,7 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   mul_comm := by intros; ext; apply mul_comm }
 
 /-- `flip` arguments of `f : M →* N →* P` -/
-@[to_additive]
+@[to_additive "`flip` arguments of `f : M →+ N →+ P`"]
 def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →* P) :
   N →* M →* P :=
 { to_fun := λ y, ⟨λ x, f x y, by rw [f.map_one, one_apply], λ x₁ x₂, by rw [f.map_mul, mul_apply]⟩,

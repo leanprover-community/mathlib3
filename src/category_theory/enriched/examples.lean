@@ -20,51 +20,29 @@ end
 
 namespace AddCommGroup
 
+-- Unless https://github.com/leanprover-community/lean/issues/197 is fixed,
+-- I'm not sure we can successfully replace this
+-- "definition by tactic" with the usual structure syntax.
+-- Replacing either the outer `fsplit` or the inner `fsplits` by explicit structures causes
+-- errors in which things have been unfolded too far.
 instance : preadditive AddCommGroup :=
 begin
-  fconstructor,
-  { exact λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩, },
+  fsplit,
+  { exact λ X Y, AddCommGroup.of (X ⟶ Y), },
+  { intros X Y, refl, },
   { intros X Y f Z,
-    fconstructor,
-    { fconstructor,
-      { dsimp [bundled.map],
-        exact λ g, g.comp f, },
+    { fsplit,
+      { exact λ g, g.comp f, },
       { exact add_monoid_hom.zero_comp f, },
-      { exact λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], }, }, },
-    { refl, } },
+      { exact λ x y, by { ext, simp [add_monoid_hom.add_apply], }, }, }, },
+  { intros X Y f Z, refl, },
   { intros X Y Z g,
-    fconstructor,
-    { fconstructor,
-      { dsimp [bundled.map],
-        exact λ f, g.comp f, },
+    { fsplit,
+      { exact λ f, g.comp f, },
       { exact add_monoid_hom.comp_zero g, },
-      { exact λ x y, by { ext, dsimp, simp [add_monoid_hom.add_apply], }, }, },
-    { refl, } },
+      { exact λ x y, by { ext, simp [add_monoid_hom.add_apply], }, }, }, },
+  { intros X Y Z g, refl, },
 end
-
--- This is gross because of
--- https://github.com/leanprover-community/lean/issues/197
--- If it weren't for that, we could replace the `erw` with `simp`.
-instance fff : preadditive AddCommGroup :=
-{ e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
-  e_comp_left := λ X Y f Z,
-  ⟨{ to_fun := λ g, g.comp f,
-     map_zero' := add_monoid_hom.zero_comp f,
-     map_add' := λ x y, by { ext, dsimp, erw [add_monoid_hom.add_apply], } },
-  rfl⟩,
-  e_comp_right := λ X Y Z g,
-  ⟨{ to_fun := λ f, g.comp f,
-     map_zero' := add_monoid_hom.comp_zero g,
-     map_add' := λ x y,
-     begin
-       ext,
-       dsimp,
-       erw [add_monoid_hom.add_apply],
-       simp,
-       erw [add_monoid_hom.add_apply],
-       simp,
-     end },
-  rfl⟩, }.
 
 end AddCommGroup
 
@@ -74,17 +52,19 @@ section
 variables (R : Type u) [ring R]
 
 instance : preadditive (Module R) :=
-{ e_hom := λ X Y, ⟨AddCommGroup.of (X ⟶ Y), rfl⟩,
-  e_comp_left := λ X Y f Z,
-  ⟨{ to_fun := λ g, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } }, rfl⟩,
-  e_comp_right := λ X Y Z g,
-  ⟨{ to_fun := λ f, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } }, rfl⟩, }.
+{ enriched_hom := λ X Y, AddCommGroup.of (X ⟶ Y),
+  comp_left := λ X Y f Z,
+  { to_fun := λ g, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } },
+  comp_right := λ X Y Z g,
+  { to_fun := λ f, g.comp f, map_zero' := by simp, map_add' := λ x y, by { ext, simp, } }, }.
 end
 
 section
 variables {R : Type} [ring R]
 abbreviation Ab := AddCommGroup.{0}
 variables {M N P : Module R}
+
+open category_theory.enriched_over
 
 -- We get an `AddCommGroup` worth of morphisms:
 example : AddCommGroup := M ⟶[Ab] N
@@ -102,9 +82,9 @@ section
 variables (R : Type u) [comm_ring R]
 
 instance : enriched_over (Module R) (Module R) :=
-{ e_hom := λ X Y, ⟨Module.of R (X ⟶ Y), rfl⟩,
-  e_comp_left := λ X Y f Z, ⟨(linear_map.llcomp R X Y Z).flip f, rfl⟩,
-  e_comp_right := λ X Y Z g, ⟨linear_map.llcomp R X Y Z g, rfl⟩, }
+{ enriched_hom := λ X Y, Module.of R (X ⟶ Y),
+  comp_left := λ X Y f Z, (linear_map.llcomp R X Y Z).flip f,
+  comp_right := λ X Y Z g, linear_map.llcomp R X Y Z g, }
 
 -- Out of the box, we can treat morphisms between R-modules as elements of an R-module.
 example (X Y : Module R) (r : R) (f g : X ⟶[Module R] Y) : r • (f + g) = r • g + r • f :=

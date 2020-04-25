@@ -114,13 +114,12 @@ begin
     { intro e, injection e with e, subst b,
       exact irrefl _ h } },
   { intro a,
-    have : {b : S | ¬ r b a} ≠ ∅ := let ⟨b, bS, ba⟩ := hS a in
-      @set.ne_empty_of_mem S {b | ¬ r b a} ⟨b, bS⟩ ba,
-    let b := (is_well_order.wf s).min _ this,
-    have ba : ¬r b a := (is_well_order.wf s).min_mem _ this,
+    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
+    let b := (is_well_order.wf).min _ this,
+    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf s).not_lt_min _ this
+    exact (is_well_order.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
 
@@ -360,7 +359,7 @@ theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [
   (s : β → set α)
   (h₁ : unbounded r $ ⋃x, s x) (h₂ : mk β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
 begin
-  rw [Union_eq_sUnion_range] at h₁,
+  rw [← sUnion_range] at h₁,
   have : mk ↥(range (λ (i : β), s i)) < strict_order.cof r := lt_of_le_of_lt mk_range_le h₂,
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end

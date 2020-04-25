@@ -3,13 +3,12 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import
-  data.nat.gcd
-  data.pnat.basic data.int.sqrt data.equiv.encodable
-  algebra.group algebra.ordered_group algebra.group_power
-  algebra.ordered_field
-  tactic.norm_cast
-  tactic.lift
+import data.int.sqrt
+import data.equiv.encodable
+import algebra.group
+import algebra.euclidean_domain
+import algebra.ordered_field
+
 /-!
 # Basics for the Rational Numbers
 
@@ -147,7 +146,7 @@ begin
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
     constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
-    simp [left_distrib] }
+    simp [left_distrib, sub_eq_add_neg], cc }
 end,
 begin
   intros, simp [mk_pnat], constructor; intro h,
@@ -354,7 +353,7 @@ by rw [← zero_mk d]; simp [h, -zero_mk]
 protected theorem add_comm : a + b = b + a :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
-by simp [h₁, h₂, mul_comm]
+by simp [h₁, h₂]; cc
 
 protected theorem add_assoc : a + b + c = a + (b + c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
@@ -410,7 +409,7 @@ eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
 
 instance : decidable_eq ℚ := by tactic.mk_dec_eq_instance
 
-instance : discrete_field ℚ :=
+instance : field ℚ :=
 { zero             := 0,
   add              := rat.add,
   neg              := rat.neg,
@@ -430,12 +429,9 @@ instance : discrete_field ℚ :=
   right_distrib    := rat.add_mul,
   zero_ne_one      := rat.zero_ne_one,
   mul_inv_cancel   := rat.mul_inv_cancel,
-  inv_mul_cancel   := rat.inv_mul_cancel,
-  has_decidable_eq := rat.decidable_eq,
   inv_zero         := rfl }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : field ℚ              := by apply_instance
 instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
@@ -460,7 +456,7 @@ instance : semigroup ℚ          := by apply_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
-by simp [b0, d0]
+by simp [b0, d0, sub_eq_add_neg]
 
 @[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
 | ⟨_, d, _, _⟩ := rfl
@@ -491,7 +487,9 @@ ne_of_gt q.pos
 lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
 begin
   conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
-  exact rat.mk_eq (by exact_mod_cast p.denom_ne_zero) (by exact_mod_cast q.denom_ne_zero)
+  apply rat.mk_eq,
+  { exact_mod_cast p.denom_ne_zero },
+  { exact_mod_cast q.denom_ne_zero }
 end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
@@ -533,11 +531,10 @@ begin
   existsi n / q.num,
   have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
   split,
-    { rw int.div_mul_cancel hqdn },
-    { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
-      {apply rat.num_ne_zero_of_ne_zero hq},
-      {simp [rat.denom_ne_zero]},
-      repeat {assumption} }
+  { rw int.div_mul_cancel hqdn },
+  { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
+    { apply rat.num_ne_zero_of_ne_zero hq },
+    repeat { assumption } }
 end
 
 theorem mk_pnat_num (n : ℤ) (d : ℕ+) :
@@ -592,10 +589,10 @@ end
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 
-@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
+@[simp, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
 by rw coe_int_eq_of_int; refl
 
-@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
+@[simp, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
 by rw coe_int_eq_of_int; refl
 
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
@@ -607,10 +604,10 @@ instance : can_lift ℚ ℤ :=
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
 by rw [← int.cast_coe_nat, coe_int_eq_mk]
 
-@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
+@[simp, norm_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
 by rw [← int.cast_coe_nat, coe_int_num]
 
-@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+@[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 end casts

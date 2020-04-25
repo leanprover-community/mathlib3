@@ -5,14 +5,14 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power algebra.field_power algebra.floor
-import data.rat tactic.linarith
+import algebra.field_power
+import data.rat
 
 variables {α : Type*}
 
 open_locale add_monoid
 
-class archimedean (α) [ordered_comm_monoid α] : Prop :=
+class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
@@ -26,12 +26,16 @@ variables [linear_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α}
     (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
-have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
+have hy0 : 0 < y - 1 := sub_pos_of_lt hy1,
+-- TODO `by linarith` fails to prove hy1'
+have hy1' : (-1:α) ≤ y, from le_trans (neg_le_self zero_le_one) (le_of_lt hy1),
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ n • (y - 1)     : h
-       ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
-       ... ≤ y ^ n           : one_add_sub_mul_le_pow (le_of_lt hy1) _⟩
+       ... < 1 + n • (y - 1) : lt_one_add _
+       ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
 
+/-- Every x greater than 1 is between two successive natural-number
+powers of another y greater than one. -/
 lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
@@ -67,20 +71,36 @@ end linear_ordered_ring
 
 section linear_ordered_field
 
+/-- Every positive x is between two successive integer powers of
+another y greater than one. This is the same as `exists_int_pow_near'`,
+but with ≤ and < the other way around. -/
 lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
-    exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
+    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
   (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
+
+/-- Every positive x is between two successive integer powers of
+another y greater than one. This is the same as `exists_int_pow_near`,
+but with ≤ and < the other way around. -/
+lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
+  {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
+  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
+let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
+have hyp : 0 < y, from lt_trans zero_lt_one hy,
+⟨-(m+1),
+by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg,
+        le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]
 
@@ -160,7 +180,7 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos (sub_pos.2 h)) nh),
+  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
   have n0' := (@nat.cast_pos α _ _).2 n0,
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
@@ -179,7 +199,7 @@ begin
   cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
   existsi n,
   apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
   { apply (div_lt_iff' hε).1,
     transitivity,
     { exact hn },

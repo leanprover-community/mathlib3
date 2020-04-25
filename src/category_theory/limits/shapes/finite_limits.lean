@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.products
-import category_theory.discrete_category
-import data.fintype
 
 universes v u
 
@@ -35,10 +33,14 @@ class has_finite_limits :=
 class has_finite_colimits :=
 (has_colimits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_colimits_of_shape.{v} J C)
 
-attribute [instance] has_finite_limits.has_limits_of_shape has_finite_colimits.has_colimits_of_shape
+attribute [instance, priority 100] -- see Note [lower instance priority]
+  has_finite_limits.has_limits_of_shape
+  has_finite_colimits.has_colimits_of_shape
 
+@[priority 100] -- see Note [lower instance priority]
 instance [has_limits.{v} C] : has_finite_limits.{v} C :=
 { has_limits_of_shape := λ J _ _, by { resetI, apply_instance } }
+@[priority 100] -- see Note [lower instance priority]
 instance [has_colimits.{v} C] : has_finite_colimits.{v} C :=
 { has_colimits_of_shape := λ J _ _, by { resetI, apply_instance } }
 

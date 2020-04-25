@@ -2,9 +2,14 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import data.equiv.list
+
+/-!
+# The primitive recursive functions
 
 The primitive recursive functions are the least collection of functions
-nat → nat which are closed under projections (using the mkpair
+`nat → nat` which are closed under projections (using the mkpair
 pairing function), composition, zero, successor, and primitive recursion
 (i.e. nat.rec where the motive is C n := nat).
 
@@ -14,8 +19,11 @@ which we implement through the type class `encodable`. (More precisely,
 we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
-import data.equiv.list
 
 open denumerable encodable
 
@@ -90,7 +98,7 @@ theorem sub : primrec (unpaired has_sub.sub) :=
 
 theorem mul : primrec (unpaired (*)) :=
 (prec zero (add.comp (pair left (right.comp right)))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, mul_succ]
+λ p, by simp; induction p.unpair.2; simp [*, mul_succ, add_comm]
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
@@ -100,10 +108,13 @@ end primrec
 
 end nat
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
-(prim : nat.primrec (λ n, encodable.encode (decode n)))
+(prim [] : nat.primrec (λ n, encodable.encode (decode n)))
+end prio
 
 namespace primcodable
 open nat.primrec
@@ -245,9 +256,8 @@ instance prod {α β} [primcodable α] [primcodable β] : primcodable (α × β)
   (pair right ((primcodable.prim α).comp left))).of_eq $
 λ n, begin
   simp [nat.unpaired],
-  cases decode α n.unpair.1; simp, {refl},
-  cases decode β n.unpair.2; simp, {refl},
-  refl
+  cases decode α n.unpair.1, { simp },
+  cases decode β n.unpair.2; simp
 end⟩
 
 end primcodable
@@ -971,7 +981,7 @@ theorem list_find_index {f : α → list β} {p : α → β → Prop}
   ite (hp.comp fst $ fst.comp snd) (const 0)
     (succ.comp $ snd.comp snd)).of_eq $
 λ a, eq.symm $ by dsimp; induction f a with b l;
-  [refl, { simp [*, list.find_index], congr }]
+  [refl, simp [*, list.find_index]]
 
 theorem list_index_of [decidable_eq α] : primrec₂ (@list.index_of α _) :=
 to₂ $ list_find_index snd $ primrec.eq.comp₂ (fst.comp fst).to₂ snd.to₂

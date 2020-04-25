@@ -3,8 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.list.basic
+import data.stream
+import data.lazy_list
+import data.seq.computation
 
 universes u v w
 
@@ -33,6 +35,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The empty sequence -/
 def nil : seq α := ⟨stream.const none, λn h, rfl⟩
+
+instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
 def cons (a : α) : seq α → seq α
@@ -74,7 +78,7 @@ theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
-lemma terminated_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
+lemma terminated_stable (s : seq α) {m n : ℕ} (m_le_n : m ≤ n)
 (terminated_at_m : s.terminated_at m) :
   s.terminated_at n :=
 le_stable s m_le_n terminated_at_m
@@ -546,7 +550,7 @@ destruct_eq_cons $ by simp [join]
   join (cons (a, cons b s) S) = cons a (join (cons (b, s) S)) :=
 destruct_eq_cons $ by simp [join]
 
-@[simp] theorem join_cons (a : α) (s S) :
+@[simp, priority 990] theorem join_cons (a : α) (s S) :
   join (cons (a, s) S) = cons a (append s (join S)) :=
 begin
   apply eq_of_bisim (λs1 s2, s1 = s2 ∨
@@ -626,7 +630,7 @@ by rw add_comm; symmetry; apply dropn_add
 theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 | ⟨f, al⟩ n := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
 begin
   let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
@@ -711,6 +715,8 @@ by dsimp [join]; rw [destruct_cons]; refl
 /-- The `return` operator for the `seq1` monad,
   which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
+
+instance [inhabited α] : inhabited (seq1 α) := ⟨ret (default _)⟩
 
 /-- The `bind` operator for the `seq1` monad,
   which maps `f` on each element of `s` and appends the results together.

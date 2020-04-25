@@ -3,10 +3,7 @@ Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
 -/
-import category_theory.isomorphism
-import category_theory.functor_category
 import category_theory.opposites
-import tactic.reassoc_axiom
 
 universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -27,6 +24,8 @@ def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y :=
 ⟨eq_to_hom p, eq_to_hom p.symm, by simp, by simp⟩
 
 @[simp] lemma eq_to_iso.hom {X Y : C} (p : X = Y) : (eq_to_iso p).hom = eq_to_hom p :=
+rfl
+@[simp] lemma eq_to_iso.inv {X Y : C} (p : X = Y) : (eq_to_iso p).inv = eq_to_hom p.symm :=
 rfl
 
 @[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = iso.refl X := rfl

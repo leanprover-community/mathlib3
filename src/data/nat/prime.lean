@@ -3,9 +3,29 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
-Prime numbers.
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm tactic.wlog
+import data.nat.sqrt
+import data.nat.gcd
+import algebra.group_power
+
+/-!
+# Prime numbers
+
+This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
+
+## Important declarations
+
+All the following declarations exist in the namespace `nat`.
+
+- `prime`: the predicate that expresses that a natural number `p` is prime
+- `primes`: the subtype of natural numbers that are prime
+- `min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
+- `exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
+- `factors n`: the prime factorization of `n`
+- `factors_unique`: uniqueness of the prime factorisation
+
+-/
+
 open bool subtype
 
 namespace nat
@@ -18,6 +38,8 @@ def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
 theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
+
+instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 ne.symm $ (ne_of_lt hp.one_lt)
@@ -213,6 +235,23 @@ section min_fac
   (not_congr $ prime_def_min_fac.trans $ and_iff_right n2).trans $
     (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ le_of_succ_le n2).symm
 
+  lemma min_fac_le_div {n : ℕ} (pos : 0 < n) (np : ¬ prime n) : min_fac n ≤ n / min_fac n :=
+  match min_fac_dvd n with
+  | ⟨0, h0⟩     := absurd pos $ by rw [h0, mul_zero]; exact dec_trivial
+  | ⟨1, h1⟩     :=
+    begin
+      rw mul_one at h1,
+      rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false, not_le] at np,
+      rw [le_antisymm (le_of_lt_succ np) (succ_le_of_lt pos), min_fac_one, nat.div_one]
+    end
+  | ⟨(x+2), hx⟩ :=
+    begin
+      conv_rhs { congr, rw hx },
+      rw [nat.mul_div_cancel_left _ (min_fac_pos _)],
+      exact min_fac_le_of_dvd dec_trivial ⟨min_fac n, by rwa mul_comm⟩
+    end
+  end
+
 end min_fac
 
 theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
@@ -228,6 +267,8 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
 theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
+/-- Euclid's theorem. There exist infinitely many prime numbers.
+Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
 theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
 let p := min_fac (fact n + 1) in
 have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
@@ -275,6 +316,17 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
     have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+
+lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
+begin
+  have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
+  rw [this, nat.factors],
+  simp only [eq.symm this],
+  have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
+  split,
+  { exact this, },
+  { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
+end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
@@ -389,11 +441,11 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
   have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
   have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
     (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_erase ha,
+  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
   have hl : prod l₁ = prod ((b :: l₂).erase a) :=
   (nat.mul_left_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
-    by rwa [← prod_cons, ← prod_cons, ← prod_eq_of_perm hb],
-  perm.trans (perm.skip _ (perm_of_prod_eq_prod hl hl₁' hl₂')) hb.symm
+    by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
+  perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
 
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n :=
 have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
@@ -427,6 +479,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
+instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
 
@@ -434,5 +487,7 @@ theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
 λ h, subtype.eq h
 
 end primes
+
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
 
 end nat

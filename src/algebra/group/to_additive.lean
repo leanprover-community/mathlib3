@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
-
-import tactic.basic tactic.transport tactic.algebra
+import tactic.basic
+import tactic.transform_decl
+import tactic.algebra
 
 /-!
 # Transport multiplicative to additive
@@ -109,16 +110,19 @@ do let n := src.mk_string "_to_additive",
    add_decl decl,
    aux_attr.set n tgt tt
 
-@[derive has_reflect]
+@[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
+/-- Dictionary of words used by `to_additive.guess_name` to autogenerate
+names. -/
 meta def tokens_dict : native.rb_map string string :=
 native.rb_map.of_list $
 [("mul", "add"), ("one", "zero"), ("inv", "neg"), ("prod", "sum")]
 
+/-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
-string.map_tokens '_' $ list.map $
-string.map_tokens ''' $ list.map $
+string.map_tokens '_' $
+string.map_tokens ''' $
 λ s, (tokens_dict.find s).get_or_else s
 
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
@@ -162,7 +166,7 @@ do
 
 meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : command :=
 let aux := proceed_fields_aux src tgt prio in
-do 
+do
 aux (λ n, pure $ list.map name.to_string $ (env.structure_fields n).get_or_else []) >>
 aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$>
                             (ancestor_attr.get_param n <|> pure []))) >>
@@ -190,7 +194,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transport_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict src tgt
         [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator],
       match val.doc with
       | some doc := add_doc_string tgt doc

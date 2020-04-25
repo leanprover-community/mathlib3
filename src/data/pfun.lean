@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Jeremy Avigad
 -/
-import data.set.basic data.equiv.basic data.rel logic.relator
+import data.rel
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -51,6 +51,8 @@ ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
 
 /-- The `none` value in `roption` has a `false` domain and an empty function. -/
 def none : roption α := ⟨false, false.rec _⟩
+
+instance : inhabited (roption α) := ⟨none⟩
 
 @[simp] theorem not_mem_none (a : α) : a ∉ @none α := λ h, h.fst
 
@@ -311,6 +313,8 @@ infixr ` →. `:25 := pfun
 namespace pfun
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
+
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := λ a, (f a).dom
 
@@ -486,7 +490,7 @@ def image (s : set α) : set β := rel.image f.graph' s
 lemma image_def (s : set α) : image f s = {y | ∃ x ∈ s, y ∈ f x} := rfl
 
 lemma mem_image (y : β) (s : set α) : y ∈ image f s ↔ ∃ x ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma image_mono {s t : set α} (h : s ⊆ t) : f.image s ⊆ f.image t :=
 rel.image_mono _ h
@@ -502,7 +506,7 @@ def preimage (s : set β) : set α := rel.preimage (λ x y, y ∈ f x) s
 lemma preimage_def (s : set β) : preimage f s = {x | ∃ y ∈ s, y ∈ f x} := rfl
 
 lemma mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
 assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩

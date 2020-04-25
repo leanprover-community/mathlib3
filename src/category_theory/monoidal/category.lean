@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.products.basic
-import category_theory.natural_isomorphism
-import tactic.basic
-import tactic.slice
 
 open category_theory
 
@@ -40,7 +37,7 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
-(tensor_unit              : C)
+(tensor_unit []           : C)
 (notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
@@ -192,7 +189,7 @@ end
 --   = ((λ_ X).hom ⊗ (𝟙 Y))
 -- (and the corresponding fact for right unitors)
 -- following the proof on nLab:
--- Lemma 2.2 at https://ncatlab.org/nlab/revision/monoidal+category/115
+-- Lemma 2.2 at <https://ncatlab.org/nlab/revision/monoidal+category/115>
 
 lemma left_unitor_product_aux_perimeter (X Y : C) :
     ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
@@ -276,7 +273,7 @@ begin
   rw [←right_unitor_product_aux_triangle, ←right_unitor_product_aux_perimeter],
 end
 
--- See Proposition 2.2.4 of http://www-math.mit.edu/~etingof/egnobookfinal.pdf
+-- See Proposition 2.2.4 of <http://www-math.mit.edu/~etingof/egnobookfinal.pdf>
 @[simp] lemma left_unitor_tensor (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
     ((λ_ X).hom ⊗ (𝟙 Y)) :=
@@ -314,9 +311,9 @@ begin
   rw [category.assoc, monoidal_category.pentagon]
 end
 
-@[simp] lemma triangle_assoc_comp_left (X Y : C) :
+lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
-monoidal_category.triangle C X Y
+monoidal_category.triangle X Y
 
 @[simp] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=

@@ -15,6 +15,7 @@ section functor
 variables {f : Type u → Type v} [functor f] [is_lawful_functor f]
 
 run_cmd mk_simp_attr `functor_norm
+run_cmd tactic.add_doc_string `simp_attr.functor_norm "Simp set for functor_norm"
 
 @[functor_norm] protected theorem map_map (m : α → β) (g : β → γ) (x : f α) :
   g <$> (m <$> x) = (g ∘ m) <$> x :=
@@ -38,14 +39,6 @@ def mzip_with'  (f : α → β → F γ) : list α → list β → F punit
 | (x :: xs) (y :: ys) := f x y *> mzip_with' xs ys
 | [] _ := pure punit.star
 | _ [] := pure punit.star
-
-protected def option.traverse {α β : Type*} (f : α → F β) : option α → F (option β)
-| none := pure none
-| (some x) := some <$> f x
-
-protected def list.traverse {α β : Type*} (f : α → F β) : list α → F (list β)
-| [] := pure []
-| (x :: xs) := list.cons <$> f x <*> list.traverse xs
 
 variables [is_lawful_applicative F]
 
@@ -93,7 +86,7 @@ show bind (f <$> x) g = bind x (g ∘ f),
 by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
-(bind_map_eq_seq m f x).symm
+(bind_map_eq_seq f x).symm
 
 /-- This is the Kleisli composition -/
 @[reducible] def fish {m} [monad m] {α β γ} (f : α → m β) (g : β → m γ) := λ x, f x >>= g
@@ -142,17 +135,17 @@ variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 lemma mjoin_map_map {α β : Type u} (f : α → β) (a : m (m α)) :
   mjoin (functor.map f <$> a) = f <$> (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
-  (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, map_bind, pure_bind]
+  (bind_pure_comp_eq_map _ _).symm, bind_assoc, map_bind, pure_bind]
 
 lemma mjoin_map_mjoin {α : Type u} (a : m (m (m α))) :
   mjoin (mjoin <$> a) = mjoin (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
-  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind]
+  map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind]
 
 @[simp] lemma mjoin_map_pure {α : Type u} (a : m α) :
   mjoin (pure <$> a) = a :=
 by simp only [mjoin, (∘), id.def,
-  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind, bind_pure]
+  map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind, bind_pure]
 
 @[simp] lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
 is_lawful_monad.pure_bind a id
@@ -197,8 +190,11 @@ instance : is_lawful_monad (sum.{v u} e) :=
 
 end sum
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_comm_applicative (m : Type* → Type*) [applicative m] extends is_lawful_applicative m : Prop :=
 (commutative_prod : ∀{α β} (a : m α) (b : m β), prod.mk <$> a <*> b = (λb a, (a, b)) <$> b <*> a)
+end prio
 
 lemma is_comm_applicative.commutative_map
   {m : Type* → Type*} [applicative m] [is_comm_applicative m]

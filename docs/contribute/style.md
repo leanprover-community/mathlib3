@@ -29,10 +29,14 @@ easier to read, especially on a small screen or in a small window.
 
 ### Header and imports ###
 
-The file header should contain copyright information, a list of all
-the authors who have worked on the file, and a description of the
-contents. Do all `import`s right after the header, without a line
-break. You can also open namespaces in the same block.
+The file header should contain copyright information,
+a list of all the authors who have worked on the file,
+and a brief description of the contents.
+
+After the copyright header, each `import` should have its own line.
+There is no need for a line break before the first `import`.
+
+You can also open namespaces in the same block.
 
 ```lean
 /-
@@ -42,9 +46,15 @@ Author: Joe Cool.
 
 A theory of everything.
 -/
-import data.nat algebra.group
+import data.nat
+import algebra.group
 open nat eq.ops
 ```
+
+After the `import` statements should come a module doc-string,
+describing the contents of the file,
+as well as any significant design or implementation issues.
+See the [documentation guidlines](doc.md) for more details.
 
 ### Structuring definitions and theorems ###
 
@@ -290,7 +300,7 @@ focussing braces and indented. Braces are not alone on their line.
 
 ```lean
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+  (hb : is_topological_basis b) : s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
   rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
   { simpa [and_comm, and.left_comm] },

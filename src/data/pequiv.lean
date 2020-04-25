@@ -3,8 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import data.equiv.basic data.set.lattice tactic.tauto
+import data.set.lattice
 
 universes u v w x
 
@@ -26,7 +25,7 @@ instance : has_coe_to_fun (α ≃. β) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
 
-@[extensionality] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
+@[ext] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
 | ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ h :=
 have h : f₁ = g₁, from funext h,
 have ∀ b, f₂ b = g₂ b,
@@ -140,11 +139,11 @@ by dsimp [of_set]; split_ifs; simp *
 lemma mem_of_set_iff {s : set α} [decidable_pred s] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 by dsimp [of_set]; split_ifs; split; finish
 
-@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
-  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
-
 @[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred s} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff
+
+@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
+  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
@@ -182,7 +181,7 @@ lemma trans_symm_eq_iff_forall_is_some {f : α ≃. β} :
   f.trans f.symm = pequiv.refl α ↔ ∀ a, is_some (f a) :=
 by rw [trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
 
-instance : lattice.has_bot (α ≃. β) :=
+instance : has_bot (α ≃. β) :=
 ⟨{ to_fun := λ _, none,
    inv_fun := λ _, none,
    inv := by simp }⟩
@@ -244,7 +243,7 @@ begin
   rw [if_pos (subsingleton.elim i a), subsingleton.elim i j, subsingleton.elim b j]
 end
 
-lemma trans_single_of_eq_none {b : β} (c : γ) {f : α ≃. β} (h : f.symm b = none) :
+lemma trans_single_of_eq_none {b : β} (c : γ) {f : δ ≃. β} (h : f.symm b = none) :
   f.trans (single b c) = ⊥ :=
 begin
   ext,
@@ -256,7 +255,7 @@ begin
   simp * at *
 end
 
-lemma single_trans_of_eq_none (a : α) {b : β} {f : β ≃. γ} (h : f b = none) :
+lemma single_trans_of_eq_none (a : α) {b : β} {f : β ≃. δ} (h : f b = none) :
   (single a b).trans f = ⊥ :=
 symm_injective $ trans_single_of_eq_none _ h
 
@@ -267,7 +266,6 @@ single_trans_of_eq_none _ (single_apply_of_ne h.symm _)
 end single
 
 section order
-open lattice
 
 instance : partial_order (α ≃. β) :=
 { le := λ f g, ∀ (a : α) (b : β), b ∈ f a → b ∈ g a,
@@ -286,7 +284,7 @@ lemma le_def {f g : α ≃. β} : f ≤ g ↔ (∀ (a : α) (b : β), b ∈ f a 
 instance : order_bot (α ≃. β) :=
 { bot_le := λ _ _  _ h, (not_mem_none _ h).elim,
   ..pequiv.partial_order,
-  ..pequiv.lattice.has_bot }
+  ..pequiv.has_bot }
 
 instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) :=
 { inf := λ f g,
@@ -305,7 +303,7 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.lattice.order_bot }
+  ..pequiv.order_bot }
 
 end order
 
@@ -325,5 +323,7 @@ lemma to_pequiv_trans (f : α ≃ β) (g : β ≃ γ) : (f.trans g).to_pequiv =
   f.to_pequiv.trans g.to_pequiv := rfl
 
 lemma to_pequiv_symm (f : α ≃ β) : f.symm.to_pequiv = f.to_pequiv.symm := rfl
+
+lemma to_pequiv_apply (f : α ≃ β) (x : α) : f.to_pequiv x = some (f x) := rfl
 
 end equiv

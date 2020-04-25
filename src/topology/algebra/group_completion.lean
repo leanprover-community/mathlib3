@@ -5,7 +5,8 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Completion of topological groups:
 -/
-import topology.uniform_space.completion topology.algebra.uniform_group
+import topology.uniform_space.completion
+import topology.algebra.uniform_group
 noncomputable theory
 
 section group
@@ -17,8 +18,8 @@ instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : 
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 
 -- TODO: switch sides once #1103 is fixed
-@[elim_cast]
-lemma uniform_space.completion.coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
+@[norm_cast]
+lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
 
 namespace uniform_space.completion
@@ -26,13 +27,13 @@ section uniform_add_group
 open uniform_space uniform_space.completion
 variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
 
-@[move_cast]
+@[norm_cast]
 lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
-(map_coe uniform_continuous_neg' a).symm
+(map_coe uniform_continuous_neg a).symm
 
-@[move_cast]
+@[norm_cast]
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
-(map₂_coe_coe a b (+) uniform_continuous_add').symm
+(map₂_coe_coe a b (+) uniform_continuous_add).symm
 
 instance : add_group (completion α) :=
 { zero_add     := assume a, completion.induction_on a
@@ -43,7 +44,7 @@ instance : add_group (completion α) :=
     (assume a, show (a : completion α) + 0 = a, by rw_mod_cast add_zero),
   add_left_neg := assume a, completion.induction_on a
     (is_closed_eq (continuous_map₂ completion.continuous_map continuous_id) continuous_const)
-    (assume a, show - (a : completion α) + a = 0, by rw_mod_cast add_left_neg),
+    (assume a, show - (a : completion α) + a = 0, by { rw_mod_cast add_left_neg, refl }),
   add_assoc    := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_map₂
@@ -56,8 +57,7 @@ instance : add_group (completion α) :=
 
 instance : uniform_add_group (completion α) :=
 ⟨((uniform_continuous_map₂ (+)).comp
-  (uniform_continuous.prod_mk uniform_continuous_fst
-                              (uniform_continuous_map.comp uniform_continuous_snd)) : _)⟩
+  (uniform_continuous_fst.prod_mk (uniform_continuous_map.comp uniform_continuous_snd)) : _)⟩
 
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 { map_add := coe_add }
@@ -69,13 +69,14 @@ lemma is_add_group_hom_extension  [complete_space β] [separated β]
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_add := assume a b, completion.induction_on₂ a b
   (is_closed_eq
-    (continuous_extension.comp continuous_add')
-    (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
+    (continuous_extension.comp continuous_add)
+    ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
   (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
 
 lemma is_add_group_hom_map
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
-(is_add_group_hom_extension  ((continuous_coe _).comp hf) : _)
+@is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
+  ((continuous_coe _).comp hf)
 
 instance {α : Type*} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b

@@ -5,7 +5,10 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic category.traversable.basic data.set.basic tactic.tauto
+import tactic.tauto
+import data.vector
+import data.list.nodup
+import data.list.of_fn
 
 universes u
 variables {n : ℕ}
@@ -115,7 +118,6 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
 | _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
-using_well_founded wf_tacs
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl
@@ -125,7 +127,7 @@ using_well_founded wf_tacs
   do h' ← f a, t' ← mmap f v, pure (h' :: t')
 | _ ⟨l, rfl⟩ := rfl
 
-@[extensionality] theorem ext : ∀ {v w : vector α n}
+@[ext] theorem ext : ∀ {v w : vector α n}
   (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))

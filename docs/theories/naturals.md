@@ -1,8 +1,7 @@
 # Maths in Lean : the natural numbers
 
-
-The natural numbers begin with zero because that’s the way computer
-scientists do things. You can call them `nat` or `ℕ` (you get that
+The natural numbers begin with zero as is standard in computer
+science. You can call them `nat` or `ℕ` (you get the latter
 symbol by typing `\N` in VS Code).
 
 The naturals are what is called an inductive type, with two
@@ -14,11 +13,10 @@ Addition and multiplication are defined by recursion on the second
 variable and many proofs of basic stuff in the core library are by
 induction on the second variable. The notations `+,-,*` are shorthand
 for the functions `nat.add`, `nat.sub` and `nat.mul` and other notations
-(≤, <, |) mean the usual things. The percent sign is “mod”.
+(≤, <, |) mean the usual things (get the "divides" symbol with `\|`.
+The `%` symbol denotes modulus (remainder after division).
 
-Here is a showcase of basic nat stuff. We start
-with the line `open nat` to save us from having to type `nat.` in front
-of everything.
+Here are some of core Lean's functions for working with `nat`.
 
 ```lean
 open nat
@@ -39,7 +37,7 @@ example (a b c : ℕ) : a * (b + c) = a * b + a * c := left_distrib a b c
 
 example (m n : ℕ) : succ m ≤ succ n → m ≤ n := le_of_succ_le_succ
 
-example (m n : ℕ) : 0 < n → 0 < m → n - m  0 → a ^ n < b ^ n := pow_lt_pow_of_lt_left
+example (a b: ℕ) : a < b → ∀ n, 0 < n → a ^ n < b ^ n := pow_lt_pow_of_lt_left
 ```
 
 In mathlib there are more basic functions on the naturals, for example
@@ -104,7 +102,7 @@ example : prime 59 := dec_trivial
 
 example : prime 104729 := by norm_num
 
-example (p : ℕ) : prime p → p ≥ 2 := prime.ge_two
+example (p : ℕ) : prime p → p ≥ 2 := prime.two_le
 
 example (p : ℕ) : prime p ↔ p ≥ 2 ∧ ∀ m, 2 ≤ m → m ≤ sqrt p → ¬ (m ∣ p) := prime_def_le_sqrt
 

@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import number_theory.pell data.pfun
+import number_theory.pell
+import data.pfun
 
 universe u
 
@@ -373,7 +374,7 @@ instance : comm_ring (poly α) := by refine
   zero := 0,
   neg  := has_neg.neg,
   mul  := (*),
-  one  := 1, .. }; {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm])}
+  one  := 1, .. }; {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm, add_comm, add_assoc])}
 
 lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))

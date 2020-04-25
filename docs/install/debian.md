@@ -9,8 +9,8 @@ If you get stuck, please come to [the chat room](https://leanprover.zulipchat.co
 ## Installing Lean and mathlib
 
 Here we will discuss the fast way, assuming a lot of trust from you. It
-will install Lean, with supporting tools `elan` and `leanpkg`,
-the supporting tool `update-mathlib` for Lean's mathematical
+will install Lean, with the supporting tool `elan`,
+the supporting tool `leanproject` for Lean's mathematical
 library, as well as the code editor VScode and its Lean plugin, and
 other dependencies you probably already have, like `curl`, `git`,
 `python3`, and `pip3`. If you don't like this method, there is a
@@ -22,4 +22,6 @@ The fast way is: open a terminal and type:
 wget -q https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/install_debian.sh && bash install_debian.sh ; rm -f install_debian.sh && source ~/.profile
 ```
 
-You can now read instructions about creating and working on [Lean projects](project.md)
+## You're not done yet!
+
+:point_right: You should now read the instructions about creating and working on [Lean projects](project.md).

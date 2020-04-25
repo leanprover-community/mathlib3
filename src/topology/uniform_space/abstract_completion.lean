@@ -3,8 +3,6 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
-import topology.uniform_space.cauchy
 import topology.uniform_space.uniform_embedding
 
 /-!
@@ -70,7 +68,7 @@ local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
 lemma dense' : closure (range ι) = univ :=
-(dense_range_iff_closure_eq _).1 pkg.dense
+pkg.dense.closure_range
 
 lemma dense_inducing : dense_inducing ι :=
 ⟨pkg.uniform_inducing.inducing, pkg.dense⟩
@@ -84,7 +82,7 @@ pkg.uniform_continuous_coe.continuous
 @[elab_as_eliminator]
 lemma induction_on {p : hatα → Prop}
   (a : hatα) (hp : is_closed {a | p a}) (ih : ∀ a, p (ι a)) : p a :=
-is_closed_property pkg.dense' hp ih a
+is_closed_property pkg.dense hp ih a
 
 variables {β : Type*} [uniform_space β]
 
@@ -247,7 +245,7 @@ protected def prod : abstract_completion (α × β) :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
-  dense := dense_range_prod pkg.dense pkg'.dense }
+  dense := pkg.dense.prod pkg'.dense }
 end prod
 
 

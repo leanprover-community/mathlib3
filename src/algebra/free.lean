@@ -9,8 +9,7 @@ Authors: Kenny Lau
 
 And finally, magma.free_semigroup (free_magma α) ≃ free_semigroup α.
 -/
-
-import data.equiv.basic category.traversable.basic
+import data.equiv.basic
 
 universes u v
 
@@ -21,6 +20,8 @@ inductive free_magma (α : Type u) : Type u
 namespace free_magma
 
 variables {α : Type u}
+
+instance [inhabited α] : inhabited (free_magma α) := ⟨of (default _)⟩
 
 instance : has_mul (free_magma α) := ⟨free_magma.mul⟩
 
@@ -155,6 +156,8 @@ variables {α : Type u} [has_mul α]
 
 def of : α → free_semigroup α := quot.mk _
 
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+
 @[elab_as_eliminator]
 protected lemma induction_on {C : free_semigroup α → Prop} (x : free_semigroup α)
   (ih : ∀ x, C (of x)) : C x :=
@@ -228,6 +231,8 @@ instance : semigroup (free_semigroup α) :=
 def of (x : α) : free_semigroup α :=
 (x, [])
 
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+
 @[elab_as_eliminator]
 protected lemma induction_on {C : free_semigroup α → Prop} (x)
   (ih1 : ∀ x, C (of x)) (ih2 : ∀ x y, C (of x) → C y → C (of x * y)) :
@@ -246,7 +251,7 @@ def lift (x : free_semigroup α) : β :=
 lift' f x.1 x.2
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x := rfl
-@[simp] lemma lift_of_mul (x y) : lift f (of x * y) = f x * lift f y := rfl
+lemma lift_of_mul (x y) : lift f (of x * y) = f x * lift f y := rfl
 
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 free_semigroup.induction_on x (λ p, rfl)

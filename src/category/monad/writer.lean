@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -6,8 +5,7 @@ Authors: Simon Hudon
 
 The writer monad transformer for passing immutable state.
 -/
-
-import tactic.basic category.monad.basic
+import category.monad.basic
 universes u v w
 
 structure writer_t (ω : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
@@ -25,7 +23,7 @@ section
   variables {α β : Type u}
   open function
 
-  @[extensionality]
+  @[ext]
   protected lemma ext (x x' : writer_t ω m α)
     (h : x.run = x'.run) :
     x = x' := by cases x; cases x'; congr; apply h
@@ -84,11 +82,11 @@ end writer_t
     Note: This class can be seen as a simplification of the more "principled" definition
     ```
     class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
-    (lift {} {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
+    (lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
     ```
     -/
 class monad_writer (ω : out_param (Type u)) (m : Type u → Type v) :=
-(tell {} (w : ω) : m punit)
+(tell (w : ω) : m punit)
 (listen {α} : m α → m (α × ω))
 (pass {α : Type u} : m (α × (ω → ω)) → m α)
 
@@ -138,17 +136,26 @@ instance {ω : Type u} {m : Type u → Type v} [monad m] [monad_writer ω m] : m
     Note: This class can be seen as a simplification of the more "principled" definition
     ```
     class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
-    (map {} {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
+    (map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
     ```
     -/
 class monad_writer_adapter (ω ω' : out_param (Type u)) (m m' : Type u → Type v) :=
-(adapt_writer {} {α : Type u} : (ω → ω') → m α → m' α)
+(adapt_writer {α : Type u} : (ω → ω') → m α → m' α)
 export monad_writer_adapter (adapt_writer)
 
 section
 variables {ω ω' : Type u} {m m' : Type u → Type v}
 
-instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_functor m m' n n'] [monad_writer_adapter ω ω' m m'] : monad_writer_adapter ω ω' n n' :=
+/-- Transitivity.
+
+This instance generates the type-class problem with a metavariable argument (which is why this is marked as
+`[nolint dangerous_instance]`).
+Currently that is not a problem, as there are almost no instances of `monad_functor` or `monad_writer_adapter`.
+
+see Note [lower instance priority] -/
+@[nolint dangerous_instance, priority 100]
+instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_writer_adapter ω ω' m m']
+  [monad_functor m m' n n'] : monad_writer_adapter ω ω' n n' :=
 ⟨λ α f, monad_map (λ α, (adapt_writer f : m α → m' α))⟩
 
 instance [monad m] : monad_writer_adapter ω ω' (writer_t ω m) (writer_t ω' m) :=

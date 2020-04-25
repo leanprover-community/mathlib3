@@ -5,9 +5,9 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-
-import category_theory.category category_theory.isomorphism category_theory.groupoid category_theory.functor
-import algebra.group.units data.equiv.algebra
+import category_theory.category
+import category_theory.groupoid
+import data.equiv.mul_add
 
 universes v v' u u'
 
@@ -38,14 +38,14 @@ end struct
 
 /-- Endomorphisms of an object form a monoid -/
 instance monoid {C : Type u} [category.{v} C] {X : C} : monoid (End X) :=
-{ mul_one := category.id_comp C,
-  one_mul := category.comp_id C,
-  mul_assoc := λ x y z, (category.assoc C z y x).symm,
+{ mul_one := category.id_comp,
+  one_mul := category.comp_id,
+  mul_assoc := λ x y z, (category.assoc z y x).symm,
   ..End.has_mul X, ..End.has_one X }
 
 /-- In a groupoid, endomorphisms form a group -/
 instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
-{ mul_left_inv := groupoid.comp_inv C, inv := groupoid.inv, ..End.monoid }
+{ mul_left_inv := groupoid.comp_inv, inv := groupoid.inv, ..End.monoid }
 
 end End
 
@@ -54,16 +54,20 @@ include 𝒞
 
 def Aut (X : C) := X ≅ X
 
-attribute [extensionality Aut] iso.ext
+attribute [ext Aut] iso.ext
 
 namespace Aut
 
-instance: group (Aut X) :=
+instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
             mul := flip iso.trans, .. } ; dunfold flip; obviously
 
-def units_End_eqv_Aut : units (End X) ≃* Aut X :=
+/--
+Units in the monoid of endomorphisms of an object
+are (multiplicatively) equivalent to automorphisms of that object.
+-/
+def units_End_equiv_Aut : units (End X) ≃* Aut X :=
 { to_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   inv_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,

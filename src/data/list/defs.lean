@@ -5,13 +5,20 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic tactic.cache
+import data.option.defs
+import logic.basic
+import tactic.cache
 
 namespace list
 
 open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+
+/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
+def is_nil {α} : list α → bool
+| [] := tt
+| _  := ff
 
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
@@ -48,6 +55,8 @@ as.split_on_p (=a)
 | []     a := [a]
 | (b::l) a := b :: concat l a
 
+/-- `head' xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
 @[simp] def head' : list α → option α
 | []       := none
 | (a :: l) := some a
@@ -95,6 +104,18 @@ end take'
 def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []
+
+/-- `after p xs` is the suffix of `xs` after the first element that satisfies
+  `p`, not including that element.
+
+  ```lean
+  after      (eq 1)       [0, 1, 2, 3] = [2, 3]
+  drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
+  ```
+-/
+def after (p : α → Prop) [decidable_pred p] : list α → list α
+| [] := []
+| (x :: xs) := if p x then xs else after xs
 
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results.
@@ -172,6 +193,16 @@ map_with_index_core f 0 as
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
 
+/-- Auxilliary definition for `indexes_values`. -/
+def indexes_values_aux {α} (f : α → bool) : list α → ℕ → list (ℕ × α)
+| []      n := []
+| (x::xs) n := let ns := indexes_values_aux xs (n+1) in if f x then (n, x)::ns else ns
+
+/-- Returns `(l.find_indexes f).zip l`, i.e. pairs of `(n, x)` such that `f x = tt` and
+  `l.nth = some x`, in increasing order of first arguments. -/
+def indexes_values {α} (l : list α) (f : α → bool) : list (ℕ × α) :=
+indexes_values_aux f l 0
+
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] : list α → nat
 | []      := 0
@@ -242,7 +273,7 @@ section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
+| nil : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 
 attribute [simp] forall₂.nil
@@ -286,8 +317,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
     show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
-    by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
-  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
+    by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (lt_add_of_pos_left _ (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
 using_well_founded {
   dec_tac := tactic.assumption,
@@ -354,7 +385,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil {} : pairwise []
+| nil : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -384,7 +415,7 @@ variable (R : α → α → Prop)
 
      chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil {} {a : α} : chain a []
+| nil {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 
 /-- `chain' R l` means that `R` holds between adjacent elements of `l`.
@@ -453,9 +484,6 @@ it returns `none` otherwise -/
 | [a]    := some a
 | (b::l) := last' l
 
-/- tfae: The Following (propositions) Are Equivalent -/
-def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
-
 /-- `rotate l n` rotates the elements of `l` to the left by `n`
 
      rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
@@ -482,48 +510,23 @@ def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
 
-namespace func
-
-/- Definitions for using lists as finite
-   representations of functions with domain ℕ. -/
-
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
-
-variables [inhabited α] [inhabited β]
-
-@[simp] def set (a : α) : list α → ℕ → list α
-| (_::as) 0     := a::as
-| []      0     := [a]
-| (h::as) (k+1) := h::(set as k)
-| []      (k+1) := (default α)::(set ([] : list α) k)
-
-@[simp] def get : ℕ → list α → α
-| _ []          := default α
-| 0 (a::as)     := a
-| (n+1) (a::as) := get n as
-
-def equiv (as1 as2 : list α) : Prop :=
-∀ (m : nat), get m as1 = get m as2
-
-@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
-| []      []      := []
-| []      (b::bs) := map (f $ default α) (b::bs)
-| (a::as) []      := map (λ x, f x $ default β) (a::as)
-| (a::as) (b::bs) := (f a b)::(pointwise as bs)
-
-def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
-@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
-
-def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
-@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
-
-end func
-
 /-- Filters and maps elements of a list -/
 def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
   list α → m (list β)
 | []       := return []
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
+
+protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  list α → F (list β)
+| [] := pure []
+| (x :: xs) := list.cons <$> f x <*> traverse xs
+
+/-- `get_rest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
+  If `l₁` is not a prefix of `l`, returns `none` -/
+def get_rest [decidable_eq α] : list α → list α → option (list α)
+| l      []      := some l
+| []     _       := none
+| (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
 
 end list

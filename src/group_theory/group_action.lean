@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite group_theory.coset
+import data.set.finite
+import group_theory.coset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -13,24 +14,48 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
 class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+end prio
 
 section
 variables [monoid α] [mul_action α β]
 
 theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
 
+lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
+
+lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
+  a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
+
 variable (α)
-@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul α _
+@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
+
+variables {α} (p : Prop) [decidable p]
+
+lemma ite_smul (a₁ a₂ : α) (b : β) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
+by split_ifs; refl
+
+lemma smul_ite (a : α) (b₁ b₂ : β) : a • (ite p b₁ b₂) = ite p (a • b₁) (a • b₂) :=
+by split_ifs; refl
 
 end
 
 namespace mul_action
 
-variables (α) [monoid α] [mul_action α β]
+variables (α) [monoid α]
+
+/-- The regular action of a monoid on itself by left multiplication. -/
+def regular : mul_action α α :=
+{ smul := λ a₁ a₂, a₁ * a₂,
+  one_smul := λ a, one_mul a,
+  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+
+variables [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 
@@ -78,6 +103,11 @@ def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
   one_smul := by simp [is_monoid_hom.map_one g, mul_action.one_smul],
   mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
 
+instance (b : β) : is_submonoid (stabilizer α b) :=
+{ one_mem := one_smul b,
+  mul_mem := λ a a' (ha : a • b = b) (hb : a' • b = b),
+    by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
+
 end mul_action
 
 namespace mul_action
@@ -113,7 +143,7 @@ lemma orbit_eq_iff {a b : β} :
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
 instance (b : β) : is_subgroup (stabilizer α b) :=
-{ one_mem := mul_action.one_smul _ _,
+{ one_mem := mul_action.one_smul _,
   mul_mem := λ x y (hx : x • b = b) (hy : y • b = b),
     show (x * y) • b = b, by rw mul_action.mul_smul; simp *,
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
@@ -169,10 +199,13 @@ mul_action.comp_hom (quotient H) (subtype.val : I → α)
 
 end mul_action
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
-(smul_zero {} : ∀(r : α), r • (0 : β) = 0)
+(smul_zero : ∀(r : α), r • (0 : β) = 0)
+end prio
 
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]
@@ -182,5 +215,27 @@ distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
+
+instance distrib_mul_action.is_add_monoid_hom (r : α) :
+  is_add_monoid_hom ((•) r : β → β) :=
+{ map_zero := smul_zero r,
+  map_add := smul_add r }
+
+lemma list.smul_sum {r : α} {l : list β} :
+  r • l.sum = (l.map ((•) r)).sum :=
+(list.sum_hom _ _).symm
+
+end
+
+section
+variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
+
+lemma multiset.smul_sum {r : α} {s : multiset β} :
+  r • s.sum = (s.map ((•) r)).sum :=
+(multiset.sum_hom _ _).symm
+
+lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
+  r • s.sum f = s.sum (λ x, r • f x) :=
+(finset.sum_hom _ _).symm
 
 end

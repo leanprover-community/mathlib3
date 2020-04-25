@@ -3,7 +3,6 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import data.equiv.basic
 
 /-!
@@ -77,7 +76,7 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (left_inv   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
 (right_inv  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
 
-attribute [simp] local_equiv.left_inv local_equiv.right_inv
+attribute [simp] local_equiv.left_inv local_equiv.right_inv local_equiv.map_source local_equiv.map_target
 
 /-- Associating a local_equiv to an equiv-/
 def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
@@ -96,8 +95,8 @@ variables (e : local_equiv α β) (e' : local_equiv β γ)
 
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
-{ to_fun    := λ⟨x, hx⟩, ⟨e.to_fun x, e.map_source hx⟩,
-  inv_fun   := λ⟨y, hy⟩, ⟨e.inv_fun y, e.map_target hy⟩,
+{ to_fun    := λ x, ⟨e.to_fun x, e.map_source x.mem⟩,
+  inv_fun   := λ y, ⟨e.inv_fun y, e.map_target y.mem⟩,
   left_inv  := λ⟨x, hx⟩, subtype.eq $ e.left_inv hx,
   right_inv := λ⟨y, hy⟩, subtype.eq $ e.right_inv hy }
 
@@ -120,7 +119,7 @@ protected def symm : local_equiv β α :=
 
 /-- A local equiv induces a bijection between its source and target -/
 lemma bij_on_source : bij_on e.to_fun e.source e.target :=
-bij_on_of_inv_on e.map_source e.map_target ⟨e.left_inv, e.right_inv⟩
+inv_on.bij_on ⟨e.left_inv, e.right_inv⟩ e.map_source e.map_target
 
 lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e.to_fun '' s = e.target ∩ e.inv_fun ⁻¹' s :=
@@ -156,19 +155,19 @@ lemma target_inter_inv_preimage_preimage (s : set β) :
 e.symm.source_inter_preimage_inv_preimage _
 
 lemma image_source_eq_target : e.to_fun '' e.source = e.target :=
-image_eq_of_bij_on e.bij_on_source
+e.bij_on_source.image_eq
 
 lemma source_subset_preimage_target : e.source ⊆ e.to_fun ⁻¹' e.target :=
 λx hx, e.map_source hx
 
 lemma inv_image_target_eq_source : e.inv_fun '' e.target = e.source :=
-image_eq_of_bij_on e.symm.bij_on_source
+e.symm.bij_on_source.image_eq
 
 lemma target_subset_preimage_source : e.target ⊆ e.inv_fun ⁻¹' e.source :=
 λx hx, e.map_target hx
 
 /-- Two local equivs that have the same source, same to_fun and same inv_fun, coincide. -/
-@[extensionality]
+@[ext]
 protected lemma ext (e' : local_equiv α β) (h : ∀x, e.to_fun x = e'.to_fun x)
   (hsymm : ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
 begin
@@ -367,9 +366,9 @@ lemma eq_on_source_refl : e ≈ e := setoid.refl _
 lemma eq_on_source_symm {e e' : local_equiv α β} (h : e ≈ e') : e.symm ≈ e'.symm :=
 begin
   have T : e.target = e'.target,
-  { have : set.bij_on e'.to_fun e.source e.target := bij_on_of_eq_on h.2 e.bij_on_source,
-    have A : e'.to_fun '' e.source = e.target := image_eq_of_bij_on this,
-    rw [h.1, image_eq_of_bij_on e'.bij_on_source] at A,
+  { have : set.bij_on e'.to_fun e.source e.target := e.bij_on_source.congr h.2,
+    have A : e'.to_fun '' e.source = e.target := this.image_eq,
+    rw [h.1, e'.bij_on_source.image_eq] at A,
     exact A.symm },
   refine ⟨T, λx hx, _⟩,
   have xt : x ∈ e.target := hx,
@@ -378,7 +377,7 @@ begin
   have A : e.to_fun (e.inv_fun x) = x := e.right_inv hx,
   have B : e.to_fun (e'.inv_fun x) = x,
     by { rw h.2, exact e'.right_inv xt, exact e's },
-  apply inj_on_of_bij_on e.bij_on_source (e.map_target hx) e's,
+  apply e.bij_on_source.inj_on (e.map_target hx) e's,
   rw [A, B]
 end
 
@@ -407,7 +406,7 @@ begin
   split,
   { have : e.target = e'.target := (eq_on_source_symm he).1,
     rw [trans_source'', trans_source'', ← this, ← hf.1],
-    exact image_eq_image_of_eq_on (λx hx, (eq_on_source_symm he).2 x hx.1) },
+    exact eq_on.image_eq (λx hx, (eq_on_source_symm he).2 x hx.1) },
   { assume x hx,
     rw trans_source at hx,
     simp [(he.2 x hx.1).symm, hf.2 _ hx.2] }
@@ -500,6 +499,31 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
 end prod
 
 end local_equiv
+
+namespace set
+
+-- All arguments are explicit to avoid missing information in the pretty printer output
+/-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
+between `α` and `β`. -/
+@[simps] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
+  (hf : bij_on f s t) :
+  local_equiv α β :=
+{ to_fun := f,
+  inv_fun := inv_fun_on f s,
+  source := s,
+  target := t,
+  map_source := hf.maps_to,
+  map_target := hf.surj_on.maps_to_inv_fun_on,
+  left_inv := hf.inv_on_inv_fun_on.1,
+  right_inv := hf.inv_on_inv_fun_on.2 }
+
+/-- A map injective on a subset of its domain provides a local equivalence. -/
+@[simp] noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α)
+  (hf : inj_on f s) :
+  local_equiv α β :=
+hf.bij_on_image.to_local_equiv f s (f '' s)
+
+end set
 
 namespace equiv
 /- equivs give rise to local_equiv. We set up simp lemmas to reduce most properties of the local

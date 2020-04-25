@@ -3,7 +3,6 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-
 import tactic.basic
 
 /-!
@@ -11,7 +10,7 @@ import tactic.basic
 
 ## Attributes
 
- * extensionality
+ * ext
  * functor_norm
  * monad_norm
 
@@ -35,9 +34,9 @@ functor, applicative, monad, simp
 
 -/
 
-run_cmd mk_simp_attr `monad_norm [`functor_norm]
+mk_simp_attribute monad_norm none with functor_norm
 
-attribute [extensionality] reader_t.ext state_t.ext except_t.ext option_t.ext
+attribute [ext] reader_t.ext state_t.ext except_t.ext option_t.ext
 attribute [functor_norm]   bind_assoc pure_bind bind_pure
 attribute [monad_norm] seq_eq_bind_map
 universes u v

@@ -56,14 +56,16 @@ include 𝒞
 open decorated_category
 
 class enriched_over :=
-(e_hom  [] : Π (X Y : C), obj_data V (X ⟶ Y))
-(notation X ` ⟶[V] ` Y:10 := (@obj_equiv V _ _).inv_fun ⟨X ⟶ Y, e_hom X Y⟩)
-(e_comp_left : Π {X Y : C} (f : X ⟶ Y) (Z : C), hom_data (λ g : Y ⟶ Z, f ≫ g) (e_hom Y Z) (e_hom X Z))
-(e_comp_right : Π (X : C) {Y Z : C} (g : Y ⟶ Z), hom_data (λ f : X ⟶ Y, f ≫ g) (e_hom X Y) (e_hom X Z))
+(e_hom  [] : Π (X Y : C), { v : V // (forget V).obj v = (X ⟶ Y) })
+(notation X ` ⟶[V] ` Y:10 := (e_hom X Y : V))
+(e_comp_left : Π {X Y : C} (f : X ⟶ Y) (Z : C),
+  { f' : (e_hom Y Z : V) ⟶ (e_hom X Z : V) // eq_to_hom ((e_hom Y Z).property.symm) ≫ (forget V).map f' ≫ eq_to_hom (e_hom X Z).property = (λ g : Y ⟶ Z, f ≫ g) })
+(e_comp_right : Π (X : C) {Y Z : C} (g : Y ⟶ Z),
+  { f' : (e_hom X Y : V) ⟶ (e_hom X Z : V) // eq_to_hom ((e_hom X Y).property.symm) ≫ (forget V).map f' ≫ eq_to_hom (e_hom X Z).property = (λ f : X ⟶ Y, f ≫ g) })
 
 variable [enriched_over V C]
 
-notation X ` ⟶[`V`] ` Y:10 := (obj_equiv V).inv_fun ⟨X ⟶ Y, enriched_over.e_hom V X Y⟩
+notation X ` ⟶[`V`] ` Y:10 := (enriched_over.e_hom V X Y : V)
 example [enriched_over V C] (X Y : C) : V := X ⟶[V] Y
 
 section
@@ -79,7 +81,8 @@ instance (X Y : D) : has_coe_to_fun (X ⟶[V] Y) :=
   coe := λ f,
   begin
     change (forget V).obj _ at f,
-    simp only [forget_obj_eq, equiv.inv_fun_as_coe] at f,
+    -- TODO write a lemma to avoid this erw
+    erw [(enriched_over.e_hom V X Y).2] at f,
     exact (f : X → Y),
   end }
 end
@@ -87,10 +90,10 @@ end
 variables {C}
 
 def comp_left {X Y : C} (f : X ⟶ Y) (Z : C) : (Y ⟶[V] Z) ⟶ (X ⟶[V] Z) :=
-(hom_equiv _ _).inv_fun ⟨λ g : Y ⟶ Z, f ≫ g, enriched_over.e_comp_left f Z⟩
+(enriched_over.e_comp_left f Z).1
 
 def comp_right (X : C) {Y Z : C} (g : Y ⟶ Z) : (X ⟶[V] Y) ⟶ (X ⟶[V] Z) :=
-(hom_equiv _ _).inv_fun ⟨λ f : X ⟶ Y, f ≫ g, enriched_over.e_comp_right X g⟩
+(enriched_over.e_comp_right X g).1
 
 omit 𝒞
 

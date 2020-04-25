@@ -352,42 +352,198 @@ by rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hd
     card_product];
   simp
 
-variables (p q : ℕ) [fact p.prime] [fact q.prime]
+-- move this
+instance prime_two' : fact (nat.prime 2) := nat.prime_two
 
-namespace zmod
+-- move this
+instance prime_three' : fact (nat.prime 3) := nat.prime_three
+
+/-- An auxilliary target type for the Legendre symbol -/
+@[derive decidable_eq, derive fintype, derive field]
+def legendre_sym_aux.type := zmod 3
+
+/-- Intermediate definition of the Legendre symbol -/
+def legendre_sym_aux (p : ℕ) (a : zmod p) : legendre_sym_aux.type :=
+if      a = 0           then  0
+else if a ^ (p / 2) = 1 then  1
+                        else -1
+
+namespace legendre_sym_aux
+
+lemma cases : ∀ x : type, x = 0 ∨ x = 1 ∨ x = -1 := dec_trivial
+
+/-- Interpret an auxilliary Legendre symbol as integer -/
+def to_int : type →* ℤ :=
+{ to_fun := zmod.val_min_abs,
+  map_one' := rfl,
+  map_mul' := dec_trivial }
+
+@[simp] lemma to_int_neg_one : to_int (-1) = -1 := rfl
+@[simp] lemma to_int_zero : to_int 0 = 0 := rfl
+@[simp] lemma to_int_one : to_int 1 = 1 := rfl
+@[simp] lemma to_int_neg : ∀ x : type, to_int (-x) = - to_int x := dec_trivial
+
+lemma to_int_injective : function.injective to_int := dec_trivial
+
+-- set_option pp.all true
+
+-- move this
+lemma val_min_abs_one (p : ℕ) [hp : fact (1 < p)] : val_min_abs (1 : zmod p) = 1 :=
+begin
+  rw [zmod.val_min_abs_def_pos, zmod.val_one, if_pos, int.coe_nat_one],
+  rwa [le_div_iff_mul_le 1 p (show 0 < 2, from dec_trivial), one_mul]
+end
+
+-- move this
+lemma val_neg_one (n : ℕ) [fact (0 < n)] : (-1 : zmod n).val = n - 1 :=
+begin
+  resetI, cases n,
+  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  cases n, { refl },
+  show int.nat_mod (-(fin.val 1 : ℕ)) _ = (n + 1),
+  rw [fin.val_one, ← int.coe_nat_inj', int.nat_mod, int.coe_nat_one,
+    int.to_nat_of_nonneg (int.mod_nonneg _ _)],
+  { have : (n.succ + 1 - 1) % (n.succ + 1) = n + 1,
+    { exact nat.mod_eq_of_lt (lt_add_one (n + 1)) },
+    conv_rhs { rw ← this },
+    show (-1 % (n+1+1) : ℤ) = (n + 1) % (n+1+1),
+    rw [← @int.add_mod_self_left (n+1+1) (-1), add_neg_cancel_right] },
+  { exact_mod_cast nat.succ_ne_zero _ }
+end
+
+-- move this
+lemma val_min_abs_neg_one (p : ℕ) (hp : 2 < p) : val_min_abs (-1 : zmod p) = -1 :=
+begin
+  haveI hp1 : fact (1 < p) := lt_trans dec_trivial hp,
+  rw [zmod.val_min_abs_def_pos, val_neg_one, if_neg],
+  { rw [sub_eq_iff_eq_add', ← sub_eq_add_neg, int.coe_nat_sub (le_of_lt hp1), int.coe_nat_one] },
+  { rwa [le_div_iff_mul_le _ p (show 0 < 2, from dec_trivial), not_le],
+    rw [nat.mul_sub_right_distrib, mul_two, one_mul, nat.lt_sub_right_iff_add_lt],
+    exact add_lt_add_left hp p }
+end
+
+lemma coe_to_int_injective (p : ℕ) (hp : 2 < p) :
+  function.injective (λ x : type, (to_int x : zmod p)) :=
+begin
+  apply function.injective_of_has_left_inverse,
+  refine ⟨λ x, x.val_min_abs, _⟩,
+  haveI hp1 : _root_.fact (1 < p) := lt_trans dec_trivial hp,
+  intro x,
+  show (val_min_abs (to_int x : zmod p) : type) = x,
+  rcases cases x with rfl|rfl|rfl,
+  { rw [to_int_zero, int.cast_zero, zmod.val_min_abs_zero, int.cast_zero] },
+  { rw [to_int_one, int.cast_one, val_min_abs_one, int.cast_one] },
+  { simp only [to_int_neg_one, int.cast_neg, int.cast_one, val_min_abs_neg_one p hp] },
+end
+
+lemma eq_pow (p : ℕ) [hp : fact p.prime] (a : zmod p) :
+  (to_int (legendre_sym_aux p a) : zmod p) = (a ^ (p / 2)) :=
+begin
+  resetI, cases hp.eq_two_or_odd with hp2 hp_odd,
+  { subst p, revert a, exact dec_trivial },
+  rw legendre_sym_aux,
+  change fact (p % 2 = 1) at hp_odd,
+  by_cases ha : a = 0,
+  { rw [if_pos ha, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1))], refl },
+  { rw if_neg ha,
+    have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
+    cases zmod.pow_div_two_eq_neg_one_or_one p ha with h h,
+    { rw [if_pos h, h, to_int_one, int.cast_one], },
+    { rw [h, if_neg this, to_int_neg_one, int.cast_neg, int.cast_one], } }
+end
+
+lemma one (p : ℕ) [hp : fact p.prime] : legendre_sym_aux p 1 = 1 :=
+begin
+  resetI, cases eq_or_lt_of_le (hp.two_le) with hp2 hp3,
+  { subst p, exact dec_trivial },
+  apply coe_to_int_injective p hp3,
+  show (to_int (legendre_sym_aux p 1) : zmod p) = (1 : ℤ),
+  rw [eq_pow, _root_.one_pow, int.cast_one]
+end
+
+lemma mul (p : ℕ) [hp : fact p.prime] (a b : zmod p) :
+  legendre_sym_aux p (a * b) = legendre_sym_aux p a * legendre_sym_aux p b :=
+begin
+  resetI, cases eq_or_lt_of_le (hp.two_le) with hp2 hp3,
+  { subst p, revert a b, exact dec_trivial },
+  apply coe_to_int_injective p hp3,
+  show (to_int (legendre_sym_aux p (a * b)) : zmod p) =
+    to_int (legendre_sym_aux p a * legendre_sym_aux p b),
+  simp only [eq_pow, to_int.map_mul, int.cast_mul, _root_.mul_pow],
+end
+
+def hom (p : ℕ) [hp : fact p.prime] : zmod p →* type :=
+{ to_fun := legendre_sym_aux p,
+  map_one' := one p,
+  map_mul' := mul p }
+
+end legendre_sym_aux
+
+/-- The Legendre symbol as multiplicative map from `zmod p` to `ℤ`, where `p` is a prime.
+
+* `0` if `a` is `0` modulo `p`;
+* `1` if `a ^ (p / 2)` is `1` modulo `p`
+   (by `zmod.euler_criterion` this is equivalent to “`a` is a square modulo `p`”);
+* `-1` otherwise.
+
+Unfortunately, we get the syntax `legendre_sym_hom p a`
+for what is usually written as “`a` over `p`”.
+For that reason, we also provide `legendre_sym a p`. -/
+def legendre_sym_hom (p : ℕ) [fact p.prime] : zmod p →* ℤ :=
+(legendre_sym_aux.to_int).comp (legendre_sym_aux.hom p)
+
+section legendre_sym
+
+variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 /-- The Legendre symbol of `a` and `p` is an integer defined as
 
 * `0` if `a` is `0` modulo `p`;
 * `1` if `a ^ (p / 2)` is `1` modulo `p`
-   (by `euler_criterion` this is equivalent to “`a` is a square modulo `p`”);
+  (if `p` is prime, this is equivalent to “`a` is a nonzero square modulo `p`”,
+   by `zmod.euler_criterion`);
 * `-1` otherwise.
 
--/
+This symbol is typically used under the assumption that `p` is prime. -/
 def legendre_sym (a p : ℕ) : ℤ :=
 if      (a : zmod p) = 0           then  0
 else if (a : zmod p) ^ (p / 2) = 1 then  1
                                    else -1
 
+lemma legendre_sym_eq_neg_one_or_zero_or_one (a p : ℕ) :
+  legendre_sym a p = -1 ∨ legendre_sym a p = 0 ∨ legendre_sym a p = 1 :=
+by { delta legendre_sym, split_ifs; tauto }
+
+@[simp] lemma legendre_sym_zero (p : ℕ) : legendre_sym 0 p = 0 :=
+if_pos nat.cast_zero
+
+@[simp] lemma legendre_sym_one (p : ℕ) [fact (1 < p)] : legendre_sym 1 p = 1 :=
+begin
+  delta legendre_sym, rw [if_neg, if_pos],
+  { rw [nat.cast_one, _root_.one_pow] },
+  { rw [nat.cast_one], exact one_ne_zero },
+end
+
+@[simp] lemma legendre_sym_hom_apply (a : ℕ) : legendre_sym_hom p a = legendre_sym a p :=
+show (legendre_sym_aux.to_int : legendre_sym_aux.type → ℤ) (ite _ _ _) = ite _ _ _,
+by split_ifs; refl
+
+lemma legendre_sym_mod (a p : ℕ) :
+  legendre_sym a p = legendre_sym (a % p) p :=
+by { delta legendre_sym, simp only [cast_mod_nat], split_ifs; refl }
+
+lemma legendre_sym_two_right (a : ℕ) :
+  legendre_sym a 2 = a % 2 :=
+begin
+  rw [legendre_sym_mod, show (a % 2 : ℤ) = ((a % 2 : ℕ) : ℤ), from rfl],
+  cases mod_two_eq_zero_or_one a with h h,
+  { rw [h, legendre_sym_zero, int.coe_nat_zero] },
+  { rw [h, legendre_sym_one, int.coe_nat_one] }
+end
+
 lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
   (legendre_sym a p : zmod p) = (a ^ (p / 2)) :=
-begin
-  rw legendre_sym,
-  by_cases ha : (a : zmod p) = 0,
-  { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
-  cases hp.eq_two_or_odd with hp2 hp_odd,
-  { resetI, subst p,
-    have : ∀ (a : zmod 2),
-      ((if a = 0 then 0 else if a ^ (2 / 2) = 1 then 1 else -1 : ℤ) : zmod 2) = a ^ (2 / 2),
-    by exact dec_trivial,
-    exact this a },
-  { change fact (p % 2 = 1) at hp_odd, resetI,
-    rw if_neg ha,
-    have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
-    cases pow_div_two_eq_neg_one_or_one p ha with h h,
-    { rw [if_pos h, h, int.cast_one], },
-    { rw [h, if_neg this, int.cast_neg, int.cast_one], } }
-end
+by { rw ← legendre_sym_hom_apply, exact legendre_sym_aux.eq_pow p a }
 
 lemma legendre_sym_eq_one_or_neg_one (a p : ℕ) (ha : (a : zmod p) ≠ 0) :
   legendre_sym a p = -1 ∨ legendre_sym a p = 1 :=
@@ -403,9 +559,13 @@ begin
   { assume ha, rw [legendre_sym, if_pos ha] }
 end
 
+lemma legendre_sym_mul (a b p : ℕ) [fact p.prime] :
+  legendre_sym (a * b) p = legendre_sym a p * legendre_sym b p :=
+by simp only [← legendre_sym_hom_apply, nat.cast_mul, (legendre_sym_hom p).map_mul]
+
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
   than `p/2` such that `(a * x) % p > p / 2` -/
-lemma gauss_lemma {a : ℕ} [hp1 : fact (p % 2 = 1)] (ha0 : (a : zmod p) ≠ 0) :
+lemma zmod.gauss_lemma {a : ℕ} [hp1 : fact (p % 2 = 1)] (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym a p = (-1) ^ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 have (legendre_sym a p : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
@@ -421,26 +581,36 @@ end
 lemma legendre_sym_eq_one_iff {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym a p = 1 ↔ (∃ b : zmod p, b ^ 2 = a) :=
 begin
-  rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
+  rw [zmod.euler_criterion p ha0, legendre_sym, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
   finish -- this is quite slow. I'm actually surprised that it can close the goal at all!
 end
 
-lemma eisenstein_lemma [hp1 : fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
+lemma zmod.eisenstein_lemma [hp1 : fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym a p = (-1)^(Ico 1 (p / 2).succ).sum (λ x, (x * a) / p) :=
-by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
+by rw [neg_one_pow_eq_pow_mod_two, zmod.gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
     show _ = _, from eisenstein_lemma_aux₂ p ha1 ha0]
 
+/-- Quadratic reciprocity gives a relation between the Legendre symbols
+ `legendre_sym p q` and `legendre_sym q p` for two distinct odd primes `p` and `q`. -/
 theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
   legendre_sym p q * legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
-by rw [eisenstein_lemma q hp1 hpq0, eisenstein_lemma p hq1 hqp0,
+by rw [zmod.eisenstein_lemma q hp1 hpq0, zmod.eisenstein_lemma p hq1 hqp0,
   ← _root_.pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
--- move this
-instance fact_prime_two : fact (nat.prime 2) := nat.prime_two
+lemma legendre_sym_swap [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
+  legendre_sym p q = legendre_sym q p * (-1) ^ ((p / 2) * (q / 2)) :=
+begin
+  have : (legendre_sym q p)^2 = 1,
+  { cases legendre_sym_eq_one_or_neg_one q p (prime_ne_zero p q hpq) with h h,
+    all_goals { rw [h], refl } },
+  calc legendre_sym p q = (legendre_sym p q) * (legendre_sym q p)^2 : by rw [this, mul_one]
+     ... = (legendre_sym q p) * ((legendre_sym p q) * (legendre_sym q p)) : by ring
+     ... = legendre_sym q p * (-1) ^ ((p / 2) * (q / 2)) : by rw quadratic_reciprocity p q hpq
+end
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1),
@@ -467,7 +637,7 @@ have hunion :
     exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm])
   end,
 begin
-  rw [gauss_lemma p (prime_ne_zero p 2 hp2),
+  rw [zmod.gauss_lemma p (prime_ne_zero p 2 hp2),
     neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (p / 4 + p / 2)],
   refine congr_arg2 _ rfl ((eq_iff_modeq_nat 2).1 _),
   rw [show 4 = 2 * 2, from rfl, ← nat.div_div_eq_div_mul, hp22, nat.cast_add,
@@ -509,7 +679,7 @@ begin
   have := quadratic_reciprocity p q hpq,
   rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
     if_neg hqp0, if_neg hpq0] at this,
-  rw [euler_criterion q hpq0, euler_criterion p hqp0],
+  rw [zmod.euler_criterion q hpq0, zmod.euler_criterion p hqp0],
   split_ifs at this; simp *; contradiction,
 end
 
@@ -527,8 +697,32 @@ begin
   have := quadratic_reciprocity p q hpq,
   rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
     if_neg hpq0, if_neg hqp0] at this,
-  rw [euler_criterion q hpq0, euler_criterion p hqp0],
+  rw [zmod.euler_criterion q hpq0, zmod.euler_criterion p hqp0],
   split_ifs at this; simp *; contradiction
 end
 
-end zmod
+end legendre_sym
+
+example : legendre_sym 43 29 = -1 :=
+begin
+  haveI : fact (nat.prime 29) := by norm_num,
+  haveI : fact (nat.prime  7) := by norm_num,
+  haveI : fact (29 % 2 = 1)   := by norm_num,
+  haveI : fact ( 7 % 2 = 1)   := by norm_num,
+  calc legendre_sym 43 29 = legendre_sym 14 29 :
+                            by { rw [legendre_sym_mod, show 43 % 29 = 14, by norm_num] }
+                      ... = legendre_sym (2 * 7) 29 :
+                            by { rw [show 14 = 2 * 7, by norm_num] }
+                      ... = legendre_sym 2 29 * legendre_sym 7 29 :
+                            by { rw [legendre_sym_mul] }
+                      ... = -legendre_sym 7 29 :
+                            by { rw [legendre_sym_two, show (-1:ℤ)^(29/4 + 29/2) = -1, by norm_num],
+                                 rw [neg_one_mul] }
+                      ... = -legendre_sym 29 7 :
+                            by { rw [legendre_sym_swap 7 29 dec_trivial],
+                                 rw [show (-1:ℤ) ^ (7 / 2 * (29 / 2)) = 1, by norm_num, mul_one] }
+                      ... = -legendre_sym 1 7 :
+                            by { rw [legendre_sym_mod, show 29 % 7 = 1, by norm_num] }
+                      ... = -1 :
+                            by { rw [legendre_sym_one] }
+end

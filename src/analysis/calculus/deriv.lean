@@ -27,6 +27,10 @@ of the corresponding predicates for Fréchet derivatives:
  - `has_deriv_at f f' x` states that the function `f` has the derivative `f'`
     at the point `x`.
 
+ - `has_strict_deriv_at f f' x` states that the function `f` has the derivative `f'`
+    at the point `x` in the sense of strict differentiability, i.e.,
+   `f y - f z = (y - z) • f' + o (y - z)` as `y, z → x`.
+
 For the last two notions we also define a functional version:
 
   - `deriv_within f s x` is a derivative of `f` at `x` within `s`. If the
@@ -687,6 +691,10 @@ h.neg
 theorem has_deriv_at.neg (h : has_deriv_at f f' x) : has_deriv_at (λ x, -f x) (-f') x :=
 h.neg
 
+theorem has_strict_deriv_at.neg (h : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, -f x) (-f') x :=
+by simpa using h.neg.has_strict_deriv_at
+
 lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f s x) :
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
@@ -720,6 +728,11 @@ theorem has_deriv_at.sub
   (hf : has_deriv_at f f' x) (hg : has_deriv_at g g' x) :
   has_deriv_at (λ x, f x - g x) (f' - g') x :=
 hf.sub hg
+
+theorem has_strict_deriv_at.sub
+  (hf : has_strict_deriv_at f f' x) (hg : has_strict_deriv_at g g' x) :
+  has_strict_deriv_at (λ x, f x - g x) (f' - g') x :=
+hf.add hg.neg
 
 lemma deriv_within_sub (hxs : unique_diff_within_at 𝕜 s x)
   (hf : differentiable_within_at 𝕜 f s x) (hg : differentiable_within_at 𝕜 g s x) :
@@ -788,7 +801,7 @@ section continuous
 theorem has_deriv_at_filter.tendsto_nhds
   (hL : L ≤ 𝓝 x) (h : has_deriv_at_filter f f' x L) :
   tendsto f L (𝓝 (f x)) :=
-has_fderiv_at_filter.tendsto_nhds hL h
+h.tendsto_nhds hL
 
 theorem has_deriv_within_at.continuous_within_at
   (h : has_deriv_within_at f f' s x) : continuous_within_at f s x :=
@@ -910,6 +923,11 @@ theorem has_deriv_at.comp
   (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_at h₂ h₂' x) :
   has_deriv_at (h₁ ∘ h₂) (h₁' * h₂') x :=
 (hh₁.mono hh₂.continuous_at).comp x hh₂
+
+theorem has_strict_deriv_at.comp
+  (hh₁ : has_strict_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_strict_deriv_at h₂ h₂' x) :
+  has_strict_deriv_at (h₁ ∘ h₂) (h₁' * h₂') x :=
+by { rw mul_comm, exact hh₁.scomp x hh₂ }
 
 theorem has_deriv_at.comp_has_deriv_within_at
   (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_within_at h₂ h₂' s x) :
@@ -1084,21 +1102,16 @@ section inverse
 
 theorem has_strict_deriv_at_inv (hx : x ≠ 0) : has_strict_deriv_at has_inv.inv (-(x^2)⁻¹) x :=
 begin
-  suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x ^ 2)⁻¹ - (p.1 * p.2)⁻¹))
+  suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
     (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
   { refine this.congr' _ (eventually_of_forall _ $ λ _, mul_one _),
-    have : is_open {p : 𝕜 | p ∉ ({0} : set 𝕜)},
-      from (is_open_neg $ t1_space.t1 0),
-    simp only [mem_singleton_iff] at this, -- TODO: add `is_open_ne`
-    apply eventually.mono (mem_nhds_sets (is_open_prod this this) _),
-    { rintro ⟨y, z⟩ ⟨hy, hz⟩,
-      simp only [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
-        smul_eq_mul, inv_sub_inv hy hz, mul_sub, ← neg_sub y, ← neg_mul_eq_mul_neg,
-        ← neg_mul_eq_neg_mul, div_eq_mul_inv, neg_sub_neg] },
-    { exact ⟨hx, hx⟩ } },
+    refine eventually.mono (mem_nhds_sets (is_open_prod is_open_ne is_open_ne) ⟨hx, hx⟩) _,
+    rintro ⟨y, z⟩ ⟨hy, hz⟩,
+    simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
+    field_simp [hx, hy, hz], ring, },
   refine (is_O_refl (λ p : 𝕜 × 𝕜, p.1 - p.2) _).mul_is_o ((is_o_one_iff _).2 _),
-  simp only [← sub_self (x * x)⁻¹, pow_two],
-  exact tendsto_const_nhds.sub ((continuous_mul.tendsto (x, x)).inv' $ mul_ne_zero hx hx),
+  rw [← sub_self (x * x)⁻¹],
+  exact tendsto_const_nhds.sub ((continuous_mul.tendsto (x, x)).inv' $ mul_ne_zero hx hx)
 end
 
 theorem has_deriv_at_inv (x_ne_zero : x ≠ 0) :

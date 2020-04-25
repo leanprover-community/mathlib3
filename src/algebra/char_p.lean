@@ -7,7 +7,6 @@ Characteristic of semirings.
 -/
 
 import data.fintype.basic
-import data.padics.padic_norm
 import data.nat.choose
 import algebra.module
 
@@ -88,7 +87,7 @@ end
 section frobenius
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [nat.prime p] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -123,11 +122,11 @@ theorem ring_hom.map_iterate_frobenius (n : ℕ) :
   g (frobenius R p^[n] x) = (frobenius S p^[n] (g x)) :=
 g.to_monoid_hom.map_iterate_frobenius p x n
 
-theorem monoid_hom.iterate_map_frobenius (f : R →* R) (p : ℕ) [nat.prime p] [char_p R p] (n : ℕ) :
+theorem monoid_hom.iterate_map_frobenius (f : R →* R) (p : ℕ) [fact p.prime] [char_p R p] (n : ℕ) :
   f^[n] (frobenius R p x) = frobenius R p (f^[n] x) :=
 f.iterate_map_pow _ _ _
 
-theorem ring_hom.iterate_map_frobenius (f : R →+* R) (p : ℕ) [nat.prime p] [char_p R p] (n : ℕ) :
+theorem ring_hom.iterate_map_frobenius (f : R →+* R) (p : ℕ) [fact p.prime] [char_p R p] (n : ℕ) :
   f^[n] (frobenius R p x) = frobenius R p (f^[n] x) :=
 f.iterate_map_pow _ _ _
 
@@ -147,7 +146,7 @@ theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).ma
 
 end frobenius
 
-theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [nat.prime p] [char_p α p] :
+theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [fact p.prime] [char_p α p] :
   function.injective (frobenius α p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
 

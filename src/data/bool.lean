@@ -135,8 +135,10 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
+/-! ### De Morgan's laws for booleans-/
 @[simp] lemma bnot_band : ∀ (a b : bool), !(a && b) = !a || !b := dec_trivial
 @[simp] lemma bnot_bor : ∀ (a b : bool), !(a || b) = !a && !b := dec_trivial
+
 lemma bnot_inj : ∀ {a b : bool}, bnot a = bnot b → a = b := dec_trivial
 
 end bool

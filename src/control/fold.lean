@@ -43,8 +43,8 @@ but the author cannot think of instances of `foldable` that are not also
 -/
 import algebra.free_monoid
 import algebra.opposites
-import category.traversable.instances
-import category.traversable.lemmas
+import control.traversable.instances
+import control.traversable.lemmas
 import category_theory.category
 import category_theory.endomorphism
 import category_theory.types

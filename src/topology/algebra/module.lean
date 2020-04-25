@@ -437,17 +437,17 @@ def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →L[R] M₂) 
 (id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
 
 @[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ h x) :
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : M) :
   (f₁.proj_ker_of_right_inverse f₂ h x : M) = x - f₂ (f₁ x) :=
 rfl
 
 @[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ h) (x : f₁.ker) :
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
   f₁.proj_ker_of_right_inverse f₂ h x = x :=
 subtype.coe_ext.2 $ by simp
 
 @[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ h) (y : M₂) :
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
 subtype.coe_ext.2 $ by simp [h y]
 
@@ -604,7 +604,7 @@ lemma comp_continuous_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.to_homeomorph.comp_continuous_iff _
 
-/-- An extensionality lemma for `R ≃L[R] R`. -/
+/-- An extensionality lemma for `R ≃L[R] M`. -/
 lemma ext₁ [topological_space R] {f g : R ≃L[R] M} (h : f 1 = g 1) : f = g :=
 ext $ funext $ λ x, mul_one x ▸ by rw [← smul_eq_mul, map_smul, h, map_smul]
 
@@ -775,13 +775,16 @@ of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (sub
   (λ x, by simp)
   (λ ⟨x, y⟩, by simp [h x])
 
-@[simp] lemma fst_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
+@[simp] lemma fst_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) (x : M) :
   (of_right_inverse f₁ f₂ h x).1 = f₁ x := rfl
 
-@[simp] lemma snd_of_right_inverse (f₁ : M →L[R] M₂) (f₂ h x) :
+@[simp] lemma snd_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) (x : M) :
   ((of_right_inverse f₁ f₂ h x).2 : M) = x - f₂ (f₁ x) := rfl
 
-@[simp] lemma of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ h y) :
+@[simp] lemma of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) (y : M₂ × f₁.ker) :
   (of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end continuous_linear_equiv

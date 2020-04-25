@@ -52,6 +52,7 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0}
 
 /-- Extract the constant from `hf : antilipschitz_with K f`. This is useful, e.g.,
 if `K` is given by a long formula, and we want to reuse this value. -/
+@[nolint unused_arguments] -- uses neither `f` nor `hf`
 protected def K (hf : antilipschitz_with K f) : ℝ≥0 := K
 
 protected lemma injective (hf : antilipschitz_with K f) :

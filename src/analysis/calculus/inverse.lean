@@ -506,6 +506,7 @@ include hf'l
 
 variables (f' f'inv)
 
+/-- Derivative of an auxiliary function used in the proof of the implicit function theorem. -/
 def prod_implicit_function_aux_fderiv : (E × F) ≃L[𝕜] (E × G) :=
 continuous_linear_equiv.of_inverse
   ((continuous_linear_map.fst 𝕜 E F).prod f')
@@ -554,12 +555,14 @@ end has_strict_fderiv_at
 
 namespace has_strict_deriv_at
 
-variables [complete_space 𝕜] {f : 𝕜 → 𝕜} {f' a : 𝕜} (hf : has_strict_deriv_at f f' a)
+variables [cs : complete_space 𝕜] {f : 𝕜 → 𝕜} {f' a : 𝕜} (hf : has_strict_deriv_at f f' a)
   (hf' : f' ≠ 0)
 
 lemma has_strict_fderiv_at' :
   has_strict_fderiv_at f (continuous_linear_equiv.equiv_units 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) a :=
 hf
+
+include cs
 
 variables (f f' a)
 

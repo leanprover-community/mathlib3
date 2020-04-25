@@ -816,7 +816,7 @@ total_degree_C (1 : α)
 begin
   rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
   simp only [finset.sup, sum_single_index, finset.insert_empty_eq_singleton,
-    finset.fold_singleton, lattice.sup_bot_eq],
+    finset.fold_singleton, sup_bot_eq],
 end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :

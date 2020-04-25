@@ -29,7 +29,7 @@ Throughout most of this file, K denotes a finite field with q elements.
    See `card'` for a variant.
 -/
 
-variables {K : Type*} [discrete_field K] [fintype K]
+variables {K : Type*} [field K] [fintype K]
 variables {R : Type*} [integral_domain R] [decidable_eq R]
 local notation `q` := fintype.card K
 
@@ -58,9 +58,8 @@ namespace finite_field
 open function finset polynomial
 
 /-- Every finite integral domain is a field. -/
-def field_of_integral_domain [fintype R] : discrete_field R :=
-{ has_decidable_eq := by apply_instance,
-  inv := λ a, if h : a = 0 then 0
+def field_of_integral_domain [fintype R] : field R :=
+{ inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
       from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
   inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha;
@@ -69,6 +68,48 @@ def field_of_integral_domain [fintype R] : discrete_field R :=
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
   ..show integral_domain R, by apply_instance }
+
+section polynomial
+
+open finset polynomial
+
+/-- The cardinality of a field is at most n times the cardinality of the image of a degree n
+  polynomial -/
+lemma card_image_polynomial_eval [decidable_eq R] {p : polynomial R} (hp : 0 < p.degree) :
+  fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+finset.card_le_mul_card_image _ _
+  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
+    (by simp [finset.ext, mem_roots_sub_C hp, -sub_eq_add_neg])
+    ... ≤ _ : card_roots_sub_C' hp)
+
+/-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
+lemma exists_root_sum_quadratic {f g : polynomial R} (hf2 : degree f = 2)
+  (hg2 : degree g = 2) (hR : fintype.card R % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
+by letI := classical.dec_eq R; exact
+suffices ¬ disjoint (univ.image (λ x : R, eval x f)) (univ.image (λ x : R, eval x (-g))),
+begin
+  simp only [disjoint_left, mem_image] at this,
+  push_neg at this,
+  rcases this with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
+  exact ⟨a, b, by rw [ha, ← hb, eval_neg, neg_add_self]⟩
+end,
+assume hd : disjoint _ _,
+lt_irrefl (2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card) $
+calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card
+    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+... = fintype.card R + fintype.card R : two_mul _
+... < nat_degree f * (univ.image (λ x : R, eval x f)).card +
+      nat_degree (-g) * (univ.image (λ x : R, eval x (-g))).card :
+    add_lt_add_of_lt_of_le
+      (lt_of_le_of_ne
+        (card_image_polynomial_eval (by rw hf2; exact dec_trivial))
+        (mt (congr_arg (%2)) (by simp [nat_degree_eq_of_degree_eq_some hf2, hR])))
+      (card_image_polynomial_eval (by rw [degree_neg, hg2]; exact dec_trivial))
+... = 2 * (univ.image (λ x : R, eval x f) ∪ univ.image (λ x : R, eval x (-g))).card :
+  by rw [card_disjoint_union hd]; simp [nat_degree_eq_of_degree_eq_some hf2,
+    nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
+
+end polynomial
 
 /-- The units of a finite field are finite. -/
 instance : fintype (units K) :=

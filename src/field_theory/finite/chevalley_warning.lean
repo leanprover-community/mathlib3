@@ -12,20 +12,20 @@ import field_theory.finite.basic
 # The Chevalley–Warning theorem
 
 This file contains a proof of the Chevalley–Warning theorem.
-Throughout most of this file, K denotes a finite field with q elements.
+Throughout most of this file, `K` denotes a finite field with `q` elements.
 
 ## Main results
 
-1. Let f be a multivariate polynomial in finitely many variables (X s, s : σ)
-   such that the total degree of f is less than (q-1) * cardinality of σ.
-   Then the evaluation of f on all points of `σ → K` (aka K^σ) sums to 0.
+1. Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
+   such that the total degree of `f` is less than `(q-1)` times the cardinality of `σ`.
+   Then the evaluation of `f` on all points of `σ → K` (aka `K^σ`) sums to `0`.
    (`sum_mv_polynomial_eq_zero`)
 2. The Chevalley–Warning theorem (`char_dvd_card_solutions`).
-   Let (f i) be a finite family of multivariate polynomials
-   in finitely many variables (X s, s : σ) such that
-   the sum of the total degrees of the f i is less than the cardinality of σ.
-   Then the number of common solutions of the f i
-   is divisible by the characteristic of K.
+   Let `f i` be a finite family of multivariate polynomials
+   in finitely many variables (`X s`, `s : σ`) such that
+   the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
+   Then the number of common solutions of the `f i`
+   is divisible by the characteristic of `K`.
 
 -/
 

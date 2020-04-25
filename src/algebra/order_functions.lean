@@ -18,7 +18,7 @@ then f is strictly monotone (see `strict_mono.nat`).
 ## Definition
 
 `strict_mono f` : a function between two types equipped with `<` is strictly monotone
-  if a < b → f a < f b
+  if `a < b` implies `f a < f b`.
 
 ## Tags
 

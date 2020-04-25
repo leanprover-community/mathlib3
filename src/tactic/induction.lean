@@ -342,6 +342,11 @@ namespace name
 
 open parser
 
+meta def basename : name → name
+| anonymous := anonymous
+| (mk_string s _) := mk_string s anonymous
+| (mk_numeral n _) := mk_numeral n anonymous
+
 meta def likely_generated_name_p : parser unit := do
 str "a",
 optional (ch '_' *> nat),
@@ -522,6 +527,13 @@ n ← get_unused_name n,
 intro n,
 pure ()
 
+meta def generalize_all (eliminee : expr) : tactic unit := do
+eliminee_type ← infer_type eliminee,
+ctx ← list.reverse <$> local_context,
+ctx.mmap' $ λ hyp, do
+  dep ← kdepends_on eliminee_type hyp,
+  when (hyp ≠ eliminee ∧ ¬ dep) $ revert hyp >> pure ()
+
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info)
   : tactic unit :=
@@ -548,57 +560,97 @@ end
 
 meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info) : tactic unit := do
--- TODO debug
-trace format!"constructor: {cinfo.cname}",
-constructor_argument_intros einfo iinfo cinfo,
-ih_intros einfo iinfo cinfo
+  -- TODO debug
+  trace format!"constructor: {cinfo.cname}",
+  constructor_argument_intros einfo iinfo cinfo,
+  ih_intros einfo iinfo cinfo
 
-meta def eliminee_args_valid (args : list expr) : bool :=
-args.all expr.is_local
+-- TODO copied from init/meta/interactive.lean and modified
+/--
+  Given the initial tag `in_tag` and the cases names produced by `induction` or `cases` tactic,
+  update the tag of the new subgoals.
+-/
+meta def set_cases_tags (in_tag : tag) (rs : list name) : tactic unit :=
+do te ← tags_enabled,
+   gs ← get_goals,
+   match gs with
+   | [g] := when te (set_tag g in_tag) -- if only one goal was produced, we should not make the tag longer
+   | _   := do
+     let tgs : list (name × expr) := rs.map₂ (λ n g, (n, g)) gs,
+     if te
+     then tgs.mmap' (λ ⟨n, g⟩, set_tag g (n::in_tag))
+          /- If `induction/cases` is not in a `with_cases` block, we still set tags using `_case_simple` to make
+             sure we can use the `case` notation.
+             ```
+             induction h,
+             case c { ... }
+             ```
+          -/
+     else tgs.mmap' $ λ ⟨n, g⟩,
+       with_enable_tags (set_tag g [name.mk_numeral 0 `_case, n])
+   end
 
-meta def induction'' (eliminee_name : name) : tactic unit := focus1 $ do
-eliminee ← get_local eliminee_name,
-einfo ← get_eliminee_info eliminee,
-let eliminee_type := einfo.type,
-let eliminee_args := einfo.args.to_list.map prod.snd,
-env ← get_env,
+meta def induction'' (eliminee_name : name) : tactic unit := do
+  initial_tag ← get_main_tag,
+  focus1 $ do {
+    eliminee ← get_local eliminee_name,
+    einfo ← get_eliminee_info eliminee,
+    let eliminee_type := einfo.type,
+    let eliminee_args := einfo.args.to_list.map prod.snd,
+    env ← get_env,
 
--- Find the recursor and other info about the inductive type
-(rec_const, iinfo) ← (do
-  type_name ← eliminee_type.match_const_application_normalizing,
-  guard (env.is_inductive type_name),
-  let rec_name := type_name ++ "rec_on",
-  rec_const ← mk_const rec_name,
-  iinfo ← get_inductive_info env type_name,
-  pure (rec_const, iinfo)
-) <|> fail format!
-  "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
--- TODO disallow generalised inductives; we don't want to support them
+    -- Find the name of the inductive type
+    iname ← do {
+      type_name ← eliminee_type.match_const_application_normalizing,
+      guard (env.is_inductive type_name),
+      pure type_name }
+    <|> fail format!
+      "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
 
--- Disallow complex indices (for now)
-guard (eliminee_args_valid eliminee_args) <|> fail format!
-  "induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n
-  where `T` is an inductive family and the `xᵢ` are local hypotheses.",
+    iinfo ← get_inductive_info env iname,
+    let rec_name := iname ++ "rec_on",
+    rec_const ← mk_const rec_name,
 
--- TODO generalisation
+    -- TODO We would like to disallow mutual/nested inductive types, since these have
+    -- complicated recursors which we probably don't support. However, there seems
+    -- to be no way to find out whether an inductive type is mutual/nested.
+    -- (`environment.is_ginductive` doesn't seem to work.)
 
--- Apply the recursor
-let rec := ``(%%rec_const %%eliminee),
-rec ← i_to_expr_for_apply rec,
-apply rec,
+    -- Disallow complex indices (for now)
+    guard (eliminee_args.all expr.is_local) <|> fail format!
+      ("induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n" ++
+      "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
 
--- Clear the eliminated hypothesis and the index args (unless used elsewhere)
-focus $ flip list.repeat iinfo.num_constructors (do
-  clear eliminee,
-  (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear)),
-  -- TODO is this the right thing to do? I don't think this necessarily
-  -- preserves provability: The args we clear could contain interesting
-  -- information, even if nothing else depends on them. Is there a way to avoid
-  -- this, i.e. clean up even more conservatively?
+    -- Generalise all generalisable hypotheses.
+    -- TODO implement "fixing h" syntax
+    generalize_all eliminee,
 
--- Introduce all constructor arguments
-focus $ iinfo.constructors.map $ constructor_intros einfo iinfo,
-pure ()
+    -- Apply the recursor
+    let rec := ``(%%rec_const %%eliminee),
+    rec ← i_to_expr_for_apply rec,
+    apply rec,
+
+    -- For each case (constructor):
+    focus $ iinfo.constructors.map $ λ cinfo, do {
+      -- Clear the eliminated hypothesis
+      clear eliminee,
+      -- Clear the index args (unless other stuff in the goal depends on them)
+      (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear),
+      -- TODO is this the right thing to do? I don't think this necessarily
+      -- preserves provability: The args we clear could contain interesting
+      -- information, even if nothing else depends on them. Is there a way to avoid
+      -- this, i.e. clean up even more conservatively?
+
+      -- Introduce the constructor arguments
+      constructor_intros einfo iinfo cinfo,
+      -- Introduce any hypotheses we may have previously generalised
+      intros,
+      pure ()
+    },
+
+    -- Set case tags
+    set_cases_tags initial_tag $ iinfo.constructors.map constructor_info.cname
+  }
 
 end tactic
 

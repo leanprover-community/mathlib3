@@ -99,9 +99,24 @@ begin
   exact ()
 end
 
+
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------
+
+
+-- TODO debug
+namespace tactic
+
+meta def trace_unique_name (n : name) : tactic unit := do
+  (expr.local_const u _ _ _) ← resolve_name n,
+  trace u
+
+meta def trace_tag : tactic unit := do
+  (t : list name) ← get_main_tag,
+  trace t
+
+end tactic
 
 
 namespace expressions
@@ -119,31 +134,52 @@ def subst (ρ : string → exp) : exp → exp
 | (Plus e₁ e₂) := Plus (subst e₁) (subst e₂)
 
 
+example (n : ℕ) : ℕ :=
+begin
+  apply nat.succ,
+  tactic.trace_tag
+end
+
+
 -- TODO case tags, type-based naming
 lemma subst_Var (e : exp) :
   subst (λx, Var x) e = e :=
 begin
-  induction' e,
+  induction e,
+  case Var {
+    tactic.trace_unique_name `e,
+    let x : ℕ := 2,
+    cases x,
+    { tactic.trace_unique_name `e, sorry },
+    { sorry }
+  },
+  { sorry },
+  { sorry }
+  -- (do
+  --   gs ← tactic.get_goals,
+  --   ts ← gs.mmap tactic.get_tag,
+  --   ts.mmap' (λ t, tactic.trace (format_tag t)),
+  --   pure ()
+  -- ),
   -- case Var {
-  {
-    -- rename e s,
-    rename x s,
-    /- Desired state here. -/
-    rw [subst]
-  },
-  -- case Num {
-  {
-    -- rename e z,
-    rename x z,
-    /- Desired state here. -/
-    rw [subst]
-  },
-  -- case Plus {
-  {
-    rw [subst],
-    rw ih_e,
-    rw ih_e_1
-   }
+  --   -- rename e s,
+  --   rename x s,
+  --   /- Desired state here. -/
+  --   rw [subst]
+  -- },
+  -- -- case Num {
+  -- {
+  --   -- rename e z,
+  --   rename x z,
+  --   /- Desired state here. -/
+  --   rw [subst]
+  -- },
+  -- -- case Plus {
+  -- {
+  --   rw [subst],
+  --   rw ih_e,
+  --   rw ih_e_1
+  --  }
 end
 
 end expressions
@@ -236,44 +272,22 @@ inductive tc {α : Type} (r : α → α → Prop) : α → α → Prop
 of. We start with a lemma where the variable names do not collide with those
 appearing in the definition of the inductive predicate. -/
 
--- TODO case tags, what's going on here?
+-- TODO case tags, fixing
 lemma tc_pets₁ {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b, tc r a b → r b c → tc r a c :=
 begin
   intros a b htab hrbc,
-  induction htab,
-  /- Desired syntax above: `induction htab fixing c`. -/
+  induction' htab,
+  -- Desired syntax above: `induction htab fixing c`.
   -- case tc.base {   -- should be `case base`
   {
-    clear a b,
-    rename htab_x a,
-    rename htab_y b,
-    rename htab_hr hr,
-    rename hrbc hrbc,   -- just to move it back where it used to be
-    /- Desired state here. Writing `case tc.base : hrab` (?) above would rename
-    `hr` to `hrab`. -/
     rename hr hrab,
-    rename hrbc hrbc,
-    /- Like this. -/
     exact tc.step _ _ _ hrab (tc.base _ _ hrbc) },
   -- case tc.step {   -- should be `case step`
   {
-    clear a b,
-    rename htab_x a,
-    rename htab_y y,
-    rename htab_z b,
-    rename htab_hr hr,
-    rename htab_ht ht,
-    rename htab_ih ih,
-    rename hrbc hrbc,   -- just to move it back where it used to be
-    /- Desired state here. Writing `case tc.step : x hrax htxb ih` would also
-    rename `y`, `hr`, `ht`, and `ih` to `x`, `hrax`, `htxb`, and `ih`,
-    respectively. -/
     rename y x,
     rename hr hrax,
-    rename ht htxb,
-    rename ih ih,
-    /- Like this. -/
+    specialize ih c,
     exact tc.step _ _ _ hrax (ih hrbc) }
 end
 
@@ -370,13 +384,9 @@ begin
   /- Desired syntax for the above two lines: `intro h, induction h`. -/
   -- case even.zero {
   {
-    intros _ heq,
-    /- Desired state here. -/
     cases heq },
   -- case even.add_two : k hk ih {
   {
-    intros n heq,
-    /- Desired state here. -/
     apply ih (n - 1),
     cases n,
     case nat.zero {

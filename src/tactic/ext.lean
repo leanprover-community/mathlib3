@@ -396,6 +396,6 @@ add_tactic_doc
 { name        := "ext1 / ext",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
-  tags        := ["rewrite", "logic"] }
+  tags        := ["rewriting", "logic"] }
 
 end tactic

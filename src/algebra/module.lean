@@ -239,6 +239,9 @@ variables {f g}
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
+lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
 

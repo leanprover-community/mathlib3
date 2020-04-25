@@ -130,6 +130,55 @@ end format
 namespace tactic
 open function
 
+/-- Private work function for `add_local_consts_as_local_hyps`: given
+    `mappings : list (expr × expr)` corresponding to pairs `(var, hyp)` of variables and the local
+    hypothesis created as a result and `(var :: rest) : list expr` of more local variables we
+    examine `var` to see if it contains any other variables in `rest`. If it does, we put it to the
+    back of the queue and recurse. If it does not, then we perform replacements inside the type of
+    `var` using the `mappings`, create a new associate local hypothesis, add this to the list of
+    mappings, and recurse. We are done once all local hypotheses have been processed.
+
+    If the list of passed local constants have types which depend on one another (which can only
+    happen by hand-crafting the `expr`s manually), this function will loop forever. -/
+private meta def add_local_consts_as_local_hyps_aux
+  : list (expr × expr) → list expr → tactic (list (expr × expr))
+| mappings [] := return mappings
+| mappings (var :: rest) := do
+  /- Determine if `var` contains any local variables in the lift `rest`. -/
+  let is_dependent := var.local_type.fold ff $ λ e n b,
+    if b then b else e ∈ rest,
+
+  /- If so, then skip it---add it to the end of the variable queue. -/
+  if is_dependent then
+    add_local_consts_as_local_hyps_aux mappings (rest ++ [var])
+  else do
+    /- Otherwise, replace all of the local constants referenced by the type of `var` with the
+       respective new corresponding local hypotheses as recorded in the list `mappings`. -/
+    let new_type := var.local_type.replace_subexprs mappings,
+
+    /- Introduce a new local new local hypothesis `hyp` for `var`, with the correct type. -/
+    hyp ← assertv var.local_pp_name new_type (var.local_const_set_type new_type),
+
+    /- Process the next variable in the queue, with the mapping list updated to include the local
+       hypothesis which we just created. -/
+    add_local_consts_as_local_hyps_aux ((var, hyp) :: mappings) rest
+
+/-- `add_local_consts_as_local_hyps vars` add the given list `vars` of `expr.local_const`s to the
+    tactic state. This is harder than it sounds, since the list of local constants which we have
+    been passed can have dependencies between their types.
+
+    For example, suppose we have two local constants `n : ℕ` and `h : n = 3`. Then we cannot blindly
+    add `h` as a local hypothesis, since we need the `n` to which it refers to be the `n` created as
+    a new local hypothesis, not the old local constant `n` with the same name. Of course, these
+    dependencies can be nested arbitrarily deep.
+
+    If the list of passed local constants have types which depend on one another (which can only
+    happen by hand-crafting the `expr`s manually), this function will loop forever. -/
+meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
+/- The `list.reverse` below is a performance optimisation since the list of available variables
+   reported by the system is often mostly the reverse of the order in which they are dependent. -/
+add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+
 /-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
 and returns the new local constants along with the instantiated expression. Fails if `e` does
 not begin with at least `n` pi binders. -/
@@ -1034,7 +1083,7 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
 end tactic
 
 namespace lean.parser
-open lean interaction_monad.result
+open tactic interaction_monad
 
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/
@@ -1069,6 +1118,65 @@ list.map expr.get_local_const_kind <$> list_available_include_vars
 meta def get_included_variables : lean.parser (list (name × binder_info × expr)) :=
 do ns ← list_include_var_names,
    list.filter (λ v, v.1 ∈ ns) <$> get_variables
+
+/-- From the `lean.parser` monad, synthesize a `tactic_state` which includes all of the local
+variables referenced in `es : list pexpr`, and those variables which have been `include`ed in the
+local context---precisely those variables which would be ambiently accessible if we were in a
+tactic-mode block where the goals had types `es.mmap to_expr`, for example.
+
+Returns a new `ts : tactic_state` with these local variables added, and
+`mappings : list (expr × expr)`, for which pairs `(var, hyp)` correspond to an existing variable
+`var` and the local hypothesis `hyp` which was added to the tactic state `ts` as a result. -/
+meta def synthesize_tactic_state_with_variables_as_hyps (es : list pexpr)
+  : lean.parser (tactic_state × list (expr × expr)) :=
+do /- First, in order to get `to_expr e` to resolve declared `variables`, we add all of the
+      declared variables to a fake `tactic_state`, and perform the resolution. At the end,
+      `to_expr e` has done the work of determining which variables were actually referenced, which
+      we then obtain from `fe` via `expr.list_local_consts` (which, importantly, is not defined for
+      `pexpr`s). -/
+   vars ← list_available_include_vars,
+   fake_es ← lean.parser.of_tactic $ lock_tactic_state $ do {
+     /- Note that `add_local_consts_as_local_hyps` returns the mappings it generated, but we discard
+        them on this first pass. (We return the mappings generated by our second invocation of this
+        function below.) -/
+     add_local_consts_as_local_hyps vars,
+     es.mmap to_expr
+   },
+
+   /- Now calculate lists of a) the explicitly `include`ed variables and b) the variables which were
+      referenced in `e` when it was resolved to `fake_e`.
+
+      It is important that we include variables of the kind a) because we want `simp` to have access
+      to declared local instances, and it is important that we only restrict to variables of kind a)
+      and b) together since we do not to recognise a hypothesis which is posited as a `variable`
+      in the environment but not referenced in the `pexpr` we were passed.
+
+      One use case for this behaviour is running `simp` on the passed `pexpr`, since we do not want
+      simp to use arbitrary hypotheses which were declared as `variables` in the local environment
+      but not referenced in the expression to simplify (as one would be expect generally in tactic
+      mode). -/
+   included_vars ← list_include_var_names,
+   let referenced_vars := list.join $ fake_es.map $ λ e, e.list_local_consts.map expr.local_pp_name,
+
+   /- Look up the explicit `included_vars` and the `referenced_vars` (which have appeared in the
+      `pexpr` list which we were passed.)  -/
+   let directly_included_vars := vars.filter $ λ var,
+     (var.local_pp_name ∈ included_vars) ∨ (var.local_pp_name ∈ referenced_vars),
+
+   /- Inflate the list `directly_included_vars` to include those variables which are "implicitly
+      included" by virtue of reference to one or multiple others. For example, given
+      `variables (n : ℕ) [prime n] [ih : even n]`, a reference to `n` implies that the typeclass
+      instance `prime n` should be included, but `ih : even n` should not. -/
+   let all_implicitly_included_vars :=
+     expr.all_implicitly_included_variables vars directly_included_vars,
+
+   /- Capture a tactic state where both of these kinds of variables have been added as local
+      hypotheses, and resolve `e` against this state with `to_expr`, this time for real. -/
+   lean.parser.of_tactic $ do {
+      mappings ← add_local_consts_as_local_hyps all_implicitly_included_vars,
+      ts ← get_state,
+      return (ts, mappings)
+   }
 
 end lean.parser
 
@@ -1808,20 +1916,45 @@ do d ← get_decl n,
      (eval_expr (tactic string) e) >>= (λ t, t)
    else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
-/-- auxiliary function for apply_under_pis -/
-private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
-| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
-| n _ :=
+/-- auxiliary function for `apply_under_n_pis` -/
+private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
+| n 0 _ :=
   let vars := ((list.range n).reverse.map (@expr.var ff)),
       bd := vars.foldl expr.app arg.mk_explicit in
   func bd
+| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_n_pis_aux (n+1) k bd)
+| n (k+1) t := apply_under_n_pis_aux n 0 t
+
+/--
+Assumes `pi_expr` is of the form `Π x1 ... xn xn+1..., _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_n_pis (func arg : pexpr) (pi_expr : expr) (n : ℕ) : pexpr :=
+apply_under_n_pis_aux func arg 0 n pi_expr
 
 /--
 Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
 Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
 All arguments (implicit and explicit) to `arg` should be supplied. -/
 meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
-apply_under_pis_aux func arg 0 pi_expr
+apply_under_n_pis func arg pi_expr pi_expr.pi_arity
+
+/--
+If `func` is a `pexpr` representing a function that takes an argument `a`,
+`get_pexpr_arg_arity_with_tgt func tgt` returns the arity of `a`.
+When `tgt` is a `pi` expr, `func` is elaborated in a context
+with the domain of `tgt`.
+
+Examples:
+* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function argument.
+* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument of type `α → α`.
+* ```get_pexpr_arg_arity_with_tgt ``(module R) `(Π (R : Type), comm_ring R → true)``` returns 0
+ -/
+private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
+lock_tactic_state $ do
+  mv ← mk_mvar,
+  solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
+  expr.pi_arity <$> (instantiate_mvars mv >>= infer_type)
 
 /--
 Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
@@ -1842,22 +1975,21 @@ handlers, which will fail on `def`s.
 λ cls new_decl_name,
 do env ← get_env,
 if env.is_inductive new_decl_name then return ff else
-do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+do new_decl ← get_decl new_decl_name,
    new_decl_pexpr ← resolve_name new_decl_name,
-   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
+   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
    (_, inst) ← solve_aux tgt
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
    inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name ++
+   nm ← get_unused_decl_name $ new_decl_name <.>
      match cls with
-     -- the postfix is needed because we can't protect this name. using nm.last directly can
-     -- conflict with open namespaces
-     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | (expr.const nm _) := nm.last
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
    set_basic_attribute `instance nm tt,
    return tt
 

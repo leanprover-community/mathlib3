@@ -1,21 +1,26 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon, Keeley Hoek, Floris van Doorn
+-/
 import data.list.defs
 
 namespace string
 
-def map_tokens (c : char) (f : list string → list string) : string → string :=
-intercalate (singleton c) ∘ f ∘ split (= c)
+/-- `s.split_on c` tokenizes `s : string` on `c : char`. -/
+def split_on (s : string) (c : char) : list string :=
+split (= c) s
 
-def over_list (f : list char → list char) : string → string :=
-list.as_string ∘ f ∘ string.to_list
+/-- `string.map_tokens c f s` tokenizes `s : string` on `c : char`, maps `f` over each token, and
+then reassembles the string by intercalating the separator token `c` over the mapped tokens. -/
+def map_tokens (c : char) (f : string → string) : string → string :=
+intercalate (singleton c) ∘ list.map f ∘ split (= c)
 
-def split_on (c : char) (s : string) : list string :=
-(s.to_list.split_on c).map list.as_string
-
-/-- Tests whether the first string is a prefix of the second string -/
+/-- Tests whether the first string is a prefix of the second string. -/
 def is_prefix_of (x y : string) : bool :=
 x.to_list.is_prefix_of y.to_list
 
-/-- Tests whether the first string is a suffix of the second string -/
+/-- Tests whether the first string is a suffix of the second string. -/
 def is_suffix_of (x y : string) : bool :=
 x.to_list.is_suffix_of y.to_list
 

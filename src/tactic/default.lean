@@ -25,3 +25,5 @@ import tactic.tfae
 import tactic.apply_fun
 import tactic.interval_cases
 import tactic.reassoc_axiom -- most likely useful only for category_theory
+import tactic.slice
+import tactic.subtype_instance

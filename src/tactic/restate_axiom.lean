@@ -68,8 +68,7 @@ restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
 -/
-@[user_command] meta def restate_axiom_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "restate_axiom") : lean.parser unit :=
+@[user_command] meta def restate_axiom_cmd (_ : parse $ tk "restate_axiom") : lean.parser unit :=
 do from_lemma ← ident,
    new_name ← optional ident,
    from_lemma_fully_qualified ← resolve_constant from_lemma,

@@ -184,7 +184,8 @@ do
   lemmas ← opt.get_lemma_thunks,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
-    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth)
+    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth <|>
+    fail "solve_by_elim failed; try increasing `max_depth`?")
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional

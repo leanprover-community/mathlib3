@@ -4,6 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura, Jeremy Avigad
 -/
 
+/-!
+# booleans
+
+This file proves various trivial lemmas about booleans and their
+relation to decidable propositions.
+
+## Notations
+
+This file introduces the notation `!b` for `bnot b`, the boolean "not".
+-/
+
 prefix `!`:90 := bnot
 
 namespace bool
@@ -61,9 +72,11 @@ theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
 ⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
  λ h, by cases h; exact ⟨_, h⟩⟩
 
+/-- If `p b` is decidable for all `b : bool`, then `∀ b, p b` is decidable -/
 instance decidable_forall_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∀ b, p b) :=
 decidable_of_decidable_of_iff and.decidable forall_bool.symm
 
+/-- If `p b` is decidable for all `b : bool`, then `∃ b, p b` is decidable -/
 instance decidable_exists_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∃ b, p b) :=
 decidable_of_decidable_of_iff or.decidable exists_bool.symm
 

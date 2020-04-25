@@ -43,11 +43,11 @@ noncomputable theory
 open_locale classical
 
 /-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
-def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
@@ -127,7 +127,7 @@ def inv : ℤ_[p] → ℤ_[p]
 end padic_int
 
 section instances
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
@@ -172,7 +172,7 @@ end instances
 
 namespace padic_norm_z
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
@@ -225,7 +225,7 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 
 namespace padic_int
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 local attribute [reducible] padic_int
 
@@ -285,7 +285,7 @@ instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
 end padic_int
 
 namespace padic_norm_z
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
       ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=

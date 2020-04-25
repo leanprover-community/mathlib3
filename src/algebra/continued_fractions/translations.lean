@@ -5,11 +5,11 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.basic
 /-!
-# Translation Lemmas Between Functions Defined for Continued Fractions
+# Basic Translation Lemmas Between Functions Defined for Continued Fractions
 
 ## Summary
 
-Some simple translation lemmas between the different functions defined in
+Some simple translation lemmas between the different definitions of functions defined in
 `algebra.continued_fractions.basic`.
 -/
 
@@ -17,6 +17,13 @@ namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
 section general
+/-!
+### Translations Between General Access Functions
+
+Here we give some basic translations that hold by definition between the various methods that allow
+us to access the numerators and denominators of a continued fraction.
+-/
+
 variables {α : Type*} {g : gcf α} {n : ℕ}
 
 lemma terminated_at_iff_s_terminated_at : g.terminated_at n ↔ g.s.terminated_at n := by refl
@@ -54,8 +61,14 @@ by simpa [partial_denominators, seq.map_nth] using nth_part_denom_eq
 end general
 
 section with_division_ring
-variables {K : Type*} {g : gcf K} {n : ℕ} [division_ring K]
+/-!
+### Translations Between Computational Functions
 
+Here we  give some basic translations that hold by definition for the computational methods of a
+continued fraction.
+-/
+
+variables {K : Type*} {g : gcf K} {n : ℕ} [division_ring K]
 
 lemma nth_cont_eq_succ_nth_cont_aux : g.continuants n = g.continuants_aux (n + 1) := rfl
 lemma num_eq_conts_a : g.numerators n = (g.continuants n).a := rfl

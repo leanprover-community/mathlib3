@@ -13,7 +13,39 @@ import tactic.linarith
 
 We show the equivalence of two computations of convergents (recurrence relation (`convergents`) vs.
 direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We follow the proof from
-[hardy2008introduction], Chapter 10.
+[hardy2008introduction], Chapter 10. Here's a sketch:
+
+Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),...]`, visually:
+                                a₀
+                h + --------------------------
+                                  a₁
+                      b₀ + --------------------
+                                    a₂
+                            b₁ + --------------
+                                        a₃
+                                  b₂ + --------
+                                      b₃ + ...
+
+One can compute the convergents of `c` in two ways:
+1. Directly evaluating the fraction described by `c` up to a given `n`
+2. Using the recurrence
+  `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
+  `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
+
+To show the equivalence of the computations in the main theorem of this file
+`convergents_eq_convergents'`, we proceed by induction. The case `n = 0` is trivial.
+
+For `n + 1`, we first "squash" the `n + 1`th position of `c` into the `n`th position to obtain
+another continued fraction
+  `c' := [h; (a₀, b₀),..., (aₙ-₁, bₙ-₁), (aₙ, bₙ + aₙ₊₁ / bₙ₊₁), (aₙ₊₁, bₙ₊₁),...]`.
+This squashing process is formalised in section `squash`. Note that directly evaluating `c` up to
+position `n + 1` is equal to evaluating `c'` up to `n`. This is shown in lemma
+`succ_nth_convergent'_eq_squash_gcf_nth_convergent'`.
+
+By the inductive hypothesis, the two computations for the `n`th convergent of `c` coincide.
+So all that is left to show is that the recurrence relation for `c` at `n + 1` and and `c'` at
+`n` coincide. This can be shown by another induction.
+The corresponding lemma in this file is `succ_nth_convergent_eq_squash_gcf_nth_convergent`.
 
 ## Main Theorems
 
@@ -37,14 +69,13 @@ namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 variables {g : gcf K} {s : seq $ gcf.pair K}
 
+section squash
 /-!
 We will show the equivalence of the computations by induction. To make the induction work, we need
 to be able to *squash* the nth and (n + 1)th value of a sequence. This squashing itself and the
-lemmas about it are not very interesting. As a reader, you hence might want to skip the `squash`
-section.
+lemmas about it are not very interesting. As a reader, you hence might want to skip this section.
 -/
 
-section squash
 section with_division_ring
 variable [division_ring K]
 
@@ -234,63 +265,63 @@ lemma succ_nth_convergent_eq_squash_gcf_nth_convergent [field K]
   (nth_part_denom_ne_zero : ∀ {b : K}, g.partial_denominators.nth n = some b → b ≠ 0) :
   g.convergents (n + 1) = (squash_gcf g n).convergents n :=
 begin
-cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
-{ have : squash_gcf g n = g, from squash_gcf_eq_self_of_terminated terminated_at_n,
-  simp only [this, (convergents_stable_of_terminated n.le_succ terminated_at_n)] },
-{ obtain ⟨⟨a, b⟩, s_nth_eq⟩ : ∃ gp_n, g.s.nth n = some gp_n, from
-    with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
-  have b_ne_zero : b ≠ 0, from nth_part_denom_ne_zero (part_denom_eq_s_b s_nth_eq),
-  cases n with n',
-  case nat.zero
-  { suffices : (b * g.h + a) / b = g.h + a / b, by
-      simpa [squash_gcf, s_nth_eq, convergent_eq_conts_a_div_conts_b,
-        (continuants_recurrence_aux s_nth_eq zeroth_continuant_aux_eq_one_zero
-        first_continuant_aux_eq_h_one)],
-    calc
-      (b * g.h + a) / b = b * g.h / b + a / b  : by ring -- requires `field` rather than `division_ring`
-                    ... = g.h + a / b          : by rw (mul_div_cancel_left _ b_ne_zero) },
-  case nat.succ
-  { obtain ⟨⟨pa, pb⟩, s_n'th_eq⟩ : ∃ gp_n', g.s.nth n' = some gp_n', from
-      g.s.ge_stable n'.le_succ s_nth_eq,
-    -- Notations
-    let g' := squash_gcf g (n' + 1),
-    set predConts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
-    set ppredConts := g.continuants_aux n' with n'th_conts_aux_eq,
-    let pA := predConts.a, let pB := predConts.b, let ppA := ppredConts.a, let ppB := ppredConts.b,
-    set predConts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
-    set ppredConts' := g'.continuants_aux n' with n'th_conts_aux_eq',
-    let pA' := predConts'.a, let pB' := predConts'.b, let ppA' := ppredConts'.a,
-    let ppB' := ppredConts'.b,
-    -- first compute the convergent of the squashed gcf
-    have : g'.convergents (n' + 1)
-         = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'), by
-    { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩, by
-        simpa only [squash_nth_gcf] using
-          (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq),
-      rw [convergent_eq_conts_a_div_conts_b,
-        (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
-    rw this,
-    -- then compute the convergent of the original gcf by recursively unfolding the continuants
-    -- computation twice
-    have : g.convergents (n' + 2)
-         = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
-    { -- use the recurrence once
-      have : g.continuants_aux (n' + 2) = ⟨pb * pA + pa * ppA, pb * pB + pa * ppB⟩, from
-        continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
-      -- and a second time
-      rw [convergent_eq_conts_a_div_conts_b,
-        (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
-    rw this,
-    suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
-             = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB) * b/b, by
-    { obtain ⟨eq1, eq2, eq3, eq4⟩ : pA' = pA ∧ pB' = pB ∧ ppA' = ppA ∧ ppB' = ppB, by
-        simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
-          (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm],
-      symmetry,
-      simpa only [eq1, eq2, eq3, eq4, mul_div_cancel'' _  b_ne_zero] },
-    field_simp [b_ne_zero],
-    congr' 1;
-    ring } }
+  cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
+  { have : squash_gcf g n = g, from squash_gcf_eq_self_of_terminated terminated_at_n,
+    simp only [this, (convergents_stable_of_terminated n.le_succ terminated_at_n)] },
+  { obtain ⟨⟨a, b⟩, s_nth_eq⟩ : ∃ gp_n, g.s.nth n = some gp_n, from
+      with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
+    have b_ne_zero : b ≠ 0, from nth_part_denom_ne_zero (part_denom_eq_s_b s_nth_eq),
+    cases n with n',
+    case nat.zero
+    { suffices : (b * g.h + a) / b = g.h + a / b, by
+        simpa [squash_gcf, s_nth_eq, convergent_eq_conts_a_div_conts_b,
+          (continuants_recurrence_aux s_nth_eq zeroth_continuant_aux_eq_one_zero
+          first_continuant_aux_eq_h_one)],
+      calc
+        (b * g.h + a) / b = b * g.h / b + a / b  : by ring -- requires `field` rather than `division_ring`
+                      ... = g.h + a / b          : by rw (mul_div_cancel_left _ b_ne_zero) },
+    case nat.succ
+    { obtain ⟨⟨pa, pb⟩, s_n'th_eq⟩ : ∃ gp_n', g.s.nth n' = some gp_n', from
+        g.s.ge_stable n'.le_succ s_nth_eq,
+      -- Notations
+      let g' := squash_gcf g (n' + 1),
+      set predConts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
+      set ppredConts := g.continuants_aux n' with n'th_conts_aux_eq,
+      let pA := predConts.a, let pB := predConts.b, let ppA := ppredConts.a, let ppB := ppredConts.b,
+      set predConts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
+      set ppredConts' := g'.continuants_aux n' with n'th_conts_aux_eq',
+      let pA' := predConts'.a, let pB' := predConts'.b, let ppA' := ppredConts'.a,
+      let ppB' := ppredConts'.b,
+      -- first compute the convergent of the squashed gcf
+      have : g'.convergents (n' + 1)
+           = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'), by
+      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩, by
+          simpa only [squash_nth_gcf] using
+            (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq),
+        rw [convergent_eq_conts_a_div_conts_b,
+          (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
+      rw this,
+      -- then compute the convergent of the original gcf by recursively unfolding the continuants
+      -- computation twice
+      have : g.convergents (n' + 2)
+           = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
+      { -- use the recurrence once
+        have : g.continuants_aux (n' + 2) = ⟨pb * pA + pa * ppA, pb * pB + pa * ppB⟩, from
+          continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
+        -- and a second time
+        rw [convergent_eq_conts_a_div_conts_b,
+          (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
+      rw this,
+      suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
+               = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB) * b/b, by
+      { obtain ⟨eq1, eq2, eq3, eq4⟩ : pA' = pA ∧ pB' = pB ∧ ppA' = ppA ∧ ppB' = ppB, by
+          simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
+            (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm],
+        symmetry,
+        simpa only [eq1, eq2, eq3, eq4, mul_div_cancel'' _  b_ne_zero] },
+      field_simp [b_ne_zero],
+      congr' 1;
+      ring } }
 end
 
 end squash
@@ -305,7 +336,7 @@ positivity criterion required here. The analogous result for them
 (see `continued_fractions.convergents_eq_convergents`) hence follows directly from this theorem.
 -/
 theorem convergents_eq_convergents' [linear_ordered_field K]
-(s_pos : ∀ {gp : gcf.pair K} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
+  (s_pos : ∀ {gp : gcf.pair K} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
   g.convergents n = g.convergents' n :=
 begin
   induction n with n IH generalizing g,

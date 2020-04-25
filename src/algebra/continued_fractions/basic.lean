@@ -53,6 +53,7 @@ instance [has_repr α] : has_repr (gcf.pair α) :=
 ⟨λ p, "(a : " ++ (repr p.a) ++ ", b : " ++ (repr p.b) ++ ")"⟩
 
 section coe
+/-! Interlude: define some expected coercions. -/
 /- Fix another type `β` and assume `α` can be converted to `β`. -/
 variables {α} {β : Type*} [has_coe α β]
 
@@ -116,8 +117,8 @@ by { unfold terminated_at, apply_instance }
 /-- A gcf terminates if its sequence terminates. -/
 def terminates (g : gcf α) : Prop := g.s.terminates
 
-/- Interlude: define some expected coercions. -/
 section coe
+/-! Interlude: define some expected coercions. -/
 -- Fix another type `β` and assume `α` can be converted to `β`.
 variables {β : Type*} [has_coe α β]
 

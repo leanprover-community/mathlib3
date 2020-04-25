@@ -13,6 +13,9 @@ relation to decidable propositions.
 ## Notations
 
 This file introduces the notation `!b` for `bnot b`, the boolean "not".
+
+## Tags
+bool, boolean, De Morgan
 -/
 
 prefix `!`:90 := bnot

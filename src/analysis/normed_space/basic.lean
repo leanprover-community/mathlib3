@@ -624,6 +624,13 @@ lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x 
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
 
+/-- Continuity at a point of the result of dividing two functions
+continuous at that point, where the denominator is nonzero. -/
+lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β} {x : α}
+    (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
+  continuous_at (λ x, f x / g x) x :=
+hf.div hg hnz
+
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=

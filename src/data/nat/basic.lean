@@ -942,8 +942,14 @@ theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] 
 | m 0 a := rfl
 | m (succ n) a := iterate_add m n _
 
+@[simp] theorem iterate_one : op^[1] = op := funext $ λ a, rfl
+
 theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
-by rw [← one_add, iterate_add]; refl
+by rw [← one_add, iterate_add, iterate_one]
+
+lemma iterate_mul (m : ℕ) : ∀ n, op^[m * n] = (op^[m]^[n])
+| 0 := by { ext a, simp only [mul_zero, iterate_zero] }
+| (n + 1) := by { ext x, simp only [mul_add, mul_one, iterate_one, iterate_add, iterate_mul n] }
 
 theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
   op^[n] x = x :=
@@ -954,11 +960,13 @@ theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β
   op'^[n] (op'' x) = op'' (op^[n] x) :=
 by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
 
-theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α} (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
+theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α}
+  (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
   op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
 by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
 
-theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} : op^[n] (op'^[n] x) = x :=
+theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
+  op^[n] (op'^[n] x) = x :=
 by induction n; [refl, rwa [iterate_succ, iterate_succ', H]]
 
 theorem iterate_inj {α : Type u} {op : α → α} (Hinj : function.injective op) (n : ℕ) (x y : α)

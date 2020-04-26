@@ -837,6 +837,10 @@ begin
   exact (div_le_iff_le_mul (or.inl h0) (or.inl hinf)).2 h
 end
 
+protected lemma div_lt_iff (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ⊤ ∨ c ≠ ⊤) :
+  c / b < a ↔ c < a * b :=
+lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht
+
 lemma mul_lt_of_lt_div (h : a < b / c) : a * c < b :=
 by { contrapose! h, exact ennreal.div_le_of_le_mul h }
 
@@ -937,6 +941,14 @@ by simpa only [div_def, one_mul] using sub_half one_ne_top
 lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
 @inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
+
+lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n : ℕ, b < n * a :=
+begin
+  have : b / a ≠ ⊤, from mul_ne_top hb (inv_ne_top.2 ha),
+  refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
+  rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
+end
 
 end inv
 

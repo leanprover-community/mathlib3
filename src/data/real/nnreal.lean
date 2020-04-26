@@ -88,9 +88,10 @@ begin
 end
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
-def coe_hom : ℝ≥0 →+* ℝ := ⟨coe, nnreal.coe_one, nnreal.coe_mul, nnreal.coe_zero, nnreal.coe_add⟩
+def to_real_hom : ℝ≥0 →+* ℝ :=
+⟨coe, nnreal.coe_one, nnreal.coe_mul, nnreal.coe_zero, nnreal.coe_add⟩
 
-@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
+@[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
 { zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
@@ -101,37 +102,37 @@ instance : comm_group_with_zero ℝ≥0 :=
   .. (_ : semiring ℝ≥0) }
 
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
-coe_hom.map_pow r n
+to_real_hom.map_pow r n
 
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
   ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
-coe_hom.map_list_sum l
+to_real_hom.map_list_sum l
 
 @[norm_cast] lemma coe_list_prod (l : list ℝ≥0) :
   ((l.prod : ℝ≥0) : ℝ) = (l.map coe).prod :=
-coe_hom.map_list_prod l
+to_real_hom.map_list_prod l
 
 @[norm_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
   ((s.sum : ℝ≥0) : ℝ) = (s.map coe).sum :=
-coe_hom.map_multiset_sum s
+to_real_hom.map_multiset_sum s
 
 @[norm_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
   ((s.prod : ℝ≥0) : ℝ) = (s.map coe).prod :=
-coe_hom.map_multiset_prod s
+to_real_hom.map_multiset_prod s
 
 @[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
-coe_hom.map_sum _ _
+to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
-coe_hom.map_prod _ _
+to_real_hom.map_prod _ _
 
 @[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
-coe_hom.to_add_monoid_hom.map_smul _ _
+to_real_hom.to_add_monoid_hom.map_smul _ _
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-coe_hom.map_nat_cast n
+to_real_hom.map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
 decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)

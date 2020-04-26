@@ -145,10 +145,13 @@ lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
 /-- Coercion `ℝ≥0 → ennreal` as a `ring_hom`. -/
-def of_nnreal : nnreal →+* ennreal := ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
+def of_nnreal_hom : nnreal →+* ennreal :=
+⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
+
+@[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
-of_nnreal.map_pow r n
+of_nnreal_hom.map_pow r n
 
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top _ _
@@ -204,11 +207,11 @@ by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, norm_cast] lemma coe_finset_sum {s : finset α} {f : α → nnreal} :
   ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
-of_nnreal.map_sum f s
+of_nnreal_hom.map_sum f s
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
   ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
-of_nnreal.map_prod f s
+of_nnreal_hom.map_prod f s
 
 section order
 

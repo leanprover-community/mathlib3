@@ -149,6 +149,32 @@ calc a ^ (q - 1) = (units.mk0 a ha ^ (q - 1) : units K) :
 
 variable (K)
 
+theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+begin
+  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
+  rw zmod.card at h,
+  refine ⟨⟨n, _⟩, hp, h⟩,
+  apply or.resolve_left (nat.eq_zero_or_pos n),
+  rintro rfl,
+  rw nat.pow_zero at h,
+  have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
+  exact absurd this zero_ne_one,
+end
+
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
+
+@[simp] lemma cast_card_eq_zero : (q : K) = 0 :=
+begin
+  rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
+  rcases card K p with ⟨n, hp, hn⟩,
+  simp only [char_p.cast_eq_zero_iff K p, hn],
+  conv { congr, rw [← nat.pow_one p] },
+  exact nat.pow_dvd_pow _ n.2,
+end
+
 /-- The sum of `x^i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q-1) ∣ i`, in which case the sum is `q-1`. -/
 lemma sum_pow_units (i : ℕ) :
@@ -189,32 +215,6 @@ begin
       apply order_of_dvd_of_pow_eq_one,
       rwa [units.ext_iff, units.coe_pow, units.coe_one, ← sub_eq_zero], }
   end
-end
-
-theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
-begin
-  haveI hp : fact p.prime := char_p.char_is_prime K p,
-  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
-  obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
-  rw zmod.card at h,
-  refine ⟨⟨n, _⟩, hp, h⟩,
-  apply or.resolve_left (nat.eq_zero_or_pos n),
-  rintro rfl,
-  rw nat.pow_zero at h,
-  have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
-  exact absurd this zero_ne_one,
-end
-
-theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
-let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
-
-@[simp] lemma cast_card_eq_zero : (q : K) = 0 :=
-begin
-  rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
-  rcases card K p with ⟨n, hp, hn⟩,
-  simp only [char_p.cast_eq_zero_iff K p, hn],
-  conv { congr, rw [← nat.pow_one p] },
-  exact nat.pow_dvd_pow _ n.2,
 end
 
 /-- The sum of `x^i` as `x` ranges over a finite field of cardinality `q`

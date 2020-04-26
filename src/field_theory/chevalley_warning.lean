@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import data.mv_polynomial
 import algebra.pi_instances
-import field_theory.finite.basic
+import field_theory.finite
 
 /-!
 # The Chevalley–Warning theorem
@@ -34,7 +34,9 @@ universes u v
 namespace finite_field
 open mv_polynomial function finset
 
-variables {K : Type*} [discrete_field K] [fintype K]
+open_locale classical
+
+variables {K : Type*} [field K] [fintype K]
 variables {σ : Type*} [fintype σ] [decidable_eq σ]
 local notation `q` := fintype.card K
 
@@ -113,8 +115,10 @@ begin
         { intros x hx, refine ⟨λ j, if j = i₀ then a else x j, _, _⟩,
           { rw mem_filter at hx ⊢, exact ⟨mem_univ _, if_pos rfl⟩ },
           { funext j, split_ifs with hj, { rw mem_filter at hx, rw [hj, hx.2] }, { refl } } } },
-      { intros x hx y hy hxy, rw disjoint_iff, contrapose! hxy,
-        rcases exists_mem_of_ne_empty hxy with ⟨z, hz⟩,
+      { intros x hx y hy hxy, rw disjoint_iff,
+        contrapose! hxy,
+        replace hxy := nonempty_iff_ne_empty.mpr hxy,
+        rcases hxy with ⟨z, hz⟩,
         rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hz,
         rcases hz with ⟨⟨_, rfl⟩, ⟨_, rfl⟩⟩, refl } },
     { rw eq_univ_iff_forall, intro x, rw mem_bind,
@@ -153,7 +157,7 @@ begin
       ... = (q - 1) * (s.sum $ λ i, (f i).total_degree) : mul_sum.symm
       ... < (q - 1) * (fintype.card σ) : by rwa mul_lt_mul_left hq },
   { let S : finset (σ → K) := univ.filter (λ x : σ → K, ∀ i ∈ s, (f i).eval x = 0),
-    rw [fintype.card_of_subtype S, card_eq_sum_ones, nat_cast_sum, nat.cast_one,
+    rw [fintype.card_of_subtype S, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
      ← fintype.sum_extend_by_zero S],
     { apply sum_congr rfl,
       intros x hx, clear hx,

@@ -154,10 +154,7 @@ is equal to `0` unless `(q-1) ∣ i`, in which case the sum is `q-1`. -/
 lemma sum_pow_units (i : ℕ) :
   univ.sum (λ (x : units K), (x^i : K)) = if (q - 1) ∣ i then q - 1 else 0 :=
 begin
-  classical,
-  have hq : 0 < q - 1,
-  { rw [← card_units, fintype.card_pos_iff],
-    exact ⟨1⟩ },
+  haveI : decidable_eq (units K) := by { classical, apply_instance },
   cases is_cyclic.exists_generator (units K) with a ha,
   calc univ.sum (λ (x : units K), (x^i : K)) = (range (order_of a)).sum (λ k, ((a^k)^i : K)) :
   begin
@@ -182,7 +179,7 @@ begin
       { funext i, rw [pow_mul, pow_card_sub_one_eq_one _ (units.ne_zero _), one_pow, one_pow], },
       rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one,
         nat.cast_sub, nat.cast_one],
-      exact le_trans hq (nat.pred_le _), },
+      exact fintype.card_pos_iff.mpr ⟨0⟩ },
     { have key := geom_sum_mul (a^i : K) (q-1),
       have hai : (a^i : K) ≠ 0, { rw ← units.coe_pow, apply units.ne_zero },
       rw [pow_card_sub_one_eq_one _ hai, sub_self] at key,
@@ -232,18 +229,19 @@ begin
   { rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
     rcases card K p with ⟨n, hp, hn⟩,
     simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
-  rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
-    zero_pow (nat.pos_of_ne_zero hi), add_zero],
-  have := sum_pow_units K i,
+  have key := sum_pow_units K i,
   have not_dvd_i : ¬q - 1 ∣ i,
   { rintro ⟨d, rfl⟩, apply hi, rw nat.mul_eq_zero, right, contrapose! h,
     conv { congr, rw ← mul_one (q-1), },
     rw mul_le_mul_left hq, exact nat.pos_of_ne_zero h },
-  rw if_neg not_dvd_i at this,
-  conv_rhs {rw ← this}, symmetry,
+  rw if_neg not_dvd_i at key,
+  classical,
+  conv_rhs {rw ← key}, symmetry,
+  rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
+    zero_pow (nat.pos_of_ne_zero hi), add_zero],
   refine sum_bij (λ x _, x) (λ _ _, by simp) (λ _ _, rfl) (λ _ _ _ _, units.ext_iff.mpr) _,
-  { intros, refine ⟨units.mk0 b _, mem_univ _, rfl⟩,
-    simpa only [true_and, mem_sdiff, mem_univ, mem_singleton] using H, },
+  intros, refine ⟨units.mk0 b _, mem_univ _, rfl⟩,
+    simpa only [true_and, mem_sdiff, mem_univ, mem_singleton] using H,
 end
 
 end finite_field
@@ -285,7 +283,7 @@ end
 end char_p
 
 open_locale nat
-open zmod
+open zmod nat
 
 /-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/

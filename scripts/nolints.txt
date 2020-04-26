@@ -2944,25 +2944,6 @@ apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_lhs doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_rhs doc_blame
 
--- tactic/rewrite_all/congr.lean
-apply_nolint tactic.mk_congr_arg_using_dsimp' doc_blame
-apply_nolint tactic.rewrite_all.congr.app_map doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.congr doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.replace doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.to_sides doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.to_tactic_string doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_all doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_all_lazy doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_at_lens doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_is_of_entire doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_without_new_mvars doc_blame
-
--- tactic/rewrite_all/default.lean
-apply_nolint tactic.all_rewrites_using doc_blame
-apply_nolint tactic.get_nth_rewrite doc_blame
-apply_nolint tactic.perform_nth_rewrite doc_blame
-
 -- tactic/ring.lean
 apply_nolint tactic.interactive.ring.mode doc_blame
 apply_nolint tactic.ring.add_atom doc_blame

@@ -40,10 +40,10 @@ variables {G' : Type*} [normed_group G'] [normed_space 𝕜 G']
 open asymptotics filter metric set
 open continuous_linear_map (id)
 
-/-- We say that `f` approximates continuous linear map `f'` on `s` with constant `c`,
+/-- We say that `f` approximates a continuous linear map `f'` on `s` with constant `c`,
 if `∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥` whenever `x, y ∈ s`.
 
-This predicate is defined to faciliate splitting of the inverse function theorem into small lemmas.
+This predicate is defined to facilitate the splitting of the inverse function theorem into small lemmas.
 Some of these lemmas can be useful, e.g., to prove that the inverse function is defined
 on a specific set. -/
 def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) : Prop :=
@@ -116,7 +116,7 @@ protected lemma inj_on : inj_on f s :=
 inj_on_iff_injective.2 $ hf.injective hc
 
 /-- A map approximating a linear equivalence defines a local equivalence. Should not
-be used outside of this file, because it is superseeded by `to_local_homeomorph` below.
+be used outside of this file, because it is superseded by `to_local_homeomorph` below.
 
 This is a first step towards the inverse function. -/
 def to_local_equiv : local_equiv E F :=
@@ -135,7 +135,7 @@ section
 variables (f f')
 
 /-- Iterations of this map converge to `f⁻¹ y`. The formula is very similar to the one
-used in Newton's method but we use the same `f'.symm` for all `y` instead of evaluating
+used in Newton's method, but we use the same `f'.symm` for all `y` instead of evaluating
 the derivative at each point along the orbit. -/
 def inverse_approx_map (y : F) (x : E) : E := x + f'.symm (y - f x)
 
@@ -389,7 +389,7 @@ begin
 end
 
 end has_strict_fderiv_at
-
+/-! ### Implicit function theorem -/
 open continuous_linear_map (fst snd subtype_val smul_right)
 
 namespace has_strict_fderiv_at

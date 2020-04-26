@@ -40,11 +40,13 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
+/-- Copy the docstring from the name `fr` to the name `to`. -/
 meta def copy_doc_string (fr to : name) : tactic unit :=
 doc_string fr >>= add_doc_string to
 
 open lean lean.parser interactive
 
+/-- Copy the docstring from the name `fr` to the name `to`. -/
 @[user_command] meta def copy_doc_string_cmd
   (_ : parse (tk "copy_doc_string")) : parser unit :=
 do fr ← parser.ident,

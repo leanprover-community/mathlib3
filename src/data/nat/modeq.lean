@@ -124,9 +124,6 @@ end)
 
 end modeq
 
-lemma add_mod (a b n : ℕ) : (a + b) % n = ((a % n) + (b % n)) % n :=
-(nat.modeq.modeq_add (nat.modeq.mod_modeq a n) (nat.modeq.mod_modeq b n)).symm
-
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 (nat.modeq.modeq_mul (nat.modeq.mod_modeq a n) (nat.modeq.mod_modeq b n)).symm
 

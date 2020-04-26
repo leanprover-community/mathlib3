@@ -106,36 +106,45 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
-/-- Converting an in-range number to `fin (n + 1)` with `of_nat`
-produces a result whose value is the original number.  -/
-lemma of_nat_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
-  ((of_nat a) : fin (n + 1)).val = a :=
-nat.mod_eq_of_lt h
+lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` with `of_nat`
-results in the same value.  -/
-@[simp] lemma of_nat_val_eq_self {n : ℕ} (a : fin (n + 1)) : of_nat a.val = a :=
+@[simp]
+lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
 begin
-  rw eq_iff_veq,
-  exact of_nat_val_of_lt a.is_lt
+  induction a with a ih, { refl },
+  ext, show (a+1) % (n+1) = fin.val (a+1 : fin (n+1)),
+  { rw [val_add, ← ih, of_nat],
+    exact add_mod _ _ _ }
 end
 
-/-- `of_nat` of an in-range number, converted back to `ℕ`, is that
-number. -/
-lemma of_nat_coe_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
-  (((of_nat a) : fin (n + 1)) : ℕ) = a :=
-nat.mod_eq_of_lt h
+/-- Converting an in-range number to `fin (n + 1)` produces a result
+whose value is the original number.  -/
+lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  (a : fin (n + 1)).val = a :=
+begin
+  rw ←of_nat_eq_coe,
+  exact nat.mod_eq_of_lt h
+end
 
-/-- Converting a `fin (n + 1)` to `ℕ` and back with `of_nat` results in
-the same value. -/
-@[simp] lemma of_nat_coe_eq_self {n : ℕ} (a : fin (n + 1)) : of_nat (a : ℕ) = a :=
-of_nat_val_eq_self a
+/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
+in the same value.  -/
+@[simp] lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
+begin
+  rw fin.eq_iff_veq,
+  exact coe_val_of_lt a.is_lt
+end
 
-attribute [simp] of_nat_zero
+/-- Coercing an in-range number to `fin (n + 1)`, and converting back
+to `ℕ`, results in that number. -/
+lemma coe_coe_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  ((a : fin (n + 1)) : ℕ) = a :=
+coe_val_of_lt h
 
-/-- `of_nat 1` is `1 : fin (n + 1)`. -/
-@[simp] lemma of_nat_one {n : ℕ} : (of_nat 1 : fin (n + 1)) = 1 :=
-rfl
+/-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
+value. -/
+@[simp] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
+coe_val_eq_self a
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/

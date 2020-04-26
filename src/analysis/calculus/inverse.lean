@@ -402,7 +402,7 @@ include hf hf'
 lemma implicit_aux_has_fderiv :
   has_strict_fderiv_at
     (λ x, (f x, continuous_linear_map.proj_ker_of_right_inverse f' f'inv hf' (x - a)))
-    (continuous_linear_equiv.of_right_inverse f' f'inv hf' : E →L[𝕜] (F × f'.ker)) a :=
+    (continuous_linear_equiv.equiv_of_right_inverse f' f'inv hf' : E →L[𝕜] (F × f'.ker)) a :=
 hf.prod $ (continuous_linear_map.has_strict_fderiv_at _).comp a
   ((has_strict_fderiv_at_id a).sub_const a)
 
@@ -508,7 +508,7 @@ variables (f' f'inv)
 
 /-- Derivative of an auxiliary function used in the proof of the implicit function theorem. -/
 def prod_implicit_function_aux_fderiv : (E × F) ≃L[𝕜] (E × G) :=
-continuous_linear_equiv.of_inverse
+continuous_linear_equiv.equiv_of_inverse
   ((continuous_linear_map.fst 𝕜 E F).prod f')
   ((continuous_linear_map.fst 𝕜 E G).prod $ prod_implicit_function_fderiv f' f'inv)
   (λ ⟨x, y⟩, by simp [← continuous_linear_map.map_sub, hf'l])
@@ -559,7 +559,8 @@ variables [cs : complete_space 𝕜] {f : 𝕜 → 𝕜} {f' a : 𝕜} (hf : has
   (hf' : f' ≠ 0)
 
 lemma has_strict_fderiv_at' :
-  has_strict_fderiv_at f (continuous_linear_equiv.equiv_units 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) a :=
+  has_strict_fderiv_at f
+    (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) a :=
 hf
 
 include cs

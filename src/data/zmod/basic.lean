@@ -73,13 +73,6 @@ def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
 
 local attribute [instance] fin.add_comm_semigroup fin.comm_semigroup
 
-lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
-| ⟨_, _⟩ ⟨_, _⟩ := rfl
-
-lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
-
-@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
-
 private lemma one_mul_aux (n : ℕ) (a : fin (n+1)) : (1 : fin (n+1)) * a = a :=
 begin
   cases n with n,
@@ -120,8 +113,6 @@ def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
   ..fin.has_neg (n+1),
   ..fin.add_comm_semigroup n,
   ..fin.comm_semigroup n }
-
-local attribute [instance] fin.add_comm_semigroup
 
 end fin
 

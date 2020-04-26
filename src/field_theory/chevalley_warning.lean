@@ -34,9 +34,7 @@ universes u v
 namespace finite_field
 open mv_polynomial function finset
 
-open_locale classical
-
-variables {K : Type*} [field K] [fintype K]
+variables {K : Type*} [field K] [fintype K] [decidable_eq K]
 variables {σ : Type*} [fintype σ] [decidable_eq σ]
 local notation `q` := fintype.card K
 
@@ -47,8 +45,6 @@ begin
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
-  rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
-  rcases card K p with ⟨n, hp, hn⟩,
   simp only [eval, eval₂, finsupp.sum, id.def],
   rw [sum_comm, sum_eq_zero],
   intros d hd,
@@ -61,8 +57,8 @@ begin
     rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ] at this,
     rwa [finsupp.sum, show d.support = univ, from _],
     rw eq_univ_iff_forall,
-    intro i, rw [finsupp.mem_support_iff, ne.def, ← nat.le_zero_iff],
-    push_neg, exact lt_of_lt_of_le hq (h _), },
+    intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
+    exact lt_of_lt_of_le hq (h _), },
   by_cases hd' : d.support = univ,
   { suffices claim : (univ.filter (λ (x : σ → K), ∀ j, j ≠ i → x j = 0)).sum (λ x, x i ^ d i) *
       (univ.filter (λ (x : σ → K), x i = 0)).sum

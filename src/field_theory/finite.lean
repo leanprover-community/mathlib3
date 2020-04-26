@@ -183,8 +183,8 @@ begin
     { have key := geom_sum_mul (a^i : K) (q-1),
       have hai : (a^i : K) ≠ 0, { rw ← units.coe_pow, apply units.ne_zero },
       rw [pow_card_sub_one_eq_one _ hai, sub_self] at key,
-      replace key := eq_zero_or_eq_zero_of_mul_eq_zero key,
-      rw classical.or_iff_not_imp_right at key, apply key, contrapose! H,
+      apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
+      contrapose! H,
       rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
       apply order_of_dvd_of_pow_eq_one,
       rwa [units.ext_iff, units.coe_pow, units.coe_one, ← sub_eq_zero], }
@@ -222,18 +222,11 @@ is equal to `0` if `i < q-1`. -/
 lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   univ.sum (λ x, x^i) = (0:K) :=
 begin
-  have hq : 0 < q - 1,
-  { rw [← card_units, fintype.card_pos_iff],
-    exact ⟨1⟩ },
   by_cases hi : i = 0,
-  { rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
-    rcases card K p with ⟨n, hp, hn⟩,
-    simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
+  { simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
   have key := sum_pow_units K i,
   have not_dvd_i : ¬q - 1 ∣ i,
-  { rintro ⟨d, rfl⟩, apply hi, rw nat.mul_eq_zero, right, contrapose! h,
-    conv { congr, rw ← mul_one (q-1), },
-    rw mul_le_mul_left hq, exact nat.pos_of_ne_zero h },
+  { contrapose! h, exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
   rw if_neg not_dvd_i at key,
   classical,
   conv_rhs {rw ← key}, symmetry,

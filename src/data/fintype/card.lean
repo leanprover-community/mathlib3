@@ -28,10 +28,11 @@ finset.card_eq_sum_ones _
 
 section
 open finset
-open_locale classical
+
+variables {ι : Type*} [fintype ι] [decidable_eq ι]
 
 @[to_additive]
-lemma prod_extend_by_one [comm_monoid α] {ι} [fintype ι] (s : finset ι) (f : ι → α) :
+lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
   univ.prod (λ i, if i ∈ s then f i else 1) = s.prod f :=
 begin
   rw [← prod_sdiff (subset_univ s), prod_eq_one, one_mul, prod_congr rfl],

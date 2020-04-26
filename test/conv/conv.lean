@@ -7,6 +7,7 @@ Tests for the `conv` tactic inside the inveractive `conv` monad
 -/
 
 import tactic.converter.interactive
+import tactic.converter.to_factors
 
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
 begin
@@ -45,4 +46,15 @@ begin
       rw h₁,
     },         -- returning to the left hand side
   },
+end
+
+example : ¬ nat.prime 11413 :=
+begin
+   conv
+   {
+     congr,
+     congr,
+     conv.to_factors,
+   },
+   exact nat.not_prime_mul (int.coe_nat_lt.mp trivial) (int.coe_nat_lt.mp trivial),
 end

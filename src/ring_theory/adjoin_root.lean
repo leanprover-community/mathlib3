@@ -69,8 +69,6 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' (mem_span_singleton.2 $ by simp)
 
-instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
-
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=

@@ -412,8 +412,8 @@ def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) �
   (f₁.prod_map f₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = ((f₁ : M →ₗ[R] M₂).prod_map (f₂ : M₃ →ₗ[R] M₄)) :=
 rfl
 
-@[simp, norm_cast] lemma prod_map_apply (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) (x) :
-  f₁.prod_map f₂ x = (f₁ x.1, f₂ x.2) :=
+@[simp, norm_cast] lemma coe_prod_map' (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) :
+  ⇑(f₁.prod_map f₂) = prod.map f₁ f₂ :=
 rfl
 
 /-- The continuous linear map given by `(x, y) ↦ f₁ x + f₂ y`. -/
@@ -715,7 +715,7 @@ rfl
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/
-def of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.left_inverse f₂ f₁)
+def equiv_of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.left_inverse f₂ f₁)
   (h₂ : function.right_inverse f₂ f₁) :
   M ≃L[R] M₂ :=
 { to_fun := f₁,
@@ -726,12 +726,12 @@ def of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.
   right_inv := h₂,
   .. f₁ }
 
-@[simp] lemma of_inverse_apply (f₁ : M →L[R] M₂) (f₂ h₁ h₂ x) :
-  of_inverse f₁ f₂ h₁ h₂ x = f₁ x :=
+@[simp] lemma equiv_of_inverse_apply (f₁ : M →L[R] M₂) (f₂ h₁ h₂ x) :
+  equiv_of_inverse f₁ f₂ h₁ h₂ x = f₁ x :=
 rfl
 
-@[simp] lemma symm_of_inverse (f₁ : M →L[R] M₂) (f₂ h₁ h₂) :
-  (of_inverse f₁ f₂ h₁ h₂).symm = of_inverse f₂ f₁ h₂ h₁ :=
+@[simp] lemma symm_equiv_of_inverse (f₁ : M →L[R] M₂) (f₂ h₁ h₂) :
+  (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 
 section
@@ -739,7 +739,7 @@ variables (R) [topological_space R] [topological_module R R]
 
 /-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `units R`. -/
 def equiv_units : units R ≃ (R ≃L[R] R) :=
-{ to_fun := λ u, of_inverse
+{ to_fun := λ u, equiv_of_inverse
     (continuous_linear_map.smul_right 1 ↑u)
     (continuous_linear_map.smul_right 1 ↑u⁻¹)
     (λ x, by simp) (λ x, by simp),
@@ -769,22 +769,22 @@ open continuous_linear_map (id fst snd subtype_val mem_ker)
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
 linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
 `(e x).1 = f₁ x`, and `(e (f₂ y)).2 = 0`. The map is given by `e x = (f₁ x, x - f₂ (f₁ x))`. -/
-def of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
+def equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
   M ≃L[R] M₂ × f₁.ker :=
-of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (subtype_val f₁.ker))
+equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (subtype_val f₁.ker))
   (λ x, by simp)
   (λ ⟨x, y⟩, by simp [h x])
 
-@[simp] lemma fst_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+@[simp] lemma fst_equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (x : M) :
-  (of_right_inverse f₁ f₂ h x).1 = f₁ x := rfl
+  (equiv_of_right_inverse f₁ f₂ h x).1 = f₁ x := rfl
 
-@[simp] lemma snd_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+@[simp] lemma snd_equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (x : M) :
-  ((of_right_inverse f₁ f₂ h x).2 : M) = x - f₂ (f₁ x) := rfl
+  ((equiv_of_right_inverse f₁ f₂ h x).2 : M) = x - f₂ (f₁ x) := rfl
 
-@[simp] lemma of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+@[simp] lemma equiv_of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (y : M₂ × f₁.ker) :
-  (of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
+  (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end continuous_linear_equiv

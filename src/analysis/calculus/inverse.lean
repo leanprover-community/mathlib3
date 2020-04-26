@@ -115,14 +115,14 @@ protected lemma injective : injective (s.restrict f) :=
 protected lemma inj_on : inj_on f s :=
 inj_on_iff_injective.2 $ hf.injective hc
 
-/-- A map approximating a linear equivalence defines a local equivalence. Should not
+/-- A map approximating a linear equivalence on a set defines a local equivalence on this set. Should not
 be used outside of this file, because it is superseded by `to_local_homeomorph` below.
 
 This is a first step towards the inverse function. -/
 def to_local_equiv : local_equiv E F :=
 by haveI : nonempty E := ⟨0⟩; exact (hf.inj_on hc).to_local_equiv _ _
 
-/-- Inverse function is continuous on `f '' s`. Use properties of `local_homeomorph` instead. -/
+/-- The inverse function is continuous on `f '' s`. Use properties of `local_homeomorph` instead. -/
 lemma inverse_continuous_on : continuous_on (hf.to_local_equiv hc).inv_fun (f '' s) :=
 continuous_on_iff_continuous_restrict.2 $
   ((hf.antilipschitz hc).to_right_inv_on' (hf.to_local_equiv hc).map_target
@@ -275,7 +275,7 @@ namespace has_strict_fderiv_at
 section
 variables {f : E → F} {f' : E →L[𝕜] F} {a : E}
 
-/-- If `f` has derivative `f'` at `a` in strict sense and `c > 0`, then `f` approximates `f'`
+/-- If `f` has derivative `f'` at `a` in the strict sense and `c > 0`, then `f` approximates `f'`
 with constant `c` on some neighborhood of `a`. -/
 lemma approximates_deriv_on_nhds {f : E → F} {f' : E →L[𝕜] F} {a : E}
   (hf : has_strict_fderiv_at f f' a) {c : ℝ≥0} (hc : subsingleton E ∨ 0 < c) :
@@ -299,7 +299,7 @@ variable {f'}
 include hf
 
 lemma approximates_deriv_on_open_nhds :
-  ∃ (s : set E) (hs :  a ∈ s ∧ is_open s),
+  ∃ (s : set E) (hs : a ∈ s ∧ is_open s),
     approximates_linear_on f (f' : E →L[𝕜] F) s ((nnnorm (f'.symm : F →L[𝕜] E))⁻¹ / 2) :=
 begin
   refine ((nhds_basis_opens a).exists_iff _).1 _,
@@ -312,7 +312,7 @@ include cs
 
 variable (f)
 
-/-- Given a function with a bijective strict derivative at `a`, returns a `local_homeomorph`
+/-- Given a function with an invertible strict derivative at `a`, returns a `local_homeomorph`
 with `to_fun = f` and `a ∈ source`. This is a part of the inverse function theorem.
 The other part `local_homeomorph.inv_fun_has_strict_fderiv_at` states that the inverse function
 of this `local_homeomorph` has derivative `f'.symm`. -/
@@ -329,7 +329,7 @@ variable {f}
 @[simp] lemma to_local_homeomorph_to_fun : (hf.to_local_homeomorph f).to_fun = f := rfl
 
 lemma mem_to_local_homeomorph_source : a ∈ (hf.to_local_homeomorph f).source :=
-  (classical.some_spec hf.approximates_deriv_on_open_nhds).fst.1
+(classical.some_spec hf.approximates_deriv_on_open_nhds).fst.1
 
 variables (f f' a)
 

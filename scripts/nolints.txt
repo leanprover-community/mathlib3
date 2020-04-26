@@ -1261,9 +1261,6 @@ apply_nolint multiset.traverse doc_blame
 -- data/nat/enat.lean
 apply_nolint enat doc_blame
 
--- data/nat/modeq.lean
-apply_nolint nat.modeq.chinese_remainder doc_blame
-
 -- data/nat/prime.lean
 apply_nolint nat.min_fac_aux doc_blame
 

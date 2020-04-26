@@ -127,7 +127,7 @@ end
    over a finite field of characteristic p.
    Assume that the sum of the total degrees of the f i is less than the cardinality of σ.
    Then the number of common solutions of the f i is divisible by p. -/
-theorem char_dvd_card_solutions (p : nat.primes) [char_p K p]
+theorem char_dvd_card_solutions (p : ℕ) [fact : p.prime] [char_p K p]
   {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → (mv_polynomial σ K))
   (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=

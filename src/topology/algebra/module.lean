@@ -738,7 +738,7 @@ section
 variables (R) [topological_space R] [topological_module R R]
 
 /-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `units R`. -/
-def equiv_units : units R ≃ (R ≃L[R] R) :=
+def units_equiv_aut : units R ≃ (R ≃L[R] R) :=
 { to_fun := λ u, equiv_of_inverse
     (continuous_linear_map.smul_right 1 ↑u)
     (continuous_linear_map.smul_right 1 ↑u⁻¹)
@@ -751,13 +751,13 @@ def equiv_units : units R ≃ (R ≃L[R] R) :=
 
 variable {R}
 
-@[simp] lemma equiv_units_apply (u : units R) (x : R) : equiv_units R u x = x * u := rfl
+@[simp] lemma units_equiv_aut_apply (u : units R) (x : R) : units_equiv_aut R u x = x * u := rfl
 
-@[simp] lemma equiv_units_apply_symm (u : units R) (x : R) :
-  (equiv_units R u).symm x = x * ↑u⁻¹ := rfl
+@[simp] lemma units_equiv_aut_apply_symm (u : units R) (x : R) :
+  (units_equiv_aut R u).symm x = x * ↑u⁻¹ := rfl
 
-@[simp] lemma equiv_units_symm_apply (e : R ≃L[R] R) :
-  ↑((equiv_units R).symm e) = e 1 :=
+@[simp] lemma units_equiv_aut_symm_apply (e : R ≃L[R] R) :
+  ↑((units_equiv_aut R).symm e) = e 1 :=
 rfl
 
 end

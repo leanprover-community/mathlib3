@@ -309,7 +309,7 @@ add_tactic_doc
 add_tactic_doc
 { name := "copy_doc_string",
   category := doc_category.cmd,
-  decl_names := [`copy_doc_string_cmd, `copy_doc_string],
+  decl_names := [`copy_doc_string_cmd, `tactic.copy_doc_string],
   tags := ["documentation"],
   inherit_description_from := `copy_doc_string_cmd }
 

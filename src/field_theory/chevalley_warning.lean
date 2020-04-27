@@ -38,27 +38,33 @@ variables {K : Type*} [field K] [fintype K] [decidable_eq K]
 variables {σ : Type*} [fintype σ] [decidable_eq σ]
 local notation `q` := fintype.card K
 
-lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ K)
-  (h : f.total_degree < (q - 1) * fintype.card σ) :
-  univ.sum (λ x, f.eval x) = (0:K) :=
+lemma exists_degree_lt_card_sub_one (f : mv_polynomial σ K)
+  (h : f.total_degree < (q - 1) * fintype.card σ) (d : σ →₀ ℕ) (hd : d ∈ f.support) :
+  ∃ i, d i < q - 1 :=
 begin
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
+  contrapose! h,
+  refine le_trans _ (finset.le_sup hd),
+  have : univ.sum (λ s:σ, q-1) ≤ univ.sum (λ s, d s) := sum_le_sum (λ s _, h s),
+  rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ] at this,
+  rwa [finsupp.sum, show d.support = univ, from _],
+  rw eq_univ_iff_forall,
+  intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
+  exact lt_of_lt_of_le hq (h _),
+end
+
+lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ K)
+  (h : f.total_degree < (q - 1) * fintype.card σ) :
+  univ.sum (λ x, f.eval x) = (0:K) :=
+begin
   simp only [eval, eval₂, finsupp.sum, id.def],
   rw [sum_comm, sum_eq_zero],
   intros d hd,
   rw [← mul_sum, mul_eq_zero], right,
   simp only [finsupp.prod],
-  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1,
-  { contrapose! h,
-    refine le_trans _ (finset.le_sup hd),
-    have : univ.sum (λ s:σ, q-1) ≤ univ.sum (λ s, d s) := sum_le_sum (λ s _, h s),
-    rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ] at this,
-    rwa [finsupp.sum, show d.support = univ, from _],
-    rw eq_univ_iff_forall,
-    intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
-    exact lt_of_lt_of_le hq (h _), },
+  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
   by_cases hd' : d.support = univ,
   { suffices claim : (univ.filter (λ (x : σ → K), ∀ j, j ≠ i → x j = 0)).sum (λ x, x i ^ d i) *
       (univ.filter (λ (x : σ → K), x i = 0)).sum
@@ -121,13 +127,63 @@ begin
       refine ⟨x i₀, mem_univ _, _⟩, rw mem_filter, exact ⟨mem_univ _, rfl⟩ } },
 end
 
+-- /-- The Chevalley–Warning theorem.
+-- Let f be a multivariate polynomials in finitely many variables (`X s`, `s : σ`)
+-- over a finite field of characteristic `p`.
+-- Assume that the total degree of `f` is less than the cardinality of `σ`.
+-- Then the number of solutions of `f` is divisible by `p`.
+-- See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
+-- theorem char_dvd_card_solutions (p : ℕ) [fact : p.prime] [char_p K p]
+--   (f : mv_polynomial σ K) (h : f.total_degree < fintype.card σ) :
+--   (p:ℕ) ∣ fintype.card {x : σ → K // f.eval x = 0} :=
+-- begin
+--   have hq : 0 < q - 1,
+--   { rw [← card_units, fintype.card_pos_iff],
+--     exact ⟨1⟩ },
+--   let F : mv_polynomial σ K := s.prod (λ i, (1 - (f i)^(q-1))),
+--   suffices : univ.sum (λ x, F.eval x) =
+--     fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
+--   { rw [← char_p.cast_eq_zero_iff K, ← this],
+--     apply sum_mv_polynomial_eq_zero,
+--     calc F.total_degree ≤ s.sum (λ i, (1 - (f i)^(q-1)).total_degree) :
+--       total_degree_finset_prod s _
+--       ... ≤ s.sum (λ i, (q - 1) * (f i).total_degree) :
+--       begin
+--         apply sum_le_sum,
+--         intros i hi,
+--         refine le_trans (total_degree_sub _ _)
+--           (le_trans _ (total_degree_pow _ _)),
+--         simp only [max_eq_right, nat.zero_le, total_degree_one]
+--       end
+--       ... = (q - 1) * (s.sum $ λ i, (f i).total_degree) : mul_sum.symm
+--       ... < (q - 1) * (fintype.card σ) : by rwa mul_lt_mul_left hq },
+--   { let S : finset (σ → K) := univ.filter (λ x : σ → K, ∀ i ∈ s, (f i).eval x = 0),
+--     rw [fintype.card_of_subtype S, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+--      ← fintype.sum_extend_by_zero S],
+--     { apply sum_congr rfl,
+--       intros x hx, clear hx,
+--       rw show F.eval x = finset.prod s (λ (i : ι), (1 - f i ^ (q - 1)).eval x),
+--       { convert eval₂_prod _ _ _ _, exact is_semiring_hom.id },
+--       split_ifs with hx hx,
+--       { rw finset.prod_eq_one, intros i hi,
+--         rw mem_filter at hx,
+--         simp only [hx.right i hi, add_right_eq_self, neg_eq_zero, sub_eq_add_neg,
+--           eval_add, eval_pow, eval_one, eval_neg],
+--         exact zero_pow hq },
+--       { rw mem_filter at hx, push_neg at hx, simp only [false_or, mem_univ, not_true] at hx,
+--         rcases hx with ⟨i, hi, hx⟩,
+--         rw finset.prod_eq_zero hi,
+--         simp only [pow_card_sub_one_eq_one (eval x (f i)) hx, add_right_neg, sub_eq_add_neg,
+--           eval_add, eval_pow, eval_one, eval_neg], } },
+--     { intros x, simp only [mem_filter, mem_univ, true_and] } }
+-- end
+
 /-- The Chevalley–Warning theorem.
-   Let (f i) be a finite family of multivariate polynomials
-   in finitely many variables (X s, s : σ)
-   over a finite field of characteristic p.
-   Assume that the sum of the total degrees of the f i is less than the cardinality of σ.
-   Then the number of common solutions of the f i is divisible by p. -/
-theorem char_dvd_card_solutions (p : ℕ) [fact : p.prime] [char_p K p]
+Let `(f i)` be a finite family of multivariate polynomials
+in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
+Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
+Then the number of common solutions of the `f i` is divisible by `p`. -/
+theorem char_dvd_card_solutions_family (p : ℕ) [fact : p.prime] [char_p K p]
   {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → (mv_polynomial σ K))
   (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=

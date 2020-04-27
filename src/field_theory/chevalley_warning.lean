@@ -128,8 +128,8 @@ Let `(f i)` be a finite family of multivariate polynomials
 in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
 Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
 Then the number of common solutions of the `f i` is divisible by `p`. -/
-theorem char_dvd_card_solutions_family (p : ℕ) [fact p.prime] [char_p K p]
-  {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → (mv_polynomial σ K))
+theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
+  {ι : Type*} (s : finset ι) (f : ι → (mv_polynomial σ K))
   (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
@@ -180,7 +180,7 @@ over a finite field of characteristic `p`.
 Assume that the total degree of `f` is less than the cardinality of `σ`.
 Then the number of solutions of `f` is divisible by `p`.
 See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
-theorem char_dvd_card_solutions (p : ℕ) [fact p.prime] [char_p K p]
+theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
   (f : mv_polynomial σ K) (h : f.total_degree < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → K // f.eval x = 0} :=
 begin

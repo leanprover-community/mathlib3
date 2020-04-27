@@ -3,9 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import data.complex.basic
+
 import data.matrix.basic
 import linear_algebra.tensor_product
+import ring_theory.subring
 import algebra.commute
 
 /-!
@@ -367,12 +368,6 @@ instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 
 end rat
 
-namespace complex
-
-instance algebra_over_reals : algebra ℝ ℂ := (ring_hom.of coe).to_algebra
-
-end complex
-
 /-- A subalgebra is a subring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
@@ -626,11 +621,5 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=
 
 @[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
-
-/- Register as an instance (with low priority) the fact that a complex vector space is also a real
-vector space. -/
-instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-module.restrict_scalars ℝ ℂ E
-attribute [instance, priority 900] module.complex_to_real
 
 end restrict_scalars

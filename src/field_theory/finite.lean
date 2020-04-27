@@ -29,7 +29,7 @@ Throughout most of this file, K denotes a finite field with q elements.
 -/
 
 variables {K : Type*} [field K] [fintype K]
-variables {R : Type*} [integral_domain R] [fintype R]
+variables {R : Type*} [integral_domain R]
 local notation `q` := fintype.card K
 
 section
@@ -71,7 +71,7 @@ open finset polynomial
 
 /-- The cardinality of a field is at most n times the cardinality of the image of a degree n
   polynomial -/
-lemma card_image_polynomial_eval [decidable_eq R] {p : polynomial R} (hp : 0 < p.degree) :
+lemma card_image_polynomial_eval [fintype R] [decidable_eq R] {p : polynomial R} (hp : 0 < p.degree) :
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.card : congr_arg card
@@ -79,7 +79,7 @@ finset.card_le_mul_card_image _ _
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
-lemma exists_root_sum_quadratic {f g : polynomial R} (hf2 : degree f = 2)
+lemma exists_root_sum_quadratic [fintype R] {f g : polynomial R} (hf2 : degree f = 2)
   (hg2 : degree g = 2) (hR : fintype.card R % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
 by letI := classical.dec_eq R; exact
 suffices ¬ disjoint (univ.image (λ x : R, eval x f)) (univ.image (λ x : R, eval x (-g))),
@@ -175,45 +175,79 @@ begin
   exact nat.pow_dvd_pow _ n.2,
 end
 
+-- move this
+section
+variables {α : Type*} [group α] [fintype α] [decidable_eq α] {a : α}
+
+lemma image_range_order_of :
+  finset.image (λ i, a ^ i) (range (order_of a)) = (gpowers a).to_finset :=
+by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
+
+end
+
+-- move this
+@[simp] lemma set.to_finset_univ (α : Type*) [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
+by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+-- move this
+namespace is_cyclic
+
+variables {α : Type*} [group α] [fintype α] [decidable_eq α] {a : α}
+
+lemma gpowers_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
+  gpowers a = set.univ :=
+by rwa set.eq_univ_iff_forall
+
+lemma gpowers_to_finset_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
+  (gpowers a).to_finset = finset.univ :=
+by { rw ← set.to_finset_univ, congr, exact gpowers_eq_univ ha }
+
+lemma image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
+by rw [image_range_order_of, gpowers_to_finset_eq_univ ha]
+
+lemma image_range_card (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (fintype.card α)) = univ :=
+by rw [← order_of_eq_card_of_forall_mem_gpowers ha, image_range_order_of ha]
+
+end is_cyclic
+
 /-- The sum of `x^i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q-1) ∣ i`, in which case the sum is `q-1`. -/
 lemma sum_pow_units (i : ℕ) :
   univ.sum (λ (x : units K), (x^i : K)) = if (q - 1) ∣ i then q - 1 else 0 :=
 begin
-  haveI : decidable_eq (units K) := by { classical, apply_instance },
-  cases is_cyclic.exists_generator (units K) with a ha,
-  calc univ.sum (λ (x : units K), (x^i : K)) = (range (order_of a)).sum (λ k, ((a^k)^i : K)) :
-  begin
-    symmetry,
-    refine sum_bij (λ i hi, a^i) (λ _ _, mem_univ _) (λ _ _, by rw units.coe_pow) _ _,
-    { intros i j hi hj h, rw [mem_range] at hi hj,
-      exact pow_injective_of_lt_order_of a hi hj h, },
-    { intros x hx, specialize ha x,
-      rwa [mem_gpowers_iff_mem_range_order_of, mem_image] at ha,
-      rcases ha with ⟨i, hi, rfl⟩, exact ⟨i, hi, rfl⟩ }
-  end
+  haveI : decidable_eq (units K) := classical.dec_eq (units K),
+  obtain ⟨a, ha⟩ := is_cyclic.exists_generator (units K),
+  calc univ.sum (λ (x : units K), (x^i : K)) =
+    ((range (order_of a)).image (λ i, a ^ i)).sum (λ x, (x^i : K)) :
+  by rw [is_cyclic.image_range_order_of ha]
+    ... = (range (order_of a)).sum (λ k, ↑(a^k)^i) :
+  by { apply finset.sum_image, intros i hi j hj h, rw [mem_range] at hi hj,
+       exact pow_injective_of_lt_order_of a hi hj h }
     ... = geom_series (a^i : K) (q-1) :
-  begin
-    rw [order_of_eq_card_of_forall_mem_gpowers ha, card_units],
-    apply sum_congr rfl, intros k hk, rw [← pow_mul, mul_comm, pow_mul]
-  end
+  by { rw [order_of_eq_card_of_forall_mem_gpowers ha, card_units],
+       apply sum_congr rfl, intros k hk, rw [← pow_mul', pow_mul, units.coe_pow] }
     ... = if (q - 1) ∣ i then q - 1 else 0 :
   begin
     split_ifs with H H,
     { rcases H with ⟨d, rfl⟩,
       have aux : (λ (i:ℕ), ((a : K) ^ ((q - 1) * d)) ^ i) = λ i, 1,
       { funext i, rw [pow_mul, pow_card_sub_one_eq_one _ (units.ne_zero _), one_pow, one_pow], },
-      rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one,
-        nat.cast_sub, nat.cast_one],
+      rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one, nat.cast_sub, nat.cast_one],
       exact fintype.card_pos_iff.mpr ⟨0⟩ },
-    { have key := geom_sum_mul (a^i : K) (q-1),
-      have hai : (a^i : K) ≠ 0, { rw ← units.coe_pow, apply units.ne_zero },
-      rw [pow_card_sub_one_eq_one _ hai, sub_self] at key,
+    { have hai0 : (a^i : K) ≠ 0,
+      { rw ← units.coe_pow, apply units.ne_zero },
+      have hai1 : a ^ i ≠ 1,
+      { contrapose! H,
+        rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
+        exact order_of_dvd_of_pow_eq_one H },
+      have key : geom_series ((a^i : K)) (q-1) * (a^i - 1) = 0,
+      { rw [geom_sum_mul (a^i : K) (q-1), pow_card_sub_one_eq_one _ hai0, sub_self] },
       apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
-      contrapose! H,
-      rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
-      apply order_of_dvd_of_pow_eq_one,
-      rwa [units.ext_iff, units.coe_pow, units.coe_one, ← sub_eq_zero], }
+      rw [sub_eq_zero],
+      rwa [ne.def, units.ext_iff, units.coe_pow, units.coe_one] at hai1, },
   end
 end
 
@@ -224,17 +258,19 @@ lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
 begin
   by_cases hi : i = 0,
   { simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
-  have key := sum_pow_units K i,
-  have not_dvd_i : ¬q - 1 ∣ i,
-  { contrapose! h, exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
-  rw if_neg not_dvd_i at key,
   classical,
-  conv_rhs {rw ← key}, symmetry,
-  rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
-    zero_pow (nat.pos_of_ne_zero hi), add_zero],
-  refine sum_bij (λ x _, x) (λ _ _, by simp) (λ _ _, rfl) (λ _ _ _ _, units.ext_iff.mpr) _,
-  intros, refine ⟨units.mk0 b _, mem_univ _, rfl⟩,
-    simpa only [true_and, mem_sdiff, mem_univ, mem_singleton] using H,
+  let φ : units K ↪ K := ⟨coe, units.ext⟩,
+  have : univ.map φ = univ \ finset.singleton 0,
+  { ext x,
+    simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
+     mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
+  calc univ.sum (λ x : K, x^i) = (univ \ finset.singleton 0).sum (λ x, x ^ i) :
+    by { rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
+      zero_pow (nat.pos_of_ne_zero hi), add_zero] }
+    ... = (univ.map φ).sum (λ x, x ^ i) : by rw this
+    ... = univ.sum (λ x : units K, x^i) : univ.sum_map φ _
+    ... = 0 : by { rw [sum_pow_units K i, if_neg], contrapose! h,
+                   exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h, }
 end
 
 end finite_field

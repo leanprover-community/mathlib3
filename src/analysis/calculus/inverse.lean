@@ -11,19 +11,36 @@ import topology.metric_space.contracting
 # Inverse function theorem
 
 In this file we prove the inverse function theorem. It says that if a map `f : E → F`
-has an invertible strict derivative `f'` at `x`, then it is locally invertible,
+has an invertible strict derivative `f'` at `a`, then it is locally invertible,
 and the inverse function has derivative `f' ⁻¹`.
 
 We define `has_strict_deriv_at.to_local_homeomorph` that repacks a function `f`
-with a `hf : has_strict_deriv_at f f' x`, `f' : E ≃L[𝕜] F`, into a `local_homeomorph`.
+with a `hf : has_strict_fderiv_at f f' a`, `f' : E ≃L[𝕜] F`, into a `local_homeomorph`.
 The `to_fun` of this `local_homeomorph` is `defeq` to `f`, so one can apply theorems
 about `local_homeomorph` to `hf.to_local_homeomorph f`, and get statements about `f`.
 
-We also prove that for `f : local_homeomorph E F` that has a strict derivative `f' : E ≃L[𝕜] F`
-at a point `a ∈ f.source`, then its `f.inv_fun` has strict derivative `f'.symm`, then apply
-it to `hf.to_local_homeomorph f` to get a similar statement about `hf.to_local_homeomorph f`.
+We define `has_strict_fderiv_at.local_inverse` to be the `inv_fun` of this `local_homeomorph`, and
+prove that it has derivative `f'.symm` at `f a`. We also prove that any other function `g : F → E`
+such that `g (f x) = x` near `x=a` has the same derivative at `f a`.
 
-TODO
+In the one-dimensional case we reformulate this theorem in terms of `has_stric_deriv_at` and `f'⁻¹`.
+
+Finally, we prove two versions of the implicit function theorem, one for a function `f : E → F` such
+that its derivative has a right inverse, and another for a function `f : E × F → G` such that
+`∂f/∂y : F →L[𝕜] G` is invertible.
+
+## Notations
+
+In the section about `approximates_linear_on` we introduce some `local notation` to make formulas
+shorter:
+
+* by `N` we denote `∥f'⁻¹∥`;
+* by `g` we denote the auxiliary contracting map `x ↦ x + f'.symm (y - f x)` used to prove that
+  `{x | f x = y}` is nonempty.
+
+## Tags
+
+derivative, strictly differentiable, inverse function, implicit function
 -/
 
 open function set filter metric

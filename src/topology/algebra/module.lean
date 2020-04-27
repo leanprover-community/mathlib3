@@ -316,6 +316,8 @@ rfl
 
 instance : has_mul (M →L[R] M) := ⟨comp⟩
 
+@[simp] lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),
   one := 1,
@@ -516,16 +518,8 @@ instance : module R (M →L[R] M₂) :=
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-set_option class.instance_max_depth 55
-
-instance : is_ring_hom (λ c : R, c • (1 : M₂ →L[R] M₂)) :=
-{ map_one := one_smul _ _,
-  map_add := λ _ _, ext $ λ _, add_smul _ _ _,
-  map_mul := λ _ _, ext $ λ _, mul_smul _ _ _ }
-
 instance : algebra R (M₂ →L[R] M₂) :=
-(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra' $
-  λ _ _, ext $ λ _, (map_smul _ _ _).symm
+algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul c x)
 
 end comm_ring
 

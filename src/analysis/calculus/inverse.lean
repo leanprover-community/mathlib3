@@ -297,22 +297,22 @@ returns a local homeomorph with `to_fun = f` and `source = s`. -/
 def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) (hs : is_open s) : local_homeomorph E F :=
 { to_local_equiv := hf.to_local_equiv hc,
-    open_source := hs,
-    open_target :=
-      begin
-        cases hc with hE hc,
-        { resetI,
-          haveI hF : subsingleton F := f'.to_linear_equiv.to_equiv.symm.subsingleton,
-          apply is_open_discrete },
-        change is_open (f '' s),
-        simp only [is_open_iff_mem_nhds, nhds_basis_closed_ball.mem_iff, ball_image_iff] at hs ⊢,
-        intros x hx,
-        rcases hs x hx with ⟨ε, ε0, hε⟩,
-        refine ⟨(N⁻¹ - c) * ε, mul_pos (sub_pos.2 hc) ε0, _⟩,
-        exact (hf.surj_on_closed_ball (or.inr hc) (le_of_lt ε0) hε).mono hε (subset.refl _)
-      end,
-    continuous_to_fun := hf.continuous_on,
-    continuous_inv_fun := hf.inverse_continuous_on hc }
+  open_source := hs,
+  open_target :=
+    begin
+      cases hc with hE hc,
+      { resetI,
+        haveI hF : subsingleton F := f'.to_linear_equiv.to_equiv.symm.subsingleton,
+        apply is_open_discrete },
+      change is_open (f '' s),
+      simp only [is_open_iff_mem_nhds, nhds_basis_closed_ball.mem_iff, ball_image_iff] at hs ⊢,
+      intros x hx,
+      rcases hs x hx with ⟨ε, ε0, hε⟩,
+      refine ⟨(N⁻¹ - c) * ε, mul_pos (sub_pos.2 hc) ε0, _⟩,
+      exact (hf.surj_on_closed_ball (or.inr hc) (le_of_lt ε0) hε).mono hε (subset.refl _)
+    end,
+  continuous_to_fun := hf.continuous_on,
+  continuous_inv_fun := hf.inverse_continuous_on hc }
 
 end
 

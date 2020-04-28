@@ -132,6 +132,19 @@ finsupp.induction p
     suffices M (C R a * X^n + p), by { convert this, exact monomial_eq_C_mul_X },
     h_add _ _ this hp)
 
+lemma add_hom_ext [add_monoid A] ⦃f g : polynomial R →+ A⦄
+  (H : ∀ n a, f (monomial n a) = g (monomial n a)) : f = g :=
+add_monoid_algebra.add_hom_ext H
+
+lemma semimodule_linear_map_ext [add_comm_monoid A] [semimodule R A] ⦃f g : polynomial R →+ A⦄
+  (hf : ∀ (c : R) p, f (c • p) = c • f p) (hg : ∀ (c : R) p, g (c • p) = c • g p)
+  (H : ∀ n : ℕ, f (X ^ n) = g (X ^ n)) : f = g :=
+add_monoid_algebra.semimodule_linear_map_ext hf hg $ by simpa only [pow_X] using H
+
+lemma ring_hom_ext [semiring S] ⦃f g : polynomial R →+* S⦄ (HC : ∀ a, f (C R a) = g (C R a))
+  (HX : f X = g X) : f = g :=
+ring_hom.coe_add_monoid_hom_inj $ add_hom_ext $ λ n a, by simp [*, monomial_eq_C_mul_X]
+
 lemma C_0 : C R 0 = 0 := single_zero
 
 lemma C_1 : C R 1 = 1 := rfl
@@ -160,9 +173,15 @@ coeff_monomial
 @[simp] lemma coeff_add (p q : polynomial R) (n : ℕ) :
   coeff (p + q) n = coeff p n + coeff q n := rfl
 
-instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial R, p.coeff n) :=
-{ map_add  := λ p q, coeff_add p q n,
-  map_zero := coeff_zero _ }
+variable (R)
+
+/-- `coeff` as an `add_monoid_hom`. Actually it is a linear map but we have no `linear_map`s on
+`semimodule`s. -/
+def coeff_add_hom (n : ℕ) : polynomial R →+ R := ⟨λ p, p.coeff n, coeff_zero n, λ p q, coeff_add p q n⟩
+
+variable {R}
+
+@[simp] lemma coeff_add_hom_apply (n : ℕ)  : coeff_add_hom R n p = p.coeff n := rfl
 
 lemma coeff_C : coeff (C R a) n = ite (n = 0) a 0 :=
 by { rw [C_def], exact coeff_monomial }
@@ -265,7 +284,7 @@ lemma aeval_sum (f : ℕ → R → polynomial R) :
 
 theorem alg_hom_ext ⦃φ φ' : polynomial R →ₐ[R] A⦄ (h : φ X = φ' X) :
   φ = φ' :=
-(aeval R A).symm.injective $ by simpa
+(aeval R A).symm.injective $ by simpa only [aeval_symm_apply]
 
 theorem aeval_unique' (φ : polynomial R →ₐ[R] A) : φ = aeval R A (φ X) :=
 alg_hom_ext $ aeval_X.symm
@@ -577,17 +596,23 @@ by by_cases hnk : n = k; simp [coeff_monomial, hf]; simp [hnk]
 
 lemma map_comp [comm_semiring T] (g : S →+* T) :
   map (g.comp f) = (map g).comp (map f) :=
-ext _
+ring_hom_ext (λ a, by simp only [map_C, ring_hom.comp_apply])
+  (by simp only [map_X, ring_hom.comp_apply])
 
-lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
-  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+lemma map_map [comm_semiring T] (g : S →+* T) :
+  map g (map f p) = map (g.comp f) p :=
+by rw [map_comp, ring_hom.comp_apply]
 
-lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+lemma eval₂_comp [comm_semiring T] (g : S →+* T) (x : T) :
+  eval₂ (g.comp f) x = (eval₂ g x).comp (map f) :=
+ring_hom_ext (λ a, by simp only [eval₂_C, map_C, ring_hom.comp_apply]) $
+  by simp only [map_X, eval₂_X, ring_hom.comp_apply]
+
+lemma eval₂_map [comm_semiring T] (g : S →+* T) (x : T) :
+  eval₂ g x (map f p) = eval₂ (g.comp f) x p :=
+by rw [eval₂_comp, ring_hom.comp_apply]
+
+lemma eval_map (x : S) : eval S x (map f p) = eval₂ f x p := eval₂_map _ _ _
 
 @[simp] lemma map_id : p.map (ring_hom.id _) = p := by simp [polynomial.ext_iff, coeff_map]
 

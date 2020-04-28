@@ -3,8 +3,9 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
-import algebra.associated data.int.gcd algebra.big_operators
-import tactic.converter.interactive
+import algebra.associated
+import data.int.gcd
+import algebra.big_operators
 
 variables {α : Type*}
 

@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Yury Kudryashov
 -/
-import data.monoid_algebra ring_theory.algebra
-import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
+import data.monoid_algebra
+import algebra.gcd_domain
+import ring_theory.euclidean_domain
+import ring_theory.multiplicity
 import tactic.ring_exp
 
 noncomputable theory

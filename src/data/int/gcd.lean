@@ -3,7 +3,7 @@ Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic data.nat.prime
+import data.nat.prime
 /-!
 # Extended GCD and divisibility over ℤ
 

@@ -5,9 +5,9 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import logic.embedding algebra.order_functions
-  data.multiset data.sigma.basic data.set.lattice
-  tactic.monotonicity tactic.apply
+import data.multiset
+import tactic.monotonicity
+import tactic.apply
 
 open multiset subtype nat
 
@@ -1117,6 +1117,13 @@ mem_map_of_inj f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
+@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
+
+theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
+calc ↑(s.map f) = f '' ↑s     : coe_map f s
+            ... ⊆ set.range f : set.image_subset_range f ↑s
+
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
@@ -1197,7 +1204,7 @@ theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a
 mem_image.2 ⟨_, h, rfl⟩
 
 @[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
-set.ext $ λ _, mem_image.trans $ by simp only [exists_prop]; refl
+set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
@@ -1218,6 +1225,10 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
+
+theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
+calc ↑(s.image f) = f '' ↑s     : coe_image
+              ... ⊆ set.range f : set.image_subset_range f ↑s
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=

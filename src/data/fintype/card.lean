@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-
-import data.fintype.basic algebra.big_operators data.nat.choose tactic.ring
+import data.fintype.basic
+import data.nat.choose
+import tactic.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -148,9 +149,32 @@ lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : 
   (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
+/-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
+@[to_additive]
+lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
+  finset.univ.prod (λ (i : fin n), f i.val) = (finset.range n).prod f :=
+begin
+  apply finset.prod_bij (λ (a : fin n) ha, a.val),
+  { assume a ha, simp [a.2] },
+  { assume a ha, refl },
+  { assume a b ha hb H, exact (fin.ext_iff _ _).2 H },
+  { assume b hb, exact ⟨⟨b, list.mem_range.mp hb⟩, finset.mem_univ _, rfl⟩, }
+end
+
+@[to_additive]
+lemma prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
+  finset.univ.prod (f ∘ e) = finset.univ.prod f :=
+begin
+  apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),
+  { assume b hb,
+    rcases e.surjective b with ⟨a, ha⟩,
+    exact ⟨a, mem_univ _, ha.symm⟩, },
+  { simp }
+end
+
 namespace list
 
-lemma of_fn_prod_take [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).prod = (finset.univ.filter (λ (j : fin n), j.val < i)).prod f :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
@@ -176,9 +200,9 @@ begin
     simp [← A, B, IH] }
 end
 
--- `to_additive` does not work on `of_fn_prod_take` because of `0 : ℕ` in the proof. Copy-paste the
+-- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof. Copy-paste the
 -- proof instead...
-lemma of_fn_sum_take [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = (finset.univ.filter (λ (j : fin n), j.val < i)).sum f :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
@@ -204,13 +228,13 @@ begin
     simp [← A, B, IH] }
 end
 
-attribute [to_additive] of_fn_prod_take
+attribute [to_additive] prod_take_of_fn
 
 @[to_additive]
-lemma of_fn_prod [comm_monoid α] {n : ℕ} {f : fin n → α} :
+lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :
   (of_fn f).prod = finset.univ.prod f :=
 begin
-  convert of_fn_prod_take f n,
+  convert prod_take_of_fn f n,
   { rw [take_all_of_le (le_of_eq (length_of_fn f))] },
   { have : ∀ (j : fin n), j.val < n := λ j, j.2,
     simp [this] }

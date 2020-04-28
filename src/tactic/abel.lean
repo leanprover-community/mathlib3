@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import algebra.group_power tactic.norm_num
+import tactic.norm_num
 
 /-!
 # The `abel` tactic

@@ -3,9 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import algebra.group_power tactic.norm_num
-import tactic.converter.interactive
+import tactic.norm_num
 
 /-!
 # `ring`
@@ -25,11 +23,9 @@ meta structure cache :=
 (comm_semiring_inst : expr)
 (red : transparency)
 
+@[derive [monad, alternative]]
 meta def ring_m (α : Type) : Type :=
 reader_t cache (state_t (buffer expr) tactic) α
-
-meta instance : monad ring_m := by dunfold ring_m; apply_instance
-meta instance : alternative ring_m := by dunfold ring_m; apply_instance
 
 meta def get_cache : ring_m cache := reader_t.read
 

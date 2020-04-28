@@ -5,7 +5,9 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto data.list.defs data.finset data.nat.enat
+import data.finset
+import data.nat.enat
+import tactic.omega
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -44,6 +46,23 @@ end finset
 lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
   g (s.prod f) = s.prod (λx, g (f x)) :=
 by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
+
+lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+  f l.prod = (l.map f).prod :=
+f.to_monoid_hom.map_list_prod l
+
+lemma ring_hom.map_list_sum [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+  f l.sum = (l.map f).sum :=
+f.to_add_monoid_hom.map_list_sum l
+
+lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
+  (s : multiset β) :
+  f s.prod = (s.map f).prod :=
+f.to_monoid_hom.map_multiset_prod s
+
+lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s : multiset β) :
+  f s.sum = (s.map f).sum :=
+f.to_add_monoid_hom.map_multiset_sum s
 
 lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
@@ -357,6 +376,18 @@ lemma prod_range_succ' (f : ℕ → β) :
 | 0       := (prod_range_succ _ _).trans $ mul_comm _ _
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
+
+/-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
+the last and first terms when the function we are summing is monotone. -/
+lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
+  (finset.range n).sum (λ i, f (i+1) - f i) = f n - f 0 :=
+begin
+  induction n with n IH, { simp },
+  rw [finset.sum_range_succ, IH, nat.succ_eq_add_one],
+  have : f n ≤ f (n+1) := h (nat.le_succ _),
+  have : f 0 ≤ f n := h (nat.zero_le _),
+  omega
+end
 
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=

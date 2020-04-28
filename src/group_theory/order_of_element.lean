@@ -3,7 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.finite group_theory.coset data.nat.totient
+import group_theory.coset
+import data.nat.totient
+import data.set.finite
 open function
 
 variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}

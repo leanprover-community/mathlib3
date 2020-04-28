@@ -5,8 +5,8 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset data.array.lemmas logic.unique
-import tactic.wlog
+import data.finset
+import data.array.lemmas
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -348,6 +348,9 @@ instance {α : Type*} [fintype α] : fintype (option α) :=
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
 ⟨univ.sigma (λ _, univ), λ ⟨a, b⟩, by simp⟩
+
+@[simp] lemma finset.univ_sigma_univ {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
+  (univ : finset α).sigma (λ a, (univ : finset (β a))) = univ := rfl
 
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
 ⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
@@ -756,7 +759,7 @@ def perms_of_finset (s : finset α) : finset (perm α) :=
 quotient.hrec_on s.1 (λ l hl, ⟨perms_of_list l, nodup_perms_of_list hl⟩)
   (λ a b hab, hfunext (congr_arg _ (quotient.sound hab))
     (λ ha hb _, heq_of_eq $ finset.ext.2 $
-      by simp [mem_perms_of_list_iff,mem_of_perm hab]))
+      by simp [mem_perms_of_list_iff, hab.mem_iff]))
   s.2
 
 lemma mem_perms_of_finset_iff : ∀ {s : finset α} {f : perm α},

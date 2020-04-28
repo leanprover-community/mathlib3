@@ -3,8 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import data.fintype.card tactic.omega
+import data.fintype.card
+import tactic.omega
 
 /-!
 # Compositions
@@ -129,7 +129,7 @@ def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
 
 lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
 begin
-  conv_rhs { rw [← c.blocks_sum, ← of_fn_nth_le c.blocks, of_fn_sum] },
+  conv_rhs { rw [← c.blocks_sum, ← of_fn_nth_le c.blocks, sum_of_fn] },
   simp [blocks_fun, length],
   refl
 end

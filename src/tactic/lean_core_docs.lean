@@ -576,13 +576,13 @@ add_tactic_doc
 { name       := "subst",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.subst],
-  tags       := ["core", "rewrite"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "subst_vars",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.subst_vars],
-  tags       := ["core", "rewrite"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "success_if_fail",

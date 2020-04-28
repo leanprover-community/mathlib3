@@ -3,12 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-
-import algebra.pi_instances
-import linear_algebra.basic
-import topology.instances.nnreal topology.instances.complex
+import topology.instances.nnreal
+import topology.instances.complex
 import topology.algebra.module
-import topology.metric_space.lipschitz
 import topology.metric_space.antilipschitz
 
 /-!
@@ -626,6 +623,13 @@ lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x 
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
+
+/-- Continuity at a point of the result of dividing two functions
+continuous at that point, where the denominator is nonzero. -/
+lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β} {x : α}
+    (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
+  continuous_at (λ x, f x / g x) x :=
+hf.div hg hnz
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 

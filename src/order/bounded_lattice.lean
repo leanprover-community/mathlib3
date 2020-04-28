@@ -7,9 +7,9 @@ Defines bounded lattice type class hierarchy.
 
 Includes the Prop and fun instances.
 -/
-
-import order.lattice data.option.basic
-       tactic.pi_instances
+import order.lattice
+import data.option.basic
+import tactic.pi_instances
 
 set_option old_structure_cmd true
 
@@ -365,6 +365,11 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
+lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
+⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
+
+lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+
 instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
   lt          := (<),
@@ -405,10 +410,9 @@ theorem coe_le [partial_order α] {a b : α} :
 
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
-lemma bot_lt_some [partial_order α] (a : α) : (⊥ : with_bot α) < some a :=
-lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
-
-lemma bot_lt_coe [partial_order α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
+| (some a) b := le_refl a
+| none     b := λ _ h, option.no_confusion h
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin

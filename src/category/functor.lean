@@ -5,7 +5,8 @@ Author: Simon Hudon
 
 Standard identity and composition functors
 -/
-import tactic.ext tactic.lint category.basic
+import tactic.ext
+import tactic.lint
 
 universe variables u v w
 

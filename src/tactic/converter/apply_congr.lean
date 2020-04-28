@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
-
 import tactic.interactive
 import tactic.converter.interactive
 
@@ -95,7 +94,7 @@ add_tactic_doc {
   name := "apply_congr",
   category := doc_category.tactic,
   decl_names := [`conv.interactive.apply_congr],
-  tags := ["conv", "congruence", "rewrite"]
+  tags := ["conv", "congruence", "rewriting"]
 }
 
 end conv.interactive

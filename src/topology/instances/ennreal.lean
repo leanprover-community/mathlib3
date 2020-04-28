@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
-import topology.instances.nnreal data.real.ennreal
+import topology.instances.nnreal
 /-!
 # Extended non-negative reals
 -/
@@ -68,8 +68,7 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
   end⟩,
   assume a b, coe_eq_coe.1⟩
 
-lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
-is_open_neg (is_closed_eq continuous_id continuous_const)
+lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} := is_open_ne
 
 lemma is_open_Ico_zero : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 

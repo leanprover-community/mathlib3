@@ -3,9 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
-
-import data.matrix.basic
-import linear_algebra.dimension linear_algebra.tensor_product
+import linear_algebra.dimension
 
 /-!
 # Linear maps and matrices
@@ -89,13 +87,7 @@ instance to_lin.is_add_monoid_hom :
 
 lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-begin
-  ext v x,
-  simp [to_lin_apply, mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum],
-  rw [finset.sum_comm],
-  congr, funext x, congr, funext y,
-  rw [mul_assoc]
-end
+by { ext, simp [to_lin_apply, mul_vec, matrix.mul_val, finset.sum_mul, finset.mul_sum] }
 
 @[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
 by { ext, simp }
@@ -116,6 +108,10 @@ end
 
 /-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
 def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
+
+@[simp] lemma to_matrix_id [decidable_eq n] :
+  (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
 
 end linear_map
 

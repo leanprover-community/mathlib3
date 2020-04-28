@@ -5,7 +5,9 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic tactic.cache
+import data.option.defs
+import logic.basic
+import tactic.cache
 
 namespace list
 

@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import order.basic logic.embedding data.nat.basic
+import logic.embedding
+import data.nat.basic
 
 open function
 

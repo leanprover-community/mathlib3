@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.basic
 
 /-!
 # monoid and group homomorphisms
@@ -164,6 +163,8 @@ protected def one : M →* N :=
 @[to_additive]
 instance : has_one (M →* N) := ⟨monoid_hom.one⟩
 
+@[simp, to_additive] lemma one_apply (x : M) : (1 : M →* N) x = 1 := rfl
+
 @[to_additive]
 instance : inhabited (M →* N) := ⟨1⟩
 
@@ -180,6 +181,10 @@ protected def mul {M N} {mM : monoid M} [comm_monoid N] (f g : M →* N) : M →
 @[to_additive]
 instance {M N} {mM : monoid M} [comm_monoid N] : has_mul (M →* N) := ⟨monoid_hom.mul⟩
 
+@[simp, to_additive] lemma mul_apply {M N} {mM : monoid M} {mN : comm_monoid N}
+  (f g : M →* N) (x : M) :
+  (f * g) x = f x * g x := rfl
+
 /-- (M →* N) is a comm_monoid if N is commutative. -/
 @[to_additive add_comm_monoid]
 instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
@@ -189,6 +194,19 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   one_mul := by intros; ext; apply one_mul,
   mul_one := by intros; ext; apply mul_one,
   mul_comm := by intros; ext; apply mul_comm }
+
+/-- `flip` arguments of `f : M →* N →* P` -/
+@[to_additive "`flip` arguments of `f : M →+ N →+ P`"]
+def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →* P) :
+  N →* M →* P :=
+{ to_fun := λ y, ⟨λ x, f x y, by rw [f.map_one, one_apply], λ x₁ x₂, by rw [f.map_mul, mul_apply]⟩,
+  map_one' := ext $ λ x, (f x).map_one,
+  map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
+
+@[simp, to_additive] lemma flip_apply {mM : monoid M} {mN : monoid N} {mP : comm_monoid P}
+  (f : M →* N →* P) (x : M) (y : N) :
+  f.flip y x = f x y :=
+rfl
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
@@ -227,6 +245,10 @@ mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
 
 @[to_additive]
 instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) := ⟨monoid_hom.inv⟩
+
+@[simp, to_additive] lemma inv_apply {M G} {mM : monoid M} {gG : comm_group G}
+  (f : M →* G) (x : M) :
+  f⁻¹ x = (f x)⁻¹ := rfl
 
 /-- (M →* G) is a comm_group if G is a comm_group -/
 @[to_additive add_comm_group]

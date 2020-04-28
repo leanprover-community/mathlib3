@@ -7,7 +7,8 @@ Define a sequence of simple machine languages, starting with Turing
 machines and working up to more complex lanaguages based on
 Wang B-machines.
 -/
-import data.fintype.basic data.pfun logic.relation
+import data.fintype.basic
+import data.pfun
 
 open relation
 

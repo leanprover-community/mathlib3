@@ -24,7 +24,8 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter.basic order.filter.lift topology.separation
+import order.filter.lift
+import topology.separation
 
 open set filter classical
 open_locale classical topological_space

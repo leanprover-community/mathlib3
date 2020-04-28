@@ -5,7 +5,8 @@ Author: Johannes Hölzl, Yury Kudryashov
 
 Extended non-negative reals
 -/
-import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
+import data.real.nnreal
+import data.set.intervals
 noncomputable theory
 open classical set
 
@@ -143,11 +144,14 @@ lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
-instance : is_semiring_hom (coe : nnreal → ennreal) :=
-by refine_struct {..}; simp
+/-- Coercion `ℝ≥0 → ennreal` as a `ring_hom`. -/
+def of_nnreal_hom : nnreal →+* ennreal :=
+⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
+
+@[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
-is_monoid_hom.map_pow coe r n
+of_nnreal_hom.map_pow r n
 
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top _ _
@@ -203,11 +207,11 @@ by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, norm_cast] lemma coe_finset_sum {s : finset α} {f : α → nnreal} :
   ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
-(s.sum_hom coe).symm
+of_nnreal_hom.map_sum f s
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
   ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
-(s.prod_hom coe).symm
+of_nnreal_hom.map_prod f s
 
 section order
 
@@ -836,6 +840,10 @@ begin
   exact (div_le_iff_le_mul (or.inl h0) (or.inl hinf)).2 h
 end
 
+protected lemma div_lt_iff (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ⊤ ∨ c ≠ ⊤) :
+  c / b < a ↔ c < a * b :=
+lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht
+
 lemma mul_lt_of_lt_div (h : a < b / c) : a * c < b :=
 by { contrapose! h, exact ennreal.div_le_of_le_mul h }
 
@@ -936,6 +944,14 @@ by simpa only [div_def, one_mul] using sub_half one_ne_top
 lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
 @inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
+
+lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n : ℕ, b < n * a :=
+begin
+  have : b / a ≠ ⊤, from mul_ne_top hb (inv_ne_top.2 ha),
+  refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
+  rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
+end
 
 end inv
 

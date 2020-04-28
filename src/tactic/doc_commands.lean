@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
 import tactic.fix_reflect_string
 
 /-!
@@ -39,6 +38,23 @@ s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 meta def string.mk_hashed_name (nspace : name) (id : string) : name :=
 nspace <.> ("_" ++ to_string id.hash)
 
+open tactic
+
+/-- Copy the docstring from the name `fr` to the name `to`. -/
+meta def copy_doc_string (fr to : name) : tactic unit :=
+doc_string fr >>= add_doc_string to
+
+open lean lean.parser interactive
+
+/-- Copy the docstring from the name `fr` to the name `to`. -/
+@[user_command] meta def copy_doc_string_cmd
+  (_ : parse (tk "copy_doc_string")) : parser unit :=
+do fr ← parser.ident,
+   to ← parser.ident,
+   expr.const fr _  ← resolve_name fr,
+   expr.const to _  ← resolve_name to,
+   copy_doc_string fr to
+
 /-! ### The `library_note` command -/
 
 /-- A user attribute `library_note` for tagging decls of type `string × string` for use in note
@@ -46,8 +62,6 @@ output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
   descr := "Notes about library features to be included in documentation" }
-
-open tactic
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -71,7 +85,8 @@ do let decl_name := note_name.mk_hashed_name `library_note,
 meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
 to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
 
-open tactic lean lean.parser interactive
+open tactic
+
 /--
 A command to add library notes. Syntax:
 ```

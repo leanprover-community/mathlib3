@@ -3,13 +3,8 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-
-import data.complex.basic
 import data.set.intervals
-import tactic.interactive
-import tactic.linarith
-import linear_algebra.basic
-import ring_theory.algebra
+import data.complex.module
 import algebra.pointwise
 
 /-!

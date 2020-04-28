@@ -4,25 +4,29 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joey van Langen, Casper Putz
 -/
 
-import algebra.char_p data.zmod.basic linear_algebra.basis
+import data.zmod.basic
+import linear_algebra.basis
 
 universes u
-variables (α : Type u) [field α] [fintype α]
+variables (K : Type u) [field K] [fintype K]
 
 namespace finite_field
 
-theorem card (p : ℕ) [char_p α p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card α = p^(n : ℕ) :=
-have hp : nat.prime p, from char_p.char_is_prime α p,
-have V : vector_space (zmodp p hp) α, from {..zmod.to_module' α},
-let ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _ in
-have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
-  (assume h0 : n = 0,
-  have fintype.card α = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,
-  have (1 : α) = 0, from (fintype.card_le_one_iff.mp (le_of_eq this)) 1 0,
-  absurd this one_ne_zero),
-⟨⟨n, hn⟩, hp, fintype.card_fin p ▸ h⟩
+theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+begin
+  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
+  rw zmod.card at h,
+  refine ⟨⟨n, _⟩, hp, h⟩,
+  apply or.resolve_left (nat.eq_zero_or_pos n),
+  rintro rfl,
+  rw nat.pow_zero at h,
+  have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
+  exact absurd this zero_ne_one,
+end
 
-theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card α = p^(n : ℕ) :=
-let ⟨p, hc⟩ := char_p.exists α in ⟨p, @finite_field.card α _ _ p hc⟩
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
 
 end finite_field

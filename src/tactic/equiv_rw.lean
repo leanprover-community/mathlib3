@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category.equiv_functor
-import tactic.simp_result
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.

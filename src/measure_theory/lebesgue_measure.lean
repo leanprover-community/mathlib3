@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Lebesgue measure on the real line
 -/
-import measure_theory.measure_space measure_theory.borel_space
+import measure_theory.measure_space
+import measure_theory.borel_space
 noncomputable theory
 open classical set filter
 open nnreal (of_real)

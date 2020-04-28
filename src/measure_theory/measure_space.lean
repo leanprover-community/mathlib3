@@ -3,9 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.set.lattice data.set.finite
-import topology.instances.ennreal
-       measure_theory.outer_measure
+import measure_theory.outer_measure
 
 /-!
 # Measure spaces
@@ -806,6 +804,7 @@ section measure_space
 variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
 open measure_space
 
+/-- `volume s` is the measure of `s : set α` with respect to the canonical measure on `α`. -/
 def volume : set α → ennreal := @μ α _
 
 @[simp] lemma volume_empty : volume (∅ : set α) = 0 := μ.empty
@@ -862,6 +861,43 @@ end
 lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
   volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
 measure_diff
+
+variable {ι : Type*}
+
+lemma sum_volume_le_volume_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
+  (H : pairwise_on ↑s (disjoint on t)) : s.sum (λ i, volume (t i)) ≤ volume (univ : set α) :=
+volume_bUnion_finset H h ▸ volume_mono (subset_univ _)
+
+lemma tsum_volume_le_volume_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
+  (H : pairwise (disjoint on s)) :
+  (∑ i, volume (s i)) ≤ volume (univ : set α) :=
+begin
+  rw [ennreal.tsum_eq_supr_sum],
+  exact supr_le (λ s, sum_volume_le_volume_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+end
+
+/-- Pigeonhole principle for measure spaces: if `∑ i, μ (s i) > μ univ`, then
+one of the intersections `s i ∩ s j` is not empty. -/
+lemma exists_nonempty_inter_of_volume_univ_lt_tsum_volume {s : ι → set α}
+  (hs : ∀ i, is_measurable (s i)) (H : volume (univ : set α) < ∑ i, volume (s i)) :
+  ∃ i j (h : i ≠ j), (s i ∩ s j).nonempty :=
+begin
+  contrapose! H,
+  apply tsum_volume_le_volume_univ hs,
+  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
+end
+
+/-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
+`s.sum (λ i, μ (t i)) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
+lemma exists_nonempty_inter_of_volume_univ_lt_sum_volume {s : finset ι} {t : ι → set α}
+  (h : ∀ i ∈ s, is_measurable (t i)) (H : volume (univ : set α) < s.sum (λ i, volume (t i))) :
+  ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
+begin
+  contrapose! H,
+  apply sum_volume_le_volume_univ h,
+  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+end
+
 
 /-- `∀ₘ a:α, p a` states that the property `p` is almost everywhere true in the measure space
 associated with `α`. This means that the measure of the complementary of `p` is `0`.

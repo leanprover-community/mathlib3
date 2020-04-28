@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -6,8 +5,7 @@ Authors: Simon Hudon
 
 The writer monad transformer for passing immutable state.
 -/
-
-import tactic.basic category.monad.basic
+import category.monad.basic
 universes u v w
 
 structure writer_t (ω : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=

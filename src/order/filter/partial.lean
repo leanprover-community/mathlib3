@@ -6,7 +6,6 @@ Authors: Jeremy Avigad
 Extends `tendsto` to relations and partial functions.
 -/
 import order.filter.basic
-import data.pfun
 
 universes u v w
 namespace filter

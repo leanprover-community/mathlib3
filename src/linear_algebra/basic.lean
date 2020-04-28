@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
 -/
-
-import algebra.pi_instances data.finsupp data.equiv.mul_add order.order_iso
+import algebra.pi_instances
+import data.finsupp
 
 /-!
 # Linear algebra
@@ -181,6 +181,10 @@ ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 
 @[simp] theorem zero_comp : (0 : M₂ →ₗ[R] M₃).comp f = 0 :=
 rfl
+
+@[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
+  ⇑(t.sum f) = t.sum (λ i, (f i : M → M₂)) :=
+add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 section
 variables (R M)
@@ -1342,7 +1346,7 @@ section
 set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
-@[nolint doc_blame has_inhabited_instance]
+@[nolint has_inhabited_instance]
 structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
   extends M →ₗ[R] M₂, M ≃ M₂

@@ -3,7 +3,7 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
+import group_theory.group_action
 
 /-!
 # Modules over a ring
@@ -71,27 +71,31 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
-variable {R}
+variable (M)
+
+/-- `(•)` as an `add_monoid_hom`. -/
+def smul_add_hom : R →+ M →+ M :=
+{ to_fun := const_smul_hom M,
+  map_zero' := add_monoid_hom.ext $ λ r, by simp,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
+
+variables {R M}
+
+@[simp] lemma smul_add_hom_apply (r : R) (x : M) :
+  smul_add_hom R M r x = r • x := rfl
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
-instance smul.is_add_monoid_hom (x : M) : is_add_monoid_hom (λ r:R, r • x) :=
-{ map_zero := zero_smul _ x,
-  map_add := λ r₁ r₂, add_smul r₁ r₂ x }
-
 lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (list.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_list_sum l
 
 lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (multiset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_multiset_sum l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   s.sum f • x = s.sum (λ r, (f r) • x) :=
-show (λ r, r • x) (s.sum f) = s.sum (λ r, (f r) • x),
-from (finset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_sum f s
 
 end semimodule
 
@@ -238,6 +242,9 @@ theorem is_linear : is_linear_map R f := {..f}
 variables {f g}
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
+
+lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩

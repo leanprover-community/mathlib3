@@ -5,8 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-
-import topology.constructions order.filter.bases
+import topology.constructions
 
 open set filter classical
 open_locale topological_space

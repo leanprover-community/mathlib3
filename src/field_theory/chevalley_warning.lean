@@ -139,42 +139,40 @@ begin
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
   let F : mv_polynomial σ K := s.prod (λ i, (1 - (f i)^(q-1))),
-  suffices : univ.sum (λ x, F.eval x) =
-    fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
+  suffices : univ.sum (λ x, F.eval x) = fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
   { rw [← char_p.cast_eq_zero_iff K, ← this],
     apply sum_mv_polynomial_eq_zero,
-    calc F.total_degree ≤ s.sum (λ i, (1 - (f i)^(q-1)).total_degree) :
-      total_degree_finset_prod s _
+    calc F.total_degree ≤ s.sum (λ i, (1 - (f i)^(q-1)).total_degree) : total_degree_finset_prod s _
       ... ≤ s.sum (λ i, (q - 1) * (f i).total_degree) :
       begin
         apply sum_le_sum,
         intros i hi,
-        refine le_trans (total_degree_sub _ _)
-          (le_trans _ (total_degree_pow _ _)),
+        refine le_trans (total_degree_sub _ _) (le_trans _ (total_degree_pow _ _)),
         simp only [max_eq_right, nat.zero_le, total_degree_one]
       end
       ... = (q - 1) * (s.sum $ λ i, (f i).total_degree) : mul_sum.symm
       ... < (q - 1) * (fintype.card σ) : by rwa mul_lt_mul_left hq },
   { let S : finset (σ → K) := univ.filter (λ x : σ → K, ∀ i ∈ s, (f i).eval x = 0),
-    rw [fintype.card_of_subtype S, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
-     ← fintype.sum_extend_by_zero S],
-    { apply sum_congr rfl,
-      intros x hx, clear hx,
-      rw show F.eval x = finset.prod s (λ (i : ι), (1 - f i ^ (q - 1)).eval x),
-      { convert eval₂_prod _ _ _ _, exact is_semiring_hom.id },
-      split_ifs with hx hx,
-      { rw finset.prod_eq_one, intros i hi,
-        rw mem_filter at hx,
-        simp only [hx.right i hi, add_right_eq_self, neg_eq_zero, sub_eq_add_neg,
-          eval_add, eval_pow, eval_one, eval_neg],
-        exact zero_pow hq },
-      { rw mem_filter at hx, push_neg at hx, simp only [false_or, mem_univ, not_true] at hx,
-        rcases hx with ⟨i, hi, hx⟩,
-        rw finset.prod_eq_zero hi,
-        simp only [pow_card_sub_one_eq_one (eval x (f i)) hx, add_right_neg, sub_eq_add_neg,
-          eval_add, eval_pow, eval_one, eval_neg], } },
-    { intros x, simp only [mem_filter, mem_univ, true_and] } }
+    have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
+    { intros x, simp only [mem_filter, mem_univ, true_and], },
+    rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+        ← fintype.sum_extend_by_zero S],
+    apply sum_congr rfl,
+    intros x hx, clear hx,
+    rw show F.eval x = finset.prod s (λ (i : ι), (1 - f i ^ (q - 1)).eval x),
+    { convert eval₂_prod id _ _ _, exact is_semiring_hom.id },
+    simp only [eval_sub, eval_pow, eval_one],
+    split_ifs with hx hx,
+    { rw finset.prod_eq_one,
+      intros i hi,
+      rw mem_filter at hx,
+      simp only [hx.right i hi, add_right_eq_self, neg_eq_zero, zero_pow hq, sub_zero], },
+    { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ ¬eval x (f i) = 0,
+      { simpa only [mem_filter, true_and, classical.not_forall, mem_univ, classical.not_imp] using hx },
+      rw finset.prod_eq_zero hi,
+      simp only [pow_card_sub_one_eq_one (eval x (f i)) hx, add_right_neg, sub_self], } }
 end
+
 
 /-- The Chevalley–Warning theorem.
 Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)

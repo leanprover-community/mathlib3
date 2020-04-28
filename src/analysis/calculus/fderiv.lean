@@ -2108,7 +2108,7 @@ end
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
 invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.
 
-This is one of the easy part of the inverse function theorem: it assumes that we already have
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
 theorem has_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} {g : F → E} {a : F}
   (hg : continuous_at g a) (hf : has_fderiv_at f (f' : E →L[𝕜] F) (g a))

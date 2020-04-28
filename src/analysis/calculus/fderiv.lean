@@ -43,6 +43,7 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of a function by a scalar function
 * multiplication of two scalar functions
 * composition of functions (the chain rule)
+* inverse function (assuming that it exists; the inverse function theorem is in `inverse.lean`)
 
 For most binary operations we also define `const_op` and `op_const` theorems for the cases when
 the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,
@@ -346,14 +347,14 @@ lemma has_fderiv_at_filter.is_O_sub (h : has_fderiv_at_filter f f' x L) :
   is_O (λ x', f x' - f x) (λ x', x' - x) L :=
 h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
-lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
+protected lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
   has_fderiv_at f f' x :=
 begin
   rw [has_fderiv_at, has_fderiv_at_filter, is_o_iff],
   exact (λ c hc, tendsto_id.prod_mk_nhds tendsto_const_nhds (is_o_iff.1 hf hc))
 end
 
-lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
+protected lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
   differentiable_at 𝕜 f x :=
 hf.has_fderiv_at.differentiable_at
 
@@ -563,9 +564,21 @@ lemma differentiable_on.continuous_on (h : differentiable_on 𝕜 f s) : continu
 lemma differentiable.continuous (h : differentiable 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λx, (h x).continuous_at
 
-lemma has_strict_fderiv_at.continuous_at (hf : has_strict_fderiv_at f f' x) :
+protected lemma has_strict_fderiv_at.continuous_at (hf : has_strict_fderiv_at f f' x) :
   continuous_at f x :=
 hf.has_fderiv_at.continuous_at
+
+lemma has_strict_fderiv_at.is_O_sub_rev {f' : E ≃L[𝕜] F}
+  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) x) :
+  is_O (λ p : E × E, p.1 - p.2) (λ p : E × E, f p.1 - f p.2) (𝓝 (x, x)) :=
+((f'.is_O_comp_rev _ _).trans (hf.trans_is_O (f'.is_O_comp_rev _ _)).right_is_O_add).congr
+(λ _, rfl) (λ _, sub_add_cancel _ _)
+
+lemma has_fderiv_at_filter.is_O_sub_rev {f' : E ≃L[𝕜] F}
+  (hf : has_fderiv_at_filter f (f' : E →L[𝕜] F) x L) :
+  is_O (λ x', x' - x) (λ x', f x' - f x) L :=
+((f'.is_O_sub_rev _ _).trans (hf.trans_is_O (f'.is_O_sub_rev _ _)).right_is_O_add).congr
+(λ _, rfl) (λ _, sub_add_cancel _ _)
 
 end continuous
 
@@ -980,7 +993,7 @@ lemma differentiable.comp_differentiable_on {g : F → G} (hg : differentiable �
 (differentiable_on_univ.2 hg).comp hf (by simp)
 
 /-- The chain rule for derivatives in the sense of strict differentiability. -/
-lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
+protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
   (hg : has_strict_fderiv_at g g' (f x)) (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, g (f x)) (g'.comp f') x :=
 ((hg.comp_tendsto (hf.continuous_at.prod_map' hf.continuous_at)).trans_is_O hf.is_O_sub).triangle $
@@ -994,7 +1007,7 @@ section cartesian_product
 section prod
 variables {f₂ : E → G} {f₂' : E →L[𝕜] G}
 
-lemma has_strict_fderiv_at.prod
+protected lemma has_strict_fderiv_at.prod
   (hf₁ : has_strict_fderiv_at f₁ f₁' x) (hf₂ : has_strict_fderiv_at f₂ f₂' x) :
   has_strict_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
 hf₁.prod_left hf₂
@@ -2063,6 +2076,58 @@ begin
 end
 
 end continuous_linear_equiv
+
+/-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
+invertible derivative `f'` at `g a` in the strict sense, then `g` has the derivative `f'⁻¹` at `a`
+in the strict sense.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have an
+inverse function. -/
+theorem has_strict_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} {g : F → E} {a : F}
+  (hg : continuous_at g a) (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) (g a))
+  (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
+  has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) a :=
+begin
+  replace hg := hg.prod_map' hg,
+  replace hfg := hfg.prod_mk_nhds hfg,
+  have : is_O (λ p : F × F, g p.1 - g p.2 - f'.symm (p.1 - p.2))
+    (λ p : F × F, f' (g p.1 - g p.2) - (p.1 - p.2)) (𝓝 (a, a)),
+  { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
+    simp },
+  refine this.trans_is_o _, clear this,
+  refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
+    (eventually_of_forall _ $ λ _, rfl)).trans_is_O _,
+  { rintros p ⟨hp1, hp2⟩,
+    simp [hp1, hp2] },
+  { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
+      (eventually_of_forall _ $ λ _, rfl) (hfg.mono _),
+    rintros p ⟨hp1, hp2⟩,
+    simp only [(∘), hp1, hp2] }
+end
+
+/-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
+invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem has_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} {g : F → E} {a : F}
+  (hg : continuous_at g a) (hf : has_fderiv_at f (f' : E →L[𝕜] F) (g a))
+  (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
+  has_fderiv_at g (f'.symm : F →L[𝕜] E) a :=
+begin
+  have : is_O (λ x : F, g x - g a - f'.symm (x - a)) (λ x : F, f' (g x - g a) - (x - a)) (𝓝 a),
+  { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
+    simp },
+  refine this.trans_is_o _, clear this,
+  refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
+    (eventually_of_forall _ $ λ _, rfl)).trans_is_O _,
+  { rintros p hp,
+    simp [hp, hfg.self_of_nhds] },
+  { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
+      (eventually_of_forall _ $ λ _, rfl) (hfg.mono _),
+    rintros p hp,
+    simp only [(∘), hp, hfg.self_of_nhds] }
+end
 
 end
 

@@ -601,6 +601,22 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
+theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O (λ x', e (f x')) f l :=
+(e : E →L[𝕜] F).is_O_comp f l
+
+theorem is_O_sub (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
+(e : E →L[𝕜] F).is_O_sub l x
+
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O f (λ x', e (f x')) l :=
+(e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
+
+theorem is_O_sub_rev (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+e.is_O_comp_rev _ _
+
 /-- A continuous linear equiv is a uniform embedding. -/
 lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous

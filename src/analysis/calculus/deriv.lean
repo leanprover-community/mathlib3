@@ -55,6 +55,7 @@ We also show the existence and compute the derivatives of:
   - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E`
   - composition of a function in `𝕜 → F` with a function in `𝕜 → 𝕜`
   - composition of a function in `F → E` with a function in `𝕜 → F`
+  - inverse function (assuming that it exists; the inverse function theorem is in `inverse.lean`)
   - division
   - polynomials
 
@@ -1263,6 +1264,42 @@ lemma deriv_within_div
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
 end division
+
+theorem has_strict_deriv_at.has_strict_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜}
+  (hf : has_strict_deriv_at f f' x) (hf' : f' ≠ 0) :
+  has_strict_fderiv_at f
+    (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
+hf
+
+theorem has_deriv_at.has_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜}
+  (hf : has_deriv_at f f' x) (hf' : f' ≠ 0) :
+  has_fderiv_at f
+    (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
+hf
+
+/-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
+invertible derivative `f'` at `g a` in the strict sense, then `g` has the derivative `f'⁻¹` at `a`
+in the strict sense.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have an
+inverse function. -/
+theorem has_strict_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
+  (hg : continuous_at g a) (hf : has_strict_deriv_at f f' (g a)) (hf' : f' ≠ 0)
+  (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
+  has_strict_deriv_at g f'⁻¹ a :=
+(hf.has_strict_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
+/-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
+invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem has_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
+  (hg : continuous_at g a) (hf : has_deriv_at f f' (g a)) (hf' : f' ≠ 0)
+  (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
+  has_deriv_at g f'⁻¹ a :=
+(hf.has_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
 end
 
 namespace polynomial

@@ -113,6 +113,10 @@ lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c
   ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
 h hc
 
+lemma is_o.def' {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  is_O_with c f g l :=
+h hc
+
 end defs
 
 /-! ### Conversions -/
@@ -1034,8 +1038,16 @@ end
 
 theorem is_O_with.right_le_add_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₁ x + f₂ x) l :=
-(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.neg_left.congr rfl (λ x, neg_neg _)
+(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.of_neg_left.congr rfl (λ x, rfl)
   (λ x, by rw [neg_sub, sub_neg_eq_add])
+
+theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₂ x - f₁ x) l :=
+((h.def' one_half_pos).right_le_sub_of_lt_1 one_half_lt_one).is_O
+
+theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₁ x + f₂ x) l :=
+((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
 
 end asymptotics
 

@@ -249,6 +249,10 @@ dvd_antisymm
         (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
             nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
 
+lemma image_range_order_of (a : α) :
+  finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a).to_finset :=
+by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
+
 omit dec
 open_locale classical
 
@@ -367,6 +371,30 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
       hm, nat.mul_div_cancel _ hm0],
     exact le_of_dvd hn0 (gcd_dvd_left _ _)
   end
+
+section
+
+variables [group α]
+
+lemma is_cyclic.gpowers_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
+  gpowers a = set.univ :=
+by rwa set.eq_univ_iff_forall
+
+variables [fintype α] [decidable_eq α]
+
+lemma is_cyclic.gpowers_to_finset_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
+  (gpowers a).to_finset = finset.univ :=
+by { rw ← set.to_finset_univ, congr, exact is_cyclic.gpowers_eq_univ ha }
+
+lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
+by rw [image_range_order_of, is_cyclic.gpowers_to_finset_eq_univ ha]
+
+lemma is_cyclic.image_range_card (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (fintype.card α)) = univ :=
+by rw [← order_of_eq_card_of_forall_mem_gpowers ha, is_cyclic.image_range_order_of ha]
+
+end
 
 section totient
 

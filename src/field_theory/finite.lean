@@ -175,46 +175,6 @@ begin
   exact nat.pow_dvd_pow _ n.2,
 end
 
--- move this
-@[simp] lemma set.to_finset_univ (α : Type*) [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
--- move this
-section
-variables {α : Type*} [group α] [fintype α] [decidable_eq α] {a : α}
-
-lemma image_range_order_of :
-  finset.image (λ i, a ^ i) (range (order_of a)) = (gpowers a).to_finset :=
-by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
-
-end
-
--- move this
-namespace is_cyclic
-
-variables {α : Type*} [group α]
-
-lemma gpowers_eq_univ {a : α} (ha : ∀ x : α, x ∈ gpowers a) :
-  gpowers a = set.univ :=
-by rwa set.eq_univ_iff_forall
-
-variables [fintype α] [decidable_eq α] {a : α}
-
-lemma gpowers_to_finset_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
-  (gpowers a).to_finset = finset.univ :=
-by { rw ← set.to_finset_univ, congr, exact gpowers_eq_univ ha }
-
-lemma image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
-  finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
-by rw [image_range_order_of, gpowers_to_finset_eq_univ ha]
-
-lemma image_range_card (ha : ∀ x : α, x ∈ gpowers a) :
-  finset.image (λ i, a ^ i) (range (fintype.card α)) = univ :=
-by rw [← order_of_eq_card_of_forall_mem_gpowers ha, image_range_order_of ha]
-
-end is_cyclic
-
 /-- The sum of `x^i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q-1) ∣ i`, in which case the sum is `q-1`. -/
 lemma sum_pow_units (i : ℕ) :

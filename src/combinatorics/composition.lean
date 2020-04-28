@@ -577,7 +577,7 @@ begin
   exact k_eq'.symm
 end
 
-/-- If one joins a list of list, and then splits the join along the right composition, one get
+/-- If one joins a list of lists, and then splits the join along the right composition, one get
 backs the original list of lists. -/
 theorem split_wrt_composition_join (L : list (list α)) (c : composition L.join.length)
   (h : map length L = c.blocks) : split_wrt_composition (join L) c = L :=

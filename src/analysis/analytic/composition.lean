@@ -485,8 +485,7 @@ begin
     simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
                list.map_of_fn, list.length_of_fn, true_and, comp_change_of_variables],
     assume j,
-    simp only [composition.blocks_fun, composition.blocks, (H.right _).right, pnat.mk_coe,
-               list.map_of_fn, list.nth_le_of_fn', function.comp_app] },
+    simp only [composition.blocks_fun, (H.right _).right, nth_le_of_fn'] },
   -- 2 - show that the composition gives the `comp_along_composition` application
   { rintros ⟨k, blocks_fun⟩ H,
     have L := comp_change_of_variables_length N H,

@@ -506,7 +506,7 @@ lemma map_length_split_wrt_composition (l : list α) (c : composition l.length) 
   map length (l.split_wrt_composition c) = c.blocks :=
 begin
   refine ext_le (by simp) (λ i h₁ h₂, _),
-  simp [split_wrt_composition, composition.size_up_to_le c, min_eq_left, nth_le_of_fn',
+  simp only [split_wrt_composition, composition.size_up_to_le c, min_eq_left, nth_le_of_fn',
              map_of_fn, function.comp_app, length_drop, length_take],
   simp only [composition.size_up_to_succ c h₂, nat.add_sub_cancel_left]
 end

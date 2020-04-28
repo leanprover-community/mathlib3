@@ -45,7 +45,7 @@ Let `c : composition n` be a composition of `n`. Then
 
 Compositions can also be used to split lists. Let `l` be a list of length `n` and `c` a composition
 of `n`.
-* `l.split_wrt_composition c` is a list of list, made of the slices of `l` corresponding to the
+* `l.split_wrt_composition c` is a list of lists, made of the slices of `l` corresponding to the
   blocks of `c`.
 * `join_split_wrt_composition` states that splitting a list and then joining it gives back the
   original list.

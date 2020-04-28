@@ -10,8 +10,8 @@ import data.list.intervals
 import data.list.antidiagonal
 import data.string.basic
 import algebra.group_power
-import category.traversable.lemmas
-import category.traversable.instances
+import control.traversable.lemmas
+import control.traversable.instances
 
 open list subtype nat
 

@@ -1701,7 +1701,6 @@ apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
 -- field_theory/subfield.lean
-apply_nolint field.closure doc_blame
 apply_nolint is_subfield doc_blame
 
 -- geometry/manifold/basic_smooth_bundle.lean

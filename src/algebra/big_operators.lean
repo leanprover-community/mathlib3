@@ -47,6 +47,23 @@ lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f 
   g (s.prod f) = s.prod (λx, g (f x)) :=
 by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
 
+lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+  f l.prod = (l.map f).prod :=
+f.to_monoid_hom.map_list_prod l
+
+lemma ring_hom.map_list_sum [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+  f l.sum = (l.map f).sum :=
+f.to_add_monoid_hom.map_list_sum l
+
+lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
+  (s : multiset β) :
+  f s.prod = (s.map f).prod :=
+f.to_monoid_hom.map_multiset_prod s
+
+lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s : multiset β) :
+  f s.sum = (s.map f).sum :=
+f.to_add_monoid_hom.map_multiset_sum s
+
 lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (s.prod f) = s.prod (λx, g (f x)) :=

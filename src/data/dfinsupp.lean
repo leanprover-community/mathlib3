@@ -253,6 +253,8 @@ begin
 end
 include dec
 
+/-- Create an element of `Π₀ i, β i` from a finset `s` and a function `x`
+defined on this `finset`. -/
 def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
 λ i, if H : i ∈ s then or.inl H else or.inr $ dif_neg H⟩⟧

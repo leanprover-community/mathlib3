@@ -608,12 +608,9 @@ lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 
 lemma add_mod (a b n : ℕ) : (a + b) % n = ((a % n) + (b % n)) % n :=
 begin
-  conv
-  begin
-    to_lhs,
+  conv_lhs {
     rw [←mod_add_div a n, ←mod_add_div b n, ←add_assoc, add_mul_mod_self_left,
-        add_assoc, add_comm _ (b % n), ←add_assoc, add_mul_mod_self_left]
-  end
+        add_assoc, add_comm _ (b % n), ←add_assoc, add_mul_mod_self_left] }
 end
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=

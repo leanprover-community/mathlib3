@@ -420,6 +420,15 @@ meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic un
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
 /--
+`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+We use this tactic for writing tests.
+-/
+meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+do
+  h ← get_local n >>= infer_type >>= instantiate_mvars,
+  match_expr p h m
+
+/--
 `guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
 to `guard_expr`, this tests strict (syntactic) equality.
 We use this tactic for writing tests.

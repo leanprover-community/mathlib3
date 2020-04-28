@@ -830,18 +830,7 @@ apply_nolint real.tan doc_blame
 apply_nolint real.tanh doc_blame
 
 -- data/dfinsupp.lean
-apply_nolint decidable_zero_symm doc_blame
-apply_nolint dfinsupp doc_blame
-apply_nolint dfinsupp.erase doc_blame
-apply_nolint dfinsupp.lmk doc_blame
-apply_nolint dfinsupp.lsingle doc_blame
-apply_nolint dfinsupp.mk doc_blame
 apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.single doc_blame
-apply_nolint dfinsupp.support doc_blame
-apply_nolint dfinsupp.to_has_scalar doc_blame
-apply_nolint dfinsupp.to_module doc_blame
-apply_nolint dfinsupp.zip_with doc_blame
 apply_nolint dfinsupp.zip_with_def unused_arguments
 
 -- data/dlist/basic.lean

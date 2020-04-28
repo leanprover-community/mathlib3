@@ -575,15 +575,10 @@ lemma has_strict_fderiv_at.is_O_sub_rev {f' : E ≃L[𝕜] F}
 (λ _, rfl) (λ _, sub_add_cancel _ _)
 
 lemma has_fderiv_at_filter.is_O_sub_rev {f' : E ≃L[𝕜] F}
-  (hf : has_fderiv_at_filter f (f' : E →L[𝕜] F) x L) (hL : L ≤ 𝓝 x) :
+  (hf : has_fderiv_at_filter f (f' : E →L[𝕜] F) x L) :
   is_O (λ x', x' - x) (λ x', f x' - f x) L :=
 ((f'.is_O_sub_rev _ _).trans (hf.trans_is_O (f'.is_O_sub_rev _ _)).right_is_O_add).congr
 (λ _, rfl) (λ _, sub_add_cancel _ _)
-
-lemma has_fderiv_at.is_O_sub_rev {f' : E ≃L[𝕜] F}
-  (hf : has_fderiv_at f (f' : E →L[𝕜] F) x) :
-  is_O (λ x', x' - x) (λ x', f x' - f x) (𝓝 x) :=
-hf.is_O_sub_rev (le_refl _)
 
 end continuous
 

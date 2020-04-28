@@ -3,8 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Fabian Glöckle
 -/
-
-import linear_algebra.tensor_product
 import linear_algebra.finite_dimensional
 import tactic.apply_fun
 noncomputable theory
@@ -186,9 +184,12 @@ begin
     { exfalso, apply ne.symm h₁ (by assumption) } }
 end
 
+omit de
+
 theorem dual_dim_eq [fintype ι] :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
+  classical,
   have :=  linear_equiv.dim_eq_lift  h.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
@@ -289,7 +290,7 @@ def coeffs (v : V) : ι →₀ K :=
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
 omit h
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
+private def help_tcs : has_scalar K V := mul_action.to_has_scalar
 
 local attribute [instance] help_tcs
 

@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
-
-import tactic.basic tactic.transport tactic.algebra
+import tactic.basic
+import tactic.transform_decl
+import tactic.algebra
 
 /-!
 # Transport multiplicative to additive
@@ -120,8 +121,8 @@ native.rb_map.of_list $
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
-string.map_tokens '_' $ list.map $
-string.map_tokens ''' $ list.map $
+string.map_tokens '_' $
+string.map_tokens ''' $
 λ s, (tokens_dict.find s).get_or_else s
 
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
@@ -193,7 +194,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transport_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict src tgt
         [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator],
       match val.doc with
       | some doc := add_doc_string tgt doc

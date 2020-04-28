@@ -3,9 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
 -/
-
-import topology.metric_space.isometry topology.instances.ennreal
-       topology.metric_space.lipschitz
+import topology.metric_space.isometry
+import topology.instances.ennreal
 
 /-!
 # Hausdorff distance
@@ -163,7 +162,7 @@ variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
 begin
   erw [Hausdorff_edist_def, sup_idem, ← le_bot_iff],
   apply Sup_le _,
-  simp [le_bot_iff, inf_edist_zero_of_mem] {contextual := tt},
+  simp [le_bot_iff, inf_edist_zero_of_mem, le_refl] {contextual := tt},
 end
 
 /-- The Haudorff edistances of `s` to `t` and of `t` to `s` coincide -/

@@ -3,7 +3,27 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_group
+
+/-!
+# strictly monotone functions, max, min and abs
+
+This file proves basic properties about strictly monotone functions,
+maxima and minima on a `decidable_linear_order`, and the absolute value
+function on linearly ordered add_comm_groups, semirings and rings.
+
+One useful result proved here is that if `f : ℕ → α` and `f n < f (n + 1)` for all `n`
+then f is strictly monotone (see `strict_mono.nat`).
+
+## Definition
+
+`strict_mono f` : a function between two types equipped with `<` is strictly monotone
+  if `a < b` implies `f a < f b`.
+
+## Tags
+
+monotone, strictly monotone, min, max, abs
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -85,7 +105,10 @@ lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_su
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
+/-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+
+/-- An instance asserting that `min a a = a` -/
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
@@ -149,7 +172,7 @@ le_trans (le_max_right _ _) h
 
 end
 
-lemma min_add {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_add {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b + c = min (a + c) (b + c) :=
 if hle : a ≤ b then
   have a - c ≤ b - c, from sub_le_sub hle (le_refl _),
@@ -158,7 +181,7 @@ else
   have b - c ≤ a - c, from sub_le_sub (le_of_lt (lt_of_not_ge hle)) (le_refl _),
   by simp * at *
 
-lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
 
@@ -181,8 +204,8 @@ lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section decidable_linear_ordered_comm_group
-variables [decidable_linear_ordered_comm_group α] {a b c : α}
+section decidable_linear_ordered_add_comm_group
+variables [decidable_linear_ordered_add_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
 
@@ -195,6 +218,8 @@ theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 ⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
+
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
@@ -230,7 +255,7 @@ abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
   (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
 
-theorem abs_le_abs {α : Type*} [decidable_linear_ordered_comm_group α] {a b : α}
+theorem abs_le_abs {α : Type*} [decidable_linear_ordered_add_comm_group α] {a b : α}
   (h₀ : a ≤ b) (h₁ : -a ≤ b) :
   abs a ≤ abs b :=
 calc  abs a
@@ -283,7 +308,7 @@ end
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
 by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}

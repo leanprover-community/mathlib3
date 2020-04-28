@@ -3,13 +3,9 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.ext
 import tactic.auto_cases
 import tactic.chain
-import tactic.solve_by_elim
 import tactic.norm_cast
-import tactic.hint
-import tactic.interactive
 
 namespace tactic
 
@@ -70,7 +66,7 @@ declare_trace tidy
 meta def core (cfg : cfg := {}) : tactic (list string) :=
 do
   results ← chain cfg.tactics,
-  when (cfg.trace_result ∨ is_trace_enabled_for `tidy) $
+  when (cfg.trace_result) $
     trace (cfg.trace_result_prefix ++ (", ".intercalate results)),
   return results
 

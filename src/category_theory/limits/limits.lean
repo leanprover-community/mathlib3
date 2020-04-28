@@ -3,10 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
-import category_theory.whiskering
-import category_theory.yoneda
 import category_theory.limits.cones
-import category_theory.eq_to_hom
+import category_theory.adjunction.basic
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -31,7 +29,7 @@ structure is_limit (t : cone F) :=
   m = lift s . obviously)
 
 restate_axiom is_limit.fac'
-attribute [simp] is_limit.fac
+attribute [simp, reassoc] is_limit.fac
 restate_axiom is_limit.uniq'
 
 namespace is_limit
@@ -138,6 +136,33 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   end }
 
 /--
+If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit implies
+`G.map_cone c` is also a limit.
+-/
+def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
+  (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
+{ lift := λ s, t.lift ((cones.postcompose (iso_whisker_left K h).inv).obj s) ≫ h.hom.app c.X,
+  fac' := λ s j,
+  begin
+    slice_lhs 2 3 {erw ← h.hom.naturality (c.π.app j)},
+    slice_lhs 1 2 {erw t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j},
+    dsimp,
+    slice_lhs 2 3 {rw nat_iso.inv_hom_id_app},
+    rw category.comp_id,
+  end,
+  uniq' := λ s m J,
+  begin
+    rw ← cancel_mono (h.inv.app c.X),
+    apply t.hom_ext,
+    intro j,
+    dsimp,
+    slice_lhs 2 3 {erw ← h.inv.naturality (c.π.app j)},
+    slice_lhs 1 2 {erw J j},
+    conv_rhs {congr, rw [category.assoc, nat_iso.hom_inv_id_app, comp_id]},
+    apply (t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j).symm
+  end }
+
+/--
 A cone is a limit cone exactly if
 there is a unique cone morphism from any other cone.
 -/
@@ -149,6 +174,18 @@ def iso_unique_cone_morphism {t : cone F} :
   inv := λ h,
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+-- TODO: this should actually hold for an adjunction between cone F and cone G, not just for
+-- equivalences
+/--
+Given two functors which have equivalent categories of cones, we can transport a limiting cone across
+the equivalence.
+-/
+def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
+  is_limit (h.inverse.obj c) :=
+mk_cone_morphism
+  (λ s, h.to_adjunction.hom_equiv s c (t.lift_cone_morphism _))
+  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
 
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)
@@ -468,12 +505,12 @@ has_limits_of_shape.has_limit F
 @[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
-has_limits.has_limits_of_shape C J
+has_limits.has_limits_of_shape J
 
 /- Interface to the `has_limit` class. -/
 
 /-- The chosen limit cone of a functor. -/
-def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone F
+def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone
 
 /-- The chosen limit object of a functor. -/
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -490,7 +527,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 
 /-- Evidence that the chosen cone is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
-has_limit.is_limit.{v} F
+has_limit.is_limit.{v}
 
 /-- The morphism from the cone point of any other cone to the chosen limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
@@ -706,7 +743,7 @@ by ext; rw [assoc, limit.pre_π, limit.map_π, assoc, limit.map_π, ←assoc, li
 lemma limit.map_pre' [has_limits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   limit.pre F E₂ = limit.pre F E₁ ≫ lim.map (whisker_right α F) :=
-by ext1; simp [(category.assoc _ _ _ _).symm]
+by ext1; simp [← category.assoc]
 
 lemma limit.id_pre (F : J ⥤ C) :
 limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
@@ -772,12 +809,12 @@ has_colimits_of_shape.has_colimit F
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
-has_colimits.has_colimits_of_shape C J
+has_colimits.has_colimits_of_shape J
 
 /- Interface to the `has_colimit` class. -/
 
 /-- The chosen colimit cocone of a functor. -/
-def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone F
+def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone
 
 /-- The chosen colimit object of a functor. -/
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -794,7 +831,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/
 def colimit.is_colimit (F : J ⥤ C) [has_colimit F] : is_colimit (colimit.cocone F) :=
-has_colimit.is_colimit.{v} F
+has_colimit.is_colimit.{v}
 
 /-- The morphism from the chosen colimit object to the cone point of any other cocone. -/
 def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.X :=
@@ -1032,7 +1069,7 @@ by ext; rw [←assoc, colimit.ι_pre, colimit.ι_map, ←assoc, colimit.ι_map, 
 lemma colimit.pre_map' [has_colimits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
-by ext1; simp [(category.assoc _ _ _ _).symm]
+by ext1; simp [← category.assoc]
 
 lemma colimit.pre_id (F : J ⥤ C) :
 colimit.pre F (𝟭 _) = colim.map (functor.left_unitor F).hom := by tidy

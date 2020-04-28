@@ -3,8 +3,8 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
-
-import data.int.modeq data.padics.padic_numbers ring_theory.ideals ring_theory.algebra
+import data.int.modeq
+import data.padics.padic_numbers
 
 /-!
 # p-adic integers
@@ -43,11 +43,11 @@ noncomputable theory
 open_locale classical
 
 /-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
-def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
@@ -92,27 +92,27 @@ instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
 @[simp] lemma val_eq_coe (z : ℤ_[p]) : z.val = ↑z := rfl
 
-@[simp, move_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
+@[simp, norm_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
+@[simp, norm_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
+@[simp, norm_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
 | ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, squash_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
+@[simp, norm_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, squash_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
+@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
 | 0 := rfl
 | (k+1) := by simp [coe_coe]
 
-@[simp, squash_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
-@[simp, move_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
+@[simp, norm_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
 | 0 := by simp
 | (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
 
@@ -127,7 +127,7 @@ def inv : ℤ_[p] → ℤ_[p]
 end padic_int
 
 section instances
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
@@ -172,7 +172,7 @@ end instances
 
 namespace padic_norm_z
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
@@ -225,7 +225,7 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 
 namespace padic_int
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 local attribute [reducible] padic_int
 
@@ -280,13 +280,12 @@ instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
   map_mul := coe_mul,
   map_add := coe_add }
 
-instance : algebra ℤ_[p] ℚ_[p] :=
-@algebra.of_ring_hom ℤ_[p] _ _ _ (coe) padic_int.is_ring_hom_coe
+instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
 
 end padic_int
 
 namespace padic_norm_z
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
       ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=

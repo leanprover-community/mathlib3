@@ -3,7 +3,6 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import geometry.manifold.basic_smooth_bundle
 
 /-!
@@ -677,7 +676,6 @@ begin
   { exact ((h.has_mfderiv_within_at).congr_of_mem_nhds_within hL hx).mfderiv_within hs },
   { unfold mfderiv_within,
     rw [dif_neg h, dif_neg],
-    refl,
     rwa ← mdifferentiable_within_at_congr_of_mem_nhds_within I I' hL hx }
 end
 
@@ -842,8 +840,7 @@ section id
 /-! #### Identity -/
 
 lemma has_mfderiv_at_id (x : M) :
-  has_mfderiv_at I I (@_root_.id M) x
-  (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) :=
+  has_mfderiv_at I I (@_root_.id M) x (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 begin
   refine ⟨continuous_id.continuous_at, _⟩,
   have : ∀ᶠ y in nhds_within ((ext_chart_at I x).to_fun x) (range (I.to_fun)),
@@ -856,8 +853,7 @@ begin
 end
 
 theorem has_mfderiv_within_at_id (s : set M) (x : M) :
-  has_mfderiv_within_at I I (@_root_.id M) s x
-  (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) :=
+  has_mfderiv_within_at I I (@_root_.id M) s x (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 (has_mfderiv_at_id I x).has_mfderiv_within_at
 
 lemma mdifferentiable_at_id : mdifferentiable_at I I (@_root_.id M) x :=
@@ -872,13 +868,12 @@ lemma mdifferentiable_id : mdifferentiable I I (@_root_.id M) :=
 lemma mdifferentiable_on_id : mdifferentiable_on I I (@_root_.id M) s :=
 (mdifferentiable_id I).mdifferentiable_on
 
-@[simp] lemma mfderiv_id : mfderiv I I (@_root_.id M) x =
-  (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) :=
+@[simp] lemma mfderiv_id :
+  mfderiv I I (@_root_.id M) x = (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 has_mfderiv_at.mfderiv (has_mfderiv_at_id I x)
 
 lemma mfderiv_within_id (hxs : unique_mdiff_within_at I s x) :
-  mfderiv_within I I (@_root_.id M) s x =
-  (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) :=
+  mfderiv_within I I (@_root_.id M) s x = (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 begin
   rw mdifferentiable.mfderiv_within (mdifferentiable_at_id I) hxs,
   exact mfderiv_id I
@@ -1185,13 +1180,14 @@ variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M'
 [smooth_manifold_with_corners I'' M'']
 
 lemma inv_fun_to_fun_deriv {x : M} (hx : x ∈ e.source) :
-  (mfderiv I' I e.inv_fun (e.to_fun x)).comp (mfderiv I I' e.to_fun x) = continuous_linear_map.id :=
+  (mfderiv I' I e.inv_fun (e.to_fun x)).comp (mfderiv I I' e.to_fun x) =
+    continuous_linear_map.id 𝕜 (tangent_space I x) :=
 begin
   have : (mfderiv I I (e.inv_fun ∘ e.to_fun) x) =
          (mfderiv I' I e.inv_fun (e.to_fun x)).comp (mfderiv I I' e.to_fun x) :=
     mfderiv_comp x (he.mdifferentiable_at_inv_fun (e.map_source hx)) (he.mdifferentiable_at_to_fun hx),
   rw ← this,
-  have : mfderiv I I (_root_.id : M → M) x = continuous_linear_map.id := mfderiv_id I,
+  have : mfderiv I I (_root_.id : M → M) x = continuous_linear_map.id _ _ := mfderiv_id I,
   rw ← this,
   apply mfderiv_congr_of_mem_nhds,
   have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
@@ -1201,7 +1197,8 @@ begin
 end
 
 lemma to_fun_inv_fun_deriv {x : M'} (hx : x ∈ e.target) :
-  (mfderiv I I' e.to_fun (e.inv_fun x)).comp (mfderiv I' I e.inv_fun x) = continuous_linear_map.id :=
+  (mfderiv I I' e.to_fun (e.inv_fun x)).comp (mfderiv I' I e.inv_fun x) =
+    continuous_linear_map.id 𝕜 (tangent_space I' x) :=
 he.symm.inv_fun_to_fun_deriv hx
 
 set_option class.instance_max_depth 60
@@ -1214,12 +1211,13 @@ protected def mfderiv {x : M} (hx : x ∈ e.source) :
   continuous_to_fun := (mfderiv I I' e.to_fun x).cont,
   continuous_inv_fun := (mfderiv I' I e.inv_fun (e.to_fun x)).cont,
   left_inv := λy, begin
-    have : (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) y = y := rfl,
+    have : (continuous_linear_map.id _ _ : tangent_space I x →L[𝕜] tangent_space I x) y = y := rfl,
     conv_rhs { rw [← this, ← he.inv_fun_to_fun_deriv hx] },
     refl
   end,
   right_inv := λy, begin
-    have : (continuous_linear_map.id : tangent_space I' (e.to_fun x) →L[𝕜] tangent_space I' (e.to_fun x)) y = y := rfl,
+    have : (continuous_linear_map.id 𝕜 _ :
+      tangent_space I' (e.to_fun x) →L[𝕜] tangent_space I' (e.to_fun x)) y = y := rfl,
     conv_rhs { rw [← this, ← he.to_fun_inv_fun_deriv (e.map_source hx)] },
     rw e.to_local_equiv.left_inv hx,
     refl

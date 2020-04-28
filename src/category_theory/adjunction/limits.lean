@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.preserves
+import category_theory.limits.creates
 
 open opposite
 
@@ -25,19 +25,19 @@ section preservation_colimits
 variables {J : Type v} [small_category J] (K : J ⥤ C)
 
 def functoriality_right_adjoint : cocone (K ⋙ F) ⥤ cocone K :=
-(cocones.functoriality G) ⋙
+(cocones.functoriality _ G) ⋙
   (cocones.precompose (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv))
 
 local attribute [reducible] functoriality_right_adjoint
 
-@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality F ⋙ functoriality_right_adjoint adj K :=
+@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
 { app := λ c, { hom := adj.unit.app c.X } }
 
-@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality F ⟶ 𝟭 (cocone (K ⋙ F)) :=
+@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
 { app := λ c, { hom := adj.counit.app c.X } }
 
 def functoriality_is_left_adjoint :
-  is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
+  is_left_adjoint (cocones.functoriality K F) :=
 { right := functoriality_right_adjoint adj K,
   adj := mk_of_unit_counit
   { unit := functoriality_unit adj K,
@@ -61,12 +61,12 @@ left_adjoint_preserves_colimits E.adjunction
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
-preserves_colimit.preserves E h
+preserves_colimit.preserves h
 
 instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
 { cocone := E.map_cocone (colimit.cocone K),
-  is_colimit := preserves_colimit.preserves E (colimit.is_colimit K) }
+  is_colimit := preserves_colimit.preserves (colimit.is_colimit K) }
 
 def has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
@@ -80,19 +80,19 @@ section preservation_limits
 variables {J : Type v} [small_category J] (K : J ⥤ D)
 
 def functoriality_left_adjoint : cone (K ⋙ G) ⥤ cone K :=
-(cones.functoriality F) ⋙ (cones.postcompose
+(cones.functoriality _ F) ⋙ (cones.postcompose
     ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom))
 
 local attribute [reducible] functoriality_left_adjoint
 
-@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality G :=
+@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
 { app := λ c, { hom := adj.unit.app c.X, } }
 
-@[simps] def functoriality_counit' : cones.functoriality G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
+@[simps] def functoriality_counit' : cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
 { app := λ c, { hom := adj.counit.app c.X, } }
 
 def functoriality_is_right_adjoint :
-  is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
+  is_right_adjoint (cones.functoriality K G) :=
 { left := functoriality_left_adjoint adj K,
   adj := mk_of_unit_counit
   { unit := functoriality_unit' adj K,
@@ -113,15 +113,37 @@ omit adj
 instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
 right_adjoint_preserves_limits E.inv.adjunction
 
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : reflects_limits E :=
+{ reflects_limits_of_shape := λ J 𝒥, by exactI
+  { reflects_limit := λ K,
+    { reflects := λ c t,
+      begin
+        have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
+        convert is_limit.map_cone_equiv E.fun_inv_id l,
+        { rw functor.comp_id },
+        { cases c,
+          cases c_π,
+          congr; rw functor.comp_id }
+      end } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
+{ creates_limits_of_shape := λ J 𝒥, by exactI
+  { creates_limit := λ F,
+    { lifts := λ c t,
+      { lifted_cone := H.map_cone_inv c,
+        valid_lift := H.map_cone_map_cone_inv c } } } }
+
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
-preserves_limit.preserves E h
+preserves_limit.preserves h
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
 { cone := E.map_cone (limit.cone K),
-  is_limit := preserves_limit.preserves E (limit.is_limit K) }
+  is_limit := preserves_limit.preserves (limit.is_limit K) }
 
 def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=

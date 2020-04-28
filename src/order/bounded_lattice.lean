@@ -7,9 +7,9 @@ Defines bounded lattice type class hierarchy.
 
 Includes the Prop and fun instances.
 -/
-
-import order.lattice data.option.basic
-       tactic.pi_instances
+import order.lattice
+import data.option.basic
+import tactic.pi_instances
 
 set_option old_structure_cmd true
 
@@ -22,8 +22,8 @@ class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
 class has_bot (α : Type u) := (bot : α)
 
-notation `⊤` := has_top.top _
-notation `⊥` := has_bot.bot _
+notation `⊤` := has_top.top
+notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
@@ -334,6 +334,7 @@ instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
   bounded_lattice (α → β) :=
 by pi_instance
 
+/-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
 namespace with_bot
@@ -363,6 +364,11 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
+
+lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
+⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
+
+lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 
 instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
@@ -404,10 +410,9 @@ theorem coe_le [partial_order α] {a b : α} :
 
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
-lemma bot_lt_some [partial_order α] (a : α) : (⊥ : with_bot α) < some a :=
-lt_of_le_of_ne bot_le (λ h, option.no_confusion h)
-
-lemma bot_lt_coe [partial_order α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
+| (some a) b := le_refl a
+| none     b := λ _ h, option.no_confusion h
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
@@ -718,9 +723,11 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-lemma dense_coe [partial_order α] [densely_ordered α] [no_top_order α] {a b : with_top α}
-  (h : a < b) : ∃ x : α, a < ↑x ∧ ↑x < b :=
-let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩
+lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
+  {a b : with_top α} :
+  (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
+⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
+ λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top
 

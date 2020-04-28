@@ -8,8 +8,7 @@ Operator norm on the space of continuous linear maps
 Define the operator norm on the space of continuous linear maps between normed spaces, and prove
 its basic properties. In particular, show that this space is itself a normed space.
 -/
-
-import topology.metric_space.lipschitz analysis.normed_space.riesz_lemma
+import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
 open_locale classical
@@ -58,23 +57,38 @@ The fact that the norm of the continuous linear map is then controlled is given 
 def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, linear_map.continuous_of_bound f C h⟩
 
+/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
+is generalized to the case of any finite dimensional domain
+in `linear_map.to_continuous_linear_map`. -/
+def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
+f.mk_continuous (∥f 1∥) $ λ x, le_of_eq $
+by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, mul_comm] }
+
 /-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
 map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
 follow automatically in `linear_map.mk_continuous_norm_le`. -/
 def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, elim_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, elim_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous_of_exists_bound h x = f x := rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
+  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
+rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
+  f.to_continuous_linear_map₁ x = f x :=
+rfl
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -265,13 +279,13 @@ by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
-lemma norm_id_le : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
+lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥(id : E →L[𝕜] E)∥ = 1 :=
+lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
-have _ := ratio_le_op_norm (id : E →L[𝕜] E) x,
+have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 /-- The operator norm is homogeneous. -/
@@ -567,10 +581,10 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
-@[simp, move_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
+@[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
-@[simp, squash_cast] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
+@[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
 end restrict_scalars

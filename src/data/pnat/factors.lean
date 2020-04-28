@@ -3,10 +3,10 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Neil Strickland
 -/
-import tactic.basic
-
-import data.pnat.basic data.nat.prime data.multiset data.int.basic data.int.gcd
- algebra.group algebra.group_power algebra.ordered_ring
+import data.pnat.basic
+import data.multiset
+import data.int.gcd
+import algebra.group
 
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
@@ -22,7 +22,7 @@ by unfold prime_multiset; apply_instance
 instance : has_repr prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
-instance : canonically_ordered_monoid prime_multiset :=
+instance : canonically_ordered_add_monoid prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
 instance : distrib_lattice prime_multiset :=

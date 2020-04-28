@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.ring data.zmod.basic
-import algebra.char_p
+import group_theory.order_of_element
+import data.polynomial
+import data.equiv.ring
+import data.zmod.basic
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -13,9 +15,9 @@ open function finset polynomial nat
 
 section
 
-variables [integral_domain α] [decidable_eq α] (S : set (units α)) [is_subgroup S] [fintype S]
+variables [integral_domain α] (S : set (units α)) [is_subgroup S] [fintype S]
 
-lemma card_nth_roots_subgroup_units {n : ℕ} (hn : 0 < n) (a : S) :
+lemma card_nth_roots_subgroup_units [decidable_eq α] {n : ℕ} (hn : 0 < n) (a : S) :
   (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units α) : α)).card :=
 card_le_card_of_inj_on (λ a, ((a : units α) : α))
   (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
@@ -87,8 +89,9 @@ end polynomial
 section
 variables [field α] [fintype α]
 
-lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
+lemma card_units : fintype.card (units α) = fintype.card α - 1 :=
 begin
+  classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
   haveI := set_fintype (@set.univ α),
@@ -104,55 +107,62 @@ haveI := set_fintype (@set.univ (units α)); exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units α)) in
 ⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
 
-lemma prod_univ_units_id_eq_neg_one [decidable_eq α] :
+lemma prod_univ_units_id_eq_neg_one :
   univ.prod (λ x, x) = (-1 : units α) :=
-have ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
-from prod_involution (λ x _, x⁻¹) (by simp)
-  (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-  (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
-  (by simp),
-by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
-    this, mul_one]
+begin
+  classical,
+  have : ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
+  from prod_involution (λ x _, x⁻¹) (by simp)
+    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (by simp),
+  rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
+      this, mul_one]
+end
 
 end
 
-lemma pow_card_sub_one_eq_one [decidable_eq α] [field α] [fintype α] (a : α) (ha : a ≠ 0) :
+lemma pow_card_sub_one_eq_one [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
-    by rw [units.coe_pow, units.mk0_val]
-  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
+    by rw [units.coe_pow, units.coe_mk0]
+  ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
 end finite_field
 
-namespace zmodp
+namespace zmod
 
 open finite_field
 
-lemma sum_two_squares {p : ℕ} (hp : p.prime) (x : zmodp p hp) :
-  ∃ a b : zmodp p hp, a^2 + b^2 = x :=
-hp.eq_two_or_odd.elim (λ hp2, by resetI; subst hp2; revert x; exact dec_trivial) $ λ hp2,
-let ⟨a, b, hab⟩ := @exists_root_sum_quadratic _ _ _
-  (X^2 : polynomial (zmodp p hp)) (X^2 - C x) (by simp)
-  (degree_X_pow_sub_C dec_trivial _) (by simp *) in
-⟨a, b, by simpa only [eval_add, eval_pow, eval_neg, eval_X, eval_sub, eval_C,
-    (add_sub_assoc _ _ _).symm, sub_eq_zero] using hab⟩
+lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
+  ∃ a b : zmod p, a^2 + b^2 = x :=
+begin
+  cases hp.eq_two_or_odd with hp2 hp_odd,
+  { unfreezeI, subst p, revert x, exact dec_trivial },
+  let f : polynomial (zmod p) := X^2,
+  let g : polynomial (zmod p) := X^2 - C x,
+  obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
+    @exists_root_sum_quadratic _ _ _ f g
+      (degree_X_pow 2) (degree_X_pow_sub_C dec_trivial _) (by rw [zmod.card, hp_odd]),
+  refine ⟨a, b, _⟩,
+  rw ← sub_eq_zero,
+  simpa only [eval_C, eval_X, eval_pow, eval_sub, ← add_sub_assoc] using hab,
+end
 
-end zmodp
+end zmod
 
 namespace char_p
 
-lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n] (x : ℤ) :
-  ∃ a b : ℕ, (a^2 + b^2 : α) = x :=
-let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
-  from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
-⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
-  rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
-end⟩
+lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+  ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
+begin
+  haveI := char_is_prime_of_pos R p,
+  obtain ⟨a, b, hab⟩ := zmod.sum_two_squares p x,
+  refine ⟨a.val, b.val, _⟩,
+  have := congr_arg (zmod.cast_hom p R) hab,
+  simpa only [zmod.cast_int_cast, zmod.cast_hom_apply, zmod.cast_add,
+    zmod.nat_cast_val, _root_.pow_two, zmod.cast_mul]
+end
 
 end char_p
 
@@ -161,18 +171,18 @@ open zmod
 
 /-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
-@[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
+@[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
 /-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
-  rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
-  let n' : ℕ+ := ⟨n, h₁⟩,
-  let x' : units (zmod n') := zmod.unit_of_coprime _ h,
+  cases n, {simp},
+  rw ← zmod.eq_iff_modeq_nat,
+  let x' : units (zmod (n+1)) := zmod.unit_of_coprime _ h,
   have := zmod.pow_totient x',
-  apply (zmod.eq_iff_modeq_nat' h₁).1,
-  apply_fun (coe:units (zmod n') → zmod n') at this,
-  simpa [show (x':zmod n') = x, from rfl],
+  apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
+  simpa only [-zmod.pow_totient, succ_eq_add_one, cast_pow, units.coe_one,
+    nat.cast_one, cast_unit_of_coprime, units.coe_pow],
 end

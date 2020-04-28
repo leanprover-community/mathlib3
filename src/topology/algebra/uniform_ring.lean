@@ -5,8 +5,8 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Theory of topological rings with uniform structure.
 -/
-
-import topology.algebra.group_completion topology.algebra.ring
+import topology.algebra.group_completion
+import topology.algebra.ring
 
 open classical set filter topological_space add_comm_group
 open_locale classical
@@ -21,12 +21,11 @@ instance : has_one (completion α) := ⟨(1:α)⟩
 instance : has_mul (completion α) :=
   ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry' (*))⟩
 
-@[elim_cast]
-lemma coe_one : ((1 : α) : completion α) = 1 := rfl
+@[norm_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
 variables {α} [topological_ring α]
 
-@[move_cast]
+@[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul) (a, b)).symm

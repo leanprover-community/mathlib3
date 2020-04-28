@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
 import topology.metric_space.basic
-import category_theory.endomorphism category_theory.types
+import category_theory.endomorphism
+import category_theory.types
 
 /-!
 # Lipschitz continuous functions
@@ -174,7 +175,7 @@ hf.comp hg
 endomorphism. -/
 protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [lipschitz_with.id]
+| [] := by simp [types_id, lipschitz_with.id]
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :

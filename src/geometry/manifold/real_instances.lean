@@ -3,15 +3,15 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import geometry.manifold.smooth_manifold_with_corners linear_algebra.finite_dimensional
+import geometry.manifold.smooth_manifold_with_corners
+import linear_algebra.finite_dimensional
 
 /-!
 # Constructing examples of manifolds over ℝ
 
-We introduce the necessary bits to be able to define manifolds modelled over ℝ^n, boundaryless
+We introduce the necessary bits to be able to define manifolds modelled over `ℝ^n`, boundaryless
 or with boundary or with corners. As a concrete example, we construct explicitly the manifold with
-boundary structure on the real interval [x, y].
+boundary structure on the real interval `[x, y]`.
 
 More specifically, we introduce
 * `euclidean_space n` for a model vector space of dimension `n`.
@@ -22,30 +22,29 @@ to define `n`-dimensional real manifolds with corners
 
 ## Implementation notes
 
-The manifold structure on the interval [x, y] = Icc x y requires the assumption `x < y`. We
-introduce a dummy class `lt_class x y` for this, to make such an assumption available to typeclass
-search. This should hopefully not be necessary any more in Lean 4.
+The manifold structure on the interval `[x, y] = Icc x y` requires the assumption `x < y` as a
+typeclass. We provide it as `[fact (x < y)]`.
 -/
 
 noncomputable theory
 open set
 
 /--
-The space ℝ^n. Note that the name is slightly misleading, as we only need a normed space
-structure on ℝ^n, but the one we use here is the sup norm and not the euclidean one -- this is not
+The space `ℝ^n`. Note that the name is slightly misleading, as we only need a normed space
+structure on `ℝ^n`, but the one we use here is the sup norm and not the euclidean one -- this is not
 a problem for the manifold applications, but should probably be refactored at some point.
 -/
 def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
 
 /--
-The half-space in ℝ^n, used to model manifolds with boundary. We only define it when `1 ≤ n`, as the
-definition only makes sense in this case.
+The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
+`1 ≤ n`, as the definition only makes sense in this case.
 -/
 def euclidean_half_space (n : ℕ) [has_zero (fin n)] : Type :=
 {x : euclidean_space n // 0 ≤ x 0}
 
 /--
-The quadrant in ℝ^n, used to model manifolds with corners, made of all vectors with nonnegative
+The quadrant in `ℝ^n`, used to model manifolds with corners, made of all vectors with nonnegative
 coordinates.
 -/
 def euclidean_quadrant (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, 0 ≤ x i}
@@ -77,7 +76,7 @@ by simp
 end
 
 /--
-Definition of the model with corners (euclidean_space n, euclidean_half_space n), used as a
+Definition of the model with corners `(euclidean_space n, euclidean_half_space n)`, used as a
 model for manifolds with boundary.
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
@@ -135,7 +134,7 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   end }
 
 /--
-Definition of the model with corners (euclidean_space n, euclidean_quadrant n), used as a
+Definition of the model with corners `(euclidean_space n, euclidean_quadrant n)`, used as a
 model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
   model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n) :=
@@ -187,22 +186,15 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   end }
 
 /--
-Dummy class to make an assumption such as `x < y` available to typeclass search. Such an
-assumption is used to define a manifold structure on [x, y] when `x < y`. Should be fixed in Lean 4.
--/
-def lt_class {α : Type*} [has_lt α] (x y : α) : Prop := x < y
-attribute [class] lt_class
-
-/--
-The left chart for the topological space [x, y], defined on [x,y) and sending x to 0 in
+The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in
 `euclidean_half_space 1`.
 -/
-def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
+def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
 { source := {z : Icc x y | z.val < y},
   target := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
-  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt h]⟩,
+  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt ‹x < y›]⟩,
   map_source := by simp,
   map_target := by { simp, assume z hz, left, linarith },
   left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
@@ -242,15 +234,16 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
   end }
 
 /--
-The right chart for the topological space [x, y], defined on (x,y] and sending y to 0 in
+The right chart for the topological space `[x, y]`, defined on `(x,y]` and sending `y` to `0` in
 `euclidean_half_space 1`.
 -/
-def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
+def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
 { source := {z : Icc x y | x < z.val},
   target := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
-  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt h, sub_eq_add_neg]⟩,
+  inv_fun := λz,
+    ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt ‹x < y›, sub_eq_add_neg]⟩,
   map_source := by simp,
   map_target := by { simp, assume z hz, left, linarith },
   left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z, sub_eq_add_neg] },
@@ -290,9 +283,9 @@ def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
   end }
 
 /--
-Manifold with boundary structure on [x, y], using only two charts.
+Manifold with boundary structure on `[x, y]`, using only two charts.
 -/
-instance Icc_manifold (x y : ℝ) [h : lt_class x y] : manifold (euclidean_half_space 1) (Icc x y) :=
+instance Icc_manifold (x y : ℝ) [fact (x < y)] : manifold (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},
   chart_at := λz, if z.val < y then Icc_left_chart x y else Icc_right_chart x y,
   mem_chart_source := λz, begin
@@ -300,15 +293,15 @@ instance Icc_manifold (x y : ℝ) [h : lt_class x y] : manifold (euclidean_half_
     { simp only [h', if_true],
       exact h' },
     { simp only [h', if_false],
-      apply lt_of_lt_of_le h,
+      apply lt_of_lt_of_le ‹x < y›,
       simpa using h' }
   end,
   chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
 
 /--
-The manifold structure on [x, y] is smooth.
+The manifold structure on `[x, y]` is smooth.
 -/
-instance Icc_smooth_manifold (x y : ℝ) [lt_class x y] :
+instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
   smooth_manifold_with_corners (model_with_corners_euclidean_half_space 1) (Icc x y) :=
 begin
   have M : times_cont_diff_on ℝ ⊤ (λz : fin 1 → ℝ, (λi : fin 1, y - x) - z) univ,
@@ -320,14 +313,14 @@ begin
     apply has_groupoid_of_pregroupoid,
     assume e e' he he',
     simp [atlas] at he he',
-    /- We need to check that any composition of two charts gives a C^∞ function. Each chart can be
+    /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
     either the left chart or the right chart, leaving 4 possibilities that we handle successively.
     -/
     rcases he with rfl | rfl; rcases he' with rfl | rfl,
-    { -- e = right chart, e' = right chart
+    { -- `e = right chart`, `e' = right chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
-    { -- e = right chart, e' = left chart
+    { -- `e = right chart`, `e' = left chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
       simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
@@ -338,7 +331,7 @@ begin
       rw subsingleton.elim i 0,
       simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
         sub_right_comm y] },
-    { -- e = left chart, e' = right chart
+    { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
       simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
@@ -349,7 +342,7 @@ begin
       rw subsingleton.elim i 0,
       simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
         sub_add_eq_sub_sub_swap] },
-    { -- e = left chart, e' = left chart
+    { -- `e = left chart`, `e' = left chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,

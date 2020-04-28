@@ -6,7 +6,8 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.equiv.nat order.order_iso
+import data.equiv.nat
+import order.order_iso
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -14,7 +15,9 @@ open option list nat function
   `decode : nat → option α`. This makes the range of `encode` decidable,
   although it is not decidable if `α` is finite or not. -/
 class encodable (α : Type*) :=
-(encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
+(encode : α → nat)
+(decode [] : nat → option α)
+(encodek : ∀ a, decode (encode a) = some a)
 
 namespace encodable
 variables {α : Type*} {β : Type*}

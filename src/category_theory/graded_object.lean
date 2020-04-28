@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.shift
-import category_theory.limits.shapes.zero
+import category_theory.concrete_category
 
 /-!
 # The category of graded objects
@@ -136,7 +136,11 @@ instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift.{v} (gra
 instance has_zero_morphisms [has_zero_morphisms.{v} C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=
 { has_zero := λ X Y,
-  { zero := λ b, 0 } }.
+  { zero := λ b, 0 } }
+
+@[simp]
+lemma zero_apply [has_zero_morphisms.{v} C] (β : Type w) (X Y : graded_object β C) (b : β) :
+  (0 : X ⟶ Y) b = 0 := rfl
 
 section
 local attribute [instance] has_zero_object.has_zero
@@ -166,7 +170,7 @@ def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
-variables [decidable_eq β] [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms.{v} C]
 
 /--
 The `total` functor taking a graded object to the coproduct of its graded components is faithful.
@@ -176,6 +180,7 @@ which follows from the fact we have zero morphisms and decidable equality for th
 instance : faithful.{v} (total.{v u} β C) :=
 { injectivity' := λ X Y f g w,
   begin
+    classical,
     ext i,
     replace w := sigma.ι (λ i : ulift β, X i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
@@ -186,9 +191,9 @@ end graded_object
 
 namespace graded_object
 
-variables (β : Type) [decidable_eq β]
-variables (C : Type (u+1))
-  [𝒞 : concrete_category C] [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
+variables (β : Type)
+variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
+  [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
 include 𝒞
 
 instance : concrete_category (graded_object β C) :=

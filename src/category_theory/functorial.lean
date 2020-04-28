@@ -3,7 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
 import category_theory.functor
 
 /-!
@@ -35,7 +34,7 @@ If `F : C → D` (just a function) has `[functorial F]`,
 we can write `map F f  : F X ⟶ F Y` for the action of `F` on a morphism `f : X ⟶ Y`.
 -/
 def map (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ⟶ Y) : F X ⟶ F Y :=
-functorial.map.{v₁ v₂} F f
+functorial.map.{v₁ v₂} f
 
 namespace functor
 

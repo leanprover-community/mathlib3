@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import algebra.big_operators algebra.ordered_field
+import algebra.big_operators
 
 /-!
 # Cauchy sequences
@@ -29,10 +28,10 @@ sequence, cauchy, abs val, absolute value
 multiplicative. -/
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
-(abv_nonneg : ∀ x, 0 ≤ f x)
-(abv_eq_zero : ∀ {x}, f x = 0 ↔ x = 0)
-(abv_add : ∀ x y, f (x + y) ≤ f x + f y)
-(abv_mul : ∀ x y, f (x * y) = f x * f y)
+(abv_nonneg [] : ∀ x, 0 ≤ f x)
+(abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
+(abv_add [] : ∀ x y, f (x + y) ≤ f x + f y)
+(abv_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_absolute_value
 variables {α : Type*} [discrete_linear_ordered_field α]

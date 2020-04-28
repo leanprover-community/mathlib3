@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
 -/
-
-import data.real.cau_seq_completion
-import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
-import tactic.norm_cast
+import data.padics.padic_norm
+import analysis.normed_space.basic
 
 /-!
 # p-adic numbers
@@ -28,7 +26,7 @@ We introduce the notation ℚ_[p] for the p-adic numbers.
 ## Implementation notes
 
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
-by taking (prime p) as a type class argument.
+by taking `[fact (prime p)]` as a type class argument.
 
 We use the same concrete Cauchy sequence construction that is used to construct ℝ. ℚ_p inherits a
 field structure from this construction. The extension of the norm on ℚ to ℚ_p is *not* analogous to
@@ -61,12 +59,12 @@ open_locale classical
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
 
 /-- The type of Cauchy sequences of rationals with respect to the p-adic norm. -/
-@[reducible] def padic_seq (p : ℕ) [p.prime] := cau_seq _ (padic_norm p)
+@[reducible] def padic_seq (p : ℕ) [fact p.prime] := cau_seq _ (padic_norm p)
 
 namespace padic_seq
 
 section
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 /-- The p-adic norm of the entries of a nonzero Cauchy sequence of rationals is eventually
 constant. -/
@@ -126,7 +124,7 @@ end
 
 section embedding
 open cau_seq
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma equiv_zero_of_val_eq_of_equiv_zero {f g : padic_seq p}
   (h : ∀ k, padic_norm p (f k) = padic_norm p (g k)) (hf : f ≈ 0) : g ≈ 0 :=
@@ -222,7 +220,7 @@ namespace padic_seq
 section embedding
 
 open cau_seq
-variables {p : ℕ} [hp : nat.prime p]
+variables {p : ℕ} [hp : fact p.prime]
 include hp
 
 lemma norm_mul (f g : padic_seq p) : (f * g).norm = f.norm * g.norm :=
@@ -394,13 +392,13 @@ end embedding
 end padic_seq
 
 /-- The p-adic numbers `Q_[p]` are the Cauchy completion of `ℚ` with respect to the p-adic norm. -/
-def padic (p : ℕ) [nat.prime p] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
+def padic (p : ℕ) [fact p.prime] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
 notation `ℚ_[` p `]` := padic p
 
 namespace padic
 
 section completion
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 /-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
 instance field : field (ℚ_[p]) :=
@@ -425,7 +423,7 @@ def mk : padic_seq p → ℚ_[p] := quotient.mk
 end completion
 
 section completion
-variables (p : ℕ) [nat.prime p]
+variables (p : ℕ) [fact p.prime]
 
 lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 
@@ -468,14 +466,14 @@ lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
     have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
     by simp [this, rat.mk_eq_div, of_rat_div]
 
-@[move_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
-@[move_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := by simp [cast_eq_of_rat]
-@[move_cast] lemma coe_mul : ∀ {x y : ℚ}, (↑(x * y) : ℚ_[p]) = ↑x * ↑y := by simp [cast_eq_of_rat]
-@[move_cast] lemma coe_sub : ∀ {x y : ℚ}, (↑(x - y) : ℚ_[p]) = ↑x - ↑y := by simp [cast_eq_of_rat]
-@[move_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
+@[norm_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
+@[norm_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := by simp [cast_eq_of_rat]
+@[norm_cast] lemma coe_mul : ∀ {x y : ℚ}, (↑(x * y) : ℚ_[p]) = ↑x * ↑y := by simp [cast_eq_of_rat]
+@[norm_cast] lemma coe_sub : ∀ {x y : ℚ}, (↑(x - y) : ℚ_[p]) = ↑x - ↑y := by simp [cast_eq_of_rat]
+@[norm_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
 
-@[squash_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
-@[squash_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
+@[norm_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
+@[norm_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
 
 lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) r ↔ q = r :=
 ⟨ λ heq : lim_zero (const (padic_norm p) (q - r)),
@@ -485,7 +483,7 @@ lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) 
 lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 ⟨(const_equiv p).1 ∘ quotient.eq.1, λ h, by rw h⟩
 
-@[elim_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r :=
+@[norm_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r :=
 by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
@@ -496,13 +494,13 @@ end padic
 
 /-- The rational-valued p-adic norm on ℚ_p is lifted from the norm on Cauchy sequences. The
 canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
-def padic_norm_e {p : ℕ} [hp : nat.prime p] : ℚ_[p] → ℚ :=
+def padic_norm_e {p : ℕ} [hp : fact p.prime] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
 
 namespace padic_norm_e
 section embedding
 open padic_seq
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma defn (f : padic_seq p) {ε : ℚ} (hε : ε > 0) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
@@ -598,7 +596,7 @@ namespace padic
 section complete
 open padic_seq padic
 
-theorem rat_dense' {p : ℕ} [nat.prime p] (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
+theorem rat_dense' {p : ℕ} [fact p.prime] (q : ℚ_[p]) {ε : ℚ} (hε : ε > 0) :
   ∃ r : ℚ, padic_norm_e (q - r) < ε :=
 quotient.induction_on q $ λ q',
   have ∃ N, ∀ m n ≥ N, padic_norm p (q' m - q' n) < ε, from cauchy₂ _ hε,
@@ -619,7 +617,7 @@ quotient.induction_on q $ λ q',
           apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
     end⟩
 
-variables {p : ℕ} [nat.prime p] (f : cau_seq _ (@padic_norm_e p _))
+variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
 open classical
 
 private lemma div_nat_pos (n : ℕ) : (1 / ((n + 1): ℚ)) > 0 :=
@@ -701,7 +699,7 @@ theorem complete' : ∃ q : ℚ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_
 end complete
 
 section normed_space
-variables (p : ℕ) [nat.prime p]
+variables (p : ℕ) [fact p.prime]
 
 instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
@@ -733,7 +731,7 @@ instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
   abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-theorem rat_dense {p : ℕ} {hp : p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :
+theorem rat_dense {p : ℕ} {hp : fact p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :
         ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
@@ -744,7 +742,7 @@ end padic
 
 namespace padic_norm_e
 section normed_space
-variables {p : ℕ} [hp : p.prime]
+variables {p : ℕ} [hp : fact p.prime]
 include hp
 
 @[simp] protected lemma mul (q r : ℚ_[p]) : ∥q * r∥ = ∥q∥ * ∥r∥ :=
@@ -816,18 +814,19 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       norm_cast,
       rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
       have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
+      simp only [], norm_cast,
       rw_mod_cast [h, sub_zero],
       apply fpow_le_one_of_nonpos,
       { exact_mod_cast le_of_lt hp.one_lt, },
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
 
-lemma eq_of_norm_add_lt_right {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[p]}
+lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma eq_of_norm_add_lt_left {p : ℕ} {hp : p.prime} {z1 z2 : ℚ_[p]}
+lemma eq_of_norm_add_lt_left {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_left) h
@@ -836,7 +835,7 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=

@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.monotonicity.basic
-import category.basic
 import category.traversable
 import category.traversable.derive
-
 import data.dlist
-import logic.basic
-import tactic.core
 
 variables {a b c p : Prop}
 
@@ -92,7 +88,7 @@ apply_opt_param
 <|>
 apply_auto_param
 <|>
-tactic.solve_by_elim { lemmas := asms }
+tactic.solve_by_elim { lemmas := some asms }
 <|>
 reflexivity
 <|>
@@ -580,7 +576,7 @@ do try `[dunfold has_sub.sub algebra.sub],
                `[simp only [is_associative.assoc]]) ),
      n ← num_goals,
      iterate_exactly (n-1) (try $ solve1 $ apply_instance <|>
-       tactic.solve_by_elim {lemmas := asms}))
+       tactic.solve_by_elim { lemmas := some asms }))
 
 open sum nat
 

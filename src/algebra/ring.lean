@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
-
 import algebra.group.with_one
 import deprecated.group
 import tactic.norm_cast
@@ -35,10 +34,10 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
-
-Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
+of type class `[]` brackets. This is done when the instances can be inferred because they are
+implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
+to use this method than to use type class inference.
 
 ## Tags
 
@@ -75,17 +74,13 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
--- In this lemma and the next we need to use `congr` because
--- `if_simp_congr`, the congruence lemma `simp` uses for rewriting inside `ite`,
--- modifies the decidable instance.
--- We expect in Lean 3.8 that this won't be necessary.
 @[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by { simp, congr }
+by simp
 
 @[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by { simp, congr }
+by simp
 
 variable (α)
 
@@ -163,10 +158,10 @@ attribute [trans] dvd.trans
 
 /-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
-(map_zero : f 0 = 0)
-(map_one : f 1 = 1)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_zero [] : f 0 = 0)
+(map_one [] : f 1 = 1)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
 
 namespace is_semiring_hom
 
@@ -294,9 +289,9 @@ end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
-(map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_one [] : f 1 = 1)
+(map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
+(map_add [] : ∀ {x y}, f (x + y) = f x + f y)
 
 namespace is_ring_hom
 
@@ -362,10 +357,21 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
+@[simp, norm_cast]
+lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →* β) : α → β) = (f : α → β) := rfl
+
+@[simp, norm_cast]
+lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
+  (f : α →+* β) :
+  ((f : α →+ β) : α → β) = (f : α → β) := rfl
 
 namespace ring_hom
 
@@ -488,6 +494,15 @@ class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_c
 class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
 end prio
 
+-- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
+-- but it doesn't seem worth doing just for these lemmas.
+lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
+
+-- As with succ_ne_self.
+lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
@@ -587,7 +602,7 @@ section
 
 /-- An integral domain is a domain. -/
   @[priority 100] -- see Note [lower instance priority]
-  instance integral_domain.to_domain : domain α := {..s}
+  instance integral_domain.to_domain : domain α := {..s, ..(by apply_instance : semiring α)}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
   theorem eq_of_mul_eq_mul_right_of_ne_zero {a b c : α} (ha : a ≠ 0) (h : b * a = c * a) : b = c :=

@@ -3,9 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import category.traversable.equiv data.vector2
+import category.traversable.equiv
+import data.vector2
 
-universes u w
+universes u v w
 
 namespace d_array
 variables {n : ℕ} {α : fin n → Type u}
@@ -227,31 +228,19 @@ end push_back
 /- foreach -/
 
 section foreach
-variables {n : ℕ} {α : Type u} {i : fin n} {f : fin n → α → α} {a : array n α}
-
-theorem read_foreach_aux : ∀ i h (b : array n α) (j : fin n), j.1 < i →
-  (d_array.iterate_aux a (λ i v a', write a' i (f i v)) i h b).read j = f j (a.read j)
-| 0     hi a ⟨j, hj⟩ ji := absurd ji (nat.not_lt_zero _)
-| (i+1) hi a ⟨j, hj⟩ ji := begin
-  dsimp [d_array.iterate_aux], dsimp at ji,
-  by_cases e : (⟨i, hi⟩ : fin _) = ⟨j, hj⟩,
-  { rw [e], simp, refl },
-  { rw [read_write_of_ne _ _ e, read_foreach_aux _ _ _ ⟨j, hj⟩],
-    exact (lt_or_eq_of_le (nat.le_of_lt_succ ji)).resolve_right
-      (ne.symm $ mt (@fin.eq_of_veq _ ⟨i, hi⟩ ⟨j, hj⟩) e) }
-end
+variables {n : ℕ} {α : Type u} {β : Type v} {i : fin n} {f : fin n → α → β} {a : array n α}
 
 @[simp] theorem read_foreach : (foreach a f).read i = f i (a.read i) :=
-read_foreach_aux _ _ _ _ i.2
+rfl
 
 end foreach
 
 /- map -/
 
 section map
-variables {n : ℕ} {α : Type u} {i : fin n} {f : α → α} {a : array n α}
+variables {n : ℕ} {α : Type u} {β : Type v} {i : fin n} {f : α → β} {a : array n α}
 
-theorem read_map : (map f a).read i = f (a.read i) :=
+theorem read_map : (a.map f).read i = f (a.read i) :=
 read_foreach
 
 end map

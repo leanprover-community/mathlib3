@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.basic algebra.group.hom deprecated.group
+import data.equiv.basic
+import deprecated.group
 
 /-!
 # Multiplicative and additive equivs

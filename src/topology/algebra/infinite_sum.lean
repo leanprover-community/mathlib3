@@ -16,9 +16,7 @@ Reference:
 * Bourbaki: General Topology (1995), Chapter 3 §5 (Infinite sums in commutative groups)
 
 -/
-import logic.function algebra.big_operators data.set.lattice data.finset
-       topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
-       topology.algebra.ordered topology.instances.real
+import topology.instances.real
 
 noncomputable theory
 open finset filter function classical
@@ -486,7 +484,7 @@ by { simp only [mul_comm _ a], exact summable_mul_left_iff h }
 end field
 
 section order_topology
-variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology α]
+variables [ordered_add_comm_monoid α] [topological_space α] [order_closed_topology α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
@@ -690,7 +688,7 @@ lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d :
   (n : ℕ) :
   dist (f n) a ≤ ∑ m, d (n + m) :=
 begin
-  refine le_of_tendsto at_top_ne_bot (tendsto_dist tendsto_const_nhds ha)
+  refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.dist ha)
     (eventually_at_top.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],

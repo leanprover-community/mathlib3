@@ -7,9 +7,7 @@ Monad encapsulating continuation passing programming style, similar to
 Haskell's `Cont`, `ContT` and `MonadCont`:
 <http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html>
 -/
-
-import tactic.ext
-import category.monad.basic category.monad.writer
+import category.monad.writer
 
 universes u v w
 

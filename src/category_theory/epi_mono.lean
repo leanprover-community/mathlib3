@@ -8,9 +8,8 @@ Facts about epimorphisms and monomorphisms.
 The definitions of `epi` and `mono` are in `category_theory.category`,
 since they are used by some lemmas for `iso`, which is used everywhere.
 -/
-
 import category_theory.adjunction.basic
-import category_theory.fully_faithful
+import category_theory.opposites
 
 universes v₁ v₂ u₁ u₂
 
@@ -79,7 +78,7 @@ class split_epi {X Y : C} (f : X ⟶ Y) :=
 def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction.{v₁} f
 @[simp, reassoc]
 lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
-split_mono.id' f
+split_mono.id'
 /-- The retraction of a split monomorphism is itself a split epimorphism. -/
 instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi (retraction f) :=
 { section_ := f }
@@ -91,7 +90,7 @@ The chosen section of a split epimorphism.
 def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_.{v₁} f
 @[simp, reassoc]
 lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
-split_epi.id' f
+split_epi.id'
 /-- The section of a split epimorphism is itself a split monomorphism. -/
 instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (section_ f) :=
 { retraction := f }
@@ -115,6 +114,30 @@ instance split_mono.mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
 @[priority 100]
 instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
+
+/-- Every split mono whose retraction is mono is an iso. -/
+def is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] [mono $ retraction f]
+  : is_iso f :=
+{ inv := retraction f,
+  inv_hom_id' := (cancel_mono_id $ retraction f).mp (by simp) }
+
+/-- Every split epi whose section is epi is an iso. -/
+def is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ f]
+  : is_iso f :=
+{ inv := section_ f,
+  hom_inv_id' := (cancel_epi_id $ section_ f).mp (by simp) }
+
+instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_epi f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_mono f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_epi f).1 (has_hom.hom.op_inj eq))⟩
+
+instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_mono f).1 (has_hom.hom.op_inj eq))⟩
 
 section
 variables {D : Type u₂} [𝒟 : category.{v₂} D]

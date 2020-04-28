@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
-import algebra.archimedean algebra.geom_sum
-import data.nat.choose data.complex.basic
-import tactic.linarith
+import algebra.geom_sum
+import data.nat.choose
+import data.complex.basic
 
 local notation `abs'` := _root_.abs
 open is_absolute_value
@@ -147,7 +147,7 @@ begin
   have r_pos : 0 < r := lt_of_le_of_ne hr0 (ne.symm r_ne_zero),
   replace hk : m = k + n.succ := (nat.sub_eq_iff_eq_add hmn).1 hk,
   induction k with k ih generalizing m n,
-  { rw [hk, zero_add, mul_right_comm, ← pow_inv _ _ r_ne_zero, ← div_eq_mul_inv, mul_div_cancel],
+  { rw [hk, zero_add, mul_right_comm, inv_pow' _ _, ← div_eq_mul_inv, mul_div_cancel],
     exact (ne_of_lt (pow_pos r_pos _)).symm },
   { have kn : k + n.succ ≥ n.succ, by rw ← zero_add n.succ; exact add_le_add (zero_le _) (by simp),
     rw [hk, nat.succ_add, pow_succ' r, ← mul_assoc],

@@ -40,9 +40,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
-import data.rat algebra.gcd_domain algebra.field_power
-import ring_theory.multiplicity tactic.ring
+import data.rat
+import algebra.gcd_domain
+import algebra.field_power
+import ring_theory.multiplicity
+import tactic.ring
 import data.real.cau_seq
 import tactic.norm_cast
 
@@ -159,9 +161,8 @@ that declaration will become the body of the tactic doc entry. If there are
 multiple declarations, you can select the one to be used by passing a name to
 the `inherit_description_from` field.
 
-If you prefer a tactic to have a doc string that is different then the doc entry, then between
-the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
-and then the doc entry.
+If you prefer a tactic to have a doc string that is different than the doc entry,
+you should write the doc entry as a doc string for the `add_tactic_doc` invocation.
 
 Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
 messages.

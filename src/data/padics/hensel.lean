@@ -3,9 +3,10 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
-import data.padics.padic_integers data.polynomial topology.metric_space.cau_seq_filter
-import analysis.specific_limits topology.algebra.polynomial
+import data.padics.padic_integers
+import topology.metric_space.cau_seq_filter
+import analysis.specific_limits
+import topology.algebra.polynomial
 
 /-!
 # Hensel's lemma on ℤ_p
@@ -35,7 +36,7 @@ open_locale classical topological_space
 
 -- We begin with some general lemmas that are used below in the computation.
 
-lemma padic_polynomial_dist {p : ℕ} [p.prime] (F : polynomial ℤ_[p]) (x y : ℤ_[p]) :
+lemma padic_polynomial_dist {p : ℕ} [fact p.prime] (F : polynomial ℤ_[p]) (x y : ℤ_[p]) :
   ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
 let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
   ∥F.eval x - F.eval y∥ = ∥z∥ * ∥x - y∥ : by simp [hz]
@@ -44,12 +45,12 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 
 open filter metric
 
-private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
+private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
 (F.continuous_eval.tendsto _).comp ncs.tendsto_limit
 
 section
-parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+parameters {p : ℕ} [fact p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
            (ncs_der_val : ∀ n, ∥F.derivative.eval (ncs n)∥ = ∥F.derivative.eval a∥)
 include ncs_der_val
 
@@ -67,7 +68,7 @@ tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
 end
 
 section
-parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]}
+parameters {p : ℕ} [fact p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]}
            (hnorm : tendsto (λ i, ∥F.eval (ncs i)∥) at_top (𝓝 0))
 include hnorm
 
@@ -82,7 +83,7 @@ end
 section hensel
 open nat
 
-parameters {p : ℕ} [nat.prime p] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+parameters {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
            (hnorm : ∥F.eval a∥ < ∥F.derivative.eval a∥^2) (hnsol : F.eval a ≠ 0)
 include hnorm
 
@@ -397,7 +398,7 @@ eq_of_sub_eq_zero (by rw ←this; refl)
 
 end hensel
 
-variables {p : ℕ} [nat.prime p] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
+variables {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
 
 private lemma a_soln_is_unique (ha : F.eval a = 0) (z' : ℤ_[p]) (hz' : F.eval z' = 0)
   (hnormz' : ∥z' - a∥ < ∥F.derivative.eval a∥) : z' = a :=

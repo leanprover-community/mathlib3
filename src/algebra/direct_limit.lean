@@ -14,11 +14,7 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 -/
-
-import linear_algebra.direct_sum_module
-import algebra.big_operators
 import ring_theory.free_comm_ring
-import ring_theory.ideal_operations
 
 universes u v w u₁
 
@@ -33,8 +29,8 @@ variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 This is used for abelian groups and rings and fields because their maps are not bundled.
 See module.directed_system -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
@@ -42,8 +38,8 @@ variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 

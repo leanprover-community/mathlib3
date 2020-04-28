@@ -3,9 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import algebra.group_power tactic.norm_num
-import tactic.converter.interactive
+import tactic.norm_num
 
 /-!
 # `ring`
@@ -25,11 +23,9 @@ meta structure cache :=
 (comm_semiring_inst : expr)
 (red : transparency)
 
+@[derive [monad, alternative]]
 meta def ring_m (α : Type) : Type :=
 reader_t cache (state_t (buffer expr) tactic) α
-
-meta instance : monad ring_m := by dunfold ring_m; apply_instance
-meta instance : alternative ring_m := by dunfold ring_m; apply_instance
 
 meta def get_cache : ring_m cache := reader_t.read
 
@@ -73,6 +69,7 @@ meta def horner_expr.e : horner_expr → expr
 | (horner_expr.xadd e _ _ _ _) := e
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
+meta instance : has_coe_to_fun horner_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
 meta def horner_expr.xadd' (c : cache) (a : horner_expr)
   (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr :=
@@ -549,6 +546,9 @@ open tactic.ring (normalize)
 
 local postfix `?`:9001 := optional
 
+/--
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.
+-/
 meta def ring (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
 discharge_eq_lhs (ring1 red)

@@ -9,12 +9,13 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
+import topology.metric_space.emetric_space
+import topology.algebra.ordered
+
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity
-open_locale topological_space
+open_locale uniformity topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -75,7 +76,7 @@ variables [metric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
-metric_space.to_uniform_space α
+metric_space.to_uniform_space
 
 @[priority 200] -- see Note [lower instance priority]
 instance metric_space.to_has_edist : has_edist α := ⟨metric_space.edist⟩
@@ -88,7 +89,7 @@ metric_space.eq_of_dist_eq_zero
 theorem dist_comm (x y : α) : dist x y = dist y x := metric_space.dist_comm x y
 
 theorem edist_dist (x y : α) : edist x y = ennreal.of_real (dist x y) :=
-metric_space.edist_dist _ x y
+metric_space.edist_dist x y
 
 @[simp] theorem dist_eq_zero {x y : α} : dist x y = 0 ↔ x = y :=
 iff.intro eq_of_dist_eq_zero (assume : x = y, this ▸ dist_self _)
@@ -171,7 +172,7 @@ nonneg_of_mul_nonneg_left this two_pos
 by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y
 
 @[simp] theorem dist_pos {x y : α} : 0 < dist x y ↔ x ≠ y :=
-by simpa [-dist_le_zero] using not_congr (@dist_le_zero _ _ x y)
+by simpa only [not_le] using not_congr dist_le_zero
 
 @[simp] theorem abs_dist {a b : α} : abs (dist a b) = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -210,17 +211,17 @@ by rw [dist_nndist, nnreal.of_real_coe]
 
 /--Deduce the equality of points with the vanishing of the nonnegative distance-/
 theorem eq_of_nndist_eq_zero {x y : α} : nndist x y = 0 → x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, dist_eq_zero]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, dist_eq_zero]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
-by simpa [nnreal.eq_iff.symm] using dist_comm x y
+by simpa only [dist_nndist, nnreal.coe_eq] using dist_comm x y
 
 /--Characterize the equality of points with the vanishing of the nonnegative distance-/
 @[simp] theorem nndist_eq_zero {x y : α} : nndist x y = 0 ↔ x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, dist_eq_zero]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, dist_eq_zero]
 
 @[simp] theorem zero_eq_nndist {x y : α} : 0 = nndist x y ↔ x = y :=
-by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_zero, zero_eq_dist]
+by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, zero_eq_dist]
 
 /--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
@@ -281,7 +282,7 @@ not_lt_of_le (dist_triangle_left x y z)
   (lt_of_lt_of_le (add_lt_add h₁ h₂) h)
 
 theorem ball_disjoint_same (h : ε ≤ dist x y / 2) : ball x ε ∩ ball y ε = ∅ :=
-ball_disjoint $ by rwa [← two_mul, ← le_div_iff' two_pos]
+ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@two_pos ℝ _)]
 
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact
@@ -303,11 +304,13 @@ by rw [← metric.ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
-(metric_space.uniformity_dist α).symm ▸ has_basis_binfi_principal
-  (λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-    λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-    λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩) $
-  nonempty_Ioi
+begin
+  rw ← metric_space.uniformity_dist.symm,
+  refine has_basis_binfi_principal _ nonempty_Ioi,
+  exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
+     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
+     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩
+end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
 accumulating to zero, then `f i`-neighborhoods of the diagonal form a basis of `𝓤 α`.
@@ -318,7 +321,7 @@ protected theorem mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β →
   (hf₀ : ∀ i, p i → 0 < f i) (hf : ∀ ⦃ε⦄, 0 < ε → ∃ i (hi : p i), f i ≤ ε) :
   (𝓤 α).has_basis p (λ i, {p:α×α | dist p.1 p.2 < f i}) :=
 begin
-  refine λ s, uniformity_basis_dist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     obtain ⟨i, hi, H⟩ : ∃ i (hi : p i), f i ≤ ε, from hf ε₀,
@@ -346,7 +349,7 @@ protected theorem mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | dist p.1 p.2 ≤ f x}) :=
 begin
-  refine λ s, uniformity_basis_dist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases dense ε₀ with ⟨ε', hε'⟩,
@@ -434,6 +437,45 @@ begin
   simp only [set.mem_Union, set.mem_range],
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
 end
+
+/-- Expressing locally uniform convergence on a set using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu x hx, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  rcases H ε εpos x hx with ⟨t, ht, Ht⟩,
+  exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
+end
+
+/-- Expressing uniform convergence on a set using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_on_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, dist (f x) (F n x) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
+end
+
+/-- Expressing locally uniform convergence using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_locally_uniformly F f p ↔
+  ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
+by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+
+/-- Expressing uniform convergence using `dist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, dist (f x) (F n x) < ε :=
+by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
 
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
@@ -565,7 +607,7 @@ distance coincide. -/
 /-- Expressing the uniformity in terms of `edist` -/
 protected lemma metric.uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε:ennreal, 0 < ε) (λ ε, {p | edist p.1 p.2 < ε}) :=
-begin
+⟨begin
   intro t,
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
   { use [ennreal.of_real ε, ennreal.of_real_pos.2 ε0],
@@ -576,7 +618,7 @@ begin
     rw [ennreal.of_real_pos] at ε0',
     refine ⟨ε', ε0', λ a b h, Hε (lt_trans _ hε)⟩,
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
-end
+end⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
@@ -590,7 +632,7 @@ instance metric_space.to_emetric_space : emetric_space α :=
   eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
   edist_triangle      := assume x y z, begin
-    simp only [edist_dist, (ennreal.of_real_add _ _).symm, dist_nonneg],
+    simp only [edist_dist, ← ennreal.of_real_add, dist_nonneg],
     rw ennreal.of_real_le_of_real_iff _,
     { exact dist_triangle _ _ _ },
     { simpa using add_le_add (dist_nonneg : 0 ≤ dist x y) dist_nonneg }
@@ -606,13 +648,22 @@ begin
   exact ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg
 end
 
+/-- Balls defined using the distance or the edistance coincide -/
+lemma metric.emetric_ball_nnreal {x : α} {ε : nnreal} : emetric.ball x ε = ball x ε :=
+by { convert metric.emetric_ball, simp }
+
 /-- Closed balls defined using the distance or the edistance coincide -/
 lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
   emetric.closed_ball x (ennreal.of_real ε) = closed_ball x ε :=
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
+/-- Closed balls defined using the distance or the edistance coincide -/
+lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
+  emetric.closed_ball x ε = closed_ball x ε :=
+by { convert metric.emetric_closed_ball ε.2, simp }
+
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
-  (H : @uniformity _ U = @uniformity _ (metric_space.to_uniform_space α)) :
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -622,7 +673,7 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   edist              := edist,
   edist_dist         := edist_dist,
   to_uniform_space   := U,
-  uniformity_dist    := H.trans (metric_space.uniformity_dist α) }
+  uniformity_dist    := H.trans metric_space.uniformity_dist }
 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -699,7 +750,7 @@ by simp [real.dist_eq]
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x, begin
   simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
-    by simp [-sub_eq_add_neg, abs_sub, ball, real.dist_eq]],
+    by simp [abs_sub, ball, real.dist_eq]],
   apply le_antisymm,
   { simp [le_infi_iff],
     exact λ ε ε0, mem_nhds_sets (is_open_ball) (mem_ball_self ε0) },
@@ -871,7 +922,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_dist := assume x y, begin
     have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, this.map_max.symm]
+    rw [edist_dist, edist_dist, ← this.map_max]
   end,
   uniformity_dist := begin
     refine uniformity_prod.trans _,
@@ -910,19 +961,17 @@ theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
   uniform_continuous (λb, dist (f b) (g b)) :=
 uniform_continuous_dist'.comp (hf.prod_mk hg)
 
-theorem continuous_dist' : continuous (λp:α×α, dist p.1 p.2) :=
+theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_dist'.continuous
 
-theorem continuous_dist [topological_space β] {f g : β → α}
+theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-continuous_dist'.comp (hf.prod_mk hg)
+continuous_dist.comp (hf.prod_mk hg)
 
-theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
+theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, dist (f x) (g x)) x (𝓝 (dist a b)) :=
-have tendsto (λp:α×α, dist p.1 p.2) (𝓝 (a, b)) (𝓝 (dist a b)),
-  from continuous_iff_continuous_at.mp continuous_dist' (a, b),
-tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
+(continuous_dist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
 lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero,
@@ -932,25 +981,26 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
-lemma uniform_continuous_nndist' : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
+lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_subtype_mk uniform_continuous_dist' _
 
-lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_nndist'.continuous
+lemma continuous_nndist : continuous (λp:α×α, nndist p.1 p.2) :=
+uniform_continuous_nndist.continuous
 
-lemma continuous_nndist [topological_space β] {f g : β → α}
+lemma continuous.nndist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
-continuous_nndist'.comp (hf.prod_mk hg)
+continuous_nndist.comp (hf.prod_mk hg)
 
-lemma tendsto_nndist' (a b :α) :
-  tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (𝓝 a) (𝓝 b)) (𝓝 (nndist a b)) :=
-by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _
+theorem filter.tendsto.nndist {f g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
+  tendsto (λx, nndist (f x) (g x)) x (𝓝 (nndist a b)) :=
+(continuous_nndist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
 namespace metric
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
-is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
+is_closed_le (continuous_id.dist continuous_const) continuous_const
 
 /-- ε-characterization of the closure in metric spaces-/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -1396,7 +1446,7 @@ diam_subsingleton subsingleton_singleton
 lemma diam_pair : diam ({x, y} : set α) = dist x y :=
 by simp only [diam, emetric.diam_pair, dist_edist]
 
--- Does not work as a simp-lemma, since {x, y} reduces to (insert z (insert y {x}))
+-- Does not work as a simp-lemma, since {x, y, z} reduces to (insert z (insert y {x}))
 lemma diam_triple :
   metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
 begin

@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.epi_mono
 import category_theory.limits.shapes.kernels
+import category_theory.limits.shapes.strong_epi
 
 /-!
 # Definitions and basic properties of regular and normal monomorphisms and epimorphisms.
@@ -15,7 +15,11 @@ A normal monomorphism is a morphism that is the kernel of some other morphism.
 We give the constructions
 * `split_mono → regular_mono`
 * `normal_mono → regular_mono`, and
-* `regular_mono → mono`.
+* `regular_mono → mono`
+as well as the dual constructions for regular and normal epimorphisms. Additionally, we give the
+construction
+* `regular_epi ⟶ strong_epi`.
+
 -/
 
 namespace category_theory
@@ -35,10 +39,12 @@ class regular_mono (f : X ⟶ Y) :=
 (w : f ≫ left = f ≫ right)
 (is_limit : is_limit (fork.of_ι f w))
 
+attribute [reassoc] regular_mono.w
+
 /-- Every regular monomorphism is a monomorphism. -/
 @[priority 100]
 instance regular_mono.mono (f : X ⟶ Y) [regular_mono f] : mono f :=
-mono_of_is_limit_parallel_pair (regular_mono.is_limit f)
+mono_of_is_limit_parallel_pair regular_mono.is_limit
 
 /-- Every split monomorphism is a regular monomorphism. -/
 @[priority 100]
@@ -48,6 +54,13 @@ instance regular_mono.of_split_mono (f : X ⟶ Y) [split_mono f] : regular_mono 
   right := retraction f ≫ f,
   w     := by tidy,
   is_limit := split_mono_equalizes f }
+
+/-- If `f` is a regular mono, then any map `k : W ⟶ Y` equalizing `regular_mono.left` and
+    `regular_mono.right` induces a morphism `l : W ⟶ X` such that `l ≫ f = k`. -/
+def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
+  (h : k ≫ (regular_mono.left : Y ⟶ @regular_mono.Z _ _ _ _ f _) = k ≫ regular_mono.right) :
+  {l : W ⟶ X // l ≫ f = k} :=
+fork.is_limit.lift' regular_mono.is_limit _ h
 
 section
 variables [has_zero_morphisms.{v₁} C]
@@ -65,8 +78,14 @@ instance normal_mono.regular_mono (f : X ⟶ Y) [I : normal_mono f] : regular_mo
   right := 0,
   w := (by simpa using I.w),
   ..I }
-end
 
+/-- If `f` is a normal mono, then any map `k : W ⟶ Y` such that `k ≫ normal_mono.g = 0` induces
+    a morphism `l : W ⟶ X` such that `l ≫ f = k`. -/
+def normal_mono.lift' {W : C} (f : X ⟶ Y) [normal_mono f] (k : W ⟶ Y) (h : k ≫ normal_mono.g = 0) :
+  {l : W ⟶ X // l ≫ f = k} :=
+kernel_fork.is_limit.lift' normal_mono.is_limit _ h
+
+end
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
 (W : C)
@@ -74,10 +93,12 @@ class regular_epi (f : X ⟶ Y) :=
 (w : left ≫ f = right ≫ f)
 (is_colimit : is_colimit (cofork.of_π f w))
 
+attribute [reassoc] regular_epi.w
+
 /-- Every regular epimorphism is an epimorphism. -/
 @[priority 100]
 instance regular_epi.epi (f : X ⟶ Y) [regular_epi f] : epi f :=
-epi_of_is_colimit_parallel_pair (regular_epi.is_colimit f)
+epi_of_is_colimit_parallel_pair regular_epi.is_colimit
 
 /-- Every split epimorphism is a regular epimorphism. -/
 @[priority 100]
@@ -88,6 +109,26 @@ instance regular_epi.of_split_epi (f : X ⟶ Y) [split_epi f] : regular_epi f :=
   w     := by tidy,
   is_colimit := split_epi_coequalizes f }
 
+/-- If `f` is a regular epi, then every morphism `k : X ⟶ W` coequalizing `regular_epi.left` and
+    `regular_epi.right` induces `l : Y ⟶ W` such that `f ≫ l = k`. -/
+def regular_epi.desc' {W : C} (f : X ⟶ Y) [regular_epi f] (k : X ⟶ W)
+  (h : (regular_epi.left : regular_epi.W f ⟶ X) ≫ k = regular_epi.right ≫ k) :
+  {l : Y ⟶ W // f ≫ l = k} :=
+cofork.is_colimit.desc' (regular_epi.is_colimit) _ h
+
+@[priority 100]
+instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
+{ epi := by apply_instance,
+  has_lift :=
+  begin
+    introsI,
+    have : (regular_epi.left : regular_epi.W f ⟶ X) ≫ u = regular_epi.right ≫ u,
+    { apply (cancel_mono z).1,
+      simp only [category.assoc, h, regular_epi.w_assoc] },
+    obtain ⟨t, ht⟩ := regular_epi.desc' f u this,
+    exact ⟨t, ht, (cancel_epi f).1
+      (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
+  end }
 
 section
 variables [has_zero_morphisms.{v₁} C]
@@ -105,6 +146,13 @@ instance normal_epi.regular_epi (f : X ⟶ Y) [I : normal_epi f] : regular_epi f
   right := 0,
   w := (by simpa using I.w),
   ..I }
+
+/-- If `f` is a normal epi, then every morphism `k : X ⟶ W` satisfying `normal_epi.g ≫ k = 0`
+    induces `l : Y ⟶ W` such that `f ≫ l = k`. -/
+def normal_epi.desc' {W : C} (f : X ⟶ Y) [normal_epi f] (k : X ⟶ W) (h : normal_epi.g ≫ k = 0) :
+  {l : Y ⟶ W // f ≫ l = k} :=
+cokernel_cofork.is_colimit.desc' (normal_epi.is_colimit) _ h
+
 end
 
 end category_theory

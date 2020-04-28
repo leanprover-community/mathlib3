@@ -3,9 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.terminal
-import category_theory.discrete_category
 
 /-!
 # Binary (co)products
@@ -27,7 +25,7 @@ open category_theory
 namespace category_theory.limits
 
 /-- The type of objects for the diagram indexing a binary (co)product. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive walking_pair : Type v
 | left | right
 
@@ -83,14 +81,40 @@ def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
   F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
 map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
 
+/-- A binary fan is just a cone on a diagram indexing a product. -/
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
+
+/-- The first projection of a binary fan. -/
+abbreviation binary_fan.fst {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.left
+
+/-- The second projection of a binary fan. -/
+abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.right
+
+lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
+  {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
+h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
+
+/-- A binary cofan is just a cocone on a diagram indexing a coproduct. -/
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
+
+/-- The first inclusion of a binary cofan. -/
+abbreviation binary_cofan.inl {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.left
+
+/-- The second inclusion of a binary cofan. -/
+abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.right
+
+lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
+  {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
+h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
 
 variables {X Y : C}
 
+/-- A binary fan with vertex `P` consists of the two projections `π₁ : P ⟶ X` and `π₂ : P ⟶ Y`. -/
 def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :=
 { X := P,
   π := { app := λ j, walking_pair.cases_on j π₁ π₂ }}
+
+/-- A binary cofan with vertex `P` consists of the two inclusions `ι₁ : X ⟶ P` and `ι₂ : Y ⟶ P`. -/
 def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
@@ -104,37 +128,149 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 @[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.right = ι₂ := rfl
 
+/-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
+    `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
+    -/
+def binary_fan.is_limit.lift' {W X Y : C} {s : binary_fan X Y} (h : is_limit s) (f : W ⟶ X)
+  (g : W ⟶ Y) : {l : W ⟶ s.X // l ≫ s.fst = f ∧ l ≫ s.snd = g} :=
+⟨h.lift $ binary_fan.mk f g, h.fac _ _, h.fac _ _⟩
+
+/-- If `s` is a colimit binary cofan over `X` and `Y`,, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `l : s.X ⟶ W` satisfying `s.inl ≫ l = f` and `s.inr ≫ l = g`.
+    -/
+def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s) (f : X ⟶ W)
+  (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
+⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩
+
+/-- If we have chosen a product of `X` and `Y`, we can access it using `prod X Y` or
+    `X ⨯ Y`. -/
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
+
+/-- If we have chosen a coproduct of `X` and `Y`, we can access it using `coprod X Y ` or
+    `X ⨿ Y`. -/
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
 notation X ` ⨯ `:20 Y:20 := prod X Y
 notation X ` ⨿ `:20 Y:20 := coprod X Y
 
+/-- The projection map to the first component of the product. -/
 abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
+
+/-- The projecton map to the second component of the product. -/
 abbreviation prod.snd {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ Y :=
 limit.π (pair X Y) walking_pair.right
+
+/-- The inclusion map from the first component of the coproduct. -/
 abbreviation coprod.inl {X Y : C} [has_colimit (pair X Y)] : X ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.left
+
+/-- The inclusion map from the second component of the coproduct. -/
 abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.right
 
+@[ext] lemma prod.hom_ext {W X Y : C} [has_limit (pair X Y)] {f g : W ⟶ X ⨯ Y}
+  (h₁ : f ≫ prod.fst = g ≫ prod.fst) (h₂ : f ≫ prod.snd = g ≫ prod.snd) : f = g :=
+binary_fan.is_limit.hom_ext (limit.is_limit _) h₁ h₂
+
+@[ext] lemma coprod.hom_ext {W X Y : C} [has_colimit (pair X Y)] {f g : X ⨿ Y ⟶ W}
+  (h₁ : coprod.inl ≫ f = coprod.inl ≫ g) (h₂ : coprod.inr ≫ f = coprod.inr ≫ g) : f = g :=
+binary_cofan.is_colimit.hom_ext (colimit.is_colimit _) h₁ h₂
+
+/-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
+    induces a morphism `prod.lift f g : W ⟶ X ⨯ Y`. -/
 abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
 limit.lift _ (binary_fan.mk f g)
+
+/-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `coprod.desc f g : X ⨿ Y ⟶ W`. -/
 abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
+@[simp, reassoc]
+lemma prod.lift_fst {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  prod.lift f g ≫ prod.fst = f :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  prod.lift f g ≫ prod.snd = g :=
+limit.lift_π _ _
+
+@[simp, reassoc]
+lemma coprod.inl_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  coprod.inl ≫ coprod.desc f g = f :=
+colimit.ι_desc _ _
+
+@[simp, reassoc]
+lemma coprod.inr_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  coprod.inr ≫ coprod.desc f g = g :=
+colimit.ι_desc _ _
+
+instance prod.mono_lift_of_mono_left {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
+  [mono f] : mono (prod.lift f g) :=
+mono_of_mono_fac $ prod.lift_fst _ _
+
+instance prod.mono_lift_of_mono_right {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
+  [mono g] : mono (prod.lift f g) :=
+mono_of_mono_fac $ prod.lift_snd _ _
+
+instance coprod.epi_desc_of_epi_left {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
+  [epi f] : epi (coprod.desc f g) :=
+epi_of_epi_fac $ coprod.inl_desc _ _
+
+instance coprod.epi_desc_of_epi_right {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
+  [epi g] : epi (coprod.desc f g) :=
+epi_of_epi_fac $ coprod.inr_desc _ _
+
+/-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
+    induces a morphism `l : W ⟶ X ⨯ Y` satisfying `l ≫ prod.fst = f` and `l ≫ prod.snd = g`. -/
+def prod.lift' {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+  {l : W ⟶ X ⨯ Y // l ≫ prod.fst = f ∧ l ≫ prod.snd = g} :=
+⟨prod.lift f g, prod.lift_fst _ _, prod.lift_snd _ _⟩
+
+/-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
+    `g : Y ⟶ W` induces a morphism `l : X ⨿ Y ⟶ W` satisfying `coprod.inl ≫ l = f` and
+    `coprod.inr ≫ l = g`. -/
+def coprod.desc' {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+  {l : X ⨿ Y ⟶ W // coprod.inl ≫ l = f ∧ coprod.inr ≫ l = g} :=
+⟨coprod.desc f g, coprod.inl_desc _ _, coprod.inr_desc _ _⟩
+
+/-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
+    `g : X ⟶ Z` induces a morphism `prod.map f g : W ⨯ X ⟶ Y ⨯ Z`. -/
 abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
+
+/-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
+    `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
 
+@[reassoc]
+lemma prod.map_fst {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.fst = prod.fst ≫ f := by simp
+
+@[reassoc]
+lemma prod.map_snd {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.snd = prod.snd ≫ g := by simp
+
+@[reassoc]
+lemma coprod.inl_map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inl ≫ coprod.map f g = f ≫ coprod.inl := by simp
+
+@[reassoc]
+lemma coprod.inr_map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inr ≫ coprod.map f g = g ≫ coprod.inr := by simp
+
 variables (C)
 
+/-- `has_binary_products` represents a choice of product for every pair of objects. -/
 class has_binary_products :=
 (has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
+
+/-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
 class has_binary_coproducts :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
 
@@ -162,6 +298,12 @@ section
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
+
+/-- The binary product functor. -/
+@[simps]
+def prod_functor : C ⥤ C ⥤ C :=
+{ obj := λ X, { obj := λ Y, X ⨯ Y, map := λ Y Z, prod.map (𝟙 X) },
+  map := λ Y Z f, { app := λ T, prod.map f (𝟙 T) }}
 
 /-- The braiding isomorphism which swaps a binary product. -/
 @[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=

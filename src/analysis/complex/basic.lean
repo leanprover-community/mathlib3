@@ -3,7 +3,8 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv analysis.normed_space.finite_dimension
+import analysis.calculus.deriv
+import analysis.normed_space.finite_dimension
 
 /-!
 # Normed space structure on `ℂ`.
@@ -178,15 +179,17 @@ section real_deriv_of_complex
 open complex
 variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
 
-/-- If a complex function is differentiable at a real point, then the induced real function is also
-differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
--- FIXME this causes a deterministic timeout with `-T50000`
-theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
-  has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
+/--
+A preliminary lemma for `has_deriv_at_real_of_complex`,
+which we only separate out to keep the maximum compile time per declaration low.
+-/
+lemma has_deriv_at_real_of_complex_aux (h : has_deriv_at e e' z) :
+  has_deriv_at (⇑continuous_linear_map.re ∘ λ {z : ℝ}, e (continuous_linear_map.of_real z))
+    (((continuous_linear_map.re.comp
+       ((continuous_linear_map.smul_right (1 : ℂ →L[ℂ] ℂ) e').restrict_scalars ℝ)).comp
+         continuous_linear_map.of_real) (1 : ℝ))
+    z :=
 begin
-  have : (λx:ℝ, (e x).re) = (continuous_linear_map.re : ℂ → ℝ) ∘ e ∘ (continuous_linear_map.of_real : ℝ → ℂ),
-    by { ext x, refl },
-  rw this,
   have A : has_fderiv_at continuous_linear_map.of_real continuous_linear_map.of_real z :=
     continuous_linear_map.of_real.has_fderiv_at,
   have B : has_fderiv_at e ((continuous_linear_map.smul_right 1 e' : ℂ →L[ℂ] ℂ).restrict_scalars ℝ)
@@ -194,9 +197,17 @@ begin
     (has_deriv_at_iff_has_fderiv_at.1 h).restrict_scalars ℝ,
   have C : has_fderiv_at continuous_linear_map.re continuous_linear_map.re
     (e (continuous_linear_map.of_real z)) := continuous_linear_map.re.has_fderiv_at,
-  convert has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
-  change e' = 1 * e',
-  rw one_mul
+  exact has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
+end
+
+/-- If a complex function is differentiable at a real point, then the induced real function is also
+differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
+theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
+  has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
+begin
+  rw (show (λx:ℝ, (e x).re) = (continuous_linear_map.re : ℂ → ℝ) ∘ e ∘ (continuous_linear_map.of_real : ℝ → ℂ),
+    by { ext x, refl }),
+  simpa using has_deriv_at_real_of_complex_aux h,
 end
 
 end real_deriv_of_complex

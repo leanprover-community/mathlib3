@@ -3,7 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
+import analysis.calculus.mean_value
+import data.nat.parity
+import analysis.complex.exponential
 
 /-!
 # Collection of convex functions
@@ -25,8 +27,7 @@ open real set
 
 /-- `exp` is convex on the whole real line -/
 lemma convex_on_exp : convex_on univ exp :=
-convex_on_univ_of_deriv2_nonneg differentiable_exp
-  (deriv_exp.symm ▸ differentiable_exp)
+convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
@@ -52,7 +53,7 @@ begin
 end
 
 lemma finset.prod_nonneg_of_card_nonpos_even
-  {α β : Type*} [decidable_eq α] [linear_ordered_comm_ring β]
+  {α β : Type*} [linear_ordered_comm_ring β]
   {f : α → β} [decidable_pred (λ x, f x ≤ 0)]
   {s : finset α} (h0 : (s.filter (λ x, f x ≤ 0)).card.even) :
   0 ≤ s.prod f :=

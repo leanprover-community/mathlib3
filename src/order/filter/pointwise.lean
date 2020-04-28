@@ -8,7 +8,6 @@ The pointwise operations on filters have nice properties, such as
   • 𝓝 x * 𝓝 y = 𝓝 (x * y)
 
 -/
-
 import algebra.pointwise
 import order.filter.basic
 

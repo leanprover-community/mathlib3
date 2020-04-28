@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic.basic logic.relator
+import tactic.basic
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation
@@ -60,26 +60,26 @@ variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_trans_gen a
+| refl : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_trans_gen.cases_tail_iff
+mk_iff_of_inductive_prop relation.refl_trans_gen relation.refl_trans_gen.cases_tail_iff
 
 /-- `refl_gen r`: reflexive closure of `r` -/
 inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_gen a
+| refl : refl_gen a
 | single {b} : r a b → refl_gen b
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff
+mk_iff_of_inductive_prop relation.refl_gen relation.refl_gen_iff
 
 /-- `trans_gen r`: transitive closure of `r` -/
 inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | single {b} : r a b → trans_gen b
 | tail {b c} : trans_gen b → r b c → trans_gen c
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.trans_gen `relation.trans_gen_iff
+mk_iff_of_inductive_prop relation.trans_gen relation.trans_gen_iff
 
 attribute [refl] refl_gen.refl
 

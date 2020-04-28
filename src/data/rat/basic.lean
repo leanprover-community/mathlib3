@@ -3,14 +3,12 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import
-  data.nat.gcd
-  data.pnat.basic data.int.sqrt data.equiv.encodable
-  algebra.group algebra.ordered_group algebra.group_power
-  algebra.euclidean_domain
-  algebra.ordered_field
-  tactic.norm_cast
-  tactic.lift
+import data.int.sqrt
+import data.equiv.encodable
+import algebra.group
+import algebra.euclidean_domain
+import algebra.ordered_field
+
 /-!
 # Basics for the Rational Numbers
 
@@ -489,7 +487,9 @@ ne_of_gt q.pos
 lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
 begin
   conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
-  exact rat.mk_eq (by exact_mod_cast p.denom_ne_zero) (by exact_mod_cast q.denom_ne_zero)
+  apply rat.mk_eq,
+  { exact_mod_cast p.denom_ne_zero },
+  { exact_mod_cast q.denom_ne_zero }
 end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
@@ -531,11 +531,10 @@ begin
   existsi n / q.num,
   have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
   split,
-    { rw int.div_mul_cancel hqdn },
-    { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
-      {apply rat.num_ne_zero_of_ne_zero hq},
-      {simp [rat.denom_ne_zero]},
-      repeat {assumption} }
+  { rw int.div_mul_cancel hqdn },
+  { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
+    { apply rat.num_ne_zero_of_ne_zero hq },
+    repeat { assumption } }
 end
 
 theorem mk_pnat_num (n : ℤ) (d : ℕ+) :
@@ -590,10 +589,10 @@ end
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 
-@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
+@[simp, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
 by rw coe_int_eq_of_int; refl
 
-@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
+@[simp, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
 by rw coe_int_eq_of_int; refl
 
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
@@ -605,10 +604,10 @@ instance : can_lift ℚ ℤ :=
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
 by rw [← int.cast_coe_nat, coe_int_eq_mk]
 
-@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
+@[simp, norm_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
 by rw [← int.cast_coe_nat, coe_int_num]
 
-@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+@[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 end casts

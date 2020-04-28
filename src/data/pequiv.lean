@@ -3,8 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import data.equiv.basic data.set.lattice tactic.tauto
+import data.set.lattice
 
 universes u v w x
 
@@ -244,7 +243,7 @@ begin
   rw [if_pos (subsingleton.elim i a), subsingleton.elim i j, subsingleton.elim b j]
 end
 
-lemma trans_single_of_eq_none {b : β} (c : γ) {f : α ≃. β} (h : f.symm b = none) :
+lemma trans_single_of_eq_none {b : β} (c : γ) {f : δ ≃. β} (h : f.symm b = none) :
   f.trans (single b c) = ⊥ :=
 begin
   ext,
@@ -256,7 +255,7 @@ begin
   simp * at *
 end
 
-lemma single_trans_of_eq_none (a : α) {b : β} {f : β ≃. γ} (h : f b = none) :
+lemma single_trans_of_eq_none (a : α) {b : β} {f : β ≃. δ} (h : f b = none) :
   (single a b).trans f = ⊥ :=
 symm_injective $ trans_single_of_eq_none _ h
 

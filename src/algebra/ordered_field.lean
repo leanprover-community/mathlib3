@@ -3,7 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_ring algebra.field
+import algebra.ordered_ring
+import algebra.field
 
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}
@@ -74,7 +75,7 @@ lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
 
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
-       ← div_eq_inv_mul, one_le_div_iff_le hb]
+       ← div_eq_inv_mul', one_le_div_iff_le hb]
 
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']

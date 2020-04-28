@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import order.basic logic.embedding data.nat.basic
+import logic.embedding
+import data.nat.basic
 
 open function
 
@@ -206,8 +207,10 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 ⟨f.to_equiv.to_embedding, f.ord⟩
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
+-- see Note [function coercion]
+instance : has_coe_to_fun (r ≃o s) := ⟨λ _, α → β, λ f, f⟩
 
-theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] lemma coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 @[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)

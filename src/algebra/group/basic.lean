@@ -3,7 +3,8 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive logic.function
+import algebra.group.to_additive
+import logic.function
 
 attribute [simp] sub_neg_eq_add
 
@@ -13,6 +14,26 @@ attribute [simp] sub_neg_eq_add
 
 universes u v w
 variables {M : Type u} {A : Type v} {G : Type w}
+
+
+section
+
+set_option default_priority 100
+
+set_option old_structure_cmd true
+
+/-- An algebraic class missing in core: an additive monoid in which addition is left-cancellative.
+Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
+is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
+class add_left_cancel_monoid G extends add_left_cancel_semigroup G, add_monoid G
+
+instance ordered_cancel_add_comm_monoid.to_add_left_cancel_monoid [h : ordered_cancel_add_comm_monoid G] :
+  add_left_cancel_monoid G := { ..h }
+
+instance add_group.to_add_left_cancel_monoid [h : add_group G] :
+  add_left_cancel_monoid G := { ..h, .. add_group.to_left_cancel_add_semigroup }
+
+end
 
 @[to_additive add_monoid_to_is_left_id]
 instance monoid_to_is_left_id [monoid M] : is_left_id M (*) 1 :=
@@ -124,6 +145,10 @@ theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
 @[to_additive]
 theorem mul_inv_eq_one : a * b⁻¹ = 1 ↔ a = b :=
 by rw [mul_eq_one_iff_eq_inv, inv_inv]
+
+@[to_additive]
+theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
+by rw [mul_eq_one_iff_eq_inv, inv_inj']
 
 @[to_additive]
 theorem inv_comm_of_comm (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
@@ -270,12 +295,21 @@ by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
 
+section monoid
+variables [monoid M]
+
+@[to_additive]
+lemma left_inv_eq_right_inv {a b c : M} (hba : b * a = 1) (hac : a * c = 1) : b = c :=
+by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
+
+end monoid
+
 section comm_monoid
 variables [comm_monoid M]
 
 @[to_additive] lemma inv_unique {x y z : M}
   (hy : x * y = 1) (hz : x * z = 1) : y = z :=
-by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
+left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
 

@@ -5,8 +5,8 @@ Author: Johannes Hölzl
 
 Countable sets.
 -/
-
-import data.equiv.list data.set.finite logic.function data.set.function
+import data.equiv.list
+import data.set.finite
 noncomputable theory
 
 open function set encodable

@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.comma
-import category_theory.limits.preserves
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
+import category_theory.pempty
+import category_theory.limits.connected
+import category_theory.limits.creates
+import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
+import category_theory.limits.shapes.constructions.equalizers
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -86,40 +88,81 @@ instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
   { preserves_colimit := λ F, by exactI
     preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
 
-/-- Given the appropriate pullback in C, construct a product in the over category -/
-def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
-  [q : has_limit (cospan (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom)] :
-has_limit F :=
-{ cone :=
-  begin
-    refine ⟨_, _⟩,
-    exact @over.mk _ _ B (pullback (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom) (pullback.fst ≫ (F.obj walking_pair.left).hom),
-    apply nat_trans.of_homs, intro i, cases i,
-    apply over.hom_mk _ _, apply pullback.fst, dsimp, refl,
-    apply over.hom_mk _ _, apply pullback.snd, exact pullback.condition.symm
-  end,
-  is_limit :=
-  { lift := λ s,
-      begin
-        apply over.hom_mk _ _,
-          apply pullback.lift _ _ _,
-              exact (s.π.app walking_pair.left).left,
-            exact (s.π.app walking_pair.right).left,
-          erw over.w (s.π.app walking_pair.left),
-          erw over.w (s.π.app walking_pair.right),
-          refl,
-        dsimp, erw ← category.assoc, simp,
-      end,
-    fac' := λ s j,
-      begin
-        ext, cases j; simp [nat_trans.of_homs]
-      end,
-    uniq' := λ s m j,
-      begin
-        ext,
-        { erw ← j walking_pair.left, simp },
-        { erw ← j walking_pair.right, simp }
-      end } }
+namespace construct_products
+
+/-- (Impl) Given a product shape in `C/B`, construct the corresponding wide pullback diagram in `C`. -/
+@[reducible]
+def wide_pullback_diagram_of_diagram_over (B : C) {J : Type v} (F : discrete J ⥤ over B) : wide_pullback_shape J ⥤ C :=
+wide_pullback_shape.wide_cospan B (λ j, (F.obj j).left) (λ j, (F.obj j).hom)
+
+local attribute [tidy] tactic.case_bash
+
+/-- (Impl) Pull these out to avoid timeouts. -/
+@[simps]
+def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone F ⥤ cone (wide_pullback_diagram_of_diagram_over B F) :=
+{ obj := λ c,
+  { X := c.X.left,
+    π := { app := λ X, option.cases_on X c.X.hom (λ (j : J), (c.π.app j).left) } },
+  map := λ c₁ c₂ f,
+  { hom := f.hom.left,
+    w' := λ j,
+    begin
+      cases j,
+      { simp },
+      { dsimp,
+        rw ← f.w j,
+        refl }
+    end } }
+
+/-- (Impl) Pull these out to avoid timeouts. -/
+@[simps]
+def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone (wide_pullback_diagram_of_diagram_over B F) ⥤ cone F :=
+{ obj := λ c,
+  { X := over.mk (c.π.app none),
+    π := { app := λ j, over.hom_mk (c.π.app (some j)) (by apply c.w (wide_pullback_shape.hom.term j)) } },
+  map := λ c₁ c₂ f,
+  { hom := over.hom_mk f.hom } }
+
+-- TODO: Can we add `. obviously` to the second arguments of `nat_iso.of_components` and `cones.ext`?
+/-- (Impl) Establish an equivalence between the category of cones for `F` and for the "grown" `F`. -/
+@[simps]
+def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+  cone (wide_pullback_diagram_of_diagram_over B F) ≌ cone F :=
+{ functor := cones_equiv_functor B F,
+  inverse := cones_equiv_inverse B F,
+  unit_iso := nat_iso.of_components (λ _, cones.ext {hom := 𝟙 _, inv := 𝟙 _} (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ _, cones.ext {hom := over.hom_mk (𝟙 _), inv := over.hom_mk (𝟙 _)} (by tidy)) (by tidy) }
+
+/-- Use the above equivalence to prove we have a limit. -/
+def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : discrete J ⥤ over B)
+  [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
+  has_limit F :=
+{ cone := _,
+  is_limit := is_limit.of_cone_equiv (cones_equiv B F).symm (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
+
+/-- Given a wide pullback in `C`, construct a product in `C/B`. -/
+def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape.{v} (wide_pullback_shape J) C] {B : C} :
+  has_limits_of_shape.{v} (discrete J) (over B) :=
+{ has_limit := λ F, has_over_limit_discrete_of_wide_pullback_limit F }
+
+/-- Given a pullback in `C`, construct a binary product in `C/B`. -/
+def over_binary_product_of_pullback [has_pullbacks.{v} C] {B : C} :
+  has_binary_products.{v} (over B) :=
+{ has_limits_of_shape := over_product_of_wide_pullback }
+
+/-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
+def over_products_of_wide_pullbacks [has_wide_pullbacks.{v} C] {B : C} :
+  has_products.{v} (over B) :=
+{ has_limits_of_shape := λ J, over_product_of_wide_pullback }
+
+/-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
+def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks.{v} C] {B : C} :
+  has_finite_products.{v} (over B) :=
+{ has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback }
+
+end construct_products
 
 /-- Construct terminal object in the over category. -/
 instance (B : C) : has_terminal.{v} (over B) :=
@@ -140,73 +183,84 @@ instance (B : C) : has_terminal.{v} (over B) :=
               rwa [category.comp_id, category.comp_id] at this
             end } } } }
 
--- TODO: this should work for any connected limit, not just pullbacks
-/-- Given pullbacks in C, we have pullbacks in C/B -/
-instance {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    let X : over B := F.obj walking_cospan.one in
-    let Y : over B := F.obj walking_cospan.left in
-    let Z : over B := F.obj walking_cospan.right in
-    let f : Y ⟶ X := (F.map walking_cospan.hom.inl) in
-    let g : Z ⟶ X := (F.map walking_cospan.hom.inr) in
-    let L : over B := over.mk (pullback.fst ≫ Y.hom : pullback f.left g.left ⟶ B) in
-    let π₁ : L ⟶ Y := over.hom_mk pullback.fst in
-    let π₂ : L ⟶ Z := @over.hom_mk _ _ _ L Z (pullback.snd : L.left ⟶ Z.left)
-      (by {dsimp, rw [← over.w f, ← category.assoc, pullback.condition, category.assoc, over.w g]}) in
-    { cone := cone.of_pullback_cone (pullback_cone.mk π₁ π₂
-        (by { ext, rw [over.comp_left, over.hom_mk_left, pullback.condition], refl, })),
-      is_limit :=
-      { lift := λ s,
-      begin
-        apply over.hom_mk _ _,
-        { apply pullback.lift (s.π.app walking_cospan.left).left (s.π.app walking_cospan.right).left,
-          rw [← over.comp_left, ← over.comp_left, s.w, s.w], },
-        { show pullback.lift _ _ _ ≫ (pullback.fst ≫ Y.hom) = (s.X).hom,
-          rw [limit.lift_π_assoc, pullback_cone.mk_π_app_left, over.w], refl, }
-       end,
-       fac' := λ s j,
-       begin
-        ext1, dsimp,
-        cases j; simp only [limit.lift_π, limit.lift_π_assoc, over.hom_mk_left, over.id_left,
-          over.comp_left, pullback_cone.mk_π_app_one, pullback_cone.mk_π_app_left,
-          pullback_cone.mk_π_app_right, eq_to_hom_refl, category.comp_id],
-        rw [← over.comp_left, ← s.w walking_cospan.hom.inl],
-       end,
-       uniq' := λ s m J, over.over_morphism.ext
-       begin
-        simp only [over.hom_mk_left],
-        apply pullback.hom_ext,
-        { rw [limit.lift_π, pullback_cone.mk_π_app_left, ←(J walking_cospan.left)],
-          dsimp,
-          rw [category.comp_id], },
-        { rw [limit.lift_π, pullback_cone.mk_π_app_right, ←(J walking_cospan.right)],
-          dsimp,
-          rw [category.comp_id], }
-       end } },
-  } }
+namespace creates_connected
 
-/-- Given pullbacks in C, we have binary products in any over category -/
-instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :
-  has_binary_products.{v} (over B) :=
-{has_limits_of_shape := {has_limit := λ F, over_product_of_pullbacks B F}}
+/--
+(Impl) Given a diagram in the over category, produce a natural transformation from the
+diagram legs to the specific object.
+-/
+def nat_trans_in_over {B : C} (F : J ⥤ over B) :
+  F ⋙ forget ⟶ (category_theory.functor.const J).obj B :=
+{ app := λ j, (F.obj j).hom }
 
-/-! A collection of lemmas to decompose products in the over category -/
-@[simp] lemma over_prod_pair_left [has_pullbacks.{v} C] {B : C} (f g : over B) :
-  (f ⨯ g).left = pullback f.hom g.hom := rfl
+local attribute [tidy] tactic.case_bash
 
-@[simp] lemma over_prod_pair_hom [has_pullbacks.{v} C] {B : C} (f g : over B) :
-  (f ⨯ g).hom = pullback.fst ≫ f.hom := rfl
+/--
+(Impl) Given a cone in the base category, raise it to a cone in the over category. Note this is
+where the connected assumption is used.
+-/
+@[simps]
+def raise_cone [connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
+  cone F :=
+{ X := over.mk (c.π.app (default J) ≫ (F.obj (default J)).hom),
+  π :=
+  { app := λ j, over.hom_mk (c.π.app j) (nat_trans_from_connected (c.π ≫ nat_trans_in_over F) j) } }
 
-@[simp] lemma over_prod_fst_left [has_pullbacks.{v} C] {B : C} (f g : over B) :
-  (limits.prod.fst : f ⨯ g ⟶ f).left = pullback.fst := rfl
+lemma raised_cone_lowers_to_original [connected J] {B : C} {F : J ⥤ over B}
+  (c : cone (F ⋙ forget)) (t : is_limit c) :
+  forget.map_cone (raise_cone c) = c :=
+by tidy
 
-@[simp] lemma over_prod_snd_left [has_pullbacks.{v} C] {B : C} (f g : over B) :
-  (limits.prod.snd : f ⨯ g ⟶ g).left = pullback.snd := rfl
+/-- (Impl) Show that the raised cone is a limit. -/
+def raised_cone_is_limit [connected J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget)} (t : is_limit c) :
+  is_limit (raise_cone c) :=
+{ lift := λ s, over.hom_mk (t.lift (forget.map_cone s))
+               (by { dsimp, simp }),
+  uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
 
-lemma over_prod_map_left [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
-  (limits.prod.map α β).left = pullback.lift (pullback.fst ≫ α.left) (pullback.snd ≫ β.left) (by { simp only [category.assoc], convert pullback.condition; apply over.w }) :=
-rfl
+end creates_connected
+
+/-- The forgetful functor from the over category creates any connected limit. -/
+instance forget_creates_connected_limits [connected J] {B : C} : creates_limits_of_shape J (forget : over B ⥤ C) :=
+{ creates_limit := λ K,
+    creates_limit_of_reflects_iso (λ c t,
+      { lifted_cone := creates_connected.raise_cone c,
+        valid_lift := eq_to_iso (creates_connected.raised_cone_lowers_to_original c t),
+        makes_limit := creates_connected.raised_cone_is_limit t } ) }
+
+/-- The over category has any connected limit which the original category has. -/
+instance has_connected_limits {B : C} [connected J] [has_limits_of_shape J C] : has_limits_of_shape J (over B) :=
+{ has_limit := λ F, has_limit_of_created F (forget : over B ⥤ C) }
+
+/-- Make sure we can derive pullbacks in `over B`. -/
+example {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
+{ has_limits_of_shape := infer_instance }
+
+/-- Make sure we can derive equalizers in `over B`. -/
+example {B : C} [has_equalizers.{v} C] : has_equalizers.{v} (over B) :=
+{ has_limits_of_shape := infer_instance }
+
+instance has_finite_limits {B : C} [has_finite_wide_pullbacks.{v} C] : has_finite_limits.{v} (over B) :=
+begin
+  apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
+  { exact construct_products.over_finite_products_of_finite_wide_pullbacks },
+  { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
+    { haveI: has_pullbacks.{v} C := ⟨infer_instance⟩,
+      exact construct_products.over_binary_product_of_pullback },
+    { split,
+      apply_instance} }
+end
+
+instance has_limits {B : C} [has_wide_pullbacks.{v} C] : has_limits.{v} (over B) :=
+begin
+  apply @limits_from_equalizers_and_products _ _ _ _,
+  { exact construct_products.over_products_of_wide_pullbacks },
+  { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
+    { haveI: has_pullbacks.{v} C := ⟨infer_instance⟩,
+      exact construct_products.over_binary_product_of_pullback },
+    { split,
+      apply_instance } }
+end
 
 end category_theory.over
 

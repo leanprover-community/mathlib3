@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
 -/
-
-import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.set.countable
+import set_theory.schroeder_bernstein
 import data.fintype.card
 
 /-!
@@ -292,7 +292,7 @@ end order_properties
 instance : order_bot cardinal.{u} :=
 { bot := 0, bot_le := zero_le, ..cardinal.linear_order }
 
-instance : canonically_ordered_monoid cardinal.{u} :=
+instance : canonically_ordered_add_monoid cardinal.{u} :=
 { add_le_add_left       := λ a b h c, add_le_add_left _ h,
   lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
@@ -607,10 +607,10 @@ begin
   rw [cardinal.fintype_card, fintype.card_coe]
 end
 
-@[simp, move_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 
-@[simp, elim_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
 ⟨λ ⟨⟨f, hf⟩⟩, begin
   have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
@@ -621,20 +621,20 @@ end,
 λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
   have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
 
-@[simp, elim_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+@[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
 
-@[simp, elim_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
+@[simp, norm_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
 by simp [le_antisymm_iff]
 
-@[simp, elim_cast] theorem nat_succ (n : ℕ) : succ n = n.succ :=
-le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
+@[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
+le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
-by simpa using nat_succ 0
+by norm_cast
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le, (by simpa using nat_succ 1 : succ 1 = 2)] at hb;
+by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
@@ -644,7 +644,7 @@ theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
-succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
+succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
 theorem one_lt_omega : 1 < omega :=
@@ -768,7 +768,7 @@ begin
   split,
   { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
   { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, ←nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
     apply h, exactI subsingleton.elim _ _ }
 end
 

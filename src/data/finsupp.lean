@@ -570,6 +570,11 @@ lemma map_range_add [add_monoid β₁] [add_monoid β₂]
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
+lemma add_hom_ext [add_monoid β₁] ⦃g₁ g₂ : (α →₀ β) →+ β₁⦄
+  (h : ∀ a b, g₁ (single a b) = g₂ (single a b)) : g₁ = g₂ :=
+add_monoid_hom.ext $ λ f, finsupp.induction f (g₁.map_zero.trans g₂.map_zero.symm) $
+  λ a b f ha hb hg, by simp only [hg, h, add_monoid_hom.map_add]
+
 end add_monoid
 
 section nat_sub

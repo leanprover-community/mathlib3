@@ -40,20 +40,27 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
-/-- Copy the docstring from the name `fr` to the name `to`. -/
-meta def copy_doc_string (fr to : name) : tactic unit :=
-doc_string fr >>= add_doc_string to
+/-- 
+`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+to each declaration named in the list `to`. -/
+meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
+do fr_ds ← doc_string fr,
+   to.mmap' $ λ tgt, add_doc_string tgt fr_ds
 
 open lean lean.parser interactive
 
-/-- Copy the docstring from the name `fr` to the name `to`. -/
+/--
+`copy_doc_string source → target_1 target_2 ... target_n` copies the doc string of the
+declaration named `source` to each of `target_1`, `target_2`, ..., `target_n`.
+ -/
 @[user_command] meta def copy_doc_string_cmd
   (_ : parse (tk "copy_doc_string")) : parser unit :=
 do fr ← parser.ident,
-   to ← parser.ident,
+   tk "->",
+   to ← parser.many parser.ident,
    expr.const fr _  ← resolve_name fr,
-   expr.const to _  ← resolve_name to,
-   copy_doc_string fr to
+   to ← parser.of_tactic (to.mmap $ λ n, expr.const_name <$> resolve_name n),
+   tactic.copy_doc_string fr to
 
 /-! ### The `library_note` command -/
 
@@ -300,6 +307,13 @@ add_tactic_doc
   decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
   tags                     := ["documentation"],
   inherit_description_from := `add_tactic_doc_command }
+
+add_tactic_doc
+{ name := "copy_doc_string",
+  category := doc_category.cmd,
+  decl_names := [`copy_doc_string_cmd, `tactic.copy_doc_string],
+  tags := ["documentation"],
+  inherit_description_from := `copy_doc_string_cmd }
 
 -- add docs to core tactics
 

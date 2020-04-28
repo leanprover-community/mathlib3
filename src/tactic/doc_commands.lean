@@ -40,7 +40,9 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
-/-- Copy the docstring from the name `fr` to the names in `to`. -/
+/-- 
+`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+to each declaration named in the list `to`. -/
 meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
 do fr_ds ← doc_string fr,
    to.mmap' $ λ tgt, add_doc_string tgt fr_ds

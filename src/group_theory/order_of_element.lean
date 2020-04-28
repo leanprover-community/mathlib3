@@ -374,17 +374,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
 
 section
 
-variables [group α]
-
-lemma is_cyclic.gpowers_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
-  gpowers a = set.univ :=
-by rwa set.eq_univ_iff_forall
-
-variables [fintype α] [decidable_eq α]
-
-lemma is_cyclic.gpowers_to_finset_eq_univ (ha : ∀ x : α, x ∈ gpowers a) :
-  (gpowers a).to_finset = finset.univ :=
-by { rw ← set.to_finset_univ, congr, exact is_cyclic.gpowers_eq_univ ha }
+variables [group α] [fintype α] [decidable_eq α]
 
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=

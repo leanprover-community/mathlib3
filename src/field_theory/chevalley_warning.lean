@@ -34,8 +34,7 @@ universes u v
 namespace finite_field
 open mv_polynomial function finset
 
-variables {K : Type*} [field K] [fintype K] [decidable_eq K]
-variables {σ : Type*} [fintype σ] [decidable_eq σ]
+variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K
 
 lemma exists_degree_lt_card_sub_one (f : mv_polynomial σ K)
@@ -55,7 +54,7 @@ begin
   exact lt_of_lt_of_le hq (h _),
 end
 
-lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ K)
+lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:K) :=
 begin
@@ -65,6 +64,7 @@ begin
   rw [← mul_sum, mul_eq_zero], right,
   simp only [finsupp.prod],
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
+  haveI : decidable_eq K := classical.dec_eq K,
   let S : finset (σ → K) := univ.filter (λ x, x i = 0),
   let stratified : finset (σ → K) := S.bind (λ x, univ.filter (λ y, ∀ j ≠ i, y j = x j)),
   have : stratified = univ,
@@ -122,6 +122,8 @@ begin
     { simp only [true_and, mem_filter, mem_univ, ne.def] at hy,
       simpa only [hy j hj] using (function.update_noteq hj (y i) x).symm, } },
 end
+
+variables [decidable_eq K] [decidable_eq σ]
 
 /-- The Chevalley–Warning theorem.
 Let `(f i)` be a finite family of multivariate polynomials

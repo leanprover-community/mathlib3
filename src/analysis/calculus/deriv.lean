@@ -1281,7 +1281,7 @@ hf
 invertible derivative `f'` at `g a` in the strict sense, then `g` has the derivative `f'⁻¹` at `a`
 in the strict sense.
 
-This is one of the easy part of the inverse function theorem: it assumes that we already have an
+This is one of the easy parts of the inverse function theorem: it assumes that we already have an
 inverse function. -/
 theorem has_strict_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
   (hg : continuous_at g a) (hf : has_strict_deriv_at f f' (g a)) (hf' : f' ≠ 0)
@@ -1292,7 +1292,7 @@ theorem has_strict_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
 invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.
 
-This is one of the easy part of the inverse function theorem: it assumes that we already have
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
 theorem has_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
   (hg : continuous_at g a) (hf : has_deriv_at f f' (g a)) (hf' : f' ≠ 0)

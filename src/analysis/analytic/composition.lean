@@ -396,7 +396,7 @@ lemma comp_change_of_variables_blocks_fun
 begin
   rcases i with ⟨n, f⟩,
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
-  simp only [map_of_fn, pnat.mk_coe, nth_le_of_fn', function.comp_app],
+  simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
   rw fin.ext_iff
 end

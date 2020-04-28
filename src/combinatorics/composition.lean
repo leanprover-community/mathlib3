@@ -482,7 +482,7 @@ end composition
 ### Splitting a list
 
 Given a list of length `n` and a composition `c` of `n`, one can split `l` into `c.length` sublists
-of respective lenghts `c.blocks_fun 0`, ..., `c.blocks_fun (c.length-1)`. This is inverse to the
+of respective lengths `c.blocks_fun 0`, ..., `c.blocks_fun (c.length-1)`. This is inverse to the
 join operation.
 -/
 namespace list

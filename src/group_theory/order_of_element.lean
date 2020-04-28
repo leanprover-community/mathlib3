@@ -378,7 +378,10 @@ variables [group α] [fintype α] [decidable_eq α]
 
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
-by rw [image_range_order_of, is_cyclic.gpowers_to_finset_eq_univ ha]
+begin
+  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
+  convert set.to_finset_univ
+end
 
 lemma is_cyclic.image_range_card (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (fintype.card α)) = univ :=

@@ -613,6 +613,14 @@ begin
         add_assoc, add_comm _ (b % n), ←add_assoc, add_mul_mod_self_left] }
 end
 
+lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
+begin
+  conv_lhs {
+    rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
+        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
+        mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+end
+
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
   m + n > 0 + n : nat.add_lt_add_right h n

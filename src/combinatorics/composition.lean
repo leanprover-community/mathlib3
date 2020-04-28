@@ -546,7 +546,7 @@ begin
   let L := l.split_wrt_composition c,
   have A : length (join L) = length l,
     by simp [L, split_wrt_composition, sum_of_fn, c.size_up_to_le, c.size_up_to_length,
-      fin.sum_univ_eq_sum_range ((λ (x : ℕ), c.size_up_to (x + 1) - c.size_up_to x)) c.length,
+      fin.sum_univ_eq_sum_range (λ (x : ℕ), c.size_up_to (x + 1) - c.size_up_to x) c.length,
       finset.sum_range_sub_of_monotone, c.size_up_to_zero, c.monotone_size_up_to],
   apply ext_le A (λ k h₁ h₂, _),
   let i := c.index ⟨k, h₂⟩,

@@ -2081,7 +2081,7 @@ end continuous_linear_equiv
 invertible derivative `f'` at `g a` in the strict sense, then `g` has the derivative `f'⁻¹` at `a`
 in the strict sense.
 
-This is one of the easy part of the inverse function theorem: it assumes that we already have an
+This is one of the easy parts of the inverse function theorem: it assumes that we already have an
 inverse function. -/
 theorem has_strict_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} {g : F → E} {a : F}
   (hg : continuous_at g a) (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) (g a))

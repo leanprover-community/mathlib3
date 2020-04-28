@@ -30,7 +30,7 @@ and prove two versions of the inverse function theorem:
   the strict sense and `g` is locally left inverse to `f` near `a`, then `g` has derivative
   `f'.symm` at `f a` in the strict sense.
 
-In the one-dimensional case we reformulate these theorems in terms of `has_stric_deriv_at` and
+In the one-dimensional case we reformulate these theorems in terms of `has_strict_deriv_at` and
 `f'⁻¹`. Some other versions of the theorem assuming that we already know the inverse function are
 formulated in `fderiv.lean` and `deriv.lean`
 

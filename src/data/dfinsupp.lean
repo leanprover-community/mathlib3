@@ -140,6 +140,7 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   ..dfinsupp.add_group }
 
+/-- The scalar multiplication on a direct sum of modules. -/
 def to_has_scalar {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
@@ -150,6 +151,7 @@ local attribute [instance] to_has_scalar
   (b • v) i = b • (v i) :=
 map_range_apply
 
+/-- The module structure on a direct sum of modules. -/
 def to_module {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] :
   module γ (Π₀ i, β i) :=
 module.of_core {

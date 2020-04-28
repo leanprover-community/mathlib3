@@ -322,6 +322,13 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
 
+lemma lift_zero {F : G →* R} (hF : ∀ x ≠ 1, F x = 0) (f) :
+  lift k G R F f = (f 1) • 1 :=
+calc lift k G R F f = (f 1) • F 1 :
+  sum_eq_single _ (λ b hb hb1, by simp only [hF b hb1, smul_zero])
+    (λ h1, by simp only [not_mem_support_iff.1 h1, zero_smul])
+... = (f 1) • 1 : by rw [F.map_one]
+
 end lift
 
 -- TODO we should prove here that G and k commute;
@@ -420,10 +427,41 @@ instance : has_one (add_monoid_algebra k G) :=
 lemma one_def : (1 : add_monoid_algebra k G) = single 0 1 :=
 rfl
 
+-- TODO: we can do `.. @monoid_algebra.semiring k (multiplicative G)`
+-- but then `polynomial.algebra` fails to unify to `semiring` instances;
+-- same if we put some of these proofs inside `add_monoid_algebra.semiring`.
+protected lemma zero_mul (f : add_monoid_algebra k G) : 0 * f = 0 :=
+@zero_mul (monoid_algebra k (multiplicative G)) _ f
+
+protected lemma mul_zero (f : add_monoid_algebra k G) : f * 0 = 0 :=
+@mul_zero (monoid_algebra k (multiplicative G)) _ f
+
+protected lemma left_distrib (a b c : add_monoid_algebra k G) : a * (b + c) = a * b + a * c :=
+@left_distrib (monoid_algebra k (multiplicative G)) _ a b c
+
+protected lemma right_distrib (a b c : add_monoid_algebra k G) : (a + b) * c = a * c + b * c :=
+@right_distrib (monoid_algebra k (multiplicative G)) _ a b c
+
+protected lemma one_mul : ∀ f : add_monoid_algebra k G, 1 * f = f :=
+@one_mul (monoid_algebra k (multiplicative G)) _
+
+protected lemma mul_one : ∀ f : add_monoid_algebra k G, f * 1 = f :=
+@mul_one (monoid_algebra k (multiplicative G)) _
+
+protected lemma mul_assoc : ∀ f g h : add_monoid_algebra k G, f * g * h = f * (g * h) :=
+@mul_assoc (monoid_algebra k (multiplicative G)) _
+
 instance : semiring (add_monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
-  .. finsupp.add_comm_monoid, .. @monoid_algebra.semiring k (multiplicative G) _ _ }
+  one_mul   := add_monoid_algebra.one_mul,
+  mul_one   := add_monoid_algebra.mul_one,
+  zero_mul  := add_monoid_algebra.zero_mul,
+  mul_zero  := add_monoid_algebra.mul_zero,
+  mul_assoc := add_monoid_algebra.mul_assoc,
+  left_distrib  := add_monoid_algebra.left_distrib,
+  right_distrib := add_monoid_algebra.right_distrib,
+  .. finsupp.add_comm_monoid }
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
@@ -446,14 +484,14 @@ end
 
 @[simp] lemma of_apply (a : multiplicative G) : of k G a = single a.to_add 1 := rfl
 
-lemma mul_single_apply_aux (f : add_monoid_algebra k G) (r : k)
+lemma mul_single_apply_aux (f : add_monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a + x = z ↔ a = y) :
   (f * single x r) z = f y * r :=
 @monoid_algebra.mul_single_apply_aux k (multiplicative G) _ _ f r x y z H
 
 lemma mul_single_zero_apply (f : add_monoid_algebra k G) (r : k) (x : G) :
   (f * single 0 r) x = f x * r :=
-f.mul_single_apply_aux r $ λ a, by rw [add_zero]
+f.mul_single_apply_aux $ λ a, by rw [add_zero]
 
 lemma single_mul_apply_aux (f : add_monoid_algebra k G) (r : k) {x y z : G}
   (H : ∀ a, x + a = y ↔ a = z) :
@@ -537,6 +575,10 @@ values on the functions `single a 1`. -/
 lemma alg_hom_ext ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
+
+lemma lift_zero {F : multiplicative G →* R} (hF : ∀ x ≠ 1, F x = 0) (f) :
+  lift k G R F f = (f 0) • 1 :=
+@monoid_algebra.lift_zero k (multiplicative G) _ _ R _ _ F hF f
 
 end lift
 

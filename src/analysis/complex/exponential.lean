@@ -656,27 +656,45 @@ match le_total x 1 with
 | (or.inr hx1) := this hx1
 end
 
-/-- The real logarithm function, equal to `0` for `x ≤ 0` and to the inverse of the exponential
-for `x > 0`. -/
+/-- The real logarithm function, equal to the inverse of the exponential for `x > 0`,
+to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
+`(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
+the derivative of `log` is `1/x` away from `0`. -/
 noncomputable def log (x : ℝ) : ℝ :=
-if hx : 0 < x then classical.some (exists_exp_eq_of_pos hx) else 0
+if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
 
-lemma exp_log {x : ℝ} (hx : 0 < x) : exp (log x) = x :=
-by rw [log, dif_pos hx]; exact classical.some_spec (exists_exp_eq_of_pos hx)
+lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
+by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos_iff.mpr hx))) }
+
+lemma exp_log (hx : 0 < x) : exp (log x) = x :=
+by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
 
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 
 @[simp] lemma log_zero : log 0 = 0 :=
-by simp [log, lt_irrefl]
+by simp [log]
 
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
-lemma log_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : log (x * y) = log x + log y :=
-exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
+@[simp] lemma log_abs (x : ℝ) : log (abs x) = log x :=
+begin
+  by_cases h : x = 0,
+  { simp [h] },
+  { apply exp_injective,
+    rw [exp_log_eq_abs h, exp_log_eq_abs, abs_abs],
+    simp [h] }
+end
 
-lemma log_le_log {x y : ℝ} (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+@[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
+by rw [← log_abs x, ← log_abs (-x), abs_neg]
+
+lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
+exp_injective $
+by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
+
+lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
 ⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
 (real.exp_le_exp).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
 
@@ -686,14 +704,11 @@ by { intro h, rwa [← exp_lt_exp, exp_log hx, exp_log (lt_trans hx h)] }
 lemma log_lt_log_iff (hx : 0 < x) (hy : 0 < y) : log x < log y ↔ x < y :=
 by { rw [← exp_lt_exp, exp_log hx, exp_log hy] }
 
-lemma log_pos_iff (x : ℝ) : 0 < log x ↔ 1 < x :=
-begin
-  by_cases h : 0 < x,
-  { rw ← log_one, exact log_lt_log_iff (by norm_num) h },
-  { rw [log, dif_neg], split, repeat {intro, linarith} }
-end
+lemma log_pos_iff (hx : 0 < x) : 0 < log x ↔ 1 < x :=
+by { rw ← log_one, exact log_lt_log_iff (by norm_num) hx }
 
-lemma log_pos : 1 < x → 0 < log x := (log_pos_iff x).2
+lemma log_pos (hx : 1 < x) : 0 < log x :=
+(log_pos_iff (lt_trans zero_lt_one hx)).2 hx
 
 lemma log_neg_iff (h : 0 < x) : log x < 0 ↔ x < 1 :=
 by { rw ← log_one, exact log_lt_log_iff h (by norm_num) }
@@ -703,11 +718,11 @@ lemma log_neg (h0 : 0 < x) (h1 : x < 1) : log x < 0 := (log_neg_iff h0).2 h1
 lemma log_nonneg : 1 ≤ x → 0 ≤ log x :=
 by { intro, rwa [← log_one, log_le_log], norm_num, linarith }
 
-lemma log_nonpos : x ≤ 1 → log x ≤ 0 :=
+lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 begin
-  intro, by_cases hx : 0 < x,
-  { rwa [← log_one, log_le_log], exact hx, norm_num },
-  { simp [log, dif_neg hx] }
+  by_cases x_zero : x = 0,
+  { simp [x_zero] },
+  { rwa [← log_one, log_le_log (lt_of_le_of_ne hx (ne.symm x_zero))], norm_num }
 end
 
 section prove_log_is_continuous
@@ -732,7 +747,7 @@ begin
       linarith [(min_le_right _ _ : δ ≤ 1 - exp (-ε))],
     have : 0 < x := lt_trans (exp_pos _) h,
     calc abs (log x - 0) = abs (log x) : by simp
-      ... = -log x : abs_of_nonpos $ log_nonpos hx
+      ... = -log x : abs_of_nonpos $ log_nonpos (le_of_lt this) hx
       ... < ε : by { rw [neg_lt, ← exp_lt_exp, exp_log], assumption' } }
 end
 
@@ -744,8 +759,8 @@ begin
   let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos.2 x.2) y.2),
   have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
-      ext h, rw ← log_mul x.2 h.2,
-    simp only [this, log_mul x.2 zero_lt_one, log_one],
+      ext h, rw ← log_mul (ne_of_gt x.2) (ne_of_gt h.2),
+    simp only [this, log_mul (ne_of_gt x.2) one_ne_zero, log_one],
     exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
   have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos.2 x.2) x.2⟩),
     rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
@@ -775,11 +790,21 @@ show continuous ((log ∘ @subtype.val ℝ (λr, 0 < r)) ∘ λa, ⟨f a, h a⟩
 
 end prove_log_is_continuous
 
-lemma has_deriv_at_log (hx : 0 < x) : has_deriv_at log x⁻¹ x :=
+lemma has_deriv_at_log_of_pos (hx : 0 < x) : has_deriv_at log x⁻¹ x :=
 have has_deriv_at log (exp $ log x)⁻¹ x,
 from (has_deriv_at_exp $ log x).of_local_left_inverse (continuous_at_log hx)
   (ne_of_gt $ exp_pos _) $ eventually.mono (mem_nhds_sets is_open_Ioi hx) @exp_log,
 by rwa [exp_log hx] at this
+
+lemma has_deriv_at_log (hx : x ≠ 0) : has_deriv_at log x⁻¹ x :=
+begin
+  by_cases h : 0 < x, { exact has_deriv_at_log_of_pos h },
+  push_neg at h,
+  convert ((has_deriv_at_log_of_pos (neg_pos.mpr (lt_of_le_of_ne h hx)))
+    .comp x (has_deriv_at_id x).neg),
+  { ext y, exact (log_neg_eq_log y).symm },
+  { field_simp [hx] }
+end
 
 lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
 intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
@@ -1452,6 +1477,52 @@ by simp [arctan, neg_div]
 
 end real
 
+section log_differentiable
+open real
+
+variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
+
+lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
+  has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=
+begin
+  convert (has_deriv_at_log hx).comp_has_deriv_within_at x hf,
+  field_simp
+end
+
+lemma has_deriv_at.log (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :
+  has_deriv_at (λ y, log (f y)) (f' / f x) x :=
+begin
+  rw ← has_deriv_within_at_univ at *,
+  exact hf.log hx
+end
+
+lemma differentiable_within_at.log (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0) :
+  differentiable_within_at ℝ (λx, log (f x)) s x :=
+(hf.has_deriv_within_at.log hx).differentiable_within_at
+
+@[simp] lemma differentiable_at.log (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
+  differentiable_at ℝ (λx, log (f x)) x :=
+(hf.has_deriv_at.log hx).differentiable_at
+
+lemma differentiable_on.log (hf : differentiable_on ℝ f s) (hx : ∀ x ∈ s, f x ≠ 0) :
+  differentiable_on ℝ (λx, log (f x)) s :=
+λx h, (hf x h).log (hx x h)
+
+@[simp] lemma differentiable.log (hf : differentiable ℝ f) (hx : ∀ x, f x ≠ 0) :
+  differentiable ℝ (λx, log (f x)) :=
+λx, (hf x).log (hx x)
+
+lemma deriv_within_log' (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0)
+  (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λx, log (f x)) s x = (deriv_within f s x) / (f x) :=
+(hf.has_deriv_within_at.log hx).deriv_within hxs
+
+@[simp] lemma deriv_log' (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
+  deriv (λx, log (f x)) x = (deriv f x) / (f x) :=
+(hf.has_deriv_at.log hx).deriv
+
+end log_differentiable
+
 namespace complex
 
 open_locale real
@@ -1692,6 +1763,8 @@ complex.ext
   (by rw [log_re, of_real_re, abs_of_nonneg hx])
   (by rw [of_real_im, log_im, arg_of_real_of_nonneg hx])
 
+lemma log_of_real_re (x : ℝ) : (log (x : ℂ)).re = real.log x := by simp [log_re]
+
 @[simp] lemma log_zero : log 0 = 0 := by simp [log]
 
 @[simp] lemma log_one : log 1 = 0 := by simp [log]
@@ -1900,7 +1973,7 @@ namespace real
 /-- The real power function `x^y`, defined as the real part of the complex power function.
 For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`, one sets `0^0=1` and `0^y=0` for `y ≠ 0`.
 For `x < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
-determination of the logarithm. With our conventions, it is equal to `exp (y log (-x)) cos (πy)`. -/
+determination of the logarithm. With our conventions, it is equal to `exp (y log x) cos (πy)`. -/
 noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
@@ -1928,7 +2001,7 @@ by { simp only [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
 
 open_locale real
 
-lemma rpow_def_of_neg {x : ℝ} (hx : x < 0) (y : ℝ) : x ^ y = exp (log (-x) * y) * cos (y * π) :=
+lemma rpow_def_of_neg {x : ℝ} (hx : x < 0) (y : ℝ) : x ^ y = exp (log x * y) * cos (y * π) :=
 begin
   rw [rpow_def, complex.cpow_def, if_neg],
   have : complex.log x * y = ↑(log(-x) * y) + ↑(y * π) * complex.I,
@@ -1936,7 +2009,9 @@ begin
       complex.abs_of_real, complex.of_real_mul], ring,
   { rw [this, complex.exp_add_mul_I, ← complex.of_real_exp, ← complex.of_real_cos,
       ← complex.of_real_sin, mul_add, ← complex.of_real_mul, ← mul_assoc, ← complex.of_real_mul,
-      complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, complex.of_real_im], ring },
+      complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, complex.of_real_im,
+      real.log_neg_eq_log],
+    ring },
   { rw complex.of_real_eq_zero, exact ne_of_lt hx }
 end
 
@@ -1945,7 +2020,7 @@ lemma rpow_def_of_nonpos {x : ℝ} (hx : x ≤ 0) (y : ℝ) : x ^ y =
     then if y = 0
       then 1
       else 0
-    else exp (log (-x) * y) * cos (y * π) :=
+    else exp (log x * y) * cos (y * π) :=
 by split_ifs; simp [rpow_def, *]; exact rpow_def_of_neg (lt_of_le_of_ne hx h) _
 
 lemma rpow_pos_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : 0 < x ^ y :=
@@ -1956,19 +2031,19 @@ abs_le_of_le_of_neg_le
 begin
   cases lt_trichotomy 0 x, { rw abs_of_pos h },
   cases h, { simp [h.symm] },
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), abs_of_neg h],
-  calc exp (log (-x) * y) * cos (y * π) ≤ exp (log (-x) * y) * 1 :
+  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
+  calc exp (log x * y) * cos (y * π) ≤ exp (log x * y) * 1 :
     mul_le_mul_of_nonneg_left (cos_le_one _) (le_of_lt $ exp_pos _)
   ... = _ : mul_one _
 end
 begin
   cases lt_trichotomy 0 x, { rw abs_of_pos h, have : 0 < x^y := rpow_pos_of_pos h _, linarith },
-  cases h, { simp only [h.symm, abs_zero, rpow_def_of_nonneg], split_ifs, repeat {norm_num}},
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), abs_of_neg h],
-  calc -(exp (log (-x) * y) * cos (y * π)) = exp (log (-x) * y) * (-cos (y * π)) : by ring
-    ... ≤ exp (log (-x) * y) * 1 :
+  cases h, { simp only [h.symm, abs_zero, rpow_def_of_nonneg], split_ifs, repeat {norm_num} },
+  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
+  calc -(exp (log x * y) * cos (y * π)) = exp (log x * y) * (-cos (y * π)) : by ring
+    ... ≤ exp (log x * y) * 1 :
       mul_le_mul_of_nonneg_left (neg_le.2 $ neg_one_le_cos _) (le_of_lt $ exp_pos _)
-    ... = exp (log (-x) * y) : mul_one _
+    ... = exp (log x * y) : mul_one _
 end
 
 end real
@@ -2036,7 +2111,7 @@ begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
   { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂, exact h₂, exfalso, apply h_2, exact eq.symm h₂,
     have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂, exact h₂, exfalso, apply h_3, exact eq.symm h₂,
-    rw [log_mul hx hy, add_mul, exp_add]},
+    rw [log_mul (ne_of_gt hx) (ne_of_gt hy), add_mul, exp_add]},
   { exact h₁},
   { exact h},
   { exact mul_nonneg h h₁},
@@ -2103,7 +2178,7 @@ lemma rpow_le_rpow_of_exponent_ge (hx0 : 0 < x) (hx1 : x ≤ 1) (hyz : z ≤ y) 
   x^y ≤ x^z :=
 begin
   repeat {rw [rpow_def_of_pos hx0]},
-  rw exp_le_exp, exact mul_le_mul_of_nonpos_left hyz (log_nonpos hx1),
+  rw exp_le_exp, exact mul_le_mul_of_nonpos_left hyz (log_nonpos (le_of_lt hx0) hx1),
 end
 
 lemma rpow_le_one {x e : ℝ} (he : 0 ≤ e) (hx : 0 ≤ x) (hx2 : x ≤ 1) : x^e ≤ 1 :=
@@ -2137,7 +2212,7 @@ continuous_exp.comp $
 
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
-  by { convert h, ext p, rw [rpow_def_of_neg p.2] },
+  by { convert h, ext p, rw [rpow_def_of_neg p.2, log_neg_eq_log] },
   (continuous_exp.comp $
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),

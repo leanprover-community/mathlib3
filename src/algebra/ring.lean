@@ -357,21 +357,13 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
-  (f : α →+* β) (a : α) :
-  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
-  (f : α →+* β) (a : α) :
-  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+@[simp, norm_cast]
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →* β) = f := rfl
 
 @[simp, norm_cast]
-lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
-  ((f : α →* β) : α → β) = (f : α → β) := rfl
-
-@[simp, norm_cast]
-lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β}
-  (f : α →+* β) :
-  ((f : α →+ β) : α → β) = (f : α → β) := rfl
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →+ β) = f := rfl
 
 namespace ring_hom
 
@@ -399,6 +391,12 @@ coe_inj (funext h)
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
+theorem coe_add_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →+ β)) :=
+λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
+
+theorem coe_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →* β)) :=
+λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'

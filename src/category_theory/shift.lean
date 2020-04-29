@@ -17,8 +17,7 @@ namespace category_theory
 
 universes v u
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- A category has a shift, or translation, if it is equipped with an automorphism. -/
 class has_shift :=

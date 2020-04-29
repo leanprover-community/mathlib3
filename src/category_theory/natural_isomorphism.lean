@@ -26,9 +26,8 @@ namespace nat_iso
 
 open category_theory.category category_theory.functor
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-  {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+  {E : Type u₃} [category.{v₃} E]
 
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
   (α ≪≫ β).app X = α.app X ≪≫ β.app X := rfl
@@ -98,14 +97,12 @@ by tidy
 @[simp] lemma of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app naturality).inv.app X = (app X).inv := rfl
 
-include ℰ
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=
 begin
   refine ⟨α.hom ◫ β.hom, α.inv ◫ β.inv, _, _⟩,
   { ext, rw [←nat_trans.exchange], simp, refl },
   ext, rw [←nat_trans.exchange], simp, refl
 end
-omit ℰ
 -- declare local notation for nat_iso.hcomp
 localized "infix ` ■ `:80 := category_theory.nat_iso.hcomp" in category
 
@@ -114,8 +111,7 @@ end nat_iso
 
 namespace functor
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ 𝟭 (ulift.{u₂} C) :=
 { hom := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X },

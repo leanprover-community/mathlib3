@@ -23,8 +23,7 @@ universes v u
 
 namespace category_theory
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables [has_zero_morphisms.{v} C] [has_shift.{v} C]
 
@@ -111,8 +110,7 @@ namespace category_theory
 
 namespace differential_object
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables [has_zero_object.{v} C] [has_zero_morphisms.{v} C] [has_shift.{v} C]
 
@@ -129,9 +127,8 @@ end differential_object
 
 namespace differential_object
 
-variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
+variables (C : Type (u+1)) [large_category C] [concrete_category C]
   [has_zero_morphisms.{u} C] [has_shift.{u} C]
-include 𝒞
 
 instance concrete_category_of_differential_objects :
   concrete_category (differential_object.{u} C) :=

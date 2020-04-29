@@ -11,12 +11,10 @@ namespace category_theory
 
 universes v u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u₁} [category.{v} C]
 
 section creates
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
@@ -235,7 +233,6 @@ def lifts_to_colimit_of_creates (K : J ⥤ C) (F : C ⥤ D)
   valid_lift := lifted_colimit_maps_to_original t,
   makes_colimit := lifted_colimit_is_colimit t }
 
-omit 𝒟
 /-- Any cone lifts through the identity functor. -/
 def id_lifts_cone (c : cone (K ⋙ 𝟭 C)) : liftable_cone K (𝟭 C) c :=
 { lifted_cone :=
@@ -265,7 +262,6 @@ instance inhabited_liftable_cone (c : cone (K ⋙ 𝟭 C)) : inhabited (liftable
 ⟨id_lifts_cone c⟩
 instance inhabited_liftable_cocone (c : cocone (K ⋙ 𝟭 C)) : inhabited (liftable_cocone K (𝟭 C) c) :=
 ⟨id_lifts_cocone c⟩
-include 𝒟
 
 /-- Satisfy the inhabited linter -/
 instance inhabited_lifts_to_limit (K : J ⥤ C) (F : C ⥤ D)

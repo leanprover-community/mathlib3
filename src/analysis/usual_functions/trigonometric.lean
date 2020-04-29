@@ -503,6 +503,16 @@ end
 
 namespace real
 
+lemma has_deriv_at_log (hx : x ≠ 0) : has_deriv_at log x⁻¹ x :=
+begin
+  by_cases h : 0 < x, { exact has_deriv_at_log_of_pos h },
+  push_neg at h,
+  convert ((has_deriv_at_log_of_pos (neg_pos.mpr (lt_of_le_of_ne h hx)))
+    .comp x (has_deriv_at_id x).neg),
+  { ext y, exact (log_neg_eq_log y).symm },
+  { field_simp [hx] }
+end
+
 lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
 intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
@@ -1173,7 +1183,6 @@ by simp [arctan]
 by simp [arctan, neg_div]
 
 end real
-
 
 
 namespace complex

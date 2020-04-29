@@ -149,18 +149,16 @@ lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:K) :=
 begin
+  haveI : decidable_eq K := classical.dec_eq K,
   simp only [eval, eval₂, finsupp.sum, id.def],
   rw [sum_comm, sum_eq_zero],
   intros d hd,
   rw [← mul_sum, mul_eq_zero], right,
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
 
-  haveI : decidable_eq K := classical.dec_eq K,
-
-  refine calc _ = univ.sum (λ (x₀ : {j // j ≠ i} → K),
-         univ.sum (λ (x : {x : σ → K // x ∘ coe = x₀}),
-              ((λ (x : σ → K), d.prod (λ (n : σ), pow (x n)))) x.1)) : _
-              ... = 0 : sum_eq_zero _,
+  refine calc _ = univ.sum (λ (x₀ : {j // j ≠ i} → K), univ.sum (λ (x : {x : σ → K // x ∘ coe = x₀}),
+                    d.prod (λ (j : σ) (n : ℕ), (x.1 j) ^ n))) : _
+            ... = 0 : sum_eq_zero _,
   { let e := equiv.sigma_preimage_equiv (λ x, x ∘ coe : (σ → K) → ({j // j ≠ i} → K)),
     rw [← sum_equiv e, ← univ_sigma_univ, sum_sigma], refl, },
 

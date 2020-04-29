@@ -622,10 +622,12 @@ lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
 
+@[norm_cast]
 lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (nat.cast_add_monoid_hom β).map_sum f s
 
+@[norm_cast]
 lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
   ↑(s.prod f) = s.prod (λa, f a : α → β) :=
 (nat.cast_ring_hom β).map_prod f s
@@ -781,6 +783,11 @@ begin
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
+
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  s₁.sum f₁ * s₂.sum f₂ = (s₁.product s₂).sum (λ p, f₁ p.1 * f₂ p.2) :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 open_locale classical
 

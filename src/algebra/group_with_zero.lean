@@ -182,6 +182,9 @@ units.ext rfl
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
+@[simp] lemma exists_iff_ne_zero (x : G₀) : (∃ u : units G₀, ↑u = x) ↔ x ≠ 0 :=
+⟨λ ⟨u, hu⟩, by { rw ← hu, exact unit_ne_zero u }, assume hx, ⟨mk0 x hx, rfl⟩⟩
+
 end units
 
 section group_with_zero

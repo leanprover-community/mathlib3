@@ -152,6 +152,10 @@ lemma add_hom_ext {A : Type*} [add_monoid A] ⦃f g : monoid_algebra k G →+ A�
   (H : ∀ a b, f (single a b) = g (single a b)) : f = g :=
 finsupp.add_hom_ext H
 
+lemma add_hom_ext_apply {A : Type*} [add_monoid A] (f g : monoid_algebra k G →+ A) (x)
+  (H : ∀ a b, f (single a b) = g (single a b)) : f x = g x :=
+add_monoid_hom.ext_iff.1 (add_hom_ext H) x
+
 -- We have no `linear_map`s for `semimodule`s, so we use this workaround
 lemma semimodule_linear_map_ext {A : Type*} [add_comm_monoid A] [semimodule k A]
   ⦃f g : monoid_algebra k G →+ A⦄ (hf : ∀ (c : k) x, f (c • x) = c • f x)
@@ -186,25 +190,13 @@ end
 
 @[simp] lemma of_apply (a : G) : of k G a = single a 1 := rfl
 
-lemma mul_single_apply_aux' (f : monoid_algebra k G) {r : k}
-  {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
-  (f * single x r) z = f y * r :=
-have (apply_add_hom _ z).comp (add_monoid_hom.mul_right (single x r)) =
-  (add_monoid_hom.mul_right r).comp (apply_add_hom _ y),
-from add_hom_ext $ λ a b, by simp,
-add_monoid_hom.ext_iff.1 this f
-
 lemma mul_single_apply_aux (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
   (f * single x r) z = f y * r :=
-have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (a₁ * a₂ = z) (b₁ * b₂) 0) =
-  ite (a₁ * x = z) (b₁ * r) 0,
-from λ a₁ b₁, sum_single_index $ by simp,
-calc (f * single x r) z = sum f (λ a b, if (a = y) then (b * r) else 0) :
-  -- different `decidable` instances make it not trivial
-  by { simp only [mul_apply, A, H], congr, funext, split_ifs; refl }
-... = if y ∈ f.support then f y * r else 0 : f.support.sum_ite_eq' _ _
-... = f y * r : by split_ifs with h; simp at h; simp [h]
+add_hom_ext_apply ((apply_add_hom _ z).comp (add_monoid_hom.mul_right (single x r)))
+  ((add_monoid_hom.mul_right r).comp (apply_add_hom _ y)) f $ λ a b,
+show (single a b * single x r) z = (single a b : G → k) y * r,
+by { rw [single_mul_single, single_apply, single_apply, H], split_ifs; simp }
 
 lemma mul_single_one_apply (f : monoid_algebra k G) (r : k) (x : G) :
   (f * single 1 r) x = f x * r :=
@@ -213,13 +205,10 @@ f.mul_single_apply_aux $ λ a, by rw [mul_one]
 lemma single_mul_apply_aux (f : monoid_algebra k G) {r : k} {x y z : G}
   (H : ∀ a, x * a = y ↔ a = z) :
   (single x r * f) y = r * f z :=
-have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
-calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
-  (mul_apply _ _ _).trans $ sum_single_index this
-... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr, ext; split_ifs; refl  }
-... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
-... = _ : by split_ifs with h; simp at h; simp [h]
+add_hom_ext_apply ((apply_add_hom _ y).comp (add_monoid_hom.mul_left (single x r)))
+  ((add_monoid_hom.mul_left r).comp (apply_add_hom _ z)) f $ λ a b,
+show (single x r * single a b) y = r * (single a b : G → k) z,
+by { rw [single_mul_single, single_apply, single_apply, H], split_ifs; simp }
 
 lemma single_one_mul_apply (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
@@ -345,6 +334,21 @@ calc lift k G R F f = (f 1) • F 1 :
 ... = (f 1) • 1 : by rw [F.map_one]
 
 end lift
+
+section map_ring
+
+variables (G) {k' : Type u₃} [monoid G] [semiring k] [semiring k'] (φ : k →+* k')
+
+-- TODO: write a docstring mentioning that `monoid_algebra` is a bifunctor,
+-- and this is one of the two possible `map`s
+def map_ring : monoid_algebra k G →+* monoid_algebra k' G :=
+{ to_fun := λ f, f.map_range φ φ.map_zero,
+  map_one' := by rw [one_def, map_range_single, φ.map_one, one_def],
+  map_mul' := λ f g, _,
+  map_zero' := map_range_zero,
+  map_add' := map_range_add φ.map_add }
+
+end map_ring
 
 -- TODO we should prove here that G and k commute;
 -- presumably a `linear_mul_action` typeclass is in order

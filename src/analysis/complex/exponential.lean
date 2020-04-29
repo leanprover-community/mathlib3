@@ -1763,6 +1763,8 @@ complex.ext
   (by rw [log_re, of_real_re, abs_of_nonneg hx])
   (by rw [of_real_im, log_im, arg_of_real_of_nonneg hx])
 
+lemma log_of_real_re (x : ℝ) : (log (x : ℂ)).re = real.log x := by simp [log_re]
+
 @[simp] lemma log_zero : log 0 = 0 := by simp [log]
 
 @[simp] lemma log_one : log 1 = 0 := by simp [log]

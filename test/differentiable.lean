@@ -1,4 +1,4 @@
-import analysis.complex.exponential
+import analysis.special_functions.trigonometric
 
 namespace real
 

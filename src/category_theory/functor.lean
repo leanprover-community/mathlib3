@@ -46,8 +46,7 @@ attribute [reassoc, simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
@@ -63,10 +62,9 @@ variable {C}
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
@@ -81,8 +79,6 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
-omit ℰ
-
 -- These are not simp lemmas because rewriting along equalities between functors
 -- is not necessarily a good idea.
 -- Natural isomorphisms are also provided in `whiskering.lean`.
@@ -92,8 +88,7 @@ protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 @[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
 { obj := λ X, X.down,

@@ -51,8 +51,7 @@ attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {X Y Z : C}
 
 namespace iso
@@ -238,8 +237,7 @@ namespace functor
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{v₂} D]
-include 𝒟
+variables [category.{v₂} D]
 
 /-- A functor `F : C ⥤ D` sends isomorphisms `i : X ≅ Y` to isomorphisms `F.obj X ≅ F.obj Y` -/
 def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=

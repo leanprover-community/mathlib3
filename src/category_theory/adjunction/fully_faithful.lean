@@ -14,9 +14,8 @@ universes v₁ v₂ u₁ u₂
 open category
 open opposite
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R)
 
 -- Lemma 4.5.13 from [Riehl][riehl2017]

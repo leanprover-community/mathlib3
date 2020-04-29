@@ -35,8 +35,7 @@ by { apply ulift.fintype }
 
 end discrete
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
+variables {C : Type u₂} [category.{v₂} C]
 
 namespace functor
 
@@ -80,8 +79,6 @@ end nat_iso
 namespace discrete
 variables {J : Type v₁}
 
-omit 𝒞
-
 def lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
 functor.of_function f
 
@@ -94,7 +91,6 @@ begin
   refine nat_iso.of_components (λ X, by simp [F]) _,
   tidy
 end
-include 𝒞
 
 
 @[simp] lemma functor_map_id

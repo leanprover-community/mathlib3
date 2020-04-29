@@ -89,8 +89,7 @@ end walking_span
 
 open walking_span.hom walking_cospan.hom wide_pullback_shape.hom wide_pushout_shape.hom
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=

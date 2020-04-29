@@ -32,8 +32,7 @@ There is also the dual notion of strong monomorphism.
 universes v u
 
 namespace category_theory
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {P Q : C}
 

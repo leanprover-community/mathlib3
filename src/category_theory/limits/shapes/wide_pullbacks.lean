@@ -95,8 +95,7 @@ instance fin_category [fintype J] [decidable_eq J] : fin_category (wide_pullback
 
 @[simp] lemma hom_id (X : wide_pullback_shape J) : hom.id X = 𝟙 X := rfl
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /--
 Construct a functor out of the wide pullback shape given a J-indexed collection of arrows to a
@@ -174,8 +173,7 @@ instance fin_category [fintype J] [decidable_eq J] : fin_category (wide_pushout_
 
 @[simp] lemma hom_id (X : wide_pushout_shape J) : hom.id X = 𝟙 X := rfl
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /--
 Construct a functor out of the wide pushout shape given a J-indexed collection of arrows from a
@@ -198,8 +196,7 @@ nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
 
 end wide_pushout_shape
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
 class has_wide_pullbacks :=

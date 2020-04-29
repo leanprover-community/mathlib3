@@ -27,8 +27,7 @@ open category_theory.limits
 
 universes v₁ u₁
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 variables {X Y : C}
 

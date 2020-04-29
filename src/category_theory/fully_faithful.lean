@@ -10,8 +10,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
 A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
@@ -79,16 +78,14 @@ end category_theory
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 instance full.id : full (𝟭 C) :=
 { preimage := λ _ _ f, f }
 
 instance faithful.id : faithful (𝟭 C) := by obviously
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒟 ℰ
+variables {D : Type u₂} [category.{v₂} D] {E : Type u₃} [category.{v₃} E]
 variables (F F' : C ⥤ D) (G : D ⥤ E)
 
 instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
@@ -98,7 +95,6 @@ lemma faithful.of_comp [faithful $ F ⋙ G] : faithful F :=
 { injectivity' := λ X Y, (F ⋙ G).injectivity.of_comp }
 
 section
-omit ℰ
 variables {F F'}
 
 lemma faithful.of_iso [faithful F] (α : F ≅ F') : faithful F' :=

@@ -17,8 +17,7 @@ namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
 `nat_trans F G` represents a natural transformation between functors `F` and `G`.

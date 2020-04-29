@@ -59,8 +59,7 @@ end examples
 
 local attribute [tidy] tactic.case_bash
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
+variables {C : Type u₂} [category.{v₂} C]
 
 variables [has_binary_products.{v₂} C]
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import topology.algebra.polynomial
-import analysis.usual_functions.pow
+import analysis.special_functions.pow
 
 /-!
 # The fundamental theorem of algebra

@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.calculus.mean_value
 import data.nat.parity
-import analysis.usual_functions.exp_log
+import analysis.special_functions.exp_log
 
 /-!
 # Collection of convex functions

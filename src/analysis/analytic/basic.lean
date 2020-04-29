@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.times_cont_diff
 import tactic.omega
-import analysis.usual_functions.pow
+import analysis.special_functions.pow
 
 /-!
 # Analytic functions

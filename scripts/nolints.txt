@@ -830,18 +830,7 @@ apply_nolint real.tan doc_blame
 apply_nolint real.tanh doc_blame
 
 -- data/dfinsupp.lean
-apply_nolint decidable_zero_symm doc_blame
-apply_nolint dfinsupp doc_blame
-apply_nolint dfinsupp.erase doc_blame
-apply_nolint dfinsupp.lmk doc_blame
-apply_nolint dfinsupp.lsingle doc_blame
-apply_nolint dfinsupp.mk doc_blame
 apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.single doc_blame
-apply_nolint dfinsupp.support doc_blame
-apply_nolint dfinsupp.to_has_scalar doc_blame
-apply_nolint dfinsupp.to_module doc_blame
-apply_nolint dfinsupp.zip_with doc_blame
 apply_nolint dfinsupp.zip_with_def unused_arguments
 
 -- data/dlist/basic.lean
@@ -1260,9 +1249,6 @@ apply_nolint multiset.traverse doc_blame
 
 -- data/nat/enat.lean
 apply_nolint enat doc_blame
-
--- data/nat/modeq.lean
-apply_nolint nat.modeq.chinese_remainder doc_blame
 
 -- data/nat/prime.lean
 apply_nolint nat.min_fac_aux doc_blame
@@ -1704,7 +1690,6 @@ apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
 -- field_theory/subfield.lean
-apply_nolint field.closure doc_blame
 apply_nolint is_subfield doc_blame
 
 -- geometry/manifold/basic_smooth_bundle.lean
@@ -2009,7 +1994,6 @@ apply_nolint measure_theory.measure.map doc_blame
 apply_nolint measure_theory.measure.of_measurable doc_blame
 apply_nolint measure_theory.outer_measure.to_measure doc_blame
 apply_nolint measure_theory.outer_measure.trim doc_blame
-apply_nolint measure_theory.volume doc_blame
 apply_nolint null_measurable doc_blame
 
 -- measure_theory/outer_measure.lean
@@ -2947,25 +2931,6 @@ apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_lhs doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_rhs doc_blame
 
--- tactic/rewrite_all/congr.lean
-apply_nolint tactic.mk_congr_arg_using_dsimp' doc_blame
-apply_nolint tactic.rewrite_all.congr.app_map doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.congr doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.replace doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.to_sides doc_blame
-apply_nolint tactic.rewrite_all.congr.expr_lens.to_tactic_string doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_all doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_all_lazy doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_at_lens doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_is_of_entire doc_blame
-apply_nolint tactic.rewrite_all.congr.rewrite_without_new_mvars doc_blame
-
--- tactic/rewrite_all/default.lean
-apply_nolint tactic.all_rewrites_using doc_blame
-apply_nolint tactic.get_nth_rewrite doc_blame
-apply_nolint tactic.perform_nth_rewrite doc_blame
-
 -- tactic/ring.lean
 apply_nolint tactic.interactive.ring.mode doc_blame
 apply_nolint tactic.ring.add_atom doc_blame
@@ -3077,9 +3042,6 @@ apply_nolint homeomorph.inv doc_blame
 apply_nolint homeomorph.mul_left doc_blame
 apply_nolint homeomorph.mul_right doc_blame
 apply_nolint homeomorph.neg doc_blame
-
--- topology/algebra/module.lean
-apply_nolint continuous_linear_equiv has_inhabited_instance
 
 -- topology/algebra/open_subgroup.lean
 apply_nolint open_add_subgroup doc_blame

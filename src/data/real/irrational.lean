@@ -50,7 +50,7 @@ end
 /-- If `x^n = m` is an integer and `n` does not divide the `multiplicity p m`, then `x`
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
-  [hp : nat.prime p] (hxr : x ^ n = m)
+  [hp : fact p.prime] (hxr : x ^ n = m)
   (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
@@ -68,7 +68,7 @@ begin
 end
 
 theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
-  (p : ℕ) [hp : nat.prime p]
+  (p : ℕ) [hp : fact p.prime]
   (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp

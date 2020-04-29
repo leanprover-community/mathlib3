@@ -50,6 +50,11 @@ namespace antilipschitz_with
 
 variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {f : α → β}
 
+/-- Extract the constant from `hf : antilipschitz_with K f`. This is useful, e.g.,
+if `K` is given by a long formula, and we want to reuse this value. -/
+@[nolint unused_arguments] -- uses neither `f` nor `hf`
+protected def K (hf : antilipschitz_with K f) : ℝ≥0 := K
+
 protected lemma injective (hf : antilipschitz_with K f) :
   function.injective f :=
 λ x y h, by simpa only [h, edist_self, mul_zero, edist_le_zero] using hf x y

@@ -3,7 +3,7 @@ Copyright (c) 2018 Keeley Hoek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
-import tactic.rewrite_all
+import tactic.nth_rewrite
 import data.vector
 
 structure F :=
@@ -13,7 +13,7 @@ structure F :=
 
 example (f : F) : f.v.val = [] :=
 begin
-  perform_nth_rewrite 0 [f.p],
+  nth_rewrite 0 [f.p],
 end
 
 structure cat :=
@@ -29,12 +29,12 @@ open tactic
 
 example (C : cat) (W X Y Z : C.O) (f : C.H X Y) (g : C.H W X) (h k : C.H Y Z) : C.c (C.c g f) h = C.c g (C.c f h) :=
 begin
-  perform_nth_rewrite 0 [C.a],
+  nth_rewrite 0 [C.a],
 end
 
 example (C : cat) (X Y : C.O) (f : C.H X Y) : C.c f (C.i Y) = f :=
 begin
-  perform_nth_rewrite 0 [C.ri],
+  nth_rewrite 0 [C.ri],
 end
 
 -- The next two examples fail when using the kabstract backend.
@@ -89,3 +89,26 @@ end
 -- miss any rewrites if we also look inside every thing we chunk-up into a metavariable as well.
 -- In almost every case this will bring up no results (with the exception of situations like this
 -- one), so there should be essentially no change in complexity.
+
+example (x y : Prop) (h₁ : x ↔ y) (h₂ : x ↔ x ∧ x) : x ∧ x ↔ x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂,
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end
+
+example (x y : ℕ) (h₁ : x = y) (h₂ : x = x + x) : x + x = x :=
+begin
+  nth_rewrite_rhs 1 [h₁] at h₂,
+  nth_rewrite_rhs 0 [← h₁] at h₂,
+  nth_rewrite_rhs 0 h₂,
+end
+
+example (x y z : ℕ) (h1 : x = y) (h2 : y = z) :
+  x + x + x + y = y + y + x + x :=
+begin
+  nth_rewrite 2 [h1, h2], -- h2 is not used
+  nth_rewrite 2 [h2],
+  repeat { rw h1 },
+  repeat { rw h2 },
+end

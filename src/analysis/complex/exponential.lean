@@ -775,6 +775,12 @@ show continuous ((log ∘ @subtype.val ℝ (λr, 0 < r)) ∘ λa, ⟨f a, h a⟩
 
 end prove_log_is_continuous
 
+lemma has_deriv_at_log (hx : 0 < x) : has_deriv_at log x⁻¹ x :=
+have has_deriv_at log (exp $ log x)⁻¹ x,
+from (has_deriv_at_exp $ log x).of_local_left_inverse (continuous_at_log hx)
+  (ne_of_gt $ exp_pos _) $ eventually.mono (mem_nhds_sets is_open_Ioi hx) @exp_log,
+by rwa [exp_log hx] at this
+
 lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
 intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩

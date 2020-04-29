@@ -69,6 +69,13 @@ def equiv.sum_compl (p : α → Prop) [decidable_pred p] :
   left_inv := by { rintros (⟨x,hx⟩|⟨x,hx⟩); dsimp; [rw dif_pos, rw dif_neg], },
   right_inv := λ a, by { dsimp, split_ifs; refl } }
 
+def equiv.not_not (p : α → Prop) [decidable_pred p] :
+  {x // ¬ ¬ p x} ≃ {x // p x} :=
+{ to_fun := λ ⟨x, h⟩, ⟨x, not_not.mp h⟩,
+  inv_fun := λ ⟨x, h⟩, ⟨x, not_not.mpr h⟩,
+  left_inv := λ ⟨x, h⟩, rfl,
+  right_inv := λ ⟨x, h⟩, rfl }
+
 def equiv.foo (p : α → Prop) [decidable_pred p] (x₀ : {a // p a} → β) :
   {x : α → β // x ∘ coe = x₀} ≃ ({a // ¬ p a} → β) :=
 { to_fun := λ x, x.1 ∘ coe,
@@ -126,6 +133,18 @@ end
 
 end
 
+section
+
+instance subtype.unique {α : Type*} (a : α) : unique {x // x = a} :=
+{ default := ⟨a, rfl⟩,
+  uniq := λ ⟨x, h⟩, subtype.val_injective h }
+
+instance subtype.not_not_unique {α : Type*} (p : α → Prop) [decidable_pred p] [unique {x // p x}] :
+  unique {x // ¬ ¬ p x} :=
+(equiv.not_not p).unique_of_equiv ‹_›
+
+end
+
 lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:K) :=
@@ -137,9 +156,6 @@ begin
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
 
   haveI : decidable_eq K := classical.dec_eq K,
-  haveI : unique { j // ¬ j ≠ i } :=
-  { default := ⟨i, not_not.mpr rfl⟩,
-    uniq    := λ ⟨j, hj⟩, subtype.val_injective $ not_not.mp hj },
 
   refine calc _ = univ.sum (λ (x₀ : {j // j ≠ i} → K),
          univ.sum (λ (x : {x : σ → K // x ∘ coe = x₀}),
@@ -168,9 +184,7 @@ begin
     rintros ⟨j, hj⟩ _,
     dsimp [e'', equiv.sum_compl, equiv.foo, equiv.bar],
     rw dif_pos hj, },
-  { letI : unique {j // j = i} :=
-    { default := ⟨i, rfl⟩, uniq := λ ⟨j, hj⟩, subtype.val_injective hj },
-    simp only [comp_app, prod_singleton, univ_unique, singleton_eq_singleton],
+  { simp only [comp_app, prod_singleton, univ_unique, singleton_eq_singleton],
     dsimp [e'', equiv.sum_compl, equiv.foo, equiv.bar],
     rw dif_neg, { refl }, { rw not_not, refl } }
 end

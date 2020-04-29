@@ -423,6 +423,13 @@ let ⟨c, hc⟩ := classical.not_forall.1 hb in
 by haveI := classical.dec_eq α; exact
 if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
 
+lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) :
+  ∃ (a b : α), b ≠ a :=
+begin
+  rcases fintype.card_pos_iff.1 (nat.lt_of_succ_lt h) with a,
+  exact ⟨a, fintype.exists_ne_of_one_lt_card h a⟩,
+end
+
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,

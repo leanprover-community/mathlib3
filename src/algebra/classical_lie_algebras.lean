@@ -4,8 +4,6 @@ import linear_algebra.matrix
 universes u₁ u₂
 
 namespace lie_algebra
-
-namespace special_linear
 open_locale matrix
 
 variables (n : Type u₁) (R : Type u₂)
@@ -20,11 +18,12 @@ begin
   simp only [matrix.trace_mul_comm, linear_map.map_sub, sub_self],
 end
 
+namespace special_linear
+
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
 { lie_mem := λ X Y _ _, by
-  { suffices : matrix.trace n R R ⁅X, Y⁆ = 0,
-      by apply (list.mem_pure ((matrix.trace n R R) ⁅X,Y⁆) 0).2 this,
+  { suffices : matrix.trace n R R ⁅X, Y⁆ = 0, apply (list.mem_pure _ 0).2 this,
     apply matrix_trace_commutator_zero, },
   ..linear_map.ker (matrix.trace n R R) }
 
@@ -34,11 +33,12 @@ section elementary_basis
 
 variables {n} (i j : n)
 
-/-- It is useful to define these matrices, for various explicit calculations. For j ≠ i, they are
-part of a natural basis of sl n R. -/
+/-- It is useful to define these matrices for explicit calculations in sl n R. -/
 abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 
-@[simp] lemma E_one : E R i j i j = 1 := if_pos (and.intro rfl rfl)
+@[simp] lemma E_apply_one : E R i j i j = 1 := if_pos (and.intro rfl rfl)
+
+@[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
 
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
 begin
@@ -49,17 +49,20 @@ end
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
-/-- The E matrices as elements of sl n R. -/
-abbreviation E' (h : j ≠ i) : sl n R :=
+/-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
+basis of sl n R. -/
+def Eb (h : j ≠ i) : sl n R :=
 ⟨E R i j, by { change E R i j ∈ linear_map.ker (matrix.trace n R R), simp [E_trace_zero R i j h], }⟩
+
+@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 
 end elementary_basis
 
 lemma sl_non_abelian (h : 1 < fintype.card n) : ¬lie_algebra.is_abelian ↥(sl n R) :=
 begin
   rcases fintype.exists_pair_of_one_lt_card h with ⟨i, j, hij⟩,
-  let A := E' R i j hij,
-  let B := E' R j i hij.symm,
+  let A := Eb R i j hij,
+  let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.abelian], refl, },
   have : 1 = 0 := by simpa [matrix.mul_val, hij] using (congr_fun (congr_fun c' i) i),

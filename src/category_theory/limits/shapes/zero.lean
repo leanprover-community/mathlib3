@@ -29,8 +29,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. -/
@@ -45,15 +44,11 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
-section
-omit 𝒞
-
 instance has_zero_morphisms_pempty : has_zero_morphisms.{v} pempty.{v+1} :=
 { has_zero := by tidy }
 
 instance has_zero_morphisms_punit : has_zero_morphisms.{v} punit.{v+1} :=
 { has_zero := λ X Y, { zero := punit.star, } }
-end
 
 namespace has_zero_morphisms
 variables {C}
@@ -106,8 +101,7 @@ end
 
 section
 universes v' u'
-variables (D : Type u') [𝒟 : category.{v'} D]
-include 𝒟
+variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
 
@@ -130,14 +124,10 @@ class has_zero_object :=
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
 
-section
-omit 𝒞
-
 instance has_zero_object_punit : has_zero_object.{v} punit.{v+1} :=
 { zero := punit.star,
   unique_to := by tidy,
   unique_from := by tidy, }
-end
 
 variables {C}
 

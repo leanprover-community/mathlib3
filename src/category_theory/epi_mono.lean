@@ -15,12 +15,10 @@ universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 section
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
   {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
@@ -140,8 +138,7 @@ instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
 ⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_mono f).1 (has_hom.hom.op_inj eq))⟩
 
 section
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 /-- Split monomorphisms are also absolute monomorphisms. -/
 instance {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) : split_mono (F.map f) :=

@@ -656,10 +656,10 @@ match le_total x 1 with
 | (or.inr hx1) := this hx1
 end
 
-/-- The real logarithm function, equal to `0` for `x ≤ 0` and to the inverse of the exponential
-for `x > 0`, to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
+/-- The real logarithm function, equal to the inverse of the exponential for `x > 0`,
+to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
-the  derivative of `log` is `1/x` away from `0`. -/
+the derivative of `log` is `1/x` away from `0`. -/
 noncomputable def log (x : ℝ) : ℝ :=
 if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
 

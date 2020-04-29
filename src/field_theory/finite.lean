@@ -227,8 +227,8 @@ begin
     simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
      mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
   calc univ.sum (λ x : K, x^i) = (univ \ finset.singleton 0).sum (λ x, x ^ i) :
-    by { rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
-      zero_pow (nat.pos_of_ne_zero hi), add_zero] }
+    by rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
+           zero_pow (nat.pos_of_ne_zero hi), add_zero]
     ... = (univ.map φ).sum (λ x, x ^ i) : by rw this
     ... = univ.sum (λ x : units K, x^i) : univ.sum_map φ _
     ... = 0 : by { rw [sum_pow_units K i, if_neg], contrapose! h,

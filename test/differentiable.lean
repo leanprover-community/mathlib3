@@ -29,6 +29,9 @@ by simp [exp_ne_zero]
 example : differentiable ℝ (λ x, (sin x) / (exp x)) :=
 by simp [exp_ne_zero]
 
+example (x : ℝ) (h : x ≠ 0) : deriv (λ x, x * (log x - 1)) x = log x :=
+by simp [h]
+
 end real
 
 

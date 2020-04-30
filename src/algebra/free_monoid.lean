@@ -50,6 +50,9 @@ rfl
 def of (x : α) : free_monoid α := [x]
 
 @[to_additive]
+lemma of_def (x : α) : of x = [x] := rfl
+
+@[to_additive]
 lemma of_mul_eq_cons (x : α) (l : free_monoid α) : of x * l = x :: l := rfl
 
 @[to_additive]

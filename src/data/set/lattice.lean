@@ -570,7 +570,7 @@ begin
 end
 
 lemma Union_range_eq_sUnion {α β : Type*} (C : set (set α))
-  {f : ∀(s : C), β → s.val} (hf : ∀(s : C), surjective (f s)) :
+  {f : ∀(s : C), β → s} (hf : ∀(s : C), surjective (f s)) :
   (⋃(y : β), range (λ(s : C), (f s y).val)) = ⋃₀ C :=
 begin
   ext x, split,

@@ -207,7 +207,6 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 ⟨f.to_equiv.to_embedding, f.ord⟩
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
--- see Note [function coercion]
 instance : has_coe_to_fun (r ≃o s) := @coe_fn_trans _ (r ≼o s) _ _
 
 @[simp] lemma coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl

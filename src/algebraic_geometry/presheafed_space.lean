@@ -127,7 +127,6 @@ variables {C}
 instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
 { coe := λ α, α.f }
 
--- see Note [function coercion]
 instance {X Y : PresheafedSpace.{v} C} : has_coe_to_fun (X ⟶ Y) :=
 ⟨λ _, X.to_Top → Y.to_Top, λ h, h⟩
 

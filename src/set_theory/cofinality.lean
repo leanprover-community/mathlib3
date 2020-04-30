@@ -20,7 +20,7 @@ namespace order
 def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
 @cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
-  (λ S, mk S.1)
+  (λ S, mk S)
 
 lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
   order.cof r ≤ mk S :=

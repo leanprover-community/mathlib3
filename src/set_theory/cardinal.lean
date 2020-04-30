@@ -900,7 +900,7 @@ lemma mk_Union_le {α ι : Type u} (f : ι → set α) :
 le_trans mk_Union_le_sum_mk (sum_le_sup _)
 
 lemma mk_sUnion_le {α : Type u} (A : set (set α)) :
-  mk (⋃₀ A) ≤ mk A * cardinal.sup.{u u} (λ s : A, mk (s : set α)) :=
+  mk (⋃₀ A) ≤ mk A * cardinal.sup.{u u} (λ s : A, mk s) :=
 by { rw [sUnion_eq_Union], apply mk_Union_le }
 
 lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
@@ -1005,12 +1005,12 @@ end
   We index over {s : set β.out // mk s < β } instead of {γ // γ < β}, because the latter lives in a
   higher universe -/
 noncomputable def powerlt (α β : cardinal.{u}) : cardinal.{u} :=
-sup.{u u} (λ(s : {s : set β.out // mk s < β}), α ^ mk.{u} s.1)
+sup.{u u} (λ(s : {s : set β.out // mk s < β}), α ^ mk.{u} s)
 
 infix ` ^< `:80 := powerlt
 
 theorem powerlt_aux {c c' : cardinal} (h : c < c') :
-  ∃(s : {s : set c'.out // mk s < c'}), mk s.1 = c :=
+  ∃(s : {s : set c'.out // mk s < c'}), mk s = c :=
 begin
   cases out_embedding.mp (le_of_lt h) with f,
   have : mk ↥(range ⇑f) = c, { rwa [mk_range_eq, mk, quotient.out_eq c], exact f.2 },

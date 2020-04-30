@@ -21,6 +21,12 @@ maybe it is useful for writing automation.
 
 section miscellany
 
+instance {α : Sort*} [has_coe_to_fun α] (p : α → Prop) : has_coe_to_fun (subtype p) :=
+@coe_fn_trans _ α _ _
+
+instance {α : Sort*} [has_coe_to_sort α] (p : α → Prop) : has_coe_to_sort (subtype p) :=
+@coe_sort_trans _ α _ _
+
 /- We add the `inline` attribute to optimize VM computation using these declarations. For example,
   `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
@@ -52,34 +58,6 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
    part of a chain. -/
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
-
--- RWB: Does anything need to be done about this note?
-/--
-Many structures such as bundled morphisms coerce to functions so that you can
-transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
-then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun`type class. There is one
-important consideration:
-
-If a type coerces to another type which in turn coerces to a function,
-then it **must** implement `has_coe_to_fun` directly:
-```lean
-structure sparkling_equiv (α β) extends α ≃ β
-
--- if we add a `has_coe` instance,
-instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
-⟨sparkling_equiv.to_equiv⟩
-
--- then a `has_coe_to_fun` instance **must** be added as well:
-instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
-```
-
-(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
-simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
-often causes loops in the simplifier.)
--/
-library_note "function coercion"
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]

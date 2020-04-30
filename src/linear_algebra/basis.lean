@@ -932,7 +932,7 @@ calc card M = card (ι → R)    : card_congr (equiv_fun_basis h).to_equiv
         ... = card R ^ card ι : card_fun
 
 /-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
-a function `x : ι → R` to the linear combination `∑'_i x i • v i`. -/
+a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
 @[simp] lemma equiv_fun_basis_symm_apply (x : ι → R) :
   (equiv_fun_basis h).symm x = finset.sum finset.univ (λi, x i • v i) :=
 begin

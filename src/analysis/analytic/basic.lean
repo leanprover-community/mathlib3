@@ -31,7 +31,7 @@ for `n : ℕ`.
   a liminf.
 * `p.le_radius_of_bound`, `p.bound_of_lt_radius`, `p.geometric_bound_of_lt_radius`: relating the
   value of the radius with the growth of `∥p n∥ * r^n`.
-* `p.partial_sum n x`: the sum `∑'_{i = 0}^{n-1} pᵢ xⁱ`.
+* `p.partial_sum n x`: the sum `∑_{i = 0}^{n-1} pᵢ xⁱ`.
 * `p.sum x`: the sum `∑'_{i = 0}^{∞} pᵢ xⁱ`.
 
 Additionally, let `f` be a function from `E` to `F`.

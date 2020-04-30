@@ -521,7 +521,7 @@ end functions
 section center_mass
 
 /-- Center mass of a finite collection of points with prescribed weights.
-Note that we require neither `0 ≤ w i` nor `∑' w = 1`. -/
+Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
 noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι → E) : E :=
 (t.sum w)⁻¹ • (t.sum (λ i, w i • z i))
 

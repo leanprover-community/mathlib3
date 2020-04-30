@@ -125,7 +125,7 @@ have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (𝓝 (g a)),
   by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
 
-/-- If `f : ℕ → α` has sum `a`, then the partial sums `∑'_{i=0}^{n-1} f i` converge to `a`. -/
+/-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (𝓝 a) :=
 @tendsto.comp _ _ _ finset.range (λ s : finset ℕ, s.sum f) _ _ _ h tendsto_finset_range

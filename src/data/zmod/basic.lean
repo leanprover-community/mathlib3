@@ -210,7 +210,7 @@ def cast : Π {n : ℕ}, zmod n → R
 | 0     := int.cast
 | (n+1) := λ i, i.val
 
-instance (n : ℕ) : has_coe (zmod n) R := ⟨cast⟩
+instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by { cases n; refl }

@@ -39,6 +39,13 @@ theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext]
 
+@[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
+  univ ∩ s = s := ext' $ λ a, by simp
+
+@[simp] lemma inter_univ [decidable_eq α] (s : finset α) :
+  s ∩ univ = s :=
+by rw [inter_comm, univ_inter]
+
 @[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (univ : finset α))]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
@@ -574,6 +581,10 @@ finset.card_powerset finset.univ
 
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 set_fintype _
+
+@[simp] lemma set.to_finset_univ [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
+by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=

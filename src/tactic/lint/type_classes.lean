@@ -288,6 +288,8 @@ iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_an
 or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
 forall_or_distrib_right not_ball
 
+-- RWB: What to do about this linter? I don't understand what it does yet.
+/-
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
 reset_instance_cache,
@@ -316,3 +318,4 @@ pure $ format.to_string $
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
 See Note function coercions]." }
+-/

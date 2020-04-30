@@ -785,7 +785,7 @@ begin
   { assume k hk x hx,
     convert (Hdiff k (lt_of_lt_of_le hk hm) x hx).has_fderiv_within_at,
     simp only [ftaylor_series_within, iterated_fderiv_within_succ_eq_comp_left,
-                continuous_linear_equiv.coe_apply, function.comp_app, coe_fn_coe_base],
+                continuous_linear_equiv.coe_apply, function.comp_app],
     exact continuous_linear_map.curry_uncurry_left _ },
   { assume k hk,
     exact Hcont k (le_trans hk hm) }

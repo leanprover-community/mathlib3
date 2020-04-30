@@ -53,18 +53,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
   (a : α) : (a : γ) = (a : β) := rfl
 
-theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-@[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
-
+-- RWB: Does anything need to be done about this note?
 /--
 Many structures such as bundled morphisms coerce to functions so that you can
 transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
@@ -91,10 +80,6 @@ simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. Thi
 often causes loops in the simplifier.)
 -/
 library_note "function coercion"
-
-@[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]

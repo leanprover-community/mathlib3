@@ -362,6 +362,7 @@ section
 variables [module R M]
 
 instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
+instance : has_coe_to_sort (submodule R M) := @coe_sort_trans _ (set M) _ _
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
 end
 

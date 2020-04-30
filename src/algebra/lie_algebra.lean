@@ -365,6 +365,8 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
+instance : has_coe_to_sort (lie_subalgebra R L) := @coe_sort_trans _ (submodule R L) _ _
+
 /-- A Lie subalgebra forms a new Lie ring.
 This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
 def lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
@@ -438,6 +440,9 @@ instance [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
 
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
+
+instance [lie_module R L M] : has_coe_to_sort (lie_submodule R L M) :=
+@coe_sort_trans _ (submodule R M) _ _
 
 instance lie_submodule_has_mem [lie_module R L M] :
   has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩

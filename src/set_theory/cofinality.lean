@@ -20,7 +20,7 @@ namespace order
 def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
 @cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
-  (λ S, mk S)
+  (λ S, mk S.1)
 
 lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
   order.cof r ≤ mk S :=
@@ -42,7 +42,7 @@ begin
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
     let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.ord', h,
-      -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
+      principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
       by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }

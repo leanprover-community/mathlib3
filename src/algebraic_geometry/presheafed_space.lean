@@ -42,6 +42,9 @@ namespace PresheafedSpace
 instance coe_to_Top : has_coe (PresheafedSpace.{v} C) Top :=
 { coe := λ X, X.to_Top }
 
+instance coe_to_Sort : has_coe_to_sort (PresheafedSpace.{v} C) :=
+@coe_sort_trans _ Top.{v} _ _
+
 @[simp] lemma as_coe (X : PresheafedSpace.{v} C) : X.to_Top = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (to_Top) (𝒪) : (({ to_Top := to_Top, 𝒪 := 𝒪 } :
   PresheafedSpace.{v} C) : Top.{v}) = to_Top := rfl

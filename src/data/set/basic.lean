@@ -80,6 +80,12 @@ namespace set
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+-- RWB: Several issues of the form:
+--   s : set α
+--   [has_coe_to_fn α]
+--   x : s
+-- and now we want to apply x as a function; or likewise for has_coe_to_sort.
+-- Can we add instances to handle these uniformly?
 
 end set
 

@@ -43,6 +43,7 @@ end nonempty_compacts
 variable {α}
 namespace opens
 instance : has_coe (opens α) (set α) := { coe := subtype.val }
+instance : has_coe_to_sort (opens α) := @coe_sort_trans _ (set α) _ _
 
 instance : has_subset (opens α) :=
 { subset := λ U V, U.val ⊆ V.val }

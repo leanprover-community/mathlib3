@@ -403,6 +403,8 @@ include R
 instance : has_coe (subalgebra R A) (set A) :=
 ⟨λ S, S.carrier⟩
 
+instance : has_coe_to_sort (subalgebra R A) := @coe_sort_trans _ (set A) _ _
+
 lemma range_le (S : subalgebra R A) : set.range (algebra_map R A) ≤ S := S.range_le'
 
 instance : has_mem A (subalgebra R A) :=

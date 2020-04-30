@@ -167,7 +167,7 @@ instance : complete_lattice (outer_measure α) :=
   .. outer_measure.order_bot }
 
 @[simp] theorem Sup_apply (ms : set (outer_measure α)) (s : set α) :
-  (Sup ms) s = ⨆ m : ms, m s := rfl
+  (Sup ms) s = ⨆ m : ms, (m : outer_measure α) s := rfl
 
 @[simp] theorem supr_apply {ι} (f : ι → outer_measure α) (s : set α) :
   (⨆ i : ι, f i) s = ⨆ i, f i s :=

@@ -130,7 +130,7 @@ local infix ` ≺i `:25 := principal_seg
 namespace principal_seg
 
 instance : has_coe (r ≺i s) (r ≼o s) := ⟨principal_seg.to_order_embedding⟩
-instance : has_coe_to_fun (r ≺i s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≺i s) := @coe_fn_trans _ (r ≼o s) _ _
 
 @[simp] theorem coe_fn_mk (f : r ≼o s) (t o) :
   (@principal_seg.mk _ _ r s f t o : α → β) = f := rfl

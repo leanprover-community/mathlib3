@@ -1,10 +1,8 @@
+Please include a summary of the changes made in the PR description, as that text will become the commit message. You are also encouraged to append the following [co-authorship template](https://help.github.com/en/github/committing-changes-to-your-project/creating-a-commit-with-multiple-authors) if you'd like to acknowledge suggestions / commits made by other users:
 
-
-TO CONTRIBUTORS:
-
-Please include a summary of the changes made in this PR above "TO CONTRIBUTORS:", as that text will become the commit message. You are also encouraged to append the following [co-authorship template](https://help.github.com/en/github/committing-changes-to-your-project/creating-a-commit-with-multiple-authors) if you'd like to acknowledge suggestions / commits made by other users:
-
+```
 Co-authored-by: name <name@example.com>
+```
 
 Make sure you have:
 

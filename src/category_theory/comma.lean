@@ -51,10 +51,9 @@ comma, slice, coslice, over, under, arrow
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-variables {B : Type u₂} [ℬ : category.{v₂} B]
-variables {T : Type u₃} [𝒯 : category.{v₃} T]
-include 𝒜 ℬ 𝒯
+variables {A : Type u₁} [category.{v₁} A]
+variables {B : Type u₂} [category.{v₂} B]
+variables {T : Type u₃} [category.{v₃} T]
 
 /-- The objects of the comma category are triples of an object `left : A`, an object
    `right : B` and a morphism `hom : L.obj left ⟶ R.obj right`.  -/
@@ -63,17 +62,12 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 (right : B . obviously)
 (hom : L.obj left ⟶ R.obj right)
 
-section
-omit 𝒜 ℬ
-
 -- Satisfying the inhabited linter
 instance comma.inhabited [inhabited T] : inhabited (comma (𝟭 T) (𝟭 T)) :=
 { default :=
   { left := default T,
     right := default T,
     hom := 𝟙 (default T) } }
-
-end
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
@@ -265,8 +259,6 @@ end
 
 end comma
 
-omit 𝒜 ℬ
-
 /-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
@@ -378,8 +370,7 @@ rfl
 end iterated_slice
 
 section
-variables {D : Type u₃} [𝒟 : category.{v₃} D]
-include 𝒟
+variables {D : Type u₃} [category.{v₃} D]
 
 /-- A functor `F : T ⥤ D` induces a functor `over X ⥤ over (F.obj X)` in the obvious way. -/
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
@@ -455,8 +446,7 @@ variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 end
 
 section
-variables {D : Type u₃} [𝒟 : category.{v₃} D]
-include 𝒟
+variables {D : Type u₃} [category.{v₃} D]
 
 /-- A functor `F : T ⥤ D` induces a functor `under X ⥤ under (F.obj X)` in the obvious way. -/
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=

@@ -18,7 +18,7 @@ special values of the Riemann zeta function.
 
 In this file, we provide the definition,
 and the basic fact (`sum_bernoulli`) that
-$$ ∑_{k < n} \binom{n}{k} * B_k = n, $$
+$$ \sum_{k < n} \binom{n}{k} * B_k = n, $$
 where $B_k$ denotes the the $k$-th Bernoulli number.
 
 -/

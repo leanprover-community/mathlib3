@@ -24,8 +24,7 @@ open category
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 namespace monad
 

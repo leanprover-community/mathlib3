@@ -13,8 +13,7 @@ namespace category_theory
 
 universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /-- A unbundled functor. -/
 -- Perhaps in the future we could redefine `functor` in terms of this, but that isn't the
@@ -52,16 +51,11 @@ instance (F : C ⥤ D) : functorial.{v₁ v₂} (F.obj) := { .. F }
 @[simp]
 lemma map_functorial_obj (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) : map F.obj f = F.map f := rfl
 
-section
-omit 𝒟
-
 instance functorial_id : functorial.{v₁ v₁} (id : C → C) :=
 { map := λ X Y f, f }
-end
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E]
-include ℰ
+variables {E : Type u₃} [category.{v₃} E]
 
 /--
 `G ∘ F` is a functorial if both `F` and `G` are.

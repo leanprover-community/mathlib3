@@ -16,8 +16,7 @@ variables {C : Type u₁}
 
 section has_hom
 
-variables [𝒞 : has_hom.{v₁} C]
-include 𝒞
+variables [has_hom.{v₁} C]
 
 /-- The hom types of the opposite of a category (or graph).
 
@@ -46,8 +45,7 @@ lemma has_hom.hom.unop_inj {X Y : Cᵒᵖ} :
 
 end has_hom
 
-variables [𝒞 : category.{v₁} C]
-include 𝒞
+variables [category.{v₁} C]
 
 instance category.opposite : category.{v₁} Cᵒᵖ :=
 { comp := λ _ _ _ f g, (g.unop ≫ f.unop).op,
@@ -93,8 +91,7 @@ namespace functor
 
 section
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 variables {C D}
 
@@ -179,8 +176,7 @@ end functor
 
 namespace nat_trans
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 section
 variables {F G : C ⥤ D}
@@ -238,8 +234,7 @@ end iso
 
 namespace nat_iso
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 variables {F G : C ⥤ D}
 
 /-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural

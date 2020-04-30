@@ -46,8 +46,7 @@ open category_theory.limits.walking_parallel_pair
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {X Y : C} (f : X ⟶ Y)
 
@@ -269,8 +268,7 @@ end has_zero_object
 
 end category_theory.limits
 namespace category_theory.limits
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables [has_zero_morphisms.{v} C]
 

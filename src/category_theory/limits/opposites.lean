@@ -14,8 +14,7 @@ open opposite
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
 

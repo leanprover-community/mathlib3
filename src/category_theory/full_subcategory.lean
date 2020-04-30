@@ -38,8 +38,7 @@ form of D. This is used to set up several algebraic categories like
   -- even though `Mon = bundled monoid`!
 -/
 
-variables {C : Type u₁} (D : Type u₂) [𝒟 : category.{v} D]
-include 𝒟
+variables {C : Type u₁} (D : Type u₂) [category.{v} D]
 variables (F : C → D)
 include F
 
@@ -71,8 +70,7 @@ end induced
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Type u₂} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u₂} [category.{v} C]
 variables (Z : C → Prop)
 
 instance full_subcategory : category.{v} {X : C // Z X} :=

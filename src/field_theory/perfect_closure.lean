@@ -331,7 +331,7 @@ end ring
 theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
-(eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, nat.iterate_inj (frobenius_inj K p) z _ _ $
+(eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $
   by simpa only [add_comm, nat.iterate_add] using H,
 λ H, ⟨0, H⟩⟩
 

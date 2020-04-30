@@ -19,7 +19,7 @@ structure outer_measure (α : Type*) :=
 (measure_of : set α → ennreal)
 (empty : measure_of ∅ = 0)
 (mono : ∀{s₁ s₂}, s₁ ⊆ s₂ → measure_of s₁ ≤ measure_of s₂)
-(Union_nat : ∀(s:ℕ → set α), measure_of (⋃i, s i) ≤ (∑i, measure_of (s i)))
+(Union_nat : ∀(s:ℕ → set α), measure_of (⋃i, s i) ≤ (∑'i, measure_of (s i)))
 
 namespace outer_measure
 
@@ -35,7 +35,7 @@ theorem mono' (m : outer_measure α) {s₁ s₂}
 
 theorem Union_aux (m : set α → ennreal) (m0 : m ∅ = 0)
   {β} [encodable β] (s : β → set α) :
-  (∑ b, m (s b)) = ∑ i, m (⋃ b ∈ decode2 β i, s b) :=
+  (∑' b, m (s b)) = ∑' i, m (⋃ b ∈ decode2 β i, s b) :=
 begin
   have H : ∀ n, m (⋃ b ∈ decode2 β n, s b) ≠ 0 → (decode2 β n).is_some,
   { intros n h,
@@ -58,7 +58,7 @@ end
 
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
-  m (⋃i, s i) ≤ (∑i, m (s i)) :=
+  m (⋃i, s i) ≤ (∑'i, m (s i)) :=
 by rw [Union_decode2, Union_aux _ m.empty' s]; exact m.Union_nat _
 
 lemma Union_null (m : outer_measure α)
@@ -98,7 +98,7 @@ instance : has_add (outer_measure α) :=
     mono       := assume s₁ s₂ h, add_le_add' (m₁.mono h) (m₂.mono h),
     Union_nat  := assume s,
       calc m₁ (⋃i, s i) + m₂ (⋃i, s i) ≤
-          (∑i, m₁ (s i)) + (∑i, m₂ (s i)) :
+          (∑'i, m₁ (s i)) + (∑'i, m₂ (s i)) :
           add_le_add' (m₁.Union_nat s) (m₂.Union_nat s)
         ... = _ : ennreal.tsum_add.symm}⟩
 
@@ -131,8 +131,8 @@ instance : has_Sup (outer_measure α) :=
   empty      := le_zero_iff_eq.1 $ supr_le $ λ ⟨m, h⟩, le_of_eq m.empty,
   mono       := assume s₁ s₂ hs, supr_le_supr $ assume ⟨m, hm⟩, m.mono hs,
   Union_nat  := assume f, supr_le $ assume m,
-    calc m.val (⋃i, f i) ≤ (∑ (i : ℕ), m.val (f i)) : m.val.Union_nat _
-      ... ≤ (∑i, ⨆m:ms, m.val (f i)) :
+    calc m.val (⋃i, f i) ≤ (∑' (i : ℕ), m.val (f i)) : m.val.Union_nat _
+      ... ≤ (∑'i, ⨆m:ms, m.val (f i)) :
         ennreal.tsum_le_tsum $ assume i, le_supr (λm:ms, m.val (f i)) m }⟩
 
 protected lemma le_Sup (hm : m ∈ ms) : m ≤ Sup ms :=
@@ -220,14 +220,14 @@ def dirac (a : α) : outer_measure α :=
   dirac a s = ⨆ h : a ∈ s, 1 := rfl
 
 def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
-{ measure_of := λs, ∑ i, f i s,
+{ measure_of := λs, ∑' i, f i s,
   empty := by simp,
   mono := λ s t h, ennreal.tsum_le_tsum (λ i, (f i).mono' h),
   Union_nat := λ s, by rw ennreal.tsum_comm; exact
     ennreal.tsum_le_tsum (λ i, (f i).Union_nat _) }
 
 @[simp] theorem sum_apply {ι} (f : ι → outer_measure α) (s : set α) :
-  sum f s = ∑ i, f i s := rfl
+  sum f s = ∑' i, f i s := rfl
 
 instance : has_scalar ennreal (outer_measure α) :=
 ⟨λ a m, {
@@ -267,7 +267,7 @@ set_option eqn_compiler.zeta true
   a unique maximal outer measure `μ` satisfying `μ s ≤ m s` for all `s : set α`. -/
 protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
   outer_measure α :=
-let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
+let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
 { measure_of := μ,
   empty      := le_antisymm
     (infi_le_of_le (λ_, ∅) $ infi_le_of_le (empty_subset _) $ by simp [m_empty])
@@ -275,12 +275,12 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑i, m (f i) in
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $ begin
-    assume ε hε (hb : (∑i, μ (s i)) < ⊤),
+    assume ε hε (hb : (∑'i, μ (s i)) < ⊤),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left' (le_of_lt hl)),
     rw ← ennreal.tsum_add,
     choose f hf using show
-      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑i, m (f i)) < μ (s i) + ε' i,
+      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑'i, m (f i)) < μ (s i) + ε' i,
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
@@ -300,7 +300,7 @@ theorem of_function_le {α : Type*} (m : set α → ennreal) (m_empty s) :
   outer_measure.of_function m m_empty s ≤ m s :=
 let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
 infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
-calc (∑i, m (f i)) = ({0} : finset ℕ).sum (λi, m (f i)) :
+calc (∑'i, m (f i)) = ({0} : finset ℕ).sum (λi, m (f i)) :
     tsum_eq_sum $ by intro i; cases i; simp [m_empty]
   ... = m s : by simp; refl
 
@@ -383,7 +383,7 @@ C_iff_le.2 $ λ t, begin
 end
 
 private lemma f_Union {s : ℕ → set α} (h : ∀i, C (s i))
-  (hd : pairwise (disjoint on s)) : m (⋃i, s i) = ∑i, m (s i) :=
+  (hd : pairwise (disjoint on s)) : m (⋃i, s i) = ∑'i, m (s i) :=
 begin
   refine le_antisymm (m.Union_nat s) _,
   rw ennreal.tsum_eq_supr_nat,
@@ -414,7 +414,7 @@ C_iff_le
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
   (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :
-  m (⋃i, s i) = ∑i, m (s i) :=
+  m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
 end caratheodory_measurable

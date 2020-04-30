@@ -271,10 +271,15 @@ def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := mul_zero r,
   map_add' := mul_add r }
 
+@[simp] lemma coe_mul_left {R : Type*} [semiring R] (r : R) : ⇑(mul_left r) = (*) r := rfl
+
 /-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
 def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
 { to_fun := λ a, a * r,
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
+
+@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+  (mul_right r : R → R) a = a * r := rfl
 
 end add_monoid_hom

@@ -113,12 +113,11 @@ variables {α : Type*} {β : Type*} {γ : Type*} [fintype α] [comm_monoid γ]
 @[to_additive]
 abbreviation fintype.prod (f : α → γ) := finset.univ.prod f
 
-localized "notation `∑` binders `, ` r:(scoped f, fintype.sum f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped f, fintype.prod f) := r" in big_operators
-
-
 localized "notation `∑` binders ` in ` s `, ` r:(scoped f, finset.sum s f) := r" in big_operators
 localized "notation `∏` binders ` in ` s `, ` r:(scoped f, finset.prod s f) := r" in big_operators
+
+localized "notation `∑` binders `, ` r:(scoped f, finset.univ.sum f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped f, finset.univ.prod f) := r" in big_operators
 
 @[to_additive]
 lemma fintype.prod_eq_one (f : α → γ) (h : ∀ a, f a = 1) :
@@ -158,7 +157,6 @@ lemma fintype.prod_sigma [fintype β] [decidable_eq β]
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = fintype.prod g :=
 begin
   rw ← fintype.prod_equiv (equiv.sigma_preimage_equiv f) _,
-  delta fintype.prod,
   rw [← finset.univ_sigma_univ, finset.prod_sigma],
   refl
 end
@@ -256,7 +254,7 @@ begin
                   ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j      : (fintype.sum_equiv e _).symm
             ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i         : fintype.sum_congr _ _ _
             ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i         : by rw mul_sum
-            ... = 0 : by { delta fintype.sum, rw [sum_pow_lt_card_sub_one _ hi, mul_zero] },
+            ... = 0 : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
 
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,

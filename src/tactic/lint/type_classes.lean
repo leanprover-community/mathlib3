@@ -228,13 +228,20 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
 
-/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable.
-See note [use has_coe_t]. -/
+/--
+Tests whether there is no instance of type `has_coe α t` where `α` is a variable,
+or `has_coe t α` where `α` does not occur in `t`.
+See note [use has_coe_t].
+-/
 private meta def has_coe_variable (d : declaration) : tactic (option string) := do
-  tt ← is_instance d.to_name | return none,
-  `(has_coe %%a _) ← return d.type.pi_codomain | return none,
-  tt ← return a.is_var | return none,
-  return $ some $ "illegal instance"
+tt ← is_instance d.to_name | return none,
+`(has_coe %%a %%b) ← return d.type.pi_codomain | return none,
+if a.is_var then
+  return $ some $ "illegal instance, first argument is variable"
+else if b.is_var ∧ ¬ b.occurs a then
+  return $ some $ "illegal instance, second argument is variable not occurring in first argument"
+else
+  return none
 
 /-- A linter object for `has_coe_variable`. -/
 @[linter] meta def linter.has_coe_variable : linter :=

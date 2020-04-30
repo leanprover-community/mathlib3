@@ -279,6 +279,8 @@ Lowers an `a : α` into `ulower α`.
 -/
 def down (a : α) : ulower α := equiv α a
 
+instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+
 /--
 Lifts an `a : ulower α` into `α`.
 -/

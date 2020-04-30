@@ -168,7 +168,7 @@ lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
 lemma commutative_ring_iff_abelian_lie_ring (A : Type v) [ring A] :
   is_commutative A (*) ↔ lie_algebra.is_abelian A :=
 begin
-  have h₁ : is_commutative A ring.mul ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
   have h₂ : lie_algebra.is_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
   simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
 end

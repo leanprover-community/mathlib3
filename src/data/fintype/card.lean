@@ -34,11 +34,7 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι]
 @[to_additive]
 lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
   univ.prod (λ i, if i ∈ s then f i else 1) = s.prod f :=
-begin
-  rw [← prod_sdiff (subset_univ s), prod_eq_one, one_mul, prod_congr rfl],
-  { intros i hi, exact dif_pos hi },
-  { intros i hi, rw mem_sdiff at hi, exact dif_neg hi.2 }
-end
+by rw [← prod_filter, filter_mem_eq_inter, univ_inter]
 
 end
 

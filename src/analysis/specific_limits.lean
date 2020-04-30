@@ -210,7 +210,7 @@ have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
 lemma summable_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, has_sum_geometric h₁ h₂⟩
 
-lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_eq_has_sum (has_sum_geometric h₁ h₂)
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
@@ -219,7 +219,7 @@ by convert has_sum_geometric _ _; norm_num
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
 
-lemma tsum_geometric_two : (∑n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
+lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
 tsum_eq_has_sum has_sum_geometric_two
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
@@ -233,7 +233,7 @@ end
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
 ⟨a, has_sum_geometric_two' a⟩
 
-lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
+lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
 tsum_eq_has_sum $ has_sum_geometric_two' a
 
 lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
@@ -248,12 +248,12 @@ end
 lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, nnreal.has_sum_geometric hr⟩
 
-lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_eq_has_sum (nnreal.has_sum_geometric hr)
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ennreal) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma ennreal.tsum_geometric (r : ennreal) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -478,7 +478,7 @@ end nnreal
 namespace ennreal
 
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑ i, (ε' i : ennreal)) < ε :=
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
   rcases dense hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

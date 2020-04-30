@@ -121,6 +121,7 @@ else
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[linter] meta def linter.simp_nf : linter :=
 { test := simp_nf_linter,
+  auto_decls := tt,
   no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
   errors_found := "SOME SIMP LEMMAS ARE REDUNDANT.
 That is, their left-hand side is not in simp-normal form.
@@ -173,6 +174,7 @@ and which hence never fire.
 -/
 @[linter] meta def linter.simp_var_head : linter :=
 { test := simp_var_head,
+  auto_decls := tt,
   no_errors_found :=
     "No left-hand sides of a simp lemma has a variable as head symbol",
   errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
@@ -195,6 +197,7 @@ pure $ "should not be marked simp"
 /-- A linter for commutativity lemmas that are marked simp. -/
 @[linter] meta def linter.simp_comm : linter :=
 { test := simp_comm,
+  auto_decls := tt,
   no_errors_found := "No commutativity lemma is marked simp",
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
     "Some commutativity lemmas are simp lemmas" }

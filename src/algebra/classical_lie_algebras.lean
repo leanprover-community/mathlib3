@@ -1,5 +1,26 @@
+/-
+Copyright (c) 2020 Oliver Nash. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Oliver Nash
+-/
 import algebra.lie_algebra
 import linear_algebra.matrix
+
+/-!
+# Classical Lie algebras
+
+This file is the place to find definitions and basic properties of the classical Lie algebras:
+  * Aₙ sl(n+1)
+  * Bₙ so(2n+1)
+  * Cₙ sp(2n)
+  * Dₙ so(2n)
+
+As of April 2020, the definition of Aₙ is in place while the others still need to be provided.
+
+## Tags
+
+classical lie algebra, special linear
+-/
 
 universes u₁ u₂
 

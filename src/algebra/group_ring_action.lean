@@ -10,85 +10,86 @@ import group_theory.group_action data.equiv.ring
 
 universes u v
 
-variables (α : Type u) (β : Type v)
+variables (M G : Type u) [monoid M] [group G]
+variables (A R F : Type v) [add_monoid A] [semiring R] [field F]
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
 
-/-- Typeclass for multiplicative actions by monoids on monoids. -/
-class mul_mul_action [monoid α] [monoid β] extends mul_action α β :=
-(smul_one : ∀ (g : α), (g • 1 : β) = 1)
-(smul_mul : ∀ (g : α) (x y : β), g • (x * y) = (g • x) * (g • y))
-
-/-- Typeclass for multiplicative actions by monoids on additive monoids. -/
-class mul_add_action [monoid α] [add_monoid β] extends mul_action α β :=
-(smul_zero : ∀ (g : α), (g • 0 : β) = 0)
-(smul_add : ∀ (g : α) (x y : β), g • (x + y) = (g • x) + (g • y))
-
-attribute [to_additive mul_add_action] mul_mul_action
-
-set_option old_structure_cmd true
 /-- Typeclass for multiplicative actions by monoids on semirings. -/
-class mul_semiring_action [monoid α] [semiring β] extends mul_mul_action α β, mul_add_action α β.
+class mul_semiring_action extends distrib_mul_action M R :=
+(smul_one : ∀ (g : M), (g • 1 : R) = 1)
+(smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
+
 end prio
 
-export mul_mul_action (smul_one smul_mul)
-export mul_add_action (smul_zero smul_add)
+export mul_semiring_action (smul_one)
 
-/-- Each element of the monoid defines a monoid homomorphism. -/
-def mul_mul_action.to_mul_hom [monoid α] [monoid β] [mul_mul_action α β] (x : α) : β →* β :=
-{ to_fun   := (•) x,
-  map_one' := smul_one x,
-  map_mul' := smul_mul x }
+variables {M R}
+lemma smul_mul' [mul_semiring_action M R] (g : M) (x y : R) :
+  g • (x * y) = (g • x) * (g • y) :=
+mul_semiring_action.smul_mul g x y
+variables (M R)
 
 /-- Each element of the monoid defines a additive monoid homomorphism. -/
-def mul_add_action.to_add_hom [monoid α] [add_monoid β] [mul_add_action α β] (x : α) : β →+ β :=
+def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
 { to_fun   := (•) x,
   map_zero' := smul_zero x,
   map_add' := smul_add x }
 
-attribute [to_additive mul_add_action.to_add_hom] mul_mul_action.to_mul_hom
-
-/-- Each element of the group defines a monoid isomorphism. -/
-def mul_mul_action.to_mul_equiv [group α] [monoid β] [mul_mul_action α β] (x : α) : β ≃* β :=
-{ .. mul_mul_action.to_mul_hom α β x,
-  .. mul_action.to_perm α β x }
-
 /-- Each element of the group defines an additive monoid isomorphism. -/
-def mul_add_action.to_add_equiv [group α] [add_monoid β] [mul_add_action α β] (x : α) : β ≃+ β :=
-{ .. mul_add_action.to_add_hom α β x,
-  .. mul_action.to_perm α β x }
+def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
+{ .. distrib_mul_action.to_add_monoid_hom G A x,
+  .. mul_action.to_perm G A x }
 
-attribute [to_additive mul_add_action.to_add_equiv] mul_mul_action.to_mul_equiv
+/-- The monoid of endomorphisms. -/
+def monoid.End := M →* M
+
+instance monoid.End.monoid : monoid (monoid.End M) :=
+{ mul := monoid_hom.comp,
+  one := monoid_hom.id M,
+  mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
+  mul_one := monoid_hom.comp_id,
+  one_mul := monoid_hom.id_comp }
+
+/-- The monoid of endomorphisms. -/
+def add_monoid.End := A →+ A
+
+instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
+{ mul := add_monoid_hom.comp,
+  one := add_monoid_hom.id A,
+  mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
+  mul_one := add_monoid_hom.comp_id,
+  one_mul := add_monoid_hom.id_comp }
+
+/-- Each element of the group defines an additive monoid homomorphism. -/
+def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=
+{ to_fun := distrib_mul_action.to_add_monoid_hom M A,
+  map_one' := add_monoid_hom.ext $ λ x, one_smul M x,
+  map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
 
 /-- Each element of the monoid defines a semiring homomorphism. -/
-def mul_semiring_action.to_semiring_hom [monoid α] [semiring β] [mul_semiring_action α β] (x : α) :
-  β →+* β :=
-{ .. mul_mul_action.to_mul_hom α β x,
-  .. mul_add_action.to_add_hom α β x }
+def mul_semiring_action.to_semiring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
+{ map_one' := smul_one x,
+  map_mul' := smul_mul' x,
+  .. distrib_mul_action.to_add_monoid_hom M R x }
 
 /-- Each element of the group defines a semiring isomorphism. -/
-def mul_semiring_action.to_semiring_equiv [group α] [semiring β] [mul_semiring_action α β] (x : α) :
-  β ≃+* β :=
-{ .. mul_mul_action.to_mul_equiv α β x,
-  .. mul_add_action.to_add_equiv α β x }
+def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
+{ .. distrib_mul_action.to_add_equiv G R x,
+  .. mul_semiring_action.to_semiring_hom G R x }
 
 section simp_lemmas
 
-variables {α β}
+variables {M G A R}
 
-attribute [simp] smul_one smul_mul smul_zero smul_add
+attribute [simp] smul_one smul_mul' smul_zero smul_add
 
-@[simp] lemma smul_inv [monoid α] [group β] [mul_mul_action α β] (x : α) (m : β) :
-  x • m⁻¹ = (x • m)⁻¹ :=
-(mul_mul_action.to_mul_hom α β x).map_inv m
+@[simp] lemma smul_inv [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
+(mul_semiring_action.to_semiring_hom M F x).map_inv
 
-@[simp] lemma smul_neg [monoid α] [add_group β] [mul_add_action α β] (x : α) (m : β) :
-  x • (-m) = -(x • m) :=
-(mul_add_action.to_add_hom α β x).map_neg m
-
-@[simp] lemma smul_inv' [monoid α] [field β] [mul_semiring_action α β] (x : α) (m : β) :
-  x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_semiring_hom α β x).map_inv
+@[simp] lemma smul_pow [mul_semiring_action M R] (x : M) (m : R) (n : ℕ) :
+  x • m ^ n = (x • m) ^ n :=
+nat.rec_on n (smul_one x) $ λ n ih, (smul_mul' x m (m ^ n)).trans $ congr_arg _ ih
 
 end simp_lemmas

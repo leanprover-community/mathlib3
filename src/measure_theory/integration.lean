@@ -1238,7 +1238,7 @@ end
 end
 
 lemma lintegral_tsum [encodable β] {f : β → α → ennreal} (hf : ∀i, measurable (f i)) :
-  (∫⁻ a, ∑ i, f i a) = (∑ i, ∫⁻ a, f i a) :=
+  (∫⁻ a, ∑' i, f i a) = (∑' i, ∫⁻ a, f i a) :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
@@ -1302,7 +1302,7 @@ if hf : measurable f then
     (by simp)
     begin
       assume s hs hd,
-      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑i, (⨆ (h : a ∈ s i), f a)),
+      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑'i, (⨆ (h : a ∈ s i), f a)),
       { assume a,
         by_cases ha : ∃j, a ∈ s j,
         { rcases ha with ⟨j, haj⟩,

@@ -782,3 +782,16 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end continuous_linear_equiv
+
+namespace subspace
+
+variables
+{R : Type*} [ring R]
+{M : Type*} [topological_space M] [add_comm_group M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
+[module R M] [module R M₂]
+
+/-- A submodule `p` is called *complemented* if it has a closed complement-/
+def complemented (p : submodule R M) : Prop :=
+∃ q : submodule R M, is_closed (q : set M) ∧ is_compl p q
+end subspace

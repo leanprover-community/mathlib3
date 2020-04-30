@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 import algebra.quadratic_discriminant
-import analysis.complex.exponential
+import analysis.special_functions.pow
 import tactic.monotonicity
 
 

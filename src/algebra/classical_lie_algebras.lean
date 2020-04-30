@@ -33,7 +33,7 @@ variables [fintype n] [decidable_eq n] [nonzero_comm_ring R]
 local attribute [instance] matrix.lie_ring
 local attribute [instance] matrix.lie_algebra
 
-lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
+@[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
 begin
   change matrix.trace n R R (X ⬝ Y - Y ⬝ X) = 0,
   simp only [matrix.trace_mul_comm, linear_map.map_sub, sub_self],

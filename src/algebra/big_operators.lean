@@ -35,11 +35,11 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 
 end finset
 
-localized "notation `∑` binders `, ` r:(scoped:65 f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped:70 f, finset.prod finset.univ f) := r" in big_operators
+localized "notation `∑` binders `, ` r:(scoped:63 f, finset.sum finset.univ f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped:64 f, finset.prod finset.univ f) := r" in big_operators
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:65 f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped:70 f, finset.prod s f) := r" in big_operators
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:63 f, finset.sum s f) := r" in big_operators
+localized "notation `∏` binders ` in ` s `, ` r:(scoped:64 f, finset.prod s f) := r" in big_operators
 
 open_locale big_operators
 
@@ -47,7 +47,7 @@ namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
 @[to_additive] lemma prod_eq_multiset_prod [comm_monoid β] (s : finset α) (f : α → β) :
-  (∏ x in s, f x) = (s.1.map f).prod := rfl
+  ∏ x in s, f x = (s.1.map f).prod := rfl
 
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) : (∏ x in s, f x) = s.fold (*) 1 f := rfl
@@ -178,7 +178,7 @@ finset.induction_on s (λ _, by simp only [bind_empty, prod_empty])
 
 @[to_additive]
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
-  (∏ x in s.product t, f x) = ∏ x in s, t.prod $ λy, f (x, y) :=
+  (∏ x in s.product t, f x) = ∏ x in s, ∏ y in t, f (x, y) :=
 begin
   haveI := classical.dec_eq α, haveI := classical.dec_eq γ,
   rw [product_eq_bind, prod_bind],

@@ -482,8 +482,8 @@ end
 def eval : code → ℕ →. ℕ
 | zero         := pure 0
 | succ         := nat.succ
-| left         := λ n, n.unpair.1
-| right        := λ n, n.unpair.2
+| left         := ↑(λ n : ℕ, n.unpair.1)
+| right        := ↑(λ n : ℕ, n.unpair.2)
 | (pair cf cg) := λ n, mkpair <$> eval cf n <*> eval cg n
 | (comp cf cg) := λ n, eval cg n >>= eval cf
 | (prec cf cg) := nat.unpaired (λ a n,
@@ -596,9 +596,7 @@ theorem evaln_mono : ∀ {k₁ k₂ c n x}, k₁ ≤ k₂ → x ∈ evaln k₁ c
   iterate 4 {exact h},
   { -- pair cf cg
     simp [(<*>)] at h ⊢,
-    exact h.imp (λ a, and.imp
-      (Exists.imp (λ b, and.imp_left (hf _ _)))
-      (Exists.imp (λ b, and.imp_left (hg _ _)))) },
+    exact h.imp (λ a, and.imp (hf _ _) $ Exists.imp $ λ b, and.imp_left (hg _ _)) },
   { -- comp cf cg
     simp at h ⊢,
     exact h.imp (λ a, and.imp (hg _ _) (hf _ _)) },
@@ -621,7 +619,7 @@ theorem evaln_sound : ∀ {k c n x}, x ∈ evaln k c n → x ∈ eval c n
     simp [eval, evaln, (>>), (<*>)] at h ⊢; cases h with _ h,
   iterate 4 {simpa [pure, pfun.pure, eq_comm] using h},
   { -- pair cf cg
-    rcases h with ⟨_, ⟨y, ef, rfl⟩, z, eg, rfl⟩,
+    rcases h with ⟨y, ef, z, eg, rfl⟩,
     exact ⟨_, hf _ _ ef, _, hg _ _ eg, rfl⟩ },
   { --comp hf hg
     rcases h with ⟨y, eg, ef⟩,
@@ -663,8 +661,8 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
     rcases h with ⟨x, hx, y, hy, rfl⟩,
     rcases hf hx with ⟨k₁, hk₁⟩, rcases hg hy with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
-    exact ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁, _,
-     ⟨_, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁, rfl⟩,
+    refine ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁,
+      _, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂, rfl⟩ },
   case nat.partrec.code.comp : cf cg hf hg {
     rcases h with ⟨y, hy, hx⟩,

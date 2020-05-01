@@ -53,6 +53,7 @@ return $ if d.to_name.last = "foo" then some "gotcha!" else none
 
 meta def linter.dummy_linter : linter :=
 { test := dummy_check,
+  auto_decls := ff,
   no_errors_found := "found nothing",
   errors_found := "found something" }
 

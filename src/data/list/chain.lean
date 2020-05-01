@@ -171,8 +171,16 @@ theorem chain'.tail : ∀ {l} (h : chain' R l), chain' R l.tail
 | [x]           _ := trivial
 | (x :: y :: l) h := (chain'_cons.mp h).right
 
+theorem chain'.rel_head {x y l} (h : chain' R (x :: y :: l)) : R x y :=
+rel_of_chain_cons h
+
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
 by simp only [chain'_singleton, chain'_cons, and_true]
+
+theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) :
+  ∀ {l}, chain' R (x :: l) → chain' R (y :: l)
+| [] _        := chain'_singleton y
+| (z :: l) hx := hx.tail.cons (h hx.rel_head)
 
 theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [] := iff.rfl

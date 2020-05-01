@@ -2200,14 +2200,14 @@ begin
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
       rw function.update_noteq h' } },
-  case TM2to1.st_act.peek : b f {
+  case TM2to1.st_act.peek : f {
     rw function.update_eq_self,
     use [L, hL], rw [tape.move_left_right], congr,
     cases e : S k, {refl},
     rw [list.length_cons, nat.iterate_succ', tape.move_right_left, tape.move_right_n_head,
       tape.mk'_nth_nat, add_bottom_nth_snd, stk_nth_val _ (hL k), e,
       list.reverse_cons, ← list.length_reverse, list.nth_concat_length], refl },
-  case TM2to1.st_act.pop : b f {
+  case TM2to1.st_act.pop : f {
     cases e : S k,
     { simp only [tape.mk'_head, list_blank.head_cons, tape.move_left_mk',
         list.length, tape.write_mk', list.head', nat.iterate_zero, list.tail_nil],

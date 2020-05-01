@@ -110,23 +110,20 @@ section
 
 variables {α : Type*} {β : Type*} {γ : Type*} [fintype α] [comm_monoid γ]
 
-@[to_additive]
-abbreviation fintype.prod (f : α → γ) := finset.univ.prod f
+localized "notation `∑` binders `, ` r:(scoped f, finset.sum finset.univ f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped f, finset.prod finset.univ f) := r" in big_operators
 
 localized "notation `∑` binders ` in ` s `, ` r:(scoped f, finset.sum s f) := r" in big_operators
 localized "notation `∏` binders ` in ` s `, ` r:(scoped f, finset.prod s f) := r" in big_operators
 
-localized "notation `∑` binders `, ` r:(scoped f, finset.univ.sum f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped f, finset.univ.prod f) := r" in big_operators
-
 @[to_additive]
 lemma fintype.prod_eq_one (f : α → γ) (h : ∀ a, f a = 1) :
-  fintype.prod f = 1 :=
+  (∏ a, f a) = 1 :=
 finset.prod_eq_one $ λ a ha, h a
 
 @[to_additive]
 lemma fintype.prod_congr (f g : α → γ) (h : ∀ a, f a = g a) :
-  fintype.prod f = fintype.prod g :=
+  (∏ a, f a) = ∏ a, g a :=
 finset.prod_congr rfl $ λ a ha, h a
 
 @[simp] lemma finsupp.prod_pow (f : α →₀ ℕ) (g : α → γ) :
@@ -142,19 +139,18 @@ end
 
 @[simp, to_additive]
 lemma fintype.prod_unique [unique α] (f : α → γ) :
-  fintype.prod f = f (default α) :=
-by { delta fintype.prod,
-     simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton], }
+  (∏ a, f a) = f (default α) :=
+by simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton]
 
 @[to_additive]
 lemma fintype.prod_equiv [fintype β] (e : α ≃ β) (f : β → γ) :
-  (∏ a : α, f (e a)) = fintype.prod f :=
+  (∏ a : α, f (e a)) = ∏ b, f b :=
 prod_equiv e f
 
 @[to_additive]
 lemma fintype.prod_sigma [fintype β] [decidable_eq β]
   (f : α → β) (g : α → γ) :
-  (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = fintype.prod g :=
+  (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin
   rw ← fintype.prod_equiv (equiv.sigma_preimage_equiv f) _,
   rw [← finset.univ_sigma_univ, finset.prod_sigma],
@@ -172,11 +168,10 @@ variables {α : Type*} {α₁ : Type*} {α₂ : Type*} {β : Type*} [fintype α�
 
 @[to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → β) :
-  fintype.prod f = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
+  (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
 begin
   classical,
   let s : finset (α₁ ⊕ α₂) := univ.image sum.inr,
-  delta fintype.prod,
   rw [← prod_sdiff (subset_univ s),
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],

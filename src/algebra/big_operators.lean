@@ -382,13 +382,17 @@ begin
   exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
 end
 
+lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
+  (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
+by rw [range_succ, sum_insert not_mem_range_self]
+
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
-  (∏ x in range (nat.succ n), f x) = f n * (∏ x in range n, f x) :=
+  (∏ x in range (n + 1), f x) = f n * (∏ x in range n, f x) :=
 by rw [range_succ, prod_insert not_mem_range_self]
 
 lemma prod_range_succ' (f : ℕ → β) :
-  ∀ n : ℕ, (∏ k in range (nat.succ n), f k) = (∏ k in range n, f (k+1)) * f 0
+  ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
 | 0       := (prod_range_succ _ _).trans $ mul_comm _ _
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
@@ -494,7 +498,7 @@ finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
-  (∏ r in range (nat.succ n), f (n - r)) = (∏ k in range (n + 1), f k) :=
+  (∏ r in range (n + 1), f (n - r)) = (∏ k in range (n + 1), f k) :=
 begin
   induction n with n ih,
   { rw [prod_range_one, prod_range_one] },
@@ -1070,7 +1074,7 @@ calc s.card = (∑ a in s.image f, (s.filter (λ x, f x = a)).card) :
 ... ≤ (∑ _ in s.image f, n) : sum_le_sum hn
 ... = _ : by simp [mul_comm]
 
-@[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, (Ico 1 n.succ).prod (λ x, x) = nat.fact n
+@[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, (Ico 1 (n + 1)).prod (λ x, x) = nat.fact n
 | 0 := rfl
 | (n+1) := by rw [prod_Ico_succ_top $ nat.succ_le_succ $ zero_le n,
   nat.fact_succ, prod_Ico_id_eq_fact n, nat.succ_eq_add_one, mul_comm]

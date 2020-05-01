@@ -149,6 +149,8 @@ if hij : a.fst = b.fst then
   else [⟨a.fst, _, hxy⟩]
 else [a, b]
 
+/-- Prepend `a : Σ i, {x : M i // x ≠ 1}` to `l : normalized M` and cancel
+it with `l.head` if required. -/
 def cons (a : Σ i, {x : M i // x ≠ 1}) : normalized M → normalized M
 | ⟨[], _⟩ := ⟨[a], list.chain'_singleton a⟩
 | ⟨b :: l, h⟩ := subtype.mk (cancel_two a b ++ l)
@@ -163,6 +165,7 @@ end
 lemma cons_nil (a : Σ i, {x : M i // x ≠ 1}) (h) :
   cons a ⟨[], h⟩ = ⟨[a], list.chain'_singleton a⟩ := rfl
 
+/-- If `a :: l` is normalized and `, then `cons a l = a :: l`. -/
 lemma cons_head_tail {a : Σ i, {x : M i // x ≠ 1}} {l hl} (hal) :
   cons a ⟨l, hl⟩ = ⟨a :: l, hal⟩ :=
 begin
@@ -179,13 +182,25 @@ instance : has_mul (normalized M) :=
 
 lemma mul_def (xs ys : normalized M) : xs * ys = list.foldr normalized.cons ys xs.val := rfl
 
-lemma cons_mul' (x xs hxs  ys) :
+lemma cons_mul' (x xs hxs ys) :
   @has_mul.mul (normalized M) _ ⟨x :: xs, hxs⟩ ys = cons x (⟨xs, hxs.tail⟩ * ys) :=
 rfl
 
 lemma cons_eq_mul (x) (xs : normalized M) :
   cons x xs = ⟨[x], list.chain'_singleton x⟩ * xs :=
 rfl
+
+lemma is_normalized_cancel_two_append (a b : Σ i, {x : M i // x ≠ 1}) (l : list _)
+  (hl : is_normalized l) (hbl : is_normalized (b :: l)) :
+  is_normalized (cancel_two a b ++ l) :=
+begin
+  rcases a with ⟨i, x, hx⟩,
+  rcases b with ⟨j, y, hy⟩,
+  by_cases hij : i = j,
+  { subst j,
+     }
+end
+
 
 lemma cons_mul_aux₁ {i : ι} {x y z : M i} (hx hy hz l hl) :
   cons ⟨i, x, hx⟩ (cons ⟨i, y, hy⟩ ⟨⟨i, z, hz⟩ :: l, hl⟩) =

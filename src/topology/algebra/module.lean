@@ -791,7 +791,7 @@ variables
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 [module R M] [module R M₂]
 
-/-- A submodule `p` is called *complemented* if it has a closed complement-/
+/-- A sub `p` is called *complemented* if it has a closed complement-/
 def complemented (p : submodule R M) : Prop :=
 ∃ q : submodule R M, is_closed (q : set M) ∧ is_compl p q
 end subspace

@@ -732,10 +732,10 @@ end
 
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
-  rw [← union_singleton, span_union, mem_sup],
-  simp [mem_span_singleton, add_comm, add_left_comm], split,
-  { rintro ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩, exact ⟨a, z, hz, rfl⟩ },
-  { rintro ⟨a, z, hz, rfl⟩, exact ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩ }
+  simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
+    exists_exists_eq_and],
+  rw [exists_comm],
+  simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
 lemma mem_span_insert' {y} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
@@ -959,6 +959,10 @@ by rw [range, map_le_iff_le_comap, eq_top_iff]
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
 map_mono le_top
 
+lemma range_coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (f.coprod g).range = f.range ⊔ g.range :=
+submodule.ext $ λ x, by simp [mem_sup]
+
 lemma sup_range_inl_inr :
   (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
 begin
@@ -1110,6 +1114,10 @@ lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
 by rw [ker, ← prod_bot, comap_prod_prod]; refl
 
 end linear_map
+
+lemma submodule.sup_eq_range [ring R] [add_comm_group M] [module R M] (p q : submodule R M) :
+  p ⊔ q = (p.subtype.coprod q.subtype).range :=
+submodule.ext $ λ x, by simp [submodule.mem_sup, submodule.exists]
 
 namespace linear_map
 variables [field K]
@@ -1483,11 +1491,42 @@ section
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (f : M →ₗ[R] M₂)
 
+/-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
+between `M` and `f.range`. -/
+noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
+{ .. (equiv.set.range f $ linear_map.ker_eq_bot.1 h).trans (equiv.set.of_eq f.range_coe.symm),
+  .. f.cod_restrict f.range (λ x, linear_map.mem_range.2 ⟨x, rfl⟩) }
+
+variables (p q : submodule R M)
+
+/-- Linear equivalence between two equal submodules. -/
+def of_eq (h : p = q) : p ≃ₗ[R] q :=
+{ smul := λ _ _, rfl, add := λ _ _, rfl, .. equiv.set.of_eq (congr_arg _ h) }
+
+variables {p q}
+
+@[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
+
+@[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+
+variable (p)
+
+/-- The top submodule of `M` is linearly equivalent to `M`. -/
+def of_top (h : p = ⊤) : p ≃ₗ[R] M :=
+{ inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
+  left_inv  := λ ⟨x, h⟩, rfl,
+  right_inv := λ x, rfl,
+  .. p.subtype }
+
+@[simp] theorem of_top_apply {h} (x : p) : of_top p h x = x := rfl
+
+@[simp] theorem coe_of_top_symm_apply {h} (x : M) :
+  ((of_top p h).symm x : M) = x := rfl
+
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
 noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
-{ ..f, ..@equiv.of_bijective _ _ f
-  ⟨linear_map.ker_eq_bot.1 hf₁, linear_map.range_eq_top.1 hf₂⟩ }
+(of_injective f hf₁).trans (of_top _ hf₂)
 
 @[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
   of_bijective f hf₁ hf₂ x = f x := rfl
@@ -1512,20 +1551,6 @@ linear_map.ker_eq_bot.2 e.to_equiv.injective
 
 @[simp] protected theorem range : (e : M →ₗ[R] M₂).range = ⊤ :=
 linear_map.range_eq_top.2 e.to_equiv.surjective
-
-variables (p : submodule R M)
-
-/-- The top submodule of `M` is linearly equivalent to `M`. -/
-def of_top (h : p = ⊤) : p ≃ₗ[R] M :=
-{ inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
-  left_inv  := λ ⟨x, h⟩, rfl,
-  right_inv := λ x, rfl,
-  .. p.subtype }
-
-@[simp] theorem of_top_apply {h} (x : p) : of_top p h x = x := rfl
-
-@[simp] theorem of_top_symm_apply {h} (x : M) :
-  (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
 lemma eq_bot_of_equiv [module R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
   p = ⊥ :=
@@ -1658,16 +1683,9 @@ variables (f : M →ₗ[R] M₂)
 /-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
 equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
-have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
-let F : f.ker.quotient →ₗ[R] f.range :=
-  f.ker.liftq (cod_restrict f.range f $ λ x, ⟨x, trivial, rfl⟩)
-    (λ x hx, by simp; apply subtype.coe_ext.2; simpa using hx) in
-{ inv_fun    := λx, submodule.quotient.mk (classical.some (hr x)),
-  left_inv   := by rintro ⟨x⟩; exact
-    (submodule.quotient.eq _).2 (sub_mem_ker_iff.2 $
-      classical.some_spec $ hr $ F $ submodule.quotient.mk x),
-  right_inv  := λ x : range f, subtype.eq $ classical.some_spec (hr x),
-  .. F }
+(linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
+  submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
+  (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 
 open submodule
 
@@ -1689,18 +1707,19 @@ Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a l
 -/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
-{ .. sup_quotient_to_quotient_inf p p',
-  .. show (comap p.subtype (p ⊓ p')).quotient ≃ (comap (p ⊔ p').subtype p').quotient, from
-    @equiv.of_bijective _ _ (sup_quotient_to_quotient_inf p p') begin
-      constructor,
-      { rw [← ker_eq_bot, sup_quotient_to_quotient_inf, ker_liftq_eq_bot],
-        rw [ker_comp, ker_mkq],
-        rintros ⟨x, hx1⟩ hx2, exact ⟨hx1, hx2⟩ },
-      rw [← range_eq_top, sup_quotient_to_quotient_inf, range_liftq, eq_top_iff'],
-      rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
-      use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
-      change y - (y + z) ∈ p', rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
-    end }
+linear_equiv.of_bijective (sup_quotient_to_quotient_inf p p')
+  begin
+    rw [sup_quotient_to_quotient_inf, ker_liftq_eq_bot],
+    rw [ker_comp, ker_mkq],
+    exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
+  end
+  begin
+    rw [sup_quotient_to_quotient_inf, range_liftq, eq_top_iff'],
+    rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
+    use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
+    change y - (y + z) ∈ p',
+    rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
+  end
 
 section prod
 

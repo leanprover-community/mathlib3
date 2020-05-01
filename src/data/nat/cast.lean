@@ -8,6 +8,9 @@ Natural homomorphism from the natural numbers into a monoid with one.
 import algebra.ordered_group
 import algebra.ring
 
+-- see Note [coercion into rings] below
+instance int.has_coe_t : has_coe_t ℕ ℤ := ⟨int.of_nat⟩
+
 namespace nat
 variables {α : Type*}
 
@@ -19,7 +22,34 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
-@[priority 10] instance cast_coe : has_coe_t ℕ α := ⟨nat.cast⟩
+/--
+Coercions such as `nat.cast_coe` that go from a concrete structure such as
+`ℕ` to an arbitrary ring `α` should be set up as follows:
+```lean
+@[priority 900] instance : has_coe_t ℕ α := ⟨...⟩
+```
+
+It needs to be `has_coe_t` instead of `has_coe` because otherwise type-class
+inference would loop when constructing the transitive coercion `ℕ → ℕ → ℕ → ...`.
+The reduced priority is necessary so that it doesn't conflict with instances
+such as `has_coe_t α (option α)`.
+
+For this to work, we reduce the priority of the `coe_base` and `coe_trans`
+instances because we want the instances for `has_coe_t` to be tried in the
+following order:
+
+ 1. `has_coe_t` instances declared in mathlib (such as `has_coe_t α (with_top α)`, etc.)
+ 2. `nat.cast_coe : has_coe_t ℕ α` etc.
+ 3. `coe_base` and `coe_trans` from core
+
+If `coe_trans` is tried first, then `nat.cast_coe` doesn't get a chance to apply.
+--/
+library_note "coercion into rings"
+attribute [instance, priority 600] coe_base
+attribute [instance, priority 500] coe_trans
+
+-- see note [coercion into rings]
+@[priority 900] instance cast_coe : has_coe_t ℕ α := ⟨nat.cast⟩
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 

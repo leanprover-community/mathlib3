@@ -9,8 +9,11 @@ import algebra.char_zero
 import data.list.range
 open nat
 
-
 namespace int
+
+-- We use the int.has_coe instance for the simp-normal form.
+-- Increase the priority so that it is used preferentially.
+attribute [instance, priority 1001] int.has_coe int.has_coe_t
 
 instance : inhabited ℤ := ⟨int.zero⟩
 
@@ -1087,10 +1090,6 @@ end classical
 
 /- cast (injection into groups with one) -/
 
--- We use the int.has_coe instance for the simp-normal form.
--- Increase the priority so that it is used preferentially.
-attribute [priority 1001] int.has_coe
-
 @[simp] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
@@ -1111,14 +1110,15 @@ protected def cast : ℤ → α
 | (n : ℕ) := n
 | -[1+ n] := -(n+1)
 
-@[priority 10] instance cast_coe : has_coe_t ℤ α := ⟨int.cast⟩
+-- see Note [coercion into rings]
+@[priority 900] instance cast_coe : has_coe_t ℤ α := ⟨int.cast⟩
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 
 theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
 theorem cast_coe_nat' (n : ℕ) :
-  (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
+  (@coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n : α) = n :=
 by simp
 
 @[simp, norm_cast] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl

@@ -335,6 +335,7 @@ case nat.succ : tmp hpos {
   exact dvd_gcd (dvd_mul_right _ _) H }
 end
 
+set_option pp.all true
 theorem gcd_mul_dvd_mul_gcd (k m n : ℕ) : gcd k (m * n) ∣ gcd k m * gcd k n :=
 begin
 rcases (prod_dvd_and_dvd_of_dvd_prod $ gcd_dvd_right k (m * n)) with ⟨⟨⟨m', hm'⟩, ⟨n', hn'⟩⟩, h⟩,

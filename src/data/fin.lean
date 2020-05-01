@@ -84,6 +84,7 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨fin.mk.inj, λ h, by subst h⟩
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
+instance fin_to_nat' (n : ℕ) : has_coe_t (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 

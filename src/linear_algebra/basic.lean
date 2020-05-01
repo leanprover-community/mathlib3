@@ -1748,9 +1748,6 @@ noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
   (f.quot_ker_equiv_range (f.ker.mkq x) : M₂) = f x :=
 rfl
 
-@[simp] lemma quot_ker_equiv_range_comp_mkq :
-  (f.quot_ker_equiv_range : f.ker.quotient →ₗ[R] f.range).comp f.ker.mkq = 
-
 @[simp] lemma quot_ker_equiv_range_symm_apply_image (x : M) (h : f x ∈ f.range) :
   f.quot_ker_equiv_range.symm ⟨f x, h⟩ = f.ker.mkq x :=
 f.quot_ker_equiv_range.symm_apply_apply (f.ker.mkq x)

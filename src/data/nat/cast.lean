@@ -8,9 +8,6 @@ Natural homomorphism from the natural numbers into a monoid with one.
 import algebra.ordered_group
 import algebra.ring
 
--- see Note [coercion into rings] below
-instance int.has_coe_t : has_coe_t ℕ ℤ := ⟨int.of_nat⟩
-
 namespace nat
 variables {α : Type*}
 
@@ -39,13 +36,14 @@ instances because we want the instances for `has_coe_t` to be tried in the
 following order:
 
  1. `has_coe_t` instances declared in mathlib (such as `has_coe_t α (with_top α)`, etc.)
- 2. `nat.cast_coe : has_coe_t ℕ α` etc.
- 3. `coe_base` and `coe_trans` from core
+ 2. `coe_base`, which contains instances such as `has_coe (fin n) n`
+ 3. `nat.cast_coe : has_coe_t ℕ α` etc.
+ 4. `coe_trans`
 
 If `coe_trans` is tried first, then `nat.cast_coe` doesn't get a chance to apply.
 --/
 library_note "coercion into rings"
-attribute [instance, priority 600] coe_base
+attribute [instance, priority 950] coe_base
 attribute [instance, priority 500] coe_trans
 
 -- see note [coercion into rings]

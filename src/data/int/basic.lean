@@ -11,10 +11,6 @@ open nat
 
 namespace int
 
--- We use the int.has_coe instance for the simp-normal form.
--- Increase the priority so that it is used preferentially.
-attribute [instance, priority 1001] int.has_coe int.has_coe_t
-
 instance : inhabited ℤ := ⟨int.zero⟩
 
 @[simp] lemma default_eq_zero : default ℤ = 0 := rfl

@@ -35,11 +35,11 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 
 end finset
 
-localized "notation `∑` binders `, ` r:(scoped f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped f, finset.prod finset.univ f) := r" in big_operators
+localized "notation `∑` binders `, ` r:(scoped:65 f, finset.sum finset.univ f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped:70 f, finset.prod finset.univ f) := r" in big_operators
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped f, finset.prod s f) := r" in big_operators
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:65 f, finset.sum s f) := r" in big_operators
+localized "notation `∏` binders ` in ` s `, ` r:(scoped:70 f, finset.prod s f) := r" in big_operators
 
 open_locale big_operators
 

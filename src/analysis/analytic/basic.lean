@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.times_cont_diff
 import tactic.omega
-import analysis.complex.exponential
+import analysis.special_functions.pow
 
 /-!
 # Analytic functions
@@ -32,12 +32,12 @@ for `n : ℕ`.
 * `p.le_radius_of_bound`, `p.bound_of_lt_radius`, `p.geometric_bound_of_lt_radius`: relating the
   value of the radius with the growth of `∥p n∥ * r^n`.
 * `p.partial_sum n x`: the sum `∑_{i = 0}^{n-1} pᵢ xⁱ`.
-* `p.sum x`: the sum `∑_{i = 0}^{∞} pᵢ xⁱ`.
+* `p.sum x`: the sum `∑'_{i = 0}^{∞} pᵢ xⁱ`.
 
 Additionally, let `f` be a function from `E` to `F`.
 
 * `has_fpower_series_on_ball f p x r`: on the ball of center `x` with radius `r`,
-  `f (x + y) = ∑_n pₙ yⁿ`.
+  `f (x + y) = ∑'_n pₙ yⁿ`.
 * `has_fpower_series_at f p x`: on some ball of center `x` with positive radius, holds
   `has_fpower_series_on_ball f p x r`.
 * `analytic_at 𝕜 f x`: there exists a power series `p` such that holds
@@ -203,7 +203,7 @@ section
 variables {f g : E → F} {p pf pg : formal_multilinear_series 𝕜 E F} {x : E} {r r' : ennreal}
 
 /-- Given a function `f : E → F` and a formal multilinear series `p`, we say that `f` has `p` as
-a power series on the ball of radius `r > 0` around `x` if `f (x + y) = ∑ pₙ yⁿ` for all `∥y∥ < r`. -/
+a power series on the ball of radius `r > 0` around `x` if `f (x + y) = ∑' pₙ yⁿ` for all `∥y∥ < r`. -/
 structure has_fpower_series_on_ball
   (f : E → F) (p : formal_multilinear_series 𝕜 E F) (x : E) (r : ennreal) : Prop :=
 (r_le    : r ≤ p.radius)
@@ -211,7 +211,7 @@ structure has_fpower_series_on_ball
 (has_sum : ∀ {y}, y ∈ emetric.ball (0 : E) r → has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)))
 
 /-- Given a function `f : E → F` and a formal multilinear series `p`, we say that `f` has `p` as
-a power series around `x` if `f (x + y) = ∑ pₙ yⁿ` for all `y` in a neighborhood of `0`. -/
+a power series around `x` if `f (x + y) = ∑' pₙ yⁿ` for all `y` in a neighborhood of `0`. -/
 def has_fpower_series_at (f : E → F) (p : formal_multilinear_series 𝕜 E F) (x : E) :=
 ∃ r, has_fpower_series_on_ball f p x r
 
@@ -513,9 +513,9 @@ begin
     by { ext b, rcases b with ⟨n, s⟩, simp [Bnnnorm, nnreal.coe_pow, coe_nnnorm] },
   rw [this, nnreal.summable_coe, ← ennreal.tsum_coe_ne_top_iff_summable],
   apply ne_of_lt,
-  calc (∑ b, ↑(Bnnnorm b))
-  = (∑ n, (∑ s, ↑(Bnnnorm ⟨n, s⟩))) : by exact ennreal.tsum_sigma' _
-  ... ≤ (∑ n, (((nnnorm (p n) * (nnnorm x + r)^n) : nnreal) : ennreal)) :
+  calc (∑' b, ↑(Bnnnorm b))
+  = (∑' n, (∑' s, ↑(Bnnnorm ⟨n, s⟩))) : by exact ennreal.tsum_sigma' _
+  ... ≤ (∑' n, (((nnnorm (p n) * (nnnorm x + r)^n) : nnreal) : ennreal)) :
     begin
       refine ennreal.tsum_le_tsum (λ n, _),
       rw [tsum_fintype, ← ennreal.coe_finset_sum, ennreal.coe_le_coe],
@@ -527,7 +527,7 @@ begin
       ... = nnnorm (p n) * (nnnorm x + r) ^ n :
       by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr, ext s, ring }
     end
-  ... ≤ (∑ (n : ℕ), (C * a ^ n : ennreal)) :
+  ... ≤ (∑' (n : ℕ), (C * a ^ n : ennreal)) :
     tsum_le_tsum (λ n, by exact_mod_cast hC n) ennreal.summable ennreal.summable
   ... < ⊤ :
     by simp [ennreal.mul_eq_top, ha, ennreal.tsum_mul_left, ennreal.tsum_geometric,

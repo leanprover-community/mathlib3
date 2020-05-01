@@ -32,8 +32,7 @@ restate_axiom equivalence.functor_unit_iso_comp'
 
 infixr ` ≌ `:10  := equivalence
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 namespace equivalence
 
@@ -145,16 +144,12 @@ protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
 ⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
-section
-omit 𝒟
 @[refl] def refl : C ≌ C := equivalence.mk (𝟭 C) (𝟭 C) (iso.refl _) (iso.refl _)
-end
 
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
 
-variables {E : Type u₃} [ℰ : category.{v₃} E]
-include ℰ
+variables {E : Type u₃} [category.{v₃} E]
 
 @[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
 begin
@@ -188,7 +183,6 @@ by { dsimp [inv_fun_id_assoc], tidy }
 by { dsimp [inv_fun_id_assoc], tidy }
 
 section
-omit 𝒟 ℰ
 
 -- There's of course a monoid structure on `C ≌ C`,
 -- but let's not encourage using it.
@@ -249,10 +243,8 @@ def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
 ⟨F, is_equivalence.inverse F, is_equivalence.unit_iso, is_equivalence.counit_iso,
   is_equivalence.functor_unit_iso_comp⟩
 
-omit 𝒟
 instance is_equivalence_refl : is_equivalence (𝟭 C) :=
 is_equivalence.of_equivalence equivalence.refl
-include 𝒟
 
 def inv (F : C ⥤ D) [is_equivalence F] : D ⥤ C :=
 is_equivalence.inverse F
@@ -266,8 +258,7 @@ is_equivalence.unit_iso.symm
 def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ 𝟭 D :=
 is_equivalence.counit_iso
 
-variables {E : Type u₃} [ℰ : category.{v₃} E]
-include ℰ
+variables {E : Type u₃} [category.{v₃} E]
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :
   is_equivalence (F ⋙ G) :=

@@ -20,8 +20,7 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
 
 -- We hide the "implementation details" inside a namespace
 namespace has_equalizers_of_pullbacks_and_binary_products

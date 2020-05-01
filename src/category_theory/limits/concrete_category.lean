@@ -20,8 +20,7 @@ namespace category_theory.limits
 namespace cone
 
 variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [𝒞 : concrete_category C]
-include 𝒞
+variables {C : Type (u+1)} [large_category C] [concrete_category C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun
@@ -39,8 +38,7 @@ end cone
 namespace cocone
 
 variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [𝒞 : concrete_category C]
-include 𝒞
+variables {C : Type (u+1)} [large_category C] [concrete_category C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun

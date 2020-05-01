@@ -966,6 +966,13 @@ lemma iterate_mul (m : ℕ) : ∀ n, op^[m * n] = (op^[m]^[n])
 | 0 := by { ext a, simp only [mul_zero, iterate_zero] }
 | (n + 1) := by { ext x, simp only [mul_add, mul_one, iterate_one, iterate_add, iterate_mul n] }
 
+@[elab_as_eliminator]
+theorem iterate_ind {α : Type u} (f : α → α) {p : (α → α) → Prop} (hf : p f) (hid : p id)
+  (hcomp : ∀ ⦃f g⦄, p f → p g → p (f ∘ g)) :
+  ∀ n, p (f^[n])
+| 0 := hid
+| (n+1) := hcomp (iterate_ind n) hf
+
 theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
   op^[n] x = x :=
 by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
@@ -983,11 +990,6 @@ by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
 theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
   op^[n] (op'^[n] x) = x :=
 by induction n; [refl, rwa [iterate_succ, iterate_succ', H]]
-
-theorem iterate_inj {α : Type u} {op : α → α} (Hinj : function.injective op) (n : ℕ) (x y : α)
-  (H : (op^[n] x) = (op^[n] y)) : x = y :=
-by induction n with n ih; simp only [iterate_zero, iterate_succ'] at H;
-[exact H, exact ih (Hinj H)]
 
 end
 
@@ -1503,6 +1505,22 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 end nat
+
+namespace function
+
+theorem injective.iterate {α : Type u} {op : α → α} (Hinj : injective op) :
+  ∀ n, injective (op^[n]) :=
+nat.iterate_ind op Hinj injective_id $ λ _ _, injective_comp
+
+theorem surjective.iterate {α : Type u} {op : α → α} (Hinj : surjective op) :
+  ∀ n, surjective (op^[n]) :=
+nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective_comp
+
+theorem bijective.iterate {α : Type u} {op : α → α} (Hinj : bijective op) :
+  ∀ n, bijective (op^[n]) :=
+nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective_comp
+
+end function
 
 namespace monoid_hom
 

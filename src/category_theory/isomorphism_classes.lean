@@ -19,8 +19,7 @@ namespace category_theory
 
 section category
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- An object `X` is isomorphic to an object `Y`, if `X ≅ Y` is not empty. -/
 def is_isomorphic : C → C → Prop := λ X Y, nonempty (X ≅ Y)

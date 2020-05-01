@@ -208,6 +208,8 @@ instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_rin
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
 
+instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑(f : A →+* B)⟩
+
 @[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
@@ -215,11 +217,26 @@ instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f :
 
 @[simp, norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
+@[simp, norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
+
 variables (φ : A →ₐ[R] B)
+
+theorem coe_fn_inj ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ⇑φ₁ = φ₂) : φ₁ = φ₂ :=
+by { cases φ₁, cases φ₂, congr, exact H }
+
+theorem coe_ring_hom_inj : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
+λ φ₁ φ₂ H, coe_fn_inj $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
+  from congr_arg _ H
+
+theorem coe_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
+function.injective_comp ring_hom.coe_monoid_hom_inj coe_ring_hom_inj
+
+theorem coe_add_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
+function.injective_comp ring_hom.coe_add_monoid_hom_inj coe_ring_hom_inj
 
 @[ext]
 theorem ext ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
-by cases φ₁; cases φ₂; congr' 1; ext; apply H
+coe_fn_inj $ funext H
 
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
 

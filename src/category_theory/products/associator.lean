@@ -15,10 +15,9 @@ open category_theory
 
 namespace category_theory.prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-          (D : Type u₂) [𝒟 : category.{v₂} D]
-          (E : Type u₃) [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables (C : Type u₁) [category.{v₁} C]
+          (D : Type u₂) [category.{v₂} D]
+          (E : Type u₃) [category.{v₃} E]
 
 -- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for, 
 -- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.

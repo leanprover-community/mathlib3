@@ -39,6 +39,13 @@ theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext]
 
+@[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
+  univ ∩ s = s := ext' $ λ a, by simp
+
+@[simp] lemma inter_univ [decidable_eq α] (s : finset α) :
+  s ∩ univ = s :=
+by rw [inter_comm, univ_inter]
+
 @[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (univ : finset α))]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }

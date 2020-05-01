@@ -30,8 +30,7 @@ universes v u
 namespace category_theory
 open category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 section
 local attribute [tidy] tactic.case_bash

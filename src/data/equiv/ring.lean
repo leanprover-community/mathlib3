@@ -221,7 +221,7 @@ protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain 
 end ring_equiv
 
 /-- The group of ring automorphisms. -/
-def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
+@[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
 

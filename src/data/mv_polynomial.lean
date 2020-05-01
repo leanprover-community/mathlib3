@@ -539,7 +539,7 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
 
-@[simp] lemma eval_pow (n:ℕ) : (p^n).eval f = (p.eval f)^n := eval₂_pow _ _
+@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval f = (p.eval f) ^ n := eval₂_pow _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
@@ -844,7 +844,7 @@ finset.sup_le $ assume n hn,
   end
 
 lemma total_degree_pow (a : mv_polynomial σ α) (n : ℕ) :
-  (a^n).total_degree ≤ n * a.total_degree :=
+  (a ^ n).total_degree ≤ n * a.total_degree :=
 begin
   induction n with n ih,
   { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },

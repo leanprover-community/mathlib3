@@ -463,7 +463,7 @@ end comm_group_with_zero
 section comm_group_with_zero
 variables {G₀ : Type*} [comm_group_with_zero G₀] {a b c d : G₀}
 
-lemma div_eq_inv_mul' : a / b = b⁻¹ * a := mul_comm _ _
+lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
 
 lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
 by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc]; refl

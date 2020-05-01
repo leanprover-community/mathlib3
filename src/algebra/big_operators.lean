@@ -35,11 +35,11 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 
 end finset
 
-localized "notation `∑` binders `, ` r:(scoped:63 f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped:64 f, finset.prod finset.univ f) := r" in big_operators
+localized "notation `∑` binders `, ` r:(scoped:64 f, finset.sum finset.univ f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped:69 f, finset.prod finset.univ f) := r" in big_operators
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:63 f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped:64 f, finset.prod s f) := r" in big_operators
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:64 f, finset.sum s f) := r" in big_operators
+localized "notation `∏` binders ` in ` s `, ` r:(scoped:69 f, finset.prod s f) := r" in big_operators
 
 open_locale big_operators
 
@@ -817,8 +817,8 @@ open_locale classical
   over the powerset of `s` of the product of `f` over a subset `t` times
   the product of `g` over the complement of `t`  -/
 lemma prod_add (f g : α → β) (s : finset α) :
-  (∏ a in s, f a + g a) = (∑ t in s.powerset, (∏ a in t, f a) * (∏ a in (s \ t), g a)) :=
-calc (∏ a in s, f a + g a)
+  ∏ a in s, (f a + g a) = ∑ t in s.powerset, ((∏ a in t, f a) * (∏ a in (s \ t), g a)) :=
+calc ∏ a in s, (f a + g a)
     = ∏ a in s, ∑ p in ({false, true} : finset Prop), if p then f a else g a : by simp
 ... = ∑ p in (s.pi (λ _, {false, true}) : finset (Π a ∈ s, Prop)),
         ∏ a in s.attach, if p a.1 a.2 then f a.1 else g a.1 : prod_sum

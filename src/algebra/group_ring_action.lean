@@ -52,6 +52,9 @@ instance monoid.End.monoid : monoid (monoid.End M) :=
   mul_one := monoid_hom.comp_id,
   one_mul := monoid_hom.id_comp }
 
+instance monoid.End.inhabited : inhabited (monoid.End M) :=
+⟨1⟩
+
 /-- The monoid of endomorphisms. -/
 def add_monoid.End := A →+ A
 
@@ -61,6 +64,9 @@ instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
   mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
   mul_one := add_monoid_hom.comp_id,
   one_mul := add_monoid_hom.id_comp }
+
+instance add_monoid.End.inhabited : inhabited (add_monoid.End A) :=
+⟨1⟩
 
 /-- Each element of the group defines an additive monoid homomorphism. -/
 def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=

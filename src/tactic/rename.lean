@@ -22,20 +22,6 @@ open lean lean.parser interactive native
 
 namespace tactic
 
-/-- Get the revertible part of the local context. These are the hypotheses that
-appear after the last frozen local instance in the local context. We call them
-revertible because `revert` can revert them, unlike those hypotheses which occur
-before a frozen instance. -/
-meta def revertible_local_context : tactic (list expr) := do
-  ctx ← local_context,
-  frozen ← frozen_local_instances,
-  pure $
-    match frozen with
-    | none := ctx
-    | some [] := ctx
-    | some (h :: _) := ctx.after (eq h)
-    end
-
 /-- Rename local hypotheses according to the given `name_map`. The `name_map`
 contains as keys those hypotheses that should be renamed; the associated values
 are the new names.

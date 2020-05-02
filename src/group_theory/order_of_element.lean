@@ -472,7 +472,7 @@ lt_irrefl c $
       have hmc : m ∣ c, by simp at hm; tauto,
       (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim
         (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
-        (by simp [le_refl] {contextual := tt}))
+        (by { intro h, rw h, apply le_refl }))
   ... < φ d + (((range c.succ).filter (∣ c)).erase d).sum φ :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
       (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))

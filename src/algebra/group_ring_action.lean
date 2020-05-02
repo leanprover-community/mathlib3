@@ -6,12 +6,12 @@ Authors: Kenny Lau
 Group action on rings.
 -/
 
-import group_theory.group_action data.equiv.ring
+import group_theory.group_action data.equiv.ring data.polynomial
 
 universes u v
 
 variables (M G : Type u) [monoid M] [group G]
-variables (A R F : Type v) [add_monoid A] [semiring R] [field F]
+variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [field F]
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -99,3 +99,26 @@ attribute [simp] smul_one smul_mul' smul_zero smul_add
 nat.rec_on n (smul_one x) $ λ n ih, (smul_mul' x m (m ^ n)).trans $ congr_arg _ ih
 
 end simp_lemmas
+
+variables [mul_semiring_action M S]
+
+noncomputable instance : mul_semiring_action M (polynomial S) :=
+{ smul := λ m, polynomial.map $ mul_semiring_action.to_semiring_hom M S m,
+  one_smul := λ p, by { ext n, erw polynomial.coeff_map, exact one_smul M (p.coeff n) },
+  mul_smul := λ m n p, by { ext i,
+    iterate 3 { rw polynomial.coeff_map (mul_semiring_action.to_semiring_hom M S _) },
+    exact mul_smul m n (p.coeff i) },
+  smul_add := λ m p q, polynomial.map_add (mul_semiring_action.to_semiring_hom M S m),
+  smul_zero := λ m, polynomial.map_zero (mul_semiring_action.to_semiring_hom M S m),
+  smul_one := λ m, polynomial.map_one (mul_semiring_action.to_semiring_hom M S m),
+  smul_mul := λ m p q, polynomial.map_mul (mul_semiring_action.to_semiring_hom M S m), }
+
+@[simp] lemma polynomial.coeff_smul' (m : M) (p : polynomial S) (n : ℕ) :
+  (m • p).coeff n = m • p.coeff n :=
+polynomial.coeff_map _ _
+
+@[simp] lemma polynomial.smul_C (m : M) (r : S) : m • polynomial.C r = polynomial.C (m • r) :=
+polynomial.map_C _
+
+@[simp] lemma polynomial.smul_X (m : M) : (m • polynomial.X : polynomial S) = polynomial.X :=
+polynomial.map_X _

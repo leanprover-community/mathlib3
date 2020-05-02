@@ -201,7 +201,7 @@ begin
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l+j), (l, j)⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
     simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, rw mul_assoc },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
   { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
     simp only [finset.mem_sigma, mem_antidiagonal_support,
       and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,

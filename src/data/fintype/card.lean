@@ -174,7 +174,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
+lemma finset.prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
   finset.univ.prod (f ∘ e) = finset.univ.prod f :=
 begin
   apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),

@@ -732,10 +732,10 @@ end
 
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
-  rw [← union_singleton, span_union, mem_sup],
-  simp [mem_span_singleton, add_comm, add_left_comm], split,
-  { rintro ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩, exact ⟨a, z, hz, rfl⟩ },
-  { rintro ⟨a, z, hz, rfl⟩, exact ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩ }
+  simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
+    exists_exists_eq_and],
+  rw [exists_comm],
+  simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
 lemma mem_span_insert' {y} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=

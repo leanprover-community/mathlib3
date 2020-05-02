@@ -46,6 +46,12 @@ class has_bracket (L : Type v) := (bracket : L → L → L)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
+/-- An Abelian Lie algebra is one in which all brackets vanish. Arguably this class belongs in the
+`has_bracket` namespace but it seems much more user-friendly to compromise slightly and put it in
+the `lie_algebra` namespace. -/
+class lie_algebra.is_abelian (L : Type v) [has_bracket L] [has_zero L] : Prop :=
+(abelian : ∀ (x y : L), ⁅x, y⁆ = 0)
+
 namespace ring_commutator
 
 variables {A : Type v} [ring A]
@@ -153,6 +159,19 @@ def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
   lie_add  := ring_commutator.add_right,
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }
+
+local attribute [instance] lie_ring.of_associative_ring
+
+lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
+  ⁅x, y⁆ = x*y - y*x := rfl
+
+lemma commutative_ring_iff_abelian_lie_ring (A : Type v) [ring A] :
+  is_commutative A (*) ↔ lie_algebra.is_abelian A :=
+begin
+  have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  have h₂ : lie_algebra.is_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
+end
 
 end lie_ring
 
@@ -365,18 +384,16 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
-/-- A Lie subalgebra forms a new Lie ring.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
+/-- A Lie subalgebra forms a new Lie ring. -/
+instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },
   jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, } }
 
-/-- A Lie subalgebra forms a new Lie algebra.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
     @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
@@ -467,6 +484,15 @@ An ideal of a Lie algebra is a Lie subalgebra.
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L := {
   lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
+
+/-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
+class lie_module.is_irreducible [lie_module R L M] : Prop :=
+(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+
+/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
+action, and it is non-Abelian. -/
+class lie_algebra.is_simple : Prop :=
+(simple : lie_module.is_irreducible R L L ∧ ¬lie_algebra.is_abelian L)
 
 end lie_module
 

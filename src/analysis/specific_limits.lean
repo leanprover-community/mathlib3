@@ -14,6 +14,8 @@ open_locale classical topological_space
 
 open classical function filter finset metric
 
+open_locale big_operators
+
 variables {α : Type*} {β : Type*} {ι : Type*}
 
 lemma tendsto_norm_at_top_at_top : tendsto (norm : ℝ → ℝ) at_top at_top :=
@@ -116,7 +118,7 @@ lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_sp
 tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
-  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
+  (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
   begin
     refine summable_of_summable_norm ⟨r, (has_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
@@ -203,7 +205,7 @@ have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
-have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
+have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_series r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 
@@ -264,8 +266,8 @@ begin
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
-    calc (n:ennreal) = (range n).sum (λ _, 1) : by rw [sum_const, add_monoid.smul_one, card_range]
-    ... ≤ (range n).sum (pow r) : sum_le_sum (λ k _, this k) }
+    calc (n:ennreal) = (∑ i in range n, 1) : by rw [sum_const, add_monoid.smul_one, card_range]
+    ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
 end
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
@@ -435,11 +437,11 @@ section summable_le_geometric
 variables [normed_group α] {r C : ℝ} {f : ℕ → α}
 
 lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
-  dist ((finset.range n).sum f) ((finset.range (n+1)).sum f) ≤ C * r ^ n :=
+  dist (∑ i in range n, f i) (∑ i in range (n+1), f i) ≤ C * r ^ n :=
 begin
   rw [sum_range_succ, dist_eq_norm, ← norm_neg],
   convert hf n,
-  abel
+  rw [neg_sub, add_sub_cancel]
 end
 
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a

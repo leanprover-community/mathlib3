@@ -55,10 +55,10 @@ begin
   { assume h, subst h, exact forall₂_refl _ }
 end
 
-@[simp] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
-@[simp] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
 lemma forall₂_cons_left_iff {a l u} : forall₂ r (a::l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=

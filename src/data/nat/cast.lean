@@ -41,7 +41,7 @@ following order:
  4. `coe_trans`
 
 If `coe_trans` is tried first, then `nat.cast_coe` doesn't get a chance to apply.
---/
+-/
 library_note "coercion into rings"
 attribute [instance, priority 950] coe_base
 attribute [instance, priority 500] coe_trans

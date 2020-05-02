@@ -192,7 +192,7 @@ include M
 
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
-  { intros, apply linear_map.ext, simp }
+  { intros, apply linear_map.ext, simp {proj := ff} }
 
 end
 
@@ -1781,9 +1781,8 @@ begin
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },
     simp only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
     split_ifs,
-    { rw [dif_pos h], refl },
-    { rw [dif_neg h],
-      exact (hb _ $ (hu trivial).resolve_left h).symm } }
+    { refl },
+    { exact (hb _ $ (hu trivial).resolve_left h).symm } }
 end
 end
 

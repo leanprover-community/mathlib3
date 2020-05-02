@@ -429,6 +429,7 @@ def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
 
 @[simp] lemma sum_comm_apply_inl (α β) (a) : sum_comm α β (sum.inl a) = sum.inr a := rfl
 @[simp] lemma sum_comm_apply_inr (α β) (b) : sum_comm α β (sum.inr b) = sum.inl b := rfl
+@[simp] lemma sum_comm_symm (α β) : (sum_comm α β).symm = sum_comm β α := by ext x; cases x; refl
 
 def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 ⟨λ s, match s with inl (inl a) := inl a | inl (inr b) := inr (inl b) | inr c := inr (inr c) end,

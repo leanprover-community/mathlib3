@@ -351,9 +351,6 @@ do c ← get_cache,
   return (xadd' c (const α1) (e, i) (n1, 1) (const α0),
     c.cs_app ``horner_atom [e])
 
-lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
-by simp [pra, prt]
-
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
 by simp [prl, prr, prt]
@@ -383,7 +380,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,
-  p ← ring_m.mk_app ``subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
+  p ← ring_m.mk_app ``norm_num.subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
 | `(%%e₁ * %%e₂) := do
   (e₁', p₁) ← eval e₁,

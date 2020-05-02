@@ -33,6 +33,9 @@ open tactic
 namespace norm_num
 variable {α : Type u}
 
+lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
+by simp [pra, prt]
+
 meta inductive match_numeral_result
 | zero | one | bit0 (e : expr) | bit1 (e : expr)
 

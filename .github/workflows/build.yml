@@ -7,6 +7,7 @@ on:
       - 'staging.tmp*'
       - 'trying.tmp*'
       - 'staging*.tmp'
+      - 'nolints'
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
 

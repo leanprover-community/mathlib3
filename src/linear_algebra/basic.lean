@@ -1556,8 +1556,9 @@ def of_top (h : p = ⊤) : p ≃ₗ[R] M :=
 
 @[simp] theorem of_top_apply {h} (x : p) : of_top p h x = x := rfl
 
-@[simp] theorem coe_of_top_symm_apply {h} (x : M) :
-  ((of_top p h).symm x : M) = x := rfl
+@[simp] theorem coe_of_top_symm_apply {h} (x : M) : ((of_top p h).symm x : M) = x := rfl
+
+theorem of_top_symm_apply {h} (x : M) : (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/

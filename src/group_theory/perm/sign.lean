@@ -414,7 +414,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }

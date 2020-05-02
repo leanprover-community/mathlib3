@@ -683,8 +683,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
-      by conv in (f) {rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1 };
-        simp [mul_def, one_def],
+      begin
+        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
+        simp [mul_def, one_def]
+      end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         card_support_swap hx.1.symm]; refl
   else

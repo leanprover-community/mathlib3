@@ -1429,9 +1429,6 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (x : M) : e.symm.symm x = e x :=
-by { cases e, refl }
-
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective
 protected lemma surjective : function.surjective e := e.to_equiv.surjective

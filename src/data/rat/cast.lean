@@ -32,7 +32,8 @@ variable [division_ring α]
   division ring. If the field has positive characteristic `p`,
   we define `1 / p = 1 / 0 = 0` for consistency with our
   division by zero convention. -/
-@[priority 10] instance cast_coe : has_coe ℚ α := ⟨λ r, r.1 / r.2⟩
+-- see Note [coercion into rings]
+@[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]

@@ -571,7 +571,7 @@ by { simp [bundle_mfderiv_within], rw mfderiv_within_subset st hs h }
 
 lemma bundle_mfderiv_within_univ :
   bundle_mfderiv_within I I' f univ = bundle_mfderiv I I' f :=
-by { ext p : 1, simp [bundle_mfderiv_within, bundle_mfderiv], rw mfderiv_within_univ }
+by { ext p : 1, simp [bundle_mfderiv_within, bundle_mfderiv] }
 
 lemma bundle_mfderiv_within_eq_bundle_mfderiv {p : tangent_bundle I M}
   (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_at I I' f p.1) :

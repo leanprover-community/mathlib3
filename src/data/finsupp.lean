@@ -928,8 +928,8 @@ lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoi
   (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
   (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
-  unfold sum,
-  simp only [comap_domain, comap_domain_apply, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))],
+  simp [sum],
+  simp [comap_domain, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]

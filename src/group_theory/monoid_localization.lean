@@ -122,7 +122,7 @@ le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
     begin
       rw [← mul_one (p, q), ← mul_one y],
       refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,
-      convert b.symm (b.mul (b.refl y) (H (q * t))); simp only [],
+      convert b.symm (b.mul (b.refl y) (H (q * t))) using 1,
       rw [prod.mk_mul_mk, submonoid.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
       refl
     end

@@ -515,9 +515,7 @@ begin
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal_support at hij,
         rw coeff_X_pow, split_ifs with hi,
-        { exfalso, apply H, rw [← hij, hi], ext t,
-          simp only [nat.add_sub_cancel_left, add_comm,
-            finsupp.add_apply, add_right_inj, finsupp.nat_sub_apply] },
+        { exfalso, apply H, rw [← hij, hi], ext, simp, cc },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -933,6 +931,14 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
+@[simp] lemma constant_coeff_C (a : α) : constant_coeff α (C α a) = a := rfl
+@[simp] lemma constant_coeff_comp_C :
+  (constant_coeff α).comp (C α) = ring_hom.id α := rfl
+
+@[simp] lemma constant_coeff_zero : constant_coeff α 0 = 0 := rfl
+@[simp] lemma constant_coeff_one : constant_coeff α 1 = 1 := rfl
+@[simp] lemma constant_coeff_X : constant_coeff α X = 0 := mv_power_series.coeff_zero_X _
+
 @[simp] lemma coeff_zero_mul_X (φ : power_series α) :
   coeff α 0 (φ * X) = 0 :=
 begin
@@ -941,14 +947,6 @@ begin
   obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
   simp,
 end
-
-@[simp] lemma constant_coeff_C (a : α) : constant_coeff α (C α a) = a := rfl
-@[simp] lemma constant_coeff_comp_C :
-  (constant_coeff α).comp (C α) = ring_hom.id α := rfl
-
-@[simp] lemma constant_coeff_zero : constant_coeff α 0 = 0 := rfl
-@[simp] lemma constant_coeff_one : constant_coeff α 1 = 1 := rfl
-@[simp] lemma constant_coeff_X : constant_coeff α X = 0 := mv_power_series.coeff_zero_X _
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series α) (h : is_unit φ) :

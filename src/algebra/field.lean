@@ -59,6 +59,9 @@ inv_eq_iff
 lemma div_neg (a : α) : a / -b = -(a / b) :=
 by rw [← div_neg_eq_neg_div]
 
+lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
+by rw neg_inv
+
 end division_ring
 
 @[priority 100] -- see Note [lower instance priority]

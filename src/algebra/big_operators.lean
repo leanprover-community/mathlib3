@@ -2,12 +2,32 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Some big operators for lists and finite sets.
 -/
+
 import data.finset
 import data.nat.enat
 import tactic.omega
+
+/-!
+# Big operators
+
+In this file we define products and sums indexed by finite sets (specifically, `finset`).
+
+## Notation
+
+We introduce the following notation, localized in `big_operators`.
+To enable the notation, use `open_locale big_operators`.
+
+Let `s` be a `finset α`, and `f : α → β` a function.
+
+* `∏ x in s, f x` is notation for `finset.prod s f` (assuming `β` is a `comm_monoid`)
+* `∑ x in s, f x` is notation for `finset.sum s f` (assuming `β` is an `add_comm_monoid`)
+* `∏ x, f x` is notation for `finset.prod finset.univ f`
+  (assuming `α` is a `fintype` and `β` is a `comm_monoid`)
+* `∑ x in s, f x` is notation for `finset.prod finset.univ f`
+  (assuming `α` is a `fintype` and `β` is an `add_comm_monoid`)
+
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

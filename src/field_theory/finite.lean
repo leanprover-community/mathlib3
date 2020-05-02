@@ -22,8 +22,8 @@ Throughout most of this file, K denotes a finite field with q elements.
 2. The unit group of a finite field is a cyclic group of order q - 1.
    (`finite_field.is_cyclic` and `card_units`)
 3. `sum_pow_units`: The sum of x^i, where x ranges over the units of K, is
-   | q-1 if q-1 ∣ i
-   | 0   otherwise
+   - `q-1` if `q-1 ∣ i`
+   - `0`   otherwise
 4. `finite_field.card`: The cardinality q is a power of the characteristic of K.
    See `card'` for a variant.
 -/

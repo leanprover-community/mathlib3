@@ -356,14 +356,22 @@ structure submodule (R : Type u) (M : Type v) [ring R]
 (smul : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
 
 namespace submodule
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [ring R] [add_comm_group M]
 
-section
 variables [module R M]
 
 instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
-end
+instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+end submodule
+
+protected theorem submodule.exists [ring R] [add_comm_group M] [module R M] {p : submodule R M}
+  {q : p → Prop} :
+  (∃ x, q x) ↔ (∃ x (hx : x ∈ p), q ⟨x, hx⟩) :=
+set_coe.exists
+
+namespace submodule
+variables [ring R] [add_comm_group M] [add_comm_group M₂]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
@@ -417,6 +425,8 @@ instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
+
+@[simp] lemma mk_eq_zero (x) (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
 
 variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl

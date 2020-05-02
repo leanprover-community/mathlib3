@@ -103,17 +103,6 @@ run_cmd do
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end
 
-section
-def foo_instance {α} (R : setoid α) : has_coe α (quotient R) := ⟨quotient.mk⟩
-local attribute [instance, priority 1] foo_instance
-run_cmd do
-  d ← get_decl `foo_instance,
-  some "illegal instance" ← linter.has_coe_variable.test d,
-  d ← get_decl `has_coe_to_fun,
-  some s ← fails_quickly 3000 d,
-  guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
-end
-
 /- test of `apply_to_fresh_variables` -/
 run_cmd do
   e ← mk_const `id,

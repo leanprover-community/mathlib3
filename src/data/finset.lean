@@ -1572,9 +1572,8 @@ lemma bind_subset_bind_of_subset_left {α : Type*} {s₁ s₂ : finset α}
   (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bind t ⊆ s₂.bind t :=
 begin
   intro x,
-  simp only [and_imp, mem_bind, exists_prop, exists_imp_distrib],
-  intros y hy hty,
-  exact ⟨y, h hy, hty⟩
+  simp only [and_imp, mem_bind, exists_prop],
+  exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
@@ -1584,10 +1583,8 @@ lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 begin
   ext b,
-  simp,
-  split,
-  { rintros ⟨a, ⟨b', _, _⟩, hb, _⟩, exact hb },
-  { rintros hb, exact ⟨g b, ⟨b, hb, rfl⟩, hb, rfl⟩ }
+  suffices : (∃ a, a ∈ s ∧ b ∈ s ∧ g b = g a) ↔ b ∈ s, by simpa,
+  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨b, hb, hb, rfl⟩⟩
 end
 
 end bind

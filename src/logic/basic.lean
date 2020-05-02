@@ -584,6 +584,14 @@ by simp [and_comm]
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
+@[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :
+  (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
+⟨λ ⟨b, ⟨a, ha, hab⟩, hb⟩, ⟨a, ha, hab.symm ▸ hb⟩, λ ⟨a, hp, hq⟩, ⟨f a, ⟨a, hp, rfl⟩, hq⟩⟩
+
+@[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
+  (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
+⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
@@ -592,6 +600,9 @@ by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_right' {a' : α} : (∃ a, p a ∧ a' = a) ↔ p a' :=
 by simp [@eq_comm _ a']
+
+theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
+⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
 
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x

@@ -35,11 +35,32 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 
 end finset
 
-localized "notation `∑` binders `, ` r:(scoped:64 f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped:69 f, finset.prod finset.univ f) := r" in big_operators
+/-
+## Operator precedence of `∏` and `∑`
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:64 f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped:69 f, finset.prod s f) := r" in big_operators
+There is no established mathematical convention
+for the operator precedence of big operators like `∏` and `∑`.
+We will have to make a choice.
+
+Online discussions, such as https://math.stackexchange.com/q/185538/30839
+seem to suggest that `∏` and `∑` should have the same precedence,
+and that this should be somewhere between `*` and `+`.
+The latter have precedence levels `70` and `65` respectively,
+and we therefore choose the level `67`.
+
+In practice, this means that parentheses should be placed as follows:
+```lean
+∑ k in K, (a k + b k) = ∑ k in K, a k + ∑ k in K, b k →
+  ∏ k in K, a k * b k = (∏ k in K, a k) * (∏ k in K, b k)
+```
+(Example taken from page 490 of Knuth's *Concrete Mathematics*.)
+-/
+
+localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
+localized "notation `∏` binders `, ` r:(scoped:67 f, finset.prod finset.univ f) := r" in big_operators
+
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
+localized "notation `∏` binders ` in ` s `, ` r:(scoped:67 f, finset.prod s f) := r" in big_operators
 
 open_locale big_operators
 
@@ -400,7 +421,7 @@ lemma prod_range_succ' (f : ℕ → β) :
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
-  (∑ i in range n, f (i+1) - f i) = f n - f 0 :=
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
   induction n with n IH, { simp },
   rw [finset.sum_range_succ, IH, nat.succ_eq_add_one],
@@ -730,7 +751,7 @@ namespace finset
 variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
-  (∑ x in s, f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
+  ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
 
 section comm_monoid

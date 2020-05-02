@@ -104,10 +104,10 @@ variables [mul_semiring_action M S]
 
 noncomputable instance : mul_semiring_action M (polynomial S) :=
 { smul := λ m, polynomial.map $ mul_semiring_action.to_semiring_hom M S m,
-  one_smul := λ p, by ext n; erw polynomial.coeff_map; exact one_smul M (p.coeff n),
-  mul_smul := λ m n p, by ext i;
-    iterate 3 { rw polynomial.coeff_map (mul_semiring_action.to_semiring_hom M S _) };
-    exact mul_smul m n (p.coeff i),
+  one_smul := λ p, by { ext n, erw polynomial.coeff_map, exact one_smul M (p.coeff n) },
+  mul_smul := λ m n p, by { ext i,
+    iterate 3 { rw polynomial.coeff_map (mul_semiring_action.to_semiring_hom M S _) },
+    exact mul_smul m n (p.coeff i) },
   smul_add := λ m p q, polynomial.map_add (mul_semiring_action.to_semiring_hom M S m),
   smul_zero := λ m, polynomial.map_zero (mul_semiring_action.to_semiring_hom M S m),
   smul_one := λ m, polynomial.map_one (mul_semiring_action.to_semiring_hom M S m),

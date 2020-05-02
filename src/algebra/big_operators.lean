@@ -466,16 +466,16 @@ begin
      rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
 end
 
-@[simp, to_additive]
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (∏ k in range 0, f k) = 1 :=
 by rw [range_zero, prod_empty]
 
-@[simp] lemma prod_range_one (f : ℕ → β) :
+lemma prod_range_one (f : ℕ → β) :
   (∏ k in range 1, f k) = f 0 :=
 by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 
-@[simp] lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
+lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (∑ k in range 1, f k) = f 0 :=
 by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
 

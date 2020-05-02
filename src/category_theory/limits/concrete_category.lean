@@ -48,7 +48,7 @@ local attribute [instance] concrete_category.has_coe_to_fun
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
   convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp [-cone.w] },
+  { dsimp, simp [-nat_trans.naturality, -cocone.w] },
 end
 
 end cocone

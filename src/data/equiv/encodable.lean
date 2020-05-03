@@ -289,6 +289,15 @@ def up (a : ulower α) : α := (equiv α).symm a
 @[simp] lemma down_up {a : ulower α} : down a.up = a := equiv.right_inv _ _
 @[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
 
+@[ext] protected lemma ext {a b : ulower α} (h : a.up = b.up) : a = b :=
+by simpa using congr_arg down h
+
+@[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
+⟨ulower.ext, by cc⟩
+
+@[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
+⟨λ h, by simpa using congr_arg up h, by cc⟩
+
 end ulower
 
 /-

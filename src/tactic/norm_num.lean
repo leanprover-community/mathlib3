@@ -16,9 +16,14 @@ universes u v w
 
 namespace tactic
 
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
 meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   tactic (expr × expr) :=
 (do (e₁, p₁) ← t₁ e,
@@ -133,7 +138,7 @@ with prove_adc_nat : instance_cache → expr → expr → expr → tactic (insta
 meta def prove_add_nat' (c : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) := do
   na ← a.to_nat,
   nb ← b.to_nat,
-  r ← expr.of_nat c.α (na + nb),
+  (c, r) ← c.of_nat (na + nb),
   (c, p) ← prove_add_nat c a b r,
   return (c, r, p)
 
@@ -218,8 +223,8 @@ meta def prove_clear_denom (c : instance_cache) (a d : expr) (na : ℚ) (nd : �
 if na.denom = 1 then
   prove_mul_nat c a d
 else do
-  [α, _, a, b] ← return a.get_app_args,
-  b' ← expr.of_nat α (nd / na.denom),
+  [_, _, a, b] ← return a.get_app_args,
+  (c, b') ← c.of_nat (nd / na.denom),
   (c, p₀) ← prove_ne_zero c b,
   (c, _, p₁) ← prove_mul_nat c b b',
   (c, r, p₂) ← prove_mul_nat c a b',
@@ -236,7 +241,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
   prove_add_nat ic a b c
 else do
   let nd := na.denom.lcm nb.denom,
-  d ← expr.of_nat ic.α nd,
+  (ic, d) ← ic.of_nat nd,
   (ic, p₀) ← prove_ne_zero ic d,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
@@ -279,7 +284,7 @@ meta def prove_add_rat' (ic : instance_cache) (a b : expr) : tactic (instance_ca
   na ← a.to_rat,
   nb ← b.to_rat,
   let nc := na + nb,
-  c ← expr.of_rat ic.α nc,
+  (ic, c) ← ic.of_rat nc,
   (ic, p) ← prove_add_rat ic a b c na nb nc,
   return (ic, c, p)
 
@@ -310,7 +315,7 @@ meta def prove_mul_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
 if na.denom = 1 ∧ nb.denom = 1 then
   prove_mul_nat ic a b
 else do
-  let nc := na * nb, c ← expr.of_rat ic.α nc,
+  let nc := na * nb, (ic, c) ← ic.of_rat nc,
   (ic, d₁, a', pa) ← prove_clear_denom_simple ic a na,
   (ic, d₂, b', pb) ← prove_clear_denom_simple ic b nb,
   (ic, d, pd) ← prove_mul_nat ic d₁ d₂, nd ← d.to_nat,
@@ -436,21 +441,20 @@ nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
 meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
 do na ← a.to_nat, nb ← b.to_nat,
   if nb ≤ na then do
-    c ← expr.of_nat `(ℕ) (na - nb),
+    (ic, c) ← ic.of_nat (na - nb),
     (ic, p) ← prove_add_nat ic b c a,
     return (c, `(sub_nat_pos).mk_app [a, b, c, p])
   else do
-    c ← expr.of_nat `(ℕ) (nb - na),
+    (ic, c) ← ic.of_nat (nb - na),
     (ic, p) ← prove_add_nat ic a c b,
     return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
 
 meta def eval_field : expr → tactic (expr × expr)
 | `(%%e₁ + %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
-  α ← infer_type e₁,
-  c ← mk_instance_cache α,
+  c ← infer_type e₁ >>= mk_instance_cache,
   let n₃ := n₁ + n₂,
-  e₃ ← expr.of_rat α n₃,
+  (c, e₃) ← c.of_rat n₃,
   (_, p) ← prove_add_rat c e₁ e₂ e₃ n₁ n₂ n₃,
   return (e₃, p)
 | `(%%e₁ * %%e₂) := do
@@ -645,7 +649,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
   prove_lt_nat ic a b
 else do
   let nd := na.denom.lcm nb.denom,
-  d ← expr.of_nat ic.α nd,
+  (ic, d) ← ic.of_nat nd,
   (ic, p₀) ← prove_pos ic d,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
@@ -682,7 +686,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
   prove_le_nat ic a b
 else do
   let nd := na.denom.lcm nb.denom,
-  d ← expr.of_nat ic.α nd,
+  (ic, d) ← ic.of_nat nd,
   (ic, p₀) ← prove_pos ic d,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
@@ -844,7 +848,7 @@ meta def prove_nat_succ (ic : instance_cache) : expr → tactic (instance_cache 
 | `(nat.succ %%a) := do
   (ic, n, b, p₁) ← prove_nat_succ a,
   let n' := n + 1,
-  c ← expr.of_nat `(ℕ) n',
+  (ic, c) ← ic.of_nat n',
   (ic, p₂) ← prove_add_nat ic b `(1) c,
   return (ic, n', c, `(nat_succ_eq).mk_app [a, b, c, p₁, p₂])
 | e := do
@@ -888,8 +892,8 @@ meta def prove_div_mod (ic : instance_cache) : expr → expr → bool → tactic
     let nq := n₁ / n₂,
     let nr := n₁ % n₂,
     let nm := nq * nr,
-    q ← expr.of_nat ic.α nq,
-    r ← expr.of_nat ic.α nr,
+    (ic, q) ← ic.of_nat nq,
+    (ic, r) ← ic.of_nat nr,
     (ic, m, pm) ← prove_mul_nat ic q b,
     (ic, p) ← prove_add_nat ic r m a,
     (ic, p') ← prove_lt_nat ic r b,

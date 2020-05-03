@@ -358,8 +358,9 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
         (ic, p) ← ic.mk_app ``one_inv_eq [],
         return (ic, e, p)
       else do
+        let e := e.app_arg,
         (ic, p) ← ic.mk_app ``inv_one_div [e],
-        return (ic, e.app_arg, p)
+        return (ic, e, p)
     else if n.denom = 1 then do
       (ic, p) ← ic.mk_app ``inv_div_one [e],
       e ← infer_type p,

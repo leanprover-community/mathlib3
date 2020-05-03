@@ -6,7 +6,11 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import data.real.basic tactic.norm_num
+import tactic.norm_num
+
+constant real : Type
+notation `ℝ` := real
+@[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
@@ -21,6 +25,7 @@ example : (2:real) * 2 + 3 = 7 := by norm_num
 example : (6:real) < 10 := by norm_num
 example : (7:real)/2 > 3 := by norm_num
 example : (4:real)⁻¹ < 1 := by norm_num
+example : ((1:real) / 2)⁻¹ = 2 := by norm_num
 example : 2 ^ 17 - 1 = 131071 :=
 by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
 

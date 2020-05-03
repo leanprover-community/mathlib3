@@ -58,8 +58,8 @@ protected meta def expr.to_nonneg_rat : expr → option ℚ
 | `(%%e₁ / %%e₂) := do
   m ← e₁.to_nat,
   n ← e₂.to_nat,
-  if c : m.coprime n then if h : 0 < n then
-    return ⟨m, n, h, c⟩
+  if c : m.coprime n then if h : 1 < n then
+    return ⟨m, n, lt_trans zero_lt_one h, c⟩
   else none else none
 | e := do n ← e.to_nat, return (rat.of_int n)
 

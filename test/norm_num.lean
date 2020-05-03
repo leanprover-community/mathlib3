@@ -32,6 +32,7 @@ by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num
 example : (0 + 1) / 2 < 0 + 1 := by norm_num
+example : nat.succ (nat.succ (2 ^ 3)) = 10 := by norm_num
 
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}
@@ -48,5 +49,7 @@ example (x : ℕ) : ℕ := begin
   exact n
 end
 
+example : nat.prime 1277 := by norm_num
+example : nat.min_fac 221 = 13 := by norm_num
 
 example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h

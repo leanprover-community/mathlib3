@@ -11,7 +11,6 @@ import tactic.lift
 import tactic.localized
 import tactic.mk_iff_of_inductive_prop
 import tactic.push_neg
-import tactic.rename
 import tactic.replacer
 import tactic.rename_var
 import tactic.restate_axiom

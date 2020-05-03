@@ -1182,7 +1182,7 @@ lemma iterated_fderiv_within_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
-  { ext m, simp, refl },
+  { ext m, simp },
   { ext x m,
     rw [iterated_fderiv_succ_apply_left, IH],
     change (fderiv 𝕜 (λ (x : E), (0 : (E [×n]→L[𝕜] F))) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) = _,

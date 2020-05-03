@@ -414,7 +414,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
@@ -683,8 +683,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
-      by conv in (f) {rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1 };
-        simp [mul_def, one_def],
+      begin
+        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
+        simp [mul_def, one_def]
+      end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         card_support_swap hx.1.symm]; refl
   else

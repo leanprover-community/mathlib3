@@ -6,11 +6,16 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import tactic.norm_num
+import data.complex.basic tactic.norm_num
 
-constant real : Type
-notation `ℝ` := real
-@[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
+-- constant real : Type
+-- notation `ℝ` := real
+-- @[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
+
+-- constant complex : Type
+-- notation `ℂ` := complex
+-- @[instance] constant complex.field : field ℂ
+-- @[instance] constant complex.char_zero : char_zero ℂ
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
@@ -28,6 +33,9 @@ example : (4:real)⁻¹ < 1 := by norm_num
 example : ((1:real) / 2)⁻¹ = 2 := by norm_num
 example : 2 ^ 17 - 1 = 131071 :=
 by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
+
+example : (1:complex) ≠ 2 := by norm_num
+example : (1:complex) / 3 ≠ 2 / 7 := by norm_num
 
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num

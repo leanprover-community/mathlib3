@@ -258,19 +258,19 @@ h ▸ by simp
 meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) : tactic (instance_cache × expr) :=
 match match_neg ea, match_neg eb, match_neg ec with
 | some ea, some eb, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic eb ea ec b a c,
+  (ic, p) ← prove_add_nonneg_rat ic eb ea ec (-b) (-a) (-c),
   ic.mk_app ``add_neg_neg [ea, eb, ec, p]
 | some ea, none, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic eb ec ea b c a,
+  (ic, p) ← prove_add_nonneg_rat ic eb ec ea b (-c) (-a),
   ic.mk_app ``add_neg_pos_neg [ea, eb, ec, p]
 | some ea, none, none := do
-  (ic, p) ← prove_add_nonneg_rat ic ea ec eb a c b,
+  (ic, p) ← prove_add_nonneg_rat ic ea ec eb (-a) c b,
   ic.mk_app ``add_neg_pos_pos [ea, eb, ec, p]
 | none, some eb, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic ec ea eb c a b,
+  (ic, p) ← prove_add_nonneg_rat ic ec ea eb (-c) a (-b),
   ic.mk_app ``add_pos_neg_neg [ea, eb, ec, p]
 | none, some eb, none := do
-  (ic, p) ← prove_add_nonneg_rat ic ec eb ea c b a,
+  (ic, p) ← prove_add_nonneg_rat ic ec eb ea c (-b) a,
   ic.mk_app ``add_pos_neg_pos [ea, eb, ec, p]
 | _, _, _ := prove_add_nonneg_rat ic ea eb ec a b c
 end
@@ -326,16 +326,16 @@ theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c :=
 meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
 match match_neg a, match_neg b with
 | some a, some b := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b na nb,
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) (-nb),
   (ic, p) ← ic.mk_app ``mul_neg_neg [a, b, c, p],
   return (ic, c, p)
 | some a, none := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b na nb,
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) nb,
   (ic, p) ← ic.mk_app ``mul_neg_pos [a, b, c, p],
   (ic, c') ← ic.mk_app ``has_neg.neg [c],
   return (ic, c', p)
 | none, some b := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b na nb,
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b na (-nb),
   (ic, p) ← ic.mk_app ``mul_pos_neg [a, b, c, p],
   (ic, c') ← ic.mk_app ``has_neg.neg [c],
   return (ic, c', p)
@@ -598,7 +598,6 @@ meta mutual def prove_le_nat, prove_sle_nat (ic : instance_cache)
 with prove_le_nat : expr → expr → tactic (instance_cache × expr)
 | a b :=
   if a = b then ic.mk_app ``le_refl [a] else
-  do trace ("le", a, b),
   match match_numeral a, match_numeral b with
   | zero, _ := prove_nonneg ic b
   | one, bit0 b := do (ic, p) ← prove_one_le_nat ic b, ic.mk_app ``le_one_bit0 [b, p]
@@ -611,7 +610,6 @@ with prove_le_nat : expr → expr → tactic (instance_cache × expr)
   end
 with prove_sle_nat : expr → expr → tactic (instance_cache × expr)
 | a b :=
-  do trace ("sle", a, b),
   match match_numeral a, match_numeral b with
   | zero, _ := prove_nonneg ic b
   | one, bit0 b := do (ic, p) ← prove_one_le_nat ic b, ic.mk_app ``sle_one_bit0 [b, p]
@@ -625,7 +623,6 @@ with prove_sle_nat : expr → expr → tactic (instance_cache × expr)
 
 meta def prove_lt_nat (ic : instance_cache) : expr → expr → tactic (instance_cache × expr)
 | a b :=
-  do trace ("lt", a, b),
   match match_numeral a, match_numeral b with
   | zero, _ := prove_pos ic b
   | one, bit0 b := do (ic, p) ← prove_one_le_nat ic b, ic.mk_app ``lt_one_bit0 [b, p]
@@ -661,7 +658,7 @@ lt_trans (neg_neg_of_pos ha) hb
 meta def prove_lt_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr) :=
 match match_neg a, match_neg b with
 | some a, some b := do
-  (ic, p) ← prove_lt_nonneg_rat ic a b na nb,
+  (ic, p) ← prove_lt_nonneg_rat ic a b (-na) (-nb),
   ic.mk_app ``neg_lt_neg [a, b, p]
 | some a, none :=
   if nb.num = 0 then do
@@ -698,7 +695,7 @@ le_trans (neg_nonpos_of_nonneg ha) hb
 meta def prove_le_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr) :=
 match match_neg a, match_neg b with
 | some a, some b := do
-  (ic, p) ← prove_le_nonneg_rat ic a b na nb,
+  (ic, p) ← prove_le_nonneg_rat ic a b (-na) (-nb),
   ic.mk_app ``neg_le_neg [a, b, p]
 | some a, none :=
   if nb.num = 0 then do
@@ -712,6 +709,85 @@ match match_neg a, match_neg b with
   if na.num = 0 then prove_nonneg ic b
   else prove_le_nonneg_rat ic a b na nb
 end
+
+meta def prove_ne_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr) :=
+if na < nb then do
+  (ic, p) ← prove_lt_rat ic a b na nb,
+  ic.mk_app ``ne_of_lt [a, b, p]
+else do
+  (ic, p) ← prove_lt_rat ic b a nb na,
+  ic.mk_app ``ne_of_gt [a, b, p]
+
+theorem rat_cast_neg {α} [division_ring α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑-a = -a' :=
+h ▸ rat.cast_neg _
+theorem rat_cast_div {α} [division_ring α] [char_zero α] (a b : ℚ) (a' b' : α)
+  (ha : ↑a = a') (hb : ↑b = b') : ↑(a / b) = a' / b' :=
+ha ▸ hb ▸ rat.cast_div _ _
+theorem rat_cast_bit0 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit0 a) = bit0 a' :=
+h ▸ rat.cast_bit0 _
+theorem rat_cast_bit1 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
+h ▸ rat.cast_bit1 _
+
+meta def prove_rat_uncast_nat (ic qc : instance_cache) (cz_inst : expr) : ∀ (a' : expr),
+  tactic (instance_cache × instance_cache × expr × expr)
+| a' :=
+  match match_numeral a' with
+  | match_numeral_result.zero := do
+    (qc, e) ← qc.mk_app ``has_zero.zero [],
+    (ic, p) ← ic.mk_app ``rat.cast_zero [cz_inst],
+    return (ic, qc, e, p)
+  | match_numeral_result.one := do
+    (qc, e) ← qc.mk_app ``has_one.one [],
+    (ic, p) ← ic.mk_app ``rat.cast_one [],
+    return (ic, qc, e, p)
+  | match_numeral_result.bit0 a' := do
+    (ic, qc, a, p) ← prove_rat_uncast_nat a',
+    a0 ← mk_app ``bit0 [a],
+    (ic, p) ← ic.mk_app ``rat_cast_bit0 [cz_inst, a, a', p],
+    return (ic, qc, a0, p)
+  | match_numeral_result.bit1 a' := do
+    (ic, qc, a, p) ← prove_rat_uncast_nat a',
+    a1 ← mk_app ``bit1 [a],
+    (ic, p) ← ic.mk_app ``rat_cast_bit1 [cz_inst, a, a', p],
+    return (ic, qc, a1, p)
+  | _ := failed
+  end
+
+meta def prove_rat_uncast_nonneg (ic qc : instance_cache) (cz_inst a' : expr) (na' : ℚ) :
+ tactic (instance_cache × instance_cache × expr × expr) :=
+if na'.denom = 1 then
+  prove_rat_uncast_nat ic qc cz_inst a'
+else do
+  [_, _, a', b'] ← return a'.get_app_args,
+  (ic, qc, a, pa) ← prove_rat_uncast_nat ic qc cz_inst a',
+  (ic, qc, b, pb) ← prove_rat_uncast_nat ic qc cz_inst b',
+  (qc, e) ← qc.mk_app ``has_div.div [a, b],
+  (ic, p) ← ic.mk_app ``rat_cast_div [cz_inst, a, b, a', b', pa, pb],
+  return (ic, qc, e, p)
+
+meta def prove_rat_uncast (ic qc : instance_cache) (cz_inst a' : expr) (na' : ℚ) :
+  tactic (instance_cache × instance_cache × expr × expr) :=
+match match_neg a' with
+| some a' := do
+  (ic, qc, a, p) ← prove_rat_uncast_nonneg ic qc cz_inst a' (-na'),
+  (ic, p) ← ic.mk_app ``rat_cast_neg [a, a', p],
+  return (ic, qc, a, p)
+| none := prove_rat_uncast_nonneg ic qc cz_inst a' na'
+end
+
+theorem rat_cast_ne {α} [division_ring α] [char_zero α] (a b : ℚ) (a' b' : α)
+  (ha : ↑a = a') (hb : ↑b = b') (h : a ≠ b) : a' ≠ b' :=
+ha ▸ hb ▸ mt rat.cast_inj.1 h
+
+meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
+| ic a b na nb := prove_ne_rat ic a b na nb <|> do
+  guard (ic.α ≠ `(ℚ)),
+  cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
+  qc ← mk_instance_cache `(rat),
+  (ic, qc, a', pa) ← prove_rat_uncast ic qc cz_inst a na,
+  (ic, qc, b', pb) ← prove_rat_uncast ic qc cz_inst b nb,
+  (qc, p) ← prove_ne_rat qc a' b' na nb,
+  ic.mk_app ``rat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
 
 meta def true_intro (p : expr) : tactic (expr × expr) :=
 prod.mk `(true) <$> mk_app ``eq_true_intro [p]
@@ -750,29 +826,16 @@ meta def eval_ineq : expr → tactic (expr × expr)
 | `(%%e₁ = %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
-  if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro else
-  if n₁ < n₂ then do
-    (c, p) ← prove_lt_rat c e₁ e₂ n₁ n₂,
-    (_, p) ← c.mk_app ``ne_of_lt [e₁, e₂, p],
-    false_intro p
-  else do
-    (c, p) ← prove_lt_rat c e₂ e₁ n₁ n₂,
-    (_, p) ← c.mk_app ``ne_of_gt [e₁, e₂, p],
-    false_intro p
+  if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro
+  else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, false_intro p
 | `(%%e₁ > %%e₂) := mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq
 | `(%%e₁ ≥ %%e₂) := mk_app ``has_le.le [e₂, e₁] >>= eval_ineq
 | `(%%e₁ ≠ %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
-  if n₁ < n₂ then do
-    (c, p) ← prove_lt_rat c e₁ e₂ n₁ n₂,
-    (_, p) ← c.mk_app ``ne_of_lt [e₁, e₂, p],
-    true_intro p
-  else if n₂ < n₁ then do
-    (c, p) ← prove_lt_rat c e₂ e₁ n₁ n₂,
-    (_, p) ← c.mk_app ``ne_of_gt [e₁, e₂, p],
-    true_intro p
-  else prod.mk `(false) <$> mk_app ``not_refl_false_intro [e₁]
+  if n₁ = n₂ then
+    prod.mk `(false) <$> mk_app ``not_refl_false_intro [e₁]
+  else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, true_intro p
 | _ := failed
 
 theorem nat_succ_eq (a b c : ℕ) (h₁ : a = b) (h₂ : b + 1 = c) : nat.succ a = c := by rwa h₁

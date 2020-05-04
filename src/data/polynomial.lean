@@ -2314,7 +2314,7 @@ end field
 section derivative
 variables [comm_semiring R]
 
-/-- `derivative p` formal derivative of the polynomial `p` -/
+/-- `derivative p` is the formal derivative of the polynomial `p` -/
 def derivative (p : polynomial R) : polynomial R := p.sum (λn a, C (a * n) * X^(n - 1))
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) : coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
@@ -2354,12 +2354,26 @@ derivative_C
 by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
+/-- The formal derivative of polynomials, as additive homomorphism. -/
+noncomputable def derivative_hom (R : Type*) [comm_semiring R] : polynomial R →+ polynomial R :=
+{ to_fun := derivative,
+  map_zero' := derivative_zero,
+  map_add' := λ p q, derivative_add }
+
+@[simp] lemma derivative_neg {R : Type*} [comm_ring R] (f : polynomial R) :
+  derivative (-f) = -derivative f :=
+(derivative_hom R).map_neg f
+
+@[simp] lemma derivative_sub {R : Type*} [comm_ring R] (f g : polynomial R) :
+  derivative (f - g) = derivative f - derivative g :=
+(derivative_hom R).map_sub f g
+
 instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
-{ map_add := λ _ _, derivative_add, map_zero := derivative_zero }
+(derivative_hom R).is_add_monoid_hom
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-(s.sum_hom derivative).symm
+(derivative_hom R).map_sum f s
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -2390,6 +2404,24 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
 
 lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp [derivative, eval_sum, eval_pow]
+
+lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {R : Type*} [field R]
+  (f : polynomial R) (r : R) (hf : f.is_root r) (hf' : f.derivative.eval r ≠ 0) :
+  ideal.is_coprime (X - C r : polynomial R) (f /ₘ (X - C r)) :=
+begin
+  refine or.resolve_left (dvd_or_coprime (X - C r) (f /ₘ (X - C r))
+    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C r))) _,
+  contrapose! hf' with h,
+  have key : (X - C r) * (f /ₘ (X - C r)) = f - (f %ₘ (X - C r)),
+  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
+    exact monic_X_sub_C r },
+  replace key := congr_arg derivative key,
+  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
+  have : (X - C r) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
+  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
+  rw [← C_inj, this, C_0],
+end
 
 end derivative
 

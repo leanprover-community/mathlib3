@@ -3,8 +3,8 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-import category.bitraversable.lemmas
-import category.traversable.lemmas
+import control.bitraversable.lemmas
+import control.traversable.lemmas
 
 /-!
 # bitraversable instances

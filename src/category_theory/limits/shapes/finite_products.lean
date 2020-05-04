@@ -10,8 +10,7 @@ universes v u
 open category_theory
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 class has_finite_products :=
 (has_limits_of_shape : Π (J : Type v) [fintype J] [decidable_eq J], has_limits_of_shape.{v} (discrete J) C)

@@ -10,8 +10,7 @@ namespace category_theory
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /--
 `prod C D` gives the cartesian product of two categories.
@@ -34,8 +33,7 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
 -/
@@ -59,8 +57,7 @@ namespace prod
 { obj := λ X, (Z, X),
   map := λ X Y f, (𝟙 Z, f) }
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 @[simps obj map] def fst : C × D ⥤ C :=
@@ -91,8 +88,7 @@ instance swap_is_equivalence : is_equivalence (swap C D) :=
 end prod
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 @[simps] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
 { obj := λ X,
@@ -115,11 +111,10 @@ include 𝒞 𝒟
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₂} [ℬ : category.{v₂} B]
-          {C : Type u₃} [𝒞 : category.{v₃} C]
-          {D : Type u₄} [𝒟 : category.{v₄} D]
-include 𝒜 ℬ 𝒞 𝒟
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₂} [category.{v₂} B]
+          {C : Type u₃} [category.{v₃} C]
+          {D : Type u₄} [category.{v₄} D]
 
 namespace functor
 /-- The cartesian product of two functors. -/

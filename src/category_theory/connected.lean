@@ -58,12 +58,11 @@ component'.
 
 This allows us to show that the functor X ⨯ - preserves connected limits.
 -/
-class connected (J : Type v₂) [𝒥 : category.{v₁} J] extends inhabited J :=
+class connected (J : Type v₂) [category.{v₁} J] extends inhabited J :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
 end connected
 
-variables {J : Type v₂} [𝒥 : category.{v₁} J]
-include 𝒥
+variables {J : Type v₂} [category.{v₁} J]
 
 /--
 If J is connected, any functor to a discrete category is constant on objects.
@@ -203,8 +202,7 @@ begin
   { exact (k a).1 }
 end
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
+variables {C : Type u₂} [category.{v₂} C]
 
 /--
 For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` from a connected

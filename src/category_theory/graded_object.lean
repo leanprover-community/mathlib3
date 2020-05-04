@@ -45,8 +45,7 @@ abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β)
 
 namespace graded_object
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
 { hom := λ X Y, Π b : β, X b ⟶ Y b,
@@ -159,8 +158,7 @@ namespace graded_object
 -- Since we're typically interested in grading by ℤ or a finite group, this should be okay.
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 variables [has_coproducts.{v} C]
 
 /--
@@ -192,9 +190,8 @@ end graded_object
 namespace graded_object
 
 variables (β : Type)
-variables (C : Type (u+1)) [large_category C] [𝒞 : concrete_category C]
+variables (C : Type (u+1)) [large_category C] [concrete_category C]
   [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
-include 𝒞
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

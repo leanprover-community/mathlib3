@@ -35,8 +35,7 @@ instance fintype_walking_pair : fintype walking_pair :=
 { elems := [left, right].to_finset,
   complete := λ x, by { cases x; simp } }
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
@@ -68,8 +67,7 @@ def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj righ
 end
 
 section
-variables {D : Type u} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u} [category.{v} D]
 
 /-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=

@@ -16,7 +16,7 @@ infixr ` • `:73 := has_scalar.smul
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
+/-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
@@ -216,14 +216,22 @@ distrib_mul_action.smul_add _ _ _
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
 
-instance distrib_mul_action.is_add_monoid_hom (r : α) :
-  is_add_monoid_hom ((•) r : β → β) :=
-{ map_zero := smul_zero r,
-  map_add := smul_add r }
+variable (β)
+
+/-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
+def const_smul_hom (r : α) : β →+ β :=
+{ to_fun := (•) r,
+  map_zero' := smul_zero r,
+  map_add' := smul_add r }
+
+variable {β}
+
+@[simp] lemma const_smul_hom_apply (r : α) (x : β) :
+  const_smul_hom β r x = r • x := rfl
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(list.sum_hom _ _).symm
+(const_smul_hom β r).map_list_sum l
 
 end
 
@@ -232,10 +240,10 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(multiset.sum_hom _ _).symm
+(const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • s.sum f = s.sum (λ x, r • f x) :=
-(finset.sum_hom _ _).symm
+(const_smul_hom β r).map_sum f s
 
 end

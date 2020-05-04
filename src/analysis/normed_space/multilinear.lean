@@ -1014,7 +1014,8 @@ begin
   have : x = 0 := subsingleton.elim _ _, subst this,
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
-    continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp),
+    continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm,
+      by simp [-continuous_multilinear_map.apply_zero_curry0]),
   simpa
 end
 

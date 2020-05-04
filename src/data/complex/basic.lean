@@ -283,6 +283,12 @@ by ext; simp [neg_div]
 @[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
 by rw [division_def, conj_mul, conj_inv]; refl
 
+@[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
+(div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
+
+@[simp] lemma inv_I : I⁻¹ = -I :=
+by simp [inv_eq_one_div]
+
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 by classical; exact
 if h : z = 0 then by simp [h] else

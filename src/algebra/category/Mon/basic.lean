@@ -86,9 +86,12 @@ end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
 @[to_additive AddCommMon]
-def CommMon : Type (u+1) := induced_category Mon (bundled.map @comm_monoid.to_monoid)
+def CommMon : Type (u+1) := bundled comm_monoid
 
 namespace CommMon
+
+@[to_additive]
+instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
 /-- Construct a bundled CommMon from the underlying type and typeclass. -/
 @[to_additive]
@@ -115,7 +118,7 @@ instance : category CommMon := infer_instance -- short-circuit type class infere
 instance : concrete_category CommMon := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ CommMon Mon := infer_instance -- short-circuit type class inference
+instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
 
 end CommMon
 
@@ -123,6 +126,19 @@ end CommMon
 example {R S : Mon}     (f : R ⟶ S) : (R : Type) → (S : Type) := f
 example {R S : CommMon} (f : R ⟶ S) : (R : Type) → (S : Type) := f
 
+-- We verify that when constructing a morphism in `CommMon`,
+-- when we construct the `to_fun` field, the types are presented as `↥R`,
+-- rather than `R.α` or (as we used to have) `↥(bundled.map comm_monoid.to_monoid R)`.
+example (R : CommMon.{u}) : R ⟶ R :=
+{ to_fun := λ x,
+  begin
+    match_target (R : Type u),
+    match_hyp x := (R : Type u),
+    exact x * x
+  end ,
+  map_one' := by simp,
+  map_mul' := λ x y,
+  begin rw [mul_assoc x y (x * y), ←mul_assoc y x y, mul_comm y x, mul_assoc, mul_assoc], end, }
 
 variables {X Y : Type u}
 

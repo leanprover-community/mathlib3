@@ -19,8 +19,7 @@ open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 @[simps] def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
@@ -114,8 +113,7 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 
 open opposite
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
@@ -186,7 +184,6 @@ variables {C}
   (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
-omit 𝒞
 @[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) :
   (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _

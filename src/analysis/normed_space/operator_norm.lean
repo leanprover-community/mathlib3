@@ -57,6 +57,13 @@ The fact that the norm of the continuous linear map is then controlled is given 
 def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, linear_map.continuous_of_bound f C h⟩
 
+/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
+is generalized to the case of any finite dimensional domain
+in `linear_map.to_continuous_linear_map`. -/
+def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
+f.mk_continuous (∥f 1∥) $ λ x, le_of_eq $
+by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, mul_comm] }
+
 /-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
 map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
 follow automatically in `linear_map.mk_continuous_norm_le`. -/
@@ -74,6 +81,14 @@ def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * 
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous_of_exists_bound h x = f x := rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
+  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
+rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
+  f.to_continuous_linear_map₁ x = f x :=
+rfl
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -585,6 +600,22 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
+
+theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O (λ x', e (f x')) f l :=
+(e : E →L[𝕜] F).is_O_comp f l
+
+theorem is_O_sub (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
+(e : E →L[𝕜] F).is_O_sub l x
+
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O f (λ x', e (f x')) l :=
+(e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
+
+theorem is_O_sub_rev (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+e.is_O_comp_rev _ _
 
 /-- A continuous linear equiv is a uniform embedding. -/
 lemma uniform_embedding : uniform_embedding e :=

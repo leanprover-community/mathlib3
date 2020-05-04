@@ -20,8 +20,7 @@ namespace category_theory.limits
 namespace cone
 
 variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [𝒞 : concrete_category C]
-include 𝒞
+variables {C : Type (u+1)} [large_category C] [concrete_category C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun
@@ -31,7 +30,7 @@ local attribute [instance] concrete_category.has_coe_to_fun
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
 begin
   convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
-  { dsimp, simp },
+  { dsimp, simp [-cone.w] },
 end
 
 end cone
@@ -39,8 +38,7 @@ end cone
 namespace cocone
 
 variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [𝒞 : concrete_category C]
-include 𝒞
+variables {C : Type (u+1)} [large_category C] [concrete_category C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun
@@ -50,7 +48,7 @@ local attribute [instance] concrete_category.has_coe_to_fun
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
   convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp },
+  { dsimp, simp [-nat_trans.naturality, -cocone.w] },
 end
 
 end cocone

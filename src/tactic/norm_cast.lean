@@ -631,7 +631,7 @@ meta def norm_cast : conv unit := replace_lhs derive
 end conv.interactive
 
 -- TODO: move this elsewhere?
-@[norm_cast] lemma ite_cast {α β : Type} [has_coe α β]
+@[norm_cast] lemma ite_cast {α β} [has_lift_t α β]
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]

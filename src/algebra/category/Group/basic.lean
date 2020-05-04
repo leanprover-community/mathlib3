@@ -27,9 +27,12 @@ open category_theory
 
 /-- The category of groups and group morphisms. -/
 @[to_additive AddGroup]
-def Group : Type (u+1) := induced_category Mon (bundled.map group.to_monoid)
+def Group : Type (u+1) := bundled group
 
 namespace Group
+
+@[to_additive]
+instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
 /-- Construct a bundled Group from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -69,19 +72,22 @@ by { ext1, apply w }
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
+instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
 
 end Group
 
 
 /-- The category of commutative groups and group morphisms. -/
 @[to_additive AddCommGroup]
-def CommGroup : Type (u+1) := induced_category Group (bundled.map comm_group.to_group)
+def CommGroup : Type (u+1) := bundled comm_group
 
 /-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
 abbreviation Ab := AddCommGroup
 
 namespace CommGroup
+
+@[to_additive]
+instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
 /-- Construct a bundled CommGroup from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -117,7 +123,7 @@ by { ext1, apply w }
 attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference
+instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _
 
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=

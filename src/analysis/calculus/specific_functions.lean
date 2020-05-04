@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
-import analysis.complex.exponential
+import analysis.special_functions.exp_log
 
 /-!
 # Smoothness of specific functions

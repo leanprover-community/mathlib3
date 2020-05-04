@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import data.complex.basic
 import data.matrix.basic
 import linear_algebra.tensor_product
 import algebra.commute
@@ -61,6 +60,28 @@ i.to_algebra' $ λ _, mul_comm _
 namespace algebra
 
 variables {R : Type u} {S : Type v} {A : Type w}
+
+/-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
+If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
+over `R`. -/
+def of_semimodule' [comm_semiring R] [semiring A] [semimodule R A]
+  (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
+  (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
+{ to_fun := λ r, r • 1,
+  map_one' := one_smul _ _,
+  map_mul' := λ r₁ r₂, by rw [h₁, mul_smul],
+  map_zero' := zero_smul _ _,
+  map_add' := λ r₁ r₂, add_smul r₁ r₂ 1,
+  commutes' := λ r x, by simp only [h₁, h₂],
+  smul_def' := λ r x, by simp only [h₁] }
+
+/-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
+If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
+is an `algebra` over `R`. -/
+def of_semimodule [comm_semiring R] [semiring A] [semimodule R A]
+  (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
+  (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
+of_semimodule' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
 
 section semiring
 
@@ -187,18 +208,35 @@ instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_rin
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
 
+instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑(f : A →+* B)⟩
+
 @[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
-@[simp, norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
+@[norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
+
+@[norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
 
+theorem coe_fn_inj ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ⇑φ₁ = φ₂) : φ₁ = φ₂ :=
+by { cases φ₁, cases φ₂, congr, exact H }
+
+theorem coe_ring_hom_inj : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
+λ φ₁ φ₂ H, coe_fn_inj $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
+  from congr_arg _ H
+
+theorem coe_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
+function.injective_comp ring_hom.coe_monoid_hom_inj coe_ring_hom_inj
+
+theorem coe_add_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
+function.injective_comp ring_hom.coe_add_monoid_hom_inj coe_ring_hom_inj
+
 @[ext]
 theorem ext ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
-by cases φ₁; cases φ₂; congr' 1; ext; apply H
+coe_fn_inj $ funext H
 
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
 
@@ -366,12 +404,6 @@ instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
 
 end rat
-
-namespace complex
-
-instance algebra_over_reals : algebra ℝ ℂ := (ring_hom.of coe).to_algebra
-
-end complex
 
 /-- A subalgebra is a subring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)
@@ -626,11 +658,5 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=
 
 @[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
-
-/- Register as an instance (with low priority) the fact that a complex vector space is also a real
-vector space. -/
-instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-module.restrict_scalars ℝ ℂ E
-attribute [instance, priority 900] module.complex_to_real
 
 end restrict_scalars

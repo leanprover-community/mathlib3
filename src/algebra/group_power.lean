@@ -671,10 +671,10 @@ end int
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
 
-@[simp] lemma pow_of_add [add_monoid A] (x : A) (n : ℕ) :
+lemma of_add_smul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
-@[simp] lemma gpow_of_add [add_group A] (x : A) (n : ℤ) :
+lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
   multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
 
 variables (M G A)
@@ -685,7 +685,7 @@ def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := pow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← pow_of_add] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← of_add_smul] } }
 
 /-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
 of `multiplicative.of_add 1`. -/
@@ -693,7 +693,7 @@ def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := gpow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← gpow_of_add] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← of_add_gsmul ] } }
 
 /-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
 def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
@@ -708,3 +708,19 @@ def gmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
   inv_fun := λ f, f 1,
   left_inv := one_gsmul,
   right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_gsmul] }
+
+variables {M G A}
+
+@[simp] lemma powers_hom_apply [monoid M] (x : M) (n : multiplicative ℕ) :
+  powers_hom M x n = x ^ n.to_add := rfl
+
+@[simp] lemma powers_hom_symm_apply [monoid M] (f : multiplicative ℕ →* M) :
+  (powers_hom M).symm f = f (multiplicative.of_add 1) := rfl
+
+lemma mnat_monoid_hom_eq [monoid M] (f : multiplicative ℕ →* M) (n : multiplicative ℕ) :
+  f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
+by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
+
+lemma mnat_monoid_hom_ext [monoid M] ⦃f g : multiplicative ℕ →* M⦄
+  (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
+monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]

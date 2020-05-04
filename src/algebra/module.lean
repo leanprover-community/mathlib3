@@ -71,27 +71,31 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
-variable {R}
+variable (M)
+
+/-- `(•)` as an `add_monoid_hom`. -/
+def smul_add_hom : R →+ M →+ M :=
+{ to_fun := const_smul_hom M,
+  map_zero' := add_monoid_hom.ext $ λ r, by simp,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
+
+variables {R M}
+
+@[simp] lemma smul_add_hom_apply (r : R) (x : M) :
+  smul_add_hom R M r x = r • x := rfl
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
-instance smul.is_add_monoid_hom (x : M) : is_add_monoid_hom (λ r:R, r • x) :=
-{ map_zero := zero_smul _ x,
-  map_add := λ r₁ r₂, add_smul r₁ r₂ x }
-
 lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (list.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_list_sum l
 
 lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (multiset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_multiset_sum l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   s.sum f • x = s.sum (λ r, (f r) • x) :=
-show (λ r, r • x) (s.sum f) = s.sum (λ r, (f r) • x),
-from (finset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_sum f s
 
 end semimodule
 
@@ -352,14 +356,22 @@ structure submodule (R : Type u) (M : Type v) [ring R]
 (smul : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
 
 namespace submodule
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [ring R] [add_comm_group M]
 
-section
 variables [module R M]
 
 instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
-end
+instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+end submodule
+
+protected theorem submodule.exists [ring R] [add_comm_group M] [module R M] {p : submodule R M}
+  {q : p → Prop} :
+  (∃ x, q x) ↔ (∃ x (hx : x ∈ p), q ⟨x, hx⟩) :=
+set_coe.exists
+
+namespace submodule
+variables [ring R] [add_comm_group M] [add_comm_group M₂]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
@@ -413,6 +425,8 @@ instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
+
+@[simp] lemma mk_eq_zero (x) (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
 
 variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl

@@ -836,7 +836,7 @@ let cfg :=
 do t ← target,
    when cfg.split_hypotheses (try auto.split_hyps),
    match get_contr_lemma_name t with
-   | some nm := seq (applyc nm) $
+   | some nm := seq' (applyc nm) $
      do t ← intro1, linarith.interactive_aux cfg (some t) restr.is_some hyps
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."

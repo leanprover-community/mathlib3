@@ -935,12 +935,10 @@ lemma length_join (a : composition n) (b : composition a.length) :
   length (a.join b) = b.length :=
 by { dsimp only [composition.length, composition.join], simp }
 
-/-- An auxiliary function used in the definition of
-`sigma_equiv_sigma_pi` below, associating to
+/-- An auxiliary function used in the definition of `sigma_equiv_sigma_pi` below, associating to
 two compositions `a` of `n` and `b` of `a.length`, and an index `i` bounded by the length of
 `a.join b`, the subcomposition of `a` made of those blocks belonging to the `i`-th block of
-`a.join b`.
--/
+`a.join b`. -/
 def sigma_composition_aux (a : composition n) (b : composition a.length) :
   Π (i : fin (a.join b).length), composition ((a.join b).blocks_fun i) :=
 λ i,

@@ -285,8 +285,8 @@ begin
     apply not_le_of_lt (typein_lt_type r a),
     rw [← e', sup_le],
     intro i,
-    simp [set.range] at h,
-    simpa using le_of_lt ((typein_lt_typein r).2 (h _ i rfl)) },
+    have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
+    simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
   { exact λ i, ⟨_, set.mem_range_self i.1⟩ },
   { intro a, rcases a with ⟨_, i, rfl⟩, exact ⟨⟨i⟩, by simp⟩ }
 end

@@ -87,7 +87,7 @@ instance to_lin.is_add_monoid_hom :
 
 lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-by { ext, simp [to_lin_apply, mul_vec, matrix.mul_val, finset.sum_mul, finset.mul_sum] }
+by { ext, simp }
 
 @[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
 by { ext, simp }
@@ -197,6 +197,8 @@ def diag (n : Type u) (R : Type v) (M : Type w)
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
 
+@[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
+
 @[simp] lemma diag_one [decidable_eq n] :
   diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
 
@@ -210,6 +212,8 @@ def trace (n : Type u) (R : Type v) (M : Type w)
   to_fun := finset.univ.sum ∘ (diag n R M),
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
+
+@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = finset.univ.sum (diag n R M A) := rfl
 
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=

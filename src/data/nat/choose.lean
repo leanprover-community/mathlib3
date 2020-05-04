@@ -7,6 +7,8 @@ import algebra.commute
 
 open nat
 
+open_locale big_operators
+
 lemma nat.prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
 have h₁ : p ∣ fact p, from hp.dvd_fact.2 (le_refl _),
 have h₂ : ¬p ∣ fact k, from mt hp.dvd_fact.1 (not_le_of_gt hkp),
@@ -58,10 +60,10 @@ variables {α : Type*}
 
 /-- A version of the binomial theorem for noncommutative semirings. -/
 theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
-  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+  (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
-  let t : ℕ → ℕ → α := λ n i, x ^ i * (y ^ (n - i)) * (choose n i),
-  change (x + y) ^ n = (range n.succ).sum (t n),
+  let t : ℕ → ℕ → α := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
+  change (x + y) ^ n = ∑ m in range (n + 1), t n m,
   have h_first : ∀ n, t n 0 = y ^ n :=
     λ n, by { dsimp [t], rw[choose_zero_right, nat.cast_one, mul_one, one_mul] },
   have h_last : ∀ n, t n n.succ = 0 :=
@@ -94,7 +96,7 @@ end
 
 /-- The binomial theorem-/
 theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
-  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+  (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
 end binomial

@@ -26,6 +26,18 @@ namespace fintype
 lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
 finset.card_eq_sum_ones _
 
+section
+open finset
+
+variables {ι : Type*} [fintype ι] [decidable_eq ι]
+
+@[to_additive]
+lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
+  univ.prod (λ i, if i ∈ s then f i else 1) = s.prod f :=
+by rw [← prod_filter, filter_mem_eq_inter, univ_inter]
+
+end
+
 end fintype
 
 open finset
@@ -162,7 +174,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
+lemma finset.prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
   finset.univ.prod (f ∘ e) = finset.univ.prod f :=
 begin
   apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),

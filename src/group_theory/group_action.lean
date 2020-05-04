@@ -16,7 +16,7 @@ infixr ` • `:73 := has_scalar.smul
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
+/-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)

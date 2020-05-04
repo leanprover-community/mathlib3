@@ -75,7 +75,7 @@ lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
 
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
-       ← div_eq_inv_mul', one_le_div_iff_le hb]
+       ← div_eq_inv_mul, one_le_div_iff_le hb]
 
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']
@@ -184,9 +184,6 @@ lemma div_le_div_of_le_left {a b c : α} (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ 
 by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then by simp [ha0]
 else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) (lt_of_lt_of_le hc h) hc).2 h
-
-lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
 lemma inv_le_inv_of_le {a b : α} (hb : 0 < b) (h : b ≤ a) : a⁻¹ ≤ b⁻¹ :=
 begin

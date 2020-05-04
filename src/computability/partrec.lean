@@ -146,8 +146,8 @@ end⟩
 inductive partrec : (ℕ →. ℕ) → Prop
 | zero : partrec (pure 0)
 | succ : partrec succ
-| left : partrec (λ n, n.unpair.1)
-| right : partrec (λ n, n.unpair.2)
+| left : partrec ↑(λ n : ℕ, n.unpair.1)
+| right : partrec ↑(λ n : ℕ, n.unpair.2)
 | pair {f g} : partrec f → partrec g → partrec (λ n, mkpair <$> f n <*> g n)
 | comp {f g} : partrec f → partrec g → partrec (λ n, g n >>= f)
 | prec {f g} : partrec f → partrec g → partrec (unpaired (λ a n,

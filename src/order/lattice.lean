@@ -330,17 +330,19 @@ calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_se
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
 by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 
-lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
+lemma le_of_inf_le_sup_le (h₁ : x ⊓ z ≤ y ⊓ z) (h₂ : x ⊔ z ≤ y ⊔ z) : x ≤ y :=
+calc x ≤ (y ⊓ z) ⊔ x : le_sup_right
+... = (y ⊔ x) ⊓ (x ⊔ z) : by rw [sup_inf_right, @sup_comm _ _ x]
+... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_right _ h₂
+... = y ⊔ (x ⊓ z) : sup_inf_left.symm
+... ≤ y ⊔ (y ⊓ z) : sup_le_sup_left h₁ _
+... ≤ _ : sup_le (le_refl y) inf_le_left
+
+lemma eq_of_inf_eq_sup_eq {α : Type u} [distrib_lattice α] {a b c : α}
   (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
 le_antisymm
-  (calc b ≤ (c ⊓ a) ⊔ b     : le_sup_right
-    ... = (c ⊔ b) ⊓ (a ⊔ b) : sup_inf_right
-    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp only [sup_comm, eq_self_iff_true]
-    ... = c                 : sup_inf_self)
-  (calc c ≤ (b ⊓ a) ⊔ c     : le_sup_right
-    ... = (b ⊔ c) ⊓ (a ⊔ c) : sup_inf_right
-    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp only [sup_comm, eq_self_iff_true]
-    ... = b                 : sup_inf_self)
+  (le_of_inf_le_sup_le (le_of_eq h₁) (le_of_eq h₂))
+  (le_of_inf_le_sup_le (le_of_eq h₁.symm) (le_of_eq h₂.symm))
 
 end distrib_lattice
 

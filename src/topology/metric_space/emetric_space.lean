@@ -76,7 +76,8 @@ uniform_space.of_core {
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
     have (2 : ennreal) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2 ⟨ne_of_gt h, this ▸ ennreal.nat_ne_top 2⟩,
+    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
+      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
     (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,

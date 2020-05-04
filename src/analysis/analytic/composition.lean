@@ -151,36 +151,21 @@ lemma comp_along_composition_multilinear_bound {n : ℕ}
   ∥q.comp_along_composition_multilinear p c v∥ ≤
     ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
 begin
-  -- main point: taking the product of the `∥v i∥` along each block, and then along all the blocks,
-  -- gives the product of all the `∥v i∥`, as the blocks form a partition of the indices.
-  have A : ∏ i : fin c.length, ∏ j : fin (c.blocks_fun i), ∥(v ∘ c.embedding i) j∥ =
-    ∏ i : fin n, ∥v i∥,
-  { -- The fact that a product over a partition gives the whole product is `finset.prod_bind`.
-    -- We just need to check its disjointness and totality assumptions.
-    rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma],
-    apply finset.prod_congr rfl,
-    intros i hi,
-    apply finset.prod_congr rfl,
-    intros j hj,
-    refl },
-  -- Now that the main point is proved, write down the estimates using the definition of the norm
-  -- of a multilinear map
-  calc ∥q.comp_along_composition_multilinear p c v∥
-  = ∥q c.length (p.apply_composition c v)∥ : rfl
-  ... ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p.apply_composition c v i∥) :
+  calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_composition c v)∥ : rfl
+  ... ≤ ∥q c.length∥ * ∏ i, ∥p.apply_composition c v i∥ :
     continuous_multilinear_map.le_op_norm _ _
-  ... ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥ *
-     (finset.univ : finset (fin (c.blocks_fun i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
+  ... ≤ ∥q c.length∥ * ∏ i, (∥p (c.blocks_fun i)∥ *
+     (∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥)) :
     begin
       apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
       refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
       apply continuous_multilinear_map.le_op_norm,
     end
-  ... = ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥) * finset.univ.prod (λ i,
-     (finset.univ : finset (fin (c.blocks_fun i))).prod (λ j, ∥(v ∘ (c.embedding i)) j∥)) :
+  ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
+     ∏ i, (∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥) :
     by rw [finset.prod_mul_distrib, mul_assoc]
-  ... = ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥)
-    * (finset.univ : finset (fin n)).prod (λ i, ∥v i∥) : by rw A
+  ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
+    by { rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma], congr }
 end
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may

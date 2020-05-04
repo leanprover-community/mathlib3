@@ -150,23 +150,18 @@ lemma comp_along_composition_multilinear_bound {n : ℕ}
   (c : composition n) (v : fin n → E) :
   ∥q.comp_along_composition_multilinear p c v∥ ≤
     ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
-begin
-  calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_composition c v)∥ : rfl
-  ... ≤ ∥q c.length∥ * ∏ i, ∥p.apply_composition c v i∥ :
-    continuous_multilinear_map.le_op_norm _ _
-  ... ≤ ∥q c.length∥ * ∏ i, (∥p (c.blocks_fun i)∥ *
-     (∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥)) :
-    begin
-      apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
-      refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
-      apply continuous_multilinear_map.le_op_norm,
-    end
-  ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
-     ∏ i, (∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥) :
-    by rw [finset.prod_mul_distrib, mul_assoc]
-  ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-    by { rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma], congr }
-end
+calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_composition c v)∥ : rfl
+... ≤ ∥q c.length∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
+... ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ * ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
+  begin
+    apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+    refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
+    apply continuous_multilinear_map.le_op_norm,
+  end
+... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
+  by rw [finset.prod_mul_distrib, mul_assoc]
+... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
+  by { rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma], congr }
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each

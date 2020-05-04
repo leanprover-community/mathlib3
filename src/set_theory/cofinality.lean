@@ -65,11 +65,12 @@ namespace ordinal
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩, begin resetI,
-  show strict_order.cof r = strict_order.cof s,
-  refine cardinal.lift_inj.1 (@order_iso.cof _ _ _ _ ⟨_⟩ ⟨_⟩ _),
-  exact ⟨f, λ a b, not_congr hf⟩,
+quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
+begin
+  rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
+  rw ← cardinal.lift_inj,
+  apply order_iso.cof ⟨f, _⟩,
+  simp [hf]
 end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl

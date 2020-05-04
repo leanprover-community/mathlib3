@@ -46,6 +46,9 @@ lemma fst_one [has_one M] [has_one N] : (1 : M × N).1 = 1 := rfl
 lemma snd_one [has_one M] [has_one N] : (1 : M × N).2 = 1 := rfl
 @[to_additive]
 lemma one_eq_mk [has_one M] [has_one N] : (1 : M × N) = (1, 1) := rfl
+@[simp, to_additive]
+lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 ∧ y = 1 :=
+mk.inj_iff
 
 @[to_additive]
 lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :

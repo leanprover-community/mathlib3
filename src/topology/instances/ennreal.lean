@@ -434,10 +434,10 @@ have (λs:finset α, s.sum (coe ∘ f)) = (coe : nnreal → ennreal) ∘ (λs:fi
   from funext $ assume s, ennreal.coe_finset_sum.symm,
 by unfold has_sum; rw [this, tendsto_coe]
 
-protected lemma tsum_coe_eq {f : α → nnreal} (h : has_sum f r) : (∑a, (f a : ennreal)) = r :=
+protected lemma tsum_coe_eq {f : α → nnreal} (h : has_sum f r) : (∑'a, (f a : ennreal)) = r :=
 tsum_eq_has_sum $ ennreal.has_sum_coe.2 $ h
 
-protected lemma coe_tsum {f : α → nnreal} : summable f → ↑(tsum f) = (∑a, (f a : ennreal))
+protected lemma coe_tsum {f : α → nnreal} : summable f → ↑(tsum f) = (∑'a, (f a : ennreal))
 | ⟨r, hr⟩ := by rw [tsum_eq_has_sum hr, ennreal.tsum_coe_eq hr]
 
 protected lemma has_sum : has_sum f (⨆s:finset α, s.sum f) :=
@@ -454,19 +454,19 @@ tendsto_order.2
 @[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 
 lemma tsum_coe_ne_top_iff_summable {f : β → nnreal} :
-  (∑ b, (f b:ennreal)) ≠ ∞ ↔ summable f :=
+  (∑' b, (f b:ennreal)) ≠ ∞ ↔ summable f :=
 begin
   refine ⟨λ h, _, λ h, ennreal.coe_tsum h ▸ ennreal.coe_ne_top⟩,
-  lift (∑ b, (f b:ennreal)) to nnreal using h with a ha,
+  lift (∑' b, (f b:ennreal)) to nnreal using h with a ha,
   refine ⟨a, ennreal.has_sum_coe.1 _⟩,
   rw ha,
   exact ennreal.summable.has_sum
 end
 
-protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
+protected lemma tsum_eq_supr_sum : (∑'a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_has_sum ennreal.has_sum
 
-protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑ a, f a) = ∞
+protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
 | ⟨a, ha⟩ :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
@@ -475,40 +475,40 @@ begin
   rw [finset.sum_singleton, ha]
 end
 
-protected lemma ne_top_of_tsum_ne_top (h : (∑ a, f a) ≠ ∞) (a : α) : f a ≠ ∞ :=
+protected lemma ne_top_of_tsum_ne_top (h : (∑' a, f a) ≠ ∞) (a : α) : f a ≠ ∞ :=
 λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
-  (∑p:Σa, β a, f p.1 p.2) = (∑a b, f a b) :=
+  (∑'p:Σa, β a, f p.1 p.2) = (∑'a b, f a b) :=
 tsum_sigma (assume b, ennreal.summable) ennreal.summable
 
 protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ennreal) :
-  (∑p:(Σa, β a), f p) = (∑a b, f ⟨a, b⟩) :=
+  (∑'p:(Σa, β a), f p) = (∑'a b, f ⟨a, b⟩) :=
 tsum_sigma (assume b, ennreal.summable) ennreal.summable
 
-protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2) = (∑a, ∑b, f a b) :=
+protected lemma tsum_prod {f : α → β → ennreal} : (∑'p:α×β, f p.1 p.2) = (∑'a, ∑'b, f a b) :=
 let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
 let i : (Σa:α, β) → α × β := λp, (p.1, p.2) in
 let f' : (Σa:α, β) → ennreal := λp, f p.1 p.2 in
-calc (∑p:α×β, f' (j p)) = (∑p:Σa:α, β, f p.1 p.2) :
+calc (∑'p:α×β, f' (j p)) = (∑'p:Σa:α, β, f p.1 p.2) :
     tsum_eq_tsum_of_iso j i (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)
-   ... = (∑a, ∑b, f a b) : ennreal.tsum_sigma f
+   ... = (∑'a, ∑'b, f a b) : ennreal.tsum_sigma f
 
-protected lemma tsum_comm {f : α → β → ennreal} : (∑a, ∑b, f a b) = (∑b, ∑a, f a b) :=
+protected lemma tsum_comm {f : α → β → ennreal} : (∑'a, ∑'b, f a b) = (∑'b, ∑'a, f a b) :=
 let f' : α×β → ennreal := λp, f p.1 p.2 in
-calc (∑a, ∑b, f a b) = (∑p:α×β, f' p) : ennreal.tsum_prod.symm
-  ... = (∑p:β×α, f' (prod.swap p)) :
+calc (∑'a, ∑'b, f a b) = (∑'p:α×β, f' p) : ennreal.tsum_prod.symm
+  ... = (∑'p:β×α, f' (prod.swap p)) :
     (tsum_eq_tsum_of_iso prod.swap (@prod.swap α β) (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)).symm
-  ... = (∑b, ∑a, f' (prod.swap (b, a))) : @ennreal.tsum_prod β α (λb a, f' (prod.swap (b, a)))
+  ... = (∑'b, ∑'a, f' (prod.swap (b, a))) : @ennreal.tsum_prod β α (λb a, f' (prod.swap (b, a)))
 
-protected lemma tsum_add : (∑a, f a + g a) = (∑a, f a) + (∑a, g a) :=
+protected lemma tsum_add : (∑'a, f a + g a) = (∑'a, f a) + (∑'a, g a) :=
 tsum_add ennreal.summable ennreal.summable
 
-protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑a, f a) ≤ (∑a, g a) :=
+protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑'a, f a) ≤ (∑'a, g a) :=
 tsum_le_tsum h ennreal.summable ennreal.summable
 
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
-  (∑i:ℕ, f i) = (⨆i:ℕ, (finset.range i).sum f) :=
+  (∑'i:ℕ, f i) = (⨆i:ℕ, (finset.range i).sum f) :=
 calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
   ... = (⨆i:ℕ, (finset.range i).sum f) : le_antisymm
     (supr_le_supr2 $ assume s,
@@ -516,28 +516,28 @@ calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
       ⟨n, finset.sum_le_sum_of_subset hn⟩)
     (supr_le_supr2 $ assume i, ⟨finset.range i, le_refl _⟩)
 
-protected lemma le_tsum (a : α) : f a ≤ (∑a, f a) :=
+protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
 calc f a = ({a} : finset α).sum f : by simp
   ... ≤ (⨆s:finset α, s.sum f) : le_supr (λs:finset α, s.sum f) _
-  ... = (∑a, f a) : by rw [ennreal.tsum_eq_supr_sum]
+  ... = (∑'a, f a) : by rw [ennreal.tsum_eq_supr_sum]
 
-protected lemma tsum_mul_left : (∑i, a * f i) = a * (∑i, f i) :=
+protected lemma tsum_mul_left : (∑'i, a * f i) = a * (∑'i, f i) :=
 if h : ∀i, f i = 0 then by simp [h] else
 let ⟨i, (hi : f i ≠ 0)⟩ := classical.not_forall.mp h in
-have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt $
+have sum_ne_0 : (∑'i, f i) ≠ 0, from ne_of_gt $
   calc 0 < f i : lt_of_le_of_ne (zero_le _) hi.symm
-    ... ≤ (∑i, f i) : ennreal.le_tsum _,
-have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (𝓝 (a * (∑i, f i))),
+    ... ≤ (∑'i, f i) : ennreal.le_tsum _,
+have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (𝓝 (a * (∑'i, f i))),
   by rw [← show (*) a ∘ (λs:finset α, s.sum f) = λs, s.sum ((*) a ∘ f),
          from funext $ λ s, finset.mul_sum];
   exact ennreal.tendsto.const_mul ennreal.summable.has_sum (or.inl sum_ne_0),
 tsum_eq_has_sum this
 
-protected lemma tsum_mul_right : (∑i, f i * a) = (∑i, f i) * a :=
+protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]
 
 @[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ennreal} :
-  (∑b:α, ⨆ (h : a = b), f b) = f a :=
+  (∑'b:α, ⨆ (h : a = b), f b) = f a :=
 le_antisymm
   (by rw [ennreal.tsum_eq_supr_sum]; exact supr_le (assume s,
     calc s.sum (λb, ⨆ (h : a = b), f b) ≤ (finset.singleton a).sum (λb, ⨆ (h : a = b), f b) :
@@ -547,7 +547,7 @@ le_antisymm
             by simpa [h] using hb
       ... = f a : by simp))
   (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
-    ... ≤ (∑b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum _)
+    ... ≤ (∑'b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum _)
 
 lemma has_sum_iff_tendsto_nat {f : ℕ → ennreal} (r : ennreal) :
   has_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (𝓝 r) :=
@@ -566,7 +566,7 @@ namespace nnreal
 
 lemma exists_le_has_sum_of_le {f g : β → nnreal} {r : nnreal}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
-have (∑b, (g b : ennreal)) ≤ r,
+have (∑'b, (g b : ennreal)) ≤ r,
 begin
   refine has_sum_le (assume b, _) ennreal.summable.has_sum (ennreal.has_sum_coe.2 hfr),
   exact ennreal.coe_le_coe.2 (hgf _)
@@ -794,11 +794,11 @@ begin
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
-then the distance from `f n` to the limit is bounded by `∑_{k=n}^∞ d k`. -/
+then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/
 lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ennreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
-  edist (f n) a ≤ ∑ m, d (n + m) :=
+  edist (f n) a ≤ ∑' m, d (n + m) :=
 begin
   refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.edist ha)
     (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
@@ -808,11 +808,11 @@ begin
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
-then the distance from `f 0` to the limit is bounded by `∑_{k=0}^∞ d k`. -/
+then the distance from `f 0` to the limit is bounded by `∑'_{k=0}^∞ d k`. -/
 lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → ennreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) :
-  edist (f 0) a ≤ ∑ m, d m :=
+  edist (f 0) a ≤ ∑' m, d m :=
 by simpa using edist_le_tsum_of_edist_le_of_tendsto d hf ha 0
 
 end --section

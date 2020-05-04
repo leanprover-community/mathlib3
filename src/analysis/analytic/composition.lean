@@ -11,10 +11,10 @@ import combinatorics.composition
 
 in this file we prove that the composition of analytic functions is analytic.
 
-The argument is the following. Assume `g z = ∑ qₙ (z, ..., z)` and `f y = ∑ pₖ (y, ..., y)`. Then
+The argument is the following. Assume `g z = ∑' qₙ (z, ..., z)` and `f y = ∑' pₖ (y, ..., y)`. Then
 
-`g (f y) = ∑ qₙ (∑ pₖ (y, ..., y), ..., ∑ pₖ (y, ..., y))
-= ∑ qₙ (p_{i₁} (y, ..., y), ..., p_{iₙ} (y, ..., y))`.
+`g (f y) = ∑' qₙ (∑' pₖ (y, ..., y), ..., ∑' pₖ (y, ..., y))
+= ∑' qₙ (p_{i₁} (y, ..., y), ..., p_{iₙ} (y, ..., y))`.
 
 For each `n` and `i₁, ..., iₙ`, define a `i₁ + ... + iₙ` multilinear function mapping
 `(y₀, ..., y_{i₁ + ... + iₙ - 1})` to
@@ -59,7 +59,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-open filter
+open filter list
 open_locale topological_space classical
 
 /-! ### Composing formal multilinear series -/
@@ -209,7 +209,7 @@ end
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
 `n`. In other words, this term (as a multilinear function applied to `v_0, ..., v_{n-1}`) is
-`∑_{k} ∑_{i₁ + ... + iₖ = n} pₖ (q_{i_1} (...), ..., q_{i_k} (...))`, where one puts all variables
+`∑'_{k} ∑'_{i₁ + ... + iₖ = n} pₖ (q_{i_1} (...), ..., q_{i_k} (...))`, where one puts all variables
 `v_0, ..., v_{n-1}` in increasing order in the dots.-/
 protected def comp (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) :
   formal_multilinear_series 𝕜 E G :=
@@ -296,16 +296,16 @@ begin
   refine ⟨r, r_pos, _⟩,
   rw [← ennreal.tsum_coe_ne_top_iff_summable],
   apply ne_of_lt,
-  calc (∑ (i : Σ (n : ℕ), composition n), ↑(nnnorm (q.comp_along_composition p i.2) * r ^ i.1))
-  ≤ (∑ (i : Σ (n : ℕ), composition n), (Cq : ennreal) * a ^ i.1) : ennreal.tsum_le_tsum I
-  ... = (∑ (n : ℕ), (∑ (c : composition n), (Cq : ennreal) * a ^ n)) : ennreal.tsum_sigma' _
-  ... = (∑ (n : ℕ), ↑(fintype.card (composition n)) * (Cq : ennreal) * a ^ n) :
+  calc (∑' (i : Σ (n : ℕ), composition n), ↑(nnnorm (q.comp_along_composition p i.2) * r ^ i.1))
+  ≤ (∑' (i : Σ (n : ℕ), composition n), (Cq : ennreal) * a ^ i.1) : ennreal.tsum_le_tsum I
+  ... = (∑' (n : ℕ), (∑' (c : composition n), (Cq : ennreal) * a ^ n)) : ennreal.tsum_sigma' _
+  ... = (∑' (n : ℕ), ↑(fintype.card (composition n)) * (Cq : ennreal) * a ^ n) :
     begin
       congr' 1,
       ext1 n,
       rw [tsum_fintype, finset.sum_const, add_monoid.smul_eq_mul, finset.card_univ, mul_assoc]
     end
-  ... ≤ (∑ (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
+  ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
       apply ennreal.mul_le_mul (ennreal.mul_le_mul _ (le_refl _)) (le_refl _),
@@ -316,7 +316,7 @@ begin
       rw ← ennreal.coe_le_coe at this,
       exact this
     end
-  ... = (∑ (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1, ext1 n, rw mul_pow, ring }
+  ... = (∑' (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1, ext1 n, rw mul_pow, ring }
   ... = (Cq : ennreal) * (1 - 2 * a) ⁻¹ : by rw [ennreal.tsum_mul_left, ennreal.tsum_geometric]
   ... < ⊤ : by simp [lt_top_iff_ne_top, ennreal.mul_eq_top, two_a]
 end
@@ -333,12 +333,12 @@ apply le_radius_of_bound _ (tsum (λ (i : Σ (n : ℕ), composition n),
     (nnnorm (comp_along_composition q p i.snd) * r ^ i.fst))),
   assume n,
   calc nnnorm (formal_multilinear_series.comp q p n) * r ^ n ≤
-  ∑ (c : composition n), nnnorm (comp_along_composition q p c) * r ^ n :
+  ∑' (c : composition n), nnnorm (comp_along_composition q p c) * r ^ n :
     begin
       rw [tsum_fintype, ← finset.sum_mul],
       exact mul_le_mul_of_nonneg_right (nnnorm_sum_le _ _) bot_le
     end
-  ... ≤ ∑ (i : Σ (n : ℕ), composition n),
+  ... ≤ ∑' (i : Σ (n : ℕ), composition n),
           nnnorm (comp_along_composition q p i.snd) * r ^ i.fst :
     begin
       let f : composition n → (Σ (n : ℕ), composition n) := λ c, ⟨n, c⟩,
@@ -373,7 +373,11 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  exact ⟨finset.univ.sum f, list.of_fn (λ a, ⟨f a, (hi.2 a).1⟩), by simp [list.sum_of_fn]⟩
+  refine ⟨finset.univ.sum f, of_fn (λ a, f a), λ i hi, _, by simp [sum_of_fn]⟩,
+  rw [mem_of_fn, set.mem_range] at hi,
+  rcases hi with ⟨j, hj⟩,
+  rw ← hj,
+  exact (hi.2 j).1
 end
 
 @[simp] lemma comp_change_of_variables_length
@@ -382,7 +386,7 @@ end
 begin
   rcases i with ⟨k, blocks_fun⟩,
   dsimp [comp_change_of_variables],
-  simp only [composition.length, composition.blocks, list.map_of_fn, list.length_of_fn]
+  simp only [composition.length, map_of_fn, length_of_fn]
 end
 
 lemma comp_change_of_variables_blocks_fun
@@ -392,7 +396,7 @@ lemma comp_change_of_variables_blocks_fun
 begin
   rcases i with ⟨n, f⟩,
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
-  simp only [list.map_of_fn, pnat.mk_coe, list.nth_le_of_fn', function.comp_app],
+  simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
   rw fin.ext_iff
 end
@@ -413,11 +417,8 @@ begin
     exact λ a, c.one_le_blocks' _ },
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
-    simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, list.nth_le_map'],
-    conv_lhs { rw ← list.of_fn_nth_le c.blocks_pnat },
-    congr' 2,
-    { exact c.blocks_pnat_length },
-    { exact (fin.heq_fun_iff c.blocks_pnat_length).2 (λ i, rfl) } }
+    simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, nth_le_map'],
+    conv_lhs { rw ← of_fn_nth_le c.blocks } }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -484,8 +485,7 @@ begin
     simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
                list.map_of_fn, list.length_of_fn, true_and, comp_change_of_variables],
     assume j,
-    simp only [composition.blocks_fun, composition.blocks, (H.right _).right, pnat.mk_coe,
-               list.map_of_fn, list.nth_le_of_fn', function.comp_app] },
+    simp only [composition.blocks_fun, (H.right _).right, nth_le_of_fn'] },
   -- 2 - show that the composition gives the `comp_along_composition` application
   { rintros ⟨k, blocks_fun⟩ H,
     have L := comp_change_of_variables_length N H,

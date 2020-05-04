@@ -192,7 +192,7 @@ include M
 
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
-  { intros, apply linear_map.ext, simp }
+  { intros, apply linear_map.ext, simp {proj := ff} }
 
 end
 
@@ -732,10 +732,10 @@ end
 
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
-  rw [← union_singleton, span_union, mem_sup],
-  simp [mem_span_singleton, add_comm, add_left_comm], split,
-  { rintro ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩, exact ⟨a, z, hz, rfl⟩ },
-  { rintro ⟨a, z, hz, rfl⟩, exact ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩ }
+  simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
+    exists_exists_eq_and],
+  rw [exists_comm],
+  simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
 lemma mem_span_insert' {y} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
@@ -1429,9 +1429,6 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (x : M) : e.symm.symm x = e x :=
-by { cases e, refl }
-
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective
 protected lemma surjective : function.surjective e := e.to_equiv.surjective
@@ -1781,9 +1778,8 @@ begin
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },
     simp only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
     split_ifs,
-    { rw [dif_pos h], refl },
-    { rw [dif_neg h],
-      exact (hb _ $ (hu trivial).resolve_left h).symm } }
+    { refl },
+    { exact (hb _ $ (hu trivial).resolve_left h).symm } }
 end
 end
 

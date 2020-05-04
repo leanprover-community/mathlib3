@@ -103,12 +103,12 @@ lemma mem_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
   (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
 begin
-  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
+  induction l₀ with x xs generalizing l₁; cases l₁ with y ys,
   { constructor },
   iterate 2
-  { specialize h x, simp at h,
+  { specialize h x <|> specialize h y, simp at h,
     cases h },
-  simp at nd₀ nd₁, rename x y, classical,
+  simp at nd₀ nd₁, classical,
   cases nd₀, cases nd₁,
   by_cases h' : x = y,
   { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,

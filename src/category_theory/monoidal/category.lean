@@ -99,8 +99,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
 { ..(as_iso f ⊗ as_iso g) }
@@ -338,8 +337,7 @@ end
 end
 
 section
-variables (C : Type u) [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
 def tensor : (C × C) ⥤ C :=

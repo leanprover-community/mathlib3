@@ -14,8 +14,7 @@ universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category
 
 -- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
 
@@ -637,8 +636,7 @@ by ext j; erw [assoc, limit.pre_π, limit.pre_π, limit.pre_π]; refl
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)]
 
@@ -959,8 +957,7 @@ end
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_colimit F] (G : C ⥤ D) [has_colimit (F ⋙ G)]
 

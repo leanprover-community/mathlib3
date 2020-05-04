@@ -103,8 +103,7 @@ lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {X Y : C}
 
 /-- `parallel_pair f g` is the diagram in `C` consisting of the two morphisms `f` and `g` with

@@ -371,7 +371,6 @@ theorem riesz_extension (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 begin
   rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
-  dsimp at hfg hgs htop ⊢,
   refine ⟨g.comp (linear_equiv.of_top _ htop).symm, _, _⟩;
     simp only [comp_apply, linear_equiv.coe_apply, linear_equiv.of_top_symm_apply],
   { intro s, refine (hfg _).symm, refl },

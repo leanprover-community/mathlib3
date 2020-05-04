@@ -86,8 +86,7 @@ A `small_category` has objects and morphisms in the same universe level.
 abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 
 section
-variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
-include 𝒞
+variables {C : Type u} [category.{v} C] {X Y Z : C}
 
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=

@@ -471,11 +471,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       simpa using hx },
     rw [B, C, D, E] at A,
-    rw A,
-    assume v,
-    simp,
-    unfold_coes,
-    simp
+    simp [A]
   end }
 
 /-- The tangent bundle to a smooth manifold, as a plain type. -/
@@ -548,16 +544,12 @@ begin
   { cases x,
     simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
-          basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core],
-    erw [local_equiv.refl_to_fun, local_equiv.refl_inv_fun, A],
-    refl },
+          basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core, A] },
   show ∀ x, ((chart_at (H × E) p).to_local_equiv).inv_fun x = (local_equiv.refl (H × E)).inv_fun x,
   { rintros ⟨x_fst, x_snd⟩,
     simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
-          basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core],
-    erw [local_equiv.refl_to_fun, local_equiv.refl_inv_fun, A],
-    refl },
+          basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core, A] },
   show ((chart_at (H × E) p).to_local_equiv).source = (local_equiv.refl (H × E)).source,
   by simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
            topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',

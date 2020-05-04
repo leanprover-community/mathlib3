@@ -14,8 +14,8 @@ The proof used is close to Lagrange's original proof.
 -/
 import data.zmod.basic
 import field_theory.finite
-import group_theory.perm.sign
 import data.int.parity
+import data.fintype.card
 
 open finset polynomial finite_field equiv
 
@@ -93,7 +93,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
       ← domain.mul_left_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
-    { conv_rhs { rw finset.sum_univ_perm σ } },
+    { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
   end⟩

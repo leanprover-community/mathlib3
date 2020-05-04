@@ -16,8 +16,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- A category has a terminal object if it has a limit over the empty diagram. -/
 -- Use `has_terminal_of_unique` to construct instances.

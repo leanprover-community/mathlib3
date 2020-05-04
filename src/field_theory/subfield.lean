@@ -111,3 +111,11 @@ lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]
 { inv_mem := λ x hx, let ⟨i, hi⟩ := set.mem_Union.1 hx in
     set.mem_Union.2 ⟨i, is_subfield.inv_mem hi⟩,
   to_is_subring := is_subring_Union_of_directed s directed }
+
+instance is_subfield.inter (S₁ S₂ : set F) [is_subfield S₁] [is_subfield S₂] :
+  is_subfield (S₁ ∩ S₂) :=
+{ inv_mem := λ x hx, ⟨is_subfield.inv_mem hx.1, is_subfield.inv_mem hx.2⟩ }
+
+instance is_subfield.Inter {ι : Sort*} (S : ι → set F) [h : ∀ y : ι, is_subfield (S y)] :
+  is_subfield (set.Inter S) :=
+{ inv_mem := λ x hx, set.mem_Inter.2 $ λ y, is_subfield.inv_mem $ set.mem_Inter.1 hx y }

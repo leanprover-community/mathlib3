@@ -167,169 +167,6 @@ apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
 -- analysis/normed_space/real_inner_product.lean
 apply_nolint has_inner doc_blame
 
--- category/applicative.lean
-apply_nolint comp.seq doc_blame
-
--- category/basic.lean
-apply_nolint is_comm_applicative doc_blame
-apply_nolint list.mmap_accuml doc_blame
-apply_nolint list.mmap_accumr doc_blame
-apply_nolint list.mpartition doc_blame
-apply_nolint mtry doc_blame
-apply_nolint mzip_with doc_blame
-apply_nolint mzip_with' doc_blame
-apply_nolint succeeds doc_blame
-apply_nolint sum.bind doc_blame
-
--- category/bifunctor.lean
-apply_nolint bifunctor doc_blame
-apply_nolint bifunctor.fst doc_blame
-apply_nolint bifunctor.snd doc_blame
-apply_nolint is_lawful_bifunctor doc_blame
-
--- category/bitraversable/basic.lean
-apply_nolint bisequence doc_blame
-apply_nolint bitraversable doc_blame
-apply_nolint is_lawful_bitraversable doc_blame
-
--- category/bitraversable/instances.lean
-apply_nolint bicompl.bitraverse doc_blame
-apply_nolint bicompr.bitraverse doc_blame
-apply_nolint const.bitraverse doc_blame unused_arguments
-apply_nolint flip.bitraverse doc_blame
-apply_nolint prod.bitraverse doc_blame
-apply_nolint sum.bitraverse doc_blame
-
--- category/fold.lean
-apply_nolint monoid.foldl.get doc_blame
-apply_nolint monoid.foldl.mk doc_blame
-apply_nolint monoid.foldl.of_free_monoid doc_blame
-apply_nolint monoid.foldr doc_blame
-apply_nolint monoid.foldr.get doc_blame
-apply_nolint monoid.foldr.mk doc_blame
-apply_nolint monoid.foldr.of_free_monoid doc_blame
-apply_nolint monoid.mfoldl doc_blame
-apply_nolint monoid.mfoldl.get doc_blame
-apply_nolint monoid.mfoldl.mk doc_blame
-apply_nolint monoid.mfoldl.of_free_monoid doc_blame
-apply_nolint monoid.mfoldr doc_blame
-apply_nolint monoid.mfoldr.get doc_blame
-apply_nolint monoid.mfoldr.mk doc_blame
-apply_nolint monoid.mfoldr.of_free_monoid doc_blame
-apply_nolint traversable.fold_map doc_blame
-apply_nolint traversable.foldl doc_blame
-apply_nolint traversable.foldr doc_blame
-apply_nolint traversable.free.map doc_blame
-apply_nolint traversable.free.mk doc_blame
-apply_nolint traversable.length doc_blame
-apply_nolint traversable.map_fold doc_blame
-apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
-apply_nolint traversable.mfoldr doc_blame
-
--- category/functor.lean
-apply_nolint functor.add_const doc_blame has_inhabited_instance
-apply_nolint functor.add_const.mk doc_blame
-apply_nolint functor.add_const.run doc_blame
-apply_nolint functor.comp has_inhabited_instance
-apply_nolint functor.comp.map doc_blame
-apply_nolint functor.comp.mk doc_blame
-apply_nolint functor.comp.run doc_blame
-apply_nolint functor.const has_inhabited_instance
-apply_nolint functor.const.mk doc_blame
-apply_nolint functor.const.mk' doc_blame
-apply_nolint functor.const.run doc_blame
-apply_nolint id.mk doc_blame
-
--- category/monad/cont.lean
-apply_nolint cont doc_blame
-apply_nolint cont_t doc_blame has_inhabited_instance
-apply_nolint cont_t.map doc_blame
-apply_nolint cont_t.monad_lift doc_blame
-apply_nolint cont_t.run doc_blame
-apply_nolint cont_t.with_cont_t doc_blame
-apply_nolint except_t.call_cc doc_blame
-apply_nolint except_t.mk_label doc_blame
-apply_nolint is_lawful_monad_cont doc_blame
-apply_nolint monad_cont doc_blame
-apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label doc_blame has_inhabited_instance
-apply_nolint option_t.call_cc doc_blame
-apply_nolint option_t.mk_label doc_blame
-apply_nolint reader_t.call_cc doc_blame
-apply_nolint reader_t.mk_label doc_blame
-apply_nolint state_t.call_cc doc_blame
-apply_nolint state_t.mk_label doc_blame unused_arguments
-apply_nolint writer_t.call_cc doc_blame
-apply_nolint writer_t.mk_label doc_blame
-apply_nolint writer_t.monad_cont unused_arguments
-
--- category/monad/writer.lean
-apply_nolint except_t.pass_aux doc_blame
-apply_nolint option_t.pass_aux doc_blame
-apply_nolint swap_right doc_blame
-apply_nolint writer doc_blame
-apply_nolint writer_t doc_blame has_inhabited_instance
-apply_nolint writer_t.adapt doc_blame
-apply_nolint writer_t.bind doc_blame
-apply_nolint writer_t.ext unused_arguments
-apply_nolint writer_t.lift doc_blame
-apply_nolint writer_t.listen doc_blame
-apply_nolint writer_t.monad_except unused_arguments
-apply_nolint writer_t.monad_map doc_blame unused_arguments
-apply_nolint writer_t.pass doc_blame
-apply_nolint writer_t.pure doc_blame
-apply_nolint writer_t.tell doc_blame
-
--- category/traversable/basic.lean
-apply_nolint applicative_transformation doc_blame has_inhabited_instance
-apply_nolint is_lawful_traversable doc_blame
-apply_nolint sequence doc_blame
-apply_nolint sum.traverse doc_blame
-apply_nolint traversable doc_blame
-
--- category/traversable/derive.lean
-apply_nolint tactic.interactive.derive_functor doc_blame
-apply_nolint tactic.interactive.derive_lawful_functor doc_blame
-apply_nolint tactic.interactive.derive_lawful_traversable doc_blame
-apply_nolint tactic.interactive.derive_traverse doc_blame
-apply_nolint tactic.interactive.functor_derive_handler doc_blame
-apply_nolint tactic.interactive.functor_derive_handler' doc_blame
-apply_nolint tactic.interactive.get_equations_of doc_blame
-apply_nolint tactic.interactive.guard_class doc_blame
-apply_nolint tactic.interactive.higher_order_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_functor_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_functor_derive_handler' doc_blame
-apply_nolint tactic.interactive.lawful_traversable_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_traversable_derive_handler' doc_blame
-apply_nolint tactic.interactive.mk_mapp' doc_blame
-apply_nolint tactic.interactive.mk_mapp_aux' doc_blame
-apply_nolint tactic.interactive.mk_one_instance doc_blame
-apply_nolint tactic.interactive.simp_functor doc_blame
-apply_nolint tactic.interactive.traversable_derive_handler doc_blame
-apply_nolint tactic.interactive.traversable_derive_handler' doc_blame
-apply_nolint tactic.interactive.traversable_law_starter doc_blame
-apply_nolint tactic.interactive.traverse_constructor unused_arguments
-apply_nolint tactic.interactive.traverse_field unused_arguments
-apply_nolint tactic.interactive.with_prefix doc_blame
-
--- category/traversable/equiv.lean
-apply_nolint equiv.functor doc_blame
-apply_nolint equiv.is_lawful_traversable doc_blame
-apply_nolint equiv.is_lawful_traversable' doc_blame
-apply_nolint equiv.map doc_blame
-apply_nolint equiv.traversable doc_blame
-apply_nolint equiv.traverse doc_blame
-
--- category/traversable/instances.lean
-apply_nolint list.comp_traverse unused_arguments
-apply_nolint option.comp_traverse unused_arguments
-apply_nolint sum.comp_traverse unused_arguments
-apply_nolint sum.traverse_map unused_arguments
-
--- category/traversable/lemmas.lean
-apply_nolint traversable.pure_transformation doc_blame
-
 -- category_theory/adjunction/basic.lean
 apply_nolint category_theory.adjunction has_inhabited_instance
 apply_nolint category_theory.adjunction.adjunction_of_equiv_left doc_blame
@@ -766,6 +603,169 @@ apply_nolint turing.tape.move doc_blame
 apply_nolint turing.tape.nth doc_blame
 apply_nolint turing.tape.write doc_blame
 
+-- control/applicative.lean
+apply_nolint comp.seq doc_blame
+
+-- control/basic.lean
+apply_nolint is_comm_applicative doc_blame
+apply_nolint list.mmap_accuml doc_blame
+apply_nolint list.mmap_accumr doc_blame
+apply_nolint list.mpartition doc_blame
+apply_nolint mtry doc_blame
+apply_nolint mzip_with doc_blame
+apply_nolint mzip_with' doc_blame
+apply_nolint succeeds doc_blame
+apply_nolint sum.bind doc_blame
+
+-- control/bifunctor.lean
+apply_nolint bifunctor doc_blame
+apply_nolint bifunctor.fst doc_blame
+apply_nolint bifunctor.snd doc_blame
+apply_nolint is_lawful_bifunctor doc_blame
+
+-- control/bitraversable/basic.lean
+apply_nolint bisequence doc_blame
+apply_nolint bitraversable doc_blame
+apply_nolint is_lawful_bitraversable doc_blame
+
+-- control/bitraversable/instances.lean
+apply_nolint bicompl.bitraverse doc_blame
+apply_nolint bicompr.bitraverse doc_blame
+apply_nolint const.bitraverse doc_blame unused_arguments
+apply_nolint flip.bitraverse doc_blame
+apply_nolint prod.bitraverse doc_blame
+apply_nolint sum.bitraverse doc_blame
+
+-- control/fold.lean
+apply_nolint monoid.foldl.get doc_blame
+apply_nolint monoid.foldl.mk doc_blame
+apply_nolint monoid.foldl.of_free_monoid doc_blame
+apply_nolint monoid.foldr doc_blame
+apply_nolint monoid.foldr.get doc_blame
+apply_nolint monoid.foldr.mk doc_blame
+apply_nolint monoid.foldr.of_free_monoid doc_blame
+apply_nolint monoid.mfoldl doc_blame
+apply_nolint monoid.mfoldl.get doc_blame
+apply_nolint monoid.mfoldl.mk doc_blame
+apply_nolint monoid.mfoldl.of_free_monoid doc_blame
+apply_nolint monoid.mfoldr doc_blame
+apply_nolint monoid.mfoldr.get doc_blame
+apply_nolint monoid.mfoldr.mk doc_blame
+apply_nolint monoid.mfoldr.of_free_monoid doc_blame
+apply_nolint traversable.fold_map doc_blame
+apply_nolint traversable.foldl doc_blame
+apply_nolint traversable.foldr doc_blame
+apply_nolint traversable.free.map doc_blame
+apply_nolint traversable.free.mk doc_blame
+apply_nolint traversable.length doc_blame
+apply_nolint traversable.map_fold doc_blame
+apply_nolint traversable.mfoldl doc_blame
+apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
+apply_nolint traversable.mfoldr doc_blame
+
+-- control/functor.lean
+apply_nolint functor.add_const doc_blame has_inhabited_instance
+apply_nolint functor.add_const.mk doc_blame
+apply_nolint functor.add_const.run doc_blame
+apply_nolint functor.comp has_inhabited_instance
+apply_nolint functor.comp.map doc_blame
+apply_nolint functor.comp.mk doc_blame
+apply_nolint functor.comp.run doc_blame
+apply_nolint functor.const has_inhabited_instance
+apply_nolint functor.const.mk doc_blame
+apply_nolint functor.const.mk' doc_blame
+apply_nolint functor.const.run doc_blame
+apply_nolint id.mk doc_blame
+
+-- control/monad/cont.lean
+apply_nolint cont doc_blame
+apply_nolint cont_t doc_blame has_inhabited_instance
+apply_nolint cont_t.map doc_blame
+apply_nolint cont_t.monad_lift doc_blame
+apply_nolint cont_t.run doc_blame
+apply_nolint cont_t.with_cont_t doc_blame
+apply_nolint except_t.call_cc doc_blame
+apply_nolint except_t.mk_label doc_blame
+apply_nolint is_lawful_monad_cont doc_blame
+apply_nolint monad_cont doc_blame
+apply_nolint monad_cont.goto doc_blame
+apply_nolint monad_cont.label doc_blame has_inhabited_instance
+apply_nolint option_t.call_cc doc_blame
+apply_nolint option_t.mk_label doc_blame
+apply_nolint reader_t.call_cc doc_blame
+apply_nolint reader_t.mk_label doc_blame
+apply_nolint state_t.call_cc doc_blame
+apply_nolint state_t.mk_label doc_blame unused_arguments
+apply_nolint writer_t.call_cc doc_blame
+apply_nolint writer_t.mk_label doc_blame
+apply_nolint writer_t.monad_cont unused_arguments
+
+-- control/monad/writer.lean
+apply_nolint except_t.pass_aux doc_blame
+apply_nolint option_t.pass_aux doc_blame
+apply_nolint swap_right doc_blame
+apply_nolint writer doc_blame
+apply_nolint writer_t doc_blame has_inhabited_instance
+apply_nolint writer_t.adapt doc_blame
+apply_nolint writer_t.bind doc_blame
+apply_nolint writer_t.ext unused_arguments
+apply_nolint writer_t.lift doc_blame
+apply_nolint writer_t.listen doc_blame
+apply_nolint writer_t.monad_except unused_arguments
+apply_nolint writer_t.monad_map doc_blame unused_arguments
+apply_nolint writer_t.pass doc_blame
+apply_nolint writer_t.pure doc_blame
+apply_nolint writer_t.tell doc_blame
+
+-- control/traversable/basic.lean
+apply_nolint applicative_transformation doc_blame has_inhabited_instance
+apply_nolint is_lawful_traversable doc_blame
+apply_nolint sequence doc_blame
+apply_nolint sum.traverse doc_blame
+apply_nolint traversable doc_blame
+
+-- control/traversable/derive.lean
+apply_nolint tactic.interactive.derive_functor doc_blame
+apply_nolint tactic.interactive.derive_lawful_functor doc_blame
+apply_nolint tactic.interactive.derive_lawful_traversable doc_blame
+apply_nolint tactic.interactive.derive_traverse doc_blame
+apply_nolint tactic.interactive.functor_derive_handler doc_blame
+apply_nolint tactic.interactive.functor_derive_handler' doc_blame
+apply_nolint tactic.interactive.get_equations_of doc_blame
+apply_nolint tactic.interactive.guard_class doc_blame
+apply_nolint tactic.interactive.higher_order_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_functor_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_functor_derive_handler' doc_blame
+apply_nolint tactic.interactive.lawful_traversable_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_traversable_derive_handler' doc_blame
+apply_nolint tactic.interactive.mk_mapp' doc_blame
+apply_nolint tactic.interactive.mk_mapp_aux' doc_blame
+apply_nolint tactic.interactive.mk_one_instance doc_blame
+apply_nolint tactic.interactive.simp_functor doc_blame
+apply_nolint tactic.interactive.traversable_derive_handler doc_blame
+apply_nolint tactic.interactive.traversable_derive_handler' doc_blame
+apply_nolint tactic.interactive.traversable_law_starter doc_blame
+apply_nolint tactic.interactive.traverse_constructor unused_arguments
+apply_nolint tactic.interactive.traverse_field unused_arguments
+apply_nolint tactic.interactive.with_prefix doc_blame
+
+-- control/traversable/equiv.lean
+apply_nolint equiv.functor doc_blame
+apply_nolint equiv.is_lawful_traversable doc_blame
+apply_nolint equiv.is_lawful_traversable' doc_blame
+apply_nolint equiv.map doc_blame
+apply_nolint equiv.traversable doc_blame
+apply_nolint equiv.traverse doc_blame
+
+-- control/traversable/instances.lean
+apply_nolint list.comp_traverse unused_arguments
+apply_nolint option.comp_traverse unused_arguments
+apply_nolint sum.comp_traverse unused_arguments
+apply_nolint sum.traverse_map unused_arguments
+
+-- control/traversable/lemmas.lean
+apply_nolint traversable.pure_transformation doc_blame
+
 -- data/W.lean
 apply_nolint W has_inhabited_instance
 
@@ -830,18 +830,7 @@ apply_nolint real.tan doc_blame
 apply_nolint real.tanh doc_blame
 
 -- data/dfinsupp.lean
-apply_nolint decidable_zero_symm doc_blame
-apply_nolint dfinsupp doc_blame
-apply_nolint dfinsupp.erase doc_blame
-apply_nolint dfinsupp.lmk doc_blame
-apply_nolint dfinsupp.lsingle doc_blame
-apply_nolint dfinsupp.mk doc_blame
 apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.single doc_blame
-apply_nolint dfinsupp.support doc_blame
-apply_nolint dfinsupp.to_has_scalar doc_blame
-apply_nolint dfinsupp.to_module doc_blame
-apply_nolint dfinsupp.zip_with doc_blame
 apply_nolint dfinsupp.zip_with_def unused_arguments
 
 -- data/dlist/basic.lean
@@ -2252,7 +2241,6 @@ apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
-apply_nolint power_series.mk unused_arguments
 apply_nolint power_series.order_add_ge ge_or_gt
 apply_nolint power_series.order_ge ge_or_gt
 apply_nolint power_series.order_ge_nat ge_or_gt

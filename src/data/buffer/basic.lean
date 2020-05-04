@@ -7,7 +7,7 @@ Traversable instance for buffers.
 -/
 import data.buffer
 import data.array.lemmas
-import category.traversable.instances
+import control.traversable.instances
 
 namespace buffer
 

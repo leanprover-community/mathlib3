@@ -14,6 +14,8 @@ import algebra.pi_instances
 open category_theory
 open category_theory.limits
 
+open_locale big_operators
+
 universe u
 
 namespace AddCommGroup
@@ -100,7 +102,7 @@ to any cocone over that family.
 -/
 def desc (s : cocone F) :
   AddCommGroup.of (Π j, F.obj j) ⟶ s.X :=
-{ to_fun := λ f, finset.univ.sum (λ j : J, s.ι.app j (f j)),
+{ to_fun := λ f, ∑ j, s.ι.app j (f j),
   map_zero' :=
   begin
     conv_lhs { apply_congr, skip, simp [@pi.zero_apply _ (λ j, F.obj j) x _], },
@@ -113,7 +115,7 @@ def desc (s : cocone F) :
   end, }
 
 @[simp] lemma desc_apply (s : cocone F) (f : Π j, F.obj j) :
-  (desc F s) f = finset.univ.sum (λ j : J, s.ι.app j (f j)) := rfl
+  (desc F s) f = ∑ j, s.ι.app j (f j) := rfl
 
 variables [decidable_eq J]
 

@@ -310,10 +310,10 @@ begin
 end⟩
 
 lemma embedding_comp_inv (j : fin n) :
-  j = c.embedding (c.index j) (c.inv_embedding j) :=
+  c.embedding (c.index j) (c.inv_embedding j) = j :=
 begin
   rw fin.ext_iff,
-  apply (nat.add_sub_cancel' (c.size_up_to_index_le j)).symm,
+  apply nat.add_sub_cancel' (c.size_up_to_index_le j),
 end
 
 lemma mem_range_embedding_iff {j : fin n} {i : fin c.length} :
@@ -360,7 +360,7 @@ lemma mem_range_embedding (j : fin n) :
 begin
   have : c.embedding (c.index j) (c.inv_embedding j)
     ∈ set.range (c.embedding (c.index j)) := set.mem_range_self _,
-  rwa ← c.embedding_comp_inv j at this
+  rwa c.embedding_comp_inv j at this
 end
 
 lemma mem_range_embedding_iff' {j : fin n} {i : fin c.length} :
@@ -374,6 +374,37 @@ begin
     rw h,
     exact c.mem_range_embedding j }
 end
+
+lemma index_embedding (i : fin c.length) (j : fin (c.blocks_fun i)) :
+  c.index (c.embedding i j) = i :=
+begin
+  symmetry,
+  rw ← mem_range_embedding_iff',
+  apply set.mem_range_self
+end
+
+lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
+  (c.inv_embedding (c.embedding i j)).val = j.val :=
+begin
+  simp only [inv_embedding, index_embedding],
+  simp [embedding, fin.coe_eq_val, index_embedding]
+end
+
+/-- Equivalence between the disjoint union of the blocks (each of them seen as
+`fin (c.blocks_fun i)`) with `fin n`. -/
+def blocks_fin_equiv : (Σ i : fin c.length, fin (c.blocks_fun i)) ≃ fin n :=
+{ to_fun := λ x, c.embedding x.1 x.2,
+  inv_fun := λ j, ⟨c.index j, c.inv_embedding j⟩,
+  left_inv := λ x, begin
+    rcases x with ⟨i, y⟩,
+    dsimp,
+    congr, { exact c.index_embedding _ _ },
+    rw fin.heq_ext_iff,
+    { exact c.inv_embedding_comp _ _ },
+    { rw c.index_embedding }
+  end,
+  right_inv := λ j, c.embedding_comp_inv j }
+
 
 /-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks. -/

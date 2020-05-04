@@ -74,14 +74,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 open filter list
 open_locale topological_space big_operators classical
 
--- move this
-def composition.equiv {n : ℕ} (c : composition n) :
-  (Σ i : fin c.length, fin (c.blocks_fun i)) ≃ fin n :=
-{ to_fun := λ x, c.embedding x.1 x.2,
-  inv_fun := λ j, ⟨c.index j, c.inv_embedding j⟩,
-  left_inv := λ x, by { dsimp, },
-  right_inv := λ j, by { dsimp, } }
-
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
@@ -121,7 +113,7 @@ begin
     suffices B : (function.update v j z) ∘ r = function.update (v ∘ r) j' z,
       by rw B,
     suffices C : (function.update v (r j') z) ∘ r = function.update (v ∘ r) j' z,
-      by { convert C, exact c.embedding_comp_inv j },
+      by { convert C, exact (c.embedding_comp_inv j).symm },
     exact function.update_comp_eq_of_injective _ (c.embedding_inj _) _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
     let r : fin (c.blocks_fun k) → fin n := c.embedding k,
@@ -158,10 +150,12 @@ calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_c
     refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
     apply continuous_multilinear_map.le_op_norm,
   end
-... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
+... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
+        ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
   by rw [finset.prod_mul_distrib, mul_assoc]
 ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-  by { rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma], congr }
+  by { rw [← finset.prod_equiv c.blocks_fin_equiv, ← finset.univ_sigma_univ, finset.prod_sigma],
+       congr }
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each
@@ -223,7 +217,6 @@ begin
   rw ← this,
   simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
   change q c.length (p.apply_composition c v) = q 0 v',
-  unfold_coes,
   congr,
   ext i,
   simp only [composition.ones_length] at i,

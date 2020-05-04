@@ -81,26 +81,26 @@ model for manifolds with boundary.
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space n) (euclidean_half_space n) :=
-{ to_fun     := λx, x.val,
-  inv_fun    := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
-  source     := univ,
-  target     := range (λx : euclidean_half_space n, x.val),
-  map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
-  map_target := λx hx, mem_univ _,
-  left_inv   := λ⟨xval, xprop⟩ hx, begin
+{ to_fun      := λx, x.val,
+  inv_fun     := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
+  source      := univ,
+  target      := range (λx : euclidean_half_space n, x.val),
+  map_source' := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_target' := λx hx, mem_univ _,
+  left_inv'   := λ⟨xval, xprop⟩ hx, begin
     rw subtype.mk_eq_mk,
     ext1 i,
     by_cases hi : i = 0;
     simp [hi, xprop]
   end,
-  right_inv := λx hx, begin
+  right_inv'  := λx hx, begin
     simp [range_half_space] at hx,
     ext1 i,
     by_cases hi : i = 0;
     simp [hi, hx]
   end,
-  source_eq   := rfl,
-  unique_diff := begin
+  source_eq    := rfl,
+  unique_diff' := begin
     /- To check that the half-space has the unique differentiability property, we use the criterion
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
     rw range_half_space,
@@ -138,25 +138,24 @@ Definition of the model with corners `(euclidean_space n, euclidean_quadrant n)`
 model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
   model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n) :=
-{ to_fun     := λx, x.val,
-  inv_fun    := λx, ⟨λi, max (x i) 0,
-                    λi, by simp [le_refl]⟩,
-  source     := univ,
-  target     := range (λx : euclidean_quadrant n, x.val),
-  map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
-  map_target := λx hx, mem_univ _,
-  left_inv   := λ⟨xval, xprop⟩ hx, begin
+{ to_fun      := λx, x.val,
+  inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp [le_refl]⟩,
+  source      := univ,
+  target      := range (λx : euclidean_quadrant n, x.val),
+  map_source' := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_target' := λx hx, mem_univ _,
+  left_inv'   := λ⟨xval, xprop⟩ hx, begin
     rw subtype.mk_eq_mk,
     ext1 i,
     simp [xprop i]
   end,
-  right_inv := λx hx, begin
+  right_inv' := λx hx, begin
     rw range_quadrant at hx,
     ext1 i,
     simp [hx i]
   end,
-  source_eq   := rfl,
-  unique_diff := begin
+  source_eq    := rfl,
+  unique_diff' := begin
     /- To check that the quadrant has the unique differentiability property, we use the criterion
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
     rw range_quadrant,
@@ -191,14 +190,14 @@ The left chart for the topological space `[x, y]`, defined on `[x,y)` and sendin
 -/
 def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
-{ source := {z : Icc x y | z.val < y},
-  target := {z : euclidean_half_space 1 | z.val 0 < y - x},
-  to_fun := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
-  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt ‹x < y›]⟩,
-  map_source := by simp,
-  map_target := by { simp, assume z hz, left, linarith },
-  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
-  right_inv := begin
+{ source      := {z : Icc x y | z.val < y},
+  target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
+  to_fun      := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
+  inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt ‹x < y›]⟩,
+  map_source' := by simp,
+  map_target' := by { simp, assume z hz, left, linarith },
+  left_inv'   := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
+  right_inv'  := begin
     rintros ⟨z, hz⟩ h'z,
     rw subtype.mk_eq_mk,
     funext,
@@ -239,15 +238,15 @@ The right chart for the topological space `[x, y]`, defined on `(x,y]` and sendi
 -/
 def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
-{ source := {z : Icc x y | x < z.val},
-  target := {z : euclidean_half_space 1 | z.val 0 < y - x},
-  to_fun := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
-  inv_fun := λz,
+{ source      := {z : Icc x y | x < z.val},
+  target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
+  to_fun      := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
+  inv_fun     := λz,
     ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt ‹x < y›, sub_eq_add_neg]⟩,
-  map_source := by simp,
-  map_target := by { simp, assume z hz, left, linarith },
-  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z, sub_eq_add_neg] },
-  right_inv := begin
+  map_source' := by simp,
+  map_target' := by { simp, assume z hz, left, linarith },
+  left_inv'   := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z, sub_eq_add_neg] },
+  right_inv'  := begin
     rintros ⟨z, hz⟩ h'z,
     rw subtype.mk_eq_mk,
     funext,

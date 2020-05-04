@@ -32,10 +32,12 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
 
 namespace instance_cache
 
+/-- Faster version of `mk_app ``bit0 [e]`. -/
 meta def mk_bit0 (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
 do (c, ai) ← c.get ``has_add,
    return (c, (expr.const ``bit0 [c.univ]).mk_app [c.α, ai, e])
 
+/-- Faster version of `mk_app ``bit1 [e]`. -/
 meta def mk_bit1 (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
 do (c, ai) ← c.get ``has_add,
    (c, oi) ← c.get ``has_one,

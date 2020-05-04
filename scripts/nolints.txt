@@ -2241,7 +2241,6 @@ apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
-apply_nolint power_series.mk unused_arguments
 apply_nolint power_series.order_add_ge ge_or_gt
 apply_nolint power_series.order_ge ge_or_gt
 apply_nolint power_series.order_ge_nat ge_or_gt

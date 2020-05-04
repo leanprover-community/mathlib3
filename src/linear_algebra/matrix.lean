@@ -87,7 +87,7 @@ instance to_lin.is_add_monoid_hom :
 
 lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-by { ext, simp [to_lin_apply, mul_vec, matrix.mul_val, finset.sum_mul, finset.mul_sum] }
+by { ext, simp }
 
 @[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
 by { ext, simp }

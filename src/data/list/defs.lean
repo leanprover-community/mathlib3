@@ -32,6 +32,7 @@ def split_at : ℕ → list α → list α × list α
 | (succ n) (x :: xs) := let (l, r) := split_at n xs in (x :: l, r)
 
 
+/-- An auxiliary function for `split_on_p`. -/
 def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
 | [] f       := [f []]
 | (h :: t) f :=
@@ -92,6 +93,8 @@ def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list
 section take'
 variable [inhabited α]
 
+/-- Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
+elements `default α`. -/
 def take' : ∀ n, list α → list α
 | 0     l := []
 | (n+1) l := l.head :: take' n l.tail
@@ -185,6 +188,8 @@ def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
 | k []      := []
 | k (a::as) := f k a::(map_with_index_core (k+1) as)
 
+/-- Given a function `f : ℕ → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
+`[f 0 a₀, f 1 a₁, ...]`. -/
 def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
 map_with_index_core f 0 as
 
@@ -459,13 +464,16 @@ def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 | s 0     := []
 | s (n+1) := s :: range' (s+1) n
 
+/-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id
 
+/-- Apply `f` to the first element of `l`. -/
 def map_head {α} (f : α → α) : list α → list α
 | [] := []
 | (x :: xs) := f x :: xs
 
+/-- Apply `f` to the last element of `l`. -/
 def map_last {α} (f : α → α) : list α → list α
 | [] := []
 | [x] := [f x]
@@ -499,6 +507,9 @@ def rotate' : list α → ℕ → list α
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)
 
+/-- Given a decidable predicate `p` and a proof of existence of `a ∈ l` such that `p a`,
+choose the first element with this property. This version returns both `a` and proofs
+of `a ∈ l` and `p a`. -/
 def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
 | [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
 | (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
@@ -506,6 +517,9 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
   (λ b ⟨o, h₂⟩, ⟨o.resolve_left (λ e, pl $ e ▸ h₂), h₂⟩)) in
 ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩
 
+/-- Given a decidable predicate `p` and a proof of existence of `a ∈ l` such that `p a`,
+choose the first element with this property. This version returns `a : α`, and properties
+are given by `choose_mem` and `choose_property`. -/
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose

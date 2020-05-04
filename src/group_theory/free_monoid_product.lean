@@ -17,9 +17,11 @@ end
 
 namespace free_monoid_product
 
-variables [Π i, monoid (M i)]
+variables [Π i, monoid (M i)] {M}
 
 instance : monoid (free_monoid_product M) := (con M).monoid
+
+variable (M)
 
 def mk : free_monoid (Σ i, M i) →* free_monoid_product M :=
 (con M).mk'
@@ -35,11 +37,7 @@ lemma mk_apply (x) : mk M x = (con M).mk' x := rfl
 
 @[simp] lemma quot_mk_eq_mk (x) : quot.mk (@setoid.r _ (con M).to_setoid) x = mk M x := rfl
 
-lemma of_apply (i : ι) (x : M i) : of M i x = mk M (free_monoid.of ⟨i, x⟩) := rfl
-
-lemma mk_cons' (i : ι) (x : M i) (tl : free_monoid (Σ i, M i)) :
-  mk M (⟨i, x⟩ :: tl) = of M i x * mk M tl :=
-rfl
+@[simp] lemma mk_of (i : ι) (x : M i) : mk M (free_monoid.of ⟨i, x⟩) = of M i x := rfl
 
 lemma mk_cons (hd : Σ i, M i) (tl : free_monoid (Σ i, M i)) :
   mk M (hd :: tl) = of M hd.fst hd.snd * mk M tl :=
@@ -82,8 +80,18 @@ def lift : (Π i, M i →* N) ≃ (free_monoid_product M →* N) :=
       by simp only [con.ker_rel, monoid_hom.map_mul, free_monoid.lift_eval_of],
       λ i, by simp only [con.ker_rel, free_monoid.lift_eval_of, monoid_hom.map_one]⟩,
   inv_fun := λ f i, f.comp (of M i),
-  left_inv := λ f, funext $ λ i, monoid_hom.ext $ λ x, free_monoid.lift_eval_of _ _,
+  left_inv := λ f, by { ext i x, apply free_monoid.lift_eval_of },
   right_inv := λ f, hom_eq (λ i x, free_monoid.lift_eval_of _ _) }
+
+variables {M N}
+
+@[simp] lemma lift_of (f : Π i, M i →* N) (i : ι) (x : M i) :
+  lift M N f (of M i x) = f i x :=
+free_monoid.lift_eval_of _ _
+
+@[simp] lemma lift_mk (f : Π i, M i →* N) (x : free_monoid (Σ i, M i)) :
+  lift M N f (mk M x) = free_monoid.lift (Σ i, M i) N (λ a, f a.1 a.2) x :=
+rfl
 
 end lift
 
@@ -108,7 +116,7 @@ lemma inv_aux_of (i : ι) (x : G i) : inv_aux (free_monoid.of ⟨i, x⟩) = of G
 instance has_inv : has_inv (free_monoid_product G) :=
 ⟨λ x, lift_on x inv_aux
   (λ x₁ x₂ hx y₁ y₂ hy, by simp only [inv_aux_mul_rev, *])
-  (λ i, show of G i 1⁻¹ = 1, by rw [one_inv, (of G i).map_one])
+  (λ i, by rw [inv_aux_of, one_inv, (of G i).map_one]; refl)
   (λ i x y, by simp only [inv_aux_of, inv_aux_mul_rev, mul_inv_rev, (of G i).map_mul])⟩
 
 protected lemma mul_inv_rev (x y : free_monoid_product G) :
@@ -123,12 +131,17 @@ instance group : group (free_monoid_product G) :=
     from induction_on' x rfl $ λ i x xs hxs,
     by rw [free_monoid_product.mul_inv_rev, mul_assoc, ← mul_assoc _ _ xs, of_inv, ← of_mul,
       mul_left_inv, of_one, one_mul, hxs],
-  .. free_monoid_product.monoid G}
+  .. free_monoid_product.monoid}
 
 end group
 
 def is_normalized : list (Σ i, {x : M i // x ≠ 1}) → Prop :=
 list.chain' $ λ x y, x.fst ≠ y.fst
+
+lemma is_normalized.replace_head {a b : Σ i, {x : M i // x ≠ 1}} {l : list _}
+  (hbl : is_normalized (b::l)) (hab : a.1 = b.1) :
+  is_normalized (a::l) :=
+hbl.imp' (λ _ _, id) (λ c, hab ▸ id)
 
 variables (M)
 
@@ -142,153 +155,177 @@ instance : decidable_pred (@is_normalized _ M _) := by delta is_normalized; appl
 
 def tail (x : normalized M) : normalized M := ⟨x.val.tail, x.property.tail⟩
 
-def cancel_two (a b : Σ i, {x : M i // x ≠ 1}) :
-  list (Σ i, {x : M i // x ≠ 1}) :=
-if hij : a.fst = b.fst then
-  if hxy : a.snd.val * (eq.rec_on hij.symm b.snd.val) = 1 then []
-  else [⟨a.fst, _, hxy⟩]
-else [a, b]
+instance : has_one (normalized M) := ⟨⟨[], trivial⟩⟩
 
-/-- Prepend `a : Σ i, {x : M i // x ≠ 1}` to `l : normalized M` and cancel
-it with `l.head` if required. -/
+@[simp] lemma one_val : (1 : normalized M).1 = [] := rfl
+
+/-- An unbundled version of the embedding `M i → free_monoid_product.normalized M`.
+We will define a `monoid_hom` version later. -/
+def of' (i : ι) (x : M i) : normalized M :=
+if hx : x = 1 then 1 else ⟨[⟨i, x, hx⟩], list.chain'_singleton _⟩
+
+local attribute [simp]
+lemma of'_one (i : ι) : (of' i 1 : normalized M) = 1 := dif_pos rfl
+
+lemma of'_of_ne {i : ι} {x : M i} (hx : x ≠ 1) :
+  of' i x = ⟨[⟨i, x, hx⟩], list.chain'_singleton _⟩ :=
+dif_neg hx
+
+lemma of'_val {i} (x : {x : M i // x ≠ 1}) :
+  (of' i x : normalized M) = ⟨[⟨i, x⟩], list.chain'_singleton _⟩ :=
+subtype.cases_on x $ λ x hx, of'_of_ne hx
+
+@[simp] lemma nil_eq_one (hl) : (⟨[], hl⟩ : normalized M) = (1 : normalized M) := rfl
+
+lemma fst_of_mem_of' {i : ι} {x : M i} {y : Σ i, {x : M i // x ≠ 1}} (h : y ∈ (of' i x).1) :
+  y.1 = i :=
+begin
+  by_cases hx : x = 1,
+  { simp only [hx, of'_one, one_val] at h,
+    exact h.elim },
+  { simp only [of', dif_neg hx, list.mem_singleton] at h,
+    rw h }
+end
+
+lemma fst_of_mem_last'_of' {i : ι} {x : M i} ⦃y : Σ i, {x : M i // x ≠ 1}⦄
+  (h : y ∈ (of' i x).1.last') :
+  y.1 = i :=
+fst_of_mem_of' $ list.mem_of_mem_last' h
+
+def append (xs ys : normalized M)
+  (h : ∀ (a ∈ list.last' xs.1) (b ∈ list.head' ys.1), sigma.fst a ≠ sigma.fst b) :
+  normalized M :=
+⟨xs.1 ++ ys.1, xs.2.append ys.2 h⟩
+
+@[simp] lemma append_val {xs ys : normalized M} (h) : (xs.append ys h).1 = xs.1 ++ ys.1 := rfl
+
+def cancel_two (a b : Σ i, {x : M i // x ≠ 1}) : normalized M :=
+if hij : a.fst = b.fst then of' b.1 ((eq.rec_on hij a.snd) * b.snd)
+else ⟨[a, b], list.chain'_pair.2 hij⟩
+
+lemma fst_of_mem_last'_cancel_two {a b : Σ i, {x : M i // x ≠ 1}} :
+  ∀ c ∈ list.last' (cancel_two a b).1, sigma.fst c = b.1 :=
+begin
+  delta cancel_two,
+  split_ifs,
+  { exact fst_of_mem_last'_of' },
+  { simp [-sigma.forall] }
+end
+
+lemma cancel_two_same (i : ι) (a b : {x : M i // x ≠ 1}) :
+  (cancel_two ⟨i, a⟩ ⟨i, b⟩ : normalized M) = of' i (a * b) :=
+dif_pos rfl
+
 def cons (a : Σ i, {x : M i // x ≠ 1}) : normalized M → normalized M
 | ⟨[], _⟩ := ⟨[a], list.chain'_singleton a⟩
-| ⟨b :: l, h⟩ := subtype.mk (cancel_two a b ++ l)
-begin
-  dunfold cancel_two,
-  split_ifs; simp only [list.cons_append, list.nil_append],
-  { exact h.tail },
-  { exact h.imp' (λ _ _, id) (λ c hb ha, hb (‹a.fst = b.fst› ▸ ha)) },
-  { exact h.cons ‹¬a.fst = b.fst› }
-end
+| ⟨b :: l, h⟩ := (cancel_two a b).append ⟨l, h.tail⟩ $ λ c hc,
+(fst_of_mem_last'_cancel_two _ hc).symm ▸ h.rel_head'
 
-lemma cons_nil (a : Σ i, {x : M i // x ≠ 1}) (h) :
-  cons a ⟨[], h⟩ = ⟨[a], list.chain'_singleton a⟩ := rfl
+instance : has_mul (normalized M) := ⟨λ xs ys, list.foldr cons ys xs.val⟩
 
-/-- If `a :: l` is normalized and `, then `cons a l = a :: l`. -/
-lemma cons_head_tail {a : Σ i, {x : M i // x ≠ 1}} {l hl} (hal) :
-  cons a ⟨l, hl⟩ = ⟨a :: l, hal⟩ :=
+@[simp] lemma cons_one (a : Σ i, {x : M i // x ≠ 1}) :
+  cons a 1 = ⟨[a], list.chain'_singleton a⟩ := rfl
+
+lemma cons_same (i : ι) (x y : {x : M i // x ≠ 1}) (l hbl) :
+  cons ⟨i, x⟩ ⟨⟨i, y⟩ :: l, hbl⟩ = (of' i (x * y : M i)).append ⟨l, hbl.tail⟩
+    (λ a ha, (fst_of_mem_last'_of' ha).symm ▸ hbl.rel_head') :=
+by simp only [cons, cancel_two, append_val, dif_pos rfl]
+
+lemma mul_def (xs ys : normalized M) : xs * ys = list.foldr cons ys xs.val := rfl
+
+lemma cancel_two_of_ne {a b : Σ i, {x : M i // x ≠ 1}} (hab : a.1 ≠ b.1) :
+  (cancel_two a b : normalized M) = ⟨[a, b], list.chain'_pair.2 hab⟩ :=
+subtype.eq $ by simp [cancel_two, dif_neg hab]
+
+lemma cons_of_ne {a : Σ i, {x : M i // x ≠ 1}} {l : normalized M}
+  (h : ∀ b ∈ l.1.head', a.1 ≠ sigma.fst b) :
+  cons a l = ⟨a :: l.1, l.2.cons' h⟩ :=
 begin
   apply subtype.eq,
-  rcases l with _|⟨b, tl⟩,
-  { congr },
-  { have hij : a.fst ≠ b.fst, from (list.chain'_cons.1 hal).1,
-    simp only [cons, cancel_two],
-    rw [dif_neg hij], refl }
+  rcases l with ⟨_|⟨b,l⟩,hl⟩, { simp },
+  simp [cons, cancel_two_of_ne (h b rfl)]
 end
 
-instance : has_mul (normalized M) :=
-⟨λ xs ys, list.foldr normalized.cons ys xs.val⟩
-
-lemma mul_def (xs ys : normalized M) : xs * ys = list.foldr normalized.cons ys xs.val := rfl
-
-lemma cons_mul' (x xs hxs ys) :
-  @has_mul.mul (normalized M) _ ⟨x :: xs, hxs⟩ ys = cons x (⟨xs, hxs.tail⟩ * ys) :=
+lemma cons_mul' (x xs hx) (ys : normalized M) :
+  (⟨x :: xs, hx⟩ * ys : normalized M) = cons x (⟨xs, hx.tail⟩ * ys) :=
 rfl
 
-lemma cons_eq_mul (x) (xs : normalized M) :
-  cons x xs = ⟨[x], list.chain'_singleton x⟩ * xs :=
-rfl
+/-- If `a :: l` is normalized and `, then `cons a l = a :: l`. -/
+lemma cons_head_tail {a : Σ i, {x : M i // x ≠ 1}} {l : normalized M}
+  (hal : is_normalized (a :: l.1)) :
+  cons a l = ⟨a :: l.1, hal⟩ :=
+cons_of_ne hal.rel_head'
 
-lemma is_normalized_cancel_two_append (a b : Σ i, {x : M i // x ≠ 1}) (l : list _)
-  (hl : is_normalized l) (hbl : is_normalized (b :: l)) :
-  is_normalized (cancel_two a b ++ l) :=
+lemma mul_of_is_normalized {l₁ l₂ : normalized M} (h : is_normalized (l₁.1 ++ l₂.1)) :
+  l₁ * l₂ = ⟨l₁.1 ++ l₂.1, h⟩ :=
 begin
-  rcases a with ⟨i, x, hx⟩,
-  rcases b with ⟨j, y, hy⟩,
-  by_cases hij : i = j,
-  { subst j,
-     }
+  cases l₁ with xs h₁,
+  induction xs with x xs ih, { exact subtype.eq rfl },
+  simp only [list.cons_append] at h,
+  simp only [cons_mul', list.cons_append],
+  rw [ih _ h.tail],
+  apply cons_head_tail
 end
 
+protected lemma one_mul (l : normalized M) : 1 * l = l := rfl
 
-lemma cons_mul_aux₁ {i : ι} {x y z : M i} (hx hy hz l hl) :
-  cons ⟨i, x, hx⟩ (cons ⟨i, y, hy⟩ ⟨⟨i, z, hz⟩ :: l, hl⟩) =
-    list.foldr cons ⟨⟨i, z, hz⟩ :: l, hl⟩ (cancel_two ⟨i, x, hx⟩ ⟨i, y, hy⟩) :=
+lemma of'_mul_same (i : ι) (x : M i) (y : {x : M i // x ≠ 1}) (l : list _)
+  (hl : is_normalized (⟨i, y⟩ :: l)) :
+  (of' i x) * ⟨⟨i, y⟩::l, hl⟩ = of' i (x * y) * ⟨l, hl.tail⟩ :=
 begin
-  simp only [cancel_two, dif_pos rfl],
-  split_ifs with hxy; dsimp at *;
-    simp only [cons, cancel_two, dif_pos rfl]; split_ifs with hyz; dsimp at *,
-  { have : x = z, by rw [← mul_one x, ← hyz, ← mul_assoc, hxy, one_mul],
-    subst z,
-    apply cons_head_tail },
-  { have : x * (y * z) ≠ 1, by rwa [← mul_assoc, hxy, one_mul, ne.def],
-    simp only [cons, cancel_two, dif_pos rfl, dif_neg this, list.cons_append, list.nil_append],
-    congr,
-    rw [← mul_assoc, hxy, one_mul] },
-  { have A : x * y * z = x, by rw [mul_assoc, hyz, mul_one],
-    have : x * y * z ≠ 1, by rwa [A],
-    simp only [dif_neg this, A],
-    have hxl : is_normalized (⟨i, x, hx⟩ :: l) := hl.imp' (λ _ _, id) (λ _, id),
-    rw [cons_head_tail hxl], refl },
-  { apply subtype.eq, dsimp,
-    symmetry, -- Otherwise `split_ifs` fails to split `dite` in RHS
-    split_ifs with hxyz; rw mul_assoc at hxyz; simp only [cons, cancel_two, dif_pos rfl]; dsimp,
-    { rw [dif_pos hxyz, list.nil_append] },
-    { rw [dif_neg hxyz, list.cons_append, list.nil_append],
-      congr' 3,
-      apply mul_assoc } }
+  by_cases hx : x = 1,
+  { subst x,
+    simp only [of'_one, normalized.one_mul, one_mul, of'_val, mul_def, list.foldr, one_val],
+    exact (@cons_head_tail _ _ _ _ _ _ ⟨l, hl.tail⟩ hl).symm },
+  simp_rw [mul_def (of' i x), of'_of_ne hx, list.foldr, cons_same, append, subtype.coe_mk],
+  symmetry,
+  apply mul_of_is_normalized
 end
 
-lemma cons_mul_aux {i : ι} {x y : M i} (hx hy l) :
-  cons ⟨i, x, hx⟩ (cons ⟨i, y, hy⟩ l) = list.foldr cons l (cancel_two ⟨i, x, hx⟩ ⟨i, y, hy⟩) :=
+lemma cons_cons (a b : Σ i, {x : M i // x ≠ 1}) (l : normalized M) :
+  (cons a (cons b l) : normalized M) = (cancel_two a b) * l :=
 begin
-  cases l with l hl,
-  by_cases H : is_normalized (⟨i, y, hy⟩ :: l),
-  { simp only [cons_head_tail H, cons, cancel_two, dif_pos rfl],
-    split_ifs with hxy, refl,
-    dsimp [list.foldr] at hxy ⊢,
-    exact (cons_head_tail _).symm },
-  { rcases l with _|⟨⟨j, z, hz⟩, l⟩,
-    { exact absurd (list.chain'_singleton _) H },
-    { replace H : i = j, from not_not.1 (λ hne, H $ hl.cons hne),
-      subst j,
-      apply cons_mul_aux₁ } }
+  -- First we get rid of two simple cases: `a.1 = b.1` and `is_normalized (b::l.1)`
+  by_cases hij : a.1 = b.1, rotate,
+  { simp only [cancel_two_of_ne hij, mul_def, list.foldr] },
+  by_cases hbl : is_normalized (b::l.1),
+  { simp only [cons_head_tail hbl, cons, append, subtype.eta],
+    exact (mul_of_is_normalized _).symm },
+  -- Now we deal with the main case: `a.1 = b.1 = l.head.1`
+  rcases a with ⟨i, x⟩,
+  rcases b with ⟨j, y⟩,
+  rcases l with ⟨l, hl⟩,
+  dsimp at hij hbl ⊢, subst j,
+  obtain ⟨z, l, rfl⟩ : ∃ z l', l = ⟨i, z⟩::l',
+  { simp only [is_normalized, list.chain'_cons'] at hbl,
+    push_neg at hbl,
+    rcases hbl.resolve_right (not_not_intro hl) with ⟨⟨i, z⟩, hz, rfl⟩,
+    exact ⟨z, l.tail, (list.cons_head'_tail hz).symm⟩ },
+  clear hbl,
+  rw [cons_same, cancel_two_same, of'_mul_same, mul_assoc],
+  by_cases hyz : (y * z : M i) = 1,
+  { simp [hyz, append, of'_val, mul_def], refl },
+  { simp only [of'_of_ne hyz, append, list.cons_append, list.nil_append, cons_same, subtype.coe_mk],
+    symmetry,
+    apply mul_of_is_normalized }
 end
 
 lemma cons_mul (x) (xs ys : normalized M) :
   (cons x xs) * ys = cons x (xs * ys) :=
 begin
-  rcases xs with ⟨l, hl⟩,
-  cases l with hd,
-  { refl },
-  { rcases x with ⟨i, x, hx⟩,
-    rcases hd with ⟨j, y, hy⟩,
-    by_cases hij : i = j,
-    { subst j,
-      simp only [mul_def, list.foldr_cons, cons, list.foldr_append],
-      apply (cons_mul_aux _ _ _).symm },
-    { simp only [mul_def, cons, cancel_two, dif_neg hij,
-        list.foldr_append, list.foldr_cons, list.foldr_nil] } }
+  rcases xs with ⟨_|⟨x', xs⟩, hl⟩, { refl },
+  simp only [mul_def, list.foldr, list.foldr_append, cons, append_val],
+  exact (cons_cons x x' (⟨xs, hl.tail⟩ * ys)).symm
 end
-
-def cons' (x : Σ i, M i) (xs : normalized M) : normalized M :=
-if h : x.snd = 1 then xs else cons ⟨x.fst, x.snd, h⟩ xs
-
-lemma cons'_mul (x) (xs ys : normalized M) :
-  (cons' x xs) * ys = cons' x (xs * ys) :=
-begin
-  dunfold cons',
-  split_ifs,
-  { refl },
-  { apply cons_mul }
-end
-
-instance : has_one (normalized M) := ⟨⟨[], trivial⟩⟩
-
-lemma one_def : (1 : normalized M) = ⟨[], trivial⟩ := rfl
-
-lemma nil_eq_one (hl) : (⟨[], hl⟩ : normalized M) = (1 : normalized M) := rfl
 
 instance : monoid (normalized M) :=
 { one := 1,
   mul := (*),
   mul_one :=
     begin
-      rintros ⟨l, hl⟩,
-      induction l with hd tl htl,
-      { refl },
-      { rw [cons_mul', htl, cons_head_tail] }
+      rintros ⟨xs, h⟩,
+      rw mul_of_is_normalized; simp only [one_val, list.append_nil],
+      exact h
     end,
   one_mul := λ xs, rfl,
   mul_assoc := λ xs ys zs,
@@ -299,73 +336,45 @@ instance : monoid (normalized M) :=
       { rw [cons_mul', cons_mul', ← hxs, cons_mul] }
     end }
 
+variable (M)
+
+/-- Embedding of `M i` into `free_monoid_product.normalized M` as a `monoid_hom`. -/
+def of (i : ι) : M i →* normalized M :=
+{ to_fun := of' i,
+  map_one' := of'_one i,
+  map_mul' :=  λ x y, if h : y = 1 then by simp [h]
+    else by simp [of'_of_ne h, of'_mul_same] }
+
 end normalized
+
+def cons' (a : Σ i, M i) (l : normalized M) : normalized M :=
+if h : a.2 = 1 then l else normalized.cons ⟨a.1, a.2, h⟩ l
+
+def normalize_aux (l : free_monoid (Σ i, M i)) : normalized M :=
+list.foldr cons' 1 l
+
+lemma normalize_aux_eq_lift_of (l : free_monoid (Σ i, M i)) :
+  normalize_aux l = (lift M (normalized M) : (Π i, M i →* normalized M) →
+    free_monoid_product M →* normalized M) (normalized.of M) (mk M l) :=
+begin
+  simp only [lift_mk, free_monoid.lift_apply, list.prod_eq_foldr, list.foldr_map, normalize_aux],
+  congr,
+  ext ⟨i, x⟩ l,
+  dsimp only [(∘), cons', normalized.of, monoid_hom.coe_mk, normalized.of'],
+  split_ifs; refl
+end
 
 section
 
 variable (M)
 
-private def normalize_aux : free_monoid_product M →* normalized M :=
-begin
-  refine (con M).lift ⟨_, _, _⟩ _,
-  { exact list.foldr normalized.cons' 1 },
-  { refl },
-  { intros xs ys,
-    induction xs with x xs hxs,
-    { simp_rw [list.foldr_nil, free_monoid.one_def.symm, one_mul] },
-    { erw [list.foldr_cons, normalized.cons'_mul, hxs] }},
-  { refine Inf_le ⟨λ i x y, _, λ i, _⟩;
-      simp only [con.ker_rel, monoid_hom.coe_mk, free_monoid.of_def, free_monoid.mul_def,
-        list.cons_append, list.nil_append, list.foldr, normalized.cons'],
-    { dsimp, symmetry,
-      by_cases hx : x = 1; [subst x, rw [dif_neg hx]];
-        by_cases hy : y = 1; [subst y, rw [dif_neg hy], subst y, rw [dif_neg hy]];
-        try { simp only [dif_pos rfl, one_mul, mul_one] },
-      { rw [dif_pos], apply mul_one },
-      { rw [dif_neg], rwa [one_mul] },
-      { rw [dif_neg], rwa [mul_one] },
-      { simp only [normalized.one_def, normalized.cons_nil, normalized.cons, list.append_nil,
-          normalized.cancel_two, dif_pos rfl],
-        dsimp,
-        split_ifs; refl }
-      },
-    { simp only [dif_pos rfl], refl  } }
-end
-
-private def of_normalized : normalized M →* free_monoid_product M :=
-{ to_fun := λ xs, mk M (list.map (λ x : Σ i, {x : M i // x ≠ 1}, ⟨x.fst, x.snd.val⟩) xs.val),
-  map_one' := rfl,
-  map_mul' := λ xs ys,
-  begin
-    cases xs with xs hxs,
-    induction xs with x xs ihx,
-    { refl },
-    { rw [list.map_cons, mk_cons, mul_assoc, ← ihx hxs.tail, ← mk_cons',
-        ← list.map_cons (λ x : Σ i, {x : M i // ¬x=1}, (⟨x.1, x.2.1⟩ : Σ i, M i))],
-      apply congr_arg, apply congr_arg,
-       }
-  end
+def equiv_normalized : free_monoid_product M ≃* normalized M :=
+{ to_fun :=
+    begin
+      refine (λ x, lift_on x normalize_aux _ (λ i, dif_pos rfl) _);
+        simp only [normalize_aux_eq_lift_of, lift_mk, monoid_hom.map_mul, free_monoid.lift_eval_of],
+    end
 }
-
-lemma normalize_aux_of_normalized (xs : normalized M) :
-  (normalize_aux M : free_monoid_product M → normalized M)
-    (of_normalized xs) = xs :=
-begin
-  cases xs with xs hxs,
-  induction xs with x xs ihx,
-  { refl },
-  { simp only [of_normalized, list.map_cons, mk_cons, monoid_hom.map_mul, of_apply], }
-end
-
-def to_normalized : free_monoid_product M ≃* normalized M :=
-begin
-  refine { .. normalize_aux M, .. },
-  { exact λ xs,  },
-  { rintros ⟨xs⟩; rw [quot_mk_eq_mk],
-    induction xs with x xs ihx,
-    { refl },
-    { rw [mk_cons, monoid_hom.map_mul', normalized.mul_def],  } }
-end
 
 end
 

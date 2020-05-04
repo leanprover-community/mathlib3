@@ -74,22 +74,20 @@ begin
     ... = geom_series (f g₀ ^ i) (fintype.card G) :
   by { rw [order_of_eq_card_of_forall_mem_gpowers hG],
        apply sum_congr rfl, intros k hk, rw [← pow_mul', pow_mul, f.map_pow] }
-    ... = if (fintype.card G) ∣ i then fintype.card G else 0 :
-  begin
-    split_ifs with H H,
-    { rcases H with ⟨d, rfl⟩,
-      rw [pow_mul, ← f.map_pow, pow_card_eq_one, f.map_one, geom_series_def],
-      simp only [_root_.one_pow, add_monoid.smul_one, sum_const, card_range] },
-    { have key : geom_series (f g₀ ^ i) (fintype.card G) * (f g₀ ^ i - 1) = 0,
-      { rw [geom_sum_mul (f g₀ ^ i) (fintype.card G), ← f.map_pow, ← f.map_pow,
-            pow_card_eq_one, f.map_one, sub_self] },
-      apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
-      rw [sub_eq_zero, ← f.map_one, ← f.map_pow],
-      apply hf.ne,
-      contrapose! H,
-      rw [← order_of_eq_card_of_forall_mem_gpowers hG],
-      exact order_of_dvd_of_pow_eq_one H },
-  end
+    ... = if (fintype.card G) ∣ i then fintype.card G else 0 : _,
+  split_ifs with H H,
+  { rcases H with ⟨d, rfl⟩,
+    rw [pow_mul, ← f.map_pow, pow_card_eq_one, f.map_one, geom_series_def],
+    simp only [_root_.one_pow, add_monoid.smul_one, sum_const, card_range] },
+  { have key : geom_series (f g₀ ^ i) (fintype.card G) * (f g₀ ^ i - 1) = 0,
+    { rw [geom_sum_mul (f g₀ ^ i) (fintype.card G), ← f.map_pow, ← f.map_pow,
+          pow_card_eq_one, f.map_one, sub_self] },
+    apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
+    rw [sub_eq_zero, ← f.map_one, ← f.map_pow],
+    apply hf.ne,
+    contrapose! H,
+    rw [← order_of_eq_card_of_forall_mem_gpowers hG],
+    exact order_of_dvd_of_pow_eq_one H },
 end
 
 variables (S : set (units R)) [is_subgroup S] [fintype S]
@@ -235,13 +233,11 @@ lemma sum_pow_units (i : ℕ) :
 begin
   calc ∑ x : units K, (x ^ i : K) = if fintype.card (units K) ∣ i then fintype.card (units K) else 0 :
       sum_pow_units_subgroup ⟨(coe : units K → K), units.coe_one, units.coe_mul⟩ units.ext i
-    ... = if (q - 1) ∣ i then -1 else 0 :
-  begin
-    suffices : 1 ≤ q,
-    { simp only [card_units, nat.cast_sub this, cast_card_eq_zero, nat.cast_one, zero_sub],
-      split_ifs; refl },
-    exact fintype.card_pos_iff.mpr ⟨0⟩
-  end
+    ... = if (q - 1) ∣ i then -1 else 0 : _,
+  suffices : 1 ≤ q,
+  { simp only [card_units, nat.cast_sub this, cast_card_eq_zero, nat.cast_one, zero_sub],
+    split_ifs; refl },
+  exact fintype.card_pos_iff.mpr ⟨0⟩
 end
 
 /-- The sum of `x ^ i` as `x` ranges over a finite field of cardinality `q`

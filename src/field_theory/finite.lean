@@ -48,6 +48,7 @@ begin
   { intros, apply hf, assumption }
 end
 
+/-- A finite subgroup of the unit group of an integral domain is cyclic. -/
 lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
 begin
   haveI := classical.dec_eq G,

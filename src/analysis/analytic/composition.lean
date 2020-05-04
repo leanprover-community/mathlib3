@@ -72,7 +72,15 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 open filter list
-open_locale topological_space classical
+open_locale topological_space big_operators classical
+
+-- move this
+def composition.equiv {n : ℕ} (c : composition n) :
+  (Σ i : fin c.length, fin (c.blocks_fun i)) ≃ fin n :=
+{ to_fun := λ x, c.embedding x.1 x.2,
+  inv_fun := λ j, ⟨c.index j, c.inv_embedding j⟩,
+  left_inv := λ x, by { dsimp, },
+  right_inv := λ j, by { dsimp, } }
 
 /-! ### Composing formal multilinear series -/
 
@@ -80,8 +88,7 @@ namespace formal_multilinear_series
 
 /-!
 In this paragraph, we define the composition of formal multilinear series, by summing over all
-possible compositions
-of `n`.
+possible compositions of `n`.
 -/
 
 /-- Given a formal multilinear series `p`, a composition `c` of `n` and the index `i` of a
@@ -99,10 +106,10 @@ multilinearity. -/
 lemma apply_composition_update
   (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (c : composition n)
   (j : fin n) (v : fin n → E) (z : E) :
-  p.apply_composition c (function.update v j z)
-  = function.update (p.apply_composition c v) (c.index j)
-    (p (c.blocks_fun (c.index j))
-  (function.update (v ∘ (c.embedding (c.index j))) (c.inv_embedding j) z)) :=
+  p.apply_composition c (function.update v j z) =
+    function.update (p.apply_composition c v) (c.index j)
+      (p (c.blocks_fun (c.index j))
+        (function.update (v ∘ (c.embedding (c.index j))) (c.inv_embedding j) z)) :=
 begin
   ext k,
   by_cases h : k = c.index j,
@@ -133,45 +140,29 @@ def comp_along_composition_multilinear {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) : multilinear_map 𝕜 (λ i : fin n, E) G :=
 { to_fun := λ v, q c.length (p.apply_composition c v),
-  add    := λ v i x y, by simp [apply_composition_update],
-  smul   := λ v i c x, by simp [apply_composition_update] }
+  add    := λ v i x y, by simp only [apply_composition_update, continuous_multilinear_map.map_add],
+  smul   := λ v i c x, by simp only [apply_composition_update, continuous_multilinear_map.map_smul] }
 
 /-- The norm of `q.comp_along_composition_multilinear p c` is controlled by the product of
 the norms of the relevant bits of `q` and `p`. -/
 lemma comp_along_composition_multilinear_bound {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) (v : fin n → E) :
-  ∥q.comp_along_composition_multilinear p c v∥
-  ≤ ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥)
-    * (finset.univ : finset (fin n)).prod (λ i, ∥v i∥) :=
+  ∥q.comp_along_composition_multilinear p c v∥ ≤
+    ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
 begin
   -- main point: taking the product of the `∥v i∥` along each block, and then along all the blocks,
   -- gives the product of all the `∥v i∥`, as the blocks form a partition of the indices.
-  have A : finset.univ.prod (λ (i : fin c.length),
-    finset.univ.prod (λ (j : fin (c.blocks_fun i)), ∥(v ∘ c.embedding i) j∥)) =
-    finset.prod finset.univ (λ (i : fin n), ∥v i∥),
+  have A : ∏ i : fin c.length, ∏ j : fin (c.blocks_fun i), ∥(v ∘ c.embedding i) j∥ =
+    ∏ i : fin n, ∥v i∥,
   { -- The fact that a product over a partition gives the whole product is `finset.prod_bind`.
     -- We just need to check its disjointness and totality assumptions.
-    have : (∀ (i : fin c.length), i ∈ finset.univ → ∀ (j : fin c.length), j ∈ finset.univ →
-       i ≠ j → disjoint (finset.univ.image (c.embedding i)) (finset.univ.image (c.embedding j))),
-    { assume i hi j hj i_ne_j,
-      rw finset.disjoint_iff_disjoint_coe,
-      convert c.disjoint_range i_ne_j;
-      apply fintype.coe_image_univ },
-    have Z := @finset.prod_bind _ _ _ (λ j, ∥v j∥) _ _ finset.univ
-      (λ (i : fin c.length), finset.univ.image (c.embedding i)) this,
-    have : (finset.bind finset.univ (λ (i : fin c.length), finset.univ.image (c.embedding i)))
-      = finset.univ,
-    { ext j,
-      simp only [finset.mem_univ, finset.mem_bind, iff_true, exists_prop_of_true, finset.mem_image],
-      refine ⟨c.index j, by simpa using c.mem_range_embedding j⟩ },
-    rw this at Z,
-    rw Z,
-    congr,
-    ext i,
-    rw finset.prod_image,
-    assume a ha b hb hab,
-    exact c.embedding_inj i hab },
+    rw [← finset.prod_equiv c.equiv, ← finset.univ_sigma_univ, finset.prod_sigma],
+    apply finset.prod_congr rfl,
+    intros i hi,
+    apply finset.prod_congr rfl,
+    intros j hj,
+    refl },
   -- Now that the main point is proved, write down the estimates using the definition of the norm
   -- of a multilinear map
   calc ∥q.comp_along_composition_multilinear p c v∥

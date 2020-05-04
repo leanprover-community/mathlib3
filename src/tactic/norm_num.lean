@@ -30,6 +30,19 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
     p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
   return (e₁, p₁)) <|> t₂ e
 
+namespace instance_cache
+
+meta def mk_bit0 (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
+do (c, ai) ← c.get ``has_add,
+   return (c, (expr.const ``bit0 [c.univ]).mk_app [c.α, ai, e])
+
+meta def mk_bit1 (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
+do (c, ai) ← c.get ``has_add,
+   (c, oi) ← c.get ``has_one,
+   return (c, (expr.const ``bit1 [c.univ]).mk_app [c.α, oi, ai, e])
+
+end instance_cache
+
 end tactic
 
 open tactic
@@ -155,10 +168,16 @@ meta def prove_add_nat' (c : instance_cache) (a b : expr) : tactic (instance_cac
 
 end
 
+theorem bit0_mul {α} [semiring α] (a b c : α) (h : a * b = c) :
+  bit0 a * b = bit0 c := h ▸ by simp [bit0, add_mul]
 theorem mul_bit0' {α} [semiring α] (a b c : α) (h : a * b = c) :
   a * bit0 b = bit0 c := h ▸ by simp [bit0, mul_add]
-theorem mul_bit1' {α} [semiring α] (a b c d : α) (h : a * b = c) (h₂ : bit0 c + a = d) :
-  a * bit1 b = d := h₂ ▸ h ▸ by simp [bit1, bit0, mul_add]
+theorem mul_bit0_bit0 {α} [semiring α] (a b c : α) (h : a * b = c) :
+  bit0 a * bit0 b = bit0 (bit0 c) := bit0_mul _ _ _ (mul_bit0' _ _ _ h)
+theorem mul_bit1_bit1 {α} [semiring α] (a b c d e : α)
+  (hc : a * b = c) (hd : a + b = d) (he : bit0 c + d = e) :
+  bit1 a * bit1 b = bit1 e :=
+by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm]
 
 section
 open match_numeral_result
@@ -177,17 +196,30 @@ meta def prove_mul_nat : instance_cache → expr → expr → tactic (instance_c
     return (ic, z, p)
   | one, _ := do (ic, p) ← ic.mk_app ``one_mul [b], return (ic, b, p)
   | _, one := do (ic, p) ← ic.mk_app ``mul_one [a], return (ic, a, p)
+  | bit0 a, bit0 b := do
+    (ic, c, p) ← prove_mul_nat ic a b,
+    (ic, p) ← ic.mk_app ``mul_bit0_bit0 [a, b, c, p],
+    (ic, c') ← ic.mk_bit0 c,
+    (ic, c') ← ic.mk_bit0 c',
+    return (ic, c', p)
+  | bit0 a, _ := do
+    (ic, c, p) ← prove_mul_nat ic a b,
+    (ic, p) ← ic.mk_app ``bit0_mul [a, b, c, p],
+    (ic, c') ← ic.mk_bit0 c,
+    return (ic, c', p)
   | _, bit0 b := do
     (ic, c, p) ← prove_mul_nat ic a b,
     (ic, p) ← ic.mk_app ``mul_bit0' [a, b, c, p],
-    (ic, c') ← ic.mk_app ``_root_.bit0 [c],
+    (ic, c') ← ic.mk_bit0 c,
     return (ic, c', p)
-  | _, bit1 b := do
-    (ic, c, p) ← prove_mul_nat ic a b,
-    (ic, c') ← ic.mk_app ``_root_.bit0 [c],
-    (ic, d, p₂) ← prove_add_nat' ic c' a,
-    (ic, p) ← ic.mk_app ``mul_bit1' [a, b, c, d, p, p₂],
-    return (ic, d, p)
+  | bit1 a, bit1 b := do
+    (ic, c, pc) ← prove_mul_nat ic a b,
+    (ic, d, pd) ← prove_add_nat' ic a b,
+    (ic, c') ← ic.mk_bit0 c,
+    (ic, e, pe) ← prove_add_nat' ic c' d,
+    (ic, p) ← ic.mk_app ``mul_bit1_bit1 [a, b, c, d, e, pc, pd, pe],
+    (ic, e') ← ic.mk_bit1 e,
+    return (ic, e', p)
   | _, _ := failed
   end
 
@@ -805,12 +837,12 @@ meta def prove_nat_uncast (ic nc : instance_cache) : ∀ (a' : expr),
     return (ic, nc, e, p)
   | match_numeral_result.bit0 a' := do
     (ic, nc, a, p) ← prove_nat_uncast a',
-    a0 ← mk_app ``bit0 [a],
+    (nc, a0) ← nc.mk_bit0 a,
     (ic, p) ← ic.mk_app ``nat_cast_bit0 [a, a', p],
     return (ic, nc, a0, p)
   | match_numeral_result.bit1 a' := do
     (ic, nc, a, p) ← prove_nat_uncast a',
-    a1 ← mk_app ``bit1 [a],
+    (nc, a1) ← nc.mk_bit1 a,
     (ic, p) ← ic.mk_app ``nat_cast_bit1 [a, a', p],
     return (ic, nc, a1, p)
   | _ := failed
@@ -832,12 +864,12 @@ meta def prove_int_uncast_nat (ic zc : instance_cache) : ∀ (a' : expr),
     return (ic, zc, e, p)
   | match_numeral_result.bit0 a' := do
     (ic, zc, a, p) ← prove_int_uncast_nat a',
-    a0 ← mk_app ``bit0 [a],
+    (zc, a0) ← zc.mk_bit0 a,
     (ic, p) ← ic.mk_app ``int_cast_bit0 [a, a', p],
     return (ic, zc, a0, p)
   | match_numeral_result.bit1 a' := do
     (ic, zc, a, p) ← prove_int_uncast_nat a',
-    a1 ← mk_app ``bit1 [a],
+    (zc, a1) ← zc.mk_bit1 a,
     (ic, p) ← ic.mk_app ``int_cast_bit1 [a, a', p],
     return (ic, zc, a1, p)
   | _ := failed
@@ -859,12 +891,12 @@ meta def prove_rat_uncast_nat (ic qc : instance_cache) (cz_inst : expr) : ∀ (a
     return (ic, qc, e, p)
   | match_numeral_result.bit0 a' := do
     (ic, qc, a, p) ← prove_rat_uncast_nat a',
-    a0 ← mk_app ``bit0 [a],
+    (qc, a0) ← qc.mk_bit0 a,
     (ic, p) ← ic.mk_app ``rat_cast_bit0 [cz_inst, a, a', p],
     return (ic, qc, a0, p)
   | match_numeral_result.bit1 a' := do
     (ic, qc, a, p) ← prove_rat_uncast_nat a',
-    a1 ← mk_app ``bit1 [a],
+    (qc, a1) ← qc.mk_bit1 a,
     (ic, p) ← ic.mk_app ``rat_cast_bit1 [cz_inst, a, a', p],
     return (ic, qc, a1, p)
   | _ := failed

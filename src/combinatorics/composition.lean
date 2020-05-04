@@ -480,42 +480,63 @@ end composition
 ### Splitting a list
 
 Given a list of length `n` and a composition `c` of `n`, one can split `l` into `c.length` sublists
-of respective lenghts `c.blocks_fun 0`, ..., `c.blocks_fun (c.length-1)`. This is inverse to the
+of respective lengths `c.blocks_fun 0`, ..., `c.blocks_fun (c.length-1)`. This is inverse to the
 join operation.
 -/
 namespace list
 variable {α : Type*}
 
+/-- Auxiliary for `list.split_wrt_composition`. -/
+def split_wrt_composition_aux : list α → list ℕ → list (list α)
+| l [] := []
+| l (n :: ns) :=
+  let (l₁, l₂) := l.split_at n in
+  l₁ :: split_wrt_composition_aux l₂ ns
+
 /-- Given a list of length `n` and a composition `[i₁, ..., iₖ]` of `n`, split `l` into a list of
 `k` lists corresponding to the blocks of the composition, of respective lengths `i₁`, ..., `iₖ`.
 This makes sense mostly when `n = l.length`, but this is not necessary for the definition. -/
 def split_wrt_composition (l : list α) (c : composition n) : list (list α) :=
-of_fn (λ (i : fin c.length), (l.take (c.size_up_to (i.val+1))).drop (c.size_up_to i.val))
+split_wrt_composition_aux l c.blocks
+
+local attribute [simp] split_wrt_composition_aux.equations._eqn_1
+
+local attribute [simp]
+lemma split_wrt_composition_aux_cons (l : list α) (n ns) :
+  l.split_wrt_composition_aux (n :: ns) = take n l :: (drop n l).split_wrt_composition_aux ns :=
+by simp [split_wrt_composition_aux]
+
+lemma length_split_wrt_composition_aux (l : list α) (ns) :
+  length (l.split_wrt_composition_aux ns) = ns.length :=
+by induction ns generalizing l; simp *
 
 /-- When one splits a list along a composition `c`, the number of sublists thus created is
 `c.length`. -/
 @[simp] lemma length_split_wrt_composition (l : list α) (c : composition n) :
   length (l.split_wrt_composition c) = c.length :=
-by simp [split_wrt_composition]
+length_split_wrt_composition_aux _ _
+
+lemma map_length_split_wrt_composition_aux {ns : list ℕ} :
+  ∀ {l : list α}, ns.sum ≤ l.length → map length (l.split_wrt_composition_aux ns) = ns :=
+begin
+  induction ns with n ns IH; intros l h; simp at h ⊢,
+  have := le_trans (nat.le_add_right _ _) h,
+  rw IH, {simp [this]},
+  rwa [length_drop, nat.le_sub_left_iff_add_le this]
+end
 
 /-- When one splits a list along a composition `c`, the lengths of the sublists thus created are
 given by the block sizes in `c`. -/
 lemma map_length_split_wrt_composition (l : list α) (c : composition l.length) :
   map length (l.split_wrt_composition c) = c.blocks :=
-begin
-  refine ext_le (by simp) (λ i h₁ h₂, _),
-  simp [split_wrt_composition, composition.size_up_to_le c, min_eq_left, nth_le_of_fn',
-             map_of_fn, function.comp_app, length_drop, length_take],
-  rw c.blocks_length at h₂,
-  simp only [composition.size_up_to_succ c h₂, nat.add_sub_cancel_left]
-end
+map_length_split_wrt_composition_aux (le_of_eq c.blocks_sum)
 
 lemma length_pos_of_mem_split_wrt_composition {l l' : list α} {c : composition l.length}
   (h : l' ∈ l.split_wrt_composition c) : 0 < length l' :=
 begin
   have : l'.length ∈ (l.split_wrt_composition c).map list.length :=
     list.mem_map_of_mem list.length h,
-  rw list.map_length_split_wrt_composition at this,
+  rw map_length_split_wrt_composition at this,
   exact c.blocks_pos this
 end
 
@@ -524,60 +545,24 @@ lemma sum_take_map_length_split_wrt_composition
   (((l.split_wrt_composition c).map length).take i).sum = c.size_up_to i :=
 by { congr, exact map_length_split_wrt_composition l c }
 
-/-- The `i`-th sublist in the splitting of a list `l` along a composition `c`, is the slice of `l`
-between the indices `c.size_up_to i` and `c.size_up_to (i+1)`, i.e., the indices in the `i`-th
-block of the composition. -/
-lemma nth_le_split_wrt_composition (l : list α) (c : composition n)
-  {i : ℕ} (hi : i < (l.split_wrt_composition c).length) :
-  nth_le (l.split_wrt_composition c) i hi = (l.take (c.size_up_to (i+1))).drop (c.size_up_to i) :=
-by simp [split_wrt_composition]
+theorem join_split_wrt_composition_aux {ns : list ℕ} :
+  ∀ {l : list α}, ns.sum = l.length → (l.split_wrt_composition_aux ns).join = l :=
+begin
+  induction ns with n ns IH; intros l h; simp at h ⊢,
+  { exact (length_eq_zero.1 h.symm).symm },
+  rw IH, {simp},
+  rwa [length_drop, ← h, nat.add_sub_cancel_left]
+end
 
 /-- If one splits a list along a composition, and then joins the sublists, one gets back the
 original list. -/
-theorem join_split_wrt_composition (l : list α) (c : composition l.length) :
+@[simp] theorem join_split_wrt_composition (l : list α) (c : composition l.length) :
   (l.split_wrt_composition c).join = l :=
-begin
-  /- The proof is naive, direct, and tedious: show that the `k`-th elements are the same.
-  To do this, we identify to which block `k` belongs (its index is `c.index k` by definition),
-  and then express the `k`-th element of the join as some element in a sublist, which in turn can
-  be expressed as an element of `l`. -/
-  let L := l.split_wrt_composition c,
-  have A : length (join L) = length l,
-    by simp [L, split_wrt_composition, sum_of_fn, c.size_up_to_le, c.size_up_to_length,
-      fin.sum_univ_eq_sum_range ((λ (x : ℕ), c.size_up_to (x + 1) - c.size_up_to x)) c.length,
-      finset.sum_range_sub_of_monotone, c.size_up_to_zero, c.monotone_size_up_to],
-  apply ext_le A (λ k h₁ h₂, _),
-  let i := c.index ⟨k, h₂⟩,
-  have i_lt : i.val < L.length, by { convert i.2, simp },
-  have le_k : c.size_up_to i.val ≤ k := c.size_up_to_index_le ⟨k, h₂⟩,
-  have k_lt : k < c.size_up_to (i.val + 1) := c.lt_size_up_to_index_succ ⟨k, h₂⟩,
-  set j := k - c.size_up_to i.val with hj,
-  have k_eq' : k = c.size_up_to i.val + j := (nat.add_sub_of_le le_k).symm,
-  rw [k_eq'] at k_lt,
-  have k_eq : k = ((L.map length).take i.val).sum + j,
-    by rwa sum_take_map_length_split_wrt_composition l c,
-  have j_lt : j < length (nth_le L i.val i_lt),
-  { rw length_split_wrt_composition at i_lt,
-    rw [c.size_up_to_succ i_lt, add_lt_add_iff_left] at k_lt,
-    convert k_lt,
-    rw nth_le_of_eq (map_length_split_wrt_composition l c).symm,
-    simp },
-  have : nth_le (join L) k h₁ = nth_le (join L) (((L.map length).take i.val).sum + j) (k_eq ▸ h₁),
-    by { congr, exact k_eq },
-  rw [this, nth_le_join _ i_lt j_lt],
-  dsimp [L],
-  rw nth_le_of_eq (nth_le_split_wrt_composition l c i_lt),
-  have B : c.size_up_to i.val + j < (l.take (c.size_up_to (i.val + 1))).length,
-  { convert k_lt,
-    simp [c.size_up_to_le] },
-  rw [← nth_le_drop _ B, ← nth_le_take _ (lt_of_lt_of_le k_lt (c.size_up_to_le _)) k_lt],
-  congr,
-  exact k_eq'.symm
-end
+join_split_wrt_composition_aux c.blocks_sum
 
-/-- If one joins a list of list, and then splits the join along the right composition, one get
-backs the original list of lists. -/
-theorem split_wrt_composition_join (L : list (list α)) (c : composition L.join.length)
+/-- If one joins a list of lists and then splits the join along the right composition, one gets
+back the original list of lists. -/
+@[simp] theorem split_wrt_composition_join (L : list (list α)) (c : composition L.join.length)
   (h : map length L = c.blocks) : split_wrt_composition (join L) c = L :=
 by simp only [eq_self_iff_true, and_self, eq_iff_join_eq, join_split_wrt_composition,
               map_length_split_wrt_composition, h]

@@ -557,7 +557,7 @@ lemma comp_change_of_variables_blocks_fun
 begin
   rcases i with ⟨n, f⟩,
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
-  simp only [map_of_fn, pnat.mk_coe, nth_le_of_fn', function.comp_app],
+  simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
   rw fin.ext_iff
 end
@@ -646,8 +646,7 @@ begin
     simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
                map_of_fn, length_of_fn, true_and, comp_change_of_variables],
     assume j,
-    simp only [composition.blocks_fun, composition.blocks, (H.right _).right, pnat.mk_coe,
-               map_of_fn, nth_le_of_fn', function.comp_app] },
+    simp only [composition.blocks_fun, (H.right _).right, nth_le_of_fn'] },
   -- 2 - show that the composition gives the `comp_along_composition` application
   { rintros ⟨k, blocks_fun⟩ H,
     have L := comp_change_of_variables_length N H,
@@ -1138,7 +1137,7 @@ begin
     exact A },
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
-  rw ← sum_equiv (sigma_equiv_sigma_pi n),
+  rw ← finset.sum_equiv (sigma_equiv_sigma_pi n),
   /- To check that we have the same terms, we should check that we apply the same component of
   `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
   `v`. This is true by definition, but at each step one needs to convince Lean that the types

@@ -772,15 +772,76 @@ else do
   (ic, p) ← prove_lt_rat ic b a nb na,
   ic.mk_app ``ne_of_gt [a, b, p]
 
-theorem rat_cast_neg {α} [division_ring α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑-a = -a' :=
-h ▸ rat.cast_neg _
-theorem rat_cast_div {α} [division_ring α] [char_zero α] (a b : ℚ) (a' b' : α)
-  (ha : ↑a = a') (hb : ↑b = b') : ↑(a / b) = a' / b' :=
-ha ▸ hb ▸ rat.cast_div _ _
+theorem nat_cast_zero {α} [semiring α] : ↑(0 : ℕ) = (0 : α) := nat.cast_zero
+theorem nat_cast_one {α} [semiring α] : ↑(1 : ℕ) = (1 : α) := nat.cast_one
+theorem nat_cast_bit0 {α} [semiring α] (a : ℕ) (a' : α) (h : ↑a = a') : ↑(bit0 a) = bit0 a' :=
+h ▸ nat.cast_bit0 _
+theorem nat_cast_bit1 {α} [semiring α] (a : ℕ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
+h ▸ nat.cast_bit1 _
+theorem int_cast_zero {α} [ring α] : ↑(0 : ℤ) = (0 : α) := int.cast_zero
+theorem int_cast_one {α} [ring α] : ↑(1 : ℤ) = (1 : α) := int.cast_one
+theorem int_cast_bit0 {α} [ring α] (a : ℤ) (a' : α) (h : ↑a = a') : ↑(bit0 a) = bit0 a' :=
+h ▸ int.cast_bit0 _
+theorem int_cast_bit1 {α} [ring α] (a : ℤ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
+h ▸ int.cast_bit1 _
 theorem rat_cast_bit0 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit0 a) = bit0 a' :=
 h ▸ rat.cast_bit0 _
 theorem rat_cast_bit1 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
 h ▸ rat.cast_bit1 _
+
+/-- Given `a' : α` a natural numeral, returns `(a : ℕ, ⊢ ↑a = a')`.
+(Note that the returned value is on the left of the equality.) -/
+meta def prove_nat_uncast (ic nc : instance_cache) : ∀ (a' : expr),
+  tactic (instance_cache × instance_cache × expr × expr)
+| a' :=
+  match match_numeral a' with
+  | match_numeral_result.zero := do
+    (nc, e) ← nc.mk_app ``has_zero.zero [],
+    (ic, p) ← ic.mk_app ``nat_cast_zero [],
+    return (ic, nc, e, p)
+  | match_numeral_result.one := do
+    (nc, e) ← nc.mk_app ``has_one.one [],
+    (ic, p) ← ic.mk_app ``nat_cast_one [],
+    return (ic, nc, e, p)
+  | match_numeral_result.bit0 a' := do
+    (ic, nc, a, p) ← prove_nat_uncast a',
+    a0 ← mk_app ``bit0 [a],
+    (ic, p) ← ic.mk_app ``nat_cast_bit0 [a, a', p],
+    return (ic, nc, a0, p)
+  | match_numeral_result.bit1 a' := do
+    (ic, nc, a, p) ← prove_nat_uncast a',
+    a1 ← mk_app ``bit1 [a],
+    (ic, p) ← ic.mk_app ``nat_cast_bit1 [a, a', p],
+    return (ic, nc, a1, p)
+  | _ := failed
+  end
+
+/-- Given `a' : α` a natural numeral, returns `(a : ℤ, ⊢ ↑a = a')`.
+(Note that the returned value is on the left of the equality.) -/
+meta def prove_int_uncast_nat (ic zc : instance_cache) : ∀ (a' : expr),
+  tactic (instance_cache × instance_cache × expr × expr)
+| a' :=
+  match match_numeral a' with
+  | match_numeral_result.zero := do
+    (zc, e) ← zc.mk_app ``has_zero.zero [],
+    (ic, p) ← ic.mk_app ``int_cast_zero [],
+    return (ic, zc, e, p)
+  | match_numeral_result.one := do
+    (zc, e) ← zc.mk_app ``has_one.one [],
+    (ic, p) ← ic.mk_app ``int_cast_one [],
+    return (ic, zc, e, p)
+  | match_numeral_result.bit0 a' := do
+    (ic, zc, a, p) ← prove_int_uncast_nat a',
+    a0 ← mk_app ``bit0 [a],
+    (ic, p) ← ic.mk_app ``int_cast_bit0 [a, a', p],
+    return (ic, zc, a0, p)
+  | match_numeral_result.bit1 a' := do
+    (ic, zc, a, p) ← prove_int_uncast_nat a',
+    a1 ← mk_app ``bit1 [a],
+    (ic, p) ← ic.mk_app ``int_cast_bit1 [a, a', p],
+    return (ic, zc, a1, p)
+  | _ := failed
+  end
 
 /-- Given `a' : α` a natural numeral, returns `(a : ℚ, ⊢ ↑a = a')`.
 (Note that the returned value is on the left of the equality.) -/
@@ -809,6 +870,10 @@ meta def prove_rat_uncast_nat (ic qc : instance_cache) (cz_inst : expr) : ∀ (a
   | _ := failed
   end
 
+theorem rat_cast_div {α} [division_ring α] [char_zero α] (a b : ℚ) (a' b' : α)
+  (ha : ↑a = a') (hb : ↑b = b') : ↑(a / b) = a' / b' :=
+ha ▸ hb ▸ rat.cast_div _ _
+
 /-- Given `a' : α` a nonnegative rational numeral, returns `(a : ℚ, ⊢ ↑a = a')`.
 (Note that the returned value is on the left of the equality.) -/
 meta def prove_rat_uncast_nonneg (ic qc : instance_cache) (cz_inst a' : expr) (na' : ℚ) :
@@ -823,6 +888,24 @@ else do
   (ic, p) ← ic.mk_app ``rat_cast_div [cz_inst, a, b, a', b', pa, pb],
   return (ic, qc, e, p)
 
+theorem int_cast_neg {α} [ring α] (a : ℤ) (a' : α) (h : ↑a = a') : ↑-a = -a' :=
+h ▸ int.cast_neg _
+theorem rat_cast_neg {α} [division_ring α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑-a = -a' :=
+h ▸ rat.cast_neg _
+
+/-- Given `a' : α` an integer numeral, returns `(a : ℤ, ⊢ ↑a = a')`.
+(Note that the returned value is on the left of the equality.) -/
+meta def prove_int_uncast (ic zc : instance_cache) (a' : expr) :
+  tactic (instance_cache × instance_cache × expr × expr) :=
+match match_neg a' with
+| some a' := do
+  (ic, zc, a, p) ← prove_int_uncast_nat ic zc a',
+  (zc, e) ← zc.mk_app ``has_neg.neg [a],
+  (ic, p) ← ic.mk_app ``int_cast_neg [a, a', p],
+  return (ic, zc, e, p)
+| none := prove_int_uncast_nat ic zc a'
+end
+
 /-- Given `a' : α` a rational numeral, returns `(a : ℚ, ⊢ ↑a = a')`.
 (Note that the returned value is on the left of the equality.) -/
 meta def prove_rat_uncast (ic qc : instance_cache) (cz_inst a' : expr) (na' : ℚ) :
@@ -830,11 +913,18 @@ meta def prove_rat_uncast (ic qc : instance_cache) (cz_inst a' : expr) (na' : �
 match match_neg a' with
 | some a' := do
   (ic, qc, a, p) ← prove_rat_uncast_nonneg ic qc cz_inst a' (-na'),
+  (qc, e) ← qc.mk_app ``has_neg.neg [a],
   (ic, p) ← ic.mk_app ``rat_cast_neg [a, a', p],
-  return (ic, qc, a, p)
+  return (ic, qc, e, p)
 | none := prove_rat_uncast_nonneg ic qc cz_inst a' na'
 end
 
+theorem nat_cast_ne {α} [semiring α] [char_zero α] (a b : ℕ) (a' b' : α)
+  (ha : ↑a = a') (hb : ↑b = b') (h : a ≠ b) : a' ≠ b' :=
+ha ▸ hb ▸ mt nat.cast_inj.1 h
+theorem int_cast_ne {α} [ring α] [char_zero α] (a b : ℤ) (a' b' : α)
+  (ha : ↑a = a') (hb : ↑b = b') (h : a ≠ b) : a' ≠ b' :=
+ha ▸ hb ▸ mt int.cast_inj.1 h
 theorem rat_cast_ne {α} [division_ring α] [char_zero α] (a b : ℚ) (a' b' : α)
   (ha : ↑a = a') (hb : ↑b = b') (h : a ≠ b) : a' ≠ b' :=
 ha ▸ hb ▸ mt rat.cast_inj.1 h
@@ -850,13 +940,29 @@ We may also add coercions to `ℤ` and `ℕ` as well in order to support `char_z
 rings and semirings. -/
 meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
 | ic a b na nb := prove_ne_rat ic a b na nb <|> do
-  guard (ic.α ≠ `(ℚ)),
   cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
-  qc ← mk_instance_cache `(rat),
-  (ic, qc, a', pa) ← prove_rat_uncast ic qc cz_inst a na,
-  (ic, qc, b', pb) ← prove_rat_uncast ic qc cz_inst b nb,
-  (qc, p) ← prove_ne_rat qc a' b' na nb,
-  ic.mk_app ``rat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
+  if na.denom = 1 ∧ nb.denom = 1 then
+    if na ≥ 0 ∧ nb ≥ 0 then do
+      guard (ic.α ≠ `(ℕ)),
+      nc ← mk_instance_cache `(ℕ),
+      (ic, nc, a', pa) ← prove_nat_uncast ic nc a,
+      (ic, nc, b', pb) ← prove_nat_uncast ic nc b,
+      (nc, p) ← prove_ne_rat nc a' b' na nb,
+      ic.mk_app ``nat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
+    else do
+      guard (ic.α ≠ `(ℤ)),
+      zc ← mk_instance_cache `(ℤ),
+      (ic, zc, a', pa) ← prove_int_uncast ic zc a,
+      (ic, zc, b', pb) ← prove_int_uncast ic zc b,
+      (zc, p) ← prove_ne_rat zc a' b' na nb,
+      ic.mk_app ``int_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
+  else do
+    guard (ic.α ≠ `(ℚ)),
+    qc ← mk_instance_cache `(ℚ),
+    (ic, qc, a', pa) ← prove_rat_uncast ic qc cz_inst a na,
+    (ic, qc, b', pb) ← prove_rat_uncast ic qc cz_inst b nb,
+    (qc, p) ← prove_ne_rat qc a' b' na nb,
+    ic.mk_app ``rat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
 
 /-- Given `∣- p`, returns `(true, ⊢ p = true)`. -/
 meta def true_intro (p : expr) : tactic (expr × expr) :=

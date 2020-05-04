@@ -38,24 +38,78 @@ section
 
 open function finset polynomial nat
 
-variables (S : set (units R)) [is_subgroup S] [fintype S]
+variables {G : Type*} [group G] [fintype G]
 
-lemma card_nth_roots_subgroup_units [decidable_eq R] {n : ℕ} (hn : 0 < n) (a : S) :
-  (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units R) : R)).card :=
-card_le_card_of_inj_on (λ a, ((a : units R) : R))
-  (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
-  (by simp [units.ext_iff.symm, subtype.coe_ext.symm])
+lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
+  ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
+begin
+  apply card_le_card_of_inj_on f,
+  { intros g hg, rw [sep_def, mem_filter] at hg, rw [mem_nth_roots hn, ← f.map_pow, hg.2] },
+  { intros, apply hf, assumption }
+end
+
+lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
+begin
+  haveI := classical.dec_eq G,
+  apply is_cyclic_of_card_pow_eq_one_le,
+  intros n hn,
+  convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
+end
+
+/-- The sum of `x ^ i` as `x` ranges over a finite subgroup `G` of the units of an integral domain
+is equal to `0` unless the cardinality of `G` divides `i`,
+in which case the sum is the cardinality of `G`. -/
+lemma sum_pow_units_subgroup (f : G →* R) (hf : injective f) (i : ℕ) :
+  ∑ g : G, f g ^ i = if fintype.card G ∣ i then fintype.card G else 0 :=
+begin
+  haveI : decidable_eq G := classical.dec_eq G,
+  haveI : is_cyclic G := is_cyclic_of_subgroup_integral_domain f hf,
+  obtain ⟨g₀, hG⟩ := is_cyclic.exists_generator G,
+  calc ∑ g : G, f g ^ i = ∑ g in (range (order_of g₀)).image (λ i, g₀ ^ i), f g ^ i :
+  by rw [is_cyclic.image_range_order_of hG]
+    ... = ∑ k in range (order_of g₀), f (g₀ ^ k) ^ i :
+  by { apply finset.sum_image, intros i hi j hj h, rw [mem_range] at hi hj,
+       exact pow_injective_of_lt_order_of g₀ hi hj h }
+    ... = geom_series (f g₀ ^ i) (fintype.card G) :
+  by { rw [order_of_eq_card_of_forall_mem_gpowers hG],
+       apply sum_congr rfl, intros k hk, rw [← pow_mul', pow_mul, f.map_pow] }
+    ... = if (fintype.card G) ∣ i then fintype.card G else 0 :
+  begin
+    split_ifs with H H,
+    { rcases H with ⟨d, rfl⟩,
+      rw [pow_mul, ← f.map_pow, pow_card_eq_one, f.map_one, geom_series_def],
+      simp only [_root_.one_pow, add_monoid.smul_one, sum_const, card_range] },
+    { have key : geom_series (f g₀ ^ i) (fintype.card G) * (f g₀ ^ i - 1) = 0,
+      { rw [geom_sum_mul (f g₀ ^ i) (fintype.card G), ← f.map_pow, ← f.map_pow,
+            pow_card_eq_one, f.map_one, sub_self] },
+      apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
+      rw [sub_eq_zero, ← f.map_one, ← f.map_pow],
+      apply hf.ne,
+      contrapose! H,
+      rw [← order_of_eq_card_of_forall_mem_gpowers hG],
+      exact order_of_dvd_of_pow_eq_one H },
+  end
+end
+
+variables (S : set (units R)) [is_subgroup S] [fintype S]
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
-by haveI := classical.dec_eq R; exact
-is_cyclic_of_card_pow_eq_one_le
-  (λ n hn, le_trans (card_nth_roots_subgroup_units S hn 1) (card_nth_roots _ _))
+let φ : S →* R :=
+{ to_fun := coe,
+  map_one' := by simp only [is_submonoid.coe_one, units.coe_one, coe_coe],
+  map_mul' := by intros; simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] } in
+is_cyclic_of_subgroup_integral_domain φ $ injective_comp units.ext subtype.val_injective
 
 end
 
 namespace finite_field
 open function finset polynomial
+
+/-- The unit group of a finite integral domain is cyclic. -/
+instance [fintype R] : is_cyclic (units R) :=
+let φ : units R →* R := { to_fun := coe, map_one' := units.coe_one, map_mul' := units.coe_mul } in
+is_cyclic_of_subgroup_integral_domain φ $ units.ext
 
 /-- Every finite integral domain is a field. -/
 def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
@@ -122,24 +176,20 @@ begin
   congr; simp [set.ext_iff, classical.em]
 end
 
-/-- The units of a finite field form a cyclic group. -/
-instance : is_cyclic (units K) :=
-by haveI := classical.dec_eq K;
-haveI := set_fintype (@set.univ (units K)); exact
-let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units K)) in
-⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
-
 lemma prod_univ_units_id_eq_neg_one :
-  univ.prod (λ x, x) = (-1 : units K) :=
+  ∏ x : units K, x = -1 :=
 begin
   classical,
-  have : ((@univ (units K) _).erase (-1)).prod (λ x, x) = 1,
-  from prod_involution (λ x _, x⁻¹) (by simp)
-    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
-    (by simp),
-  rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
-      this, mul_one]
+  suffices : ∏ (x : units K) in univ.erase (-1), x = 1,
+  by rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _), this, mul_one],
+  apply prod_involution (λ x _, x⁻¹),
+  { intros, exact mul_right_inv _, },
+  { intros u hu h1, rw mem_erase at hu, rw [ne.def, units.inv_eq_self_iff], tauto },
+  { intros, simp only [inv_inv] },
+  { intros u hu, rw mem_erase at hu ⊢,
+    show ¬u⁻¹ = -1 ∧ u⁻¹ ∈ univ,
+    rw [inv_eq_iff_inv_eq, units.neg_inv, one_inv, eq_comm],
+    exact ⟨hu.1, mem_univ _⟩, }
 end
 
 /-- In a finite field of cardinality `q`, one has `a^(q-1) = 1` for all nonzero `a`. -/
@@ -177,64 +227,41 @@ begin
   exact nat.pow_dvd_pow _ n.2,
 end
 
-/-- The sum of `x^i` as `x` ranges over the units of a finite field of cardinality `q`
-is equal to `0` unless `(q-1) ∣ i`, in which case the sum is `q-1`. -/
+/-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
+is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
 lemma sum_pow_units (i : ℕ) :
-  ∑ x : units K, (x^i : K) = if (q - 1) ∣ i then q - 1 else 0 :=
+  ∑ x : units K, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
-  haveI : decidable_eq (units K) := classical.dec_eq (units K),
-  obtain ⟨a, ha⟩ := is_cyclic.exists_generator (units K),
-  calc ∑ x : units K, (x^i : K) =
-    ∑ x in (range (order_of a)).image (λ i, a ^ i), (x^i : K) :
-  by rw [is_cyclic.image_range_order_of ha]
-    ... = ∑ k in range (order_of a), ↑(a^k)^i :
-  by { apply finset.sum_image, intros i hi j hj h, rw [mem_range] at hi hj,
-       exact pow_injective_of_lt_order_of a hi hj h }
-    ... = geom_series (a^i : K) (q-1) :
-  by { rw [order_of_eq_card_of_forall_mem_gpowers ha, card_units],
-       apply sum_congr rfl, intros k hk, rw [← pow_mul', pow_mul, units.coe_pow] }
-    ... = if (q - 1) ∣ i then q - 1 else 0 :
+  calc ∑ x : units K, (x ^ i : K) = if fintype.card (units K) ∣ i then fintype.card (units K) else 0 :
+      sum_pow_units_subgroup ⟨(coe : units K → K), units.coe_one, units.coe_mul⟩ units.ext i
+    ... = if (q - 1) ∣ i then -1 else 0 :
   begin
-    split_ifs with H H,
-    { rcases H with ⟨d, rfl⟩,
-      have aux : (λ (i:ℕ), ((a : K) ^ ((q - 1) * d)) ^ i) = λ i, 1,
-      { funext i, rw [pow_mul, pow_card_sub_one_eq_one _ (units.ne_zero _), one_pow, one_pow], },
-      rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one, nat.cast_sub, nat.cast_one],
-      exact fintype.card_pos_iff.mpr ⟨0⟩ },
-    { have hai0 : (a^i : K) ≠ 0,
-      { rw ← units.coe_pow, apply units.ne_zero },
-      have hai1 : a ^ i ≠ 1,
-      { contrapose! H,
-        rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
-        exact order_of_dvd_of_pow_eq_one H },
-      have key : geom_series ((a^i : K)) (q-1) * (a^i - 1) = 0,
-      { rw [geom_sum_mul (a^i : K) (q-1), pow_card_sub_one_eq_one _ hai0, sub_self] },
-      apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
-      rw [sub_eq_zero],
-      rwa [ne.def, units.ext_iff, units.coe_pow, units.coe_one] at hai1, },
+    suffices : 1 ≤ q,
+    { simp only [card_units, nat.cast_sub this, cast_card_eq_zero, nat.cast_one, zero_sub],
+      split_ifs; refl },
+    exact fintype.card_pos_iff.mpr ⟨0⟩
   end
 end
 
-/-- The sum of `x^i` as `x` ranges over a finite field of cardinality `q`
-is equal to `0` if `i < q-1`. -/
+/-- The sum of `x ^ i` as `x` ranges over a finite field of cardinality `q`
+is equal to `0` if `i < q - 1`. -/
 lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
-  ∑ x : K, x^i = (0:K) :=
+  ∑ x : K, x ^ i = 0 :=
 begin
   by_cases hi : i = 0,
   { simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
   classical,
+  have hiq : ¬ (q - 1) ∣ i, { contrapose! h,  exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
   let φ : units K ↪ K := ⟨coe, units.ext⟩,
   have : univ.map φ = univ \ finset.singleton 0,
   { ext x,
     simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
-     mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
-  calc ∑ x : K, x^i = ∑ x in univ \ finset.singleton 0, x ^ i :
+               mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
+  calc ∑ x : K, x ^ i = ∑ x in univ \ finset.singleton 0, x ^ i :
     by rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
            zero_pow (nat.pos_of_ne_zero hi), add_zero]
-    ... = ∑ x in univ.map φ, x ^ i : by rw this
-    ... = ∑ x : units K, x^i : univ.sum_map φ _
-    ... = 0 : by { rw [sum_pow_units K i, if_neg], contrapose! h,
-                   exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h, }
+    ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }
+    ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
 end finite_field

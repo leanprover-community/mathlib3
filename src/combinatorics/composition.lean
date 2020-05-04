@@ -545,6 +545,23 @@ lemma sum_take_map_length_split_wrt_composition
   (((l.split_wrt_composition c).map length).take i).sum = c.size_up_to i :=
 by { congr, exact map_length_split_wrt_composition l c }
 
+lemma nth_le_split_wrt_composition_aux (l : list α) (ns : list ℕ) {i : ℕ} (hi) :
+  nth_le (l.split_wrt_composition_aux ns) i hi =
+  (l.take (ns.take (i+1)).sum).drop (ns.take i).sum :=
+begin
+  induction ns with n ns IH generalizing l i, {cases hi},
+  cases i; simp [IH],
+  rw [add_comm n, drop_add, drop_take],
+end
+
+/-- The `i`-th sublist in the splitting of a list `l` along a composition `c`, is the slice of `l`
+between the indices `c.size_up_to i` and `c.size_up_to (i+1)`, i.e., the indices in the `i`-th
+block of the composition. -/
+lemma nth_le_split_wrt_composition (l : list α) (c : composition n)
+  {i : ℕ} (hi : i < (l.split_wrt_composition c).length) :
+  nth_le (l.split_wrt_composition c) i hi = (l.take (c.size_up_to (i+1))).drop (c.size_up_to i) :=
+nth_le_split_wrt_composition_aux _ _ _
+
 theorem join_split_wrt_composition_aux {ns : list ℕ} :
   ∀ {l : list α}, ns.sum = l.length → (l.split_wrt_composition_aux ns).join = l :=
 begin

@@ -858,9 +858,11 @@ meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic 
   (qc, p) ← prove_ne_rat qc a' b' na nb,
   ic.mk_app ``rat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
 
+/-- Given `∣- p`, returns `(true, ⊢ p = true)`. -/
 meta def true_intro (p : expr) : tactic (expr × expr) :=
 prod.mk `(true) <$> mk_app ``eq_true_intro [p]
 
+/-- Given `∣- ¬ p`, returns `(false, ⊢ p = false)`. -/
 meta def false_intro (p : expr) : tactic (expr × expr) :=
 prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 

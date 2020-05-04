@@ -562,8 +562,8 @@ theorem join_split_wrt_composition (l : list α) (c : composition l.length) :
   (l.split_wrt_composition c).join = l :=
 join_split_wrt_composition_aux c.blocks_sum
 
-/-- If one joins a list of lists, and then splits the join along the right composition, one get
-backs the original list of lists. -/
+/-- If one joins a list of lists and then splits the join along the right composition, one gets
+back the original list of lists. -/
 theorem split_wrt_composition_join (L : list (list α)) (c : composition L.join.length)
   (h : map length L = c.blocks) : split_wrt_composition (join L) c = L :=
 by simp only [eq_self_iff_true, and_self, eq_iff_join_eq, join_split_wrt_composition,

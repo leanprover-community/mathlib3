@@ -52,25 +52,21 @@ lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {R : Type*} [field R]
   (f : polynomial R) (r : R) (hf : f.is_root r) (hf' : f.derivative.eval r ≠ 0) :
   ideal.is_coprime (X - C r : polynomial R) (f /ₘ (X - C r)) :=
 begin
-  rw ← mul_div_by_monic_eq_iff_is_root at hf,
-  rw ← hf at hf',
-  simp only [eval_C, eval_X, add_zero, derivative_X, derivative_mul, one_mul, zero_mul,
-    eval_sub, sub_zero, ne.def, derivative_sub, eval_add, eval_mul, derivative_C, sub_self] at hf',
-  apply is_coprime_of_dvd,
-  { push_neg, left, assume eqz,
-    apply_fun polynomial.degree at eqz,
-    rw polynomial.degree_X_sub_C at eqz,
-    exact option.no_confusion eqz },
-  { rintros a h1 h2 ⟨b, hab⟩ H,
-    have : irreducible (X - C r),
-    { apply polynomial.irreducible_of_degree_eq_one, exact polynomial.degree_X_sub_C _ },
-    rcases (this.is_unit_or_is_unit hab) with ha|⟨b,rfl⟩,
-    { exact h1 ha },
-    apply hf',
-    show is_root _ _,
-    rw ← dvd_iff_is_root,
-    refine dvd_trans ⟨↑b⁻¹, _⟩ H,
-    rw [hab, units.mul_inv_cancel_right] }
+  have key : (X - C r) * (f /ₘ (X - C r)) = f - (f %ₘ (X - C r)),
+  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
+    exact monic_X_sub_C r },
+  apply_fun derivative at key,
+  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
+  refine or.resolve_left (dvd_or_coprime (X - C r) (f /ₘ (X - C r))
+    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C r))) _,
+  intro,
+  apply hf',
+  have : (X - C r) ∣ derivative f := key ▸ (dvd_add a (dvd.intro (derivative (f /ₘ (X - C r))) rfl)),
+  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
+  apply_fun coeff at this,
+  convert congr_fun this 0,
+  rw [coeff_C_zero],
 end
 
 end polynomial

@@ -9,6 +9,8 @@ import data.equiv.ring
 import data.zmod.basic
 import linear_algebra.basis
 import algebra.geom_sum
+import group_theory.congruence
+import group_theory.quotient_group
 
 /-!
 # Finite fields
@@ -56,6 +58,24 @@ begin
   intros n hn,
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
 end
+
+
+
+lemma sum_units_subgroup (f : G →* R) [decidable (f = 1)] (i : ℕ) :
+  ∑ g : G, f g = if f = 1 then fintype.card G else 0 :=
+begin
+  split_ifs with h h,
+  { simp [h, card_univ], },
+  classical,
+  -- let Q := quotient_group.quotient (is_group_hom.ker f),
+  -- haveI : group Q := ,
+  simp only [← @set.range_factorization_eq _ _ f, function.comp, finset.sum_comp],
+  -- haveI : group (set.range f) :=
+  -- { one := f 1, mul :=  },
+  -- haveI : is_cyclic (set.range f) := is_cyclic_of_subgroup_integral_domain _ _,
+  -- obtain ⟨g₀, hG⟩ := is_cyclic.exists_generator G,
+end
+
 
 /-- The sum of `x ^ i` as `x` ranges over a finite subgroup `G` of the units of an integral domain
 is equal to `0` unless the cardinality of `G` divides `i`,

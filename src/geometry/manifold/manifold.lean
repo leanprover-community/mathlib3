@@ -203,13 +203,16 @@ instance : order_bot (structure_groupoid H) :=
   end,
   ..structure_groupoid.partial_order }
 
+instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
+⟨id_groupoid H⟩
+
 /-- To construct a groupoid, one may consider classes of local homeos such that both the function
 and its inverse have some property. If this property is stable under composition,
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
 groupoid of smooth functions with smooth inverses as an application. -/
 structure pregroupoid (H : Type*) [topological_space H] :=
 (property : (H → H) → (set H) → Prop)
-(comp     : ∀{f g u v}, property f u → property g v → is_open (u ∩ f ⁻¹' v)
+(comp     : ∀{f g u v}, property f u → property g v → is_open u → is_open v → is_open (u ∩ f ⁻¹' v)
               → property (g ∘ f) (u ∩ f ⁻¹' v))
 (id_mem   : property id univ)
 (locality : ∀{f u}, is_open u → (∀x∈u, ∃v, is_open v ∧ x ∈ v ∧ property f (u ∩ v)) → property f u)
@@ -221,9 +224,9 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
 { members  := {e : local_homeomorph H H | PG.property e e.source ∧ PG.property e.symm e.target},
   comp     := λe e' he he', begin
     split,
-    { apply PG.comp he.1 he'.1,
+    { apply PG.comp he.1 he'.1 e.open_source e'.open_source,
       apply e.continuous_to_fun.preimage_open_of_open e.open_source e'.open_source },
-    { apply PG.comp he'.2 he.2,
+    { apply PG.comp he'.2 he.2 e'.open_target e.open_target,
       apply e'.continuous_inv_fun.preimage_open_of_open e'.open_target e.open_target }
   end,
   inv      := λe he, ⟨he.2, he.1⟩,
@@ -275,14 +278,20 @@ begin
   exact PG.congr e.open_source (λx hx, (he'.2 x hx).symm) he,
 end
 
-/-- The groupoid of all local homeomorphisms on a topological space H -/
-def continuous_groupoid (H : Type*) [topological_space H] : structure_groupoid H :=
-pregroupoid.groupoid
+/-- The pregroupoid of all continuous local maps on a topological space H -/
+@[reducible] def continuous_pregroupoid (H : Type*) [topological_space H] : pregroupoid H :=
 { property := λf s, true,
-  comp     := λf g u v hf hg huv, trivial,
+  comp     := λf g u v hf hg hu hv huv, trivial,
   id_mem   := trivial,
   locality := λf u u_open h, trivial,
   congr    := λf g u u_open hcongr hf, trivial }
+
+instance (H : Type*) [topological_space H] : inhabited (pregroupoid H) :=
+⟨continuous_pregroupoid H⟩
+
+/-- The groupoid of all local homeomorphisms on a topological space H -/
+def continuous_groupoid (H : Type*) [topological_space H] : structure_groupoid H :=
+pregroupoid.groupoid (continuous_pregroupoid H)
 
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
 instance : order_top (structure_groupoid H) :=
@@ -336,6 +345,7 @@ end manifold
 a topological structure, where the topology would come from the charts. For this, one needs charts
 that are only local equivs, and continuity properties for their composition.
 This is formalised in `manifold_core`. -/
+@[nolint has_inhabited_instance]
 structure manifold_core (H : Type*) [topological_space H] (M : Type*) :=
 (atlas            : set (local_equiv M H))
 (chart_at         : M → local_equiv M H)
@@ -370,6 +380,8 @@ begin
   simpa [local_equiv.trans_source, E] using c.open_source e e he he
 end
 
+/-- An element of the atlas in a manifold without topology becomes a local homeomorphism for the
+topology constructed from this atlas. The `local_homeomorph` version is given in this definition. -/
 def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
@@ -401,6 +413,8 @@ def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   end,
   ..e }
 
+/-- Given a manifold without topology, endow it with a genuine manifold structure with respect to
+the topology constructed from the atlas. -/
 def to_manifold : @manifold H _ M c.to_topological_space :=
 { atlas := ⋃ (e : local_equiv M H) (he : e ∈ c.atlas), {c.local_homeomorph e he},
   chart_at := λx, c.local_homeomorph (c.chart_at x) (c.chart_mem_atlas x),
@@ -451,6 +465,7 @@ end⟩
 /-- A G-diffeomorphism between two manifolds is a homeomorphism which, when read in the charts,
 belongs to G. We avoid the word diffeomorph as it is too related to the smooth category, and use
 structomorph instead. -/
+@[nolint has_inhabited_instance]
 structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [manifold H M] [manifold H M']
   extends homeomorph M M' :=

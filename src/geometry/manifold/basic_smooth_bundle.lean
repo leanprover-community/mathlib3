@@ -104,6 +104,19 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   times_cont_diff_on 𝕜 ⊤ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
+
+/-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
+identity. -/
+def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+(M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+(F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_bundle_core I M F :=
+{ coord_change := λ i j x v, v,
+  coord_change_self := λ i x hx v, rfl,
+  coord_change_comp := λ i j k x hx v, rfl,
+  coord_change_smooth := λ i j, times_cont_diff_snd.times_cont_diff_on }
+
 namespace basic_smooth_bundle_core
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -112,6 +125,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_bundle_core I M F)
+
+instance : inhabited (basic_smooth_bundle_core I M F) :=
+⟨trivial_basic_smooth_bundle_core I M F⟩
 
 /-- Fiber bundle core associated to a basic smooth bundle core -/
 def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M) M F :=
@@ -132,7 +148,7 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
       ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)) :=
       (Z.coord_change_smooth i j).continuous_on,
     have B : continuous_on (λx : M, I (i.1 x)) i.1.source :=
-      I.continuous_to_fun.comp_continuous_on i.1.continuous_to_fun,
+      I.continuous.comp_continuous_on i.1.continuous_on,
     have C : continuous_on (λp : M × F, (⟨I (i.1 p.1), p.2⟩ : E × F))
              (i.1.source.prod univ),
     { apply continuous_on.prod _ continuous_snd.continuous_on,
@@ -168,7 +184,7 @@ by { ext p, simp [chart, local_equiv.trans_source] }
 begin
   simp only [chart, local_equiv.trans_target, local_homeomorph.prod_to_local_equiv, id.def,
     local_homeomorph.trans_to_local_equiv, local_equiv.refl_target,
-    local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_equiv.refl_to_fun,
+    local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_equiv.refl_coe,
     local_homeomorph.coe_coe_symm, local_equiv.refl_symm, local_equiv.prod_coe_symm],
   ext p,
   split;
@@ -199,10 +215,10 @@ by simp [chart_at, manifold.chart_at]
   p ∈ (chart_at (H × F) q).target ↔ p.1 ∈ (chart_at H q.1).target :=
 by simp [chart_at, manifold.chart_at]
 
-@[simp] lemma chart_at_to_fun_fst (p q : Z.to_topological_fiber_bundle_core.total_space) :
+@[simp] lemma coe_chart_at_fst (p q : Z.to_topological_fiber_bundle_core.total_space) :
   (((chart_at (H × F) q) : _ → H × F) p).1 = (chart_at H q.1 : _ → H) p.1 := rfl
 
-@[simp] lemma chart_at_inv_fun_fst (p : H × F) (q : Z.to_topological_fiber_bundle_core.total_space) :
+@[simp] lemma coe_chart_at_symm_fst (p : H × F) (q : Z.to_topological_fiber_bundle_core.total_space) :
   (((chart_at (H × F) q).symm : H × F → Z.to_topological_fiber_bundle_core.total_space) p).1
   = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
@@ -238,10 +254,9 @@ begin
          ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod (univ : set F)),
     { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
       -- `M` is smooth
-      have A : times_cont_diff_on 𝕜 ⊤
-        (I ∘ (e.symm.trans e') ∘ I.symm)
+      have A : times_cont_diff_on 𝕜 ⊤ (I ∘ (e.symm.trans e') ∘ I.symm)
         (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) :=
-        (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) he he').1,
+      (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) he he').1,
       have B : times_cont_diff_on 𝕜 ⊤ (λp : E × F, p.1)
         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ) :=
       times_cont_diff_fst.times_cont_diff_on,
@@ -305,9 +320,8 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
       (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
-    have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
-    { rw inter_comm,
-      apply I.unique_diff.inter (I.continuous_inv_fun _ (local_homeomorph.open_source _)) },
+    have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
+      I.unique_diff_preimage_source,
     have C : times_cont_diff_on 𝕜 ⊤
       (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
@@ -320,7 +334,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) x,
     { assume x hx,
       have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
-        I.continuous_inv_fun.continuous_at.preimage_mem_nhds
+        I.continuous_symm.continuous_at.preimage_mem_nhds
           (mem_nhds_sets (local_homeomorph.open_source _) hx.1),
       symmetry,
       rw inter_comm,
@@ -353,11 +367,10 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       rcases hy with ⟨z, hz⟩,
       simp [local_equiv.trans_source] at hz,
       simp [hz.2.symm, hz.1] },
-    have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm)
-               (range I) (I x) =
+    have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
-      fderiv_within_congr_of_mem_nhds_within (I.unique_diff _ (mem_range_self _)) B (by simp [hx]),
-    rw fderiv_within_id (I.unique_diff _ (mem_range_self _)) at C,
+      fderiv_within_congr_of_mem_nhds_within I.unique_diff_at_image B (by simp [hx]),
+    rw fderiv_within_id I.unique_diff_at_image at C,
     rw C,
     refl
   end,
@@ -370,15 +383,9 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) :=
     ⟨by simpa using hx, mem_range_self _⟩,
     have U : unique_diff_within_at 𝕜
-      (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-      (I x),
-    { have : unique_diff_on 𝕜
-        (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
-      { rw inter_comm,
-        exact I.unique_diff.inter (I.continuous_inv_fun _ (local_homeomorph.open_source _)) },
-      exact this _ M },
-    have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-                          ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
+      (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) (I x) :=
+      I.unique_diff_preimage_source _ M,
+    have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x)
       = (fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
@@ -397,7 +404,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
         have B : differentiable_on 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
           (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
-        { apply (A.differentiable_on (le_top)).mono,
+        { apply (A.differentiable_on le_top).mono,
           have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆ (i.1.symm.trans j.1).source :=
             inter_subset_left _ _,
           exact inter_subset_inter (preimage_mono this) (subset.refl (range I)) },
@@ -410,7 +417,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
           (I ∘ (j.1.symm.trans u.1) ∘ I.symm)
           (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) :=
         (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) j.2 u.2).1,
-        apply A.differentiable_on (le_top),
+        apply A.differentiable_on le_top,
         rw [local_homeomorph.trans_source] at hx,
         simp [mem_inter_iff, -mem_image, -mem_range, mem_range_self],
         exact hx.2 },
@@ -433,7 +440,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
                           ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm)) y =
         (I ∘ u.1 ∘ i.1.symm ∘ I.symm) y,
       { assume y hy,
-        simp only [function.comp_app, model_with_corners_left_inv],
+        simp only [function.comp_app, model_with_corners.left_inv],
         rw [j.1.left_inv],
         exact hy.1.1.2 },
       exact fderiv_within_congr U E (E _ M) },
@@ -443,7 +450,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
              fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
              (range I) (I x),
     { rw inter_comm,
-      apply fderiv_within_inter _ (I.unique_diff _ (mem_range_self _)),
+      apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       simpa using hx },
@@ -451,7 +458,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)) =
       fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm) (range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
     { rw inter_comm,
-      apply fderiv_within_inter _ (I.unique_diff _ (mem_range_self _)),
+      apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       rw [local_homeomorph.trans_source] at hx,
@@ -464,7 +471,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
                (range I)
                (I x)),
     { rw inter_comm,
-      apply fderiv_within_inter _ (I.unique_diff _ (mem_range_self _)),
+      apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       simpa using hx },
@@ -473,6 +480,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
   end }
 
 /-- The tangent bundle to a smooth manifold, as a plain type. -/
+@[nolint has_inhabited_instance] -- is empty if the base manifold is empty
 def tangent_bundle := (tangent_bundle_core I M).to_topological_fiber_bundle_core.total_space
 
 /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
@@ -512,6 +520,7 @@ instance : topological_space (tangent_space I x) := by apply_instance
 instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance
 instance : vector_space 𝕜 (tangent_space I x) := by apply_instance
+instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end tangent_bundle_instances
 
@@ -534,9 +543,9 @@ begin
   { assume x_fst,
     have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
          = fderiv_within 𝕜 id (range I) (I x_fst),
-    { refine fderiv_within_congr (I.unique_diff _ (mem_range_self _)) (λy hy, _) (by simp),
-      exact model_with_corners_right_inv _ hy },
-    rwa fderiv_within_id (I.unique_diff _ (mem_range_self _)) at this },
+    { refine fderiv_within_congr I.unique_diff_at_image (λy hy, _) (by simp),
+      exact model_with_corners.right_inv _ hy },
+    rwa fderiv_within_id I.unique_diff_at_image at this },
   ext x : 1,
   show (chart_at (H × E) p : tangent_bundle I H → H × E) x = (local_equiv.refl (H × E)) x,
   { cases x,

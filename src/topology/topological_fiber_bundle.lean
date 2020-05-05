@@ -53,8 +53,8 @@ these structures are inherited by the fibers of the bundle.
 Given such trivialization change data (encoded below in a structure called
 `topological_fiber_bundle_core`), one can construct the fiber bundle. The intrinsic canonical
 mathematical construction is the following.
-The fiber above x is the disjoint union of F over all trivializations, modulo the gluing
-identifications: one gets a fiber which is isomorphic to F, but non-canonically
+The fiber above `x` is the disjoint union of `F` over all trivializations, modulo the gluing
+identifications: one gets a fiber which is isomorphic to `F`, but non-canonically
 (each choice of one of the trivializations around x gives such an isomorphism). Given a
 trivialization over a set `s`, one gets an isomorphism between `s × F` and `proj^{-1} s`, by using
 the identification corresponding to this trivialization. One chooses the topology on the bundle that
@@ -67,16 +67,16 @@ This has several practical advantages:
 * without any work, one gets a topological space structure on the fiber. And if `F` has more
 structure it is inherited for free by the fiber.
 * In the trivial situation of the trivial bundle where there is only one chart and one
-trivialization, this construction gives the product space B × F with the product topology. In the
+trivialization, this construction gives the product space `B × F` with the product topology. In the
 case of the tangent bundle of manifolds, this also implies that on vector spaces the derivative and
 the manifold derivative are equal.
 
 A drawback is that some silly constructions will typecheck: in the case of the tangent bundle, one
-can add two vectors in different tangent spaces (as they both are elements of F from the point of
+can add two vectors in different tangent spaces (as they both are elements of `F` from the point of
 view of Lean). To solve this, one could mark the tangent space as irreducible, but then one would
-lose the identification of the tangent space to F with F. There is however a big advantage of this
-situation: even if Lean can not check that two basepoints are defeq, it will accept the fact that
-the tangent spaces are the same. For instance, if two maps f and g are locally inverse to each
+lose the identification of the tangent space to `F` with `F`. There is however a big advantage of
+this situation: even if Lean can not check that two basepoints are defeq, it will accept the fact
+that the tangent spaces are the same. For instance, if two maps f and g are locally inverse to each
 other, one can express that the composition of their derivatives is the identity of
 `tangent_space I x`. One could fear issues as this composition goes from `tangent_space I x` to
 `tangent_space I (g (f x))` (which should be the same, but should not be obvious to Lean
@@ -86,14 +86,14 @@ are in fact no dependent type difficulties here!
 For this construction of a fiber bundle from a `topological_fiber_bundle_core`, we should thus
 choose for each `x` one specific trivialization around it. We include this choice in the definition
 of the `topological_fiber_bundle_core`, as it makes some constructions more
-functorial and it is a nice way to say that the trivializations cover the whole space B.
+functorial and it is a nice way to say that the trivializations cover the whole space `B`.
 
 With this definition, the type of the fiber bundle space constructed from the core data is just
 `B × F`, but the topology is not the product one.
 
 We also take the indexing type (indexing all the trivializations) as a parameter to the fiber bundle
-core: it could always be taken as a subtype of all the maps from open subsets of B to continuous
-maps of F, but in practice it will sometimes be something else. For instance, on a manifold, one
+core: it could always be taken as a subtype of all the maps from open subsets of `B` to continuous
+maps of `F`, but in practice it will sometimes be something else. For instance, on a manifold, one
 will use the set of charts as a good parameterization for the trivializations of the tangent bundle.
 Or for the pullback of a `topological_fiber_bundle_core`, the indexing type will be the same as
 for the initial bundle.
@@ -127,6 +127,12 @@ structure bundle_trivialization extends local_homeomorph Z (B × F) :=
 (proj_to_fun   : ∀ p ∈ source, (to_fun p).1 = proj p)
 
 instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
+
+@[simp] lemma bundle_trivialization.coe_coe (e : bundle_trivialization F proj) {x : Z} :
+  e.to_local_homeomorph x = e x := rfl
+
+@[simp] lemma bundle_trivialization.coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
+  (bundle_trivialization.mk e i j k l m : bundle_trivialization F proj) x = e x := rfl
 
 /-- A topological fiber bundle with fiber F over a base B is a space projecting on B for which the
 fibers are all homeomorphic to F, such that the local situation around each point is a direct
@@ -375,7 +381,7 @@ begin
   { rintros ⟨x, v⟩ hx,
     simp only [triv_change, local_triv', local_equiv.symm, true_and, prod_mk_mem_set_prod_eq,
       local_equiv.trans_source, mem_inter_eq, and_true, mem_univ, prod.mk.inj_iff, mem_preimage,
-      proj, local_equiv.coe_mk, eq_self_iff_true, local_equiv.trans_to_fun] at hx ⊢,
+      proj, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans] at hx ⊢,
     simp [Z.coord_change_comp, hx] }
 end
 
@@ -423,7 +429,7 @@ def local_triv (i : ι) : local_homeomorph Z.total_space (B × F) :=
     have : is_open (f.source ∩ f ⁻¹' s),
     { rw [local_equiv.eq_on_source_preimage (Z.local_triv'_trans i j)],
       exact (continuous_on_open_iff (Z.triv_change i j).open_source).1
-        ((Z.triv_change i j).continuous_to_fun) _ s_open },
+        ((Z.triv_change i j).continuous_on) _ s_open },
     convert this using 1,
     dsimp [local_equiv.trans_source],
     rw [← preimage_comp, inter_assoc]

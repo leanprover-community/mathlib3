@@ -18,8 +18,8 @@ They are designed in particular to define charts on manifolds.
 The main functionality is `e.trans f`, which composes the two local equivalences by restricting
 the source and target to the maximal set where the composition makes sense.
 
-Contrary to equivs, we do not register the coercion to functions and we use explicitly to_fun and
-inv_fun: coercions create numerous unification problems for manifolds.
+As for equivs, we register a coercion to functions and use it in our simp normal form: we write
+`e x` and `e.symm y` instead of `e.to_fun x` and `e.inv_fun y`.
 
 ## Main definitions
 
@@ -108,14 +108,14 @@ protected def symm : local_equiv β α :=
 instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
 
 @[simp] theorem coe_mk (f : α → β) (g s t ml mr il ir) :
-  (local_equiv.mk f g s t ml mr il ir: α → β) = f := rfl
+  (local_equiv.mk f g s t ml mr il ir : α → β) = f := rfl
 
 @[simp] theorem coe_symm_mk (f : α → β) (g s t ml mr il ir) :
   ((local_equiv.mk f g s t ml mr il ir).symm : β → α) = g := rfl
 
-@[simp] lemma to_fun_as_coe (e : local_equiv α β) : e.to_fun = e := rfl
+@[simp] lemma to_fun_as_coe : e.to_fun = e := rfl
 
-@[simp] lemma inv_fun_as_coe (e : local_equiv α β) : e.inv_fun = e.symm := rfl
+@[simp] lemma inv_fun_as_coe : e.inv_fun = e.symm := rfl
 
 @[simp] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
 e.map_source' h
@@ -227,8 +227,8 @@ protected def restr (s : set α) : local_equiv α β :=
   left_inv'  := λx hx, e.left_inv hx.1,
   right_inv' := λy hy, e.right_inv hy.1 }
 
-@[simp] lemma restr_to_fun (s : set α) : ((e.restr s) : α → β) = e := rfl
-@[simp] lemma restr_inv_fun (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
+@[simp] lemma restr_coe (s : set α) : ((e.restr s) : α → β) = e := rfl
+@[simp] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
 @[simp] lemma restr_source (s : set α) : (e.restr s).source = e.source ∩ s := rfl
 @[simp] lemma restr_target (s : set α) : (e.restr s).target = e.target ∩ e.symm ⁻¹' s := rfl
 
@@ -244,7 +244,7 @@ protected def refl (α : Type*) : local_equiv α α := (equiv.refl α).to_local_
 
 @[simp] lemma refl_source : (local_equiv.refl α).source = univ := rfl
 @[simp] lemma refl_target : (local_equiv.refl α).target = univ := rfl
-@[simp] lemma refl_to_fun : ((local_equiv.refl α) : α → α) = id := rfl
+@[simp] lemma refl_coe : ((local_equiv.refl α) : α → α) = id := rfl
 @[simp] lemma refl_symm : (local_equiv.refl α).symm = local_equiv.refl α := rfl
 
 @[simp] lemma refl_restr_source (s : set α) : ((local_equiv.refl α).restr s).source = s :=
@@ -287,8 +287,8 @@ is well defined. -/
 protected def trans : local_equiv α γ :=
   local_equiv.trans' (e.symm.restr (e'.source)).symm (e'.restr (e.target)) (inter_comm _ _)
 
-@[simp] lemma trans_to_fun : ((e.trans e') : α → γ) = e' ∘ e := rfl
-@[simp] lemma trans_inv_fun : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+@[simp] lemma coe_trans : ((e.trans e') : α → γ) = e' ∘ e := rfl
+@[simp] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl

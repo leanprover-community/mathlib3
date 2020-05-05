@@ -61,6 +61,9 @@ instance : normed_space ℝ (euclidean_space n) := by apply_instance
 instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
 instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
+instance : inhabited (euclidean_space n) := ⟨0⟩
+instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, by simp⟩⟩
+instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, by simp⟩⟩
 
 @[simp] lemma findim_euclidean_space : finite_dimensional.findim ℝ (euclidean_space n) = n :=
 by simp

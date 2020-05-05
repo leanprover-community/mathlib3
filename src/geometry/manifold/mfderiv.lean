@@ -701,7 +701,7 @@ begin
     (ext_chart_preimage_mem_nhds_within I x (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
   assume y hy,
   simp only [ext_chart_at, written_in_ext_chart_at, mem_set_of_eq, function.comp_app,
-    local_equiv.trans_to_fun, local_equiv.trans_inv_fun, local_homeomorph.coe_coe_symm,
+    local_equiv.coe_trans, local_equiv.coe_trans_symm, local_homeomorph.coe_coe_symm,
     local_homeomorph.coe_coe, mem_univ, local_equiv.left_inv, model_with_corners.source_eq],
   rw (chart_at H' (f x)).left_inv,
   simpa [ext_chart_at_source] using hy
@@ -936,37 +936,37 @@ end const
 section model_with_corners
 /-! #### Model with corners -/
 
-lemma model_with_corners_mdifferentiable :
+lemma model_with_corners.mdifferentiable :
   mdifferentiable I (model_with_corners_self 𝕜 E) I :=
 begin
   simp only [mdifferentiable, mdifferentiable_at, written_in_ext_chart_at, ext_chart_at,
-    local_equiv.refl_to_fun, chart_at_model_space_eq, function.comp.left_id,
+    local_equiv.refl_coe, chart_at_model_space_eq, function.comp.left_id,
     local_homeomorph.refl_coe, id.def, ext_chart_model_space_eq_id, local_equiv.refl_trans,
     model_with_corners.to_local_equiv_coe_symm, local_homeomorph.refl_local_equiv,
     model_with_corners.to_local_equiv_coe],
   assume x,
-  refine ⟨I.continuous_to_fun.continuous_at, _⟩,
+  refine ⟨I.continuous.continuous_at, _⟩,
   have : differentiable_within_at 𝕜 id (range I) (I x) :=
     differentiable_at_id.differentiable_within_at,
   apply this.congr,
-  { simp [model_with_corners_right_inv] {contextual := tt} },
-  { simp [model_with_corners_left_inv] }
+  { simp [model_with_corners.right_inv] {contextual := tt} },
+  { simp [model_with_corners.left_inv] }
 end
 
-lemma model_with_corners_mdifferentiable_on_symm :
+lemma model_with_corners.mdifferentiable_on_symm :
   mdifferentiable_on (model_with_corners_self 𝕜 E) I I.symm (range I) :=
 begin
   simp only [mdifferentiable_on, mdifferentiable_within_at, written_in_ext_chart_at, ext_chart_at,
-    local_equiv.refl_trans, local_equiv.refl_to_fun, preimage_id, id.def, inter_univ,
+    local_equiv.refl_trans, local_equiv.refl_coe, preimage_id, id.def, inter_univ,
     model_with_corners_self_local_equiv, range_id, function.comp.right_id, chart_at_model_space_eq,
     local_homeomorph.refl_local_equiv, local_equiv.refl_symm,
     model_with_corners_self_coe, model_with_corners.to_local_equiv_coe],
   assume x hx,
-  refine ⟨I.continuous_inv_fun.continuous_at.continuous_within_at, _⟩,
+  refine ⟨I.continuous_symm.continuous_at.continuous_within_at, _⟩,
   have : differentiable_within_at 𝕜 id (range I) x := differentiable_at_id.differentiable_within_at,
   apply this.congr,
-  { simp [model_with_corners_right_inv] {contextual := tt} },
-  { simp [model_with_corners_right_inv, hx] }
+  { simp [model_with_corners.right_inv] {contextual := tt} },
+  { simp [model_with_corners.right_inv, hx] }
 end
 
 end model_with_corners
@@ -975,11 +975,10 @@ section charts
 
 variable {e : local_homeomorph M H}
 
-lemma mdifferentiable_at_atlas_to_fun (h : e ∈ atlas H M) {x : M} (hx : x ∈ e.source) :
+lemma mdifferentiable_at_atlas (h : e ∈ atlas H M) {x : M} (hx : x ∈ e.source) :
   mdifferentiable_at I I e x :=
 begin
-  refine ⟨(e.continuous_to_fun x hx).continuous_at (mem_nhds_sets e.open_source hx), _⟩,
-  have zero_one : ((0 : ℕ) : with_top ℕ) < ⊤, by simp,
+  refine ⟨(e.continuous_on x hx).continuous_at (mem_nhds_sets e.open_source hx), _⟩,
   have mem : I ((chart_at H x : M → H) x) ∈
     I.symm ⁻¹' ((chart_at H x).symm ≫ₕ e).source ∩ range I,
     by simp [hx, local_equiv.trans_source, -mem_range, mem_range_self],
@@ -990,24 +989,23 @@ begin
     (I.symm ⁻¹' ((chart_at H x).symm.trans e).source ∩ range I) :=
     this.1,
   have B := A.differentiable_on (by simp) (I ((chart_at H x : M → H) x)) mem,
-  simp only [local_homeomorph.trans_coe, local_homeomorph.trans_to_local_equiv,
+  simp only [local_homeomorph.coe_trans, local_homeomorph.trans_to_local_equiv,
     local_homeomorph.symm_to_local_equiv] at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa [written_in_ext_chart_at, ext_chart_at] },
   { apply mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1 }
 end
 
-lemma mdifferentiable_on_atlas_to_fun (h : e ∈ atlas H M) :
+lemma mdifferentiable_on_atlas (h : e ∈ atlas H M) :
   mdifferentiable_on I I e e.source :=
-λx hx, (mdifferentiable_at_atlas_to_fun I h hx).mdifferentiable_within_at
+λx hx, (mdifferentiable_at_atlas I h hx).mdifferentiable_within_at
 
-lemma mdifferentiable_at_atlas_inv_fun (h : e ∈ atlas H M) {x : H} (hx : x ∈ e.target) :
+lemma mdifferentiable_at_atlas_symm (h : e ∈ atlas H M) {x : H} (hx : x ∈ e.target) :
   mdifferentiable_at I I e.symm x :=
 begin
-  refine ⟨(e.continuous_inv_fun x hx).continuous_at (mem_nhds_sets e.open_target hx), _⟩,
-  have zero_one : ((0 : ℕ) : with_top ℕ) < ⊤, by simp,
+  refine ⟨(e.continuous_on_symm x hx).continuous_at (mem_nhds_sets e.open_target hx), _⟩,
   have mem : I x ∈ I.symm ⁻¹' (e.symm ≫ₕ chart_at H (e.symm x)).source ∩ range (I),
-  by simp only [local_equiv.trans_source, mem_preimage, mem_inter_eq, model_with_corners_left_inv,
+  by simp only [local_equiv.trans_source, mem_preimage, mem_inter_eq, model_with_corners.left_inv,
     hx, true_and, mem_range_self, mem_chart_source, local_homeomorph.coe_coe_symm,
     local_homeomorph.trans_to_local_equiv, local_equiv.symm_source,
     local_homeomorph.symm_to_local_equiv],
@@ -1018,42 +1016,42 @@ begin
     (I.symm ⁻¹' (e.symm.trans (chart_at H (e.symm x))).source ∩ range I) :=
     this.1,
   have B := A.differentiable_on (by simp) (I x) mem,
-  simp only [local_homeomorph.trans_coe, local_homeomorph.trans_to_local_equiv,
+  simp only [local_homeomorph.coe_trans, local_homeomorph.trans_to_local_equiv,
     local_homeomorph.symm_to_local_equiv] at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa [written_in_ext_chart_at, ext_chart_at] },
-  { apply (mem_nhds_sets (I.continuous_inv_fun _ (local_homeomorph.open_source _)) mem.1) }
+  { apply (mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1) }
 end
 
-lemma mdifferentiable_on_atlas_inv_fun (h : e ∈ atlas H M) :
+lemma mdifferentiable_on_atlas_symm (h : e ∈ atlas H M) :
   mdifferentiable_on I I e.symm e.target :=
-λx hx, (mdifferentiable_at_atlas_inv_fun I h hx).mdifferentiable_within_at
+λx hx, (mdifferentiable_at_atlas_symm I h hx).mdifferentiable_within_at
 
 lemma mdifferentiable_of_mem_atlas (h : e ∈ atlas H M) : e.mdifferentiable I I :=
-⟨mdifferentiable_on_atlas_to_fun I h, mdifferentiable_on_atlas_inv_fun I h⟩
+⟨mdifferentiable_on_atlas I h, mdifferentiable_on_atlas_symm I h⟩
 
 lemma mdifferentiable_chart (x : M) : (chart_at H x).mdifferentiable I I :=
 mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 
 /-- The derivative of the chart at a base point is the chart of the tangent bundle. -/
-lemma bundle_mfderiv_chart_to_fun {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
+lemma bundle_mfderiv_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
   bundle_mfderiv I I (chart_at H p.1) q = (chart_at (H × E) p : tangent_bundle I M → H × E) q :=
 begin
   dsimp [bundle_mfderiv],
   rw mdifferentiable_at.mfderiv,
   { refl },
-  { exact mdifferentiable_at_atlas_to_fun _ (chart_mem_atlas _ _) h }
+  { exact mdifferentiable_at_atlas _ (chart_mem_atlas _ _) h }
 end
 
 /-- The derivative of the inverse of the chart at a base point is the inverse of the chart of the
 tangent bundle. -/
-lemma bundle_mfderiv_chart_inv_fun {p : tangent_bundle I M} {q : H × E}
+lemma bundle_mfderiv_chart_symm {p : tangent_bundle I M} {q : H × E}
   (h : q.1 ∈ (chart_at H p.1).target) :
   bundle_mfderiv I I (chart_at H p.1).symm q =
   ((chart_at (H × E) p).symm : H × E → tangent_bundle I M) q :=
 begin
   dsimp only [bundle_mfderiv],
-  rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_inv_fun _ (chart_mem_atlas _ _) h),
+  rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
   dsimp [written_in_ext_chart_at, ext_chart_at, chart_at, manifold.chart_at,
@@ -1283,7 +1281,7 @@ begin
   { have : unique_mdiff_within_at I s z := hs _ hx.2,
     have S : e.source ∩ e ⁻¹' ((ext_chart_at I' x).source) ∈ 𝓝 z,
     { apply mem_nhds_sets,
-      apply e.continuous_to_fun.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
+      apply e.continuous_on.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
       simp [z_source, zx] },
     have := this.inter S,
     rw [unique_mdiff_within_at_iff] at this,
@@ -1346,10 +1344,10 @@ begin
   have : (chart_at H x).mdifferentiable I I := mdifferentiable_chart _ _,
   have T := (hs.unique_mdiff_on_preimage this) (I.symm z),
   simp only [ext_chart_at, hz.left.left, hz.left.right, hz.right, local_equiv.trans_target,
-    unique_mdiff_within_at, local_equiv.refl_trans, forall_prop_of_true, model_with_corners_target,
+    unique_mdiff_within_at, local_equiv.refl_trans, forall_prop_of_true, model_with_corners.target,
     mem_inter_eq, preimage_inter, mem_preimage, chart_at_model_space_eq,
-    local_homeomorph.refl_local_equiv, and_self, model_with_corners_right_inv,
-    local_equiv.trans_inv_fun, model_with_corners.to_local_equiv_coe_symm,
+    local_homeomorph.refl_local_equiv, and_self, model_with_corners.right_inv,
+    local_equiv.coe_trans_symm, model_with_corners.to_local_equiv_coe_symm,
     local_homeomorph.coe_coe_symm, model_with_corners.to_local_equiv_coe] at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
@@ -1424,7 +1422,7 @@ begin
     local_homeomorph.refl_local_equiv, this, model_with_corners.mk_coe, local_equiv.coe_mk,
     model_with_corners_self_coe, local_equiv.coe_symm_mk, model_with_corners_self_coe_symm],
   -- apply unique differentiability of products to conclude
-  apply unique_diff_on.prod _ is_open_univ.unique_diff_on,
+  apply unique_diff_on.prod _ unique_diff_on_univ,
   { simp [-mem_range, mem_range_self, hq] },
   { assume x hx,
     have A : unique_mdiff_on I (e₀.target ∩ e₀.symm⁻¹' s),
@@ -1433,7 +1431,7 @@ begin
       apply_instance },
     simp [unique_mdiff_on, unique_mdiff_within_at, ext_chart_at] at A,
     have B := A (I.symm x) hx.1.1 hx.1.2,
-    rwa [← preimage_inter, model_with_corners_right_inv _ hx.2] at B }
+    rwa [← preimage_inter, model_with_corners.right_inv _ hx.2] at B }
 end
 
 lemma unique_mdiff_on.tangent_bundle_proj_preimage (hs : unique_mdiff_on I s):

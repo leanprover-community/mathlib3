@@ -67,9 +67,6 @@ variables (e : local_homeomorph α β) (e' : local_homeomorph β γ)
 
 instance : has_coe_to_fun (local_homeomorph α β) := ⟨_, λ e, e.to_local_equiv.to_fun⟩
 
-@[simp] lemma mk_coe (e : local_equiv α β) (a b c d) :
-  (local_homeomorph.mk e a b c d : α → β) = e := rfl
-
 /-- The inverse of a local homeomorphism -/
 protected def symm : local_homeomorph β α :=
 { open_source        := e.open_target,
@@ -78,12 +75,18 @@ protected def symm : local_homeomorph β α :=
   continuous_inv_fun := e.continuous_to_fun,
   ..e.to_local_equiv.symm }
 
+protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
+
+lemma continuous_on_symm : continuous_on e.symm e.target := e.continuous_inv_fun
+
+@[simp] lemma mk_coe (e : local_equiv α β) (a b c d) :
+  (local_homeomorph.mk e a b c d : α → β) = e := rfl
+
 @[simp] lemma mk_coe_symm (e : local_equiv α β) (a b c d) :
   ((local_homeomorph.mk e a b c d).symm : β → α) = e.symm := rfl
 
-lemma continuous_on_self : continuous_on e e.source := e.continuous_to_fun
-
-lemma continuous_on_symm : continuous_on e.symm e.target := e.continuous_inv_fun
+/- Register a few simp lemmas to make sure that `simp` puts the application of a local
+homeomorphism in its normal form, i.e., in terms of its coercion to a function. -/
 
 @[simp] lemma to_fun_eq_coe (e : local_homeomorph α β) : e.to_fun = e := rfl
 
@@ -146,14 +149,14 @@ lemma symm_target : e.symm.target = e.source := rfl
 @[simp] lemma symm_symm : e.symm.symm = e := eq_of_local_equiv_eq $ by simp
 
 /-- A local homeomorphism is continuous at any point of its source -/
-lemma continuous_at_self {x : α} (h : x ∈ e.source) : continuous_at e x :=
-(e.continuous_on_self x h).continuous_at (mem_nhds_sets e.open_source h)
+protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
+(e.continuous_on x h).continuous_at (mem_nhds_sets e.open_source h)
 
 /-- A local homeomorphism inverse is continuous at any point of its target -/
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
-e.symm.continuous_at_self h
+e.symm.continuous_at h
 
-lemma inv_fun_tendsto (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+lemma tendsto_symm (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   filter.tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
 by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_symm (e.map_source hx)
 
@@ -163,7 +166,7 @@ lemma preimage_interior (s : set β) :
   e.source ∩ e ⁻¹' (interior s) = e.source ∩ interior (e ⁻¹' s) :=
 begin
   apply subset.antisymm,
-  { exact e.continuous_on_self.preimage_interior_subset_interior_preimage e.open_source },
+  { exact e.continuous_on.preimage_interior_subset_interior_preimage e.open_source },
   { calc e.source ∩ interior (e ⁻¹' s)
     = (e.source ∩ e ⁻¹' e.target) ∩ interior (e ⁻¹' s) : begin
         congr,
@@ -325,8 +328,8 @@ protected def trans : local_homeomorph α γ :=
 
 @[simp] lemma trans_to_local_equiv :
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv := rfl
-@[simp] lemma trans_coe : (e.trans e' : α → γ) = e' ∘ e := rfl
-@[simp] lemma trans_coe_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+@[simp] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
+@[simp] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -421,8 +424,8 @@ lemma target_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e') :
 (eq_on_source_symm h).1
 
 /-- Two equivalent local homeomorphisms have coinciding `to_fun` on the source -/
-lemma apply_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e') {x : α} (hx : x ∈ e.source) :
-  e x = e' x :=
+lemma apply_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e')
+  {x : α} (hx : x ∈ e.source) : e x = e' x :=
 h.2 x hx
 
 /-- Two equivalent local homeomorphisms have coinciding `inv_fun` on the target -/
@@ -507,7 +510,7 @@ begin
     have : e.source ∈ 𝓝 (e.symm x) := mem_nhds_sets e.open_source (e.map_target h),
     rw [← continuous_within_at_inter this, inter_comm],
     exact continuous_within_at.comp f_cont
-      ((e.continuous_at_self (e.map_target h)).continuous_within_at) (inter_subset_right _ _) },
+      ((e.continuous_at (e.map_target h)).continuous_within_at) (inter_subset_right _ _) },
   { assume fe_cont,
     have : continuous_within_at ((f ∘ e) ∘ e.symm) (s ∩ e.target) x,
     { apply continuous_within_at.comp fe_cont,
@@ -559,7 +562,7 @@ begin
   split,
   { assume f_cont,
     have : e.source ∈ 𝓝 (f x) := mem_nhds_sets e.open_source hx,
-    apply continuous_within_at.comp (e.continuous_on_self (f x) hx) f_cont (inter_subset_right _ _) },
+    apply continuous_within_at.comp (e.continuous_on (f x) hx) f_cont (inter_subset_right _ _) },
   { assume fe_cont,
     have : continuous_within_at (e.symm ∘ (e ∘ f)) (s ∩ f ⁻¹' e.source) x,
     { have : continuous_within_at e.symm univ (e (f x))
@@ -587,7 +590,7 @@ lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h 
 begin
   split,
   { assume f_cont,
-    exact e.continuous_on_self.comp f_cont h },
+    exact e.continuous_on.comp f_cont h },
   { assume fe_cont,
     have : continuous_on (e.symm ∘ e ∘ f) s,
     { apply continuous_on.comp e.continuous_on_symm fe_cont,

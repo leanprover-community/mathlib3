@@ -3,14 +3,13 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import group_theory.order_of_element
+
 import data.polynomial
 import data.equiv.ring
 import data.zmod.basic
+import group_theory.order_of_element
 import linear_algebra.basis
 import algebra.geom_sum
-import group_theory.congruence
-import group_theory.quotient_group
 
 /-!
 # Finite fields
@@ -58,24 +57,6 @@ begin
   intros n hn,
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
 end
-
-
-
-lemma sum_units_subgroup (f : G →* R) [decidable (f = 1)] (i : ℕ) :
-  ∑ g : G, f g = if f = 1 then fintype.card G else 0 :=
-begin
-  split_ifs with h h,
-  { simp [h, card_univ], },
-  classical,
-  -- let Q := quotient_group.quotient (is_group_hom.ker f),
-  -- haveI : group Q := ,
-  simp only [← @set.range_factorization_eq _ _ f, function.comp, finset.sum_comp],
-  -- haveI : group (set.range f) :=
-  -- { one := f 1, mul :=  },
-  -- haveI : is_cyclic (set.range f) := is_cyclic_of_subgroup_integral_domain _ _,
-  -- obtain ⟨g₀, hG⟩ := is_cyclic.exists_generator G,
-end
-
 
 /-- The sum of `x ^ i` as `x` ranges over a finite subgroup `G` of the units of an integral domain
 is equal to `0` unless the cardinality of `G` divides `i`,
@@ -182,8 +163,7 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-/-- A finite field of cardinality `q` has a unit group of cardinality `q - 1`. -/
-lemma card_units : fintype.card (units K) = q - 1 :=
+lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
@@ -196,25 +176,21 @@ begin
 end
 
 lemma prod_univ_units_id_eq_neg_one :
-  ∏ x : units K, x = -1 :=
+  univ.prod (λ x, x) = (-1 : units K) :=
 begin
   classical,
-  suffices : ∏ (x : units K) in univ.erase (-1), x = 1,
-  by rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _), this, mul_one],
-  apply prod_involution (λ x _, x⁻¹),
-  { intros, exact mul_right_inv _, },
-  { intros u hu h1, rw mem_erase at hu, rw [ne.def, units.inv_eq_self_iff], tauto },
-  { intros, simp only [inv_inv] },
-  { intros u hu, rw mem_erase at hu ⊢,
-    show ¬u⁻¹ = -1 ∧ u⁻¹ ∈ univ,
-    rw [inv_eq_iff_inv_eq, units.neg_inv, one_inv, eq_comm],
-    exact ⟨hu.1, mem_univ _⟩, }
+  have : ((@univ (units K) _).erase (-1)).prod (λ x, x) = 1,
+  from prod_involution (λ x _, x⁻¹) (by simp)
+    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (by simp),
+  rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
+      this, mul_one]
 end
 
-/-- In a finite field of cardinality `q`, one has `a^(q-1) = 1` for all nonzero `a`. -/
-lemma pow_card_sub_one_eq_one  (a : K) (ha : a ≠ 0) :
-  a ^ (q - 1) = 1 :=
-calc a ^ (q - 1) = (units.mk0 a ha ^ (q - 1) : units K) :
+lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) :
+  a ^ (fintype.card K - 1) = 1 :=
+calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 

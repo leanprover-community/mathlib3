@@ -977,8 +977,6 @@ variable {G}
 @[simp] lemma continuous_multilinear_map.curry0_apply (x : E₂) (m : (fin 0) → G) :
   (continuous_multilinear_map.curry0 𝕜 G x : ((fin 0) → G) → E₂) m = x := rfl
 
-
-
 variable {𝕜}
 @[simp] lemma continuous_multilinear_map.uncurry0_apply
   (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) :

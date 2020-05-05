@@ -540,9 +540,12 @@ end sum_compl
 
 section
 
+-- The following definition is protected,
+-- to avoid name clashing with the ubiquitous `not_not` from logic.
+
 /-- For any predicate `p` on `α`, the subtype of terms that satisfy `¬ ¬ p`
 is equivalent to the subtype of terms that satisfy `p`. -/
-def not_not (p : α → Prop) [decidable_pred p] :
+protected def not_not (p : α → Prop) [decidable_pred p] :
   {x // ¬ ¬ p x} ≃ {x // p x} :=
 { to_fun := λ x, ⟨x, not_not.mp x.2⟩,
   inv_fun := λ x, ⟨x, not_not.mpr x.2⟩,

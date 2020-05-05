@@ -490,6 +490,8 @@ def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α 
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
 
+/-- `sigma_preimage_equiv f` for `f : α → β` is the natural equivalence between
+the type of all fibres of `f` and the total space `α`. -/
 def sigma_preimage_equiv {α β : Type*} (f : α → β) :
   (Σ y : β, {x // f x = y}) ≃ α :=
 ⟨λ x, x.2.1, λ x, ⟨f x, x, rfl⟩, λ ⟨y, x, rfl⟩, rfl, λ x, rfl⟩
@@ -508,6 +510,9 @@ end
 
 section sum_compl
 
+/-- For any predicate `p` on `α`,
+the sum of the two subtypes `{a // p a}` and its complement `{a // ¬ p a}`
+is naturally equivalent to `α`. -/
 def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   {a // p a} ⊕ {a // ¬ p a} ≃ α :=
 { to_fun := sum.elim coe coe,
@@ -535,6 +540,8 @@ end sum_compl
 
 section
 
+/-- For any predicate `p` on `α`, the subtype of terms that satisfy `¬ ¬ p`
+is equivalent to the subtype of terms that satisfy `p`. -/
 def not_not (p : α → Prop) [decidable_pred p] :
   {x // ¬ ¬ p x} ≃ {x // p x} :=
 { to_fun := λ x, ⟨x, not_not.mp x.2⟩,
@@ -554,6 +561,9 @@ section subtype_preimage
 
 variables (p : α → Prop) [decidable_pred p] (x₀ : {a // p a} → β)
 
+/-- For a fixed function `x₀ : {a // p a} → β` defined on a subtype of `α`,
+the subtype of functions `x : α → β` that agree with `x₀` on the subtype `{a // p a}`
+is naturally equivalent to the type of functions `{a // ¬ p a} → β`. -/
 def equiv.subtype_preimage :
   {x : α → β // x ∘ coe = x₀} ≃ ({a // ¬ p a} → β) :=
 { to_fun := λ (x : {x : α → β // x ∘ coe = x₀}) a, (x : α → β) a,
@@ -585,6 +595,7 @@ section fun_unique
 
 variables (α β) [unique α]
 
+/-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 def equiv.fun_unique : (α → β) ≃ β :=
 { to_fun := λ f, f (default α),
   inv_fun := λ b a, b,

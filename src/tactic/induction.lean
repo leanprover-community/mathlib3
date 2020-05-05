@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import category.basic data.sum data.list.defs tactic.basic
+import control.basic data.sum data.list.defs tactic.basic
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -198,16 +198,16 @@ expressions are not necessarily in normal form.
 -/
 meta def decompose_pi_normalizing
   : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
-e ← tactic.whnf e,
-match e with
-| (pi n binfo T rest) := do
-  (args, ret) ← decompose_pi_normalizing rest,
-  -- NOTE: the following makes this function quadratic in the size of the input
-  -- expression.
-  let dep := rest.has_var_idx 0,
-  pure ((n , binfo, T, dep) :: args, ret)
-| _ := pure ([] , e)
-end
+  e ← tactic.whnf e,
+  match e with
+  | (pi n binfo T rest) := do
+      (args, ret) ← decompose_pi_normalizing rest,
+      -- NOTE: the following makes this function quadratic in the size of the input
+      -- expression.
+      let dep := rest.has_var_idx 0,
+      pure ((n , binfo, T, dep) :: args, ret)
+  | _ := pure ([] , e)
+  end
 
 /-- Auxiliary function for `decompose_app`. -/
 meta def decompose_app_aux : expr → expr × list expr
@@ -226,13 +226,13 @@ let (f , args) := decompose_app_aux e in
 
 /-- Auxiliary function for `decompose_app_normalizing`. -/
 meta def decompose_app_normalizing_aux : expr → tactic (expr × list expr) := λ e, do
-e ← tactic.whnf e,
-match e with
-| (app t u) := do
-  (f , args) ← decompose_app_normalizing_aux t,
-  pure (f , u :: args)
-| _ := pure (e , [])
-end
+  e ← tactic.whnf e,
+  match e with
+  | (app t u) := do
+      (f , args) ← decompose_app_normalizing_aux t,
+      pure (f , u :: args)
+  | _ := pure (e , [])
+  end
 
 /-- Decomposes a function application. If `e` is of the form `f x ... z`, the
 result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
@@ -242,31 +242,8 @@ result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
 necessarily in normal form.
 -/
 meta def decompose_app_normalizing (e : expr) : tactic (expr × list expr) := do
-(f , args) ← decompose_app_normalizing_aux e,
-pure (f , args.reverse)
-
-/-- Matches any expression of the form `C x .. z` where `C` is a constant.
-Returns the name of `C`.
--/
-meta def match_const_application : expr → option name
-| (app e₁ e₂) := match_const_application e₁
-| (const n _) := pure n
-| _ := none
-
-/-- Matches any expression of the form `C x .. z` where `C` is a constant.
-Returns the name of `C`.
-
-The input expression is normalised lazily. This means that the returned
-expressions are not necessarily in normal form.
--/
-meta def match_const_application_normalizing : expr → tactic name := λ e, do
-e ← tactic.whnf e,
-match e with
-| (app e₁ e₂) := match_const_application_normalizing e₁
-| (const n _) := pure n
-| _ := tactic.fail $ format!
-    "Expected {e} to be a constant (possibly applied to some arguments)."
-end
+  (f , args) ← decompose_app_normalizing_aux e,
+  pure (f , args.reverse)
 
 /-- Returns the set of variables occurring in `e`. -/
 meta def vars (e : expr) : rbtree ℕ :=
@@ -322,18 +299,18 @@ def char : parser char :=
 sat (λ _, true)
 
 def digit : parser nat := do
-c ← char,
-let c' := c.to_nat - '0'.to_nat,
-if 0 ≤ c' ∧ c' ≤ 9
-  then pure c'
-  else parser.fail $ "expected a digit, got: " ++ c.to_string
+  c ← char,
+  let c' := c.to_nat - '0'.to_nat,
+  if 0 ≤ c' ∧ c' ≤ 9
+    then pure c'
+    else parser.fail $ "expected a digit, got: " ++ c.to_string
 
 def nat : parser nat := do
-digits ← many1 digit,
-pure $ prod.fst $
-  digits.foldr
-    (λ digit ⟨sum, magnitude⟩, ⟨sum + digit * magnitude, magnitude * 10⟩)
-    ⟨0, 1⟩
+  digits ← many1 digit,
+  pure $ prod.fst $
+    digits.foldr
+      (λ digit ⟨sum, magnitude⟩, ⟨sum + digit * magnitude, magnitude * 10⟩)
+      ⟨0, 1⟩
 
 end parser
 
@@ -348,9 +325,9 @@ meta def basename : name → name
 | (mk_numeral n _) := mk_numeral n anonymous
 
 meta def likely_generated_name_p : parser unit := do
-str "a",
-optional (ch '_' *> nat),
-pure ()
+  str "a",
+  optional (ch '_' *> nat),
+  pure ()
 
 meta def is_likely_generated_name (n : name) : bool :=
 match n with
@@ -365,14 +342,19 @@ end name
 
 namespace tactic
 
+open native
+
 /-- Returns true iff `arg_type` is the local constant named `type_name`
 (possibly applied to some arguments). If `arg_type` is the type of an argument
 of one of `type_name`'s constructors and this function returns true, then the
 constructor argument is a recursive occurrence. -/
 meta def is_recursive_constructor_argument (type_name : name) (arg_type : expr)
   : bool :=
-let base_type_name := arg_type.match_const_application in
-base_type_name = type_name
+let base := arg_type.get_app_fn in
+match base with
+| (expr.const base _) := base = type_name
+| _ := ff
+end
 
 @[derive has_reflect]
 meta structure constructor_argument_info :=
@@ -413,38 +395,38 @@ let dbg : list (ℕ × list ℕ):= arg_occurrences.to_list.map (λ ⟨i, xs⟩, 
 does not refer to a constructor. -/
 meta def get_constructor_info (env : environment) (num_params : ℕ) (c : name)
   : exceptional constructor_info := do
-when (¬ env.is_constructor c) $ exceptional.fail format!
-  "Expected {c} to be a constructor.",
-decl ← env.get c,
-let (args, n_args, return_type) := decl.type.decompose_pi,
-let arg_occurrences := return_type.application_variable_occurrences,
-pure
-  { cname := decl.to_name,
-    args := args.map_with_index $ λ i ⟨name, _, type, dep⟩,
-      get_constructor_argument_info num_params n_args i name type dep
-        arg_occurrences,
-    return_type := return_type }
+  when (¬ env.is_constructor c) $ exceptional.fail format!
+    "Expected {c} to be a constructor.",
+  decl ← env.get c,
+  let (args, n_args, return_type) := decl.type.decompose_pi,
+  let arg_occurrences := return_type.application_variable_occurrences,
+  pure
+    { cname := decl.to_name,
+      args := args.map_with_index $ λ i ⟨name, _, type, dep⟩,
+        get_constructor_argument_info num_params n_args i name type dep
+          arg_occurrences,
+      return_type := return_type }
 
 /-- Gathers information about an inductive type from the environment. Fails if
 `T` does not refer to an inductive type. -/
 meta def get_inductive_info (env : environment) (T : name)
   : exceptional inductive_info := do
-when (¬ env.is_inductive T) $ exceptional.fail format!
-  "Expected {T} to be an inductive type.",
-decl ← env.get T,
-let type := decl.type,
-let num_params := env.inductive_num_params T,
-let num_indices := env.inductive_num_indices T,
-let constructor_names := env.constructors_of T,
-constructors ← constructor_names.mmap
-  (get_constructor_info env num_params),
-pure
-  { iname := T,
-    constructors := constructors,
-    num_constructors := constructors.length,
-    type := type,
-    num_params := num_params,
-    num_indices := num_indices }
+  when (¬ env.is_inductive T) $ exceptional.fail format!
+    "Expected {T} to be an inductive type.",
+  decl ← env.get T,
+  let type := decl.type,
+  let num_params := env.inductive_num_params T,
+  let num_indices := env.inductive_num_indices T,
+  let constructor_names := env.constructors_of T,
+  constructors ← constructor_names.mmap
+    (get_constructor_info env num_params),
+  pure
+    { iname := T,
+      constructors := constructors,
+      num_constructors := constructors.length,
+      type := type,
+      num_params := num_params,
+      num_indices := num_indices }
 
 meta structure eliminee_info :=
 (ename : name)
@@ -452,14 +434,14 @@ meta structure eliminee_info :=
 (args : rbmap ℕ expr)
 
 meta def get_eliminee_info (e : expr) : tactic eliminee_info := do
-ename ← e.local_pp_name_option <|> fail format!
-  "Expected {e} to be a local constant.",
-type ← infer_type e,
-⟨f, args⟩ ← type.decompose_app_normalizing,
-pure
-  { ename := ename,
-    type := type,
-    args := args.to_rbmap }
+  ename ← e.local_pp_name_option <|> fail format!
+    "Expected {e} to be a local constant.",
+  type ← infer_type e,
+  ⟨f, args⟩ ← type.decompose_app_normalizing,
+  pure
+    { ename := ename,
+      type := type,
+      args := args.to_rbmap }
 
 meta structure constructor_argument_naming_info :=
 (einfo : eliminee_info)
@@ -523,16 +505,18 @@ meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
 
 meta def intro_fresh (n : name) : tactic unit := do
-n ← get_unused_name n,
-intro n,
-pure ()
+  n ← get_unused_name n,
+  intro n,
+  pure ()
 
-meta def generalize_all (eliminee : expr) : tactic unit := do
-eliminee_type ← infer_type eliminee,
-ctx ← list.reverse <$> local_context,
-ctx.mmap' $ λ hyp, do
-  dep ← kdepends_on eliminee_type hyp,
-  when (hyp ≠ eliminee ∧ ¬ dep) $ revert hyp >> pure ()
+meta def generalize_all (eliminee : expr) (fix : name_set) : tactic ℕ := do
+  eliminee_type ← infer_type eliminee,
+  ctx ← local_context,
+  to_revert ← ctx.mfilter $ λ hyp, do {
+    dep ← kdepends_on eliminee_type hyp,
+    pure $ hyp ≠ eliminee ∧ ¬ dep ∧ ¬ fix.contains hyp.local_pp_name
+  },
+  revert_lst to_revert
 
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info)
@@ -565,92 +549,64 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   constructor_argument_intros einfo iinfo cinfo,
   ih_intros einfo iinfo cinfo
 
--- TODO copied from init/meta/interactive.lean and modified
-/--
-  Given the initial tag `in_tag` and the cases names produced by `induction` or `cases` tactic,
-  update the tag of the new subgoals.
--/
-meta def set_cases_tags (in_tag : tag) (rs : list name) : tactic unit :=
-do te ← tags_enabled,
-   gs ← get_goals,
-   match gs with
-   | [g] := when te (set_tag g in_tag) -- if only one goal was produced, we should not make the tag longer
-   | _   := do
-     let tgs : list (name × expr) := rs.map₂ (λ n g, (n, g)) gs,
-     if te
-     then tgs.mmap' (λ ⟨n, g⟩, set_tag g (n::in_tag))
-          /- If `induction/cases` is not in a `with_cases` block, we still set tags using `_case_simple` to make
-             sure we can use the `case` notation.
-             ```
-             induction h,
-             case c { ... }
-             ```
-          -/
-     else tgs.mmap' $ λ ⟨n, g⟩,
-       with_enable_tags (set_tag g [name.mk_numeral 0 `_case, n])
-   end
+meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := focus1 $ do
+  eliminee ← get_local eliminee_name,
+  einfo ← get_eliminee_info eliminee,
+  let eliminee_type := einfo.type,
+  let eliminee_args := einfo.args.to_list.map prod.snd,
+  env ← get_env,
 
-meta def induction'' (eliminee_name : name) : tactic unit := do
-  initial_tag ← get_main_tag,
-  focus1 $ do {
-    eliminee ← get_local eliminee_name,
-    einfo ← get_eliminee_info eliminee,
-    let eliminee_type := einfo.type,
-    let eliminee_args := einfo.args.to_list.map prod.snd,
-    env ← get_env,
+  -- Find the name of the inductive type
+  iname ← do {
+    eliminee_type ← whnf_ginductive eliminee_type,
+    (expr.const iname _) ← pure $ eliminee_type.get_app_fn,
+    guard (env.is_inductive iname),
+    pure iname }
+  <|> fail format!
+    "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
 
-    -- Find the name of the inductive type
-    iname ← do {
-      type_name ← eliminee_type.match_const_application_normalizing,
-      guard (env.is_inductive type_name),
-      pure type_name }
-    <|> fail format!
-      "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
+  iinfo ← get_inductive_info env iname,
+  let rec_name := iname ++ "rec_on",
+  rec_const ← mk_const rec_name,
 
-    iinfo ← get_inductive_info env iname,
-    let rec_name := iname ++ "rec_on",
-    rec_const ← mk_const rec_name,
+  -- TODO We would like to disallow mutual/nested inductive types, since these have
+  -- complicated recursors which we probably don't support. However, there seems
+  -- to be no way to find out whether an inductive type is mutual/nested.
+  -- (`environment.is_ginductive` doesn't seem to work.)
 
-    -- TODO We would like to disallow mutual/nested inductive types, since these have
-    -- complicated recursors which we probably don't support. However, there seems
-    -- to be no way to find out whether an inductive type is mutual/nested.
-    -- (`environment.is_ginductive` doesn't seem to work.)
+  -- Disallow complex indices (for now)
+  guard (eliminee_args.all expr.is_local) <|> fail format!
+    ("induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n" ++
+    "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
 
-    -- Disallow complex indices (for now)
-    guard (eliminee_args.all expr.is_local) <|> fail format!
-      ("induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n" ++
-      "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
+  -- Generalise all generalisable hypotheses.
+  -- TODO implement "fixing h" syntax
+  generalize_all eliminee (name_set.of_list fix),
 
-    -- Generalise all generalisable hypotheses.
-    -- TODO implement "fixing h" syntax
-    generalize_all eliminee,
+  -- Apply the recursor
+  let rec := ``(%%rec_const %%eliminee),
+  rec ← i_to_expr_for_apply rec,
+  apply rec,
 
-    -- Apply the recursor
-    let rec := ``(%%rec_const %%eliminee),
-    rec ← i_to_expr_for_apply rec,
-    apply rec,
+  -- For each case (constructor):
+  focus $ iinfo.constructors.map $ λ cinfo, do {
+    -- Clear the eliminated hypothesis
+    clear eliminee,
+    -- Clear the index args (unless other stuff in the goal depends on them)
+    (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear),
+    -- TODO is this the right thing to do? I don't think this necessarily
+    -- preserves provability: The args we clear could contain interesting
+    -- information, even if nothing else depends on them. Is there a way to avoid
+    -- this, i.e. clean up even more conservatively?
 
-    -- For each case (constructor):
-    focus $ iinfo.constructors.map $ λ cinfo, do {
-      -- Clear the eliminated hypothesis
-      clear eliminee,
-      -- Clear the index args (unless other stuff in the goal depends on them)
-      (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear),
-      -- TODO is this the right thing to do? I don't think this necessarily
-      -- preserves provability: The args we clear could contain interesting
-      -- information, even if nothing else depends on them. Is there a way to avoid
-      -- this, i.e. clean up even more conservatively?
+    -- Introduce the constructor arguments
+    constructor_intros einfo iinfo cinfo,
+    -- Introduce any hypotheses we may have previously generalised
+    intros,
+    pure ()
+  },
 
-      -- Introduce the constructor arguments
-      constructor_intros einfo iinfo cinfo,
-      -- Introduce any hypotheses we may have previously generalised
-      intros,
-      pure ()
-    },
-
-    -- Set case tags
-    set_cases_tags initial_tag $ iinfo.constructors.map constructor_info.cname
-  }
+  pure ()
 
 end tactic
 
@@ -659,7 +615,12 @@ namespace tactic.interactive
 
 open interactive lean.parser
 
-meta def induction' (hyp : parse ident) : tactic unit :=
-  tactic.induction'' hyp
+precedence `fixing`:0
+
+meta def induction'
+  (hyp : parse ident)
+  (fix : parse (optional (tk "fixing" *> many ident)))
+  : tactic unit :=
+  tactic.induction'' hyp (fix.get_or_else [])
 
 end tactic.interactive

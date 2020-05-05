@@ -104,21 +104,6 @@ end
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------
 
-
--- TODO debug
-namespace tactic
-
-meta def trace_unique_name (n : name) : tactic unit := do
-  (expr.local_const u _ _ _) ← resolve_name n,
-  trace u
-
-meta def trace_tag : tactic unit := do
-  (t : list name) ← get_main_tag,
-  trace t
-
-end tactic
-
-
 namespace expressions
 
 inductive exp : Type
@@ -134,52 +119,29 @@ def subst (ρ : string → exp) : exp → exp
 | (Plus e₁ e₂) := Plus (subst e₁) (subst e₂)
 
 
-example (n : ℕ) : ℕ :=
-begin
-  apply nat.succ,
-  tactic.trace_tag
-end
-
-
 -- TODO case tags, type-based naming
 lemma subst_Var (e : exp) :
   subst (λx, Var x) e = e :=
 begin
-  induction e,
-  case Var {
-    tactic.trace_unique_name `e,
-    let x : ℕ := 2,
-    cases x,
-    { tactic.trace_unique_name `e, sorry },
-    { sorry }
+  induction' e,
+  -- case Var
+  {
+    rename x s,
+    /- Desired state here. -/
+    rw [subst]
   },
-  { sorry },
-  { sorry }
-  -- (do
-  --   gs ← tactic.get_goals,
-  --   ts ← gs.mmap tactic.get_tag,
-  --   ts.mmap' (λ t, tactic.trace (format_tag t)),
-  --   pure ()
-  -- ),
-  -- case Var {
-  --   -- rename e s,
-  --   rename x s,
-  --   /- Desired state here. -/
-  --   rw [subst]
-  -- },
-  -- -- case Num {
-  -- {
-  --   -- rename e z,
-  --   rename x z,
-  --   /- Desired state here. -/
-  --   rw [subst]
-  -- },
-  -- -- case Plus {
-  -- {
-  --   rw [subst],
-  --   rw ih_e,
-  --   rw ih_e_1
-  --  }
+  -- case Num {
+  {
+    rename x z,
+    /- Desired state here. -/
+    rw [subst]
+  },
+  -- case Plus {
+  {
+    rw [subst],
+    rw ih_e,
+    rw ih_e_1
+   }
 end
 
 end expressions
@@ -272,13 +234,12 @@ inductive tc {α : Type} (r : α → α → Prop) : α → α → Prop
 of. We start with a lemma where the variable names do not collide with those
 appearing in the definition of the inductive predicate. -/
 
--- TODO case tags, fixing
+-- TODO case tags
 lemma tc_pets₁ {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b, tc r a b → r b c → tc r a c :=
 begin
   intros a b htab hrbc,
-  induction' htab,
-  -- Desired syntax above: `induction htab fixing c`.
+  induction' htab fixing c,
   -- case tc.base {   -- should be `case base`
   {
     rename hr hrab,
@@ -287,47 +248,34 @@ begin
   {
     rename y x,
     rename hr hrax,
-    specialize ih c,
     exact tc.step _ _ _ hrax (ih hrbc) }
 end
 
 /- The same proof, but this time the variable names clash. Also, this time we
 let `xinduction` generalize `z`. -/
 
+-- TODO fixing
 lemma tc_pets₂ {α : Type} (r : α → α → Prop) (z : α) :
   ∀x y, tc r x y → r y z → tc r x z :=
 begin
   intros x y htxy hryz,
-  induction htxy generalizing z,
+  induction' htxy,
   /- Desired syntax above: `induction htxy`. -/
-  case tc.base {   -- should be `case base`
-    clear x y,
-    rename htxy_x x,
-    rename htxy_y y,
-    rename htxy_hr hr,
-    rename hryz hryz,   -- just to move it back where it used to be
+  -- case tc.base {   -- should be `case base`
+  {
     /- Desired state here. Writing `case tc.base : hrxy` above would rename `hr`
     to `hrxy`. -/
     rename hr hrxy,
     /- Like this. -/
     exact tc.step _ _ _ hrxy (tc.base _ _ hryz)
   },
-  case tc.step {   -- should be `case step`
-    clear x y,
-    rename htxy_x x,
-    rename htxy_y ya,   -- fresh (Isabelle-style) name to avoid clash
-    rename htxy_z y,
-    rename htxy_hr hr,
-    rename htxy_ht ht,
-    rename htxy_ih ih,
-    rename hryz hryz,   -- just to move it back where it used to be
+  {   -- should be `case step`
     /- Desired state here. Writing `case tc.step : x' hrxx' htx'y ih` would also
     rename `y`, `hr`, `ht`, and `ih` to `x'`, `hrxx'`, `htx'y`, and `ih`,
     respectively. -/
-    rename ya x',
+    rename [y x', y_1 y],
     rename hr hrxx',
-    rename ht htx'y,
-    rename ih ih,
+    rename htxy htx'y,
     /- Like this. -/
     exact tc.step _ _ _ hrxx' (ih _ hryz)
   }
@@ -335,33 +283,16 @@ end
 
 /- Another proof along the same lines. -/
 
+-- TODO fixing
 lemma tc_trans {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b : α, tc r a b → tc r b c → tc r a c :=
 begin
   intros a b htab htbc,
-  induction htab generalizing c,
-  /- Desired syntax: `induction htab`. -/
-  case tc.base {
-    clear a b,
-    rename htab_x a,
-    rename htab_y b,
-    rename htab_hr hr,
-    rename htbc htbc,
-    /- Desired state here. -/
-    exact tc.step _ _ _ hr htbc
-  },
-  case tc.step {
-    clear a b,
-    rename htab_x a,
-    rename htab_y y,
-    rename htab_z b,
-    rename htab_hr hr,
-    rename htab_ht ht,
-    rename htab_ih ih,
-    rename htbc htbc,
-    /- Desired state here. -/
-    exact tc.step _ _ _ hr (ih _ htbc)
-  }
+  induction' htab,
+  -- case tc.base {
+  { exact tc.step _ _ _ hr htbc },
+  -- case tc.step {
+  { exact tc.step _ _ _ hr (ih _ htbc) }
 end
 
 end transitive_closure
@@ -381,19 +312,18 @@ begin
   intro h,
   revert n,
   induction' h,
-  /- Desired syntax for the above two lines: `intro h, induction h`. -/
+  /- Desired syntax for the above: `intro h, induction h`. -/
   -- case even.zero {
-  {
-    cases heq },
+  { cases heq },
   -- case even.add_two : k hk ih {
-  {
-    apply ih (n - 1),
+  { apply ih (n - 1),
     cases n,
-    case nat.zero {
-      linarith },
+    case nat.zero { linarith },
     case nat.succ : m {
       simp [nat.succ_eq_add_one] at *,
-      linarith } }
+      linarith
+    }
+  }
 end
 
 

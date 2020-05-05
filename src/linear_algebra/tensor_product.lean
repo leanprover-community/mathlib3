@@ -16,7 +16,6 @@ variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 include R
 
 
-set_option class.instance_max_depth 100
 
 namespace linear_map
 

@@ -269,7 +269,6 @@ begin
   exact le_refl _
 end
 
-set_option class.instance_max_depth 100
 
 lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=

@@ -48,7 +48,6 @@ local attribute [instance, priority 10000] pi.module normed_space.to_module
   submodule.add_comm_group submodule.module
   linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
 
-set_option class.instance_max_depth 100
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -74,7 +73,6 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 [topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
-set_option class.instance_max_depth 150
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that

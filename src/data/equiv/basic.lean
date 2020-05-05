@@ -545,7 +545,7 @@ variables (p : α → Prop) [decidable_pred p] (x₀ : {a // p a} → β)
 /-- For a fixed function `x₀ : {a // p a} → β` defined on a subtype of `α`,
 the subtype of functions `x : α → β` that agree with `x₀` on the subtype `{a // p a}`
 is naturally equivalent to the type of functions `{a // ¬ p a} → β`. -/
-def equiv.subtype_preimage :
+def subtype_preimage :
   {x : α → β // x ∘ coe = x₀} ≃ ({a // ¬ p a} → β) :=
 { to_fun := λ (x : {x : α → β // x ∘ coe = x₀}) a, (x : α → β) a,
   inv_fun := λ x, ⟨λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩,
@@ -555,19 +555,19 @@ def equiv.subtype_preimage :
   right_inv := λ x, funext $ λ ⟨a, h⟩,
     show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h], refl } }
 
-@[simp] lemma equiv.subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
-  equiv.subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
+@[simp] lemma subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
+  subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
 
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe (x : {a // ¬ p a} → β) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) =
+@[simp] lemma subtype_preimage_symm_apply_coe (x : {a // ¬ p a} → β) :
+  ((subtype_preimage p x₀).symm x : α → β) =
     λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩ := rfl
 
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) a = x₀ ⟨a, h⟩ :=
+@[simp] lemma subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
+  ((subtype_preimage p x₀).symm x : α → β) a = x₀ ⟨a, h⟩ :=
 dif_pos h
 
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) a = x ⟨a, h⟩ :=
+@[simp] lemma subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
+  ((subtype_preimage p x₀).symm x : α → β) a = x ⟨a, h⟩ :=
 dif_neg h
 
 end subtype_preimage
@@ -577,7 +577,7 @@ section fun_unique
 variables (α β) [unique α]
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
-def equiv.fun_unique : (α → β) ≃ β :=
+def fun_unique : (α → β) ≃ β :=
 { to_fun := λ f, f (default α),
   inv_fun := λ b a, b,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
@@ -585,11 +585,11 @@ def equiv.fun_unique : (α → β) ≃ β :=
 
 variables {α β}
 
-@[simp] lemma equiv.fun_unique_apply (f : α → β) :
-  equiv.fun_unique α β f = f (default α) := rfl
+@[simp] lemma fun_unique_apply (f : α → β) :
+  fun_unique α β f = f (default α) := rfl
 
-@[simp] lemma equiv.fun_unique_symm_apply (b : β) (a : α) :
-  (equiv.fun_unique α β).symm b a = b := rfl
+@[simp] lemma fun_unique_symm_apply (b : β) (a : α) :
+  (fun_unique α β).symm b a = b := rfl
 
 end fun_unique
 

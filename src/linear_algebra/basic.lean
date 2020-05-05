@@ -1590,7 +1590,7 @@ lemma eq_bot_of_equiv [module R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂))
   p = ⊥ :=
 begin
   refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
-  rw [← submodule.mk_eq_zero b hb, ← e.map_eq_zero_iff],
+  rw [← submodule.mk_eq_zero hb, ← e.map_eq_zero_iff],
   apply submodule.eq_zero_of_bot_submodule
 end
 end

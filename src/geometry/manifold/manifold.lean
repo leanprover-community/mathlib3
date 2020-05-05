@@ -278,7 +278,7 @@ begin
   exact PG.congr e.open_source (λx hx, (he'.2 x hx).symm) he,
 end
 
-/-- The pregroupoid of all continuous local maps on a topological space H -/
+/-- The pregroupoid of all local maps on a topological space H -/
 @[reducible] def continuous_pregroupoid (H : Type*) [topological_space H] : pregroupoid H :=
 { property := λf s, true,
   comp     := λf g u v hf hg hu hv huv, trivial,

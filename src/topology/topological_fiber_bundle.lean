@@ -128,7 +128,7 @@ structure bundle_trivialization extends local_homeomorph Z (B × F) :=
 
 instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
 
-@[simp] lemma bundle_trivialization.coe_coe (e : bundle_trivialization F proj) {x : Z} :
+@[simp] lemma bundle_trivialization.coe_coe (e : bundle_trivialization F proj) (x : Z) :
   e.to_local_homeomorph x = e x := rfl
 
 @[simp] lemma bundle_trivialization.coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
@@ -142,7 +142,7 @@ def is_topological_fiber_bundle : Prop :=
 
 variables {F} {proj}
 
-@[simp] lemma bundle_trivialization.proj_coe (e : bundle_trivialization F proj) {x : Z}
+@[simp] lemma bundle_trivialization.coe_fst (e : bundle_trivialization F proj) {x : Z}
   (ex : x ∈ e.source) : (e x).1 = proj x :=
 e.proj_to_fun x ex
 

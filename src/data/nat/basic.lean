@@ -187,6 +187,9 @@ eq_max (nat.le_sub_add _ _) (le_add_left _ _) $ λ k h₁ h₂,
 by rw ← nat.sub_add_cancel h₂; exact
 add_le_add_right (nat.sub_le_sub_right h₁ _) _
 
+theorem add_sub_eq_max (n m : ℕ) : n + (m - n) = max n m :=
+by rw [add_comm, max_comm, sub_add_eq_max]
+
 theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
 (le_total n m).elim
   (λ h, by rw [min_eq_left h, sub_eq_zero_of_le h, zero_add])

@@ -584,6 +584,8 @@ by {induction s, contradiction, refl}
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 by {induction l, contradiction, refl}
 
+@[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
+
 /-! ### sublists -/
 
 @[simp] theorem nil_sublist : Π (l : list α), [] <+ l

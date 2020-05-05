@@ -1,12 +1,14 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import group_theory.order_of_element
+
 import data.polynomial
 import data.equiv.ring
 import data.zmod.basic
+import group_theory.order_of_element
+import linear_algebra.basis
 
 universes u v
 variables {K : Type u} {R : Type v}
@@ -119,6 +121,23 @@ begin
   rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
       this, mul_one]
 end
+
+theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+begin
+  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
+  rw zmod.card at h,
+  refine ⟨⟨n, _⟩, hp, h⟩,
+  apply or.resolve_left (nat.eq_zero_or_pos n),
+  rintro rfl,
+  rw nat.pow_zero at h,
+  have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
+  exact absurd this zero_ne_one,
+end
+
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
 
 end
 

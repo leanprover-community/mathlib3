@@ -51,8 +51,8 @@ def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* unit
 
 lemma subtype.property' {α : Type*} {p : α → Prop} (a : subtype p) : p a := a.2
 
-def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : G) :
-  f ⁻¹' {f x} ≃ f ⁻¹' {f y} := sorry
+def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : H) :
+  f ⁻¹' {x} ≃ f ⁻¹' {y} := sorry
 
 lemma sum_subtype {R M : Type*} [add_comm_monoid M]
   {p : R → Prop} {F : fintype (subtype p)} {s : finset R} (h : ∀ x, x ∈ s ↔ p x) {f : R → M} :

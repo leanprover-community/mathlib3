@@ -207,7 +207,7 @@ begin
 end
 
 @[to_additive]
-lemma fintype.prod_sigma [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
+lemma fintype.prod_fiberwise [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
   (f : α → β) (g : α → γ) :
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin

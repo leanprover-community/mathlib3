@@ -1792,6 +1792,8 @@ inductive st_act (k : K)
 | peek : (σ → option (Γ k) → σ) → st_act
 | pop : (σ → option (Γ k) → σ) → st_act
 
+instance st_act.inhabited {k} : inhabited (st_act k) := ⟨st_act.peek (λ s _, s)⟩
+
 section
 open st_act
 
@@ -1846,7 +1848,7 @@ inductive Λ' : Type (max u_1 u_2 u_3 u_4)
 | go (k) : st_act k → stmt₂ → Λ'
 | ret : stmt₂ → Λ'
 open Λ'
-instance : inhabited Λ' := ⟨normal (default _)⟩
+instance Λ'.inhabited : inhabited Λ' := ⟨normal (default _)⟩
 
 local notation `stmt₁` := TM1.stmt Γ' Λ' σ
 local notation `cfg₁` := TM1.cfg Γ' Λ' σ
@@ -2142,7 +2144,6 @@ begin
   exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
-variables [fintype K] [∀ k, fintype (Γ k)] [fintype σ]
 open_locale classical
 local attribute [simp] TM2.stmts₁_self
 

@@ -562,11 +562,11 @@ def subtype_preimage :
   ((subtype_preimage p x₀).symm x : α → β) =
     λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩ := rfl
 
-@[simp] lemma subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
+lemma subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
   ((subtype_preimage p x₀).symm x : α → β) a = x₀ ⟨a, h⟩ :=
 dif_pos h
 
-@[simp] lemma subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
+lemma subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
   ((subtype_preimage p x₀).symm x : α → β) a = x ⟨a, h⟩ :=
 dif_neg h
 

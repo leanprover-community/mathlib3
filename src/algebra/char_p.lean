@@ -235,6 +235,9 @@ end prio
 lemma false_of_nonzero_of_char_one [nonzero_comm_ring R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
 
+lemma ring_char_ne_one [nonzero_semiring R] : ring_char R ≠ 1 :=
+by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+
 end char_one
 
 end char_p

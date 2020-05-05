@@ -52,7 +52,6 @@ open_locale matrix
 open equiv equiv.perm finset
 
 -- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 

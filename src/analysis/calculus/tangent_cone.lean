@@ -35,7 +35,6 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
-set_option class.instance_max_depth 50
 open filter set
 open_locale topological_space
 

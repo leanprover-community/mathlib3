@@ -116,7 +116,6 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 -- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
 local attribute [instance, priority 10000]

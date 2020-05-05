@@ -43,10 +43,8 @@ end
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
-set_option class.instance_max_depth 50
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
-set_option class.instance_max_depth 32
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
 (le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
@@ -79,7 +77,6 @@ end
 variables {R}
 
 variables (M N P Q)
-set_option class.instance_max_depth 50
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap ((algebra.lmul R A).flip p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
@@ -87,7 +84,6 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap (
 (mul_le.2 $ λ m hm np hnp, suffices N * P ≤ (M * N * P).comap (algebra.lmul R A m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
-set_option class.instance_max_depth 32
 
 @[simp] theorem mul_bot : M * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -195,7 +191,6 @@ instance semimodule_set : semimodule (set A) (submodule R A) :=
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
   smul_zero := λ _, mul_bot _ }
 
-set_option class.instance_max_depth 45
 
 variables {R A}
 

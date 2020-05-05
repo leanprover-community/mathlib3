@@ -193,6 +193,10 @@ by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
+lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
+  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
+(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
 section classical
 open_locale classical
 open quotient_group

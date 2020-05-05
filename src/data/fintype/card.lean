@@ -206,13 +206,29 @@ begin
   { simp }
 end
 
+@[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
+  (s : finset α) (f : α → β) (g : α → γ) :
+  ∏ b : β, ∏ a in s.filter (λ a, f a = b), g a = ∏ a in s, g a :=
+begin
+  classical,
+  have key : ∏ (b : β), ∏ a in s.filter (λ a, f a = b), g a =
+    ∏ (a : α) in univ.bind (λ (b : β), s.filter (λ a, f a = b)), g a :=
+  (@prod_bind _ _ β g _ _ finset.univ (λ b : β, s.filter (λ a, f a = b)) _).symm,
+  { simp only [key, filter_congr_decidable],
+    apply finset.prod_congr,
+    { ext, simp only [mem_bind, mem_filter, mem_univ, exists_prop_of_true, exists_eq_right'] },
+    { intros, refl } },
+  { intros x hx y hy H z hz, apply H,
+    simp only [mem_filter, inf_eq_inter, mem_inter] at hz,
+    rw [← hz.1.2, ← hz.2.2] }
+end
+
 @[to_additive]
 lemma fintype.prod_fiberwise [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
   (f : α → β) (g : α → γ) :
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin
-  rw [← finset.prod_equiv (equiv.sigma_preimage_equiv f) _,
-      ← finset.univ_sigma_univ, finset.prod_sigma],
+  rw [← finset.prod_equiv (equiv.sigma_preimage_equiv f) _, ← univ_sigma_univ, prod_sigma],
   refl
 end
 

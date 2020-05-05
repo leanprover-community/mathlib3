@@ -51,7 +51,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
 
 section update
 

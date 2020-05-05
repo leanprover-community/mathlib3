@@ -466,17 +466,9 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 @[simp] lemma prod_pow [fintype α] [comm_monoid γ] (f : α →₀ ℕ) (g : α → γ) :
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
 begin
-  classical,
-  calc f.prod (λ a b, g a ^ b) = ∏ a, (if a ∈ f.support then g a ^ f a else 1) : _
-    ... = _ : _,
-  { rw [finsupp.prod, ← finset.prod_filter, finset.prod_congr],
-    { ext, simp, },
-    { intros, refl } },
-  { rw [finset.prod_congr rfl],
-    intros a ha,
-    split_ifs with h h,
-    { refl },
-    { rw [finsupp.not_mem_support_iff.mp h, pow_zero] } }
+  apply prod_subset (finset.subset_univ _),
+  intros a _ ha,
+  simp only [finsupp.not_mem_support_iff.mp ha, pow_zero]
 end
 
 section add_monoid

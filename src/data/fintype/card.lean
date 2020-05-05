@@ -53,7 +53,7 @@ lemma prod_congr (f g : α → M) (h : ∀ a, f a = g a) :
   (∏ a, f a) = ∏ a, g a :=
 finset.prod_congr rfl $ λ a ha, h a
 
-@[simp, to_additive]
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton]

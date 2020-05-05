@@ -185,20 +185,16 @@ the norms of the relevant bits of `q` and `p`. -/
 lemma comp_along_composition_norm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
-  ∥q.comp_along_composition p c∥ ≤
-  ∥q c.length∥ * finset.univ.prod (λ i, ∥p (c.blocks_fun i)∥) :=
+  ∥q.comp_along_composition p c∥ ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ :=
 multilinear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _))) _
 
 lemma comp_along_composition_nnnorm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
-  nnnorm (q.comp_along_composition p c) ≤
-  nnnorm (q c.length) * finset.univ.prod (λ i, nnnorm (p (c.blocks_fun i))) :=
-begin
-  simp only [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_mul, coe_nnnorm, nnreal.coe_prod, coe_nnnorm],
-  exact q.comp_along_composition_norm p c
-end
+  nnnorm (q.comp_along_composition p c) ≤ nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i)) :=
+by simpa only [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_mul, coe_nnnorm, nnreal.coe_prod, coe_nnnorm]
+  using q.comp_along_composition_norm p c
 
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
@@ -207,7 +203,7 @@ is defined to be the sum of `q.comp_along_composition p c` over all compositions
 `v_0, ..., v_{n-1}` in increasing order in the dots.-/
 protected def comp (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) :
   formal_multilinear_series 𝕜 E G :=
-λ n, (finset.univ : finset (composition n)).sum (λ c, q.comp_along_composition p c)
+λ n, ∑ c : composition n, q.comp_along_composition p c
 
 /-- The `0`-th coefficient of `q.comp p` is `q 0`. Since these maps are multilinear maps in zero
 variables, but on different spaces, we can not state this directly, so we state it when applied to

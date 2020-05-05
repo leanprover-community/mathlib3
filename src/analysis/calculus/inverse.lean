@@ -185,7 +185,7 @@ lemma inverse_continuous_on (hf : approximates_linear_on f (f' : E →L[𝕜] F)
 begin
   apply continuous_on_iff_continuous_restrict.2,
   refine ((hf.antilipschitz hc).to_right_inv_on' _ (hf.to_local_equiv hc).right_inv').continuous,
-  exact (λ x hx,(hf.to_local_equiv hc).map_target hx)
+  exact (λ x hx, (hf.to_local_equiv hc).map_target hx)
 end
 
 /-!

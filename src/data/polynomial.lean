@@ -2355,7 +2355,7 @@ by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
 /-- The formal derivative of polynomials, as additive homomorphism. -/
-noncomputable def derivative_hom (R : Type*) [comm_semiring R] : polynomial R →+ polynomial R :=
+def derivative_hom (R : Type*) [comm_semiring R] : polynomial R →+ polynomial R :=
 { to_fun := derivative,
   map_zero' := derivative_zero,
   map_add' := λ p q, derivative_add }
@@ -2404,6 +2404,15 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
 
 lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp [derivative, eval_sum, eval_pow]
+
+@[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
+by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
+
+/-- The formal derivative of polynomials, as linear homomorphism. -/
+def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
+{ to_fun := derivative,
+  add    := λ p q, derivative_add,
+  smul   := λ r p, derivative_smul r p }
 
 lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {R : Type*} [field R]
   (f : polynomial R) (r : R) (hf : f.is_root r) (hf' : f.derivative.eval r ≠ 0) :

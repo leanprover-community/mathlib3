@@ -87,7 +87,7 @@ end
 
 @[simp] lemma coe_to_real_linear_equiv_of_map_zero_symm (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   ⇑(f.to_real_linear_equiv_of_map_zero h0).symm = f.symm := rfl
-  
+
 /-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
 over `ℝ`, then `x ↦ f x - f 0` is a linear equivalence. -/
 def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=

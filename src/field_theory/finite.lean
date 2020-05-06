@@ -1,15 +1,17 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import group_theory.order_of_element
+
 import data.polynomial
 import data.equiv.ring
 import data.zmod.basic
+import group_theory.order_of_element
+import linear_algebra.basis
 
 universes u v
-variables {R : Type u} {β : Type v}
+variables {K : Type u} {R : Type v}
 
 open function finset polynomial nat
 
@@ -87,44 +89,61 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 end polynomial
 
 section
-variables [field R] [fintype R]
+variables [field K] [fintype K]
 
-lemma card_units : fintype.card (units R) = fintype.card R - 1 :=
+lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
 begin
   classical,
-  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : R)⟩)],
-  haveI := set_fintype {a : R | a ≠ 0},
-  haveI := set_fintype (@set.univ R),
+  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
+  haveI := set_fintype {a : K | a ≠ 0},
+  haveI := set_fintype (@set.univ K),
   rw [fintype.card_congr (equiv.units_equiv_ne_zero _),
-    ← @set.card_insert _ _ {a : R | a ≠ 0} _ (not_not.2 (eq.refl (0 : R)))
-    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ R).symm],
+    ← @set.card_insert _ _ {a : K | a ≠ 0} _ (not_not.2 (eq.refl (0 : K)))
+    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ K).symm],
   congr; simp [set.ext_iff, classical.em]
 end
 
-instance : is_cyclic (units R) :=
-by haveI := classical.dec_eq R;
-haveI := set_fintype (@set.univ (units R)); exact
-let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units R)) in
+instance : is_cyclic (units K) :=
+by haveI := classical.dec_eq K;
+haveI := set_fintype (@set.univ (units K)); exact
+let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units K)) in
 ⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
 
 lemma prod_univ_units_id_eq_neg_one :
-  univ.prod (λ x, x) = (-1 : units R) :=
+  univ.prod (λ x, x) = (-1 : units K) :=
 begin
   classical,
-  have : ((@univ (units R) _).erase (-1)).prod (λ x, x) = 1,
+  have : ((@univ (units K) _).erase (-1)).prod (λ x, x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
     (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
     (by simp),
-  rw [← insert_erase (mem_univ (-1 : units R)), prod_insert (not_mem_erase _ _),
+  rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
       this, mul_one]
 end
 
+theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+begin
+  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
+  rw zmod.card at h,
+  refine ⟨⟨n, _⟩, hp, h⟩,
+  apply or.resolve_left (nat.eq_zero_or_pos n),
+  rintro rfl,
+  rw nat.pow_zero at h,
+  have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
+  exact absurd this zero_ne_one,
 end
 
-lemma pow_card_sub_one_eq_one [field R] [fintype R] (a : R) (ha : a ≠ 0) :
-  a ^ (fintype.card R - 1) = 1 :=
-calc a ^ (fintype.card R - 1) = (units.mk0 a ha ^ (fintype.card R - 1) : units R) :
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
+let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
+
+end
+
+lemma pow_card_sub_one_eq_one [field K] [fintype K] (a : K) (ha : a ≠ 0) :
+  a ^ (fintype.card K - 1) = 1 :=
+calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
@@ -185,4 +204,93 @@ begin
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, succ_eq_add_one, cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+end
+
+section
+variables {G : Type*} {R : Type*} [group G] [integral_domain R]
+
+open_locale big_operators
+open finset
+
+def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* units M :=
+{ to_fun := λ g,
+    ⟨f g, f (g⁻¹),
+      by rw [← monoid_hom.map_mul, mul_inv_self, monoid_hom.map_one],
+      by rw [← monoid_hom.map_mul, inv_mul_self, monoid_hom.map_one]⟩,
+  map_one' := units.ext (monoid_hom.map_one _),
+  map_mul' := λ _ _, units.ext (monoid_hom.map_mul _ _ _) }
+
+@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
+  (to_hom_units f g : M) = f g := rfl
+
+lemma subtype.property' {α : Type*} {p : α → Prop} (a : subtype p) : p a := a.2
+
+def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : G) :
+  f ⁻¹' {f x} ≃ f ⁻¹' {f y} :=
+{ to_fun := λ a, ⟨a * x⁻¹ * y, by { have := a.property', simp * at * }⟩,
+  inv_fun := λ a, ⟨a * y⁻¹ * x, by { have := a.property', simp * at * }⟩,
+  left_inv := λ a, subtype.eq $ show (a : G) * x⁻¹ * y * y⁻¹ * x = a, by simp,
+  right_inv := λ a, subtype.eq $ show (a : G) * y⁻¹ * x * x⁻¹ * y = a, by simp }
+
+noncomputable def preimage_equiv_of_mem_range {H : Type*} [group H] (f : G →* H) {x y : H}
+  (hx : x ∈ set.range f) (hy : y ∈ set.range f) : f ⁻¹' {x} ≃ f ⁻¹' {y} :=
+begin
+  rw [← classical.some_spec hx, ← classical.some_spec hy],
+  exact preimage_equiv _ _ _
+end
+
+lemma sum_subtype {R M : Type*} [add_comm_monoid M]
+  {p : R → Prop} {F : fintype (subtype p)} {s : finset R} (h : ∀ x, x ∈ s ↔ p x) {f : R → M} :
+  ∑ a in s, f a = ∑ a : subtype p, f a :=
+have (∈ s) = p, from set.ext h,
+begin
+  rw ← sum_attach,
+  resetI,
+  subst p,
+  congr,
+  simp [finset.ext]
+end
+#print sum_subtype
+
+variables [fintype G] [decidable_eq G]
+variable (G)
+lemma is_cyclic.exists_monoid_generator [is_cyclic G] :
+  ∃ x : G, ∀ y : G, y ∈ powers x := sorry
+
+open_locale classical add_monoid
+
+lemma sum_units_subgroup (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
+let ⟨x, hx⟩ := is_cyclic.exists_monoid_generator (set.range (to_hom_units f)) in
+have hx1 : (x : R) - 1 ≠ 0, from sorry,
+calc ∑ g : G, f g
+    = ∑ g : G, to_hom_units f g : rfl
+... = ∑ b : units R in univ.image (to_hom_units f),
+      (univ.filter (λ a, to_hom_units f a = b)).card • b :
+        sum_comp (coe : units R → R) (to_hom_units f)
+... = ∑ b : units R in univ.image (to_hom_units f),
+      fintype.card (to_hom_units f ⁻¹' {b}) • b :
+  sum_congr rfl (λ b hb, congr_arg2 _ (fintype.card_of_finset' _ (by simp)).symm rfl)
+... = ∑ b : units R in univ.image (to_hom_units f),
+      fintype.card (to_hom_units f ⁻¹' {x}) • b :
+  sum_congr rfl (λ b hb, congr_arg2 _
+    (fintype.card_congr (preimage_equiv_of_mem_range _ (by clear_aux_decl; finish) x.2)) rfl)
+... = ∑ b : set.range (to_hom_units f),
+      fintype.card (to_hom_units f ⁻¹' {x}) • ↑b : sum_subtype (by simp)
+... = fintype.card (to_hom_units f ⁻¹' {x}) * ∑ b : set.range (to_hom_units f), (b : R) :
+  by simp [mul_sum, add_monoid.smul_eq_mul]
+... = (fintype.card (to_hom_units f ⁻¹' {x}) : R) * 0 : (congr_arg2 _ rfl $
+  calc ∑ b : set.range (to_hom_units f), (b : R)
+      = ∑ n in range (order_of x), x ^ n :
+    eq.symm $ sum_bij (λ n _, x ^ n) (by simp) (by simp)
+      (λ m n hm hn, pow_injective_of_lt_order_of _ (by simpa using hm) (by simpa using hn))
+      (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
+        by rw [← pow_eq_mod_order_of, hn]⟩)
+  ... = 0 : begin
+    rw [← domain.mul_right_inj hx1, ← geom_series, geom_sum_mul, coe_coe],
+    norm_cast,
+    rw [pow_order_of_eq_one],
+    simp,
+   end)
+... = 0 : mul_zero _
+
 end

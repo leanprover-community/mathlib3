@@ -13,7 +13,6 @@ import analysis.asymptotics
 noncomputable theory
 open_locale classical
 
-set_option class.instance_max_depth 70
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 [normed_group E] [normed_group F] [normed_group G]
@@ -206,7 +205,6 @@ end
 section op_norm
 open set real
 
-set_option class.instance_max_depth 100
 
 /-- The operator norm of a continuous linear map is the inf of all its bounds. -/
 def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }

@@ -114,7 +114,6 @@ open_locale topological_space classical
 
 noncomputable theory
 
-set_option class.instance_max_depth 90
 
 section
 
@@ -1821,7 +1820,6 @@ end smul
 section mul
 /-! ### Derivative of the product of two scalar-valued functions -/
 
-set_option class.instance_max_depth 120
 variables {c d : E → 𝕜} {c' d' : E →L[𝕜] 𝕜}
 
 theorem has_strict_fderiv_at.mul

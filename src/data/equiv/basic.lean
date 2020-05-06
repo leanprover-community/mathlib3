@@ -490,11 +490,108 @@ def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α 
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
 
+/-- `sigma_preimage_equiv f` for `f : α → β` is the natural equivalence between
+the type of all fibres of `f` and the total space `α`. -/
 def sigma_preimage_equiv {α β : Type*} (f : α → β) :
   (Σ y : β, {x // f x = y}) ≃ α :=
 ⟨λ x, x.2.1, λ x, ⟨f x, x, rfl⟩, λ ⟨y, x, rfl⟩, rfl, λ x, rfl⟩
 
+@[simp] lemma sigma_preimage_equiv_apply {α β : Type*} (f : α → β)
+  (x : Σ y : β, {x // f x = y}) :
+  (sigma_preimage_equiv f) x = x.2.1 := rfl
+
+@[simp] lemma sigma_preimage_equiv_symm_apply_fst {α β : Type*} (f : α → β) (a : α) :
+  ((sigma_preimage_equiv f).symm a).1 = f a := rfl
+
+@[simp] lemma sigma_preimage_equiv_symm_apply_snd_fst {α β : Type*} (f : α → β) (a : α) :
+  ((sigma_preimage_equiv f).symm a).2.1 = a := rfl
+
 end
+
+section sum_compl
+
+/-- For any predicate `p` on `α`,
+the sum of the two subtypes `{a // p a}` and its complement `{a // ¬ p a}`
+is naturally equivalent to `α`. -/
+def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
+  {a // p a} ⊕ {a // ¬ p a} ≃ α :=
+{ to_fun := sum.elim coe coe,
+  inv_fun := λ a, if h : p a then sum.inl ⟨a, h⟩ else sum.inr ⟨a, h⟩,
+  left_inv := by { rintros (⟨x,hx⟩|⟨x,hx⟩); dsimp; [rw dif_pos, rw dif_neg], },
+  right_inv := λ a, by { dsimp, split_ifs; refl } }
+
+@[simp] lemma sum_compl_apply_inl {α : Type*} (p : α → Prop) [decidable_pred p]
+  (x : {a // p a}) :
+  sum_compl p (sum.inl x) = x := rfl
+
+@[simp] lemma sum_compl_apply_inr {α : Type*} (p : α → Prop) [decidable_pred p]
+  (x : {a // ¬ p a}) :
+  sum_compl p (sum.inr x) = x := rfl
+
+@[simp] lemma sum_compl_apply_symm_of_pos {α : Type*} (p : α → Prop) [decidable_pred p]
+  (a : α) (h : p a) :
+  (sum_compl p).symm a = sum.inl ⟨a, h⟩ := dif_pos h
+
+@[simp] lemma sum_compl_apply_symm_of_neg {α : Type*} (p : α → Prop) [decidable_pred p]
+  (a : α) (h : ¬ p a) :
+  (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
+
+end sum_compl
+
+section subtype_preimage
+
+variables (p : α → Prop) [decidable_pred p] (x₀ : {a // p a} → β)
+
+/-- For a fixed function `x₀ : {a // p a} → β` defined on a subtype of `α`,
+the subtype of functions `x : α → β` that agree with `x₀` on the subtype `{a // p a}`
+is naturally equivalent to the type of functions `{a // ¬ p a} → β`. -/
+def subtype_preimage :
+  {x : α → β // x ∘ coe = x₀} ≃ ({a // ¬ p a} → β) :=
+{ to_fun := λ (x : {x : α → β // x ∘ coe = x₀}) a, (x : α → β) a,
+  inv_fun := λ x, ⟨λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩,
+    funext $ λ ⟨a, h⟩, dif_pos h⟩,
+  left_inv := λ ⟨x, hx⟩, subtype.val_injective $ funext $ λ a,
+    (by { dsimp, split_ifs; [ rw ← hx, skip ]; refl }),
+  right_inv := λ x, funext $ λ ⟨a, h⟩,
+    show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h], refl } }
+
+@[simp] lemma subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
+  subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
+
+@[simp] lemma subtype_preimage_symm_apply_coe (x : {a // ¬ p a} → β) :
+  ((subtype_preimage p x₀).symm x : α → β) =
+    λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩ := rfl
+
+lemma subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
+  ((subtype_preimage p x₀).symm x : α → β) a = x₀ ⟨a, h⟩ :=
+dif_pos h
+
+lemma subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
+  ((subtype_preimage p x₀).symm x : α → β) a = x ⟨a, h⟩ :=
+dif_neg h
+
+end subtype_preimage
+
+section fun_unique
+
+variables (α β) [unique α]
+
+/-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
+def fun_unique : (α → β) ≃ β :=
+{ to_fun := λ f, f (default α),
+  inv_fun := λ b a, b,
+  left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
+  right_inv := λ b, rfl }
+
+variables {α β}
+
+@[simp] lemma fun_unique_apply (f : α → β) :
+  fun_unique α β f = f (default α) := rfl
+
+@[simp] lemma fun_unique_symm_apply (b : β) (a : α) :
+  (fun_unique α β).symm b a = b := rfl
+
+end fun_unique
 
 section
 

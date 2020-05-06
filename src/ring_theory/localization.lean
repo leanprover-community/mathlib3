@@ -605,7 +605,6 @@ section module
   Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
 -/
 
-set_option class.instance_max_depth 50
 
 variables (α S)
 
@@ -663,7 +662,6 @@ begin
   rw [coe_mul, ha, hb]
 end
 
-set_option class.instance_max_depth 50
 lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
   is_integer α S (a • b) :=
 begin

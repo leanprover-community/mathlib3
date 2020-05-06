@@ -21,9 +21,11 @@ universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+open_locale big_operators
+
 namespace fintype
 
-lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
+lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = ∑ a : α, 1 :=
 finset.card_eq_sum_ones _
 
 section
@@ -33,8 +35,28 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι]
 
 @[to_additive]
 lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
-  univ.prod (λ i, if i ∈ s then f i else 1) = s.prod f :=
+  ∏ i, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
 by rw [← prod_filter, filter_mem_eq_inter, univ_inter]
+
+end
+
+section
+variables {M : Type*} [fintype α] [comm_monoid M]
+
+@[to_additive]
+lemma prod_eq_one (f : α → M) (h : ∀ a, f a = 1) :
+  (∏ a, f a) = 1 :=
+finset.prod_eq_one $ λ a ha, h a
+
+@[to_additive]
+lemma prod_congr (f g : α → M) (h : ∀ a, f a = g a) :
+  (∏ a, f a) = ∏ a, g a :=
+finset.prod_congr rfl $ λ a ha, h a
+
+@[to_additive]
+lemma prod_unique [unique β] (f : β → M) :
+  (∏ x, f x) = f (default β) :=
+by simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton]
 
 end
 
@@ -182,6 +204,54 @@ begin
     rcases e.surjective b with ⟨a, ha⟩,
     exact ⟨a, mem_univ _, ha.symm⟩, },
   { simp }
+end
+
+@[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
+  (s : finset α) (f : α → β) (g : α → γ) :
+  ∏ b : β, ∏ a in s.filter (λ a, f a = b), g a = ∏ a in s, g a :=
+begin
+  classical,
+  have key : ∏ (b : β), ∏ a in s.filter (λ a, f a = b), g a =
+    ∏ (a : α) in univ.bind (λ (b : β), s.filter (λ a, f a = b)), g a :=
+  (@prod_bind _ _ β g _ _ finset.univ (λ b : β, s.filter (λ a, f a = b)) _).symm,
+  { simp only [key, filter_congr_decidable],
+    apply finset.prod_congr,
+    { ext, simp only [mem_bind, mem_filter, mem_univ, exists_prop_of_true, exists_eq_right'] },
+    { intros, refl } },
+  { intros x hx y hy H z hz, apply H,
+    simp only [mem_filter, inf_eq_inter, mem_inter] at hz,
+    rw [← hz.1.2, ← hz.2.2] }
+end
+
+@[to_additive]
+lemma fintype.prod_fiberwise [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
+  (f : α → β) (g : α → γ) :
+  (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
+begin
+  rw [← finset.prod_equiv (equiv.sigma_preimage_equiv f) _, ← univ_sigma_univ, prod_sigma],
+  refl
+end
+
+section
+open finset
+
+variables {α₁ : Type*} {α₂ : Type*} {M : Type*} [fintype α₁] [fintype α₂] [comm_monoid M]
+
+@[to_additive]
+lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :
+  (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
+begin
+  classical,
+  let s : finset (α₁ ⊕ α₂) := univ.image sum.inr,
+  rw [← prod_sdiff (subset_univ s),
+      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
+      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
+  { congr, rw finset.ext, rintro (a|a);
+    { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
+        exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
+  all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }
+end
+
 end
 
 namespace list

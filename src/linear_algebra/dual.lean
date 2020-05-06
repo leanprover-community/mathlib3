@@ -97,7 +97,6 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
   smul := by intros; rw finsupp.smul_apply }
 include h
 
-set_option class.instance_max_depth 50
 
 def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
 
@@ -232,7 +231,6 @@ begin
   exact hb.dual_dim_eq
 end
 
-set_option class.instance_max_depth 70
 
 lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin

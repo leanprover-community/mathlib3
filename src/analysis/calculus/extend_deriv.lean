@@ -20,7 +20,6 @@ the right endpoint of an interval, are given in
 of the one-dimensional derivative `deriv ℝ f`.
 -/
 
-set_option class.instance_max_depth 40
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]

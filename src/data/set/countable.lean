@@ -99,7 +99,7 @@ end
 ⟨of_equiv _ (equiv.set.singleton a)⟩
 
 lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂ → countable s₁
-| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
+| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset h).2⟩
 
 lemma countable.image {s : set α} (hs : countable s) (f : α → β) : countable (f '' s) :=
 let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in

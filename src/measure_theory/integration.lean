@@ -2,14 +2,17 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
+-/
+import measure_theory.measure_space
+import measure_theory.borel_space
+import data.support
 
-Lebesgue integral on `ennreal`.
+/-!
+# Lebesgue integral on `ennreal`
 
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 -/
-import measure_theory.measure_space
-import measure_theory.borel_space
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter
@@ -58,7 +61,7 @@ instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
-lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
+lemma range_const (α) [measurable_space α] [nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',
@@ -582,9 +585,38 @@ section fin_vol_supp
 
 variables [measure_space α] [has_zero β] [has_zero γ]
 
-open finset ennreal
+open finset ennreal function
 
-protected def fin_vol_supp (f : α →ₛ β) : Prop := ∀b ≠ 0, volume (f ⁻¹' {b}) < ⊤
+lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range \ {0}, {x | f x = y} :=
+have ∀ x, ∃ y, f y = f x := λ x, ⟨x, rfl⟩,
+set.ext $ λ x, by simp only [support, this, true_and, exists_prop, mem_Union, mem_sdiff, mem_range,
+  mem_set_of_eq, singleton_eq_singleton, exists_eq_right', finset.mem_singleton]
+
+lemma is_measurable_support (f : α →ₛ β) : is_measurable (support f) :=
+f.support_eq.symm ▸ is_measurable.bUnion _ _
+
+/-- A simple function `f : α →ₛ β` has finite volume support if `volume (support f) < ⊤`. -/
+protected def fin_vol_supp (f : α →ₛ β) : Prop := volume (function.support f) < ⊤
+
+lemma fin_vol_supp_restrict (f : α →ₛ β) {s : set α} (hsm : is_measurable s) (hsv : volume s < ⊤) :
+  (restrict f s).fin_vol_supp :=
+begin
+  assume b b0,
+  rw restrict_preimage _ hsm,
+  { refine lt_of_le_of_lt (volume_mono $ set.inter_subset_left _ _) hsv,  },
+  rwa [mem_singleton_iff, eq_comm]
+end
+
+lemma fin_vol_supp_restrict_const {s : set α} (hs : is_measurable s) {b : β} (b0 : b ≠ 0) :
+  (restrict (const α b) s).fin_vol_supp ↔ volume s < ⊤ :=
+iff.intro
+begin
+  assume h,
+  replace h := h b b0,
+  rwa [restrict_preimage _ hs, const_preimage_self, inter_univ] at h,
+  rwa [mem_singleton_iff, eq_comm]
+end
+$ (const α b).fin_vol_supp_restrict hs
 
 lemma fin_vol_supp_map {f : α →ₛ β} {g : β → γ} (hf : f.fin_vol_supp) (hg : g 0 = 0) :
   (f.map g).fin_vol_supp :=

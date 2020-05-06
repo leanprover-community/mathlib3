@@ -15,19 +15,8 @@ def Ico (l u : ℕ+) : finset ℕ+ :=
     -- why can't we do this directly?
     inj' := λ n m h, subtype.eq (by { replace h := congr_arg subtype.val h, exact h }) }
 
-@[simp] lemma Ico.mem {n m l : ℕ+} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
-begin
-  dsimp [Ico],
-  simp only [finset.mem_attach, finset.mem_map, function.embedding.coe_fn_mk, exists_prop_of_true, subtype.exists],
-  split,
-  { rintro ⟨a, ⟨h, rfl⟩⟩,
-    simp at h,
-    exact ⟨h.1, h.2⟩ },
-  { rintro ⟨h₁, h₂⟩,
-    use l,
-    split; simp,
-    exact ⟨h₁, h₂⟩ }
-end
+@[simp] lemma Ico.mem : ∀ {n m l : ℕ+}, l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
+by { rintro ⟨n, hn⟩ ⟨m, hm⟩ ⟨l, hl⟩, simp [pnat.Ico] }
 
 @[simp] lemma Ico.card (l u : ℕ+) : (Ico l u).card = u - l := by simp [pnat.Ico]
 

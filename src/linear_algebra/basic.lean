@@ -31,7 +31,7 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 ## Main statements
 
 * The first and second isomorphism laws for modules are proved as `quot_ker_equiv_range` and
-  `sup_quotient_equiv_quotient_inf`.
+  `quotient_inf_equiv_sup_quotient`.
 
 ## Notations
 
@@ -1000,6 +1000,8 @@ def ker (f : M →ₗ[R] M₂) : submodule R M := comap f ⊥
 
 @[simp] theorem ker_id : ker (linear_map.id : M →ₗ[R] M) = ⊥ := rfl
 
+@[simp] theorem map_coe_ker (f : M →ₗ[R] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
+
 theorem ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker (g.comp f) = comap f (ker g) := rfl
 
 theorem ker_le_ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker f ≤ ker (g.comp f) :=
@@ -1219,7 +1221,7 @@ by rw [of_le, ker_cod_restrict, ker_subtype]
 lemma range_of_le (p q : submodule R M) (h : p ≤ q) : (of_le h).range = comap q.subtype p :=
 by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
 
-lemma disjoint_iff_comap_eq_bot (p q : submodule R M) :
+lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
   disjoint p q ↔ comap p.subtype q = ⊥ :=
 by rw [eq_bot_iff, ← map_le_map_iff p.ker_subtype, map_bot, map_comap_subtype]; refl
 
@@ -1452,6 +1454,13 @@ def to_add_equiv : M ≃+ M₂ := { map_add' := e.add, .. e }
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
+
+@[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
+@[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
+
+lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
+
+lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.add a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
@@ -1753,10 +1762,10 @@ f.quot_ker_equiv_range.symm_apply_apply (f.ker.mkq x)
 open submodule
 
 /--
-Canonical linear map from the quotient p/(p ∩ p') to (p+p')/p', mapping x + (p ∩ p') to x + p',
-where p and p' are submodules of an ambient module.
+Canonical linear map from the quotient `p/(p ∩ p')` to `(p+p')/p'`, mapping `x + (p ∩ p')`
+to `x + p'`, where `p` and `p'` are submodules of an ambient module.
 -/
-def sup_quotient_to_quotient_inf (p p' : submodule R M) :
+def quotient_inf_to_sup_quotient (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient →ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 (comap p.subtype (p ⊓ p')).liftq
   ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
@@ -1766,23 +1775,47 @@ exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 set_option class.instance_max_depth 41
 
 /--
-Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.
+Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as a linear isomorphism.
 -/
-noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
+noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
-linear_equiv.of_bijective (sup_quotient_to_quotient_inf p p')
+linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
-    rw [sup_quotient_to_quotient_inf, ker_liftq_eq_bot],
+    rw [quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
     exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
   end
   begin
-    rw [sup_quotient_to_quotient_inf, range_liftq, eq_top_iff'],
+    rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
     use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
   end
+
+@[simp] lemma coe_quotient_inf_to_sup_quotient (p p' : submodule R M) :
+  ⇑(quotient_inf_to_sup_quotient p p') = quotient_inf_equiv_sup_quotient p p' := rfl
+
+@[simp] lemma quotient_inf_equiv_sup_quotient_apply_mk (p p' : submodule R M) (x : p) :
+  quotient_inf_equiv_sup_quotient p p' (submodule.quotient.mk x) =
+    submodule.quotient.mk (of_le (le_sup_left : p ≤ p ⊔ p') x) :=
+rfl
+
+lemma quotient_inf_equiv_sup_quotient_symm_apply_left (p p' : submodule R M)
+  (x : p ⊔ p') (hx : (x:M) ∈ p) :
+  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) =
+    submodule.quotient.mk ⟨x, hx⟩ :=
+(linear_equiv.symm_apply_eq _).2 $ by simp [of_le_apply]
+
+@[simp] lemma quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff {p p' : submodule R M}
+  {x : p ⊔ p'} :
+  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) = 0 ↔ (x:M) ∈ p' :=
+(linear_equiv.symm_apply_eq _).trans $ by simp [of_le_apply]
+
+lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x : p ⊔ p'}
+  (hx : (x:M) ∈ p') :
+  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) = 0 :=
+quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 section prod
 

@@ -54,16 +54,15 @@ lemma subtype.property' {α : Type*} {p : α → Prop} (a : subtype p) : p a := 
 
 def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : G) :
   f ⁻¹' {f x} ≃ f ⁻¹' {f y} :=
-{ to_fun := λ a, ⟨a * x⁻¹ * y, by simp [show f a = f x, from a.2]⟩,
-  inv_fun := λ a, ⟨a * y⁻¹ * x, by simp [show f a = f y, from a.2]⟩,
-  left_inv := λ _, by simp,
-  right_inv := λ _, by simp }
+{ to_fun := λ a, ⟨a * x⁻¹ * y, by { have := a.property', simp * at * }⟩,
+  inv_fun := λ a, ⟨a * y⁻¹ * x, by { have := a.property', simp * at * }⟩,
+  left_inv := λ a, subtype.eq $ show (a : G) * x⁻¹ * y * y⁻¹ * x = a, by simp,
+  right_inv := λ a, subtype.eq $ show (a : G) * y⁻¹ * x * x⁻¹ * y = a, by simp }
 
 noncomputable def preimage_equiv_of_mem_range {H : Type*} [group H] (f : G →* H) {x y : H}
-  (hx : x ∈ set.range f) (hy : y ∈ set.range f) : f ⁻¹' {x} ≃ f ⁻¹ {y} :=
+  (hx : x ∈ set.range f) (hy : y ∈ set.range f) : f ⁻¹' {x} ≃ f ⁻¹' {y} :=
 begin
-  cases classical.some_spec hx,
-  cases classical.some_spec hy,
+  rw [← classical.some_spec hx, ← classical.some_spec hy],
   exact preimage_equiv _ _ _
 end
 
@@ -101,7 +100,7 @@ calc ∑ g : G, f g
 ... = ∑ b : units R in univ.image (to_hom_units f),
       fintype.card (to_hom_units f ⁻¹' {x}) • b :
   sum_congr rfl (λ b hb, congr_arg2 _
-    (fintype.card_congr (preimage_equiv_of_mem_range _ (by finish) x.2)) rfl)
+    (fintype.card_congr (preimage_equiv_of_mem_range _ (by clear_aux_decl; finish) x.2)) rfl)
 ... = ∑ b : set.range (to_hom_units f),
       fintype.card (to_hom_units f ⁻¹' {x}) • ↑b : sum_subtype (by simp)
 ... = fintype.card (to_hom_units f ⁻¹' {x}) * ∑ b : set.range (to_hom_units f), (b : R) :
@@ -114,9 +113,10 @@ calc ∑ g : G, f g
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : begin
-    rw [← domain.mul_right_inj hx1, ← geom_series, geom_sum_mul],
+    rw [← domain.mul_right_inj hx1, ← geom_series, geom_sum_mul, coe_coe],
     norm_cast,
-    rw [pow_eq_mod_order_of, sub_self, zero_mul]
+    rw [pow_order_of_eq_one],
+    simp,
    end)
 ... = 0 : mul_zero _
 

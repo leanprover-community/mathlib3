@@ -31,7 +31,7 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 ## Main statements
 
 * The first and second isomorphism laws for modules are proved as `quot_ker_equiv_range` and
-  `sup_quotient_equiv_quotient_inf`.
+  `quotient_inf_equiv_sup_quotient`.
 
 ## Notations
 

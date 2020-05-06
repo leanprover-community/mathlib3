@@ -257,7 +257,7 @@ variable {G}
 
 @[simp] lemma neg_to_equiv : (isometric.neg G).to_equiv = equiv.neg G := rfl
 
-@[simp] lemma coe_neg (x : G) : ⇑(isometric.neg G) = has_neg.neg := rfl
+@[simp] lemma coe_neg : ⇑(isometric.neg G) = has_neg.neg := rfl
 
 end normed_group
 

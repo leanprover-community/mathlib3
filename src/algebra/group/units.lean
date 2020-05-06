@@ -5,6 +5,7 @@ Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
 import logic.function
 import algebra.group.to_additive
+import tactic.norm_cast
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -66,10 +67,10 @@ ext.eq_iff.symm
   mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}
-@[simp, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-@[simp, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
-@[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
-@[to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
+@[simp, to_additive, norm_cast] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simp, to_additive, norm_cast] lemma coe_one : ((1 : units α) : α) = 1 := rfl
+@[to_additive, norm_cast] lemma val_coe : (↑a : α) = a.val := rfl
+@[to_additive, norm_cast] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 

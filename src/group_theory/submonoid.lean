@@ -237,15 +237,15 @@ instance subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : 
   .. subtype.monoid }
 
 /-- Submonoids inherit the 1 of the monoid. -/
-@[simp, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. "]
+@[simp, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. ", norm_cast]
 lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : M) = 1 := rfl
 
 /-- Submonoids inherit the multiplication of the monoid. -/
-@[simp, to_additive "An `add_submonoid` inherits the addition of the `add_monoid`. "]
+@[simp, to_additive "An `add_submonoid` inherits the addition of the `add_monoid`. ", norm_cast]
 lemma is_submonoid.coe_mul [is_submonoid s] (a b : s) : ((a * b : s) : M) = a * b := rfl
 
 /-- Submonoids inherit the exponentiation by naturals of the monoid. -/
-@[simp] lemma is_submonoid.coe_pow [is_submonoid s] (a : s) (n : ℕ) :
+@[simp, norm_cast] lemma is_submonoid.coe_pow [is_submonoid s] (a : s) (n : ℕ) :
   ((a ^ n : s) : M) = a ^ n :=
 by induction n; simp [*, pow_succ]
 

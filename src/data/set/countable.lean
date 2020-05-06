@@ -99,7 +99,7 @@ end
 ⟨of_equiv _ (equiv.set.singleton a)⟩
 
 lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂ → countable s₁
-| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset h).2⟩
+| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
 
 lemma countable.image {s : set α} (hs : countable s) (f : α → β) : countable (f '' s) :=
 let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
@@ -153,12 +153,10 @@ begin
   refine countable.mono _ (countable_range
     (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
   rintro t ⟨⟨ht⟩, ts⟩,
-  refine ⟨finset.univ.map (embedding_of_subset ts),
+  refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
     set.ext $ λ a, _⟩,
-  simp, split,
-  { rintro ⟨as, b, bt, e⟩,
-    cases congr_arg subtype.val e, exact bt },
-  { exact λ h, ⟨ts h, _, h, rfl⟩ }
+  suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,
+  exact ⟨and.right, λ h, ⟨ts h, h⟩⟩
 end
 
 lemma countable_pi {π : α → Type*} [fintype α] {s : Πa, set (π a)} (hs : ∀a, countable (s a)) :

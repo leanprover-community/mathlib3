@@ -148,7 +148,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G}
 
-set_option class.instance_max_depth 370
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/

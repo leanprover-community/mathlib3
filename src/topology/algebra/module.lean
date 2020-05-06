@@ -141,7 +141,6 @@ variables {R : Type*} {M : Type*} {a : R}
 [topological_space M] [add_comm_group M]
 [vector_space R M] [topological_vector_space R M]
 
-set_option class.instance_max_depth 36
 
 /-- Scalar multiplication by a non-zero field element is a
 homeomorphism from a topological vector space onto itself. -/

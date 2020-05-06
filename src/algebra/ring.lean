@@ -485,6 +485,9 @@ end ring_hom
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+/-- Predicate for semirings in which zero does not equal one. -/
+class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
+
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
@@ -500,6 +503,12 @@ lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
 -- As with succ_ne_self.
 lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+
+/-- A nonzero commutative semiring is a nonzero semiring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
+  nonzero_semiring α :=
+{..ncs}
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]

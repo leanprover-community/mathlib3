@@ -913,7 +913,6 @@ le_antisymm
   begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
   begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
 
-set_option class.instance_max_depth 40
 
 lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
@@ -1612,7 +1611,6 @@ variables [module R M] [module R M₂] [module R M₃]
 include R
 open linear_map
 
-set_option class.instance_max_depth 39
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
@@ -1772,7 +1770,6 @@ def quotient_inf_to_sup_quotient (p p' : submodule R M) :
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
 exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 
-set_option class.instance_max_depth 41
 
 /--
 Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as a linear isomorphism.

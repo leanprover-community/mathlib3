@@ -518,7 +518,6 @@ end normed_group
 
 section normed_space
 
-set_option class.instance_max_depth 100
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ]

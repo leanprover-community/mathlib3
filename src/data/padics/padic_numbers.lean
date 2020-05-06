@@ -456,7 +456,6 @@ begin
   { simpa using ih }
 end
 
--- without short circuits, this needs an increase of class.instance_max_depth
 @[simp] lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
 by induction n; simp
 

@@ -45,7 +45,6 @@ universes u v
 open_locale matrix
 open linear_map
 
-set_option class.instance_max_depth 60
 
 section
 

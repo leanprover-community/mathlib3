@@ -65,20 +65,24 @@ equiv.reflection_midpoint_left R x y
 @[simp] lemma reflection_midpoint_right (x y : E) : (reflection (midpoint R x y) : E → E) y = x :=
 equiv.reflection_midpoint_right R x y
 
+variable (R)
+
+include R
+
+lemma reflection_fixed_iff {x y : E} : (reflection x : E → E) y = y ↔ y = x :=
+equiv.reflection_fixed_iff $ λ x y h,
+by rw [← one_smul R x, ← one_smul R y, ← inv_of_mul_self (2:R), mul_smul, mul_smul, two_smul,
+  two_smul, ← bit0, ← bit0, h]
+
 end module
 
 section normed_space
 
-variables [normed_group E] [normed_space ℝ E]
+variables (R) [normed_field R] [normed_group E] [normed_space R E]
 
 lemma reflection_dist_self (x y : E) :
-  dist ((reflection x : E → E) y) y = 2 * dist x y :=
-by simp only [reflection_dist_self', ← two_smul ℝ x, ← two_smul ℝ y, dist_smul, real.norm_eq_abs,
-  abs_of_pos (@two_pos ℝ _)]
-
-lemma reflection_fixed_iff {x y : E} : (reflection x : E → E) y = y ↔ y = x :=
-by { rw [← dist_eq_zero, reflection_dist_self, mul_eq_zero, dist_eq_zero],
-  simp only [two_ne_zero, false_or], exact eq_comm }
+  dist ((reflection x : E → E) y) y = ∥(2:R)∥ * dist x y :=
+by simp only [reflection_dist_self', ← two_smul R x, ← two_smul R y, dist_smul]
 
 end normed_space
 

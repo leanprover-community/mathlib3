@@ -153,10 +153,12 @@ begin
   refine countable.mono _ (countable_range
     (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
   rintro t ⟨⟨ht⟩, ts⟩,
-  refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
+  refine ⟨finset.univ.map (embedding_of_subset ts),
     set.ext $ λ a, _⟩,
-  suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,
-  exact ⟨and.right, λ h, ⟨ts h, h⟩⟩
+  simp, split,
+  { rintro ⟨as, b, bt, e⟩,
+    cases congr_arg subtype.val e, exact bt },
+  { exact λ h, ⟨ts h, _, h, rfl⟩ }
 end
 
 lemma countable_pi {π : α → Type*} [fintype α] {s : Πa, set (π a)} (hs : ∀a, countable (s a)) :

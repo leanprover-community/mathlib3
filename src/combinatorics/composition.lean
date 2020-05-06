@@ -310,10 +310,10 @@ begin
 end⟩
 
 lemma embedding_comp_inv (j : fin n) :
-  j = c.embedding (c.index j) (c.inv_embedding j) :=
+  c.embedding (c.index j) (c.inv_embedding j) = j :=
 begin
   rw fin.ext_iff,
-  apply (nat.add_sub_cancel' (c.size_up_to_index_le j)).symm,
+  apply nat.add_sub_cancel' (c.size_up_to_index_le j),
 end
 
 lemma mem_range_embedding_iff {j : fin n} {i : fin c.length} :
@@ -360,7 +360,7 @@ lemma mem_range_embedding (j : fin n) :
 begin
   have : c.embedding (c.index j) (c.inv_embedding j)
     ∈ set.range (c.embedding (c.index j)) := set.mem_range_self _,
-  rwa ← c.embedding_comp_inv j at this
+  rwa c.embedding_comp_inv j at this
 end
 
 lemma mem_range_embedding_iff' {j : fin n} {i : fin c.length} :
@@ -374,6 +374,42 @@ begin
     rw h,
     exact c.mem_range_embedding j }
 end
+
+lemma index_embedding (i : fin c.length) (j : fin (c.blocks_fun i)) :
+  c.index (c.embedding i j) = i :=
+begin
+  symmetry,
+  rw ← mem_range_embedding_iff',
+  apply set.mem_range_self
+end
+
+lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
+  (c.inv_embedding (c.embedding i j)).val = j.val :=
+begin
+  simp only [inv_embedding, index_embedding],
+  simp [embedding, fin.coe_eq_val, index_embedding]
+end
+
+/-- Equivalence between the disjoint union of the blocks (each of them seen as
+`fin (c.blocks_fun i)`) with `fin n`. -/
+def blocks_fin_equiv : (Σ i : fin c.length, fin (c.blocks_fun i)) ≃ fin n :=
+{ to_fun := λ x, c.embedding x.1 x.2,
+  inv_fun := λ j, ⟨c.index j, c.inv_embedding j⟩,
+  left_inv := λ x, begin
+    rcases x with ⟨i, y⟩,
+    dsimp,
+    congr, { exact c.index_embedding _ _ },
+    rw fin.heq_ext_iff,
+    { exact c.inv_embedding_comp _ _ },
+    { rw c.index_embedding }
+  end,
+  right_inv := λ j, c.embedding_comp_inv j }
+
+lemma blocks_fun_congr {n₁ n₂ : ℕ} (c₁ : composition n₁) (c₂ : composition n₂)
+  (i₁ : fin c₁.length) (i₂ : fin c₂.length) (hn : n₁ = n₂)
+  (hc : c₁.blocks = c₂.blocks) (hi : (i₁ : ℕ) = i₂) :
+  c₁.blocks_fun i₁ = c₂.blocks_fun i₂ :=
+by { cases hn, rw ← composition.ext_iff at hc, cases hc, congr, rwa fin.ext_iff }
 
 /-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks. -/
@@ -544,6 +580,23 @@ lemma sum_take_map_length_split_wrt_composition
   (l : list α) (c : composition l.length) (i : ℕ) :
   (((l.split_wrt_composition c).map length).take i).sum = c.size_up_to i :=
 by { congr, exact map_length_split_wrt_composition l c }
+
+lemma nth_le_split_wrt_composition_aux (l : list α) (ns : list ℕ) {i : ℕ} (hi) :
+  nth_le (l.split_wrt_composition_aux ns) i hi =
+  (l.take (ns.take (i+1)).sum).drop (ns.take i).sum :=
+begin
+  induction ns with n ns IH generalizing l i, {cases hi},
+  cases i; simp [IH],
+  rw [add_comm n, drop_add, drop_take],
+end
+
+/-- The `i`-th sublist in the splitting of a list `l` along a composition `c`, is the slice of `l`
+between the indices `c.size_up_to i` and `c.size_up_to (i+1)`, i.e., the indices in the `i`-th
+block of the composition. -/
+lemma nth_le_split_wrt_composition (l : list α) (c : composition n)
+  {i : ℕ} (hi : i < (l.split_wrt_composition c).length) :
+  nth_le (l.split_wrt_composition c) i hi = (l.take (c.size_up_to (i+1))).drop (c.size_up_to i) :=
+nth_le_split_wrt_composition_aux _ _ _
 
 theorem join_split_wrt_composition_aux {ns : list ℕ} :
   ∀ {l : list α}, ns.sum = l.length → (l.split_wrt_composition_aux ns).join = l :=

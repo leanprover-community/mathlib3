@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Johan Commelin
 -/
 import analysis.analytic.basic
 import combinatorics.composition
@@ -74,14 +74,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 open filter list
 open_locale topological_space big_operators classical
 
--- move this
-lemma composition.blocks_fun_congr {n₁ n₂ : ℕ} (c₁ : composition n₁) (c₂ : composition n₂)
-  (i₁ : fin c₁.length) (i₂ : fin c₂.length) (hn : n₁ = n₂)
-  (hc : c₁.blocks = c₂.blocks)
-  (hi : (i₁ : ℕ) = i₂) :
-  c₁.blocks_fun i₁ = c₂.blocks_fun i₂ :=
-by { cases hn, rw ← composition.ext_iff at hc, cases hc, congr, rwa fin.ext_iff }
-
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
@@ -100,17 +92,11 @@ def apply_composition
   (fin n → E) → (fin (c.length) → F) :=
 λ v i, p (c.blocks_fun i) (v ∘ (c.embedding i))
 
-lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
-  (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
-  p m v = p n w :=
-by { cases h1, congr, funext i, cases i with i hi, exact h2 i hi hi }
-
 lemma apply_composition_ones (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   apply_composition p (composition.ones n) =
     λ v i, p 1 (λ _, v (i.cast_le (composition.length_le _))) :=
 begin
   funext v i,
-  dsimp [apply_composition],
   apply p.congr (composition.ones_blocks_fun _ _),
   intros j hjn hj1,
   obtain rfl : j = 0, { linarith },
@@ -273,11 +259,6 @@ def id : formal_multilinear_series 𝕜 E E
 | 1 := (continuous_multilinear_curry_fin1 𝕜 E E).symm (continuous_linear_map.id 𝕜 E)
 | _ := 0
 
--- def id : formal_multilinear_series 𝕜 E E := λ n,
--- if h : n = 1 then
---   by { rw h, exact (continuous_multilinear_curry_fin1 𝕜 E E).symm (continuous_linear_map.id 𝕜 E) }
--- else 0
-
 /-- The first coefficient of `id 𝕜 E` is the identity. -/
 @[simp] lemma id_apply_one (v : fin 1 → E) : (formal_multilinear_series.id 𝕜 E) 1 v = v 0 := rfl
 
@@ -297,7 +278,8 @@ end
 
 /-- For `n ≠ 1`, the `n`-th coefficient of `id 𝕜 E` is zero, by definition. -/
 @[simp] lemma id_apply_ne_one {n : ℕ} (h : n ≠ 1) : (formal_multilinear_series.id 𝕜 E) n = 0 :=
-by { cases n, {refl}, cases n, {contradiction}, refl }
+by { cases n, { refl }, cases n, { contradiction }, refl }
+
 end
 
 @[simp] theorem comp_id (p : formal_multilinear_series 𝕜 E F) : p.comp (id 𝕜 E) = p :=
@@ -647,10 +629,12 @@ begin
     funext i,
     calc blocks_fun i = (comp_change_of_variables N _ H).2.blocks_fun _  :
      (comp_change_of_variables_blocks_fun N H i).symm
-      ... = (comp_change_of_variables N _ H').2.blocks_fun _ : _
-      ... = blocks_fun' i : comp_change_of_variables_blocks_fun N H' i,
-    apply composition.blocks_fun_congr; try {rw heq},
-    refl },
+      ... = (comp_change_of_variables N _ H').2.blocks_fun _ :
+        begin
+          apply composition.blocks_fun_congr; try { rw heq },
+          refl
+        end
+      ... = blocks_fun' i : comp_change_of_variables_blocks_fun N H' i },
   -- 4 - show that the map is surjective
   { assume i hi,
     apply comp_partial_sum_target_subset_image_comp_partial_sum_source N i,
@@ -754,13 +738,15 @@ begin
       calc ∥(comp_along_composition q p c) (λ (j : fin n), y)∥
       ≤ ∥comp_along_composition q p c∥ * ∏ j : fin n, ∥y∥ :
         by apply continuous_multilinear_map.le_op_norm
-      ... ≤ ∥comp_along_composition q p c∥ * (r : ℝ) ^ n : _,
-      apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
-      rw [finset.prod_const, finset.card_fin],
-      apply pow_le_pow_of_le_left (norm_nonneg _),
-      rw [emetric.mem_ball, edist_eq_coe_nnnorm] at hy,
-      have := (le_trans (le_of_lt hy) (min_le_right _ _)),
-      rwa [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm] at this },
+      ... ≤ ∥comp_along_composition q p c∥ * (r : ℝ) ^ n :
+        begin
+          apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+          rw [finset.prod_const, finset.card_fin],
+          apply pow_le_pow_of_le_left (norm_nonneg _),
+          rw [emetric.mem_ball, edist_eq_coe_nnnorm] at hy,
+          have := (le_trans (le_of_lt hy) (min_le_right _ _)),
+          rwa [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm] at this
+        end },
     exact tendsto_nhds_of_cauchy_seq_of_subseq cau at_top_ne_bot
           comp_partial_sum_target_tendsto_at_top C },
   -- Fifth step: the sum over `n` of `q.comp p n` can be expressed as a particular resummation of
@@ -897,8 +883,9 @@ def gather (a : composition n) (b : composition a.length) : composition n :=
   begin
     rw forall_mem_map_iff,
     intros j hj,
-    calc 0 < j.length : length_pos_of_mem_split_wrt_composition hj
-       ... ≤ j.sum    : length_le_sum_of_one_le _ _,
+    suffices H : ∀ i ∈ j, 1 ≤ i, from
+      calc 0 < j.length : length_pos_of_mem_split_wrt_composition hj
+        ... ≤ j.sum    : length_le_sum_of_one_le _ H,
     intros i hi,
     apply a.one_le_blocks,
     rw ← a.blocks.join_split_wrt_composition b,
@@ -1094,19 +1081,22 @@ begin
   /- To check that we have the same terms, we should check that we apply the same component of
   `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
   `v`. This is true by definition, but at each step one needs to convince Lean that the types
-  one considers are the same, using congruence, rewriting to assert that the lengths are the same,
-  and `fin.heq_fun_iff` to get rid of the `==` that shows up in the last term. This dance has to
-  be done three times, one for `r`, one for `q` and one for `p`.-/
+  one considers are the same, using a suitable congruence lemma to avoid dependent type issues.
+  This dance has to be done three times, one for `r`, one for `q` and one for `p`.-/
   apply finset.sum_congr rfl,
-  rintros ⟨a, b⟩ garbage, clear garbage,
+  rintros ⟨a, b⟩ _,
   dsimp [f, g, sigma_equiv_sigma_pi],
   -- check that the `r` components are the same. Based on `composition.length_gather`
   apply r.congr (composition.length_gather a b).symm,
   intros i hi1 hi2,
+  -- check that the `q` components are the same. Based on `length_sigma_composition_aux`
   apply q.congr (length_sigma_composition_aux a b _).symm,
   intros j hj1 hj2,
+  -- check that the `p` components are the same. Based on `blocks_fun_sigma_composition_aux`
   apply p.congr (blocks_fun_sigma_composition_aux a b _ _).symm,
   intros k hk1 hk2,
+  -- finally, check that the coordinates of `v` one is using are the same. Based on
+  -- `size_up_to_size_up_to_add`.
   refine congr_arg v (fin.eq_of_veq _),
   dsimp [composition.embedding],
   rw [size_up_to_size_up_to_add _ _ hi1 hj1, add_assoc],

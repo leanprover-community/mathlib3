@@ -405,6 +405,11 @@ def blocks_fin_equiv : (Σ i : fin c.length, fin (c.blocks_fun i)) ≃ fin n :=
   end,
   right_inv := λ j, c.embedding_comp_inv j }
 
+lemma blocks_fun_congr {n₁ n₂ : ℕ} (c₁ : composition n₁) (c₂ : composition n₂)
+  (i₁ : fin c₁.length) (i₂ : fin c₂.length) (hn : n₁ = n₂)
+  (hc : c₁.blocks = c₂.blocks) (hi : (i₁ : ℕ) = i₂) :
+  c₁.blocks_fun i₁ = c₂.blocks_fun i₂ :=
+by { cases hn, rw ← composition.ext_iff at hc, cases hc, congr, rwa fin.ext_iff }
 
 /-- Two compositions (possibly of different integers) coincide if and only if they have the
 same sequence of blocks. -/

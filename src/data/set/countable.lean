@@ -210,5 +210,5 @@ end enumerate
 
 end set
 
-lemma finset.countable_to_set (s : finset α) : set.countable s.to_set :=
+lemma finset.countable_to_set (s : finset α) : set.countable (↑s : set α) :=
 s.finite_to_set.countable

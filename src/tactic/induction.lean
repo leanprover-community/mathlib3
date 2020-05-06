@@ -324,11 +324,13 @@ meta def basename : name → name
 | (mk_string s _) := mk_string s anonymous
 | (mk_numeral n _) := mk_numeral n anonymous
 
+/-- See [note unnamed constructor arguments]. -/
 meta def likely_generated_name_p : parser unit := do
   str "a",
   optional (ch '_' *> nat),
   pure ()
 
+/-- See [note unnamed constructor arguments]. -/
 meta def is_likely_generated_name (n : name) : bool :=
 match n with
 | anonymous := ff
@@ -430,16 +432,17 @@ meta def get_inductive_info (env : environment) (T : name)
 
 meta structure eliminee_info :=
 (ename : name)
+(eexpr : expr)
 (type : expr)
 (args : rbmap ℕ expr)
 
-meta def get_eliminee_info (e : expr) : tactic eliminee_info := do
-  ename ← e.local_pp_name_option <|> fail format!
-    "Expected {e} to be a local constant.",
+meta def get_eliminee_info (ename : name) : tactic eliminee_info := do
+  e ← get_local ename,
   type ← infer_type e,
   ⟨f, args⟩ ← type.decompose_app_normalizing,
   pure
     { ename := ename,
+      eexpr := e,
       type := type,
       args := args.to_rbmap }
 
@@ -524,7 +527,7 @@ meta def constructor_argument_intros (einfo : eliminee_info)
 (cinfo.args.drop iinfo.num_params).mmap' $ λ ainfo, do
   let info : constructor_argument_naming_info := ⟨einfo, iinfo, cinfo, ainfo⟩,
   -- TODO debug
-  trace format!"arg: {ainfo.aname}, dep: {ainfo.dependent}, index occs: {ainfo.index_occurrences}",
+  -- trace format!"arg: {ainfo.aname}, dep: {ainfo.dependent}, index occs: {ainfo.index_occurrences}",
   intro_fresh (constructor_argument_name info)
 
 meta def ih_intros (einfo : eliminee_info) (iinfo : inductive_info)
@@ -545,13 +548,13 @@ end
 meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info) : tactic unit := do
   -- TODO debug
-  trace format!"constructor: {cinfo.cname}",
+  -- trace format!"constructor: {cinfo.cname}",
   constructor_argument_intros einfo iinfo cinfo,
   ih_intros einfo iinfo cinfo
 
 meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := focus1 $ do
-  eliminee ← get_local eliminee_name,
-  einfo ← get_eliminee_info eliminee,
+  einfo ← get_eliminee_info eliminee_name,
+  let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
   let eliminee_args := einfo.args.to_list.map prod.snd,
   env ← get_env,
@@ -580,13 +583,10 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
     "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
 
   -- Generalise all generalisable hypotheses.
-  -- TODO implement "fixing h" syntax
   generalize_all eliminee (name_set.of_list fix),
 
   -- Apply the recursor
-  let rec := ``(%%rec_const %%eliminee),
-  rec ← i_to_expr_for_apply rec,
-  apply rec,
+  interactive.apply ``(%%rec_const %%eliminee),
 
   -- For each case (constructor):
   focus $ iinfo.constructors.map $ λ cinfo, do {

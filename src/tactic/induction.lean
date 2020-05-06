@@ -512,7 +512,16 @@ meta def intro_fresh (n : name) : tactic unit := do
   intro n,
   pure ()
 
-meta def generalize_all (eliminee : expr) (fix : name_set) : tactic ℕ := do
+/--
+Reverts all hypotheses except the following:
+
+- `eliminee`
+- hypotheses which `eliminee`'s type depends on
+- hypotheses whose name appears in `fix`
+
+TODO example
+-/
+meta def revert_all_except (eliminee : expr) (fix : name_set) : tactic ℕ := do
   eliminee_type ← infer_type eliminee,
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp, do {
@@ -552,7 +561,7 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   constructor_argument_intros einfo iinfo cinfo,
   ih_intros einfo iinfo cinfo
 
-meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
+meta def induction'' (eliminee_name : name) (fix : name_set) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
@@ -585,7 +594,7 @@ focus1 $ do
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
-  num_generalized ← generalize_all eliminee (name_set.of_list fix),
+  num_generalized ← revert_all_except eliminee fix,
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -594,6 +603,7 @@ focus1 $ do
   focus $ iinfo.constructors.map $ λ cinfo, do {
     -- Clear the eliminated hypothesis
     clear eliminee,
+
     -- Clear the index args (unless other stuff in the goal depends on them)
     (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear),
     -- TODO is this the right thing to do? I don't think this necessarily
@@ -603,6 +613,7 @@ focus1 $ do
 
     -- Introduce the constructor arguments
     constructor_intros einfo iinfo cinfo,
+
     -- Introduce any hypotheses we've previously generalised
     intron num_generalized,
     pure ()
@@ -623,6 +634,6 @@ meta def induction'
   (hyp : parse ident)
   (fix : parse (optional (tk "fixing" *> many ident)))
   : tactic unit :=
-  tactic.induction'' hyp (fix.get_or_else [])
+  tactic.induction'' hyp (name_set.of_list $ fix.get_or_else [])
 
 end tactic.interactive

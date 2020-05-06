@@ -7,6 +7,7 @@ Authors: Joey van Langen, Casper Putz
 import data.zmod.basic
 import linear_algebra.basis
 import field_theory.finite
+import algebra.geom_sum
 
 universes u
 variables (K : Type u) [field K] [fintype K]
@@ -65,6 +66,7 @@ begin
   congr,
   simp [finset.ext]
 end
+#print sum_subtype
 
 variables [fintype G] [decidable_eq G]
 variable (G)
@@ -75,7 +77,7 @@ open_locale classical add_monoid
 
 lemma sum_units_subgroup (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 let ⟨x, hx⟩ := is_cyclic.exists_monoid_generator (set.range (to_hom_units f)) in
--- have hx1 : x ≠ 1, from sorry,
+have hx1 : (x : R) - 1 ≠ 0, from sorry,
 calc ∑ g : G, f g
     = ∑ g : G, to_hom_units f g : rfl
 ... = ∑ b : units R in univ.image (to_hom_units f),
@@ -98,7 +100,11 @@ calc ∑ g : G, f g
       (λ m n hm hn, pow_injective_of_lt_order_of _ (by simpa using hm) (by simpa using hn))
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
-  ... = _ : begin  end)
+  ... = 0 : begin
+    rw [← domain.mul_right_inj hx1, ← geom_series, geom_sum_mul],
+    norm_cast,
+    rw [pow_eq_mod_order_of, sub_self, zero_mul]
+   end)
 ... = 0 : mul_zero _
 
 end

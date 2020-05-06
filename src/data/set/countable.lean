@@ -78,7 +78,7 @@ lemma countable_encodable [encodable α] (s : set α) : countable s :=
 
 /-- If `s : set α` is a nonempty countable set, then there exists a map
 `f : ℕ → α` such that `s = range f`. -/
-lemma countable.exists_surjective {s : set α} (hs : s.nonempty) (hc : countable s) :
+lemma countable.exists_surjective {s : set α} (hc : countable s) (hs : s.nonempty) :
   ∃f:ℕ → α, s = range f :=
 begin
   rcases hs with ⟨x, hx⟩,

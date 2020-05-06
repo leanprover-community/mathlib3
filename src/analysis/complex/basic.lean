@@ -33,7 +33,6 @@ complex derivative.
 -/
 noncomputable theory
 
-set_option class.instance_max_depth 40
 
 namespace complex
 

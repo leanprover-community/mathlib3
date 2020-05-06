@@ -916,7 +916,6 @@ apply_nolint equiv.sigma_congr_left doc_blame
 apply_nolint equiv.sigma_congr_right doc_blame
 apply_nolint equiv.sigma_equiv_prod doc_blame
 apply_nolint equiv.sigma_equiv_prod_of_equiv doc_blame
-apply_nolint equiv.sigma_preimage_equiv doc_blame
 apply_nolint equiv.sigma_prod_distrib doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv_subtype doc_blame

@@ -232,7 +232,6 @@ if h : mdifferentiable_at I I' f x then
   ((ext_chart_at I x).to_fun x) : _)
 else 0
 
-set_option class.instance_max_depth 60
 
 /-- The derivative within a set, as a map between the tangent bundles -/
 def bundle_mfderiv_within (f : M → M') (s : set M) : tangent_bundle I M → tangent_bundle I' M' :=
@@ -346,7 +345,6 @@ begin
 end
 
 include Is I's
-set_option class.instance_max_depth 60
 
 lemma mfderiv_within_zero_of_not_mdifferentiable_within_at
   (h : ¬ mdifferentiable_within_at I I' f s x) : mfderiv_within I I' f s x = 0 :=
@@ -1201,7 +1199,6 @@ lemma to_fun_inv_fun_deriv {x : M'} (hx : x ∈ e.target) :
     continuous_linear_map.id 𝕜 (tangent_space I' x) :=
 he.symm.inv_fun_to_fun_deriv hx
 
-set_option class.instance_max_depth 60
 
 /-- The derivative of a differentiable local homeomorphism, as a continuous linear equivalence
 between the tangent spaces at `x` and `e.to_fun x`. -/
@@ -1224,7 +1221,6 @@ protected def mfderiv {x : M} (hx : x ∈ e.source) :
   end,
   .. mfderiv I I' e.to_fun x }
 
-set_option class.instance_max_depth 100
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :
   range (mfderiv I I' e.to_fun x) = univ :=

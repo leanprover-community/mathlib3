@@ -52,7 +52,6 @@ integrable, function space, l1
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 namespace measure_theory
 open set filter topological_space ennreal emetric

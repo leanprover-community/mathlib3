@@ -48,7 +48,6 @@ variables {K V}
 open vector_space
 
 section
-set_option class.instance_max_depth 50
 theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
@@ -239,7 +238,6 @@ dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
 section
 variables [add_comm_group V₃] [vector_space K V₃]
 variables [add_comm_group V₄] [vector_space K V₄]
-set_option class.instance_max_depth 70
 open linear_map
 
 /-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/

@@ -200,7 +200,6 @@ local attribute [instance] directed_system
 instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
-set_option class.instance_max_depth 50
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=

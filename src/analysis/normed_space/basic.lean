@@ -676,7 +676,6 @@ variables [normed_field α] [normed_group β]
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul := normed_field.norm_mul }
 
-set_option class.instance_max_depth 43
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
@@ -797,7 +796,6 @@ normed_algebra.norm_algebra_map_eq _
 end normed_algebra
 
 section restrict_scalars
-set_option class.instance_max_depth 40
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E : Type*} [normed_group E] [normed_space 𝕜' E]

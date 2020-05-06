@@ -1580,7 +1580,7 @@ lemma eq_bot_of_equiv [module R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂))
   p = ⊥ :=
 begin
   refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
-  rw [← submodule.mk_eq_zero hb, ← e.map_eq_zero_iff],
+  rw [← p.mk_eq_zero hb, ← e.map_eq_zero_iff],
   apply submodule.eq_zero_of_bot_submodule
 end
 end
@@ -1734,14 +1734,14 @@ Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as
 -/
 noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
-{ .. sup_quotient_to_quotient_inf p p',
+{ .. quotient_inf_to_sup_quotient p p',
   .. show (comap p.subtype (p ⊓ p')).quotient ≃ (comap (p ⊔ p').subtype p').quotient, from
-    @equiv.of_bijective _ _ (sup_quotient_to_quotient_inf p p') begin
+    @equiv.of_bijective _ _ (quotient_inf_to_sup_quotient p p') begin
       constructor,
-      { rw [← ker_eq_bot, sup_quotient_to_quotient_inf, ker_liftq_eq_bot],
+      { rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
         rw [ker_comp, ker_mkq],
         rintros ⟨x, hx1⟩ hx2, exact ⟨hx1, hx2⟩ },
-      rw [← range_eq_top, sup_quotient_to_quotient_inf, range_liftq, eq_top_iff'],
+      rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
       rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
       use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
       change y - (y + z) ∈ p', rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
@@ -1978,7 +1978,7 @@ instance automorphism_group.to_linear_map_is_monoid_hom :
 namespace general_linear_group
 variables {R M}
 
-instance : inhabited (general_linear_group R M) := ⟨1⟩
+instance : has_coe_to_fun (general_linear_group R M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

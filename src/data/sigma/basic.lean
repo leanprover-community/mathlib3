@@ -29,6 +29,9 @@ theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 by simp
 
+@[simp] theorem sigma.eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
+| ⟨i, x⟩ := rfl
+
 @[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩

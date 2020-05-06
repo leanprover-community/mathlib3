@@ -251,18 +251,26 @@ begin
   congr,
   simp [finset.ext]
 end
-#print sum_subtype
 
 variables [fintype G] [decidable_eq G]
 variable (G)
 lemma is_cyclic.exists_monoid_generator [is_cyclic G] :
-  ∃ x : G, ∀ y : G, y ∈ powers x := sorry
+  ∃ x : G, ∀ y : G, y ∈ powers x :=
+by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator G
 
 open_locale classical add_monoid
 
+variable {G}
 lemma sum_units_subgroup (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 let ⟨x, hx⟩ := is_cyclic.exists_monoid_generator (set.range (to_hom_units f)) in
-have hx1 : (x : R) - 1 ≠ 0, from sorry,
+have hx1 : x ≠ 1, from λ hx1, hf begin
+  ext g,
+  cases hx ⟨to_hom_units f g, g, rfl⟩ with n hn,
+  rw [subtype.coe_ext, units.ext_iff] at hn,
+  simp * at *
+end,
+have hx1 : (x : R) - 1 ≠ 0,
+  from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
 calc ∑ g : G, f g
     = ∑ g : G, to_hom_units f g : rfl
 ... = ∑ b : units R in univ.image (to_hom_units f),

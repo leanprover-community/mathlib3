@@ -517,7 +517,7 @@ meta def generalize_all (eliminee : expr) (fix : name_set) : tactic ℕ := do
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp, do {
     dep ← kdepends_on eliminee_type hyp,
-    pure $ hyp ≠ eliminee ∧ ¬ dep ∧ ¬ fix.contains hyp.local_pp_name
+    pure $ ¬ (dep ∨ hyp = eliminee ∨ fix.contains hyp.local_pp_name)
   },
   revert_lst to_revert
 

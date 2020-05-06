@@ -43,7 +43,7 @@ example (k) : 0 + k = k :=
 begin
   induction' k,
   { refl },
-  { simp [ih] }
+  { simp }
 end
 
 example {k} (fk : Fin k) : Fin (k + 1) :=
@@ -57,15 +57,26 @@ example {α} (l : List α) : l.append List.nil = l :=
 begin
   induction' l,
   { refl },
-  { simp [ih, List.append] }
+  { dsimp only [List.append],
+    exact (congr_arg _ ih)
+  }
 end
 
 example {k l} (h : lt k l) : le k l :=
 begin
   induction' h,
-  { constructor },
-  { constructor,
-    assumption
+  { exact le.zero },
+  { exact le.succ ih }
+end
+
+example {k l} : lt k l → le k l :=
+begin
+  induction' k; induction' l; intro hlt,
+  { cases hlt },
+  { exact le.zero },
+  { cases hlt },
+  { cases hlt,
+    exact le.succ (@ih_1 l hlt_a),
   }
 end
 
@@ -76,10 +87,10 @@ begin
   cases t,
   induction' k,
   { refl },
-  { simp [ih] },
+  { simp },
   induction' k,
   { refl },
-  { simp [ih] }
+  { simp }
 end
 
 -- The type of the induction premise can be a complex expression so long as it
@@ -98,7 +109,6 @@ begin
   success_if_fail { induction' f },
   exact ()
 end
-
 
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases

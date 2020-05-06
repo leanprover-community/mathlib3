@@ -59,7 +59,7 @@ begin
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,
     exact (hT s hs).1 t tTs },
-  { exact countable_bUnion hS (λs hs, (hT s hs).2.1) },
+  { exact hS.bUnion (λs hs, (hT s hs).2.1) },
   { exact (sInter_bUnion (λs hs, (hT s hs).2.2)).symm }
 end
 
@@ -232,7 +232,7 @@ begin
   choose T hT using this,
   have : ⋂₀ S = ⋂₀ (⋃s∈S, T s) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
   rw this,
-  refine dense_sInter_of_open (λt ht, _) (countable_bUnion hS (λs hs, (hT s hs).2.1)) (λt ht, _),
+  refine dense_sInter_of_open (λt ht, _) (hS.bUnion (λs hs, (hT s hs).2.1)) (λt ht, _),
   show is_open t,
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,

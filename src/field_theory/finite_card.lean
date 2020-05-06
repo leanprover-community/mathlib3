@@ -52,8 +52,20 @@ def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* unit
 
 lemma subtype.property' {α : Type*} {p : α → Prop} (a : subtype p) : p a := a.2
 
-def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : H) :
-  f ⁻¹' {x} ≃ f ⁻¹' {y} := sorry
+def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : G) :
+  f ⁻¹' {f x} ≃ f ⁻¹' {f y} :=
+{ to_fun := λ a, ⟨a * x⁻¹ * y, by simp [show f a = f x, from a.2]⟩,
+  inv_fun := λ a, ⟨a * y⁻¹ * x, by simp [show f a = f y, from a.2]⟩,
+  left_inv := λ _, by simp,
+  right_inv := λ _, by simp }
+
+noncomputable def preimage_equiv_of_mem_range {H : Type*} [group H] (f : G →* H) {x y : H}
+  (hx : x ∈ set.range f) (hy : y ∈ set.range f) : f ⁻¹' {x} ≃ f ⁻¹ {y} :=
+begin
+  cases classical.some_spec hx,
+  cases classical.some_spec hy,
+  exact preimage_equiv _ _ _
+end
 
 lemma sum_subtype {R M : Type*} [add_comm_monoid M]
   {p : R → Prop} {F : fintype (subtype p)} {s : finset R} (h : ∀ x, x ∈ s ↔ p x) {f : R → M} :
@@ -88,7 +100,8 @@ calc ∑ g : G, f g
   sum_congr rfl (λ b hb, congr_arg2 _ (fintype.card_of_finset' _ (by simp)).symm rfl)
 ... = ∑ b : units R in univ.image (to_hom_units f),
       fintype.card (to_hom_units f ⁻¹' {x}) • b :
-  sum_congr rfl (λ b hb, congr_arg2 _ (fintype.card_congr (preimage_equiv _ _ _)) rfl)
+  sum_congr rfl (λ b hb, congr_arg2 _
+    (fintype.card_congr (preimage_equiv_of_mem_range _ (by finish) x.2)) rfl)
 ... = ∑ b : set.range (to_hom_units f),
       fintype.card (to_hom_units f ⁻¹' {x}) • ↑b : sum_subtype (by simp)
 ... = fintype.card (to_hom_units f ⁻¹' {x}) * ∑ b : set.range (to_hom_units f), (b : R) :

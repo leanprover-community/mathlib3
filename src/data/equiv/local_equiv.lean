@@ -142,8 +142,8 @@ protected def to_equiv : equiv (e.source) (e.target) :=
 
 /-- A local equiv induces a bijection between its source and target -/
 lemma bij_on_source : bij_on e e.source e.target :=
-inv_on.bij_on ⟨λ x hx, e.left_inv hx, λ x hx, e.right_inv hx⟩
-(λ x hx, e.map_source hx) (λ x hx, e.map_target hx)
+inv_on.bij_on ⟨λ x, e.left_inv, λ x, e.right_inv⟩
+(λ x, e.map_source) (λ x, e.map_target)
 
 lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e '' s = e.target ∩ e.symm ⁻¹' s :=
@@ -227,7 +227,7 @@ protected def restr (s : set α) : local_equiv α β :=
   left_inv'  := λx hx, e.left_inv hx.1,
   right_inv' := λy hy, e.right_inv hy.1 }
 
-@[simp] lemma restr_coe (s : set α) : ((e.restr s) : α → β) = e := rfl
+@[simp] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
 @[simp] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
 @[simp] lemma restr_source (s : set α) : (e.restr s).source = e.source ∩ s := rfl
 @[simp] lemma restr_target (s : set α) : (e.restr s).target = e.target ∩ e.symm ⁻¹' s := rfl
@@ -244,7 +244,7 @@ protected def refl (α : Type*) : local_equiv α α := (equiv.refl α).to_local_
 
 @[simp] lemma refl_source : (local_equiv.refl α).source = univ := rfl
 @[simp] lemma refl_target : (local_equiv.refl α).target = univ := rfl
-@[simp] lemma refl_coe : ((local_equiv.refl α) : α → α) = id := rfl
+@[simp] lemma refl_coe : (local_equiv.refl α : α → α) = id := rfl
 @[simp] lemma refl_symm : (local_equiv.refl α).symm = local_equiv.refl α := rfl
 
 @[simp] lemma refl_restr_source (s : set α) : ((local_equiv.refl α).restr s).source = s :=
@@ -266,7 +266,7 @@ def of_set (s : set α) : local_equiv α α :=
 
 @[simp] lemma of_set_source (s : set α) : (local_equiv.of_set s).source = s := rfl
 @[simp] lemma of_set_target (s : set α) : (local_equiv.of_set s).target = s := rfl
-@[simp] lemma of_set_coe (s : set α) : ((local_equiv.of_set s) : α → α) = id := rfl
+@[simp] lemma of_set_coe (s : set α) : (local_equiv.of_set s : α → α) = id := rfl
 @[simp] lemma of_set_symm (s : set α) : (local_equiv.of_set s).symm = local_equiv.of_set s := rfl
 
 /-- Composing two local equivs if the target of the first coincides with the source of the
@@ -287,7 +287,7 @@ is well defined. -/
 protected def trans : local_equiv α γ :=
   local_equiv.trans' (e.symm.restr (e'.source)).symm (e'.restr (e.target)) (inter_comm _ _)
 
-@[simp] lemma coe_trans : ((e.trans e') : α → γ) = e' ∘ e := rfl
+@[simp] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
 @[simp] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=

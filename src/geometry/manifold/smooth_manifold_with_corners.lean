@@ -339,8 +339,8 @@ pregroupoid.groupoid
     rw ← hx at ⊢ hy1,
     simp at ⊢ hy1,
     rcases H x hy1 with ⟨v, v_open, xv, hv⟩,
-    have : ((I.symm ⁻¹' (u ∩ v)) ∩ (range (I)))
-        = ((I.symm ⁻¹' u) ∩ (range (I)) ∩ I.symm ⁻¹' v),
+    have : ((I.symm ⁻¹' (u ∩ v)) ∩ (range I))
+        = ((I.symm ⁻¹' u) ∩ (range I) ∩ I.symm ⁻¹' v),
     { rw [preimage_inter, inter_assoc, inter_assoc],
       congr' 1,
       rw inter_comm },
@@ -571,7 +571,7 @@ end
 /-- Technical lemma to rewrite suitably the preimage of an intersection under an extended chart, to
 bring it into a convenient form to apply derivative lemmas. -/
 lemma ext_chart_preimage_inter_eq : ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
-  = ((ext_chart_at I x).symm ⁻¹' s ∩ range (I))
+  = ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
     ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
 begin
   rw [preimage_inter, inter_assoc, inter_assoc],

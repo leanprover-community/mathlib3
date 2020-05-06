@@ -15,7 +15,7 @@ This file defines homeomorphisms between open subsets of topological spaces. An 
 Additionally, we require that these sets are open, and that the functions are continuous on them.
 Equivalently, they are homeomorphisms there.
 
-As in equivs, we register a coercion to functions, and we use everywhere `e x` and `e.symm x`
+As in equivs, we register a coercion to functions, and we use `e x` and `e.symm x` throughout
 instead of `e.to_fun x` and `e.inv_fun x`.
 
 ## Main definitions
@@ -241,7 +241,7 @@ e.restr_open (interior s) is_open_interior
 
 @[simp] lemma restr_to_local_equiv (s : set α) :
   (e.restr s).to_local_equiv = (e.to_local_equiv).restr (interior s) := rfl
-@[simp] lemma restr_coe (s : set α) : ((e.restr s) : α → β) = e := rfl
+@[simp] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
 @[simp] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
 lemma restr_source (s : set α)  : (e.restr s).source = e.source ∩ interior s := rfl
 lemma restr_target (s : set α) :
@@ -279,10 +279,10 @@ protected def refl (α : Type*) [topological_space α] : local_homeomorph α α 
 (homeomorph.refl α).to_local_homeomorph
 
 @[simp] lemma refl_local_equiv : (local_homeomorph.refl α).to_local_equiv = local_equiv.refl α := rfl
-lemma refl_source  : (local_homeomorph.refl α).source = univ := rfl
-lemma refl_target  : (local_homeomorph.refl α).target = univ := rfl
-@[simp] lemma refl_symm    : (local_homeomorph.refl α).symm = local_homeomorph.refl α := rfl
-@[simp] lemma refl_coe  : ((local_homeomorph.refl α) : α → α) = id := rfl
+lemma refl_source : (local_homeomorph.refl α).source = univ := rfl
+lemma refl_target : (local_homeomorph.refl α).target = univ := rfl
+@[simp] lemma refl_symm : (local_homeomorph.refl α).symm = local_homeomorph.refl α := rfl
+@[simp] lemma refl_coe : (local_homeomorph.refl α : α → α) = id := rfl
 
 section
 variables {s : set α} (hs : is_open s)
@@ -296,10 +296,10 @@ def of_set (s : set α) (hs : is_open s) : local_homeomorph α α :=
   ..local_equiv.of_set s }
 
 @[simp] lemma of_set_to_local_equiv : (of_set s hs).to_local_equiv = local_equiv.of_set s := rfl
-lemma of_set_source  : (of_set s hs).source = s := rfl
-lemma of_set_target  : (of_set s hs).target = s := rfl
-@[simp] lemma of_set_coe  : ((of_set s hs) : α → α) = id := rfl
-@[simp] lemma of_set_symm    : (of_set s hs).symm = of_set s hs := rfl
+lemma of_set_source : (of_set s hs).source = s := rfl
+lemma of_set_target : (of_set s hs).target = s := rfl
+@[simp] lemma of_set_coe : (of_set s hs : α → α) = id := rfl
+@[simp] lemma of_set_symm : (of_set s hs).symm = of_set s hs := rfl
 
 end
 
@@ -487,10 +487,10 @@ lemma prod_target (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').target = set.prod e.target e'.target := rfl
 
 @[simp] lemma prod_coe (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
-  ((e.prod e') : α × γ → β × δ) = (λp, (e p.1, e' p.2)) := rfl
+  (e.prod e' : α × γ → β × δ) = λp, (e p.1, e' p.2) := rfl
 
 @[simp] lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
-  ((e.prod e').symm : β × δ → α × γ) = (λp, (e.symm p.1, e'.symm p.2)) := rfl
+  ((e.prod e').symm : β × δ → α × γ) = λp, (e.symm p.1, e'.symm p.2) := rfl
 
 end prod
 

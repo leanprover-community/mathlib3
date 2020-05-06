@@ -9,6 +9,7 @@ import data.equiv.ring
 import data.zmod.basic
 import group_theory.order_of_element
 import linear_algebra.basis
+import algebra.geom_sum
 
 universes u v
 variables {K : Type u} {R : Type v}
@@ -207,7 +208,7 @@ begin
 end
 
 section
-variables {G : Type*} {R : Type*} [group G] [integral_domain R]
+variables {G : Type*} [group G] [integral_domain R]
 
 open_locale big_operators
 open finset

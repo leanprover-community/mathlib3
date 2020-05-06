@@ -311,7 +311,7 @@ begin
   generalize heq : 2 * n + 1 = x,
   intro h,
   revert n,
-  induction' h,
+  induction' h; intros,
   /- Desired syntax for the above: `intro h, induction h`. -/
   -- case even.zero {
   { cases heq },

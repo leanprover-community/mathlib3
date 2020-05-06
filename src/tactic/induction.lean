@@ -552,7 +552,8 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   constructor_argument_intros einfo iinfo cinfo,
   ih_intros einfo iinfo cinfo
 
-meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := focus1 $ do
+meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
+focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
@@ -572,9 +573,9 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
   let rec_name := iname ++ "rec_on",
   rec_const ← mk_const rec_name,
 
-  -- TODO We would like to disallow mutual/nested inductive types, since these have
-  -- complicated recursors which we probably don't support. However, there seems
-  -- to be no way to find out whether an inductive type is mutual/nested.
+  -- TODO We would like to disallow mutual/nested inductive types, since these
+  -- have complicated recursors which we probably don't support. However, there
+  -- seems to be no way to find out whether an inductive type is mutual/nested.
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Disallow complex indices (for now)
@@ -582,8 +583,9 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
     ("induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n" ++
     "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
 
-  -- Generalise all generalisable hypotheses.
-  generalize_all eliminee (name_set.of_list fix),
+  -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
+  -- clause.
+  num_generalized ← generalize_all eliminee (name_set.of_list fix),
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -601,8 +603,8 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
 
     -- Introduce the constructor arguments
     constructor_intros einfo iinfo cinfo,
-    -- Introduce any hypotheses we may have previously generalised
-    intros,
+    -- Introduce any hypotheses we've previously generalised
+    intron num_generalized,
     pure ()
   },
 

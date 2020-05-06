@@ -12,7 +12,8 @@ namespace pnat
 def Ico (l u : ℕ+) : finset ℕ+ :=
 (finset.Ico l u).attach.map
   { to_fun := λ n, ⟨(n : ℕ), lt_of_lt_of_le l.2 (finset.Ico.mem.1 n.2).1⟩,
-    inj := λ n m h, subtype.ext.2 (by { replace h := congr_arg subtype.val h, exact h }) } -- why can't we do this directly?
+    -- why can't we do this directly?
+    inj' := λ n m h, subtype.eq (by { replace h := congr_arg subtype.val h, exact h }) }
 
 @[simp] lemma Ico.mem {n m l : ℕ+} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 begin

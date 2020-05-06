@@ -92,7 +92,7 @@ con.lift_on x f $ λ a b hab,
   lift_on (mk M x) f hmul h1 h = f x :=
 rfl
 
-lemma hom_eq {N : Type*} [monoid N]  ⦃f g : free_monoid_product M →* N⦄
+@[ext] lemma hom_eq {N : Type*} [monoid N]  ⦃f g : free_monoid_product M →* N⦄
   (h : ∀ i x, f (of M i x) = g (of M i x)) : f = g :=
 (monoid_hom.cancel_right con.mk'_surjective).1 $ free_monoid.hom_eq $ λ ⟨i, x⟩, h i x
 
@@ -466,6 +466,14 @@ def lift : (Π i, M i →* N) ≃ (normalized M →* N) :=
   left_inv := λ f, by { ext i x, apply hom_family_map_of },
   right_inv := λ f, by { ext i x, apply hom_family_map_of } }
 
+variables {M N}
+
+@[simp] lemma lift_of (f : Π i, M i →* N) (i : ι) :
+  ∀ x : M i, (lift M N : (Π i, M i →* N) → normalized M →* N) f
+    ((of M i : M i → normalized M) x) = f i x :=
+by { simp only [← monoid_hom.comp_apply, ← monoid_hom.ext_iff],
+  exact congr_fun ((lift M N).symm_apply_apply f) i }
+
 end normalized
 
 def cons' (a : Σ i, M i) (l : normalized M) : normalized M :=
@@ -489,10 +497,32 @@ mul_equiv.of_eq
   map_mul' := monoid_hom.map_mul _,
   left_inv := λ l,
     begin
-      conv_rhs { rw ← monoid_hom.apply_id }
+      conv { congr, rw ← monoid_hom.comp_apply, skip, rw ← monoid_hom.id_apply l },
+      revert l,
+      simp only [← monoid_hom.ext_iff],
+      ext i x,
+      simp
     end,
-  right_inv := _
-  } _ _ _ _
+  right_inv := λ l,
+    begin
+      conv { congr, rw ← monoid_hom.comp_apply, skip, rw ← monoid_hom.id_apply l },
+      revert l,
+      simp only [← monoid_hom.ext_iff],
+      ext i x,
+      simp
+    end
+  } (quot.lift_of_eq (list.foldr cons' 1) ((lift M (normalized M) :
+  (Π i, M i →* normalized M) → free_monoid_product M →* normalized M) (normalized.of M)) $ λ l,
+begin
+  simp only [quot_mk_eq_mk, lift_mk, free_monoid.lift_apply, list.prod_eq_foldr,
+    list.foldr_map],
+  congr,
+  ext ⟨i, x⟩ l,
+  dsimp only [(∘), cons', normalized.of_eq_of', normalized.of'],
+  split_ifs; refl
+end) (λ l, mk M (l.1.map (λ a : Σ i, {x : M i // x ≠ 1}, ⟨a.1, a.2⟩)))
+  (λ x, (quot.lift_of_eq_eq _ _ _).symm)
+  (funext $ λ l, by simp [normalized.lift, mul_equiv.symm])
 
 
 def normalize : free_monoid_product M → normalized M :=

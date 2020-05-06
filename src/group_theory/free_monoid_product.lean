@@ -1,4 +1,7 @@
-import algebra.free_monoid group_theory.congruence tactic.simp_rw algebra.opposites
+import algebra.free_monoid
+import group_theory.congruence
+import tactic.simp_rw
+import algebra.opposites
 
 def {u v} quot.lift_of_eq {α : Sort u} {β : Sort v} {r : α → α → Prop} (g : α → β)
   (f : quot r → β) (H : ∀ x, g x = f (quot.mk r x)) (x : quot r) : β :=
@@ -9,6 +12,10 @@ lemma {u v} quot.lift_of_eq_eq {α : Sort u} {β : Sort v} {r : α → α → Pr
   (f : quot r → β) (H : ∀ x, g x = f (quot.mk r x)) :
   quot.lift_of_eq g f H = f :=
 funext $ λ x, quot.induction_on x H
+
+def mul_equiv.of_eq {M N : Type*} [has_mul M] [has_mul N] (e : M ≃* N) (f : M → N) (g : N → M)
+  (hf : ⇑e = f) (hg : ⇑e.symm = g) : M ≃* N :=
+⟨f, g, hf ▸ hg ▸ e.left_inv, hf ▸ hg ▸ e.right_inv, hf ▸ e.map_mul⟩
 
 open opposite
 
@@ -437,7 +444,7 @@ begin
   { simp [cancel_two_of_ne hij] }
 end
 
-variable (M)
+variables (M N)
 
 def lift : (Π i, M i →* N) ≃ (normalized M →* N) :=
 { to_fun := λ f,
@@ -471,6 +478,23 @@ lemma cons'_of_ne (a : Σ i, M i) (l : normalized M) (h : a.2 ≠ 1) :
   cons' a l = normalized.cons ⟨a.1, a.2, h⟩ l :=
 dif_neg h
 
+def equiv_normalized : free_monoid_product M ≃* normalized M :=
+mul_equiv.of_eq
+{ to_fun := (lift M (normalized M) :
+    (Π i, M i →* normalized M) → (free_monoid_product M →* normalized M))
+    (normalized.of M),
+  inv_fun := (normalized.lift M (free_monoid_product M) :
+    (Π i, M i →* free_monoid_product M) → (normalized M →* free_monoid_product M))
+    (of M),
+  map_mul' := monoid_hom.map_mul _,
+  left_inv := λ l,
+    begin
+      conv_rhs { rw ← monoid_hom.apply_id }
+    end,
+  right_inv := _
+  } _ _ _ _
+
+
 def normalize : free_monoid_product M → normalized M :=
 quot.lift_of_eq (list.foldr cons' 1) ((lift M (normalized M) :
   (Π i, M i →* normalized M) → free_monoid_product M →* normalized M) (normalized.of M)) $ λ l,
@@ -495,22 +519,13 @@ section
 variable (M)
 
 def equiv_normalized : free_monoid_product M ≃* normalized M :=
+
 { to_fun := normalize,
   inv_fun := λ l, mk M (list.map (λ a : Σ i, {x : M i // x ≠ 1}, ⟨a.1, a.2⟩) l.1),
   map_mul' := by { rintros ⟨x⟩ ⟨y⟩, simp [normalize_eq_lift, ← monoid_hom.map_mul] },
   left_inv :=
     begin
-      rintro ⟨l⟩,
-      simp only [free_monoid.lift_apply, quot_mk_eq_mk, lift_mk, normalize_eq_foldr],
-      induction H : l.length using nat.strong_rec' with n IH generalizing l, subst n,
-      rcases l with _|⟨⟨i, x⟩,l⟩, { simp },
-      simp only [list.foldr],
-      by_cases hx : x = 1,
-      { simp only [hx, cons'_one, mk_cons, one_mul, monoid_hom.map_one],
-        apply IH _ _ _ rfl,
-        simp },
-      { simp only [cons'_of_ne ⟨i, x⟩ _ hx],
-         },
+      
     end,
   right_inv := λ l, _ }
 

@@ -121,7 +121,7 @@ def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
 /-- Two pre-sets are equivalent iff they have the same members. -/
 theorem equiv.eq {x y : pSet} : equiv x y ↔ to_set x = to_set y :=
-equiv_iff_mem.trans (set.ext_iff _ _).symm
+equiv_iff_mem.trans set.ext_iff.symm
 
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 

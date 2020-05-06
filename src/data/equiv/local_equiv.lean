@@ -190,7 +190,7 @@ e.symm.bij_on_source.image_eq
 lemma target_subset_preimage_source : e.target ⊆ e.symm ⁻¹' e.source :=
 λx hx, e.map_target hx
 
-/-- Two local equivs that have the same source, same to_fun and same inv_fun, coincide. -/
+/-- Two local equivs that have the same `source`, same `to_fun` and same `inv_fun`, coincide. -/
 @[ext]
 protected lemma ext (e' : local_equiv α β) (h : ∀x, e x = e' x)
   (hsymm : ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=

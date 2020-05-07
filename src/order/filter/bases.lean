@@ -496,8 +496,9 @@ lemma eq_generate {f : filter α} (h : is_countably_generated f) :
 (classical.some_spec h).2
 
 /-- A countable filter basis for a countably generated filter. -/
-def countable_filter_basis {l : filter α} (h : is_countably_generated l) : countable_filter_basis α :=
-{ countable := countable_image _ (countable_set_of_finite_subset h.countable_generating_set),
+def countable_filter_basis {l : filter α} (h : is_countably_generated l) :
+  countable_filter_basis α :=
+{ countable := (countable_set_of_finite_subset h.countable_generating_set).image _,
   ..filter_basis.of_sets (h.generating_set) }
 
 lemma filter_basis_filter {l : filter α} (h : is_countably_generated l) :

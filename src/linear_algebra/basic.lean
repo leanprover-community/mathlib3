@@ -949,7 +949,7 @@ def range (f : M →ₗ[R] M₂) : submodule R M₂ := map f ⊤
 theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := set.image_univ
 
 @[simp] theorem mem_range {f : M →ₗ[R] M₂} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-(set.ext_iff _ _).1 (range_coe f)
+set.ext_iff.1 (range_coe f)
 
 theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
 

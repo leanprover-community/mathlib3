@@ -80,7 +80,8 @@ begin
   have hm := e.midpoint_fixed hx hy,
   simp only [e, trans_apply] at hm,
   rwa [← eq_symm_apply, point_reflection_symm, point_reflection_self, symm_apply_eq,
-    point_reflection_fixed_iff ℝ] at hm
+    point_reflection_fixed_iff ℝ] at hm,
+  apply_instance
 end
 
 @[simp] lemma coe_to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :

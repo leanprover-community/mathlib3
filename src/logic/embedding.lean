@@ -24,7 +24,7 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 
 end function
 
-/-- Convert an `α ≃β` to `α ↪ β`. -/
+/-- Convert an `α ≃ β` to `α ↪ β`. -/
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
@@ -85,7 +85,7 @@ equiv.of_bijective ⟨f.inj, hf⟩
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
 
-/-- Change value of an embedding `f` at one point. If the prescribed image
+/-- Change the value of an embedding `f` at one point. If the prescribed image
 is already occupied by some `f a'`, then swap the values at these two points. -/
 def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
   [∀ a', decidable (f a' = b)] : α ↪ β :=

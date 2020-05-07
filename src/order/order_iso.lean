@@ -202,9 +202,17 @@ infix ` ≃o `:25 := order_iso
 
 namespace order_iso
 
-instance : has_coe (r ≃o s) (r ≼o s) := ⟨λ f, ⟨f.to_equiv.to_embedding, f.ord'⟩⟩
+/-- Convert an `order_iso` to an `order_embedding`. This function is also available as a coercion
+but often it is easier to write `f.to_order_embedding` than to write explicitly `r` and `s`
+in the target type. -/
+def to_order_embedding (f : r ≃o s) : r ≼o s :=
+⟨f.to_equiv.to_embedding, f.ord'⟩
+
+instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃o s) := ⟨λ _, α → β, λ f, f⟩
+
+@[simp] lemma to_order_embedding_eq_coe (f : r ≃o s) : f.to_order_embedding = f := rfl
 
 @[simp] lemma coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 @[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl

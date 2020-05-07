@@ -35,7 +35,7 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ (finite.fintype h) _
 
-lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+@[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 by { ext, apply mem_to_finset }
 
 theorem finite.exists_finset {s : set α} : finite s →
@@ -324,21 +324,11 @@ lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finit
 begin
   -- we just need to translate the result, already known for finsets,
   -- to the language of finite sets
-  let s := coe '' ((finset.powerset (finite.to_finset h)).to_set),
+  let s : set (set α) := coe '' (↑(finset.powerset (finite.to_finset h)) : set (finset α)),
   have : finite s := finite_image _ (finite_mem_finset _),
-  have : {b | b ⊆ a} ⊆ s :=
-  begin
-    assume b hb,
-    rw [set.mem_image],
-    rw [set.mem_set_of_eq] at hb,
-    let b' : finset α := finite.to_finset (finite_subset h hb),
-    have : b' ∈ (finset.powerset (finite.to_finset h)).to_set :=
-      show b' ∈ (finset.powerset (finite.to_finset h)),
-        by simp [b', finset.subset_iff]; exact hb,
-    have : coe b' = b := by ext; simp,
-    exact ⟨b', by assumption, by assumption⟩
-  end,
-  exact finite_subset ‹finite s› this
+  apply finite_subset this,
+  refine λ b hb, ⟨(finite_subset h hb).to_finset, _, finite.coe_to_finset _⟩,
+  simpa [finset.subset_iff]
 end
 
 lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
@@ -529,7 +519,7 @@ by simp [preimage]
 by simp [set.ext_iff]
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
+  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
   image f (preimage s hf.inj_on) = s :=
 finset.coe_inj.1 $
 suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,

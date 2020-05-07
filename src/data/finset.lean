@@ -67,7 +67,7 @@ theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s�
 ext.2
 
 @[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
-(set.ext_iff _ _).trans ext.symm
+set.ext_iff.trans ext.symm
 
 lemma to_set_injective {α} : function.injective (finset.to_set : finset α → set α) :=
 λ s t, coe_inj.1

@@ -633,6 +633,8 @@ hf.div hg hnz
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
+@[simp] lemma real.norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
+
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
 

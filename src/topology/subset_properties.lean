@@ -1175,7 +1175,7 @@ theorem is_totally_disconnected_of_is_totally_separated {s : set α}
 λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
 assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
-((ext_iff _ _).1 huv r).1 hruv⟩
+(ext_iff.1 huv r).1 hruv⟩
 
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/

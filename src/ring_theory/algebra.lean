@@ -494,6 +494,9 @@ def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
 { carrier := T,
   range_le' := (λ a ⟨r, hr⟩, hr ▸ T.range_le ⟨⟨algebra_map R A r, S.range_le ⟨r, rfl⟩⟩, rfl⟩) }
 
+lemma mul_mem (A' : subalgebra R A) (x y : A) :
+  x ∈ A' → y ∈ A' → x * y ∈ A' := @is_submonoid.mul_mem A _ A' _ x y
+
 end subalgebra
 
 namespace alg_hom

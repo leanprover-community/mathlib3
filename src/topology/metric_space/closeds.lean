@@ -310,7 +310,7 @@ begin
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | t.val ∈ v0},
     refine  ⟨⟨v, ⟨_, _⟩⟩⟩,
     { have : countable (subtype.val '' v),
-      { refine countable_subset (λx hx, _) (countable_set_of_finite_subset cs),
+      { refine (countable_set_of_finite_subset cs).mono (λx hx, _),
         rcases (mem_image _ _ _).1 hx with ⟨y, ⟨hy, yx⟩⟩,
         rw ← yx,
         exact hy },

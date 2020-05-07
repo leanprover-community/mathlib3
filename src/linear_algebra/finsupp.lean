@@ -139,7 +139,6 @@ linear_map.cod_restrict _
 variables {M R}
 
 section
-set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
   ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
@@ -209,7 +208,6 @@ begin
 end
 
 section
-set_option class.instance_max_depth 37
 def supported_equiv_finsupp (s : set α) :
   (supported M R s) ≃ₗ[R] (s →₀ M) :=
 (restrict_support_equiv s).to_linear_equiv

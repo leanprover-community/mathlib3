@@ -20,7 +20,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (f : E →L[𝕜] F)
 include 𝕜
 
-set_option class.instance_max_depth 70
 
 variable [complete_space F]
 

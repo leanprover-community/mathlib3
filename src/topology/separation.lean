@@ -148,7 +148,7 @@ t2_space.t2 x y h
 instance t2_space.t1_space [t2_space α] : t1_space α :=
 ⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
-⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
+⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,

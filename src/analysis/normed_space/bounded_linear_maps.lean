@@ -18,7 +18,6 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-set_option class.instance_max_depth 70
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥ f x ∥ ≤ M * ∥ x ∥` for some positive constant `M`. -/
@@ -142,7 +141,6 @@ end
 end is_bounded_linear_map
 
 section
-set_option class.instance_max_depth 240
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 /-- Taking the cartesian product of two continuous linear maps is a bounded linear operation. -/
@@ -389,7 +387,6 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
-set_option class.instance_max_depth 100
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/

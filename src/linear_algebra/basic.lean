@@ -903,7 +903,6 @@ le_antisymm
   begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
   begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
 
-set_option class.instance_max_depth 40
 
 lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
@@ -940,7 +939,7 @@ def range (f : M →ₗ[R] M₂) : submodule R M₂ := map f ⊤
 theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := set.image_univ
 
 @[simp] theorem mem_range {f : M →ₗ[R] M₂} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-(set.ext_iff _ _).1 (range_coe f).
+set.ext_iff.1 (range_coe f).
 
 @[simp] theorem range_id : range (linear_map.id : M →ₗ[R] M) = ⊤ := map_id _
 
@@ -1543,7 +1542,6 @@ variables [module R M] [module R M₂] [module R M₃]
 include R
 open linear_map
 
-set_option class.instance_max_depth 39
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
@@ -1679,7 +1677,6 @@ def sup_quotient_to_quotient_inf (p p' : submodule R M) :
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
 exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 
-set_option class.instance_max_depth 41
 
 /--
 Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.

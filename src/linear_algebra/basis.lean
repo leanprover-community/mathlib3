@@ -962,7 +962,6 @@ open submodule
    (instead of a data containing type class) -/
 
 section
-set_option class.instance_max_depth 36
 
 lemma mem_span_insert_exchange : x ∈ span K (insert y s) → x ∉ span K s → y ∈ span K (insert x s) :=
 begin
@@ -1160,7 +1159,6 @@ begin
   exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
 end
 
-set_option class.instance_max_depth 49
 open submodule linear_map
 theorem quotient_prod_linear_equiv (p : submodule K V) :
   nonempty ((p.quotient × p) ≃ₗ[K] V) :=

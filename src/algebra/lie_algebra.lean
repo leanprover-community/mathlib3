@@ -346,9 +346,9 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
 @[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
   of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
 
-lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
+@[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
   [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
-  (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  (g : B →ₐ[R] C) (f : A →ₐ[R] B) :
   (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) = of_associative_algebra_hom (g.comp f) := rfl
 
 /--

@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import analysis.normed_space.reflection
+import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
 
 /-!
@@ -54,14 +54,14 @@ begin
     exact dist_le_zero.1 (le_trans A this) },
   suffices : c ≤ c / 2, { linarith },
   apply csupr_le,
-  set g : E ≃ᵢ E := reflection z,
+  set g : E ≃ᵢ E := point_reflection z,
   rintros ⟨e, he⟩,
   apply le_div_of_mul_le (zero_lt_two : 0 < (2:ℝ)),
   have : ((e.trans g).trans e.symm).trans g ∈ s,
     by split; simp [he.1, he.2, (e.symm_apply_eq).2 he.1.symm, (e.symm_apply_eq).2 he.2.symm],
   dsimp,
-  rw [mul_comm, dist_comm, ← reflection_dist_self, ← e.symm.dist_eq, e.symm_apply_apply,
-    ← reflection_dist_fixed],
+  rw [mul_comm, dist_comm, ← point_reflection_dist_self_real, ← e.symm.dist_eq, e.symm_apply_apply,
+    ← point_reflection_dist_fixed],
   exact @le_csupr _ _ _ _ A ⟨_, this⟩
 end
 
@@ -73,13 +73,14 @@ begin
   refine { .. (add_monoid_hom.of_map_midpoint ℝ ℝ f h0 _).to_real_linear_map f.continuous,
     .. f.to_homeomorph },
   intros x y,
-  set e : E ≃ᵢ E := ((f.trans $ reflection $ midpoint ℝ (f x) (f y)).trans f.symm).trans
-    (reflection $ midpoint ℝ x y),
+  set e : E ≃ᵢ E := ((f.trans $ point_reflection $ midpoint ℝ (f x) (f y)).trans f.symm).trans
+    (point_reflection $ midpoint ℝ x y),
   have hx : e x = x, by simp,
   have hy : e y = y, by simp,
   have hm := e.midpoint_fixed hx hy,
   simp only [e, trans_apply] at hm,
-  rwa [← eq_symm_apply, reflection_symm, reflection_self, symm_apply_eq, reflection_fixed_iff] at hm
+  rwa [← eq_symm_apply, point_reflection_symm, point_reflection_self, symm_apply_eq,
+    point_reflection_fixed_iff ℝ] at hm
 end
 
 @[simp] lemma coe_to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :

@@ -192,6 +192,13 @@ def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
 | 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
 | (n + 1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
 
+/-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
+multilinear series are equal, then the values are also equal. -/
+lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
+  (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
+  p m v = p n w :=
+by { cases h1, congr, funext i, cases i with i hi, exact h2 i hi hi }
+
 end formal_multilinear_series
 
 variable {p : E → formal_multilinear_series 𝕜 E F}

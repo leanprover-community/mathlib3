@@ -181,10 +181,12 @@ by haveI : nonempty E := ⟨0⟩; exact (hf.inj_on hc).to_local_equiv _ _
 /-- The inverse function is continuous on `f '' s`. Use properties of `local_homeomorph` instead. -/
 lemma inverse_continuous_on (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) :
-  continuous_on (hf.to_local_equiv hc).inv_fun (f '' s) :=
-continuous_on_iff_continuous_restrict.2 $
-  ((hf.antilipschitz hc).to_right_inv_on' (hf.to_local_equiv hc).map_target
-    (hf.to_local_equiv hc).right_inv).continuous
+  continuous_on (hf.to_local_equiv hc).symm (f '' s) :=
+begin
+  apply continuous_on_iff_continuous_restrict.2,
+  refine ((hf.antilipschitz hc).to_right_inv_on' _ (hf.to_local_equiv hc).right_inv').continuous,
+  exact (λ x hx, (hf.to_local_equiv hc).map_target hx)
+end
 
 /-!
 Now we prove that `f '' s` is an open set. This follows from the fact that the restriction of `f`
@@ -321,9 +323,9 @@ def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c
 
 end
 
-@[simp] lemma to_local_homeomorph_to_fun (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
+@[simp] lemma to_local_homeomorph_coe (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) (hs : is_open s) :
-  (hf.to_local_homeomorph f s hc hs).to_fun = f := rfl
+  (hf.to_local_homeomorph f s hc hs : E → F) = f := rfl
 
 @[simp] lemma to_local_homeomorph_source (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) (hs : is_open s) :
@@ -384,7 +386,7 @@ variable (f)
 
 /-- Given a function with an invertible strict derivative at `a`, returns a `local_homeomorph`
 with `to_fun = f` and `a ∈ source`. This is a part of the inverse function theorem.
-The other part `local_homeomorph.inv_fun_has_strict_fderiv_at` states that the inverse function
+The other part `has_strict_fderiv_at.to_local_inverse` states that the inverse function
 of this `local_homeomorph` has derivative `f'.symm`. -/
 def to_local_homeomorph (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) : local_homeomorph E F :=
 approximates_linear_on.to_local_homeomorph f
@@ -396,8 +398,8 @@ approximates_linear_on.to_local_homeomorph f
 
 variable {f}
 
-@[simp] lemma to_local_homeomorph_to_fun (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
-  (hf.to_local_homeomorph f).to_fun = f := rfl
+@[simp] lemma to_local_homeomorph_coe (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
+  (hf.to_local_homeomorph f : E → F) = f := rfl
 
 lemma mem_to_local_homeomorph_source (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   a ∈ (hf.to_local_homeomorph f).source :=
@@ -412,7 +414,7 @@ variables (f f' a)
 /-- Given a function `f` with an invertible derivative, returns a function that is locally inverse
 to `f`. -/
 def local_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) : F → E :=
-(hf.to_local_homeomorph f).inv_fun
+(hf.to_local_homeomorph f).symm
 
 variables {f f' a}
 
@@ -430,7 +432,7 @@ lemma eventually_right_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F
 
 lemma local_inverse_continuous_at (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   continuous_at (hf.local_inverse f f' a) (f a) :=
-(hf.to_local_homeomorph f).continuous_at_inv_fun hf.image_mem_to_local_homeomorph_target
+(hf.to_local_homeomorph f).continuous_at_symm hf.image_mem_to_local_homeomorph_target
 
 /-- If `f` has an invertible derivative `f'` at `a` in the sense of strict differentiability `(hf)`,
 then the inverse function `hf.local_inverse f` has derivative `f'.symm` at `f a`. -/
@@ -452,7 +454,7 @@ theorem to_local_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F)
   has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) (f a) :=
 begin
   apply hf.to_local_inverse.congr_of_mem_sets,
-  have := ((hf.to_local_homeomorph f).inv_fun_tendsto
+  have := ((hf.to_local_homeomorph f).tendsto_symm
     hf.mem_to_local_homeomorph_source).eventually hg,
   refine this.mp (hf.eventually_right_inverse.mono $ λ y hy hy', _),
   exact hy'.symm.trans (congr_arg g hy)

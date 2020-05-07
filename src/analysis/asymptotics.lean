@@ -1062,21 +1062,21 @@ open asymptotics
 /-- Transfer `is_O_with` over a `local_homeomorph`. -/
 lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
   {f : β → E} {g : β → F} {C : ℝ} :
-  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 ⟨λ h, h.comp_tendsto $
-  by { convert e.continuous_at_to_fun (e.map_target hb), exact (e.right_inv hb).symm },
-  λ h, (h.comp_tendsto (e.continuous_at_inv_fun hb)).congr' rfl
+  by { convert e.continuous_at (e.map_target hb), exact (e.right_inv hb).symm },
+  λ h, (h.comp_tendsto (e.continuous_at_symm hb)).congr' rfl
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg f hx)
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg g hx)⟩
 
 /-- Transfer `is_O` over a `local_homeomorph`. -/
 lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_O f g (𝓝 b) ↔ is_O (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 exists_congr $ λ C, e.is_O_with_congr hb
 
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_o f g (𝓝 b) ↔ is_o (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
 
 end local_homeomorph

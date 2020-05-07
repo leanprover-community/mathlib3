@@ -423,7 +423,7 @@ local attribute [instance] lie_algebra.of_associative_algebra
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   (A' : subalgebra R A) : lie_subalgebra R A :=
 { lie_mem := λ x y hx hy, by {
-    change ⁅x, y⁆ ∈ A'.carrier, change x ∈ A'.carrier at hx, change y ∈ A'.carrier at hy,
+    change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
     have hxy := subalgebra.mul_mem A' x y hx hy,
     have hyx := subalgebra.mul_mem A' y x hy hx,

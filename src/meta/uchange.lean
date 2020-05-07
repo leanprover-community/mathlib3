@@ -18,7 +18,7 @@ The implementation of `uchange` is efficient. Both `uchange.up` and
 universes u v
 
 /--
-`unchecked_cast a : β` performs of an unchecked cast of `(a : α)` to `β`.
+`unchecked_cast' a : β` performs an unchecked cast of `(a : α)` to `β`.
 
 Unlike `unchecked_cast`, it can cast across universes. The VM implementation
 is guaranteed to be the identity.

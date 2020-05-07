@@ -6,17 +6,19 @@ Authors: Kenny Lau, Yury Kudryashov
 import data.matrix.basic
 import linear_algebra.tensor_product
 import algebra.commute
+import data.equiv.ring
 
 /-!
 # Algebra over Commutative Semiring (under category)
 
 In this file we define algebra over commutative (semi)rings, algebra homomorphisms `alg_hom`,
-and `subalgebra`s. We also define usual operations on `alg_hom`s (`id`, `comp`) and subalgebras
-(`map`, `comap`).
+algebra equivalences `alg_equiv`, and `subalgebra`s. We also define usual operations on `alg_hom`s
+(`id`, `comp`) and subalgebras (`map`, `comap`).
 
 ## Notations
 
 * `A →ₐ[R] B` : `R`-algebra homomorphism from `A` to `B`.
+* `A ≃ₐ[R] B` : `R`-algebra equivalence from `A` to `B`.
 -/
 noncomputable theory
 
@@ -334,6 +336,51 @@ ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 end alg_hom
+
+set_option old_structure_cmd true
+/-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
+structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends A ≃+* B :=
+(commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
+
+attribute [nolint doc_blame] alg_equiv.to_ring_equiv
+
+notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
+
+namespace alg_equiv
+
+variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
+variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
+variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
+
+instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
+
+instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
+
+@[norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) (a : A₁) : (e : A₁ ≃+* A₂) a = e a := rfl
+
+instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
+
+instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
+
+/-- Algebra equivalences are reflexive. -/
+@[refl]
+def refl : A₁ ≃ₐ[R] A₁ := 1
+
+/-- Algebra equivalences are symmetric. -/
+@[symm]
+def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
+{ commutes' := λ r, by { rw ←ring_equiv.symm_apply_apply e.to_ring_equiv ((algebra_map R A₁) r),
+                         congr, change _ = e.to_fun _, rw e.commutes', },
+  ..e.to_ring_equiv.symm, }
+
+/-- Algebra equivalences are transitive. -/
+@[trans]
+def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃ₐ[R] A₃ :=
+{ commutes' := λ r, show e₂.to_fun (e₁.to_fun _) = _, by rw [e₁.commutes', e₂.commutes'],
+  ..(e₁.to_ring_equiv.trans e₂.to_ring_equiv), }
+
+end alg_equiv
 
 namespace algebra
 

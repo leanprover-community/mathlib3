@@ -281,7 +281,7 @@ let ⟨x, (hx : map m (filter.comap m g) ≤ 𝓝 x)⟩ := h _ this in
 have map m (filter.comap m g) ⊓ 𝓝 x ≠ ⊥,
   from (le_nhds_iff_adhp_of_cauchy (cauchy_map hm.uniform_continuous this)).mp hx,
 have g ⊓ 𝓝 x ≠ ⊥,
-  from ne_bot_of_le_ne_bot this (inf_le_inf (assume s hs, ⟨s, hs, subset.refl _⟩) (le_refl _)),
+  from ne_bot_of_le_ne_bot this (inf_le_inf_right _ (assume s hs, ⟨s, hs, subset.refl _⟩)),
 
 ⟨x, calc f ≤ g : by assumption
   ... ≤ 𝓝 x : le_nhds_of_cauchy_adhp ‹cauchy g› this⟩⟩

@@ -131,7 +131,7 @@ lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],
 assume ⟨b, hb⟩,
-⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt _ hb⟩
+⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -342,7 +342,7 @@ by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 lemma le_of_inf_le_sup_le (h₁ : x ⊓ z ≤ y ⊓ z) (h₂ : x ⊔ z ≤ y ⊔ z) : x ≤ y :=
 calc x ≤ (y ⊓ z) ⊔ x : le_sup_right
 ... = (y ⊔ x) ⊓ (x ⊔ z) : by rw [sup_inf_right, @sup_comm _ _ x]
-... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_right _ h₂
+... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_left _ h₂
 ... = y ⊔ (x ⊓ z) : sup_inf_left.symm
 ... ≤ y ⊔ (y ⊓ z) : sup_le_sup_left h₁ _
 ... ≤ _ : sup_le (le_refl y) inf_le_left

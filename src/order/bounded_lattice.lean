@@ -154,10 +154,10 @@ section semilattice_sup_top
 variables [semilattice_sup_top α] {a : α}
 
 @[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
-sup_of_le_left le_top
+sup_eq_left.2 le_top
 
 @[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
-sup_of_le_right le_top
+sup_eq_right.2 le_top
 
 end semilattice_sup_top
 
@@ -171,10 +171,10 @@ section semilattice_sup_bot
 variables [semilattice_sup_bot α] {a b : α}
 
 @[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
-sup_of_le_right bot_le
+sup_eq_right.2 bot_le
 
 @[simp] theorem sup_bot_eq : a ⊔ ⊥ = a :=
-sup_of_le_left bot_le
+sup_eq_left.2 bot_le
 
 @[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
 by rw [eq_bot_iff, sup_le_iff]; simp
@@ -205,10 +205,10 @@ section semilattice_inf_top
 variables [semilattice_inf_top α] {a b : α}
 
 @[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
-inf_of_le_right le_top
+inf_eq_right.2 le_top
 
 @[simp] theorem inf_top_eq : a ⊓ ⊤ = a :=
-inf_of_le_left le_top
+inf_eq_left.2 le_top
 
 @[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
 by rw [eq_top_iff, le_inf_iff]; simp
@@ -225,10 +225,10 @@ section semilattice_inf_bot
 variables [semilattice_inf_bot α] {a : α}
 
 @[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
-inf_of_le_left bot_le
+inf_eq_left.2 bot_le
 
 @[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
-inf_of_le_right bot_le
+inf_eq_right.2 bot_le
 
 end semilattice_inf_bot
 
@@ -284,7 +284,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     ... ≤ c : by simp [this, inf_le_right],
   assume : a ≤ c,
   bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
+    calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
 /- Prop instance -/

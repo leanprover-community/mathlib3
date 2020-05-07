@@ -540,7 +540,7 @@ calc f.integral ⊔ g.integral =
 lemma integral_le_integral (f g : α →ₛ ennreal) (h : f ≤ g) : f.integral ≤ g.integral :=
 calc f.integral ≤ f.integral ⊔ g.integral : le_sup_left
   ... ≤ (f ⊔ g).integral : integral_sup_le _ _
-  ... = g.integral : by rw [sup_of_le_right h]
+  ... = g.integral : by rw [sup_eq_right.2 h]
 
 lemma integral_congr (f g : α →ₛ ennreal) (h : ∀ₘ a, f a = g a) :
   f.integral = g.integral :=

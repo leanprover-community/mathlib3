@@ -546,12 +546,12 @@ calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
 have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ principal s = 𝓝 a, from inf_of_le_left $ by rwa le_principal_iff,
+have 𝓝 a ⊓ principal s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
 have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
   from calc 𝓝 a ⊓ principal (s ∩ t) = 𝓝 a ⊓ (principal s ⊓ principal t) : by rw inf_principal
     ... = 𝓝 a ⊓ principal t : by rw [←inf_assoc, this]
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
-by rw [closure_eq_nhds]; assumption
+by rwa [closure_eq_nhds]
 
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -562,7 +562,7 @@ calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
 have b.map f ≤ 𝓝 a ⊓ principal s,
-  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
+  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf_right _ hf),
 is_closed_iff_nhds.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}

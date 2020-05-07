@@ -53,7 +53,7 @@ theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
-    let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
+    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,

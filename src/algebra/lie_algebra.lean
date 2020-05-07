@@ -345,8 +345,8 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
 
 @[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
   [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
-  (g : B →ₐ[R] C) (f : A →ₐ[R] B) :
-  (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) = of_associative_algebra_hom (g.comp f) := rfl
+  (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  of_associative_algebra_hom (g.comp f) = (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) := rfl
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on

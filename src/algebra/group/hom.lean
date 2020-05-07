@@ -101,6 +101,27 @@ lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 @[simp, to_additive]
 lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
+@[to_additive]
+lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
+by rw [← f.map_mul, h, f.map_one]
+
+/-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
+then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
+a right inverse, then `f x` has a right inverse too."]
+lemma map_exists_right_inv (f : M →* N) {x : M} (hx : ∃ y, x * y = 1) :
+  ∃ y, f x * y = 1 :=
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+
+/-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a left inverse,
+then `f x` has a left inverse too. For elements invertible on both sides see `is_unit.map`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
+a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
+`is_add_unit.map`."]
+lemma map_exists_left_inv (f : M →* N) {x : M} (hx : ∃ y, y * x = 1) :
+  ∃ y, y * f x = 1 :=
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+
 omit mN mM
 
 /-- The identity map from a monoid to itself. -/
@@ -109,6 +130,9 @@ def id (M : Type*) [monoid M] : M →* M :=
 { to_fun := id,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+@[simp, to_additive] lemma id_apply {M : Type*} [monoid M] (x : M) :
+  id M x = x := rfl
 
 include mM mN mP
 
@@ -125,17 +149,6 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 /-- Composition of monoid homomorphisms is associative. -/
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
-
-/-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
-    `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
-    `f(S)` to invertible elements of `P`. -/
-@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps
-elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps
-elements of `f(S)` to invertible elements of `P`."]
-lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
-  (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
-  ∃ x : P, g.comp f s * x = 1 :=
-let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩
 
 @[to_additive]
 lemma cancel_right {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :

@@ -339,8 +339,8 @@ local attribute [instance] lie_algebra.of_associative_algebra
 functorial. -/
 def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
   [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
- { map_lie := λ x y, by { change f ⁅x,y⁆ = ⁅f x,f y⁆,
-     simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul], },
+ { map_lie := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
+     by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
 lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :

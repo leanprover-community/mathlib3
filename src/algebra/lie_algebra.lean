@@ -322,12 +322,9 @@ An associative algebra gives rise to a Lie algebra by taking the bracket to be t
 -/
 def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
   @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
-{ lie_smul :=
-    begin
-      intros,
-      show _ - _ = _ • (_ - _),
-      rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
-    end }
+{ lie_smul := λ t x y,
+    by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
+           algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _

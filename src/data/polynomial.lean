@@ -1021,7 +1021,7 @@ lemma nat_degree_map' (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map' hf p)
 
-lemma map_injective (p : polynomial R) : injective (map f) :=
+lemma map_injective : injective (map f) :=
 λ p q h, ext $ λ m, hf $
 begin
   rw ext_iff at h,

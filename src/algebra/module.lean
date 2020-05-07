@@ -71,6 +71,8 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
+theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
+
 variable (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/

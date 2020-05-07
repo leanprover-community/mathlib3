@@ -283,4 +283,30 @@ protected def inv : perm G :=
 
 end group
 
+section reflection
+
+variables [add_comm_group A] (x y : A)
+
+/-- Reflection in `x` as a permutation. -/
+def reflection (x : A) : perm A :=
+(equiv.neg A).trans (equiv.add_left (x + x))
+
+lemma reflection_apply : reflection x y = x + x - y := rfl
+
+@[simp] lemma reflection_self : reflection x x = x := add_sub_cancel _ _
+
+lemma reflection_involutive : function.involutive (reflection x : A → A) :=
+λ y, by simp only [reflection_apply, sub_sub_cancel]
+
+@[simp] lemma reflection_symm : (reflection x).symm = reflection x :=
+by { ext y, rw [symm_apply_eq, reflection_involutive x y] }
+
+/-- `x` is the only fixed point of `reflection x`. This lemma requires `x + x = y + y ↔ x = y`.
+There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma reflection_fixed_iff_of_bit0_inj {x y : A} (h : function.injective (bit0 : A → A)) :
+  reflection x y = y ↔ y = x :=
+sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
+
+end reflection
+
 end equiv

@@ -992,9 +992,6 @@ apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 apply_nolint equiv.list_equiv_self_of_equiv_nat doc_blame
 apply_nolint equiv.list_nat_equiv_nat doc_blame
 
--- data/equiv/local_equiv.lean
-apply_nolint local_equiv has_inhabited_instance
-
 -- data/equiv/mul_add.lean
 apply_nolint add_equiv has_inhabited_instance
 apply_nolint add_equiv.mk' doc_blame
@@ -1625,9 +1622,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/countable.lean
-apply_nolint set.countable.to_encodable doc_blame
-
 -- data/set/enumerate.lean
 apply_nolint set.enumerate doc_blame
 
@@ -1690,27 +1684,6 @@ apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
 -- field_theory/subfield.lean
 apply_nolint is_subfield doc_blame
-
--- geometry/manifold/basic_smooth_bundle.lean
-apply_nolint basic_smooth_bundle_core has_inhabited_instance
-apply_nolint tangent_bundle has_inhabited_instance
-apply_nolint tangent_space has_inhabited_instance
-
--- geometry/manifold/manifold.lean
-apply_nolint manifold_core has_inhabited_instance
-apply_nolint manifold_core.local_homeomorph doc_blame
-apply_nolint manifold_core.to_manifold doc_blame
-apply_nolint pregroupoid has_inhabited_instance
-apply_nolint structomorph has_inhabited_instance
-apply_nolint structure_groupoid has_inhabited_instance
-
--- geometry/manifold/real_instances.lean
-apply_nolint euclidean_half_space has_inhabited_instance
-apply_nolint euclidean_quadrant has_inhabited_instance
-apply_nolint euclidean_space has_inhabited_instance
-
--- geometry/manifold/smooth_manifold_with_corners.lean
-apply_nolint model_with_corners has_inhabited_instance
 
 -- group_theory/abelianization.lean
 apply_nolint abelianization doc_blame
@@ -3103,9 +3076,6 @@ apply_nolint ennreal.nhds_of_ne_top ge_or_gt
 apply_nolint ennreal.tendsto_at_top ge_or_gt
 apply_nolint ennreal.tendsto_nhds ge_or_gt
 apply_nolint infi_real_pos_eq_infi_nnreal_pos ge_or_gt
-
--- topology/local_homeomorph.lean
-apply_nolint local_homeomorph has_inhabited_instance
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame

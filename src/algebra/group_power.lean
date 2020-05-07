@@ -83,7 +83,7 @@ by rw [succ_smul, smul_add_comm']
 
 theorem pow_two (a : M) : a^2 = a * a :=
 show a*(a*1)=a*a, by rw mul_one
-theorem two_smul (a : A) : 2•a = a + a :=
+theorem two_smul' (a : A) : 2•a = a + a :=
 show a+(a+0)=a+a, by rw add_zero
 
 theorem pow_add (a : M) (m n : ℕ) : a^(m + n) = a^m * a^n :=

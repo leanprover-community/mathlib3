@@ -593,8 +593,8 @@ def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
 { to_fun := λ J, ideal.comap (ring_hom.of coe) J,
-  inj := function.injective_of_left_inverse (map_comap α),
-  ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
+  inj'   := function.injective_of_left_inverse (map_comap α),
+  ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals

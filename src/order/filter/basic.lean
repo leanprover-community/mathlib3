@@ -585,7 +585,7 @@ instance : bounded_distrib_lattice (filter α) :=
 /- the complementary version with ⨆i, f ⊓ g i does not hold! -/
 lemma infi_sup_eq {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
 begin
-  refine le_antisymm _ (le_infi $ assume i, sup_le_sup (le_refl f) $ infi_le _ _),
+  refine le_antisymm _ (le_infi $ assume i, sup_le_sup_left (infi_le _ _) _),
   rintros t ⟨h₁, h₂⟩,
   rw [infi_sets_eq_finite] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
@@ -1410,7 +1410,7 @@ protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
 begin
   apply le_antisymm,
   { calc map f (F ⊓ comap f G) ≤ map f F ⊓ (map f $ comap f G) : map_inf_le
-      ... ≤ map f F ⊓ G : inf_le_inf_right (map f F) map_comap_le },
+      ... ≤ map f F ⊓ G : inf_le_inf_left (map f F) map_comap_le },
   { rintros U ⟨V, V_in, W, ⟨Z, Z_in, hZ⟩, h⟩,
     rw ← image_subset_iff at h,
     use [f '' V, image_mem_map V_in, Z, Z_in],

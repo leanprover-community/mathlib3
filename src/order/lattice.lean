@@ -73,13 +73,23 @@ semilattice_sup.sup_le a b c
 ⟨assume h : a ⊔ b ≤ c, ⟨le_trans le_sup_left h, le_trans le_sup_right h⟩,
   assume ⟨h₁, h₂⟩, sup_le h₁ h₂⟩
 
--- TODO: if we just write le_antisymm, Lean doesn't know which ≤ we want to use
--- Can we do anything about that?
+@[simp] theorem sup_eq_left : a ⊔ b = a ↔ b ≤ a :=
+le_antisymm_iff.trans $ by simp [le_refl]
+
 theorem sup_of_le_left (h : b ≤ a) : a ⊔ b = a :=
-by apply le_antisymm; finish
+sup_eq_left.2 h
+
+@[simp] theorem left_eq_sup : a = a ⊔ b ↔ b ≤ a :=
+eq_comm.trans sup_eq_left
+
+@[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
+le_antisymm_iff.trans $ by simp [le_refl]
 
 theorem sup_of_le_right (h : a ≤ b) : a ⊔ b = b :=
-by apply le_antisymm; finish
+sup_eq_right.2 h
+
+@[simp] theorem right_eq_sup : b = a ⊔ b ↔ a ≤ b :=
+eq_comm.trans sup_eq_right
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 by finish
@@ -98,12 +108,12 @@ lemma directed_of_mono (f : α → β) {r : β → β → Prop}
   (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
 λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
 
+lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
+(is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
+
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
-begin
-  cases (@is_total.total _ (≤) _ b c) with h,
-  { simp [sup_of_le_right h], exact ⟨λI, ⟨lt_of_le_of_lt h I, I⟩, λH, H.2⟩ },
-  { simp [sup_of_le_left h], exact ⟨λI, ⟨I, lt_of_le_of_lt h I⟩, λH, H.1⟩ }
-end
+⟨λ h, ⟨lt_of_le_of_lt le_sup_left h, lt_of_le_of_lt le_sup_right h⟩,
+  λ h, sup_ind b c h.1 h.2⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; finish
@@ -127,8 +137,7 @@ lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],
 assume ⟨b, hb⟩,
-have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
-⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩
+⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -189,30 +198,42 @@ le_trans inf_le_right h
 ⟨assume h : a ≤ b ⊓ c, ⟨le_trans h inf_le_left, le_trans h inf_le_right⟩,
   assume ⟨h₁, h₂⟩, le_inf h₁ h₂⟩
 
+@[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
+le_antisymm_iff.trans $ by simp [le_refl]
+
 theorem inf_of_le_left (h : a ≤ b) : a ⊓ b = a :=
-by apply le_antisymm; finish
+inf_eq_left.2 h
+
+@[simp] theorem left_eq_inf : a = a ⊓ b ↔ a ≤ b :=
+eq_comm.trans inf_eq_left
+
+@[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
+le_antisymm_iff.trans $ by simp [le_refl]
 
 theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
-by apply le_antisymm; finish
+inf_eq_right.2 h
+
+@[simp] theorem right_eq_inf : b = a ⊓ b ↔ b ≤ a :=
+eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 by finish
 
-lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
+lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
 by finish
 
-lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
+lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
 by finish
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by finish
 
+lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
+(is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
+
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
-begin
-  cases (@is_total.total _ (≤) _ b c) with h,
-  { simp [inf_of_le_left h], exact ⟨λI, ⟨I, lt_of_lt_of_le I h⟩, λH, H.1⟩ },
-  { simp [inf_of_le_right h], exact ⟨λI, ⟨lt_of_lt_of_le I h, I⟩, λH, H.2⟩ }
-end
+⟨λ h, ⟨lt_of_lt_of_le h inf_le_left, lt_of_lt_of_le h inf_le_right⟩,
+  λ h, inf_ind b c h.1 h.2⟩
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
 by apply le_antisymm; finish
@@ -333,7 +354,7 @@ by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 lemma le_of_inf_le_sup_le (h₁ : x ⊓ z ≤ y ⊓ z) (h₂ : x ⊔ z ≤ y ⊔ z) : x ≤ y :=
 calc x ≤ (y ⊓ z) ⊔ x : le_sup_right
 ... = (y ⊔ x) ⊓ (x ⊔ z) : by rw [sup_inf_right, @sup_comm _ _ x]
-... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_right _ h₂
+... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_left _ h₂
 ... = y ⊔ (x ⊓ z) : sup_inf_left.symm
 ... ≤ y ⊔ (y ⊓ z) : sup_le_sup_left h₁ _
 ... ≤ _ : sup_le (le_refl y) inf_le_left

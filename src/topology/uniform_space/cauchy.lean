@@ -99,8 +99,7 @@ end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
-⟨assume h, (inf_of_le_left h).symm ▸ hf.left,
-le_nhds_of_cauchy_adhp hf⟩
+⟨assume h, left_eq_inf.2 h ▸ hf.left, le_nhds_of_cauchy_adhp hf⟩
 
 lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
   (hm : uniform_continuous m) (hf : cauchy f) : cauchy (map m f) :=
@@ -145,7 +144,7 @@ begin
   rw ← bot_lt_iff_ne_bot,
   have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
     by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
-  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
+  exact lt_of_lt_of_le this (inf_le_inf_right _ (map_mono hf))
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

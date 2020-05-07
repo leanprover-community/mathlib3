@@ -1675,7 +1675,7 @@ def sup_quotient_to_quotient_inf (p p' : submodule R M) :
 (comap p.subtype (p ⊓ p')).liftq
   ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
-exact comap_mono (inf_le_inf_right le_sup_left _) end
+exact comap_mono (inf_le_inf_right _ le_sup_left) end
 
 /--
 Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.

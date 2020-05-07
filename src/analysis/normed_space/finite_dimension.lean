@@ -165,7 +165,7 @@ begin
                       ∘ (equiv_fun_basis b_basis)) := B.comp A,
   convert this,
   ext x,
-  simp only [linear_equiv.coe_apply, function.comp_app, coe_fn_coe_base, linear_map.comp_apply],
+  dsimp,
   rw linear_equiv.symm_apply_apply
 end
 

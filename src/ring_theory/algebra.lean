@@ -357,7 +357,7 @@ instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
 
 instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
 
-@[norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) (a : A₁) : (e : A₁ ≃+* A₂) a = e a := rfl
+@[norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
 instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
 
@@ -370,7 +370,7 @@ def refl : A₁ ≃ₐ[R] A₁ := 1
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
-{ commutes' := λ r, by { rw ←ring_equiv.symm_apply_apply e.to_ring_equiv ((algebra_map R A₁) r),
+{ commutes' := λ r, by { rw ←ring_equiv.symm_apply_apply e.to_ring_equiv (algebra_map R A₁ r),
                          congr, change _ = e.to_fun _, rw e.commutes', },
   ..e.to_ring_equiv.symm, }
 

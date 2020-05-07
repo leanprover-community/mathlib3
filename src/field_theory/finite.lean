@@ -213,93 +213,129 @@ variables {G : Type*} [group G] [integral_domain R]
 open_locale big_operators
 open finset
 
-def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* units M :=
-{ to_fun := λ g,
-    ⟨f g, f (g⁻¹),
-      by rw [← monoid_hom.map_mul, mul_inv_self, monoid_hom.map_one],
-      by rw [← monoid_hom.map_mul, inv_mul_self, monoid_hom.map_one]⟩,
-  map_one' := units.ext (monoid_hom.map_one _),
-  map_mul' := λ _ _, units.ext (monoid_hom.map_mul _ _ _) }
+-- /-- If `f` is a homomorphism from a group `G` to a monoid `M`,
+-- then its image lies in the units of `M`,
+-- and `f.to_hom_units` is the corresponding monoid homomorphism from `G` to `units M`. -/
+-- @[to_additive "If `f` is a homomorphism from an additive group `G` to an additive monoid `M`,
+-- then its image lies in the `add_units` of `M`,
+-- and `f.to_hom_units` is the corresponding homomorphism from `G` to `add_units M`."]
+-- def monoid_hom.to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* units M :=
+-- { to_fun := λ g,
+--     ⟨f g, f (g⁻¹),
+--       by rw [← monoid_hom.map_mul, mul_inv_self, monoid_hom.map_one],
+--       by rw [← monoid_hom.map_mul, inv_mul_self, monoid_hom.map_one]⟩,
+--   map_one' := units.ext (monoid_hom.map_one _),
+--   map_mul' := λ _ _, units.ext (monoid_hom.map_mul _ _ _) }
 
-@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
-  (to_hom_units f g : M) = f g := rfl
+-- @[simp] lemma monoid_hom.coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
+--   (monoid_hom.to_hom_units f g : M) = f g := rfl
 
-lemma subtype.property' {α : Type*} {p : α → Prop} (a : subtype p) : p a := a.2
-
-def preimage_equiv {H : Type*} [group H] (f : G →* H) (x y : G) :
-  f ⁻¹' {f x} ≃ f ⁻¹' {f y} :=
-{ to_fun := λ a, ⟨a * x⁻¹ * y, by { have := a.property', simp * at * }⟩,
-  inv_fun := λ a, ⟨a * y⁻¹ * x, by { have := a.property', simp * at * }⟩,
-  left_inv := λ a, subtype.eq $ show (a : G) * x⁻¹ * y * y⁻¹ * x = a, by simp,
-  right_inv := λ a, subtype.eq $ show (a : G) * y⁻¹ * x * x⁻¹ * y = a, by simp }
-
-noncomputable def preimage_equiv_of_mem_range {H : Type*} [group H] (f : G →* H) {x y : H}
-  (hx : x ∈ set.range f) (hy : y ∈ set.range f) : f ⁻¹' {x} ≃ f ⁻¹' {y} :=
+lemma card_fiber_eq_of_mem_range [fintype G]
+  {H : Type*} [group H] [decidable_eq H] (f : G →* H) {x y : H}
+  (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
+  (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
 begin
-  rw [← classical.some_spec hx, ← classical.some_spec hy],
-  exact preimage_equiv _ _ _
+  rcases hx with ⟨x, rfl⟩,
+  rcases hy with ⟨y, rfl⟩,
+  refine card_congr (λ g _, g * x⁻¹ * y) _ _ (λ g hg, ⟨g * y⁻¹ * x, _⟩),
+  { simp only [mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+      eq_self_iff_true, monoid_hom.map_mul_inv, and_self, forall_true_iff] {contextual := tt} },
+  { simp only [mul_right_inj, imp_self, forall_2_true_iff], },
+  { simp only [true_and, mem_filter, mem_univ] at hg,
+    simp only [hg, mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+      eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
+      mul_inv_cancel_right, inv_mul_cancel_right], }
 end
 
-lemma sum_subtype {R M : Type*} [add_comm_monoid M]
-  {p : R → Prop} {F : fintype (subtype p)} {s : finset R} (h : ∀ x, x ∈ s ↔ p x) {f : R → M} :
-  ∑ a in s, f a = ∑ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h,
-begin
-  rw ← sum_attach,
-  resetI,
-  subst p,
-  congr,
-  simp [finset.ext]
-end
+-- @[to_additive]
+-- lemma prod_subtype {R M : Type*} [comm_monoid M]
+--   {p : R → Prop} {F : fintype (subtype p)} {s : finset R} (h : ∀ x, x ∈ s ↔ p x) (f : R → M) :
+--   ∏ a in s, f a = ∏ a : subtype p, f a :=
+-- have (∈ s) = p, from set.ext h,
+-- begin
+--   rw ← prod_attach,
+--   resetI,
+--   subst p,
+--   congr,
+--   simp [finset.ext]
+-- end
 
-variables [fintype G] [decidable_eq G]
+variable [fintype G]
+
+section
+
+variables [decidable_eq G]
 variable (G)
-lemma is_cyclic.exists_monoid_generator [is_cyclic G] :
-  ∃ x : G, ∀ y : G, y ∈ powers x :=
-by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator G
+-- lemma is_cyclic.exists_monoid_generator [is_cyclic G] :
+--   ∃ x : G, ∀ y : G, y ∈ powers x :=
+-- by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator G
 
 open_locale classical add_monoid
 
+end
+
+-- lemma finset.mem_image_univ_iff {α : Type*} {β : Type*} [fintype α] [decidable_eq β] (f : α → β) (b : β) :
+--   b ∈ finset.univ.image f ↔ b ∈ set.range f :=
+-- begin
+--   simp only [mem_image, set.mem_range, mem_univ, exists_prop_of_true],
+-- end
+
 variable {G}
-lemma sum_units_subgroup (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
-let ⟨x, hx⟩ := is_cyclic.exists_monoid_generator (set.range (to_hom_units f)) in
-have hx1 : x ≠ 1, from λ hx1, hf begin
-  ext g,
-  cases hx ⟨to_hom_units f g, g, rfl⟩ with n hn,
-  rw [subtype.coe_ext, units.ext_iff] at hn,
-  simp * at *
-end,
-have hx1 : (x : R) - 1 ≠ 0,
-  from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
-calc ∑ g : G, f g
-    = ∑ g : G, to_hom_units f g : rfl
-... = ∑ b : units R in univ.image (to_hom_units f),
-      (univ.filter (λ a, to_hom_units f a = b)).card • b :
-        sum_comp (coe : units R → R) (to_hom_units f)
-... = ∑ b : units R in univ.image (to_hom_units f),
-      fintype.card (to_hom_units f ⁻¹' {b}) • b :
-  sum_congr rfl (λ b hb, congr_arg2 _ (fintype.card_of_finset' _ (by simp)).symm rfl)
-... = ∑ b : units R in univ.image (to_hom_units f),
-      fintype.card (to_hom_units f ⁻¹' {x}) • b :
-  sum_congr rfl (λ b hb, congr_arg2 _
-    (fintype.card_congr (preimage_equiv_of_mem_range _ (by clear_aux_decl; finish) x.2)) rfl)
-... = ∑ b : set.range (to_hom_units f),
-      fintype.card (to_hom_units f ⁻¹' {x}) • ↑b : sum_subtype (by simp)
-... = fintype.card (to_hom_units f ⁻¹' {x}) * ∑ b : set.range (to_hom_units f), (b : R) :
-  by simp [mul_sum, add_monoid.smul_eq_mul]
-... = (fintype.card (to_hom_units f ⁻¹' {x}) : R) * 0 : (congr_arg2 _ rfl $
-  calc ∑ b : set.range (to_hom_units f), (b : R)
+/-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero. -/
+lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
+begin
+  classical,
+  obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ powers x,
+    from is_cyclic.exists_monoid_generator (set.range (f.to_hom_units)),
+  have hx1 : x ≠ 1,
+  { rintro rfl,
+    apply hf,
+    ext g,
+    rw [monoid_hom.one_apply],
+    cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
+    rwa [subtype.coe_ext, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
+      is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
+      _root_.one_pow, eq_comm] at hn, },
+  replace hx1 : (x : R) - 1 ≠ 0,
+    from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
+  let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
+  calc ∑ g : G, f g
+      = ∑ g : G, f.to_hom_units g : rfl
+  ... = ∑ u : units R in univ.image f.to_hom_units, (univ.filter (λ g, f.to_hom_units g = u)).card • u :
+    sum_comp (coe : units R → R) f.to_hom_units
+  ... = ∑ u : units R in univ.image f.to_hom_units, c • u : sum_congr rfl (λ u hu, congr_arg2 _ _ rfl)
+  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype
+      (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ, exists_prop_of_true]) _
+  ... = c • ∑ b : set.range f.to_hom_units, (b : R) : smul_sum.symm
+  ... = c • 0 : congr_arg2 _ rfl _
+  ... = 0 : smul_zero _,
+  { apply card_fiber_eq_of_mem_range f.to_hom_units,
+    { simpa only [mem_image, mem_univ, exists_prop_of_true, set.mem_range] using hu, },
+    { exact ⟨1, f.to_hom_units.map_one⟩ } },
+  calc ∑ b : set.range f.to_hom_units, (b : R)
       = ∑ n in range (order_of x), x ^ n :
-    eq.symm $ sum_bij (λ n _, x ^ n) (by simp) (by simp)
-      (λ m n hm hn, pow_injective_of_lt_order_of _ (by simpa using hm) (by simpa using hn))
+    eq.symm $ sum_bij (λ n _, x ^ n)
+      (by simp only [mem_univ, forall_true_iff])
+      (by simp only [is_submonoid.coe_pow, eq_self_iff_true, units.coe_pow, coe_coe, forall_true_iff])
+      (λ m n hm hn, pow_injective_of_lt_order_of _
+        (by simpa only [mem_range] using hm)
+        (by simpa only [mem_range] using hn))
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
-  ... = 0 : begin
-    rw [← domain.mul_right_inj hx1, ← geom_series, geom_sum_mul, coe_coe],
-    norm_cast,
-    rw [pow_order_of_eq_one],
-    simp,
-   end)
-... = 0 : mul_zero _
+  ... = 0 : _,
+  rw [← domain.mul_right_inj hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
+  norm_cast,
+  rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
+end
+
+/-- In an integral domain, a sum indexed by a homomorphism from a finite group is zero,
+unless the homomorphism is trivial, in which case the sum is equal to the cardinality of the group. -/
+lemma sum_hom_units (f : G →* R) [decidable (f = 1)] :
+  ∑ g : G, f g = if f = 1 then fintype.card G else 0 :=
+begin
+  split_ifs with h h,
+  { simp [h, card_univ] },
+  { exact sum_hom_units_eq_zero f h }
+end
 
 end

@@ -171,6 +171,11 @@ returns a tuple `(args, n, V)` where
 - `V` is the return type.
 
 Given any other expression `e`, this function returns an empty list and `e`.
+
+Note that the type of each argument and the return type all live in a different
+contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
+`decompose_pi` returns `β #0` as the type of `y` and `γ #1 #0` as the type of
+`z` -- the two `#0`s do not denote the same thing.
 -/
 meta def decompose_pi
   : expr → list (name × binder_info × expr × bool) × ℕ × expr
@@ -195,6 +200,11 @@ Given any other expression `e`, this function returns an empty list and `e`.
 
 The input expression is normalised lazily. This means that the returned
 expressions are not necessarily in normal form.
+
+Note that the type of each argument and the return type all live in a different
+contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
+`decompose_pi_normalizing` returns `β #0` as the type of `y` and `γ #1 #0`
+as the type of `z` -- the two `#0`s do not denote the same thing.
 -/
 meta def decompose_pi_normalizing
   : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
@@ -262,7 +272,7 @@ returned map is
     3 -> 1, 2
     2 -> 0
 
-As shown in the example, arguments are counted from zero.
+Arguments are counted from zero (as shown above).
 -/
 meta def application_variable_occurrences (e : expr) : rbmultimap ℕ ℕ :=
 let (_, args) := decompose_app e in

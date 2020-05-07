@@ -1,17 +1,18 @@
-import data.list.basic
-import data.set.finite
+-- import data.list.basic
+-- import data.set.finite
 import data.nat.prime
 import data.nat.choose
 import data.int.gcd
 import data.mv_polynomial
 import algebra.group_power
-import algebra.char_p
+-- import algebra.char_p
 import group_theory.subgroup
 import ring_theory.multiplicity
-import ring_theory.unique_factorization_domain
-import data.padics.padic_integers
-import number_theory.quadratic_reciprocity
-import deprecated.group
+-- import ring_theory.unique_factorization_domain
+-- import data.padics.padic_integers
+-- import number_theory.quadratic_reciprocity
+import algebra.invertible
+-- import deprecated.group
 
 import tactic
 
@@ -243,13 +244,17 @@ noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
 (finset.range (n+1)).sum (λ i, (C (p^i) * X i ^ (p^(n-i))))
 
 variables (R)
-/- View a polynomial written in terms of basis of Witt polynomials
-as a polynomial written in terms of the standard basis.-/
-noncomputable def from_W_to_X_basis : mv_polynomial ℕ R → mv_polynomial ℕ R :=
-eval₂ C (witt_polynomial p)
 
-instance from_W_to_X_basis.is_ring_hom : is_ring_hom (from_W_to_X_basis p R) :=
-by delta from_W_to_X_basis; apply_instance
+/-- View a polynomial written in terms of the basis of Witt polynomials
+as a polynomial written in terms of the standard basis.
+
+In particular, this sends `X n` to `witt_polynomial p n`.
+This fact is recorded in `from_W_to_X_basis_W_n`. -/
+noncomputable def from_W_to_X_basis : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
+aeval _ _ (witt_polynomial p)
+
+-- instance from_W_to_X_basis.is_ring_hom : is_ring_hom (from_W_to_X_basis p R) :=
+-- by delta from_W_to_X_basis; apply_instance
 
 lemma witt_polynomial_zero : (witt_polynomial p 0 : mv_polynomial ℕ R) = X 0 :=
 begin
@@ -260,33 +265,38 @@ end
 lemma from_W_to_X_basis_W_n (n) : from_W_to_X_basis p R (X n) = witt_polynomial p n :=
 by simp [from_W_to_X_basis]
 
-variables {R} (pu : units R) (hp : (pu : R) = p)
+-- variables {R} -- (pu : units R) (hp : (pu : R) = p)
 
 -- We need p to be invertible for the following definitions
-noncomputable def X_in_terms_of_W (pu : units R) (hp : (pu : R) = p) :
-  ℕ → mv_polynomial ℕ R
-| n := (X n - (finset.sum finset.univ (λ i : fin n,
-  have _ := i.2, (C (p^(i : ℕ)) * (X_in_terms_of_W i)^(p^(n-i)))))) * C ((pu⁻¹ : units R)^n)
 
-lemma X_in_terms_of_W_eq {n : ℕ} : X_in_terms_of_W p pu hp n =
-    (X n - (finset.range n).sum (λ i, C (p^i) * X_in_terms_of_W p pu hp i ^ p ^ (n - i))) *
-      C ((pu⁻¹ : units R)^n) :=
+/-- The `X_in_terms_of_W p R n` is the polynomial on the basis of Witt polynomials
+that corresponds to the ordinary `X n`.
+This means that `from_W_to_X_basis` sends `X_in_terms_of_W p R n` to `X n`.
+This fact is recorded in `from_W_to_X_basis_X_in_terms_of_W`. -/
+noncomputable def X_in_terms_of_W [invertible (p : R)] :
+  ℕ → mv_polynomial ℕ R
+| n := (X n - (∑ i : fin n,
+  have _ := i.2, (C (p^(i : ℕ)) * (X_in_terms_of_W i)^(p^(n-i))))) * C (⅟p ^ n)
+
+lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} : X_in_terms_of_W p R n =
+    (X n - (∑ i in finset.range n, C (p^i) * X_in_terms_of_W p R i ^ p ^ (n - i))) *
+      C (⅟p ^ n) :=
 by { rw [X_in_terms_of_W, range_sum_eq_fin_univ_sum], }
 
-/- View a polynomial written in terms of basis of Witt polynomials
-as a polynomial written in terms of the standard basis.-/
-noncomputable def from_X_to_W_basis : mv_polynomial ℕ R → mv_polynomial ℕ R :=
-eval₂ C (X_in_terms_of_W p pu hp)  -- { intro n,
-  --   delta from_X_to_W_basis function.comp,
-  --   erw eval₂_X,
-  --   refine X_in_terms_of_W_prop' p _ _ n,
-  --   intro k,
-  --   erw from_W_to_X_basis_W_n p }
+/-- View a polynomial written in terms of the standard basis
+as a polynomial written in terms of the Witt basis.
 
-instance from_X_to_W_basis.is_ring_hom : is_ring_hom (from_X_to_W_basis p pu hp) :=
-by delta from_X_to_W_basis; apply_instance
+This sends `witt_polynomial p n` to `X n`,
+and `X n` to `X_in_terms_of_W p R n`. -/
+noncomputable def from_X_to_W_basis [invertible (p : R)] :
+  mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
+aeval _ _ (X_in_terms_of_W p R)
 
-lemma X_in_terms_of_W_zero : X_in_terms_of_W p pu hp 0 = witt_polynomial p 0 :=
+-- instance from_X_to_W_basis.is_ring_hom : is_ring_hom (from_X_to_W_basis p pu hp) :=
+-- by delta from_X_to_W_basis; apply_instance
+
+lemma X_in_terms_of_W_zero [invertible (p : R)] :
+  X_in_terms_of_W p R 0 = witt_polynomial p 0 :=
 begin
   rw X_in_terms_of_W_eq,
   rw finset.range_zero,
@@ -295,21 +305,11 @@ begin
   simp
 end
 
-lemma X_in_terms_of_W_aux {n} : X_in_terms_of_W p pu hp n * C (p^n) =
-  X n - (finset.range n).sum (λ i, C (p^i) * (X_in_terms_of_W p pu hp i)^p^(n-i)) :=
-by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, ← hp, pu.inv_mul, one_pow, C_1, mul_one]
+lemma X_in_terms_of_W_aux [invertible (p : R)] {n} : X_in_terms_of_W p R n * C (p^n) =
+  X n - ∑ i in finset.range n, C (p^i) * (X_in_terms_of_W p R i)^p^(n-i) :=
+by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
 
 section -- Kudos to Mario
-
--- theorem nat.semiring_hom_eq_cast {α} [ring α]
---   (f : ℕ → α) [is_semiring_hom f] (n : ℕ) : f n = n :=
--- nat.eq_cast' _ (is_semiring_hom.map_one _) (λ _ _, is_semiring_hom.map_add f) _
-
--- theorem int.ring_hom_eq_cast {α} [ring α]
---   (f : ℤ → α) [is_ring_hom f] (n : ℤ) : f n = n :=
--- int.eq_cast _ (is_ring_hom.map_one _) (λ _ _, is_ring_hom.map_add f) _
-
--- #check @rat.cast
 
 theorem rat.ring_hom_unique {α} [ring α]
   (f g : ℚ → α) [is_ring_hom f] [is_ring_hom g] (r : ℚ) : f r = g r :=
@@ -340,54 +340,95 @@ end
 -- have fC : ∀ (a : ℚ), f (C a) = C a,
 -- { intro a, show (f ∘ C) a = _, apply rat.ring_hom_unique (f ∘ C) C a },
 
-lemma X_in_terms_of_W_prop'
-  (f : mv_polynomial ℕ R → mv_polynomial ℕ R) [is_ring_hom f]
-  (fC : ∀ (a : R), f (C a) = C a)
-  (fX : ∀ (n : ℕ), f (X n) = @witt_polynomial p _ R _ _ n)
-  (n : ℕ) : f (X_in_terms_of_W p pu hp n) = X n :=
+lemma X_in_terms_of_W_prop' [invertible (p : R)]
+  (f : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R)
+  (fX : ∀ (n : ℕ), f (X n) = witt_polynomial p n)
+  (n : ℕ) : f (X_in_terms_of_W p R n) = X n :=
 begin
+  have fC : ∀ r, f (C r) = C r := f.commutes,
   apply nat.strong_induction_on n,
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
-  simp only [is_ring_hom.map_mul f, is_ring_hom.map_sub f, fC, fX, (finset.sum_hom _ f).symm],
+  simp only [f.map_mul, alg_hom.map_sub f, fC, fX, alg_hom.map_sum],
   rw [finset.sum_congr rfl, (_ : @witt_polynomial p _ R _ _ n -
     (finset.range n).sum (λ i, C (p^i) * (X i)^p^(n-i)) = C (p^n) * X n)],
-  { rw [mul_right_comm, ← C_mul, ← mul_pow, ← hp, pu.mul_inv, one_pow, C_1, one_mul] },
+  { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { simp [witt_polynomial, nat.sub_self],
     rw finset.sum_range_succ,
     simp },
   { intros i h,
     rw finset.mem_range at h,
-    simp only [is_ring_hom.map_mul f, is_semiring_hom.map_pow f, fC, function.comp_app],
+    simp only [alg_hom.map_mul f, alg_hom.map_pow f, fC, function.comp_app],
     rw H _ h }
 end
 
-lemma from_W_to_X_basis_comp_from_X_to_W_basis (f) :
-  from_W_to_X_basis p _ (from_X_to_W_basis p pu hp f) = f :=
+lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
+  from_W_to_X_basis p R (X_in_terms_of_W p R n) = X n :=
 begin
-  show (from_W_to_X_basis p _ ∘ from_X_to_W_basis p pu hp) f = f,
-  apply mv_polynomial.is_id,
-  { apply_instance },
-  { intro r,
-    delta from_X_to_W_basis function.comp, erw eval₂_C,
-    apply eval₂_C },
-  { intro n,
-    delta from_X_to_W_basis function.comp, erw eval₂_X,
-    refine X_in_terms_of_W_prop' p pu hp _ _ _ n,
-    { intro r, apply eval₂_C },
-    { intro k, erw from_W_to_X_basis_W_n p } }
+  apply X_in_terms_of_W_prop' p R _ _ n,
+  intro n,
+  exact from_W_to_X_basis_W_n p R n,
 end
 
-lemma X_in_terms_of_W_prop₂ (k : ℕ) : (witt_polynomial p k).eval₂ C (X_in_terms_of_W p pu hp) = X k :=
+--move this
+lemma mv_polynomial.alg_hom_is_id {σ : Type*} (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R)
+  (hf : ∀ i : σ, f (X i) = X i) : f = alg_hom.id _ _ :=
 begin
-  suffices : from_X_to_W_basis p pu hp (C (p^k) * X k) +
-    from_X_to_W_basis p pu hp (finset.sum (finset.range k) (λ (i : ℕ), C (p^i) * (X i)^p^(k-i))) = X k,
+  ext p : 1,
+  have H : is_semiring_hom f.to_ring_hom := by apply_instance,
+  apply mv_polynomial.is_id _ H f.commutes hf,
+end
+
+lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
+  (from_W_to_X_basis p R).comp (from_X_to_W_basis p _) = alg_hom.id _ _ :=
+begin
+  apply mv_polynomial.alg_hom_is_id,
+  intro n,
+  rw [from_X_to_W_basis, alg_hom.comp_apply, aeval_X],
+  exact from_W_to_X_basis_X_in_terms_of_W p R n
+end
+
+lemma from_X_to_W_basis_witt_polynomial [invertible (p : R)] (n : ℕ) :
+  (from_X_to_W_basis p R) (witt_polynomial p n) = X n :=
+begin
+
+end
+
+lemma from_X_to_W_basis_comp_from_W_to_X_basis [invertible (p : R)] :
+  (from_X_to_W_basis p R).comp (from_W_to_X_basis p _) = alg_hom.id _ _ :=
+begin
+  apply mv_polynomial.alg_hom_is_id,
+  intro n,
+  -- rw ← from_W_to_X_basis_X_in_terms_of_W p R n,
+  -- refine X_in_terms_of_W_prop' p R _ _ n,
+  -- have := X_in_terms_of_W_prop' p R (from_W_to_X_basis p R) (from_W_to_X_basis_W_n p R) n,
+  -- conv_rhs { rw [← this] },
+  rw [alg_hom.comp_apply],
+
+  -- rw [from_W_to_X_basis],
+  rw [from_X_to_W_basis],
+
+  -- convert this using 1,
+  -- delta from_X_to_W_basis function.comp, erw eval₂_X,
+  -- squeeze_simp [from_X_to_W_basis],
+  -- refine X_in_terms_of_W_prop' p R _ _ _ n,
+  -- { intro r, apply eval₂_C },
+  -- { intro k, erw from_W_to_X_basis_W_n p }
+end
+
+#exit
+
+lemma X_in_terms_of_W_prop₂ [invertible (p : R)] (k : ℕ) :
+  (witt_polynomial p k).eval₂ C (X_in_terms_of_W p R) = X k :=
+begin
+  suffices : from_X_to_W_basis p R (C (p^k) * X k) +
+    from_X_to_W_basis p R (finset.sum (finset.range k) (λ (i : ℕ), C (p^i) * (X i)^p^(k-i))) = X k,
   { simpa [witt_polynomial, finset.sum_range_succ] },
-  suffices : ∀ i, from_X_to_W_basis p pu hp (C (p^i) * (X i)^p^(k-i)) =
-    C (p^i) * (X_in_terms_of_W p pu hp i)^p^(k-i),
+  suffices : ∀ i, from_X_to_W_basis p R (C (p^i) * (X i)^p^(k-i)) =
+    C (p^i) * (X_in_terms_of_W p R i)^p^(k-i),
   { rw [from_X_to_W_basis, eval₂_mul, eval₂_C, eval₂_X, X_in_terms_of_W_eq,
-        mul_comm, mul_assoc, ← C_mul, ← mul_pow, ← hp, pu.inv_mul, one_pow, C_1, mul_one,
-        ← finset.sum_hom (eval₂ C $ X_in_terms_of_W p pu hp),
+        mul_comm, mul_assoc, ← C_mul, ← mul_pow, inv_mul_of_self, one_pow, C_1, mul_one,
+        ← finset.sum_hom (eval₂ C $ X_in_terms_of_W p R),
         sub_add_eq_add_sub, sub_eq_iff_eq_add, hp],
     congr,
     funext i,
@@ -396,11 +437,11 @@ begin
   rw [from_X_to_W_basis, eval₂_mul, eval₂_C, eval₂_pow, eval₂_X]
 end
 
-lemma X_in_terms_of_W_prop (n : ℕ) : (X_in_terms_of_W p pu hp n).eval₂ C (witt_polynomial p) = X n :=
+lemma X_in_terms_of_W_prop [invertible (p : R)] (n : ℕ) : (X_in_terms_of_W p R n).eval₂ C (witt_polynomial p) = X n :=
 begin
   change from_W_to_X_basis p R _ = X n,
   apply X_in_terms_of_W_prop',
-  { intro r, apply eval₂_C },
+  -- { intro r, apply eval₂_C },
   { intro n, apply from_W_to_X_basis_W_n }
 end
 
@@ -1281,11 +1322,11 @@ end
 
 variable (R)
 
-def mv_polynomial.counit : mv_polynomial R ℤ → R :=
-eval₂ coe id
+def mv_polynomial.counit : mv_polynomial R ℤ →+* R :=
+eval₂_hom coe id
 
-instance mv_polynomial.counit.is_ring_hom : is_ring_hom (mv_polynomial.counit R) :=
-by delta mv_polynomial.counit; apply_instance
+-- instance mv_polynomial.counit.is_ring_hom : is_ring_hom (mv_polynomial.counit R) :=
+-- by delta mv_polynomial.counit; apply_instance
 
 lemma counit_surjective : surjective (mv_polynomial.counit R) :=
 λ r, ⟨X r, eval₂_X _ _ _⟩

@@ -76,11 +76,17 @@ semilattice_sup.sup_le a b c
 @[simp] theorem sup_eq_left : a ⊔ b = a ↔ b ≤ a :=
 le_antisymm_iff.trans $ by simp [le_refl]
 
+theorem sup_of_le_left (h : b ≤ a) : a ⊔ b = a :=
+sup_eq_left.2 h
+
 @[simp] theorem left_eq_sup : a = a ⊔ b ↔ b ≤ a :=
 eq_comm.trans sup_eq_left
 
 @[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
+
+theorem sup_of_le_right (h : a ≤ b) : a ⊔ b = b :=
+sup_eq_right.2 h
 
 @[simp] theorem right_eq_sup : b = a ⊔ b ↔ a ≤ b :=
 eq_comm.trans sup_eq_right
@@ -195,11 +201,17 @@ le_trans inf_le_right h
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
 
+theorem inf_of_le_left (h : a ≤ b) : a ⊓ b = a :=
+inf_eq_left.2 h
+
 @[simp] theorem left_eq_inf : a = a ⊓ b ↔ a ≤ b :=
 eq_comm.trans inf_eq_left
 
 @[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
 le_antisymm_iff.trans $ by simp [le_refl]
+
+theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
+inf_eq_right.2 h
 
 @[simp] theorem right_eq_inf : b = a ⊓ b ↔ b ≤ a :=
 eq_comm.trans inf_eq_right

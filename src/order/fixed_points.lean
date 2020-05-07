@@ -135,7 +135,7 @@ lemma prev_eq (hf : monotone f) {a : α} (h : f a ≤ a) : prev f a = f (prev f 
 calc prev f a = a ⊓ f (prev f a) :
     gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf_left _ (hf h)
   ... = f (prev f a) :
-    inf_eq_right.2 $ le_trans (hf prev_le) h
+    inf_of_le_right $ le_trans (hf prev_le) h
 
 def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
 ⟨prev f a, (prev_eq hf h).symm⟩
@@ -146,7 +146,7 @@ lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f 
 calc next f a = a ⊔ f (next f a) :
     lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup_left (hf h) _
  ... = f (next f a) :
-    sup_eq_right.2 $ le_trans h (hf next_le)
+    sup_of_le_right $ le_trans h (hf next_le)
 
 def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=
 ⟨next f a, (next_eq hf h).symm⟩

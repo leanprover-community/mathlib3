@@ -562,7 +562,7 @@ by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_re
 
 @[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
   Icc a b ∩ Icc b c = {b} :=
-by rw [Icc_inter_Icc, sup_eq_right.2 hab, inf_eq_left.2 hbc, Icc_self]
+by rw [Icc_inter_Icc, sup_of_le_right hab, inf_of_le_left hbc, Icc_self]
 
 include ht
 

@@ -143,7 +143,7 @@ begin
   apply le_nhds_of_cauchy_adhp hu,
   rw ← bot_lt_iff_ne_bot,
   have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
-  { rw [bot_lt_iff_ne_bot, inf_eq_left.2 ha], exact map_ne_bot hp },
+    by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
   exact lt_of_lt_of_le this (inf_le_inf_right _ (map_mono hf))
 end
 

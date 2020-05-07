@@ -203,12 +203,12 @@ theorem is_noetherian_submodule {N : submodule R M} :
 theorem is_noetherian_submodule_left {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, (N ⊓ s).fg :=
 is_noetherian_submodule.trans
-⟨λ H s, H _ inf_le_left, λ H s hs, (inf_eq_right.2 hs) ▸ H _⟩
+⟨λ H s, H _ inf_le_left, λ H s hs, (inf_of_le_right hs) ▸ H _⟩
 
 theorem is_noetherian_submodule_right {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, (s ⊓ N).fg :=
 is_noetherian_submodule.trans
-⟨λ H s, H _ inf_le_right, λ H s hs, (inf_eq_left.2 hs) ▸ H _⟩
+⟨λ H s, H _ inf_le_right, λ H s hs, (inf_of_le_left hs) ▸ H _⟩
 
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)

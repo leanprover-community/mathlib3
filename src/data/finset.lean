@@ -1990,8 +1990,8 @@ have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
 begin
   assume x y,
   cases (@is_total.total _ (≤) _ x y) with h,
-  { simp [sup_eq_right.2 h, sup_eq_right.2 (mono_g h)] },
-  { simp [sup_eq_left.2 h, sup_eq_left.2 (mono_g h)] }
+  { simp [sup_of_le_right h, sup_of_le_right (mono_g h)] },
+  { simp [sup_of_le_left h, sup_of_le_left (mono_g h)] }
 end,
 by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
@@ -2073,8 +2073,8 @@ have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
 begin
   assume x y,
   cases (@is_total.total _ (≤) _ x y) with h,
-  { simp [inf_eq_left.2 h, inf_eq_left.2 (mono_g h)] },
-  { simp [inf_eq_right.2 h, inf_eq_right.2 (mono_g h)] }
+  { simp [inf_of_le_left h, inf_of_le_left (mono_g h)] },
+  { simp [inf_of_le_right h, inf_of_le_right (mono_g h)] }
 end,
 by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [top]) (by simp [A] {contextual := tt})

@@ -806,7 +806,7 @@ lemma ord_continuous.sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f
 by rw [← Sup_pair, ← Sup_pair, hf {a₁, a₂}, ← Sup_image, image_pair]
 
 lemma ord_continuous.mono {f : α → β} (hf : ord_continuous f) : monotone f :=
-assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_eq_right.2 h]
+assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_of_le_right h]
 
 end ord_continuous
 

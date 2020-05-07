@@ -85,7 +85,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
   have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
-    by simp only [inf_eq_left.2 h]; exact (ultrafilter_ultrafilter_of hf).left,
+    by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf_right _ ultrafilter_of_le)⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/

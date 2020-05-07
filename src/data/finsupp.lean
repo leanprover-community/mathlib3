@@ -39,7 +39,7 @@ This file defines `α →₀ β` as notation for `finsupp α β`.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 open finset
 
@@ -462,6 +462,14 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 lemma prod_ite_eq' [has_zero β] [comm_monoid γ] (f : α →₀ β) (a : α) (b : α → β → γ) :
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
+
+@[simp] lemma prod_pow [fintype α] [comm_monoid γ] (f : α →₀ ℕ) (g : α → γ) :
+  f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
+begin
+  apply prod_subset (finset.subset_univ _),
+  intros a _ ha,
+  simp only [finsupp.not_mem_support_iff.mp ha, pow_zero]
+end
 
 section add_monoid
 variables [add_monoid β]

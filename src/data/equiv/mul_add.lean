@@ -88,6 +88,12 @@ def symm (h : M ≃* N) : N ≃* M :=
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
+@[simp, to_additive]
+theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
+
+@[simp, to_additive]
+theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
+
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=

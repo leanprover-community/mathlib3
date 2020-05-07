@@ -19,7 +19,6 @@ contraction, dual module, tensor product
 
 universes u v
 
-set_option class.instance_max_depth 50
 
 section contraction
 open tensor_product

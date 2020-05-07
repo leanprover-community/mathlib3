@@ -21,7 +21,14 @@ add a few results about `dist`.
 reflection, isometric
 -/
 
-variables {R : Type*} {E : Type*}
+variables (R : Type*) {E : Type*}
+
+lemma equiv.reflection_fixed_iff_of_module [ring R] [invertible (2:R)]
+  [add_comm_group E] [module R E] {x y : E} :
+  (equiv.reflection x : E → E) y = y ↔ y = x :=
+equiv.reflection_fixed_iff_of_bit0_inj $ λ x y h,
+by rw [← one_smul R x, ← one_smul R y, ← inv_of_mul_self (2:R), mul_smul, mul_smul, two_smul,
+  two_smul, ← bit0, ← bit0, h]
 
 namespace isometric
 
@@ -70,9 +77,7 @@ variable (R)
 include R
 
 lemma reflection_fixed_iff {x y : E} : (reflection x : E → E) y = y ↔ y = x :=
-equiv.reflection_fixed_iff $ λ x y h,
-by rw [← one_smul R x, ← one_smul R y, ← inv_of_mul_self (2:R), mul_smul, mul_smul, two_smul,
-  two_smul, ← bit0, ← bit0, h]
+equiv.reflection_fixed_iff_of_module R
 
 end module
 
@@ -85,5 +90,9 @@ lemma reflection_dist_self (x y : E) :
 by simp only [reflection_dist_self', ← two_smul R x, ← two_smul R y, dist_smul]
 
 end normed_space
+
+lemma reflection_dist_self_real [normed_group E] [normed_space ℝ E] (x y : E) :
+  dist ((reflection x : E → E) y) y = 2 * dist x y :=
+by simp [reflection_dist_self ℝ x y, real.norm_two]
 
 end isometric

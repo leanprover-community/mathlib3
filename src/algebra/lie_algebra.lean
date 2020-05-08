@@ -3,7 +3,8 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import ring_theory.algebra data.matrix.basic linear_algebra.linear_action
+import ring_theory.algebra
+import linear_algebra.linear_action
 
 /-!
 # Lie algebras
@@ -36,7 +37,7 @@ unbundled. Since they extend Lie rings, these are also partially unbundled.
 lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 -/
 
-universes u v
+universes u v w w₁
 
 /--
 A binary operation, intended use in Lie algebras and similar structures.
@@ -44,6 +45,12 @@ A binary operation, intended use in Lie algebras and similar structures.
 class has_bracket (L : Type v) := (bracket : L → L → L)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
+
+/-- An Abelian Lie algebra is one in which all brackets vanish. Arguably this class belongs in the
+`has_bracket` namespace but it seems much more user-friendly to compromise slightly and put it in
+the `lie_algebra` namespace. -/
+class lie_algebra.is_abelian (L : Type v) [has_bracket L] [has_zero L] : Prop :=
+(abelian : ∀ (x y : L), ⁅x, y⁆ = 0)
 
 namespace ring_commutator
 
@@ -153,6 +160,19 @@ def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }
 
+local attribute [instance] lie_ring.of_associative_ring
+
+lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
+  ⁅x, y⁆ = x*y - y*x := rfl
+
+lemma commutative_ring_iff_abelian_lie_ring (A : Type v) [ring A] :
+  is_commutative A (*) ↔ lie_algebra.is_abelian A :=
+begin
+  have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  have h₂ : lie_algebra.is_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
+end
+
 end lie_ring
 
 section prio
@@ -175,28 +195,125 @@ end prio
 
 namespace lie_algebra
 
-/--
-A morphism of Lie algebras is a linear map respecting the bracket operations.
--/
-structure morphism (R : Type u) (L : Type v) (L' : Type v)
+set_option old_structure_cmd true
+/-- A morphism of Lie algebras is a linear map respecting the bracket operations. -/
+structure morphism (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends linear_map R L L' :=
 (map_lie : ∀ {x y : L}, to_fun ⁅x, y⁆ = ⁅to_fun x, to_fun y⁆)
 
+attribute [nolint doc_blame] lie_algebra.morphism.to_linear_map
+
 infixr ` →ₗ⁅⁆ `:25 := morphism _
 notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
 
-instance (R : Type u) (L : Type v) (L' : Type v)
-    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L'] :
-  has_coe (L →ₗ⁅R⁆ L') (L →ₗ[R] L') := ⟨morphism.to_linear_map⟩
+section morphism_properties
 
-lemma map_lie {R : Type u} {L : Type v} {L' : Type v}
-    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
-  (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
+variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
+variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
+variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
-@[simp] lemma map_lie' {R : Type u} {L : Type v} {L' : Type v}
-    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
-  (f : L →ₗ⁅R⁆ L') (x y : L) : (f : L →ₗ[R] L') ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
+instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphism.to_linear_map⟩
+
+/-- see Note [function coercion] -/
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
+
+@[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
+
+/-- The constant 0 map is a Lie algebra morphism. -/
+instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
+
+/-- The identity map is a Lie algebra morphism. -/
+instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie := by simp, ..(1 : L₁ →ₗ[R] L₁)}⟩
+
+instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
+
+/-- The composition of morphisms is a morphism. -/
+def morphism.comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
+{ map_lie := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
+  ..linear_map.comp f.to_linear_map g.to_linear_map }
+
+lemma morphism.comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
+  f.comp g x = f (g x) := rfl
+
+/-- The inverse of a bijective morphism is a morphism. -/
+def morphism.inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : L₂ →ₗ⁅R⁆ L₁ :=
+{ map_lie := λ x y, by {
+  calc g ⁅x, y⁆ = g ⁅f (g x), f (g y)⁆ : by { conv_lhs { rw [←h₂ x, ←h₂ y], }, }
+            ... = g (f ⁅g x, g y⁆) : by rw map_lie
+            ... = ⁅g x, g y⁆ : (h₁ _), },
+  ..linear_map.inverse f.to_linear_map g h₁ h₂ }
+
+end morphism_properties
+
+/-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
+instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
+more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
+structure equiv (R : Type u) (L : Type v) (L' : Type w)
+  [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+  extends L →ₗ⁅R⁆ L', L ≃ₗ[R] L'
+
+attribute [nolint doc_blame] lie_algebra.equiv.to_morphism
+attribute [nolint doc_blame] lie_algebra.equiv.to_linear_equiv
+
+notation L ` ≃ₗ⁅`:50 R `⁆ ` L' := equiv R L L'
+
+namespace equiv
+
+variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
+variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
+variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
+
+instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
+⟨{ map_lie := λ x y, by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
+  ..(1 : L₁ ≃ₗ[R] L₁)}⟩
+
+instance : inhabited (L₁ ≃ₗ⁅R⁆ L₁) := ⟨1⟩
+
+/-- Lie algebra equivalences are reflexive. -/
+@[refl]
+def refl : L₁ ≃ₗ⁅R⁆ L₁ := 1
+
+/-- Lie algebra equivalences are symmetric. -/
+@[symm]
+def symm (e : L₁ ≃ₗ⁅R⁆ L₂) : L₂ ≃ₗ⁅R⁆ L₁ :=
+{ ..morphism.inverse e.to_morphism e.inv_fun e.left_inv e.right_inv,
+  ..e.to_linear_equiv.symm }
+
+/-- Lie algebra equivalences are transitive. -/
+@[trans]
+def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L₁ ≃ₗ⁅R⁆ L₃ :=
+{ ..morphism.comp e₂.to_morphism e₁.to_morphism,
+  ..linear_equiv.trans e₁.to_linear_equiv e₂.to_linear_equiv }
+
+end equiv
+
+namespace direct_sum
+open dfinsupp
+
+variables {R : Type u} [comm_ring R]
+variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
+variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
+
+/-- The direct sum of Lie rings carries a natural Lie ring structure. -/
+instance : lie_ring (direct_sum ι L) := {
+  bracket  := zip_with (λ i, λ x y, ⁅x, y⁆) (λ i, lie_zero 0),
+  add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
+  lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
+  lie_self := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
+  jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
+  ..(infer_instance : add_comm_group _) }
+
+@[simp] lemma bracket_apply {x y : direct_sum ι L} {i : ι} :
+  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
+
+/-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
+instance : lie_algebra R (direct_sum ι L) :=
+{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
+  ..(infer_instance : module R _) }
+
+end direct_sum
 
 variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 
@@ -205,15 +322,31 @@ An associative algebra gives rise to a Lie algebra by taking the bracket to be t
 -/
 def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
   @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
-{ lie_smul :=
-    begin
-      intros,
-      show _ - _ = _ • (_ - _),
-      rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
-    end }
+{ lie_smul := λ t x y,
+    by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
+           algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
+functorial. -/
+def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
+ { map_lie := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
+     by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
+  ..f.to_linear_map, }
+
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+
+@[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
+  [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
+  (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  of_associative_algebra_hom (g.comp f) = (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) := rfl
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
@@ -256,23 +389,43 @@ This is a sufficient condition for the subset itself to form a Lie algebra.
 structure lie_subalgebra extends submodule R L :=
 (lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
 
+/-- The zero algebra is a subalgebra of any Lie algebra. -/
+instance : has_zero (lie_subalgebra R L) :=
+⟨{ lie_mem := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
+                                exact submodule.zero_mem (0 : submodule R L), },
+   ..(0 : submodule R L) }⟩
+
+instance : inhabited (lie_subalgebra R L) := ⟨0⟩
+
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
-/-- A Lie subalgebra forms a new Lie ring.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
+/-- A Lie subalgebra forms a new Lie ring. -/
+instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },
   jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, } }
 
-/-- A Lie subalgebra forms a new Lie algebra.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
     @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
+def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
+  (A' : subalgebra R A) : lie_subalgebra R A :=
+{ lie_mem := λ x y hx hy, by {
+    change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
+    rw lie_ring.of_associative_ring_bracket,
+    have hxy := subalgebra.mul_mem A' x y hx hy,
+    have hyx := subalgebra.mul_mem A' y x hy hx,
+    exact submodule.sub_mem A'.to_submodule hxy hyx, },
+  ..A'.to_submodule }
 
 end lie_subalgebra
 
@@ -322,6 +475,14 @@ This is a sufficient condition for the subset itself to form a Lie module.
 structure lie_submodule [lie_module R L M] extends submodule R M :=
 (lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → linear_action.act R x m ∈ carrier)
 
+/-- The zero module is a Lie submodule of any Lie module. -/
+instance [lie_module R L M] : has_zero (lie_submodule R L M) :=
+⟨{ lie_mem := λ x m h, by { rw [((submodule.mem_bot R).1 h), linear_action_zero],
+                            exact submodule.zero_mem (0 : submodule R M), },
+   ..(0 : submodule R M)}⟩
+
+instance [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
+
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
 
@@ -353,6 +514,15 @@ An ideal of a Lie algebra is a Lie subalgebra.
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L := {
   lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
+
+/-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
+class lie_module.is_irreducible [lie_module R L M] : Prop :=
+(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+
+/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
+action, and it is non-Abelian. -/
+class lie_algebra.is_simple : Prop :=
+(simple : lie_module.is_irreducible R L L ∧ ¬lie_algebra.is_abelian L)
 
 end lie_module
 

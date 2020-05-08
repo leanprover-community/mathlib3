@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.simple_func_dense
 import analysis.normed_space.bounded_linear_maps
 
@@ -117,7 +116,6 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 -- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
 local attribute [instance, priority 10000]
@@ -427,10 +425,10 @@ instance : has_coe (α →₁ₛ β) (α →₁ β) := ⟨subtype.val⟩
 protected lemma eq {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) → f = g := subtype.eq
 protected lemma eq' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq ∘ subtype.eq
 
-@[elim_cast] protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
+@[norm_cast] protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
 iff.intro (subtype.eq) (congr_arg coe)
 
-@[elim_cast] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[norm_cast] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
 /-- L1 simple functions forms a `emetric_space`, with the emetric being inherited from L1 space,
@@ -472,10 +470,11 @@ local attribute [instance] simple_func.add_comm_group simple_func.metric_space
 
 instance : inhabited (α →₁ₛ β) := ⟨0⟩
 
-@[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
-@[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
-@[simp, move_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
-@[simp, move_cast] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
+@[simp, norm_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
+@[simp, norm_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
+@[simp, norm_cast] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
+
 @[simp] lemma edist_eq (f g : α →₁ₛ β) : edist f g = edist (f : α →₁ β) (g : α →₁ β) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ β) : dist f g = dist (f : α →₁ β) (g : α →₁ β) := rfl
 
@@ -509,7 +508,7 @@ end ⟩⟩
 
 local attribute [instance, priority 10000] simple_func.has_scalar
 
-@[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
+@[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
   ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
 
 /-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
@@ -801,9 +800,9 @@ end ⟩
 /-- Negative part of a simple function in L1 space. -/
 def neg_part (f : α →₁ₛ ℝ) : α →₁ₛ ℝ := pos_part (-f)
 
-@[move_cast] lemma coe_pos_part (f : α →₁ₛ ℝ) : (f.pos_part : α →₁ ℝ) = (f : α →₁ ℝ).pos_part := rfl
+@[norm_cast] lemma coe_pos_part (f : α →₁ₛ ℝ) : (f.pos_part : α →₁ ℝ) = (f : α →₁ ℝ).pos_part := rfl
 
-@[move_cast] lemma coe_neg_part (f : α →₁ₛ ℝ) : (f.neg_part : α →₁ ℝ) = (f : α →₁ ℝ).neg_part := rfl
+@[norm_cast] lemma coe_neg_part (f : α →₁ₛ ℝ) : (f.neg_part : α →₁ ℝ) = (f : α →₁ ℝ).neg_part := rfl
 
 end pos_part
 
@@ -962,7 +961,7 @@ def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
 
-@[elim_cast] lemma simple_func.integral_eq_integral (f : α →₁ₛ β) :
+@[norm_cast] lemma simple_func.integral_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
 by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 

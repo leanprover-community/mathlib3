@@ -3,7 +3,8 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive logic.function
+import algebra.group.to_additive
+import logic.function
 
 attribute [simp] sub_neg_eq_add
 
@@ -294,12 +295,21 @@ by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
 
+section monoid
+variables [monoid M]
+
+@[to_additive]
+lemma left_inv_eq_right_inv {a b c : M} (hba : b * a = 1) (hac : a * c = 1) : b = c :=
+by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
+
+end monoid
+
 section comm_monoid
 variables [comm_monoid M]
 
 @[to_additive] lemma inv_unique {x y z : M}
   (hy : x * y = 1) (hz : x * z = 1) : y = z :=
-by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
+left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
 

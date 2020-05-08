@@ -8,10 +8,9 @@ Lebesgue integral on `ennreal`.
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 -/
-import
-  algebra.pi_instances
-  measure_theory.measure_space
-  measure_theory.borel_space
+import measure_theory.measure_space
+import measure_theory.borel_space
+
 noncomputable theory
 open set (hiding restrict restrict_apply) filter
 open_locale classical topological_space
@@ -59,7 +58,7 @@ instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
-lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
+lemma range_const (α) [measurable_space α] [nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',
@@ -71,7 +70,7 @@ lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, is_measurable {a | p a b}) : is_measurable {a | p a (f a)} :=
 begin
   rw (_ : {a | p a (f a)} = ⋃ b ∈ set.range f, {a | p a b} ∩ f ⁻¹' {b}),
-  { exact is_measurable.bUnion (countable_finite f.finite)
+  { exact is_measurable.bUnion f.finite.countable
       (λ b _, is_measurable.inter (h b) (f.measurable_sn _)) },
   ext a, simp,
   exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩
@@ -1239,7 +1238,7 @@ end
 end
 
 lemma lintegral_tsum [encodable β] {f : β → α → ennreal} (hf : ∀i, measurable (f i)) :
-  (∫⁻ a, ∑ i, f i a) = (∑ i, ∫⁻ a, f i a) :=
+  (∫⁻ a, ∑' i, f i a) = (∑' i, ∫⁻ a, f i a) :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
@@ -1303,7 +1302,7 @@ if hf : measurable f then
     (by simp)
     begin
       assume s hs hd,
-      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑i, (⨆ (h : a ∈ s i), f a)),
+      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑'i, (⨆ (h : a ∈ s i), f a)),
       { assume a,
         by_cases ha : ∃j, a ∈ s j,
         { rcases ha with ⟨j, haj⟩,

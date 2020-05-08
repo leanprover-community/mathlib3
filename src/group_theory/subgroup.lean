@@ -60,13 +60,14 @@ instance subtype.group {s : set G} [is_subgroup s] : group s :=
 instance subtype.comm_group {G : Type*} [comm_group G] {s : set G} [is_subgroup s] : comm_group s :=
 { .. subtype.group, .. subtype.comm_monoid }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma is_subgroup.coe_inv {s : set G} [is_subgroup s] (a : s) : ((a⁻¹ : s) : G) = a⁻¹ := rfl
+attribute [norm_cast] is_add_subgroup.coe_neg
 
-@[simp] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
+@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
 by induction n; simp [is_submonoid.coe_pow a]
 
-@[simp] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
+@[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
   ((gsmul n a : s) : A) = gsmul n a :=
 by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive gsmul_coe] is_subgroup.coe_gpow

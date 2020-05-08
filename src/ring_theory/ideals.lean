@@ -3,7 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import algebra.associated linear_algebra.basic order.zorn
+import algebra.associated
+import linear_algebra.basic
+import order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}
@@ -477,10 +479,14 @@ variables [local_ring α] [local_ring β]
 variable (α)
 def residue_field := (nonunits_ideal α).quotient
 
-namespace residue_field
-
-noncomputable instance : field (residue_field α) :=
+noncomputable instance residue_field.field : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
+
+/-- The quotient map from a local ring to it's residue field. -/
+def residue : α →+* (residue_field α) :=
+ideal.quotient.mk_hom _
+
+namespace residue_field
 
 variables {α β}
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :

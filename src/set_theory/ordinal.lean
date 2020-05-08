@@ -7,7 +7,7 @@ Ordinal arithmetic.
 
 Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 -/
-import order.order_iso set_theory.cardinal data.sum
+import set_theory.cardinal
 noncomputable theory
 
 open function cardinal set equiv
@@ -2286,7 +2286,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le, cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← cardinal.succ_le, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card
@@ -3211,7 +3211,7 @@ begin
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
     ((sum_congr (equiv.set.range f f.2) g).trans
     (set.sum_compl (range f))),
-  refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx, equiv.symm]
+  refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
 
 theorem extend_function_finite {α β : Type*} {s : set α} (f : s ↪ β)

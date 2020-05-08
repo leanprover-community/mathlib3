@@ -5,11 +5,11 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 
 Matrices
 -/
-import algebra.module algebra.pi_instances
-import data.fintype.basic
+import algebra.pi_instances
 
 universes u v w
 
+@[nolint unused_arguments]
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
 m → n → α
 
@@ -210,10 +210,10 @@ section ring
 variables [ring α]
 
 @[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul]
+  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul_val]
 
 @[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul]
+  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul_val]
 
 end ring
 
@@ -242,8 +242,7 @@ by { ext, simp [mul_comm] }
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 begin
   ext i j,
-  unfold matrix.mul has_scalar.smul,
-  rw finset.mul_sum,
+  simp only [matrix.mul_val, has_scalar.smul, finset.mul_sum],
   congr,
   ext,
   ac_refl
@@ -252,8 +251,7 @@ end
 @[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
 begin
   ext i j,
-  unfold matrix.mul has_scalar.smul,
-  rw finset.mul_sum,
+  simp only [matrix.mul_val, has_scalar.smul, finset.mul_sum],
   congr,
   ext,
   ac_refl
@@ -294,12 +292,47 @@ begin
   { rw [diagonal_val_eq] }
 end
 
+lemma vec_mul_diagonal [decidable_eq m] (v w : m → α) (x : m) :
+  vec_mul v (diagonal w) x = v x * w x :=
+begin
+  transitivity,
+  refine finset.sum_eq_single x _ _,
+  { assume b _ ne, simp [diagonal, if_neg ne] },
+  { simp },
+  { rw [diagonal_val_eq] }
+end
+
 @[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 
+@[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
+by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
+
+@[simp] lemma mul_vec_zero (A : matrix m n α) : mul_vec A 0 = 0 :=
+by { ext, simp [mul_vec] }
+
+@[simp] lemma vec_mul_zero (A : matrix m n α) : vec_mul 0 A = 0 :=
+by { ext, simp [vec_mul] }
+
+@[simp] lemma vec_mul_vec_mul (v : m → α) (M : matrix m n α) (N : matrix n o α) :
+  vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
+begin
+  ext,
+  simp_rw [vec_mul, matrix.mul, finset.mul_sum, finset.sum_mul, mul_assoc],
+  apply finset.sum_comm
+end
+
+@[simp] lemma mul_vec_mul_vec (v : o → α) (M : matrix m n α) (N : matrix n o α) :
+  mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
+begin
+  ext,
+  simp_rw [mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum, mul_assoc],
+  apply finset.sum_comm
+end
+
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
-by simp [matrix.mul]; refl
+by { ext i j, simp, refl }
 
 end semiring
 
@@ -338,7 +371,7 @@ by { ext i j, simp }
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
 begin
   ext i j,
-  unfold matrix.mul transpose,
+  simp only [matrix.mul_val, transpose],
   congr,
   ext,
   ac_refl
@@ -392,5 +425,36 @@ sub_up (sub_left A)
 def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin d) (fin (l)) α :=
 sub_down (sub_left A)
+
+section row_col
+/-! ### `row_col` section
+
+  Simplification lemmas for `matrix.row` and `matrix.col`.
+-/
+open_locale matrix
+
+@[simp] lemma col_add [semiring α] (v w : m → α) : col (v + w) = col v + col w := by { ext, refl }
+@[simp] lemma col_smul [semiring α] (x : α) (v : m → α) : col (x • v) = x • col v := by { ext, refl }
+@[simp] lemma row_add [semiring α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
+@[simp] lemma row_smul [semiring α] (x : α) (v : m → α) : row (x • v) = x • row v := by { ext, refl }
+
+@[simp] lemma col_val (v : m → α) (i j) : matrix.col v i j = v i := rfl
+@[simp] lemma row_val (v : m → α) (i j) : matrix.row v i j = v j := rfl
+
+@[simp]
+lemma transpose_col (v : m → α) : (matrix.col v).transpose = matrix.row v := by {ext, refl}
+@[simp]
+lemma transpose_row (v : m → α) : (matrix.row v).transpose = matrix.col v := by {ext, refl}
+
+lemma row_vec_mul [semiring α] (M : matrix m n α) (v : m → α) :
+  matrix.row (matrix.vec_mul v M) = matrix.row v ⬝ M := by {ext, refl}
+lemma col_vec_mul [semiring α] (M : matrix m n α) (v : m → α) :
+  matrix.col (matrix.vec_mul v M) = (matrix.row v ⬝ M)ᵀ := by {ext, refl}
+lemma col_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
+  matrix.col (matrix.mul_vec M v) = M ⬝ matrix.col v := by {ext, refl}
+lemma row_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
+  matrix.row (matrix.mul_vec M v) = (M ⬝ matrix.col v)ᵀ := by {ext, refl}
+
+end row_col
 
 end matrix

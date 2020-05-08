@@ -3,8 +3,8 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
-
-import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
+import tactic.ring
+import data.tree
 
 /-!
 # `linarith`
@@ -237,12 +237,8 @@ meta structure linarith_structure :=
 (vars : rb_set ℕ)
 (comps : rb_set pcomp)
 
-@[reducible] meta def linarith_monad :=
+@[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
 state_t linarith_structure (except_t pcomp id)
-
-meta instance : monad linarith_monad := state_t.monad
-meta instance : monad_except pcomp linarith_monad :=
-state_t.monad_except pcomp
 
 meta def get_vars : linarith_monad (rb_set ℕ) :=
 linarith_structure.vars <$> get

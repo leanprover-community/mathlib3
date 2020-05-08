@@ -3,7 +3,9 @@ Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
-import tactic.basic logic.function algebra.group.to_additive
+import logic.function
+import algebra.group.to_additive
+import tactic.norm_cast
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -38,6 +40,8 @@ variables [monoid α]
 
 @[to_additive] instance : has_coe (units α) α := ⟨val⟩
 
+@[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
+
 @[ext, to_additive] theorem ext :
   function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
@@ -63,10 +67,17 @@ ext.eq_iff.symm
   mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}
-@[simp, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-@[simp, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+attribute [norm_cast] add_units.coe_add
+
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
+attribute [norm_cast] add_units.coe_zero
+
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
-@[to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
+
+@[norm_cast, to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
+attribute [norm_cast] add_units.coe_neg
+
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 

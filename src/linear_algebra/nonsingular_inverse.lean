@@ -6,8 +6,6 @@
   Inverses for nonsingular square matrices.
 -/
 import algebra.associated
-import algebra.big_operators
-import data.matrix.basic
 import linear_algebra.determinant
 import tactic.linarith
 import tactic.ring_exp
@@ -53,8 +51,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 

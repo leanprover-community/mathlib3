@@ -3,7 +3,6 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-
 import group_theory.congruence
 import algebra.associated
 import algebra.punit_instances
@@ -128,7 +127,7 @@ le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
     begin
       rw [← mul_one (p, q), ← mul_one y],
       refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,
-      convert b.symm (b.mul (b.refl y) (H (q * t))); simp only [],
+      convert b.symm (b.mul (b.refl y) (H (q * t))) using 1,
       rw [prod.mk_mul_mk, submonoid.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
       refl
     end
@@ -744,7 +743,7 @@ of_monoid_hom (f.to_map.comp k.to_monoid_hom)
   (f.of_mul_equiv_of_dom H).to_map (k.symm x) = f.to_map x :=
 congr_arg f.to_map $ k.apply_symm_apply x
 
-@[to_additive, simp] lemma comp_mul_equiv_symm_comap_apply {k : M ≃* P}
+@[to_additive] lemma comp_mul_equiv_symm_comap_apply {k : M ≃* P}
   (H : T.map k.symm.to_monoid_hom = S) (x) :
   (f.of_mul_equiv_of_dom H).to_map (k x) = f.to_map x :=
 congr_arg f.to_map $ k.symm_apply_apply x
@@ -765,17 +764,17 @@ noncomputable def mul_equiv_of_mul_equiv
   N ≃* Q :=
 f.mul_equiv_of_localizations $ k.of_mul_equiv_of_dom H
 
-@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq_map_apply
+@[simp, to_additive] lemma mul_equiv_of_mul_equiv_eq_map_apply
   {k : localization_map T Q} {j : M ≃* P} (H : S.map j.to_monoid_hom = T) (x) :
   f.mul_equiv_of_mul_equiv k H x =
     f.map (λ y : S, show j.to_monoid_hom y ∈ T, from H ▸ set.mem_image_of_mem j y.2) k x := rfl
 
-@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq_map
+@[simp, to_additive] lemma mul_equiv_of_mul_equiv_eq_map
   {k : localization_map T Q} {j : M ≃* P} (H : S.map j.to_monoid_hom = T) :
   (f.mul_equiv_of_mul_equiv k H).to_monoid_hom =
     f.map (λ y : S, show j.to_monoid_hom y ∈ T, from H ▸ set.mem_image_of_mem j y.2) k := rfl
 
-@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq {k : localization_map T Q}
+@[simp, to_additive] lemma mul_equiv_of_mul_equiv_eq {k : localization_map T Q}
   {j : M ≃* P} (H : S.map j.to_monoid_hom = T) (x) :
   f.mul_equiv_of_mul_equiv k H (f.to_map x) = k.to_map (j x) :=
 f.map_eq (λ y : S, H ▸ set.mem_image_of_mem j y.2) _

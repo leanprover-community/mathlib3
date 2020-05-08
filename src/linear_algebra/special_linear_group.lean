@@ -5,10 +5,8 @@
 
   The Special Linear group $SL(n, R)$
 -/
-import linear_algebra.basic
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse
-import tactic.norm_cast
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -47,7 +45,6 @@ universes u v
 open_locale matrix
 open linear_map
 
-set_option class.instance_max_depth 60
 
 section
 

@@ -3,7 +3,14 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.algebra.polynomial analysis.complex.exponential
+import topology.algebra.polynomial
+import analysis.special_functions.pow
+
+/-!
+# The fundamental theorem of algebra
+
+This file proves that every nonconstant complex polynomial has a root.
+-/
 
 open complex polynomial metric filter is_absolute_value set
 

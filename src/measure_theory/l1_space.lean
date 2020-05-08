@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.ae_eq_fun
 
 /-!
@@ -53,7 +52,6 @@ integrable, function space, l1
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 namespace measure_theory
 open set filter topological_space ennreal emetric
@@ -498,7 +496,7 @@ variable [opens_measurable_space β]
 instance : has_coe (α →₁ β) (α →ₘ β) := ⟨subtype.val⟩
 
 protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq
-@[elim_cast] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[norm_cast] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/
@@ -519,10 +517,11 @@ instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
 instance : inhabited (α →₁ β) := ⟨0⟩
 
-@[simp, elim_cast] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
-@[simp, move_cast] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
-@[simp, move_cast] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
-@[simp, move_cast] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
+@[simp, norm_cast] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
+@[simp, norm_cast] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
+@[simp, norm_cast] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
+
 @[simp] lemma edist_eq (f g : α →₁ β) : edist f g = edist (f : α →ₘ β) (g : α →ₘ β) := rfl
 
 lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
@@ -541,7 +540,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable.smul f.2⟩⟩
 
-@[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ β) :
+@[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : α →₁ β) :
   ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
 
 instance : semimodule 𝕜 (α →₁ β) :=
@@ -679,7 +678,7 @@ def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
 /-- Negative part of a function in `L¹` space. -/
 def neg_part (f : α →₁ ℝ) : α →₁ ℝ := pos_part (-f)
 
-@[move_cast] lemma coe_pos_part (f : α →₁ ℝ) : (f.pos_part : α →ₘ ℝ) = (f : α →ₘ ℝ).pos_part := rfl
+@[norm_cast] lemma coe_pos_part (f : α →₁ ℝ) : (f.pos_part : α →ₘ ℝ) = (f : α →ₘ ℝ).pos_part := rfl
 
 lemma pos_part_to_fun (f : α →₁ ℝ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) 0 :=
 ae_eq_fun.pos_part_to_fun _

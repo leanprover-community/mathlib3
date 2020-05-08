@@ -3,8 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.normed_space.operator_norm linear_algebra.finite_dimensional tactic.omega
+import analysis.normed_space.operator_norm
+import linear_algebra.finite_dimensional
+import tactic.omega
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -47,7 +48,6 @@ local attribute [instance, priority 10000] pi.module normed_space.to_module
   submodule.add_comm_group submodule.module
   linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
 
-set_option class.instance_max_depth 100
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -73,7 +73,6 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 [topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
-set_option class.instance_max_depth 150
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
@@ -166,7 +165,7 @@ begin
                       ∘ (equiv_fun_basis b_basis)) := B.comp A,
   convert this,
   ext x,
-  simp only [linear_equiv.coe_apply, function.comp_app, coe_fn_coe_base, linear_map.comp_apply],
+  dsimp,
   rw linear_equiv.symm_apply_apply
 end
 

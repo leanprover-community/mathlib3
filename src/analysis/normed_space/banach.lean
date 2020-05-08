@@ -8,8 +8,8 @@ Banach spaces, i.e., complete vector spaces.
 This file contains the Banach open mapping theorem, i.e., the fact that a bijective
 bounded linear map between Banach spaces has a bounded inverse.
 -/
-
-import topology.metric_space.baire analysis.normed_space.bounded_linear_maps
+import topology.metric_space.baire
+import analysis.normed_space.bounded_linear_maps
 
 open function metric set filter finset
 open_locale classical topological_space
@@ -20,7 +20,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (f : E →L[𝕜] F)
 include 𝕜
 
-set_option class.instance_max_depth 70
 
 variable [complete_space F]
 
@@ -149,10 +148,10 @@ begin
   have su : summable u := summable_of_summable_norm sNu,
   let x := tsum u,
   have x_ineq : ∥x∥ ≤ (2 * C + 1) * ∥y∥ := calc
-    ∥x∥ ≤ (∑n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
-    ... ≤ (∑n, (1/2)^n * (C * ∥y∥)) :
+    ∥x∥ ≤ (∑'n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
+    ... ≤ (∑'n, (1/2)^n * (C * ∥y∥)) :
       tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
-    ... = (∑n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
+    ... = (∑'n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
     ... = 2 * (C * ∥y∥) : by rw tsum_geometric_two
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)

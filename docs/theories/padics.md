@@ -8,7 +8,7 @@ value on `ℚ`. For any prime p, the completion of `ℚ` with repsect to the p-a
   `padic_norm {p} : prime p → ℚ → ℚ`. Note that this does not lead to a useful instance of
   `has_norm` since `p` cannot be inferred from the input, and it is not a norm for
   composite `p`. `padic_norm` is shown to be a non-archimedean absolute value.
-* Fix `p` and `[prime p]`. `padic_rationals.lean` defines `ℚ_[p]` as the Cauchy completion of
+* Fix `p` and `[fact p.prime]`. `padic_rationals.lean` defines `ℚ_[p]` as the Cauchy completion of
   `ℚ` wrt `padic_norm p` using the same mechanisms as `data/real/basic.lean`. It is immediately a
   field. The norm lifts to `padic_norm_e : ℚ_[p] → ℚ`, which is cast to `ℝ` and gives us a
   `normed_field` instance. `ℚ_[p]` is shown to be Cauchy complete.

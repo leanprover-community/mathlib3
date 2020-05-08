@@ -3,7 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import logic.basic algebra.ring algebra.group_with_zero
+import algebra.ring
+import algebra.group_with_zero
 open set
 
 universe u
@@ -57,6 +58,9 @@ inv_eq_iff
 
 lemma div_neg (a : α) : a / -b = -(a / b) :=
 by rw [← div_neg_eq_neg_div]
+
+lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
+by rw neg_inv
 
 end division_ring
 

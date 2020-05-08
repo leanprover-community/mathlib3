@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
-import algebra.group.to_additive algebra.group.basic algebra.group.hom
+import algebra.group.hom
 
 universes u v
 variable {α : Type u}

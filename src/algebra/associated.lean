@@ -3,19 +3,13 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.group.is_unit data.multiset
+import data.multiset
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
-
-theorem is_unit_iff_ne_zero [division_ring α] {x : α} :
-  is_unit x ↔ x ≠ 0 :=
-⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 @[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,

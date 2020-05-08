@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Separation properties of topological spaces.
 -/
-
 import topology.subset_properties
 
 open set filter
@@ -121,10 +120,12 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
+compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
+
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
-⟨λ x y h, ⟨-{x}, is_open_compl_iff.2 is_closed_singleton,
-  or.inr ⟨λ hyx, or.cases_on hyx h.symm id, λ hx, hx $ or.inl rfl⟩⟩⟩
+⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ 𝓝 y :=
 mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
@@ -147,14 +148,12 @@ t2_space.t2 x y h
 instance t2_space.t1_space [t2_space α] : t1_space α :=
 ⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
-⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
+⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
-have u ∩ v ∈ 𝓝 x ⊓ 𝓝 y,
-  from inter_mem_inf_sets (mem_nhds_sets hu hx) (mem_nhds_sets hv hy),
-h $ empty_in_sets_eq_bot.mp $ huv ▸ this
+absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne_empty
 
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,

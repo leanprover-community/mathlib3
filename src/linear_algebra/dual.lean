@@ -3,8 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Fabian Glöckle
 -/
-
-import linear_algebra.tensor_product
 import linear_algebra.finite_dimensional
 import tactic.apply_fun
 noncomputable theory
@@ -99,7 +97,6 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
   smul := by intros; rw finsupp.smul_apply }
 include h
 
-set_option class.instance_max_depth 50
 
 def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
 
@@ -234,7 +231,6 @@ begin
   exact hb.dual_dim_eq
 end
 
-set_option class.instance_max_depth 70
 
 lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin

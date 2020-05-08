@@ -3,12 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-
-import algebra.pi_instances
-import linear_algebra.basic
-import topology.instances.nnreal topology.instances.complex
+import topology.instances.nnreal
+import topology.instances.complex
 import topology.algebra.module
-import topology.metric_space.lipschitz
 import topology.metric_space.antilipschitz
 
 /-!
@@ -243,6 +240,9 @@ lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 
+lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α), nnnorm (s.sum f) ≤ s.sum (λa, nnnorm (f a)) :=
+finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
+
 end nnnorm
 
 lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : nnreal} {f : α → β}
@@ -271,7 +271,7 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf :
   antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
-  rw [nnreal.coe_inv, ← div_eq_inv_mul'],
+  rw [nnreal.coe_inv, ← div_eq_inv_mul],
   apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
   rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
@@ -588,7 +588,7 @@ begin
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
     show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
     { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
-      rw [inv_div, div_eq_inv_mul', mul_comm] },
+      rw [inv_div, div_eq_inv_mul, mul_comm] },
     show (0 : ℝ) ≤ 2, by norm_num
   end
   ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
@@ -624,7 +624,16 @@ lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x 
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
 
+/-- Continuity at a point of the result of dividing two functions
+continuous at that point, where the denominator is nonzero. -/
+lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β} {x : α}
+    (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
+  continuous_at (λ x, f x / g x) x :=
+hf.div hg hnz
+
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
+
+@[simp] lemma real.norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
@@ -637,7 +646,7 @@ instance : normed_ring ℤ :=
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
   dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
 
-@[elim_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+@[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
 
 instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
@@ -647,9 +656,9 @@ instance : normed_field ℚ :=
 instance : nondiscrete_normed_field ℚ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
-@[elim_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
+@[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
 
-@[elim_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
+@[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
@@ -669,7 +678,6 @@ variables [normed_field α] [normed_group β]
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul := normed_field.norm_mul }
 
-set_option class.instance_max_depth 43
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
@@ -729,16 +737,16 @@ begin
   show (c ^ (n + 1))⁻¹  ≠ 0,
     by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
   show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul', div_le_iff cnpos, mul_comm, norm_fpow],
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
     exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
         fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
-        one_mul, ← div_eq_inv_mul', le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul'],
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -790,7 +798,6 @@ normed_algebra.norm_algebra_map_eq _
 end normed_algebra
 
 section restrict_scalars
-set_option class.instance_max_depth 40
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E : Type*} [normed_group E] [normed_space 𝕜' E]
@@ -853,14 +860,14 @@ lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a�
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
 
-/-- If `∑ i, ∥f i∥` is summable, then `∥(∑ i, f i)∥ ≤ (∑ i, ∥f i∥)`. Note that we do not assume that
-`∑ i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+/-- If `∑' i, ∥f i∥` is summable, then `∥(∑' i, f i)∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume that
+`∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑'i, f i)∥ ≤ (∑' i, ∥f i∥) :=
 begin
   by_cases h : summable f,
-  { have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
+  { have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑' i, f i)∥) :=
       (continuous_norm.tendsto _).comp h.has_sum,
-    have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
+    have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑' i, ∥f i∥)) :=
       hf.has_sum,
     exact le_of_tendsto_of_tendsto' at_top_ne_bot h₁ h₂ (assume s, norm_sum_le _ _) },
   { rw tsum_eq_zero_of_not_summable h,

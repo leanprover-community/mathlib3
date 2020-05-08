@@ -5,8 +5,9 @@ Authors: Floris van Doorn
 
 The cardinality of the reals.
 -/
-
-import data.real.basic set_theory.ordinal analysis.specific_limits data.rat.denumerable
+import set_theory.ordinal
+import analysis.specific_limits
+import data.rat.denumerable
 
 open nat set
 noncomputable theory
@@ -40,7 +41,7 @@ begin
   intro n, cases h : f n; simp [h]
 end
 
-def cantor_function (c : ℝ) (f : ℕ → bool) : ℝ := ∑ n, cantor_function_aux c f n
+def cantor_function (c : ℝ) (f : ℕ → bool) : ℝ := ∑' n, cantor_function_aux c f n
 
 lemma cantor_function_le (h1 : 0 ≤ c) (h2 : c < 1) (h3 : ∀ n, f n → g n) :
   cantor_function c f ≤ cantor_function c g :=

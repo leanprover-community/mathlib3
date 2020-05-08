@@ -3,8 +3,7 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
-
-import data.quot data.set.lattice order.galois_connection
+import data.set.lattice
 
 /-!
 # Equivalence relations
@@ -366,7 +365,7 @@ lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, r
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ ∀ x, {y | r₁.rel x y} = {y | r₂.rel x y} :=
-⟨λ h x, h ▸ rfl, λ h, ext' $ λ x, (set.ext_iff _ _).1 $ h x⟩
+⟨λ h x, h ▸ rfl, λ h, ext' $ λ x, set.ext_iff.1 $ h x⟩
 
 lemma rel_iff_exists_classes (r : setoid α) {x y} :
   r.rel x y ↔ ∃ c ∈ r.classes, x ∈ c ∧ y ∈ c :=

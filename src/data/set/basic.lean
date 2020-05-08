@@ -3,8 +3,11 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-
-import tactic.basic tactic.finish data.subtype logic.unique data.prod
+import tactic.basic
+import tactic.finish
+import data.subtype
+import logic.unique
+import data.prod
 
 /-!
 
@@ -127,7 +130,7 @@ instance : inhabited (set α) := ⟨∅⟩
 theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 
-theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
+theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
 @[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
@@ -706,6 +709,9 @@ ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
 not_iff_not_of_iff mem_singleton_iff
 
+lemma compl_singleton_eq (a : α) : -({a} : set α) = {x | x ≠ a} :=
+ext $ λ x,  mem_compl_singleton_iff
+
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
 
@@ -994,8 +1000,7 @@ iff.intro
 
 theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
-⟨λ ⟨y, ⟨x, hx, hxy⟩, hy⟩, ⟨x, hx, hxy.symm ▸ hy⟩,
-  λ ⟨x, hxs, hpx⟩, ⟨f x, mem_image_of_mem f hxs, hpx⟩⟩
+by simp
 
 theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
@@ -1294,7 +1299,7 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 ⟨assume h i, h (f i) (mem_range_self _), assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
 
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
-⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
+by simp
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=

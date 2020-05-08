@@ -3,8 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import data.equiv.basic data.set.lattice tactic.tauto
+import data.set.lattice
 
 universes u v w x
 
@@ -69,12 +68,7 @@ lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a �
 
 @[simp] lemma symm_refl : (pequiv.refl α).symm = pequiv.refl α := rfl
 
-@[simp] lemma symm_refl_apply (a : α) : (pequiv.refl α).symm a = some a := rfl
-
 @[simp] lemma symm_symm (f : α ≃. β) : f.symm.symm = f := by cases f; refl
-
-@[simp] lemma symm_symm_apply (f : α ≃. β) (a : α) : f.symm.symm a = f a :=
-by rw symm_symm
 
 lemma symm_injective : function.injective (@pequiv.symm α β) :=
 injective_of_has_left_inverse ⟨_, symm_symm⟩
@@ -98,12 +92,6 @@ by ext; dsimp [pequiv.trans]; refl
 
 @[simp] lemma trans_refl (f : α ≃. β) : f.trans (pequiv.refl β) = f :=
 by ext; dsimp [pequiv.trans]; simp
-
-@[simp] lemma refl_trans_apply (f : α ≃. β) (a : α) : (pequiv.refl α).trans f a = f a :=
-by rw refl_trans
-
-@[simp] lemma trans_refl_apply (f : α ≃. β) (a : α) : f.trans (pequiv.refl β) a = f a :=
-by rw trans_refl
 
 protected lemma inj (f : α ≃. β) {a₁ a₂ : α} {b : β} (h₁ : b ∈ f a₁) (h₂ : b ∈ f a₂) : a₁ = a₂ :=
 by rw ← mem_iff_mem at *; cases h : f.symm b; simp * at *
@@ -217,8 +205,6 @@ by dsimp [single]; split_ifs; simp [*, eq_comm]
 @[simp] lemma symm_single (a : α) (b : β) : (single a b).symm = single b a := rfl
 
 @[simp] lemma single_apply (a : α) (b : β) : single a b a = some b := if_pos rfl
-
-@[simp] lemma symm_single_apply (a : α) (b : β) : (single a b).symm b = some a := by dsimp; simp
 
 lemma single_apply_of_ne {a₁ a₂ : α} (h : a₁ ≠ a₂) (b : β) : single a₁ b a₂ = none := if_neg h.symm
 

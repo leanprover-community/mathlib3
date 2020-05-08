@@ -10,9 +10,8 @@ in the context.
 They are used for finding the sets of equivalent propositions in a set
 of implications.
 -/
-
 import tactic.tauto
-import category.basic data.sum
+import data.sum
 
 /-!
 # Strongly Connected Components
@@ -297,8 +296,15 @@ meta def prove_eqv_target (cl : closure) : tactic unit :=
 do `(%%p ↔ %%q) ← target >>= whnf,
    cl.prove_eqv p q >>= exact
 
-/-- Use the available equivalences and implications to prove
-a goal of the form `p ↔ q`. -/
+/--
+`scc` uses the available equivalences and implications to prove
+a goal of the form `p ↔ q`.
+
+```lean
+example (p q r : Prop) (hpq : p → q) (hqr : q ↔ r) (hrp : r → p) : p ↔ r :=
+by scc
+```
+-/
 meta def interactive.scc : tactic unit :=
 closure.with_new_closure $ λ cl,
 do impl_graph.mk_scc cl,
@@ -316,5 +322,23 @@ do m ← impl_graph.mk_scc cl,
    ls'.mmap' $ λ x,
      do { h ← get_unused_name `h,
           try $ closure.prove_eqv cl x.1 x.2 >>= note h none }
+
+/--
+`scc` uses the available equivalences and implications to prove
+a goal of the form `p ↔ q`.
+
+```lean
+example (p q r : Prop) (hpq : p → q) (hqr : q ↔ r) (hrp : r → p) : p ↔ r :=
+by scc
+```
+
+The variant `scc'` populates the local context with all equivalences that `scc` is able to prove.
+This is mostly useful for testing purposes.
+-/
+add_tactic_doc
+{ name := "scc",
+  category := doc_category.tactic,
+  decl_names := [``interactive.scc, ``interactive.scc'],
+  tags := ["logic"] }
 
 end tactic

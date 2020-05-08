@@ -3,7 +3,27 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_group
+
+/-!
+# strictly monotone functions, max, min and abs
+
+This file proves basic properties about strictly monotone functions,
+maxima and minima on a `decidable_linear_order`, and the absolute value
+function on linearly ordered add_comm_groups, semirings and rings.
+
+One useful result proved here is that if `f : ℕ → α` and `f n < f (n + 1)` for all `n`
+then f is strictly monotone (see `strict_mono.nat`).
+
+## Definition
+
+`strict_mono f` : a function between two types equipped with `<` is strictly monotone
+  if `a < b` implies `f a < f b`.
+
+## Tags
+
+monotone, strictly monotone, min, max, abs
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -85,7 +105,10 @@ lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_su
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
+/-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+
+/-- An instance asserting that `min a a = a` -/
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
@@ -195,6 +218,8 @@ theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 ⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
+
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]

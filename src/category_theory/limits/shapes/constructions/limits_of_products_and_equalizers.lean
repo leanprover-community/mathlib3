@@ -3,10 +3,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 -/
-
-import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.finite_products
 
 /-!
@@ -24,8 +21,7 @@ open opposite
 namespace category_theory.limits
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {J : Type v} [small_category J]
 

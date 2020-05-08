@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.basic
 
 /-!
 # monoid and group homomorphisms
@@ -102,6 +101,27 @@ lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 @[simp, to_additive]
 lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
+@[to_additive]
+lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
+by rw [← f.map_mul, h, f.map_one]
+
+/-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
+then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
+a right inverse, then `f x` has a right inverse too."]
+lemma map_exists_right_inv (f : M →* N) {x : M} (hx : ∃ y, x * y = 1) :
+  ∃ y, f x * y = 1 :=
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+
+/-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a left inverse,
+then `f x` has a left inverse too. For elements invertible on both sides see `is_unit.map`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
+a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
+`is_add_unit.map`."]
+lemma map_exists_left_inv (f : M →* N) {x : M} (hx : ∃ y, y * x = 1) :
+  ∃ y, y * f x = 1 :=
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+
 omit mN mM
 
 /-- The identity map from a monoid to itself. -/
@@ -110,6 +130,9 @@ def id (M : Type*) [monoid M] : M →* M :=
 { to_fun := id,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+@[simp, to_additive] lemma id_apply {M : Type*} [monoid M] (x : M) :
+  id M x = x := rfl
 
 include mM mN mP
 
@@ -126,17 +149,6 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 /-- Composition of monoid homomorphisms is associative. -/
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
-
-/-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
-    `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
-    `f(S)` to invertible elements of `P`. -/
-@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps
-elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps
-elements of `f(S)` to invertible elements of `P`."]
-lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
-  (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
-  ∃ x : P, g.comp f s * x = 1 :=
-let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩
 
 @[to_additive]
 lemma cancel_right {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :
@@ -164,6 +176,8 @@ protected def one : M →* N :=
 @[to_additive]
 instance : has_one (M →* N) := ⟨monoid_hom.one⟩
 
+@[simp, to_additive] lemma one_apply (x : M) : (1 : M →* N) x = 1 := rfl
+
 @[to_additive]
 instance : inhabited (M →* N) := ⟨1⟩
 
@@ -180,6 +194,10 @@ protected def mul {M N} {mM : monoid M} [comm_monoid N] (f g : M →* N) : M →
 @[to_additive]
 instance {M N} {mM : monoid M} [comm_monoid N] : has_mul (M →* N) := ⟨monoid_hom.mul⟩
 
+@[simp, to_additive] lemma mul_apply {M N} {mM : monoid M} {mN : comm_monoid N}
+  (f g : M →* N) (x : M) :
+  (f * g) x = f x * g x := rfl
+
 /-- (M →* N) is a comm_monoid if N is commutative. -/
 @[to_additive add_comm_monoid]
 instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
@@ -189,6 +207,19 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   one_mul := by intros; ext; apply one_mul,
   mul_one := by intros; ext; apply mul_one,
   mul_comm := by intros; ext; apply mul_comm }
+
+/-- `flip` arguments of `f : M →* N →* P` -/
+@[to_additive "`flip` arguments of `f : M →+ N →+ P`"]
+def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →* P) :
+  N →* M →* P :=
+{ to_fun := λ y, ⟨λ x, f x y, by rw [f.map_one, one_apply], λ x₁ x₂, by rw [f.map_mul, mul_apply]⟩,
+  map_one' := ext $ λ x, (f x).map_one,
+  map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
+
+@[simp, to_additive] lemma flip_apply {mM : monoid M} {mN : monoid N} {mP : comm_monoid P}
+  (f : M →* N →* P) (x : M) (y : N) :
+  f.flip y x = f x y :=
+rfl
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
@@ -228,6 +259,10 @@ mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
 @[to_additive]
 instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) := ⟨monoid_hom.inv⟩
 
+@[simp, to_additive] lemma inv_apply {M G} {mM : monoid M} {gG : comm_group G}
+  (f : M →* G) (x : M) :
+  f⁻¹ x = (f x)⁻¹ := rfl
+
 /-- (M →* G) is a comm_group if G is a comm_group -/
 @[to_additive add_comm_group]
 instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
@@ -249,10 +284,15 @@ def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := mul_zero r,
   map_add' := mul_add r }
 
+@[simp] lemma coe_mul_left {R : Type*} [semiring R] (r : R) : ⇑(mul_left r) = (*) r := rfl
+
 /-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
 def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
 { to_fun := λ a, a * r,
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
+
+@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+  (mul_right r : R → R) a = a * r := rfl
 
 end add_monoid_hom

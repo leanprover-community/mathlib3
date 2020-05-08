@@ -4,10 +4,8 @@ Author: Seul Baek
 
 A tactic for discharging linear integer & natural
 number arithmetic goals using the Omega test. -/
-
 import tactic.omega.int.main
 import tactic.omega.nat.main
-import tactic.doc_commands
 
 namespace omega
 

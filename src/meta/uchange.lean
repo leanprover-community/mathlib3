@@ -32,6 +32,9 @@ plift.down $ @cast (α → β → plift β) (β → α → plift β) undefined (
 `uchange (α : Sort v) : Sort u` is an equivalent type in a different universe.
 
 In the VM, both `α` and `uchange α` have the same representation.
+
+This definition is `meta` because it collapses the universe hierarchy; if pure code could do
+this then one could derive Girard's paradox.
 -/
 meta def uchange (α : Type v) : Type u :=
 unchecked_cast' α

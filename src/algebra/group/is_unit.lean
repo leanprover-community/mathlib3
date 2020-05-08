@@ -92,3 +92,11 @@ units.mul_lift_right_inv (λ y, (classical.some_spec $ h y).symm) x
 @[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
 units.lift_right_inv_mul (λ y, (classical.some_spec $ h y).symm) x
+
+@[simp, to_additive] theorem is_unit.mul_left_inj [monoid M] {a b c : M} (ha : is_unit a) :
+  a * b = a * c ↔ b = c :=
+by cases ha with a ha; rw [ha, units.mul_left_inj]
+
+@[simp, to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
+  b * a = c * a ↔ b = c :=
+by cases ha with a ha; rw [ha, units.mul_right_inj]

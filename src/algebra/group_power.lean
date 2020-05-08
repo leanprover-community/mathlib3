@@ -154,6 +154,9 @@ theorem is_add_monoid_hom.map_smul (f : A → B) [is_add_monoid_hom f] (a : A) (
 @[simp] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+@[simp] lemma add_units.coe_smul (u : add_units A) (n : ℕ) : ((n • u : add_units A) : A) = n • u :=
+(add_units.coe_hom A).map_smul u n
+
 end monoid
 
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :

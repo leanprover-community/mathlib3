@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
+Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.pi_instances
 import data.finsupp
@@ -1749,8 +1749,8 @@ noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
   submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 
-@[simp] lemma quot_ker_equiv_range_apply_mkq (x : M) :
-  (f.quot_ker_equiv_range (f.ker.mkq x) : M₂) = f x :=
+@[simp] lemma quot_ker_equiv_range_apply_mk (x : M) :
+  (f.quot_ker_equiv_range (submodule.quotient.mk x) : M₂) = f x :=
 rfl
 
 @[simp] lemma quot_ker_equiv_range_symm_apply_image (x : M) (h : f x ∈ f.range) :

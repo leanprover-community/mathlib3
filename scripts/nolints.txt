@@ -1480,7 +1480,6 @@ apply_nolint polynomial.div_mod_by_monic_aux doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
-apply_nolint polynomial.map_injective unused_arguments
 apply_nolint polynomial.mod doc_blame
 apply_nolint polynomial.nonzero_comm_ring.of_polynomial_ne doc_blame
 apply_nolint polynomial.nonzero_comm_semiring.of_polynomial_ne doc_blame

@@ -345,6 +345,9 @@ structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
 
 attribute [nolint doc_blame] alg_equiv.to_ring_equiv
+attribute [nolint doc_blame] alg_equiv.to_equiv
+attribute [nolint doc_blame] alg_equiv.to_add_equiv
+attribute [nolint doc_blame] alg_equiv.to_mul_equiv
 
 notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 

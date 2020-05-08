@@ -369,7 +369,7 @@ instance is_noetherian_ring.to_is_noetherian {R : Type*} [ring R] :
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
-⟨assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩⟩
+⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
 by haveI := subsingleton_of_zero_eq_one R h01;

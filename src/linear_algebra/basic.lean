@@ -1859,9 +1859,9 @@ lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
-  have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [finset.coe_to_finset] },
+  have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
   refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
-  rw [← finset.mem_coe, finset.coe_to_finset],
+  rw [set.finite.mem_to_finset],
   exact le_refl _
 end
 

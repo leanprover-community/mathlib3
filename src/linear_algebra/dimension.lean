@@ -79,8 +79,8 @@ begin
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
+        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 end

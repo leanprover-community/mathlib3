@@ -313,6 +313,14 @@ l.induction_on begin
   cases l.nth n, {exact f.2.symm}, {refl}
 end
 
+/-- The `i`-th projection as a pointed map. -/
+def proj {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι) :
+  pointed_map (∀ i, Γ i) (Γ i) := ⟨λ a, a i, rfl⟩
+
+theorem proj_map_nth {ι : Type*} {Γ : ι → Type*} [∀ i, inhabited (Γ i)] (i : ι)
+  (L n) : (list_blank.map (@proj ι Γ _ i) L).nth n = L.nth n i :=
+by rw list_blank.nth_map; refl
+
 theorem list_blank.map_modify_nth {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (F : pointed_map Γ Γ') (f : Γ → Γ) (f' : Γ' → Γ')
   (H : ∀ x, F (f x) = f' (F x)) (n) (L : list_blank Γ) :
@@ -781,7 +789,7 @@ instance stmt.inhabited : inhabited stmt := ⟨stmt.write (default _)⟩
   Both `Λ` and `Γ` are required to be inhabited; the default value
   for `Γ` is the "blank" tape value, and the default value of `Λ` is
   the initial state. -/
-@[nolint unused_arguments]
+@[nolint unused_arguments] -- [inhabited Λ]: this is a deliberate addition, see comment
 def machine := Λ → Γ → option (Λ × stmt)
 
 instance machine.inhabited : inhabited machine := by unfold machine; apply_instance
@@ -1095,7 +1103,9 @@ to be executed, or `none` for the halt state, and a `σ` which is the local stat
 not the tape). Because there are an infinite number of programs, this state space is infinite, but
 for a finitely supported TM1 machine and a finite type `σ`, only finitely many of these states are
 reachable. -/
-@[nolint unused_arguments]
+@[nolint unused_arguments] -- [inhabited Λ] [inhabited σ] (M : Λ → stmt₁): We need the M assumption
+-- because of the inhabited instance, but we could avoid the inhabited instances on Λ and σ here.
+-- But they are parameters so we cannot easily skip them for just this definition.
 def Λ' := option stmt₁ × σ
 instance : inhabited Λ' := ⟨(some (M (default _)), default _)⟩
 
@@ -1765,6 +1775,15 @@ end TM2
 
 namespace TM2to1
 
+-- A displaced lemma proved in unnecessary generality
+theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, option (Γ k))} {k S} (n)
+  (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
+  L.nth n k = S.reverse.nth n :=
+begin
+  rw [← proj_map_nth, hL, ← list.map_reverse, list_blank.nth_mk, list.inth, list.nth_map],
+  cases S.reverse.nth n; refl
+end
+
 section
 parameters {K : Type*} [decidable_eq K]
 parameters {Γ : K → Type*}
@@ -1776,13 +1795,45 @@ local notation `cfg₂` := TM2.cfg Γ Λ σ
 
 /-- The alphabet of the TM2 simulator on TM1 is a marker for the stack bottom,
 plus a vector of stack elements for each stack, or none if the stack does not extend this far. -/
-@[nolint unused_arguments]
+@[nolint unused_arguments] -- [decidable_eq K]: Because K is a parameter, we cannot easily skip
+-- the decidable_eq assumption, and this is a local definition anyway so it's not important.
 def Γ' := bool × ∀ k, option (Γ k)
 
 instance Γ'.inhabited : inhabited Γ' := ⟨⟨ff, λ _, none⟩⟩
 
 instance Γ'.fintype [fintype K] [∀ k, fintype (Γ k)] : fintype Γ' :=
 prod.fintype _ _
+
+/-- The bottom marker is fixed throughout the calculation, so we use the `add_bottom` function
+to express the program state in terms of a tape with only the stacks themselves. -/
+def add_bottom (L : list_blank (∀ k, option (Γ k))) : list_blank Γ' :=
+list_blank.cons (tt, L.head) (L.tail.map ⟨prod.mk ff, rfl⟩)
+
+theorem add_bottom_map (L) : (add_bottom L).map ⟨prod.snd, rfl⟩ = L :=
+begin
+  simp only [add_bottom, list_blank.map_cons]; convert list_blank.cons_head_tail _,
+  generalize : list_blank.tail L = L',
+  refine L'.induction_on _, intro l, simp,
+  rw (_ : _ ∘ _ = id), {simp},
+  funext a, refl
+end
+
+theorem add_bottom_modify_nth (f : (∀ k, option (Γ k)) → (∀ k, option (Γ k))) (L n) :
+  (add_bottom L).modify_nth (λ a, (a.1, f a.2)) n = add_bottom (L.modify_nth f n) :=
+begin
+  cases n; simp only [add_bottom,
+    list_blank.head_cons, list_blank.modify_nth, list_blank.tail_cons],
+  congr, symmetry, apply list_blank.map_modify_nth, intro, refl
+end
+
+theorem add_bottom_nth_snd (L n) : ((add_bottom L).nth n).2 = L.nth n :=
+by conv {to_rhs, rw [← add_bottom_map L, list_blank.nth_map]}; refl
+
+theorem add_bottom_nth_succ_fst (L n) : ((add_bottom L).nth (n+1)).1 = ff :=
+by rw [list_blank.nth_succ, add_bottom, list_blank.tail_cons, list_blank.nth_map]; refl
+
+theorem add_bottom_head_fst (L) : (add_bottom L).head.1 = tt :=
+by rw [add_bottom, list_blank.head_cons]; refl
 
 /-- A stack action is a command that interacts with the top of a stack. Our default position
 is at the bottom of all the stacks, so we have to hold on to this action while going to the end
@@ -1798,7 +1849,8 @@ section
 open st_act
 
 /-- The TM2 statement corresponding to a stack action. -/
-@[nolint unused_arguments]
+@[nolint unused_arguments] -- [inhabited Λ]: as this is a local definition it is more trouble than
+-- it is worth to omit the typeclass assumption without breaking the parameters
 def st_run {k : K} : st_act k → stmt₂ → stmt₂
 | (push f) := TM2.stmt.push k f
 | (peek f) := TM2.stmt.peek k f
@@ -1895,6 +1947,20 @@ def tr_normal : stmt₂ → stmt₁
 theorem tr_normal_run {k} (s q) : tr_normal (st_run s q) = goto (λ _ _, go k s q) :=
 by rcases s with _|_|_; refl
 
+open_locale classical
+
+/-- The set of machine states accessible from an initial TM2 statement. -/
+noncomputable def tr_stmts₁ : stmt₂ → finset Λ'
+| Q@(TM2.stmt.push k f q)     := {go k (st_act.push f) q, ret q} ∪ tr_stmts₁ q
+| Q@(TM2.stmt.peek k f q)     := {go k (st_act.peek f) q, ret q} ∪ tr_stmts₁ q
+| Q@(TM2.stmt.pop k f q)      := {go k (st_act.pop f) q, ret q} ∪ tr_stmts₁ q
+| Q@(TM2.stmt.load a q)       := tr_stmts₁ q
+| Q@(TM2.stmt.branch f q₁ q₂) := tr_stmts₁ q₁ ∪ tr_stmts₁ q₂
+| _                           := ∅
+
+theorem tr_stmts₁_run {k s q} : tr_stmts₁ (st_run s q) = {go k s q, ret q} ∪ tr_stmts₁ q :=
+by rcases s with _|_|_; unfold tr_stmts₁ st_run
+
 parameters (M : Λ → stmt₂)
 include M
 
@@ -1908,53 +1974,6 @@ def tr : Λ' → stmt₁
 | (ret q) :=
   branch (λ a s, a.1) (tr_normal q)
     (move dir.left $ goto (λ _ _, ret q))
-
-/-- The `k`-th projection as a pointed map. -/
-@[nolint unused_arguments]
-def proj (k) : pointed_map (∀ k, option (Γ k)) (option (Γ k)) := ⟨λ a, a k, rfl⟩
-
-theorem proj_map_nth (k L n) : (list_blank.map (proj k) L).nth n = L.nth n k :=
-by rw list_blank.nth_map; refl
-
-theorem stk_nth_val {k L S} (n)
-  (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
-  L.nth n k = S.reverse.nth n :=
-begin
-  rw [← proj_map_nth M, hL, ← list.map_reverse, list_blank.nth_mk, list.inth, list.nth_map],
-  cases S.reverse.nth n; refl
-end
-
-/-- The bottom marker is fixed throughout the calculation, so we use the `add_bottom` function
-to express the program state in terms of a tape with only the stacks themselves. -/
-@[nolint unused_arguments]
-def add_bottom (L : list_blank (∀ k, option (Γ k))) : list_blank Γ' :=
-list_blank.cons (tt, L.head) (L.tail.map ⟨prod.mk ff, rfl⟩)
-
-theorem add_bottom_map (L) : (add_bottom L).map ⟨prod.snd, rfl⟩ = L :=
-begin
-  simp only [add_bottom, list_blank.map_cons]; convert list_blank.cons_head_tail _,
-  generalize : list_blank.tail L = L',
-  refine L'.induction_on _, intro l, simp,
-  rw (_ : _ ∘ _ = id), {simp},
-  funext a, refl
-end
-
-theorem add_bottom_modify_nth (f : (∀ k, option (Γ k)) → (∀ k, option (Γ k))) (L n) :
-  (add_bottom L).modify_nth (λ a, (a.1, f a.2)) n = add_bottom (L.modify_nth f n) :=
-begin
-  cases n; simp only [add_bottom,
-    list_blank.head_cons, list_blank.modify_nth, list_blank.tail_cons],
-  congr, symmetry, apply list_blank.map_modify_nth, intro, refl
-end
-
-theorem add_bottom_nth_snd (L n) : ((add_bottom L).nth n).2 = L.nth n :=
-by conv {to_rhs, rw [← add_bottom_map M L, list_blank.nth_map]}; refl
-
-theorem add_bottom_nth_succ_fst (L n) : ((add_bottom L).nth (n+1)).1 = ff :=
-by rw [list_blank.nth_succ, add_bottom, list_blank.tail_cons, list_blank.nth_map]; refl
-
-theorem add_bottom_head_fst (L) : (add_bottom L).head.1 = tt :=
-by rw [add_bottom, list_blank.head_cons]; refl
 
 local attribute [pp_using_anonymous_constructor] turing.TM1.cfg
 /-- The relation between TM2 configurations and TM1 configurations of the TM2 emulator. -/
@@ -1974,7 +1993,7 @@ begin
   rw nat.iterate_succ', simp only [TM1.step, TM1.step_aux, tr,
     tape.mk'_nth_nat, tape.move_right_n_head, add_bottom_nth_snd,
     option.mem_def],
-  rw [stk_nth_val M _ hL, list.nth_le_nth], refl, rwa list.length_reverse
+  rw [stk_nth_val _ hL, list.nth_le_nth], refl, rwa list.length_reverse
 end
 
 theorem tr_respects_aux₂
@@ -1997,7 +2016,7 @@ begin
     dsimp only at this,
     refine ⟨_, λ k', _, by rw [
       tape.move_right_n_head, list.length, tape.mk'_nth_nat, this,
-      add_bottom_modify_nth M (λ a, update a k (some (f v))),
+      add_bottom_modify_nth (λ a, update a k (some (f v))),
       nat.add_one, nat.iterate_succ']⟩,
     refine list_blank.ext (λ i, _),
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
@@ -2007,20 +2026,20 @@ begin
       { rw [list.nth_le_nth, list.nth_le_append_right];
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
-      rw [← proj_map_nth M, hL, list_blank.nth_mk, list.inth],
+      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
       cases decidable.lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
-    { split_ifs; rw [function.update_noteq h', ← proj_map_nth M, hL],
+    { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
       rw function.update_noteq h' } },
   case TM2to1.st_act.peek : b f {
     rw function.update_eq_self,
     use [L, hL], rw [tape.move_left_right], congr,
     cases e : S k, {refl},
     rw [list.length_cons, nat.iterate_succ', tape.move_right_left, tape.move_right_n_head,
-      tape.mk'_nth_nat, add_bottom_nth_snd, stk_nth_val M _ (hL k), e,
+      tape.mk'_nth_nat, add_bottom_nth_snd, stk_nth_val _ (hL k), e,
       list.reverse_cons, ← list.length_reverse, list.nth_concat_length], refl },
   case TM2to1.st_act.pop : b f {
     cases e : S k,
@@ -2031,8 +2050,8 @@ begin
         list.length_cons, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_succ_fst,
         cond, nat.iterate_succ', tape.move_right_left, tape.move_right_n_head, tape.mk'_nth_nat,
         tape.write_move_right_n (λ a:Γ', (a.1, update a.2 k none)),
-        add_bottom_modify_nth M (λ a, update a k none),
-        add_bottom_nth_snd, stk_nth_val M _ (hL k), e,
+        add_bottom_modify_nth (λ a, update a k none),
+        add_bottom_nth_snd, stk_nth_val _ (hL k), e,
         show (list.cons hd tl).reverse.nth tl.length = some hd,
         by rw [list.reverse_cons, ← list.length_reverse, list.nth_concat_length]; refl,
         list.head', list.tail]⟩,
@@ -2042,13 +2061,13 @@ begin
     { subst k', split_ifs; simp only [
         function.update_same, list_blank.nth_mk, list.tail, list.inth],
       { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
-      rw [← proj_map_nth M, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
+      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
       cases decidable.lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
-    { split_ifs; rw [function.update_noteq h', ← proj_map_nth M, hL],
+    { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
       rw function.update_noteq h' } } },
 end
 
@@ -2080,7 +2099,7 @@ begin
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,
   rw [tr, TM1.step_aux, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_snd,
-    stk_nth_val M _ (hT k), list.nth_len_le (le_of_eq (list.length_reverse _)),
+    stk_nth_val _ (hT k), list.nth_len_le (le_of_eq (list.length_reverse _)),
     option.is_none, cond, hrun, TM1.step_aux] at this,
   obtain ⟨c, gc, rc⟩ := IH hT',
   refine ⟨c, gc, (this.to₀.trans hret c (trans_gen.head' rfl _)).to_refl⟩,
@@ -2144,22 +2163,6 @@ begin
   exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
-open_locale classical
-local attribute [simp] TM2.stmts₁_self
-
-/-- The set of machine states accessible from an initial TM2 statement. -/
-@[nolint unused_arguments]
-noncomputable def tr_stmts₁ : stmt₂ → finset Λ'
-| Q@(TM2.stmt.push k f q)     := {go k (st_act.push f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.peek k f q)     := {go k (st_act.peek f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.pop k f q)      := {go k (st_act.pop f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.load a q)       := tr_stmts₁ q
-| Q@(TM2.stmt.branch f q₁ q₂) := tr_stmts₁ q₁ ∪ tr_stmts₁ q₂
-| _                           := ∅
-
-theorem tr_stmts₁_run {k s q} : tr_stmts₁ (st_run s q) = {go k s q, ret q} ∪ tr_stmts₁ q :=
-by rcases s with _|_|_; unfold tr_stmts₁ st_run
-
 /-- The support of a set of TM2 states in the TM2 emulator. -/
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
 S.bind (λ l, insert (normal l) (tr_stmts₁ (M l)))
@@ -2169,9 +2172,9 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
 ⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
 λ l' h, begin
   suffices : ∀ q (ss' : TM2.supports_stmt S q)
-    (sub : ∀ x ∈ tr_stmts₁ M q, x ∈ tr_supp M S),
+    (sub : ∀ x ∈ tr_stmts₁ q, x ∈ tr_supp M S),
     TM1.supports_stmt (tr_supp M S) (tr_normal q) ∧
-    (∀ l' ∈ tr_stmts₁ M q, TM1.supports_stmt (tr_supp M S) (tr M l')),
+    (∀ l' ∈ tr_stmts₁ q, TM1.supports_stmt (tr_supp M S) (tr M l')),
   { rcases finset.mem_bind.1 h with ⟨l, lS, h⟩,
     have := this _ (ss.2 l lS) (λ x hx,
       finset.mem_bind.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),

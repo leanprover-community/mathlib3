@@ -36,7 +36,7 @@ theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
  λ h, by cases q₁; cases q₂; congr; exact h⟩
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
-ext_s.trans (set.ext_iff _ _)
+ext_s.trans set.ext_iff
 
 theorem exists_mem (q : semiquot α) : ∃ a, a ∈ q :=
 let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩

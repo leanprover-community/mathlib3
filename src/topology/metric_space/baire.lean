@@ -40,7 +40,7 @@ lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 
 lemma is_Gδ_bInter_of_open {ι : Type*} {I : set ι} (hI : countable I) {f : ι → set α}
   (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
-⟨f '' I, by rwa ball_image_iff, countable_image _ hI, by rw sInter_image⟩
+⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
 
 lemma is_Gδ_Inter_of_open {ι : Type*} [encodable ι] {f : ι → set α}
   (hf : ∀i, is_open (f i)) : is_Gδ (⋂i, f i) :=
@@ -59,7 +59,7 @@ begin
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,
     exact (hT s hs).1 t tTs },
-  { exact countable_bUnion hS (λs hs, (hT s hs).2.1) },
+  { exact hS.bUnion (λs hs, (hT s hs).2.1) },
   { exact (sInter_bUnion (λs hs, (hT s hs).2.2)).symm }
 end
 
@@ -188,7 +188,7 @@ theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS :
 begin
   cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
-  { rcases exists_surjective_of_countable h hS with ⟨f, hf⟩,
+  { rcases hS.exists_surjective h with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
     rw [hf, sInter_range],
     exact dense_Inter_of_open_nat (λn, ho _ (F n)) (λn, hd _ (F n)) }
@@ -202,7 +202,7 @@ begin
   rw ← sInter_image,
   apply dense_sInter_of_open,
   { rwa ball_image_iff },
-  { exact countable_image _ hS },
+  { exact hS.image _ },
   { rwa ball_image_iff }
 end
 
@@ -232,7 +232,7 @@ begin
   choose T hT using this,
   have : ⋂₀ S = ⋂₀ (⋃s∈S, T s) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
   rw this,
-  refine dense_sInter_of_open (λt ht, _) (countable_bUnion hS (λs hs, (hT s hs).2.1)) (λt ht, _),
+  refine dense_sInter_of_open (λt ht, _) (hS.bUnion (λs hs, (hT s hs).2.1)) (λt ht, _),
   show is_open t,
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,
@@ -255,7 +255,7 @@ begin
   rw ← sInter_image,
   apply dense_sInter_of_Gδ,
   { rwa ball_image_iff },
-  { exact countable_image _ hS },
+  { exact hS.image _ },
   { rwa ball_image_iff }
 end
 

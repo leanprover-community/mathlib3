@@ -949,7 +949,7 @@ def range (f : M →ₗ[R] M₂) : submodule R M₂ := map f ⊤
 theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := set.image_univ
 
 @[simp] theorem mem_range {f : M →ₗ[R] M₂} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-(set.ext_iff _ _).1 (range_coe f)
+set.ext_iff.1 (range_coe f)
 
 theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
 
@@ -1054,7 +1054,7 @@ by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
 lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
   map f (comap f q) = q :=
-by rw [map_comap_eq, inf_of_le_right h]
+by rwa [map_comap_eq, inf_eq_right]
 
 lemma comap_map_eq (f : M →ₗ[R] M₂) (p : submodule R M) :
   comap f (map f p) = p ⊔ ker f :=
@@ -1066,7 +1066,7 @@ end
 
 lemma comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
   comap f (map f p) = p :=
-by rw [comap_map_eq, sup_of_le_left h]
+by rwa [comap_map_eq, sup_eq_left]
 
 @[simp] theorem ker_zero : ker (0 : M →ₗ[R] M₂) = ⊤ :=
 eq_top_iff'.2 $ λ x, by simp
@@ -1358,7 +1358,7 @@ def comap_mkq.order_iso :
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [comap_map_mkq p, sup_of_le_right hq],
+  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simpa [comap_map_mkq p],
   ord       := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
@@ -1598,7 +1598,7 @@ lemma eq_bot_of_equiv [module R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂))
   p = ⊥ :=
 begin
   refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
-  rw [← submodule.mk_eq_zero hb, ← e.map_eq_zero_iff],
+  rw [← p.mk_eq_zero hb, ← e.map_eq_zero_iff],
   apply submodule.eq_zero_of_bot_submodule
 end
 end
@@ -1768,8 +1768,7 @@ def quotient_inf_to_sup_quotient (p p' : submodule R M) :
 (comap p.subtype (p ⊓ p')).liftq
   ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
-exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
-
+exact comap_mono (inf_le_inf_right _ le_sup_left) end
 
 /--
 Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as a linear isomorphism.
@@ -2045,7 +2044,7 @@ instance automorphism_group.to_linear_map_is_monoid_hom :
 namespace general_linear_group
 variables {R M}
 
-instance : inhabited (general_linear_group R M) := ⟨1⟩
+instance : has_coe_to_fun (general_linear_group R M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

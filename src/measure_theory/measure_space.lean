@@ -852,7 +852,7 @@ lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
   volume (⋃b∈s, f b) = s.sum (λp, volume (f p)) :=
 show volume (⋃b∈(↑s : set β), f b) = s.sum (λp, volume (f p)),
 begin
-  rw [volume_bUnion (countable_finite (finset.finite_to_set s)) hd hm, tsum_eq_sum],
+  rw [volume_bUnion s.countable_to_set hd hm, tsum_eq_sum],
   { show s.attach.sum (λb:(↑s : set β), volume (f b)) = s.sum (λb, volume (f b)),
     exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
   simp

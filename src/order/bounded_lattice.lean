@@ -284,7 +284,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     ... ≤ c : by simp [this, inf_le_right],
   assume : a ≤ c,
   bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
+    calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
 /- Prop instance -/

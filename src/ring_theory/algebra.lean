@@ -340,7 +340,8 @@ end alg_hom
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
 structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
-  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends A ≃+* B :=
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  extends A ≃ B, A ≃* B, A ≃+ B, A ≃+* B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
 
 attribute [nolint doc_blame] alg_equiv.to_ring_equiv
@@ -358,6 +359,39 @@ instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
 instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
 
 @[simp, norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
+
+@[simp] lemma map_add (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
+
+@[simp] lemma map_zero (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := e.to_add_equiv.map_zero
+
+@[simp] lemma map_mul (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
+
+@[simp] lemma map_one (e : A₁ ≃ₐ[R] A₂) : e 1 = 1 := e.to_mul_equiv.map_one
+
+@[simp] lemma commutes (e : A₁ ≃ₐ[R] A₂) : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
+  e.commutes'
+
+@[simp] lemma map_neg {A₁ : Type v} {A₂ : Type w}
+  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
+  ∀ x, e (-x) = -(e x) := e.to_add_equiv.map_neg
+
+@[simp] lemma map_sub {A₁ : Type v} {A₂ : Type w}
+  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
+  ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
+
+instance has_coe_to_alg_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
+  ⟨λ e, { map_one' := e.map_one, map_zero' := e.map_zero, ..e }⟩
+
+@[simp, norm_cast] lemma coe_to_alg_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
+  rfl
+
+lemma injective (e : A₁ ≃ₐ[R] A₂) : function.injective e :=
+  function.injective_of_left_inverse e.left_inv
+
+lemma surjective (e : A₁ ≃ₐ[R] A₂) : function.surjective e :=
+  function.surjective_of_has_right_inverse ⟨_, e.right_inv⟩
+
+lemma bijective (e : A₁ ≃ₐ[R] A₂) : function.bijective e := ⟨injective e, surjective e⟩
 
 instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
 
@@ -379,6 +413,12 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
 def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃ₐ[R] A₃ :=
 { commutes' := λ r, show e₂.to_fun (e₁.to_fun _) = _, by rw [e₁.commutes', e₂.commutes'],
   ..(e₁.to_ring_equiv.trans e₂.to_ring_equiv), }
+
+@[simp] lemma apply_symm_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e (e.symm x) = x :=
+  e.to_equiv.apply_symm_apply
+
+@[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
+  e.to_equiv.symm_apply_apply
 
 end alg_equiv
 

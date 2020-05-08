@@ -382,7 +382,7 @@ instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂)
   [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
   ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
 
-instance has_coe_to_alg_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
+instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
   ⟨λ e, { map_one' := e.map_one, map_zero' := e.map_zero, ..e }⟩
 
 @[simp, norm_cast] lemma coe_to_alg_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=

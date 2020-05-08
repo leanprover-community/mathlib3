@@ -388,13 +388,11 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 @[simp, norm_cast] lemma coe_to_alg_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
   rfl
 
-lemma injective (e : A₁ ≃ₐ[R] A₂) : function.injective e :=
-  function.injective_of_left_inverse e.left_inv
+lemma injective (e : A₁ ≃ₐ[R] A₂) : function.injective e := e.to_equiv.injective
 
-lemma surjective (e : A₁ ≃ₐ[R] A₂) : function.surjective e :=
-  function.surjective_of_has_right_inverse ⟨_, e.right_inv⟩
+lemma surjective (e : A₁ ≃ₐ[R] A₂) : function.surjective e := e.to_equiv.surjective
 
-lemma bijective (e : A₁ ≃ₐ[R] A₂) : function.bijective e := ⟨injective e, surjective e⟩
+lemma bijective (e : A₁ ≃ₐ[R] A₂) : function.bijective e := e.to_equiv.bijective
 
 instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
 
@@ -407,8 +405,8 @@ def refl : A₁ ≃ₐ[R] A₁ := 1
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
-{ commutes' := λ r, by { rw ←ring_equiv.symm_apply_apply e.to_ring_equiv (algebra_map R A₁ r),
-                         congr, change _ = e.to_fun _, rw e.commutes', },
+{ commutes' := λ r, by { rw ←e.to_ring_equiv.symm_apply_apply (algebra_map R A₁ r), congr,
+                         change _ = e _, rw e.commutes, },
   ..e.to_ring_equiv.symm, }
 
 /-- Algebra equivalences are transitive. -/

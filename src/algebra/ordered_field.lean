@@ -138,6 +138,16 @@ lemma div_lt_div' (hac : a ≤ c) (hbd : d < b) (c0 : 0 < c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (lt_trans d0 hbd) d0).2 (mul_lt_mul' hac hbd (le_of_lt d0) c0)
 
+lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
+  {c : α} (hc : 0 ≤ c) :
+  monotone (λ x, (f x) / c) :=
+hf.mul_const (inv_nonneg.2 hc)
+
+lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
+  {c : α} (hc : 0 < c) :
+  strict_mono (λ x, (f x) / c) :=
+hf.mul_const (inv_pos.2 hc)
+
 lemma half_pos {a : α} (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one

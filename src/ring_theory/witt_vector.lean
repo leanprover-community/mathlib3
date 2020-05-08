@@ -1303,6 +1303,12 @@ comm_ring_of_injective (ghost_map)
 local attribute [instance] aux₁
 .
 
+example : mv_polynomial.map (int.cast_ring_hom R) = aeval ℤ (mv_polynomial σ R) X :=
+begin
+  delta mv_polynomial.map,
+  dsimp [aeval, eval₂_hom],
+end
+
 noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
 -- have hom : is_ring_hom (mv_polynomial.map coe : mv_polynomial R ℤ → mv_polynomial R ℚ), by apply_instance,
 comm_ring_of_injective (map $ mv_polynomial.map (int.cast_ring_hom ℚ))

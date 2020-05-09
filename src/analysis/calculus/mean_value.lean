@@ -413,14 +413,14 @@ end
 /-! ### Vector-valued functions `f : E → F` -/
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`, then
-the function is `C`-Lipschitz. -/
+the function is `C`-Lipschitz. Version with `has_fderiv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_has_fderiv_within_le
   {f : E → F} {C : ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] F)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
- /- By composition with t ↦ x + t • (y-x), we reduce to a statement for functions defined
-  on [0,1], for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
+  /- By composition with `t ↦ x + t • (y-x)`, we reduce to a statement for functions defined
+  on `[0,1]`, for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
   We just have to check the differentiability of the composition and bounds on its derivative,
   which is straightforward but tedious for lack of automation. -/
   have C0 : 0 ≤ C := le_trans (norm_nonneg _) (bound x xs),
@@ -447,7 +447,7 @@ begin
 end
 
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
-bounded by `C`, then the function is `C`-Lipschitz. -/
+bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
@@ -455,7 +455,7 @@ hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv
 bound xs ys
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`,
-then the function is `C`-Lipschitz. -/
+then the function is `C`-Lipschitz. Version with `fderiv`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
@@ -479,9 +479,8 @@ theorem is_const_of_fderiv_eq_zero {f : E → F} (hf : differentiable ℝ f)
 convex_univ.is_const_of_fderiv_within_eq_zero hf.differentiable_on
   (λ x _, by rw fderiv_within_univ; exact hf' x) trivial trivial
 
-
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
-bounded by `C`, then the function is `C`-Lipschitz. -/
+bounded by `C`, then the function is `C`-Lipschitz. Version with `has_deriv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_has_deriv_within_le
   {f f' : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
   (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
@@ -490,7 +489,7 @@ convex.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fd
 (λ x hx, le_trans (by simp) (bound x hx)) hs xs ys
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function within
-this set is bounded by `C`, then the function is `C`-Lipschitz. -/
+this set is bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv_within` -/
 theorem convex.norm_image_sub_le_of_norm_deriv_within_le
   {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥deriv_within f s x∥ ≤ C)
@@ -499,7 +498,7 @@ hs.norm_image_sub_le_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_w
 bound xs ys
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
-bounded by `C`, then the function is `C`-Lipschitz. -/
+bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv`. -/
 theorem convex.norm_image_sub_le_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=

@@ -47,6 +47,7 @@ We also show the existence and compute the derivatives of:
   - the identity function
   - linear maps
   - addition
+  - sum of finitely many functions
   - negation
   - subtraction
   - multiplication
@@ -601,7 +602,7 @@ end add
 
 
 section sum
-/-! ### Derivative of the sum of two functions -/
+/-! ### Derivative of a finite sum of functions -/
 
 open_locale big_operators
 

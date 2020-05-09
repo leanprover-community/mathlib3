@@ -452,9 +452,15 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 
 open_locale big_operators
 
+/-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,
+where the main point of the bound is that it tends to `0`. The goal is to deduce the series
+expansion of the logarithm, in `has_sum_pow_div_log_of_abs_lt_1`.
+-/
 lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : abs x < 1) (n : ℕ) :
   abs ((∑ i in range n, x^(i+1)/(i+1)) + log (1-x)) ≤ (abs x)^(n+1) / (1 - abs x) :=
 begin
+  /- For the proof, we will show that the derivative of the function to be estimated is small,
+  and then apply the mean value inequality. -/
   have Diff : ∀ y ∈ set.Ioo (-1 : ℝ) 1, differentiable_at ℝ (λ (y : ℝ), log (1 - y)) y,
   { rintros y ⟨hy1, hy2⟩,
     refine differentiable_at.log (by simp) _,
@@ -474,11 +480,10 @@ begin
     ext i,
     have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
     field_simp [this, mul_comm] },
-  have B : ∀ y ∈ set.Ioo (-(1 : ℝ)) 1, -(1 : ℝ) /(1-y) + (∑ i in range n, y ^ i) = -(y^n) / (1 - y),
+  have B : ∀ y ∈ set.Ioo (-(1 : ℝ)) 1,
+    -(1 : ℝ) /(1-y) + (∑ i in range n, y ^ i) = -(y^n) / (1 - y),
   { assume y hy,
-    have abs_y : abs y < 1,
-    { rcases hy with ⟨hy1, hy2⟩,
-      exact abs_lt_of_lt_of_neg_lt hy2 (neg_lt.mp hy1) },
+    have abs_y : abs y < 1 := abs_lt_of_lt_of_neg_lt hy.2 (neg_lt.mp hy.1),
     rw [div_eq_inv_mul, ← tsum_geometric_of_abs_lt_1 abs_y,
         tsum_nat_add n (summable_geometric_of_abs_lt_1 abs_y)],
     simp only [pow_add, mul_one, neg_add_cancel_right, mul_neg_eq_neg_mul_symm, neg_add_rev],
@@ -503,11 +508,12 @@ begin
   simpa [F, add_comm, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using D
 end
 
+/-- Power series expansion of the logarithm around `1`. -/
 theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : abs x < 1) :
   has_sum (λ (n : ℕ), x ^ (n + 1) / (n + 1)) (-log (1 - x)) :=
 begin
   rw has_sum_iff_tendsto_nat_of_summable,
-  show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (↑i + 1)) at_top (𝓝 (-log (1 - x))),
+  show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (i + 1)) at_top (𝓝 (-log (1 - x))),
   { rw [tendsto_iff_norm_tendsto_zero],
     simp only [norm_eq_abs, sub_neg_eq_add],
     refine squeeze_zero (λ n, abs_nonneg _) (abs_log_sub_add_sum_range_le h) _,
@@ -516,7 +522,7 @@ begin
     simp only [pow_succ],
     refine (tendsto_const_nhds.mul _).div_const,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
-  show summable (λ (n : ℕ), x ^ (n + 1) / (↑n + 1)),
+  show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
     calc ∥x ^ (i + 1) / (i + 1)∥
     = abs x ^(i+1) / (i+1) :

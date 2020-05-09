@@ -506,6 +506,7 @@ lemma summable_subtype_iff (s : finset β):
   summable (λ b : {b // b ∉ s}, f b) ↔ summable f :=
 ⟨λ H, (has_sum_subtype_iff.1 H.has_sum).summable, λ H, (has_sum_subtype_iff'.2 H.has_sum).summable⟩
 
+/-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
 def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
 { to_fun := λ i, i.1 - k,
   inv_fun := λ j, ⟨j + k, by simp⟩,
@@ -518,8 +519,7 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   end,
   right_inv := λ j, nat.add_sub_cancel _ _ }
 
-lemma summable_nat_add_iff {f : ℕ → α} (k : ℕ) :
-  summable (λ n, f (n + k)) ↔ summable f :=
+lemma summable_nat_add_iff {f : ℕ → α} (k : ℕ) : summable (λ n, f (n + k)) ↔ summable f :=
 begin
   refine iff.trans _ (summable_subtype_iff (range k)),
   rw [← (not_mem_range_equiv k).symm.summable_iff],

@@ -37,6 +37,7 @@ usual formulas (and existence assertions) for the derivative of
 * bounded linear maps
 * bounded bilinear maps
 * sum of two functions
+* sum of finitely many functions
 * multiplication of a function by a scalar constant
 * negative of a function
 * subtraction of two functions
@@ -1496,8 +1497,7 @@ theorem fderiv_within_sum (hxs : unique_diff_within_at 𝕜 s x)
   fderiv_within 𝕜 (λ y, ∑ i in u, A i y) s x = (∑ i in u, fderiv_within 𝕜 (A i) s x) :=
 (has_fderiv_within_at.sum (λ i hi, (h i hi).has_fderiv_within_at)).fderiv_within hxs
 
-theorem fderiv_sum
-  (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+theorem fderiv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
   fderiv 𝕜 (λ y, ∑ i in u, A i y) x = (∑ i in u, fderiv 𝕜 (A i) x) :=
 (has_fderiv_at.sum (λ i hi, (h i hi).has_fderiv_at)).fderiv
 

@@ -606,19 +606,23 @@ by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
 
-lemma add_mod (a b n : ℕ) : (a + b) % n = ((a % n) + (b % n)) % n :=
-begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div b n, ←add_assoc, add_mul_mod_self_left,
-        add_assoc, add_comm _ (b % n), ←add_assoc, add_mul_mod_self_left] }
-end
-
 @[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
 by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
    rwa [add_right_comm, mod_add_div] at this
 
 @[simp] theorem add_mod_mod (m n k : ℕ) : (m + n % k) % k = (m + n) % k :=
 by rw [add_comm, mod_add_mod, add_comm]
+
+lemma add_mod (a b n : ℕ) : (a + b) % n = ((a % n) + (b % n)) % n :=
+by rw [add_mod_mod, mod_add_mod]
+
+theorem add_mod_eq_add_mod_right {m n k : ℕ} (i : ℕ) (H : m % n = k % n) :
+  (m + i) % n = (k + i) % n :=
+by rw [← mod_add_mod, ← mod_add_mod k, H]
+
+theorem add_mod_eq_add_mod_left {m n k : ℕ} (i : ℕ) (H : m % n = k % n) :
+  (i + m) % n = (i + k) % n :=
+by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin

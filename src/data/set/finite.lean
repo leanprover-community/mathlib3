@@ -9,7 +9,7 @@ import algebra.big_operators
 /-!
 # Finite sets
 
-This file defines predicates `finite : set α → Prop` and `inifinite : set α → Prop` and proves some
+This file defines predicates `finite : set α → Prop` and `infinite : set α → Prop` and proves some
 basic facts about finite sets.
 -/
 

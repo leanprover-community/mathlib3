@@ -1961,41 +1961,6 @@ noncomputable def tr_stmts₁ : stmt₂ → finset Λ'
 theorem tr_stmts₁_run {k s q} : tr_stmts₁ (st_run s q) = {go k s q, ret q} ∪ tr_stmts₁ q :=
 by rcases s with _|_|_; unfold tr_stmts₁ st_run
 
-parameters (M : Λ → stmt₂)
-include M
-
-/-- The TM2 emulator machine states written as a TM1 program.
-This handles the `go` and `ret` states, which shuttle to and from a stack top. -/
-def tr : Λ' → stmt₁
-| (normal q) := tr_normal (M q)
-| (go k s q) :=
-  branch (λ a s, (a.2 k).is_none) (tr_st_act (goto (λ _ _, ret q)) s)
-    (move dir.right $ goto (λ _ _, go k s q))
-| (ret q) :=
-  branch (λ a s, a.1) (tr_normal q)
-    (move dir.left $ goto (λ _ _, ret q))
-
-local attribute [pp_using_anonymous_constructor] turing.TM1.cfg
-/-- The relation between TM2 configurations and TM1 configurations of the TM2 emulator. -/
-inductive tr_cfg : cfg₂ → cfg₁ → Prop
-| mk {q v} {S : ∀ k, list (Γ k)} (L : list_blank (∀ k, option (Γ k))) :
-  (∀ k, L.map (proj k) = list_blank.mk ((S k).map some).reverse) →
-  tr_cfg ⟨q, v, S⟩ ⟨q.map normal, v, tape.mk' ∅ (add_bottom L)⟩
-
-theorem tr_respects_aux₁ {k} (o q v) {S : list (Γ k)} {L : list_blank (∀ k, option (Γ k))}
-  (hL : L.map (proj k) = list_blank.mk (S.map some).reverse) (n ≤ S.length) :
-  reaches₀ (TM1.step tr)
-    ⟨some (go k o q), v, (tape.mk' ∅ (add_bottom L))⟩
-    ⟨some (go k o q), v, (tape.move dir.right)^[n] (tape.mk' ∅ (add_bottom L))⟩ :=
-begin
-  induction n with n IH, {refl},
-  apply (IH (le_of_lt H)).tail,
-  rw nat.iterate_succ', simp only [TM1.step, TM1.step_aux, tr,
-    tape.mk'_nth_nat, tape.move_right_n_head, add_bottom_nth_snd,
-    option.mem_def],
-  rw [stk_nth_val _ hL, list.nth_le_nth], refl, rwa list.length_reverse
-end
-
 theorem tr_respects_aux₂
   {k q v} {S : Π k, list (Γ k)} {L : list_blank (∀ k, option (Γ k))}
   (hL : ∀ k, L.map (proj k) = list_blank.mk ((S k).map some).reverse) (o) :
@@ -2071,6 +2036,41 @@ begin
       rw function.update_noteq h' } } },
 end
 
+parameters (M : Λ → stmt₂)
+include M
+
+/-- The TM2 emulator machine states written as a TM1 program.
+This handles the `go` and `ret` states, which shuttle to and from a stack top. -/
+def tr : Λ' → stmt₁
+| (normal q) := tr_normal (M q)
+| (go k s q) :=
+  branch (λ a s, (a.2 k).is_none) (tr_st_act (goto (λ _ _, ret q)) s)
+    (move dir.right $ goto (λ _ _, go k s q))
+| (ret q) :=
+  branch (λ a s, a.1) (tr_normal q)
+    (move dir.left $ goto (λ _ _, ret q))
+
+local attribute [pp_using_anonymous_constructor] turing.TM1.cfg
+/-- The relation between TM2 configurations and TM1 configurations of the TM2 emulator. -/
+inductive tr_cfg : cfg₂ → cfg₁ → Prop
+| mk {q v} {S : ∀ k, list (Γ k)} (L : list_blank (∀ k, option (Γ k))) :
+  (∀ k, L.map (proj k) = list_blank.mk ((S k).map some).reverse) →
+  tr_cfg ⟨q, v, S⟩ ⟨q.map normal, v, tape.mk' ∅ (add_bottom L)⟩
+
+theorem tr_respects_aux₁ {k} (o q v) {S : list (Γ k)} {L : list_blank (∀ k, option (Γ k))}
+  (hL : L.map (proj k) = list_blank.mk (S.map some).reverse) (n ≤ S.length) :
+  reaches₀ (TM1.step tr)
+    ⟨some (go k o q), v, (tape.mk' ∅ (add_bottom L))⟩
+    ⟨some (go k o q), v, (tape.move dir.right)^[n] (tape.mk' ∅ (add_bottom L))⟩ :=
+begin
+  induction n with n IH, {refl},
+  apply (IH (le_of_lt H)).tail,
+  rw nat.iterate_succ', simp only [TM1.step, TM1.step_aux, tr,
+    tape.mk'_nth_nat, tape.move_right_n_head, add_bottom_nth_snd,
+    option.mem_def],
+  rw [stk_nth_val _ hL, list.nth_le_nth], refl, rwa list.length_reverse
+end
+
 theorem tr_respects_aux₃ {q v} {L : list_blank (∀ k, option (Γ k))} (n) :
   reaches₀ (TM1.step tr)
     ⟨some (ret q), v, (tape.move dir.right)^[n] (tape.mk' ∅ (add_bottom L))⟩
@@ -2095,7 +2095,7 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
 begin
   simp only [tr_normal_run, step_run],
   have hgo := tr_respects_aux₁ M o q v (hT k) _ (le_refl _),
-  obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ M hT o,
+  obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ hT o,
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,
   rw [tr, TM1.step_aux, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_snd,

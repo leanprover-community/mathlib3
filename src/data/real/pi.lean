@@ -172,15 +172,17 @@ lemma sqrt_two_add_series_step_up (c d : ℕ) {a b n : ℕ} {z : ℝ}
   (hz : sqrt_two_add_series (c/d) n ≤ z) (hb : 0 < b) (hd : 0 < d)
   (h : (2 * b + a) * d ^ 2 ≤ c ^ 2 * b) : sqrt_two_add_series (a/b) (n+1) ≤ z :=
 begin
-  refine le_trans _ hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
-  rwa [sqrt_le_left, div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
-      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
-      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm b],
-  apply pow_pos, iterate 2 {apply nat.cast_pos.2, assumption},
-  exact nat.cast_ne_zero.2 (ne_of_gt hb),
-  exact div_nonneg (nat.cast_nonneg _) (nat.cast_pos.2 hd)
+  refine le_trans _ hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
+  have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
+  have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
+  rw [sqrt_le_left (div_nonneg (nat.cast_nonneg _) hd'), div_pow,
+    add_div_eq_mul_add_div _ _ (ne_of_gt hb'), div_le_div_iff hb' (pow_pos hd' _)],
+  exact_mod_cast h
 end
 
+/-- Create a proof of `a < pi` for a fixed rational number `a`, given a witness, which is a
+sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
+`sqrt (2 + r i) ≤ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ a/2^(n+1)`. -/
 meta def pi_lower_bound (l : list ℚ) : tactic unit :=
 do let n := l.length,
   tactic.apply `(@pi_lower_bound_start %%(reflect n)),
@@ -196,7 +198,7 @@ theorem pi_upper_bound_start (n : ℕ) {a}
   (h₂ : 1 / 4 ^ n ≤ a) : pi < a :=
 begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
-  rw [← le_sub_iff_add_le, mul_comm, ← le_div_iff, sqrt_le_left, sub_le],
+  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
   { rwa [nat.cast_zero, zero_div] at h },
   { exact div_nonneg (sub_nonneg.2 h₂) (pow_pos two_pos _) },
   { exact pow_pos two_pos _ }
@@ -206,15 +208,17 @@ lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
   (hz : z ≤ sqrt_two_add_series (a/b) n) (hb : 0 < b) (hd : 0 < d)
   (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
 begin
-  apply le_trans hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
+  apply le_trans hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
   apply le_sqrt_of_sqr_le,
-  rwa [div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
-      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
-      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm (b ^ 2)],
-  swap, apply pow_pos, iterate 2 {apply nat.cast_pos.2, assumption},
-  exact nat.cast_ne_zero.2 (ne_of_gt hd),
+  have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
+  have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
+  rw [div_pow, add_div_eq_mul_add_div _ _ (ne_of_gt hd'), div_le_div_iff (pow_pos hb' _) hd'],
+  exact_mod_cast h
 end
 
+/-- Create a proof of `pi < a` for a fixed rational number `a`, given a witness, which is a
+sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
+`sqrt (2 + r i) ≥ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ (a - 1/4^n) / 2^(n+1)`. -/
 meta def pi_upper_bound (l : list ℚ) : tactic unit :=
 do let n := l.length,
   (() <$ tactic.apply `(@pi_upper_bound_start %%(reflect n))); [pure (), `[norm_num1]],

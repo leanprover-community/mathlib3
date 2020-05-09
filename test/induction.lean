@@ -212,17 +212,10 @@ begin
   },
   -- case palindrome.single {
   {
-    -- TODO Currently, the index-based renaming generates the name `xs`, which
-    -- is a bit of a misnomer. To prevent this, the index-based renaming should
-    -- only apply when the constructor argument being named has the same base
-    -- type as the index/indices for which it is named.
-    rename xs x,
     exact palindrome.single _
   },
   -- case palindrome.sandwich {
   {
-    rename xs x,
-    rename xs_1 xs,
     rw reverse_append_sandwich,
     apply palindrome.sandwich,
     apply ih

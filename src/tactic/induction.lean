@@ -43,8 +43,10 @@ def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β
 | _ a [] := a
 | i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
 
-/-- Fold a list from left to right as with `foldl`, but the combining function
-also receives each element's index. -/
+/--
+Fold a list from left to right as with `foldl`, but the combining function
+also receives each element's index.
+-/
 def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
 foldl_with_index_aux f 0 a l
 
@@ -53,10 +55,22 @@ def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α
 | _ b [] := b
 | i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
 
-/-- Fold a list from right to left as with `foldr`, but the combining function
-also receives each element's index. -/
+/--
+Fold a list from right to left as with `foldr`, but the combining function
+also receives each element's index.
+-/
 def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
+
+/-- Monadic variant of `foldl_with_index`. -/
+def mfoldl_with_index {m : Type u → Type w} [monad m] (f : ℕ → α → β → m α)
+  (a : α) (l : list β) : m α :=
+l.foldl_with_index (λ i ma b, do a ← ma, f i a b) (pure a)
+
+/-- Monadic variant of `foldr_with_index`. -/
+def mfoldr_with_index {m : Type v → Type w} [monad m] (f : ℕ → α → β → m β)
+  (b : β) (l : list α) : m β :=
+l.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
 
 /-- The list of indices of a list. `index_list l = [0, ..., length l - 1]`. -/
 def index_list : list α → list ℕ := map_with_index (λ i _, i)
@@ -72,64 +86,67 @@ def all_some : list (option α) → option (list α)
 end list
 
 
-@[reducible] def rbmultimap (α : Type*) (β : Type*)
-  (ltα : α → α → Prop . rbtree.default_lt)
-  (ltβ : β → β → Prop . rbtree.default_lt)
-  : Type* :=
-rbmap α (rbtree β ltβ) ltα
+namespace native
 
-def mk_rbmultimap (α : Type*) (β : Type*)
-  (ltα : α → α → Prop . rbtree.default_lt)
-  (ltβ : β → β → Prop . rbtree.default_lt)
-  : rbmultimap α β ltα ltβ :=
-mk_rbmap α (rbtree β ltβ) ltα
+@[reducible] meta def rb_multimap (α β : Type) : Type :=
+rb_map α (rb_set β)
+
+meta def mk_rb_multimap (α β : Type) [ltα : has_lt α] [ltβ : has_lt β]
+  [decidable_rel ((<) : α → α → Prop)]
+  : rb_multimap α β :=
+mk_rb_map
 
 
-namespace rbmultimap
+namespace rb_multimap
 
-variables
-  {α : Type u} {β : Type v}
-  {ltα : α → α → Prop} {ltβ : β → β → Prop}
+variables {α β : Type}
 
-def insert [decidable_rel ltα] [decidable_rel ltβ] (m : rbmultimap α β ltα ltβ)
-  (a : α) (b : β)
-  : rbmultimap α β ltα ltβ :=
+section
+
+variables [has_lt α] [has_lt β] [decidable_rel ((<) : α → α → Prop)]
+
+meta def find (m : rb_multimap α β) (a : α)
+  : option (rb_set β) :=
+rb_map.find m a
+
+variables [decidable_rel ((<) : β → β → Prop)]
+
+meta def insert (m : rb_multimap α β) (a : α) (b : β) : rb_multimap α β :=
 let bs := m.find a in
-m.insert a
+rb_map.insert m a
   (match bs with
-   | none := @rbtree_of _ [b] ltβ _
+   | none := rb_map.set_of_list [b]
    | (some bs) := bs.insert b
    end)
 
-def find [decidable_rel ltα] (m : rbmultimap α β ltα ltβ) (a : α)
-  : option (rbtree β ltβ) :=
-m.find a
-
-def contains [decidable_rel ltα] [decidable_rel ltβ] (m : rbmultimap α β ltα ltβ)
-  (a : α) (b : β)
-  : bool :=
+meta def contains (m : rb_multimap α β) (a : α) (b : β) : bool :=
 match m.find a with
 | none := false
 | (some bs) := bs.contains b
 end
 
-def to_list (m : rbmultimap α β ltα ltβ) : list (α × rbtree β ltβ) :=
-m.to_list
+end
 
-def to_multilist (m : rbmultimap α β ltα ltβ) : list (α × list β) :=
-m.to_list.map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
+meta def to_list (m : rb_multimap α β) : list (α × rb_set β) :=
+rb_map.to_list m
 
-end rbmultimap
+meta def to_multilist (m : rb_multimap α β) : list (α × list β) :=
+(rb_map.to_list m).map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
+
+end rb_multimap
 
 
-namespace rbtree
+namespace rb_set
 
-def merge {α} {lt : α → α → Prop} [decidable_rel lt] (xs ys : rbtree α lt)
-  : rbtree α lt :=
-ys.fold (λ a xs, xs.insert a) xs
--- NOTE: horribly inefficient
+variables {α : Type} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
 
-end rbtree
+meta def merge (xs ys : rb_set α) : rb_set α :=
+rb_set.fold ys xs (λ a xs, xs.insert a)
+
+end rb_set
+end native
+
+open native
 
 
 namespace expr
@@ -147,12 +164,6 @@ meta def local_names_option : expr → option (name × name)
 | _ := none
 
 meta def is_local (e : expr) : bool := e.local_unique_name_option.is_some
-
-/-- `match_variable e` returns `some n` if `e` is the `n`-th de Bruijn variable,
-and `none` otherwise. -/
-meta def match_variable : expr → option ℕ
-| (var n) := some n
-| _ := none
 
 meta def free_vars (binder_depth : ℕ) (e : expr) : rbtree ℕ :=
 e.fold (mk_rbtree ℕ) $ λ e depth vars,
@@ -256,13 +267,18 @@ meta def decompose_app_normalizing (e : expr) : tactic (expr × list expr) := do
   pure (f , args.reverse)
 
 /-- Returns the set of variables occurring in `e`. -/
-meta def vars (e : expr) : rbtree ℕ :=
-e.fold (mk_rbtree ℕ)
-  (λ e _ occs,
-    match match_variable e with
-    | some n := occs.insert n
-    | none := occs
-    end)
+meta def vars (e : expr) : rb_set ℕ :=
+e.fold mk_rb_set $ λ e _ occs,
+  match e with
+  | var n := occs.insert n
+  | _ := occs
+  end
+
+meta def local_constants (e : expr) : expr_set :=
+e.fold mk_expr_set $ λ e _ occs,
+  if e.is_local_constant
+    then occs.insert e
+    else occs
 
 /-- Given an application `e = f x ... z`, this function returns a map
 associating each de Bruijn index that occurs in `e` with the application
@@ -274,12 +290,12 @@ returned map is
 
 Arguments are counted from zero (as shown above).
 -/
-meta def application_variable_occurrences (e : expr) : rbmultimap ℕ ℕ :=
+meta def application_variable_occurrences (e : expr) : rb_multimap ℕ ℕ :=
 let (_, args) := decompose_app e in
 let occs := args.map vars in
 occs.foldl_with_index
-  (λ i occ_map occs, occs.fold (λ var occ_map, occ_map.insert var i) occ_map)
-  (mk_rbmultimap ℕ ℕ)
+  (λ i occ_map occs, occs.fold occ_map (λ var occ_map, occ_map.insert var i))
+  (mk_rb_multimap ℕ ℕ)
 
 end expr
 
@@ -354,7 +370,116 @@ end name
 
 namespace tactic
 
-open native
+open expr native
+
+meta def open_binder_aux (n : name) (bi : binder_info) (t e : expr)
+  : tactic (expr × name × expr) := do
+  c_name ← tactic.mk_fresh_name,
+  let c := local_const c_name c_name bi t,
+  pure $ ⟨e.instantiate_var c, n, c⟩
+
+/--
+Given an `e` with `e = ∀ (x : T), U` or `e = λ (x : T), U`, `open_binder e`
+returns
+
+- `U[x/c]`, where `c` is a new local constant with type `T`;
+- `x` (the binder name);
+- `c` (the local constant).
+
+Note that `c` is not introduced into the context, so `U[x/c]` will not
+type-check.
+
+Fails if `e` does not start with a pi or lambda.
+-/
+meta def open_binder : expr → tactic (expr × name × expr)
+| (lam n bi t e) := open_binder_aux n bi t e
+| (pi  n bi t e) := open_binder_aux n bi t e
+| e := fail! "open_binder: expected an expression starting with a pi or lambda, but got:\n{e}"
+
+/--
+For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
+`decompose_constructor_type e` returns the following:
+
+- For each `xᵢ`: the name `xᵢ`; a fresh local constant `cᵢ` which
+  replaces `xᵢ` in the other returned expressions; and whether `xᵢ` is a
+  dependent argument (i.e. whether it occurs in the remainder of `e`).
+  The type `Tᵢ` is the type of `cᵢ`.
+- The return type `U`.
+-/
+meta def decompose_constructor_type_pis
+  : expr → tactic (list (name × expr × bool) × expr) := λ e, do
+  e ← whnf e,
+  match e with
+  | (pi _ _ _ rest) := do
+    -- TODO the next line makes this function quadratic in the size of the
+    -- expression.
+    let dep := rest.has_var_idx 0,
+    ⟨e, pi_name, cnst⟩ ← open_binder e,
+    ⟨args, u⟩ ← decompose_constructor_type_pis e,
+    pure $ ⟨⟨pi_name, cnst, dep⟩ :: args, u⟩
+  | _ := pure ⟨[], e⟩
+  end
+
+meta def get_app_fn_const_normalizing : expr → tactic name := λ e, do
+  e ← whnf e,
+  match e with
+  | (const n _) := pure n
+  | (app f _) := get_app_fn_const_normalizing f
+  | _ := fail! "expected a constant (possibly applied to some arguments), but got:\n{e}"
+  end
+
+/--
+`fuzzy_type_match t s` is true iff either of the following applies:
+
+- `t` and `s` are definitionally equal.
+- `t` and `s` are applications of the same local constant, i.e. we have
+  `t = C x₁ ... xₙ` and `s = C y₁ ... yₘ` for some local constant `C`.
+-/
+-- TODO is this still too strict? What about e.g. (list (fin n) → unit) and
+-- (list (fin (n + 1)) → unit)
+meta def fuzzy_type_match (t s : expr) : tactic bool :=
+  (is_def_eq t s *> pure tt) <|> do
+    (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
+    (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
+    pure $ t_const = s_const
+
+/-
+TODO doc
+Input: The local constants representing the constructor arguments.
+
+Assumption: The input expression has the form `e = C x₁ ... xₙ` where
+`C` is a local constant.
+
+Output: A map associating each of the arg local constants `cᵢ` with the set of
+indexes `j` such that `cᵢ` appears in `xⱼ` and `xⱼ`'s type fuzzily matches that
+of `cᵢ`.
+-/
+meta def decompose_constructor_type_return (num_params : ℕ) (args : expr_set)
+  : expr → tactic (rb_multimap expr ℕ) := λ ret_type, do
+  ⟨_, ret_args⟩ ← decompose_app_normalizing ret_type,
+  ret_args.mfoldl_with_index
+    (λ i occ_map ret_arg, do
+      if i < num_params
+        then pure occ_map
+        else do
+          let ret_arg_consts := ret_arg.local_constants,
+          ret_arg_consts.mfold occ_map $ λ c occ_map, do
+            ret_arg_type ← infer_type ret_arg,
+            eq ← fuzzy_type_match c.local_type ret_arg_type,
+            pure $ if eq then occ_map.insert c i else occ_map)
+    (mk_rb_multimap _ _)
+
+/--
+TODO doc
+-/
+meta def decompose_constructor_type (num_params : ℕ) (e : expr)
+  : tactic (list (name × expr × bool × rb_set ℕ)) := do
+  ⟨args, ret⟩ ← decompose_constructor_type_pis e,
+  let arg_constants := rb_map.set_of_list (args.map (λ ⟨_, c, _⟩, c)),
+  index_occs ← decompose_constructor_type_return num_params arg_constants ret,
+  pure $ args.map $ λ ⟨n, c, dep⟩,
+    let occs := (index_occs.find c).get_or_else mk_rb_map in
+    ⟨n, c.local_type, dep, occs⟩
 
 /-- Returns true iff `arg_type` is the local constant named `type_name`
 (possibly applied to some arguments). If `arg_type` is the type of an argument
@@ -374,13 +499,11 @@ meta structure constructor_argument_info :=
 (type : expr)
 (dependent : bool)
 (index_occurrences : list ℕ)
-(arg_occs : list (ℕ × list ℕ)) -- TODO debug
 
 @[derive has_reflect]
 meta structure constructor_info :=
 (cname : name)
 (args : list constructor_argument_info)
-(return_type : expr)
 
 @[derive has_reflect]
 meta structure inductive_info :=
@@ -391,38 +514,24 @@ meta structure inductive_info :=
 (num_params : ℕ)
 (num_indices : ℕ)
 
-meta def get_constructor_argument_info (num_params : ℕ)
-  (num_constructor_args : ℕ) (arg_index : ℕ) (arg_name : name) (arg_type : expr)
-  (arg_dependent : bool) (arg_occurrences : rbmultimap ℕ ℕ)
-  : constructor_argument_info :=
-let arg_var := num_constructor_args - 1 - arg_index in
-let arg_occs :=
-  ((arg_occurrences.find arg_var).map rbtree.to_list).get_or_else [] in
-let index_occs := arg_occs.filter (λ i, i >= num_params) in
--- TODO dbg
-let dbg : list (ℕ × list ℕ):= arg_occurrences.to_list.map (λ ⟨i, xs⟩, ⟨i, xs.to_list⟩) in
-⟨ arg_name, arg_type, arg_dependent, index_occs, dbg ⟩
-
 /-- Gathers information about a constructor from the environment. Fails if `c`
 does not refer to a constructor. -/
 meta def get_constructor_info (env : environment) (num_params : ℕ) (c : name)
-  : exceptional constructor_info := do
+  : tactic constructor_info := do
   when (¬ env.is_constructor c) $ exceptional.fail format!
     "Expected {c} to be a constructor.",
   decl ← env.get c,
-  let (args, n_args, return_type) := decl.type.decompose_pi,
-  let arg_occurrences := return_type.application_variable_occurrences,
+  args ← decompose_constructor_type num_params decl.type,
   pure
     { cname := decl.to_name,
-      args := args.map_with_index $ λ i ⟨name, _, type, dep⟩,
-        get_constructor_argument_info num_params n_args i name type dep
-          arg_occurrences,
-      return_type := return_type }
+      args := args.map_with_index $ λ i ⟨name, type, dep, index_occs⟩,
+        ⟨name, type, dep, index_occs.to_list⟩,
+    }
 
 /-- Gathers information about an inductive type from the environment. Fails if
 `T` does not refer to an inductive type. -/
 meta def get_inductive_info (env : environment) (T : name)
-  : exceptional inductive_info := do
+  : tactic inductive_info := do
   when (¬ env.is_inductive T) $ exceptional.fail format!
     "Expected {T} to be an inductive type.",
   decl ← env.get T,
@@ -545,8 +654,6 @@ meta def constructor_argument_intros (einfo : eliminee_info)
   : tactic unit :=
 (cinfo.args.drop iinfo.num_params).mmap' $ λ ainfo, do
   let info : constructor_argument_naming_info := ⟨einfo, iinfo, cinfo, ainfo⟩,
-  -- TODO debug
-  -- trace format!"arg: {ainfo.aname}, dep: {ainfo.dependent}, index occs: {ainfo.index_occurrences}",
   intro_fresh (constructor_argument_name info)
 
 meta def ih_intros (einfo : eliminee_info) (iinfo : inductive_info)
@@ -566,8 +673,6 @@ end
 
 meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info) : tactic unit := do
-  -- TODO debug
-  -- trace format!"constructor: {cinfo.cname}",
   constructor_argument_intros einfo iinfo cinfo,
   ih_intros einfo iinfo cinfo
 

@@ -772,6 +772,11 @@ do l' ← replace_nat_pfs l,
 
 end normalize
 
+/-- Collects all terms of the form `a ^ 2` in the expression -/
+meta def find_squares : expr_set → expr → tactic expr_set
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert a)
+| s e := e.mfoldl find_squares s
+
 end linarith
 
 section
@@ -893,6 +898,68 @@ add_tactic_doc
 { name       := "linarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.linarith],
+  tags       := ["arithmetic", "decision procedure", "finishing"] }
+
+/--
+An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options, which
+are inherited by `nra`; that is, `nra!` and `nra only [h1, h2]` all work as in `linarith`. The
+preprocessing is as follows:
+
+* For every subterm `a ^ 2` in a hypothesis or the goal, the assumption `0 ≤ a ^ 2` is added to
+  the context.
+* For every pair of hypotheses `0 ≤ a`, `0 ≤ b` in the context, the assumption `0 ≤ a * b` is added
+  to the context (non-recursively).
+-/
+meta def tactic.interactive.nra (red : parse ((tk "!")?))
+  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
+  (cfg : linarith_config := {}) : tactic unit := do
+  ls ← match hyps with
+    | none := if restr.is_some then return [] else local_context
+    | some hyps := do
+      ls ← hyps.mmap i_to_expr,
+      if restr.is_some then return ls else (++ ls) <$> local_context
+    end,
+  (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
+      t ← infer_type h,
+      s ← find_squares s t,
+      return (s, match t with `(0 ≤ %%a) := h :: l | _ := l end))
+    (mk_expr_set, []) ls : tactic (expr_set × list expr)),
+  s ← target >>= find_squares s,
+  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ e tac, do
+    (hyps, ge0) ← tac,
+    (do
+      t ← infer_type e,
+      when cfg.restrict_type.is_some
+        (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
+      p ← mk_app ``pow_two_nonneg [e],
+      t ← infer_type p,
+      h ← assertv `h t p,
+      return (hyps.map (λ l, pexpr.of_expr h :: l), h :: ge0)) <|>
+    return (hyps, ge0)),
+  ge0.mmap' (λ a, ge0.mmap' $ λ b, do
+    p ← mk_app ``mul_nonneg [a, b],
+    t ← infer_type p,
+    assertv `h t p),
+  tactic.interactive.linarith red restr hyps cfg
+
+add_hint_tactic "nra"
+
+/--
+An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options, which
+are inherited by `nra`; that is, `nra!` and `nra only [h1, h2]` all work as in `linarith`. The
+preprocessing is as follows:
+
+* For every subterm `a ^ 2` in a hypothesis or the goal, the assumption `0 ≤ a ^ 2` is added to
+  the context.
+* For every pair of hypotheses `0 ≤ a`, `0 ≤ b` in the context, the assumption `0 ≤ a * b` is added
+  to the context (non-recursively).
+-/
+add_tactic_doc
+{ name       := "nra",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.nra],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

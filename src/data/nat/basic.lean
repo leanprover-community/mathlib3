@@ -613,6 +613,13 @@ begin
         add_assoc, add_comm _ (b % n), ←add_assoc, add_mul_mod_self_left] }
 end
 
+@[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
+by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
+   rwa [add_right_comm, mod_add_div] at this
+
+@[simp] theorem add_mod_mod (m n k : ℕ) : (m + n % k) % k = (m + n) % k :=
+by rw [add_comm, mod_add_mod, add_comm]
+
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
   conv_lhs {

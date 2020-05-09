@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
 import analysis.complex.basic
+import analysis.calculus.mean_value
 
 
 /-!
@@ -448,5 +449,89 @@ end
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+open_locale big_operators
+
+lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : abs x < 1) (n : ℕ) :
+  abs ((∑ i in range n, x^(i+1)/(i+1)) + log (1-x)) ≤ (abs x)^(n+1) / (1 - abs x) :=
+begin
+  have Diff : ∀ y ∈ set.Ioo (-1 : ℝ) 1, differentiable_at ℝ (λ (y : ℝ), log (1 - y)) y,
+  { rintros y ⟨hy1, hy2⟩,
+    refine differentiable_at.log (by simp) _,
+    linarith },
+  let F : ℝ → ℝ := λ x, log (1-x) + ∑ i in range n, x^(i+1)/(i+1),
+  have Diff' : ∀ y ∈ set.Icc (- abs x) (abs x), differentiable_at ℝ F y,
+  { assume y hy,
+    have hy' : y ∈ set.Ioo (-1 : ℝ) 1 :=
+      ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
+    simp [differentiable_at.add (Diff y hy')] },
+  have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = -1/(1-y) + (∑ i in range n, y ^ i),
+  { assume y hy,
+    have : 1 - y ≠ 0, by { rcases hy with ⟨hy1, hy2⟩, linarith },
+    suffices H : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
+      by simp [F, Diff y hy, this, H],
+    congr,
+    ext i,
+    have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
+    field_simp [this, mul_comm] },
+  have B : ∀ y ∈ set.Ioo (-(1 : ℝ)) 1, -(1 : ℝ) /(1-y) + (∑ i in range n, y ^ i) = -(y^n) / (1 - y),
+  { assume y hy,
+    have abs_y : abs y < 1,
+    { rcases hy with ⟨hy1, hy2⟩,
+      exact abs_lt_of_lt_of_neg_lt hy2 (neg_lt.mp hy1) },
+    rw [div_eq_inv_mul, ← tsum_geometric_of_abs_lt_1 abs_y,
+        tsum_nat_add n (summable_geometric_of_abs_lt_1 abs_y)],
+    simp only [pow_add, mul_one, neg_add_cancel_right, mul_neg_eq_neg_mul_symm, neg_add_rev],
+    rw [tsum_mul_right _ (summable_geometric_of_abs_lt_1 abs_y), tsum_geometric_of_abs_lt_1 abs_y],
+    field_simp },
+  have C : ∀ y ∈ set.Icc (-abs x) (abs x), abs (deriv F y) ≤ (abs x)^n / (1 - abs x),
+  { assume y hy,
+    have : y ∈ set.Ioo (-(1 : ℝ)) 1 := ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
+    calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this, B y this]
+    ... ≤ (abs x)^n / (1 - abs x) :
+      begin
+        simp only [← pow_abs, abs_div, abs_neg],
+        apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left],
+        show abs y ≤ abs x, from abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        show 0 < 1 - abs x, by linarith,
+        show 1 - abs x ≤ abs (1 - y), from le_trans (by linarith [hy.2]) (le_abs_self _)
+      end },
+  have D : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,
+  { apply convex.norm_image_sub_le_of_norm_deriv_le Diff' C (convex_Icc _ _) _ _,
+    { simpa using abs_nonneg x },
+    { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
+  simpa [F, add_comm, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using D
+end
+
+theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : abs x < 1) :
+  has_sum (λ (n : ℕ), x ^ (n + 1) / (n + 1)) (-log (1 - x)) :=
+begin
+  rw has_sum_iff_tendsto_nat_of_summable,
+  show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (↑i + 1)) at_top (𝓝 (-log (1 - x))),
+  { rw [tendsto_iff_norm_tendsto_zero],
+    simp only [norm_eq_abs, sub_neg_eq_add],
+    refine squeeze_zero (λ n, abs_nonneg _) (abs_log_sub_add_sum_range_le h) _,
+    suffices : tendsto (λ (t : ℕ), abs x ^ (t + 1) / (1 - abs x)) at_top
+      (𝓝 (abs x * 0 / (1 - abs x))), by simpa,
+    simp only [pow_succ],
+    refine (tendsto_const_nhds.mul _).div_const,
+    exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
+  show summable (λ (n : ℕ), x ^ (n + 1) / (↑n + 1)),
+  { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
+    calc ∥x ^ (i + 1) / (i + 1)∥
+    = abs x ^(i+1) / (i+1) :
+      begin
+        have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
+        rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],
+      end
+    ... ≤ abs x ^ (i+1) / (0 + 1) :
+      begin
+        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
+                    add_le_add_right (nat.cast_nonneg i)],
+        norm_num,
+      end
+    ... ≤ abs x ^ i :
+      by simpa [pow_succ'] using mul_le_of_le_one_right (pow_nonneg (abs_nonneg x) i) (le_of_lt h) }
+end
 
 end real

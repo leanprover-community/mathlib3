@@ -631,15 +631,18 @@ end is_oO_as_rel
 
 section zero_const
 
-variables (g' l)
+variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
 λ c hc, univ_mem_sets' $ λ x, by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
 
-theorem is_O_with_zero (hc : 0 < c) : is_O_with c (λ x, (0 : E')) g' l :=
-(is_o_zero g' l) hc
+theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
+univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
 
-theorem is_O_zero : is_O (λ x, (0 : E')) g' l := (is_o_zero g' l).is_O
+theorem is_O_with_zero' : is_O_with 0 (λ x, (0 : E')) g l :=
+univ_mem_sets' $ λ x, by simp
+
+theorem is_O_zero : is_O (λ x, (0 : E')) g l := ⟨0, is_O_with_zero' _ _⟩
 
 theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 (is_O_zero g' l).congr_left $ λ x, (sub_self _).symm
@@ -647,7 +650,7 @@ theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 (is_o_zero g' l).congr_left $ λ x, (sub_self _).symm
 
-variables {g' l}
+variables {g g' l}
 
 theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
@@ -975,6 +978,52 @@ by refine ((h₁.norm_norm.mul h₂.norm_norm).congr _ _).of_norm_norm;
   by intros; simp only [norm_smul]
 
 end smul
+
+/-! ### Sum -/
+
+section sum
+
+open_locale big_operators
+
+variables {ι : Type*} {A : ι → α → E'} {C : ι → ℝ} {s : finset ι}
+
+theorem is_O_with.sum (h : ∀ i ∈ s, is_O_with (C i) (A i) g l) :
+  is_O_with (∑ i in s, C i) (λ x, ∑ i in s, A i x) g l :=
+begin
+  classical,
+  revert h,
+  apply finset.induction_on s,
+  { simp only [is_O_with_zero', finset.sum_empty, forall_true_iff] },
+  { assume i s is IH H,
+    simp only [is, finset.sum_insert, not_false_iff],
+    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_O.sum (h : ∀ i ∈ s, is_O (A i) g l) :
+  is_O (λ x, ∑ i in s, A i x) g l :=
+begin
+  classical,
+  revert h,
+  apply finset.induction_on s,
+  { simp only [is_O_zero, finset.sum_empty, forall_true_iff] },
+  { assume i s is IH H,
+    simp only [is, finset.sum_insert, not_false_iff],
+    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_o.sum (h : ∀ i ∈ s, is_o (A i) g' l) :
+  is_o (λ x, ∑ i in s, A i x) g' l :=
+begin
+  classical,
+  revert h,
+  apply finset.induction_on s,
+  { simp only [is_o_zero, finset.sum_empty, forall_true_iff] },
+  { assume i s is IH H,
+    simp only [is, finset.sum_insert, not_false_iff],
+    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+end
+
+end sum
 
 /-! ### Relation between `f = o(g)` and `f / g → 0` -/
 

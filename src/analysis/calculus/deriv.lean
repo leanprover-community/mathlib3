@@ -170,6 +170,10 @@ lemma has_fderiv_within_at.has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_within_at f f' s x → has_deriv_within_at f (f' 1) s x :=
 has_fderiv_within_at_iff_has_deriv_within_at.mp
 
+lemma has_deriv_within_at.has_fderiv_within_at {f' : F} :
+  has_deriv_within_at f f' s x → has_fderiv_within_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+has_deriv_within_at_iff_has_fderiv_within_at.mp
+
 /-- Expressing `has_fderiv_at f f' x` in terms of `has_deriv_at` -/
 lemma has_fderiv_at_iff_has_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at f f' x ↔ has_deriv_at f (f' 1) x :=
@@ -594,6 +598,41 @@ lemma deriv_const_add (c : F) (hf : differentiable_at 𝕜 f x) :
 (hf.has_deriv_at.const_add c).deriv
 
 end add
+
+
+section sum
+/-! ### Derivative of the sum of two functions -/
+
+open_locale big_operators
+
+variables {ι : Type*} {u : finset ι} {A : ι → (𝕜 → F)} {A' : ι → F}
+
+theorem has_deriv_at_filter.sum (h : ∀ i ∈ u, has_deriv_at_filter (A i) (A' i) x L) :
+  has_deriv_at_filter (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x L :=
+by simpa [continuous_linear_map.sum_apply] using (has_fderiv_at_filter.sum h).has_deriv_at_filter
+
+theorem has_strict_deriv_at.sum (h : ∀ i ∈ u, has_strict_deriv_at (A i) (A' i) x) :
+  has_strict_deriv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+by simpa [continuous_linear_map.sum_apply] using (has_strict_fderiv_at.sum h).has_strict_deriv_at
+
+theorem has_deriv_within_at.sum (h : ∀ i ∈ u, has_deriv_within_at (A i) (A' i) s x) :
+  has_deriv_within_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) s x :=
+has_deriv_at_filter.sum h
+
+theorem has_deriv_at.sum (h : ∀ i ∈ u, has_deriv_at (A i) (A' i) x) :
+  has_deriv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+has_deriv_at_filter.sum h
+
+lemma deriv_within_sum (hxs : unique_diff_within_at 𝕜 s x)
+  (h : ∀ i ∈ u, differentiable_within_at 𝕜 (A i) s x) :
+  deriv_within (λ y, ∑ i in u, A i y) s x = ∑ i in u, deriv_within (A i) s x :=
+(has_deriv_within_at.sum (λ i hi, (h i hi).has_deriv_within_at)).deriv_within hxs
+
+@[simp] lemma deriv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+  deriv (λ y, ∑ i in u, A i y) x = ∑ i in u, deriv (A i) x :=
+(has_deriv_at.sum (λ i hi, (h i hi).has_deriv_at)).deriv
+
+end sum
 
 section mul_vector
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
@@ -1232,17 +1271,17 @@ end
 
 lemma differentiable_within_at.div
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) (hx : d x ≠ 0) :
-differentiable_within_at 𝕜 (λx, c x / d x) s x :=
+  differentiable_within_at 𝕜 (λx, c x / d x) s x :=
 ((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).differentiable_within_at
 
 @[simp] lemma differentiable_at.div
   (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
-differentiable_at 𝕜 (λx, c x / d x) x :=
+  differentiable_at 𝕜 (λx, c x / d x) x :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).differentiable_at
 
 lemma differentiable_on.div
   (hc : differentiable_on 𝕜 c s) (hd : differentiable_on 𝕜 d s) (hx : ∀ x ∈ s, d x ≠ 0) :
-differentiable_on 𝕜 (λx, c x / d x) s :=
+  differentiable_on 𝕜 (λx, c x / d x) s :=
 λx h, (hc x h).div (hd x h) (hx x h)
 
 @[simp] lemma differentiable.div
@@ -1261,6 +1300,31 @@ lemma deriv_within_div
   (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
   deriv (λx, c x / d x) x = ((deriv c x) * d x - c x * (deriv d x)) / (d x)^2 :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
+
+lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜} :
+differentiable_within_at 𝕜 (λx, c x / d) s x :=
+by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
+
+@[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
+  differentiable_at 𝕜 (λ x, c x / d) x :=
+by simp [div_eq_inv_mul, hc]
+
+lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
+  differentiable_on 𝕜 (λx, c x / d) s :=
+by simp [div_eq_inv_mul, differentiable_on.const_mul, hc]
+
+@[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) {d : 𝕜} :
+  differentiable 𝕜 (λx, c x / d) :=
+by simp [div_eq_inv_mul, differentiable.const_mul, hc]
+
+lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜}
+  (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λx, c x / d) s x = (deriv_within c s x) / d :=
+by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
+
+@[simp] lemma deriv_div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
+  deriv (λx, c x / d) x = (deriv c x) / d :=
+by simp [div_eq_inv_mul, deriv_const_mul, hc]
 
 end division
 

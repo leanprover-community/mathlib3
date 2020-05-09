@@ -144,7 +144,7 @@ begin
          ... = (1 / 2) ^ n * (C * ∥y∥) : by ring },
   have sNu : summable (λn, ∥u n∥),
   { refine summable_of_nonneg_of_le (λn, norm_nonneg _) ule _,
-    exact summable.mul_right _ (summable_geometric (by norm_num) (by norm_num)) },
+    exact summable.mul_right _ (summable_geometric_of_lt_1 (by norm_num) (by norm_num)) },
   have su : summable u := summable_of_summable_norm sNu,
   let x := tsum u,
   have x_ineq : ∥x∥ ≤ (2 * C + 1) * ∥y∥ := calc

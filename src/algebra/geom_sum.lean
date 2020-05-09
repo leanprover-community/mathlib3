@@ -78,6 +78,15 @@ begin
     rw[mul_assoc, ← mul_add y, ih] }
 end
 
+theorem geom_series₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
+  geom_series₂ x x n = n * x ^ (n-1) :=
+calc  (finset.range n).sum (λ i, x ^ i * x ^ (n - 1 - i))
+    = (finset.range n).sum (λ i, x ^ (i + (n - 1 - i))) : by simp_rw [← pow_add]
+... = (finset.range n).sum (λ i, x ^ (n - 1)) : finset.sum_congr rfl
+  (λ i hi, congr_arg _ $ nat.add_sub_cancel' $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
+... = add_monoid.smul (finset.range n).card (x ^ (n - 1)) : finset.sum_const _
+... = n * x ^ (n - 1) : by rw [finset.card_range, add_monoid.smul_eq_mul]
+
 /-- $x^n-y^n = (x-y) \sum x^ky^{n-1-k}$ reformulated without `-` signs. -/
 theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :
   (geom_series₂ (x + y) y n) * x + y ^ n = (x + y) ^ n :=
@@ -152,3 +161,13 @@ begin
     ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃],
   simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm, add_left_comm],
 end
+
+variables {β : Type*}
+
+theorem ring_hom.map_geom_series [semiring α] [semiring β] (x : α) (n : ℕ) (f : α →+* β) :
+  f (geom_series x n) = geom_series (f x) n :=
+by { rw [geom_series_def, geom_series_def, ← finset.sum_hom _ f], simp_rw [f.map_mul, f.map_pow] }
+
+theorem ring_hom.map_geom_series₂ [semiring α] [semiring β] (x y : α) (n : ℕ) (f : α →+* β) :
+  f (geom_series₂ x y n) = geom_series₂ (f x) (f y) n :=
+by { rw [geom_series₂_def, geom_series₂_def, ← finset.sum_hom _ f], simp_rw [f.map_mul, f.map_pow] }

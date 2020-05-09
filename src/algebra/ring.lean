@@ -784,10 +784,10 @@ def comm_semiring_of_surjective [comm_semiring R₁] (f : R₁ → R₂) (hf : s
   comm_semiring R₂ :=
 { ..comm_monoid_of_surjective f hf one mul, ..semiring_of_surjective f hf zero one add mul }
 
-/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a ring,
-if it admits a surjective map that preserves `0`, `1`, `+`, `*` and `-` from a ring. -/
 variables [has_neg R₂]
 
+/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a ring,
+if it admits a surjective map that preserves `0`, `1`, `+`, `*` and `-` from a ring. -/
 def ring_of_surjective [ring R₁] (f : R₁ → R₂) (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)

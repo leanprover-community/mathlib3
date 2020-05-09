@@ -22,16 +22,12 @@ instance : full (forget₂ (Module ℤ) AddCommGroup) :=
 { preimage := λ A B f,
   { to_fun := f,
     add := λ x y, add_monoid_hom.map_add f x y,
-    smul := λ n x,
-    begin
-      convert add_monoid_hom.map_int_module_smul f n x,
-      apply congr_arg, congr,
-    end } }
+    smul := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=
 { obj_preimage := λ A, Module.of ℤ A,
-  iso' := λ A, { hom := 𝟙 _, inv := 𝟙 _, } }
+  iso' := λ A, { hom := 𝟙 A, inv := 𝟙 A, } }
 
 instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup) :=
 equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)

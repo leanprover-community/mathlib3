@@ -42,20 +42,6 @@ a small category. If `C` is a small category and `D` is a large category
 (i.e. `u₂ = v₂+1`), and `v₂ = v₁` then we have
 `functor.category C D : category.{v₁+1}` so is again a large category.
 
-Whenever you want to write code uniformly for small and large categories
-(which you do by talking about categories whose universe levels `u` and `v`
-are unrelated), you will find that Lean's `variable` mechanism doesn't always
-work, and the following trick is often helpful:
-
-````
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
-````
-
-Some care with using `section ... end` can be required to make sure these
-included variables don't end up where they aren't wanted.
-
 ## Notation
 
 ### Categories

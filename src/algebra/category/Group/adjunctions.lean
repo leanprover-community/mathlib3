@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.Group
-import category_theory.adjunction.basic
 import group_theory.free_abelian_group
 
 /-!

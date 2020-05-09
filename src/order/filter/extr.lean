@@ -3,8 +3,7 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
-import order.filter.basic logic.relator tactic.alias
+import order.filter.basic
 
 /-! # Minimum and maximum w.r.t. a filter and on a aet
 

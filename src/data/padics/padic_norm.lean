@@ -3,11 +3,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
-import data.rat algebra.gcd_domain algebra.field_power
-import ring_theory.multiplicity tactic.ring
+import data.rat
+import algebra.gcd_domain
+import algebra.field_power
+import ring_theory.multiplicity
 import data.real.cau_seq
-import tactic.norm_cast
 
 /-!
 # p-adic norm
@@ -28,7 +28,7 @@ This file uses the local notation `/.` for `rat.mk`.
 ## Implementation notes
 
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
-by taking (prime p) as a type class argument.
+by taking `[fact (prime p)]` as a type class argument.
 
 ## References
 
@@ -44,8 +44,6 @@ p-adic, p adic, padic, norm, valuation
 universe u
 
 open nat
-
-attribute [class] nat.prime
 
 open_locale rat
 
@@ -70,7 +68,7 @@ else 0
 /--
 A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
 -/
-lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
+lemma padic_val_rat_def (p : ℕ) [hp : fact p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
   (multiplicity (p : ℤ) q.denom).get (finite_int_iff.2 ⟨hp.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
 dif_pos ⟨hq, hp.ne_one⟩
@@ -117,13 +115,13 @@ end padic_val_rat
 
 section padic_val_rat
 open multiplicity
-variables (p : ℕ) [p_prime : nat.prime p]
+variables (p : ℕ) [p_prime : fact p.prime]
 include p_prime
 
 /--
 The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
 -/
-lemma finite_int_prime_iff {p : ℕ} [p_prime : p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
+lemma finite_int_prime_iff {p : ℕ} [p_prime : fact p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
 by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.one_lt))]
 
 /--
@@ -302,7 +300,7 @@ The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
 protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
-variable [hp : p.prime]
+variable [hp : fact p.prime]
 include hp
 
 /--
@@ -479,7 +477,7 @@ begin
       rw [← enat.coe_le_coe, enat.coe_get],
       apply multiplicity.le_multiplicity_of_pow_dvd,
       exact_mod_cast hd },
-    { exact_mod_cast hz }}
+    { exact_mod_cast hz }},
 end
 
 end padic_norm

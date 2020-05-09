@@ -13,8 +13,7 @@ open category_theory
 namespace category_theory.limits
 
 variables {β : Type v}
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),
 -- or `(co)span`, since we already have `functor.of_function`.

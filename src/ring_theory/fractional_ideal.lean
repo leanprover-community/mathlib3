@@ -5,7 +5,6 @@ Authors: Anne Baanen
 
 Fractional ideals of an integral domain.
 -/
-import ring_theory.algebra_operations
 import ring_theory.localization
 
 /-!
@@ -57,7 +56,6 @@ fractional ideal, fractional ideals, invertible ideal
 
 open localization
 
-set_option class.instance_max_depth 75
 
 universes u v w
 

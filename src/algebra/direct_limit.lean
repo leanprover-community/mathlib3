@@ -14,11 +14,7 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 -/
-
-import linear_algebra.direct_sum_module
-import algebra.big_operators
 import ring_theory.free_comm_ring
-import ring_theory.ideal_operations
 
 universes u v w u₁
 
@@ -204,7 +200,6 @@ local attribute [instance] directed_system
 instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
-set_option class.instance_max_depth 50
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=

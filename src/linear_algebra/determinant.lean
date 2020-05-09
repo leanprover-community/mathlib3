@@ -3,11 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
-import data.matrix.basic
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
-import tactic.ring
 
 universes u v
 open equiv equiv.perm finset function
@@ -94,7 +92,7 @@ calc det (M ⬝ N) = univ.sum (λ p : n → n, univ.sum
   sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
     (λ τ _,
       have univ.prod (λ j, M (τ j) (σ j)) = univ.prod (λ j, M ((τ * σ⁻¹) j) j),
-        by rw prod_univ_perm σ⁻¹; simp [mul_apply],
+        by rw ← finset.prod_equiv σ⁻¹; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]

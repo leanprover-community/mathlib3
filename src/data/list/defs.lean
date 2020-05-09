@@ -5,7 +5,9 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic tactic.cache
+import data.option.defs
+import logic.basic
+import tactic.cache
 
 namespace list
 
@@ -53,6 +55,8 @@ as.split_on_p (=a)
 | []     a := [a]
 | (b::l) a := b :: concat l a
 
+/-- `head' xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
 @[simp] def head' : list α → option α
 | []       := none
 | (a :: l) := some a
@@ -100,18 +104,6 @@ end take'
 def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []
-
-/-- `after p xs` is the suffix of `xs` after the first element that satisfies
-  `p`, not including that element.
-
-  ```lean
-  after      (eq 1)       [0, 1, 2, 3] = [2, 3]
-  drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
-  ```
--/
-def after (p : α → Prop) [decidable_pred p] : list α → list α
-| [] := []
-| (x :: xs) := if p x then xs else after xs
 
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results.

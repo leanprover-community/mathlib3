@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
 import tactic.fix_reflect_string
 
 /-!
@@ -39,6 +38,30 @@ s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 meta def string.mk_hashed_name (nspace : name) (id : string) : name :=
 nspace <.> ("_" ++ to_string id.hash)
 
+open tactic
+
+/-- 
+`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+to each declaration named in the list `to`. -/
+meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
+do fr_ds ← doc_string fr,
+   to.mmap' $ λ tgt, add_doc_string tgt fr_ds
+
+open lean lean.parser interactive
+
+/--
+`copy_doc_string source → target_1 target_2 ... target_n` copies the doc string of the
+declaration named `source` to each of `target_1`, `target_2`, ..., `target_n`.
+ -/
+@[user_command] meta def copy_doc_string_cmd
+  (_ : parse (tk "copy_doc_string")) : parser unit :=
+do fr ← parser.ident,
+   tk "->",
+   to ← parser.many parser.ident,
+   expr.const fr _  ← resolve_name fr,
+   to ← parser.of_tactic (to.mmap $ λ n, expr.const_name <$> resolve_name n),
+   tactic.copy_doc_string fr to
+
 /-! ### The `library_note` command -/
 
 /-- A user attribute `library_note` for tagging decls of type `string × string` for use in note
@@ -46,8 +69,6 @@ output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
   descr := "Notes about library features to be included in documentation" }
-
-open tactic
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -71,7 +92,8 @@ do let decl_name := note_name.mk_hashed_name `library_note,
 meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
 to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
 
-open tactic lean lean.parser interactive
+open tactic
+
 /--
 A command to add library notes. Syntax:
 ```
@@ -285,6 +307,13 @@ add_tactic_doc
   decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
   tags                     := ["documentation"],
   inherit_description_from := `add_tactic_doc_command }
+
+add_tactic_doc
+{ name := "copy_doc_string",
+  category := doc_category.cmd,
+  decl_names := [`copy_doc_string_cmd, `tactic.copy_doc_string],
+  tags := ["documentation"],
+  inherit_description_from := `copy_doc_string_cmd }
 
 -- add docs to core tactics
 

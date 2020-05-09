@@ -3,8 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.list.basic
+import data.stream
+import data.lazy_list
+import data.seq.computation
 
 universes u v w
 
@@ -76,7 +78,7 @@ theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
-lemma terminated_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
+lemma terminated_stable (s : seq α) {m n : ℕ} (m_le_n : m ≤ n)
 (terminated_at_m : s.terminated_at m) :
   s.terminated_at n :=
 le_stable s m_le_n terminated_at_m

@@ -3,11 +3,10 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-
 import tactic.lint.frontend
-  tactic.lint.simp
-  tactic.lint.type_classes
-  tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.lint.misc
 
 open tactic
 
@@ -44,6 +43,7 @@ The following linters are run by default:
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
     in the statement, and could be removed using `classical`.
+18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

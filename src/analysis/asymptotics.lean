@@ -3,8 +3,8 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
-
-import analysis.normed_space.basic topology.local_homeomorph tactic.alias
+import analysis.normed_space.basic
+import topology.local_homeomorph
 
 /-!
 # Asymptotics
@@ -66,17 +66,56 @@ avoided by this definition. Probably you want to use `is_O` instead of this rela
 def is_O_with (c : ℝ) (f : α → E) (g : α → F) (l : filter α) : Prop :=
 ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥
 
+/-- Definition of `is_O_with`. We record it in a lemma as we will set `is_O_with` to be irreducible
+at the end of this file. -/
+lemma is_O_with_iff {c : ℝ} {f : α → E} {g : α → F} {l : filter α} :
+  is_O_with c f g l ↔ ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_O_with.of_bound {c : ℝ} {f : α → E} {g : α → F} {l : filter α}
+  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O_with c f g l := h
+
 /-- The Landau notation `is_O f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by a constant multiple of `∥g∥`.
 In other words, `∥f∥ / ∥g∥` is eventually bounded, modulo division by zero issues that are avoided
 by this definition. -/
 def is_O (f : α → E) (g : α → F) (l : filter α) : Prop := ∃ c : ℝ, is_O_with c f g l
 
+/-- Definition of `is_O` in terms of `is_O_with`. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff_is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, is_O_with c f g l := iff.rfl
+
+/-- Definition of `is_O` in terms of filters. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_O.of_bound (c : ℝ) {f : α → E} {g : α → F} {l : filter α}
+  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O f g l := ⟨c, h⟩
+
 /-- The Landau notation `is_o f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by an arbitrarily small constant
 multiple of `∥g∥`. In other words, `∥f∥ / ∥g∥` tends to `0` along `l`, modulo division by zero
 issues that are avoided by this definition. -/
 def is_o (f : α → E) (g : α → F) (l : filter α) : Prop := ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l
+
+/-- Definition of `is_o` in terms of `is_O_with`. We record it in a lemma as we will set
+`is_o` to be irreducible at the end of this file. -/
+lemma is_o_iff_forall_is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l := iff.rfl
+
+/-- Definition of `is_o` in terms of filters. We record it in a lemma as we will set
+`is_o` to be irreducible at the end of this file. -/
+lemma is_o_iff {f : α → E} {g : α → F} {l : filter α} :
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
+h hc
+
+lemma is_o.def' {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  is_O_with c f g l :=
+h hc
 
 end defs
 
@@ -999,8 +1038,16 @@ end
 
 theorem is_O_with.right_le_add_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₁ x + f₂ x) l :=
-(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.neg_left.congr rfl (λ x, neg_neg _)
+(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.of_neg_left.congr rfl (λ x, rfl)
   (λ x, by rw [neg_sub, sub_neg_eq_add])
+
+theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₂ x - f₁ x) l :=
+((h.def' one_half_pos).right_le_sub_of_lt_1 one_half_lt_one).is_O
+
+theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₁ x + f₂ x) l :=
+((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
 
 end asymptotics
 
@@ -1015,21 +1062,21 @@ open asymptotics
 /-- Transfer `is_O_with` over a `local_homeomorph`. -/
 lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
   {f : β → E} {g : β → F} {C : ℝ} :
-  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 ⟨λ h, h.comp_tendsto $
-  by { convert e.continuous_at_to_fun (e.map_target hb), exact (e.right_inv hb).symm },
-  λ h, (h.comp_tendsto (e.continuous_at_inv_fun hb)).congr' rfl
+  by { convert e.continuous_at (e.map_target hb), exact (e.right_inv hb).symm },
+  λ h, (h.comp_tendsto (e.continuous_at_symm hb)).congr' rfl
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg f hx)
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg g hx)⟩
 
 /-- Transfer `is_O` over a `local_homeomorph`. -/
 lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_O f g (𝓝 b) ↔ is_O (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 exists_congr $ λ C, e.is_O_with_congr hb
 
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_o f g (𝓝 b) ↔ is_o (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
 
 end local_homeomorph
@@ -1058,3 +1105,5 @@ lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
 forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr
 
 end homeomorph
+
+attribute [irreducible] asymptotics.is_o asymptotics.is_O asymptotics.is_O_with

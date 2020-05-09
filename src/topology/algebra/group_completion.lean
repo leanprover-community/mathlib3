@@ -5,7 +5,8 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Completion of topological groups:
 -/
-import topology.uniform_space.completion topology.algebra.uniform_group
+import topology.uniform_space.completion
+import topology.algebra.uniform_group
 noncomputable theory
 
 section group
@@ -17,8 +18,8 @@ instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : 
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 
 -- TODO: switch sides once #1103 is fixed
-@[elim_cast]
-lemma uniform_space.completion.coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
+@[norm_cast]
+lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
 
 namespace uniform_space.completion
@@ -26,11 +27,11 @@ section uniform_add_group
 open uniform_space uniform_space.completion
 variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
 
-@[move_cast]
+@[norm_cast]
 lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
 (map_coe uniform_continuous_neg a).symm
 
-@[move_cast]
+@[norm_cast]
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 
@@ -43,7 +44,7 @@ instance : add_group (completion α) :=
     (assume a, show (a : completion α) + 0 = a, by rw_mod_cast add_zero),
   add_left_neg := assume a, completion.induction_on a
     (is_closed_eq (continuous_map₂ completion.continuous_map continuous_id) continuous_const)
-    (assume a, show - (a : completion α) + a = 0, by rw_mod_cast add_left_neg),
+    (assume a, show - (a : completion α) + a = 0, by { rw_mod_cast add_left_neg, refl }),
   add_assoc    := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_map₂

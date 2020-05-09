@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The `even` predicate on the natural numbers.
 -/
-import .modeq algebra.group_power
+import data.nat.modeq
 
 namespace nat
 

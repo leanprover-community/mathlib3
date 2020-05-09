@@ -371,11 +371,8 @@ meta structure context :=
 /--
 The `ring_exp_m` monad is used instead of `tactic` to store the context.
 -/
+@[derive [monad, alternative]]
 meta def ring_exp_m (α : Type) : Type := reader_t context (state_t (list atom) tactic) α
-
--- Basic operations on `ring_exp_m`:
-meta instance : monad ring_exp_m := by { dunfold ring_exp_m, apply_instance }
-meta instance : alternative ring_exp_m := by { dunfold ring_exp_m, apply_instance }
 
 /--
 Access the instance cache.

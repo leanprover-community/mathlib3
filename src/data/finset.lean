@@ -5,9 +5,9 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import logic.embedding algebra.order_functions
-  data.multiset data.sigma.basic data.set.lattice
-  tactic.monotonicity tactic.apply
+import data.multiset
+import tactic.monotonicity
+import tactic.apply
 
 open multiset subtype nat
 
@@ -67,7 +67,7 @@ theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s�
 ext.2
 
 @[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
-(set.ext_iff _ _).trans ext.symm
+set.ext_iff.trans ext.symm
 
 lemma to_set_injective {α} : function.injective (finset.to_set : finset α → set α) :=
 λ s t, coe_inj.1
@@ -129,7 +129,7 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
-@[elim_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[norm_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -743,7 +743,7 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[elim_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
+@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
   (↑s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
@@ -1117,6 +1117,13 @@ mem_map_of_inj f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
+@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
+
+theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
+calc ↑(s.map f) = f '' ↑s     : coe_map f s
+            ... ⊆ set.range f : set.image_subset_range f ↑s
+
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
@@ -1197,7 +1204,7 @@ theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a
 mem_image.2 ⟨_, h, rfl⟩
 
 @[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
-set.ext $ λ _, mem_image.trans $ by simp only [exists_prop]; refl
+set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
@@ -1218,6 +1225,10 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
+
+theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
+calc ↑(s.image f) = f '' ↑s     : coe_image
+              ... ⊆ set.range f : set.image_subset_range f ↑s
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
@@ -1561,9 +1572,8 @@ lemma bind_subset_bind_of_subset_left {α : Type*} {s₁ s₂ : finset α}
   (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bind t ⊆ s₂.bind t :=
 begin
   intro x,
-  simp only [and_imp, mem_bind, exists_prop, exists_imp_distrib],
-  intros y hy hty,
-  exact ⟨y, h hy, hty⟩
+  simp only [and_imp, mem_bind, exists_prop],
+  exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
@@ -1573,10 +1583,8 @@ lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 begin
   ext b,
-  simp,
-  split,
-  { rintros ⟨a, ⟨b', _, _⟩, hb, _⟩, exact hb },
-  { rintros hb, exact ⟨g b, ⟨b, hb, rfl⟩, hb, rfl⟩ }
+  suffices : (∃ a, a ∈ s ∧ b ∈ s ∧ g b = g a) ↔ b ∈ s, by simpa,
+  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨b, hb, hb, rfl⟩⟩
 end
 
 end bind
@@ -2552,6 +2560,41 @@ lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α]
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
 end disjoint
+
+/--
+Given a set A and a set B inside it, we can shrink A to any appropriate size, and keep B
+inside it.
+-/
+lemma exists_intermediate_set {A B : finset α} (i : ℕ)
+  (h₁ : i + card B ≤ card A) (h₂ : B ⊆ A) :
+  ∃ (C : finset α), B ⊆ C ∧ C ⊆ A ∧ card C = i + card B :=
+begin
+  classical,
+  rcases nat.le.dest h₁ with ⟨k, _⟩,
+  clear h₁,
+  induction k with k ih generalizing A,
+  { exact ⟨A, h₂, subset.refl _, h.symm⟩ },
+  { have : (A \ B).nonempty,
+    { rw [← card_pos, card_sdiff h₂, ← h, nat.add_right_comm,
+          nat.add_sub_cancel, nat.add_succ],
+      apply nat.succ_pos },
+    rcases this with ⟨a, ha⟩,
+    have z : i + card B + k = card (erase A a),
+    { rw [card_erase_of_mem, ← h, nat.add_succ, nat.pred_succ],
+      rw mem_sdiff at ha,
+      exact ha.1 },
+    rcases ih _ z with ⟨B', hB', B'subA', cards⟩,
+    { exact ⟨B', hB', trans B'subA' (erase_subset _ _), cards⟩ },
+    { rintros t th,
+      apply mem_erase_of_ne_of_mem _ (h₂ th),
+      rintro rfl,
+      exact not_mem_sdiff_of_mem_right th ha } }
+end
+
+/-- We can shrink A to any smaller size. -/
+lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
+  ∃ (B : finset α), B ⊆ A ∧ card B = i :=
+let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
 
 instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 

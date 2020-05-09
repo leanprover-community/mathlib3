@@ -3,8 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import algebra.group.units
+import algebra.group.is_unit
 
 /-!
 # G₀roups with an adjoined zero element
@@ -183,10 +182,18 @@ units.ext rfl
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
+@[simp] lemma exists_iff_ne_zero (x : G₀) : (∃ u : units G₀, ↑u = x) ↔ x ≠ 0 :=
+⟨λ ⟨u, hu⟩, by { rw ← hu, exact unit_ne_zero u }, assume hx, ⟨mk0 x hx, rfl⟩⟩
+
 end units
 
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
+
+lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
+
+lemma is_unit_iff_ne_zero {x : G₀} : is_unit x ↔ x ≠ 0 :=
+⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 lemma mul_eq_zero' (a b : G₀) (h : a * b = 0) : a = 0 ∨ b = 0 :=
 begin
@@ -456,7 +463,7 @@ end comm_group_with_zero
 section comm_group_with_zero
 variables {G₀ : Type*} [comm_group_with_zero G₀] {a b c d : G₀}
 
-lemma div_eq_inv_mul' : a / b = b⁻¹ * a := mul_comm _ _
+lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
 
 lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
 by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc]; refl

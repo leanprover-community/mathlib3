@@ -87,7 +87,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
-@[simp, elim_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
@@ -97,6 +97,61 @@ attribute [simp] val_zero
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 @[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
+
+/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+iff.rfl
+
+/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+iff.rfl
+
+lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
+
+@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
+
+@[simp]
+lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
+begin
+  induction a with a ih, { refl },
+  ext, show (a+1) % (n+1) = fin.val (a+1 : fin (n+1)),
+  { rw [val_add, ← ih, of_nat],
+    exact add_mod _ _ _ }
+end
+
+/-- Converting an in-range number to `fin (n + 1)` produces a result
+whose value is the original number.  -/
+lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  (a : fin (n + 1)).val = a :=
+begin
+  rw ←of_nat_eq_coe,
+  exact nat.mod_eq_of_lt h
+end
+
+/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
+in the same value.  -/
+@[simp] lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
+begin
+  rw fin.eq_iff_veq,
+  exact coe_val_of_lt a.is_lt
+end
+
+/-- Coercing an in-range number to `fin (n + 1)`, and converting back
+to `ℕ`, results in that number. -/
+lemma coe_coe_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  ((a : fin (n + 1)) : ℕ) = a :=
+coe_val_of_lt h
+
+/-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
+value. -/
+@[simp] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
+coe_val_eq_self a
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
@@ -212,7 +267,7 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
-@[simp, elim_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
+@[simp, norm_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

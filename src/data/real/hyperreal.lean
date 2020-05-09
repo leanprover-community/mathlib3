@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 Construction of the hyperreal numbers as an ultraproduct of real sequences.
 -/
-
-import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
+import order.filter.filter_product
+import analysis.specific_limits
 
 open filter filter.filter_product
 open_locale topological_space classical
@@ -27,31 +27,31 @@ is_ultrafilter_hyperfilter.1
 @[simp] lemma hyperfilter_ne_bot' {α} [infinite α] : ¬ ⊥ = @hyperfilter α :=
 hyperfilter_ne_bot ∘ eq.symm
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_eq_coe (x y : ℝ) : (x : ℝ*) = y ↔ x = y :=
 filter_product.coe_injective _ _ (by simp)
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma cast_div (x y : ℝ) : ((x / y : ℝ) : ℝ*) = x / y :=
 filter_product.of_div is_ultrafilter_hyperfilter _ _
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_lt_coe (x y : ℝ) : (x : ℝ*) < y ↔ x < y :=
 (filter_product.of_lt is_ultrafilter_hyperfilter).symm
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_le_coe (x y : ℝ) : (x : ℝ*) ≤ y ↔ x ≤ y :=
 (filter_product.of_le hyperfilter_ne_bot).symm
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x :=
 filter_product.of_abs _ _
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y :=
 filter_product.of_max _ _ _
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y :=
 filter_product.of_min _ _ _
 

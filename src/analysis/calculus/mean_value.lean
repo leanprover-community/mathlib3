@@ -3,7 +3,6 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-
 import analysis.calculus.local_extr
 import analysis.convex.topology
 
@@ -55,7 +54,6 @@ In this file we prove the following facts:
   is increasing or its second derivative is nonnegative, then the original function is convex.
 -/
 
-set_option class.instance_max_depth 120
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]

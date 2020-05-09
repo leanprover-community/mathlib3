@@ -3,9 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import algebra.group_power tactic.norm_num
-import tactic.converter.interactive
+import tactic.norm_num
 
 /-!
 # `ring`
@@ -25,11 +23,9 @@ meta structure cache :=
 (comm_semiring_inst : expr)
 (red : transparency)
 
+@[derive [monad, alternative]]
 meta def ring_m (α : Type) : Type :=
 reader_t cache (state_t (buffer expr) tactic) α
-
-meta instance : monad ring_m := by dunfold ring_m; apply_instance
-meta instance : alternative ring_m := by dunfold ring_m; apply_instance
 
 meta def get_cache : ring_m cache := reader_t.read
 
@@ -73,6 +69,7 @@ meta def horner_expr.e : horner_expr → expr
 | (horner_expr.xadd e _ _ _ _) := e
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
+meta instance : has_coe_to_fun horner_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
 meta def horner_expr.xadd' (c : cache) (a : horner_expr)
   (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr :=
@@ -138,8 +135,6 @@ theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
 by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
--- set_option trace.class_instances true
--- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=

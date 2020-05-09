@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 -/
-import data.nat.sqrt data.nat.gcd data.list.defs data.list.perm
+import data.nat.sqrt
+import data.nat.gcd
 import algebra.group_power
-import tactic.wlog
 
 /-!
 # Prime numbers
@@ -38,6 +38,8 @@ def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
 theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
+
+instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 ne.symm $ (ne_of_lt hp.one_lt)
@@ -315,6 +317,17 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
   by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 
+lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
+begin
+  have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
+  rw [this, nat.factors],
+  simp only [eq.symm this],
+  have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
+  split,
+  { exact this, },
+  { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
+end
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩
@@ -428,11 +441,11 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
   have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
   have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
     (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_erase ha,
+  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
   have hl : prod l₁ = prod ((b :: l₂).erase a) :=
   (nat.mul_left_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
-    by rwa [← prod_cons, ← prod_cons, ← prod_eq_of_perm hb],
-  perm.trans (perm.skip _ (perm_of_prod_eq_prod hl hl₁' hl₂')) hb.symm
+    by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
+  perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
 
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n :=
 have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin

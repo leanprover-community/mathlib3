@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
-
 import algebra.group.with_one
 import deprecated.group
 import tactic.norm_cast
@@ -35,10 +34,10 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
-
-Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
+of type class `[]` brackets. This is done when the instances can be inferred because they are
+implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
+to use this method than to use type class inference.
 
 ## Tags
 
@@ -358,10 +357,13 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
-  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
-  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+@[simp, norm_cast]
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →* β) = f := rfl
+
+@[simp, norm_cast]
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ⇑(f : α →+ β) = f := rfl
 
 namespace ring_hom
 
@@ -389,6 +391,12 @@ coe_inj (funext h)
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
+theorem coe_add_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →+ β)) :=
+λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
+
+theorem coe_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →* β)) :=
+λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
@@ -477,6 +485,9 @@ end ring_hom
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+/-- Predicate for semirings in which zero does not equal one. -/
+class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
+
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
@@ -492,6 +503,12 @@ lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
 -- As with succ_ne_self.
 lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+
+/-- A nonzero commutative semiring is a nonzero semiring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
+  nonzero_semiring α :=
+{..ncs}
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]

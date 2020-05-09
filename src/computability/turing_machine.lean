@@ -2,15 +2,56 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-Define a sequence of simple machine languages, starting with Turing
-machines and working up to more complex lanaguages based on
-Wang B-machines.
 -/
 import algebra.order
 import data.fintype.basic
 import data.pfun
 import tactic.apply_fun
+
+/-!
+# Turing machines
+
+This file defines a sequence of simple machine languages, starting with Turing machines and working
+up to more complex languages based on Wang B-machines.
+
+## Naming conventions
+
+Each model of computation in this file shares a naming convention for the elements of a model of
+computation. These are the parameters for the language:
+
+* `Γ` is the alphabet on the tape.
+* `Λ` is the set of labels, or internal machine states.
+* `σ` is the type of internal memory, not on the tape. This does not exist in the TM0 model, and
+  later models achieve this by mixing it into `Λ`.
+* `K` is used in the TM2 model, which has multiple stacks, and denotes the number of such stacks.
+
+All of these variables denote "essentially finite" types, but for technical reasons it is
+convenient to allow them to be infinite anyway. When using an infinite type, we will be interested
+to prove that only finitely many values of the type are ever interacted with.
+
+Given these parameters, there are a few common structures for the model that arise:
+
+* `stmt` is the set of all actions that can be performed in one step. For the TM0 model this set is
+  finite, and for later models it is an infinite inductive type representing "possible program
+  texts".
+* `cfg` is the set of instantaneous configurations, that is, the state of the machine together with
+  its environment.
+* `machine` is the set of all machines in the model. Usually this is approximately a function
+  `Λ → stmt`, although different models have different ways of halting and other actions.
+* `step : cfg → option cfg` is the function that describes how the state evolves over one step.
+  If `step c = none`, then `c` is a terminal state, and the result of the computation is read off
+  from `c`. Because of the type of `step`, these models are all deterministic by construction.
+* `init : input → cfg` sets up the initial state. The type `input` depends on the model;
+  in most cases it is `list Γ`.
+* `eval : machine → input → roption output`, given a machine `M` and input `i`, starts from
+  `init i`, runs `step` until it reaches an output, and then applies a function `cfg → output` to
+  the final state to obtain the result. The type `output` depends on the model.
+* `supports : machine → finset Λ → Prop` asserts that a machine `M` starts in `S : finset Λ`, and
+  can only ever jump to other states inside `S`. This implies that the behavior of `M` on any input
+  cannot depend on its values outside `S`. We use this to allow `Λ` to be an infinite set when
+  convenient, and prove that only finitely many of these states are actually accessible. This
+  formalizes "essentially finite" mentioned above.
+-/
 
 open relation
 open function (update)
@@ -766,6 +807,29 @@ roption.ext $ λ b₂,
     rwa bb at h
   end⟩
 
+/-! ## The TM0 model
+
+A TM0 turing machine is essentially a Post-Turing machine, adapted for type theory.
+
+A Post-Turing machine with symbol type `Γ` and label type `Λ` is a function
+`Λ → Γ → option (Λ × stmt)`, where a `stmt` can be either `move left`, `move right` or `write a`
+for `a : Γ`. The machine works over a "tape", a doubly-infinite sequence of elements of `Γ`, and
+an instantaneous configuration, `cfg`, is a label `q : Λ` indicating the current internal state of
+the machine, and a `tape Γ` (which is essentially `ℤ →₀ Γ`). The evolution is described by the
+`step` function:
+
+* If `M q T.head = none`, then the machine halts.
+* If `M q T.head = some (q', s)`, then the machine performs action `s : stmt` and then transitions
+  to state `q'`.
+
+The initial state takes a `list Γ` and produces a `tape Γ` where the head of the list is the head
+of the tape and the rest of the list extends to the right, with the left side all blank. The final
+state takes the entire right side of the tape right or equal to the current position of the
+machine. (This is actually a `list_blank Γ`, not a `list Γ`, because we don't know, at this level
+of generality, where the output ends. If equality to `default Γ` is decidable we can trim the list
+to remove the infinite tail of blanks.)
+-/
+
 namespace TM0
 
 section
@@ -913,6 +977,34 @@ end
 
 end TM0
 
+/-! ## The TM1 model
+
+The TM1 model is a simplification and extension of TM0 (Post-Turing model) in the direction of
+Wang B-machines. The machine's internal state is extended with a (finite) store `σ` of variables
+that may be accessed and updated at any time.
+
+A machine is given by a `Λ` indexed set of procedures or functions. Each function has a body which
+is a `stmt`. Most of the regular commands are allowed to use the current value `a` of the local
+variables and the value `T.head` on the tape to calculate what to write or how to change local
+state, but the statements themselves have a fixed structure. The `stmt`s can be as follows:
+
+* `move d q`: move left or right, and then do `q`
+* `write (f : Γ → σ → Γ) q`: write `f a T.head` to the tape, then do `q`
+* `load (f : Γ → σ → σ) q`: change the internal state to `f a T.head`
+* `branch (f : Γ → σ → bool) qtrue qfalse`: If `f a T.head` is true, do `qtrue`, else `qfalse`
+* `goto (f : Γ → σ → Λ)`: Go to label `f a T.head`
+* `halt`: Transition to the halting state, which halts on the following step
+
+Note that here most statements do not have labels; `goto` commands can only go to a new function.
+Only the `goto` and `halt` statements actually take a step; the rest is done by recursion on
+statements and so take 0 steps. (There is a uniform bound on many statements can be executed before
+the next `goto`, so this is an `O(1)` speedup with the constant depending on the machine.)
+
+The `halt` command has a one step stutter before actually halting so that any changes made before
+the halt have a chance to be "committed", since the `eval` relation uses the final configuration
+before the halt as the output, and `move` and `write` etc. take 0 steps in this model.
+-/
+
 namespace TM1
 
 section
@@ -958,8 +1050,7 @@ def step_aux : stmt → σ → tape Γ → cfg
 | (move d q)       v T := step_aux q v (T.move d)
 | (write a q)      v T := step_aux q v (T.write (a T.1 v))
 | (load s q)       v T := step_aux q (s T.1 v) T
-| (branch p q₁ q₂) v T :=
-  cond (p T.1 v) (step_aux q₁ v T) (step_aux q₂ v T)
+| (branch p q₁ q₂) v T := cond (p T.1 v) (step_aux q₁ v T) (step_aux q₂ v T)
 | (goto l)         v T := ⟨some (l T.1 v), v, T⟩
 | halt             v T := ⟨none, v, T⟩
 
@@ -1083,6 +1174,23 @@ def eval (M : Λ → stmt) (l : list Γ) : roption (list_blank Γ) :=
 end
 
 end TM1
+
+/-! ## TM1 emulator in TM0
+
+To prove that TM1 computable functions are TM0 computable, we need to reduce each TM1 program to a
+TM0 program. So suppose a TM1 program is given. We take the following:
+
+* The alphabet `Γ` is the same for both TM1 and TM0
+* The set of states `Λ'` is defined to be `option stmt₁ × σ`, that is, a TM1 statement or `none`
+  representing halt, and the possible settings of the internal variables.
+  Note that this is an infinite set, because `stmt₁` is infinite. This is okay because we assume
+  that from the initial TM1 state, only finitely many other labels are reachable, and there are
+  only finitely many statements that appear in all of these functions.
+
+Even though `stmt₁` contains a statement called `halt`, we must separate it from `none`
+(`some halt` steps to `none` and `none` actually halts) because there is a one step stutter in the
+TM1 semantics.
+-/
 
 namespace TM1to0
 
@@ -1209,7 +1317,28 @@ end⟩
 end
 end TM1to0
 
-/- Reduce an n-symbol Turing machine to a 2-symbol Turing machine -/
+/-! ## TM1(Γ) emulator in TM1(bool)
+
+The most parsimonious Turing machine model that is still Turing complete is `TM0` with `Γ = bool`.
+Because our construction in the previous section reducing `TM1` to `TM0` doesn't change the
+alphabet, we can do the alphabet reduction on `TM1` instead of `TM0` directly.
+
+The basic idea is to use a bijection between `Γ` and a subset of `vector bool n`, where `n` is a
+fixed constant. Each tape element is represented as a block of `n` bools. Whenever the machine
+wants to read a symbol from the tape, it traverses over the block, performing `n` `branch`
+instructions to each any of the `2^n` results.
+
+For the `write` instruction, we have to use a `goto` because we need to follow a different code
+path depending on the local state, which is not available in the TM1 model, so instead we jump to
+a label computed using the read value and the local state, which performs the writing and returns
+to normal execution.
+
+Emulation overhead is `O(1)`. If not for the above `write` behavior it would be 1-1 because we are
+exploiting the 0-step behavior of regular commands to avoid taking steps, but there are
+nevertheless a bounded number of `write` calls between `goto` statements because TM1 statements are
+finitely long.
+-/
+
 namespace TM1to1
 open TM1
 
@@ -1270,15 +1399,12 @@ def write : list bool → stmt' → stmt'
 /-- Translate a normal instruction. For the `write` command, we use a `goto` indirection so that
 we can access the current value of the tape. -/
 def tr_normal : stmt₁ → stmt'
-| (stmt.move dir.left q)  := move dir.right $ (move dir.left)^[2] $ tr_normal q
-| (stmt.move dir.right q) := move dir.right $ tr_normal q
-| (stmt.write f q)        := read $ λ a, stmt.goto $ λ _ s, Λ'.write (f a s) q
-| (stmt.load f q)         := read $ λ a, stmt.load (λ _ s, f a s) $ tr_normal q
-| (stmt.branch p q₁ q₂)   := read $ λ a,
-  stmt.branch (λ _ s, p a s) (tr_normal q₁) (tr_normal q₂)
-| (stmt.goto l)           := read $ λ a,
-  stmt.goto (λ _ s, Λ'.normal (l a s))
-| stmt.halt               := stmt.halt
+| (stmt.move d q)       := move d $ tr_normal q
+| (stmt.write f q)      := read $ λ a, stmt.goto $ λ _ s, Λ'.write (f a s) q
+| (stmt.load f q)       := read $ λ a, stmt.load (λ _ s, f a s) $ tr_normal q
+| (stmt.branch p q₁ q₂) := read $ λ a, stmt.branch (λ _ s, p a s) (tr_normal q₁) (tr_normal q₂)
+| (stmt.goto l)         := read $ λ a, stmt.goto $ λ _ s, Λ'.normal (l a s)
+| stmt.halt             := stmt.halt
 
 theorem step_aux_move (d q v T) :
   step_aux (move d q) v T =
@@ -1540,6 +1666,19 @@ end
 
 end TM1to1
 
+/-! ## TM0 emulator in TM1
+
+To establish that TM0 and TM1 are equivalent computational models, we must also have a TM0 emulator
+in TM1. The main complication here is that TM0 allows an action to depend on the value at the head
+and local state, while TM1 doesn't (in order to have more programming language-like semantics).
+So we use a computed `goto` to go to a state that performes the desired action and then returns to
+normal execution.
+
+One issue with this is that the `halt` instruction is supposed to halt immediately, not take a step
+to a halting state. To resolve this we do a check for `halt` first, then `goto` (with an
+unreachable branch).
+-/
+
 namespace TM0to1
 
 section
@@ -1567,13 +1706,11 @@ def tr : Λ' → stmt₁
 | (Λ'.normal q) :=
   branch (λ a _, (M q a).is_none) halt $
   goto (λ a _, match M q a with
-  | none := default _
+  | none := default _ -- unreachable
   | some (q', s) := Λ'.act s q'
   end)
-| (Λ'.act (TM0.stmt.move d) q) :=
-  move d $ goto (λ _ _, Λ'.normal q)
-| (Λ'.act (TM0.stmt.write a) q) :=
-  write (λ _ _, a) $ goto (λ _ _, Λ'.normal q)
+| (Λ'.act (TM0.stmt.move d) q) := move d $ goto (λ _ _, Λ'.normal q)
+| (Λ'.act (TM0.stmt.write a) q) := write (λ _ _, a) $ goto (λ _ _, Λ'.normal q)
 
 /-- The configuration translation. -/
 def tr_cfg : cfg₀ → cfg₁
@@ -1602,6 +1739,32 @@ end
 end
 
 end TM0to1
+
+/-! ## The TM2 model
+
+The TM2 model removes the tape entirely from the TM1 model, replacing it with an arbitrary (finite)
+collection of stacks, each with elements of different types (the alphabet of stack `k : K` is
+`Γ k`). The statements are:
+
+* `push k (f : σ → Γ k) q` puts `f a` on the `k`-th stack, then does `q`.
+* `pop k (f : σ → option (Γ k) → σ) q` changes the state to `f a (S k).head`, where `S k` is the
+  value of the `k`-th stack, and removes this element from the stack, then does `q`.
+* `peek k (f : σ → option (Γ k) → σ) q` changes the state to `f a (S k).head`, where `S k` is the
+  value of the `k`-th stack, then does `q`.
+* `load (f : σ → σ) q` reads nothing but applies `f` to the internal state, then does `q`.
+* `branch (f : σ → bool) qtrue qfalse` does `qtrue` or `qfalse` according to `f a`.
+* `goto (f : σ → Λ)` jumps to label `f a`.
+* `halt` halts on the next step.
+
+The configuration is a tuple `(l, var, stk)` where `l : option Λ` is the current label to run or
+`none` for the halting state, `var : σ` is the (finite) internal state, and `stk : ∀ k, list (Γ k)`
+is the collection of stacks. (Note that unlike the `TM0` and `TM1` models, these are not
+`list_blank`s, they have definite ends that can be detected by the `pop` command.)
+
+Given a designated stack `k` and a value `L : list (Γ k)`, the initial configuration has all the
+stacks empty except the designated "input" stack; in `eval` this designated stack also functions
+as the output stack.
+-/
 
 namespace TM2
 
@@ -1772,6 +1935,43 @@ def eval (M : Λ → stmt) (k) (L : list (Γ k)) : roption (list (Γ k)) :=
 end
 
 end TM2
+
+/-! ## TM2 emulator in TM1
+
+To prove that TM2 computable functions are TM1 computable, we need to reduce each TM2 program to a
+TM1 program. So suppose a TM2 program is given. This program has to maintain a whole collection of
+stacks, but we have only one tape, so we must "multiplex" them all together. Pictorially, if stack
+1 contains `[a, b]` and stack 2 contains `[c, d, e, f]` then the tape looks like this:
+
+```
+ bottom:  ... | _ | T | _ | _ | _ | _ | ...
+ stack 1: ... | _ | b | a | _ | _ | _ | ...
+ stack 2: ... | _ | f | e | d | c | _ | ...
+```
+
+where a tape element is a vertical slice through the diagram. Here the alphabet is
+`Γ' := bool × ∀ k, option (Γ k)`, where:
+
+* `bottom : bool` is marked only in one place, the initial position of the TM, and represents the
+  tail of all stacks. It is never modified.
+* `stk k : option (Γ k)` is the value of the `k`-th stack, if in range, otherwise `none` (which is
+  the blank value). Note that the head of the stack is at the far end; this is so that push and pop
+  don't have to do any shifting.
+
+In "resting" position, the TM is sitting at the position marked `bottom`. For non-stack actions,
+it operates in place, but for the stack actions `push`, `peek`, and `pop`, it must shuttle to the
+end of the appropriate stack, make its changes, and then return to the bottom. So the states are:
+
+* `normal (l : Λ)`: waiting at `bottom` to execute function `l`
+* `go k (s : st_act k) (q : stmt₂)`: travelling to the right to get to the end of stack `k` in
+  order to perform stack action `s`, and later continue with executing `q`
+* `ret (q : stmt₂)`: travelling to the left after having performed a stack action, and executing
+  `q` once we arrive
+
+Because of the shuttling, emulation overhead is `O(n)`, where `n` is the current maximum of the
+length of all stacks. Therefore a program that takes `k` steps to run in TM2 takes `O((m+k)k)`
+steps to run when emulated in TM1, where `m` is the length of the input.
+-/
 
 namespace TM2to1
 

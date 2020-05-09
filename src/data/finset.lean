@@ -47,9 +47,7 @@ multiset.decidable_mem _ _
 /-! ### set coercion -/
 
 /-- Convert a finset to a set in the natural way. -/
-def to_set (s : finset α) : set α := {x | x ∈ s}
-
-instance : has_lift (finset α) (set α) := ⟨to_set⟩
+instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
 @[simp] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
 
@@ -69,7 +67,7 @@ ext.2
 @[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
 set.ext_iff.trans ext.symm
 
-lemma to_set_injective {α} : function.injective (finset.to_set : finset α → set α) :=
+lemma coe_injective {α} : function.injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
 
 /-! ### subset -/
@@ -649,9 +647,6 @@ sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
-
-@[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
-by apply finset.coe_sdiff
 
 @[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
 ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,

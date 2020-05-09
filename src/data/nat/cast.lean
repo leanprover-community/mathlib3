@@ -46,8 +46,10 @@ library_note "coercion into rings"
 attribute [instance, priority 950] coe_base
 attribute [instance, priority 500] coe_trans
 
+variable (α)
 -- see note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℕ α := ⟨nat.cast⟩
+variable {α}
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
@@ -150,3 +152,8 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 ((ring_hom.id ℕ).eq_nat_cast n).symm
+
+@[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
+  (by haveI := nat.cast_coe (with_bot ℕ); exact n : with_bot ℕ) = n
+| 0     := rfl
+| (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl

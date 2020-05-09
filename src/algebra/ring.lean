@@ -705,3 +705,103 @@ whose data is definitionally equal to the existing data. -/
 def is_integral_domain.to_integral_domain (R : Type u) [ring R] (h : is_integral_domain R) :
   integral_domain R :=
 { .. (‹_› : ring R), .. (‹_› : is_integral_domain R) }
+
+section
+open function
+variables {R₁ : Type*} {R₂ : Type*} [has_zero R₁] [has_one R₁] [has_add R₁] [has_mul R₁]
+
+/-- A type endowed with `0`, `1`, `+` and `*` is a semiring,
+if it admits an injective map that preserves `0`, `1`, `+` and `*` to a semiring. -/
+def semiring_of_injective [semiring R₂] (f : R₁ → R₂) (hf : injective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semiring R₁ :=
+{ left_distrib  := λ x y z, hf $ by erw [mul, add, add, mul, mul, left_distrib],
+  right_distrib := λ x y z, hf $ by erw [mul, add, add, mul, mul, right_distrib],
+  zero_mul      := λ x, hf $ by erw [mul, zero, zero_mul],
+  mul_zero      := λ x, hf $ by erw [mul, zero, mul_zero],
+  ..add_comm_monoid_of_injective f hf zero add, ..monoid_of_injective f hf one mul }
+
+/-- A type endowed with `0`, `1`, `+` and `*` is a commutative semiring,
+if it admits an injective map that preserves `0`, `1`, `+` and `*` to a commutative semiring. -/
+def comm_semiring_of_injective [comm_semiring R₂] (f : R₁ → R₂) (hf : injective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_semiring R₁ :=
+{ ..comm_monoid_of_injective f hf one mul, ..semiring_of_injective f hf zero one add mul }
+
+variables [has_neg R₁]
+
+/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a ring,
+if it admits an injective map that preserves `0`, `1`, `+`, `*` and `-` to a ring. -/
+def ring_of_injective [ring R₂] (f : R₁ → R₂) (hf : injective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) :
+  ring R₁ :=
+{ ..add_comm_group_of_injective f hf zero add neg, ..semiring_of_injective f hf zero one add mul }
+
+/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a commutative ring,
+if it admits an injective map that preserves `0`, `1`, `+`, `*` and `-` to a commutative ring. -/
+def comm_ring_of_injective [comm_ring R₂] (f : R₁ → R₂) (hf : injective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) :
+  comm_ring R₁ :=
+{ ..comm_monoid_of_injective f hf one mul, ..ring_of_injective f hf zero one add mul neg }
+
+end
+
+section
+open function
+variables {R₁ : Type*} {R₂ : Type*} [has_zero R₂] [has_one R₂] [has_add R₂] [has_mul R₂]
+
+/-- A type endowed with `0`, `1`, `+` and `*` is a semiring,
+if it admits a surjective map that preserves `0`, `1`, `+` and `*` from a semiring. -/
+def semiring_of_surjective [semiring R₁] (f : R₁ → R₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semiring R₂ :=
+{ left_distrib  := λ x y z,
+  begin
+    rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩, rcases hf z with ⟨z, rfl⟩,
+    erw [← add, ← mul, ←  mul, ← mul, ← add, left_distrib]
+  end,
+  right_distrib := λ x y z,
+  begin
+    rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩, rcases hf z with ⟨z, rfl⟩,
+    erw [← add, ← mul, ←  mul, ← mul, ← add, right_distrib]
+  end,
+  zero_mul      := λ x, by { rcases hf x with ⟨x, rfl⟩, erw [← zero, ← mul, zero_mul] },
+  mul_zero      := λ x, by { rcases hf x with ⟨x, rfl⟩, erw [← zero, ← mul, mul_zero] },
+  ..add_comm_monoid_of_surjective f hf zero add, ..monoid_of_surjective f hf one mul }
+
+/-- A type endowed with `0`, `1`, `+` and `*` is a commutative semiring,
+if it admits a surjective map that preserves `0`, `1`, `+` and `*` from a commutative semiring. -/
+def comm_semiring_of_surjective [comm_semiring R₁] (f : R₁ → R₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_semiring R₂ :=
+{ ..comm_monoid_of_surjective f hf one mul, ..semiring_of_surjective f hf zero one add mul }
+
+/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a ring,
+if it admits a surjective map that preserves `0`, `1`, `+`, `*` and `-` from a ring. -/
+variables [has_neg R₂]
+
+def ring_of_surjective [ring R₁] (f : R₁ → R₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) :
+  ring R₂ :=
+{ ..add_comm_group_of_surjective f hf zero add neg, ..semiring_of_surjective f hf zero one add mul }
+
+/-- A type endowed with `0`, `1`, `+`, `*` and `-` is a commutative ring,
+if it admits a surjective map that preserves `0`, `1`, `+`, `*` and `-` from a commutative ring. -/
+def comm_ring_of_surjective [comm_ring R₁] (f : R₁ → R₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) :
+  comm_ring R₂ :=
+{ ..comm_monoid_of_surjective f hf one mul, ..ring_of_surjective f hf zero one add mul neg }
+
+end

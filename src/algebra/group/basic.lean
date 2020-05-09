@@ -315,3 +315,169 @@ end comm_monoid
 
 @[to_additive]
 lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv
+
+section
+open function
+variables {M₁ : Type*} {M₂ : Type*} [has_mul M₁]
+
+/-- A type endowed with `*` is a semigroup,
+if it admits an injective map that preserves `*` to a semigroup. -/
+@[to_additive add_semigroup_of_injective
+"A type endowed with `+` is an additive semigroup,
+if it admits an injective map that preserves `+` to an additive semigroup."]
+def semigroup_of_injective [semigroup M₂] (f : M₁ → M₂) (hf : injective f)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup M₁ :=
+{ mul_assoc := λ x y z, hf $ by erw [mul, mul, mul, mul, mul_assoc],
+  ..‹has_mul M₁› }
+
+/-- A type endowed with `*` is a commutative semigroup,
+if it admits an injective map that preserves `*` to a commutative semigroup. -/
+@[to_additive add_comm_semigroup_of_injective
+"A type endowed with `+` is an additive commutative semigroup,
+if it admits an injective map that preserves `+` to an additive commutative semigroup."]
+def comm_semigroup_of_injective [comm_semigroup M₂] (f : M₁ → M₂) (hf : injective f)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_semigroup M₁ :=
+{ mul_comm := λ x y, hf $ by erw [mul, mul, mul_comm],
+  ..semigroup_of_injective f hf mul }
+
+end
+
+section
+open function
+variables {M₁ : Type*} {M₂ : Type*} [has_mul M₂]
+
+/-- A type endowed with `*` is a semigroup,
+if it admits a surjective map that preserves `*` from a semigroup. -/
+@[to_additive add_semigroup_of_surjective
+"A type endowed with `+` is an additive semigroup,
+if it admits a surjective map that preserves `+` from an additive semigroup."]
+def semigroup_of_surjective [semigroup M₁] (f : M₁ → M₂) (hf : surjective f)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup M₂ :=
+{ mul_assoc := λ x y z,
+  begin
+    rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩, rcases hf z with ⟨z, rfl⟩,
+    erw [← mul, ←  mul, ← mul, ← mul, mul_assoc]
+  end,
+  ..‹has_mul M₂› }
+
+/-- A type endowed with `*` is a commutative semigroup,
+if it admits a surjective map that preserves `*` from a commutative semigroup. -/
+@[to_additive add_comm_semigroup_of_surjective
+"A type endowed with `+` is an additive commutative semigroup,
+if it admits a surjective map that preserves `+` from an additive commutative semigroup."]
+def comm_semigroup_of_surjective [comm_semigroup M₁] (f : M₁ → M₂) (hf : surjective f)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_semigroup M₂ :=
+{ mul_comm := λ x y,
+  begin
+    rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    erw [← mul, ←  mul, mul_comm]
+  end,
+  ..semigroup_of_surjective f hf mul }
+
+end
+
+section
+open function
+variables {M₁ : Type*} {M₂ : Type*} [has_one M₁] [has_mul M₁]
+
+/-- A type endowed with `1` and `*` is a monoid,
+if it admits an injective map that preserves `1` and `*` to a monoid. -/
+@[to_additive add_monoid_of_injective
+"A type endowed with `0` and `+` is an additive monoid,
+if it admits an injective map that preserves `0` and `+` to an additive monoid."]
+def monoid_of_injective [monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  monoid M₁ :=
+{ one_mul := λ x, hf $ by erw [mul, one, one_mul],
+  mul_one := λ x, hf $ by erw [mul, one, mul_one],
+  ..semigroup_of_injective f hf mul, ..‹has_one M₁› }
+
+/-- A type endowed with `1` and `*` is a commutative monoid,
+if it admits an injective map that preserves `1` and `*` to a commutative monoid. -/
+@[to_additive add_comm_monoid_of_injective
+"A type endowed with `0` and `+` is an additive commutative monoid,
+if it admits an injective map that preserves `0` and `+` to an additive commutative monoid."]
+def comm_monoid_of_injective [comm_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_monoid M₁ :=
+{ ..comm_semigroup_of_injective f hf mul, ..monoid_of_injective f hf one mul }
+
+variables [has_inv M₁]
+
+/-- A type endowed with `1`, `*` and `⁻¹` is a group,
+if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group. -/
+@[to_additive add_group_of_injective
+"A type endowed with `0` and `+` is an additive group,
+if it admits an injective map that preserves `0` and `+` to an additive group."]
+def group_of_injective [group M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) :
+  group M₁ :=
+{ mul_left_inv := λ x, hf $ by erw [mul, inv, mul_left_inv, one],
+  ..monoid_of_injective f hf one mul, ..‹has_inv M₁› }
+
+/-- A type endowed with `1`, `*` and `⁻¹` is a commutative group,
+if it admits an injective map that preserves `1`, `*` and `⁻¹` to a commutative group. -/
+@[to_additive add_comm_group_of_injective
+"A type endowed with `0` and `+` is an additive commutative group,
+if it admits an injective map that preserves `0` and `+` to an additive commutative group."]
+def comm_group_of_injective [comm_group M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) :
+  comm_group M₁ :=
+{ ..comm_monoid_of_injective f hf one mul, ..group_of_injective f hf one mul inv }
+
+end
+
+section
+open function
+variables {M₁ : Type*} {M₂ : Type*} [has_one M₂] [has_mul M₂]
+
+/-- A type endowed with `1` and `*` is a monoid,
+if it admits a surjective map that preserves `1` and `*` from a monoid. -/
+@[to_additive add_monoid_of_surjective
+"A type endowed with `0` and `+` is an additive monoid,
+if it admits a surjective map that preserves `0` and `+` to an additive monoid."]
+def monoid_of_surjective [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  monoid M₂ :=
+{ one_mul := λ x, by { rcases hf x with ⟨x, rfl⟩, show 1 * f x = f x, erw [← one, ← mul, one_mul] },
+  mul_one := λ x, by { rcases hf x with ⟨x, rfl⟩, erw [← one, ← mul, mul_one] },
+  ..‹has_one M₂›, ..semigroup_of_surjective f hf mul }
+
+/-- A type endowed with `1` and `*` is a commutative monoid,
+if it admits a surjective map that preserves `1` and `*` from a commutative monoid. -/
+@[to_additive add_comm_monoid_of_surjective
+"A type endowed with `0` and `+` is an additive commutative monoid,
+if it admits a surjective map that preserves `0` and `+` to an additive commutative monoid."]
+def comm_monoid_of_surjective [comm_monoid M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_monoid M₂ :=
+{ ..comm_semigroup_of_surjective f hf mul, ..monoid_of_surjective f hf one mul }
+
+variables [has_inv M₂]
+
+/-- A type endowed with `1`, `*` and `⁻¹` is a group,
+if it admits a surjective map that preserves `1`, `*` and `⁻¹` from a group. -/
+@[to_additive add_group_of_surjective
+"A type endowed with `0` and `+` is an additive group,
+if it admits a surjective map that preserves `0` and `+` to an additive group."]
+def group_of_surjective [group M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) :
+  group M₂ :=
+{ mul_left_inv := λ x, by { rcases hf x with ⟨x, rfl⟩, erw [← one, ← mul_left_inv x, mul, inv], refl },
+  ..‹has_inv M₂›, ..monoid_of_surjective f hf one mul }
+
+/-- A type endowed with `1`, `*` and `⁻¹` is a commutative group,
+if it admits a surjective map that preserves `1`, `*` and `⁻¹` from a commutative group. -/
+@[to_additive add_comm_group_of_surjective
+"A type endowed with `0` and `+` is an additive commutative group,
+if it admits a surjective map that preserves `0` and `+` to an additive commutative group."]
+def comm_group_of_surjective [comm_group M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) :
+  comm_group M₂ :=
+{ ..comm_monoid_of_surjective f hf one mul, ..group_of_surjective f hf one mul inv }
+
+end

@@ -11,8 +11,8 @@ section
 
 open ideal ideal.quotient
 
-lemma dvd_sub_pow_of_dvd_sub (R : Type*) [comm_ring R] (p : ℕ)
-  (a b : R) (h : (p : R) ∣ a - b) (k : ℕ) :
+lemma dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ}
+  {a b : R} (h : (p : R) ∣ a - b) (k : ℕ) :
   (p^(k+1) : R) ∣ a^(p^k) - b^(p^k) :=
 begin
   induction k with k ih,

@@ -11,7 +11,7 @@ section
 
 open ideal ideal.quotient
 
-lemma dvd_sub_pow_of_prime_of_dvd_sub (R : Type*) [comm_ring R] (n : ℕ)
+lemma dvd_sub_pow_of_dvd_sub (R : Type*) [comm_ring R] (n : ℕ)
   (a b : R) (h : (n : R) ∣ a - b) (k : ℕ) :
   (n^(k+1) : R) ∣ a^(n^k) - b^(n^k) :=
 begin

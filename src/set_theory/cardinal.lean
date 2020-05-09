@@ -77,7 +77,7 @@ theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) :
 ⟨⟨f, hf⟩⟩
 
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
-⟨embedding.of_surjective hf⟩
+⟨embedding.of_surjective f hf⟩
 
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
@@ -795,7 +795,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
     simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
-    exact ⟨embedding.of_surjective h⟩ },
+    exact ⟨embedding.of_surjective _ h⟩ },
   exact (let ⟨⟨i, a⟩, h⟩ := sG C in hc i a (congr_fun h _))
 end
 
@@ -862,7 +862,7 @@ mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{v u} (mk (f '' s)) ≤ lift.{u v} (mk s) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective surjective_onto_image⟩
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
@@ -923,10 +923,10 @@ lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
 
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=
-⟨ set.embedding_of_subset h ⟩
+⟨set.embedding_of_subset s t h⟩
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : mk {x // p x} ≤ mk {x // q x} :=
-⟨embedding_of_subset h⟩
+⟨embedding_of_subset _ _ h⟩
 
 lemma mk_set_le (s : set α) : mk s ≤ mk α :=
 mk_subtype_le s

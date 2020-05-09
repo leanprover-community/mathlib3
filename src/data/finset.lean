@@ -2776,7 +2776,7 @@ by { ext i, simp }
 def Ico_ℤ (l u : ℤ) : finset ℤ :=
 (finset.range (u - l).to_nat).map
   { to_fun := λ n, n + l,
-    inj := λ n m h, by simpa using h }
+    inj' := λ n m h, by simpa using h }
 
 @[simp] lemma Ico_ℤ.mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
 begin

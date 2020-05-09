@@ -893,7 +893,7 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply (function.embedding.inj' _), emb_domain_apply] },
+    rw [map_domain_apply f.inj, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 

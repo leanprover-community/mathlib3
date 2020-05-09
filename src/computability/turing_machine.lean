@@ -1354,6 +1354,7 @@ begin
     λ a b h, of_to_bool_true $ (congr_fun h b).trans $ to_bool_tt rfl⟩,
   let H := (F.to_embedding.trans G).trans
     (equiv.vector_equiv_fin _ _).symm.to_embedding,
+  classical,
   let enc := H.set_value (default _) (vector.repeat ff n),
   exact ⟨_, enc, function.inv_fun enc,
     H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩

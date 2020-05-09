@@ -675,7 +675,7 @@ begin
   have: disjoint 𝒜 (shadow^[n-2*r] 𝒜bar),
     rw disjoint_right, intros A hAbar hA,
     simp [sub_iff_shadow_iter, mem_image] at hAbar,
-    rcases hAbar with ⟨_, ⟨C, hC, rfl⟩, AsubnotC, _⟩,
+    rcases hAbar with ⟨C, hC, AsubnotC, _⟩,
     apply h₁ A hA C hC (disjoint_of_subset_left AsubnotC sdiff_disjoint),
   have: r ≤ n := trans h₃ (nat.div_le_self n 2),
   have: 1 ≤ n := trans ‹1 ≤ r› ‹r ≤ n›,

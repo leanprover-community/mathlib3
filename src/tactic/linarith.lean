@@ -902,16 +902,16 @@ add_tactic_doc
 
 /--
 An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
-problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options, which
-are inherited by `nra`; that is, `nra!` and `nra only [h1, h2]` all work as in `linarith`. The
-preprocessing is as follows:
+problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available syntax of options,
+which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
+in `linarith`. The preprocessing is as follows:
 
 * For every subterm `a ^ 2` in a hypothesis or the goal, the assumption `0 ≤ a ^ 2` is added to
   the context.
 * For every pair of hypotheses `0 ≤ a`, `0 ≤ b` in the context, the assumption `0 ≤ a * b` is added
   to the context (non-recursively).
 -/
-meta def tactic.interactive.nra (red : parse ((tk "!")?))
+meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit := do
   ls ← match hyps with
@@ -943,23 +943,12 @@ meta def tactic.interactive.nra (red : parse ((tk "!")?))
     assertv `h t p),
   tactic.interactive.linarith red restr hyps cfg
 
-add_hint_tactic "nra"
+add_hint_tactic "nlinarith"
 
-/--
-An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
-problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options, which
-are inherited by `nra`; that is, `nra!` and `nra only [h1, h2]` all work as in `linarith`. The
-preprocessing is as follows:
-
-* For every subterm `a ^ 2` in a hypothesis or the goal, the assumption `0 ≤ a ^ 2` is added to
-  the context.
-* For every pair of hypotheses `0 ≤ a`, `0 ≤ b` in the context, the assumption `0 ≤ a * b` is added
-  to the context (non-recursively).
--/
 add_tactic_doc
-{ name       := "nra",
+{ name       := "nlinarith",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.nra],
+  decl_names := [`tactic.interactive.nlinarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

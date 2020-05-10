@@ -65,14 +65,9 @@ begin
   exact @le_csupr _ _ _ _ A ⟨_, this⟩
 end
 
-/-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
-over `ℝ` and `f 0 = 0`, then `f` is a linear equivalence. -/
-def to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
-  E ≃L[ℝ] F :=
+/-- A bijective isometry sends midpoints to midpoints. -/
+lemma map_midpoint (f : E ≃ᵢ F) (x y : E) : f (midpoint ℝ x y) = midpoint ℝ (f x) (f y) :=
 begin
-  refine { .. (add_monoid_hom.of_map_midpoint ℝ ℝ f h0 _).to_real_linear_map f.continuous,
-    .. f.to_homeomorph },
-  intros x y,
   set e : E ≃ᵢ E := ((f.trans $ point_reflection $ midpoint ℝ (f x) (f y)).trans f.symm).trans
     (point_reflection $ midpoint ℝ x y),
   have hx : e x = x, by simp,
@@ -83,6 +78,19 @@ begin
     point_reflection_fixed_iff ℝ] at hm,
   apply_instance
 end
+
+/-!
+Since `f : E ≃ᵢ F` sends midpoints to midpoints, it is an affine map.
+We have no predicate `is_affine_map` in `mathlib`, so we convert `f` to a linear map.
+If `f 0 = 0`, then we proceed as is, otherwise we use `f - f 0`.
+-/
+
+/-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
+over `ℝ` and `f 0 = 0`, then `f` is a linear equivalence. -/
+def to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
+  E ≃L[ℝ] F :=
+{ .. (add_monoid_hom.of_map_midpoint ℝ ℝ f h0 f.map_midpoint).to_real_linear_map f.continuous,
+  .. f.to_homeomorph }
 
 @[simp] lemma coe_to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   ⇑(f.to_real_linear_equiv_of_map_zero h0) = f := rfl

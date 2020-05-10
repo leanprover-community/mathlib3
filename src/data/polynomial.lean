@@ -1021,7 +1021,7 @@ lemma nat_degree_map' (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map' hf p)
 
-lemma map_injective (p : polynomial R) : injective (map f) :=
+lemma map_injective : injective (map f) :=
 λ p q h, ext $ λ m, hf $
 begin
   rw ext_iff at h,
@@ -1835,7 +1835,7 @@ begin
   exact multiplicity.is_greatest'
     (multiplicity_finite_of_degree_pos_of_monic
     (show (0 : with_bot ℕ) < degree (X - C a),
-      by rw degree_X_sub_C; exact dec_trivial) _ hp)
+      by rw degree_X_sub_C; exact dec_trivial) (monic_X_sub_C _) hp)
     (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
 end
 
@@ -2524,7 +2524,7 @@ begin
   { symmetry, apply finsupp.sum_mul }
 end
 
-def pow_sub_pow_factor (x y : R) : Π {i : ℕ},{z : R // x^i - y^i = z*(x - y)}
+def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - y)}
 | 0 := ⟨0, by simp⟩
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
@@ -2538,18 +2538,15 @@ def pow_sub_pow_factor (x y : R) : Π {i : ℕ},{z : R // x^i - y^i = z*(x - y)}
   end
 
 def eval_sub_factor (f : polynomial R) (x y : R) :
-  {z : R // f.eval x - f.eval y = z*(x - y)} :=
+  {z : R // f.eval x - f.eval y = z * (x - y)} :=
 begin
-  existsi f.sum (λ a b, b * (pow_sub_pow_factor x y).val),
-  unfold eval eval₂,
-  rw [←finsupp.sum_sub],
-  have : finsupp.sum f (λ (a : ℕ) (b : R), b * (pow_sub_pow_factor x y).val) * (x - y) =
-    finsupp.sum f (λ (a : ℕ) (b : R), b * (pow_sub_pow_factor x y).val * (x - y)),
-  { apply finsupp.sum_mul },
-  rw this,
-  congr, ext e a,
-  rw [mul_assoc, ←(pow_sub_pow_factor x y).property],
-  simp [mul_sub]
+  refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,
+  delta eval eval₂,
+  rw ← finsupp.sum_sub,
+  rw finsupp.sum_mul,
+  delta finsupp.sum,
+  congr, ext i r, dsimp,
+  rw [mul_assoc, ←(pow_sub_pow_factor x y _).property, mul_sub],
 end
 
 end identities

@@ -6,7 +6,48 @@ Authors: Jeremy Avigad, Mario Carneiro
 import data.set.basic
 open function
 
-/- TODO: automatic construction of dual definitions / theorems -/
+/-!
+# Basic definitions about `≤` and `<`
+
+## Definitions
+
+### Predicates on functions
+
+- `monotone f`: a function between two types equipped with `≤` is monotone
+  if `a ≤ b` implies `f a ≤ f b`.
+- `strict_mono f` : a function between two types equipped with `<` is strictly monotone
+  if `a < b` implies `f a < f b`.
+- `order_dual α` : a type tag reversing the meaning of all inequalities.
+
+### Transfering orders
+
+- `order.preimage`, `preorder.lift`: transfer a (pre)order on `β` to an order on `α`
+  using a function `f : α → β`.
+- `partial_order.lift`, `linear_order.lift`, `decidable_linear_order.lift`:
+  transfer a partial (resp., linear, decidable linear) order on `β` to a partial
+  (resp., linear, decidable linear) order on `α` using an injective function `f`.
+
+### Extra classes
+
+- `no_top_order`, `no_bot_order`: an order without a maximal/minimal element.
+- `densely_ordered`: an order with no gaps, i.e. for any two elements `a<b` there exists
+  `c`, `a<c<b`.
+
+## Main theorems
+
+- `monotone_of_monotone_nat`: if `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then
+  `f` is monotone;
+- `strict_mono.nat`: if `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then f is strictly monotone.
+
+## TODO
+
+- expand module docs
+- automatic construction of dual definitions / theorems
+
+## Tags
+
+preorder, order, partial order, linear order, monotone, strictly monotone
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
@@ -133,6 +174,68 @@ by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 
 end monotone
 
+/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
+def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
+∀ ⦃a b⦄, a < b → f a < f b
+
+namespace strict_mono
+open ordering function
+
+lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
+  (hg : strict_mono g) (hf : strict_mono f) :
+  strict_mono (g ∘ f) :=
+λ a b h, hg (hf h)
+
+section
+variables [linear_order α] [preorder β] {f : α → β}
+
+lemma lt_iff_lt (H : strict_mono f) {a b} :
+  f a < f b ↔ a < b :=
+⟨λ h, ((lt_trichotomy b a)
+  .resolve_left $ λ h', lt_asymm h $ H h')
+  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
+
+lemma injective (H : strict_mono f) : injective f
+| a b e := ((lt_trichotomy a b)
+  .resolve_left $ λ h, ne_of_lt (H h) e)
+  .resolve_right $ λ h, ne_of_gt (H h) e
+
+theorem compares (H : strict_mono f) {a b} :
+  ∀ {o}, compares o (f a) (f b) ↔ compares o a b
+| lt := H.lt_iff_lt
+| eq := ⟨λ h, H.injective h, congr_arg _⟩
+| gt := H.lt_iff_lt
+
+lemma le_iff_le (H : strict_mono f) {a b} :
+  f a ≤ f b ↔ a ≤ b :=
+⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
+ λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+end
+
+protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+
+-- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
+-- then `strict_mono f` is vacuously true.
+lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
+λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
+
+end strict_mono
+
+section
+open function
+variables [partial_order α] [partial_order β] {f : α → β}
+
+lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
+  strict_mono f :=
+λ a b h,
+begin
+  rw lt_iff_le_and_ne at ⊢ h,
+  exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
+end
+
+end
+
 /-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) := α
 
@@ -198,6 +301,7 @@ assume a a' h, m h b
 
 end monotone
 
+/-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`. -/
 def preorder.lift {α β} (f : α → β) (i : preorder β) : preorder α :=
 by exactI
 { le := λx y, f x ≤ f y,
@@ -206,16 +310,22 @@ by exactI
   lt := λx y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
+/-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
+function `f : α → β`. -/
 def partial_order.lift {α β} (f : α → β) (inj : injective f) (i : partial_order β) :
   partial_order α :=
 by exactI
 { le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f (by apply_instance) }
 
+/-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
+function `f : α → β`. -/
 def linear_order.lift {α β} (f : α → β) (inj : injective f) (i : linear_order β) :
   linear_order α :=
 by exactI
 { le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj (by apply_instance) }
 
+/-- Transfer a `decidable_linear_order` on `β` to a `decidable_linear_order` on `α` using
+an injective function `f : α → β`. -/
 def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
   (i : decidable_linear_order β) : decidable_linear_order α :=
 by exactI
@@ -255,7 +365,9 @@ instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [part
     prod.ext (le_antisymm hac hca) (le_antisymm hbd hdb),
   .. prod.preorder α β }
 
-/- additional order classes -/
+/-!
+### Additional order classes
+-/
 
 /-- order without a top element; somtimes called cofinal -/
 class no_top_order (α : Type u) [preorder α] : Prop :=

@@ -181,6 +181,8 @@ variables {D : Type u₂} [category.{v₂} D]
 section
 variables {F G : C ⥤ D}
 
+local attribute [semireducible] has_hom.opposite
+
 @[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
@@ -189,7 +191,14 @@ variables {F G : C ⥤ D}
 
 @[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' :=
+  begin
+    intros X Y f,
+    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    dsimp at this,
+    erw this,
+    refl,
+  end }
 
 @[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
@@ -197,6 +206,8 @@ end
 
 section
 variables {F G : C ⥤ Dᵒᵖ}
+
+local attribute [semireducible] has_hom.opposite
 
 protected definition left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
 { app         := λ X, (α.app (unop X)).unop,
@@ -208,7 +219,13 @@ rfl
 
 protected definition right_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).op,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' :=
+  begin
+    intros X Y f,
+    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    dsimp at this,
+    erw this
+  end }
 
 @[simp] lemma right_op_app (α : F.left_op ⟶ G.left_op) (X) :
   (nat_trans.right_op α).app X = (α.app (op X)).op :=

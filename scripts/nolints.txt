@@ -514,95 +514,6 @@ apply_nolint nat.unpaired doc_blame
 apply_nolint primcodable.of_equiv doc_blame
 apply_nolint primcodable.subtype doc_blame
 
--- computability/turing_machine.lean
-apply_nolint turing.TM0.cfg.inhabited unused_arguments
-apply_nolint turing.TM0.cfg.map doc_blame
-apply_nolint turing.TM0.machine unused_arguments
-apply_nolint turing.TM0.machine.map doc_blame
-apply_nolint turing.TM0.machine.map_respects unused_arguments
-apply_nolint turing.TM0.machine.map_step unused_arguments
-apply_nolint turing.TM0.stmt.inhabited unused_arguments
-apply_nolint turing.TM0.stmt.map doc_blame
-apply_nolint turing.TM0to1.tr doc_blame
-apply_nolint turing.TM0to1.tr_cfg doc_blame
-apply_nolint turing.TM0to1.Λ' doc_blame
-apply_nolint turing.TM1.cfg.inhabited unused_arguments
-apply_nolint turing.TM1.eval doc_blame
-apply_nolint turing.TM1.init doc_blame
-apply_nolint turing.TM1.step doc_blame
-apply_nolint turing.TM1.stmts doc_blame
-apply_nolint turing.TM1.stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM1.supports_stmt doc_blame unused_arguments
-apply_nolint turing.TM1to0.tr doc_blame
-apply_nolint turing.TM1to0.tr_aux doc_blame
-apply_nolint turing.TM1to0.tr_cfg doc_blame
-apply_nolint turing.TM1to0.tr_eval unused_arguments
-apply_nolint turing.TM1to0.tr_stmts doc_blame
-apply_nolint turing.TM1to0.Λ' doc_blame unused_arguments
-apply_nolint turing.TM1to1.move doc_blame
-apply_nolint turing.TM1to1.read doc_blame
-apply_nolint turing.TM1to1.read_aux doc_blame
-apply_nolint turing.TM1to1.step_aux_move unused_arguments
-apply_nolint turing.TM1to1.step_aux_write unused_arguments
-apply_nolint turing.TM1to1.supports_stmt_move unused_arguments
-apply_nolint turing.TM1to1.supports_stmt_write unused_arguments
-apply_nolint turing.TM1to1.tr doc_blame
-apply_nolint turing.TM1to1.tr_cfg doc_blame
-apply_nolint turing.TM1to1.tr_normal doc_blame
-apply_nolint turing.TM1to1.tr_supp doc_blame
-apply_nolint turing.TM1to1.tr_tape doc_blame
-apply_nolint turing.TM1to1.tr_tape' doc_blame unused_arguments
-apply_nolint turing.TM1to1.tr_tape_drop_right unused_arguments inhabited_nonempty
-apply_nolint turing.TM1to1.write doc_blame
-apply_nolint turing.TM1to1.writes doc_blame
-apply_nolint turing.TM1to1.Λ' doc_blame
-apply_nolint turing.TM2.cfg doc_blame
-apply_nolint turing.TM2.cfg.inhabited unused_arguments
-apply_nolint turing.TM2.eval doc_blame
-apply_nolint turing.TM2.init doc_blame
-apply_nolint turing.TM2.reaches doc_blame
-apply_nolint turing.TM2.step doc_blame
-apply_nolint turing.TM2.step_aux doc_blame
-apply_nolint turing.TM2.stmts doc_blame
-apply_nolint turing.TM2.stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM2.supports doc_blame
-apply_nolint turing.TM2.supports_stmt doc_blame unused_arguments
-apply_nolint turing.TM2to1.st_act doc_blame
-apply_nolint turing.TM2to1.st_run doc_blame unused_arguments
-apply_nolint turing.TM2to1.st_var doc_blame
-apply_nolint turing.TM2to1.st_write doc_blame
-apply_nolint turing.TM2to1.stackel doc_blame
-apply_nolint turing.TM2to1.stackel.get doc_blame
-apply_nolint turing.TM2to1.stackel.is_bottom doc_blame
-apply_nolint turing.TM2to1.stackel.is_top doc_blame
-apply_nolint turing.TM2to1.stackel_equiv doc_blame
-apply_nolint turing.TM2to1.stmt_st_rec doc_blame
-apply_nolint turing.TM2to1.tr doc_blame
-apply_nolint turing.TM2to1.tr_cfg doc_blame
-apply_nolint turing.TM2to1.tr_init doc_blame
-apply_nolint turing.TM2to1.tr_normal doc_blame
-apply_nolint turing.TM2to1.tr_st_act doc_blame
-apply_nolint turing.TM2to1.tr_stk doc_blame unused_arguments
-apply_nolint turing.TM2to1.tr_stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM2to1.tr_supp doc_blame
-apply_nolint turing.TM2to1.Γ' doc_blame
-apply_nolint turing.TM2to1.Λ' doc_blame
-apply_nolint turing.dwrite doc_blame
-apply_nolint turing.eval doc_blame
-apply_nolint turing.frespects doc_blame
-apply_nolint turing.pointed_map doc_blame
-apply_nolint turing.reaches doc_blame
-apply_nolint turing.reaches₀ doc_blame
-apply_nolint turing.reaches₁ doc_blame
-apply_nolint turing.respects doc_blame
-apply_nolint turing.tape doc_blame
-apply_nolint turing.tape.map doc_blame
-apply_nolint turing.tape.mk doc_blame
-apply_nolint turing.tape.mk' doc_blame
-apply_nolint turing.tape.move doc_blame
-apply_nolint turing.tape.nth doc_blame
-apply_nolint turing.tape.write doc_blame
-
 -- control/applicative.lean
 apply_nolint comp.seq doc_blame
 
@@ -1480,7 +1391,6 @@ apply_nolint polynomial.div_mod_by_monic_aux doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
-apply_nolint polynomial.map_injective unused_arguments
 apply_nolint polynomial.mod doc_blame
 apply_nolint polynomial.nonzero_comm_ring.of_polynomial_ne doc_blame
 apply_nolint polynomial.nonzero_comm_semiring.of_polynomial_ne doc_blame
@@ -1626,10 +1536,8 @@ apply_nolint wseq.think_congr unused_arguments
 apply_nolint set.enumerate doc_blame
 
 -- data/set/finite.lean
-apply_nolint finset.preimage doc_blame
 apply_nolint set.fintype_bUnion doc_blame
 apply_nolint set.fintype_bind doc_blame
-apply_nolint set.fintype_insert' doc_blame
 apply_nolint set.fintype_of_fintype_image doc_blame
 apply_nolint set.fintype_subset doc_blame
 
@@ -1881,21 +1789,15 @@ apply_nolint not.elim doc_blame
 apply_nolint pempty.elim doc_blame
 
 -- logic/embedding.lean
-apply_nolint equiv.to_embedding doc_blame
-apply_nolint function.embedding doc_blame has_inhabited_instance
+apply_nolint function.embedding has_inhabited_instance
 apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
 apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.equiv_of_surjective doc_blame
-apply_nolint function.embedding.image doc_blame
 apply_nolint function.embedding.of_not_nonempty doc_blame
-apply_nolint function.embedding.of_surjective doc_blame
 apply_nolint function.embedding.prod_congr doc_blame
 apply_nolint function.embedding.refl doc_blame
-apply_nolint function.embedding.set_value doc_blame
 apply_nolint function.embedding.sigma_congr_right doc_blame
-apply_nolint function.embedding.subtype doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.sum_congr doc_blame
 apply_nolint function.embedding.trans doc_blame
@@ -2032,7 +1934,6 @@ apply_nolint pell.yz doc_blame
 
 -- order/basic.lean
 apply_nolint classical.DLO doc_blame
-apply_nolint decidable_linear_order.lift doc_blame
 apply_nolint decidable_linear_order_of_is_well_order doc_blame
 apply_nolint dense_or_discrete ge_or_gt
 apply_nolint directed_order doc_blame
@@ -2051,9 +1952,6 @@ apply_nolint gt.is_irrefl ge_or_gt
 apply_nolint gt.is_strict_order ge_or_gt
 apply_nolint gt.is_trans ge_or_gt
 apply_nolint gt.is_trichotomous ge_or_gt
-apply_nolint linear_order.lift doc_blame
-apply_nolint partial_order.lift doc_blame
-apply_nolint preorder.lift doc_blame
 apply_nolint well_founded.succ doc_blame
 apply_nolint well_founded.sup doc_blame
 
@@ -2113,16 +2011,12 @@ apply_nolint order_iso.prod_lex_congr doc_blame
 apply_nolint order_iso.refl doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
 apply_nolint order_iso.symm doc_blame
-apply_nolint order_iso.to_order_embedding doc_blame
 apply_nolint order_iso.trans doc_blame
 apply_nolint subrel.order_embedding doc_blame
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame
 apply_nolint pilex doc_blame
-
--- ring_theory/adjoin.lean
-apply_nolint subalgebra.fg doc_blame
 
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame
@@ -2729,21 +2623,7 @@ apply_nolint tactic.interactive.unify_with_instance doc_blame
 apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
 
 -- tactic/norm_num.lean
-apply_nolint conv.interactive.norm_num doc_blame
-apply_nolint conv.interactive.norm_num1 doc_blame
 apply_nolint norm_num.derive doc_blame
-apply_nolint norm_num.derive1 doc_blame
-apply_nolint norm_num.eval_div_ext doc_blame
-apply_nolint norm_num.eval_ineq doc_blame
-apply_nolint norm_num.eval_pow doc_blame
-apply_nolint norm_num.eval_prime doc_blame
-apply_nolint norm_num.min_fac_helper doc_blame
-apply_nolint norm_num.prove_lt doc_blame unused_arguments
-apply_nolint norm_num.prove_min_fac doc_blame
-apply_nolint norm_num.prove_non_prime doc_blame
-apply_nolint norm_num.prove_pos doc_blame
-apply_nolint tactic.refl_conv doc_blame
-apply_nolint tactic.trans_conv doc_blame
 
 -- tactic/omega/eq_elim.lean
 apply_nolint omega.cancel doc_blame

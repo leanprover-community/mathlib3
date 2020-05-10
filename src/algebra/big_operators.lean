@@ -965,7 +965,7 @@ calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x)
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
-lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s : finset α, s.sum f) :=
+lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s, ∑ x in s, f x) :=
 λ s₁ s₂ hs, sum_le_sum_of_subset_of_nonneg hs $ λ x _ _, hf x
 
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → ((∑ x in s, f x) = 0 ↔ ∀x∈s, f x = 0) :=
@@ -996,7 +996,7 @@ variables [canonically_ordered_add_monoid β]
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
-lemma sum_mono_set (f : α → β) : monotone (λ s : finset α, s.sum f) :=
+lemma sum_mono_set (f : α → β) : monotone (λ s, ∑ x in s, f x) :=
 λ s₁ s₂ hs, sum_le_sum_of_subset hs
 
 lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :

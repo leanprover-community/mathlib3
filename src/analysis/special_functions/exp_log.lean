@@ -459,40 +459,25 @@ expansion of the logarithm, in `has_sum_pow_div_log_of_abs_lt_1`.
 lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : abs x < 1) (n : ℕ) :
   abs ((∑ i in range n, x^(i+1)/(i+1)) + log (1-x)) ≤ (abs x)^(n+1) / (1 - abs x) :=
 begin
-  /- For the proof, we will show that the derivative of the function to be estimated is small,
+  /- For the proof, we show that the derivative of the function to be estimated is small,
   and then apply the mean value inequality. -/
-  have Diff : ∀ y ∈ set.Ioo (-1 : ℝ) 1, differentiable_at ℝ (λ (y : ℝ), log (1 - y)) y,
-  { rintros y ⟨hy1, hy2⟩,
-    refine differentiable_at.log (by simp) _,
-    linarith },
-  let F : ℝ → ℝ := λ x, log (1-x) + ∑ i in range n, x^(i+1)/(i+1),
-  have Diff' : ∀ y ∈ set.Icc (- abs x) (abs x), differentiable_at ℝ F y,
+  let F : ℝ → ℝ := λ x, ∑ i in range n, x^(i+1)/(i+1) + log (1-x),
+  -- First step: compute the derivative of `F`
+  have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = - (y^n) / (1 - y),
   { assume y hy,
-    have hy' : y ∈ set.Ioo (-1 : ℝ) 1 :=
-      ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
-    simp [differentiable_at.add (Diff y hy')] },
-  have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = -1/(1-y) + (∑ i in range n, y ^ i),
-  { assume y hy,
-    have : 1 - y ≠ 0, by { rcases hy with ⟨hy1, hy2⟩, linarith },
-    suffices H : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
-      by simp [F, Diff y hy, this, H],
-    congr,
-    ext i,
-    have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
-    field_simp [this, mul_comm] },
-  have B : ∀ y ∈ set.Ioo (-(1 : ℝ)) 1,
-    -(1 : ℝ) /(1-y) + (∑ i in range n, y ^ i) = -(y^n) / (1 - y),
-  { assume y hy,
-    have abs_y : abs y < 1 := abs_lt_of_lt_of_neg_lt hy.2 (neg_lt.mp hy.1),
-    rw [div_eq_inv_mul, ← tsum_geometric_of_abs_lt_1 abs_y,
-        tsum_nat_add n (summable_geometric_of_abs_lt_1 abs_y)],
-    simp only [pow_add, mul_one, neg_add_cancel_right, mul_neg_eq_neg_mul_symm, neg_add_rev],
-    rw [tsum_mul_right _ (summable_geometric_of_abs_lt_1 abs_y), tsum_geometric_of_abs_lt_1 abs_y],
-    field_simp },
-  have C : ∀ y ∈ set.Icc (-abs x) (abs x), abs (deriv F y) ≤ (abs x)^n / (1 - abs x),
+    have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
+    { congr,
+      ext i,
+      have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
+      field_simp [this, mul_comm] },
+    field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),
+                sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
+    ring },
+  -- second step: show that the derivative of `F` is small
+  have B : ∀ y ∈ set.Icc (-abs x) (abs x), abs (deriv F y) ≤ (abs x)^n / (1 - abs x),
   { assume y hy,
     have : y ∈ set.Ioo (-(1 : ℝ)) 1 := ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
-    calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this, B y this]
+    calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
     ... ≤ (abs x)^n / (1 - abs x) :
       begin
         simp only [← pow_abs, abs_div, abs_neg],
@@ -501,11 +486,17 @@ begin
         show 0 < 1 - abs x, by linarith,
         show 1 - abs x ≤ abs (1 - y), from le_trans (by linarith [hy.2]) (le_abs_self _)
       end },
-  have D : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,
-  { apply convex.norm_image_sub_le_of_norm_deriv_le Diff' C (convex_Icc _ _) _ _,
+  -- third step: apply the mean value inequality
+  have C : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,
+  { have : ∀ y ∈ set.Icc (- abs x) (abs x), differentiable_at ℝ F y,
+    { assume y hy,
+      have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
+      simp [F, this] },
+    apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
     { simpa using abs_nonneg x },
     { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
-  simpa [F, add_comm, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using D
+  -- fourth step: conclude by massaging the inequality of the third step
+  simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C
 end
 
 /-- Power series expansion of the logarithm around `1`. -/
@@ -533,7 +524,7 @@ begin
     ... ≤ abs x ^ (i+1) / (0 + 1) :
       begin
         apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
-                    add_le_add_right (nat.cast_nonneg i)],
+                     add_le_add_right (nat.cast_nonneg i)],
         norm_num,
       end
     ... ≤ abs x ^ i :

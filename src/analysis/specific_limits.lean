@@ -239,7 +239,7 @@ begin
   convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1
     (le_of_lt one_half_pos) one_half_lt_one),
   { funext n, simp, refl, },
-  { norm_num, rw div_mul_cancel, norm_num }
+  { norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=

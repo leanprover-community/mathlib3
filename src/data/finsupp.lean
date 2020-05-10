@@ -893,7 +893,7 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply (function.embedding.inj' _), emb_domain_apply] },
+    rw [map_domain_apply f.inj, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 
@@ -915,7 +915,7 @@ section comap_domain
 the preimage of `l.support`, `comap_domain f l hf` is the finitely supported function
 from `α₁` to `γ` given by composing `l` with `f`. -/
 def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
-  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) : α₁ →₀ γ :=
+  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' ↑l.support)) : α₁ →₀ γ :=
 { support := l.support.preimage hf,
   to_fun := (λ a, l (f a)),
   mem_support_to_fun :=
@@ -927,13 +927,13 @@ def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
 
 @[simp]
 lemma comap_domain_apply {α₁ α₂ γ : Type*} [has_zero γ]
-  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) (a : α₁) :
+  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' ↑l.support)) (a : α₁) :
   comap_domain f l hf a = l (f a) :=
 rfl
 
 lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ β) (g : α₂ → β → γ)
-  (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
+  (hf : set.bij_on f (f ⁻¹' ↑l.support) ↑l.support) :
   (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   simp [sum],
@@ -941,7 +941,7 @@ begin
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
-  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
+  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' ↑l.support) ↑l.support) :
    comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],

@@ -2,14 +2,16 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
+-/
+import topology.metric_space.baire
+import analysis.normed_space.operator_norm
 
-Banach spaces, i.e., complete vector spaces.
+/-!
+# Banach open mapping theorem
 
 This file contains the Banach open mapping theorem, i.e., the fact that a bijective
 bounded linear map between Banach spaces has a bounded inverse.
 -/
-import topology.metric_space.baire
-import analysis.normed_space.bounded_linear_maps
 
 open function metric set filter finset
 open_locale classical topological_space
@@ -206,24 +208,32 @@ begin
   exact set.mem_image_of_mem _ (hε this)
 end
 
+namespace linear_equiv
+
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
-theorem linear_equiv.continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
+theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
-  obtain ⟨M, Mpos, hM⟩ : ∃ M > 0, ∀ (y : F), ∃ (x : E), e x = y ∧ ∥x∥ ≤ M * ∥y∥,
-    from exists_preimage_norm_le (continuous_linear_map.mk e.to_linear_map h) e.to_equiv.surjective,
-  refine e.symm.to_linear_map.continuous_of_bound M (λ y, _),
-  rcases hM y with ⟨x, hx, xnorm⟩,
-  convert xnorm,
-  rw ← hx,
-  apply e.symm_apply_apply
+  intros s hs,
+  rw [← e.image_eq_preimage],
+  rw [← e.coe_coe] at h ⊢,
+  exact open_mapping ⟨↑e, h⟩ e.surjective s hs
 end
 
 /-- Associating to a linear equivalence between Banach spaces a continuous linear equivalence when
 the direct map is continuous, thanks to the Banach open mapping theorem that ensures that the
 inverse map is also continuous. -/
-def linear_equiv.to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
+def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   E ≃L[𝕜] F :=
 { continuous_to_fun := h,
   continuous_inv_fun := e.continuous_symm h,
   ..e }
+
+@[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
+  ⇑(e.to_continuous_linear_equiv_of_continuous h) = e := rfl
+
+@[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous_symm (e : E ≃ₗ[𝕜] F)
+  (h : continuous e) :
+  ⇑(e.to_continuous_linear_equiv_of_continuous h).symm = e.symm := rfl
+
+end linear_equiv

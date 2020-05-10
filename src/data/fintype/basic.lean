@@ -623,7 +623,7 @@ instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] 
 if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
 
 instance set.fintype [fintype α] : fintype (set α) :=
-⟨(@finset.univ α _).powerset.map ⟨coe, to_set_injective⟩, λ s, begin
+⟨(@finset.univ α _).powerset.map ⟨coe, coe_injective⟩, λ s, begin
   classical, refine mem_map.2 ⟨finset.univ.filter s, mem_powerset.2 (subset_univ _), _⟩,
   apply (coe_filter _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩

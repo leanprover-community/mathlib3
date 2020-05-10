@@ -183,16 +183,35 @@ lemma comp_le_uniformity : (𝓤 α).lift' (λs:set (α×α), comp_rel s s) ≤ 
 lemma tendsto_swap_uniformity : tendsto (@prod.swap α α) (𝓤 α) (𝓤 α) :=
 symm_le_uniformity
 
-lemma tendsto_const_uniformity {a : α} {f : filter β} : tendsto (λ _, (a, a)) f (𝓤 α) :=
-assume s hs,
-show {x | (a, a) ∈ s} ∈ f,
-  from univ_mem_sets' $ assume b, refl_mem_uniformity hs
-
 lemma comp_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, comp_rel t t ⊆ s :=
 have s ∈ (𝓤 α).lift' (λt:set (α×α), comp_rel t t),
   from comp_le_uniformity hs,
 (mem_lift'_sets $ monotone_comp_rel monotone_id monotone_id).mp this
+
+/-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is transitive. -/
+lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → α}
+  (h₁₂ : tendsto (λ x, (f₁ x, f₂ x)) l (𝓤 α)) (h₂₃ : tendsto (λ x, (f₂ x, f₃ x)) l (𝓤 α)) :
+  tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
+begin
+  refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
+  filter_upwards [h₁₂ hs, h₂₃ hs],
+  exact λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩
+end
+
+/-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is symmetric -/
+lemma filter.tendsto.uniformity_symm {l : filter β} {f : β → α × α}
+  (h : tendsto f l (𝓤 α)) :
+  tendsto (λ x, ((f x).2, (f x).1)) l (𝓤 α) :=
+tendsto_swap_uniformity.comp h
+
+/-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is reflexive. -/
+lemma tendsto_diag_uniformity (f : β → α) (l : filter β) :
+  tendsto (λ x, (f x, f x)) l (𝓤 α) :=
+assume s hs, mem_map.2 $ univ_mem_sets' $ λ x, refl_mem_uniformity hs
+
+lemma tendsto_const_uniformity {a : α} {f : filter β} : tendsto (λ _, (a, a)) f (𝓤 α) :=
+tendsto_diag_uniformity (λ _, a) f
 
 lemma symm_of_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, (∀a b, (a, b) ∈ t → (b, a) ∈ t) ∧ t ⊆ s :=
@@ -973,3 +992,13 @@ theorem continuous_iff'_left [topological_space β] {f : β → α} :
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_left
 
 end uniform
+
+lemma filter.tendsto.congr_uniformity {α β} [uniform_space β] {f g : α → β} {l : filter α} {b : β}
+  (hf : tendsto f l (𝓝 b)) (hg : tendsto (λ x, (f x, g x)) l (𝓤 β)) :
+  tendsto g l (𝓝 b) :=
+uniform.tendsto_nhds_right.2 $ (uniform.tendsto_nhds_right.1 hf).uniformity_trans hg
+
+lemma uniform.tendsto_congr {α β} [uniform_space β] {f g : α → β} {l : filter α} {b : β}
+  (hfg : tendsto (λ x, (f x, g x)) l (𝓤 β)) :
+  tendsto f l (𝓝 b) ↔ tendsto g l (𝓝 b) :=
+⟨λ h, h.congr_uniformity hfg, λ h, h.congr_uniformity hfg.uniformity_symm⟩

@@ -923,8 +923,11 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
       t ← infer_type h,
       s ← find_squares s t,
-      return (s, match t with `(0 ≤ %%a) := h :: l | _ := l end))
-    (mk_expr_set, []) ls : tactic (expr_set × list expr)),
+      return (s, match t with
+        | `(0 ≤ %%a) := (ff, h) :: l
+        | `(0 < %%a) := (tt, h) :: l
+        | _ := l end))
+    (mk_expr_set, []) ls : tactic (expr_set × list (bool × expr))),
   s ← target >>= find_squares s,
   (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ e tac, do
     (hyps, ge0) ← tac,
@@ -935,10 +938,18 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       p ← mk_app ``pow_two_nonneg [e],
       t ← infer_type p,
       h ← assertv `h t p,
-      return (hyps.map (λ l, pexpr.of_expr h :: l), h :: ge0)) <|>
+      return (hyps.map (λ l, pexpr.of_expr h :: l), (ff, h) :: ge0)) <|>
     return (hyps, ge0)),
-  ge0.mmap' (λ a, ge0.mmap' $ λ b, do
-    p ← mk_app ``mul_nonneg [a, b],
+  ge0.mmap' (λ ⟨posa, a⟩, ge0.mmap' $ λ ⟨posb, b⟩, do
+    p ← (
+      if posa then
+        if posb then mk_app ``mul_pos [a, b]
+        else do
+          a ← mk_app ``le_of_lt [a],
+          mk_app ``mul_nonneg [a, b]
+      else do
+        b ← if posb then mk_app ``le_of_lt [b] else return b,
+        mk_app ``mul_nonneg [a, b]),
     t ← infer_type p,
     assertv `h t p),
   tactic.interactive.linarith red restr hyps cfg

@@ -485,8 +485,7 @@ lemma smul_right_comp [topological_module R R] {x : M₂} {c : R} :
   (smul_right 1 x : R →L[R] M₂).comp (smul_right 1 c : R →L[R] R) = smul_right 1 (c • x) :=
 by { ext, simp [mul_smul] }
 
-lemma smul_right_one_pow [topological_space R] [topological_add_group R] [topological_module R R]
-  (c : R) (n : ℕ) :
+lemma smul_right_one_pow [topological_add_group R] [topological_module R R] (c : R) (n : ℕ) :
   (smul_right 1 c : R →L[R] R)^n = smul_right 1 (c^n) :=
 begin
   induction n with n ihn,

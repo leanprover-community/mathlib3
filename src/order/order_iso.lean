@@ -26,7 +26,7 @@ end
 /-- An order embedding with respect to a given pair of orders `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
-(ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
+(ord' : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
 infix ` ≼o `:25 := order_embedding
 
@@ -43,8 +43,9 @@ namespace order_embedding
 
 instance : has_coe_to_fun (r ≼o s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
 
-theorem ord' : ∀ (f : r ≼o s) {a b}, r a b ↔ s (f a) (f b)
-| ⟨f, o⟩ := @o
+theorem inj (f : r ≼o s) : injective f := f.inj'
+
+theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
   (@order_embedding.mk _ _ r s f o : α → β) = f := rfl
@@ -66,14 +67,14 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ 
 
 /-- An order embedding is also an order embedding between dual orders. -/
 def rsymm (f : r ≼o s) : swap r ≼o swap s :=
-⟨f.to_embedding, λ a b, f.ord'⟩
+⟨f.to_embedding, λ a b, f.ord⟩
 
 /-- If `f` is injective, then it is an order embedding from the
   preimage order of `s` to `s`. -/
 def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'o s ≼o s := ⟨f, λ a b, iff.rfl⟩
 
 theorem eq_preimage (f : r ≼o s) : r = f ⁻¹'o s :=
-by funext a b; exact propext f.ord'
+by { ext a b, exact f.ord }
 
 protected theorem is_irrefl : ∀ (f : r ≼o s) [is_irrefl β s], is_irrefl α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a h, H _ (o.1 h)⟩
@@ -118,7 +119,7 @@ protected theorem acc (f : r ≼o s) (a : α) : acc s (f a) → acc r a :=
 begin
   generalize h : f a = b, intro ac,
   induction ac with _ H IH generalizing a, subst h,
-  exact ⟨_, λ a' h, IH (f a') (f.ord'.1 h) _ rfl⟩
+  exact ⟨_, λ a' h, IH (f a') (f.ord.1 h) _ rfl⟩
 end
 
 protected theorem well_founded : ∀ (f : r ≼o s) (h : well_founded s), well_founded r
@@ -147,9 +148,7 @@ end
 def lt_embedding_of_le_embedding [preorder α] [preorder β]
   (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
-{ to_fun := f,
-  inj := f.inj,
-  ord := by intros; simp [lt_iff_le_not_le,f.ord] }
+{ ord' := by intros; simp [lt_iff_le_not_le,f.ord], .. f }
 
 def nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
@@ -197,27 +196,31 @@ instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 
 /-- An order isomorphism is an equivalence that is also an order embedding. -/
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
-(ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
+(ord' : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
 infix ` ≃o `:25 := order_iso
 
 namespace order_iso
 
+/-- Convert an `order_iso` to an `order_embedding`. This function is also available as a coercion
+but often it is easier to write `f.to_order_embedding` than to write explicitly `r` and `s`
+in the target type. -/
 def to_order_embedding (f : r ≃o s) : r ≼o s :=
-⟨f.to_equiv.to_embedding, f.ord⟩
+⟨f.to_equiv.to_embedding, f.ord'⟩
 
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃o s) := ⟨λ _, α → β, λ f, f⟩
 
+@[simp] lemma to_order_embedding_eq_coe (f : r ≃o s) : f.to_order_embedding = f := rfl
+
 @[simp] lemma coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
 @[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl
 
-theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
-| ⟨f, o⟩ := @o
+theorem ord (f : r ≃o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x y : α} :
-    r x y ↔ s ((↑f : r ≼o s) x) ((↑f : r ≼o s) y) := f.ord'
+    r x y ↔ s ((↑f : r ≼o s) x) ((↑f : r ≼o s) y) := f.ord
 
 @[simp] theorem coe_fn_mk (f : α ≃ β) (o) :
   (@order_iso.mk _ _ r s f o : α → β) = f := rfl
@@ -314,7 +317,7 @@ end subrel
 
 /-- Restrict the codomain of an order embedding -/
 def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈ p) : r ≼o subrel s p :=
-⟨f.to_embedding.cod_restrict p H, f.ord⟩
+⟨f.to_embedding.cod_restrict p H, f.ord'⟩
 
 @[simp] theorem order_embedding.cod_restrict_apply (p) (f : r ≼o s) (H a) :
   order_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl

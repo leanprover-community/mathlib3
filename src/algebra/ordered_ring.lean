@@ -184,6 +184,59 @@ lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonpos_of_nonneg_of_nonpos ha h
 lemma neg_of_mul_pos_right {a b : α} (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonpos_of_nonpos_of_nonneg ha hb)))
 
+section mono
+
+variables {β : Type*} [preorder β] {f g : β → α} {a : α}
+
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
+
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
+
+lemma monotone.mul_const (hf : monotone f) (ha : 0 ≤ a) :
+  monotone (λ x, (f x) * a) :=
+(monotone_mul_right_of_nonneg ha).comp hf
+
+lemma monotone.const_mul (hf : monotone f) (ha : 0 ≤ a) :
+  monotone (λ x, a * (f x)) :=
+(monotone_mul_left_of_nonneg ha).comp hf
+
+lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x) :
+  monotone (λ x, f x * g x) :=
+λ x y h, mul_le_mul (hf h) (hg h) (hg0 x) (hf0 y)
+
+lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono (λ x, a * x) :=
+assume b c b_lt_c, (mul_lt_mul_left ha).2 b_lt_c
+
+lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (λ x, x * a) :=
+assume b c b_lt_c, (mul_lt_mul_right ha).2 b_lt_c
+
+lemma strict_mono.mul_const (hf : strict_mono f) (ha : 0 < a) :
+  strict_mono (λ x, (f x) * a) :=
+(strict_mono_mul_right_of_pos ha).comp hf
+
+lemma strict_mono.const_mul (hf : strict_mono f) (ha : 0 < a) :
+  strict_mono (λ x, a * (f x)) :=
+(strict_mono_mul_left_of_pos ha).comp hf
+
+lemma strict_mono.mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 < g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul (hf h) (hg $ le_of_lt h) (hg0 x) (hf0 y)
+
+lemma monotone.mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul' (hf $ le_of_lt h) (hg h) (hg0 x) (hf0 y)
+
+lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 ≤ f x)
+  (hg0 : ∀ x, 0 ≤ g x) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul'' (hf h) (hg h) (hf0 x) (hg0 x)
+
+end mono
+
 end linear_ordered_semiring
 
 section decidable_linear_ordered_semiring

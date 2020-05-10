@@ -587,6 +587,19 @@ finset.strong_induction_on s
         ← insert_erase (mem_erase.2 ⟨h₂ x hx hx1, h₃ x hx⟩),
         prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx]))
 
+/-- The product of the composition of functions `f` and `g`, is the product
+over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b` -/
+lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+  ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
+calc ∏ a in s, f (g a)
+    = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
+  prod_bij (λ a ha, ⟨g a, a⟩) (by simp; tauto) (λ _ _, rfl) (by simp) (by finish)
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f b :
+  prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
+... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
+  prod_congr rfl (λ _ _, prod_const _)
+
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
 calc (∏ x in s, f x) = s.prod (λx, 1) : finset.prod_congr rfl h
@@ -661,6 +674,12 @@ attribute [to_additive sum_smul'] prod_pow
   (∑ x in s, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
+
+lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+  ∑ a in s, f (g a) = ∑ b in s.image g, add_monoid.smul (s.filter (λ a, g a = b)).card (f b) :=
+@prod_comp _ (multiplicative β) _ _ _ _ _ _
+attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
+over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 
 lemma sum_const_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
   (∑ x in s, f x) = card s * m :=

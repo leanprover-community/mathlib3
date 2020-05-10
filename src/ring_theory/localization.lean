@@ -593,8 +593,8 @@ def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
 { to_fun := λ J, ideal.comap (ring_hom.of coe) J,
-  inj := function.injective_of_left_inverse (map_comap α),
-  ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
+  inj'   := function.injective_of_left_inverse (map_comap α),
+  ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals
@@ -605,7 +605,6 @@ section module
   Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
 -/
 
-set_option class.instance_max_depth 50
 
 variables (α S)
 
@@ -663,7 +662,6 @@ begin
   rw [coe_mul, ha, hb]
 end
 
-set_option class.instance_max_depth 50
 lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
   is_integer α S (a • b) :=
 begin

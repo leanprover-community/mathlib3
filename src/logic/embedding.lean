@@ -2,18 +2,21 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Injective functions.
 -/
 import data.equiv.basic
+
+/-!
+# Injective functions
+-/
 
 universes u v w x
 
 namespace function
 
+/-- `α ↪ β` is a bundled injective function. -/
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
-(inj    : injective to_fun)
+(inj'   : injective to_fun)
 
 infixr ` ↪ `:25 := embedding
 
@@ -21,6 +24,7 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 
 end function
 
+/-- Convert an `α ≃ β` to `α ↪ β`. -/
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
@@ -41,8 +45,7 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
   (@mk _ _ f i : α → β) = f := rfl
 
-theorem inj' {α β} : ∀ (f : α ↪ β), injective f
-| ⟨f, hf⟩ := hf
+theorem inj {α β} (f : α ↪ β) : injective f := f.inj'
 
 @[refl] protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
@@ -69,10 +72,12 @@ protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
 
-protected noncomputable def of_surjective {α β} {f : β → α} (hf : surjective f) :
+/-- A right inverse `surj_inv` of a surjective function as an `embedding`. -/
+protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjective f) :
   α ↪ β :=
 ⟨surj_inv hf, injective_surj_inv _⟩
 
+/-- Convert a surjective `embedding` to an `equiv` -/
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
 equiv.of_bijective ⟨f.inj, hf⟩
@@ -80,33 +85,27 @@ equiv.of_bijective ⟨f.inj, hf⟩
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
 
-noncomputable def set_value {α β} (f : α ↪ β) (a : α) (b : β) : α ↪ β :=
-by haveI := classical.dec; exact
-if h : ∃ a', f a' = b then
-  (equiv.swap a (classical.some h)).to_embedding.trans f
-else
-  ⟨λ a', if a' = a then b else f a',
-   λ a₁ a₂ e, begin
-    simp at e, split_ifs at e with h₁ h₂,
-    { cc },
-    { cases h ⟨_, e.symm⟩ },
-    { cases h ⟨_, e⟩ },
-    { exact f.2 e }
-   end⟩
+/-- Change the value of an embedding `f` at one point. If the prescribed image
+is already occupied by some `f a'`, then swap the values at these two points. -/
+def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
+  [∀ a', decidable (f a' = b)] : α ↪ β :=
+⟨λ a', if a' = a then b else if f a' = b then f a else f a',
+  begin
+    intros x y h,
+    dsimp at h,
+    unfreezeI,
+    split_ifs at h; try { subst b }; try { simp only [f.inj.eq_iff] at * }; cc
+  end⟩
 
-theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) : set_value f a b a = b :=
-begin
-  rw [set_value],
-  cases classical.dec (∃ a', f a' = b);
-    dsimp [dite], {simp},
-  simp [equiv.swap_apply_left],
-  apply classical.some_spec h
-end
+theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
+  [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
+by simp [set_value]
 
 /-- Embedding into `option` -/
 protected def some {α} : α ↪ option α :=
 ⟨some, option.injective_some α⟩
 
+/-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨subtype.val, λ _ _, subtype.eq'⟩
 
@@ -187,8 +186,12 @@ protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α �
 ⟨subtype.map f h, subtype.map_injective h f.2⟩
 
 open set
+
+/-- `set.image` as an embedding `set α ↪ set β`. -/
 protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 ⟨image f, injective_image f.2⟩
+
+@[simp] lemma coe_image {α β} (f : α ↪ β) : ⇑f.image = image f := rfl
 
 end embedding
 end function
@@ -196,8 +199,13 @@ end function
 namespace set
 
 /-- The injection map is an embedding between subsets. -/
-def embedding_of_subset {α} {s t : set α} (h : s ⊆ t) : s ↪ t :=
+def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
 
+@[simp] lemma embedding_of_subset_apply_mk {α} {s t : set α} (h : s ⊆ t) (x : α) (hx : x ∈ s) :
+  embedding_of_subset s t h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
+
+@[simp] lemma coe_embedding_of_subset_apply {α} {s t : set α} (h : s ⊆ t) (x : s) :
+  (embedding_of_subset s t h x : α) = x := rfl
 
 end set

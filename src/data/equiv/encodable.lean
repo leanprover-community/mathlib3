@@ -19,6 +19,8 @@ class encodable (α : Type*) :=
 (decode [] : nat → option α)
 (encodek : ∀ a, decode (encode a) = some a)
 
+attribute [simp] encodable.encodek
+
 namespace encodable
 variables {α : Type*} {β : Type*}
 universe u
@@ -226,6 +228,10 @@ if h : P a then some ⟨a, h⟩ else none
 instance subtype : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
+
+lemma subtype.encode_eq (a : subtype P) : encode a = encode a.val :=
+by cases a; refl
+
 end subtype
 
 instance fin (n) : encodable (fin n) :=
@@ -244,6 +250,55 @@ noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : enc
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
 end encodable
+
+section ulower
+local attribute [instance, priority 100] encodable.decidable_range_encode
+
+/--
+`ulower α : Type 0` is an equivalent type in the lowest universe, given `encodable α`.
+-/
+@[derive decidable_eq, derive encodable]
+def ulower (α : Type*) [encodable α] : Type :=
+set.range (encodable.encode : α → ℕ)
+
+end ulower
+
+namespace ulower
+variables (α : Type*) [encodable α]
+
+/--
+The equivalence between the encodable type `α` and `ulower α : Type 0`.
+-/
+def equiv : α ≃ ulower α :=
+encodable.equiv_range_encode α
+
+variables {α}
+
+/--
+Lowers an `a : α` into `ulower α`.
+-/
+def down (a : α) : ulower α := equiv α a
+
+instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+
+/--
+Lifts an `a : ulower α` into `α`.
+-/
+def up (a : ulower α) : α := (equiv α).symm a
+
+@[simp] lemma down_up {a : ulower α} : down a.up = a := equiv.right_inv _ _
+@[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
+
+@[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
+up_eq_up.1
+
+end ulower
 
 /-
 Choice function for encodable types and decidable predicates.

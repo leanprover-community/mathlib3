@@ -179,7 +179,7 @@ begin
   simp only [linear_map.comp_apply],
   split,
   { intros h l hl₁ hl₂,
-    have h_bij : bij_on subtype.val (subtype.val ⁻¹' l.support.to_set : set s) l.support.to_set,
+    have h_bij : bij_on subtype.val (subtype.val ⁻¹' ↑l.support : set s) ↑l.support,
     { apply bij_on.mk,
       { unfold maps_to },
       { apply subtype.val_injective.inj_on },
@@ -237,7 +237,7 @@ begin
   { apply linear_independent_of_zero_eq_one zero_eq_one },
   rw linear_independent_subtype,
   intros l hl₁ hl₂,
-  have h_bij : bij_on v (v ⁻¹' finset.to_set (l.support)) (finset.to_set (l.support)),
+  have h_bij : bij_on v (v ⁻¹' ↑l.support) ↑l.support,
   { apply bij_on.mk,
     { unfold maps_to },
     { apply (linear_independent.injective zero_eq_one hv).inj_on },
@@ -397,7 +397,7 @@ begin
     { simp only [(span_Union _).symm],
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
-    { change finite (plift.up ⁻¹' s.to_set),
+    { change finite (plift.up ⁻¹' ↑s),
       exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
 end
 
@@ -962,7 +962,6 @@ open submodule
    (instead of a data containing type class) -/
 
 section
-set_option class.instance_max_depth 36
 
 lemma mem_span_insert_exchange : x ∈ span K (insert y s) → x ∉ span K s → y ∈ span K (insert x s) :=
 begin
@@ -1160,7 +1159,6 @@ begin
   exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
 end
 
-set_option class.instance_max_depth 49
 open submodule linear_map
 theorem quotient_prod_linear_equiv (p : submodule K V) :
   nonempty ((p.quotient × p) ≃ₗ[K] V) :=

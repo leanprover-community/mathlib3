@@ -101,13 +101,26 @@ lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 @[simp, to_additive]
 lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
+@[to_additive]
+lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
+by rw [← f.map_mul, h, f.map_one]
+
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
 then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a right inverse, then `f x` has a right inverse too."]
 lemma map_exists_right_inv (f : M →* N) {x : M} (hx : ∃ y, x * y = 1) :
   ∃ y, f x * y = 1 :=
-let ⟨y, hy⟩ := hx in ⟨f y, by rw [← f.map_mul, hy, f.map_one]⟩
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+
+/-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a left inverse,
+then `f x` has a left inverse too. For elements invertible on both sides see `is_unit.map`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
+a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
+`is_add_unit.map`."]
+lemma map_exists_left_inv (f : M →* N) {x : M} (hx : ∃ y, y * x = 1) :
+  ∃ y, y * f x = 1 :=
+let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 
 omit mN mM
 

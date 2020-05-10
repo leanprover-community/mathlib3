@@ -116,7 +116,6 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 -- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
 local attribute [instance, priority 10000]
@@ -964,7 +963,8 @@ lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := r
 
 @[norm_cast] lemma simple_func.integral_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
-by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
+uniformly_extend_of_ind simple_func.uniform_inducing simple_func.dense_range
+  simple_func.integral_clm.uniform_continuous _
 
 variables (α β)
 @[simp] lemma integral_zero : integral (0 : α →₁ β) = 0 :=

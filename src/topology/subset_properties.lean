@@ -45,7 +45,7 @@ assume f hnf hstf,
 let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
 have a ∈ t,
   from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot (by { rw inf_comm at ha, exact ha }) $
-    inf_le_inf (le_refl _) (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
+    inf_le_inf_left _ (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
 lemma compact.inter_left {s t : set α} (ht : compact t) (hs : is_closed s) : compact (s ∩ t) :=
@@ -86,7 +86,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
   have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
-  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
+  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf_right _ ultrafilter_of_le)⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
@@ -1175,7 +1175,7 @@ theorem is_totally_disconnected_of_is_totally_separated {s : set α}
 λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
 assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
-((ext_iff _ _).1 huv r).1 hruv⟩
+(ext_iff.1 huv r).1 hruv⟩
 
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/

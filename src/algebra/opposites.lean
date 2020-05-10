@@ -113,7 +113,7 @@ instance [zero_ne_one_class α] : zero_ne_one_class (opposite α) :=
   .. opposite.has_zero α, .. opposite.has_one α }
 
 instance [integral_domain α] : integral_domain (opposite α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op _ = op (0:α)),
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_inj H)
       (λ hy, or.inr $ unop_inj $ hy) (λ hx, or.inl $ unop_inj $ hx),
   .. opposite.comm_ring α, .. opposite.zero_ne_one_class α }

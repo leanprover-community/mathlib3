@@ -45,7 +45,6 @@ universes u v w
 open classical set function topological_space filter metric quotient
 open bounded_continuous_function nat Kuratowski_embedding
 open sum (inl inr)
-set_option class.instance_max_depth 50
 
 local attribute [instance] metric_space_sum
 
@@ -276,10 +275,10 @@ begin
       repeat {split},
       { exact λx y, calc
         F (inl x, inl y) = dist (Φ x) (Φ y) : rfl
-        ... = dist x y : Φisom.dist_eq },
+        ... = dist x y : Φisom.dist_eq x y },
       { exact λx y, calc
         F (inr x, inr y) = dist (Ψ x) (Ψ y) : rfl
-        ... = dist x y : Ψisom.dist_eq },
+        ... = dist x y : Ψisom.dist_eq x y },
       { exact λx y, dist_comm _ _ },
       { exact λx y z, dist_triangle _ _ _ },
       { exact λx y, calc

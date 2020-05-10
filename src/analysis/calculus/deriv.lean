@@ -85,7 +85,6 @@ open_locale classical topological_space
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
-set_option class.instance_max_depth 100
 
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 

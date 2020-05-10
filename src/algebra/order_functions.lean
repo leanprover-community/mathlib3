@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group
+import algebra.ordered_ring
 
 /-!
 # strictly monotone functions, max, min and abs
@@ -12,80 +12,15 @@ This file proves basic properties about strictly monotone functions,
 maxima and minima on a `decidable_linear_order`, and the absolute value
 function on linearly ordered add_comm_groups, semirings and rings.
 
-One useful result proved here is that if `f : ℕ → α` and `f n < f (n + 1)` for all `n`
-then f is strictly monotone (see `strict_mono.nat`).
-
-## Definition
-
-`strict_mono f` : a function between two types equipped with `<` is strictly monotone
-  if `a < b` implies `f a < f b`.
-
 ## Tags
 
-monotone, strictly monotone, min, max, abs
+min, max, abs
 -/
 
 universes u v
 variables {α : Type u} {β : Type v}
 
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
-
-/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
-def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
-∀ ⦃a b⦄, a < b → f a < f b
-
-namespace strict_mono
-open ordering function
-
-section
-variables [linear_order α] [preorder β] {f : α → β}
-
-lemma lt_iff_lt (H : strict_mono f) {a b} :
-  f a < f b ↔ a < b :=
-⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
-
-lemma injective (H : strict_mono f) : injective f
-| a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H h) e)
-  .resolve_right $ λ h, ne_of_gt (H h) e
-
-theorem compares (H : strict_mono f) {a b} :
-  ∀ {o}, compares o (f a) (f b) ↔ compares o a b
-| lt := H.lt_iff_lt
-| eq := ⟨λ h, H.injective h, congr_arg _⟩
-| gt := H.lt_iff_lt
-
-lemma le_iff_le (H : strict_mono f) {a b} :
-  f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
-end
-
-protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
-
--- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
--- then `strict_mono f` is vacuously true.
-lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
-λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
-
-end strict_mono
-
-section
-open function
-variables [partial_order α] [partial_order β] {f : α → β}
-
-lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
-  strict_mono f :=
-λ a b h,
-begin
-  rw lt_iff_le_and_ne at ⊢ h,
-  exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
-end
-
-end
 
 section
 variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
@@ -312,12 +247,6 @@ end decidable_linear_ordered_add_comm_group
 
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
-
-lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
-
-lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
 
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
 (monotone_mul_left_of_nonneg ha).map_max

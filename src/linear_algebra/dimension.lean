@@ -53,7 +53,7 @@ theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
-    let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
+    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
@@ -72,15 +72,15 @@ begin
       exact ⟨hj, rfl⟩ },
     refine le_of_not_lt (λ IJ, _),
     suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
-    { exact not_le_of_lt this ⟨set.embedding_of_subset hs⟩ },
+    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finite_image _ (finset.finite_to_set _)) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
+        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 end

@@ -59,6 +59,9 @@ by rw [← cast_zero, cast_inj]
 @[norm_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
+lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : α) ≠ 0 :=
+by exact_mod_cast n.succ_ne_zero
+
 end nat
 
 @[field_simps] lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=

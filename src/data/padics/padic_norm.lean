@@ -276,7 +276,7 @@ by simp [hq, padic_norm]
 The p-adic norm is nonnegative.
 -/
 protected lemma nonneg (q : ℚ) : 0 ≤ padic_norm p q :=
-if hq : q = 0 then by simp [hq]
+if hq : q = 0 then by simp [hq, padic_norm]
 else
   begin
     unfold padic_norm; split_ifs,
@@ -356,7 +356,7 @@ eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mu
 The p-adic norm of an integer is at most 1.
 -/
 protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
-if hz : z = 0 then by simp [hz] else
+if hz : z = 0 then by simp [hz, zero_le_one] else
 begin
   unfold padic_norm,
   rw [if_neg _],

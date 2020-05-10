@@ -216,7 +216,7 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
-      (continuous_apply 0) _ this,
+      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
     exact continuous_subtype_val _ this
   end,
   continuous_to_fun := begin
@@ -265,7 +265,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
-      (continuous_apply 0) _ this,
+      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
     exact continuous_subtype_val _ this
   end,
   continuous_to_fun := begin

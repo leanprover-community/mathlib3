@@ -160,6 +160,9 @@ protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone 
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
+protected theorem monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
+nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
+
 lemma monotone_of_monotone_nat {f : ℕ → α} (hf : ∀n, f n ≤ f (n + 1)) :
   monotone f | n m h :=
 begin
@@ -178,6 +181,8 @@ end monotone
 def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
 ∀ ⦃a b⦄, a < b → f a < f b
 
+lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
+
 namespace strict_mono
 open ordering function
 
@@ -185,6 +190,10 @@ lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
   (hg : strict_mono g) (hf : strict_mono f) :
   strict_mono (g ∘ f) :=
 λ a b h, hg (hf h)
+
+protected theorem iterate [has_lt α] {f : α → α} (hf : strict_mono f) (n : ℕ) :
+  strict_mono (f^[n]) :=
+nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
 
 section
 variables [linear_order α] [preorder β] {f : α → β}

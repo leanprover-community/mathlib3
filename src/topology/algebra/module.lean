@@ -315,7 +315,11 @@ rfl
 
 instance : has_mul (M →L[R] M) := ⟨comp⟩
 
-@[simp] lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
+lemma mul_def (f g : M →L[R] M) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_mul (f g : M →L[R] M) : ⇑(f * g) = f ∘ g := rfl
+
+lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),
@@ -480,6 +484,15 @@ lemma smul_right_one_eq_iff {f f' : M₂} :
 lemma smul_right_comp [topological_module R R] {x : M₂} {c : R} :
   (smul_right 1 x : R →L[R] M₂).comp (smul_right 1 c : R →L[R] R) = smul_right 1 (c • x) :=
 by { ext, simp [mul_smul] }
+
+lemma smul_right_one_pow [topological_space R] [topological_add_group R] [topological_module R R]
+  (c : R) (n : ℕ) :
+  (smul_right 1 c : R →L[R] R)^n = smul_right 1 (c^n) :=
+begin
+  induction n with n ihn,
+  { ext, simp },
+  { rw [pow_succ, ihn, mul_def, smul_right_comp, smul_eq_mul, pow_succ'] }
+end
 
 end general_ring
 

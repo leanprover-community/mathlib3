@@ -999,6 +999,70 @@ protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
 ((hg.comp_tendsto (hf.continuous_at.prod_map' hf.continuous_at)).trans_is_O hf.is_O_sub).triangle $
   by simpa only [g'.map_sub, f'.coe_comp'] using (g'.is_O_comp _ _).trans_is_o hf
 
+protected lemma differentiable.iterate {f : E → E} (hf : differentiable 𝕜 f) (n : ℕ) :
+  differentiable 𝕜 (f^[n]) :=
+nat.rec_on n differentiable_id (λ n ihn, ihn.comp hf)
+
+protected lemma differentiable_on.iterate {f : E → E} (hf : differentiable_on 𝕜 f s)
+  (hs : maps_to f s s) (n : ℕ) :
+  differentiable_on 𝕜 (f^[n]) s :=
+nat.rec_on n differentiable_on_id (λ n ihn, ihn.comp hf hs)
+
+variable {x}
+
+protected lemma has_fderiv_at_filter.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_at_filter f f' x L) (hL : tendsto f L L) (hx : f x = x) (n : ℕ) :
+  has_fderiv_at_filter (f^[n]) (f'^n) x L :=
+begin
+  induction n with n ihn,
+  { exact has_fderiv_at_filter_id x L },
+  { change has_fderiv_at_filter (f^[n] ∘ f) (f'^(n+1)) x L,
+    rw [pow_succ'],
+    refine has_fderiv_at_filter.comp x _ hf,
+    rw hx,
+    exact ihn.mono hL }
+end
+
+protected lemma has_fderiv_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_fderiv_at (f^[n]) (f'^n) x :=
+begin
+  refine hf.iterate _ hx n,
+  convert hf.continuous_at,
+  exact hx.symm
+end
+
+protected lemma has_fderiv_within_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_within_at f f' s x) (hx : f x = x) (hs : maps_to f s s) (n : ℕ) :
+  has_fderiv_within_at (f^[n]) (f'^n) s x :=
+begin
+  refine hf.iterate _ hx n,
+  convert tendsto_inf.2 ⟨hf.continuous_within_at, _⟩,
+  exacts [hx.symm, tendsto_le_left inf_le_right (tendsto_principal_principal.2 hs)]
+end
+
+protected lemma has_strict_fderiv_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_strict_fderiv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_strict_fderiv_at (f^[n]) (f'^n) x :=
+begin
+  induction n with n ihn,
+  { exact has_strict_fderiv_at_id x },
+  { change has_strict_fderiv_at (f^[n] ∘ f) (f'^(n+1)) x,
+    rw [pow_succ'],
+    refine has_strict_fderiv_at.comp x _ hf,
+    rwa hx }
+end
+
+protected lemma differentiable_at.iterate {f : E → E} (hf : differentiable_at 𝕜 f x)
+  (hx : f x = x) (n : ℕ) :
+  differentiable_at 𝕜 (f^[n]) x :=
+exists.elim hf $ λ f' hf, (hf.iterate hx n).differentiable_at
+
+protected lemma differentiable_within_at.iterate {f : E → E} (hf : differentiable_within_at 𝕜 f s x)
+  (hx : f x = x) (hs : maps_to f s s) (n : ℕ) :
+  differentiable_within_at 𝕜 (f^[n]) s x :=
+exists.elim hf $ λ f' hf, (hf.iterate hx hs n).differentiable_within_at
+
 end composition
 
 section cartesian_product

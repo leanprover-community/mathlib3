@@ -194,7 +194,7 @@ meta def prove_mul_nat : instance_cache → expr → expr → tactic (instance_c
     return (ic, z, p)
   | _, zero := do
     (ic, z) ← ic.mk_app ``has_zero.zero [],
-    (ic, p) ← ic.mk_app ``mul_zero [b],
+    (ic, p) ← ic.mk_app ``mul_zero [a],
     return (ic, z, p)
   | one, _ := do (ic, p) ← ic.mk_app ``one_mul [b], return (ic, b, p)
   | _, one := do (ic, p) ← ic.mk_app ``mul_one [a], return (ic, a, p)
@@ -427,7 +427,7 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
   | some e := do
     (ic, e', p) ← prove_inv ic e (-n),
     (ic, r) ← ic.mk_app ``has_neg.neg [e'],
-    (ic, p) ← ic.mk_app ``inv_neg [e, e'],
+    (ic, p) ← ic.mk_app ``inv_neg [e, e', p],
     return (ic, r, p)
   | none :=
     if n.num = 1 then

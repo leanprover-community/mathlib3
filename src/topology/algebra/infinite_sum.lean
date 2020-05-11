@@ -506,6 +506,11 @@ lemma summable_subtype_iff (s : finset β):
   summable (λ b : {b // b ∉ s}, f b) ↔ summable f :=
 ⟨λ H, (has_sum_subtype_iff.1 H.has_sum).summable, λ H, (has_sum_subtype_iff'.2 H.has_sum).summable⟩
 
+lemma sum_add_tsum_subtype [t2_space α] (s : finset β) (h : summable f) :
+  (∑ b in s, f b) + (∑' (b : {b // b ∉ s}), f b) = (∑' b, f b) :=
+by simpa [add_comm] using
+  has_sum_unique (has_sum_subtype_iff.1 ((summable_subtype_iff s).2 h).has_sum) h.has_sum
+
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
 def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
 { to_fun := λ i, i.1 - k,
@@ -538,12 +543,10 @@ lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) (a - ∑ i in range k, f i) ↔ has_sum f a :=
 by simp [has_sum_nat_add_iff]
 
-lemma tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
-  (∑' i, f i) = (∑ i in range k, f i) + (∑' i, f (i + k)) :=
-begin
-  rw ← has_sum_unique ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum) h.has_sum,
-  simp [add_comm]
-end
+lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
+   (∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i) :=
+by simpa [add_comm] using
+  has_sum_unique ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum) h.has_sum
 
 end subtype
 

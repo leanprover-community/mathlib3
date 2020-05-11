@@ -224,7 +224,9 @@ protected def add_right (x : G) : G ≃ᵢ G :=
 @[simp] lemma add_right_to_equiv (x : G) :
   (isometric.add_right x).to_equiv = equiv.add_right x := rfl
 
-@[simp] lemma add_right_apply (x y : G) : (isometric.add_right x : G → G) y = y + x := rfl
+@[simp] lemma coe_add_right (x : G) : (isometric.add_right x : G → G) = λ y, y + x := rfl
+
+lemma add_right_apply (x y : G) : (isometric.add_right x : G → G) y = y + x := rfl
 
 @[simp] lemma add_right_symm (x : G) :
   (isometric.add_right x).symm = isometric.add_right (-x) :=

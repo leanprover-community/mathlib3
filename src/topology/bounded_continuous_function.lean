@@ -51,11 +51,11 @@ def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, di
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
-⟨λf g, Inf {C | C ≥ 0 ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
+⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
 
-lemma dist_eq : dist f g = Inf {C | C ≥ 0 ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
+lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
 
-lemma dist_set_exists : ∃ C, C ≥ 0 ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
+lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
   refine if h : nonempty α then _ else ⟨0, le_refl _, λ x, h.elim ⟨x⟩⟩,
   cases h with x,
@@ -431,7 +431,7 @@ of_normed_group f C H continuous_of_discrete_topology
 
 /- Formula for norm. -/
 lemma norm_eq ( f : α →ᵇ β) :
-  ∥ f ∥  = Inf {C : ℝ | C ≥ 0 ∧ ∀ (x : α), ∥ f x ∥ ≤ C} :=
+  ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
 begin
   rw ← sub_zero f,
   rw ← dist_eq_norm,
@@ -454,24 +454,20 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-  ⟨λc, λf, ⟨ λx, c • f.1 x,
-    begin
-      have h : continuous (λ x : α, c),
-        exact continuous_const,
-      exact continuous.smul h f.2.left,
-    end,
+  ⟨λc, λf, ⟨λx, c • f.1 x,
+    continuous.smul continuous_const f.2.left,
     begin
       cases f.2.right with C hbound,
-      use ∥ c ∥ * C,
+      use ∥c∥ * C,
       intros,
-      have hnneg : ∥ c ∥ ≥ 0,
+      have hnneg : 0 ≤ ∥c∥,
       { exact norm_nonneg c },
       specialize hbound x y,
       rw dist_eq_norm at hbound,
       rw dist_eq_norm,
-      calc ∥c • f x - c • f y∥ = ∥ c • (f x - f y) ∥ : by rw smul_sub c (f x) (f y)
-      ... = ∥ c ∥ * ∥ f x - f y ∥ : norm_smul c (f x - f y)
-      ... ≤ ∥ c ∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
+      calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
+      ... = ∥c∥ * ∥f x - f y∥ : norm_smul c (f x - f y)
+      ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
     end⟩⟩
 
 
@@ -495,7 +491,7 @@ instance : vector_space 𝕜 (α →ᵇ β) :=
 
 lemma bounded_continuous_sub_smul (c : 𝕜) (f : α →ᵇ β) :  ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 begin
-  have hnneg : ∥ c ∥ ≥ 0,
+  have hnneg : 0 ≤ ∥ c ∥,
     exact norm_nonneg c,
   rw norm_eq (c • f),
   apply real.Inf_le,
@@ -506,8 +502,8 @@ begin
     split,
     exact mul_nonneg' hnneg (norm_nonneg f),
     intros,
-    calc ∥ (c • f) x ∥ = ∥ c ∥ * ∥ f x ∥ : norm_smul c (f x)
-    ... ≤ ∥ c ∥ * ∥ f ∥ : mul_le_mul_of_nonneg_left (norm_coe_le_norm x) hnneg,}
+    calc ∥(c • f) x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
+    ... ≤ ∥c∥ * ∥f∥ : mul_le_mul_of_nonneg_left (norm_coe_le_norm x) hnneg,}
 end
 
 
@@ -515,28 +511,26 @@ lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) :  ∥c • f∥ = �
 begin
   by_cases ( c = 0),
   rw h, simp,
-  have hnneg : ∥ c ∥ ≥ 0,
+  have hnneg : 0 ≤ ∥c∥,
     exact norm_nonneg c,
   apply le_antisymm,
   exact bounded_continuous_sub_smul c f,
-  have hinv : ∥ f ∥ ≤ ∥ 1 / c ∥ * ∥ c • f ∥,
-    calc ∥ f ∥ = ∥ (1 : 𝕜) • f ∥ : by simp
-    ... = ∥ (1 / c * c ) • f ∥ : by rw (div_mul_cancel 1 h)
-    ... = ∥ (1 / c) • ( c • f) ∥ : by rw (mul_smul _ _ _).symm
-    ... ≤ ∥ 1 / c ∥ * ∥ c • f ∥ : bounded_continuous_sub_smul (1 / c) (c • f),
-  calc ∥ c ∥ * ∥ f ∥  ≤ ∥ c ∥ * (∥ 1 / c ∥ * ∥ c • f ∥) : mul_le_mul_of_nonneg_left hinv hnneg
-  ... = (∥ c ∥ * ∥ 1 / c ∥) * ∥ c • f ∥ : by ring
-  ... = ∥ c * (1 / c) ∥ * ∥ c • f ∥ : by rw (normed_field.norm_mul c (1/c))
-  ... = ∥ (1 : 𝕜) ∥ * ∥ c • f ∥ : by rw (mul_div_cancel' 1 h)
-  ... = 1 * ∥ c • f ∥ : by rw normed_field.norm_one
-  ... = ∥ c • f ∥ : by ring,
+  have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
+    calc ∥f ∥= ∥(1 : 𝕜) • f∥ : by simp
+    ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
+    ... = ∥(1 / c) • ( c • f)∥ : by rw (mul_smul _ _ _).symm
+    ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f),
+  calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
+  ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : by ring
+  ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
+  ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
+  ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
+  ... = ∥c • f∥ : by ring,
 end
 
 
 instance : normed_space 𝕜 (α →ᵇ β) :=
-⟨ begin
-    exact bounded_continuous_smul,
-  end ⟩
+  ⟨bounded_continuous_smul⟩
 
 end normed_space
 

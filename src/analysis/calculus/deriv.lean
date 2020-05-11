@@ -954,6 +954,38 @@ begin
   exact has_deriv_at.comp x hh₁.has_deriv_at hh₂.has_deriv_at
 end
 
+protected lemma has_deriv_at_filter.iterate {f : 𝕜 → 𝕜} {f' : 𝕜}
+  (hf : has_deriv_at_filter f f' x L) (hL : tendsto f L L) (hx : f x = x) (n : ℕ) :
+  has_deriv_at_filter (f^[n]) (f'^n) x L :=
+begin
+  have := hf.iterate hL hx n,
+  rwa [continuous_linear_map.smul_right_one_pow] at this
+end
+
+protected lemma has_deriv_at.iterate {f : 𝕜 → 𝕜} {f' : 𝕜}
+  (hf : has_deriv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_deriv_at (f^[n]) (f'^n) x :=
+begin
+  have := has_fderiv_at.iterate hf hx n,
+  rwa [continuous_linear_map.smul_right_one_pow] at this
+end
+
+protected lemma has_deriv_within_at.iterate {f : 𝕜 → 𝕜} {f' : 𝕜}
+  (hf : has_deriv_within_at f f' s x) (hx : f x = x) (hs : maps_to f s s) (n : ℕ) :
+  has_deriv_within_at (f^[n]) (f'^n) s x :=
+begin
+  have := has_fderiv_within_at.iterate hf hx hs n,
+  rwa [continuous_linear_map.smul_right_one_pow] at this
+end
+
+protected lemma has_strict_deriv_at.iterate {f : 𝕜 → 𝕜} {f' : 𝕜}
+  (hf : has_strict_deriv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_strict_deriv_at (f^[n]) (f'^n) x :=
+begin
+  have := hf.iterate hx n,
+  rwa [continuous_linear_map.smul_right_one_pow] at this
+end
+
 end composition
 
 section composition_vector

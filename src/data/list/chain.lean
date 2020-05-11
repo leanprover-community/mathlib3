@@ -205,6 +205,10 @@ theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) :
 | [] _        := chain'_singleton y
 | (z :: l) hx := hx.tail.cons (h hx.rel_head)
 
+theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) {l} (hl : chain' R (x :: l)) :
+  chain' R (y :: l) :=
+hl.tail.cons' $ λ z hz, h $ hl.rel_head' hz
+
 theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [] := iff.rfl
 | [a] := by simp only [chain'_singleton, reverse_singleton]

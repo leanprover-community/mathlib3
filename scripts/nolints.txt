@@ -1484,9 +1484,7 @@ apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 apply_nolint nnreal.of_real doc_blame
 
 -- data/real/pi.lean
-apply_nolint real.pi_gt_314 ge_or_gt
 apply_nolint real.pi_gt_sqrt_two_add_series ge_or_gt
-apply_nolint real.pi_gt_three ge_or_gt
 apply_nolint real.sqrt_two_add_series_nonneg ge_or_gt
 apply_nolint real.sqrt_two_add_series_zero_nonneg ge_or_gt
 

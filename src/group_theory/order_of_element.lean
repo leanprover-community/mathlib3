@@ -438,7 +438,7 @@ have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
-(add_right_inj (((range d.succ).filter (∣ d.succ)).sum
+(add_left_inj (((range d.succ).filter (∣ d.succ)).sum
   (λ m, (univ.filter (λ a : α, order_of a = m)).card))).1
   (calc _ = (insert d.succ (filter (∣ d.succ) (range d.succ))).sum
         (λ m, (univ.filter (λ a : α, order_of a = m)).card) :

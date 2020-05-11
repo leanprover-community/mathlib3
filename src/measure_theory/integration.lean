@@ -1048,7 +1048,7 @@ lemma lintegral_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable 
   (hg_fin : lintegral g < ⊤) (h_le : ∀ₘ a, g a ≤ f a) :
   (∫⁻ a, f a - g a) = (∫⁻ a, f a) - (∫⁻ a, g a) :=
 begin
-  rw [← ennreal.add_right_inj hg_fin,
+  rw [← ennreal.add_left_inj hg_fin,
         ennreal.sub_add_cancel_of_le (lintegral_le_lintegral_ae h_le),
       ← lintegral_add (hf.ennreal_sub hg) hg],
   show  (∫⁻ (a : α), f a - g a + g a) = ∫⁻ (a : α), f a,
@@ -1064,7 +1064,7 @@ lemma lintegral_infi_ae
 have fn_le_f0 : (∫⁻ a, ⨅n, f n a) ≤ lintegral (f 0), from
   lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
 have fn_le_f0' : (⨅n, ∫⁻ a, f n a) ≤ lintegral (f 0), from infi_le_of_le 0 (le_refl _),
-(ennreal.sub_left_inj h_fin fn_le_f0 fn_le_f0').1 $
+(ennreal.sub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
 show lintegral (f 0) - (∫⁻ a, ⨅n, f n a) = lintegral (f 0) - (⨅n, ∫⁻ a, f n a), from
 calc
   lintegral (f 0) - (∫⁻ a, ⨅n, f n a) = ∫⁻ a, f 0 a - ⨅n, f n a :

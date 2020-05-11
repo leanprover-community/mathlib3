@@ -148,7 +148,7 @@ have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
   nat.rec_on n (by simp)
   (λ n h, by rw [pow_succ, mul_inv', ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc, inv_mul_cancel hx0]),
 begin
-  rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
+  rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_right_inj h₃,
     ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃],
   simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm, add_left_comm],
 end

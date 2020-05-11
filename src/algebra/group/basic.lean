@@ -44,19 +44,19 @@ instance monoid_to_is_right_id [monoid M] : is_right_id M (*) 1 :=
 ⟨ monoid.mul_one ⟩
 
 @[to_additive]
-theorem mul_left_injective [left_cancel_semigroup M] (a : M) : function.injective ((*) a) :=
+theorem mul_right_injective [left_cancel_semigroup M] (a : M) : function.injective ((*) a) :=
 λ b c, mul_left_cancel
 
 @[to_additive]
-theorem mul_right_injective [right_cancel_semigroup M] (a : M) : function.injective (λ x, x * a) :=
+theorem mul_left_injective [right_cancel_semigroup M] (a : M) : function.injective (λ x, x * a) :=
 λ b c, mul_right_cancel
 
 @[simp, to_additive]
-theorem mul_left_inj [left_cancel_semigroup M] (a : M) {b c : M} : a * b = a * c ↔ b = c :=
+theorem mul_right_inj [left_cancel_semigroup M] (a : M) {b c : M} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩
 
 @[simp, to_additive]
-theorem mul_right_inj [right_cancel_semigroup M] (a : M) {b c : M} : b * a = c * a ↔ b = c :=
+theorem mul_left_inj [right_cancel_semigroup M] (a : M) {b c : M} : b * a = c * a ↔ b = c :=
 ⟨mul_right_cancel, congr_arg _⟩
 
 @[to_additive]
@@ -85,7 +85,7 @@ inv_inj'.1
 
 @[to_additive]
 theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
-by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
+by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
 
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
@@ -112,7 +112,7 @@ eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 @[to_additive]
 theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
-by simpa [mul_left_inv, -mul_right_inj] using @mul_right_inj _ _ b a (b⁻¹)
+by simpa [mul_left_inv, -mul_left_inj] using @mul_left_inj _ _ b a (b⁻¹)
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
@@ -173,11 +173,11 @@ variables [add_group A] {a b c d : A}
 
 local attribute [simp] sub_eq_add_neg
 
-@[simp] lemma sub_left_inj : a - b = a - c ↔ b = c :=
-(add_left_inj _).trans neg_inj'
+@[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
+(add_right_inj _).trans neg_inj'
 
-@[simp] lemma sub_right_inj : b - a = c - a ↔ b = c :=
-add_right_inj _
+@[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
+add_left_inj _
 
 lemma sub_add_sub_cancel (a b c : A) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]

@@ -449,6 +449,31 @@ lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h 
 lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
 
+omit rγ
+
+@[simp] lemma comp_id (f : α →+* β) : f.comp (id α) = f := ext $ λ x, rfl
+
+@[simp] lemma id_comp (f : α →+* β) : (id β).comp f = f := ext $ λ x, rfl
+
+omit rβ
+
+instance : monoid (α →+* α) :=
+{ one := id α,
+  mul := comp,
+  mul_one := comp_id,
+  one_mul := id_comp,
+  mul_assoc := λ f g h, comp_assoc _ _ _ }
+
+lemma one_def : (1 : α →+* α) = id α := rfl
+
+@[simp] lemma coe_one : ⇑(1 : α →+* α) = _root_.id := rfl
+
+lemma mul_def (f g : α →+* α) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_mul (f g : α →+* α) : ⇑(f * g) = f ∘ g := rfl
+
+include rβ rγ
+
 lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
 ⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
@@ -461,25 +486,22 @@ omit rα rβ rγ
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
-eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
+(f : α →+ β).map_neg x
 
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := by simp [sub_eq_add_neg]
+  f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-add_monoid_hom.injective_iff f.to_add_monoid_hom
-include rα
+(f : α →+ β).injective_iff
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
+def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) :
+  α →+* γ :=
 { to_fun := f,
-  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],
-  map_one' := f.map_one,
-  map_mul' := f.map_mul,
-  map_add' := map_add }
+  .. add_monoid_hom.mk' f map_add, .. f }
 
 end ring_hom
 

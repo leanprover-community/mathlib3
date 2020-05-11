@@ -1,8 +1,5 @@
 import tactic.induction tactic.linarith
 
-set_option trace.app_builder true
--- set_option pp.all true
-
 inductive le : ℕ → ℕ → Type
 | zero {n} : le 0 n
 | succ {n m} : le n m → le (n + 1) (m + 1)
@@ -38,6 +35,9 @@ inductive Vec (α : Sort*) : ℕ → Sort*
 | cons {n} : α → Vec n → Vec (n + 1)
 
 inductive Two : Type | zero | one
+
+inductive ℕ' : Type
+| intro : ℕ → ℕ'
 
 example (k) : 0 + k = k :=
 begin
@@ -76,13 +76,36 @@ begin
   { exact le.zero },
   { cases hlt },
   { cases hlt,
-    exact le.succ (@ih_1 l hlt_a),
+    exact le.succ (@ih l hlt_a),
+  }
+end
+
+-- This example tests type-based naming.
+example (k : ℕ') (i : ℕ') : ℕ :=
+begin
+  induction' k,
+  -- (do tactic.fail_if_success (tactic.resolve_name `n)),
+  induction' i,
+  exact (n + m)
+end
+
+-- This example checks that constructor arguments don't 'steal' the names of
+-- generalised hypotheses.
+example (n : list ℕ) (n : ℕ) : list ℕ :=
+begin
+  -- this performs induction on (n : ℕ)
+  induction' n,
+  { exact n },
+  { -- n is the list, which was automatically generalized and keeps its name.
+    -- n_1 is the recursive argument of `nat.succ`. It would be called `n` if
+    -- there wasn't already an `n` in the context.
+    exact (n_1 :: n)
   }
 end
 
 -- This example tests whether `induction'` gets confused when there are
 -- additional cases around.
-example (k) (t : Two) : 0 + k = k :=
+example (k : ℕ) (t : Two) : 0 + k = k :=
 begin
   cases t,
   induction' k,

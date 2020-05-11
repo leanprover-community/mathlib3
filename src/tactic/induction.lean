@@ -5,6 +5,7 @@ Author: Jannis Limperg
 -/
 
 import control.basic data.sum data.list.defs tactic.basic
+import tactic.type_based_naming
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -572,19 +573,12 @@ meta structure constructor_argument_naming_info :=
 (ainfo : constructor_argument_info)
 
 @[reducible] meta def constructor_argument_naming_rule : Type :=
-constructor_argument_naming_info → option name
+constructor_argument_naming_info → tactic (list name)
 
 meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule := λ i,
 if is_recursive_constructor_argument i.iinfo.iname i.ainfo.type
-  then some i.einfo.ename
-  else none
-
-meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
-let arg_name := i.ainfo.aname in
-let arg_dep := i.ainfo.dependent in
-if ! arg_dep && arg_name.is_likely_generated_name
-  then none
-  else some arg_name
+  then pure [i.einfo.ename]
+  else failed
 
 meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule := λ i,
 let index_occs := i.ainfo.index_occurrences in
@@ -593,88 +587,131 @@ let local_index_instantiations :=
   (index_occs.map (eliminee_args.find >=> expr.local_names_option)).all_some in
 -- TODO this needs to be updated when we allow complex indices
 match local_index_instantiations with
-| none := none
-| some [] := none
+| none := failed
+| some [] := failed
 | some ((uname, ppname) :: is) :=
   if is.all (λ ⟨uname', _⟩, uname' = uname)
-    then some ppname
-    else none
+    then pure [ppname]
+    else failed
 end
+
+meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
+let arg_name := i.ainfo.aname in
+let arg_dep := i.ainfo.dependent in
+if ! arg_dep && arg_name.is_likely_generated_name
+  then failed
+  else pure [arg_name]
+
+meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule := λ i, do
+typical_variable_names i.ainfo.type
 
 meta def default_constructor_argument_name : name := `x
 
 meta def apply_constructor_argument_naming_rules
   (info : constructor_argument_naming_info)
   (rules : list constructor_argument_naming_rule)
-  : name :=
-let go : option name → constructor_argument_naming_rule → option name :=
-  λ n rule,
-    match n with
-    | some n := some n
-    | none := rule info
-    end
-in
-(rules.foldl go none).get_or_else default_constructor_argument_name
+  : tactic (list name) :=
+  first (rules.map ($ info)) <|> pure [default_constructor_argument_name]
 
-meta def constructor_argument_name (info : constructor_argument_naming_info)
-  : name :=
+meta def constructor_argument_names (info : constructor_argument_naming_info)
+  : tactic (list name) :=
 apply_constructor_argument_naming_rules info
   [ constructor_argument_naming_rule_rec
   , constructor_argument_naming_rule_index
-  , constructor_argument_naming_rule_named ]
+  , constructor_argument_naming_rule_named
+  , constructor_argument_naming_rule_type ]
 
+-- TODO this only works with simple names
 meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
 
-meta def intro_fresh (n : name) : tactic unit := do
-  n ← get_unused_name n,
+-- TODO the implementation is a bit of an 'orrible hack
+meta def get_unused_name'_aux (n : name) (reserved : name_set)
+  : option nat → tactic name := λ suffix, do
+  n ← get_unused_name n suffix,
+  if ¬ reserved.contains n
+    then pure n
+    else do
+      let new_suffix :=
+        match suffix with
+        | none := some 1
+        | some n := some (n + 1)
+        end,
+      get_unused_name'_aux new_suffix
+
+/- Precond: ns is nonempty. -/
+meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name := do
+  let fallback := ns.head,
+  let ns := ns.filter (λ n, ¬ reserved.contains n),
+  n ← try_core $ first $ ns.map $ λ n, do {
+    guard (¬ reserved.contains n),
+    fail_if_success (resolve_name n),
+    pure n
+  },
+  match n with
+  | some n := pure n
+  | none := get_unused_name'_aux fallback reserved none
+  end
+
+/- Precond: ns is nonempty. -/
+meta def intro_fresh (ns : list name) (reserved : name_set) : tactic name := do
+  n ← get_unused_name' ns reserved,
   intro n,
-  pure ()
+  pure n
 
 /--
-Reverts all hypotheses except the following:
-
-- `eliminee`
-- hypotheses which `eliminee`'s type depends on
-- hypotheses whose name appears in `fix`
+Reverts all hypotheses except the following those in `fixed` and those
+whose type depends on any of the hypotheses in `fixed`.
 
 TODO example
 -/
-meta def revert_all_except (eliminee : expr) (fix : name_set) : tactic ℕ := do
-  eliminee_type ← infer_type eliminee,
+-- TODO what about 'let's in the context?
+meta def revert_all_except (fixed : expr_set) : tactic (ℕ × list name) := do
+  fixed_types ← fixed.to_list.mmap infer_type,
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp, do {
-    dep ← kdepends_on eliminee_type hyp,
-    pure $ ¬ (dep ∨ hyp = eliminee ∨ fix.contains hyp.local_pp_name)
+    dep ← fixed_types.mfoldl
+      (λ (b : bool) t, if b then pure tt else kdepends_on t hyp)
+      ff,
+    pure $ ¬ dep ∧ ¬ fixed.contains hyp
   },
-  revert_lst to_revert
+  let reverted_names := to_revert.map expr.local_pp_name,
+  n ← revert_lst to_revert,
+  pure ⟨n, reverted_names⟩
 
-meta def constructor_argument_intros (einfo : eliminee_info)
-  (iinfo : inductive_info) (cinfo : constructor_info)
-  : tactic unit :=
-(cinfo.args.drop iinfo.num_params).mmap' $ λ ainfo, do
-  let info : constructor_argument_naming_info := ⟨einfo, iinfo, cinfo, ainfo⟩,
-  intro_fresh (constructor_argument_name info)
-
-meta def ih_intros (einfo : eliminee_info) (iinfo : inductive_info)
-  (cinfo : constructor_info)
-  : tactic unit :=
-let rec_args :=
-  cinfo.args.filter
-    (λ ainfo, is_recursive_constructor_argument iinfo.iname ainfo.type) in
-let ih_names :=
-  rec_args.map
-    (λ ainfo, ih_name $ constructor_argument_name ⟨einfo, iinfo, cinfo, ainfo⟩) in
-match ih_names with
-| [] := pure ()
-| [_] := intro_fresh "ih"
-| ns := ns.mmap' intro_fresh
+-- TODO debug
+example : unit :=
+begin
+  let x : ℕ := 2,
+  (do x ← resolve_name `x, trace $ x.to_raw_fmt),
+  exact ()
 end
 
+meta def constructor_argument_intros (einfo : eliminee_info)
+  (iinfo : inductive_info) (cinfo : constructor_info) (reserved_names : name_set)
+  : tactic (list (name × expr)) :=
+(cinfo.args.drop iinfo.num_params).mmap $ λ ainfo, do
+  names ← constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩,
+  ctx ← local_context,
+  n ← intro_fresh names reserved_names,
+  pure ⟨n, ainfo.type⟩
+
+meta def ih_intros (iinfo : inductive_info)
+  (args : list (name × expr)) (reserved_names : name_set) : tactic (list name) := do
+  let rec_args := args.filter $ λ i,
+    is_recursive_constructor_argument iinfo.iname i.2,
+  let ih_names := rec_args.map $ λ ⟨n, _⟩, ih_name n,
+  match ih_names with
+  | []  := pure []
+  | [n] := do n ← intro_fresh ["ih", n] reserved_names, pure [n]
+  | ns := ns.mmap (λ n, intro_fresh [n] reserved_names)
+  end
+
 meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
-  (cinfo : constructor_info) : tactic unit := do
-  constructor_argument_intros einfo iinfo cinfo,
-  ih_intros einfo iinfo cinfo
+  (cinfo : constructor_info) (reserved_names : name_set) : tactic unit := do
+  args ← constructor_argument_intros einfo iinfo cinfo reserved_names,
+  ih_intros iinfo args reserved_names,
+  pure ()
 
 meta def induction'' (eliminee_name : name) (fix : name_set) : tactic unit :=
 focus1 $ do
@@ -686,8 +723,7 @@ focus1 $ do
 
   -- Find the name of the inductive type
   iname ← do {
-    eliminee_type ← whnf_ginductive eliminee_type,
-    (expr.const iname _) ← pure $ eliminee_type.get_app_fn,
+    iname ← get_app_fn_const_normalizing eliminee_type,
     guard (env.is_inductive iname),
     pure iname }
   <|> fail format!
@@ -709,7 +745,9 @@ focus1 $ do
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
-  num_generalized ← revert_all_except eliminee fix,
+  fix_exprs ← fix.to_list.mmap get_local,
+  let fixed := rb_map.set_of_list $ eliminee :: fix_exprs,
+  ⟨num_generalized, generalized_names⟩ ← revert_all_except fixed,
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -727,9 +765,12 @@ focus1 $ do
     -- this, i.e. clean up even more conservatively?
 
     -- Introduce the constructor arguments
-    constructor_intros einfo iinfo cinfo,
+    -- TODO this should take into account the names of hypotheses we have
+    -- generalized (and will thus introduce later).
+    constructor_intros einfo iinfo cinfo (name_set.of_list generalized_names),
 
     -- Introduce any hypotheses we've previously generalised
+    -- TODO can this lead to duplicate hypotheses in the goal?
     intron num_generalized,
     pure ()
   },

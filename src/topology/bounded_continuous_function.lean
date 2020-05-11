@@ -460,8 +460,7 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
     have hnneg : 0 ≤ ∥c∥,
     { exact norm_nonneg c },
     specialize hbound x y,
-    rw dist_eq_norm at hbound,
-    rw dist_eq_norm,
+    rw dist_eq_norm at hbound ⊢,
       calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
     ... = ∥c∥ * ∥f x - f y∥ : norm_smul c (f x - f y)
     ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
@@ -469,17 +468,25 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 
 
 instance : module 𝕜 (α →ᵇ β) :=
-  module.of_core $ begin
-    refine { smul := (•), ..},
+  module.of_core $
+  { smul := (•),
+    smul_add := begin
     intros c f g, ext,
-    exact smul_add c (f x) (g x),
+    exact smul_add c (f x) (g x)
+    end,
+    add_smul := begin
     intros c₁ c₂ f, ext,
     exact add_smul c₁ c₂ (f x),
+    end,
+    mul_smul := begin
     intros c₁ c₂ f,
     ext, exact mul_smul c₁ c₂ (f x),
+    end,
+    one_smul := begin
     intros f,
     ext, exact one_smul 𝕜 (f x),
-  end
+    end }
+
 
 
 instance : vector_space 𝕜 (α →ᵇ β) :=
@@ -505,7 +512,7 @@ end
 
 lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
-  by_cases (c = 0),
+  by_cases h : c = 0,
   rw h, simp,
   have hnneg : 0 ≤ ∥c∥,
     exact norm_nonneg c,

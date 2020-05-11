@@ -198,12 +198,7 @@ theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ :
   end
 
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
-by simp
-
-theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) :
-  ∀ {l}, chain' R (x :: l) → chain' R (y :: l)
-| [] _        := chain'_singleton y
-| (z :: l) hx := hx.tail.cons (h hx.rel_head)
+by simp only [chain'_singleton, chain'_cons, and_true]
 
 theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) {l} (hl : chain' R (x :: l)) :
   chain' R (y :: l) :=

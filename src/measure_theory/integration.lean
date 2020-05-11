@@ -738,11 +738,11 @@ end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ennreal) :
   (⨆i, ∫⁻ a, f i a) ≤ (∫⁻ a, ⨆i, f i a) :=
-by { simp only [← supr_apply], exact (monotone_lintegral α).map_supr_ge }
+by { simp only [← supr_apply], exact (monotone_lintegral α).le_map_supr }
 
 theorem supr2_lintegral_le {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ennreal) :
   (⨆i (h : ι' i), ∫⁻ a, f i h a) ≤ (∫⁻ a, ⨆i (h : ι' i), f i h a) :=
-by { convert (monotone_lintegral α).map_supr2_ge f, ext1 a, simp only [supr_apply] }
+by { convert (monotone_lintegral α).le_map_supr2 f, ext1 a, simp only [supr_apply] }
 
 theorem le_infi_lintegral {ι : Sort*} (f : ι → α → ennreal) :
   (∫⁻ a, ⨅i, f i a) ≤ (⨅i, ∫⁻ a, f i a) :=

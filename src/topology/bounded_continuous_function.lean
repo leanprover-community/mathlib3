@@ -19,7 +19,7 @@ open_locale topological_space classical
 open set filter metric
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Type u} {β : Type v} {γ : Type w} {𝕜 : Type*}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
@@ -429,5 +429,115 @@ def of_normed_group_discrete {α : Type u} {β : Type v}
   (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
 of_normed_group f C H continuous_of_discrete_topology
 
+/- Formula for norm. -/
+lemma norm_eq ( f : α →ᵇ β) :
+  ∥ f ∥  = Inf {C : ℝ | C ≥ 0 ∧ ∀ (x : α), ∥ f x ∥ ≤ C} :=
+begin
+  rw ← sub_zero f,
+  rw ← dist_eq_norm,
+  rw bounded_continuous_function.dist_eq,
+  simp,
+end
+
+
 end normed_group
+
+
+section normed_space
+/- In this section, if β is a normed space, then we show that the space of bounded
+continuous functions from α to β inherits a normed space structure, by using
+pointwise operations and checking that they are compatible with the uniform distance. -/
+
+variables [nondiscrete_normed_field 𝕜]
+variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
+variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
+
+instance : has_scalar 𝕜 (α →ᵇ β) :=
+  ⟨λc, λf, ⟨ λx, c • f.1 x,
+    begin
+      have h : continuous (λ x : α, c),
+        exact continuous_const,
+      exact continuous.smul h f.2.left,
+    end,
+    begin
+      cases f.2.right with C hbound,
+      use ∥ c ∥ * C,
+      intros,
+      have hnneg : ∥ c ∥ ≥ 0,
+      { exact norm_nonneg c },
+      specialize hbound x y,
+      rw dist_eq_norm at hbound,
+      rw dist_eq_norm,
+      calc ∥c • f x - c • f y∥ = ∥ c • (f x - f y) ∥ : by rw smul_sub c (f x) (f y)
+      ... = ∥ c ∥ * ∥ f x - f y ∥ : norm_smul c (f x - f y)
+      ... ≤ ∥ c ∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
+    end⟩⟩
+
+
+instance : module 𝕜 (α →ᵇ β) :=
+  module.of_core $ begin
+    refine { smul := (•), ..},
+    intros c f g, ext,
+    exact smul_add c (f x) (g x),
+    intros c₁ c₂ f, ext,
+    exact add_smul c₁ c₂ (f x),
+    intros c₁ c₂ f,
+    ext, exact mul_smul c₁ c₂ (f x),
+    intros f,
+    ext, exact one_smul 𝕜 (f x),
+  end
+
+
+instance : vector_space 𝕜 (α →ᵇ β) :=
+  { .. bounded_continuous_function.module }
+
+
+lemma bounded_continuous_sub_smul (c : 𝕜) (f : α →ᵇ β) :  ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+begin
+  have hnneg : ∥ c ∥ ≥ 0,
+    exact norm_nonneg c,
+  rw norm_eq (c • f),
+  apply real.Inf_le,
+  { use 0, intros y hy,
+    rw set.mem_set_of_eq at hy,
+    exact hy.left,},
+  { rw set.mem_set_of_eq,
+    split,
+    exact mul_nonneg' hnneg (norm_nonneg f),
+    intros,
+    calc ∥ (c • f) x ∥ = ∥ c ∥ * ∥ f x ∥ : norm_smul c (f x)
+    ... ≤ ∥ c ∥ * ∥ f ∥ : mul_le_mul_of_nonneg_left (norm_coe_le_norm x) hnneg,}
+end
+
+
+lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) :  ∥c • f∥ = ∥c∥ * ∥f∥ :=
+begin
+  by_cases ( c = 0),
+  rw h, simp,
+  have hnneg : ∥ c ∥ ≥ 0,
+    exact norm_nonneg c,
+  apply le_antisymm,
+  exact bounded_continuous_sub_smul c f,
+  have hinv : ∥ f ∥ ≤ ∥ 1 / c ∥ * ∥ c • f ∥,
+    calc ∥ f ∥ = ∥ (1 : 𝕜) • f ∥ : by simp
+    ... = ∥ (1 / c * c ) • f ∥ : by rw (div_mul_cancel 1 h)
+    ... = ∥ (1 / c) • ( c • f) ∥ : by rw (mul_smul _ _ _).symm
+    ... ≤ ∥ 1 / c ∥ * ∥ c • f ∥ : bounded_continuous_sub_smul (1 / c) (c • f),
+  calc ∥ c ∥ * ∥ f ∥  ≤ ∥ c ∥ * (∥ 1 / c ∥ * ∥ c • f ∥) : mul_le_mul_of_nonneg_left hinv hnneg
+  ... = (∥ c ∥ * ∥ 1 / c ∥) * ∥ c • f ∥ : by ring
+  ... = ∥ c * (1 / c) ∥ * ∥ c • f ∥ : by rw (normed_field.norm_mul c (1/c))
+  ... = ∥ (1 : 𝕜) ∥ * ∥ c • f ∥ : by rw (mul_div_cancel' 1 h)
+  ... = 1 * ∥ c • f ∥ : by rw normed_field.norm_one
+  ... = ∥ c • f ∥ : by ring,
+end
+
+
+instance : normed_space 𝕜 (α →ᵇ β) :=
+⟨ begin
+    exact bounded_continuous_smul,
+  end ⟩
+
+end normed_space
+
 end bounded_continuous_function

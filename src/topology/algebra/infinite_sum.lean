@@ -456,6 +456,13 @@ end
 
 end tsum
 
+/-!
+### Sums on subtypes
+
+If `s` is a finset of `α`, we show that the summability of `f` in the whole space and on the subtype
+`univ - s` are equivalent, and relate their sums. For a function defined on `ℕ`, we deduce the
+formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
+-/
 section subtype
 variables {s : finset β}
 
@@ -544,7 +551,7 @@ lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
 by simp [has_sum_nat_add_iff]
 
 lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
-   (∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i) :=
+  (∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i) :=
 by simpa [add_comm] using
   has_sum_unique ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum) h.has_sum
 

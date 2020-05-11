@@ -190,7 +190,7 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
   M * N = M ⬝ N := rfl
 
 theorem mul_val' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
-  (M * N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
+  (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
 section semigroup
 variables [semiring α]

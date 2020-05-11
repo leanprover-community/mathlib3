@@ -75,13 +75,13 @@ instance : has_insert α (multiset α) := ⟨cons⟩
 
 theorem singleton_coe (a : α) : (a::0 : multiset α) = ([a] : list α) := rfl
 
-@[simp] theorem cons_inj_left {a b : α} (s : multiset α) :
+@[simp] theorem cons_inj_right {a b : α} (s : multiset α) :
   a::s = b::s ↔ a = b :=
 ⟨quot.induction_on s $ λ l e,
   have [a] ++ l ~ [b] ++ l, from quotient.exact e,
   singleton_perm_singleton.1 $ (perm_append_right_iff _).1 this, congr_arg _⟩
 
-@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a::s = a::t ↔ s = t :=
+@[simp] theorem cons_inj_left (a : α) : ∀{s t : multiset α}, a::s = a::t ↔ s = t :=
 by rintros ⟨l₁⟩ ⟨l₂⟩; simp
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
@@ -366,7 +366,7 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 
 theorem mem_singleton_self (a : α) : a ∈ (a::0 : multiset α) := mem_cons_self _ _
 
-theorem singleton_inj {a b : α} : a::0 = b::0 ↔ a = b := cons_inj_left _
+theorem singleton_inj {a b : α} : a::0 = b::0 ↔ a = b := cons_inj_right _
 
 @[simp] theorem singleton_ne_zero (a : α) : a::0 ≠ 0 :=
 ne_of_gt (lt_cons_self _ _)
@@ -1420,7 +1420,7 @@ begin
   by_cases p a,
   { rw [filter_cons_of_pos _ h, sub_cons], congr,
     by_cases m : a ∈ s,
-    { rw [← cons_inj_right a, ← filter_cons_of_pos _ h,
+    { rw [← cons_inj_left a, ← filter_cons_of_pos _ h,
           cons_erase (mem_filter_of_mem m h), cons_erase m] },
     { rw [erase_of_not_mem m, erase_of_not_mem (mt mem_of_mem_filter m)] } },
   { rw [filter_cons_of_neg _ h],

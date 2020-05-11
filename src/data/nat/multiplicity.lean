@@ -171,12 +171,12 @@ le_antisymm
       assume i h1i hip h,
       refine lt_succ_of_le (le_of_not_gt (λ hin, _)),
       have hpik : ¬ p ^ i ∣ k, from mt (le_of_dvd hk0)
-        (not_le_of_gt (lt_of_le_of_lt hkn (pow_right_strict_mono hp.two_le hin))),
+        (not_le_of_gt (lt_of_le_of_lt hkn (pow_left_strict_mono hp.two_le hin))),
       have hpn : k % p ^ i + (p ^ n - k) % p ^ i < p ^ i,
         from calc k % p ^ i + (p ^ n - k) % p ^ i
               ≤ k + (p ^ n - k) : add_le_add (mod_le _ _) (mod_le _ _)
           ... = p ^ n : nat.add_sub_cancel' hkn
-          ... < p ^ i : pow_right_strict_mono hp.two_le hin,
+          ... < p ^ i : pow_left_strict_mono hp.two_le hin,
       simpa [hpik, not_le_of_gt hpn] using h
     end,
   begin

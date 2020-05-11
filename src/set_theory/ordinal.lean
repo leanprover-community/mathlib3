@@ -2048,7 +2048,7 @@ theorem power_le_power_iff_right {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ≤ a ^ c ↔ b ≤ c :=
 (power_is_normal a1).le_iff
 
-theorem power_right_inj {a b c : ordinal}
+theorem power_left_inj {a b c : ordinal}
   (a1 : 1 < a) : a ^ b = a ^ c ↔ b = c :=
 (power_is_normal a1).inj
 

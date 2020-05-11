@@ -40,29 +40,41 @@ lemma midpoint_fixed {x y : E} :
   ∀ e : E ≃ᵢ E, e x = x → e y = y → e (midpoint ℝ x y) = midpoint ℝ x y :=
 begin
   set z := midpoint ℝ x y,
+  -- Consider the set of `e : E ≃ᵢ E` such that `e x = x` and `e y = y`
   set s := { e : E ≃ᵢ E | e x = x ∧ e y = y },
-  set c := ⨆ e : s, dist (e z) z,
   haveI : nonempty s := ⟨⟨isometric.refl E, rfl, rfl⟩⟩,
-  have A : bdd_above (range $ λ e : s, dist (e z) z),
-  { refine ⟨dist x z + dist x z, forall_range_iff.2 $ λ e, _⟩,
-    calc dist (e z) z ≤ dist (e z) x + dist x z : dist_triangle (e z) x z
-    ... = dist (e x) (e z) + dist x z : by erw [e.2.1, dist_comm]
-    ... = _ : by erw [e.1.dist_eq x z] },
-  suffices : c ≤ 0,
-  { intros e hx hy,
-    have A : dist (e z) z ≤ c, from @le_csupr _ _ _ _ A ⟨e, hx, hy⟩,
-    exact dist_le_zero.1 (le_trans A this) },
-  suffices : c ≤ c / 2, { linarith },
-  apply csupr_le,
-  set g : E ≃ᵢ E := point_reflection z,
-  rintros ⟨e, he⟩,
-  apply le_div_of_mul_le (zero_lt_two : 0 < (2:ℝ)),
-  have : ((e.trans g).trans e.symm).trans g ∈ s,
-    by split; simp [he.1, he.2, (e.symm_apply_eq).2 he.1.symm, (e.symm_apply_eq).2 he.2.symm],
-  dsimp,
-  rw [mul_comm, dist_comm, ← point_reflection_dist_self_real, ← e.symm.dist_eq, e.symm_apply_apply,
-    ← point_reflection_dist_fixed],
-  exact @le_csupr _ _ _ _ A ⟨_, this⟩
+  -- On the one hand, `e` cannot send the midpoint `z` of `[x, y]` too far
+  have h_bdd : bdd_above (range $ λ e : s, dist (e z) z),
+  { refine ⟨dist x z + dist x z, forall_range_iff.2 $ subtype.forall.2 _⟩,
+    rintro e ⟨hx, hy⟩,
+    calc dist (e z) z ≤ dist (e z) x + dist x z     : dist_triangle (e z) x z
+                  ... = dist (e x) (e z) + dist x z : by rw [hx, dist_comm]
+                  ... = dist x z + dist x z         : by erw [e.dist_eq x z] },
+  -- On the other hand, consider the map `f : (E ≃ᵢ E) → (E ≃ᵢ E)`
+  -- sending each `e` to `R ∘ e⁻¹ ∘ R ∘ e`, where `R` is the point reflection in the
+  -- midpoint `z` of `[x, y]`.
+  set R : E ≃ᵢ E := point_reflection z,
+  set f : (E ≃ᵢ E) → (E ≃ᵢ E) := λ e, ((e.trans R).trans e.symm).trans R,
+  -- Note that `f` doubles the value of ``dist (e z) z`
+  have hf_dist : ∀ e, dist (f e z) z = 2 * dist (e z) z,
+  { intro e,
+    dsimp [f],
+    rw [point_reflection_dist_fixed, ← e.dist_eq, e.apply_symm_apply,
+      point_reflection_dist_self_real, dist_comm] },
+  -- Also note that `f` maps `s` to itself
+  have hf_maps_to : maps_to f s s,
+  { rintros e ⟨hx, hy⟩,
+    split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm] },
+  -- Therefore, `dist (e z) z = 0` for all `e ∈ s`.
+  set c := ⨆ e : s, dist (e z) z,
+  have : c ≤ c / 2,
+  { apply csupr_le,
+    rintros ⟨e, he⟩,
+    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _), ← hf_dist],
+    exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
+  replace : c ≤ 0, { linarith },
+  refine λ e hx hy, dist_le_zero.1 (le_trans _ this),
+  exact le_csupr h_bdd ⟨e, hx, hy⟩
 end
 
 /-- A bijective isometry sends midpoints to midpoints. -/

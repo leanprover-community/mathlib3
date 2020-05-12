@@ -280,6 +280,10 @@ protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
 
+@[simp]
+lemma row_mul_col_val (v w : m → α) (i j) : (row v ⬝ col w) i j = dot_product v w :=
+rfl
+
 end semiring
 
 section ring

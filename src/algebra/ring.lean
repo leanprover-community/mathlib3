@@ -520,11 +520,11 @@ end prio
 -- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
 -- but it doesn't seem worth doing just for these lemmas.
 lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
-λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
+λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
 -- As with succ_ne_self.
 lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
-λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+λ h, one_ne_zero (neg_inj ((add_right_inj a).mp (by { convert h, simp })))
 
 /-- A nonzero commutative semiring is a nonzero semiring. -/
 @[priority 100] -- see Note [lower instance priority]
@@ -596,12 +596,12 @@ section domain
   λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂
 
 /-- Right multiplication by a nonzero element in a domain is injective. -/
-  theorem domain.mul_right_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
+  theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
   by rw [← sub_eq_zero, ← mul_sub_right_distrib, mul_eq_zero];
      simp [ha]; exact sub_eq_zero
 
 /-- Left multiplication by a nonzero element in a domain is injective. -/
-  theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
+  theorem domain.mul_right_inj {a b c : α} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
   by rw [← sub_eq_zero, ← mul_sub_left_distrib, mul_eq_zero];
      simp [ha]; exact sub_eq_zero
 
@@ -650,12 +650,12 @@ section
 /-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
     b divides c. -/
   theorem mul_dvd_mul_iff_left {a b c : α} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
-  exists_congr $ λ d, by rw [mul_assoc, domain.mul_left_inj ha]
+  exists_congr $ λ d, by rw [mul_assoc, domain.mul_right_inj ha]
 
 /-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
     a divides b. -/
   theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
-  exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
+  exists_congr $ λ d, by rw [mul_right_comm, domain.mul_left_inj hc]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
     one's additive inverse. -/

@@ -173,7 +173,7 @@ def mk0 (a : G₀) (ha : a ≠ 0) : units G₀ :=
 @[simp] lemma coe_mk0 {a : G₀} (h : a ≠ 0) : (mk0 a h : G₀) = a := rfl
 
 @[simp] theorem inv_eq_inv (u : units G₀) : (↑u⁻¹ : G₀) = u⁻¹ :=
-(mul_left_inj u).1 $ by { rw [units.mul_inv, mul_inv_cancel'], apply unit_ne_zero }
+(mul_right_inj u).1 $ by { rw [units.mul_inv, mul_inv_cancel'], apply unit_ne_zero }
 
 @[simp] lemma mk0_coe (u : units G₀) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
 units.ext rfl
@@ -362,11 +362,11 @@ lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
 by haveI := classical.prop_decidable; exact
 not_iff_not.1 (div_ne_zero_iff hb)
 
-lemma div_right_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
-by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_right_inj]
+lemma div_left_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
+by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_left_inj]
 
-lemma mul_right_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b :=
-by rw [← inv_inv'' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_right_inj' (inv_ne_zero' hc)]
+lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b :=
+by rw [← inv_inv'' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
 
 lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 ⟨λ h, by rw [← h, div_mul_cancel' _ hb],
@@ -488,7 +488,7 @@ by rw [← mul_div_assoc'', div_mul_cancel' _ hc]
 
 lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
-by rw [mul_right_inj' (mul_ne_zero'' hb hd)]
+by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel' _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel' _ hd]

@@ -1335,7 +1335,7 @@ lemma deriv_within_div
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
 lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜} :
-differentiable_within_at 𝕜 (λx, c x / d) s x :=
+  differentiable_within_at 𝕜 (λx, c x / d) s x :=
 by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
 
 @[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :

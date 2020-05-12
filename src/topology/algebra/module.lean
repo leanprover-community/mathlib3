@@ -5,6 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
 import ring_theory.algebra
+import linear_algebra.projection
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -782,15 +783,26 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
 
 end continuous_linear_equiv
 
-namespace subspace
+namespace submodule
 
 variables
 {R : Type*} [ring R]
-{M : Type*} [topological_space M] [add_comm_group M]
-{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
-[module R M] [module R M₂]
+{M : Type*} [topological_space M] [add_comm_group M] [module R M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
 
-/-- A sub `p` is called *complemented* if it has a closed complement-/
-def complemented (p : submodule R M) : Prop :=
-∃ q : submodule R M, is_closed (q : set M) ∧ is_compl p q
-end subspace
+/-- A submodule `p` is called *complemented* if there exists a continuous projection `M →ₗ[R] p`. -/
+def complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x : p, f x = x
+
+lemma complemented.has_closed_complement {p : submodule R M} [t1_space p] (h : complemented p) :
+  ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
+exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
+
+end submodule
+
+lemma continuous_linear_map.complemented_ker_of_right_inverse {R : Type*} [ring R]
+  {M : Type*} [topological_space M] [add_comm_group M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M] [module R M₂]
+  [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) :
+  f₁.ker.complemented :=
+⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩

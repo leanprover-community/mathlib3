@@ -30,6 +30,23 @@ namespace submodule
 
 open linear_map
 
+/-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
+def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
+linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
+  (by simp only [ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
+  (by simp only [range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
+
+@[simp] lemma quotient_equiv_of_is_compl_symm_apply (h : is_compl p q) (x : q) :
+  (quotient_equiv_of_is_compl p q h).symm x = quotient.mk x := rfl
+
+@[simp] lemma quotient_equiv_of_is_compl_apply_mk_coe (h : is_compl p q) (x : q) :
+  quotient_equiv_of_is_compl p q h (quotient.mk x) = x :=
+(quotient_equiv_of_is_compl p q h).apply_symm_apply x
+
+@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : p.quotient) :
+  (quotient.mk (quotient_equiv_of_is_compl p q h x) : p.quotient) = x :=
+(quotient_equiv_of_is_compl p q h).symm_apply_apply x
+
 /-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. -/
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin

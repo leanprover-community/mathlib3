@@ -202,14 +202,7 @@ variables {𝕜 E}
 /-- A finite-dimensional subspace is complete. -/
 lemma submodule.complete_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_complete (s : set E) :=
-begin
-  haveI : complete_space s := finite_dimensional.complete 𝕜 s,
-  have : is_complete (range (subtype.val : s → E)),
-  { rw [← image_univ, is_complete_image_iff],
-    { exact complete_univ },
-    { exact isometry_subtype_val.uniform_embedding } },
-  rwa subtype.val_range at this
-end
+complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 
 /-- A finite-dimensional subspace is closed. -/
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :

@@ -811,6 +811,10 @@ def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 
 @[simp] theorem filter_subset (s : finset α) : s.filter p ⊆ s := filter_subset _
 
+theorem filter_ssubset {s : finset α} : s.filter p ⊂ s ↔ ∃ x ∈ s, ¬ p x :=
+⟨λ h, let ⟨x, hs, hp⟩ := set.exists_of_ssubset h in ⟨x, hs, mt (λ hp, mem_filter.2 ⟨hs, hp⟩) hp⟩,
+  λ ⟨x, hs, hp⟩, ⟨s.filter_subset, λ h, hp (mem_filter.1 (h hs)).2⟩⟩
+
 theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext.2 $ assume a, by simp only [mem_filter, and_comm, and.left_comm]

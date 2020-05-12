@@ -172,10 +172,9 @@ end
 
 open mv_polynomial set
 
-variables (α : Type u) [decidable_eq α] [comm_ring α]
-
-lemma dvd_sub_pow_of_dvd_sub (p : ℕ) [hp : fact p.prime] (a b : α) (h : (p : α) ∣ a - b) (k : ℕ) :
-  (p^(k+1) : α) ∣ a^(p^k) - b^(p^k) :=
+lemma dvd_sub_pow_of_dvd_sub (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime]
+  (a b : R) (h : (p : R) ∣ a - b) (k : ℕ) :
+  (p^(k+1) : R) ∣ a^(p^k) - b^(p^k) :=
 begin
   induction k with k ih, { simpa using h }, clear h,
   simp only [nat.succ_eq_add_one],
@@ -220,7 +219,7 @@ open mv_polynomial
 -- noncomputable theory
 
 variables (p : ℕ) [fact p.prime]
-variables {R : Type u} [decidable_eq R] [comm_ring R]
+variables {R : Type u} [comm_ring R]
 
 open_locale big_operators
 

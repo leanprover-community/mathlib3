@@ -19,7 +19,7 @@ open_locale topological_space classical
 open set filter metric
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {𝕜 : Type*}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
@@ -437,16 +437,14 @@ begin
   simp,
 end
 
-
 end normed_group
-
 
 section normed_space
 /-! In this section, if `β` is a normed space, then we show that the space of bounded
 continuous functions from `α` to `β` inherits a normed space structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
@@ -457,46 +455,28 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
     cases f.2.right with C hbound,
     use ∥c∥ * C,
     intros,
-    have hnneg : 0 ≤ ∥c∥,
-    { exact norm_nonneg c },
+    have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
     specialize hbound x y,
     rw dist_eq_norm at hbound ⊢,
-      calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
+    calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
     ... = ∥c∥ * ∥f x - f y∥ : norm_smul c (f x - f y)
     ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
   end⟩⟩
 
-
 instance : module 𝕜 (α →ᵇ β) :=
   module.of_core $
   { smul := (•),
-    smul_add := begin
-    intros c f g, ext,
-    exact smul_add c (f x) (g x)
-    end,
-    add_smul := begin
-    intros c₁ c₂ f, ext,
-    exact add_smul c₁ c₂ (f x),
-    end,
-    mul_smul := begin
-    intros c₁ c₂ f,
-    ext, exact mul_smul c₁ c₂ (f x),
-    end,
-    one_smul := begin
-    intros f,
-    ext, exact one_smul 𝕜 (f x),
-    end }
-
-
+    smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
+    add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
+    mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
+    one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
 instance : vector_space 𝕜 (α →ᵇ β) :=
 { .. bounded_continuous_function.module }
 
-
-lemma bounded_continuous_sub_smul (c : 𝕜) (f : α →ᵇ β) :  ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+lemma bounded_continuous_sub_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 begin
-  have hnneg : 0 ≤ ∥ c ∥,
-    exact norm_nonneg c,
+  have hnneg : 0 ≤ ∥ c ∥ := norm_nonneg c,
   rw norm_eq (c • f),
   apply real.Inf_le,
   { use 0, intros y hy,
@@ -513,24 +493,22 @@ end
 lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
   by_cases h : c = 0,
-  rw h, simp,
-  have hnneg : 0 ≤ ∥c∥,
-    exact norm_nonneg c,
-  apply le_antisymm,
-  exact bounded_continuous_sub_smul c f,
-  have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
-  { calc ∥f ∥= ∥(1 : 𝕜) • f∥ : by simp
-    ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
-    ... = ∥(1 / c) • ( c • f)∥ : by rw (mul_smul _ _ _).symm
-    ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f) },
-  calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
-  ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : by ring
-  ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
-  ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
-  ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
-  ... = ∥c • f∥ : by ring,
+  { rw [h, zero_smul, norm_zero, norm_zero, zero_mul], },
+  { have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
+    apply le_antisymm,
+    { exact bounded_continuous_sub_smul c f, },
+    { have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
+      { calc ∥f ∥= ∥(1 : 𝕜) • f∥ : by rw one_smul
+        ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
+        ... = ∥(1 / c) • ( c • f)∥ : by rw (mul_smul _ _ _).symm
+        ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f) },
+      calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
+      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : by rw mul_assoc
+      ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
+      ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
+      ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
+      ... = ∥c • f∥ : by rw one_mul, } }
 end
-
 
 instance : normed_space 𝕜 (α →ᵇ β) :=
 ⟨bounded_continuous_smul⟩

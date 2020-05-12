@@ -77,7 +77,7 @@ by simp [diagonal]; refl
   (diagonal v)ᵀ = diagonal v :=
 begin
   ext i j,
-  by_cases i = j,
+  by_cases h : i = j,
   { simp [h, transpose] },
   { simp [h, transpose, diagonal_val_ne' h] }
 end

@@ -30,37 +30,64 @@ namespace submodule
 
 open linear_map
 
--- TODO[calc comp]: I'd like to rewrite it using `calc` but it doesn't agree with `linear_map.comp`
--- on the order of arguments.
+/-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. -/
+def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
+begin
+  apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
+  { simp only [ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
+    -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
+    rintros ⟨x, hx⟩ ⟨y, hy⟩,
+    simp only [coe_mk, mk_eq_zero, ← eq_neg_iff_add_eq_zero],
+    rintro rfl,
+    rw [neg_mem_iff] at hx,
+    simp [disjoint_def.1 h.disjoint y hx hy] },
+  { rw [← sup_eq_range, h.sup_eq_top] }
+end
+
+@[simp] lemma coe_prod_equiv_of_is_compl (h : is_compl p q) :
+  (prod_equiv_of_is_compl p q h : (p × q) →ₗ[R] E) = p.subtype.coprod q.subtype := rfl
+
+@[simp] lemma coe_prod_equiv_of_is_compl' (h : is_compl p q) (x : p × q) :
+  prod_equiv_of_is_compl p q h x = x.1 + x.2 := rfl
+
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_left (h : is_compl p q) (x : p) :
+  (prod_equiv_of_is_compl p q h).symm x = (x, 0) :=
+(prod_equiv_of_is_compl p q h).symm_apply_eq.2 $ by simp
+
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_right (h : is_compl p q) (x : q) :
+  (prod_equiv_of_is_compl p q h).symm x = (0, x) :=
+(prod_equiv_of_is_compl p q h).symm_apply_eq.2 $ by simp
+
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_fst_eq_zero {h : is_compl p q} {x : E} :
+  ((prod_equiv_of_is_compl p q h).symm x).1 = 0 ↔ x ∈ q :=
+begin
+  conv_rhs { rw [← (prod_equiv_of_is_compl p q h).apply_symm_apply x] },
+  rw [coe_prod_equiv_of_is_compl', submodule.add_mem_iff_left _ (submodule.coe_mem _),
+    mem_right_iff_eq_zero_of_disjoint h.disjoint]
+end
+
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_snd_eq_zero {h : is_compl p q} {x : E} :
+  ((prod_equiv_of_is_compl p q h).symm x).2 = 0 ↔ x ∈ p :=
+begin
+  conv_rhs { rw [← (prod_equiv_of_is_compl p q h).apply_symm_apply x] },
+  rw [coe_prod_equiv_of_is_compl', submodule.add_mem_iff_right _ (submodule.coe_mem _),
+    mem_left_iff_eq_zero_of_disjoint h.disjoint]
+end
 
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
-((comap p.subtype (p ⊓ q)).quot_equiv_of_eq_bot
-  (eq_bot_mono (comap_mono inf_le_right) $ disjoint_iff_comap_eq_bot.1 h.disjoint) :
-  (comap p.subtype (p ⊓ q)).quotient →ₗ[R] p).comp $
-((quotient_inf_equiv_sup_quotient p q).symm :
-  (comap (p ⊔ q).subtype q).quotient →ₗ[R] (comap p.subtype (p ⊓ q)).quotient).comp $
-(comap (p ⊔ q).subtype q).mkq.comp
-((linear_equiv.of_top (p ⊔ q) h.sup_eq_top).symm : E →ₗ[R] (p ⊔ q : submodule R E))
-
-lemma linear_proj_of_is_compl_apply_left' (h : is_compl p q) (x : E) (hx : x ∈ p) :
-  linear_proj_of_is_compl p q h x = ⟨x, hx⟩ :=
-begin
-  simp only [linear_proj_of_is_compl, linear_equiv.coe_coe, linear_map.comp_apply, mkq_apply],
-  rw [linear_equiv.of_top_symm_apply, quotient_inf_equiv_sup_quotient_symm_apply_left,
-    quot_equiv_of_eq_bot_apply_mk]; simp only [subtype.coe_mk, hx]
-end
+(linear_map.fst R p q).comp $ (prod_equiv_of_is_compl p q h).symm
 
 @[simp] lemma linear_proj_of_is_compl_apply_left (h : is_compl p q) (x : p) :
   linear_proj_of_is_compl p q h x = x :=
-by rw [linear_proj_of_is_compl_apply_left' p q h x x.2, submodule.eta]
+by simp [linear_proj_of_is_compl]
 
 @[simp] lemma linear_proj_of_is_compl_range (h : is_compl p q) :
   (linear_proj_of_is_compl p q h).range = ⊤ :=
 by simp [linear_proj_of_is_compl, range_comp]
 
-lemma linear_proj_of_is_compl_apply_eq_zero_iff (h : is_compl p q) {x : E} :
+@[simp] lemma linear_proj_of_is_compl_apply_eq_zero_iff (h : is_compl p q) {x : E} :
   linear_proj_of_is_compl p q h x = 0 ↔ x ∈ q:=
 by simp [linear_proj_of_is_compl]
 

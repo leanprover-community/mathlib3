@@ -46,8 +46,7 @@ open add_monoid_hom
 
 namespace category_theory
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- A category is called preadditive if `P ⟶ Q` is an abelian group such that composition is
     linear in both variables. -/
@@ -70,9 +69,7 @@ open category_theory
 namespace category_theory.preadditive
 
 section preadditive
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
-variables [preadditive.{v} C]
+variables {C : Type u} [category.{v} C] [preadditive.{v} C]
 
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=
@@ -130,8 +127,7 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
 end preadditive
 
 section equalizers
-variables {C : Type u} [𝒞 : category.{v} C] [preadditive.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [preadditive.{v} C]
 
 section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)

@@ -84,6 +84,18 @@ def all_some : list (option α) → option (list α)
 | (some x :: xs) := (λ z, x :: z) <$> all_some xs
 | (none :: xs) := none
 
+def m_any {m} [monad m] {α} (p : α → m bool) : list α → m bool
+| [] := pure ff
+| (x :: xs) := do
+  px ← p x,
+  if px then pure tt else m_any xs
+
+def m_all {m} [monad m] {α} (p : α → m bool) : list α → m bool
+| [] := pure tt
+| (x :: xs) := do
+  px ← p x,
+  if px then m_all xs else pure ff
+
 end list
 
 
@@ -659,33 +671,32 @@ meta def intro_fresh (ns : list name) (reserved : name_set) : tactic name := do
   intro n,
   pure n
 
+meta def local_depends_on_local (h i : expr) : tactic bool := do
+  if h = i
+    then pure tt
+    else do
+      h_type ← infer_type h,
+      if h_type.has_local_constant i
+        then pure tt
+        else do
+          (some h_val) ← try_core $ local_def_value h | pure ff,
+          pure $ h_val.has_local_constant i
+
 /--
-Reverts all hypotheses except the following those in `fixed` and those
-whose type depends on any of the hypotheses in `fixed`.
+Reverts all hypotheses except those in `fixed` and those whose type depends
+on any of the hypotheses in `fixed`.
 
 TODO example
+TODO precond: `fixed` contains only locals
 -/
--- TODO what about 'let's in the context?
-meta def revert_all_except (fixed : expr_set) : tactic (ℕ × list name) := do
-  fixed_types ← fixed.to_list.mmap infer_type,
+-- TODO efficiency
+meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name) := do
   ctx ← local_context,
-  to_revert ← ctx.mfilter $ λ hyp, do {
-    dep ← fixed_types.mfoldl
-      (λ (b : bool) t, if b then pure tt else kdepends_on t hyp)
-      ff,
-    pure $ ¬ dep ∧ ¬ fixed.contains hyp
-  },
+  to_revert ← ctx.mfilter $ λ hyp,
+    fixed.m_all (λ fixed_hyp, bnot <$> local_depends_on_local fixed_hyp hyp),
   let reverted_names := to_revert.map expr.local_pp_name,
   n ← revert_lst to_revert,
   pure ⟨n, reverted_names⟩
-
--- TODO debug
-example : unit :=
-begin
-  let x : ℕ := 2,
-  (do x ← resolve_name `x, trace $ x.to_raw_fmt),
-  exact ()
-end
 
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info) (reserved_names : name_set)
@@ -713,7 +724,7 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   ih_intros iinfo args reserved_names,
   pure ()
 
-meta def induction'' (eliminee_name : name) (fix : name_set) : tactic unit :=
+meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
@@ -745,9 +756,9 @@ focus1 $ do
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
-  fix_exprs ← fix.to_list.mmap get_local,
-  let fixed := rb_map.set_of_list $ eliminee :: fix_exprs,
-  ⟨num_generalized, generalized_names⟩ ← revert_all_except fixed,
+  fix_exprs ← fix.mmap get_local,
+  ⟨num_generalized, generalized_names⟩ ←
+    revert_all_except_locals (eliminee :: fix_exprs),
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -765,12 +776,9 @@ focus1 $ do
     -- this, i.e. clean up even more conservatively?
 
     -- Introduce the constructor arguments
-    -- TODO this should take into account the names of hypotheses we have
-    -- generalized (and will thus introduce later).
     constructor_intros einfo iinfo cinfo (name_set.of_list generalized_names),
 
     -- Introduce any hypotheses we've previously generalised
-    -- TODO can this lead to duplicate hypotheses in the goal?
     intron num_generalized,
     pure ()
   },
@@ -790,6 +798,6 @@ meta def induction'
   (hyp : parse ident)
   (fix : parse (optional (tk "fixing" *> many ident)))
   : tactic unit :=
-  tactic.induction'' hyp (name_set.of_list $ fix.get_or_else [])
+  tactic.induction'' hyp (fix.get_or_else [])
 
 end tactic.interactive

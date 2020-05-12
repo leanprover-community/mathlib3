@@ -1658,7 +1658,7 @@ notation M ` ↪ₗ[`:25 R:25 `] `:0 M₂:0 := linear_embedding R M M₂
 namespace linear_embedding
 
 variables {R M M₂}
-variables [ring R] [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
+variables [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
 
 instance : has_coe (M ↪ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨linear_embedding.to_linear_map⟩
 
@@ -1683,6 +1683,8 @@ begin
     exact submodule.range_range_restrict f, },
 end
 
+@[simp] lemma equiv_range_apply (f : M ↪ₗ[R] M₂) (x : M) : ↑(f.equiv_range x) = f x := rfl
+
 end linear_embedding
 
 namespace submodule
@@ -1706,8 +1708,6 @@ begin
   { rw linear_map.mem_range at h, rcases h with ⟨x', hx'⟩, rw ←hx', exact x'.property, },
   { rw linear_map.mem_range, exact ⟨⟨x, h⟩, rfl⟩, },
 end
-
-@[simp] lemma equiv_range_apply (f : M ↪ₗ[R] M₂) (x : M) : ↑(f.equiv_range x) = f x := rfl
 
 lemma range_to_embedding (f : M ↪ₗ[R] M₂) :
   f.to_linear_map.range.to_embedding.to_linear_map.comp f.equiv_range.to_linear_map = f :=

@@ -480,7 +480,7 @@ protected lemma submonoid.exists {s : submonoid M} {p : s → Prop} :
 set_coe.exists
 
 @[to_additive]
-protected lemma submonoid.foorall {s : submonoid M} {p : s → Prop} :
+protected lemma submonoid.forall {s : submonoid M} {p : s → Prop} :
   (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
 set_coe.forall
 

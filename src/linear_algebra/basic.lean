@@ -1644,10 +1644,74 @@ end field
 
 end linear_equiv
 
+set_option old_structure_cmd true
+/-- A linear embedding is an injective linear map. -/
+structure linear_embedding (R : Type u) (M : Type v) (M₂ : Type w)
+  [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+  extends M →ₗ[R] M₂, M ↪ M₂
+
+attribute [nolint doc_blame] linear_embedding.to_linear_map
+attribute [nolint doc_blame] linear_embedding.to_embedding
+
+notation M ` ↪ₗ[`:25 R:25 `] `:0 M₂:0 := linear_embedding R M M₂
+
+namespace linear_embedding
+
+variables {R M M₂}
+variables [ring R] [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
+
+instance : has_coe (M ↪ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨linear_embedding.to_linear_map⟩
+
+/-- see Note [function coercion] -/
+instance : has_coe_to_fun (M ↪ₗ[R] M₂) := ⟨_, linear_embedding.to_fun⟩
+
+/-- The identity map is a linear embedding. -/
+instance : has_one (M ↪ₗ[R] M) := ⟨{ inj' := function.injective_id, ..(1 : M →ₗ[R] M) }⟩
+
+instance : inhabited (M ↪ₗ[R] M) := ⟨1⟩
+
+@[simp] lemma ker_bot (f : M₂ ↪ₗ[R] M) : f.to_linear_map.ker = ⊥ :=
+linear_map.ker_eq_bot.2 f.inj'
+
+/-- A linear embedding is a linear equivalence from its domain to its range. -/
+noncomputable def equiv_range (f : M ↪ₗ[R] M₂) : M ≃ₗ[R] f.to_linear_map.range :=
+begin
+  apply linear_equiv.of_bijective f.to_linear_map.range_restrict,
+  { -- Injective
+    rw linear_map.ker_cod_restrict, exact f.ker_bot, },
+  { -- Surjective
+    exact submodule.range_range_restrict f, },
+end
+
+end linear_embedding
+
 namespace submodule
 
 variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
 variables (p : submodule R M) (q : submodule R M₂)
+
+/-- The inclusion of a submodule is a linear embedding. -/
+def to_embedding : p ↪ₗ[R] M :=
+{ to_fun := coe,
+  add    := submodule.coe_add,
+  smul   := submodule.coe_smul,
+  inj'   := subtype.val_injective, }
+
+@[simp] lemma to_embedding_apply (x : p) : p.to_embedding x = x := rfl
+
+lemma to_embedding_range : p.to_embedding.to_linear_map.range = p :=
+begin
+  ext x,
+  split; intros h,
+  { rw linear_map.mem_range at h, rcases h with ⟨x', hx'⟩, rw ←hx', exact x'.property, },
+  { rw linear_map.mem_range, exact ⟨⟨x, h⟩, rfl⟩, },
+end
+
+@[simp] lemma equiv_range_apply (f : M ↪ₗ[R] M₂) (x : M) : ↑(f.equiv_range x) = f x := rfl
+
+lemma range_to_embedding (f : M ↪ₗ[R] M₂) :
+  f.to_linear_map.range.to_embedding.to_linear_map.comp f.equiv_range.to_linear_map = f :=
+by { ext, rw linear_map.comp_apply, refl, }
 
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=

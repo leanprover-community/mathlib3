@@ -498,16 +498,16 @@ begin
     apply le_antisymm,
     { exact bounded_continuous_sub_smul c f, },
     { have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
-      { calc ∥f ∥= ∥(1 : 𝕜) • f∥ : by rw one_smul
+      { calc ∥f∥ = ∥(1 : 𝕜) • f∥ : by rw one_smul
         ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
         ... = ∥(1 / c) • ( c • f)∥ : by rw (mul_smul _ _ _).symm
         ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f) },
       calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
-      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : by rw mul_assoc
+      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
       ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
       ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
       ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
-      ... = ∥c • f∥ : by rw one_mul, } }
+      ... = ∥c • f∥ : one_mul _, } }
 end
 
 instance : normed_space 𝕜 (α →ᵇ β) :=

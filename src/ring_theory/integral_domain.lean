@@ -32,7 +32,6 @@ is_cyclic_of_card_pow_eq_one_le
 
 end
 
-
 section
 variables {G : Type*} {R : Type*} [group G] [integral_domain R]
 
@@ -81,15 +80,20 @@ begin
       = ∑ g : G, f.to_hom_units g : rfl
   ... = ∑ u : units R in univ.image f.to_hom_units, (univ.filter (λ g, f.to_hom_units g = u)).card • u :
     sum_comp (coe : units R → R) f.to_hom_units
-  ... = ∑ u : units R in univ.image f.to_hom_units, c • u : sum_congr rfl (λ u hu, congr_arg2 _ _ rfl)
+  ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
+    sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
   ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype
       (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ, exists_prop_of_true]) _
   ... = c • ∑ b : set.range f.to_hom_units, (b : R) : smul_sum.symm
-  ... = c • 0 : congr_arg2 _ rfl _
+  ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
   ... = 0 : smul_zero _,
-  { apply card_fiber_eq_of_mem_range f.to_hom_units,
+  { -- remaining goal 1
+    show (univ.filter (λ (g : G), f.to_hom_units g = u)).card = c,
+    apply card_fiber_eq_of_mem_range f.to_hom_units,
     { simpa only [mem_image, mem_univ, exists_prop_of_true, set.mem_range] using hu, },
     { exact ⟨1, f.to_hom_units.map_one⟩ } },
+  -- remaining goal 2
+  show ∑ b : set.range f.to_hom_units, (b : R) = 0,
   calc ∑ b : set.range f.to_hom_units, (b : R)
       = ∑ n in range (order_of x), x ^ n :
     eq.symm $ sum_bij (λ n _, x ^ n)

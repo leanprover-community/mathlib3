@@ -22,7 +22,7 @@ available, the contents of this file should become obsolete.
 * Definition of preadditive categories and basic properties
 * In a preadditive category, `f : Q ⟶ R` is mono if and only if `g ≫ f = 0 → g = 0` for all
   composable `g`.
-* A preadditive categories which has kernels has equalizers.
+* A preadditive category with kernels has equalizers.
 
 ## Implementation notes
 

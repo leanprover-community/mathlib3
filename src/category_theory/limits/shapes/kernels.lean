@@ -124,7 +124,7 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
 fork.is_limit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
-    convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
+    convert (zero_of_comp_mono f _).symm,
     exact kernel_fork.condition _ })
   (λ _ _ _, has_zero_object.zero_of_to_zero _)
 

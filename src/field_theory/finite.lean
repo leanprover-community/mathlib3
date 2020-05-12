@@ -4,33 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 
-import data.polynomial
 import data.equiv.ring
 import data.zmod.basic
-import group_theory.order_of_element
 import linear_algebra.basis
+import ring_theory.integral_domain
 
 universes u v
 variables {K : Type u} {R : Type v}
 
 open function finset polynomial nat
-
-section
-
-variables [integral_domain R] (S : set (units R)) [is_subgroup S] [fintype S]
-
-lemma card_nth_roots_subgroup_units [decidable_eq R] {n : ℕ} (hn : 0 < n) (a : S) :
-  (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units R) : R)).card :=
-card_le_card_of_inj_on (λ a, ((a : units R) : R))
-  (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
-  (by simp [units.ext_iff.symm, subtype.coe_ext.symm])
-
-instance subgroup_units_cyclic : is_cyclic S :=
-by haveI := classical.dec_eq R; exact
-is_cyclic_of_card_pow_eq_one_le
-  (λ n hn, le_trans (card_nth_roots_subgroup_units S hn 1) (card_nth_roots _ _))
-
-end
 
 namespace finite_field
 

@@ -490,7 +490,7 @@ begin
       ... ≤ ∥c∥ * ∥f∥ : mul_le_mul_of_nonneg_left (norm_coe_le_norm x) hnneg } }
 end
 
-lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+lemma norm_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
   by_cases h : c = 0,
   { rw [h, zero_smul, norm_zero, norm_zero, zero_mul] },
@@ -502,16 +502,15 @@ begin
         ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
         ... = ∥(1 / c) • ( c • f)∥ : by rw ← (mul_smul _ _ _)
         ... ≤ ∥1 / c∥ * ∥c • f∥ : (c • f).norm_smul_le (1 / c) },
-    calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
-    ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
-    ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
-    ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
-    ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
-    ... = ∥c • f∥ : one_mul _ } }
+      calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
+      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
+      ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
+      ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
+      ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
+      ... = ∥c • f∥ : one_mul _ } }
 end
 
-instance : normed_space 𝕜 (α →ᵇ β) :=
-⟨bounded_continuous_smul⟩
+instance : normed_space 𝕜 (α →ᵇ β) := ⟨norm_smul⟩
 
 end normed_space
 

@@ -11,29 +11,29 @@ import data.matrix.basic
 import tactic.fin_cases
 
 /-!
-  # Matrix and vector notation
+# Matrix and vector notation
 
-  This file defines notation for vectors and matrices. Given `a b c d : α`,
-  the notation allows us to write `![a, b, c, d] : fin 4 → α`.
-  Nesting vectors gives a matrix, so `![![a, b], ![c, d]] : matrix (fin 2) (fin 2) α`.
-  This file includes `simp` lemmas for applying operations in
-  `data.matrix.basic` to values built out of this notation.
+This file defines notation for vectors and matrices. Given `a b c d : α`,
+the notation allows us to write `![a, b, c, d] : fin 4 → α`.
+Nesting vectors gives a matrix, so `![![a, b], ![c, d]] : matrix (fin 2) (fin 2) α`.
+This file includes `simp` lemmas for applying operations in
+`data.matrix.basic` to values built out of this notation.
 
-  ## Main definitions
+## Main definitions
 
-   * `vec_empty` is the empty vector (or `0` by `n` matrix) `![]`
-   * `vec_cons` prepends an entry to a vector, so `![a, b]` is `vec_cons a (vec_cons b vec_empty)`
+* `vec_empty` is the empty vector (or `0` by `n` matrix) `![]`
+* `vec_cons` prepends an entry to a vector, so `![a, b]` is `vec_cons a (vec_cons b vec_empty)`
 
-  ## Implementation notes
+## Implementation notes
 
-  The `simp` lemmas require that one of the arguments is of the form `vec_cons _ _`.
-  This ensures `simp` works with entries only when (some) entries are already given.
-  In other words, this notation will only appear in the output of `simp` if it
-  already appears in the input.
+The `simp` lemmas require that one of the arguments is of the form `vec_cons _ _`.
+This ensures `simp` works with entries only when (some) entries are already given.
+In other words, this notation will only appear in the output of `simp` if it
+already appears in the input.
 
-  ## Notations
+## Notations
 
-  The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
 -/
 
 namespace matrix

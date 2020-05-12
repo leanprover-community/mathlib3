@@ -52,19 +52,19 @@ variables [semilattice_sup α] {a b c d : α}
 semilattice_sup.le_sup_left a b
 
 @[ematch] theorem le_sup_left' : a ≤ (: a ⊔ b :) :=
-semilattice_sup.le_sup_left a b
+le_sup_left
 
 @[simp] theorem le_sup_right : b ≤ a ⊔ b :=
 semilattice_sup.le_sup_right a b
 
 @[ematch] theorem le_sup_right' : b ≤ (: a ⊔ b :) :=
-semilattice_sup.le_sup_right a b
+le_sup_right
 
 theorem le_sup_left_of_le (h : c ≤ a) : c ≤ a ⊔ b :=
-by finish
+le_trans h le_sup_left
 
 theorem le_sup_right_of_le (h : c ≤ b) : c ≤ a ⊔ b :=
-by finish
+le_trans h le_sup_right
 
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c
@@ -92,16 +92,16 @@ sup_eq_right.2 h
 eq_comm.trans sup_eq_right
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
-by finish
+sup_le (le_sup_left_of_le h₁) (le_sup_right_of_le h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
-by finish
+sup_le_sup (le_refl _) h₁
 
 theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
-by finish
+sup_le_sup h₁ (le_refl _)
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
-by finish
+by { rw ← h, simp }
 
 /-- A monotone function on a sup-semilattice is directed. -/
 lemma directed_of_mono (f : α → β) {r : β → β → Prop}
@@ -116,17 +116,17 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
   λ h, sup_ind b c h.1 h.2⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance sup_is_idempotent : is_idempotent α (⊔) := ⟨@sup_idem _ _⟩
 
 theorem sup_comm : a ⊔ b = b ⊔ a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
-by apply le_antisymm; finish
+le_antisymm (by ifinish) (by ifinish)
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -217,16 +217,16 @@ inf_eq_right.2 h
 eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
-by finish
+le_inf (inf_le_left_of_le h₁) (inf_le_right_of_le h₂)
 
-lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
-by finish
+lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
+inf_le_inf h (le_refl _)
 
-lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
-by finish
+lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
+inf_le_inf (le_refl _) h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
-by finish
+by { rw ← h, simp }
 
 lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
 (is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
@@ -236,17 +236,23 @@ lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
   λ h, inf_ind b c h.1 h.2⟩
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
 
 theorem inf_comm : a ⊓ b = b ⊓ a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
-by apply le_antisymm; finish
+le_antisymm
+  (le_inf
+    (inf_le_left_of_le inf_le_left)
+    (le_inf (inf_le_left_of_le inf_le_right) inf_le_right))
+  (le_inf
+    (le_inf inf_le_left (inf_le_right_of_le inf_le_left))
+    (inf_le_right_of_le inf_le_right))
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
@@ -295,16 +301,16 @@ variables [lattice α] {a b c d : α}
 /- Distributivity laws -/
 /- TODO: better names? -/
 theorem sup_inf_le : a ⊔ (b ⊓ c) ≤ (a ⊔ b) ⊓ (a ⊔ c) :=
-by finish
+by ifinish
 
 theorem le_inf_sup : (a ⊓ b) ⊔ (a ⊓ c) ≤ a ⊓ (b ⊔ c) :=
-by finish
+by ifinish
 
 theorem inf_sup_self : a ⊓ (a ⊔ b) = a :=
-le_antisymm (by finish) (by finish)
+by ifinish
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
-le_antisymm (by finish) (by finish)
+by ifinish
 
 theorem lattice.ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=

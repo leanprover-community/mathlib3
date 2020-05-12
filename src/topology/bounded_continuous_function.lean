@@ -474,7 +474,7 @@ instance : module 𝕜 (α →ᵇ β) :=
 instance : vector_space 𝕜 (α →ᵇ β) :=
 { .. bounded_continuous_function.module }
 
-lemma bounded_continuous_sub_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+lemma norm_smul_le (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 begin
   have hnneg : 0 ≤ ∥ c ∥ := norm_nonneg c,
   rw norm_eq (c • f),
@@ -496,12 +496,12 @@ begin
   { rw [h, zero_smul, norm_zero, norm_zero, zero_mul] },
   { have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
     apply le_antisymm,
-    { exact bounded_continuous_sub_smul c f },
+    { exact f.norm_smul_le c },
     { have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
       { calc ∥f∥ = ∥(1 : 𝕜) • f∥ : by rw one_smul
         ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
         ... = ∥(1 / c) • ( c • f)∥ : by rw ← (mul_smul _ _ _)
-        ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f) },
+        ... ≤ ∥1 / c∥ * ∥c • f∥ : (c • f).norm_smul_le (1 / c) },
     calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
     ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
     ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))

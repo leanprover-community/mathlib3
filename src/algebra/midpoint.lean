@@ -21,8 +21,8 @@ import algebra.invertible
 * `midpoint_eq_iff`: `z` is the midpoint of `[x, y]` if and only if `x + y = z + z`,
 * `midpoint_unique`: `midpoint R x y` does not depend on `R`;
 * `midpoint x y` is linear both in `x` and `y`;
-* `reflection_midpoint_left`, `reflection_midpoint_right`: `equiv.reflection (midpoint R x y)`
-  swaps `x` and `y`.
+* `point_reflection_midpoint_left`, `point_reflection_midpoint_right`:
+  `equiv.point_reflection (midpoint R x y)` swaps `x` and `y`.
 
 We do not mark most lemmas as `@[simp]` because it is hard to tell which side is simpler.
 
@@ -129,10 +129,12 @@ namespace equiv
 
 variables [ring R] [invertible (2:R)] [add_comm_group E] [module R E]
 
-@[simp] lemma reflection_midpoint_left (x y : E) : (reflection (midpoint R x y) : E → E) x = y :=
-by rw [reflection_apply, midpoint_add_self, add_sub_cancel']
+@[simp] lemma point_reflection_midpoint_left (x y : E) :
+  (point_reflection (midpoint R x y) : E → E) x = y :=
+by rw [point_reflection_apply, midpoint_add_self, add_sub_cancel']
 
-@[simp] lemma reflection_midpoint_right (x y : E) : (reflection (midpoint R x y) : E → E) y = x :=
-by rw [reflection_apply, midpoint_add_self, add_sub_cancel]
+@[simp] lemma point_reflection_midpoint_right (x y : E) :
+  (point_reflection (midpoint R x y) : E → E) y = x :=
+by rw [point_reflection_apply, midpoint_add_self, add_sub_cancel]
 
 end equiv

@@ -286,7 +286,7 @@ lemma csupr_le [nonempty ι] {f : ι → α} {c : α} (H : ∀x, f x ≤ c) : su
 cSup_le (range_nonempty f) (by rwa forall_range_iff)
 
 /--The indexed supremum of a function is bounded below by the value taken at one point-/
-lemma le_csupr {f : ι → α} (H : bdd_above (range f)) {c : ι} : f c ≤ supr f :=
+lemma le_csupr {f : ι → α} (H : bdd_above (range f)) (c : ι) : f c ≤ supr f :=
 le_cSup H (mem_range_self _)
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
@@ -309,7 +309,7 @@ lemma le_cinfi [nonempty ι] {f : ι → α} {c : α} (H : ∀x, c ≤ f x) : c 
 le_cInf (range_nonempty f) (by rwa forall_range_iff)
 
 /--The indexed infimum of a function is bounded above by the value taken at one point-/
-lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) {c : ι} : infi f ≤ f c :=
+lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) (c : ι) : infi f ≤ f c :=
 cInf_le H (mem_range_self _)
 
 @[simp] theorem cinfi_const [hι : nonempty ι] {a : α} : (⨅ b:ι, a) = a :=

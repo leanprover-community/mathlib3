@@ -458,6 +458,9 @@ instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, S.carrier⟩
 @[to_additive]
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
 
+@[simp, to_additive]
+lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
 @[simp, norm_cast, to_additive]
 lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
@@ -501,6 +504,18 @@ theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 attribute [ext] add_submonoid.ext
+
+/-- Copy a submonoid replacing `carrier` with a set that is equal to it. -/
+@[to_additive "Copy an additive submonoid replacing `carrier` with a set that is equal to it."]
+def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
+{ carrier := s,
+  one_mem' := hs.symm ▸ S.one_mem',
+  mul_mem' := hs.symm ▸ S.mul_mem' }
+
+@[simp, to_additive] lemma coe_copy {S : submonoid M} {s : set M} (hs : s = S) :
+  (S.copy s hs : set M) = s := rfl
+
+@[to_additive] lemma copy_eq {S : submonoid M} {s : set M} (hs : s = S) : S.copy s hs = S := ext' hs
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An `add_submonoid` contains the monoid's 0."]

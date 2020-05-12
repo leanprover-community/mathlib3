@@ -460,12 +460,12 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
     rw dist_eq_norm at hbound ⊢,
     calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
     ... = ∥c∥ * ∥f x - f y∥ : norm_smul c (f x - f y)
-    ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg,
+    ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg
   end⟩⟩
 
 instance : module 𝕜 (α →ᵇ β) :=
   module.of_core $
-  { smul := (•),
+  { smul     := (•),
     smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
     add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
     mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
@@ -493,21 +493,21 @@ end
 lemma bounded_continuous_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
   by_cases h : c = 0,
-  { rw [h, zero_smul, norm_zero, norm_zero, zero_mul], },
+  { rw [h, zero_smul, norm_zero, norm_zero, zero_mul] },
   { have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
     apply le_antisymm,
-    { exact bounded_continuous_sub_smul c f, },
+    { exact bounded_continuous_sub_smul c f },
     { have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
       { calc ∥f∥ = ∥(1 : 𝕜) • f∥ : by rw one_smul
         ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
-        ... = ∥(1 / c) • ( c • f)∥ : by rw (mul_smul _ _ _).symm
+        ... = ∥(1 / c) • ( c • f)∥ : by rw ← (mul_smul _ _ _)
         ... ≤ ∥1 / c∥ * ∥c • f∥ : bounded_continuous_sub_smul (1 / c) (c • f) },
-      calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
-      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
-      ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
-      ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
-      ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
-      ... = ∥c • f∥ : one_mul _, } }
+    calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
+    ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
+    ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
+    ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
+    ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
+    ... = ∥c • f∥ : one_mul _ } }
 end
 
 instance : normed_space 𝕜 (α →ᵇ β) :=

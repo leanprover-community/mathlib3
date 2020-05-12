@@ -464,12 +464,12 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
   end⟩⟩
 
 instance : module 𝕜 (α →ᵇ β) :=
-  module.of_core $
-  { smul     := (•),
-    smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
-    add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
-    mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
-    one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
+module.of_core $
+{ smul     := (•),
+  smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
+  add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
+  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
+  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
 instance : vector_space 𝕜 (α →ᵇ β) :=
 { .. bounded_continuous_function.module }

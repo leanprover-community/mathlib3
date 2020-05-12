@@ -210,6 +210,12 @@ abbreviation fork.ι (t : fork f g) := t.π.app zero
     `t.ι.app zero : X ⟶ t.X` and `t.ι.app one : Y ⟶ t.X`. Of these, only the second one is
     interesting, and we give it the shorter name `cofork.π t`. -/
 abbreviation cofork.π (t : cofork f g) := t.ι.app one
+
+@[simp] lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
+  fork.ι (fork.of_ι ι w) = ι := rfl
+@[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  cofork.π (cofork.of_π π w) = π := rfl
+
 lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl

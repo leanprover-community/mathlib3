@@ -221,7 +221,7 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
 cofork.is_colimit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
-    convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
+    convert (zero_of_epi_comp f _).symm,
     exact cokernel_cofork.condition _ })
   (λ _ _ _, has_zero_object.zero_of_from_zero _)
 

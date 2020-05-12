@@ -50,7 +50,7 @@ def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matri
 lemma mul_matrix_apply [decidable_eq m] [semiring α] (f : l ≃. m) (M : matrix m n α) (i j) :
   (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
 begin
-  dsimp [to_matrix, matrix.mul],
+  dsimp [to_matrix, matrix.mul_val],
   cases h : f i with fi,
   { simp [h] },
   { rw finset.sum_eq_single fi;
@@ -68,7 +68,7 @@ by ext; simp [to_matrix, one_val]; congr
 lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin
-  dsimp [to_matrix, matrix.mul],
+  dsimp [to_matrix, matrix.mul_val],
   cases h : f.symm j with fj,
   { simp [h, f.eq_some_iff.symm] },
   { conv in (_ ∈ _) { rw ← f.mem_iff_mem },

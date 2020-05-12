@@ -547,9 +547,15 @@ begin
   { rw reverse_cons, exact H1 _ _ ih }
 end
 
+/-! ### is_nil -/
+
+lemma is_nil_iff_eq_nil {l : list α} : l.is_nil ↔ l = [] :=
+list.cases_on l (by simp [is_nil]) (by simp [is_nil])
+
 /-! ### last -/
 
-@[simp] theorem last_cons {a : α} {l : list α} : ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil), last (a :: l) h₁ = last l h₂ :=
+@[simp] theorem last_cons {a : α} {l : list α} :
+  ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil), last (a :: l) h₁ = last l h₂ :=
 by {induction l; intros, contradiction, reflexivity}
 
 @[simp] theorem last_append {a : α} (l : list α) (h : l ++ [a] ≠ []) : last (l ++ [a]) h = a :=
@@ -567,10 +573,69 @@ theorem last_congr {l₁ l₂ : list α} (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ [
   last l₁ h₁ = last l₂ h₂ :=
 by subst l₁
 
+theorem last_mem : ∀ {l : list α} (h : l ≠ []), last l h ∈ l
+| [] h := absurd rfl h
+| [a] h := or.inl rfl
+| (a::b::l) h := or.inr $ by { rw [last_cons_cons], exact last_mem (cons_ne_nil b l) }
+
+/-! ### last' -/
+
+@[simp] theorem last'_is_none :
+  ∀ {l : list α}, (last' l).is_none ↔ l = []
+| [] := by simp
+| [a] := by simp
+| (a::b::l) := by simp [@last'_is_none (b::l)]
+
+@[simp] theorem last'_is_some : ∀ {l : list α}, l.last'.is_some ↔ l ≠ []
+| [] := by simp
+| [a] := by simp
+| (a::b::l) := by simp [@last'_is_some (b::l)]
+
+theorem mem_last'_eq_last : ∀ {l : list α} {x : α}, x ∈ l.last' → ∃ h, x = last l h
+| [] x hx := false.elim $ by simpa using hx
+| [a] x hx := have a = x, by simpa using hx, this ▸ ⟨cons_ne_nil a [], rfl⟩
+| (a::b::l) x hx :=
+  begin
+    rw last' at hx,
+    rcases mem_last'_eq_last hx with ⟨h₁, h₂⟩,
+    use cons_ne_nil _ _,
+    rwa [last_cons]
+  end
+
+theorem mem_of_mem_last' {l : list α} {a : α} (ha : a ∈ l.last') : a ∈ l :=
+let ⟨h₁, h₂⟩ := mem_last'_eq_last ha in h₂.symm ▸ last_mem _
+
+theorem init_append_last' : ∀ {l : list α} (a ∈ l.last'), init l ++ [a] = l
+| [] a ha := (option.not_mem_none a ha).elim
+| [a] _ rfl := rfl
+| (a :: b :: l) c hc := by { rw [last'] at hc, rw [init, cons_append, init_append_last' _ hc] }
+
+theorem ilast_eq_last' [inhabited α] : ∀ l : list α, l.ilast = l.last'.iget
+| [] := by simp [ilast, arbitrary]
+| [a] := rfl
+| [a, b] := rfl
+| [a, b, c] := rfl
+| (a :: b :: c :: l) := by simp [ilast, ilast_eq_last' (c :: l)]
+
+@[simp] theorem last'_append_cons : ∀ (l₁ : list α) (a : α) (l₂ : list α),
+  last' (l₁ ++ a :: l₂) = last' (a :: l₂)
+| [] a l₂ := rfl
+| [b] a l₂ := rfl
+| (b::c::l₁) a l₂ := by rw [cons_append, cons_append, last', ← cons_append, last'_append_cons]
+
+theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : l₂ ≠ []),
+  last' (l₁ ++ l₂) = last' l₂
+| [] hl₂ := by contradiction
+| (b::l₂) _ := last'_append_cons l₁ b l₂
+
 /-! ### head(') and tail -/
 
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
 by cases l; refl
+
+theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
+| [] h := (option.not_mem_none _ h).elim
+| (a::l) h := by { simp only [head', option.mem_def] at h, exact h ▸ or.inl rfl }
 
 @[simp] theorem head_cons [inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
 
@@ -581,8 +646,16 @@ by cases l; refl
 @[simp] theorem head_append [inhabited α] (t : list α) {s : list α} (h : s ≠ []) : head (s ++ t) = head s :=
 by {induction s, contradiction, refl}
 
+theorem cons_head'_tail : ∀ {l : list α} {a : α} (h : a ∈ head' l), a :: tail l = l
+| [] a h := by contradiction
+| (b::l) a h := by { simp at h, simp [h] }
+
+theorem head_mem_head' [inhabited α] : ∀ {l : list α} (h : l ≠ []), head l ∈ head' l
+| [] h := by contradiction
+| (a::l) h := rfl
+
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
-by {induction l, contradiction, refl}
+cons_head'_tail (head_mem_head' h)
 
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
 
@@ -1609,6 +1682,10 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 @[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
+
+@[to_additive]
+theorem prod_eq_foldr : l.prod = foldr (*) 1 l :=
+list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[to_additive]
 theorem prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r : β → γ → Prop}

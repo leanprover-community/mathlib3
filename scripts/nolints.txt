@@ -1037,16 +1037,11 @@ apply_nolint alist.foldl unused_arguments
 apply_nolint list.to_alist doc_blame
 
 -- data/list/defs.lean
-apply_nolint list.choose doc_blame
-apply_nolint list.choose_x doc_blame
 apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
 apply_nolint list.insert_nth doc_blame
-apply_nolint list.map_head doc_blame
-apply_nolint list.map_last doc_blame
-apply_nolint list.map_with_index doc_blame
 apply_nolint list.map_with_index_core doc_blame
 apply_nolint list.of_fn doc_blame
 apply_nolint list.of_fn_aux doc_blame
@@ -1055,14 +1050,11 @@ apply_nolint list.partition_map doc_blame
 apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame
 apply_nolint list.permutations_aux2 doc_blame
-apply_nolint list.reduce_option doc_blame
 apply_nolint list.revzip doc_blame
 apply_nolint list.scanr_aux doc_blame
-apply_nolint list.split_on_p_aux doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
-apply_nolint list.take' doc_blame
 apply_nolint list.transpose_aux doc_blame
 apply_nolint list.traverse doc_blame
 
@@ -1484,9 +1476,7 @@ apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 apply_nolint nnreal.of_real doc_blame
 
 -- data/real/pi.lean
-apply_nolint real.pi_gt_314 ge_or_gt
 apply_nolint real.pi_gt_sqrt_two_add_series ge_or_gt
-apply_nolint real.pi_gt_three ge_or_gt
 apply_nolint real.sqrt_two_add_series_nonneg ge_or_gt
 apply_nolint real.sqrt_two_add_series_zero_nonneg ge_or_gt
 

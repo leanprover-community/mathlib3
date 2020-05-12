@@ -12,6 +12,7 @@ import ring_theory.multiplicity
 -- import data.padics.padic_integers
 import number_theory.quadratic_reciprocity
 import algebra.invertible
+import number_theory.basic
 -- import deprecated.group
 
 import tactic
@@ -56,20 +57,19 @@ namespace mv_polynomial
 open mv_polynomial finsupp
 
 lemma eval₂_assoc'
-  {S : Type*} [decidable_eq S] [comm_semiring S]
-  {T : Type*} [decidable_eq T] [comm_semiring T]
-  {σ : Type*} [decidable_eq σ]
-  {τ : Type*} [decidable_eq τ]
+  {S : Type*} [comm_semiring S]
+  {T : Type*} [comm_semiring T]
+  {σ : Type*}
+  {τ : Type*}
   (f : S → T) [is_semiring_hom f]
   (φ : σ → T) (q : τ → mv_polynomial σ S)
   (p : mv_polynomial τ S) :
   eval₂ f (λ t, eval₂ f φ (q t)) p = eval₂ f φ (eval₂ C q p) :=
 by { rw eval₂_comp_left (eval₂ f φ), congr, funext, simp }
 
-variables {R : Type*} {S : Type*} (f : R → S) {ι : Type*}
-variables [decidable_eq R] [comm_ring R]
-variables [decidable_eq S] [comm_ring S]
-variables [is_ring_hom f] [decidable_eq ι]
+-- variables {R : Type*} {S : Type*} (f : R → S) {ι : Type*}
+-- variables [comm_ring R] [comm_ring S]
+-- variables [is_ring_hom f]
 
 -- lemma eval₂_sum' {X : Type*} [decidable_eq X] (s : finset X) (g : ι → S)
 --   (i : X → mv_polynomial ι R) :
@@ -172,49 +172,49 @@ end
 
 open mv_polynomial set
 
-lemma dvd_sub_pow_of_dvd_sub (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime]
-  (a b : R) (h : (p : R) ∣ a - b) (k : ℕ) :
-  (p^(k+1) : R) ∣ a^(p^k) - b^(p^k) :=
-begin
-  induction k with k ih, { simpa using h }, clear h,
-  simp only [nat.succ_eq_add_one],
-  rcases ih with ⟨c, hc⟩,
-  rw sub_eq_iff_eq_add' at hc,
-  replace hc := congr_arg (λ x, x^p) hc,
-  dsimp only at hc,
-  rw [← pow_mul, add_pow, finset.sum_range_succ, nat.choose_self, nat.cast_one, mul_one,
-    nat.sub_self, pow_zero, mul_one] at hc,
-  conv { congr, skip, rw [nat.pow_succ] },
-  simp only [nat.pow_eq_pow] at hc,
-  rw [hc, pow_mul, add_sub_cancel'], clear hc a,
-  apply dvd_sum,
-  intros i hi,
-  rw finset.mem_range at hi,
-  rw mul_pow,
-  conv { congr, skip, congr, congr, skip, rw mul_comm },
-  repeat { rw mul_assoc, apply dvd_mul_of_dvd_right }, clear c b,
-  norm_cast,
-  apply coe_nat_dvd,
-  by_cases H : i = 0,
-  { subst H,
-    suffices : p ^ (k + 1 + 1) ∣ (p ^ (k + 1)) ^ p, by simpa,
-    rw ← nat.pow_mul,
-    apply nat.pow_dvd_pow,
-    refine le_trans (add_le_add_left' $ le_add_left $ le_refl _ : k + 1 + 1 ≤ k + 1 + (k + 1)) _,
-    refine le_trans (le_of_eq _) (nat.mul_le_mul_left (k+1) $ (hp.two_le : 2 ≤ p)),
-    rw mul_two },
-  have i_pos := nat.pos_of_ne_zero H, clear H,
-  rw nat.pow_succ,
-  apply mul_dvd_mul,
-  { generalize H : (p^(k+1)) = b,
-    have := nat.sub_pos_of_lt hi,
-    conv {congr, rw ← nat.pow_one b},
-    apply nat.pow_dvd_pow,
-    exact this },
-  exact nat.prime.dvd_choose i_pos hi ‹_›
-end
+-- lemma dvd_sub_pow_of_dvd_sub (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime]
+--   (a b : R) (h : (p : R) ∣ a - b) (k : ℕ) :
+--   (p^(k+1) : R) ∣ a^(p^k) - b^(p^k) :=
+-- begin
+--   induction k with k ih, { simpa using h }, clear h,
+--   simp only [nat.succ_eq_add_one],
+--   rcases ih with ⟨c, hc⟩,
+--   rw sub_eq_iff_eq_add' at hc,
+--   replace hc := congr_arg (λ x, x^p) hc,
+--   dsimp only at hc,
+--   rw [← pow_mul, add_pow, finset.sum_range_succ, nat.choose_self, nat.cast_one, mul_one,
+--     nat.sub_self, pow_zero, mul_one] at hc,
+--   conv { congr, skip, rw [nat.pow_succ] },
+--   simp only [nat.pow_eq_pow] at hc,
+--   rw [hc, pow_mul, add_sub_cancel'], clear hc a,
+--   apply dvd_sum,
+--   intros i hi,
+--   rw finset.mem_range at hi,
+--   rw mul_pow,
+--   conv { congr, skip, congr, congr, skip, rw mul_comm },
+--   repeat { rw mul_assoc, apply dvd_mul_of_dvd_right }, clear c b,
+--   norm_cast,
+--   apply coe_nat_dvd,
+--   by_cases H : i = 0,
+--   { subst H,
+--     suffices : p ^ (k + 1 + 1) ∣ (p ^ (k + 1)) ^ p, by simpa,
+--     rw ← nat.pow_mul,
+--     apply nat.pow_dvd_pow,
+--     refine le_trans (add_le_add_left' $ le_add_left $ le_refl _ : k + 1 + 1 ≤ k + 1 + (k + 1)) _,
+--     refine le_trans (le_of_eq _) (nat.mul_le_mul_left (k+1) $ (hp.two_le : 2 ≤ p)),
+--     rw mul_two },
+--   have i_pos := nat.pos_of_ne_zero H, clear H,
+--   rw nat.pow_succ,
+--   apply mul_dvd_mul,
+--   { generalize H : (p^(k+1)) = b,
+--     have := nat.sub_pos_of_lt hi,
+--     conv {congr, rw ← nat.pow_one b},
+--     apply nat.pow_dvd_pow,
+--     exact this },
+--   exact nat.prime.dvd_choose i_pos hi ‹_›
+-- end
 
-open mv_polynomial
+-- open mv_polynomial
 
 -- noncomputable theory
 
@@ -355,7 +355,7 @@ begin
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
   simp only [f.map_mul, alg_hom.map_sub f, fC, fX, alg_hom.map_sum],
-  rw [finset.sum_congr rfl, (_ : @witt_polynomial p _ R _ _ n -
+  rw [finset.sum_congr rfl, (_ : @witt_polynomial p _ R _ n -
     (finset.range n).sum (λ i, C (p^i) * (X i)^p^(n-i)) = C (p^n) * X n)],
   { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { simp [witt_polynomial, nat.sub_self],
@@ -450,7 +450,7 @@ begin
   refl,
 end
 
-variables {idx : Type*} [decidable_eq idx]
+variables {idx : Type*}
 
 -- move this (and generalize to char_zero fields)
 instance rat.invertible_of_prime (p : ℕ) [hp : fact p.prime] : invertible (p : ℚ) :=
@@ -495,7 +495,7 @@ lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
   Φ.eval₂ C (λ b, ((witt_polynomial p n).rename (λ i, (b,i)))) -
   (finset.range n).sum (λ i, C (p^i) * (witt_structure_rat p Φ i)^p^(n-i)) :=
 begin
-  have := @X_in_terms_of_W_aux p _ ℚ _ _ _ n,
+  have := @X_in_terms_of_W_aux p _ ℚ _ _ n,
   replace := congr_arg (eval₂ C (λ k : ℕ,
   Φ.eval₂ C (λ b, ((witt_polynomial p k).rename (λ i, (b,i)))))) this,
   rw [eval₂_mul, eval₂_C] at this,
@@ -524,9 +524,9 @@ finsupp.map_range rat.num (rat.coe_int_num 0) (witt_structure_rat p (map (int.ca
 .
 
 section
-variables {ι : Type*} [decidable_eq ι]
+variables {ι : Type*}
 
-variables {S : Type*} [decidable_eq S] [comm_ring S]
+variables {S : Type*} [comm_ring S]
 
 lemma map_witt_polynomial (f : R →+* S) (n) :
   map f (witt_polynomial p n) = witt_polynomial p n :=
@@ -541,7 +541,7 @@ end
 
 end
 
-lemma mv_polynomial.coe_int_rat_map_injective (I : Type*) [decidable_eq I] :
+lemma mv_polynomial.coe_int_rat_map_injective (I : Type*) :
   function.injective (map (int.cast_ring_hom ℚ) : mv_polynomial I ℤ → mv_polynomial I ℚ) :=
 begin
   apply map_injective,
@@ -554,9 +554,9 @@ lemma sub_congr (a b c d : R) (h1 : a = c) (h2 : b = d) : a - b = c - d :=
 by rw [h1, h2]
 .
 
-variables {ι : Type*} {σ : Type*} [decidable_eq ι] [decidable_eq σ]
-variables {S : Type*} [decidable_eq S] [comm_ring S]
-variables {T : Type*} [decidable_eq T] [comm_ring T]
+variables {ι : Type*} {σ : Type*}
+variables {S : Type*} [comm_ring S]
+variables {T : Type*} [comm_ring T]
 
 lemma foo (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < n → map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
@@ -631,12 +631,12 @@ begin
 end
 .
 
-lemma eq_mod_iff_dvd_sub (a b c : α) :
+lemma eq_mod_iff_dvd_sub (a b c : R) :
   (a modₑ c) = (b modₑ c) ↔ c ∣ a - b :=
 by rw [← sub_eq_zero, ← ideal.quotient.mk_sub,
   ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton]
 
-lemma fermat_little' (a : zmod p) : a^p = a :=
+lemma fermat_little' (p : ℕ) [hp : fact p.prime] (a : zmod p) : a^p = a :=
 begin
   have ppos : p > 0 := nat.prime.pos ‹_›,
   by_cases h : a = 0,
@@ -645,7 +645,7 @@ begin
     replace := congr_arg (λ x, a * x) this,
     simp at this,
     convert this,
-    rw ← pow_succ, congr, clear this h a _inst_3,
+    rw ← pow_succ, congr, clear this h a hp,
     revert ppos p, omega manual nat }
 end
 
@@ -663,8 +663,8 @@ begin
   { intros f i hf, rw [eval₂_mul, ideal.quotient.mk_mul, hf, eval₂_X, mul_pow, ideal.quotient.mk_mul] }
 end
 
-lemma zrum (a b : α) (h : (a modₑ (p : α)) = (b modₑ (p : α))) (k : ℕ) :
-  (a^(p^k) modₑ (p^(k+1) : α)) = (b^(p^k) modₑ (p^(k+1) : α)) :=
+lemma zrum (a b : R) (h : (a modₑ (p : R)) = (b modₑ (p : R))) (k : ℕ) :
+  (a^(p^k) modₑ (p^(k+1) : R)) = (b^(p^k) modₑ (p^(k+1) : R)) :=
 begin
   rw eq_mod_iff_dvd_sub at h ⊢,
   apply dvd_sub_pow_of_dvd_sub,
@@ -851,6 +851,7 @@ begin
       { apply finset.sum_congr rfl,
         intros i hi,
         rw finset.mem_range at hi, replace hi := nat.le_of_lt_succ hi,
+        dsimp,
         rw [eval₂_mul, ← C_pow, eval₂_C, eval₂_pow, eval₂_X],
         rw [show (p:ℤ)^i = (p^i : ℕ), by simp, ← int.nat_cast_eq_coe_nat, C_eq_coe_nat],
         rw [eq_mod_iff_dvd_sub, ← mul_sub],
@@ -1013,7 +1014,7 @@ noncomputable def ghost_component (n : ℕ) (w : 𝕎 p R) : R :=
 
 section map
 open function
-variables {α} {β : Type*}
+variables {α : Type*} {β : Type*}
 
 def map (f : α → β) : 𝕎 p α → 𝕎 p β := λ w, f ∘ w
 
@@ -1296,17 +1297,18 @@ variable (R)
 noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
 comm_ring_of_injective (ghost_map)
   (ghost_map.bijective_of_invertible p _).1
-  (@ghost_map.zero p _ (mv_polynomial R ℚ) _ _)
+  (@ghost_map.zero p _ (mv_polynomial R ℚ) _)
   (ghost_map.one) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
 
 local attribute [instance] aux₁
 .
 
-example : mv_polynomial.map (int.cast_ring_hom R) = aeval ℤ (mv_polynomial σ R) X :=
-begin
-  delta mv_polynomial.map,
-  dsimp [aeval, eval₂_hom],
-end
+-- experiment... this isn't defeq
+-- example : mv_polynomial.map (int.cast_ring_hom R) = aeval ℤ (mv_polynomial σ R) X :=
+-- begin
+--   delta mv_polynomial.map,
+--   dsimp [aeval, eval₂_hom],
+-- end
 
 noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
 -- have hom : is_ring_hom (mv_polynomial.map coe : mv_polynomial R ℤ → mv_polynomial R ℚ), by apply_instance,

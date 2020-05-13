@@ -65,6 +65,9 @@ extends add_monoid_hom M N :=
 (surj' : ∀ z : N, ∃ x : M × S, z + to_fun x.2 = to_fun x.1)
 (eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, x + c = y + c)
 
+/-- The add_monoid hom underlying a `localization_map`. -/
+add_decl_doc localization_map.to_add_monoid_hom
+
 end add_submonoid
 
 variables {M : Type*} [comm_monoid M] (S : submonoid M) (N : Type*) [comm_monoid N]
@@ -83,6 +86,9 @@ extends monoid_hom M N :=
 attribute [to_additive add_submonoid.localization_map] submonoid.localization_map
 attribute [to_additive add_submonoid.localization_map.to_add_monoid_hom]
   submonoid.localization_map.to_monoid_hom
+
+/-- The monoid hom underlying a `localization_map`. -/
+add_decl_doc localization_map.to_monoid_hom
 
 namespace localization
 

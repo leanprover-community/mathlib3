@@ -52,9 +52,8 @@ end
 
 end
 
-lemma card_fiber_eq_of_mem_range [fintype G]
-  {H : Type*} [group H] [decidable_eq H] (f : G →* H) {x y : H}
-  (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
+lemma card_fiber_eq_of_mem_range {H : Type*} [group H] [decidable_eq H]
+  (f : G →* H) {x y : H} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
   (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
 begin
   rcases hx with ⟨x, rfl⟩,
@@ -68,8 +67,6 @@ begin
       eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
-
-variables {G} [fintype G]
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero. -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=

@@ -161,7 +161,10 @@ attribute [ext [thunk]] funext
 
 -- is turned into
 attribute [_ext_core (@id name @funext)] thunk
+attribute [_ext_lemma_core] funext
 ```
+
+The `_ext_lemma_core` supports fast priority-sorted lookup with `attribute.get_instances`.
 -/
 
 local attribute [semireducible] reflected
@@ -185,6 +188,13 @@ private meta def ext_attr_core : user_attribute (name_map name) name :=
 
 end performance_hack
 
+/-- Private attribute used to tag extensionality lemmas. -/
+@[user_attribute]
+private meta def ext_lemma_attr_core : user_attribute :=
+{ name := `_ext_lemma_core,
+  descr := "(internal attribute used by ext)",
+  parser := failure }
+
 /--
 Returns the extensionality lemmas in the environment, as a map from structure
 name to lemma name.
@@ -196,7 +206,7 @@ ext_attr_core.get_cache
 Returns the extensionality lemmas in the environment, as a list of lemma names.
 -/
 meta def get_ext_lemma_names : tactic (list name) :=
-rb_map.values <$> get_ext_lemmas
+attribute.get_instances ext_lemma_attr_core.name
 
 /--
 Tag lemmas of the form:
@@ -301,7 +311,9 @@ meta def extensional_attribute : user_attribute unit (list ext_param_type) :=
        ls''.mmap' (equiv_type_constr s),
        ls' ← get_ext_lemmas,
        let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
-       l.mmap' $ λ l, ext_attr_core.set l n b prio }
+       l.mmap' $ λ l, do
+        ext_attr_core.set l n b prio,
+        ext_lemma_attr_core.set n () b prio }
 
 add_tactic_doc
 { name                     := "ext",

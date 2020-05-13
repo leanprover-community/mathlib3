@@ -994,13 +994,8 @@ open submonoid
 
 @[to_additive]
 theorem closure_range_of : closure (set.range $ @of α) = ⊤ :=
-begin
-  refine eq_top_iff.2 (λ x hx, _),
-  induction x with hd tl ih,
-  { from one_mem _ },
-  { rw ← of_mul_eq_cons,
-    exact mul_mem _ (subset_closure $ set.mem_range_self _) (ih trivial) }
-end
+eq_top_iff.2 $ λ x hx, free_monoid.rec_on x (one_mem _) $ λ x xs hxs,
+  mul_mem _ (subset_closure $ set.mem_range_self _) hxs
 
 end free_monoid
 

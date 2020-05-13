@@ -150,6 +150,48 @@ do e  ← saturate_fun n,
    e' ← saturate_fun n',
    unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
 
+section performance_hack
+/-!
+For performance reasons, it is inadvisable to use `user_attribute.get_param`.
+Hence we store the important data of the `@[ext]` attribute in a different
+attribute called `_ext_core` as a type-incorrect parameter.
+
+```lean
+attribute [ext [thunk]] funext
+
+-- is turned into
+attribute [_ext_core (@id name @funext)] thunk
+```
+-/
+
+local attribute [semireducible] reflected
+
+local attribute [instance, priority 9000]
+private meta def hacky_name_reflect : has_reflect name :=
+λ n, `(id %%(expr.const n []) : name)
+
+@[user_attribute]
+private meta def ext_attr_core : user_attribute (name_map name) name :=
+{ name := `_ext_core,
+  descr := "(internal attribute used by ext)",
+  cache_cfg := {
+    dependencies := [],
+    mk_cache := λ ns, do
+      attrs ← ns.mmap (λ n, do
+        ext_l ← ext_attr_core.get_param_untyped n,
+        pure (n, ext_l.app_arg.const_name)),
+      pure $ rb_map.of_list attrs },
+  parser := failure }
+
+end performance_hack
+
+/--
+Returns the extensionality lemmas in the environment, as a map from structure
+name to lemma name.
+-/
+meta def get_ext_lemmas : tactic (name_map name) :=
+ext_attr_core.get_cache
+
 /--
 Tag lemmas of the form:
 
@@ -235,34 +277,25 @@ x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
 
 -/
 @[user_attribute]
-meta def extensional_attribute : user_attribute (name_map name)
-  (bool × list ext_param_type × list name × list (name × name)) :=
+meta def extensional_attribute : user_attribute unit (list ext_param_type) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
-  cache_cfg := { mk_cache := λ ls,
-                          do { attrs ← ls.mmap $ λ l,
-                                     do { ⟨_,_,ls,_⟩ ← extensional_attribute.get_param l,
-                                          pure $ prod.mk <$> ls <*> pure l },
-                               pure $ rb_map.of_list $ attrs.join },
-                 dependencies := [] },
-  parser :=
-    do { ls ← pure <$> ext_param <|> list_of ext_param <|> pure [],
-         m ← extensional_attribute.get_cache,
-         pure $ (ff,ls,[],m.to_list)  },
-  after_set := some $ λ n _ b,
-    do (ff,ls,_,ls') ← extensional_attribute.get_param n | pure (),
+  parser := pure <$> ext_param <|> list_of ext_param <|> pure [],
+  after_set := some $ λ n prio b,
+    do ls ← extensional_attribute.get_param n,
        e ← get_env,
-       n ← if (e.structure_fields n).is_some
+       n' ← if (e.structure_fields n).is_some
          then derive_struct_ext_lemma n
          else pure n,
-       s ← mk_const n >>= infer_type >>= get_ext_subject,
+       s ← mk_const n' >>= infer_type >>= get_ext_subject,
        let (rs,ls'') := if ls.empty
                            then ([],[s])
                            else ls.partition_map (sum.map (flip option.get_or_else s)
                                                     (flip option.get_or_else s)),
        ls''.mmap' (equiv_type_constr s),
-       let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
-       extensional_attribute.set n (tt,[],l,[]) b }
+       ls' ← get_ext_lemmas,
+       let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n').map prod.fst \ rs,
+       l.mmap' $ λ l, ext_attr_core.set l n b prio }
 
 add_tactic_doc
 { name                     := "ext",
@@ -301,7 +334,7 @@ do tgt ← target >>= whnf,
 
 meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}) : tactic ext_patt :=
 do subject ← target >>= get_ext_subject,
-   m ← extensional_attribute.get_cache,
+   m ← get_ext_lemmas,
    do { rule ← m.find subject,
         applyc rule cfg } <|>
      do { ls ← attribute.get_instances `ext,

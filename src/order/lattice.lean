@@ -126,7 +126,13 @@ by apply le_antisymm; simp
 instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
-le_antisymm (by ifinish) (by ifinish)
+le_antisymm
+  (sup_le
+    (sup_le le_sup_left (le_sup_right_of_le le_sup_left))
+    (le_sup_right_of_le le_sup_right))
+  (sup_le
+    (le_sup_left_of_le le_sup_left)
+    (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -301,16 +307,16 @@ variables [lattice α] {a b c d : α}
 /- Distributivity laws -/
 /- TODO: better names? -/
 theorem sup_inf_le : a ⊔ (b ⊓ c) ≤ (a ⊔ b) ⊓ (a ⊔ c) :=
-by ifinish
+le_inf (sup_le_sup_left inf_le_left _) (sup_le_sup_left inf_le_right _)
 
 theorem le_inf_sup : (a ⊓ b) ⊔ (a ⊓ c) ≤ a ⊓ (b ⊔ c) :=
-by ifinish
+sup_le (inf_le_inf_left _ le_sup_left) (inf_le_inf_left _ le_sup_right)
 
 theorem inf_sup_self : a ⊓ (a ⊔ b) = a :=
-by ifinish
+by simp
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
-by ifinish
+by simp
 
 theorem lattice.ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=

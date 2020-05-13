@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space
+open_locale topological_space big_operators classical
 
 namespace asymptotics
 
@@ -983,44 +983,33 @@ end smul
 
 section sum
 
-open_locale big_operators
-
 variables {ι : Type*} {A : ι → α → E'} {C : ι → ℝ} {s : finset ι}
 
 theorem is_O_with.sum (h : ∀ i ∈ s, is_O_with (C i) (A i) g l) :
   is_O_with (∑ i in s, C i) (λ x, ∑ i in s, A i x) g l :=
 begin
-  classical,
-  revert h,
-  apply finset.induction_on s,
+  induction s using finset.induction_on with i s is IH,
   { simp only [is_O_with_zero', finset.sum_empty, forall_true_iff] },
-  { assume i s is IH H,
-    simp only [is, finset.sum_insert, not_false_iff],
-    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
 end
 
 theorem is_O.sum (h : ∀ i ∈ s, is_O (A i) g l) :
   is_O (λ x, ∑ i in s, A i x) g l :=
 begin
-  classical,
-  revert h,
-  apply finset.induction_on s,
+  induction s using finset.induction_on with i s is IH,
   { simp only [is_O_zero, finset.sum_empty, forall_true_iff] },
-  { assume i s is IH H,
-    simp only [is, finset.sum_insert, not_false_iff],
-    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
 end
 
 theorem is_o.sum (h : ∀ i ∈ s, is_o (A i) g' l) :
   is_o (λ x, ∑ i in s, A i x) g' l :=
 begin
-  classical,
-  revert h,
-  apply finset.induction_on s,
+  induction s using finset.induction_on with i s is IH,
   { simp only [is_o_zero, finset.sum_empty, forall_true_iff] },
-  { assume i s is IH H,
-    simp only [is, finset.sum_insert, not_false_iff],
-    exact (H _ (finset.mem_insert_self i s)).add (IH (λ j hj, H _ (finset.mem_insert_of_mem hj))) }
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
 end
 
 end sum
@@ -1045,7 +1034,6 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     refine is_O_of_le _ (λ x, _),
-    classical,
     by_cases H : g x = 0,
     { simp only [H, hgf _ H, mul_zero] },
     { simp only [div_mul_cancel _ H] }

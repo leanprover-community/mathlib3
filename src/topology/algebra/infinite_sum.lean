@@ -456,6 +456,16 @@ end
 
 end tsum
 
+<<<<<<< HEAD
+=======
+/-!
+### Sums on subtypes
+
+If `s` is a finset of `α`, we show that the summability of `f` in the whole space and on the subtype
+`univ - s` are equivalent, and relate their sums. For a function defined on `ℕ`, we deduce the
+formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
+-/
+>>>>>>> upstream/master
 section subtype
 variables {s : finset β}
 
@@ -506,18 +516,10 @@ lemma summable_subtype_iff (s : finset β):
   summable (λ b : {b // b ∉ s}, f b) ↔ summable f :=
 ⟨λ H, (has_sum_subtype_iff.1 H.has_sum).summable, λ H, (has_sum_subtype_iff'.2 H.has_sum).summable⟩
 
-/-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
-def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
-{ to_fun := λ i, i.1 - k,
-  inv_fun := λ j, ⟨j + k, by simp⟩,
-  left_inv :=
-  begin
-    assume j,
-    rw subtype.ext,
-    apply nat.sub_add_cancel,
-    simpa using j.2
-  end,
-  right_inv := λ j, nat.add_sub_cancel _ _ }
+lemma sum_add_tsum_subtype [t2_space α] (s : finset β) (h : summable f) :
+  (∑ b in s, f b) + (∑' (b : {b // b ∉ s}), f b) = (∑' b, f b) :=
+by simpa [add_comm] using
+  has_sum_unique (has_sum_subtype_iff.1 ((summable_subtype_iff s).2 h).has_sum) h.has_sum
 
 lemma summable_nat_add_iff {f : ℕ → α} (k : ℕ) : summable (λ n, f (n + k)) ↔ summable f :=
 begin
@@ -538,12 +540,10 @@ lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) (a - ∑ i in range k, f i) ↔ has_sum f a :=
 by simp [has_sum_nat_add_iff]
 
-lemma tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
-  (∑' i, f i) = (∑ i in range k, f i) + (∑' i, f (i + k)) :=
-begin
-  rw ← has_sum_unique ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum) h.has_sum,
-  simp [add_comm]
-end
+lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
+  (∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i) :=
+by simpa [add_comm] using
+  has_sum_unique ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum) h.has_sum
 
 end subtype
 
@@ -808,7 +808,7 @@ begin
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],
   refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,
-  exact hd.summable_comp_of_injective (add_left_injective n)
+  exact hd.summable_comp_of_injective (add_right_injective n)
 end
 
 lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)

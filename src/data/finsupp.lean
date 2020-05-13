@@ -187,7 +187,7 @@ begin
     { rw [single_zero, single_zero] } }
 end
 
-lemma single_right_inj (h : b ≠ 0) :
+lemma single_left_inj (h : b ≠ 0) :
   single a b = single a' b ↔ a = a' :=
 ⟨λ H, by simpa only [h, single_eq_single_iff,
   and_false, or_false, eq_self_iff_true, and_true] using H,

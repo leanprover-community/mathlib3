@@ -806,6 +806,10 @@ def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 
 @[simp] theorem filter_subset (s : finset α) : s.filter p ⊆ s := filter_subset _
 
+theorem filter_ssubset {s : finset α} : s.filter p ⊂ s ↔ ∃ x ∈ s, ¬ p x :=
+⟨λ h, let ⟨x, hs, hp⟩ := set.exists_of_ssubset h in ⟨x, hs, mt (λ hp, mem_filter.2 ⟨hs, hp⟩) hp⟩,
+  λ ⟨x, hs, hp⟩, ⟨s.filter_subset, λ h, hp (mem_filter.1 (h hs)).2⟩⟩
+
 theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext.2 $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
@@ -997,6 +1001,25 @@ theorem forall_mem_insert [d : decidable_eq α]
 by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
 
 end finset
+
+/-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
+def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
+{ to_fun := λ i, i.1 - k,
+  inv_fun := λ j, ⟨j + k, by simp⟩,
+  left_inv :=
+  begin
+    assume j,
+    rw subtype.ext,
+    apply nat.sub_add_cancel,
+    simpa using j.2
+  end,
+  right_inv := λ j, nat.add_sub_cancel _ _ }
+
+@[simp] lemma coe_not_mem_range_equiv (k : ℕ) :
+  (not_mem_range_equiv k : {n // n ∉ range k} → ℕ) = (λ i, i - k) := rfl
+
+@[simp] lemma coe_not_mem_range_equiv_symm (k : ℕ) :
+  ((not_mem_range_equiv k).symm : ℕ → {n // n ∉ range k}) = λ j, ⟨j + k, by simp⟩ := rfl
 
 namespace option
 

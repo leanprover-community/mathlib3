@@ -456,8 +456,6 @@ end
 
 end tsum
 
-<<<<<<< HEAD
-=======
 /-!
 ### Sums on subtypes
 
@@ -465,7 +463,6 @@ If `s` is a finset of `α`, we show that the summability of `f` in the whole spa
 `univ - s` are equivalent, and relate their sums. For a function defined on `ℕ`, we deduce the
 formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
 -/
->>>>>>> upstream/master
 section subtype
 variables {s : finset β}
 

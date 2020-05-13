@@ -111,7 +111,7 @@ by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
 lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
 begin
   classical, by_cases h : x = 0, by simp [h],
-  apply (domain.mul_left_inj (f.map_ne_zero.2 h)).1,
+  apply (domain.mul_right_inj (f.map_ne_zero.2 h)).1,
   rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
 end
 

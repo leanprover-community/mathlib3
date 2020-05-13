@@ -13,7 +13,7 @@ def Ico (l u : ℕ+) : finset ℕ+ :=
 (finset.Ico l u).attach.map
   { to_fun := λ n, ⟨(n : ℕ), lt_of_lt_of_le l.2 (finset.Ico.mem.1 n.2).1⟩,
     -- why can't we do this directly?
-    inj := λ n m h, subtype.eq (by { replace h := congr_arg subtype.val h, exact h }) }
+    inj' := λ n m h, subtype.eq (by { replace h := congr_arg subtype.val h, exact h }) }
 
 @[simp] lemma Ico.mem : ∀ {n m l : ℕ+}, l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 by { rintro ⟨n, hn⟩ ⟨m, hm⟩ ⟨l, hl⟩, simp [pnat.Ico] }

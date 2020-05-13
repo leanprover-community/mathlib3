@@ -47,7 +47,7 @@ by obviously
 
 @[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
-begin erw [functor_to_types.naturality], refl end
+(functor_to_types.naturality _ _ α f.op h).symm
 
 instance yoneda_full : full (@yoneda C _) :=
 { preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
@@ -144,11 +144,8 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     naturality' :=
     begin
       intros X Y f, ext, dsimp,
-      erw [category.id_comp,
-           ←functor_to_types.naturality,
-           obj_map_id,
-           functor_to_types.naturality,
-           functor_to_types.map_id_apply]
+      erw [category.id_comp, ←functor_to_types.naturality],
+      simp only [category.comp_id, yoneda_obj_map],
     end },
   inv :=
   { app := λ F x,
@@ -167,10 +164,9 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
   begin
     ext, dsimp,
     erw [←functor_to_types.naturality,
-         obj_map_id,
-         functor_to_types.naturality,
-         functor_to_types.map_id_apply],
-    refl,
+         obj_map_id],
+    simp only [yoneda_map_app, has_hom.hom.unop_op],
+    erw [category.id_comp],
   end,
   inv_hom_id' :=
   begin

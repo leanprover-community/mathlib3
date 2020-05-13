@@ -307,7 +307,7 @@ begin
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
       calc infi (λy:β, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux1 0)
+          cinfi_le (by simpa using HD_below_aux1 0) y
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist (f (inl x)) z : by rw hy
         ... ≤ r : le_of_lt hz },
@@ -320,7 +320,7 @@ begin
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,
       calc infi (λx:α, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux2 0)
+          cinfi_le (by simpa using HD_below_aux2 0) x
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist z (f (inr y)) : by rw hx
         ... ≤ r : le_of_lt hz },

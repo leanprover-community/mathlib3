@@ -2,11 +2,16 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Finite sets.
 -/
 import data.fintype.basic
 import algebra.big_operators
+
+/-!
+# Finite sets
+
+This file defines predicates `finite : set α → Prop` and `infinite : set α → Prop` and proves some
+basic facts about finite sets.
+-/
 
 open set function
 
@@ -30,13 +35,13 @@ classical.choice h
 
 /-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
-@set.to_finset _ _ (finite.fintype h)
+@set.to_finset _ _ h.fintype
 
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
-@mem_to_finset _ _ (finite.fintype h) _
+@mem_to_finset _ _ h.fintype _
 
-lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
-by { ext, apply mem_to_finset }
+@[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+@set.coe_to_finset _ s h.fintype
 
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
@@ -76,6 +81,7 @@ eq.trans (by congr) empty_card
 
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
 
+/-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
 fintype.of_finset ⟨a :: s.to_finset.1,
   multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
@@ -324,21 +330,11 @@ lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finit
 begin
   -- we just need to translate the result, already known for finsets,
   -- to the language of finite sets
-  let s := coe '' ((finset.powerset (finite.to_finset h)).to_set),
+  let s : set (set α) := coe '' (↑(finset.powerset (finite.to_finset h)) : set (finset α)),
   have : finite s := finite_image _ (finite_mem_finset _),
-  have : {b | b ⊆ a} ⊆ s :=
-  begin
-    assume b hb,
-    rw [set.mem_image],
-    rw [set.mem_set_of_eq] at hb,
-    let b' : finset α := finite.to_finset (finite_subset h hb),
-    have : b' ∈ (finset.powerset (finite.to_finset h)).to_set :=
-      show b' ∈ (finset.powerset (finite.to_finset h)),
-        by simp [b', finset.subset_iff]; exact hb,
-    have : coe b' = b := by ext; simp,
-    exact ⟨b', by assumption, by assumption⟩
-  end,
-  exact finite_subset ‹finite s› this
+  apply finite_subset this,
+  refine λ b hb, ⟨(finite_subset h hb).to_finset, _, finite.coe_to_finset _⟩,
+  simpa [finset.subset_iff]
 end
 
 lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
@@ -355,19 +351,13 @@ end set
 
 namespace finset
 variables [decidable_eq β]
-variables {s t u : finset α} {f : α → β} {a : α}
+variables {s : finset α}
 
 lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
 
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
 by simp [set.ext_iff]
-
-@[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
-by simp [set.ext_iff]
-
-@[simp] lemma coe_to_finset' (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
-by ext; simp
 
 end finset
 
@@ -420,8 +410,7 @@ finite_subset (finset.finite_to_set $ finset.range (b + 1)) range_find_greatest_
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=
 begin
-  haveI := classical.prop_decidable,
-  rw [← finset.coe_to_finset' s, ← finset.coe_to_finset' t, finset.coe_ssubset] at h,
+  rw [← s.coe_to_finset, ← t.coe_to_finset, finset.coe_ssubset] at h,
   rw [fintype.card_of_finset' _ (λ x, mem_to_finset),
       fintype.card_of_finset' _ (λ x, mem_to_finset)],
   exact finset.card_lt_card h,
@@ -516,24 +505,25 @@ namespace finset
 
 section preimage
 
+/-- Preimage of `s : finset β` under a map `f` injective of `f ⁻¹' s` as a `finset`.  -/
 noncomputable def preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : finset α :=
-set.finite.to_finset (set.finite_preimage hf (set.finite_mem_finset s))
+(set.finite_preimage hf (set.finite_mem_finset s)).to_finset
 
 @[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
   x ∈ preimage s hf ↔ f x ∈ s :=
-by simp [preimage]
+set.finite.mem_to_finset
 
-@[simp] lemma coe_preimage {f : α → β} (s : finset β)
+@[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s hf) : set α) = f ⁻¹' ↑s :=
-by simp [set.ext_iff]
+set.finite.coe_to_finset _
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
+  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
   image f (preimage s hf.inj_on) = s :=
 finset.coe_inj.1 $
 suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
-(set.subset.antisymm (image_preimage_subset _ _) hf.2.2)
+(set.subset.antisymm (image_preimage_subset _ _) hf.surj_on)
 
 end preimage
 

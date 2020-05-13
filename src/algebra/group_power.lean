@@ -419,6 +419,10 @@ f.to_monoid_hom.map_pow a
 
 variable (f : R →+* R)
 
+lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
+| 0 := rfl
+| (n+1) := by { simp only [nat.iterate_succ', pow_succ', coe_mul, coe_pow n], refl }
+
 lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
@@ -546,7 +550,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem pow_right_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
+theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
   (Hxyn : x ^ n = y ^ n) : x = y :=
 begin
   rcases lt_trichotomy x y with hxy | rfl | hyx,

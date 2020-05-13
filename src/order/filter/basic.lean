@@ -7,7 +7,8 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! # Theory of filters on sets
+/-! 
+# Theory of filters on sets
 
 ## Main definitions
 

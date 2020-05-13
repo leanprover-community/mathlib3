@@ -632,3 +632,14 @@ lemma le_is_glb_image_le (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
+
+lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
+  is_glb s x :=
+⟨λ y hy, hf.1 $ hx.1 $ mem_image_of_mem _ hy,
+  λ y hy, hf.1 $ hx.2 $ monotone.mem_lower_bounds_image (λ x y, hf.2) hy⟩
+
+lemma is_lub.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  {s : set α} {x : α} (hx : is_lub (f '' s) (f x)) :
+  is_lub s x :=
+@is_glb.of_image (order_dual α) (order_dual β) _ _ f (λ x y, hf) _ _ hx

@@ -1232,7 +1232,7 @@ def map_subtype.order_iso :
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  ord       := λ p₁ p₂, (map_le_map_iff $ ker_subtype _).symm }
+  ord'      := λ p₁ p₂, (map_le_map_iff $ ker_subtype _).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of M. -/
@@ -1359,7 +1359,7 @@ def comap_mkq.order_iso :
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simpa [comap_map_mkq p],
-  ord       := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+  ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
@@ -1909,9 +1909,9 @@ lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
-  have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [finset.coe_to_finset] },
+  have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
   refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
-  rw [← finset.mem_coe, finset.coe_to_finset],
+  rw [set.finite.mem_to_finset],
   exact le_refl _
 end
 

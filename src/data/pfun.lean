@@ -203,7 +203,7 @@ eq_some_iff.2 $ mem_map f $ mem_some _
 
 theorem mem_assert {p : Prop} {f : p → roption α}
   : ∀ {a} (h : p), a ∈ f h → a ∈ assert p f
-| _ _ ⟨h, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ x ⟨h, rfl⟩ := ⟨⟨x, h⟩, rfl⟩
 
 @[simp] theorem mem_assert_iff {p : Prop} {f : p → roption α} {a} :
   a ∈ assert p f ↔ ∃ h : p, a ∈ f h :=
@@ -212,7 +212,7 @@ theorem mem_assert {p : Prop} {f : p → roption α}
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
-| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨h, h₂⟩, rfl⟩
 
 @[simp] theorem mem_bind_iff {f : roption α} {g : α → roption β} {b} :
   b ∈ f.bind g ↔ ∃ a ∈ f, b ∈ g a :=

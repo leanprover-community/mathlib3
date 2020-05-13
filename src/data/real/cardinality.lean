@@ -37,7 +37,7 @@ by { ext n, cases h : f (n + 1); simp [h, _root_.pow_succ] }
 lemma summable_cantor_function (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   summable (cantor_function_aux c f) :=
 begin
-  apply (summable_geometric h1 h2).summable_of_eq_zero_or_self,
+  apply (summable_geometric_of_lt_1 h1 h2).summable_of_eq_zero_or_self,
   intro n, cases h : f n; simp [h]
 end
 
@@ -78,7 +78,7 @@ begin
       rwa sub_pos },
     convert this,
     { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
-          ←tsum_geometric (le_of_lt h1) h3],
+          ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
     { apply tsum_eq_single 0, intros n hn, cases n, contradiction, refl, apply_instance }},
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],

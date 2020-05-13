@@ -7,7 +7,10 @@ import algebra.category.Group.basic
 import category_theory.limits.shapes.zero
 
 /-!
-# The category of commutative additive groups has a zero object and zero morphism.
+# The category of commutative additive groups has a zero object.
+
+It also has zero morphisms. For definitional reasons, we infer this from preadditivity rather than
+from the existence of a zero object.
 -/
 
 open category_theory
@@ -16,9 +19,6 @@ open category_theory.limits
 universe u
 
 namespace AddCommGroup
-
-instance : has_zero_morphisms.{u} AddCommGroup.{u} :=
-{ has_zero := λ X Y, ⟨0⟩ }
 
 instance : has_zero_object.{u} AddCommGroup.{u} :=
 { zero := 0,

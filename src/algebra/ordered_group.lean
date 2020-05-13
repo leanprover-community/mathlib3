@@ -2,13 +2,15 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
-
-Ordered monoids and groups.
 -/
 import algebra.group.units
 import algebra.group.with_one
 import algebra.group.type_tags
 import order.bounded_lattice
+
+/-!
+# Ordered monoids and groups
+-/
 
 universe u
 variable {α : Type u}
@@ -134,6 +136,21 @@ iff.intro
 
 lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
+
+section mono
+
+variables {β : Type*} [preorder β] {f g : β → α}
+
+lemma monotone.add (hf : monotone f) (hg : monotone g) : monotone (λ x, f x + g x) :=
+λ x y h, add_le_add' (hf h) (hg h)
+
+lemma monotone.add_const (hf : monotone f) (a : α) : monotone (λ x, f x + a) :=
+hf.add monotone_const
+
+lemma monotone.const_add (hf : monotone f) (a : α) : monotone (λ x, a + f x) :=
+monotone_const.add hf
+
+end mono
 
 end ordered_add_comm_monoid
 
@@ -470,6 +487,20 @@ lemma with_top.add_lt_add_iff_left :
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
 by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
+
+section mono
+
+variables {β : Type*} [preorder β] {f g : β → α}
+
+lemma monotone.add_strict_mono (hf : monotone f) (hg : strict_mono g) :
+  strict_mono (λ x, f x + g x) :=
+λ x y h, add_lt_add_of_le_of_lt (hf $ le_of_lt h) (hg h)
+
+lemma strict_mono.add_monotone (hf : strict_mono f) (hg : monotone g) :
+  strict_mono (λ x, f x + g x) :=
+λ x y h, add_lt_add_of_lt_of_le (hf h) (hg $ le_of_lt h)
+
+end mono
 
 end ordered_cancel_comm_monoid
 

@@ -516,7 +516,7 @@ begin
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
     calc ∥x ^ (i + 1) / (i + 1)∥
-    = abs x ^(i+1) / (i+1) :
+    = abs x ^ (i+1) / (i+1) :
       begin
         have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
         rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import linear_algebra.finsupp
+import linear_algebra.projection
 import order.zorn
 import data.fintype.card
 
@@ -769,7 +770,7 @@ begin
   exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
 end
 
-lemma constr_basis {f : ι → M'} {i : ι} (hv : is_basis R v) :
+@[simp] lemma constr_basis {f : ι → M'} {i : ι} (hv : is_basis R v) :
   (hv.constr f : M → M') (v i) = f i :=
 by simp [is_basis.constr_apply, hv.repr_eq_single, finsupp.sum_single_index]
 
@@ -785,10 +786,10 @@ constr_eq hv $ λ x, rfl
 
 lemma constr_add {g f : ι → M'} (hv : is_basis R v) :
   hv.constr (λi, f i + g i) = hv.constr f + hv.constr g :=
-constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
+constr_eq hv $ λ b, by simp
 
 lemma constr_neg {f : ι → M'} (hv : is_basis R v) : hv.constr (λi, - f i) = - hv.constr f :=
-constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
+constr_eq hv $ λ b, by simp
 
 lemma constr_sub {g f : ι → M'} (hs : is_basis R v) :
   hv.constr (λi, f i - g i) = hs.constr f - hs.constr g :=
@@ -1031,14 +1032,14 @@ begin
 end
 
 lemma exists_subset_is_basis (hs : linear_independent K (λ x, x : s → V)) :
-  ∃b, s ⊆ b ∧ is_basis K (λ i : b, i.val) :=
+  ∃b, s ⊆ b ∧ is_basis K (coe : b → V) :=
 let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
 ⟨ b, hx,
   @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ hb₃,
   by simp; exact eq_top_iff.2 hb₂⟩
 
 variables (K V)
-lemma exists_is_basis : ∃b : set V, is_basis K (λ i : b, i.val) :=
+lemma exists_is_basis : ∃b : set V, is_basis K (λ i, i : b → V) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
 
 variables {K V}
@@ -1115,23 +1116,21 @@ begin
   have : linear_independent K (λ x, x : f '' B → V'),
   { have h₁ := hB₀.image_subtype
       (show disjoint (span K (range (λ i : B, i.val))) (linear_map.ker f), by simp [hf_inj]),
-    have h₂ : range (λ (i : B), i.val) = B := subtype.range_val B,
-    rwa h₂ at h₁ },
+    rwa B.range_coe_subtype at h₁ },
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited V := ⟨0⟩,
   use hC.constr (C.restrict (inv_fun f)),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hB,
-  intros b,
+  refine hB.ext (λ b, _),
   rw image_subset_iff at BC,
-  simp,
-  have := BC (subtype.mem b),
-  rw mem_preimage at this,
-  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage, exact BC (subtype.mem b) end) : C).val,
-    by simp; unfold_coes,
-  rw this,
-  rw [constr_basis hC],
-  exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _,
+  have : f b = (⟨f b, BC b.2⟩ : C) := rfl,
+  dsimp,
+  rw [this, constr_basis hC],
+  exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _
 end
+
+lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_compl p q :=
+let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+⟨f.ker, f.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
   (hf_surj : f.range = ⊤) : ∃g:V' →ₗ V, f.comp g = linear_map.id :=
@@ -1139,29 +1138,17 @@ begin
   rcases exists_is_basis K V' with ⟨C, hC⟩,
   haveI : inhabited V := ⟨0⟩,
   use hC.constr (C.restrict (inv_fun f)),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hC,
-  intros c,
-  simp [constr_basis hC],
-  exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
+  refine hC.ext (λ c, _),
+  simp [constr_basis hC, right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
 end
 
 open submodule linear_map
+
 theorem quotient_prod_linear_equiv (p : submodule K V) :
   nonempty ((p.quotient × p) ≃ₗ[K] V) :=
-begin
-  rcases p.mkq.exists_right_inverse_of_surjective p.range_mkq with ⟨f, hf⟩,
-  have mkf : ∀ x, submodule.quotient.mk (f x) = x := linear_map.ext_iff.1 hf,
-  have fp : ∀ x, x - f (p.mkq x) ∈ p :=
-    λ x, (submodule.quotient.eq p).1 (mkf (p.mkq x)).symm,
-  refine ⟨linear_equiv.of_linear (f.coprod p.subtype)
-    (p.mkq.prod (cod_restrict p (linear_map.id - f.comp p.mkq) fp))
-    (by ext; simp) _⟩,
-  ext ⟨⟨x⟩, y, hy⟩; simp,
-  { apply (submodule.quotient.eq p).2,
-    simpa [sub_eq_add_neg, add_left_comm] using sub_mem p hy (fp x) },
-  { refine subtype.coe_ext.2 _,
-    simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
-end
+let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
+((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
+  (prod_equiv_of_is_compl q p hq.symm)
 
 open fintype
 
@@ -1234,22 +1221,19 @@ section
 variables (R η)
 
 lemma is_basis_fun₀ : is_basis R
-    (λ (ji : Σ (j : η), (λ _, unit) j),
+    (λ (ji : Σ (j : η), unit),
        (std_basis R (λ (i : η), R) (ji.fst)) 1) :=
-begin
-  haveI := classical.dec_eq,
-  apply @is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ (λ _ _, (1 : R))
-      (assume i, @is_basis_singleton_one _ _ _ _),
-end
+@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ (λ _ _, (1 : R))
+  (assume i, @is_basis_singleton_one _ _ _ _)
 
 lemma is_basis_fun : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
 begin
-  apply is_basis.comp (is_basis_fun₀ R η) (λ i, ⟨i, punit.star⟩),
+  apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
   apply bijective_iff_has_inverse.2,
-  use (λ x, x.1),
-  simp [function.left_inverse, function.right_inverse],
-  intros _ b,
-  rw [unique.eq_default b, unique.eq_default punit.star]
+  use sigma.fst,
+  suffices : ∀ (a : η) (b : unit), punit.star = b,
+  { simpa [function.left_inverse, function.right_inverse] },
+  exact λ _, punit_eq _
 end
 
 end

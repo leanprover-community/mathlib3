@@ -216,6 +216,8 @@ instance (I : ideal α) : comm_ring I.quotient :=
 /-- `ideal.quotient.mk` as a `ring_hom` -/
 def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
+lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quotient.mk_hom I x := rfl
+
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
   zero := ⟨0, J.zero_mem, rfl⟩,

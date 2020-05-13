@@ -96,7 +96,7 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
     conv {to_rhs, rw ← vector.cons_head_tail v},
     suffices : (v.tail.to_list.prod)⁻¹ = v.head,
     { rw this },
-    rw [← mul_right_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
+    rw [← mul_left_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
       ← vector.to_list_cons, vector.cons_head_tail, h]
   end⟩,
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
@@ -204,7 +204,7 @@ let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI
 have hcard : card (quotient H) = s * p :=
-  (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2
+  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, is_submonoid.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
       nat.pow_succ, mul_assoc, mul_comm p]),

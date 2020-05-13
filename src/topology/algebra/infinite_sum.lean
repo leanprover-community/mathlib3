@@ -693,7 +693,7 @@ begin
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],
   refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,
-  exact hd.summable_comp_of_injective (add_left_injective n)
+  exact hd.summable_comp_of_injective (add_right_injective n)
 end
 
 lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)

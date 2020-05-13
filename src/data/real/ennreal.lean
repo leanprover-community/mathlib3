@@ -469,11 +469,11 @@ Inf_le_Inf $ assume e (h : b ≤ e + d),
 @[simp] lemma add_sub_self' (h : a < ∞) : (a + b) - a = b :=
 by rw [add_comm, add_sub_self h]
 
-lemma add_left_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
+lemma add_right_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
 ⟨λ e, by simpa [h] using congr_arg (λ x, x - a) e, congr_arg _⟩
 
-lemma add_right_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
-by rw [add_comm, add_comm c, add_left_inj h]
+lemma add_left_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
+by rw [add_comm, add_comm c, add_right_inj h]
 
 @[simp] lemma sub_add_cancel_of_le : ∀{a b : ennreal}, b ≤ a → (a - b) + b = a :=
 begin
@@ -552,10 +552,10 @@ calc a ≤ a - b + b : le_sub_add_self
 ... = a - b + (b - c) + c : (add_assoc _ _ _).symm
 
 lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
-by rw [← add_right_inj (lt_of_le_of_lt (sub_le_self _ _) h),
+by rw [← add_left_inj (lt_of_le_of_lt (sub_le_self _ _) h),
   sub_add_cancel_of_le (sub_le_self _ _), add_sub_cancel_of_le h2]
 
-lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
+lemma sub_right_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
   a - b = a - c ↔ b = c :=
 iff.intro
   begin
@@ -667,7 +667,7 @@ by rw [bit0, add_eq_top, or_self]
 @[simp] lemma bit1_inj : bit1 a = bit1 b ↔ a = b :=
 ⟨λh, begin
   unfold bit1 at h,
-  rwa [add_right_inj, bit0_inj] at h,
+  rwa [add_left_inj, bit0_inj] at h,
   simp [lt_top_iff_ne_top]
 end,
 λh, congr_arg _ h⟩

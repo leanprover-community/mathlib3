@@ -291,7 +291,7 @@ classical.by_cases (assume : lcm a b = 0, by rw [this, normalize_zero]) $
     rintros ⟨rfl, rfl⟩; left; refl) h_lcm,
   have h2 : normalize (gcd a b * lcm a b) = gcd a b * lcm a b,
     by rw [gcd_mul_lcm, normalize_idem],
-  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_left_inj h1] using h2
+  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_right_inj h1] using h2
 
 theorem lcm_comm (a b : α) : lcm a b = lcm b a :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
@@ -573,7 +573,7 @@ lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
         (λ ha, or.inr (nat.dvd_antisymm h ha))
         (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
             (hab.symm ▸ dvd_mul_left _ _),
-          (nat.mul_left_inj (show 0 < p, from
+          (nat.mul_right_inj (show 0 < p, from
               nat.pos_of_ne_zero hp.1)).1 $
             by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
 

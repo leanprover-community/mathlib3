@@ -37,13 +37,13 @@ calc ((range n.succ).filter (∣ n)).sum φ
     (λ a b ha hb h,
       have ha : a * (n / a) = n, from nat.mul_div_cancel' (mem_filter.1 ha).2,
       have 0 < (n / a), from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
-      by rw [← nat.mul_right_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
+      by rw [← nat.mul_left_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
     (λ b hb,
       have hb : b < n.succ ∧ b ∣ n, by simpa [-range_succ] using hb,
       have hbn : (n / b) ∣ n, from ⟨b, by rw nat.div_mul_cancel hb.2⟩,
       have hnb0 : (n / b) ≠ 0, from λ h, by simpa [h, ne.symm hn0] using nat.div_mul_cancel hbn,
       ⟨n / b, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _, hbn⟩,
-        by rw [← nat.mul_right_inj (nat.pos_of_ne_zero hnb0),
+        by rw [← nat.mul_left_inj (nat.pos_of_ne_zero hnb0),
           nat.mul_div_cancel' hb.2, nat.div_mul_cancel hbn]⟩)
 ... = ((range n.succ).filter (∣ n)).sum (λ d, ((range n).filter (λ m, gcd n m = d)).card) :
   sum_congr rfl (λ d hd,
@@ -54,7 +54,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
         mem_filter.2 ⟨mem_range.2 $ nat.mul_div_cancel' hd ▸
           (mul_lt_mul_left hd0).2 hm.1,
           by rw [← nat.mul_div_cancel' hd, gcd_mul_left, hm.2, mul_one]⟩)
-      (λ a b ha hb h, (nat.mul_left_inj hd0).1 h)
+      (λ a b ha hb h, (nat.mul_right_inj hd0).1 h)
       (λ b hb, have hb : b < n ∧ gcd n b = d, by simpa using hb,
         ⟨b / d, mem_filter.2 ⟨mem_range.2 ((mul_lt_mul_left (show 0 < d, from hb.2 ▸ hb.2.symm ▸ hd0)).1
             (by rw [← hb.2, nat.mul_div_cancel' (gcd_dvd_left _ _),
@@ -71,4 +71,3 @@ calc ((range n.succ).filter (∣ n)).sum φ
 ... = n : card_range _
 
 end nat
-

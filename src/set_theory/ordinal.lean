@@ -1543,7 +1543,7 @@ theorem le_of_mul_le_mul_left {a b c : ordinal}
   (h : c * a ≤ c * b) (h0 : 0 < c) : a ≤ b :=
 le_imp_le_of_lt_imp_lt (λ h', mul_lt_mul_of_pos_left h' h0) h
 
-theorem mul_left_inj {a b c : ordinal} (a0 : 0 < a) : a * b = a * c ↔ b = c :=
+theorem mul_right_inj {a b c : ordinal} (a0 : 0 < a) : a * b = a * c ↔ b = c :=
 (mul_is_normal a0).inj
 
 theorem mul_is_limit {a b : ordinal}
@@ -3038,7 +3038,7 @@ begin
       exact lt_of_lt_of_le hb (le_add_left b a) },
     right, rw [← h, add_lt_omega_iff, lt_omega, lt_omega] at ha,
     rcases ha with ⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, norm_cast at h ⊢,
-    rw [← add_left_inj, h, add_zero] },
+    rw [← add_right_inj, h, add_zero] },
   { rintro (⟨h1, h2⟩|h3), rw [add_eq_max h1, max_eq_left h2], rw [h3, add_zero] }
 end
 

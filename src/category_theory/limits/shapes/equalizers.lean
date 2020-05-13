@@ -518,7 +518,7 @@ cofork.is_colimit.mk _
 /-- Every coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 def is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cocone (parallel_pair f g)}
   (h : is_colimit c) : is_iso (c.ι.app one) :=
-is_iso.of_iso $ is_colimit.cone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
+is_iso.of_iso $ is_colimit.cocone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
 
 /-- The coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 def coequalizer.π_of_eq [has_colimit (parallel_pair f g)] (h : f = g) :

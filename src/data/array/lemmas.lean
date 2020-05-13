@@ -191,7 +191,7 @@ heq_of_heq_of_eq
   d_array.ext $ λ ⟨i, h⟩, to_list_nth_le i h _
 
 @[simp] theorem to_array_to_list (l : list α) : l.to_array.to_list = l :=
-list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ _ _
+list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ h2 _
 
 end to_array
 

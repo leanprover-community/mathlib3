@@ -121,7 +121,7 @@ and there are any goals remaining.
 -- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
 -- on the remaining goals.
 meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic unit :=
-apply e >>
+opt.apply e >>
 -- Phase 1
 -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
 -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do

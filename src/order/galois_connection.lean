@@ -20,7 +20,7 @@ def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α
 /-- Makes a Galois connection from an order-preserving bijection. -/
 theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) :
   galois_connection oi oi.symm :=
-λ b g, by rw [order_iso.ord' oi, order_iso.apply_symm_apply]
+λ b g, by rw [oi.ord, order_iso.apply_symm_apply]
 
 namespace galois_connection
 

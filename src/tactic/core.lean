@@ -529,6 +529,26 @@ do d ← get_decl n,
    (c, l) ← append_typeclasses d.type.binding_body c l,
    return (c, (expr.const n [c.univ]).mk_app (c.α :: l))
 
+/-- `c.of_nat n` creates the `c.α`-valued numeral expression corresponding to `n`. -/
+protected meta def of_nat (c : instance_cache) (n : ℕ) : tactic (instance_cache × expr) :=
+if n = 0 then c.mk_app ``has_zero.zero [] else do
+  (c, ai) ← c.get ``has_add,
+  (c, oi) ← c.get ``has_one,
+  (c, one) ← c.mk_app ``has_one.one [],
+  return (c, n.binary_rec one $ λ b n e,
+    if n = 0 then one else
+    cond b
+      ((expr.const ``bit1 [c.univ]).mk_app [c.α, oi, ai, e])
+      ((expr.const ``bit0 [c.univ]).mk_app [c.α, ai, e]))
+
+/-- `c.of_int n` creates the `c.α`-valued numeral expression corresponding to `n`.
+The output is either a numeral or the negation of a numeral. -/
+protected meta def of_int (c : instance_cache) : ℤ → tactic (instance_cache × expr)
+| (n : ℕ) := c.of_nat n
+| -[1+ n] := do
+  (c, e) ← c.of_nat (n+1),
+  c.mk_app ``has_neg.neg [e]
+
 end instance_cache
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat

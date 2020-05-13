@@ -255,16 +255,25 @@ supr_le $ le_supr _ ∘ h
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
-lemma monotone.map_supr_ge [complete_lattice β] {f : α → β} (hf : monotone f) :
+lemma monotone.le_map_supr [complete_lattice β] {f : α → β} (hf : monotone f) :
   (⨆ i, f (s i)) ≤ f (supr s) :=
 supr_le $ λ i, hf $ le_supr _ _
 
-lemma monotone.map_supr2_ge [complete_lattice β] {f : α → β} (hf : monotone f)
+lemma monotone.le_map_supr2 [complete_lattice β] {f : α → β} (hf : monotone f)
   {ι' : ι → Sort*} (s : Π i, ι' i → α) :
   (⨆ i (h : ι' i), f (s i h)) ≤ f (⨆ i (h : ι' i), s i h) :=
 calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
-  supr_le_supr $ λ i, hf.map_supr_ge
-... ≤ f (⨆ i (h : ι' i), s i h) : hf.map_supr_ge
+  supr_le_supr $ λ i, hf.le_map_supr
+... ≤ f (⨆ i (h : ι' i), s i h) : hf.le_map_supr
+
+lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
+  (⨆ x, f (g x)) ≤ ⨆ y, f y :=
+supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
+
+lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
+  {s : ι → β} (hs : ∀ x, ∃ i, x ≤ s i) :
+  (⨆ x, f (s x)) = ⨆ y, f y :=
+le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
@@ -321,6 +330,15 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
   f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
 calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
 ... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
+
+lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
+  (⨅ y, f y) ≤ ⨅ x, f (g x) :=
+infi_le_infi2 $ λ x, ⟨_, le_refl _⟩
+
+lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
+  {s : ι → β} (hs : ∀ x, ∃ i, s i ≤ x) :
+  (⨅ x, f (s x)) = ⨅ y, f y :=
+le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
 
 @[congr] theorem infi_congr_Prop {α : Type u} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=

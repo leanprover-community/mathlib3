@@ -14,7 +14,7 @@ composition of morphisms is linear in both variables.
 
 This file contains a definition of preadditive category that directly encodes the definition given
 above. The definition could also be phrased as follows: A preadditive category is a category
-enriched over the category of Abelian groups. Once the general framework the state this in Lean is
+enriched over the category of Abelian groups. Once the general framework to state this in Lean is
 available, the contents of this file should become obsolete.
 
 ## Main results

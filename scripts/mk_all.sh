@@ -15,6 +15,6 @@ else
   dir="."
 fi
 
-find $dir -name \*.lean -not -name all.lean \
+find "$dir" -name \*.lean -not -name all.lean \
   | sed 's,^\./,,;s,\.lean$,,;s,/,.,g;s,^,import ,' \
-  | sort >$dir/all.lean
+  | sort >"$dir"/all.lean

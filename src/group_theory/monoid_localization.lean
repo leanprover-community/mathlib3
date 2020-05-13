@@ -185,26 +185,19 @@ ext $ monoid_hom.ext_iff.1 h
 @[to_additive] lemma eq_iff_exists (f : localization_map S N) {x y} :
   f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.6 x y
 
-variables (S)
-
-/-- Given a map `f : M →* N`, a section function sending `z : N` to some
+/-- Given a localization map `f : M →* N`, a section function sending `z : N` to some
     `(x, y) : M × S` such that `f x * (f y)⁻¹ = z` if there always exists such an element. -/
-@[to_additive "Given a map `f : M →+ N`, a section function sending `z : N` to some `(x, y) : M × S` such that `f x - f y = z` if there always exists such an element."]
-noncomputable def sec (f : M →* N) :=
-@classical.epsilon (N → M × S) ⟨λ z, 1⟩ (λ g, ∀ z, z * f (g z).2 = f (g z).1)
+@[to_additive "Given a localization map `f : M →+ N`, a section function sending `z : N` to some `(x, y) : M × S` such that `f x - f y = z` if there always exists such an element."]
+noncomputable def sec (f : localization_map S N) :=
+λ z, classical.some $ f.surj z
 
-variables {S}
+@[to_additive] lemma sec_spec {f : localization_map S N} (z : N) :
+  z * f.to_map (f.sec z).2 = f.to_map (f.sec z).1 :=
+classical.some_spec $ f.surj z
 
-@[to_additive] lemma sec_spec {f : M →* N}
-  (h : ∀ z : N, ∃ x : M × S, z * f x.2 = f x.1) (z : N) :
-  z * f (sec S f z).2 = f (sec S f z).1 :=
-@classical.epsilon_spec (N → M × S) (λ g, ∀ z, z * f (g z).2 = f (g z).1)
-  ⟨λ y, classical.some $ h y, λ y, classical.some_spec $ h y⟩ z
-
-@[to_additive] lemma sec_spec' {f : M →* N}
-  (h : ∀ z : N, ∃ x : M × S, z * f x.2 = f x.1) (z : N) :
-  f (sec S f z).1 = f (sec S f z).2 * z :=
-by rw [mul_comm, sec_spec h]
+@[to_additive] lemma sec_spec' {f : localization_map S N} (z : N) :
+  f.to_map (f.sec z).1 = f.to_map (f.sec z).2 * z :=
+by rw [mul_comm, sec_spec]
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
     `w : M, z : N` and `y ∈ S`, we have `w * (f y)⁻¹ = z ↔ w = f y * z`. -/
@@ -281,11 +274,11 @@ by rw [mk', monoid_hom.map_one]; exact mul_one _
 /-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, for all `z : N` we have that if
     `x : M, y ∈ S` are such that `z * f y = f x`, then `f x * (f y)⁻¹ = z`. -/
 @[simp, to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, for all `z : N` we have that if `x : M, y ∈ S` are such that `z + f y = f x`, then `f x - f y = z`."]
-lemma mk'_sec (z : N) : f.mk' (sec S f.to_map z).1 (sec S f.to_map z).2 = z :=
-show _ * _ = _, by rw [←sec_spec f.surj, mul_inv_left, mul_comm]
+lemma mk'_sec (z : N) : f.mk' (f.sec z).1 (f.sec z).2 = z :=
+show _ * _ = _, by rw [←sec_spec, mul_inv_left, mul_comm]
 
 @[to_additive] lemma mk'_surjective (z : N) : ∃ x (y : S), f.mk' x y = z :=
-⟨(sec S f.to_map z).1, (sec S f.to_map z).2, f.mk'_sec z⟩
+⟨(f.sec z).1, (f.sec z).2, f.mk'_sec z⟩
 
 @[to_additive] lemma mk'_spec (x) (y : S) :
   f.mk' x y * f.to_map y = f.to_map x :=
@@ -331,7 +324,7 @@ f.eq'.trans g.eq'.symm
     such that `x₁ * y₂ * c = x₂ * y₁ * c`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, for all `x₁ : M` and `y₁ ∈ S`, if `x₂ : M, y₂ ∈ S` are such that `(f x₁ - f y₁) + f y₂ = f x₂`, then there exists `c ∈ S` such that `x₁ + y₂ + c = x₂ + y₁ + c`."]
 lemma exists_of_sec_mk' (x) (y : S) :
-  ∃ c : S, x * (sec S f.to_map $ f.mk' x y).2 * c = (sec S f.to_map $ f.mk' x y).1 * y * c :=
+  ∃ c : S, x * (f.sec $ f.mk' x y).2 * c = (f.sec $ f.mk' x y).1 * y * c :=
 f.eq_iff_exists.1 $ f.mk'_eq_iff_eq.1 $ (mk'_sec _ _).symm
 
 @[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * a₂ = a₁ * b₂) :
@@ -403,14 +396,14 @@ variables (hg : ∀ y : S, is_unit (g y))
     `z = f x * (f y)⁻¹`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M` and a map of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : S`, the homomorphism induced from `N` to `P` sending `z : N` to `g x - g y`, where `(x, y) : M × S` are such that `z = f x - f y`."]
 noncomputable def lift : N →* P :=
-{ to_fun := λ z, g (sec S f.to_map z).1
-    * ↑(is_unit.lift_right (g.restrict S) hg (sec S f.to_map z).2)⁻¹,
+{ to_fun := λ z, g (f.sec z).1
+    * ↑(is_unit.lift_right (g.restrict S) hg (f.sec z).2)⁻¹,
   map_one' := by rw [mul_inv_left, mul_one]; exact f.eq_of_eq hg
-    (by rw [←sec_spec f.surj, one_mul]),
+    (by rw [←sec_spec, one_mul]),
   map_mul' := λ x y, by rw [mul_inv_left hg, ←mul_assoc, ←mul_assoc, mul_inv_right hg,
-    mul_comm _ (g (sec S f.to_map y).1), ←mul_assoc, ←mul_assoc, mul_inv_right hg];
+    mul_comm _ (g (f.sec y).1), ←mul_assoc, ←mul_assoc, mul_inv_right hg];
     repeat { rw ←g.map_mul };
-    exact f.eq_of_eq hg (by repeat { rw f.to_map.map_mul <|> rw sec_spec' f.surj }; ac_refl) }
+    exact f.eq_of_eq hg (by repeat { rw f.to_map.map_mul <|> rw sec_spec' }; ac_refl) }
 
 variables {S g}
 
@@ -421,14 +414,14 @@ variables {S g}
 lemma lift_mk' (x y) :
   f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.restrict S) hg y)⁻¹ :=
 (mul_inv hg).2 $ f.eq_of_eq hg $ by
-  rw [f.to_map.map_mul, f.to_map.map_mul, sec_spec' f.surj, mul_assoc, f.mk'_spec, mul_comm]
+  rw [f.to_map.map_mul, f.to_map.map_mul, sec_spec', mul_assoc, f.mk'_spec, mul_comm]
 
 /-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
     `g : M →* P` induces a map `f.lift hg : N →* P` then for all `z : N, v : P`, we have
     `f.lift hg z = v ↔ g x = g y * v`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N, v : P`, we have `f.lift hg z = v ↔ g x = g y + v`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma lift_spec (z v) :
-  f.lift hg z = v ↔ g (sec S f.to_map z).1 = g (sec S f.to_map z).2 * v :=
+  f.lift hg z = v ↔ g (f.sec z).1 = g (f.sec z).2 * v :=
 mul_inv_left hg _ _ v
 
 /-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
@@ -437,7 +430,7 @@ mul_inv_left hg _ _ v
     `z * f y = f x`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N, v w : P`, we have `f.lift hg z + w = v ↔ g x + w = g y + v`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma lift_spec_mul (z w v) :
-  f.lift hg z * w = v ↔ g (sec S f.to_map z).1 * w = g (sec S f.to_map z).2 * v :=
+  f.lift hg z * w = v ↔ g (f.sec z).1 * w = g (f.sec z).2 * v :=
 begin
   rw mul_comm,
   show _ * (_ * _) = _ ↔ _,
@@ -453,7 +446,7 @@ by rw f.lift_mk' hg; exact mul_inv_left hg _ _ _
     `f.lift hg z * g y = g x`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N`, we have `f.lift hg z + g y = g x`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma lift_mul_right (z) :
-  f.lift hg z * g (sec S f.to_map z).2 = g (sec S f.to_map z).1 :=
+  f.lift hg z * g (f.sec z).2 = g (f.sec z).1 :=
 show _ * _ * _ = _, by erw [mul_assoc, is_unit.lift_right_inv_mul, mul_one]
 
 /-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M`, if a `comm_monoid` map
@@ -461,12 +454,12 @@ show _ * _ * _ = _, by erw [mul_assoc, is_unit.lift_right_inv_mul, mul_one]
     `g y * f.lift hg z = g x`, where `x : M, y ∈ S` are such that `z * f y = f x`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S ⊆ M`, if an `add_comm_monoid` map `g : M →+ P` induces a map `f.lift hg : N →+ P` then for all `z : N`, we have `g y + f.lift hg z = g x`, where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma lift_mul_left (z) :
-  g (sec S f.to_map z).2 * f.lift hg z = g (sec S f.to_map z).1 :=
+  g (f.sec z).2 * f.lift hg z = g (f.sec z).1 :=
 by rw [mul_comm, lift_mul_right]
 
 @[simp, to_additive] lemma lift_eq (x : M) :
   f.lift hg (f.to_map x) = g x :=
-by rw [lift_spec, ←g.map_mul]; exact f.eq_of_eq hg (by rw [sec_spec' f.surj, f.to_map.map_mul])
+by rw [lift_spec, ←g.map_mul]; exact f.eq_of_eq hg (by rw [sec_spec', f.to_map.map_mul])
 
 @[to_additive] lemma lift_eq_iff {x y : M × S} :
   f.lift hg (f.mk' x.1 x.2) = f.lift hg (f.mk' y.1 y.2) ↔ g (x.1 * y.2) = g (y.1 * x.2) :=
@@ -481,7 +474,7 @@ begin
   ext,
   rw lift_spec,
   show j _ = j _ * _,
-  erw [←j.map_mul, sec_spec' f.surj],
+  erw [←j.map_mul, sec_spec'],
 end
 
 @[to_additive] lemma epic_of_localization_map {j k : N →* P}
@@ -499,7 +492,7 @@ begin
   ext,
   rw [lift_spec, ←hj, ←hj, ←j.map_mul],
   apply congr_arg,
-  rw ←sec_spec' f.surj,
+  rw ←sec_spec',
 end
 
 @[simp, to_additive] lemma lift_id (x) : f.lift f.map_units x = x :=
@@ -516,11 +509,11 @@ begin
   conv_rhs {congr, skip, rw f.eq_mk'_iff_mul_eq.2 hx},
   rw [mk', ←mul_assoc, mul_inv_right f.map_units, ←f.to_map.map_mul, ←f.to_map.map_mul],
   apply k.eq_of_eq f.map_units,
-  rw [k.to_map.map_mul, k.to_map.map_mul, ←sec_spec k.surj, mul_assoc, lift_spec_mul],
+  rw [k.to_map.map_mul, k.to_map.map_mul, ←sec_spec, mul_assoc, lift_spec_mul],
   repeat { rw ←k.to_map.map_mul },
   apply f.eq_of_eq k.map_units,
   repeat { rw f.to_map.map_mul },
-  rw [sec_spec' f.surj, ←hx],
+  rw [sec_spec', ←hx],
   ac_refl,
 end
 
@@ -592,7 +585,7 @@ end
     `z * f y = f x`. -/
 @[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, `u : Q`, we have `f.map hy k z = u ↔ k (g x) = k (g y) + u` where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma map_spec (z u) :
-  f.map hy k z = u ↔ k.to_map (g (sec S f.to_map z).1) = k.to_map (g (sec S f.to_map z).2) * u :=
+  f.map hy k z = u ↔ k.to_map (g (f.sec z).1) = k.to_map (g (f.sec z).2) * u :=
 f.lift_spec (λ y, k.map_units ⟨g y, hy y⟩) _ _
 
 /-- Given localization maps `f : M →* N, k : P →* Q` for submonoids `S, T` respectively, if a
@@ -601,7 +594,7 @@ f.lift_spec (λ y, k.map_units ⟨g y, hy y⟩) _ _
     `z * f y = f x`. -/
 @[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, we have `f.map hy k z + k (g y) = k (g x)` where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma map_mul_right (z) :
-  f.map hy k z * (k.to_map (g (sec S f.to_map z).2)) = k.to_map (g (sec S f.to_map z).1) :=
+  f.map hy k z * (k.to_map (g (f.sec z).2)) = k.to_map (g (f.sec z).1) :=
 f.lift_mul_right (λ y, k.map_units ⟨g y, hy y⟩) _
 
 /-- Given localization maps `f : M →* N, k : P →* Q` for submonoids `S, T` respectively, if a
@@ -610,7 +603,7 @@ f.lift_mul_right (λ y, k.map_units ⟨g y, hy y⟩) _
     `z * f y = f x`. -/
 @[to_additive "Given localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, if an `add_comm_monoid` homomorphism `g : M →+ P` induces a `f.map hy k : N →+ Q`, then for all `z : N`, we have `k (g y) + f.map hy k z = k (g x)` where `x : M, y ∈ S` are such that `z + f y = f x`."]
 lemma map_mul_left (z) :
-  k.to_map (g (sec S f.to_map z).2) * f.map hy k z = k.to_map (g (sec S f.to_map z).1) :=
+  k.to_map (g (f.sec z).2) * f.map hy k z = k.to_map (g (f.sec z).1) :=
 by rw [mul_comm, f.map_mul_right]
 
 @[simp, to_additive] lemma map_id (z : N) :
@@ -630,7 +623,7 @@ begin
     show j.to_map _ * j.to_map (l (g _)) = j.to_map (l _) * _,
     rw [←j.to_map.map_mul, ←j.to_map.map_mul, ←l.map_mul, ←l.map_mul],
     exact k.comp_eq_of_eq hl j
-      (by rw [k.to_map.map_mul, k.to_map.map_mul, sec_spec' k.surj, mul_assoc, map_mul_right]) },
+      (by rw [k.to_map.map_mul, k.to_map.map_mul, sec_spec', mul_assoc, map_mul_right]) },
 end
 
 /-- If `comm_monoid` homs `g : M →* P, l : P →* A` induce maps of localizations, the composition
@@ -668,7 +661,7 @@ of_monoid_hom (k.to_monoid_hom.comp f.to_map) (λ y, is_unit_comp f k.to_monoid_
   let ⟨x, hx⟩ := f.surj z in ⟨x, show v * k _ = k _, by rw [←hx, k.map_mul, ←hz]; refl⟩)
 (λ x y, (k.to_equiv.apply_eq_iff_eq _ _).trans $ f.eq_iff_exists)
 
-@[to_additive, simp] lemma of_mul_equiv_of_localizations_apply {k : N ≃* P} (x) :
+@[to_additive] lemma of_mul_equiv_of_localizations_apply {k : N ≃* P} (x) :
   (f.of_mul_equiv_of_localizations k).to_map x = k (f.to_map x) := rfl
 
 @[to_additive, simp] lemma of_mul_equiv_of_localizations_eq {k : N ≃* P} :
@@ -730,7 +723,7 @@ of_monoid_hom (f.to_map.comp k.to_monoid_hom)
       exact k.to_equiv.injective hc⟩, λ ⟨c, hc⟩, ⟨⟨k c, H ▸ set.mem_image_of_mem k c.2⟩,
     by erw ←k.map_mul; rw [hc, k.map_mul]; refl⟩⟩)
 
-@[to_additive, simp] lemma of_mul_equiv_of_dom_apply
+@[to_additive] lemma of_mul_equiv_of_dom_apply
   {k : P ≃* M} (H : T.map k.to_monoid_hom = S) (x) :
   (f.of_mul_equiv_of_dom H).to_map x = f.to_map (k x) := rfl
 
@@ -784,7 +777,7 @@ f.map_eq (λ y : S, H ▸ set.mem_image_of_mem j y.2) _
   f.mul_equiv_of_mul_equiv k H (f.mk' x y) = k.mk' (j x) ⟨j y, H ▸ set.mem_image_of_mem j y.2⟩ :=
 f.map_mk' (λ y : S, H ▸ set.mem_image_of_mem j y.2) _ _
 
-@[to_additive, simp] lemma of_mul_equiv_of_mul_equiv_apply
+@[to_additive] lemma of_mul_equiv_of_mul_equiv_apply
   {k : localization_map T Q} {j : M ≃* P} (H : S.map j.to_monoid_hom = T) (x) :
   (f.of_mul_equiv_of_localizations (f.mul_equiv_of_mul_equiv k H)).to_map x = k.to_map (j x) :=
 ext_iff.1 (f.mul_equiv_of_localizations_right_inv (k.of_mul_equiv_of_dom H)) x

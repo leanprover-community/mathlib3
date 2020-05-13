@@ -27,6 +27,14 @@ elements of `M` to invertible elements of the codomain. Similarly, given commuta
 `g : R →+* P` such that `g(M) ⊆ T` induces a homomorphism of localizations,
 `localization_map.map`, from `S` to `Q`.
 
+We prove some lemmas about the `R`-algebra structure of `S`.
+
+When `R` is an integral domain, we define `fraction_map R K` as an abbreviation for
+`localization_map (non_zero_divisors R) K`, the natural map to `R`'s field of fractions.
+
+We show that a `comm_ring` `K` which is the localization of an integral domain `R` at `R \ {0}`
+is a field.
+
 ## Implementation notes
 
 In maths it is natural to reason up to isomorphism, but in Lean we cannot naturally `rewrite` one
@@ -36,9 +44,16 @@ a structure up to isomorphism, and reason about things that satisfy the predicat
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
 
+Since we only characterise localizations up to isomorphism, Lean can't infer the `R`-algebra
+structure on `S`, so we duplicate some relevant lemmas and definitions so that they take a
+localization map `f` as an explicit argument. To use other `R`-algebra/`R`-algebra lemmas, preface
+them with `@` and specify the appropriate instance (`f.to_map.to_algebra` or `f.to_module`, an
+abbreviation for the `R`-module structure coming from the `R`-algebra structure), as in the proofs
+of the duplicated lemmas.
+
 ## Tags
 localization, ring localization, commutative ring localization, characteristic predicate,
-commutative ring
+commutative ring, field of fractions
 -/
 variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
           {P : Type*} [comm_ring P]
@@ -51,6 +66,13 @@ set_option old_structure_cmd true
     satisfies this predicate, then `S` is isomorphic to the localization of `R` at `M`. -/
 @[nolint has_inhabited_instance] structure localization_map
 extends ring_hom R S, submonoid.localization_map M S
+
+/-- The ring hom underlying a `localization_map`. -/
+add_decl_doc localization_map.to_ring_hom
+
+/-- The `comm_monoid` `localization_map` underlying a `comm_ring` `localization_map`.
+    See `group_theory.monoid_localization` for its definition. -/
+add_decl_doc localization_map.to_localization_map
 
 namespace localization_map
 
@@ -79,13 +101,13 @@ lemma ext_iff {f g : localization_map M S} : f = g ↔ ∀ x, f.to_map x = g.to_
 lemma to_map_inj {f g : localization_map M S} (h : f.to_map = g.to_map) : f = g :=
 ext $ ring_hom.ext_iff.1 h
 
-/-- See `submonoid.localization_map.sec_spec'` for a clearer version of this lemma, which is only
-    intended for use in this file in the proof that `lift` is a ring hom. -/
-lemma sec_spec' {f : localization_map M S}
-  (h : ∀ z : S, ∃ x : R × M, z * f.to_map  x.2 = f.to_map x.1) (z : S) :
-  f.to_map (submonoid.localization_map.sec M f.to_localization_map.to_map z).1
-    = f.to_map (submonoid.localization_map.sec M f.to_localization_map.to_map z).2 * z :=
-@submonoid.localization_map.sec_spec' _ _ _ _ _ f.to_map.to_monoid_hom h _
+lemma sec_spec {f : localization_map M S} (z : S) :
+  z * f.to_map (f.to_localization_map.sec z).2 = f.to_map (f.to_localization_map.sec z).1 :=
+classical.some_spec $ f.surj z
+
+lemma sec_spec' {f : localization_map M S} (z : S) :
+  f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
+by rw [mul_comm, sec_spec]
 
 lemma map_left_cancel {x y} {c : M} (h : f.to_map (c * x) = f.to_map (c * y)) :
   f.to_map x = f.to_map y :=
@@ -95,10 +117,18 @@ lemma map_right_cancel {x y} {c : M} (h : f.to_map (x * c) = f.to_map (y * c)) :
   f.to_map x = f.to_map y :=
 f.to_localization_map.map_right_cancel h
 
+lemma eq_zero_of_fst_eq_zero {z x} {y : M}
+  (h : z * f.to_map y = f.to_map x) (hx : x = 0) : z = 0 :=
+by rw [hx, f.to_map.map_zero] at h; exact is_unit.eq_zero_of_mul_right_eq_zero (f.map_units y) h
+
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
     `f x * (f y)⁻¹`. -/
 noncomputable def mk' (f : localization_map M S) (x : R) (y : M) : S :=
 f.to_localization_map.mk' x y
+
+@[simp] lemma mk'_sec (z : S) :
+  f.mk' (f.to_localization_map.sec z).1 (f.to_localization_map.sec z).2 = z :=
+f.to_localization_map.mk'_sec _
 
 lemma mk'_mul (x₁ x₂ : R) (y₁ y₂ : M) :
   f.mk' (x₁ * x₂) (y₁ * y₂) = f.mk' x₁ y₁ * f.mk' x₂ y₂ :=
@@ -143,13 +173,13 @@ lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * a₂ = a₁ * b�
   f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
 f.to_localization_map.mk'_eq_of_eq H
 
-lemma mk'_self {x : R} {hx : x ∈ M} : f.mk' x ⟨x, hx⟩ = 1 :=
+@[simp] lemma mk'_self {x : R} {hx : x ∈ M} : f.mk' x ⟨x, hx⟩ = 1 :=
 f.to_localization_map.mk'_self' _ hx
 
-lemma mk'_self' {x : M} : f.mk' x x = 1 :=
+@[simp] lemma mk'_self' {x : M} : f.mk' x x = 1 :=
 f.to_localization_map.mk'_self _
 
-lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
+@[simp] lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
 f.mk'_self'
 
 lemma mul_mk'_eq_mk'_of_mul (x y : R) (z : M) :
@@ -160,11 +190,11 @@ lemma mk'_eq_mul_mk'_one (x : R) (y : M) :
   f.mk' x y = f.to_map x * f.mk' 1 y :=
 (f.to_localization_map.mul_mk'_one_eq_mk' _ _).symm
 
-lemma mk'_mul_cancel_left (x : R) (y : M) :
+@[simp] lemma mk'_mul_cancel_left (x : R) (y : M) :
   f.mk' (y * x) y = f.to_map x :=
 f.to_localization_map.mk'_mul_cancel_left _ _
 
-lemma mk'_mul_cancel_right (x : R) (y : M) :
+@[simp] lemma mk'_mul_cancel_right (x : R) (y : M) :
   f.mk' (x * y) y = f.to_map x :=
 f.to_localization_map.mk'_mul_cancel_right _ _
 
@@ -205,8 +235,8 @@ begin
   repeat {rw ←g.map_mul},
   rw [←g.map_sub, ←g.map_mul],
   apply f.eq_of_eq hg,
-  rw [f.to_map.map_mul, sec_spec' f.surj, mul_sub, f.to_map.map_sub],
-  simp only [f.to_map.map_mul, sec_spec' f.surj],
+  erw [f.to_map.map_mul, sec_spec', mul_sub, f.to_map.map_sub],
+  simp only [f.to_map.map_mul, sec_spec'],
   ring_exp,
 end
 
@@ -234,7 +264,7 @@ f.to_localization_map.lift_eq_iff _
 @[simp] lemma lift_comp : (f.lift hg).comp f.to_map = g :=
 ring_hom.ext $ monoid_hom.ext_iff.1 $ f.to_localization_map.lift_comp _
 
-lemma lift_of_comp (j : S →+* P) :
+@[simp] lemma lift_of_comp (j : S →+* P) :
   f.lift (f.is_unit_comp j) = j :=
 ring_hom.ext $ monoid_hom.ext_iff.1 $ f.to_localization_map.lift_of_comp j.to_monoid_hom
 
@@ -339,5 +369,158 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
   f.ring_equiv_of_ring_equiv k j H (f.mk' x y) =
     k.mk' (j x) ⟨j y, H ▸ set.mem_image_of_mem j y.2⟩ :=
 f.to_localization_map.mul_equiv_of_mul_equiv_mk' H _ _
+
+/-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of
+    the natural localization hom from `R` to `S`. -/
+def is_integer (a : S) : Prop := a ∈ set.range f.to_map
+
+lemma is_integer_add {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
+  f.is_integer (a + b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' + b',
+  rw [f.to_map.map_add, ha, hb]
+end
+
+lemma is_integer_mul {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
+  f.is_integer (a * b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' * b',
+  rw [f.to_map.map_mul, ha, hb]
+end
+
+lemma is_integer_smul {a : R} {b} (hb : f.is_integer b) :
+  f.is_integer (f.to_map a * b) :=
+begin
+  rcases hb with ⟨b', hb⟩,
+  use a * b',
+  rw [←hb, f.to_map.map_mul]
+end
+
+/-- Abbreviation for the `R`-module structure on `S` when `S` is a localization of `R` with
+    localization map `f`. -/
+@[reducible] def to_module :=
+@algebra.to_module _ _ _ _ f.to_map.to_algebra
+
+/-- Abbreviation for the `R`-submodules of `S` when `S` is a localization of `R` with
+    localization map `f`. -/
+@[reducible] protected def submodule :=
+@submodule R S _ _ f.to_module
+
+/-- Abbreviation for the `R`-submodule of `S` generated by a subset of `S` when `S` is a
+    localization of `R` with localization map `f`. -/
+@[reducible] def submodule_span :=
+@submodule.span R S _ _ f.to_module
+
+theorem submodule_zero_mem (I : f.submodule) : (0 : S) ∈ I :=
+I.zero_mem
+
+theorem submodule_add_mem (I : f.submodule) {x y : S} (hx : x ∈ I) (hy : y ∈ I) :
+  x + y ∈ I :=
+I.add_mem hx hy
+
+theorem submodule_smul_mem (I : f.submodule) {x : S} (r : R) (h : x ∈ I) :
+  f.to_map r * x ∈ I :=
+I.smul_mem r h
+
+@[simp] lemma of_id (a : R) :
+  (@algebra.of_id R S _ _ f.to_map.to_algebra : R → S) a = f.to_map a :=
+rfl
+
+/-- Localization map `f` from `R` to `S` as an `R`-linear map. -/
+def lin_coe : @linear_map R R S _ _ _ _ f.to_module :=
+{ to_fun := f.to_map,
+  add := f.to_map.map_add,
+  smul := f.to_map.map_mul }
+
+instance coe_submodules : has_coe (ideal R) f.submodule :=
+⟨λ I, @submodule.map R R S _ _ _ _ f.to_module f.lin_coe I⟩
+
+lemma mem_coe (I : ideal R) {x : S} : x ∈ (I : f.submodule) ↔
+  ∃ y : R, y ∈ I ∧ f.to_map y = x :=
+iff.rfl
+
+variables (R)
+
+/-- The submonoid of non-zero-divisors of a `comm_ring` `R`. -/
+def non_zero_divisors : submonoid R :=
+{ carrier := {x | ∀ z, z * x = 0 → z = 0},
+  one_mem' := λ z hz, by rwa mul_one at hz,
+  mul_mem' := λ x₁ x₂ hx₁ hx₂ z hz,
+    have z * x₁ * x₂ = 0, by rwa mul_assoc,
+    hx₁ z $ hx₂ (z * x₁) this }
+
+variables (K : Type*)
+
+/-- Localization map from an integral domain `R` to its field of fractions. -/
+@[reducible] def fraction_map [comm_ring K] := localization_map (non_zero_divisors R) K
+
+variables {R K}
+
+theorem injective_of_fraction_map [comm_ring K] (φ : fraction_map R K) :
+  injective φ.to_map :=
+φ.to_map.injective_iff.2 $ λ x h,
+  begin
+    rw ←φ.to_map.map_zero at h,
+    cases φ.eq_iff_exists.1 h with c hc,
+    rw zero_mul at hc,
+    exact c.2 x hc
+  end
+
+variables {A : Type*} [integral_domain A]
+
+local attribute [instance] classical.dec_eq
+
+lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : A} (hnx : x ≠ 0) (hxy : y * x = 0) :
+  y = 0 := or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
+
+lemma mem_non_zero_divisors_iff_ne_zero {x : A} :
+  x ∈ non_zero_divisors A ↔ x ≠ 0 :=
+⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
+ λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
+
+/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
+    integral domain. -/
+def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    begin
+      intros z w h,
+      cases φ.surj z with x hx,
+      cases φ.surj w with y hy,
+      have : z * w * φ.to_map y.2 * φ.to_map x.2 = φ.to_map x.1 * φ.to_map y.1, by
+        rw [mul_assoc z, hy, ←hx]; ac_refl,
+      erw h at this,
+      rw [zero_mul, zero_mul, ←φ.to_map.map_mul] at this,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero (φ.to_map.injective_iff.1
+        φ.injective_of_fraction_map _ this.symm) with H H,
+        { exact or.inl (φ.eq_zero_of_fst_eq_zero hx H) },
+      { exact or.inr (φ.eq_zero_of_fst_eq_zero hy H) },
+    end,
+  zero_ne_one := by erw [←φ.to_map.map_zero, ←φ.to_map.map_one];
+    exact λ h, zero_ne_one (injective_of_fraction_map φ h),
+  ..(infer_instance : comm_ring K) }
+
+/-- The inverse of an element in the field of fractions of an integral domain. -/
+noncomputable def inv [comm_ring K] (φ : fraction_map A K) (z : K) : K :=
+if h : z = 0 then 0 else
+φ.mk' (φ.to_localization_map.sec z).2 ⟨(φ.to_localization_map.sec z).1,
+  mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, h $ φ.eq_zero_of_fst_eq_zero (sec_spec z) h0⟩
+
+lemma mul_inv_cancel [comm_ring K] (φ : fraction_map A K) (x : K) (hx : x ≠ 0) :
+  x * inv φ x = 1 :=
+show x * dite _ _ _ = 1, by rw [dif_neg hx,
+  ←is_unit.mul_right_inj (φ.map_units ⟨(φ.to_localization_map.sec x).1,
+    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, hx $ φ.eq_zero_of_fst_eq_zero (sec_spec x) h0⟩),
+  one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (φ.mk'_sec x).symm
+
+/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
+    integral domain. -/
+noncomputable def to_field [comm_ring K] (φ : fraction_map A K) : field K :=
+{ inv := φ.inv,
+  mul_inv_cancel := φ.mul_inv_cancel,
+  inv_zero := dif_pos rfl, ..φ.to_integral_domain }
 
 end localization_map

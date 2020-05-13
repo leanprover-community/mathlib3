@@ -118,6 +118,14 @@ by rw [mul_assoc, inv_mul, mul_one]
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
+theorem eq_zero_of_mul_right_eq_zero {R : Type*} [ring R]
+  {r : R} (u : units R) (h : r * u = 0) : r = 0 :=
+(mul_right_inj u).1 $ (zero_mul (u : R)).symm ▸ h
+
+theorem eq_zero_of_mul_left_eq_zero {R : Type*} [ring R]
+  {r : R} (u : units R) (h : (u : R) * r = 0) : r = 0 :=
+(mul_left_inj u).1 $ (mul_zero (u : R)).symm ▸ h
+
 end units
 
 theorem nat.units_eq_one (u : units ℕ) : u = 1 :=

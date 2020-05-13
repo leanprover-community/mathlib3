@@ -100,3 +100,12 @@ by cases ha with a ha; rw [ha, units.mul_left_inj]
 @[simp, to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
   b * a = c * a ↔ b = c :=
 by cases ha with a ha; rw [ha, units.mul_right_inj]
+
+theorem is_unit.eq_zero_of_mul_right_eq_zero {R : Type*} [ring R]
+  {r u : R} (hu : is_unit u) (h : r * u = 0) : r = 0 :=
+by cases hu with u hu; exact units.eq_zero_of_mul_right_eq_zero u (hu ▸ h)
+
+theorem is_unit.eq_zero_of_mul_left_eq_zero {R : Type*} [ring R]
+  {r u : R} (hu : is_unit u) (h : u * r = 0) : r = 0 :=
+by cases hu with u hu; exact units.eq_zero_of_mul_left_eq_zero u (hu ▸ h)
+

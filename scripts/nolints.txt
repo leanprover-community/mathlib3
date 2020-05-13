@@ -2902,10 +2902,6 @@ apply_nolint topological_add_group.to_uniform_space doc_blame
 -- topology/algebra/uniform_ring.lean
 apply_nolint uniform_space.sep_quot_equiv_ring_quot doc_blame
 
--- topology/bounded_continuous_function.lean
-apply_nolint bounded_continuous_function.dist_eq ge_or_gt
-apply_nolint bounded_continuous_function.dist_set_exists ge_or_gt
-
 -- topology/category/Top/limits.lean
 apply_nolint Top.colimit doc_blame
 apply_nolint Top.colimit_is_colimit doc_blame

@@ -70,7 +70,7 @@ theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
 
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
-inf_le_inf (le_refl _) (principal_mono.mpr h)
+inf_le_inf_left _ (principal_mono.mpr h)
 
 lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ nhds_within a s) :
   a ∈ t :=
@@ -84,7 +84,7 @@ theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhd
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm
   (le_inf inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
-  (inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+  (inf_le_inf_left _ (principal_mono.mpr (set.inter_subset_left _ _)))
 
 theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝 a) :
   nhds_within a s = nhds_within a (s ∩ t) :=

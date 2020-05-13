@@ -94,7 +94,7 @@ theorem sup_sub_same : x ⊔ (y - x) = x ⊔ y :=
 by simp [sub_eq, sup_inf_left]
 
 theorem sub_eq_left (h : x ⊓ y = ⊥) : x - y = x :=
-by { rw [sub_eq, inf_of_le_left], rwa [is_compl_neg.le_right_iff, disjoint_iff] }
+by rwa [sub_eq, inf_eq_left, is_compl_neg.le_right_iff, disjoint_iff]
 
 theorem boolean_algebra.sub_le_sub (h₁ : w ≤ y) (h₂ : z ≤ x) : w - x ≤ y - z :=
 by rw [sub_eq, sub_eq]; from inf_le_inf h₁ (compl_le_compl h₂)

@@ -37,6 +37,7 @@ usual formulas (and existence assertions) for the derivative of
 * bounded linear maps
 * bounded bilinear maps
 * sum of two functions
+* sum of finitely many functions
 * multiplication of a function by a scalar constant
 * negative of a function
 * subtraction of two functions
@@ -998,6 +999,70 @@ protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
 ((hg.comp_tendsto (hf.continuous_at.prod_map' hf.continuous_at)).trans_is_O hf.is_O_sub).triangle $
   by simpa only [g'.map_sub, f'.coe_comp'] using (g'.is_O_comp _ _).trans_is_o hf
 
+protected lemma differentiable.iterate {f : E → E} (hf : differentiable 𝕜 f) (n : ℕ) :
+  differentiable 𝕜 (f^[n]) :=
+nat.rec_on n differentiable_id (λ n ihn, ihn.comp hf)
+
+protected lemma differentiable_on.iterate {f : E → E} (hf : differentiable_on 𝕜 f s)
+  (hs : maps_to f s s) (n : ℕ) :
+  differentiable_on 𝕜 (f^[n]) s :=
+nat.rec_on n differentiable_on_id (λ n ihn, ihn.comp hf hs)
+
+variable {x}
+
+protected lemma has_fderiv_at_filter.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_at_filter f f' x L) (hL : tendsto f L L) (hx : f x = x) (n : ℕ) :
+  has_fderiv_at_filter (f^[n]) (f'^n) x L :=
+begin
+  induction n with n ihn,
+  { exact has_fderiv_at_filter_id x L },
+  { change has_fderiv_at_filter (f^[n] ∘ f) (f'^(n+1)) x L,
+    rw [pow_succ'],
+    refine has_fderiv_at_filter.comp x _ hf,
+    rw hx,
+    exact ihn.mono hL }
+end
+
+protected lemma has_fderiv_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_fderiv_at (f^[n]) (f'^n) x :=
+begin
+  refine hf.iterate _ hx n,
+  convert hf.continuous_at,
+  exact hx.symm
+end
+
+protected lemma has_fderiv_within_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_fderiv_within_at f f' s x) (hx : f x = x) (hs : maps_to f s s) (n : ℕ) :
+  has_fderiv_within_at (f^[n]) (f'^n) s x :=
+begin
+  refine hf.iterate _ hx n,
+  convert tendsto_inf.2 ⟨hf.continuous_within_at, _⟩,
+  exacts [hx.symm, tendsto_le_left inf_le_right (tendsto_principal_principal.2 hs)]
+end
+
+protected lemma has_strict_fderiv_at.iterate {f : E → E} {f' : E →L[𝕜] E}
+  (hf : has_strict_fderiv_at f f' x) (hx : f x = x) (n : ℕ) :
+  has_strict_fderiv_at (f^[n]) (f'^n) x :=
+begin
+  induction n with n ihn,
+  { exact has_strict_fderiv_at_id x },
+  { change has_strict_fderiv_at (f^[n] ∘ f) (f'^(n+1)) x,
+    rw [pow_succ'],
+    refine has_strict_fderiv_at.comp x _ hf,
+    rwa hx }
+end
+
+protected lemma differentiable_at.iterate {f : E → E} (hf : differentiable_at 𝕜 f x)
+  (hx : f x = x) (n : ℕ) :
+  differentiable_at 𝕜 (f^[n]) x :=
+exists.elim hf $ λ f' hf, (hf.iterate hx n).differentiable_at
+
+protected lemma differentiable_within_at.iterate {f : E → E} (hf : differentiable_within_at 𝕜 f s x)
+  (hx : f x = x) (hs : maps_to f s s) (n : ℕ) :
+  differentiable_within_at 𝕜 (f^[n]) s x :=
+exists.elim hf $ λ f' hf, (hf.iterate hx hs n).differentiable_within_at
+
 end composition
 
 section cartesian_product
@@ -1441,6 +1506,66 @@ lemma fderiv_const_add
 (hf.has_fderiv_at.const_add c).fderiv
 
 end add
+
+
+section sum
+/-! ### Derivative of a finite sum of functions -/
+
+open_locale big_operators
+
+variables {ι : Type*} {u : finset ι} {A : ι → (E → F)} {A' : ι → (E →L[𝕜] F)}
+
+theorem has_strict_fderiv_at.sum (h : ∀ i ∈ u, has_strict_fderiv_at (A i) (A' i) x) :
+  has_strict_fderiv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+begin
+  dsimp [has_strict_fderiv_at] at *,
+  convert is_o.sum h,
+  simp [finset.sum_sub_distrib, continuous_linear_map.sum_apply]
+end
+
+theorem has_fderiv_at_filter.sum (h : ∀ i ∈ u, has_fderiv_at_filter (A i) (A' i) x L) :
+  has_fderiv_at_filter (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x L :=
+begin
+  dsimp [has_fderiv_at_filter] at *,
+  convert is_o.sum h,
+  simp [continuous_linear_map.sum_apply]
+end
+
+theorem has_fderiv_within_at.sum (h : ∀ i ∈ u, has_fderiv_within_at (A i) (A' i) s x) :
+  has_fderiv_within_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) s x :=
+has_fderiv_at_filter.sum h
+
+theorem has_fderiv_at.sum (h : ∀ i ∈ u, has_fderiv_at (A i) (A' i) x) :
+  has_fderiv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+has_fderiv_at_filter.sum h
+
+theorem differentiable_within_at.sum (h : ∀ i ∈ u, differentiable_within_at 𝕜 (A i) s x) :
+  differentiable_within_at 𝕜 (λ y, ∑ i in u, A i y) s x :=
+has_fderiv_within_at.differentiable_within_at $ has_fderiv_within_at.sum $
+λ i hi, (h i hi).has_fderiv_within_at
+
+@[simp] theorem differentiable_at.sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+  differentiable_at 𝕜 (λ y, ∑ i in u, A i y) x :=
+has_fderiv_at.differentiable_at $ has_fderiv_at.sum $ λ i hi, (h i hi).has_fderiv_at
+
+theorem differentiable_on.sum (h : ∀ i ∈ u, differentiable_on 𝕜 (A i) s) :
+  differentiable_on 𝕜 (λ y, ∑ i in u, A i y) s :=
+λ x hx, differentiable_within_at.sum $ λ i hi, h i hi x hx
+
+@[simp] theorem differentiable.sum (h : ∀ i ∈ u, differentiable 𝕜 (A i)) :
+  differentiable 𝕜 (λ y, ∑ i in u, A i y) :=
+λ x, differentiable_at.sum $ λ i hi, h i hi x
+
+theorem fderiv_within_sum (hxs : unique_diff_within_at 𝕜 s x)
+  (h : ∀ i ∈ u, differentiable_within_at 𝕜 (A i) s x) :
+  fderiv_within 𝕜 (λ y, ∑ i in u, A i y) s x = (∑ i in u, fderiv_within 𝕜 (A i) s x) :=
+(has_fderiv_within_at.sum (λ i hi, (h i hi).has_fderiv_within_at)).fderiv_within hxs
+
+theorem fderiv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+  fderiv 𝕜 (λ y, ∑ i in u, A i y) x = (∑ i in u, fderiv 𝕜 (A i) x) :=
+(has_fderiv_at.sum (λ i hi, (h i hi).has_fderiv_at)).fderiv
+
+end sum
 
 section neg
 /-! ### Derivative of the negative of a function -/

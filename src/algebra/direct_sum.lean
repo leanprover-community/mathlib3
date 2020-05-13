@@ -64,7 +64,7 @@ theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
 dfinsupp.mk_inj s
 
 theorem of_inj (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp [finset.to_set]⟩
+λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_sum ι β → Prop}

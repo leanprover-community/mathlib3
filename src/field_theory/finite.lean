@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 
-import data.polynomial
 import data.equiv.ring
 import data.zmod.basic
-import group_theory.order_of_element
 import linear_algebra.basis
-import algebra.geom_sum
+import ring_theory.integral_domain
 
 /-!
 # Finite fields
@@ -35,74 +33,6 @@ local notation `q` := fintype.card K
 
 open_locale big_operators
 
-section
-
-open function finset polynomial nat
-
-variables {G : Type*} [group G] [fintype G]
-
-lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
-  ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
-begin
-  apply card_le_card_of_inj_on f,
-  { intros g hg, rw [sep_def, mem_filter] at hg, rw [mem_nth_roots hn, ← f.map_pow, hg.2] },
-  { intros, apply hf, assumption }
-end
-
-/-- A finite subgroup of the unit group of an integral domain is cyclic. -/
-lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
-begin
-  haveI := classical.dec_eq G,
-  apply is_cyclic_of_card_pow_eq_one_le,
-  intros n hn,
-  convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
-end
-
-/-- The sum of `x ^ i` as `x` ranges over a finite subgroup `G` of the units of an integral domain
-is equal to `0` unless the cardinality of `G` divides `i`,
-in which case the sum is the cardinality of `G`. -/
-lemma sum_pow_units_subgroup (f : G →* R) (hf : injective f) (i : ℕ) :
-  ∑ g : G, f g ^ i = if fintype.card G ∣ i then fintype.card G else 0 :=
-begin
-  haveI : decidable_eq G := classical.dec_eq G,
-  haveI : is_cyclic G := is_cyclic_of_subgroup_integral_domain f hf,
-  obtain ⟨g₀, hG⟩ := is_cyclic.exists_generator G,
-  calc ∑ g : G, f g ^ i = ∑ g in (range (order_of g₀)).image (λ i, g₀ ^ i), f g ^ i :
-  by rw [is_cyclic.image_range_order_of hG]
-    ... = ∑ k in range (order_of g₀), f (g₀ ^ k) ^ i :
-  by { apply finset.sum_image, intros i hi j hj h, rw [mem_range] at hi hj,
-       exact pow_injective_of_lt_order_of g₀ hi hj h }
-    ... = geom_series (f g₀ ^ i) (fintype.card G) :
-  by { rw [order_of_eq_card_of_forall_mem_gpowers hG],
-       apply sum_congr rfl, intros k hk, rw [← pow_mul', pow_mul, f.map_pow] }
-    ... = if (fintype.card G) ∣ i then fintype.card G else 0 : _,
-  split_ifs with H H,
-  { rcases H with ⟨d, rfl⟩,
-    rw [pow_mul, ← f.map_pow, pow_card_eq_one, f.map_one, geom_series_def],
-    simp only [_root_.one_pow, add_monoid.smul_one, sum_const, card_range] },
-  { have key : geom_series (f g₀ ^ i) (fintype.card G) * (f g₀ ^ i - 1) = 0,
-    { rw [geom_sum_mul (f g₀ ^ i) (fintype.card G), ← f.map_pow, ← f.map_pow,
-          pow_card_eq_one, f.map_one, sub_self] },
-    apply (eq_zero_or_eq_zero_of_mul_eq_zero key).resolve_right,
-    rw [sub_eq_zero, ← f.map_one, ← f.map_pow],
-    apply hf.ne,
-    contrapose! H,
-    rw [← order_of_eq_card_of_forall_mem_gpowers hG],
-    exact order_of_dvd_of_pow_eq_one H },
-end
-
-variables (S : set (units R)) [is_subgroup S] [fintype S]
-
-/-- A finite subgroup of the units of an integral domain is cyclic. -/
-instance subgroup_units_cyclic : is_cyclic S :=
-let φ : S →* R :=
-{ to_fun := coe,
-  map_one' := by simp only [is_submonoid.coe_one, units.coe_one, coe_coe],
-  map_mul' := by intros; simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] } in
-is_cyclic_of_subgroup_integral_domain φ $ injective_comp units.ext subtype.val_injective
-
-end
-
 namespace finite_field
 open function finset polynomial
 
@@ -115,7 +45,7 @@ is_cyclic_of_subgroup_integral_domain φ $ units.ext
 def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
 { inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
+      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
@@ -227,13 +157,29 @@ is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
 lemma sum_pow_units (i : ℕ) :
   ∑ x : units K, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
-  calc ∑ x : units K, (x ^ i : K) = if fintype.card (units K) ∣ i then fintype.card (units K) else 0 :
-      sum_pow_units_subgroup ⟨(coe : units K → K), units.coe_one, units.coe_mul⟩ units.ext i
-    ... = if (q - 1) ∣ i then -1 else 0 : _,
-  suffices : 1 ≤ q,
-  { simp only [card_units, nat.cast_sub this, cast_card_eq_zero, nat.cast_one, zero_sub],
-    split_ifs; refl },
-  exact fintype.card_pos_iff.mpr ⟨0⟩
+  let φ : units K →* K :=
+  { to_fun   := λ x, x ^ i,
+    map_one' := by rw [units.coe_one, one_pow],
+    map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
+  haveI : decidable (φ = 1) := by { classical, apply_instance },
+  calc ∑ x : units K, φ x = if φ = 1 then fintype.card (units K) else 0 : sum_hom_units φ
+                      ... = if (fintype.card (units K)) ∣ i then -1 else 0 : _
+                      ... = if (q - 1) ∣ i then -1 else 0 : by rw card_units ,
+  by_cases h : (fintype.card (units K)) ∣ i,
+  { have : φ = 1,
+    { ext x, rcases h with ⟨d, rfl⟩,
+      rw [monoid_hom.one_apply, monoid_hom.coe_mk, pow_mul, ← units.coe_pow,
+          pow_card_eq_one, units.coe_one, one_pow] },
+    rw [if_pos this, if_pos h, card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
+    show 1 ≤ q, from fintype.card_pos_iff.mpr ⟨0⟩ },
+  { suffices : φ ≠ 1, by rw [if_neg this, if_neg h],
+    classical,
+    contrapose! h,
+    obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
+    rw [← order_of_eq_card_of_forall_mem_gpowers hx,
+        order_of_dvd_iff_pow_eq_one, units.ext_iff, units.coe_pow],
+    show φ x = 1,
+    rw [h, monoid_hom.one_apply] }
 end
 
 /-- The sum of `x ^ i` as `x` ranges over a finite field of cardinality `q`

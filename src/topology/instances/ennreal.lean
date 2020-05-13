@@ -35,7 +35,7 @@ instance : t2_space ennreal := by apply_instance -- short-circuit type class inf
 
 instance : second_countable_topology ennreal :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ennreal | a < nnreal.of_real q}, {a : ennreal | ↑(nnreal.of_real q) < a}},
-  countable_bUnion (countable_encodable _) $ assume a ha, countable_insert (countable_singleton _),
+  (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
   le_antisymm
     (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
     (le_generate_from $ λ s h, begin
@@ -466,17 +466,14 @@ end
 protected lemma tsum_eq_supr_sum : (∑'a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_has_sum ennreal.has_sum
 
-protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
-| ⟨a, ha⟩ :=
+protected lemma tsum_eq_supr_sum' {ι : Type*} (s : ι → finset α) (hs : ∀ t, ∃ i, t ⊆ s i) :
+  (∑' a, f a) = ⨆ i, (s i).sum f :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
-  apply le_antisymm le_top,
-  convert le_supr (λ s:finset α, s.sum f) (finset.singleton a),
-  rw [finset.sum_singleton, ha]
+  symmetry,
+  change (⨆i:ι, (λ t : finset α, t.sum f) (s i)) = ⨆s:finset α, s.sum f,
+  exact (finset.sum_mono_set f).supr_comp_eq hs
 end
-
-protected lemma ne_top_of_tsum_ne_top (h : (∑' a, f a) ≠ ∞) (a : α) : f a ≠ ∞ :=
-λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑'p:Σa, β a, f p.1 p.2) = (∑'a b, f a b) :=
@@ -509,17 +506,18 @@ tsum_le_tsum h ennreal.summable ennreal.summable
 
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
   (∑'i:ℕ, f i) = (⨆i:ℕ, (finset.range i).sum f) :=
-calc _ = (⨆s:finset ℕ, s.sum f) : ennreal.tsum_eq_supr_sum
-  ... = (⨆i:ℕ, (finset.range i).sum f) : le_antisymm
-    (supr_le_supr2 $ assume s,
-      let ⟨n, hn⟩ := finset.exists_nat_subset_range s in
-      ⟨n, finset.sum_le_sum_of_subset hn⟩)
-    (supr_le_supr2 $ assume i, ⟨finset.range i, le_refl _⟩)
+ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
 calc f a = ({a} : finset α).sum f : by simp
   ... ≤ (⨆s:finset α, s.sum f) : le_supr (λs:finset α, s.sum f) _
   ... = (∑'a, f a) : by rw [ennreal.tsum_eq_supr_sum]
+
+protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
+| ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
+
+protected lemma ne_top_of_tsum_ne_top (h : (∑' a, f a) ≠ ∞) (a : α) : f a ≠ ∞ :=
+λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
 
 protected lemma tsum_mul_left : (∑'i, a * f i) = a * (∑'i, f i) :=
 if h : ∀i, f i = 0 then by simp [h] else

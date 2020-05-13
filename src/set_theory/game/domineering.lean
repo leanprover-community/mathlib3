@@ -28,12 +28,12 @@ open function
 /-- The embedding `(x, y) ↦ (x, y+1)`. -/
 def shift_up : ℤ × ℤ ↪ ℤ × ℤ :=
 ⟨λ p : ℤ × ℤ, (p.1, p.2 + 1),
- have injective (λ (n : ℤ), n + 1) := λ _ _, (add_right_inj 1).mp,
+ have injective (λ (n : ℤ), n + 1) := λ _ _, (add_left_inj 1).mp,
  injective_id.prod this⟩
 /-- The embedding `(x, y) ↦ (x+1, y)`. -/
 def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
 ⟨λ p : ℤ × ℤ, (p.1 + 1, p.2),
- have injective (λ (n : ℤ), n + 1) := λ _ _, (add_right_inj 1).mp,
+ have injective (λ (n : ℤ), n + 1) := λ _ _, (add_left_inj 1).mp,
  this.prod injective_id⟩
 
 /-- A Domineering board is an arbitrary finite subset of `ℤ × ℤ`. -/

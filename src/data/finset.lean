@@ -47,9 +47,7 @@ multiset.decidable_mem _ _
 /-! ### set coercion -/
 
 /-- Convert a finset to a set in the natural way. -/
-def to_set (s : finset α) : set α := {x | x ∈ s}
-
-instance : has_lift (finset α) (set α) := ⟨to_set⟩
+instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
 @[simp] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
 
@@ -67,9 +65,9 @@ theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s�
 ext.2
 
 @[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
-(set.ext_iff _ _).trans ext.symm
+set.ext_iff.trans ext.symm
 
-lemma to_set_injective {α} : function.injective (finset.to_set : finset α → set α) :=
+lemma coe_injective {α} : function.injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
 
 /-! ### subset -/
@@ -650,9 +648,6 @@ sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
-@[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
-by apply finset.coe_sdiff
-
 @[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
 ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,
   imp_and_distrib, and_iff_left id]
@@ -810,6 +805,10 @@ def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
 @[simp] theorem mem_filter {s : finset α} {a : α} : a ∈ s.filter p ↔ a ∈ s ∧ p a := mem_filter
 
 @[simp] theorem filter_subset (s : finset α) : s.filter p ⊆ s := filter_subset _
+
+theorem filter_ssubset {s : finset α} : s.filter p ⊂ s ↔ ∃ x ∈ s, ¬ p x :=
+⟨λ h, let ⟨x, hs, hp⟩ := set.exists_of_ssubset h in ⟨x, hs, mt (λ hp, mem_filter.2 ⟨hs, hp⟩) hp⟩,
+  λ ⟨x, hs, hp⟩, ⟨s.filter_subset, λ h, hp (mem_filter.1 (h hs)).2⟩⟩
 
 theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
@@ -2781,7 +2780,7 @@ by { ext i, simp }
 def Ico_ℤ (l u : ℤ) : finset ℤ :=
 (finset.range (u - l).to_nat).map
   { to_fun := λ n, n + l,
-    inj := λ n m h, by simpa using h }
+    inj' := λ n m h, by simpa using h }
 
 @[simp] lemma Ico_ℤ.mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
 begin

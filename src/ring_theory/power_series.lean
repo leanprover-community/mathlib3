@@ -292,7 +292,7 @@ lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
 
 lemma coeff_index_single_X (s t : σ) :
   coeff α (single t 1) (X s : mv_power_series σ α) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_right_inj one_ne_zero], split_ifs; refl }
+by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff α (single s 1) (X s : mv_power_series σ α) = 1 :=
@@ -1134,7 +1134,7 @@ begin
       { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
         exfalso, exact ne_of_lt this hij.symm },
       contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
-      simpa [ne.def, prod.mk.inj_iff] using (add_left_inj m).mp hij },
+      simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 

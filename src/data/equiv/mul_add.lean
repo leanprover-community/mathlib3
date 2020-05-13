@@ -88,6 +88,12 @@ def symm (h : M ≃* N) : N ≃* M :=
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
+@[simp, to_additive]
+theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
+
+@[simp, to_additive]
+theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
+
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
@@ -276,5 +282,31 @@ protected def inv : perm G :=
   right_inv := assume a, inv_inv a }
 
 end group
+
+section point_reflection
+
+variables [add_comm_group A] (x y : A)
+
+/-- Point reflection in `x` as a permutation. -/
+def point_reflection (x : A) : perm A :=
+(equiv.neg A).trans (equiv.add_left (x + x))
+
+lemma point_reflection_apply : point_reflection x y = x + x - y := rfl
+
+@[simp] lemma point_reflection_self : point_reflection x x = x := add_sub_cancel _ _
+
+lemma point_reflection_involutive : function.involutive (point_reflection x : A → A) :=
+λ y, by simp only [point_reflection_apply, sub_sub_cancel]
+
+@[simp] lemma point_reflection_symm : (point_reflection x).symm = point_reflection x :=
+by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
+
+/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
+`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma point_reflection_fixed_iff_of_bit0_inj {x y : A} (h : function.injective (bit0 : A → A)) :
+  point_reflection x y = y ↔ y = x :=
+sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
+
+end point_reflection
 
 end equiv

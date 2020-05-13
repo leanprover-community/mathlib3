@@ -1002,6 +1002,25 @@ by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
 
 end finset
 
+/-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
+def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
+{ to_fun := λ i, i.1 - k,
+  inv_fun := λ j, ⟨j + k, by simp⟩,
+  left_inv :=
+  begin
+    assume j,
+    rw subtype.ext,
+    apply nat.sub_add_cancel,
+    simpa using j.2
+  end,
+  right_inv := λ j, nat.add_sub_cancel _ _ }
+
+@[simp] lemma coe_not_mem_range_equiv (k : ℕ) :
+  (not_mem_range_equiv k : {n // n ∉ range k} → ℕ) = (λ i, i - k) := rfl
+
+@[simp] lemma coe_not_mem_range_equiv_symm (k : ℕ) :
+  ((not_mem_range_equiv k).symm : ℕ → {n // n ∉ range k}) = λ j, ⟨j + k, by simp⟩ := rfl
+
 namespace option
 
 /-- Construct an empty or singleton finset from an `option` -/

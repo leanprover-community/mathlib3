@@ -193,6 +193,12 @@ meta def get_ext_lemmas : tactic (name_map name) :=
 ext_attr_core.get_cache
 
 /--
+Returns the extensionality lemmas in the environment, as a list of lemma names.
+-/
+meta def get_ext_lemma_names : tactic (list name) :=
+rb_map.values <$> get_ext_lemmas
+
+/--
 Tag lemmas of the form:
 
 ```lean
@@ -337,7 +343,7 @@ do subject ← target >>= get_ext_subject,
    m ← get_ext_lemmas,
    do { rule ← m.find subject,
         applyc rule cfg } <|>
-     do { ls ← attribute.get_instances `ext,
+     do { ls ← get_ext_lemma_names,
           ls.any_of (λ n, applyc n cfg) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs

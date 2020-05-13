@@ -242,16 +242,16 @@ by rw [←one_mul ↑(_)⁻¹, mul_inv_left, ←H]
 
 variables (f : localization_map S N)
 
-@[to_additive] lemma map_left_cancel {x y} {c : S} (h : f.to_map (c * x) = f.to_map (c * y)) :
+@[to_additive] lemma map_right_cancel {x y} {c : S} (h : f.to_map (c * x) = f.to_map (c * y)) :
   f.to_map x = f.to_map y :=
 begin
   rw [f.to_map.map_mul, f.to_map.map_mul] at h,
-  exact (is_unit.mul_left_inj (f.map_units c)).1 h,
+  exact (is_unit.mul_right_inj (f.map_units c)).1 h,
 end
 
-@[to_additive] lemma map_right_cancel {x y} {c : S} (h : f.to_map (x * c) = f.to_map (y * c)) :
+@[to_additive] lemma map_left_cancel {x y} {c : S} (h : f.to_map (x * c) = f.to_map (y * c)) :
   f.to_map x = f.to_map y :=
-f.map_left_cancel $ by rw [mul_comm _ x, mul_comm _ y, h]
+f.map_right_cancel $ by rw [mul_comm _ x, mul_comm _ y, h]
 
 /-- Given a localization map `f : M →* N`, the surjection sending `(x, y) : M × S` to
     `f x * (f y)⁻¹`. -/

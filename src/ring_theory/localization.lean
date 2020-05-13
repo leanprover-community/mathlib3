@@ -109,17 +109,17 @@ lemma sec_spec' {f : localization_map M S} (z : S) :
   f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
 
-lemma map_left_cancel {x y} {c : M} (h : f.to_map (c * x) = f.to_map (c * y)) :
-  f.to_map x = f.to_map y :=
-f.to_localization_map.map_left_cancel h
-
-lemma map_right_cancel {x y} {c : M} (h : f.to_map (x * c) = f.to_map (y * c)) :
+lemma map_right_cancel {x y} {c : M} (h : f.to_map (c * x) = f.to_map (c * y)) :
   f.to_map x = f.to_map y :=
 f.to_localization_map.map_right_cancel h
 
+lemma map_left_cancel {x y} {c : M} (h : f.to_map (x * c) = f.to_map (y * c)) :
+  f.to_map x = f.to_map y :=
+f.to_localization_map.map_left_cancel h
+
 lemma eq_zero_of_fst_eq_zero {z x} {y : M}
   (h : z * f.to_map y = f.to_map x) (hx : x = 0) : z = 0 :=
-by rw [hx, f.to_map.map_zero] at h; exact is_unit.eq_zero_of_mul_right_eq_zero (f.map_units y) h
+by rw [hx, f.to_map.map_zero] at h; exact is_unit.eq_zero_of_mul_left_eq_zero (f.map_units y) h
 
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
     `f x * (f y)⁻¹`. -/
@@ -512,7 +512,7 @@ if h : z = 0 then 0 else
 lemma mul_inv_cancel [comm_ring K] (φ : fraction_map A K) (x : K) (hx : x ≠ 0) :
   x * inv φ x = 1 :=
 show x * dite _ _ _ = 1, by rw [dif_neg hx,
-  ←is_unit.mul_right_inj (φ.map_units ⟨(φ.to_localization_map.sec x).1,
+  ←is_unit.mul_left_inj (φ.map_units ⟨(φ.to_localization_map.sec x).1,
     mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, hx $ φ.eq_zero_of_fst_eq_zero (sec_spec x) h0⟩),
   one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (φ.mk'_sec x).symm
 

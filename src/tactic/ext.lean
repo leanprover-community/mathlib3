@@ -284,17 +284,17 @@ meta def extensional_attribute : user_attribute unit (list ext_param_type) :=
   after_set := some $ λ n prio b,
     do ls ← extensional_attribute.get_param n,
        e ← get_env,
-       n' ← if (e.structure_fields n).is_some
+       n ← if (e.structure_fields n).is_some
          then derive_struct_ext_lemma n
          else pure n,
-       s ← mk_const n' >>= infer_type >>= get_ext_subject,
+       s ← mk_const n >>= infer_type >>= get_ext_subject,
        let (rs,ls'') := if ls.empty
                            then ([],[s])
                            else ls.partition_map (sum.map (flip option.get_or_else s)
                                                     (flip option.get_or_else s)),
        ls''.mmap' (equiv_type_constr s),
        ls' ← get_ext_lemmas,
-       let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n').map prod.fst \ rs,
+       let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        l.mmap' $ λ l, ext_attr_core.set l n b prio }
 
 add_tactic_doc

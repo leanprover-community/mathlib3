@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
-# Makes a file src/all.lean importing all files.
-cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../src
+# Usage: mk_all.sh [subdirectory]
+#
+# Examples:
+#   ./scripts/mk_all.sh
+#   ./scripts/mk_all.sh data/real
+#
+# Makes a mathlib/src/$directory/all.lean importing all files inside $directory.
+# If $directory is omitted, creates `mathlib/src/all.lean`.
 
-find -name \*.lean -not -name all.lean \
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../src
+if [[ $# = 1 ]]; then
+  dir="$1"
+else
+  dir="."
+fi
+
+find $dir -name \*.lean -not -name all.lean \
   | sed 's,^\./,,;s,\.lean$,,;s,/,.,g;s,^,import ,' \
-  | sort >all.lean
+  | sort >$dir/all.lean

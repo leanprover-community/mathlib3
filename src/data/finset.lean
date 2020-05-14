@@ -214,9 +214,13 @@ end
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]
 
+@[simp] lemma singleton_subset_set_iff {s : set α} {a : α} :
+  ↑({a} : finset α) ⊆ s ↔ a ∈ s :=
+by rw [coe_singleton, set.singleton_subset_iff]
+
 @[simp] lemma singleton_subset_iff {s : finset α} {a : α} :
   {a} ⊆ s ↔ a ∈ s :=
-by rw [← coe_subset, coe_singleton, set.singleton_subset_iff, mem_coe]
+singleton_subset_set_iff
 
 /-! ### insert -/
 section decidable_eq

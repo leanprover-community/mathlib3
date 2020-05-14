@@ -281,7 +281,7 @@ section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
 /-- Compose a binary function `f` with a pair of unary functions `g` and `h`.
-If both arguments of `f` have the same and `g = h`, then `bicompl f g g = f on g`. -/
+If both arguments of `f` have the same type and `g = h`, then `bicompl f g g = f on g`. -/
 def bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) (a b) :=
 f (g a) (h b)
 

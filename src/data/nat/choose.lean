@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Bhavik Mehta
+Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
 
@@ -99,7 +99,7 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
-theorem pascal_row_sum (n : ℕ) :
+theorem sum_pascal_row (n : ℕ) :
   finset.sum (finset.range n.succ) (choose n) = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
 

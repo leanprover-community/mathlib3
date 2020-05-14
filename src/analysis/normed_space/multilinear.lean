@@ -57,7 +57,6 @@ noncomputable theory
 open_locale classical
 open finset
 
-set_option class.instance_max_depth 45
 
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
@@ -657,7 +656,6 @@ The inverse operations are called `uncurry_left` and `uncurry_right`.
 We also register continuous linear equiv versions of these correspondences, in
 `continuous_multilinear_curry_left_equiv` and `continuous_multilinear_curry_right_equiv`.
 -/
-set_option class.instance_max_depth 360
 open fin function
 
 lemma continuous_linear_map.norm_map_tail_le
@@ -1014,7 +1012,8 @@ begin
   have : x = 0 := subsingleton.elim _ _, subst this,
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
-    continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp),
+    continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm,
+      by simp [-continuous_multilinear_map.apply_zero_curry0]),
   simpa
 end
 

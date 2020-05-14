@@ -193,6 +193,10 @@ by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
+lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
+  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
+(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
 section classical
 open_locale classical
 open quotient_group
@@ -372,6 +376,10 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
     exact le_of_dvd hn0 (gcd_dvd_left _ _)
   end
 
+lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
+  ∃ x : α, ∀ y : α, y ∈ powers x :=
+by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator α
+
 section
 
 variables [group α] [fintype α] [decidable_eq α]
@@ -434,7 +442,7 @@ have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
-(add_right_inj (((range d.succ).filter (∣ d.succ)).sum
+(add_left_inj (((range d.succ).filter (∣ d.succ)).sum
   (λ m, (univ.filter (λ a : α, order_of a = m)).card))).1
   (calc _ = (insert d.succ (filter (∣ d.succ) (range d.succ))).sum
         (λ m, (univ.filter (λ a : α, order_of a = m)).card) :

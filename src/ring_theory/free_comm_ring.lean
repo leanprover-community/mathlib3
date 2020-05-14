@@ -211,7 +211,7 @@ free_comm_ring.induction_on x
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
 
 theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_supported x ↑s :=
-let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
+let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa set.finite.coe_to_finset⟩
 
 end free_comm_ring
 

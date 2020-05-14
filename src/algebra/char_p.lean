@@ -73,7 +73,7 @@ theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
   rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_left_inj],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
     { intros b h1 h2,
@@ -234,6 +234,9 @@ end prio
 
 lemma false_of_nonzero_of_char_one [nonzero_comm_ring R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+
+lemma ring_char_ne_one [nonzero_semiring R] : ring_char R ≠ 1 :=
+by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 end char_one
 

@@ -127,7 +127,7 @@ let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α 
 ⟨begin
    intros,
    rw [eq, nhds_generate_from],
-   exact is_countably_generated_binfi_principal (countable_subset (assume x ⟨_, hx⟩, hx) hb),
+   exact is_countably_generated_binfi_principal (hb.mono (assume x, and.right)),
  end⟩
 
 lemma second_countable_topology_induced (β)
@@ -135,7 +135,7 @@ lemma second_countable_topology_induced (β)
   @second_countable_topology α (t.induced f) :=
 begin
   rcases second_countable_topology.is_open_generated_countable β with ⟨b, hb, eq⟩,
-  refine { is_open_generated_countable := ⟨preimage f '' b, countable_image _ hb, _⟩ },
+  refine { is_open_generated_countable := ⟨preimage f '' b, hb.image _, _⟩ },
   rw [eq, induced_generate_from_eq]
 end
 
@@ -148,9 +148,8 @@ lemma is_open_generated_countable_inter [second_countable_topology α] :
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
 ⟨b',
-  countable_image _ $ countable_subset
-    (by simp only [(and_assoc _ _).symm]; exact inter_subset_left _ _)
-    (countable_set_of_finite_subset hb₁),
+  ((countable_set_of_finite_subset hb₁).mono
+    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
   is_topological_basis_of_subbasis hb₂⟩
 
@@ -162,7 +161,7 @@ instance {β : Type*} [topological_space β]
   ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
     have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
       by apply set.ext; simp,
-    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [this]; exact (ha₁.bUnion $ assume u hu, hb₁.bUnion $ by simp),
     by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
 
 instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
@@ -174,7 +173,7 @@ let ⟨g, hg⟩ := classical.axiom_of_choice this in
 have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.2.2,
 begin
   constructor,
-  refine ⟨pi univ '' pi univ g, countable_image _ _, _⟩,
+  refine ⟨pi univ '' pi univ g, countable.image _ _, _⟩,
   { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
     exact countable_pi (assume i, (hg i).1), },
   rw [this, pi_generate_from_eq_fintype],
@@ -193,7 +192,7 @@ have ∀s∈b, set.nonempty s,
 have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simpa only [skolem, set.nonempty] using this,
 let ⟨f, hf⟩ := this in
 ⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
-  countable_bUnion hb₁ (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
+  hb₁.bUnion (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
   set.ext $ assume a,
   have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
   let ⟨t, ht₁, ht₂⟩ := this in
@@ -223,7 +222,7 @@ let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
 begin
   let B' := {b ∈ B | ∃ i, b ⊆ s i},
   choose f hf using λ b:B', b.2.2,
-  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
+  haveI : encodable B' := (cB.mono (sep_subset _ _)).to_encodable,
   refine ⟨_, countable_range f,
     subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
@@ -235,7 +234,7 @@ lemma is_open_sUnion_countable [second_countable_topology α]
   (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
   ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
 let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
-⟨subtype.val '' T, countable_image _ cT,
+⟨subtype.val '' T, cT.image _,
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
 

@@ -144,6 +144,9 @@ namespace subgroup
 @[to_additive]
 instance : has_coe (subgroup G) (set G) := { coe := subgroup.carrier }
 
+@[simp, to_additive]
+lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
+
 @[to_additive]
 instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 
@@ -169,9 +172,24 @@ protected lemma subgroup.exists {K : subgroup G} {p : K → Prop} :
   (∃ x : K, p x) ↔ ∃ x ∈ K, p ⟨x, ‹x ∈ K›⟩ :=
 set_coe.exists
 
+@[to_additive]
+protected lemma subgroup.forall {K : subgroup G} {p : K → Prop} :
+  (∀ x : K, p x) ↔ ∀ x ∈ K, p ⟨x, ‹x ∈ K›⟩ :=
+set_coe.forall
+
 namespace subgroup
 
 variables (H K : subgroup G)
+
+/-- Copy of a subgroup with a new `carrier` equal to the old one. Useful to fix definitional
+equalities.-/
+@[to_additive "Copy of an additive subgroup with a new `carrier` equal to the old one.
+Useful to fix definitional equalities"]
+protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
+{ carrier := s,
+  one_mem' := hs.symm ▸ K.one_mem',
+  mul_mem' := hs.symm ▸ K.mul_mem',
+  inv_mem' := hs.symm ▸ K.inv_mem' }
 
 /- Two subgroups are equal if the underlying set are the same. -/
 @[to_additive "Two `add_group`s are equal if the underlying subsets are equal."]
@@ -266,32 +284,25 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 instance : has_le (subgroup G) := ⟨λ H K, ∀ ⦃x⦄, x ∈ H → x ∈ K⟩
 
 @[to_additive]
-instance : has_lt (subgroup G) := ⟨λ H K, H ≤ K ∧ ¬(K ≤ H)⟩
-
-@[to_additive]
 lemma le_def {H K : subgroup G} : H ≤ K ↔ ∀ ⦃x : G⦄, x ∈ H → x ∈ K := iff.rfl
 
 @[simp, to_additive]
 lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.rfl
 
-@[simp, to_additive]
-lemma coe_ssubset_coe {H K : subgroup G} : (H : set G) ⊂ K ↔ H < K := iff.rfl
+@[to_additive]
+instance : partial_order (subgroup G) :=
+{ le := (≤),
+  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') infer_instance }
 
 /-- The subgroup `G` of the group `G`. -/
 @[to_additive "The `add_subgroup G` of the `add_group G`."]
 instance : has_top (subgroup G) :=
-⟨{ carrier := set.univ,
-  one_mem' := set.mem_univ 1,
-  mul_mem' := λ _ _ _ _, set.mem_univ _,
-  inv_mem' := λ _ _, set.mem_univ _ }⟩
+⟨{ inv_mem' := λ _ _, set.mem_univ _ , .. (⊤ : submonoid G) }⟩
 
 /-- The trivial subgroup `{1}` of an group `G`. -/
 @[to_additive "The trivial `add_subgroup` `{0}` of an `add_group` `G`."]
 instance : has_bot (subgroup G) :=
-⟨{ carrier := {1},
-  one_mem' := set.mem_singleton 1,
-  mul_mem' := λ _ _ _ _, by simp * at *,
-  inv_mem' := λ _, by simp * }⟩
+⟨{ inv_mem' := λ _, by simp *, .. (⊥ : submonoid G) }⟩
 
 @[to_additive]
 instance : inhabited (subgroup G) := ⟨⊥⟩
@@ -308,12 +319,8 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
 instance : has_inf (subgroup G) :=
 ⟨λ H₁ H₂,
-  { carrier := H₁ ∩ H₂,
-    one_mem' := ⟨H₁.one_mem, H₂.one_mem⟩,
-    mul_mem' := λ _ _ ⟨hx, hx'⟩ ⟨hy, hy'⟩,
-      ⟨H₁.mul_mem hx hy, H₂.mul_mem hx' hy'⟩,
-    inv_mem' := λ _ ⟨hx, hx'⟩,
-    ⟨H₁.inv_mem hx, H₂.inv_mem hx'⟩  }⟩
+  { inv_mem' := λ _ ⟨hx, hx'⟩, ⟨H₁.inv_mem hx, H₂.inv_mem hx'⟩,
+    .. H₁.to_submonoid ⊓ H₂.to_submonoid }⟩
 
 @[simp, to_additive]
 lemma coe_inf (p p' : subgroup G) : ((p ⊓ p' : subgroup G) : set G) = p ∩ p' := rfl
@@ -323,43 +330,31 @@ lemma mem_inf {p p' : subgroup G} {x : G} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈
 
 @[to_additive]
 instance : has_Inf (subgroup G) :=
-⟨λ s, {
-  carrier := ⋂ t ∈ s, ↑t,
-  one_mem' := set.mem_bInter $ λ i h, i.one_mem,
-  mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
-    i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h),
-  inv_mem' := λ x hx, set.mem_bInter $ λ i h,
-    i.inv_mem (by apply set.mem_bInter_iff.1 hx i h) }⟩
+⟨λ s,
+  { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_bInter_iff.1 hx i h),
+    .. (⨅ S ∈ s, subgroup.to_submonoid S).copy (⋂ S ∈ s, ↑S) (by simp) }⟩
 
+@[simp, to_additive]
 lemma coe_Inf (H : set (subgroup G)) : ((Inf H : subgroup G) : set G) = ⋂ s ∈ H, ↑s := rfl
 
-@[to_additive]
+attribute [norm_cast] coe_Inf add_subgroup.coe_Inf
+
+@[simp, to_additive]
 lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
 /-- Subgroups of a group form a complete lattice. -/
 @[to_additive "The `add_subgroup`s of an `add_group` form a complete lattice."]
 instance : complete_lattice (subgroup G) :=
-{ le           := (≤),
-  lt           := (<),
-  bot          := (⊥),
+{ bot          := (⊥),
   bot_le       := λ S x hx, (mem_bot.1 hx).symm ▸ S.one_mem,
   top          := (⊤),
   le_top       := λ S x hx, mem_top x,
   inf          := (⊓),
-  Inf          := has_Inf.Inf,
-  sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
-  Sup          := λ s, Inf {T | ∀ S ∈ s, S ≤ T},
-  le_sup_left  := λ a b, λ x hx, mem_Inf.2 $ λ s hs, hs.1 hx,
-  le_sup_right := λ a b, λ x hx, mem_Inf.2 $ λ s hs, hs.2 hx,
-  sup_le       := λ a b c ha hb x hx, mem_Inf.1 hx c ⟨ha, hb⟩,
   le_inf       := λ a b c ha hb x hx, ⟨ha hx, hb hx⟩,
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
-  le_Sup       := λ s p hs x hx, mem_Inf.2 $ λ t ht, ht p hs hx,
-  Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
-  le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
-  Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') (by apply_instance) }
+  .. complete_lattice_of_Inf (subgroup G) $ λ s, is_glb.of_image
+    (λ H K, show (H : set G) ≤ K ↔ H ≤ K, from coe_subset_coe) is_glb_binfi }
 
 /-- The `subgroup` generated by a set. -/
 @[to_additive "The `add_subgroup` generated by a set"]
@@ -382,13 +377,6 @@ open set
 lemma closure_le : closure k ≤ K ↔ k ⊆ K :=
 ⟨subset.trans subset_closure, λ h, Inf_le h⟩
 
-/-- Subgroup closure of a set is monotone in its argument: if `h ⊆ k`,
-then `closure h ≤ closure k`. -/
-@[to_additive "Additive subgroup closure of a set is monotone in its argument: if `h ⊆ k`,
-then `closure h ≤ closure k`"]
-lemma closure_mono ⦃h k : set G⦄ (h' : h ⊆ k) : closure h ≤ closure k :=
-by rw closure_le; exact subset.trans h' subset_closure
-
 @[to_additive]
 lemma closure_eq_of_le (h₁ : k ⊆ K) (h₂ : K ≤ closure k) : closure k = K :=
 le_antisymm ((closure_le $ K).2 h₁) h₂
@@ -407,6 +395,8 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
 
 attribute [elab_as_eliminator] subgroup.closure_induction add_subgroup.closure_induction
 
+variable (G)
+
 /-- `closure` forms a Galois insertion with the coercion to set. -/
 @[to_additive "`closure` forms a Galois insertion with the coercion to set."]
 protected def gi : galois_insertion (@closure G _) coe :=
@@ -415,22 +405,32 @@ protected def gi : galois_insertion (@closure G _) coe :=
   le_l_u := λ s, subset_closure,
   choice_eq := λ s h, rfl }
 
+variable {G}
+
+/-- Subgroup closure of a set is monotone in its argument: if `h ⊆ k`,
+then `closure h ≤ closure k`. -/
+@[to_additive "Additive subgroup closure of a set is monotone in its argument: if `h ⊆ k`,
+then `closure h ≤ closure k`"]
+lemma closure_mono ⦃h k : set G⦄ (h' : h ⊆ k) : closure h ≤ closure k :=
+(subgroup.gi G).gc.monotone_l h'
+
 /-- Closure of a subgroup `K` equals `K`. -/
 @[simp, to_additive "Additive closure of an additive subgroup `K` equals `K`"]
-lemma closure_eq : closure (K : set G) = K := subgroup.gi.l_u_eq K
+lemma closure_eq : closure (K : set G) = K := (subgroup.gi G).l_u_eq K
 
-@[simp, to_additive] lemma closure_empty : closure (∅ : set G) = ⊥ := subgroup.gi.gc.l_bot
+@[simp, to_additive] lemma closure_empty : closure (∅ : set G) = ⊥ :=
+(subgroup.gi G).gc.l_bot
 
 @[simp, to_additive] lemma closure_univ : closure (univ : set G) = ⊤ :=
 @coe_top G _ ▸ closure_eq ⊤
 
 @[to_additive]
 lemma closure_union (s t : set G) : closure (s ∪ t) = closure s ⊔ closure t :=
-(@subgroup.gi G _).gc.l_sup
+(subgroup.gi G).gc.l_sup
 
 @[to_additive]
 lemma closure_Union {ι} (s : ι → set G) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
-subgroup.gi.gc.l_supr
+(subgroup.gi G).gc.l_supr
 
 /-- The subgroup generated by an element of a group equals the set of integer number powers of
     the element. -/

@@ -32,156 +32,7 @@ Throughout most of this file, `K` denotes a finite field with `q` elements.
 
 universes u v
 
-section
-
-variables {α : Type*} {β : Type*}
-
-@[simp] lemma equiv.sigma_preimage_equiv_apply (f : α → β) (x : Σ b, {x // f x = b}) :
-  (equiv.sigma_preimage_equiv f) x = x.2.1 := rfl
-
-def equiv.sum_compl (p : α → Prop) [decidable_pred p] :
-  {a // p a} ⊕ {a // ¬ p a} ≃ α :=
-{ to_fun := sum.elim coe coe,
-  inv_fun := λ a, if h : p a then sum.inl ⟨a, h⟩ else sum.inr ⟨a, h⟩,
-  left_inv := by { rintros (⟨x,hx⟩|⟨x,hx⟩); dsimp; [rw dif_pos, rw dif_neg], },
-  right_inv := λ a, by { dsimp, split_ifs; refl } }
-
-def equiv.not_not (p : α → Prop) [decidable_pred p] :
-  {x // ¬ ¬ p x} ≃ {x // p x} :=
-{ to_fun := λ ⟨x, h⟩, ⟨x, not_not.mp h⟩,
-  inv_fun := λ ⟨x, h⟩, ⟨x, not_not.mpr h⟩,
-  left_inv := λ ⟨x, h⟩, rfl,
-  right_inv := λ ⟨x, h⟩, rfl }
-
-section subtype_preimage
-
-variables (p : α → Prop) [decidable_pred p] (x₀ : {a // p a} → β)
-
-def equiv.subtype_preimage :
-  {x : α → β // x ∘ coe = x₀} ≃ ({a // ¬ p a} → β) :=
-{ to_fun := λ (x : {x : α → β // x ∘ coe = x₀}) a, (x : α → β) a,
-  inv_fun := λ x, ⟨λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩,
-    funext $ λ ⟨a, h⟩, dif_pos h⟩,
-  left_inv := λ ⟨x, hx⟩, subtype.val_injective $ funext $ λ a,
-    (by { dsimp, split_ifs; [ rw ← hx, skip ]; refl }),
-  right_inv := λ x, funext $ λ ⟨a, h⟩, by { dsimp, rw [dif_neg h], } }
-
-@[simp] lemma equiv.subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
-  equiv.subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
-
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe (x : {a // ¬ p a} → β) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) =
-    λ a, if h : p a then x₀ ⟨a, h⟩ else x ⟨a, h⟩ := rfl
-
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe_pos (x : {a // ¬ p a} → β) (a : α) (h : p a) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) a = x₀ ⟨a, h⟩ :=
-dif_pos h
-
-@[simp] lemma equiv.subtype_preimage_symm_apply_coe_neg (x : {a // ¬ p a} → β) (a : α) (h : ¬ p a) :
-  ((equiv.subtype_preimage p x₀).symm x : α → β) a = x ⟨a, h⟩ :=
-dif_neg h
-
-
-end subtype_preimage
-
-section fun_unique
-
-variables (α β) [unique α]
-
-def equiv.fun_unique : (α → β) ≃ β :=
-{ to_fun := λ f, f (default α),
-  inv_fun := λ b a, b,
-  left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
-  right_inv := λ b, rfl }
-
-variables {α β}
-
-@[simp] lemma equiv.fun_unique_apply (f : α → β) :
-  equiv.fun_unique α β f = f (default α) := rfl
-
-@[simp] lemma equiv.fun_unique_symm_apply (b : β) (a : α) :
-  (equiv.fun_unique α β).symm b a = b := rfl
-
-end fun_unique
-
-end
-
-section
-
-variables {α : Type*} {β : Type*} {γ : Type*} [fintype α] [comm_monoid γ]
-
-localized "notation `∑` binders `, ` r:(scoped f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped f, finset.prod finset.univ f) := r" in big_operators
-
-localized "notation `∑` binders ` in ` s `, ` r:(scoped f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped f, finset.prod s f) := r" in big_operators
-
-@[to_additive]
-lemma fintype.prod_eq_one (f : α → γ) (h : ∀ a, f a = 1) :
-  (∏ a, f a) = 1 :=
-finset.prod_eq_one $ λ a ha, h a
-
-@[to_additive]
-lemma fintype.prod_congr (f g : α → γ) (h : ∀ a, f a = g a) :
-  (∏ a, f a) = ∏ a, g a :=
-finset.prod_congr rfl $ λ a ha, h a
-
-@[simp] lemma finsupp.prod_pow (f : α →₀ ℕ) (g : α → γ) :
-  f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
-begin
-  classical,
-  rw [finsupp.prod, ← fintype.prod_extend_by_one f.support, finset.prod_congr rfl],
-  intros a ha,
-  split_ifs with h h,
-  { refl },
-  { rw [finsupp.not_mem_support_iff.mp h, pow_zero] }
-end
-
-@[simp, to_additive]
-lemma fintype.prod_unique [unique α] (f : α → γ) :
-  (∏ a, f a) = f (default α) :=
-by simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton]
-
-@[to_additive]
-lemma fintype.prod_equiv [fintype β] (e : α ≃ β) (f : β → γ) :
-  (∏ a : α, f (e a)) = ∏ b, f b :=
-prod_equiv e f
-
-@[to_additive]
-lemma fintype.prod_sigma [fintype β] [decidable_eq β]
-  (f : α → β) (g : α → γ) :
-  (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
-begin
-  rw ← fintype.prod_equiv (equiv.sigma_preimage_equiv f) _,
-  rw [← finset.univ_sigma_univ, finset.prod_sigma],
-  refl
-end
-
-end
-
 open_locale big_operators
-
-section
-open finset
-
-variables {α : Type*} {α₁ : Type*} {α₂ : Type*} {β : Type*} [fintype α₁] [fintype α₂] [comm_monoid β]
-
-@[to_additive]
-lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → β) :
-  (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
-begin
-  classical,
-  let s : finset (α₁ ⊕ α₂) := univ.image sum.inr,
-  rw [← prod_sdiff (subset_univ s),
-      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
-      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
-  { congr, rw finset.ext, rintro (a|a);
-    { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
-        exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
-  all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }
-end
-
-end
 
 section
 
@@ -191,7 +42,7 @@ instance subtype.unique {α : Type*} (a : α) : unique {x // x = a} :=
 
 instance subtype.not_not_unique {α : Type*} (p : α → Prop) [decidable_pred p] [unique {x // p x}] :
   unique {x // ¬ ¬ p x} :=
-(equiv.not_not p).unique_of_equiv ‹_›
+(equiv.subtype_congr_right $ λ a, not_not).unique_of_equiv ‹_›
 
 end
 
@@ -223,7 +74,6 @@ lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (∑ x, f.eval x) = 0 :=
 begin
   haveI : decidable_eq K := classical.dec_eq K,
-  refine
   calc (∑ x, f.eval x) = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : _
                    ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
                    ... = 0 : sum_eq_zero _,
@@ -232,31 +82,32 @@ begin
   intros d hd,
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
   let cd : K := f.coeff d,
-  refine
   calc (∑ x : σ → K, cd * ∏ i, x i ^ d i) = cd * (∑ x : σ → K, ∏ i, x i ^ d i) : mul_sum.symm
                                       ... = 0 : (mul_eq_zero.mpr ∘ or.inr) _,
 
-  refine
   calc (∑ x : σ → K, ∏ i, x i ^ d i) =
           ∑ (x₀ : {j // j ≠ i} → K) (x : {x : σ → K // x ∘ coe = x₀}),
-            ∏ j, (x : σ → K) j ^ d j     : (fintype.sum_sigma _ _).symm
+            ∏ j, (x : σ → K) j ^ d j     : (fintype.sum_fiberwise _ _).symm
                                  ... = 0 : fintype.sum_eq_zero _ _,
 
   intros x₀,
   let e : K ≃ {x // x ∘ coe = x₀} :=  (equiv.fun_unique _ _).symm.trans (equiv.subtype_preimage _ x₀).symm,
-  refine
   calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j) =
-                  ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j      : (fintype.sum_equiv e _).symm
+                  ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j      : (finset.sum_equiv e _).symm
             ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i         : fintype.sum_congr _ _ _
             ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i         : by rw mul_sum
             ... = 0 : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
 
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,
-  refine
   calc (∏ j : σ, (e a : σ → K) j ^ d j) =
           (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
-      by { rw [← fintype.prod_equiv e', fintype.prod_sum_type, fintype.prod_unique], refl }
+  begin
+    rw [← finset.prod_equiv e', fintype.prod_sum_type],
+    have this : _ = (e a : σ → K) i ^ d i := @fintype.prod_unique {j // j = i} _ _ _ (λ j, (e a : σ → K) j ^ d j),
+    rw ← this,
+    congr,
+  end
                                     ... = a ^ d i * (∏ j, x₀ j ^ d j) : _
                                     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
 

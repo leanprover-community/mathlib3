@@ -141,7 +141,6 @@ variables {R : Type*} {M : Type*} {a : R}
 [topological_space M] [add_comm_group M]
 [vector_space R M] [topological_vector_space R M]
 
-set_option class.instance_max_depth 36
 
 /-- Scalar multiplication by a non-zero field element is a
 homeomorphism from a topological vector space onto itself. -/
@@ -277,6 +276,14 @@ lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
 @[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
+lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
+  t.sum f b = t.sum (λd, f d b) :=
+begin
+  haveI : is_add_group_hom (λ (g : M →L[R] M₂), g b) :=
+    { map_add := λ f g, continuous_linear_map.add_apply f g b },
+  exact (finset.sum_hom t (λ g : M →L[R] M₂, g b)).symm
+end
+
 end add
 
 @[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
@@ -316,7 +323,11 @@ rfl
 
 instance : has_mul (M →L[R] M) := ⟨comp⟩
 
-@[simp] lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
+lemma mul_def (f g : M →L[R] M) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_mul (f g : M →L[R] M) : ⇑(f * g) = f ∘ g := rfl
+
+lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),
@@ -481,6 +492,14 @@ lemma smul_right_one_eq_iff {f f' : M₂} :
 lemma smul_right_comp [topological_module R R] {x : M₂} {c : R} :
   (smul_right 1 x : R →L[R] M₂).comp (smul_right 1 c : R →L[R] R) = smul_right 1 (c • x) :=
 by { ext, simp [mul_smul] }
+
+lemma smul_right_one_pow [topological_add_group R] [topological_module R R] (c : R) (n : ℕ) :
+  (smul_right 1 c : R →L[R] R)^n = smul_right 1 (c^n) :=
+begin
+  induction n with n ihn,
+  { ext, simp },
+  { rw [pow_succ, ihn, mul_def, smul_right_comp, smul_eq_mul, pow_succ'] }
+end
 
 end general_ring
 
@@ -704,7 +723,7 @@ self_comp_symm e
 @[simp] theorem symm_symm (e : M ≃L[R] M₂) : e.symm.symm = e :=
 by { ext x, refl }
 
-@[simp] theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
+theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are

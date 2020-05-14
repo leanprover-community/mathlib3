@@ -16,7 +16,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space
+open_locale topological_space big_operators
 localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
@@ -624,6 +624,10 @@ lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x 
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
 
+lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
+by { simp only [div_eq_inv_mul], exact tendsto_const_nhds.mul hf }
+
 /-- Continuity at a point of the result of dividing two functions
 continuous at that point, where the denominator is nonzero. -/
 lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β} {x : α}
@@ -632,6 +636,8 @@ lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β}
 hf.div hg hnz
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
+
+@[simp] lemma real.norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
@@ -676,7 +682,6 @@ variables [normed_field α] [normed_group β]
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul := normed_field.norm_mul }
 
-set_option class.instance_max_depth 43
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
@@ -797,7 +802,6 @@ normed_algebra.norm_algebra_map_eq _
 end normed_algebra
 
 section restrict_scalars
-set_option class.instance_max_depth 40
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E : Type*} [normed_group E] [normed_space 𝕜' E]
@@ -856,7 +860,7 @@ its sum is converging to a limit `a`, then this holds along all finsets, i.e., `
 with sum `a`. -/
 lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
   {s : β → finset ι} {p : filter β} (hp : p ≠ ⊥)
-  (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, (s b).sum f) p (𝓝 a)) :
+  (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, ∑ i in s b, f i) p (𝓝 a)) :
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
 
@@ -873,6 +877,11 @@ begin
   { rw tsum_eq_zero_of_not_summable h,
     simp [tsum_nonneg] }
 end
+
+lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : summable (λi, ∥f i∥)) :
+  has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
+⟨λ h, h.tendsto_sum_nat,
+λ h, has_sum_of_subseq_of_summable hf at_top_ne_bot tendsto_finset_range h⟩
 
 variable [complete_space α]
 

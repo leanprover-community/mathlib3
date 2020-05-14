@@ -154,12 +154,14 @@ namespace subalgebra
 variables {R : Type u} {A : Type v}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
+/-- A subalgebra `S` is finitely generated if there exists `t : finset A` such that
+`algebra.adjoin R t = S`. -/
 def fg (S : subalgebra R A) : Prop :=
 ∃ t : finset A, algebra.adjoin R ↑t = S
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
 ⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa finset.coe_to_finset⟩⟩
+λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩

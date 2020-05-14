@@ -76,7 +76,8 @@ uniform_space.of_core {
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
     have (2 : ennreal) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2 ⟨ne_of_gt h, this ▸ ennreal.nat_ne_top 2⟩,
+    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
+      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
     (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
@@ -655,7 +656,7 @@ begin
   choose T T_in_s finite_T using B,
   let t := ⋃n:ℕ, T n⁻¹,
   have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₂ : countable t := by finish [countable_Union, finite.countable],
   have T₃ : s ⊆ closure t,
   { intros x x_in_s,
     apply mem_closure_iff.2,
@@ -698,7 +699,7 @@ lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 ⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-{ apply countable_bUnion S_countable,
+{ apply S_countable.bUnion,
   intros a aS,
   apply countable_Union,
   simp },

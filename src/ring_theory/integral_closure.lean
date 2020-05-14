@@ -132,7 +132,6 @@ begin
   refine is_integral_of_noetherian' H ⟨x, hx⟩
 end
 
-set_option class.instance_max_depth 100
 theorem is_integral_of_mem_of_fg (S : subalgebra R A)
   (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
@@ -299,7 +298,6 @@ variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra R A] [algebra A B]
 
-set_option class.instance_max_depth 50
 
 lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0)
   (S : set (comap R A B))

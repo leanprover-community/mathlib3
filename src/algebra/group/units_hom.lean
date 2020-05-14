@@ -60,3 +60,24 @@ by rw [units.mul_inv_eq_iff_eq_mul, one_mul, coe_lift_right]
 by rw [units.inv_mul_eq_iff_eq_mul, mul_one, coe_lift_right]
 
 end units
+
+namespace monoid_hom
+
+/-- If `f` is a homomorphism from a group `G` to a monoid `M`,
+then its image lies in the units of `M`,
+and `f.to_hom_units` is the corresponding monoid homomorphism from `G` to `units M`. -/
+@[to_additive "If `f` is a homomorphism from an additive group `G` to an additive monoid `M`,
+then its image lies in the `add_units` of `M`,
+and `f.to_hom_units` is the corresponding homomorphism from `G` to `add_units M`."]
+def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* units M :=
+{ to_fun := λ g,
+    ⟨f g, f (g⁻¹),
+      by rw [← f.map_mul, mul_inv_self, f.map_one],
+      by rw [← f.map_mul, inv_mul_self, f.map_one]⟩,
+  map_one' := units.ext (f.map_one),
+  map_mul' := λ _ _, units.ext (f.map_mul _ _) }
+
+@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
+  (f.to_hom_units g : M) = f g := rfl
+
+end monoid_hom

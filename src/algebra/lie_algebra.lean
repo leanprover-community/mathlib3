@@ -322,15 +322,31 @@ An associative algebra gives rise to a Lie algebra by taking the bracket to be t
 -/
 def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
   @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
-{ lie_smul :=
-    begin
-      intros,
-      show _ - _ = _ • (_ - _),
-      rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
-    end }
+{ lie_smul := λ t x y,
+    by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
+           algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
+functorial. -/
+def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
+ { map_lie := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
+     by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
+  ..f.to_linear_map, }
+
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+
+@[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
+  [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
+  (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  of_associative_algebra_hom (g.comp f) = (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) := rfl
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
@@ -396,6 +412,20 @@ instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
 instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
     @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
+def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
+  (A' : subalgebra R A) : lie_subalgebra R A :=
+{ lie_mem := λ x y hx hy, by {
+    change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
+    rw lie_ring.of_associative_ring_bracket,
+    have hxy := subalgebra.mul_mem A' x y hx hy,
+    have hyx := subalgebra.mul_mem A' y x hy hx,
+    exact submodule.sub_mem A'.to_submodule hxy hyx, },
+  ..A'.to_submodule }
 
 end lie_subalgebra
 

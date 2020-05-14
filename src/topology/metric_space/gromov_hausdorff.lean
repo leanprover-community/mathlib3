@@ -45,7 +45,6 @@ universes u v w
 open classical set function topological_space filter metric quotient
 open bounded_continuous_function nat Kuratowski_embedding
 open sum (inl inr)
-set_option class.instance_max_depth 50
 
 local attribute [instance] metric_space_sum
 
@@ -276,10 +275,10 @@ begin
       repeat {split},
       { exact λx y, calc
         F (inl x, inl y) = dist (Φ x) (Φ y) : rfl
-        ... = dist x y : Φisom.dist_eq },
+        ... = dist x y : Φisom.dist_eq x y },
       { exact λx y, calc
         F (inr x, inr y) = dist (Ψ x) (Ψ y) : rfl
-        ... = dist x y : Ψisom.dist_eq },
+        ... = dist x y : Ψisom.dist_eq x y },
       { exact λx y, dist_comm _ _ },
       { exact λx y z, dist_triangle _ _ _ },
       { exact λx y, calc
@@ -308,7 +307,7 @@ begin
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
       calc infi (λy:β, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux1 0)
+          cinfi_le (by simpa using HD_below_aux1 0) y
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist (f (inl x)) z : by rw hy
         ... ≤ r : le_of_lt hz },
@@ -321,7 +320,7 @@ begin
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,
       calc infi (λx:α, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux2 0)
+          cinfi_le (by simpa using HD_below_aux2 0) x
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist z (f (inr y)) : by rw hx
         ... ≤ r : le_of_lt hz },

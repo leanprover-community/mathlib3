@@ -290,7 +290,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 @[simp] lemma multiplicity_self {a : α} (ha : ¬is_unit a) (ha0 : a ≠ 0) :
   multiplicity a a = 1 :=
 eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
-  ⟨b, (domain.mul_left_inj ha0).1 $ by clear _fun_match;
+  ⟨b, (domain.mul_right_inj ha0).1 $ by clear _fun_match;
     simpa [_root_.pow_succ, mul_assoc] using hb⟩)⟩
 
 @[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
@@ -298,7 +298,7 @@ eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
 roption.get_eq_iff_eq_some.2 (eq_some_iff.2
   ⟨by simp, λ ⟨b, hb⟩,
     by rw [← mul_one a, _root_.pow_add, _root_.pow_one, mul_assoc, mul_assoc,
-        domain.mul_left_inj (ne_zero_of_finite ha)] at hb;
+        domain.mul_right_inj (ne_zero_of_finite ha)] at hb;
       exact mt is_unit_iff_dvd_one.2 (not_unit_of_finite ha)
         ⟨b, by clear _fun_match; simp * at *⟩⟩)
 

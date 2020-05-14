@@ -216,6 +216,8 @@ instance (I : ideal α) : comm_ring I.quotient :=
 /-- `ideal.quotient.mk` as a `ring_hom` -/
 def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
+lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quotient.mk_hom I x := rfl
+
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
   zero := ⟨0, J.zero_mem, rfl⟩,
@@ -479,10 +481,14 @@ variables [local_ring α] [local_ring β]
 variable (α)
 def residue_field := (nonunits_ideal α).quotient
 
-namespace residue_field
-
-noncomputable instance : field (residue_field α) :=
+noncomputable instance residue_field.field : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
+
+/-- The quotient map from a local ring to it's residue field. -/
+def residue : α →+* (residue_field α) :=
+ideal.quotient.mk_hom _
+
+namespace residue_field
 
 variables {α β}
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :

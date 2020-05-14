@@ -449,6 +449,31 @@ lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h 
 lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
 
+omit rγ
+
+@[simp] lemma comp_id (f : α →+* β) : f.comp (id α) = f := ext $ λ x, rfl
+
+@[simp] lemma id_comp (f : α →+* β) : (id β).comp f = f := ext $ λ x, rfl
+
+omit rβ
+
+instance : monoid (α →+* α) :=
+{ one := id α,
+  mul := comp,
+  mul_one := comp_id,
+  one_mul := id_comp,
+  mul_assoc := λ f g h, comp_assoc _ _ _ }
+
+lemma one_def : (1 : α →+* α) = id α := rfl
+
+@[simp] lemma coe_one : ⇑(1 : α →+* α) = _root_.id := rfl
+
+lemma mul_def (f g : α →+* α) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_mul (f g : α →+* α) : ⇑(f * g) = f ∘ g := rfl
+
+include rβ rγ
+
 lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
 ⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
@@ -461,30 +486,30 @@ omit rα rβ rγ
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
-eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
+(f : α →+ β).map_neg x
 
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := by simp [sub_eq_add_neg]
+  f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-add_monoid_hom.injective_iff f.to_add_monoid_hom
-include rα
+(f : α →+ β).injective_iff
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
+def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) :
+  α →+* γ :=
 { to_fun := f,
-  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],
-  map_one' := f.map_one,
-  map_mul' := f.map_mul,
-  map_add' := map_add }
+  .. add_monoid_hom.mk' f map_add, .. f }
 
 end ring_hom
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+/-- Predicate for semirings in which zero does not equal one. -/
+class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
+
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
@@ -495,11 +520,17 @@ end prio
 -- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
 -- but it doesn't seem worth doing just for these lemmas.
 lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
-λ h, one_ne_zero ((add_left_inj a).mp (by simp [h]))
+λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
 -- As with succ_ne_self.
 lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
-λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
+λ h, one_ne_zero (neg_inj ((add_right_inj a).mp (by { convert h, simp })))
+
+/-- A nonzero commutative semiring is a nonzero semiring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
+  nonzero_semiring α :=
+{..ncs}
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]
@@ -565,12 +596,12 @@ section domain
   λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂
 
 /-- Right multiplication by a nonzero element in a domain is injective. -/
-  theorem domain.mul_right_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
+  theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
   by rw [← sub_eq_zero, ← mul_sub_right_distrib, mul_eq_zero];
      simp [ha]; exact sub_eq_zero
 
 /-- Left multiplication by a nonzero element in a domain is injective. -/
-  theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
+  theorem domain.mul_right_inj {a b c : α} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
   by rw [← sub_eq_zero, ← mul_sub_left_distrib, mul_eq_zero];
      simp [ha]; exact sub_eq_zero
 
@@ -619,12 +650,12 @@ section
 /-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
     b divides c. -/
   theorem mul_dvd_mul_iff_left {a b c : α} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
-  exists_congr $ λ d, by rw [mul_assoc, domain.mul_left_inj ha]
+  exists_congr $ λ d, by rw [mul_assoc, domain.mul_right_inj ha]
 
 /-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
     a divides b. -/
   theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
-  exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]
+  exists_congr $ λ d, by rw [mul_right_comm, domain.mul_left_inj hc]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
     one's additive inverse. -/

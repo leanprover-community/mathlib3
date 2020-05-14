@@ -587,6 +587,19 @@ finset.strong_induction_on s
         ← insert_erase (mem_erase.2 ⟨h₂ x hx hx1, h₃ x hx⟩),
         prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx]))
 
+/-- The product of the composition of functions `f` and `g`, is the product
+over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b` -/
+lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+  ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
+calc ∏ a in s, f (g a)
+    = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
+  prod_bij (λ a ha, ⟨g a, a⟩) (by simp; tauto) (λ _ _, rfl) (by simp) (by finish)
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f b :
+  prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
+... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
+  prod_congr rfl (λ _ _, prod_const _)
+
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
 calc (∏ x in s, f x) = s.prod (λx, 1) : finset.prod_congr rfl h
@@ -661,6 +674,12 @@ attribute [to_additive sum_smul'] prod_pow
   (∑ x in s, b) = add_monoid.smul s.card b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
+
+lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+  ∑ a in s, f (g a) = ∑ b in s.image g, add_monoid.smul (s.filter (λ a, g a = b)).card (f b) :=
+@prod_comp _ (multiplicative β) _ _ _ _ _ _
+attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
+over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 
 lemma sum_const_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
   (∑ x in s, f x) = card s * m :=
@@ -946,6 +965,9 @@ calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x)
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
+lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s, ∑ x in s, f x) :=
+λ s₁ s₂ hs, sum_le_sum_of_subset_of_nonneg hs $ λ x _ _, hf x
+
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → ((∑ x in s, f x) = 0 ↔ ∀x∈s, f x = 0) :=
 begin
   classical,
@@ -973,6 +995,9 @@ variables [canonically_ordered_add_monoid β]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
+
+lemma sum_mono_set (f : α → β) : monotone (λ s, ∑ x in s, f x) :=
+λ s₁ s₂ hs, sum_le_sum_of_subset hs
 
 lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
   (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=

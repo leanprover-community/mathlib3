@@ -112,7 +112,7 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 | ha@(xadd a a₁ x₁ n₁ b₁) x n b := do
   c ← get_cache,
   if x₁.2 = x.2 ∧ b₁.e.to_nat = some 0 then do
-    (n', h) ← lift $ mk_app ``has_add.add [n₁.1, n.1] >>= norm_num,
+    (n', h) ← lift $ mk_app ``has_add.add [n₁.1, n.1] >>= norm_num.derive',
     return (xadd' c a₁ x (n', n₁.2 + n.2) b,
       c.cs_app ``horner_horner [a₁, x.1, n₁.1, n.1, b, n', h])
   else (xadd' c ha x n b).refl_conv
@@ -142,7 +142,7 @@ by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
-  (e, p) ← lift $ mk_app ``has_add.add [e₁, e₂] >>= norm_num,
+  (e, p) ← lift $ mk_app ``has_add.add [e₁, e₂] >>= norm_num.derive',
   return (const e, p)
 | he₁@(const e₁) he₂@(xadd e₂ a x n b) := do
   c ← get_cache,
@@ -175,7 +175,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
   else if n₁.2 < n₂.2 then do
     let k := n₂.2 - n₁.2,
     ek ← lift $ expr.of_nat (expr.const `nat []) k,
-    (_, h₁) ← lift $ mk_app ``has_add.add [n₁.1, ek] >>= norm_num,
+    (_, h₁) ← lift $ mk_app ``has_add.add [n₁.1, ek] >>= norm_num.derive',
     α0 ← lift $ expr.of_nat c.α 0,
     (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const α0)),
     (b', h₃) ← eval_add b₁ b₂,
@@ -184,7 +184,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
   else if n₁.2 ≠ n₂.2 then do
     let k := n₁.2 - n₂.2,
     ek ← lift $ expr.of_nat (expr.const `nat []) k,
-    (_, h₁) ← lift $ mk_app ``has_add.add [n₂.1, ek] >>= norm_num,
+    (_, h₁) ← lift $ mk_app ``has_add.add [n₂.1, ek] >>= norm_num.derive',
     α0 ← lift $ expr.of_nat c.α 0,
     (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const α0)) a₂,
     (b', h₃) ← eval_add b₁ b₂,
@@ -204,7 +204,7 @@ by simp [h₂.symm, h₁.symm, horner]; cc
 
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← lift $ mk_app ``has_neg.neg [e] >>= norm_num,
+  (e', p) ← lift $ mk_app ``has_neg.neg [e] >>= norm_num.derive',
   return (const e', p)
 | (xadd e a x n b) := do
   c ← get_cache,
@@ -226,7 +226,7 @@ by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 meta def eval_const_mul (k : expr) :
   horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← lift $ mk_app ``has_mul.mul [k, e] >>= norm_num,
+  (e', p) ← lift $ mk_app ``has_mul.mul [k, e] >>= norm_num.derive',
   return (const e', p)
 | (xadd e a x n b) := do
   c ← get_cache,
@@ -254,7 +254,7 @@ by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
 
 meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
-  (e', p) ← lift $ mk_app ``has_mul.mul [e₁, e₂] >>= norm_num,
+  (e', p) ← lift $ mk_app ``has_mul.mul [e₁, e₂] >>= norm_num.derive',
   return (const e', p)
 | (const e₁) e₂ :=
   match e₁.to_nat with

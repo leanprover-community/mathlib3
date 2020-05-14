@@ -152,6 +152,20 @@ begin
   exact nat.pow_dvd_pow _ n.2,
 end
 
+lemma forall_pow_eq_one_iff (i : ℕ) :
+  (∀ x : units K, x ^ i = 1) ↔ q - 1 ∣ i :=
+begin
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
+  classical,
+  rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
+  split,
+  { intro h, apply h },
+  { intros h y,
+    rw ← powers_eq_gpowers at hx,
+    rcases hx y with ⟨j, rfl⟩,
+    rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
+end
+
 /-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
 lemma sum_pow_units (i : ℕ) :
@@ -163,23 +177,16 @@ begin
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
   haveI : decidable (φ = 1) := by { classical, apply_instance },
   calc ∑ x : units K, φ x = if φ = 1 then fintype.card (units K) else 0 : sum_hom_units φ
-                      ... = if (fintype.card (units K)) ∣ i then -1 else 0 : _
-                      ... = if (q - 1) ∣ i then -1 else 0 : by rw card_units ,
-  by_cases h : (fintype.card (units K)) ∣ i,
-  { have : φ = 1,
-    { ext x, rcases h with ⟨d, rfl⟩,
-      rw [monoid_hom.one_apply, monoid_hom.coe_mk, pow_mul, ← units.coe_pow,
-          pow_card_eq_one, units.coe_one, one_pow] },
-    rw [if_pos this, if_pos h, card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
+                      ... = if (q - 1) ∣ i then -1 else 0 : _,
+  suffices : (q - 1) ∣ i ↔ φ = 1,
+  { simp only [this],
+    split_ifs with h h, swap, refl,
+    rw [card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
     show 1 ≤ q, from fintype.card_pos_iff.mpr ⟨0⟩ },
-  { suffices : φ ≠ 1, by rw [if_neg this, if_neg h],
-    classical,
-    contrapose! h,
-    obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
-    rw [← order_of_eq_card_of_forall_mem_gpowers hx,
-        order_of_dvd_iff_pow_eq_one, units.ext_iff, units.coe_pow],
-    show φ x = 1,
-    rw [h, monoid_hom.one_apply] }
+  rw [← forall_pow_eq_one_iff, monoid_hom.ext_iff],
+  apply forall_congr, intro x,
+  rw [units.ext_iff, units.coe_pow, units.coe_one, monoid_hom.one_apply],
+  refl,
 end
 
 /-- The sum of `x ^ i` as `x` ranges over a finite field of cardinality `q`

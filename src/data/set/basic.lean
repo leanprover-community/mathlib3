@@ -582,7 +582,7 @@ by finish [iff_def]
 /-! ### Lemmas about singletons -/
 
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ :=
-by { ext, rw [insert_emptyc_eq] }
+(insert_emptyc_eq _).symm
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
 iff.rfl

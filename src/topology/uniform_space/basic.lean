@@ -770,6 +770,11 @@ lemma uniform_continuous.prod_mk_right {f : α × β → γ} (h : uniform_contin
   uniform_continuous (λ b, f (a,b)) :=
 h.comp (uniform_continuous_const.prod_mk  uniform_continuous_id)
 
+lemma uniform_continuous.prod_map [uniform_space δ] {f : α → γ} {g : β → δ}
+  (hf : uniform_continuous f) (hg : uniform_continuous g) :
+  uniform_continuous (prod.map f g) :=
+(hf.comp uniform_continuous_fst).prod_mk (hg.comp uniform_continuous_snd)
+
 lemma to_topological_space_prod {α} {β} [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
@@ -778,21 +783,32 @@ end prod
 
 section
 open uniform_space function
-variables [uniform_space α] [uniform_space β] [uniform_space γ] [uniform_space δ]
+variables {δ' : Type*} [uniform_space α] [uniform_space β] [uniform_space γ] [uniform_space δ]
+  [uniform_space δ']
 
 local notation f `∘₂` g := function.bicompr f g
 
-def uniform_continuous₂ (f : α → β → γ) := uniform_continuous (uncurry' f)
+def uniform_continuous₂ (f : α → β → γ) := uniform_continuous (uncurry f)
 
-lemma uniform_continuous₂_def (f : α → β → γ) : uniform_continuous₂ f ↔ uniform_continuous (uncurry' f) := iff.rfl
+lemma uniform_continuous₂_def (f : α → β → γ) :
+  uniform_continuous₂ f ↔ uniform_continuous (uncurry f) := iff.rfl
 
-lemma uniform_continuous₂_curry (f : α × β → γ) : uniform_continuous₂ (function.curry f) ↔ uniform_continuous f :=
-by rw  [←uncurry'_curry f] {occs := occurrences.pos [2]} ; refl
+lemma uniform_continuous₂.uniform_continuous {f : α → β → γ} (h : uniform_continuous₂ f) :
+  uniform_continuous (uncurry f) := h
+
+lemma uniform_continuous₂_curry (f : α × β → γ) :
+  uniform_continuous₂ (function.curry f) ↔ uniform_continuous f :=
+by rw [uniform_continuous₂, uncurry_curry]
 
 lemma uniform_continuous₂.comp {f : α → β → γ} {g : γ → δ}
   (hg : uniform_continuous g) (hf : uniform_continuous₂ f) :
   uniform_continuous₂ (g ∘₂ f) :=
 hg.comp hf
+
+lemma uniform_continuous₂.bicompl {f : α → β → γ} {ga : δ → α} {gb : δ' → β}
+  (hf : uniform_continuous₂ f) (hga : uniform_continuous ga) (hgb : uniform_continuous gb) :
+  uniform_continuous₂ (bicompl f ga gb) :=
+hf.uniform_continuous.comp (hga.prod_map hgb)
 
 end
 

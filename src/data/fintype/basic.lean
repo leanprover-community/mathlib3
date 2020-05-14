@@ -208,10 +208,10 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
 λ ⟨f⟩, card_congr f⟩
 
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
-⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
+⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
 @[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
-  @univ _ (of_subsingleton a) = finset.singleton a := rfl
+  @univ _ (of_subsingleton a) = {a} := rfl
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
@@ -289,7 +289,7 @@ begin
 end
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
-⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
+fintype.of_subsingleton (default α)
 
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
@@ -318,7 +318,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨ff::tt::0, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl
 
@@ -510,7 +510,7 @@ begin
 end
 
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
-⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
+⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
 ⟨⟨true::false::0, by simp [true_ne_false]⟩,
@@ -814,10 +814,10 @@ lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :
-  (univ : finset α) = finset.singleton x :=
+  (univ : finset α) = {x} :=
 begin
   apply symm,
-  apply eq_of_subset_of_card_le (subset_univ (finset.singleton x)),
+  apply eq_of_subset_of_card_le (subset_univ ({x})),
   apply le_of_eq,
   simp [h, finset.card_univ]
 end

@@ -147,7 +147,7 @@ eq.trans fold_singleton $ mul_one _
 @[to_additive]
 lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
-by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
+by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
 @[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
@@ -358,7 +358,7 @@ by simp [prod_apply_ite _ _ (λ x, x)]
 begin
   rw ←finset.prod_filter,
   split_ifs;
-  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton],
 end
 
 /--

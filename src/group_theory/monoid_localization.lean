@@ -163,7 +163,10 @@ variables {S N}
 def of_monoid_hom (f : M →* N) (H1 : ∀ y : S, is_unit (f y))
   (H2 : ∀ z, ∃ x : M × S, z * f x.2 = f x.1) (H3 : ∀ x y, f x = f y ↔ ∃ c : S, x * c = y * c) :
   localization_map S N :=
-⟨f, f.map_one, f.map_mul, H1, H2, H3⟩
+{ map_units' := H1,
+  surj' := H2,
+  eq_iff_exists' := H3,
+  .. f }
 
 /-- Short for `to_monoid_hom`; used to apply a localization map as a function. -/
 @[to_additive "Short for `to_add_monoid_hom`; used to apply a localization map as a function."]
@@ -179,8 +182,9 @@ attribute [ext] add_submonoid.localization_map.ext
   f = g ↔ ∀ x, f.to_map x = g.to_map x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[to_additive] lemma to_map_inj {f g : localization_map S N} (h : f.to_map = g.to_map) : f = g :=
-ext $ monoid_hom.ext_iff.1 h
+@[to_additive] lemma to_map_injective :
+  function.injective (@localization_map.to_map _ _ S N _) :=
+λ _ _ h, ext $ monoid_hom.ext_iff.1 h
 
 @[to_additive] lemma map_units (f : localization_map S N) (y : S) :
   is_unit (f.to_map y) := f.4 y

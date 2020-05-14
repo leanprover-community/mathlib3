@@ -69,8 +69,7 @@ let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
-surjective_of_has_right_inverse ⟨f, λ U, funext $
-  λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩⟩
+right_inverse.surjective (λ U, funext $ λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩)
 
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
@@ -101,6 +100,12 @@ assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
 theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
+
+theorem left_inverse.right_inverse {f : α → β} {g : β → α} (h : left_inverse g f) :
+  right_inverse f g := h
+
+theorem right_inverse.left_inverse {f : α → β} {g : β → α} (h : right_inverse g f) :
+  left_inverse f g := h
 
 local attribute [instance, priority 10] classical.prop_decidable
 
@@ -174,7 +179,7 @@ have f (inv_fun f (f b)) = f b,
 hf this
 
 lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
-surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
+(left_inverse_inv_fun hf).right_inverse.surjective
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
@@ -188,7 +193,7 @@ lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
-⟨injective.has_left_inverse, injective_of_has_left_inverse⟩
+⟨injective.has_left_inverse, has_left_inverse.injective⟩
 
 end inv_fun
 
@@ -211,14 +216,14 @@ lemma surjective.has_right_inverse (hf : surjective f) : has_right_inverse f :=
 ⟨_, right_inverse_surj_inv hf⟩
 
 lemma surjective_iff_has_right_inverse : surjective f ↔ has_right_inverse f :=
-⟨surjective.has_right_inverse, surjective_of_has_right_inverse⟩
+⟨surjective.has_right_inverse, has_right_inverse.surjective⟩
 
 lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ right_inverse g f :=
 ⟨λ hf, ⟨_, left_inverse_surj_inv hf, right_inverse_surj_inv hf.2⟩,
- λ ⟨g, gl, gr⟩, ⟨injective_of_left_inverse gl, surjective_of_has_right_inverse ⟨_, gr⟩⟩⟩
+ λ ⟨g, gl, gr⟩, ⟨gl.injective,  gr.surjective⟩⟩
 
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
-injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
+(right_inverse_surj_inv h).left_inverse.injective
 
 end surj_inv
 
@@ -302,7 +307,7 @@ variables {α : Sort u} {f : α → α} (h : involutive f)
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h
 
-protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma injective : injective f := h.left_inverse.injective
 protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
 protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 

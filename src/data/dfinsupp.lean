@@ -286,9 +286,9 @@ mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.2).symm b
 begin
   dsimp only [single],
   by_cases h : i = i',
-  { have h1 : i' ∈ ({i} : finset _), { simp only [h, finset.mem_singleton] },
+  { have h1 : i' ∈ ({i} : finset ι) := finset.mem_singleton.2 h.symm,
     simp only [mk_apply, dif_pos h, dif_pos h1] },
-  { have h1 : i' ∉ ({i} : finset _), { simp only [ne.symm h, finset.mem_singleton, not_false_iff] },
+  { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
 

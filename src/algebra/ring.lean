@@ -672,13 +672,15 @@ namespace units
 section semiring
 variables [semiring α]
 
-theorem eq_zero_of_mul_left_eq_zero
-  {r : α} (u : units α) (h : r * u = 0) : r = 0 :=
-(mul_left_inj u).1 $ (zero_mul (u : α)).symm ▸ h
+@[simp] theorem mul_left_eq_zero_iff_eq_zero
+  {r : α} (u : units α) : r * u = 0 ↔ r = 0 :=
+⟨λ h, (mul_left_inj u).1 $ (zero_mul (u : α)).symm ▸ h,
+ λ h, h.symm ▸ zero_mul (u : α)⟩
 
-theorem eq_zero_of_mul_right_eq_zero
-  {r : α} (u : units α) (h : (u : α) * r = 0) : r = 0 :=
-(mul_right_inj u).1 $ (mul_zero (u : α)).symm ▸ h
+@[simp] theorem mul_right_eq_zero_iff_eq_zero
+  {r : α} (u : units α) : (u : α) * r = 0 ↔ r = 0 :=
+⟨λ h, (mul_right_inj u).1 $ (mul_zero (u : α)).symm ▸ h,
+ λ h, h.symm ▸ mul_zero (u : α)⟩
 
 end semiring
 
@@ -725,13 +727,13 @@ namespace is_unit
 section semiring
 variables [semiring α]
 
-theorem eq_zero_of_mul_left_eq_zero {r u : α}
-  (hu : is_unit u) (h : r * u = 0) : r = 0 :=
-by cases hu with u hu; exact units.eq_zero_of_mul_left_eq_zero u (hu ▸ h)
+@[simp] theorem mul_left_eq_zero_iff_eq_zero {r u : α}
+  (hu : is_unit u) : r * u = 0 ↔ r = 0 :=
+by cases hu with u hu; exact hu.symm ▸ units.mul_left_eq_zero_iff_eq_zero u
 
-theorem eq_zero_of_mul_right_eq_zero {r u : α}
-  (hu : is_unit u) (h : u * r = 0) : r = 0 :=
-by cases hu with u hu; exact units.eq_zero_of_mul_right_eq_zero u (hu ▸ h)
+@[simp] theorem mul_right_eq_zero_iff_eq_zero {r u : α}
+  (hu : is_unit u) : u * r = 0 ↔ r = 0 :=
+by cases hu with u hu; exact hu.symm ▸ units.mul_right_eq_zero_iff_eq_zero u
 
 end semiring
 

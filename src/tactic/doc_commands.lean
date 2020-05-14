@@ -40,8 +40,8 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
-/-- 
-`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+/--
+`copy_doc_string fr to` copies the docstring from the declaration named `fr`
 to each declaration named in the list `to`. -/
 meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
 do fr_ds ← doc_string fr,
@@ -368,7 +368,7 @@ add_tactic_doc
 `conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
-See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
+See <https://leanprover-community.github.io/extras/conv.html> for more details.
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,

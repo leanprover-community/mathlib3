@@ -545,7 +545,7 @@ cpkg.extend₂ cpkg f
 
 variables [separated γ] {f}
 
-@[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
+@[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
 cpkg.extension₂_coe_coe cpkg hf a b
 
@@ -562,7 +562,7 @@ open function
 protected def map₂ (f : α → β → γ) : completion α → completion β → completion γ :=
 cpkg.map₂ cpkg cpkg f
 
-lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous (uncurry' $ completion.map₂ f) :=
+lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous₂ (completion.map₂ f) :=
 cpkg.uniform_continuous_map₂ cpkg cpkg f
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
@@ -570,7 +570,7 @@ lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
   continuous (λd:δ, completion.map₂ f (a d) (b d)) :=
 cpkg.continuous_map₂ cpkg cpkg ha hb
 
-lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous $ uncurry' f) :
+lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous₂ f) :
   completion.map₂ f (a : completion α) (b : completion β) = f a b :=
 cpkg.map₂_coe_coe cpkg cpkg a b f hf
 

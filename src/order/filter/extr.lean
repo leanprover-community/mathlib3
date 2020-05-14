@@ -62,7 +62,7 @@ Similar predicates with `_on` suffix are particular cases for `l = principal s`.
 
 * Multiplication and division;
 * `is_*_*.bicompl` : if `x` is a minimum for `f`, `y` is a minimum for `g`, and `op` is a monotone
-  binary operation, then `(x, y)` is a minimum for `uncurry' (bicompl op f g)`. From this point of view,
+  binary operation, then `(x, y)` is a minimum for `uncurry (bicompl op f g)`. From this point of view,
   `is_*_*.bicomp` is a composition
 * It would be nice to have a tactic that specializes `comp_(anti)mono` or `bicomp_mono`
   based on a proof of monotonicity of a given (binary) function. The tactic should maintain a `meta`

@@ -1524,15 +1524,15 @@ namespace function
 
 theorem injective.iterate {α : Type u} {op : α → α} (Hinj : injective op) :
   ∀ n, injective (op^[n]) :=
-nat.iterate_ind op Hinj injective_id $ λ _ _, injective_comp
+nat.iterate_ind op Hinj injective_id $ λ _ _, injective.comp
 
 theorem surjective.iterate {α : Type u} {op : α → α} (Hinj : surjective op) :
   ∀ n, surjective (op^[n]) :=
-nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective_comp
+nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective.comp
 
 theorem bijective.iterate {α : Type u} {op : α → α} (Hinj : bijective op) :
   ∀ n, bijective (op^[n]) :=
-nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective_comp
+nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective.comp
 
 end function
 

@@ -463,9 +463,9 @@ lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e 
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
 ⟨λ hinj, by simpa [function.comp] using
-  surjective_comp e.surjective (this.1 (injective_comp e.symm.injective hinj)),
+  e.surjective.comp (this.1 (e.symm.injective.comp hinj)),
 λ hsurj, by simpa [function.comp] using
-  injective_comp e.injective (this.2 (surjective_comp e.symm.surjective hsurj))⟩
+  e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
 lemma fintype.coe_image_univ [fintype α] [decidable_eq β] {f : α → β} :
   ↑(finset.image f finset.univ) = set.range f :=

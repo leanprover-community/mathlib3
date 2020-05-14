@@ -609,8 +609,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact injective_comp prod.injective_inl inj_v },
-    { exact injective_comp prod.injective_inr inj_v' },
+    { exact prod.injective_inl.comp inj_v },
+    { exact prod.injective_inr.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;

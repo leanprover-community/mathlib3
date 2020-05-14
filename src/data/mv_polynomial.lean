@@ -1219,7 +1219,7 @@ theorem exists_fin_rename (p : mv_polynomial γ α) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
-  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, q.rename e, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end

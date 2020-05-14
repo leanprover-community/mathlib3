@@ -348,7 +348,7 @@ begin
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff (@zero_ne_one R _) hs (this a) (this b),
-      set.image_subset_image_iff (injective_comp subtype.val_injective f.inj),
+      set.image_subset_image_iff (subtype.val_injective.comp f.inj),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
   exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),

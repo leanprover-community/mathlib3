@@ -132,7 +132,7 @@ variables [has_zero β] {a a' : α} {b : β}
 /-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
-⟨if b = 0 then ∅ else finset.singleton a, λ a', if a = a' then b else 0, λ a', begin
+⟨if b = 0 then ∅ else {a}, λ a', if a = a' then b else 0, λ a', begin
   by_cases hb : b = 0; by_cases a = a';
     simp only [hb, h, if_pos, if_false, mem_singleton],
   { exact ⟨false.elim, λ H, H rfl⟩ },
@@ -336,7 +336,7 @@ lemma single_of_emb_domain_single
   (h : l.emb_domain f = single a b) :
   ∃ x, l = single x b ∧ f x = a :=
 begin
-  have h_map_support : finset.map f (l.support) = finset.singleton a,
+  have h_map_support : finset.map f (l.support) = {a},
     by rw [←support_emb_domain, h, support_single_ne_zero hb]; refl,
   have ha : a ∈ finset.map f (l.support),
     by simp only [h_map_support, finset.mem_singleton],
@@ -708,7 +708,7 @@ have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
 begin
   intro a,
   by_cases h : a ∈ f.support,
-  { have : (finset.singleton a : finset α) ⊆ f.support,
+  { have : ({a} : finset α) ⊆ f.support,
       { simpa only [finset.subset_iff, mem_singleton, forall_eq] },
     refine (finset.sum_subset this (λ _ _ H, _)).symm,
     exact if_neg (mt mem_singleton.2 H) },

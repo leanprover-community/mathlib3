@@ -105,7 +105,7 @@ instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin
   cases (principal s).principal with a hs,
-  refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, refl
+  refine ⟨{a}, submodule.ext' _⟩, rw hs, refl
 end⟩
 
 section

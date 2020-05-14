@@ -669,6 +669,19 @@ end
 
 namespace units
 
+section semiring
+variables [semiring α]
+
+theorem eq_zero_of_mul_left_eq_zero
+  {r : α} (u : units α) (h : r * u = 0) : r = 0 :=
+(mul_left_inj u).1 $ (zero_mul (u : α)).symm ▸ h
+
+theorem eq_zero_of_mul_right_eq_zero
+  {r : α} (u : units α) (h : (u : α) * r = 0) : r = 0 :=
+(mul_right_inj u).1 $ (mul_zero (u : α)).symm ▸ h
+
+end semiring
+
 section comm_semiring
 variables [comm_semiring α] (a b : α) (u : units α)
 
@@ -706,6 +719,23 @@ variables [domain α]
 end domain
 
 end units
+
+namespace is_unit
+
+section semiring
+variables [semiring α]
+
+theorem eq_zero_of_mul_left_eq_zero {r u : α}
+  (hu : is_unit u) (h : r * u = 0) : r = 0 :=
+by cases hu with u hu; exact units.eq_zero_of_mul_left_eq_zero u (hu ▸ h)
+
+theorem eq_zero_of_mul_right_eq_zero {r u : α}
+  (hu : is_unit u) (h : u * r = 0) : r = 0 :=
+by cases hu with u hu; exact units.eq_zero_of_mul_right_eq_zero u (hu ▸ h)
+
+end semiring
+
+end is_unit
 
 /-- A predicate to express that a ring is an integral domain.
 

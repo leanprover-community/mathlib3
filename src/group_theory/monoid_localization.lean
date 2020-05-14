@@ -699,7 +699,7 @@ k.to_equiv.eq_symm_apply.symm
 
 @[to_additive] lemma mul_equiv_of_localizations_right_inv (k : localization_map S P) :
   f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k) = k :=
-to_map_inj $ f.lift_comp k.map_units
+to_map_injective $ f.lift_comp k.map_units
 
 @[to_additive, simp] lemma mul_equiv_of_localizations_right_inv_apply
   {k : localization_map S P} {x} :

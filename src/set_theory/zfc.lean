@@ -140,6 +140,10 @@ protected def insert : pSet → pSet → pSet
 
 instance : has_insert pSet pSet := ⟨pSet.insert⟩
 
+instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
+
+instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
+
 /-- The n-th von Neumann ordinal -/
 def of_nat : ℕ → pSet
 | 0     := ∅

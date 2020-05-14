@@ -22,6 +22,8 @@ meta structure cache :=
 (univ : level)
 (comm_semiring_inst : expr)
 (red : transparency)
+(ic : ref instance_cache)
+(nc : ref instance_cache)
 
 @[derive [monad, alternative]]
 meta def ring_m (α : Type) : Type :=
@@ -46,19 +48,33 @@ reader_t.lift (state_t.lift m)
 
 meta def ring_m.run (red : transparency) (e : expr) {α} (m : ring_m α) : tactic α :=
 do α ← infer_type e,
-   c ← mk_app ``comm_semiring [α] >>= mk_instance,
    u ← mk_meta_univ,
    infer_type α >>= unify (expr.sort (level.succ u)),
    u ← get_univ_assignment u,
-   prod.fst <$> state_t.run (reader_t.run m ⟨α, u, c, red⟩) mk_buffer
+   ic ← mk_instance_cache α,
+   (ic, c) ← ic.get ``comm_semiring,
+   nc ← mk_instance_cache `(ℕ),
+   using_new_ref ic $ λ r,
+   using_new_ref nc $ λ nr,
+   prod.fst <$> state_t.run (reader_t.run m ⟨α, u, c, red, r, nr⟩) mk_buffer
+
+@[inline] meta def ic_lift' (icf : cache → ref instance_cache) {α}
+  (f : instance_cache → tactic (instance_cache × α)) : ring_m α :=
+⟨λ c, ⟨λ s, do
+  let r := icf c,
+  ic ← read_ref r,
+  (ic', a) ← f ic,
+  write_ref r ic',
+  pure (a, s)⟩⟩
+
+@[inline] meta def ic_lift {α} : (instance_cache → tactic (instance_cache × α)) → ring_m α :=
+ic_lift' cache.ic
+
+@[inline] meta def nc_lift {α} : (instance_cache → tactic (instance_cache × α)) → ring_m α :=
+ic_lift' cache.nc
 
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
-
-meta def ring_m.mk_app (n inst : name) (l : list expr) : ring_m expr :=
-do c ← get_cache,
-   m ← lift $ mk_instance ((expr.const inst [c.univ] : expr) c.α),
-   return $ (@expr.const tt n [c.univ] c.α m).mk_app l
 
 meta inductive horner_expr : Type
 | const (e : expr) : horner_expr
@@ -112,7 +128,7 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 | ha@(xadd a a₁ x₁ n₁ b₁) x n b := do
   c ← get_cache,
   if x₁.2 = x.2 ∧ b₁.e.to_nat = some 0 then do
-    (n', h) ← lift $ mk_app ``has_add.add [n₁.1, n.1] >>= norm_num,
+    (n', h) ← nc_lift $ λ nc, norm_num.prove_add_nat' nc n₁.1 n.1,
     return (xadd' c a₁ x (n', n₁.2 + n.2) b,
       c.cs_app ``horner_horner [a₁, x.1, n₁.1, n.1, b, n', h])
   else (xadd' c ha x n b).refl_conv
@@ -141,23 +157,23 @@ theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a'
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
-| (const e₁) (const e₂) := do
-  (e, p) ← lift $ mk_app ``has_add.add [e₁, e₂] >>= norm_num,
-  return (const e, p)
+| (const e₁) (const e₂) := ic_lift $ λ ic, do
+  (ic, e, p) ← norm_num.prove_add_rat' ic e₁ e₂,
+  return (ic, const e, p)
 | he₁@(const e₁) he₂@(xadd e₂ a x n b) := do
   c ← get_cache,
-  if e₁.to_nat = some 0 then do
-    p ← lift $ mk_app ``zero_add [e₂],
-    return (he₂, p)
+  if e₁.to_nat = some 0 then ic_lift $ λ ic, do
+    (ic, p) ← ic.mk_app ``zero_add [e₂],
+    return (ic, he₂, p)
   else do
     (b', h) ← eval_add he₁ b,
     return (xadd' c a x n b',
       c.cs_app ``const_add_horner [e₁, a, x.1, n.1, b, b', h])
 | he₁@(xadd e₁ a x n b) he₂@(const e₂) := do
   c ← get_cache,
-  if e₂.to_nat = some 0 then do
-    p ← lift $ mk_app ``add_zero [e₁],
-    return (he₁, p)
+  if e₂.to_nat = some 0 then ic_lift $ λ ic, do
+    (ic, p) ← ic.mk_app ``add_zero [e₁],
+    return (ic, he₁, p)
   else do
     (b', h) ← eval_add b he₂,
     return (xadd' c a x n b',
@@ -174,18 +190,22 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
       c.cs_app ``const_add_horner [e₁, a₂, x₂.1, n₂.1, b₂, b', h])
   else if n₁.2 < n₂.2 then do
     let k := n₂.2 - n₁.2,
-    ek ← lift $ expr.of_nat (expr.const `nat []) k,
-    (_, h₁) ← lift $ mk_app ``has_add.add [n₁.1, ek] >>= norm_num,
-    α0 ← lift $ expr.of_nat c.α 0,
+    (ek, h₁) ← nc_lift (λ nc, do
+      (nc, ek) ← nc.of_nat k,
+      (nc, h₁) ← norm_num.prove_add_nat nc n₁.1 ek n₂.1,
+      return (nc, ek, h₁)),
+    α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
     (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const α0)),
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₁ b',
       c.cs_app ``horner_add_horner_lt [a₁, x₁.1, n₁.1, b₁, a₂, n₂.1, b₂, ek, a', b', h₁, h₂, h₃])
   else if n₁.2 ≠ n₂.2 then do
     let k := n₁.2 - n₂.2,
-    ek ← lift $ expr.of_nat (expr.const `nat []) k,
-    (_, h₁) ← lift $ mk_app ``has_add.add [n₂.1, ek] >>= norm_num,
-    α0 ← lift $ expr.of_nat c.α 0,
+    (ek, h₁) ← nc_lift (λ nc, do
+      (nc, ek) ← nc.of_nat k,
+      (nc, h₁) ← norm_num.prove_add_nat nc n₂.1 ek n₁.1,
+      return (nc, ek, h₁)),
+    α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
     (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const α0)) a₂,
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₂ b',
@@ -204,13 +224,13 @@ by simp [h₂.symm, h₁.symm, horner]; cc
 
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← lift $ mk_app ``has_neg.neg [e] >>= norm_num,
+  (e', p) ← ic_lift $ λ ic, norm_num.prove_neg ic e,
   return (const e', p)
 | (xadd e a x n b) := do
   c ← get_cache,
   (a', h₁) ← eval_neg a,
   (b', h₂) ← eval_neg b,
-  p ← ring_m.mk_app ``horner_neg ``comm_ring [a, x.1, n.1, b, a', b', h₁, h₂],
+  p ← ic_lift $ λ ic, ic.mk_app ``horner_neg [a, x.1, n.1, b, a', b', h₁, h₂],
   return (xadd' c a' x n b', p)
 
 theorem horner_const_mul {α} [comm_semiring α] (c a x n b a' b')
@@ -226,7 +246,10 @@ by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 meta def eval_const_mul (k : expr) :
   horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← lift $ mk_app ``has_mul.mul [k, e] >>= norm_num,
+  (e', p) ← ic_lift (λ ic, do
+    nk ← k.to_rat,
+    ne ← e.to_rat,
+    norm_num.prove_mul_rat ic k e nk ne),
   return (const e', p)
 | (xadd e a x n b) := do
   c ← get_cache,
@@ -254,22 +277,25 @@ by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
 
 meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
-  (e', p) ← lift $ mk_app ``has_mul.mul [e₁, e₂] >>= norm_num,
+  (e', p) ← ic_lift (λ ic, do
+    ne₁ ← e₁.to_rat,
+    ne₂ ← e₂.to_rat,
+    norm_num.prove_mul_rat ic e₁ e₂ ne₁ ne₂),
   return (const e', p)
 | (const e₁) e₂ :=
   match e₁.to_nat with
   | (some 0) := do
     c ← get_cache,
-    α0 ← lift $ expr.of_nat c.α 0,
-    p ← lift $ mk_app ``zero_mul [e₂],
+    α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
+    p ← ic_lift $ λ ic, ic.mk_app ``zero_mul [e₂],
     return (const α0, p)
   | (some 1) := do
-    p ← lift $ mk_app ``one_mul [e₂],
+    p ← ic_lift $ λ ic, ic.mk_app ``one_mul [e₂],
     return (e₂, p)
   | _ := eval_const_mul e₁ e₂
   end
 | e₁ he₂@(const e₂) := do
-  p₁ ← lift $ mk_app ``mul_comm [e₁, e₂],
+  p₁ ← ic_lift $ λ ic, ic.mk_app ``mul_comm [e₁, e₂],
   (e', p₂) ← eval_mul he₂ e₁,
   p ← lift $ mk_eq_trans p₁ p₂, return (e', p)
 | he₁@(xadd e₁ a₁ x₁ n₁ b₁) he₂@(xadd e₂ a₂ x₂ n₂ b₂) := do
@@ -286,7 +312,7 @@ meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
       c.cs_app ``horner_const_mul [e₁, a₂, x₂.1, n₂.1, b₂, a', b', h₁, h₂])
   else do
     (aa, h₁) ← eval_mul he₁ a₂,
-    α0 ← lift $ expr.of_nat c.α 0,
+    α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
     (haa, h₂) ← eval_horner aa x₁ n₂ (const α0),
     if b₂.e.to_nat = some 0 then
       return (haa, c.cs_app ``horner_mul_horner_zero
@@ -298,43 +324,41 @@ meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
       return (t, c.cs_app ``horner_mul_horner
         [a₁, x₁.1, n₁.1, b₁, a₂, n₂.1, b₂, aa, haa, ab, bb, t, h₁, h₂, h₃, h₄, H])
 
-theorem horner_pow {α} [comm_semiring α] (a x n m n' a')
-  (h₁ : n * m = n') (h₂ : a ^ m = a') :
+theorem horner_pow {α} [comm_semiring α] (a x n m n' a') (h₁ : n * m = n') (h₂ : a ^ m = a') :
   @horner α _ a x n 0 ^ m = horner a' x n' 0 :=
 by simp [h₁.symm, h₂.symm, horner, mul_pow, pow_mul]
+
+theorem pow_succ {α} [comm_semiring α] (a n b c)
+  (h₁ : (a:α) ^ n = b) (h₂ : b * a = c) : a ^ (n + 1) = c :=
+by rw [← h₂, ← h₁, pow_succ']
 
 meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
 | e (_, 0) := do
   c ← get_cache,
-  α1 ← lift $ expr.of_nat c.α 1,
-  p ← lift $ mk_app ``pow_zero [e],
+  α1 ← ic_lift $ λ ic, ic.mk_app ``has_one.one [],
+  p ← ic_lift $ λ ic, ic.mk_app ``pow_zero [e],
   return (const α1, p)
 | e (_, 1) := do
-  p ← lift $ mk_app ``pow_one [e],
+  p ← ic_lift $ λ ic, ic.mk_app ``pow_one [e],
   return (e, p)
-| (const e) (e₂, m) := do
-  (e', p) ← lift $ mk_app ``monoid.pow [e, e₂] >>= norm_num.derive',
-  return (const e', p)
+| (const e) (e₂, m) := ic_lift $ λ ic, do
+  ne ← e.to_rat,
+  (ic, e', p) ← norm_num.prove_pow e ne ic e₂,
+  return (ic, const e', p)
 | he@(xadd e a x n b) m := do
   c ← get_cache,
-  let N : expr := expr.const `nat [],
   match b.e.to_nat with
   | some 0 := do
-    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num.derive',
+    (n', h₁) ← nc_lift $ λ nc, norm_num.prove_mul_rat nc n.1 m.1 n.2 m.2,
     (a', h₂) ← eval_pow a m,
-    α0 ← lift $ expr.of_nat c.α 0,
+    α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
     return (xadd' c a' x (n', n.2 * m.2) (const α0),
       c.cs_app ``horner_pow [a, x.1, n.1, m.1, n', a', h₁, h₂])
   | _ := do
-    e₂ ← lift $ expr.of_nat N (m.2-1),
-    l ← lift $ mk_app ``monoid.pow [e, e₂],
+    e₂ ← nc_lift $ λ nc, nc.of_nat (m.2-1),
     (tl, hl) ← eval_pow he (e₂, m.2-1),
     (t, p₂) ← eval_mul tl he,
-    hr ← lift $ mk_eq_refl e,
-    p₂ ← ring_m.mk_app ``norm_num.subst_into_prod ``has_mul [l, e, tl, e, t, hl, hr, p₂],
-    p₁ ← lift $ mk_app ``pow_succ' [e, e₂],
-    p ← lift $ mk_eq_trans p₁ p₂,
-    return (t, p)
+    return (t, c.cs_app ``pow_succ [e, e₂, tl, t, hl, p₂])
   end
 
 theorem horner_atom {α} [comm_semiring α] (x : α) : x = horner 1 x 1 0 :=
@@ -343,10 +367,9 @@ by simp [horner]
 meta def eval_atom (e : expr) : ring_m (horner_expr × expr) :=
 do c ← get_cache,
   i ← add_atom e,
-  α0 ← lift $ expr.of_nat c.α 0,
-  α1 ← lift $ expr.of_nat c.α 1,
-  n1 ← lift $ expr.of_nat (expr.const `nat []) 1,
-  return (xadd' c (const α1) (e, i) (n1, 1) (const α0),
+  α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
+  α1 ← ic_lift $ λ ic, ic.mk_app ``has_one.one [],
+  return (xadd' c (const α1) (e, i) (`(1), 1) (const α0),
     c.cs_app ``horner_atom [e])
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
@@ -364,27 +387,27 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_add e₁' e₂',
-  p ← ring_m.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_sum [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
   mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
     (do
-      e₂' ← lift $ mk_app ``has_neg.neg [e₂],
-      e ← lift $ mk_app ``has_add.add [e₁, e₂'],
+      e₂' ← ic_lift $ λ ic, ic.mk_app ``has_neg.neg [e₂],
+      e ← ic_lift $ λ ic, ic.mk_app ``has_add.add [e₁, e₂'],
       (e', p) ← eval e,
-      p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+      p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
       return (e', p'))
     (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,
-  p ← ring_m.mk_app ``norm_num.subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
 | `(%%e₁ * %%e₂) := do
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_mul e₁' e₂',
-  p ← ring_m.mk_app ``norm_num.subst_into_prod ``has_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_prod [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
@@ -392,13 +415,13 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (const e', p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
-    inst' ← ring_m.mk_app ``division_ring_has_div ``division_ring [],
+    inst' ← ic_lift $ λ ic, ic.mk_app ``division_ring_has_div [],
     lift $ is_def_eq inst inst'))
   (do
-    e₂' ← lift $ mk_app ``has_inv.inv [e₂],
-    e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
+    e₂' ← ic_lift $ λ ic, ic.mk_app ``has_inv.inv [e₂],
+    e ← ic_lift $ λ ic, ic.mk_app ``has_mul.mul [e₁, e₂'],
     (e', p) ← eval e,
-    p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
+    p' ← ic_lift $ λ ic, ic.mk_app ``unfold_div [e₁, e₂, e', p],
     return (e', p'))
   (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
@@ -407,13 +430,13 @@ meta def eval : expr → ring_m (horner_expr × expr)
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),
-    p ← ring_m.mk_app ``subst_into_pow ``monoid [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+    p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
   | some k, `(nat.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),
-    p₃ ← ring_m.mk_app ``subst_into_pow ``monoid [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
-    p₄ ← lift $ mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
+    p₃ ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+    p₄ ← lift $ mk_eq_symm $ `(nat.pow_eq_pow).mk_app [e₁, e₂],
     p ← lift $ mk_eq_trans p₄ p₃,
     return (e', p)
   | _, _ := eval_atom e
@@ -466,7 +489,7 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
     | normalize_mode.SOP :=
       trans_conv (eval' red) $
       trans_conv (simplify lemmas []) $
-      simp_bottom_up' (λ e, norm_num e <|> pow_lemma.rewrite e)
+      simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
     end e,
     guard (¬ new_e =ₐ e),
     return ((), new_e, some pr, ff))

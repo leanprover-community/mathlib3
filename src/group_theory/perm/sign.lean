@@ -367,7 +367,7 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)}).prod
+show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
   (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
   ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
 begin

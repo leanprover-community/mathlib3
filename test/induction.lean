@@ -224,7 +224,7 @@ inductive palindrome {α : Type} : list α → Prop
 axiom reverse_append_sandwich {α : Type} (x : α) (ys : list α) :
   list.reverse ([x] ++ ys ++ [x]) = [x] ++ list.reverse ys ++ [x]
 
--- TODO case tags, no type-changing index-based renaming
+-- TODO case tags
 lemma rev_palindrome {α : Type} (xs : list α) (hpal : palindrome xs) :
   palindrome (list.reverse xs) :=
 begin
@@ -280,7 +280,7 @@ end
 /- The same proof, but this time the variable names clash. Also, this time we
 let `xinduction` generalize `z`. -/
 
--- TODO fixing
+-- TODO case tags
 lemma tc_pets₂ {α : Type} (r : α → α → Prop) (z : α) :
   ∀x y, tc r x y → r y z → tc r x z :=
 begin
@@ -309,7 +309,7 @@ end
 
 /- Another proof along the same lines. -/
 
--- TODO fixing
+-- TODO case tags
 lemma tc_trans {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b : α, tc r a b → tc r b c → tc r a c :=
 begin

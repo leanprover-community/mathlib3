@@ -37,6 +37,8 @@ universes u v w
 
 namespace list
 
+open native
+
 variables {α : Type u} {β : Type v}
 
 /-- Auxiliary definition for `foldl_with_index`. -/
@@ -76,12 +78,19 @@ l.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
 /-- The list of indices of a list. `index_list l = [0, ..., length l - 1]`. -/
 def index_list : list α → list ℕ := map_with_index (λ i _, i)
 
+/-- `indexed_list [x₀, ..., xₙ] = [(0, x₀), ..., (n, xₙ)]` -/
+def indexed (xs : list α) : list (ℕ × α) :=
+xs.foldr_with_index (λ i a l, (i, a) :: l) []
+
 def to_rbmap : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
 
+meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+
 def all_some : list (option α) → option (list α)
 | [] := some []
-| (some x :: xs) := (λ z, x :: z) <$> all_some xs
+| (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
 | (none :: xs) := none
 
 def m_any {m} [monad m] {α} (p : α → m bool) : list α → m bool
@@ -95,6 +104,10 @@ def m_all {m} [monad m] {α} (p : α → m bool) : list α → m bool
 | (x :: xs) := do
   px ← p x,
   if px then m_all xs else pure ff
+
+def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.m_any id
+
+def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.m_all id
 
 end list
 
@@ -442,19 +455,18 @@ meta def get_app_fn_const_normalizing : expr → tactic name := λ e, do
   end
 
 /--
-`fuzzy_type_match t s` is true iff either of the following applies:
-
-- `t` and `s` are definitionally equal.
-- `t` and `s` are applications of the same local constant, i.e. we have
-  `t = C x₁ ... xₙ` and `s = C y₁ ... yₘ` for some local constant `C`.
+`fuzzy_type_match t s` is true iff `t` and `s` are definitionally equal.
 -/
--- TODO is this still too strict? What about e.g. (list (fin n) → unit) and
--- (list (fin (n + 1)) → unit)
+-- TODO is it worth extending this check to be more permissive? E.g. if a
+-- constructor argument has type `list α` and the index has type `list β`, we
+-- may want to consider these types sufficiently similar to inherit the name.
+-- Same (but even more obvious) with `vec α n` and `vec α (n + 1)`.
 meta def fuzzy_type_match (t s : expr) : tactic bool :=
-  (is_def_eq t s *> pure tt) <|> do
-    (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
-    (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
-    pure $ t_const = s_const
+  (is_def_eq t s *> pure tt) <|> pure ff
+  -- (is_def_eq t s *> pure tt) <|> do
+  --   (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
+  --   (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
+  --   pure $ t_const = s_const
 
 /-
 TODO doc
@@ -566,7 +578,7 @@ meta structure eliminee_info :=
 (ename : name)
 (eexpr : expr)
 (type : expr)
-(args : rbmap ℕ expr)
+(args : rb_map ℕ expr)
 
 meta def get_eliminee_info (ename : name) : tactic eliminee_info := do
   e ← get_local ename,
@@ -576,7 +588,7 @@ meta def get_eliminee_info (ename : name) : tactic eliminee_info := do
     { ename := ename,
       eexpr := e,
       type := type,
-      args := args.to_rbmap }
+      args := args.to_rb_map }
 
 meta structure constructor_argument_naming_info :=
 (einfo : eliminee_info)
@@ -671,16 +683,23 @@ meta def intro_fresh (ns : list name) (reserved : name_set) : tactic name := do
   intro n,
   pure n
 
-meta def local_depends_on_local (h i : expr) : tactic bool := do
-  if h = i
-    then pure tt
-    else do
-      h_type ← infer_type h,
-      if h_type.has_local_constant i
-        then pure tt
-        else do
-          (some h_val) ← try_core $ local_def_value h | pure ff,
-          pure $ h_val.has_local_constant i
+/- Precond: i is a local constant. -/
+meta def type_depends_on_local (h i : expr) : tactic bool := do
+  h_type ← infer_type h,
+  pure $ h_type.has_local_constant i
+
+/- Precond: i is a local constant. -/
+meta def local_def_depends_on_local (h i : expr) : tactic bool := do
+  (some h_val) ← try_core $ local_def_value h | pure ff,
+  pure $ h_val.has_local_constant i
+
+/- Precond: h and i are local constants. -/
+meta def local_depends_on_local (h i : expr) : tactic bool :=
+list.mbor
+  [ pure $ h = i
+  , type_depends_on_local h i
+  , local_def_depends_on_local h i
+  ]
 
 /--
 Reverts all hypotheses except those in `fixed` and those whose type depends
@@ -724,12 +743,16 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   ih_intros iinfo args reserved_names,
   pure ()
 
+meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
+  : tactic (expr × list expr) := do
+  sorry
+
 meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
-  let eliminee_args := einfo.args.to_list.map prod.snd,
+  let eliminee_args := einfo.args.values,
   env ← get_env,
 
   -- Find the name of the inductive type
@@ -749,16 +772,16 @@ focus1 $ do
   -- seems to be no way to find out whether an inductive type is mutual/nested.
   -- (`environment.is_ginductive` doesn't seem to work.)
 
-  -- Disallow complex indices (for now)
-  guard (eliminee_args.all expr.is_local) <|> fail format!
-    ("induction' can only eliminate hypotheses of the form `T x₁ ... xₙ`\n" ++
-    "where `T` is an inductive family and the `xᵢ` are local hypotheses."),
-
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
   fix_exprs ← fix.mmap get_local,
   ⟨num_generalized, generalized_names⟩ ←
     revert_all_except_locals (eliminee :: fix_exprs),
+
+  -- Generalise complex indices
+  let eliminee_index_args := eliminee_args.drop iinfo.num_params,
+  ⟨eliminee, index_equations⟩ ←
+    generalize_complex_index_args eliminee eliminee_index_args,
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -768,8 +791,10 @@ focus1 $ do
     -- Clear the eliminated hypothesis
     clear eliminee,
 
+    -- TODO simplify the index equations
+
     -- Clear the index args (unless other stuff in the goal depends on them)
-    (eliminee_args.drop iinfo.num_params).mmap' (try ∘ clear),
+    eliminee_index_args.mmap' (try ∘ clear),
     -- TODO is this the right thing to do? I don't think this necessarily
     -- preserves provability: The args we clear could contain interesting
     -- information, even if nothing else depends on them. Is there a way to avoid

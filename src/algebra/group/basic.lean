@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 -/
 import algebra.group.to_additive
-import logic.function
+import logic.function.basic
 
 attribute [simp] sub_neg_eq_add
 

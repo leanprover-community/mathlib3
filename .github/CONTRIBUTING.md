@@ -6,10 +6,10 @@ Co-authored-by: name <name@example.com>
 
 Make sure you have:
 
-  * [ ] reviewed and applied the coding style: [coding](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/style.md), [naming](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/naming.md)
-  * [ ] reviewed and applied [the documentation requirements](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md)
+  * [ ] reviewed and applied the coding style: [coding](https://leanprover-community.github.io/contribute/style.html), [naming](https://leanprover-community.github.io/contribute/naming.html)
+  * [ ] reviewed and applied [the documentation requirements](https://leanprover-community.github.io/contribute/doc.html)
   * [ ] for tactics:
-     * [ ] added or adapted documentation in the [tactic doc entries](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md#tactic-doc-entries)
+     * [ ] added or adapted documentation in the [tactic doc entries](https://leanprover-community.github.io/contribute/doc.html#tactic-doc-entries)
      * [ ] write an example of use of the new feature in [test/tactics.lean](https://github.com/leanprover-community/mathlib/blob/master/test/tactics.lean) or another test file
   * [ ] make sure definitions and lemmas are put in the right files
   * [ ] make sure definitions and lemmas are not redundant

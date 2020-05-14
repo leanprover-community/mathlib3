@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
-import data.rat.basic
+import data.rat.basic tactic.core
 
 /-!
 # Meta operations on ℚ
@@ -55,8 +55,13 @@ end
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral or the quotient of two numerals. -/
 protected meta def expr.to_nonneg_rat : expr → option ℚ
-| `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
-| e              := do n ← e.to_nat, return (rat.of_int n)
+| `(%%e₁ / %%e₂) := do
+  m ← e₁.to_nat,
+  n ← e₂.to_nat,
+  if c : m.coprime n then if h : 1 < n then
+    return ⟨m, n, lt_trans zero_lt_one h, c⟩
+  else none else none
+| e := do n ← e.to_nat, return (rat.of_int n)
 
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral, the quotient of two numerals,
@@ -96,3 +101,26 @@ protected meta def expr.of_rat (α : expr) : ℚ → tactic expr
     e₂ ← expr.of_nat α d,
     tactic.mk_app ``has_div.div [e₁, e₂]),
   tactic.mk_app ``has_neg.neg [e]
+
+namespace tactic
+namespace instance_cache
+
+/-- `c.of_rat q` embeds `q` as a numeral expression inside the type `α`.
+Lean will try to infer the correct type classes on `c.α`, and the tactic will fail if it cannot.
+This function is similar to `rat.mk_numeral` but it takes fewer hypotheses and is tactic valued.
+-/
+protected meta def of_rat (c : instance_cache) : ℚ → tactic (instance_cache × expr)
+| ⟨(n:ℕ), d, _, _⟩   :=
+  if d = 1 then c.of_nat n else do
+    (c, e₁) ← c.of_nat n,
+    (c, e₂) ← c.of_nat d,
+    c.mk_app ``has_div.div [e₁, e₂]
+| ⟨-[1+n], d, _, _⟩ := do
+  (c, e) ← (if d = 1 then c.of_nat (n+1) else do
+    (c, e₁) ← c.of_nat (n+1),
+    (c, e₂) ← c.of_nat d,
+    c.mk_app ``has_div.div [e₁, e₂]),
+  c.mk_app ``has_neg.neg [e]
+
+end instance_cache
+end tactic

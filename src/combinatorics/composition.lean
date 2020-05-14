@@ -662,7 +662,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
     ext i,
     have : 1 + i.val ≠ n,
       by { apply ne_of_lt, have := i.2, omega },
-    simp only [fin.ext_iff, this, exists_prop, fin.val_zero, false_or, add_left_inj, add_comm,
+    simp only [fin.ext_iff, this, exists_prop, fin.val_zero, false_or, add_right_inj, add_comm,
       set.mem_to_finset, true_or, add_eq_zero_iff, or_true, one_ne_zero, set.mem_set_of_eq,
       fin.last_val, false_and],
     split,

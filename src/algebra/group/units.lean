@@ -3,7 +3,7 @@ Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
-import logic.function
+import logic.function.basic
 import algebra.group.to_additive
 import tactic.norm_cast
 
@@ -100,10 +100,10 @@ by rw [mul_assoc, inv_mul, mul_one]
 
 @[to_additive] instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
 
-@[simp, to_additive] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
+@[simp, to_additive] theorem mul_right_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa only [inv_mul_cancel_left] using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
-@[simp, to_additive] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
+@[simp, to_additive] theorem mul_left_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨λ h, by simpa only [mul_inv_cancel_right] using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
 @[to_additive] theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
@@ -160,17 +160,17 @@ section monoid
   @[simp] theorem mul_divp_cancel (a : α) (u : units α) : (a * u) /ₚ u = a :=
   (mul_assoc _ _ _).trans $ by rw [units.mul_inv, mul_one]
 
-  @[simp] theorem divp_right_inj (u : units α) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
-  units.mul_right_inj _
+  @[simp] theorem divp_left_inj (u : units α) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
+  units.mul_left_inj _
 
   theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : units α) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
   by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
   theorem divp_eq_iff_mul_eq {x : α} {u : units α} {y : α} : x /ₚ u = y ↔ y * u = x :=
-  u.mul_right_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
+  u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
 
   theorem divp_eq_one_iff_eq {a : α} {u : units α} : a /ₚ u = 1 ↔ a = u :=
-  (units.mul_right_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
+  (units.mul_left_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
   one_mul _

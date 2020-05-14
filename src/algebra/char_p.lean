@@ -73,7 +73,7 @@ theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
   rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_left_inj],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
     { intros b h1 h2,

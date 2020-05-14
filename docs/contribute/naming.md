@@ -45,6 +45,10 @@ of a theorem.
 - `le_of_mul_le_mul_left`
 - `le_of_mul_le_mul_right`
 
+An injectivity lemma that uses "left" or "right" should refer to the
+argument that "changes". For example, a lemma with the statement
+`a - b = a - c ↔ b = c` could be called `sub_right_inj`.
+
 We can also use the word "self" to indicate a repeated argument:
 
 - `mul_inv_self`

@@ -150,3 +150,8 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 ((ring_hom.id ℕ).eq_nat_cast n).symm
+
+@[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
+  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
+| 0     := rfl
+| (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl

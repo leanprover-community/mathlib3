@@ -129,4 +129,13 @@ by library_search
 
 def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C := by library_search
 
+-- Test that we can provide custom `apply` tactics,
+-- e.g. to change how aggressively we unfold definitions in trying to apply lemmas.
+lemma bind_singleton {α β} (x : α) (f : α → list β) : list.bind [x] f = f x :=
+begin
+  success_if_fail {
+    library_search { apply := λ e, tactic.apply e { md := tactic.transparency.reducible } },
+  },
+  library_search,
+end
 end test.library_search

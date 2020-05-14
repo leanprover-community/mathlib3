@@ -238,31 +238,29 @@ theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
-  have zero_le_δ : 0 ≤ δ,
-    apply le_cinfi, intro, exact norm_nonneg _,
+  have zero_le_δ : 0 ≤ δ := le_cinfi (λ _, norm_nonneg _),
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
-    assume w, apply cinfi_le, use (0:ℝ), rintros _ ⟨_, rfl⟩, exact norm_nonneg _,
+    from cinfi_le ⟨0, forall_range_iff.2 $ λ _, norm_nonneg _⟩,
   have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
   -- Step 1: since `δ` is the infimum, can find a sequence `w : ℕ → K` in `K`
   -- such that `∥u - w n∥ < δ + 1 / (n + 1)` (which implies `∥u - w n∥ --> δ`);
   -- maybe this should be a separate lemma
   have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
-    have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
+  { have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
       λ n, lt_add_of_le_of_pos (le_refl _) nat.one_div_pos_of_nat,
     have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
-    exact ⟨w, λ n, classical.some_spec (h n)⟩,
+    exact ⟨w, λ n, classical.some_spec (h n)⟩ },
   rcases exists_seq with ⟨w, hw⟩,
   have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (𝓝 δ),
-    have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ),
-      exact tendsto_const_nhds,
+  { have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ) := tendsto_const_nhds,
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
-      convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
+    { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero] },
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (λ x, δ_le _) (λ x, le_of_lt (hw _)),
+      (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
-    rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
+  { rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
     let b := λ n:ℕ, (8 * δ * (1/(n+1)) + 4 * (1/(n+1)) * (1/(n+1))),
     use (λn, sqrt (b n)),
     split,
@@ -294,13 +292,13 @@ begin
       end
       ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
-      rw smul_add,
+    { rw smul_add,
       apply δ_le', apply h₂,
         repeat {exact subtype.mem _},
         repeat {exact le_of_lt one_half_pos},
-        exact add_halves 1,
+        exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-      mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _,
+    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -323,15 +321,15 @@ begin
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
     have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
+    { convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
     have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
+    { convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
     have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
-    convert eq₁.add eq₂, simp only [add_zero],
+    { convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
+    convert eq₁.add eq₂, simp only [add_zero] },
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,

@@ -879,8 +879,8 @@ open_locale classical
 lemma prod_add (f g : α → β) (s : finset α) :
   ∏ a in s, (f a + g a) = ∑ t in s.powerset, ((∏ a in t, f a) * (∏ a in (s \ t), g a)) :=
 calc ∏ a in s, (f a + g a)
-    = ∏ a in s, ∑ p in ({false, true} : finset Prop), if p then f a else g a : by simp
-... = ∑ p in (s.pi (λ _, {false, true}) : finset (Π a ∈ s, Prop)),
+    = ∏ a in s, ∑ p in ({true, false} : finset Prop), if p then f a else g a : by simp
+... = ∑ p in (s.pi (λ _, {true, false}) : finset (Π a ∈ s, Prop)),
         ∏ a in s.attach, if p a.1 a.2 then f a.1 else g a.1 : prod_sum
 ... = ∑ t in s.powerset, (∏ a in t, f a) * (∏ a in (s \ t), g a) : begin
   refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
@@ -983,7 +983,7 @@ lemma sum_eq_zero_iff_of_nonpos : (∀x∈s, f x ≤ 0) → ((∑ x in s, f x) =
 @sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ (∑ x in s, f x) :=
-have (singleton a).sum f ≤ (∑ x in s, f x),
+have ({a} : finset α).sum f ≤ (∑ x in s, f x),
   from sum_le_sum_of_subset_of_nonneg
   (λ x e, (mem_singleton.1 e).symm ▸ h) (λ x h _, hf x h),
 by rwa sum_singleton at this
@@ -1209,7 +1209,7 @@ multiset.induction_on s rfl
       ... = card (a :: s) :
       begin
         by_cases a ∈ s.to_finset,
-        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = (finset.singleton a).sum (λx, ite (x = a) 1 0),
+        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = ({a} : finset α).sum (λx, ite (x = a) 1 0),
           { apply (finset.sum_subset _ _).symm,
             { intros _ H, rwa mem_singleton.1 H },
             { exact λ _ _ H, if_neg (mt finset.mem_singleton.2 H) } },

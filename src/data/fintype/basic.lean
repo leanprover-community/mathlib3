@@ -318,9 +318,9 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨ff::tt::0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
 
-@[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl
+@[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩

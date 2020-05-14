@@ -30,7 +30,7 @@ are given in terms of localizations up to isomorphism, using maps which satisfy 
 predicate.
 
 Given such a localization map `f : M →* N`, we can define the surjection
-`localization_map.mk` sending `(x, y) : M × S` to `f x * (f y)⁻¹`, and
+`localization_map.mk'` sending `(x, y) : M × S` to `f x * (f y)⁻¹`, and
 `localization_map.lift`, the homomorphism from `N` induced by a homomorphism from `M` which maps
 elements of `S` to invertible elements of the codomain. Similarly, given commutative monoids
 `P, Q`, a submonoid `T` of `P` and a localization map for `T` from `P` to `Q`, then a homomorphism

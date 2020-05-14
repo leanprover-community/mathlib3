@@ -788,6 +788,13 @@ lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter
   tendsto f₂ p (𝓝 a) :=
 h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
+alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+
+lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
+  (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
+  tendsto f₁ p (𝓝 a) ↔ tendsto f₂ p (𝓝 a) :=
+uniform.tendsto_congr $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
+
 end real
 
 section cauchy_seq

@@ -151,11 +151,29 @@ do e  ← saturate_fun n,
    unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
 
 section performance_hack
-/-!
+/--
 For performance reasons, it is inadvisable to use `user_attribute.get_param`.
-Hence we store the important data of the `@[ext]` attribute in a different
-attribute called `_ext_core` as a type-incorrect parameter.
+The parameter is stored as a reflected expression.  When calling `get_param`,
+the stored parameter is evaluated using `eval_expr`, which first compiles the
+expression into VM bytecode. The unevaluated expression is available using
+`user_attribute.get_param_untyped`.
 
+In particular, `user_attribute.get_param` MUST NEVER BE USED in the
+implementation of an attribute cache. This is because calling `eval_expr`
+disables the attribute cache.
+
+There are several possible workarounds:
+ 1. Set a different attribute depending on the parameter.
+ 2. Use your own evaluation function instead of `eval_expr`, such as e.g. `expr.to_nat`.
+ 3. Write your own `has_reflect Param` instance (using a more efficient serialization format).
+   The `user_attribute` code unfortunately checks whether the expression has the correct type,
+   but you can use `` `(id %%e : Param) `` to pretend that your expression `e` has type `Param`.
+-/
+library_note "user attribute parameters"
+
+/-!
+For performance reasons, the parameters of the `@[ext]` attribute are stored
+in two auxiliary attributes:
 ```lean
 attribute [ext [thunk]] funext
 
@@ -164,7 +182,7 @@ attribute [_ext_core (@id name @funext)] thunk
 attribute [_ext_lemma_core] funext
 ```
 
-The `_ext_lemma_core` supports fast priority-sorted lookup with `attribute.get_instances`.
+see Note [user attribute parameters]
 -/
 
 local attribute [semireducible] reflected

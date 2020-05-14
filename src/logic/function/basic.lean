@@ -107,6 +107,14 @@ theorem left_inverse.right_inverse {f : α → β} {g : β → α} (h : left_inv
 theorem right_inverse.left_inverse {f : α → β} {g : β → α} (h : right_inverse g f) :
   left_inverse f g := h
 
+theorem left_inverse.surjective {f : α → β} {g : β → α} (h : left_inverse f g) :
+  surjective f :=
+h.right_inverse.surjective
+
+theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inverse f g) :
+  injective f :=
+h.left_inverse.injective
+
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
@@ -179,7 +187,7 @@ have f (inv_fun f (f b)) = f b,
 hf this
 
 lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
-(left_inverse_inv_fun hf).right_inverse.surjective
+(left_inverse_inv_fun hf).surjective
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
@@ -223,7 +231,7 @@ lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ ri
  λ ⟨g, gl, gr⟩, ⟨gl.injective,  gr.surjective⟩⟩
 
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
-(right_inverse_surj_inv h).left_inverse.injective
+(right_inverse_surj_inv h).injective
 
 end surj_inv
 

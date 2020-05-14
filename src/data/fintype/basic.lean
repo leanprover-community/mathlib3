@@ -449,7 +449,7 @@ from λ f hinj x,
   have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
   exists_of_bex (mem_image.1 h₂),
 ⟨this,
-  λ hsurj, injective_of_has_left_inverse
+  λ hsurj, has_left_inverse.injective
     ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
       (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
 
@@ -867,8 +867,7 @@ lemma right_inverse_bij_inv (f_bij : bijective f) : right_inverse (bij_inv f_bij
 λ b, choose_spec (λ a', f a' = b) _
 
 lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
-⟨injective_of_left_inverse (right_inverse_bij_inv _),
-    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩
+⟨(right_inverse_bij_inv _).injective, (left_inverse_bij_inv _).surjective⟩
 
 end bijection_inverse
 

@@ -1518,9 +1518,8 @@ have hsg : surjective g, from λ x,
     (λ x y _ _ hxy, hg hxy) (by simpa) x (mem_attach _ _) in
   ⟨y, hy.snd.symm⟩,
 have hif : injective f',
-  from injective_of_has_left_inverse
-    ⟨g, left_inverse_of_surjective_of_right_inverse hsg
-      (right_inverse_surj_inv _)⟩,
+  from (left_inverse_of_surjective_of_right_inverse hsg
+      (right_inverse_surj_inv _)).injective,
 subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
 end card

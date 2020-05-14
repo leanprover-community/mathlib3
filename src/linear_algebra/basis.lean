@@ -735,7 +735,7 @@ lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_
 linear_map.ext hv.total_repr
 
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
-linear_map.ker_eq_bot.2 $ injective_of_left_inverse hv.total_repr
+linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
 lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
 by rw [is_basis.repr, linear_map.range, submodule.map_comp,

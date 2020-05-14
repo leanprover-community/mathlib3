@@ -507,7 +507,7 @@ simp only [*, cons_append, reverse_cons, append_assoc]]
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
 theorem reverse_injective : injective (@reverse α) :=
-injective_of_left_inverse reverse_reverse
+left_inverse.injective reverse_reverse
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff

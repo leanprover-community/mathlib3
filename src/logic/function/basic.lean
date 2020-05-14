@@ -2,11 +2,13 @@
 Copyright (c) 2016 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Miscellaneous function constructions and lemmas.
 -/
 import logic.basic
 import data.option.defs
+
+/-!
+# Miscellaneous function constructions and lemmas
+-/
 
 universes u v w
 
@@ -57,11 +59,14 @@ instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
 
-theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective f | h :=
+/-- Cantor's diagonal argument implies that there are no surjective functions from `α`
+to `set α`. -/
+theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-theorem cantor_injective {α : Type*} (f : (α → Prop) → α) :
+/-- Cantor's diagonal argument implies that there are no injective functions from `set α` to `α`. -/
+theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
 surjective_of_has_right_inverse ⟨f, λ U, funext $
@@ -124,7 +129,8 @@ variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set
 include n
 local attribute [instance, priority 10] classical.prop_decidable
 
-/-- Construct the inverse for a function `f` on domain `s`. -/
+/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
+on `f '' s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 
@@ -274,9 +280,12 @@ by { funext, simp [curry, uncurry', prod.mk.eta] }
 section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
+/-- Compose a binary function `f` with a pair of unary functions `g` and `h`.
+If both arguments of `f` have the same and `g = h`, then `bicompl f g g = f on g`. -/
 def bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) (a b) :=
 f (g a) (h b)
 
+/-- Compose an unary function `f` with a binary function `g`. -/
 def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 

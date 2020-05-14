@@ -581,10 +581,11 @@ by finish [iff_def]
 
 /-! ### Lemmas about singletons -/
 
-theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
+theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ :=
+by { ext, rw [insert_emptyc_eq] }
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
-by finish [singleton_def]
+iff.rfl
 
 @[simp]
 lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
@@ -607,7 +608,8 @@ by finish [ext_iff, or_comm]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
-@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
+@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
+⟨a, rfl⟩
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
@@ -615,11 +617,11 @@ by finish
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
 ext $ by simp
 
-@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
-by simp [singleton_def]
-
 @[simp] theorem singleton_union : {a} ∪ s = insert a s :=
-by rw [union_comm, union_singleton]
+rfl
+
+@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
+by rw [union_comm, singleton_union]
 
 theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
@@ -1380,7 +1382,7 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 range_iff_surjective.2 quot.exists_rep
 
 lemma range_const_subset {c : α} : range (λx:ι, c) ⊆ {c} :=
-range_subset_iff.2 $ λ x, or.inl rfl
+range_subset_iff.2 $ λ x, rfl
 
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $

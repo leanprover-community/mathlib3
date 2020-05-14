@@ -716,7 +716,7 @@ end
 def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
 | ⟨f, g, l, r⟩ :=
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
-     simp [id_of_left_inverse l, id_of_right_inverse r]
+     simp [l.comp_eq_id, r.comp_eq_id]
 
 def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
 ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩

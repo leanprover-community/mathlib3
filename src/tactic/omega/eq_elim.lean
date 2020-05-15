@@ -247,7 +247,7 @@ begin
           rw [← coeffs.val_between_map_mul, list.map_map]
         end
   ... = (sym_sym m b + (coeffs.val_except n v (as.map (sym_sym m)) +
-          (-a_n * sgm v b as n))) * m : by simp only [add_left_comm, add_comm, neg_mul_eq_neg_mul_symm]
+          (-a_n * sgm v b as n))) * m : by ring
   ... = (term.val (v ⟨n ↦ sgm v b as n⟩) (coeffs_reduce n b as)) * m :
         begin
           simp only [coeffs_reduce, term.val, m, a_n],

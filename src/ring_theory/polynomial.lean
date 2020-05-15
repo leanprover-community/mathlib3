@@ -113,6 +113,7 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
 end to_subring
 
 variables (T : set R) [is_subring T]

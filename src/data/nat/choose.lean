@@ -109,13 +109,6 @@ by simpa using (add_pow 1 1 n).symm
 Facts about more specific binomial coefficients and their sums
 -/
 
-private lemma succ_not_le {m : nat} (t : m.succ ≤ m) : false :=
-begin
-  induction m, linarith,
-  apply m_ih,
-  exact nat.lt_succ_iff.mp t,
-end
-
 lemma sum_range_split_halfway (f : nat → nat) (m : nat) :
   ∑ i in range (2 * m + 2), f i = (∑ i in range (m + 1), f i) + ∑ i in (Ico (m + 1) (2 * m + 2)), f i :=
 begin
@@ -136,6 +129,27 @@ begin
     rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ + 1) ( by linarith ) f,
     rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ) ( by linarith ) f,
     ring,
+  }
+end
+
+lemma sum_range_split (f : nat → nat) (m n : nat) (n_le_m : n ≤ m) :
+  ∑ i in range m, f i = (∑ i in range n, f i) + ∑ i in (Ico n m), f i :=
+begin
+  induction m with m,
+  {cases n, simp, exfalso, exact not_succ_le_zero n n_le_m},
+  {
+    cases le_or_lt n m with n_le_m bad,
+    {
+      rw sum_range_succ f m,
+      rw @sum_Ico_succ_top _ _ n m n_le_m f,
+      rw m_ih n_le_m,
+      ring,
+    },
+    {
+      have n_eq_m : n = m + 1, exact le_antisymm n_le_m bad,
+      subst n_eq_m,
+      simp,
+    },
   }
 end
 

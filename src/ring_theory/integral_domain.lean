@@ -39,8 +39,7 @@ end
 
 /-- The unit group of a finite integral domain is cyclic. -/
 instance [fintype R] : is_cyclic (units R) :=
-is_cyclic_of_subgroup_integral_domain
-  { to_fun := coe, map_one' := units.coe_one, map_mul' := units.coe_mul } $ units.ext
+is_cyclic_of_subgroup_integral_domain (units.val_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
 def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=

@@ -13,7 +13,8 @@ import ring_theory.integral_domain
 # Finite fields
 
 This file contains basic results about finite fields.
-Throughout most of this file, `K` denotes a finite field with `q` elements.
+Throughout most of this file, `K` denotes a finite field
+and `q` is notation for the cardinality of `K`.
 
 ## Main results
 
@@ -28,7 +29,8 @@ Throughout most of this file, `K` denotes a finite field with `q` elements.
 
 ## Notation
 
-Throughout most of this file, `K` denotes a finite field with `q` elements.
+Throughout most of this file, `K` denotes a finite field
+and `q` is notation for the cardinality of `K`.
 
 -/
 

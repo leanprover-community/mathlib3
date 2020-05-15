@@ -392,6 +392,10 @@ protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
       m = 1 * m : (one_mul _).symm
     ... ≤ n * m : mul_le_mul_right _ n0)
 
+/-- A version of `nat.div_lt_self` using successors, rather than additional hypotheses. -/
+lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
+nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
+
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 begin
   revert x, refine nat.strong_rec' _ y,

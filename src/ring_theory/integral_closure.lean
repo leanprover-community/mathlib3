@@ -78,7 +78,7 @@ end
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨{1}, le_antisymm
-  (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem)
+  (span_le.2 $ finset.singleton_subset_set_iff.2 $ is_submonoid.one_mem)
   begin
     change ring.closure _ ⊆ _,
     simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
@@ -207,7 +207,7 @@ theorem is_integral_of_mem_closure {x y z : A}
   is_integral R z :=
 begin
   have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
-  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton] at this,
+  rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (ring.closure_mono (set.subset_union_right _ _) hz)
 end
@@ -222,7 +222,7 @@ theorem is_integral_add {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) :
   is_integral R (x + y) :=
 is_integral_of_mem_closure hx hy (is_add_submonoid.add_mem
-  (ring.subset_closure (or.inr (or.inl rfl))) (ring.subset_closure (or.inl rfl)))
+  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
 theorem is_integral_neg {x : A}
   (hx : is_integral R x) : is_integral R (-x) :=
@@ -237,7 +237,7 @@ theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) :
   is_integral R (x * y) :=
 is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
-  (ring.subset_closure (or.inr (or.inl rfl))) (ring.subset_closure (or.inl rfl)))
+  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
 variables (R A)
 def integral_closure : subalgebra R A :=
@@ -252,7 +252,7 @@ def integral_closure : subalgebra R A :=
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
   r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=
-⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin (or.inl rfl)⟩,
+⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin rfl⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
@@ -265,7 +265,7 @@ begin
       (fg_adjoin_of_finite (set.finite_image _ hfs)
         (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2))
       _,
-    algebra.subset_adjoin (or.inr (or.inl rfl))⟩,
+    algebra.subset_adjoin (or.inr rfl)⟩,
   refine fg_adjoin_singleton_of_integral _ _,
   rcases hr with ⟨p, hmp, hpx⟩,
   refine ⟨to_subring (of_subring _ (of_subring _ p)) _ _, _, hpx⟩,

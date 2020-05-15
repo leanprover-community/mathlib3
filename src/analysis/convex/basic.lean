@@ -527,7 +527,7 @@ noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι �
 
 variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
 
-open finset (hiding singleton)
+open finset
 
 lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
 by simp only [center_mass, sum_empty, smul_zero]

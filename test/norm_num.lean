@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import tactic.norm_num --data.complex.basic
+import tactic.norm_num data.complex.basic
 
 -- constant real : Type
 -- notation `ℝ` := real

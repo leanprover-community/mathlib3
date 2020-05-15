@@ -1792,9 +1792,6 @@ apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.sum_congr doc_blame
 apply_nolint function.embedding.trans doc_blame
 
--- logic/function/basic.lean
-apply_nolint function.uncurry' doc_blame
-
 -- logic/relation.lean
 apply_nolint relation.comp doc_blame
 apply_nolint relation.join doc_blame

@@ -15,8 +15,14 @@ Based on <http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf> .
 namespace tactic
 namespace ring
 
+/-- The normal form that `ring` uses is mediated by the function `horner a x n b := a * x ^ n + b`.
+The reason we use a definition rather than the (more readable) expression on the right is because
+this expression contains a number of typeclass arguments in different positions, while `horner`
+contains only one `comm_semiring` instance at the top level. See also `horner_expr` for a
+description of normal form. -/
 def horner {α} [comm_semiring α] (a x : α) (n : ℕ) (b : α) := a * x ^ n + b
 
+/-- This cache contains data required by the `ring` tactic during execution. -/
 meta structure cache :=
 (α : expr)
 (univ : level)
@@ -24,28 +30,35 @@ meta structure cache :=
 (red : transparency)
 (ic : ref instance_cache)
 (nc : ref instance_cache)
+(atoms : ref (buffer expr))
 
+/-- The monad that `ring` works in. This is a reader monad containing a mutable cache (using `ref`
+for mutability), as well as the list of atoms-up-to-defeq encountered thus far, used for atom
+sorting. -/
 @[derive [monad, alternative]]
 meta def ring_m (α : Type) : Type :=
-reader_t cache (state_t (buffer expr) tactic) α
+reader_t cache tactic α
 
+/-- Get the `ring` data from the monad. -/
 meta def get_cache : ring_m cache := reader_t.read
 
+/-- Get an already encountered atom by its index. -/
 meta def get_atom (n : ℕ) : ring_m expr :=
-reader_t.lift $ (λ es : buffer expr, es.read' n) <$> state_t.get
+⟨λ c, do es ← read_ref c.atoms, pure (es.read' n)⟩
 
-meta def get_transparency : ring_m transparency :=
-cache.red <$> get_cache
-
+/-- Get the index corresponding to an atomic expression, if it has already been encountered, or
+put it in the list of atoms and return the new index, otherwise. -/
 meta def add_atom (e : expr) : ring_m ℕ :=
-do red ← get_transparency,
-reader_t.lift ⟨λ es, (do
-  n ← es.iterate failed (λ n e' t, t <|> (is_def_eq e e' red $> n)),
-  return (n, es)) <|> return (es.size, es.push_back e)⟩
+⟨λ c, do
+  let red := c.red,
+  es ← read_ref c.atoms,
+  es.iterate failed (λ n e' t, t <|> (is_def_eq e e' red $> n)) <|>
+  (es.size <$ write_ref c.atoms (es.push_back e))⟩
 
-meta def lift {α} (m : tactic α) : ring_m α :=
-reader_t.lift (state_t.lift m)
+/-- Lift a tactic into the `ring_m` monad. -/
+@[inline] meta def lift {α} (m : tactic α) : ring_m α := reader_t.lift m
 
+/-- Run a `ring_m` tactic in the tactic monad. -/
 meta def ring_m.run (red : transparency) (e : expr) {α} (m : ring_m α) : tactic α :=
 do α ← infer_type e,
    u ← mk_meta_univ,
@@ -56,49 +69,86 @@ do α ← infer_type e,
    nc ← mk_instance_cache `(ℕ),
    using_new_ref ic $ λ r,
    using_new_ref nc $ λ nr,
-   prod.fst <$> state_t.run (reader_t.run m ⟨α, u, c, red, r, nr⟩) mk_buffer
+   using_new_ref mk_buffer $ λ atoms,
+   reader_t.run m ⟨α, u, c, red, r, nr, atoms⟩
 
+/-- Lift an instance cache tactic (probably from `norm_num`) to the `ring_m` monad. This version
+is abstract over the instance cache in question (either the ring `α`, or `ℕ` for exponents). -/
 @[inline] meta def ic_lift' (icf : cache → ref instance_cache) {α}
   (f : instance_cache → tactic (instance_cache × α)) : ring_m α :=
-⟨λ c, ⟨λ s, do
+⟨λ c, do
   let r := icf c,
   ic ← read_ref r,
   (ic', a) ← f ic,
-  write_ref r ic',
-  pure (a, s)⟩⟩
+  a <$ write_ref r ic'⟩
 
+/-- Lift an instance cache tactic (probably from `norm_num`) to the `ring_m` monad. This uses
+the instance cache corresponding to the ring `α`. -/
 @[inline] meta def ic_lift {α} : (instance_cache → tactic (instance_cache × α)) → ring_m α :=
 ic_lift' cache.ic
 
+/-- Lift an instance cache tactic (probably from `norm_num`) to the `ring_m` monad. This uses
+the instance cache corresponding to `ℕ`, which is used for computations in the exponent. -/
 @[inline] meta def nc_lift {α} : (instance_cache → tactic (instance_cache × α)) → ring_m α :=
 ic_lift' cache.nc
 
+/-- Apply a theorem that expects a `comm_semiring` instance. This is a special case of
+`ic_lift mk_app`, but it comes up often because `horner` and all its theorems have this assumption;
+it also does not require the tactic monad which improves access speed a bit. -/
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
 
+/-- Every expression in the language of commutative semirings can be viewed as a sum of monomials,
+where each monomial is a product of powers of atoms. We fix a global order on atoms (up to
+definitional equality), and then separate the terms according to their smallest atom. So the top
+level expression is `a * x^n + b` where `x` is the smallest atom and `n > 0` is a numeral, and
+`n` is maximal (so `a` contains at least one monomial not containing an `x`), and `b` contains no
+monomials with an `x` (hence all atoms in `b` are larger than `x`).
+
+If there is no `x` satisfying these constraints, then the expression must be a numeral. Even though
+we are working over rings, we allow rational constants when these can be interpreted in the ring,
+so we can solve problems like `x / 3 = 1 / 3 * x` even though these are not technically in the
+language of rings.
+
+These constraints ensure that there is a unique normal form for each ring expression, and so the
+algorithm is simply to calculate the normal form of each side and compare for equality.
+
+To allow us to efficiently pattern match on normal forms, we maintain this inductive type that
+holds a normalized expression together with its structure. We also -/
 meta inductive horner_expr : Type
-| const (e : expr) : horner_expr
+| const (e : expr × ℚ) : horner_expr
 | xadd (e : expr) (a : horner_expr) (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr
 
+/-- Get the expression corresponding to a `horner_expr`. This can be calculated recursively from
+the structure, but we cache the exprs in all subterms so that this function can be computed in
+constant time. -/
 meta def horner_expr.e : horner_expr → expr
-| (horner_expr.const e) := e
+| (horner_expr.const e) := e.1
 | (horner_expr.xadd e _ _ _ _) := e
+
+/-- Is this expr the constant `0`? -/
+meta def horner_expr.is_zero : horner_expr → bool
+| (horner_expr.const e) := e.2 = 0
+| _ := ff
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
 meta instance : has_coe_to_fun horner_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
+/-- Construct a `xadd` node, generating the cached expr using the input cache. -/
 meta def horner_expr.xadd' (c : cache) (a : horner_expr)
   (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr :=
 horner_expr.xadd (c.cs_app ``horner [a, x.1, n.1, b]) a x n b
 
 open horner_expr
 
+/-- Pretty printer for `horner_expr`. -/
 meta def horner_expr.to_string : horner_expr → string
 | (const e) := to_string e
 | (xadd e a x (_, n) b) :=
     "(" ++ a.to_string ++ ") * (" ++ to_string x.1 ++ ")^"
         ++ to_string n ++ " + " ++ b.to_string
 
+/-- Pretty printer for `horner_expr`. -/
 meta def horner_expr.pp : horner_expr → tactic format
 | (const e) := pp e
 | (xadd e a x (_, n) b) := do
@@ -107,6 +157,7 @@ meta def horner_expr.pp : horner_expr → tactic format
 
 meta instance : has_to_tactic_format horner_expr := ⟨horner_expr.pp⟩
 
+/-- Reflexivity conversion for a `horner_expr`. -/
 meta def horner_expr.refl_conv (e : horner_expr) : ring_m (horner_expr × expr) :=
 do p ← lift $ mk_eq_refl e, return (e, p)
 
@@ -119,10 +170,11 @@ theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
 by simp [h.symm, horner, pow_add, mul_assoc]
 
+/-- Evaluate `horner a n x b` where `a` and `b` are already in normal form. -/
 meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_expr → ring_m (horner_expr × expr)
 | ha@(const a) x n b := do
   c ← get_cache,
-  if a.to_nat = some 0 then
+  if a.2 = 0 then
     return (b, c.cs_app ``zero_horner [x.1, n.1, b])
   else (xadd' c ha x n b).refl_conv
 | ha@(xadd a a₁ x₁ n₁ b₁) x n b := do
@@ -156,28 +208,31 @@ theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a'
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
 by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
+/-- Evaluate `a + b` where `a` and `b` are already in normal form. -/
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := ic_lift $ λ ic, do
-  (ic, e, p) ← norm_num.prove_add_rat' ic e₁ e₂,
-  return (ic, const e, p)
+  let n := e₁.2 + e₂.2,
+  (ic, e) ← ic.of_rat n,
+  (ic, p) ← norm_num.prove_add_rat ic e₁.1 e₂.1 e e₁.2 e₂.2 n,
+  return (ic, const (e, n), p)
 | he₁@(const e₁) he₂@(xadd e₂ a x n b) := do
   c ← get_cache,
-  if e₁.to_nat = some 0 then ic_lift $ λ ic, do
+  if e₁.2 = 0 then ic_lift $ λ ic, do
     (ic, p) ← ic.mk_app ``zero_add [e₂],
     return (ic, he₂, p)
   else do
     (b', h) ← eval_add he₁ b,
     return (xadd' c a x n b',
-      c.cs_app ``const_add_horner [e₁, a, x.1, n.1, b, b', h])
+      c.cs_app ``const_add_horner [e₁.1, a, x.1, n.1, b, b', h])
 | he₁@(xadd e₁ a x n b) he₂@(const e₂) := do
   c ← get_cache,
-  if e₂.to_nat = some 0 then ic_lift $ λ ic, do
+  if e₂.2 = 0 then ic_lift $ λ ic, do
     (ic, p) ← ic.mk_app ``add_zero [e₁],
     return (ic, he₁, p)
   else do
     (b', h) ← eval_add b he₂,
     return (xadd' c a x n b',
-      c.cs_app ``horner_add_const [a, x.1, n.1, b, e₂, b', h])
+      c.cs_app ``horner_add_const [a, x.1, n.1, b, e₂.1, b', h])
 | he₁@(xadd e₁ a₁ x₁ n₁ b₁) he₂@(xadd e₂ a₂ x₂ n₂ b₂) := do
   c ← get_cache,
   if x₁.2 < x₂.2 then do
@@ -195,7 +250,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
       (nc, h₁) ← norm_num.prove_add_nat nc n₁.1 ek n₂.1,
       return (nc, ek, h₁)),
     α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
-    (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const α0)),
+    (a', h₂) ← eval_add a₁ (xadd' c a₂ x₁ (ek, k) (const (α0, 0))),
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₁ b',
       c.cs_app ``horner_add_horner_lt [a₁, x₁.1, n₁.1, b₁, a₂, n₂.1, b₂, ek, a', b', h₁, h₂, h₃])
@@ -206,7 +261,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
       (nc, h₁) ← norm_num.prove_add_nat nc n₂.1 ek n₁.1,
       return (nc, ek, h₁)),
     α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
-    (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const α0)) a₂,
+    (a', h₂) ← eval_add (xadd' c a₁ x₁ (ek, k) (const (α0, 0))) a₂,
     (b', h₃) ← eval_add b₁ b₂,
     return (xadd' c a' x₁ n₂ b',
       c.cs_app ``horner_add_horner_gt [a₁, x₁.1, n₁.1, b₁, a₂, n₂.1, b₂, ek, a', b', h₁, h₂, h₃])
@@ -222,10 +277,11 @@ theorem horner_neg {α} [comm_ring α] (a x n b a' b')
   -@horner α _ a x n b = horner a' x n b' :=
 by simp [h₂.symm, h₁.symm, horner]; cc
 
+/-- Evaluate `-a` where `a` is already in normal form. -/
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← ic_lift $ λ ic, norm_num.prove_neg ic e,
-  return (const e', p)
+  (e', p) ← ic_lift $ λ ic, norm_num.prove_neg ic e.1,
+  return (const (e', -e.2), p)
 | (xadd e a x n b) := do
   c ← get_cache,
   (a', h₁) ← eval_neg a,
@@ -243,20 +299,18 @@ theorem horner_mul_const {α} [comm_semiring α] (a x n b c a' b')
   @horner α _ a x n b * c = horner a' x n b' :=
 by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 
-meta def eval_const_mul (k : expr) :
+/-- Evaluate `k * a` where `k` is a rational numeral and `a` is in normal form. -/
+meta def eval_const_mul (k : expr × ℚ) :
   horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
-  (e', p) ← ic_lift (λ ic, do
-    nk ← k.to_rat,
-    ne ← e.to_rat,
-    norm_num.prove_mul_rat ic k e nk ne),
-  return (const e', p)
+  (e', p) ← ic_lift $ λ ic, norm_num.prove_mul_rat ic k.1 e.1 k.2 e.2,
+  return (const (e', k.2 * e.2), p)
 | (xadd e a x n b) := do
   c ← get_cache,
   (a', h₁) ← eval_const_mul a,
   (b', h₂) ← eval_const_mul b,
   return (xadd' c a' x n b',
-    c.cs_app ``horner_const_mul [k, a, x.1, n.1, b, a', b', h₁, h₂])
+    c.cs_app ``horner_const_mul [k.1, a, x.1, n.1, b, a', b', h₁, h₂])
 
 theorem horner_mul_horner_zero {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ aa t)
   (h₁ : @horner α _ a₁ x n₁ b₁ * a₂ = aa)
@@ -275,27 +329,23 @@ theorem horner_mul_horner {α} [comm_semiring α]
 by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
    simp [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
 
+/-- Evaluate `a * b` where `a` and `b` are in normal form. -/
 meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
-  (e', p) ← ic_lift (λ ic, do
-    ne₁ ← e₁.to_rat,
-    ne₂ ← e₂.to_rat,
-    norm_num.prove_mul_rat ic e₁ e₂ ne₁ ne₂),
-  return (const e', p)
+  (e', p) ← ic_lift $ λ ic, norm_num.prove_mul_rat ic e₁.1 e₂.1 e₁.2 e₂.2,
+  return (const (e', e₁.2 * e₂.2), p)
 | (const e₁) e₂ :=
-  match e₁.to_nat with
-  | (some 0) := do
+  if e₁.2 = 0 then do
     c ← get_cache,
     α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
     p ← ic_lift $ λ ic, ic.mk_app ``zero_mul [e₂],
-    return (const α0, p)
-  | (some 1) := do
+    return (const (α0, 0), p)
+  else if e₁.2 = 1 then do
     p ← ic_lift $ λ ic, ic.mk_app ``one_mul [e₂],
     return (e₂, p)
-  | _ := eval_const_mul e₁ e₂
-  end
+  else eval_const_mul e₁ e₂
 | e₁ he₂@(const e₂) := do
-  p₁ ← ic_lift $ λ ic, ic.mk_app ``mul_comm [e₁, e₂],
+  p₁ ← ic_lift $ λ ic, ic.mk_app ``mul_comm [e₁, e₂.1],
   (e', p₂) ← eval_mul he₂ e₁,
   p ← lift $ mk_eq_trans p₁ p₂, return (e', p)
 | he₁@(xadd e₁ a₁ x₁ n₁ b₁) he₂@(xadd e₂ a₂ x₂ n₂ b₂) := do
@@ -313,8 +363,8 @@ meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
   else do
     (aa, h₁) ← eval_mul he₁ a₂,
     α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
-    (haa, h₂) ← eval_horner aa x₁ n₂ (const α0),
-    if b₂.e.to_nat = some 0 then
+    (haa, h₂) ← eval_horner aa x₁ n₂ (const (α0, 0)),
+    if b₂.is_zero then
       return (haa, c.cs_app ``horner_mul_horner_zero
         [a₁, x₁.1, n₁.1, b₁, a₂, n₂.1, aa, haa, h₁, h₂])
     else do
@@ -332,19 +382,19 @@ theorem pow_succ {α} [comm_semiring α] (a n b c)
   (h₁ : (a:α) ^ n = b) (h₂ : b * a = c) : a ^ (n + 1) = c :=
 by rw [← h₂, ← h₁, pow_succ']
 
+/-- Evaluate `a ^ n` where `a` is in normal form and `n` is a natural numeral. -/
 meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
 | e (_, 0) := do
   c ← get_cache,
   α1 ← ic_lift $ λ ic, ic.mk_app ``has_one.one [],
   p ← ic_lift $ λ ic, ic.mk_app ``pow_zero [e],
-  return (const α1, p)
+  return (const (α1, 1), p)
 | e (_, 1) := do
   p ← ic_lift $ λ ic, ic.mk_app ``pow_one [e],
   return (e, p)
 | (const e) (e₂, m) := ic_lift $ λ ic, do
-  ne ← e.to_rat,
-  (ic, e', p) ← norm_num.prove_pow e ne ic e₂,
-  return (ic, const e', p)
+  (ic, e', p) ← norm_num.prove_pow e.1 e.2 ic e₂,
+  return (ic, const (e', e.2 ^ m), p)
 | he@(xadd e a x n b) m := do
   c ← get_cache,
   match b.e.to_nat with
@@ -352,7 +402,7 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
     (n', h₁) ← nc_lift $ λ nc, norm_num.prove_mul_rat nc n.1 m.1 n.2 m.2,
     (a', h₂) ← eval_pow a m,
     α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
-    return (xadd' c a' x (n', n.2 * m.2) (const α0),
+    return (xadd' c a' x (n', n.2 * m.2) (const (α0, 0)),
       c.cs_app ``horner_pow [a, x.1, n.1, m.1, n', a', h₁, h₂])
   | _ := do
     e₂ ← nc_lift $ λ nc, nc.of_nat (m.2-1),
@@ -364,12 +414,13 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
 theorem horner_atom {α} [comm_semiring α] (x : α) : x = horner 1 x 1 0 :=
 by simp [horner]
 
+/-- Evaluate `a` where `a` is an atom. -/
 meta def eval_atom (e : expr) : ring_m (horner_expr × expr) :=
 do c ← get_cache,
   i ← add_atom e,
   α0 ← ic_lift $ λ ic, ic.mk_app ``has_zero.zero [],
   α1 ← ic_lift $ λ ic, ic.mk_app ``has_one.one [],
-  return (xadd' c (const α1) (e, i) (`(1), 1) (const α0),
+  return (xadd' c (const (α1, 1)) (e, i) (`(1), 1) (const (α0, 0)),
     c.cs_app ``horner_atom [e])
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
@@ -382,6 +433,8 @@ lemma unfold_sub {α} [add_group α] (a b c : α)
 lemma unfold_div {α} [division_ring α] (a b c : α)
   (h : a * b⁻¹ = c) : a / b = c := h
 
+/-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
+equality. -/
 meta def eval : expr → ring_m (horner_expr × expr)
 | `(%%e₁ + %%e₂) := do
   (e₁', p₁) ← eval e₁,
@@ -411,8 +464,8 @@ meta def eval : expr → ring_m (horner_expr × expr)
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
-    lift $ e'.to_rat,
-    return (const e', p)) <|> eval_atom e
+    n ← lift $ e'.to_rat,
+    return (const (e', n), p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
     inst' ← ic_lift $ λ ic, ic.mk_app ``division_ring_has_div [],
@@ -442,10 +495,12 @@ meta def eval : expr → ring_m (horner_expr × expr)
   | _, _ := eval_atom e
   end
 | e := match e.to_nat with
-  | some n := (const e).refl_conv
+  | some n := (const (e, rat.of_int n)).refl_conv
   | none := eval_atom e
   end
 
+/-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
+equality. -/
 meta def eval' (red : transparency) (e : expr) : tactic (expr × expr) :=
 ring_m.run red e $ do (e', p) ← eval e, return (e', p)
 
@@ -463,11 +518,32 @@ by simp [pow_add, mul_assoc]
 
 theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 
+/-- If `ring` fails to close the goal, it falls back on normalizing the expression to a "pretty"
+form so that you can see why it failed. This setting adjusts the resulting form:
+
+  * `raw` is the form that `ring` actually uses internally, with iterated applications of `horner`.
+    Not very readable but useful if you don't want any postprocessing.
+    This results in terms like `horner (horner (horner 3 y 1 0) x 2 1) x 1 (horner 1 y 1 0)`.
+  * `horner` maintains the Horner form structure, but it unfolds the `horner` definition itself,
+    and tries to otherwise minimize parentheses.
+    This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
+  * `SOP` means sum of products form, expanding everything to monomials.
+    This results in terms like `3 * x ^ 3 * y + x + y`. -/
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
 
 instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
 
+/-- A `ring`-based normalization simplifier that rewrites ring expressions into the specified mode.
+
+  * `raw` is the form that `ring` actually uses internally, with iterated applications of `horner`.
+    Not very readable but useful if you don't want any postprocessing.
+    This results in terms like `horner (horner (horner 3 y 1 0) x 2 1) x 1 (horner 1 y 1 0)`.
+  * `horner` maintains the Horner form structure, but it unfolds the `horner` definition itself,
+    and tries to otherwise minimize parentheses.
+    This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
+  * `SOP` means sum of products form, expanding everything to monomials.
+    This results in terms like `3 * x ^ 3 * y + x + y`. -/
 meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
@@ -516,6 +592,8 @@ do `(%%e₁ = %%e₂) ← target,
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
   tactic.exact p
 
+/-- Parser for `ring`'s `mode` argument, which can only be the "keywords" `raw`, `horner` or `SOP`.
+(Because these are not actually keywords we use a name parser and postprocess the result.) -/
 meta def ring.mode : lean.parser ring.normalize_mode :=
 with_desc "(SOP|raw|horner)?" $
 do mode ← ident?, match mode with

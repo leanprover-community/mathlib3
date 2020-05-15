@@ -480,11 +480,11 @@ begin
     calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
     ... ≤ (abs x)^n / (1 - abs x) :
       begin
+        have : abs y ≤ abs x := abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        have : 0 < 1 - abs x, by linarith,
+        have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
         simp only [← pow_abs, abs_div, abs_neg],
-        apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left],
-        show abs y ≤ abs x, from abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
-        show 0 < 1 - abs x, by linarith,
-        show 1 - abs x ≤ abs (1 - y), from le_trans (by linarith [hy.2]) (le_abs_self _)
+        apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left]
       end },
   -- third step: apply the mean value inequality
   have C : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,

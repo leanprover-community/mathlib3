@@ -14,7 +14,7 @@ open_locale classical
 open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale ennreal
+open_locale ennreal big_operators
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}

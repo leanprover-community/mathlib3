@@ -187,36 +187,7 @@ begin
   simpa [finset.Ico.zero_bot m.succ, two_mul (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
 end
 
-private lemma can_halve : ∀ (a b : nat), (2 * a = 2 * b) → (a ≠ 0) → a = b
-| 0 0 := λ double nonzero, by { exfalso, exact nonzero rfl }
-| (nat.succ a) 0 := λ double nonzero, by { exfalso, simp at double, cases double, linarith, exact nonzero double }
-| 0 (nat.succ b) := λ double nonzero, by { exfalso, exact nonzero rfl }
-| (nat.succ a) (nat.succ b) := λ double nonzero, by {
-  rw mul_add 2 a 1 at double,
-  rw mul_add 2 b 1 at double,
-  simp at double,
-  induction a,
-    {
-      simp at double, cases double with two_eq_zero b_eq_zero, linarith, subst b_eq_zero,
-    },
-    {
-      have eq : a_n.succ = b, exact can_halve a_n.succ b double (nat.succ_ne_zero a_n),
-      rw eq,
-    }
-}
-
-private lemma exp_nonzero (m : nat) (bad : 4 ^ m = 0) : false :=
-begin
-  induction m with m hyp,
-  { simp at bad, exact bad, },
-  {
-    apply hyp, clear hyp,
-    have exp_succ : 4 ^ (m + 1) = 4 ^ m * 4, refl,
-    rw bad at exp_succ,
-    simp at exp_succ,
-    cc,
-  }
-end
+private lemma can_halve (a b : nat) (pr : 2 * a = 2 * b) : a = b := by linarith
 
 lemma sum_range_choose_halfway (m : nat) :
   ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
@@ -236,7 +207,7 @@ begin
       ... = 2 * (4 ^ m) : by ring,
   rw tidy_two_pow at e,
   rw <- two_mul (∑ j in range (m + 1), choose (2 * m + 1) j) at e,
-  exact (eq.symm (can_halve (4 ^ m) _ e (exp_nonzero _))),
+  exact (eq.symm (can_halve (4 ^ m) _ e)),
 end
 
 end binomial

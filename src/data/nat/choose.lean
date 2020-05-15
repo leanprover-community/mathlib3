@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
+import tactic.linarith
 
 open nat
 
@@ -100,8 +101,161 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
 (commute.all x y).add_pow n
 
 /-- The sum of entries in a row of Pascal's triangle -/
-theorem sum_range_choose (n : ℕ) : 
+theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
+
+/-
+Facts about more specific binomial coefficients and their sums
+-/
+
+private lemma twice_is_double (a : nat) : (a + a) = 2 * a := nat.bit0_val a
+
+private lemma double_succ (a : nat) : 2 * a.succ = 2 * a + 2 := by ring
+
+private lemma succ_not_le {m : nat} (t : m.succ ≤ m) : false :=
+begin
+  induction m, linarith,
+  apply m_ih,
+  exact nat.lt_succ_iff.mp t,
+end
+
+lemma sum_range_split_halfway
+  (f : nat → nat)
+  (m : nat)
+  : ∑ i in range (2 * m + 2), f i = (∑ i in range (m + 1), f i) + ∑ i in (Ico (m + 1) (2 * m + 2)), f i
+  :=
+begin
+  induction m with m,
+  {simp, refl},
+  {
+    rw sum_range_succ f (2 * (m + 1) + 1),
+    rw sum_range_succ f (2 * (m + 1)),
+    have s : 2 * m + 2 = 2 * (m + 1), refl,
+    rw s at m_ih,
+    rw m_ih,
+    clear m_ih,
+    rw sum_range_succ f (m + 1),
+    simp,
+    rw add_comm (∑ i in range (m + 1), f i) (∑ i in Ico (m + 2) (2 * (m + 1) + 2), f i),
+    rw <- add_assoc (f (m + 1)) _ _,
+    rw (@sum_eq_sum_Ico_succ_bot _ _ (m + 1) (2 * (m + 1) + 2) ( by linarith ) f).symm,
+    rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ + 1) ( by linarith ) f,
+    rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ) ( by linarith ) f,
+    ring,
+  }
+end
+
+-- This lemma exists only so that we can instantiate it with `i = m + 1`.
+private lemma reflect_sum_lemma
+  (i : nat)
+  (m : nat)
+  (i_bound : i ≤ m + 1)
+  (f : nat → nat)
+  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x))
+  : ∑ j in (Ico (m + 1 - i) (m + 1)), f j = ∑ j in Ico (m + 1) (m + 1 + i), f j
+  :=
+begin
+  induction i with i,
+  { simp },
+  {
+    have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
+    rw t, clear t,
+    rw <- (@sum_Ico_succ_top _ _ (m + 1) (m.succ + i) (by exact nat.le.intro rfl) f).symm,
+    rw <- i_ih, clear i_ih,
+    have t : f (m.succ + i) = f (m - i), by {
+      have munge : m + 1 + i ≤ 2 * m + 1,
+        calc m.succ + i ≤ m.succ + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (nat.succ m)
+        ... = m + (m + 1): nat.add_comm (m + 1) m
+        ...  = (m + m) + 1 : (nat.add_assoc _ _ _).symm
+        ... = 2 * m + 1 : by rw twice_is_double,
+      have v : 2 * m + 1 - (m.succ + i) = m - i,
+        calc 2 * m + 1 - (m.succ + i) = 2 * m + 1 - m.succ - i : eq.symm (nat.sub_sub (2 * m + 1) (nat.succ m) i)
+            ... = m + m + 1 - m.succ - i : by rw <- twice_is_double m
+            ... = m + (m + 1) - m.succ - i : by rw <- add_assoc m m 1
+            ... = m - i : by rw nat.add_sub_cancel m m.succ,
+      have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)),
+        exact reflects (m.succ + i) munge,
+      rw v at reflected,
+      exact reflected,
+    },
+    rw t, clear t,
+    {
+      rw nat.succ_sub (nat.lt_succ_iff.mp i_bound),
+      have s : f (m - i) + ∑ j in (Ico (m - i + 1) (m + 1)), f j = ∑ j in (Ico (m - i) (m + 1)), f j,
+        exact (@sum_eq_sum_Ico_succ_bot _ _ (m - i) (m + 1) (nat.sub_lt_succ m i) f).symm,
+      simp,
+      rw <- s,
+      ring,
+    },
+    exact le_of_lt i_bound,
+  }
+end
+
+lemma sum_range_reflects_halfway
+  (m : nat)
+  (f : nat → nat)
+  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x))
+  : finset.sum (finset.range m.succ) f = finset.sum (finset.Ico (nat.succ m) (2 * m + 2)) f
+  :=
+begin
+  have r : 2 * m + 2 = 2 * (m + 1), ring,
+  rw r,
+  simpa [finset.Ico.zero_bot m.succ, twice_is_double (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
+end
+
+private lemma can_halve : ∀ (a b : nat), (2 * a = 2 * b) → (a ≠ 0) → a = b
+| 0 0 := λ double nonzero, by { exfalso, exact nonzero rfl }
+| (nat.succ a) 0 := λ double nonzero, by { exfalso, simp at double, cases double, linarith, exact nonzero double }
+| 0 (nat.succ b) := λ double nonzero, by { exfalso, exact nonzero rfl }
+| (nat.succ a) (nat.succ b) := λ double nonzero, by {
+  rw double_succ at double,
+  rw double_succ at double,
+  simp at double,
+  induction a,
+    {
+      simp at double, cases double with two_eq_zero b_eq_zero, linarith, subst b_eq_zero,
+    },
+    {
+      have eq : a_n.succ = b, exact can_halve a_n.succ b double (nat.succ_ne_zero a_n),
+      rw eq,
+    }
+}
+
+private lemma exp_nonzero (m : nat) (bad : 4 ^ m = 0) : false :=
+begin
+  induction m with m hyp,
+  { simp at bad, exact bad, },
+  {
+    apply hyp, clear hyp,
+    have exp_succ : 4 ^ (m + 1) = 4 ^ m * 4, refl,
+    rw bad at exp_succ,
+    simp at exp_succ,
+    cc,
+  }
+end
+
+lemma sum_range_choose_halfway
+  (m : nat)
+  : ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m
+  :=
+begin
+  let e := sum_range_split_halfway (choose (2 * m + 1)) m,
+  rw (sum_range_choose (2 * m + 1)) at e,
+  have reflects : ∀ x ≤ 2 * m + 1, choose (2 * m + 1) x = choose (2 * m + 1) (2 * m + 1 - x),
+  {
+    intros x pr,
+    exact eq.symm (@choose_symm (2 * m + 1) x pr),
+  },
+  rw <- (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects) at e,
+  simp,
+  have tidy_two_pow : 2 ^ (2 * m + 1) = 2 * (4 ^ m),
+    calc 2 ^ (2 * m + 1) = 2 ^ (2 * m) * 2 ^ 1 : nat.pow_add 2 (2 * m) 1
+      ... = 4 ^ m * 2 ^ 1 : by { rw nat.pow_mul 2 m 2, refl }
+      ... = 2 * (4 ^ m) : by ring,
+  rw tidy_two_pow at e,
+  rw twice_is_double (∑ j in range (m + 1), choose (2 * m + 1) j) at e,
+  exact (eq.symm (can_halve (4 ^ m) _ e (exp_nonzero _))),
+end
 
 end binomial

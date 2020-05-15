@@ -50,9 +50,13 @@ of a natural number `n` in a specified base `b`.
 
 In any base, we have `of_digits b L = L.foldr (λ x y, x + b * y) 0`.
 * For any `2 ≤ b`, we have `l < b` for any `l ∈ digits b n`,
-  and this uniquely specifies the behaviour of `digits b`.
+  and the last digit is not zero.
+  This uniquely specifies the behaviour of `digits b`.
 * For `b = 1`, we define `digits 1 n = list.repeat 1 n`.
 * For `b = 0`, we define `digits 0 n = [n]`, except `digits 0 0 = []`.
+
+Note this differs from the existing `nat.to_digits` in core, which is used for printing numerals.
+In particular, `nat.to_digits b 0 = [0]`, while `digits b 0 = []`.
 -/
 def digits : ℕ → ℕ → list ℕ
 | 0 := digits_aux_0

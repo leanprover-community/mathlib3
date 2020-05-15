@@ -114,7 +114,10 @@ These constraints ensure that there is a unique normal form for each ring expres
 algorithm is simply to calculate the normal form of each side and compare for equality.
 
 To allow us to efficiently pattern match on normal forms, we maintain this inductive type that
-holds a normalized expression together with its structure. We also -/
+holds a normalized expression together with its structure. All the `expr`s in this type could be
+removed without loss of information, and conversely the `horner_expr` structure and the `ℕ` and
+`ℚ` values can be recovered from the top level `expr`, but we keep both in order to keep proof
+ producing normalization functions efficient. -/
 meta inductive horner_expr : Type
 | const (e : expr × ℚ) : horner_expr
 | xadd (e : expr) (a : horner_expr) (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr

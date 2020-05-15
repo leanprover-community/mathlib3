@@ -234,7 +234,7 @@ begin
 end
 
 lemma dvd_of_digits_sub_of_digits {α : Type*} [euclidean_domain α]
-  (a b k : α) (h : k ∣ a - b) (L : list ℕ) :
+  {a b k : α} (h : k ∣ a - b) (L : list ℕ) :
   k ∣ ((of_digits a L) - (of_digits b L)) :=
 begin
   induction L,
@@ -257,37 +257,18 @@ lemma dvd_iff_dvd_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
   b ∣ n ↔ b ∣ (digits b' n).sum :=
 begin
   rw ←of_digits_one,
-  conv_lhs { rw ←(of_digits_digits 10 n) },
-  rw nat.dvd_iff_mod_eq_zero,
-  rw nat.dvd_iff_mod_eq_zero,
-  rw of_digits_mod,
-  refl,
+  conv_lhs { rw ←(of_digits_digits b' n) },
+  rw [nat.dvd_iff_mod_eq_zero, nat.dvd_iff_mod_eq_zero, of_digits_mod, h],
 end
 
 lemma three_dvd_iff (n : ℕ) : 3 ∣ n ↔ 3 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
--- begin
---   rw ←of_digits_one,
---   conv_lhs { rw ←(of_digits_digits 10 n) },
---   rw nat.dvd_iff_mod_eq_zero,
---   rw nat.dvd_iff_mod_eq_zero,
---   rw of_digits_mod,
---   refl,
--- end
 
 lemma nine_dvd_iff (n : ℕ) : 9 ∣ n ↔ 9 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 9 10 (by norm_num) n
--- begin
---   rw ←of_digits_one,
---   conv_lhs { rw ←(of_digits_digits 10 n) },
---   rw nat.dvd_iff_mod_eq_zero,
---   rw nat.dvd_iff_mod_eq_zero,
---   rw of_digits_mod,
---   refl,
--- end
 
 -- TODO move?
-lemma dvd_iff_dvd_of_dvd_sub (a b c : ℤ) (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+lemma dvd_iff_dvd_of_dvd_sub {a b c : ℤ} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
   intro h',
@@ -298,26 +279,14 @@ begin
   exact eq_add_of_sub_eq rfl,
 end
 
-lemma dvd_if_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : b ∣ b' - c) (n : ℕ) :
-  b ∣ n ↔ b ∣ (of_digits c (digits b' n)) :=
+lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ) - c) (n : ℕ) :
+  b ∣ n ↔ (b : ℤ) ∣ (of_digits c (digits b' n)) :=
 begin
   rw ←int.coe_nat_dvd,
   conv_lhs { rw ←(of_digits_digits b' n) },
-  simp,
   rw coe_int_of_digits,
-  apply dvd_iff_dvd_of_dvd_sub,
-  apply dvd_of_digits_sub_of_digits,
-  norm_num,
+  exact dvd_iff_dvd_of_dvd_sub (dvd_of_digits_sub_of_digits h _),
 end
 
 lemma eleven_dvd_iff (n : ℕ) : 11 ∣ n ↔ 11 ∣ (of_digits (-1 : ℤ) (digits 10 n)) :=
-dvd_if_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n
--- begin
---   rw ←int.coe_nat_dvd,
---   conv_lhs { rw ←(of_digits_digits 10 n) },
---   simp,
---   rw coe_int_of_digits,
---   apply dvd_iff_dvd_of_dvd_sub,
---   apply dvd_of_digits_sub_of_digits,
---   norm_num,
--- end
+dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n

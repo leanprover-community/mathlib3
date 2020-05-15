@@ -529,7 +529,7 @@ instance : complete_lattice (uniform_space α) :=
   sup_le        := λ a b c h₁ h₂, Inf_le ⟨h₁, h₂⟩,
   inf           := λ a b, Inf {a, b},
   le_inf        := λ a b c h₁ h₂, le_Inf (λ u h,
-                     by { cases h, exact h.symm ▸ h₂, exact (mem_singleton_iff.1 h).symm ▸ h₁ }),
+                     by { cases h, exact h.symm ▸ h₁, exact (mem_singleton_iff.1 h).symm ▸ h₂ }),
   inf_le_left   := λ a b, Inf_le (by simp),
   inf_le_right  := λ a b, Inf_le (by simp),
   top           := ⊤,

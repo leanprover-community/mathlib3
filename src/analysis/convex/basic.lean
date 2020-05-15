@@ -527,7 +527,7 @@ noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι �
 
 variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
 
-open finset (hiding singleton)
+open finset
 
 lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
 by simp only [center_mass, sum_empty, smul_zero]
@@ -548,7 +548,7 @@ begin
   { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div_eq_inv] }
 end
 
-lemma finset.center_mass_singleton (hw : w i ≠ 0) : (finset.singleton i).center_mass w z = z i :=
+lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=
 by rw [center_mass, sum_singleton, sum_singleton, ← mul_smul, inv_mul_cancel hw, one_smul]
 
 lemma finset.center_mass_eq_of_sum_1 (hw : t.sum w = 1) :
@@ -759,7 +759,7 @@ lemma convex_hull_eq (s : set E) :
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
-    use [punit, finset.singleton punit.star, λ _, 1, λ _, x, λ _ _, zero_le_one,
+    use [punit, {punit.star}, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
     simp only [finset.center_mass, finset.sum_singleton, inv_one, one_smul] },
   { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩

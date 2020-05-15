@@ -60,7 +60,7 @@ lemma mem_span_singleton' {x y : α} :
 
 lemma mem_span_singleton {x y : α} :
   x ∈ span ({y} : set α) ↔ y ∣ x :=
-mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl
+mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
@@ -153,13 +153,8 @@ def is_coprime (x y : α) : Prop :=
 span ({x, y} : set α) = ⊤
 
 theorem mem_span_pair {x y z : α} :
-  z ∈ span (insert y {x} : set α) ↔ ∃ a b, a * x + b * y = z :=
-begin
-  simp only [mem_span_insert, mem_span_singleton', exists_prop],
-  split,
-  { rintros ⟨a, b, ⟨c, hc⟩, h⟩, exact ⟨c, a, by cc⟩ },
-  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by cc⟩ }
-end
+  z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
+by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
 
 theorem is_coprime_def {x y : α} :
   is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=

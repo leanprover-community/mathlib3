@@ -194,14 +194,14 @@ begin
   { rw (minimal_polynomial hx).as_sum at h,
     apply eq_neg_of_add_eq_zero,
     simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
-      is_root.def, finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using h, },
+      is_root.def, finset.sum_range_succ, finset.sum_singleton, finset.range_one] using h, },
   subst y,
   rw [ring_hom.map_neg, neg_eq_iff_add_eq_zero],
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
   simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,
     mul_one, one_mul, pow_one, pow_zero, add_comm,
-    finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using H,
+    finset.sum_range_succ, finset.sum_singleton, finset.range_one] using H,
 end
 
 /--The constant coefficient of the minimal polynomial of x is 0

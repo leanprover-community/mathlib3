@@ -71,7 +71,7 @@ lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a �
 @[simp] lemma symm_symm (f : α ≃. β) : f.symm.symm = f := by cases f; refl
 
 lemma symm_injective : function.injective (@pequiv.symm α β) :=
-injective_of_has_left_inverse ⟨_, symm_symm⟩
+left_inverse.injective symm_symm
 
 lemma trans_assoc (f : α ≃. β) (g : β ≃. γ) (h : γ ≃. δ) :
   (f.trans g).trans h = f.trans (g.trans h) :=
@@ -98,7 +98,7 @@ by rw ← mem_iff_mem at *; cases h : f.symm b; simp * at *
 
 lemma injective_of_forall_ne_is_some (f : α ≃. β) (a₂ : α)
   (h : ∀ (a₁ : α), a₁ ≠ a₂ → is_some (f a₁)) : injective f :=
-injective_of_has_left_inverse
+has_left_inverse.injective
   ⟨λ b, option.rec_on b a₂ (λ b', option.rec_on (f.symm b') a₂ id),
     λ x, begin
       classical,

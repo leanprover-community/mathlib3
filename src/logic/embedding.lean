@@ -51,7 +51,7 @@ theorem inj {α β} (f : α ↪ β) : injective f := f.inj'
 ⟨id, injective_id⟩
 
 @[trans] protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
-⟨_, injective_comp g.inj' f.inj'⟩
+⟨g ∘ f, g.inj.comp f.inj⟩
 
 @[simp] theorem refl_apply {α} (x : α) : embedding.refl α x = x := rfl
 

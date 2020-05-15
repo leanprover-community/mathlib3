@@ -682,7 +682,7 @@ do gs ← get_goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
 | 0        tac := trace "maximal iterations reached"
-| (succ n) tac := tactic.all_goals $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
+| (succ n) tac := tactic.all_goals' $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
 
 /-- `iterate_at_most_on_subgoals n t`: repeat the tactic `t` at most `n` times on the first
 goal and on all subgoals thus produced, or until it fails. Fails iff `t` fails on
@@ -890,24 +890,17 @@ meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}
 
-private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
-| L := (do r ← t, iterate_aux (r :: L)) <|> return L
-
-/-- Apply a tactic as many times as possible, collecting the results in a list. -/
-meta def iterate' (t : tactic α) : tactic (list α) :=
-list.reverse <$> iterate_aux t []
-
 /-- Apply a tactic as many times as possible, collecting the results in a list.
 Fail if the tactic does not succeed at least once. -/
-meta def iterate1 (t : tactic α) : tactic (α × list α) :=
+meta def iterate1 (t : tactic α) : tactic (list α) :=
 do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
-   L ← iterate' t,
-   return (r, L)
+   L ← iterate t,
+   return (r :: L)
 
 /-- Introduces one or more variables and returns the new local constants.
 Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
-iterate1 intro1 >>= λ p, return (p.1 :: p.2)
+iterate1 intro1
 
 /-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
 meta def under_binders {α : Type} (t : tactic α) : tactic α :=
@@ -1080,7 +1073,7 @@ target >>= instantiate_mvars >>= change
 Instantiates metavariables in all goals.
 -/
 meta def instantiate_mvars_in_goals : tactic unit :=
-all_goals $ instantiate_mvars_in_target
+all_goals' $ instantiate_mvars_in_target
 
 /-- This makes sure that the execution of the tactic does not change the tactic state.
 This can be helpful while using rewrite, apply, or expr munging.
@@ -1566,7 +1559,7 @@ by tactic.use ``(42)
 See the doc string for `tactic.interactive.use` for more information.
  -/
 protected meta def use (l : list pexpr) : tactic unit :=
-focus1 $ seq (l.mmap' $ λ h, use_aux h <|> fail format!"failed to instantiate goal with {h}")
+focus1 $ seq' (l.mmap' $ λ h, use_aux h <|> fail format!"failed to instantiate goal with {h}")
               instantiate_mvars_in_target
 
 /-- `clear_aux_decl_aux l` clears all expressions in `l` that represent aux decls from the

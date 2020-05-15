@@ -39,7 +39,7 @@ end
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
-nodup_map (@injective_of_left_inverse ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
+nodup_map (@left_inverse.injective ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
 
 end nat
 end list

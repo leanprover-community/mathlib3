@@ -95,7 +95,7 @@ instance : has_mem (localization R S) (fractional_ideal R S) := ⟨λ x I, x ∈
 -/
 @[ext]
 lemma ext {I J : fractional_ideal R S} : I.1 = J.1 → I = J :=
-subtype.ext.mpr
+subtype.eq
 
 lemma fractional_of_subset_one (I : submodule R (localization R S)) (h : I ≤ 1) :
   is_fractional R S I :=
@@ -115,18 +115,11 @@ instance : has_zero (fractional_ideal R S) := ⟨(0 : ideal R)⟩
 
 @[simp]
 lemma mem_zero_iff {x : localization R S} : x ∈ (0 : fractional_ideal R S) ↔ x = 0 :=
-⟨ (λ ⟨x', x'_mem_zero, x'_eq_x⟩,
-    have x'_eq_zero : x' = 0 := (or_false _).mp x'_mem_zero,
-    by simp [x'_eq_x.symm, x'_eq_zero]),
-  (λ hx, ⟨0, or.inl rfl, by simp [hx]⟩) ⟩
+⟨ (λ ⟨x', x'_mem_zero, x'_eq_x⟩, by simp [x'_eq_x.symm, mem_singleton_iff.1 x'_mem_zero]),
+  (λ hx, ⟨0, rfl, by simp [hx]⟩) ⟩
 
 @[simp] lemma val_zero : (0 : fractional_ideal R S).1 = 0 :=
-begin
-  ext,
-  split; intro h; convert submodule.zero _,
-  { rw [mem_zero_iff.mp h] },
-  { exact (or_false _).mp h }
-end
+submodule.ext $ λ x, mem_zero_iff
 
 lemma nonzero_iff_val_nonzero {I : fractional_ideal R S} : I.1 ≠ 0 ↔ I ≠ 0 :=
 ⟨ λ h h', h (by simp [h']),

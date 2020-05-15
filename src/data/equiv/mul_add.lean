@@ -77,7 +77,7 @@ def refl (M : Type*) [has_mul M] : M ≃* M :=
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+{ map_mul' := λ n₁ n₂, h.left_inv.injective begin
     show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
       h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
    rw h.map_mul,

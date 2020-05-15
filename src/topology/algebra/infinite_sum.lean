@@ -429,7 +429,7 @@ begin
   have : f = λ n, f₁ n + f₂ n, { ext n, symmetry, cases n, apply add_zero, apply zero_add },
   have hf₁ : summable f₁,
   { fapply summable_sum_of_ne_finset_zero,
-    { exact finset.singleton 0 },
+    { exact {0} },
     { rintros (_ | n) hn,
       { exfalso,
         apply hn,

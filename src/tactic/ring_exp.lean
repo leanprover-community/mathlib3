@@ -626,7 +626,7 @@ with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq_o ← mk_add [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num pq_o,
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq_o,
   pure $ ex.coeff ⟨pq_o, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
 
 lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
@@ -653,7 +653,7 @@ match p.1, q.1 with -- Special case to speed up multiplication with 1.
 | _, _ := do
   ctx ← get_context,
   pq' ← mk_mul [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num pq',
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 end
 

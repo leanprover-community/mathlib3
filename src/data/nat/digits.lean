@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.nat.basic
+import data.nat.modeq
+import data.int.modeq
 import algebra.euclidean_domain
 import tactic.ring
 import tactic.interval_cases
@@ -248,14 +250,52 @@ begin
     exact dvd_mul_sub_mul h L_ih, }
 end
 
-lemma of_digits_mod (b k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
+lemma of_digits_modeq' (b b' : ℕ) (k : ℕ) (h : b ≡ b' [MOD k]) (L : list ℕ) : (of_digits b L) ≡ (of_digits b' L) [MOD k] :=
 begin
   induction L,
-  refl,
-  dsimp [of_digits],
-  conv_lhs { rw nat.add_mod, rw nat.mul_mod, rw L_ih, },
-  conv_rhs { rw nat.add_mod, rw nat.mul_mod, rw nat.mod_mod, },
+  { refl, },
+  { dsimp [of_digits],
+    dsimp [nat.modeq] at *,
+    conv_lhs { rw [nat.add_mod, nat.mul_mod, h, L_ih], },
+    conv_rhs { rw [nat.add_mod, nat.mul_mod], }, }
 end
+
+lemma of_digits_modeq (b k : ℕ) (L : list ℕ) : (of_digits b L) ≡ (of_digits (b % k) L) [MOD k] :=
+of_digits_modeq' b (b % k) k (nat.modeq.symm (nat.modeq.mod_modeq b k)) L
+
+lemma of_digits_mod (b k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
+of_digits_modeq b k L
+
+lemma of_digits_zmodeq' (b b' : ℤ) (k : ℕ) (h : b ≡ b' [ZMOD k]) (L : list ℕ) : (of_digits b L) ≡ (of_digits b' L) [ZMOD k] :=
+begin
+  induction L,
+  { refl, },
+  { dsimp [of_digits],
+    dsimp [int.modeq] at *,
+    conv_lhs { rw [int.add_mod, int.mul_mod, h, L_ih], },
+    conv_rhs { rw [int.add_mod, int.mul_mod], }, }
+end
+
+lemma of_digits_zmodeq (b : ℤ) (k : ℕ) (L : list ℕ) : (of_digits b L) ≡ (of_digits (b % k) L) [ZMOD k] :=
+of_digits_zmodeq' b (b % k) k (int.modeq.symm (int.modeq.mod_modeq b ↑k)) L
+
+lemma of_digits_zmod (b : ℤ) (k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
+of_digits_zmodeq b k L
+
+lemma modeq_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
+   n ≡ (digits b' n).sum [MOD b] :=
+begin
+  rw ←of_digits_one,
+  conv { congr, skip, rw ←(of_digits_digits b' n) },
+  convert of_digits_modeq _ _ _,
+  exact h.symm,
+end
+
+lemma modeq_three_digits_sum (n : ℕ) : n ≡ (digits 10 n).sum [MOD 3] :=
+modeq_digits_sum 3 10 (by norm_num) n
+
+lemma modeq_nine_digits_sum (n : ℕ) : n ≡ (digits 10 n).sum [MOD 9] :=
+modeq_digits_sum 9 10 (by norm_num) n
 
 lemma dvd_iff_dvd_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
   b ∣ n ↔ b ∣ (digits b' n).sum :=
@@ -270,6 +310,17 @@ dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
 
 lemma nine_dvd_iff (n : ℕ) : 9 ∣ n ↔ 9 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 9 10 (by norm_num) n
+
+lemma zmodeq_of_digits_digits (b b' : ℕ) (c : ℤ) (h : b' ≡ c [ZMOD b]) (n : ℕ) :
+  n ≡ (of_digits c (digits b' n)) [ZMOD b] :=
+begin
+  conv { congr, skip, rw ←(of_digits_digits b' n) },
+  rw coe_int_of_digits,
+  apply of_digits_zmodeq' _ _ _ h,
+end
+
+lemma modeq_eleven_digits_sum (n : ℕ) : n ≡ of_digits (-1 : ℤ) (digits 10 n) [ZMOD 11] :=
+zmodeq_of_digits_digits 11 10 (-1 : ℤ) dec_trivial n
 
 -- TODO move?
 lemma dvd_iff_dvd_of_dvd_sub {a b c : ℤ} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
@@ -287,9 +338,8 @@ lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ)
   b ∣ n ↔ (b : ℤ) ∣ (of_digits c (digits b' n)) :=
 begin
   rw ←int.coe_nat_dvd,
-  conv_lhs { rw ←(of_digits_digits b' n) },
-  rw coe_int_of_digits,
-  exact dvd_iff_dvd_of_dvd_sub (dvd_of_digits_sub_of_digits h _),
+  exact dvd_iff_dvd_of_dvd_sub
+    (int.modeq.modeq_iff_dvd.1 (zmodeq_of_digits_digits b b' c (int.modeq.modeq_iff_dvd.2 h).symm _).symm),
 end
 
 lemma eleven_dvd_iff (n : ℕ) : 11 ∣ n ↔ 11 ∣ (of_digits (-1 : ℤ) (digits 10 n)) :=

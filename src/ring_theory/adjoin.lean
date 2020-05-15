@@ -88,7 +88,7 @@ le_antisymm
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
-      exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl) }))
+      exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=

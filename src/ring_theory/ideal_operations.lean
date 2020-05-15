@@ -151,15 +151,6 @@ end submodule
 
 namespace ideal
 
-section lattice
-variables {R : Type u} [comm_ring R]
-
-theorem mem_Inf {s : set (ideal R)} {x : R} :
-  x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
-⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
-
-end lattice
-
 section mul_and_radical
 variables {R : Type u} [comm_ring R]
 variables {I J K L: ideal R}
@@ -366,7 +357,7 @@ theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
   exact (ne_top_iff_one _).1 hK
 
-instance is_prime.comap {hK : K.is_prime} : (comap f K).is_prime :=
+theorem is_prime.comap {hK : K.is_prime} : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
   by simp only [mem_comap, is_ring_hom.map_mul f]; apply hK.2⟩
 
@@ -535,23 +526,23 @@ section is_primary
 variables {R : Type u} [comm_ring R]
 
 /-- A proper ideal I is primary iff xy ∈ I implies x ∈ I or y ∈ radical I. -/
-@[class] def is_primary (I : ideal R) : Prop :=
+def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 
-instance is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
+theorem is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
 ⟨hi.1, λ x y hxy, (hi.2 hxy).imp id $ λ hyi, le_radical hyi⟩
 
 theorem mem_radical_of_pow_mem {I : ideal R} {x : R} {m : ℕ} (hx : x ^ m ∈ radical I) : x ∈ radical I :=
 radical_idem I ▸ ⟨m, hx⟩
 
-instance is_prime_radical {I : ideal R} (hi : is_primary I) : is_prime (radical I) :=
+theorem is_prime_radical {I : ideal R} (hi : is_primary I) : is_prime (radical I) :=
 ⟨mt radical_eq_top.1 hi.1, λ x y ⟨m, hxy⟩, begin
   rw mul_pow at hxy, cases hi.2 hxy,
   { exact or.inl ⟨m, h⟩ },
   { exact or.inr (mem_radical_of_pow_mem h) }
 end⟩
 
-instance is_primary_inf {I J : ideal R} (hi : is_primary I) (hj : is_primary J)
+theorem is_primary_inf {I J : ideal R} (hi : is_primary I) (hj : is_primary J)
   (hij : radical I = radical J) : is_primary (I ⊓ J) :=
 ⟨ne_of_lt $ lt_of_le_of_lt inf_le_left (lt_top_iff_ne_top.2 hi.1), λ x y ⟨hxyi, hxyj⟩,
 begin

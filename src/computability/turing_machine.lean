@@ -1079,7 +1079,7 @@ noncomputable def stmts₁ : stmt → finset stmt
 | Q                  := {Q}
 
 theorem stmts₁_self {q} : q ∈ stmts₁ q :=
-by cases q; apply finset.mem_insert_self
+by cases q; apply_rules [finset.mem_insert_self, finset.mem_singleton_self]
 
 theorem stmts₁_trans {q₁ q₂} :
   q₁ ∈ stmts₁ q₂ → stmts₁ q₁ ⊆ stmts₁ q₂ :=
@@ -1087,8 +1087,7 @@ begin
   intros h₁₂ q₀ h₀₁,
   induction q₂ with _ q IH _ q IH _ q IH;
     simp only [stmts₁] at h₁₂ ⊢;
-    simp only [finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h₁₂,
+    simp only [finset.mem_insert, finset.mem_union, finset.mem_singleton] at h₁₂,
   iterate 3 {
     rcases h₁₂ with rfl | h₁₂,
     { unfold stmts₁ at h₀₁, exact h₀₁ },
@@ -1109,7 +1108,7 @@ theorem stmts₁_supports_stmt_mono {S q₁ q₂}
 begin
   induction q₂ with _ q IH _ q IH _ q IH;
     simp only [stmts₁, supports_stmt, finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h hs,
+      finset.mem_singleton] at h hs,
   iterate 3 { rcases h with rfl | h; [exact hs, exact IH h hs] },
   case TM1.stmt.branch : p q₁ q₂ IH₁ IH₂ {
     rcases h with rfl | h | h, exacts [hs, IH₁ h hs.1, IH₂ h hs.2] },
@@ -1846,7 +1845,7 @@ noncomputable def stmts₁ : stmt → finset stmt
 | Q@halt             := {Q}
 
 theorem stmts₁_self {q} : q ∈ stmts₁ q :=
-by cases q; apply finset.mem_insert_self
+by cases q; apply_rules [finset.mem_insert_self, finset.mem_singleton_self]
 
 theorem stmts₁_trans {q₁ q₂} :
   q₁ ∈ stmts₁ q₂ → stmts₁ q₁ ⊆ stmts₁ q₂ :=
@@ -1854,8 +1853,7 @@ begin
   intros h₁₂ q₀ h₀₁,
   induction q₂ with _ _ q IH _ _ q IH _ _ q IH _ q IH;
     simp only [stmts₁] at h₁₂ ⊢;
-    simp only [finset.mem_insert, finset.insert_empty_eq_singleton,
-      finset.mem_singleton, finset.mem_union] at h₁₂,
+    simp only [finset.mem_insert, finset.mem_singleton, finset.mem_union] at h₁₂,
   iterate 4 {
     rcases h₁₂ with rfl | h₁₂,
     { unfold stmts₁ at h₀₁, exact h₀₁ },
@@ -1876,7 +1874,7 @@ theorem stmts₁_supports_stmt_mono {S q₁ q₂}
 begin
   induction q₂ with _ _ q IH _ _ q IH _ _ q IH _ q IH;
     simp only [stmts₁, supports_stmt, finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h hs,
+      finset.mem_singleton] at h hs,
   iterate 4 { rcases h with rfl | h; [exact hs, exact IH h hs] },
   case TM2.stmt.branch : f q₁ q₂ IH₁ IH₂ {
     rcases h with rfl | h | h, exacts [hs, IH₁ h hs.1, IH₂ h hs.2] },
@@ -2385,24 +2383,22 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
-    have hgo := sub _ (or.inl $ or.inr rfl),
-    have hret := sub _ (or.inl $ or.inl rfl),
+    have hgo := sub _ (or.inl $ or.inl rfl),
+    have hret := sub _ (or.inl $ or.inr rfl),
     cases IH ss' (λ x hx, sub x $ or.inr hx) with IH₁ IH₂,
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
-    { unfold TM1.supports_stmt TM2to1.tr,
-      exact ⟨IH₁, λ _ _, hret⟩ },
     { unfold TM1.supports_stmt TM2to1.tr,
       rcases s with _|_|_,
       { exact ⟨λ _ _, hret, λ _ _, hgo⟩ },
       { exact ⟨λ _ _, hret, λ _ _, hgo⟩ },
       { exact ⟨⟨λ _ _, hret, λ _ _, hret⟩, λ _ _, hgo⟩ } },
+    { unfold TM1.supports_stmt TM2to1.tr,
+      exact ⟨IH₁, λ _ _, hret⟩ },
     { exact IH₂ _ h } },
   { -- load
     unfold TM2to1.tr_stmts₁ at ss' sub ⊢,

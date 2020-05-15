@@ -77,7 +77,7 @@ end
 
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
-set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
+set.finite.induction_on hfs (λ _, ⟨{1}, le_antisymm
   (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem)
   begin
     change ring.closure _ ⊆ _,

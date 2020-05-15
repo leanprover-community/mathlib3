@@ -510,7 +510,7 @@ fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm 
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-(⟨finset.singleton 1, by simp [one_eq_span]⟩)
+(⟨{1}, by simp [one_eq_span]⟩)
 (λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule

@@ -43,7 +43,7 @@ by rw [← diagonal_one]; simp [-diagonal_one]
 
 lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
 begin
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  have perm_eq : (univ : finset (perm n)) = {1} :=
   univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [det, card_eq_zero.mp h, perm_eq],
 end
@@ -195,7 +195,7 @@ begin
 
   have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j * σ)),
   { intros σ,
-    rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
+    rw [disjoint_singleton],
     apply (not_congr mem_singleton).mpr,
     exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
 

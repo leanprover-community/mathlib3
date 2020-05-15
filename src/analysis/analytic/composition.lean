@@ -220,7 +220,7 @@ lemma comp_coeff_zero (q : formal_multilinear_series 𝕜 F G) (p : formal_multi
 begin
   let c : composition 0 := composition.ones 0,
   dsimp [formal_multilinear_series.comp],
-  have : finset.singleton c = (finset.univ : finset (composition 0)),
+  have : {c} = (finset.univ : finset (composition 0)),
   { apply finset.eq_of_subset_of_card_le; simp [finset.card_univ, composition_card 0] },
   rw ← this,
   simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],

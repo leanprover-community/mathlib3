@@ -739,8 +739,7 @@ begin
     simpa using h {v,u} _ _,
     all_goals
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption } }
 end
 
@@ -804,12 +803,10 @@ begin
       { simpa [set.nonempty] using hs } },
     intros z₁ z₂ hz₁ hz₂ H,
     have := h {z₂, z₁} _ _,
-    simp only [exists_prop, finset.insert_empty_eq_singleton,
-      finset.mem_insert, finset.mem_singleton] at this,
+    simp only [exists_prop, finset.mem_insert, finset.mem_singleton] at this,
     { rcases this with ⟨z, rfl|rfl, hz⟩; tauto },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using H } }
 end
@@ -1118,19 +1115,16 @@ begin
       simpa using h ∅ _ _ _; simp },
     intros u v hu hv hs hsuv,
     rcases h {v, u} _ _ _ with ⟨t, ht, ht'⟩,
-    { rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht,
+    { rw [finset.mem_insert, finset.mem_singleton] at ht,
       rcases ht with rfl|rfl; tauto },
     { intros t₁ t₂ ht₁ ht₂ hst,
       rw ← ne_empty_iff_nonempty at hst,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
+      rw [finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
       rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
       all_goals { refl <|> contradiction <|> skip },
       rw inter_comm t₁ at hst, contradiction },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using hs } }
 end

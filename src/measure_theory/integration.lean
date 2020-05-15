@@ -156,12 +156,7 @@ end
 
 lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
   (f.map g) ⁻¹' {c} = (⋃b∈f.range.filter (λb, g b = c), f ⁻¹' {b}) :=
-begin
-  rw map_preimage,
-  have : (λb, g b = c) = λb, g b ∈ _root_.singleton c,
-    funext, rw [eq_iff_iff, mem_singleton_iff],
-  rw this
-end
+map_preimage _ _ _
 
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/

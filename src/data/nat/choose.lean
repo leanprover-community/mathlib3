@@ -99,8 +99,9 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
-theorem sum_pascal_row (n : ℕ) :
-  finset.sum (finset.range n.succ) (choose n) = 2 ^ n :=
+/-- The sum of entries in a row of Pascal's triangle -/
+theorem sum_range_choose (n : ℕ) : 
+  ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
 
 end binomial

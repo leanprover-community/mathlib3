@@ -25,6 +25,11 @@ Throughout most of this file, `K` denotes a finite field with `q` elements.
    - `0`   otherwise
 4. `finite_field.card`: The cardinality `q` is a power of the characteristic of `K`.
    See `card'` for a variant.
+
+## Notation
+
+Throughout most of this file, `K` denotes a finite field with `q` elements.
+
 -/
 
 variables {K : Type*} [field K] [fintype K]
@@ -34,26 +39,11 @@ local notation `q` := fintype.card K
 open_locale big_operators
 
 namespace finite_field
-open function finset polynomial
-
-/-- The unit group of a finite integral domain is cyclic. -/
-instance [fintype R] : is_cyclic (units R) :=
-let φ : units R →* R := { to_fun := coe, map_one' := units.coe_one, map_mul' := units.coe_mul } in
-is_cyclic_of_subgroup_integral_domain φ $ units.ext
-
-/-- Every finite integral domain is a field. -/
-def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
-{ inv := λ a, if h : a = 0 then 0
-    else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
-  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
-    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
-  inv_zero := dif_pos rfl,
-  ..show integral_domain R, by apply_instance }
+open finset function
 
 section polynomial
 
-open finset polynomial
+open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
@@ -249,7 +239,7 @@ end
 end char_p
 
 open_locale nat
-open zmod nat
+open zmod
 
 /-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
@@ -265,6 +255,6 @@ begin
   let x' : units (zmod (n+1)) := zmod.unit_of_coprime _ h,
   have := zmod.pow_totient x',
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
-  simpa only [-zmod.pow_totient, succ_eq_add_one, cast_pow, units.coe_one,
+  simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
 end

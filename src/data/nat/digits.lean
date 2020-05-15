@@ -1,7 +1,23 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import data.nat.basic
 import algebra.euclidean_domain
 import tactic.ring
 import tactic.interval_cases
+
+/-!
+# Digits of a natural number
+
+This provides a basic API for extracting the digits of a natural number in a given base,
+and reconstructing numbers from their digits.
+
+We also prove some divisibility tests based on digits, in particular completing
+Theorem #85 from https://www.cs.ru.nl/~freek/100/.
+-/
+
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
@@ -52,7 +68,6 @@ end
 
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
 rfl
-
 
 @[simp]
 lemma digits_of_lt (b x : ℕ) (w₁ : 0 < x) (w₂ : x < b) : digits b x = [x] :=

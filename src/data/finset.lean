@@ -214,7 +214,7 @@ end
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]
 
-@[simp] lemma singleton_subset_set_iff {s : set α} {a : α} :
+lemma singleton_subset_set_iff {s : set α} {a : α} :
   ↑({a} : finset α) ⊆ s ↔ a ∈ s :=
 by rw [coe_singleton, set.singleton_subset_iff]
 
@@ -1744,7 +1744,7 @@ mem_powerset.2 (empty_subset _)
 @[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
 mem_powerset.2 (subset.refl _)
 
-@[simp] lemma powerset_empty [decidable_eq α] : finset.powerset (∅ : finset α) = {∅} := rfl
+@[simp] lemma powerset_empty : finset.powerset (∅ : finset α) = {∅} := rfl
 
 @[simp] theorem powerset_mono {s t : finset α} : powerset s ⊆ powerset t ↔ s ⊆ t :=
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),

@@ -332,7 +332,7 @@ by rw [range_eq_top, ker_eq_bot, injective_iff_surjective]
 are also inverse to each other on the other side. -/
 lemma mul_eq_one_of_mul_eq_one [finite_dimensional K V] {f g : V →ₗ[K] V} (hfg : f * g = 1) :
   g * f = 1 :=
-have ginj : injective g, from left_inverse.injective
+have ginj : injective g, from @left_inverse.injective _ _ f g
   (λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl),
 let ⟨i, hi⟩ := g.exists_right_inverse_of_surjective
   (range_eq_top.2 (injective_iff_surjective.1 ginj)) in

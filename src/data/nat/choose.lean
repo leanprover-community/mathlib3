@@ -114,5 +114,4 @@ theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
 
-
 end binomial

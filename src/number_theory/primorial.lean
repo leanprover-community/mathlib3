@@ -154,16 +154,6 @@ begin
   cc, cc,
 end
 
-lemma val_dvd_le  (a b : nat) (div : b ∣ a) (nonzero : a ≠ 0) : b ≤ a :=
-begin
-  rcases div with ⟨ s , pr ⟩,
-  subst pr,
-  simp only [nat.mul_eq_zero, ne.def] at nonzero,
-  induction s,
-  { norm_num at nonzero, trivial },
-  { exact nat.le_add_left b (nat.mul b s_n) },
-end
-
 lemma primes_divide (n : nat) (s : finset nat) (p : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n) :
   (∏ i in s, i) ∣ n :=
 begin
@@ -171,7 +161,7 @@ sorry
 end
 
 lemma product_primes_bound : ∀ (n : nat), ∏ i in (finset.filter nat.prime (finset.range (n + 1))), i ≤ 4 ^ n
-| 0 := le_refl (finset.prod (finset.filter nat.prime (finset.range 0)) id)
+| 0 := le_refl _
 | 1 := le_of_inf_eq rfl
 | (nat.succ (nat.succ n)) :=
 begin
@@ -226,7 +216,7 @@ begin
           }
         },
         have r : ∏ i in finset.filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ nat.choose (2 * m + 1) (m + 1), {
-          refine val_dvd_le _ _ s _,
+          refine le_of_dvd _ _ s _,
           have pos : 0 < nat.choose (2 * m + 1) (m + 1), exact @nat.choose_pos (2 * m + 1) (m + 1) (by linarith),
           exact ne_of_gt pos,
         },

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
 import tactic.linarith
+import tactic.ring_exp
 
 open nat
 
@@ -122,24 +123,22 @@ begin
     rw ← i_ih, clear i_ih,
     have t : f (m + 1 + i) = f (m - i), by
       { have munge : m + 1 + i ≤ 2 * m + 1,
-        calc m + 1 + i ≤ m + 1 + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (m + 1)
-        ... = m + (m + 1): nat.add_comm (m + 1) m
-        ...  = (m + m) + 1 : (nat.add_assoc _ _ _).symm
-        ... = 2 * m + 1 : by rw two_mul,
-      have v : 2 * m + 1 - (m + 1 + i) = m - i,
-        calc 2 * m + 1 - (m + 1 + i) = 2 * m + 1 - (m + 1) - i : eq.symm (nat.sub_sub (2 * m + 1) (m + 1) i)
-            ... = m + m + 1 - m.succ - i : by rw ← two_mul m
-            ... = m + (m + 1) - (m + 1) - i : by rw ← add_assoc m m 1
-            ... = m - i : by rw nat.add_sub_cancel m m.succ,
-      have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)),
-        exact reflects (m + 1 + i) munge,
-      rw v at reflected,
-      exact reflected, },
+          { calc m + 1 + i ≤ m + 1 + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (m + 1)
+          ... = 2 * m + 1 : by ring_exp, },
+        have v : 2 * m + 1 - (m + 1 + i) = m - i,
+          { calc 2 * m + 1 - (m + 1 + i)
+              = 2 * m + 1 - (m + 1) - i : eq.symm (nat.sub_sub (2 * m + 1) (m + 1) i)
+             ... = m + m + 1 - m.succ - i : by rw ← two_mul m
+             ... = m + (m + 1) - (m + 1) - i : by rw ← add_assoc m m 1
+             ... = m - i : by rw nat.add_sub_cancel m m.succ, },
+        have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)), { exact reflects (m + 1 + i) munge },
+        rw v at reflected,
+        exact reflected, },
     rw t, clear t,
     { rw nat.succ_sub (nat.lt_succ_iff.mp i_bound),
       have s : f (m - i) + ∑ j in (Ico (m - i + 1) (m + 1)), f j = ∑ j in (Ico (m - i) (m + 1)), f j,
-        exact (@sum_eq_sum_Ico_succ_bot _ _ (m - i) (m + 1) (nat.sub_lt_succ m i) f).symm,
-      simp,
+        { exact (@sum_eq_sum_Ico_succ_bot _ _ (m - i) (m + 1) (nat.sub_lt_succ m i) f).symm, },
+      simp only [succ_sub_succ_eq_sub],
       rw ← s,
       ring, },
     exact le_of_lt i_bound, }
@@ -169,8 +168,7 @@ begin
       ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i
             : by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
       ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
-      ... = 2 ^ (2 * m) * 2 : pow_add _ _ _
-      ... = 2 * 2 ^ (2 * m) : mul_comm _ _
+      ... = 2 * 2 ^ (2 * m) : by ring_exp
       ... = 2 * 4 ^ m : by { rw nat.pow_mul 2 m 2, refl, },
 
   exact (@nat.mul_right_inj 2 _ (4 ^ m) (by norm_num)).1 v,

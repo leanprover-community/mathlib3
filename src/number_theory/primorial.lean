@@ -33,11 +33,8 @@ lemma choose_symmetric
   : nat.choose (2 * m + 1) (m + 1) = nat.choose (2 * m + 1) m
   :=
 begin
-  have : (m + 1) ≤ 2 * m + 1, linarith,
-  calc nat.choose (2 * m + 1) (m + 1)
-    = nat.choose (2 * m + 1) (2 * m + 1 - (m + 1)) : eq.symm (@nat.choose_symm (2 * m + 1) (m + 1) this)
-    ... = nat.choose (2 * m + 1) (2 * m - m) : by simp
-    ... = nat.choose (2 * m + 1) m : by rw twice_m_sub_m m,
+  apply nat.choose_symm_of_eq_add,
+  ring,
 end
 
 lemma extend_prime_product_odd
@@ -173,7 +170,7 @@ begin
 sorry
 end
 
-lemma product_primes' : ∀ (n : nat), ∏ i in (finset.filter nat.prime (finset.range (n + 1))), i ≤ 4 ^ n
+lemma product_primes_bound : ∀ (n : nat), ∏ i in (finset.filter nat.prime (finset.range (n + 1))), i ≤ 4 ^ n
 | 0 := le_refl (finset.prod (finset.filter nat.prime (finset.range 0)) id)
 | 1 := le_of_inf_eq rfl
 | (nat.succ (nat.succ n)) :=
@@ -210,7 +207,7 @@ begin
           {
             have m_nonzero : 0 < m, by linarith,
             have recurse : m + 1 < n.succ.succ, exact halving_wellfounded m n twice_m m_nonzero,
-            exact product_primes' (m + 1),
+            exact product_primes_bound (m + 1),
           },
         exact nat.mul_le_mul_left _ r,
       }
@@ -247,10 +244,10 @@ begin
     {
       have u : nat.succ n + 1 = n.succ.succ, norm_num,
       rw <- u,
-      let e := product_primes' n.succ,
+      let e := product_primes_bound n.succ,
       rw <- extend_prime_product_odd (nat.succ (nat.succ n)) (by linarith) (increment_bit _ h),
       calc ∏ i in finset.filter nat.prime (finset.range (n + 2)), i
-            ≤ 4 ^ n.succ : product_primes' n.succ
+            ≤ 4 ^ n.succ : product_primes_bound n.succ
         ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _,
     },
     cases n_lt_one,

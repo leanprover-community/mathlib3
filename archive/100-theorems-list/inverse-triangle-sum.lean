@@ -2,7 +2,12 @@
 Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark,
+<<<<<<< HEAD
 Solving problem 42 on the list of 100 theorems.
+=======
+
+Solving problem 42 on the list of 100 theorems, which involves a "telescoping" sum.
+>>>>>>> fbfdbe1c18421daedfd6e8884c763b3098265e6c
 -/
 import tactic
 import algebra.big_operators

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Mario Carneiro
+Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.basic
 
@@ -190,7 +190,7 @@ lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
-⟨λx, ⟨f x, H x⟩, continuous_subtype_mk _ f.2.1, f.2.2⟩
+⟨s.cod_restrict f H, continuous_subtype_mk _ f.2.1, f.2.2⟩
 
 end basics
 
@@ -360,29 +360,55 @@ instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
 lemma norm_def : ∥f∥ = dist f 0 := rfl
 
+/- Formula for norm. -/
+lemma norm_eq (f : α →ᵇ β) :
+  ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
+by simp [norm_def, bounded_continuous_function.dist_eq]
+
 lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
 
+lemma dist_le_two_norm' {f : α → β} {C : ℝ} (hC : ∀ x, ∥f x∥ ≤ C) (x y : α) :
+  dist (f x) (f y) ≤ 2 * C :=
+calc dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
+                  ... ≤ C + C         : add_le_add (hC x) (hC y)
+                  ... = 2 * C         : (two_mul _).symm
+
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
-lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ := calc
-  dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
-               ... ≤ ∥f∥ + ∥f∥     : add_le_add (norm_coe_le_norm x) (norm_coe_le_norm y)
-               ... = 2 * ∥f∥      : (two_mul _).symm
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
+dist_le_two_norm' norm_coe_le_norm x y
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
+/-- Constructing a bounded continuous function from a uniformly bounded continuous
+function taking values in a normed group. -/
+def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+  (f : α  → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
+⟨λn, f n, ⟨Hf, ⟨_, dist_le_two_norm' H⟩⟩⟩
+
+lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
+  (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_group f hfc C hfC∥ ≤ C :=
+(norm_le hC).2 hfC
+
+/-- Constructing a bounded continuous function from a uniformly bounded
+function on a discrete space, taking values in a normed group -/
+def of_normed_group_discrete {α : Type u} {β : Type v}
+  [topological_space α] [discrete_topology α] [normed_group β]
+  (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
+of_normed_group f continuous_of_discrete_topology C H
+
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, ⟨λx, f x + g x, f.2.1.add g.2.1,
-  let ⟨_, fM, hf⟩ := f.2 in let ⟨_, gM, hg⟩ := g.2 in
-  ⟨fM + gM, λ x y, dist_add_add_le_of_le (hf _ _) (hg _ _)⟩⟩⟩
+⟨λf g, of_normed_group (f + g) (f.2.1.add g.2.1) (∥f∥ + ∥g∥) $ λ x,
+  le_trans (norm_add_le _ _) (add_le_add (norm_coe_le_norm x) (norm_coe_le_norm x))⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, ⟨λx, -f x, f.2.1.neg, by simpa only [dist_neg_neg] using f.2.2⟩⟩
+⟨λf, of_normed_group (-f) f.2.1.neg ∥f∥ $ λ x,
+  trans_rel_right _ (norm_neg _) (norm_coe_le_norm x)⟩
 
 @[simp] lemma coe_add : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : (-f) x = - (f x) := rfl
@@ -399,43 +425,16 @@ instance : add_comm_group (α →ᵇ β) :=
   ..bounded_continuous_function.has_neg,
   ..bounded_continuous_function.has_zero }
 
-@[simp] lemma coe_diff : (f - g) x = f x - g x := rfl
+@[simp] lemma sub_apply : (f - g) x = f x - g x := rfl
 
 instance : normed_group (α →ᵇ β) :=
-normed_group.of_add_dist (λ _, rfl) $ λ f g h,
-(dist_le dist_nonneg).2 $ λ x,
-le_trans (by rw [dist_eq_norm, dist_eq_norm, coe_add, coe_add,
-  add_sub_add_right_eq_sub]) (dist_coe_le_dist x)
+{ dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 lemma abs_diff_coe_le_dist : norm (f x - g x) ≤ dist f g :=
-by rw normed_group.dist_eq; exact @norm_coe_le_norm _ _ _ _ (f-g) x
+by { rw dist_eq_norm, exact @norm_coe_le_norm _ _ _ _ (f-g) x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
-
-/-- Constructing a bounded continuous function from a uniformly bounded continuous
-function taking values in a normed group. -/
-def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
-  (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) (Hf : continuous f) : α →ᵇ β :=
-⟨λn, f n, ⟨Hf, ⟨C + C, λ m n,
-  calc dist (f m) (f n) ≤ dist (f m) 0 + dist (f n) 0 : dist_triangle_right _ _ _
-       ... = norm (f m) + norm (f n) : by simp
-       ... ≤ C + C : add_le_add (H m) (H n)⟩⟩⟩
-
-/-- Constructing a bounded continuous function from a uniformly bounded
-function on a discrete space, taking values in a normed group -/
-def of_normed_group_discrete {α : Type u} {β : Type v}
-  [topological_space α] [discrete_topology α] [normed_group β]
-  (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
-of_normed_group f C H continuous_of_discrete_topology
-
-/- Formula for norm. -/
-lemma norm_eq (f : α →ᵇ β) :
-  ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
-begin
-  rw [← sub_zero f, ← dist_eq_norm, bounded_continuous_function.dist_eq],
-  simp,
-end
 
 end normed_group
 
@@ -449,19 +448,9 @@ variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λc, λf, ⟨λx, c • f.1 x,
-  continuous.smul continuous_const f.2.left,
-  begin
-    cases f.2.right with C hbound,
-    use ∥c∥ * C,
-    intros,
-    have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
-    specialize hbound x y,
-    rw dist_eq_norm at hbound ⊢,
-    calc ∥c • f x - c • f y∥ = ∥c • (f x - f y)∥ : by rw smul_sub c (f x) (f y)
-    ... = ∥c∥ * ∥f x - f y∥ : norm_smul c (f x - f y)
-    ... ≤ ∥c∥ * C : mul_le_mul_of_nonneg_left hbound hnneg
-  end⟩⟩
+⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.2.1) (∥c∥ * ∥f∥) $ λ x,
+  trans_rel_right _ (norm_smul _ _)
+    (mul_le_mul_of_nonneg_left (norm_coe_le_norm _) (norm_nonneg _))⟩
 
 instance : module 𝕜 (α →ᵇ β) :=
 module.of_core $
@@ -471,46 +460,8 @@ module.of_core $
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
-instance : vector_space 𝕜 (α →ᵇ β) :=
-{ .. bounded_continuous_function.module }
-
-lemma norm_smul_le (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
-begin
-  have hnneg : 0 ≤ ∥ c ∥ := norm_nonneg c,
-  rw norm_eq (c • f),
-  apply real.Inf_le,
-  { use 0, intros y hy,
-    rw set.mem_set_of_eq at hy,
-    exact hy.left },
-  { rw set.mem_set_of_eq,
-    split,
-    { exact mul_nonneg' hnneg (norm_nonneg f) },
-    { intros,
-      calc ∥(c • f) x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
-      ... ≤ ∥c∥ * ∥f∥ : mul_le_mul_of_nonneg_left (norm_coe_le_norm x) hnneg } }
-end
-
-lemma norm_smul (c : 𝕜) (f : α →ᵇ β) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-begin
-  by_cases h : c = 0,
-  { rw [h, zero_smul, norm_zero, norm_zero, zero_mul] },
-  { have hnneg : 0 ≤ ∥c∥ := norm_nonneg c,
-    apply le_antisymm,
-    { exact f.norm_smul_le c },
-    { have hinv : ∥f∥ ≤ ∥1 / c∥ * ∥c • f∥,
-      { calc ∥f∥ = ∥(1 : 𝕜) • f∥ : by rw one_smul
-        ... = ∥(1 / c * c ) • f∥ : by rw (div_mul_cancel 1 h)
-        ... = ∥(1 / c) • ( c • f)∥ : by rw ← (mul_smul _ _ _)
-        ... ≤ ∥1 / c∥ * ∥c • f∥ : (c • f).norm_smul_le (1 / c) },
-      calc ∥c∥ * ∥f∥  ≤ ∥c∥ * (∥1 / c∥ * ∥c • f∥) : mul_le_mul_of_nonneg_left hinv hnneg
-      ... = (∥c ∥ * ∥1 / c∥) * ∥c • f∥ : (mul_assoc _ _ _).symm
-      ... = ∥c * (1 / c)∥ * ∥c • f∥ : by rw (normed_field.norm_mul c (1/c))
-      ... = ∥(1 : 𝕜)∥ * ∥c • f∥ : by rw (mul_div_cancel' 1 h)
-      ... = 1 * ∥c • f∥ : by rw normed_field.norm_one
-      ... = ∥c • f∥ : one_mul _ } }
-end
-
-instance : normed_space 𝕜 (α →ᵇ β) := ⟨norm_smul⟩
+instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
+  (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
 end normed_space
 

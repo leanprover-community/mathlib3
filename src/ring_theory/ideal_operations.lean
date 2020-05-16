@@ -462,9 +462,9 @@ end map_and_comap
 section jacobson
 variables {R : Type u} [comm_ring R]
 
-/-- The jacobson radical of I is the infimum of all maximal ideals containing I. -/
+/-- The Jacobson radical of `I` is the infimum of all maximal ideals containing `I`. -/
 def jacobson (I : ideal R) : ideal R :=
-Inf { J : ideal R | I ≤ J ∧ is_maximal J }
+Inf {J : ideal R | I ≤ J ∧ is_maximal J}
 
 theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
 ⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
@@ -496,7 +496,7 @@ end jacobson
 section is_local
 variables {R : Type u} [comm_ring R]
 
-/-- An ideal I is local iff its Jacobson radical is maximal. -/
+/-- An ideal `I` is local iff its Jacobson radical is maximal. -/
 @[class] def is_local (I : ideal R) : Prop :=
 is_maximal (jacobson I)
 
@@ -525,7 +525,7 @@ end is_local
 section is_primary
 variables {R : Type u} [comm_ring R]
 
-/-- A proper ideal I is primary iff xy ∈ I implies x ∈ I or y ∈ radical I. -/
+/-- A proper ideal `I` is primary iff `xy ∈ I` implies `x ∈ I` or `y ∈ radical I`. -/
 def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 

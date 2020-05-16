@@ -427,17 +427,6 @@ lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
   (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
 by rw [range_succ, sum_insert not_mem_range_self]
 
-lemma sum_range_induction {M : Type*} [add_comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
-   (finset.range n).sum f = s n :=
-begin
-induction n with k hk,
-    {rw h0, simp only [finset.sum_empty, finset.range_zero]},
-rw [← nat.add_one, h k, ←hk,finset.range_succ],
-simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
-rw add_comm,
-end
-
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   (∏ x in range (n + 1), f x) = f n * (∏ x in range n, f x) :=
@@ -459,6 +448,19 @@ begin
   have : f n ≤ f (n+1) := h (nat.le_succ _),
   have : f 0 ≤ f n := h (nat.zero_le _),
   omega
+end
+
+/-- For any sum along `{0, ..., n-1}` of an commutative-monoid-valued, we can verify that it's equal to a different function just by checking differences of adjacent terms. This is a discrete analogue of the fundamental theorem of calculus.
+ -/
+lemma sum_range_induction {M : Type*} [add_comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
+   (finset.range n).sum f = s n :=
+begin
+  induction n with k hk,
+    { rw h0, simp only [finset.sum_empty, finset.range_zero] },
+  rw [← nat.add_one, h k, ← hk, finset.range_succ],
+  simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
+  rw add_comm,
 end
 
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :

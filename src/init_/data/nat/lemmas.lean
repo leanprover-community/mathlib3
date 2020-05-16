@@ -82,5 +82,7 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_refl _
 | (n+1) := let t := mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
+theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
+
 end nat
 

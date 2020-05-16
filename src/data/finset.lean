@@ -1976,33 +1976,32 @@ by rw [insert_union, sup_insert, sup_insert, ih, sup_assoc]
 theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.sup f = s₂.sup g :=
 by subst hs; exact finset.fold_congr hfg
 
-lemma sup_mono_fun [decidable_eq β] {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
-finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [sup_insert]; exact sup_le_sup H.1 (ih H.2))
+@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+begin
+  apply iff.trans multiset.sup_le,
+  simp only [multiset.mem_map, and_imp, exists_imp_distrib],
+  exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
+end
 
-lemma le_sup [decidable_eq β] {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-calc f b ≤ f b ⊔ s.sup f : le_sup_left
-  ... = (insert b s).sup f : sup_insert.symm
-  ... = s.sup f : by rw [insert_eq_of_mem hb]
+lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
+sup_le_iff.2
 
-lemma sup_le [decidable_eq β] {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
-finset.induction_on s (λ _, bot_le) (λ n s hns ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [sup_insert]; exact sup_le H.1 (ih H.2))
+lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
+sup_le_iff.1 (le_refl _) _ hb
 
-@[simp] lemma sup_le_iff [decidable_eq β] {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
-iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
+lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
+sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
 
-lemma sup_mono [decidable_eq β] (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
+lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
-@[simp] lemma sup_lt_iff [decidable_eq β] [is_total α (≤)] {a : α} (ha : ⊥ < a) :
+@[simp] lemma sup_lt_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) :
   s.sup f < a ↔ (∀b ∈ s, f b < a) :=
+by letI := classical.dec_eq β; from
 ⟨ λh b hb, lt_of_le_of_lt (le_sup hb) h,
   finset.induction_on s (by simp [ha]) (by simp {contextual := tt}) ⟩
 
-lemma comp_sup_eq_sup_comp [is_total α (≤)] [decidable_eq β] {γ : Type} [semilattice_sup_bot γ]
+lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
 begin
@@ -2011,6 +2010,7 @@ begin
   { simp [sup_of_le_right h, sup_of_le_right (mono_g h)] },
   { simp [sup_of_le_left h, sup_of_le_left (mono_g h)] }
 end,
+by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
 
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
@@ -2021,7 +2021,7 @@ theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 
 end sup
 
-lemma sup_eq_supr [decidable_eq α] [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
+lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
 le_antisymm
   (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
   (supr_le $ assume a, supr_le $ assume ha, le_sup ha)
@@ -2119,7 +2119,7 @@ theorem max_eq_sup_with_bot (s : finset α) :
 by { rw [← insert_emptyc_eq], exact max_insert }
 
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
-(@le_sup (with_bot α) _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+(@le_sup (with_bot α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem max_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.max :=
 let ⟨a, ha⟩ := h in max_of_mem ha
@@ -2142,7 +2142,7 @@ finset.induction_on s (λ _ H, by cases H)
   end)
 
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
-by rcases @le_sup (with_bot α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
@@ -2566,10 +2566,6 @@ disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
 lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
-
-lemma disjoint_filter' {s t : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-disjoint s t → disjoint (s.filter p) (t.filter q) :=
-disjoint.mono (filter_subset _) (filter_subset _)
 
 end disjoint
 

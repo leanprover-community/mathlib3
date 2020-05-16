@@ -163,14 +163,13 @@ begin
   have v : 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) = 2 * 4 ^ m,
     calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i)
           = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in range (m + 1), nat.choose (2 * m + 1) i : by ring
-      ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i
-              : by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
-      ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i
-            : by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
+      ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
+              by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
+      ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i :
+            by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
       ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
       ... = 2 * 2 ^ (2 * m) : by ring_exp
       ... = 2 * 4 ^ m : by { rw nat.pow_mul 2 m 2, refl, },
-
   exact (@nat.mul_right_inj 2 _ (4 ^ m) (by norm_num)).1 v,
 end
 

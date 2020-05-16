@@ -720,7 +720,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
   ..@equiv.of_bijective _ _
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).range_restrict) $
-      bijective_comp (equiv.bijective _)
+      (equiv.bijective _).comp
         ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 

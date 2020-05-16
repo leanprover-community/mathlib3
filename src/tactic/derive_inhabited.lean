@@ -35,7 +35,7 @@ argument `inhabited α`, even if it is not used.  (This is due to the implementa
 instance_derive_handler ``inhabited $ do
 applyc ``inhabited.mk,
 `[refine {..}] <|> (constructor >> skip),
-all_goals $ do
+all_goals' $ do
   applyc ``default <|> (do s ← read,
     fail $ to_fmt "could not find inhabited instance for:\n" ++ to_fmt s)
 

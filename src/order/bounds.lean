@@ -514,16 +514,16 @@ by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 -/
 
 lemma is_lub_pair [semilattice_sup γ] {a b : γ} : is_lub {a, b} (a ⊔ b) :=
-by { rw sup_comm, exact is_lub_singleton.insert _}
+is_lub_singleton.insert _
 
 lemma is_glb_pair [semilattice_inf γ] {a b : γ} : is_glb {a, b} (a ⊓ b) :=
-by { rw inf_comm, exact is_glb_singleton.insert _ }
+is_glb_singleton.insert _
 
 lemma is_least_pair [decidable_linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
-by { rw min_comm, exact is_least_singleton.insert _ }
+is_least_singleton.insert _
 
 lemma is_greatest_pair [decidable_linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
-by { rw max_comm, exact is_greatest_singleton.insert _ }
+is_greatest_singleton.insert _
 
 end
 

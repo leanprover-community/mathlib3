@@ -279,21 +279,21 @@ end
 /-- The function `single i b : Π₀ i, β i` sends `i` to `b`
 and all other points to `0`. -/
 def single (i : ι) (b : β i) : Π₀ i, β i :=
-mk (finset.singleton i) $ λ j, eq.rec_on (finset.mem_singleton.1 j.2).symm b
+mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.2).symm b
 
 @[simp] lemma single_apply {i i' b} :
   (single i b : Π₀ i, β i) i' = (if h : i = i' then eq.rec_on h b else 0) :=
 begin
   dsimp only [single],
   by_cases h : i = i',
-  { have h1 : i' ∈ finset.singleton i, { simp only [h, finset.mem_singleton] },
+  { have h1 : i' ∈ ({i} : finset ι) := finset.mem_singleton.2 h.symm,
     simp only [mk_apply, dif_pos h, dif_pos h1] },
-  { have h1 : i' ∉ finset.singleton i, { simp only [ne.symm h, finset.mem_singleton, not_false_iff] },
+  { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
 
 @[simp] lemma single_zero {i} : (single i 0 : Π₀ i, β i) = 0 :=
-quotient.sound $ λ j, if H : j ∈ finset.singleton i
+quotient.sound $ λ j, if H : j ∈ ({i} : finset _)
 then by dsimp only; rw [dif_pos H]; cases finset.mem_singleton.1 H; refl
 else dif_neg H
 

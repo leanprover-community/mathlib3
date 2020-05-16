@@ -139,7 +139,7 @@ def singleton (a : α) (b : β a) : finmap β :=
 ⟦ alist.singleton a b ⟧
 
 @[simp] theorem keys_singleton (a : α) (b : β a) :
-  (singleton a b).keys = finset.singleton a := rfl
+  (singleton a b).keys = {a} := rfl
 
 @[simp] lemma mem_singleton (x y : α) (b : β y) : x ∈ singleton y b ↔ x = y :=
 by simp only [singleton]; erw [mem_cons_eq,mem_nil_iff,or_false]

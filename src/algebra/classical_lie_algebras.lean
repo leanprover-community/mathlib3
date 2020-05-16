@@ -43,10 +43,8 @@ namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := λ X Y _ _, by
-  { suffices : matrix.trace n R R ⁅X, Y⁆ = 0, apply (list.mem_pure _ 0).2 this,
-    apply matrix_trace_commutator_zero, },
-  ..linear_map.ker (matrix.trace n R R) }
+{ lie_mem := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
+  to_submodule := linear_map.ker (matrix.trace n R R) }
 
 lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
 

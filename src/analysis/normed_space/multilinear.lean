@@ -300,6 +300,9 @@ open real
 def op_norm := Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)}
 instance has_op_norm : has_norm (continuous_multilinear_map 𝕜 E₁ E₂) := ⟨op_norm⟩
 
+lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod
+  (λi, ∥m i∥)} := rfl
+
 -- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : continuous_multilinear_map 𝕜 E₁ E₂} :
@@ -382,12 +385,7 @@ lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
     exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
   end⟩)
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ :=
-begin
-  show Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥(-f) m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)}
-    = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)},
-  apply congr_arg, ext, simp,
-end
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/

@@ -109,29 +109,6 @@ by simpa using (add_pow 1 1 n).symm
 Facts about more specific binomial coefficients and their sums
 -/
 
-lemma sum_range_split_halfway (f : nat → nat) (m : nat) :
-  ∑ i in range (2 * m + 2), f i = (∑ i in range (m + 1), f i) + ∑ i in (Ico (m + 1) (2 * m + 2)), f i :=
-begin
-  induction m with m,
-  {simp, refl},
-  {
-    rw sum_range_succ f (2 * (m + 1) + 1),
-    rw sum_range_succ f (2 * (m + 1)),
-    have s : 2 * m + 2 = 2 * (m + 1), refl,
-    rw s at m_ih,
-    rw m_ih,
-    clear m_ih,
-    rw sum_range_succ f (m + 1),
-    simp,
-    rw add_comm (∑ i in range (m + 1), f i) (∑ i in Ico (m + 2) (2 * (m + 1) + 2), f i),
-    rw <- add_assoc (f (m + 1)) _ _,
-    rw (@sum_eq_sum_Ico_succ_bot _ _ (m + 1) (2 * (m + 1) + 2) ( by linarith ) f).symm,
-    rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ + 1) ( by linarith ) f,
-    rw @sum_Ico_succ_top _ _ m.succ (2 * m.succ) ( by linarith ) f,
-    ring,
-  }
-end
-
 lemma sum_range_split (f : nat → nat) (m n : nat) (n_le_m : n ≤ m) :
   ∑ i in range m, f i = (∑ i in range n, f i) + ∑ i in (Ico n m), f i :=
 begin
@@ -201,27 +178,28 @@ begin
   simpa [finset.Ico.zero_bot m.succ, two_mul (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
 end
 
-private lemma can_halve (a b : nat) (pr : 2 * a = 2 * b) : a = b := by linarith
-
 lemma sum_range_choose_halfway (m : nat) :
   ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
 begin
-  let e := sum_range_split_halfway (choose (2 * m + 1)) m,
-  rw (sum_range_choose (2 * m + 1)) at e,
   have reflects : ∀ x ≤ 2 * m + 1, choose (2 * m + 1) x = choose (2 * m + 1) (2 * m + 1 - x),
   {
     intros x pr,
     exact eq.symm (@choose_symm (2 * m + 1) x pr),
   },
-  rw <- (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects) at e,
-  simp,
-  have tidy_two_pow : 2 ^ (2 * m + 1) = 2 * (4 ^ m),
-    calc 2 ^ (2 * m + 1) = 2 ^ (2 * m) * 2 ^ 1 : nat.pow_add 2 (2 * m) 1
-      ... = 4 ^ m * 2 ^ 1 : by { rw nat.pow_mul 2 m 2, refl }
-      ... = 2 * (4 ^ m) : by ring,
-  rw tidy_two_pow at e,
-  rw <- two_mul (∑ j in range (m + 1), choose (2 * m + 1) j) at e,
-  exact (eq.symm (can_halve (4 ^ m) _ e)),
+
+  have v : 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) = 2 * 4 ^ m,
+    calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i)
+          = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in range (m + 1), nat.choose (2 * m + 1) i : by ring
+      ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i
+              : by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
+      ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i
+            : by rw sum_range_split (choose (2 * m + 1)) (2 * m + 2) (m + 1) (by linarith)
+      ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
+      ... = 2 ^ (2 * m) * 2 : pow_add _ _ _
+      ... = 2 * 2 ^ (2 * m) : mul_comm _ _
+      ... = 2 * 4 ^ m : by {rw nat.pow_mul 2 m 2, refl},
+
+  exact (@nat.mul_right_inj 2 _ (4 ^ m) (by norm_num)).1 v,
 end
 
 end binomial

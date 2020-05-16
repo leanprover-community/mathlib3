@@ -3,7 +3,8 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura
 -/
-import init_.algebra.ordered_ring init_.algebra.field
+import init_.algebra.ordered_ring
+import init_.algebra.field
 
 set_option old_structure_cmd true
 

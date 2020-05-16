@@ -6,7 +6,8 @@ Authors: Jeremy Avigad
 The order relation on the integers.
 -/
 
-import init_.data.int.basic init_.algebra.ordered_ring
+import init_.data.int.basic
+import init_.algebra.ordered_ring
 
 /-
 Results copied from the core library to mathlib by Johan Commelin

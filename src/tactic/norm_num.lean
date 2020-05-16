@@ -1112,15 +1112,15 @@ meta def prove_div_mod (ic : instance_cache) : expr → expr → bool → tactic
       (ic, c, p₂) ← prove_neg ic c',
       return (ic, c, `(int_div_neg).mk_app [a, b, c', c, p, p₂])
   | none := do
-    n₂ ← b.to_nat,
-    n₁ ← a.to_nat,
-    let nq := n₁ / n₂,
-    let nr := n₁ % n₂,
+    nb ← b.to_nat,
+    na ← a.to_int,
+    let nq := na / nb,
+    let nr := na % nb,
     let nm := nq * nr,
-    (ic, q) ← ic.of_nat nq,
-    (ic, r) ← ic.of_nat nr,
-    (ic, m, pm) ← prove_mul_nat ic q b,
-    (ic, p) ← prove_add_nat ic r m a,
+    (ic, q) ← ic.of_int nq,
+    (ic, r) ← ic.of_int nr,
+    (ic, m, pm) ← prove_mul_rat ic q b (rat.of_int nq) (rat.of_int nb),
+    (ic, p) ← prove_add_rat ic r m a (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
     (ic, p') ← prove_lt_nat ic r b,
     if ic.α = `(nat) then
       if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])

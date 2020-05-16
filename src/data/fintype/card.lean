@@ -56,7 +56,7 @@ finset.prod_congr rfl $ λ a ha, h a
 @[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
-by simp only [finset.prod_singleton, univ_unique, finset.singleton_eq_singleton]
+by simp only [finset.prod_singleton, univ_unique]
 
 end
 
@@ -101,7 +101,7 @@ card_sigma _ _
 -- FIXME ouch, this should be in the main file.
 @[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by rw [sum.fintype, fintype.of_equiv_card]; simp
+by simp [sum.fintype, fintype.of_equiv_card]
 
 @[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
   {δ : α → Type*} (t : Π a, finset (δ a)) :
@@ -278,10 +278,10 @@ begin
   { have : i < length (of_fn f), by rwa [length_of_fn f],
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
-      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ _root_.singleton (⟨i, h⟩ : fin n),
+      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
         by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
-      (_root_.singleton (⟨i, h⟩ : fin n)), by simp,
+      (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.prod_union B, IH],
     simp },
   { have A : (of_fn f).take i = (of_fn f).take i.succ,
@@ -306,10 +306,10 @@ begin
   { have : i < length (of_fn f), by rwa [length_of_fn f],
     rw sum_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
-      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ _root_.singleton (⟨i, h⟩ : fin n),
+      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ singleton (⟨i, h⟩ : fin n),
         by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
-      (_root_.singleton (⟨i, h⟩ : fin n)), by simp,
+      (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.sum_union B, IH],
     simp },
   { have A : (of_fn f).take i = (of_fn f).take i.succ,

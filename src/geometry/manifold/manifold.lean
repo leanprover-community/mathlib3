@@ -152,7 +152,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
     { right,
       simpa [e.to_local_equiv.image_source_eq_target.symm] using E },
   end,
-  id_mem := mem_union_left _ (mem_insert _ ∅),
+  id_mem := mem_union_left _ rfl,
   locality := λe he, begin
     cases e.source.eq_empty_or_nonempty with h h,
     { right, exact h },

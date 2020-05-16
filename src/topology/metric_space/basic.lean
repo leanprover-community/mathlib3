@@ -1464,7 +1464,7 @@ by simp only [diam, emetric.diam_pair, dist_edist]
 
 -- Does not work as a simp-lemma, since {x, y, z} reduces to (insert z (insert y {x}))
 lemma diam_triple :
-  metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
+  metric.diam ({x, y, z} : set α) = max (max (dist x y) (dist x z)) (dist y z) :=
 begin
   simp only [metric.diam, emetric.diam_triple, dist_edist],
   rw [ennreal.to_real_max, ennreal.to_real_max];

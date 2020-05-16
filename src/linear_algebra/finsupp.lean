@@ -112,7 +112,7 @@ by haveI := classical.dec_pred (λ (x : α), x ∈ s);
 
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
-set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
+set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 
 lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=

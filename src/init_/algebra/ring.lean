@@ -3,7 +3,7 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import init.algebra.group
+import init_.algebra.group
 
 /- Make sure instances defined in this file have lower priority than the ones
    defined for concrete structures -/

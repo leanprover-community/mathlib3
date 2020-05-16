@@ -6,6 +6,9 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 /- Make sure instances defined in this file have lower priority than the ones
    defined for concrete structures -/
+
+import init.meta.decl_cmds
+
 set_option default_priority 100
 
 set_option old_structure_cmd true

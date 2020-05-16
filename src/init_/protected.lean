@@ -1,7 +1,7 @@
 /-- These lemmas are stated in core, and should be protected,
 because they are superceded by general lemmas in the algebraic hierarchy. -/
 private def nat_lemmas :=
-[``int.mul_pos, ``int.mul_le_mul]
+[``nat.mul_pos, ``nat.mul_le_mul]
 
 run_cmd do env ← tactic.get_env,
   tactic.set_env $ nat_lemmas.foldl environment.mk_protected env
@@ -62,4 +62,3 @@ private def int_lemmas :=
 
 run_cmd do env ← tactic.get_env,
   tactic.set_env $ int_lemmas.foldl environment.mk_protected env
-

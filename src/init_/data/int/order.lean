@@ -8,6 +8,7 @@ The order relation on the integers.
 
 import init_.data.int.basic
 import init_.algebra.ordered_ring
+import init_.algebra.functions
 
 /-
 Results copied from the core library to mathlib by Johan Commelin
@@ -24,6 +25,16 @@ instance : decidable_linear_ordered_comm_ring int :=
 
 instance : decidable_linear_ordered_add_comm_group int :=
 by apply_instance
+
+theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
+| (n : ℕ) := abs_of_nonneg $ coe_zero_le _
+| -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
+
+theorem nat_abs_abs (a : ℤ) : nat_abs (abs a) = nat_abs a :=
+by rw [abs_eq_nat_abs]; refl
+
+theorem sign_mul_abs (a : ℤ) : sign a * abs a = a :=
+by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
 end int
 

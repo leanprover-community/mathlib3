@@ -1,0 +1,65 @@
+/-- These lemmas are stated in core, and should be protected,
+because they are superceded by general lemmas in the algebraic hierarchy. -/
+private def nat_lemmas :=
+[``int.mul_pos, ``int.mul_le_mul]
+
+run_cmd do env ← tactic.get_env,
+  tactic.set_env $ nat_lemmas.foldl environment.mk_protected env
+
+/-- These lemmas are stated in core, and should be protected,
+because they are superceded by general lemmas in the algebraic hierarchy. -/
+private def int_lemmas :=
+[``int.int.sub_self, ``int.sub_eq_zero_of_eq, ``int.eq_of_sub_eq_zero,
+ ``int.sub_eq_zero_iff_eq, ``int.neg_mul_eq_neg_mul,
+ ``int.neg_mul_eq_mul_neg, ``int.neg_mul_neg, ``int.neg_mul_comm,
+ ``int.mul_sub_left_distrib, ``int.mul_sub_right_distrib,
+ ``int.lt_add_of_le_of_pos, ``int.sub_add_cancel, ``int.add_sub_cancel,
+ ``int.add_sub_assoc, ``int.neg_le_neg, ``int.le_of_neg_le_neg,
+ ``int.nonneg_of_neg_nonpos, ``int.neg_nonpos_of_nonneg,
+ ``int.nonpos_of_neg_nonneg, ``int.neg_nonneg_of_nonpos, ``int.neg_lt_neg,
+ ``int.lt_of_neg_lt_neg, ``int.pos_of_neg_neg, ``int.neg_neg_of_pos,
+ ``int.neg_of_neg_pos, ``int.neg_pos_of_neg, ``int.le_neg_of_le_neg,
+ ``int.neg_le_of_neg_le, ``int.lt_neg_of_lt_neg, ``int.neg_lt_of_neg_lt,
+ ``int.sub_nonneg_of_le, ``int.le_of_sub_nonneg, ``int.sub_nonpos_of_le,
+ ``int.le_of_sub_nonpos, ``int.sub_pos_of_lt, ``int.lt_of_sub_pos,
+ ``int.sub_neg_of_lt, ``int.lt_of_sub_neg, ``int.add_le_of_le_neg_add,
+ ``int.le_neg_add_of_add_le, ``int.add_le_of_le_sub_left,
+ ``int.le_sub_left_of_add_le, ``int.add_le_of_le_sub_right,
+ ``int.le_sub_right_of_add_le, ``int.le_add_of_neg_add_le,
+ ``int.neg_add_le_of_le_add, ``int.le_add_of_sub_left_le,
+ ``int.sub_left_le_of_le_add, ``int.le_add_of_sub_right_le,
+ ``int.sub_right_le_of_le_add, ``int.le_add_of_neg_add_le_left,
+ ``int.neg_add_le_left_of_le_add, ``int.le_add_of_neg_add_le_right,
+ ``int.neg_add_le_right_of_le_add, ``int.le_add_of_neg_le_sub_left,
+ ``int.neg_le_sub_left_of_le_add, ``int.le_add_of_neg_le_sub_right,
+ ``int.neg_le_sub_right_of_le_add, ``int.sub_le_of_sub_le,
+ ``int.sub_le_sub_left, ``int.sub_le_sub_right,
+ ``int.sub_le_sub, ``int.add_lt_of_lt_neg_add,
+ ``int.lt_neg_add_of_add_lt, ``int.add_lt_of_lt_sub_left,
+ ``int.lt_sub_left_of_add_lt, ``int.add_lt_of_lt_sub_right,
+ ``int.lt_sub_right_of_add_lt, ``int.lt_add_of_neg_add_lt,
+ ``int.neg_add_lt_of_lt_add, ``int.lt_add_of_sub_left_lt,
+ ``int.sub_left_lt_of_lt_add, ``int.lt_add_of_sub_right_lt,
+ ``int.sub_right_lt_of_lt_add, ``int.lt_add_of_neg_add_lt_left,
+ ``int.neg_add_lt_left_of_lt_add, ``int.lt_add_of_neg_add_lt_right,
+ ``int.neg_add_lt_right_of_lt_add, ``int.lt_add_of_neg_lt_sub_left,
+ ``int.neg_lt_sub_left_of_lt_add, ``int.lt_add_of_neg_lt_sub_right,
+ ``int.neg_lt_sub_right_of_lt_add, ``int.sub_lt_of_sub_lt,
+ ``int.sub_lt_sub_left, ``int.sub_lt_sub_right, ``int.sub_lt_sub,
+ ``int.sub_lt_sub_of_le_of_lt, ``int.sub_lt_sub_of_lt_of_le,
+ ``int.sub_le_self, ``int.sub_lt_self, ``int.add_le_add_three,
+ ``int.mul_lt_mul_of_pos_left, ``int.mul_lt_mul_of_pos_right,
+ ``int.mul_le_mul_of_nonneg_left, ``int.mul_le_mul_of_nonneg_right,
+ ``int.mul_le_mul, ``int.mul_nonpos_of_nonneg_of_nonpos,
+ ``int.mul_nonpos_of_nonpos_of_nonneg, ``int.mul_lt_mul,
+ ``int.mul_lt_mul', ``int.mul_neg_of_pos_of_neg,
+ ``int.mul_neg_of_neg_of_pos, ``int.mul_le_mul_of_nonpos_right,
+ ``int.mul_nonneg_of_nonpos_of_nonpos, ``int.mul_lt_mul_of_neg_left,
+ ``int.mul_lt_mul_of_neg_right, ``int.mul_pos_of_neg_of_neg,
+ ``int.mul_self_le_mul_self, ``int.mul_self_lt_mul_self,
+ ``int.int.eq_zero_or_eq_zero_of_mul_eq_zero,
+ ``int.eq_of_mul_eq_mul_right, ``int.eq_of_mul_eq_mul_left]
+
+run_cmd do env ← tactic.get_env,
+  tactic.set_env $ int_lemmas.foldl environment.mk_protected env
+

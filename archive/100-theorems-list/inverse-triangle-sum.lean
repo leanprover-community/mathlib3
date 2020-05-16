@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2020. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jalex Stark,
+
+Solving problem 42 on the list of 100 theorems, which involves a "telescoping" sum.
+-/
 import tactic
 import algebra.big_operators
 import data.real.basic

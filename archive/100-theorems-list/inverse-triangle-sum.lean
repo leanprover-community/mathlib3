@@ -2,12 +2,7 @@
 Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark,
-<<<<<<< HEAD
 Solving problem 42 on the list of 100 theorems.
-=======
-
-Solving problem 42 on the list of 100 theorems, which involves a "telescoping" sum.
->>>>>>> fbfdbe1c18421daedfd6e8884c763b3098265e6c
 -/
 import tactic
 import algebra.big_operators
@@ -23,36 +18,35 @@ We interpret "triangular numbers" as naturals of the form k(k+1)/2 for natural k
 discrete_sum
 -/
 
-lemma inverse_triangle_sum
-(n : ℕ) :
+lemma inverse_triangle_sum (n : ℕ) :
 (finset.range n).sum (λ x, (2 : ℚ) / (x * (x + 1))) = if n ≤ 1 then 0 else 2 - (2 : ℚ) / n :=
 begin
 rw finset.sum_range_induction,
-  {rw if_pos, norm_num},
+  { rw if_pos, norm_num },
 intro n,
 
 by_cases h0 : n = 0,
-  {rw [h0, if_pos, if_pos], ring,
-    norm_num, norm_num},
+  { rw [h0, if_pos, if_pos], ring,
+    norm_num, norm_num },
 
 by_cases h1 : n = 1,
-  {rw [h1, if_neg, if_pos], ring,
-    norm_num, norm_num,},
+  { rw [h1, if_neg, if_pos], ring,
+    norm_num, norm_num },
 
 -- we're going to do arithmetic where n-1, n, and n+1 all appear in denominators, so let's show that's okay
-have n0 : ( n : ℚ) ≠ 0 := by {norm_cast, exact h0}, clear h0,
-have n1 : ( (n + 1) : ℚ) ≠ 0 := by {norm_cast, omega},
-have nn1 : ( n - 1: ℚ) ≠ 0,
-  {intro h, revert h1, rw [imp_false, not_not],
+have n0 : (n : ℚ) ≠ 0 := by {norm_cast, exact h0}, clear h0,
+have n1 : ((n + 1) : ℚ) ≠ 0 := by {norm_cast, omega},
+have nn1 : (n - 1 : ℚ) ≠ 0,
+  { intro h, revert h1, rw [imp_false, not_not],
   apply_fun (λ x, x + 1) at h,
   simp only [sub_add_cancel, zero_add] at h,
-  norm_cast at h, exact h},
+  norm_cast at h, exact h },
 
 -- let's clear our if-then-else
 rw if_neg, swap,
-  {revert h1 n0, norm_cast, omega},
+  { revert h1 n0, norm_cast, omega },
 rw if_neg, swap,
-  {revert n0, norm_cast, omega},
+  { revert n0, norm_cast, omega },
 clear h1,
 
 -- let's leave ℕ now

@@ -369,7 +369,7 @@ lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
 
-lemma dist_le_two_norm' {f : α → β} {C : ℝ} (hC : ∀ x, ∥f x∥ ≤ C) (x y : α) :
+lemma dist_le_two_norm' {f : γ → β} {C : ℝ} (hC : ∀ x, ∥f x∥ ≤ C) (x y : γ) :
   dist (f x) (f y) ≤ 2 * C :=
 calc dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
                   ... ≤ C + C         : add_le_add (hC x) (hC y)

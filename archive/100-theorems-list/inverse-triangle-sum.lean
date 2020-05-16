@@ -2,14 +2,16 @@ import tactic
 import algebra.big_operators
 import data.real.basic
 
-lemma range_insert (n : ℕ) :
-insert n (finset.range n) = finset.range (n + 1) :=
-begin
-ext, rw finset.mem_range,
-simp only [finset.mem_insert, finset.mem_range],
-split; omega,
-end
+-- lemma range_insert (n : ℕ) :
+-- insert n (finset.range n) = finset.range (n + 1) :=
+-- begin
+-- ext, rw finset.mem_range,
+-- simp only [finset.mem_insert, finset.mem_range],
+-- split; omega,
+-- end
+#print notation ≤
 
+#check finset.range_succ
 
 lemma discrete_FTC
 {α : Type*}
@@ -22,10 +24,9 @@ lemma discrete_FTC
 begin
 split; intro h,
 
-intro n, rw [← h n, ← h (n+1)],
-rw sub_eq_iff_eq_add,
-rw ← range_insert n, apply finset.sum_insert,
-simp only [finset.not_mem_range_self, not_false_iff],
+{intro n, rw [← h n, ← h (n+1)],
+rw sub_eq_iff_eq_add, rw finset.range_succ, apply finset.sum_insert,
+simp only [finset.not_mem_range_self, not_false_iff]},
 
 intro d, induction d with k hk,
     rw hF, simp only [finset.sum_empty, finset.range_zero],
@@ -34,8 +35,19 @@ have calc1 := h k,
 rw sub_eq_iff_eq_add at calc1,
 rw calc1, clear calc1,
 rw ← hk,
-rw  ← range_insert,
+rw  finset.range_succ,
 simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
+end
+-- #print notation ∑
+lemma sum_range_induction {M : Type*} [add_comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
+   (finset.range n).sum f = s n :=
+begin
+induction n with k hk,
+    {rw h0, simp only [finset.sum_empty, finset.range_zero]},
+rw [← nat.add_one, h k, ←hk,finset.range_succ],
+simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
+rw add_comm,
 end
 
 -- making this a named function helped me avoid the evils of nat subtraction. It's possible to avoid nat subtraction inline, but it looks kind of arcane / fragile?
@@ -50,15 +62,15 @@ revert n, rw discrete_FTC,
   swap, rw if_pos, norm_num,
 intro n,
 
-by_cases n = 0,
+by_cases h0 : n = 0,
   {rw [h, if_pos, if_pos], ring,
     norm_num, norm_num},
-  rename h h0,
 
-by_cases n = 1,
+
+by_cases h1 : n = 1,
   {rw [h, if_neg, if_pos], ring,
     norm_num, norm_num,},
-  rename h h1,
+
 
 -- we're going to do arithmetic where n-1, n, and n+1 all appear in denominators, so let's show that's okay
 have n0 : ( n : ℚ) ≠ 0 := by {norm_cast, exact h0}, clear h0,

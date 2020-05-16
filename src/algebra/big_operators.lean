@@ -427,6 +427,17 @@ lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
   (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
 by rw [range_succ, sum_insert not_mem_range_self]
 
+lemma sum_range_induction {M : Type*} [add_comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
+   (finset.range n).sum f = s n :=
+begin
+induction n with k hk,
+    {rw h0, simp only [finset.sum_empty, finset.range_zero]},
+rw [← nat.add_one, h k, ←hk,finset.range_succ],
+simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
+rw add_comm,
+end
+
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   (∏ x in range (n + 1), f x) = f n * (∏ x in range n, f x) :=

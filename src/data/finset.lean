@@ -2163,7 +2163,7 @@ fold_insert_idem
 @[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
 by { rw ← insert_emptyc_eq, exact min_insert }
 
-theorem min_of_mem [decidable_eq α] {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
+theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
 (@inf_le (with_top α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.min :=

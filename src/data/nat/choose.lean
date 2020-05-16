@@ -119,21 +119,21 @@ begin
   {
     have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
     rw t, clear t,
-    rw <- (@sum_Ico_succ_top _ _ (m + 1) (m.succ + i) (by exact nat.le.intro rfl) f).symm,
+    rw <- (@sum_Ico_succ_top _ _ (m + 1) ((m + 1) + i) (by exact nat.le.intro rfl) f).symm,
     rw <- i_ih, clear i_ih,
-    have t : f (m.succ + i) = f (m - i), by {
+    have t : f (m + 1 + i) = f (m - i), by {
       have munge : m + 1 + i ≤ 2 * m + 1,
-        calc m.succ + i ≤ m.succ + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (nat.succ m)
+        calc m + 1 + i ≤ m + 1 + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (m + 1)
         ... = m + (m + 1): nat.add_comm (m + 1) m
         ...  = (m + m) + 1 : (nat.add_assoc _ _ _).symm
         ... = 2 * m + 1 : by rw two_mul,
-      have v : 2 * m + 1 - (m.succ + i) = m - i,
-        calc 2 * m + 1 - (m.succ + i) = 2 * m + 1 - m.succ - i : eq.symm (nat.sub_sub (2 * m + 1) (nat.succ m) i)
+      have v : 2 * m + 1 - (m + 1 + i) = m - i,
+        calc 2 * m + 1 - (m + 1 + i) = 2 * m + 1 - (m + 1) - i : eq.symm (nat.sub_sub (2 * m + 1) (m + 1) i)
             ... = m + m + 1 - m.succ - i : by rw <- two_mul m
-            ... = m + (m + 1) - m.succ - i : by rw <- add_assoc m m 1
+            ... = m + (m + 1) - (m + 1) - i : by rw <- add_assoc m m 1
             ... = m - i : by rw nat.add_sub_cancel m m.succ,
       have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)),
-        exact reflects (m.succ + i) munge,
+        exact reflects (m + 1 + i) munge,
       rw v at reflected,
       exact reflected,
     },

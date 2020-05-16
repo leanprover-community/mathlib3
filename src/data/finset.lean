@@ -2040,6 +2040,15 @@ lemma inf_val : s.inf f = (s.1.map f).inf := rfl
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
 fold_empty
 
+lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀b ∈ s, a ≤ f b :=
+begin
+  apply iff.trans multiset.le_inf,
+  refine ⟨λ k b hb, k (f b) (multiset.mem_map_of_mem _ hb), λ k b hb, _⟩,
+  rw multiset.mem_map at hb,
+  rcases hb with ⟨a', ha', rfl⟩,
+  apply k a' ha'
+end
+
 @[simp] lemma inf_insert [decidable_eq β] {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
 fold_insert_idem
 
@@ -2053,31 +2062,23 @@ by rw [insert_union, inf_insert, inf_insert, ih, inf_assoc]
 theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.inf f = s₂.inf g :=
 by subst hs; exact finset.fold_congr hfg
 
-lemma inf_mono_fun [decidable_eq β] {g : β → α} : (∀b∈s, f b ≤ g b) → s.inf f ≤ s.inf g :=
-finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [inf_insert]; exact inf_le_inf H.1 (ih H.2))
+lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
+le_inf_iff.1 (le_refl _) _ hb
 
-lemma inf_le [decidable_eq β] {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
-calc f b ≥ f b ⊓ s.inf f : inf_le_left
-  ... = (insert b s).inf f : inf_insert.symm
-  ... = s.inf f : by rw [insert_eq_of_mem hb]
+lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
+le_inf_iff.2
 
-lemma le_inf [decidable_eq β] {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
-finset.induction_on s (λ _, le_top) (λ n s hns ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [inf_insert]; exact le_inf H.1 (ih H.2))
+lemma inf_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.inf f ≤ s.inf g :=
+le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 
-lemma le_inf_iff [decidable_eq β] {a : α} : a ≤ s.inf f ↔ (∀b ∈ s, a ≤ f b) :=
-iff.intro (assume h b hb, le_trans h (inf_le hb)) le_inf
-
-lemma inf_mono [decidable_eq β] (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
+lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
-lemma lt_inf [is_total α (≤)] [decidable_eq β] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
+lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
+by letI := classical.dec_eq β; from
 finset.induction_on s (by simp) (by simp {contextual := tt})
 
-lemma comp_inf_eq_inf_comp [is_total α (≤)] [decidable_eq β] {γ : Type} [semilattice_inf_top γ]
+lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
 begin
@@ -2086,11 +2087,12 @@ begin
   { simp [inf_of_le_left h, inf_of_le_left (mono_g h)] },
   { simp [inf_of_le_right h, inf_of_le_right (mono_g h)] }
 end,
+by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [top]) (by simp [A] {contextual := tt})
 
 end inf
 
-lemma inf_eq_infi [decidable_eq α] [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
+lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
 le_antisymm
   (le_infi $ assume a, le_infi $ assume ha, inf_le ha)
   (finset.le_inf $ assume a ha, infi_le_of_le a $ infi_le _ ha)
@@ -2162,7 +2164,7 @@ fold_insert_idem
 by { rw ← insert_emptyc_eq, exact min_insert }
 
 theorem min_of_mem [decidable_eq α] {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
-(@inf_le (with_top α) _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+(@inf_le (with_top α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
 theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.min :=
 let ⟨a, ha⟩ := h in min_of_mem ha
@@ -2185,7 +2187,7 @@ finset.induction_on s (λ _ H, by cases H) $
   end
 
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
-by rcases @inf_le (with_top α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
@@ -2564,6 +2566,10 @@ disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
 lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
+
+lemma disjoint_filter' {s t : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+disjoint s t → disjoint (s.filter p) (t.filter q) :=
+disjoint.mono (filter_subset _) (filter_subset _)
 
 end disjoint
 

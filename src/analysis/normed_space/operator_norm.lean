@@ -302,7 +302,7 @@ lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 
 lemma op_norm_neg : ∥-f∥ = ∥f∥ :=
 begin
-  show Inf { c | c ≥ 0 ∧ ∀ x, ∥(-f) x∥ ≤ c * ∥x∥ } = Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ },
+  show Inf {c | c ≥ 0 ∧ ∀ x, ∥(-f) x∥ ≤ c * ∥x∥} = Inf {c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥},
   apply congr_arg, ext, simp,
 end
 

@@ -105,8 +105,8 @@ theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
 
-/-
-Facts about more specific binomial coefficients and their sums
+/-!
+# Specific facts about binomial coefficients and their sums
 -/
 
 -- This lemma exists only so that we can instantiate it with `i = m + 1`.
@@ -116,38 +116,33 @@ private lemma reflect_sum_lemma (i : nat) (m : nat) (i_bound : i ≤ m + 1) (f :
 begin
   induction i with i,
   { simp },
-  {
-    have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
+  { have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
     rw t, clear t,
-    rw <- (@sum_Ico_succ_top _ _ (m + 1) ((m + 1) + i) (by exact nat.le.intro rfl) f).symm,
-    rw <- i_ih, clear i_ih,
-    have t : f (m + 1 + i) = f (m - i), by {
-      have munge : m + 1 + i ≤ 2 * m + 1,
+    rw ← (@sum_Ico_succ_top _ _ (m + 1) ((m + 1) + i) (by exact nat.le.intro rfl) f).symm,
+    rw ← i_ih, clear i_ih,
+    have t : f (m + 1 + i) = f (m - i), by
+      { have munge : m + 1 + i ≤ 2 * m + 1,
         calc m + 1 + i ≤ m + 1 + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (m + 1)
         ... = m + (m + 1): nat.add_comm (m + 1) m
         ...  = (m + m) + 1 : (nat.add_assoc _ _ _).symm
         ... = 2 * m + 1 : by rw two_mul,
       have v : 2 * m + 1 - (m + 1 + i) = m - i,
         calc 2 * m + 1 - (m + 1 + i) = 2 * m + 1 - (m + 1) - i : eq.symm (nat.sub_sub (2 * m + 1) (m + 1) i)
-            ... = m + m + 1 - m.succ - i : by rw <- two_mul m
-            ... = m + (m + 1) - (m + 1) - i : by rw <- add_assoc m m 1
+            ... = m + m + 1 - m.succ - i : by rw ← two_mul m
+            ... = m + (m + 1) - (m + 1) - i : by rw ← add_assoc m m 1
             ... = m - i : by rw nat.add_sub_cancel m m.succ,
       have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)),
         exact reflects (m + 1 + i) munge,
       rw v at reflected,
-      exact reflected,
-    },
+      exact reflected, },
     rw t, clear t,
-    {
-      rw nat.succ_sub (nat.lt_succ_iff.mp i_bound),
+    { rw nat.succ_sub (nat.lt_succ_iff.mp i_bound),
       have s : f (m - i) + ∑ j in (Ico (m - i + 1) (m + 1)), f j = ∑ j in (Ico (m - i) (m + 1)), f j,
         exact (@sum_eq_sum_Ico_succ_bot _ _ (m - i) (m + 1) (nat.sub_lt_succ m i) f).symm,
       simp,
-      rw <- s,
-      ring,
-    },
-    exact le_of_lt i_bound,
-  }
+      rw ← s,
+      ring, },
+    exact le_of_lt i_bound, }
 end
 
 private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat)
@@ -163,10 +158,8 @@ lemma sum_range_choose_halfway (m : nat) :
   ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
 begin
   have reflects : ∀ x ≤ 2 * m + 1, choose (2 * m + 1) x = choose (2 * m + 1) (2 * m + 1 - x),
-  {
-    intros x pr,
-    exact eq.symm (@choose_symm (2 * m + 1) x pr),
-  },
+  { intros x pr,
+    exact eq.symm (@choose_symm (2 * m + 1) x pr), },
 
   have v : 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) = 2 * 4 ^ m,
     calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i)
@@ -178,7 +171,7 @@ begin
       ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
       ... = 2 ^ (2 * m) * 2 : pow_add _ _ _
       ... = 2 * 2 ^ (2 * m) : mul_comm _ _
-      ... = 2 * 4 ^ m : by {rw nat.pow_mul 2 m 2, refl},
+      ... = 2 * 4 ^ m : by { rw nat.pow_mul 2 m 2, refl, },
 
   exact (@nat.mul_right_inj 2 _ (4 ^ m) (by norm_num)).1 v,
 end

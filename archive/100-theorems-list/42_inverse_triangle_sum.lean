@@ -8,9 +8,11 @@ import algebra.big_operators
 import data.real.basic
 
 /-!
-The problem is referred to as "Sum of the Reciprocals of the Triangular Numbers" on the 100 theorems list.
+# Sum of the Reciprocals of the Triangular Numbers
 
-We interpret “triangular numbers” as naturals of the form $\frac{k(k+1)}{f}2$ for natural `k`.
+This file proves Theorem 42 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
+
+We interpret “triangular numbers” as naturals of the form $\frac{k(k+1)}{2}$ for natural `k`.
 We prove that the sum of the first `n` triangular numbers is equal to $2 - \frac2n$.
 
 ## Tags
@@ -26,7 +28,6 @@ lemma inverse_triangle_sum :
 begin
   refine sum_range_induction _ _ (if_pos rfl) _,
   rintro (_|n), { rw [if_neg, if_pos]; norm_num },
-
   simp_rw [if_neg (nat.succ_ne_zero _), nat.succ_eq_add_one],
   have A : (n + (1 + 1) : ℚ) ≠ 0, by { norm_cast, norm_num },
   push_cast,

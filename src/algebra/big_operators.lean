@@ -510,7 +510,7 @@ by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
-/-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued, we can verify that
+/-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
 lemma prod_range_induction {M : Type*} [comm_monoid M]
@@ -522,7 +522,7 @@ begin
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
-/-- For any sum along `{0, ..., n-1}` of a commutative-monoid-valued, we can verify that it's equal
+/-- For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that it's equal
 to a different function just by checking differences of adjacent terms. This is a discrete analogue
 of the fundamental theorem of calculus. -/
 lemma sum_range_induction {M : Type*} [add_comm_monoid M]

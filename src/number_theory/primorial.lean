@@ -189,8 +189,7 @@ begin
                 simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt, finset.mem_range],
                 intros _ pr _, exact pr
               },
-             -- exact finset.disjoint_filter_filter u,
-              sorry,
+              exact finset.disjoint_filter_filter u,
             }
       ... ≤ (∏ i in finset.filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) : by {
         have r : ∏ i in finset.filter nat.prime (finset.range (m + 2)), i ≤ 4 ^ (m + 1),

@@ -333,7 +333,7 @@ begin
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
       begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      begin rw [← coe_diff], apply add_le_add_left, rw [coe_diff, ←real.dist_eq], apply dist_coe_le_dist end
+      begin rw [← sub_apply], apply add_le_add_left, rw [sub_apply, ←real.dist_eq], apply dist_coe_le_dist end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end

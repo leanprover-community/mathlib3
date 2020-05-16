@@ -10,6 +10,8 @@ import data.int.basic
 
 universe u
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -28,6 +30,7 @@ class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
+end prio
 
 namespace euclidean_domain
 variable {α : Type u}
@@ -35,8 +38,10 @@ variables [euclidean_domain α]
 
 local infix ` ≺ `:50 := euclidean_domain.r
 
+@[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨quotient⟩
 
+@[priority 70] -- see Note [lower instance priority]
 instance : has_mod α := ⟨remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
@@ -121,24 +126,8 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
-section gcd
-variable [decidable_eq α]
-
-def gcd : α → α → α
-| a := λ b, if a0 : a = 0 then b else
-  have h:_ := mod_lt b a0,
-  gcd (b%a) a
-using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
-
-@[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
-by rw gcd; exact if_pos rfl
-
-@[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
-by rw gcd; split_ifs; simp only [h, zero_mod, gcd_zero_left]
-
-theorem gcd_val (a b : α) : gcd a b = gcd (b % a) a :=
-by rw gcd; split_ifs; [simp only [h, mod_zero, gcd_zero_right], refl]
+section
+open_locale classical
 
 @[elab_as_eliminator]
 theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
@@ -149,7 +138,28 @@ theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
   have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
+
+end
+
+section gcd
+variable [decidable_eq α]
+
+def gcd : α → α → α
+| a := λ b, if a0 : a = 0 then b else
+  have h:_ := mod_lt b a0,
+  gcd (b%a) a
+using_well_founded {dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
+
+@[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
+by rw gcd; exact if_pos rfl
+
+@[simp] theorem gcd_zero_right (a : α) : gcd a 0 = a :=
+by rw gcd; split_ifs; simp only [h, zero_mod, gcd_zero_left]
+
+theorem gcd_val (a b : α) : gcd a b = gcd (b % a) a :=
+by rw gcd; split_ifs; [simp only [h, mod_zero, gcd_zero_right], refl]
 
 theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b
@@ -189,7 +199,7 @@ if hr : r = 0 then (r', s', t')
   have r' % r ≺ r, from mod_lt _ hr,
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 @[simp] theorem xgcd_zero_left {s t r' s' t' : α} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by unfold xgcd_aux; exact if_pos rfl
@@ -235,6 +245,7 @@ by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);
 rwa [xgcd_aux_val, xgcd_val] at this
 
+@[priority 70] -- see Note [lower instance priority]
 instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
@@ -270,7 +281,7 @@ begin
   suffices : x * y ∣ z * gcd x y,
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
-    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_right_inj hxy, hp],
+    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_left_inj hxy, hp],
     rw [← mul_assoc], simp only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },
@@ -331,15 +342,15 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
-instance discrete_field.to_euclidean_domain {K : Type u} [discrete_field K] : euclidean_domain K :=
+@[priority 100] -- see Note [lower instance priority]
+instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
 { quotient := (/),
-  remainder := λ a b, if b = 0 then a else 0,
+  remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,
-    if H : b = 0 then by rw [if_pos H, H, zero_mul, zero_add] else
-    by rw [if_neg H, add_zero, mul_div_cancel' _ H],
+    by classical; by_cases b = 0; simp [h, mul_div_cancel'],
   r := λ a b, a = 0 ∧ b ≠ 0,
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
-  remainder_lt := λ a b hnb, ⟨if_neg hnb, hnb⟩,
+  remainder_lt := λ a b hnb, by simp [hnb],
   mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }

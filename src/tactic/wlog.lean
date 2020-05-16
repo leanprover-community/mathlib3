@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Without loss of generality tactic.
 -/
-import tactic.basic tactic.interactive data.list.perm
+import tactic.tauto
+import data.list.perm
 
 open expr tactic lean lean.parser
 
@@ -156,7 +157,7 @@ meta def wlog
   (cases : parse (tk ":=" *> texpr)?)
   (perms : parse (tk "using" *> (list_of (ident*) <|> (λx, [x]) <$> ident*))?)
   (discharger : tactic unit :=
-    (tactic.solve_by_elim <|> tactic.tautology <|> using_smt (smt_tactic.intros >> smt_tactic.solve_goals))) :
+    (tactic.solve_by_elim <|> tactic.tautology tt <|> using_smt (smt_tactic.intros >> smt_tactic.solve_goals))) :
   tactic unit := do
 perms ← parse_permutations perms,
 (pat, cases_pr, cases_goal, vars, perms) ← (match cases with
@@ -240,6 +241,12 @@ with_enable_tags $ tactic.focus1 $ do
     set_goals (g :: gs)
   | none := skip
   end
+
+add_tactic_doc
+{ name := "wlog",
+  category := doc_category.tactic,
+  decl_names := [``wlog],
+  tags := ["logic"] }
 
 end interactive
 

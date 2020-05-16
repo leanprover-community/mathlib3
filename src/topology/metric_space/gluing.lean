@@ -3,45 +3,62 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Gluing metric spaces
 Authors: Sébastien Gouëzel
+-/
+import topology.metric_space.isometry
+import topology.metric_space.premetric_space
+
+/-!
+# Metric space gluing
 
 Gluing two metric spaces along a common subset. Formally, we are given
+
+```
      Φ
   γ ---> α
   |
   |Ψ
   v
   β
-where hΦ : isometry Φ and hΨ : isometry Ψ
+```
+where `hΦ : isometry Φ` and `hΨ : isometry Ψ`.
 We want to complete the square by a space `glue_space hΦ hΨ` and two isometries
 `to_glue_l hΦ hΨ` and `to_glue_r hΦ hΨ` that make the square commute.
-We start by defining a predistance on the disjoint union α ⊕ β, for which
-points Φ p and Ψ p are at distance 0. The (quotient) metric space associated
+We start by defining a predistance on the disjoint union `α ⊕ β`, for which
+points `Φ p` and `Ψ p` are at distance 0. The (quotient) metric space associated
 to this predistance is the desired space.
 
-This is an instance of a more general construction, where Φ and Ψ do not have to be isometries,
-but the distances in the image almost coincide, up to 2ε say. Then one can almost glue the two
-spaces so that the images of a point under Φ and Ψ are ε-close. If ε > 0, this yields a
-metric space structure on α ⊕ β, without the need to take a quotient. In particular, when
-α and β are inhabited, this gives a natural metric space structure on α ⊕ β, where the basepoints
+This is an instance of a more general construction, where `Φ` and `Ψ` do not have to be isometries,
+but the distances in the image almost coincide, up to `2ε` say. Then one can almost glue the two
+spaces so that the images of a point under `Φ` and `Ψ` are ε-close. If `ε > 0`, this yields a
+metric space structure on `α ⊕ β`, without the need to take a quotient. In particular, when
+`α` and `β` are inhabited, this gives a natural metric space structure on `α ⊕ β`, where the basepoints
 are at distance 1, say, and the distances between other points are obtained by going through the
 two basepoints.
--/
 
-import topology.metric_space.isometry topology.metric_space.premetric_space
+We also define the inductive limit of metric spaces. Given
+```
+     f 0        f 1        f 2        f 3
+X 0 -----> X 1 -----> X 2 -----> X 3 -----> ...
+```
+where the `X n` are metric spaces and `f n` isometric embeddings, we define the inductive
+limit of the `X n`, also known as the increasing union of the `X n` in this context, if we
+identify `X n` and `X (n+1)` through `f n`. This is a metric space in which all `X n` embed
+isometrically and in a way compatible with `f n`.
+
+-/
 
 noncomputable theory
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric lattice
+open function set premetric
 
 namespace metric
 section approx_gluing
 
-variables [nonempty γ] [metric_space α] [metric_space β]
+variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
-open lattice
 open sum (inl inr)
 
 /-- Define a predistance on α ⊕ β, for which Φ p and Ψ p are at distance ε -/
@@ -55,7 +72,7 @@ private lemma glue_dist_self (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) : ∀x
 | (inl x) := dist_self _
 | (inr x) := dist_self _
 
-lemma glue_dist_glued_points (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (p : γ) :
+lemma glue_dist_glued_points [nonempty γ] (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (p : γ) :
   glue_dist Φ Ψ ε (inl (Φ p)) (inr (Ψ p)) = ε :=
 begin
   have : infi (λq, dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q)) = 0,
@@ -64,7 +81,7 @@ begin
     refine le_antisymm _ (le_cinfi A),
     have : 0 = dist (Φ p) (Φ p) + dist (Ψ p) (Ψ p), by simp,
     rw this,
-    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ },
+    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ p },
   rw [glue_dist, this, zero_add]
 end
 
@@ -74,6 +91,8 @@ private lemma glue_dist_comm (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) :
 | (inr x) (inr y) := dist_comm _ _
 | (inl x) (inr y) := rfl
 | (inr x) (inl y) := rfl
+
+variable [nonempty γ]
 
 private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   (H : ∀p q, abs (dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)) ≤ 2 * ε) :
@@ -88,7 +107,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     { have : infi (λp, dist y (Φ p) + dist x (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist y (Φ p) + dist x (Ψ p))),
       { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, t + dist y z)) _ (B _ _),
-        exact continuous_add continuous_id continuous_const,
+        exact continuous_id.add continuous_const,
         exact λx y hx, by simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
@@ -106,7 +125,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     { have : dist x y + infi (λp, dist z (Φ p) + dist y (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist z (Φ p) + dist y (Ψ p))),
       { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, dist x y + t)) _ (B _ _),
-        exact continuous_add continuous_const continuous_id,
+        exact continuous_const.add continuous_id,
         exact λx y hx, by simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
@@ -124,7 +143,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     { have : dist x y + infi (λp, dist y (Φ p) + dist z (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist y (Φ p) + dist z (Ψ p))),
       { refine cinfi_of_cinfi_of_monotone_of_continuous ( _ : continuous (λt, dist x y + t)) _ (B _ _),
-        exact continuous_add continuous_const continuous_id,
+        exact continuous_const.add continuous_id,
         exact λx y hx, by simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
@@ -142,7 +161,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     { have : infi (λp, dist x (Φ p) + dist y (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist x (Φ p) + dist y (Ψ p))),
       { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, t + dist y z)) _ (B _ _),
-        exact continuous_add continuous_id continuous_const,
+        exact continuous_id.add continuous_const,
         exact λx y hx, by simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
@@ -154,12 +173,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -174,12 +193,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -205,7 +224,8 @@ private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : �
   end
 | (inr x) (inl y) h := begin
     have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
-      le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
+      le_cinfi (λp, by simpa [add_comm]
+                         using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
     exfalso,
     linarith
@@ -252,7 +272,7 @@ def sum.dist : α ⊕ β → α ⊕ β → ℝ
 
 lemma sum.dist_eq_glue_dist {p q : α ⊕ β} :
   sum.dist p q = glue_dist (λ_ : unit, default α) (λ_ : unit, default β) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm]
+by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
 by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
@@ -337,6 +357,14 @@ by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inl x�
 def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : β) : glue_space hΦ hΨ :=
 by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
 
+instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited α] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_l _ _ (default _)⟩
+
+instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited β] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_r _ _ (default _)⟩
+
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
 begin
@@ -353,4 +381,116 @@ lemma to_glue_r_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_
 isometry_emetric_iff_metric.2 $ λ_ _, rfl
 
 end gluing --section
+
+section inductive_limit
+/- In this section, we define the inductive limit of
+     f 0        f 1        f 2        f 3
+X 0 -----> X 1 -----> X 2 -----> X 3 -----> ...
+where the X n are metric spaces and f n isometric embeddings. We do it by defining a premetric
+space structure on Σn, X n, where the predistance dist x y is obtained by pushing x and y in a
+common X k using composition by the f n, and taking the distance there. This does not depend on
+the choice of k as the f n are isometries. The metric space associated to this premetric space
+is the desired inductive limit.-/
+open nat
+
+variables {X : ℕ → Type u} [∀n, metric_space (X n)] {f : Πn, X n → X (n+1)}
+
+/-- Predistance on the disjoint union Σn, X n. -/
+def inductive_limit_dist (f : Πn, X n → X (n+1)) (x y : Σn, X n) : ℝ :=
+dist (le_rec_on (le_max_left  x.1 y.1) f x.2 : X (max x.1 y.1))
+     (le_rec_on (le_max_right x.1 y.1) f y.2 : X (max x.1 y.1))
+
+/-- The predistance on the disjoint union Σn, X n can be computed in any X k for large enough k.-/
+lemma inductive_limit_dist_eq_dist (I : ∀n, isometry (f n))
+  (x y : Σn, X n) (m : ℕ) : ∀hx : x.1 ≤ m, ∀hy : y.1 ≤ m,
+  inductive_limit_dist f x y = dist (le_rec_on hx f x.2 : X m) (le_rec_on hy f y.2 : X m) :=
+begin
+  induction m with m hm,
+  { assume hx hy,
+    have A : max x.1 y.1 = 0, { rw [le_zero_iff_eq.1 hx, le_zero_iff_eq.1 hy], simp },
+    unfold inductive_limit_dist,
+    congr; simp only [A] },
+  { assume hx hy,
+    by_cases h : max x.1 y.1 = m.succ,
+    { unfold inductive_limit_dist,
+      congr; simp only [h] },
+    { have : max x.1 y.1 ≤ succ m := by simp [hx, hy],
+      have : max x.1 y.1 ≤ m := by simpa [h] using of_le_succ this,
+      have xm : x.1 ≤ m := le_trans (le_max_left _ _) this,
+      have ym : y.1 ≤ m := le_trans (le_max_right _ _) this,
+      rw [le_rec_on_succ xm, le_rec_on_succ ym, (I m).dist_eq],
+      exact hm xm ym }}
+end
+
+/-- Premetric space structure on Σn, X n.-/
+def inductive_premetric (I : ∀n, isometry (f n)) :
+  premetric_space (Σn, X n) :=
+{ dist          := inductive_limit_dist f,
+  dist_self     := λx, by simp [dist, inductive_limit_dist],
+  dist_comm     := λx y, begin
+    let m := max x.1 y.1,
+    have hx : x.1 ≤ m := le_max_left _ _,
+    have hy : y.1 ≤ m := le_max_right _ _,
+    unfold dist,
+    rw [inductive_limit_dist_eq_dist I x y m hx hy, inductive_limit_dist_eq_dist I y x m hy hx,
+        dist_comm]
+  end,
+  dist_triangle := λx y z, begin
+    let m := max (max x.1 y.1) z.1,
+    have hx : x.1 ≤ m := le_trans (le_max_left _ _) (le_max_left _ _),
+    have hy : y.1 ≤ m := le_trans (le_max_right _ _) (le_max_left _ _),
+    have hz : z.1 ≤ m := le_max_right _ _,
+    calc inductive_limit_dist f x z
+      = dist (le_rec_on hx f x.2 : X m) (le_rec_on hz f z.2 : X m) :
+        inductive_limit_dist_eq_dist I x z m hx hz
+      ... ≤ dist (le_rec_on hx f x.2 : X m) (le_rec_on hy f y.2 : X m)
+          + dist (le_rec_on hy f y.2 : X m) (le_rec_on hz f z.2 : X m) :
+        dist_triangle _ _ _
+      ... = inductive_limit_dist f x y + inductive_limit_dist f y z :
+         by rw [inductive_limit_dist_eq_dist I x y m hx hy,
+                inductive_limit_dist_eq_dist I y z m hy hz]
+  end }
+
+local attribute [instance] inductive_premetric premetric.dist_setoid
+
+/-- The type giving the inductive limit in a metric space context. -/
+def inductive_limit (I : ∀n, isometry (f n)) : Type* :=
+@metric_quot _ (inductive_premetric I)
+
+/-- Metric space structure on the inductive limit. -/
+instance metric_space_inductive_limit (I : ∀n, isometry (f n)) :
+  metric_space (inductive_limit I) :=
+@premetric.metric_space_quot _ (inductive_premetric I)
+
+/-- Mapping each `X n` to the inductive limit. -/
+def to_inductive_limit (I : ∀n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
+by letI : premetric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+
+instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
+⟨to_inductive_limit _ 0 (default _)⟩
+
+/-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
+lemma to_inductive_limit_isometry (I : ∀n, isometry (f n)) (n : ℕ) :
+  isometry (to_inductive_limit I n) := isometry_emetric_iff_metric.2 $ λx y,
+begin
+  change inductive_limit_dist f ⟨n, x⟩ ⟨n, y⟩ = dist x y,
+  rw [inductive_limit_dist_eq_dist I ⟨n, x⟩ ⟨n, y⟩ n (le_refl n) (le_refl n),
+      le_rec_on_self, le_rec_on_self]
+end
+
+/-- The maps `to_inductive_limit n` are compatible with the maps `f n`. -/
+lemma to_inductive_limit_commute (I : ∀n, isometry (f n)) (n : ℕ) :
+  (to_inductive_limit I n.succ) ∘ (f n) = to_inductive_limit I n :=
+begin
+  funext,
+  simp only [comp, to_inductive_limit, quotient.eq],
+  show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
+  { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
+        le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],
+    exact le_refl _,
+    exact le_refl _,
+    exact le_succ _ }
+end
+
+end inductive_limit --section
 end metric --namespace

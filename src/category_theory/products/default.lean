@@ -1,0 +1,2 @@
+import category_theory.products.bifunctor
+import category_theory.products.associator

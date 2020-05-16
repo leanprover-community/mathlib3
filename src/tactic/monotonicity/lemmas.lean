@@ -1,4 +1,8 @@
-
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
 import tactic.monotonicity.basic
 
 variables {α : Type*}
@@ -22,11 +26,11 @@ lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
-  [decidable_rel ((≤) : α → α → Prop)]
   (h' : 0 ≥ z)
   (h : y ≤ x)
 : x * z ≤ y * z :=
 begin
+  classical,
   by_contradiction h'',
   revert h,
   apply not_le_of_lt,

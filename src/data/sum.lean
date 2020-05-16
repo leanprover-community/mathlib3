@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 
 More theorems about the sum type.
 -/
+import tactic.lint
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -30,15 +31,30 @@ protected def map {α α' β β'} (f : α → α') (g : β → β')  : α ⊕ β
 | (sum.inl x) := sum.inl (f x)
 | (sum.inr x) := sum.inr (g x)
 
-@[simp] theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
+theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
-@[simp] theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
+theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
 ⟨inr.inj, congr_arg _⟩
 
-@[simp] theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
+theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
 
-@[simp] theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
+theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
+
+protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ β → γ := λ x, sum.rec_on x f g
+
+@[simp] lemma elim_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) (x : α) :
+  sum.elim f g (inl x) = f x := rfl
+
+@[simp] lemma elim_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) (x : β) :
+  sum.elim f g (inr x) = g x := rfl
+
+lemma elim_injective {α β γ : Sort*} {f : α → γ} {g : β → γ}
+  (hf : function.injective f) (hg : function.injective g)
+ (hfg : ∀ a b, f a ≠ g b) : function.injective (sum.elim f g) :=
+λ x y, sum.rec_on x
+  (sum.rec_on y (λ x y hxy, by rw hf hxy) (λ x y hxy, false.elim $ hfg _ _ hxy))
+  (sum.rec_on y (λ x y hxy, false.elim $ hfg x y hxy.symm) (λ x y hxy, by rw hg hxy))
 
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)
@@ -53,10 +69,10 @@ section
   variables {ra rb}
 
   @[simp] theorem lex_inl_inl {a₁ a₂} : lex ra rb (inl a₁) (inl a₂) ↔ ra a₁ a₂ :=
-  ⟨λ h, by cases h; assumption, lex.inl _⟩
+  ⟨λ h, by cases h; assumption, lex.inl⟩
 
   @[simp] theorem lex_inr_inr {b₁ b₂} : lex ra rb (inr b₁) (inr b₂) ↔ rb b₁ b₂ :=
-  ⟨λ h, by cases h; assumption, lex.inr _⟩
+  ⟨λ h, by cases h; assumption, lex.inr⟩
 
   @[simp] theorem lex_inr_inl {b a} : ¬ lex ra rb (inr b) (inl a) :=
   λ h, by cases h

@@ -5,13 +5,20 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic logic.relator
+import data.option.defs
+import logic.basic
+import tactic.cache
 
 namespace list
 
 open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+
+/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
+def is_nil {α} : list α → bool
+| [] := tt
+| _  := ff
 
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
@@ -24,6 +31,24 @@ def split_at : ℕ → list α → list α × list α
 | (succ n) []        := ([], [])
 | (succ n) (x :: xs) := let (l, r) := split_at n xs in (x :: l, r)
 
+
+/-- An auxiliary function for `split_on_p`. -/
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+| [] f       := [f []]
+| (h :: t) f :=
+  if P h then f [] :: split_on_p_aux t id
+  else split_on_p_aux t (λ l, f (h :: l))
+
+/-- Split a list at every element satisfying a predicate. -/
+def split_on_p {α : Type u} (P : α → Prop) [decidable_pred P] (l : list α) : list (list α) :=
+split_on_p_aux P l id
+
+/-- Split a list at every occurrence of an element.
+
+    [1,1,2,3,2,4,4].split_on 2 = [[1,1],[3],[4,4]] -/
+def split_on {α : Type u} [decidable_eq α] (a : α) (as : list α) : list (list α) :=
+as.split_on_p (=a)
+
 /-- Concatenate an element at the end of a list.
 
      concat [a, b] c = [a, b, c] -/
@@ -31,6 +56,8 @@ def split_at : ℕ → list α → list α × list α
 | []     a := [a]
 | (b::l) a := b :: concat l a
 
+/-- `head' xs` returns the first element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
 @[simp] def head' : list α → option α
 | []       := none
 | (a :: l) := some a
@@ -66,6 +93,8 @@ def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list
 section take'
 variable [inhabited α]
 
+/-- Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
+elements `default α`. -/
 def take' : ∀ n, list α → list α
 | 0     l := []
 | (n+1) l := l.head :: take' n l.tail
@@ -103,6 +132,13 @@ let (b', l') := scanr_aux f b l in b' :: l'
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 
+/-- Sum of a list.
+
+     sum [a, b, c] = ((0 + a) + b) + c -/
+-- Later this will be tagged with `to_additive`, but this can't be done yet because of import
+-- dependencies.
+def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=
@@ -127,7 +163,7 @@ find_indexes_aux p l 0
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
-  replacing `a -> b` at the first value `a` in the list such that `f a = some b`. -/
+  replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/
 def lookmap (f : α → option α) : list α → list α
 | []     := []
 | (a::l) :=
@@ -136,10 +172,29 @@ def lookmap (f : α → option α) : list α → list α
   | none   := a :: lookmap l
   end
 
+def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
+| k []      := []
+| k (a::as) := f k a::(map_with_index_core (k+1) as)
+
+/-- Given a function `f : ℕ → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
+`[f 0 a₀, f 1 a₁, ...]`. -/
+def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
+map_with_index_core f 0 as
+
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
+
+/-- Auxilliary definition for `indexes_values`. -/
+def indexes_values_aux {α} (f : α → bool) : list α → ℕ → list (ℕ × α)
+| []      n := []
+| (x::xs) n := let ns := indexes_values_aux xs (n+1) in if f x then (n, x)::ns else ns
+
+/-- Returns `(l.find_indexes f).zip l`, i.e. pairs of `(n, x)` such that `f x = tt` and
+  `l.nth = some x`, in increasing order of first arguments. -/
+def indexes_values {α} (l : list α) (f : α → bool) : list (ℕ × α) :=
+indexes_values_aux f l 0
 
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] : list α → nat
@@ -209,10 +264,9 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 
 section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
-| nil {} : forall₂ [] []
+| nil : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 
 attribute [simp] forall₂.nil
@@ -256,8 +310,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
     show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
-    by rw nat.succ_add; exact prod.lex.right _ _ (lt_succ_self _),
-  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ _ (lt_add_of_pos_left _ (succ_pos _)),
+    by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (lt_add_of_pos_left _ (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
 using_well_founded {
   dec_tac := tactic.assumption,
@@ -324,7 +378,7 @@ variables (R : α → α → Prop)
   For example if `R = (≠)` then it asserts `l` has no duplicates,
   and if `R = (<)` then it asserts that `l` is (strictly) sorted. -/
 inductive pairwise : list α → Prop
-| nil {} : pairwise []
+| nil : pairwise []
 | cons : ∀ {a : α} {l : list α}, (∀ a' ∈ l, R a a') → pairwise l → pairwise (a::l)
 
 variables {R}
@@ -354,7 +408,7 @@ variable (R : α → α → Prop)
 
      chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d -/
 inductive chain : α → list α → Prop
-| nil {} {a : α} : chain a []
+| nil {a : α} : chain a []
 | cons : ∀ {a b : α} {l : list α}, R a b → chain b l → chain a (b::l)
 
 /-- `chain' R l` means that `R` holds between adjacent elements of `l`.
@@ -369,10 +423,12 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] chain.nil
+
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
-instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance
 
 end chain
@@ -396,24 +452,33 @@ def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 | s 0     := []
 | s (n+1) := s :: range' (s+1) n
 
+/-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id
 
+/-- Apply `f` to the first element of `l`. -/
 def map_head {α} (f : α → α) : list α → list α
 | [] := []
 | (x :: xs) := f x :: xs
 
+/-- Apply `f` to the last element of `l`. -/
 def map_last {α} (f : α → α) : list α → list α
 | [] := []
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-@[simp] def last' {α} : α → list α → α
+/-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `x` otherwise -/
+@[simp] def ilast' {α} : α → list α → α
 | a []     := a
-| a (b::l) := last' b l
+| a (b::l) := ilast' b l
 
-/- tfae: The Following (propositions) Are Equivalent -/
-def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
+/-- `last' xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
+@[simp] def last' {α} : list α → option α
+| []     := none
+| [a]    := some a
+| (b::l) := last' l
 
 /-- `rotate l n` rotates the elements of `l` to the left by `n`
 
@@ -430,6 +495,9 @@ def rotate' : list α → ℕ → list α
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)
 
+/-- Given a decidable predicate `p` and a proof of existence of `a ∈ l` such that `p a`,
+choose the first element with this property. This version returns both `a` and proofs
+of `a ∈ l` and `p a`. -/
 def choose_x : Π l : list α, Π hp : (∃ a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a }
 | [] hp := false.elim (exists.elim hp (assume a h, not_mem_nil a h.left))
 | (l :: ls) hp := if pl : p l then ⟨l, ⟨or.inl rfl, pl⟩⟩ else
@@ -437,8 +505,30 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
   (λ b ⟨o, h₂⟩, ⟨o.resolve_left (λ e, pl $ e ▸ h₂), h₂⟩)) in
 ⟨a, ⟨or.inr a_mem_ls, pa⟩⟩
 
+/-- Given a decidable predicate `p` and a proof of existence of `a ∈ l` such that `p a`,
+choose the first element with this property. This version returns `a : α`, and properties
+are given by `choose_mem` and `choose_property`. -/
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
+
+/-- Filters and maps elements of a list -/
+def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+  list α → m (list β)
+| []       := return []
+| (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
+  match b with none := t' | (some x) := x::t' end
+
+protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  list α → F (list β)
+| [] := pure []
+| (x :: xs) := list.cons <$> f x <*> traverse xs
+
+/-- `get_rest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
+  If `l₁` is not a prefix of `l`, returns `none` -/
+def get_rest [decidable_eq α] : list α → list α → option (list α)
+| l      []      := some l
+| []     _       := none
+| (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
 
 end list

@@ -5,6 +5,8 @@ Authors: Johannes Hölzl
 
 Quotients -- extends the core library
 -/
+import logic.relator
+
 variables {α : Sort*} {β : Sort*}
 
 namespace setoid
@@ -21,6 +23,8 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
+
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
   (cb : ∀ {a b₁ b₂}, rb b₁ b₂ → f a b₁ == f a b₂) : φ qa qb :=
@@ -31,17 +35,51 @@ quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁
       ... == f a₂ b                                     : ca pa
       ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
 
+/-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
+to a map `quot ra → quot rb`. -/
+protected def map (f : α → β) (h : (ra ⇒ rb) f f) : quot ra → quot rb :=
+quot.lift (λ x, ⟦f x⟧) $ assume x y (h₁ : ra x y), quot.sound $ h h₁
+
+/-- If `ra` is a subrelation of `ra'`, then we have a natural map `quot ra → quot ra'`. -/
+protected def map_right {ra' : α → α → Prop} (h : ∀a₁ a₂, ra a₁ a₂ → ra' a₁ a₂) :
+  quot ra → quot ra' :=
+quot.map id h
+
 end quot
 
 namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
+instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
+
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
 quot.hrec_on₂ qa qb f
   (λ _ _ _ p, c _ _ _ _ p (setoid.refl _))
   (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
+
+/-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
+to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
+protected def map (f : α → β) (h : ((≈) ⇒ (≈)) f f) : quotient sa → quotient sb :=
+quot.map f @h
+
+variables {γ : Sort*} [sc : setoid γ]
+
+/-- Map a function `f : α → β → γ` that sends equivalent elements to equivalent elements
+to a function `f : quotient sa → quotient sb → quotient sc`.
+Useful to define binary operations on quotients. -/
+protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+  quotient sa → quotient sb → quotient sc :=
+quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
+
+/-- A version of `quotient.map₂` using curly braces and unification. -/
+protected def map₂' {α : Sort*} {β : Sort*} {γ : Sort*}
+  {sa : setoid α} {sb : setoid β} {sc : setoid γ}
+  (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+  quotient sa → quotient sb → quotient sc :=
+quotient.map₂ f h
+
 end quotient
 
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
@@ -51,10 +89,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α):
+@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
 quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α):
+@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
 quotient.lift_on (quotient.mk x) f h = f x := rfl
 
 /-- Choose an element of the equivalence class using the axiom of choice.
@@ -93,7 +131,7 @@ theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
 
-lemma nonempty_quotient_iff (s : setoid α): nonempty (quotient s) ↔ nonempty α :=
+lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=
 ⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
@@ -110,6 +148,8 @@ namespace trunc
 
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
+
+instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
 
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=
@@ -242,5 +282,4 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
-
 end quotient

@@ -2,14 +2,35 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Giry monad: `measure` is a monad in the category of `measurable_space` and `measurable` functions.
 -/
-import measure_theory.integration data.sum
-noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+import measure_theory.integration
 
-open classical set lattice filter
+/-!
+# The Giry monad
+
+Let X be a measurable space. The collection of all measures on X again
+forms a measurable space. This construction forms a monad on
+measurable spaces and measurable functions, called the Giry monad.
+
+Note that most sources use the term "Giry monad" for the restriction
+to *probability* measures. Here we include all measures on X.
+
+See also `measure_theory/category/Meas.lean`, containing an upgrade of the type-level
+monad to an honest monad of the functor `Measure : Meas ⥤ Meas`.
+
+## References
+
+* <https://ncatlab.org/nlab/show/Giry+monad>
+
+## Tags
+
+giry monad
+-/
+
+noncomputable theory
+open_locale classical
+
+open classical set filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
@@ -43,7 +64,7 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp [hs, lattice.supr_eq_if],
+    simp [hs, supr_eq_if],
     exact measurable_const.if hs measurable_const
   end
 
@@ -56,12 +77,11 @@ begin
   funext μ,
   exact @lintegral_eq_supr_eapprox_integral α {μ := μ} f hf
 end,
-measurable.supr $ assume n,
+measurable_supr $ assume n,
   begin
     dunfold simple_func.integral,
-    refine measurable_finset_sum (simple_func.eapprox f n).range _,
-    assume i,
-    refine ennreal.measurable_mul measurable_const _,
+    refine finset.measurable_sum (simple_func.eapprox f n).range (λ i, _),
+    refine measurable_const.ennreal_mul _,
     exact measurable_coe ((simple_func.eapprox f n).preimage_measurable _)
   end
 
@@ -111,13 +131,13 @@ begin
     symmetry,
     transitivity,
     apply lintegral_supr,
-    { exact assume n,
-        measurable_finset_sum _ (assume r, ennreal.measurable_mul measurable_const (hf _ _)) },
+    { assume n,
+      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { exact assume r, ennreal.measurable_mul measurable_const (hf _ _) },
+    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },
@@ -148,7 +168,7 @@ def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
 by rw [bind, join_apply hs, integral_map (measurable_coe hs) hf]
 
 lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λm, bind m g) :=
-measurable.comp (measurable_map _ hg) measurable_join
+measurable_join.comp (measurable_map _ hg)
 
 lemma integral_bind {m : measure α} {g : α → measure β} {f : β → ennreal}
   (hg : measurable g) (hf : measurable f) :
@@ -164,14 +184,14 @@ lemma bind_bind {γ} [measurable_space γ] {m : measure α} {f : α → measure 
   bind (bind m f) g = bind m (λa, bind (f a) g) :=
 measure.ext $ assume s hs,
 begin
-  rw [bind_apply hs hg, bind_apply hs (hf.comp $ measurable_bind' hg), integral_bind hf],
+  rw [bind_apply hs hg, bind_apply hs ((measurable_bind' hg).comp hf), integral_bind hf],
   { congr, funext a,
     exact (bind_apply hs hg).symm },
-  exact hg.comp (measurable_coe hs)
+  exact (measurable_coe hs).comp hg
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a (hf.comp (measurable_coe hs))]
+measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a ((measurable_coe hs).comp hf)]
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
@@ -183,6 +203,40 @@ begin
   assumption,
   exact one_mul _
 end
+
+lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
+  map f (dirac a) = dirac (f a) :=
+measure.ext $ assume s hs,
+  by rw [dirac_apply (f a) hs, map_apply hf hs, dirac_apply a (hf s hs), set.mem_preimage]
+
+lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
+by rw [bind, map_id]
+
+lemma join_map_map {f : α → β} (hf : measurable f) (μ : measure (measure α)) :
+  join (map (map f) μ) = map f (join μ) :=
+measure.ext $ assume s hs,
+  begin
+    rw [join_apply hs, map_apply hf hs, join_apply,
+      integral_map (measurable_coe hs) (measurable_map f hf)],
+    { congr, funext ν, exact map_apply hf hs },
+    exact hf s hs
+  end
+
+lemma join_map_join (μ : measure (measure (measure α))) :
+  join (map join μ) = join (join μ) :=
+begin
+  show bind μ join = join (join μ),
+  rw [join_eq_bind, join_eq_bind, bind_bind measurable_id measurable_id],
+  apply congr_arg (bind μ),
+  funext ν,
+  exact join_eq_bind ν
+end
+
+lemma join_map_dirac (μ : measure α) : join (map dirac μ) = μ :=
+dirac_bind
+
+lemma join_dirac (μ : measure α) : join (dirac μ) = μ :=
+eq.trans (join_eq_bind (dirac μ)) (bind_dirac measurable_id _)
 
 end measure
 

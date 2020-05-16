@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter
+import order.filter.basic
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -52,7 +52,7 @@ def to_filter (F : cfilter (set α) σ) : filter α :=
     subset_inter (subset.trans (F.inf_le_left _ _) h₁) (subset.trans (F.inf_le_right _ _) h₂)⟩ }
 
 @[simp] theorem mem_to_filter_sets (F : cfilter (set α) σ) {a : set α} :
-  a ∈ F.to_filter.sets ↔ ∃ b, F b ⊆ a := iff.rfl
+  a ∈ F.to_filter ↔ ∃ b, F b ⊆ a := iff.rfl
 
 end cfilter
 
@@ -66,7 +66,7 @@ protected def cfilter.to_realizer (F : cfilter (set α) σ) : F.to_filter.realiz
 
 namespace filter.realizer
 
-theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f.sets ↔ ∃ b, F.F b ⊆ a :=
+theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f ↔ ∃ b, F.F b ⊆ a :=
 by cases F; subst f; simp
 
 -- Used because it has better definitional equalities than the eq.rec proof
@@ -223,11 +223,13 @@ theorem tendsto_iff (f : α → β) {l₁ : filter α} {l₂ : filter β} (L₁ 
 (le_iff (L₁.map f) L₂).trans $ forall_congr $ λ b, exists_congr $ λ a, image_subset_iff
 
 theorem ne_bot_iff {f : filter α} (F : f.realizer) :
-  f ≠ ⊥ ↔ ∀ a : F.σ, F.F a ≠ ∅ :=
-by haveI := classical.prop_decidable;
-   rw [not_iff_comm, ← lattice.le_bot_iff,
-       F.le_iff realizer.bot]; simp [not_forall]; exact
-⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
- λ h, let ⟨x, h⟩ := h () in ⟨x, lattice.le_bot_iff.1 h⟩⟩
+  f ≠ ⊥ ↔ ∀ a : F.σ, (F.F a).nonempty :=
+begin
+  classical,
+  rw [not_iff_comm, ← le_bot_iff, F.le_iff realizer.bot, not_forall],
+  simp only [set.not_nonempty_iff_eq_empty],
+  exact ⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
+    λ h, let ⟨x, h⟩ := h () in ⟨x, le_bot_iff.1 h⟩⟩
+end
 
 end filter.realizer

@@ -7,18 +7,24 @@ GCD domain and integral domains with normalization functions
 
 TODO: abstract the domains to to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
 -/
-import algebra.associated data.int.gcd
+import algebra.associated
+import data.int.gcd
 
 variables {α : Type*}
 
 set_option old_structure_cmd true
 
+
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
 class normalization_domain (α : Type*) extends integral_domain α :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
 (norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
+end prio
 
 export normalization_domain (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
@@ -127,6 +133,8 @@ quotient.induction_on a normalize_idem
 
 end associates
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- GCD domain: an integral domain with normalization and `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations. In this setting `gcd` and `lcm` form a bounded lattice on
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
@@ -142,6 +150,7 @@ class gcd_domain (α : Type*) extends normalization_domain α :=
 (gcd_mul_lcm    : ∀a b, gcd a b * lcm a b = normalize (a * b))
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
+end prio
 
 export gcd_domain (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
@@ -282,7 +291,7 @@ classical.by_cases (assume : lcm a b = 0, by rw [this, normalize_zero]) $
     rintros ⟨rfl, rfl⟩; left; refl) h_lcm,
   have h2 : normalize (gcd a b * lcm a b) = gcd a b * lcm a b,
     by rw [gcd_mul_lcm, normalize_idem],
-  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_left_inj h1] using h2
+  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_right_inj h1] using h2
 
 theorem lcm_comm (a b : α) : lcm a b = lcm b a :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
@@ -465,10 +474,10 @@ by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_gcd, coe_nat_abs_eq_normaliz
 theorem gcd_mul_right (i j k : ℤ) : gcd (i * j) (k * j) = gcd i k * nat_abs j :=
 by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_gcd, coe_nat_abs_eq_normalize]
 
-theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : gcd i j > 0 :=
+theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : 0 < gcd i j :=
 nat.gcd_pos_of_pos_left (nat_abs j) (nat_abs_pos_of_ne_zero i_non_zero)
 
-theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : gcd i j > 0 :=
+theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : 0 < gcd i j :=
 nat.gcd_pos_of_pos_right (nat_abs i) (nat_abs_pos_of_ne_zero j_non_zero)
 
 theorem gcd_eq_zero_iff {i j : ℤ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
@@ -564,7 +573,7 @@ lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
         (λ ha, or.inr (nat.dvd_antisymm h ha))
         (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
             (hab.symm ▸ dvd_mul_left _ _),
-          (nat.mul_left_inj (show 0 < p, from
+          (nat.mul_right_inj (show 0 < p, from
               nat.pos_of_ne_zero hp.1)).1 $
             by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
 
@@ -576,7 +585,7 @@ lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
       mt is_unit_nat.1 $ λ h, by simpa [h, not_prime_one] using hp,
     λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
-def associates_int_equiv_nat : (associates ℤ) ≃ ℕ :=
+def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
 begin
   refine ⟨λz, z.out.nat_abs, λn, associates.mk n, _, _⟩,
   { refine (assume a, quotient.induction_on' a $ assume a,

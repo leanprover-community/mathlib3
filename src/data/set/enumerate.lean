@@ -5,11 +5,11 @@ Author: Johannes Hölzl
 
 Enumerate elements of a set with a select function.
 -/
-
-import data.equiv.encodable data.set.finite data.set.lattice logic.function
+import data.set.lattice
+import tactic.wlog
 noncomputable theory
 
-open function set encodable
+open function set
 
 namespace set
 
@@ -67,7 +67,7 @@ begin
         have : enumerate sel (s - {a}) m = some a, { simp [enumerate, *] at * },
         have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
-    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, *] at *; tauto } }
+    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, add_comm, *] at *; tauto } }
 end
 
 end enumerate

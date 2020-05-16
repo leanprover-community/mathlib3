@@ -7,19 +7,24 @@ A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
 set theory.
 -/
-import tactic.interactive data.list.basic
+import data.list.basic
+import data.sigma
 
 variables {α : Type*}
 
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
-| nil {} : lists' tt
+| nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
 def lists (α : Type*) := Σ b, lists' α b
 
 namespace lists'
+
+instance [inhabited α] : ∀ b, inhabited (lists' α b)
+| tt := ⟨nil⟩
+| ff := ⟨atom (default _)⟩
 
 def cons : lists α → lists' α tt → lists' α tt
 | ⟨b, a⟩ l := cons' a l
@@ -147,6 +152,9 @@ by simp [of_list, of']
 theorem of_to_list : ∀ {l : lists α}, is_list l → of_list (to_list l) = l
 | ⟨tt, l⟩ _ := by simp [of_list, of']
 
+instance : inhabited (lists α) :=
+⟨of' lists'.nil⟩
+
 instance [decidable_eq α] : decidable_eq (lists α) :=
 by unfold lists; apply_instance
 
@@ -236,11 +244,10 @@ section decidable
 | (psum.inr $ psum.inl ⟨l₁, l₂⟩) := sizeof l₁ + sizeof l₂
 | (psum.inr $ psum.inr ⟨l₁, l₂⟩) := sizeof l₁ + sizeof l₂
 
-local attribute [-simp] add_comm add_assoc
 open well_founded_tactics
 
 theorem sizeof_pos {b} (l : lists' α b) : 0 < sizeof l :=
-by cases l; {unfold_sizeof, trivial_nat_lt}
+by cases l; unfold_sizeof; trivial_nat_lt
 
 theorem lt_sizeof_cons' {b} (a : lists' α b) (l) :
   sizeof (⟨b, a⟩ : lists α) < sizeof (lists'.cons' a l) :=
@@ -327,6 +334,8 @@ def finsets (α : Type*) := quotient (@lists.setoid α)
 namespace finsets
 
 instance : has_emptyc (finsets α) := ⟨⟦lists.of' lists'.nil⟧⟩
+
+instance : inhabited (finsets α) := ⟨∅⟩
 
 instance [decidable_eq α] : decidable_eq (finsets α) :=
 by unfold finsets; apply_instance

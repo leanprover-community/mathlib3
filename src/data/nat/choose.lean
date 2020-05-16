@@ -110,7 +110,8 @@ Facts about more specific binomial coefficients and their sums
 -/
 
 -- This lemma exists only so that we can instantiate it with `i = m + 1`.
-private lemma reflect_sum_lemma (i : nat) (m : nat) (i_bound : i ≤ m + 1) (f : nat → nat) (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
+private lemma reflect_sum_lemma (i : nat) (m : nat) (i_bound : i ≤ m + 1) (f : nat → nat)
+  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
   ∑ j in (Ico (m + 1 - i) (m + 1)), f j = ∑ j in Ico (m + 1) (m + 1 + i), f j :=
 begin
   induction i with i,
@@ -149,12 +150,13 @@ begin
   }
 end
 
-private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat) (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
-  finset.sum (finset.range m.succ) f = finset.sum (finset.Ico (nat.succ m) (2 * m + 2)) f :=
+private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat)
+  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
+  ∑ i in (range (m + 1)), f i = ∑ i in (Ico (m + 1) (2 * m + 2)), f i :=
 begin
   have r : 2 * m + 2 = 2 * (m + 1), ring,
   rw r,
-  simpa [finset.Ico.zero_bot m.succ, two_mul (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
+  simpa [finset.Ico.zero_bot (m + 1), two_mul (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
 end
 
 lemma sum_range_choose_halfway (m : nat) :

@@ -18,10 +18,13 @@ We interpret "triangular numbers" as naturals of the form k(k+1)/2 for natural k
 discrete_sum
 -/
 
+open_locale big_operators
+open finset
+
 lemma inverse_triangle_sum (n : ℕ) :
-(finset.range n).sum (λ x, (2 : ℚ) / (x * (x + 1))) = if n ≤ 1 then 0 else 2 - (2 : ℚ) / n :=
+∑ k in range n, (2 : ℚ) / (k * (k + 1)) = if n ≤ 1 then 0 else 2 - (2 : ℚ) / n :=
 begin
-  rw finset.sum_range_induction,
+  rw sum_range_induction,
     { rw if_pos, norm_num },
   intro n,
 

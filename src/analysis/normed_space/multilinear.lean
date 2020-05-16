@@ -374,31 +374,20 @@ end
 @[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
 by rw op_norm_zero_iff
 
-/-- The operator norm is homogeneous. -/
-lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-le_antisymm
-  (Inf_le _ bounds_bdd_below
-    ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
-    begin
-      erw [norm_smul, mul_assoc],
-      exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-    end⟩)
-  (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
-    (or.elim (lt_or_eq_of_le (norm_nonneg c))
-      (λ hlt,
-        begin
-          rw mul_comm,
-          exact mul_le_of_le_div hlt (Inf_le _ bounds_bdd_below
-          ⟨div_nonneg hn hlt, λ _,
-          (by { rw div_mul_eq_mul_div, exact le_div_of_mul_le hlt
-          (by { rw [ mul_comm, ←norm_smul ], exact hc _ }) })⟩)
-        end)
-      (λ heq, by { rw [←heq, zero_mul], exact hn }))))
+lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+(Inf_le _ bounds_bdd_below
+  ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+  begin
+    erw [norm_smul, mul_assoc],
+    exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+  end⟩)
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
-  ∥-f∥ = ∥(-1:𝕜) • f∥ : by rw neg_one_smul
-  ... = ∥(-1:𝕜)∥ * ∥f∥ : by rw op_norm_smul
-  ... = ∥f∥ : by simp
+lemma op_norm_neg : ∥-f∥ = ∥f∥ :=
+begin
+  show Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥(-f) m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)}
+    = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)},
+  apply congr_arg, ext, simp,
+end
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -406,7 +395,7 @@ instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E₁ E�
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜 (continuous_multilinear_map 𝕜 E₁ E₂) :=
-⟨op_norm_smul⟩
+⟨op_norm_smul_le⟩
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
 For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads

@@ -109,27 +109,6 @@ by simpa using (add_pow 1 1 n).symm
 Facts about more specific binomial coefficients and their sums
 -/
 
-lemma sum_range_split (f : nat → nat) (m n : nat) (n_le_m : n ≤ m) :
-  ∑ i in range m, f i = (∑ i in range n, f i) + ∑ i in (Ico n m), f i :=
-begin
-  induction m with m,
-  {cases n, simp, exfalso, exact not_succ_le_zero n n_le_m},
-  {
-    cases le_or_lt n m with n_le_m bad,
-    {
-      rw sum_range_succ f m,
-      rw @sum_Ico_succ_top _ _ n m n_le_m f,
-      rw m_ih n_le_m,
-      ring,
-    },
-    {
-      have n_eq_m : n = m + 1, exact le_antisymm n_le_m bad,
-      subst n_eq_m,
-      simp,
-    },
-  }
-end
-
 -- This lemma exists only so that we can instantiate it with `i = m + 1`.
 private lemma reflect_sum_lemma (i : nat) (m : nat) (i_bound : i ≤ m + 1) (f : nat → nat) (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
   ∑ j in (Ico (m + 1 - i) (m + 1)), f j = ∑ j in Ico (m + 1) (m + 1 + i), f j :=
@@ -170,7 +149,7 @@ begin
   }
 end
 
-lemma sum_range_reflects_halfway (m : nat) (f : nat → nat) (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
+private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat) (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
   finset.sum (finset.range m.succ) f = finset.sum (finset.Ico (nat.succ m) (2 * m + 2)) f :=
 begin
   have r : 2 * m + 2 = 2 * (m + 1), ring,
@@ -193,7 +172,7 @@ begin
       ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i
               : by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
       ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i
-            : by rw sum_range_split (choose (2 * m + 1)) (2 * m + 2) (m + 1) (by linarith)
+            : by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
       ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
       ... = 2 ^ (2 * m) * 2 : pow_add _ _ _
       ... = 2 * 2 ^ (2 * m) : mul_comm _ _

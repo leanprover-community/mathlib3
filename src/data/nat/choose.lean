@@ -119,7 +119,7 @@ begin
   {
     have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
     rw t, clear t,
-    rw <- (@sum_Ico_succ_top _ _ (m + 1) ((m + 1) + i) (by exact nat.le.intro rfl) f).symm,
+    rw <- (@sum_Ico_succ_top _ _ (m + 1) (m + 1 + i) (by exact nat.le.intro rfl) f).symm,
     rw <- i_ih, clear i_ih,
     have t : f (m + 1 + i) = f (m - i), by {
       have munge : m + 1 + i ≤ 2 * m + 1,

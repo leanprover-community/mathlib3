@@ -450,19 +450,6 @@ begin
   omega
 end
 
-/-- For any sum along `{0, ..., n-1}` of an commutative-monoid-valued, we can verify that it's equal to a different function just by checking differences of adjacent terms. This is a discrete analogue of the fundamental theorem of calculus.
- -/
-lemma sum_range_induction {M : Type*} [add_comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
-   (finset.range n).sum f = s n :=
-begin
-  induction n with k hk,
-    { rw h0, simp only [finset.sum_empty, finset.range_zero] },
-  rw [← nat.add_one, h k, ← hk, finset.range_succ],
-  simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
-  rw add_comm,
-end
-
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
 Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
@@ -534,6 +521,26 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
 
 attribute [to_additive finset.sum_range_one] prod_range_one
+
+/-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued, we can verify that
+it's equal to a different function just by checking ratios of adjacent terms.
+This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
+lemma prod_range_induction {M : Type*} [comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
+  ∏ k in finset.range n, f k = s n :=
+begin
+  induction n with k hk,
+  { simp only [h0, finset.prod_range_zero] },
+  { simp only [hk, finset.prod_range_succ, h, mul_comm] }
+end
+
+/-- For any sum along `{0, ..., n-1}` of a commutative-monoid-valued, we can verify that it's equal
+to a different function just by checking differences of adjacent terms. This is a discrete analogue
+of the fundamental theorem of calculus. -/
+lemma sum_range_induction {M : Type*} [add_comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
+  ∑ k in finset.range n, f k = s n :=
+@prod_range_induction (multiplicative M) _ f s h0 h n
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact

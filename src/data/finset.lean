@@ -2562,6 +2562,10 @@ lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [de
     disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
 by split; simp [disjoint_left] {contextual := tt}
 
+lemma disjoint_filter_filter {s t : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+    (disjoint s t) → disjoint (s.filter p) (t.filter q) :=
+disjoint.mono (filter_subset _) (filter_subset _)
+
 lemma pi_disjoint_of_disjoint {δ : α → Type*} [∀a, decidable_eq (δ a)]
   {s : finset α} [decidable_eq (Πa∈s, δ a)]
   (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :

@@ -191,12 +191,12 @@ begin
   classical,
   have hiq : ¬ (q - 1) ∣ i, { contrapose! h,  exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
   let φ : units K ↪ K := ⟨coe, units.ext⟩,
-  have : univ.map φ = univ \ finset.singleton 0,
+  have : univ.map φ = univ \ {0},
   { ext x,
     simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
                mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
-  calc ∑ x : K, x ^ i = ∑ x in univ \ finset.singleton 0, x ^ i :
-    by rw [← sum_sdiff (subset_univ (finset.singleton (0:K))), sum_singleton,
+  calc ∑ x : K, x ^ i = ∑ x in univ \ {(0 : K)}, x ^ i :
+    by rw [← sum_sdiff ({0} : finset K).subset_univ, sum_singleton,
            zero_pow (nat.pos_of_ne_zero hi), add_zero]
     ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }

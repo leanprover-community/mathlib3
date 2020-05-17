@@ -59,7 +59,7 @@ variables (S : set (units R)) [is_subgroup S] [fintype S]
 instance subgroup_units_cyclic : is_cyclic S :=
 begin
   refine is_cyclic_of_subgroup_integral_domain ⟨(coe : S → R), _, _⟩
-    (injective_comp units.ext subtype.val_injective),
+    (units.ext.comp subtype.val_injective),
   { simp only [is_submonoid.coe_one, units.coe_one, coe_coe] },
   { intros, simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] },
 end

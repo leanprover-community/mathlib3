@@ -3,7 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring algebra.group_with_zero
+import algebra.ring
+import algebra.group_with_zero
 open set
 
 set_option default_priority 100 -- see Note [default priority]

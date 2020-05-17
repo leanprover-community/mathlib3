@@ -1,4 +1,5 @@
-import deprecated.group algebra.ring
+import deprecated.group
+import algebra.ring
 
 universes u v w
 

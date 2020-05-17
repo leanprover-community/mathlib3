@@ -1,4 +1,5 @@
-import deprecated.ring algebra.field
+import deprecated.ring
+import algebra.field
 
 namespace is_ring_hom
 open ring_hom (of)

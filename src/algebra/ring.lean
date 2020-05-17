@@ -3,8 +3,11 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
-import algebra.group.hom algebra.group.units
-import tactic.norm_cast tactic.split_ifs algebra.group.units
+import algebra.group.hom
+import algebra.group.units
+import tactic.norm_cast
+import tactic.split_ifs
+import algebra.group.units
 
 /-!
 # Properties and homomorphisms of semirings and rings

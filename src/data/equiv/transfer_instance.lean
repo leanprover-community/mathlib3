@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.equiv.basic
-import algebra.field algebra.group.type_tags
+import algebra.field
+import algebra.group.type_tags
 
 /-!
 # Transfer algebraic structures across `equiv`s

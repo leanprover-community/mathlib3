@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ring algebra.ordered_group
+import algebra.ring
+import algebra.ordered_group
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true

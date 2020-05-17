@@ -8,7 +8,9 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import data.set.function data.option.basic algebra.group.basic
+import data.set.function
+import data.option.basic
+import algebra.group.basic
 
 open function
 

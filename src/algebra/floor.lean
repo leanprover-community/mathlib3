@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.linarith
-import tactic.abel algebra.ordered_group
+import tactic.abel
+import algebra.ordered_group
 /-!
 # Floor and Ceil
 

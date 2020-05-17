@@ -4,9 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
-import tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
-       tactic.clear tactic.simp_rw
+import tactic.interactive
+import tactic.finish
+import tactic.ext
+import tactic.lift
+import tactic.apply
+import tactic.reassoc_axiom
+import tactic.tfae
+import tactic.elide
+import tactic.ring_exp
+import tactic.clear
+import tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin

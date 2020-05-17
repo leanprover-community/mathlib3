@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.is_unit algebra.ring tactic.push_neg
+import algebra.group.units algebra.ring tactic.push_neg
 
 /-!
 # Groups with an adjoined zero element

@@ -1569,9 +1569,6 @@ apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 apply_nolint gaussian_int.to_complex doc_blame
 
--- field_theory/finite.lean
-apply_nolint finite_field.field_of_integral_domain doc_blame
-
 -- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame

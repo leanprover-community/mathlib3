@@ -154,8 +154,8 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-          by simpa [add_eq_zero_iff_eq_zero_of_nonneg (pow_two_nonneg _) (pow_two_nonneg _),
-            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _)] using hwxyz0,
+          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _) (pow_two_nonneg _),
+            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
@@ -185,7 +185,7 @@ m.mod_two_eq_zero_or_one.elim
             (int.coe_nat_ne_zero_iff_pos.2 hm0))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
-            by simp; ring
+            by simp [_root_.mul_pow]; ring
           ... = (w^2 + x^2 + y^2 + z^2) * (a^2 + b^2 + c^2 + d^2) :
             by simp only [hs.symm, ht.symm, hu.symm, hv.symm]; ring
           ... = _ : by rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg]; dsimp [m]; ring,

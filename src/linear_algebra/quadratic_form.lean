@@ -229,7 +229,7 @@ by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of
 lemma associated_right_inverse : Q.associated.to_quadratic_form = Q :=
 quadratic_form.ext $ λ x,
   calc  Q.associated.to_quadratic_form x
-      = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul]
+      = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 end associated
 

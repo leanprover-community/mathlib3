@@ -757,7 +757,7 @@ theorem has_fpower_series_on_ball.change_origin
       edist (y + z) 0 ≤ ↑(nnnorm y) + ↑(nnnorm z) :
         by { rw [edist_eq_coe_nnnorm, ← ennreal.coe_add, ennreal.coe_le_coe], exact norm_add_le y z }
       ... < r : A,
-    simpa using hf.sum this
+    simpa only [add_assoc] using hf.sum this
   end }
 
 lemma has_fpower_series_on_ball.analytic_at_of_mem

@@ -61,6 +61,9 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
   topological_space (Πa, β a) :=
 ⨅a, induced (λf, f a) (t₂ a)
 
+instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
+t.induced ulift.down
+
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
 eq_univ_of_forall $ λ x, begin
@@ -727,6 +730,16 @@ begin
 end
 
 end sigma
+
+section ulift
+
+lemma continuous_ulift_down [topological_space α] : continuous (ulift.down : ulift.{v u} α → α) :=
+continuous_induced_dom
+
+lemma continuous_ulift_up [topological_space α] : continuous (ulift.up : α → ulift.{v u} α) :=
+continuous_induced_rng continuous_id
+
+end ulift
 
 lemma mem_closure_of_continuous [topological_space α] [topological_space β]
   {f : α → β} {a : α} {s : set α} {t : set β}

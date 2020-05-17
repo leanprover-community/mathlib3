@@ -492,22 +492,6 @@ module.of_core $
 instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
-instance {R : Type*} [normed_ring R] : ring (α →ᵇ R) :=
-{ one := const α 1,
-  mul := λ f g, of_normed_group (f * g) (f.2.1.mul g.2.1) (∥f∥ * ∥g∥) $ λ x,
-    le_trans (normed_ring.norm_mul (f x) (g x)) $
-      mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _),
-  one_mul := λ f, ext $ λ x, one_mul (f x),
-  mul_one := λ f, ext $ λ x, mul_one (f x),
-  mul_assoc := λ f₁ f₂ f₃, ext $ λ x, mul_assoc _ _ _,
-  left_distrib := λ f₁ f₂ f₃, ext $ λ x, left_distrib _ _ _,
-  right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
-  .. bounded_continuous_function.add_comm_group }
-
-instance {R : Type*} [normed_ring R] : normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
-
 end normed_space
 
 end bounded_continuous_function

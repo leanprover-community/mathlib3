@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group.is_unit algebra.ring
+import algebra.group.units_hom algebra.ring
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)

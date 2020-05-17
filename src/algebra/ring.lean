@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
-import algebra.group.hom algebra.group.is_unit
+import algebra.group.hom algebra.group.units
 import tactic.norm_cast tactic.split_ifs algebra.group.units
 
 /-!

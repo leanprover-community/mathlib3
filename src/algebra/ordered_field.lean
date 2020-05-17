@@ -217,24 +217,6 @@ mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end linear_ordered_field
 
-namespace nat
-
-variables {α : Type*} [linear_ordered_field α]
-
-lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
-inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
-
-lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
-by { rw one_div_eq_inv, exact inv_pos_of_nat }
-
-lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
-by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
-
-lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
-by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
-
-end nat
-
 section
 variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
 

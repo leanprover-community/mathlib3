@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
 import algebra.order_functions
+import init_.data.nat.lemmas
 
 /-!
 # Basic operations on the natural numbers
@@ -18,6 +19,19 @@ and extra recursors:
 -/
 
 universes u v
+
+instance : canonically_ordered_comm_semiring ℕ :=
+{ le_iff_exists_add := assume a b,
+  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  zero_ne_one       := ne_of_lt zero_lt_one,
+  mul_eq_zero_iff   := assume a b,
+    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  bot               := 0,
+  bot_le            := nat.zero_le,
+  .. (infer_instance : ordered_add_comm_monoid ℕ),
+  .. (infer_instance : linear_ordered_semiring ℕ),
+  .. (infer_instance : comm_semiring ℕ) }
 
 namespace nat
 variables {m n k : ℕ}
@@ -574,7 +588,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -1297,6 +1311,17 @@ begin
   apply nat.add_sub_cancel',
   exact mul_le_mul_left _ hk,
 end
+
+theorem units_eq_one (u : units ℕ) : u = 1 :=
+units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
+
+theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
+add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
+
+@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
+iff.intro
+  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 section find_greatest
 

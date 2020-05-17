@@ -7,6 +7,7 @@ import algebra.group.units
 import algebra.group.with_one
 import algebra.group.type_tags
 import order.bounded_lattice
+import init_.algebra.functions init_.algebra.ordered_group
 
 /-!
 # Ordered monoids and groups
@@ -423,6 +424,10 @@ instance ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid
   [H : ordered_cancel_add_comm_monoid α] : ordered_add_comm_monoid α :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
+instance ordered_cancel_add_comm_monoid.to_add_left_cancel_monoid
+  {α} [h : ordered_cancel_add_comm_monoid α] :
+  add_left_cancel_monoid α := { ..h }
+
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] {a b c x y : α}
 
@@ -523,7 +528,7 @@ variables [ordered_add_comm_group α] {a b c : α}
 ⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
-have a + b + -a ≤ a + b + -b ↔ -a ≤ -b, from add_le_add_iff_left _,
+have a + b - a ≤ a + b - b ↔ -a ≤ -b, from add_le_add_iff_left _,
 by simp at this; simp [this]
 
 lemma neg_le : -a ≤ b ↔ -b ≤ a :=
@@ -555,7 +560,7 @@ lemma self_le_neg (h : a ≤ 0) : a ≤ -a :=
 le_trans h (neg_nonneg.2 h)
 
 @[simp] lemma neg_lt_neg_iff : -a < -b ↔ b < a :=
-have a + b + -a < a + b + -b ↔ -a < -b, from add_lt_add_iff_left _,
+have a + b - a < a + b - b ↔ -a < -b, from add_lt_add_iff_left _,
 by simp at this; simp [this]
 
 lemma neg_lt_zero : -a < 0 ↔ 0 < a :=

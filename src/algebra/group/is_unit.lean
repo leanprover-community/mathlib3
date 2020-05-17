@@ -68,11 +68,6 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
-@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
-iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
-
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* units N`. See also `units.lift_right` for a computable version. -/
 @[to_additive "If a homomorphism `f : M →+ N` sends each element to an `is_add_unit`, then it can be lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]

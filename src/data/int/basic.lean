@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import algebra.char_zero
+import algebra.char_zero init_.data.int.order init_.algebra.ring
 import data.list.range
 open nat
 

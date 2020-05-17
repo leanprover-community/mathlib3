@@ -3,10 +3,10 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.is_unit
+import algebra.group.is_unit algebra.ring tactic.push_neg
 
 /-!
-# G₀roups with an adjoined zero element
+# Groups with an adjoined zero element
 
 This file describes structures that are not usually studied on their own right in mathematics,
 namely a special sort of monoid: apart from a distinguished “zero element” they form a group,
@@ -278,9 +278,7 @@ mul_inv_cancel_assoc_left a b h
 lemma mul_div_assoc'' {a b c : G₀} : a * b / c = a * (b / c) :=
 mul_assoc _ _ _
 
-local attribute [simp]
-div_eq_mul_inv mul_comm mul_assoc
-mul_left_comm mul_inv_cancel inv_mul_cancel
+local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 lemma div_eq_mul_one_div' (a b : G₀) : a / b = a * (1 / b) :=
 by simp

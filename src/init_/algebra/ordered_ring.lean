@@ -112,7 +112,7 @@ le_of_lt zero_lt_one
 
 lemma two_pos : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
-lemma two_ne_zero : (2:α) ≠ 0 :=
+@[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
 ne.symm (ne_of_lt two_pos)
 
 lemma two_gt_one : (2:α) > 1 :=

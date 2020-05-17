@@ -1298,7 +1298,7 @@ theorem union_le_add (s t : multiset α) : s ∪ t ≤ s + t :=
 union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
-by simpa [(∪), union, eq_comm] using show s + u - (t + u) = s - t,
+by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
 by rw [add_comm t, sub_add', add_sub_cancel]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=

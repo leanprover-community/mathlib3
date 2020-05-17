@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.cast
+import init_.algebra.ordered_ring algebra.ordered_group algebra.field
 
 universe u
 variable {α : Type u}
@@ -454,7 +454,7 @@ lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
 begin
   rcases (le_iff_exists_add _ _).1 hab with ⟨b, rfl⟩,
   rcases (le_iff_exists_add _ _).1 hcd with ⟨d, rfl⟩,
-  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul],
+  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, _root_.add_assoc],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
 
@@ -466,19 +466,6 @@ by simp only [zero_lt_iff_ne_zero, ne.def, canonically_ordered_comm_semiring.mul
   not_or_distrib]
 
 end canonically_ordered_semiring
-
-instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := assume a b,
-  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  zero_ne_one       := ne_of_lt zero_lt_one,
-  mul_eq_zero_iff   := assume a b,
-    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
-  bot               := 0,
-  bot_le            := nat.zero_le,
-  .. (infer_instance : ordered_add_comm_monoid ℕ),
-  .. (infer_instance : linear_ordered_semiring ℕ),
-  .. (infer_instance : comm_semiring ℕ) }
 
 namespace with_top
 variables [canonically_ordered_comm_semiring α] [decidable_eq α]
@@ -587,37 +574,5 @@ instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   mul_one         := assume a, by rw [comm, one_mul'],
   zero_ne_one     := assume h, @zero_ne_one α _ $ option.some.inj h,
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid }
-
-@[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
-| 0     := rfl
-| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
-           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
-
-@[simp] lemma nat_ne_top (n : nat) : (n : with_top α ) ≠ ⊤ :=
-by rw [←coe_nat n]; apply coe_ne_top
-
-@[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
-by rw [←coe_nat n]; apply top_ne_coe
-
-lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
-begin
-  cases n, { exact le_top },
-  cases i, { exact (not_le_of_lt h le_top).elim },
-  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
-end
-
-@[elab_as_eliminator]
-lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
-  (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=
-begin
-  have A : ∀n:ℕ, P n,
-  { assume n,
-    induction n with n IH,
-    { exact h0 },
-    { exact hsuc n IH } },
-  cases a,
-  { exact htop A },
-  { exact A a }
-end
 
 end with_top

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
 import logic.function.basic
-import algebra.group.to_additive
+import algebra.group.basic tactic.ext
 import tactic.norm_cast
 
 /-!
@@ -119,12 +119,6 @@ by rw [mul_assoc, inv_mul, mul_one]
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
 end units
-
-theorem nat.units_eq_one (u : units ℕ) : u = 1 :=
-units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
-
-theorem nat.add_units_eq_zero (u : add_units ℕ) : u = 0 :=
-add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
 @[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit out of `a`."]

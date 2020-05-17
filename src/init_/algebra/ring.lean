@@ -3,7 +3,7 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import init_.algebra.group
+import algebra.group.basic
 
 /- Make sure instances defined in this file have lower priority than the ones
    defined for concrete structures -/
@@ -11,8 +11,13 @@ set_option default_priority 100
 
 set_option old_structure_cmd true
 
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
+
 universe u
 
+@[ancestor has_mul has_add]
 class distrib (α : Type u) extends has_mul α, has_add α :=
 (left_distrib : ∀ a b c : α, a * (b + c) = (a * b) + (a * c))
 (right_distrib : ∀ a b c : α, (a + b) * c = (a * c) + (b * c))
@@ -29,6 +34,7 @@ distrib.right_distrib a b c
 
 def add_mul := @right_distrib
 
+@[ancestor has_mul has_zero]
 class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
 (zero_mul : ∀ a : α, 0 * a = 0)
 (mul_zero : ∀ a : α, a * 0 = 0)
@@ -39,6 +45,7 @@ mul_zero_class.zero_mul a
 @[simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
+@[ancestor has_zero has_one]
 class zero_ne_one_class (α : Type u) extends has_zero α, has_one α :=
 (zero_ne_one : 0 ≠ (1:α))
 
@@ -52,6 +59,7 @@ assume h, @zero_ne_one_class.zero_ne_one α s h.symm
 
 /- semiring -/
 
+@[ancestor add_comm_monoid monoid distrib mul_zero_class]
 class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
 
 section semiring
@@ -77,6 +85,7 @@ section semiring
   by simp [right_distrib]
 end semiring
 
+@[ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
 section comm_semiring
@@ -159,6 +168,7 @@ end comm_semiring
 
 /- ring -/
 
+@[ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
 local attribute [simp] sub_eq_add_neg
@@ -215,6 +225,7 @@ calc
 
 def sub_mul := @mul_sub_right_distrib
 
+@[ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
@@ -226,7 +237,7 @@ section comm_ring
   local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
   lemma mul_self_sub_mul_self_eq (a b : α) : a * a - b * b = (a + b) * (a - b) :=
-  begin simp [right_distrib, left_distrib], rw [add_comm (-(a*b)), add_left_comm (a*b)], simp end
+  begin simp [right_distrib, left_distrib] end
 
   lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
   begin simp [right_distrib, left_distrib], rw [add_left_comm, add_comm (-a), add_left_comm a], simp end
@@ -267,6 +278,7 @@ section comm_ring
   by rw add_comm; exact dvd_add_iff_left h
 end comm_ring
 
+@[ancestor has_mul has_zero]
 class no_zero_divisors (α : Type u) extends has_mul α, has_zero α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
@@ -276,6 +288,7 @@ no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero a b h
 lemma eq_zero_of_mul_self_eq_zero [no_zero_divisors α] {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
+@[ancestor comm_ring no_zero_divisors zero_ne_one_class]
 class integral_domain (α : Type u) extends comm_ring α, no_zero_divisors α, zero_ne_one_class α
 
 section integral_domain

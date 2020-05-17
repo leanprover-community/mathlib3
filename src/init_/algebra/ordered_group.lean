@@ -3,7 +3,7 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import init_.algebra.group
+import algebra.group
 
 /- Make sure instances defined in this file have lower priority than the ones
    defined for concrete structures -/
@@ -630,4 +630,3 @@ class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
 lemma decidable_linear_ordered_add_comm_group.add_lt_add_left {α} [decidable_linear_ordered_add_comm_group α]
   (a b : α) (h : a < b) (c : α) : c + a < c + b :=
   ordered_add_comm_group.add_lt_add_left a b h c
-  

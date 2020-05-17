@@ -348,7 +348,7 @@ begin
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff (@zero_ne_one R _) hs (this a) (this b),
-      set.image_subset_image_iff (injective_comp subtype.val_injective f.inj),
+      set.image_subset_image_iff (subtype.val_injective.comp f.inj),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
   exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),
@@ -510,7 +510,7 @@ fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm 
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-(⟨finset.singleton 1, by simp [one_eq_span]⟩)
+(⟨{1}, by simp [one_eq_span]⟩)
 (λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule

@@ -23,7 +23,7 @@ partially defined functions.
 ## Implementation notes
 
 Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in
-`docs/theories/topology.md`.
+<https://leanprover-community.github.io/theories/topology.html>.
 
 ## References
 

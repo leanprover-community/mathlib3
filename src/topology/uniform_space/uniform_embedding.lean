@@ -51,7 +51,7 @@ lemma uniform_embedding_set_inclusion {s t : set α} (hst : s ⊆ t) :
 
 lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
   {f : α → β} (hf : uniform_embedding f) : uniform_embedding (g ∘ f) :=
-{ inj := function.injective_comp hg.inj hf.inj,
+{ inj := hg.inj.comp hf.inj,
   ..hg.to_uniform_inducing.comp hf.to_uniform_inducing }
 
 theorem uniform_embedding_def {f : α → β} :

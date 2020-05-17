@@ -594,7 +594,7 @@ theorem is_preirreducible_empty : is_preirreducible (∅ : set α) :=
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 ⟨singleton_nonempty x,
  λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
- substs y z; exact ⟨x, or.inl rfl, h2, h4⟩⟩
+ substs y z; exact ⟨x, rfl, h2, h4⟩⟩
 
 theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
   is_preirreducible (closure s) :=
@@ -736,11 +736,10 @@ begin
   { split,
     { simpa using h ∅ _ _; intro u; simp },
     intros u v hu hv hu' hv',
-    simpa using h {v,u} _ _,
+    simpa using h {u,v} _ _,
     all_goals
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption } }
 end
 
@@ -803,13 +802,11 @@ begin
       { intro z, simp },
       { simpa [set.nonempty] using hs } },
     intros z₁ z₂ hz₁ hz₂ H,
-    have := h {z₂, z₁} _ _,
-    simp only [exists_prop, finset.insert_empty_eq_singleton,
-      finset.mem_insert, finset.mem_singleton] at this,
+    have := h {z₁, z₂} _ _,
+    simp only [exists_prop, finset.mem_insert, finset.mem_singleton] at this,
     { rcases this with ⟨z, rfl|rfl, hz⟩; tauto },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using H } }
 end
@@ -883,8 +880,8 @@ end
 theorem is_preconnected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
   (H3 : is_preconnected s) (H4 : is_preconnected t) : is_preconnected (s ∪ t) :=
 sUnion_pair s t ▸ is_preconnected_sUnion x {s, t}
-  (by rintro r (rfl | rfl | h); [exact H2, exact H1, exact h.elim])
-  (by rintro r (rfl | rfl | h); [exact H4, exact H3, exact h.elim])
+  (by rintro r (rfl | rfl | h); assumption)
+  (by rintro r (rfl | rfl | h); assumption)
 
 theorem is_connected.union {s t : set α} (H : (s ∩ t).nonempty)
   (Hs : is_connected s) (Ht : is_connected t) : is_connected (s ∪ t) :=
@@ -1117,20 +1114,17 @@ begin
       by_contradiction hs, push_neg at hs, subst hs,
       simpa using h ∅ _ _ _; simp },
     intros u v hu hv hs hsuv,
-    rcases h {v, u} _ _ _ with ⟨t, ht, ht'⟩,
-    { rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht,
+    rcases h {u, v} _ _ _ with ⟨t, ht, ht'⟩,
+    { rw [finset.mem_insert, finset.mem_singleton] at ht,
       rcases ht with rfl|rfl; tauto },
     { intros t₁ t₂ ht₁ ht₂ hst,
       rw ← ne_empty_iff_nonempty at hst,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
+      rw [finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
       rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
       all_goals { refl <|> contradiction <|> skip },
       rw inter_comm t₁ at hst, contradiction },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using hs } }
 end

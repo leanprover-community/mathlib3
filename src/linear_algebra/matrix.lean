@@ -152,7 +152,7 @@ begin
   change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = ({j} : finset n).sum (λ y, ite (j = y) (M i y) 0),
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
       { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },

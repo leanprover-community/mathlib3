@@ -69,12 +69,14 @@ infixr ` →* `:25 := monoid_hom
 instance {M : Type*} {N : Type*} {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
-
 namespace monoid_hom
 variables {mM : monoid M} {mN : monoid N} {mP : monoid P}
 variables [group G] [comm_group H]
 
 include mM mN
+
+@[simp, to_additive]
+lemma to_fun_eq_coe (f : M →* N) : f.to_fun = f := rfl
 
 @[simp, to_additive]
 lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl

@@ -1160,7 +1160,7 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
 lemma tan_surjective : function.surjective tan :=
-function.surjective_of_has_right_inverse ⟨_, tan_arctan⟩
+function.right_inverse.surjective tan_arctan
 
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)

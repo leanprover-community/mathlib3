@@ -19,7 +19,7 @@ variables (α : Type*) [ring α] [uniform_space α]
 instance : has_one (completion α) := ⟨(1:α)⟩
 
 instance : has_mul (completion α) :=
-  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry' (*))⟩
+  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry (*))⟩
 
 @[norm_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
@@ -34,7 +34,7 @@ variables [uniform_add_group α]
 
 lemma continuous_mul : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
-  haveI : is_Z_bilin ((coe ∘ uncurry' (*)) : α × α → completion α) :=
+  haveI : is_Z_bilin ((coe ∘ uncurry (*)) : α × α → completion α) :=
   { add_left := begin
       introv,
       change coe ((a + a')*b) = coe (a*b) + coe (a'*b),
@@ -45,7 +45,7 @@ begin
       change coe (a*(b + b')) = coe (a*b) + coe (a*b'),
       rw_mod_cast mul_add
     end },
-  have : continuous ((coe ∘ uncurry' (*)) : α × α → completion α),
+  have : continuous ((coe ∘ uncurry (*)) : α × α → completion α),
     from (continuous_coe α).comp continuous_mul,
   convert dense_inducing_coe.extend_Z_bilin dense_inducing_coe this,
   simp only [(*), curry, prod.mk.eta]

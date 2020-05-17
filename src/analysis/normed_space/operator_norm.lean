@@ -286,6 +286,12 @@ le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
+@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
+norm_id ⟨1, one_ne_zero⟩
+
+@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
+norm_id_field
+
 /-- The operator norm is homogeneous. -/
 lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 le_antisymm

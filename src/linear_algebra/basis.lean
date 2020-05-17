@@ -347,7 +347,6 @@ lemma linear_independent_Union_of_directed {η : Type*}
   (h : ∀ i, linear_independent R (λ x, x : s i → M)) :
   linear_independent R (λ x, x : (⋃ i, s i) → M) :=
 begin
-  haveI := classical.dec (nonempty η),
   by_cases hη : nonempty η,
   { refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
@@ -611,8 +610,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact injective_comp prod.injective_inl inj_v },
-    { exact injective_comp prod.injective_inr inj_v' },
+    { exact prod.injective_inl.comp inj_v },
+    { exact prod.injective_inr.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -737,7 +736,7 @@ lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_
 linear_map.ext hv.total_repr
 
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
-linear_map.ker_eq_bot.2 $ injective_of_left_inverse hv.total_repr
+linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
 lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
 by rw [is_basis.repr, linear_map.range, submodule.map_comp,

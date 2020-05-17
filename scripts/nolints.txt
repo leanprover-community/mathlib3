@@ -1792,11 +1792,6 @@ apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.sum_congr doc_blame
 apply_nolint function.embedding.trans doc_blame
 
--- logic/function.lean
-apply_nolint function.bicompl doc_blame
-apply_nolint function.bicompr doc_blame
-apply_nolint function.uncurry' doc_blame
-
 -- logic/relation.lean
 apply_nolint relation.comp doc_blame
 apply_nolint relation.join doc_blame
@@ -2772,37 +2767,6 @@ apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_lhs doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_rhs doc_blame
 
--- tactic/ring.lean
-apply_nolint tactic.interactive.ring.mode doc_blame
-apply_nolint tactic.ring.add_atom doc_blame
-apply_nolint tactic.ring.cache doc_blame
-apply_nolint tactic.ring.cache.cs_app doc_blame
-apply_nolint tactic.ring.eval doc_blame
-apply_nolint tactic.ring.eval' doc_blame
-apply_nolint tactic.ring.eval_add doc_blame
-apply_nolint tactic.ring.eval_atom doc_blame
-apply_nolint tactic.ring.eval_const_mul doc_blame
-apply_nolint tactic.ring.eval_horner doc_blame
-apply_nolint tactic.ring.eval_mul doc_blame
-apply_nolint tactic.ring.eval_neg doc_blame
-apply_nolint tactic.ring.eval_pow doc_blame
-apply_nolint tactic.ring.get_atom doc_blame
-apply_nolint tactic.ring.get_cache doc_blame
-apply_nolint tactic.ring.get_transparency doc_blame
-apply_nolint tactic.ring.horner doc_blame
-apply_nolint tactic.ring.horner_expr doc_blame
-apply_nolint tactic.ring.horner_expr.e doc_blame
-apply_nolint tactic.ring.horner_expr.pp doc_blame
-apply_nolint tactic.ring.horner_expr.refl_conv doc_blame
-apply_nolint tactic.ring.horner_expr.to_string doc_blame
-apply_nolint tactic.ring.horner_expr.xadd' doc_blame
-apply_nolint tactic.ring.lift doc_blame
-apply_nolint tactic.ring.normalize doc_blame
-apply_nolint tactic.ring.normalize_mode doc_blame
-apply_nolint tactic.ring.ring_m doc_blame
-apply_nolint tactic.ring.ring_m.mk_app doc_blame
-apply_nolint tactic.ring.ring_m.run doc_blame
-
 -- tactic/ring2.lean
 apply_nolint conv.interactive.ring2 doc_blame
 apply_nolint tactic.ring2.horner_expr.add doc_blame
@@ -2901,10 +2865,6 @@ apply_nolint topological_add_group.to_uniform_space doc_blame
 
 -- topology/algebra/uniform_ring.lean
 apply_nolint uniform_space.sep_quot_equiv_ring_quot doc_blame
-
--- topology/bounded_continuous_function.lean
-apply_nolint bounded_continuous_function.dist_eq ge_or_gt
-apply_nolint bounded_continuous_function.dist_set_exists ge_or_gt
 
 -- topology/category/Top/limits.lean
 apply_nolint Top.colimit doc_blame

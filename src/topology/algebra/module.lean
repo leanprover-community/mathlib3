@@ -277,6 +277,14 @@ lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
 @[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
+lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
+  t.sum f b = t.sum (λd, f d b) :=
+begin
+  haveI : is_add_group_hom (λ (g : M →L[R] M₂), g b) :=
+    { map_add := λ f g, continuous_linear_map.add_apply f g b },
+  exact (finset.sum_hom t (λ g : M →L[R] M₂, g b)).symm
+end
+
 end add
 
 @[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl

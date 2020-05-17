@@ -137,21 +137,16 @@ begin
   exact max_le_max (hf x y) (hg x y)
 end
 
-protected lemma uncurry' {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
+protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
   (hβ : ∀ a, lipschitz_with Kβ (f a)) :
-  lipschitz_with (Kα + Kβ) (function.uncurry' f) :=
+  lipschitz_with (Kα + Kβ) (function.uncurry f) :=
 begin
   rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-  simp only [function.uncurry', ennreal.coe_add, add_mul],
+  simp only [function.uncurry, ennreal.coe_add, add_mul],
   apply le_trans (edist_triangle _ (f a₂ b₁) _),
   exact add_le_add' (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
     (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
 end
-
-protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
-  (hβ : ∀ a, lipschitz_with Kβ (f a)) :
-  lipschitz_with (Kα + Kβ) (function.uncurry f) :=
-by { rw function.uncurry_def, apply lipschitz_with.uncurry'; assumption }
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
@@ -246,8 +241,8 @@ lipschitz_with.of_le_add $ assume x z, by { rw [add_comm], apply dist_triangle }
 protected lemma dist_right (x : α) : lipschitz_with 1 (dist x) :=
 lipschitz_with.of_le_add $ assume y z, dist_triangle_right _ _ _
 
-protected lemma dist : lipschitz_with 2 (function.uncurry' $ @dist α _) :=
-lipschitz_with.uncurry' lipschitz_with.dist_left lipschitz_with.dist_right
+protected lemma dist : lipschitz_with 2 (function.uncurry $ @dist α _) :=
+lipschitz_with.uncurry lipschitz_with.dist_left lipschitz_with.dist_right
 
 lemma dist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
   dist (f^[n] x) (f^[n + 1] x) ≤ dist x (f x) * K ^ n :=

@@ -56,8 +56,8 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   inf := λ a b, Inf {a, b},
   le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
-  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
-  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
   sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
   le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
   le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
@@ -628,13 +628,13 @@ theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set 
 by simp
 
 theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x) = f a ⊓ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, infi_insert, inf_comm], simp }
+by rw [infi_insert, infi_singleton]
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 by simp
 
 theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, supr_insert, sup_comm], simp }
+by rw [supr_insert, supr_singleton]
 
 lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨅ c ∈ f '' t, g c) = (⨅ b ∈ t, g (f b)) :=
@@ -689,6 +689,9 @@ lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
 (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
 infi_subtype
 
+lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
+by simpa only [range_comp, subtype.range_val, infi_subtype'] using @is_glb_infi α s _ (f ∘ subtype.val)
+
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
@@ -697,6 +700,9 @@ le_antisymm
 lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x.val x.property) :=
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
+lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, f x) :=
+by simpa only [range_comp, subtype.range_val, supr_subtype'] using @is_lub_supr α s _ (f ∘ subtype.val)
 
 theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

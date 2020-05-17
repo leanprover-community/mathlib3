@@ -208,10 +208,10 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
 λ ⟨f⟩, card_congr f⟩
 
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
-⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
+⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
 @[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
-  @univ _ (of_subsingleton a) = finset.singleton a := rfl
+  @univ _ (of_subsingleton a) = {a} := rfl
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
@@ -289,7 +289,7 @@ begin
 end
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
-⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
+fintype.of_subsingleton (default α)
 
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
@@ -320,7 +320,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
 
-@[simp] theorem fintype.univ_bool : @univ bool _ = {ff, tt} := rfl
+@[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
@@ -449,7 +449,7 @@ from λ f hinj x,
   have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
   exists_of_bex (mem_image.1 h₂),
 ⟨this,
-  λ hsurj, injective_of_has_left_inverse
+  λ hsurj, has_left_inverse.injective
     ⟨surj_inv hsurj, left_inverse_of_surjective_of_right_inverse
       (this (injective_surj_inv _)) (right_inverse_surj_inv _)⟩⟩
 
@@ -463,9 +463,9 @@ lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e 
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
 ⟨λ hinj, by simpa [function.comp] using
-  surjective_comp e.surjective (this.1 (injective_comp e.symm.injective hinj)),
+  e.surjective.comp (this.1 (e.symm.injective.comp hinj)),
 λ hsurj, by simpa [function.comp] using
-  injective_comp e.injective (this.2 (surjective_comp e.symm.surjective hsurj))⟩
+  e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
 lemma fintype.coe_image_univ [fintype α] [decidable_eq β] {f : α → β} :
   ↑(finset.image f finset.univ) = set.range f :=
@@ -510,7 +510,7 @@ begin
 end
 
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
-⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
+⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
 ⟨⟨true::false::0, by simp [true_ne_false]⟩,
@@ -814,10 +814,10 @@ lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :
-  (univ : finset α) = finset.singleton x :=
+  (univ : finset α) = {x} :=
 begin
   apply symm,
-  apply eq_of_subset_of_card_le (subset_univ (finset.singleton x)),
+  apply eq_of_subset_of_card_le (subset_univ ({x})),
   apply le_of_eq,
   simp [h, finset.card_univ]
 end
@@ -867,8 +867,7 @@ lemma right_inverse_bij_inv (f_bij : bijective f) : right_inverse (bij_inv f_bij
 λ b, choose_spec (λ a', f a' = b) _
 
 lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
-⟨injective_of_left_inverse (right_inverse_bij_inv _),
-    surjective_of_has_right_inverse ⟨f, left_inverse_bij_inv _⟩⟩
+⟨(right_inverse_bij_inv _).injective, (left_inverse_bij_inv _).surjective⟩
 
 end bijection_inverse
 

@@ -231,10 +231,10 @@ theorem coe_ring_hom_inj : function.injective (coe : (A →ₐ[R] B) → (A →+
   from congr_arg _ H
 
 theorem coe_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
-function.injective_comp ring_hom.coe_monoid_hom_inj coe_ring_hom_inj
+ring_hom.coe_monoid_hom_inj.comp coe_ring_hom_inj
 
 theorem coe_add_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
-function.injective_comp ring_hom.coe_add_monoid_hom_inj coe_ring_hom_inj
+ring_hom.coe_add_monoid_hom_inj.comp coe_ring_hom_inj
 
 @[ext]
 theorem ext ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=

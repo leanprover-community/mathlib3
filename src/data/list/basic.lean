@@ -206,15 +206,15 @@ injective_length_iff.mpr $ by apply_instance
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
-lemma singleton_eq [decidable_eq α] (x : α) : ({x} : list α) = [x] := by refl
+lemma singleton_eq (x : α) : ({x} : list α) = [x] := rfl
 lemma insert_neg [decidable_eq α] {x : α} {l : list α} (h : x ∉ l) :
   has_insert.insert x l = x :: l :=
 if_neg h
 lemma insert_pos [decidable_eq α] {x : α} {l : list α} (h : x ∈ l) :
   has_insert.insert x l = l :=
 if_pos h
-lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [y, x] :=
-by { rw [insert_neg, singleton_eq], show y ∉ [x], rw [mem_singleton], exact h.symm }
+lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [x, y] :=
+by { rw [insert_neg, singleton_eq], rwa [singleton_eq, mem_singleton] }
 
 /-! ### bounded quantifiers over lists -/
 
@@ -507,7 +507,7 @@ simp only [*, cons_append, reverse_cons, append_assoc]]
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
 theorem reverse_injective : injective (@reverse α) :=
-injective_of_left_inverse reverse_reverse
+left_inverse.injective reverse_reverse
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff

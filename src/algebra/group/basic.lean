@@ -169,13 +169,15 @@ attribute [to_additive add_monoid.add_zero] monoid.mul_one
 section monoid
 variables {M : Type u} [monoid M]
 
-@[simp, to_additive]
+@[ematch, simp, to_additive]
 lemma one_mul : ∀ a : M, 1 * a = a :=
 monoid.one_mul
 
-@[simp, to_additive]
+@[ematch, simp, to_additive]
 lemma mul_one : ∀ a : M, a * 1 = a :=
 monoid.mul_one
+
+attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
 @[to_additive add_monoid_to_is_left_id]
 instance monoid_to_is_left_id : is_left_id M (*) 1 :=

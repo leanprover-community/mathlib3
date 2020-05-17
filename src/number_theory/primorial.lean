@@ -215,9 +215,8 @@ begin
           }
         },
         have r : ∏ i in finset.filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ nat.choose (2 * m + 1) (m + 1), {
-          refine le_of_dvd _ _ s _,
-          have pos : 0 < nat.choose (2 * m + 1) (m + 1), exact @nat.choose_pos (2 * m + 1) (m + 1) (by linarith),
-          exact ne_of_gt pos,
+          refine @nat.le_of_dvd _ _ _ s,
+          exact @nat.choose_pos (2 * m + 1) (m + 1) (by linarith),
         },
         exact nat.mul_le_mul_right _ r,
       }
@@ -233,6 +232,7 @@ begin
     {
       have u : nat.succ n + 1 = n.succ.succ, norm_num,
       rw <- u,
+      have recurse : n.succ < n.succ.succ, exact lt_add_one (nat.succ n),
       let e := product_primes_bound n.succ,
       rw <- extend_prime_product_odd (nat.succ (nat.succ n)) (by linarith) (increment_bit _ h),
       calc ∏ i in finset.filter nat.prime (finset.range (n + 2)), i

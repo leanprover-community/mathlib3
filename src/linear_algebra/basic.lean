@@ -694,7 +694,7 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
     { exact ⟨0, by simp, y, h, by simp⟩ } },
   { exact ⟨0, by simp, 0, by simp⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp; cc⟩ },
+    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp [add_assoc]; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
 end,
@@ -747,7 +747,7 @@ end
 lemma mem_span_insert' {y} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
 begin
   rw mem_span_insert, split,
-  { rintro ⟨a, z, hz, rfl⟩, exact ⟨-a, by simp [hz]⟩ },
+  { rintro ⟨a, z, hz, rfl⟩, exact ⟨-a, by simp [hz, add_assoc]⟩ },
   { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simp [add_comm, add_left_comm]⟩ }
 end
 
@@ -836,7 +836,7 @@ end
 def quotient_rel : setoid M :=
 ⟨λ x y, x - y ∈ p, λ x, by simp,
  λ x y h, by simpa using neg_mem _ h,
- λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm] using add_mem _ h₁ h₂⟩
+ λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm, add_assoc] using add_mem _ h₁ h₂⟩
 
 /-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
 def quotient : Type* := quotient (quotient_rel p)

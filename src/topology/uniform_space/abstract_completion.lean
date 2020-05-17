@@ -261,20 +261,20 @@ open function
 
 /-- Extend two variable map to completions. -/
 protected def extend₂ (f : α → β → γ) : hatα → hatβ → γ :=
-curry $ (pkg.prod pkg').extend (uncurry' f)
+curry $ (pkg.prod pkg').extend (uncurry f)
 
 variables [separated γ] {f : α → β → γ}
 
-lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
+lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry f) (a : α) (b : β) :
   pkg.extend₂ pkg' f (ι a) (ι' b) = f a b :=
-show (pkg.prod pkg').extend (uncurry' f) ((pkg.prod pkg').coe (a, b)) = uncurry' f (a, b),
+show (pkg.prod pkg').extend (uncurry f) ((pkg.prod pkg').coe (a, b)) = uncurry f (a, b),
   from (pkg.prod pkg').extend_coe hf _
 
 variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (pkg.extend₂ pkg' f) :=
 begin
-  rw [uniform_continuous₂_def, abstract_completion.extend₂, uncurry'_curry],
+  rw [uniform_continuous₂_def, abstract_completion.extend₂, uncurry_curry],
   apply uniform_continuous_extend
 end
 
@@ -295,7 +295,7 @@ local notation f `∘₂` g := bicompr f g
 protected def map₂ (f : α → β → γ) : hatα → hatβ → hatγ :=
 pkg.extend₂ pkg' (pkg''.coe ∘₂ f)
 
-lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous (uncurry' $ pkg.map₂ pkg' pkg'' f) :=
+lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous₂ (pkg.map₂ pkg' pkg'' f) :=
 pkg.uniform_continuous_extension₂ pkg' _
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}

@@ -405,7 +405,7 @@ by { rw dist_comm,
 
 lemma lipschitz_inf_dist :
   lipschitz_with 2 (λ p : α × (nonempty_compacts α), inf_dist p.1 p.2.val) :=
-@lipschitz_with.uncurry' _ _ _ _ _ _ (λ (x : α) (s : nonempty_compacts α), inf_dist x s.val) 1 1
+@lipschitz_with.uncurry _ _ _ _ _ _ (λ (x : α) (s : nonempty_compacts α), inf_dist x s.val) 1 1
   (λ s, lipschitz_inf_dist_pt s.val) lipschitz_inf_dist_set
 
 lemma uniform_continuous_inf_dist_Hausdorff_dist :

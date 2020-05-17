@@ -104,8 +104,9 @@ variables [principal_ideal_domain α]
 instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin
-  cases (principal s).principal with a hs,
-  refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, refl
+  rcases (principal s).principal with ⟨a, rfl⟩,
+  rw [← finset.coe_singleton],
+  exact ⟨{a}, submodule.ext' rfl⟩
 end⟩
 
 section

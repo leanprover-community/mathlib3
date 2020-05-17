@@ -140,6 +140,10 @@ protected def insert : pSet → pSet → pSet
 
 instance : has_insert pSet pSet := ⟨pSet.insert⟩
 
+instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
+
+instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
+
 /-- The n-th von Neumann ordinal -/
 def of_nat : ℕ → pSet
 | 0     := ∅
@@ -349,6 +353,10 @@ resp.eval 2 ⟨pSet.insert, λu v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 instance : has_insert Set Set := ⟨Set.insert⟩
 
+instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
+
+instance : is_lawful_singleton Set Set := ⟨λ x, rfl⟩
+
 @[simp] theorem mem_insert {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
 quotient.induction_on₃ x y z
  (λx y ⟨α, A⟩, show x ∈ pSet.mk (option α) (λo, option.rec y A o) ↔
@@ -361,13 +369,11 @@ quotient.induction_on₃ x y z
   | or.inl h := ⟨none, quotient.exact h⟩
   end⟩)
 
-@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ _ y ↔ x = y :=
+@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
 iff.trans mem_insert ⟨λo, or.rec (λh, h) (λn, absurd n (mem_empty _)) o, or.inl⟩
 
-@[simp] theorem mem_singleton' {x y : Set.{u}} : x ∈ @insert Set.{u} Set.{u} _ y ∅ ↔ x = y := mem_singleton
-
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
-iff.trans mem_insert $ iff.trans or.comm $ let m := @mem_singleton x y in ⟨or.imp_left m.1, or.imp_left m.2⟩
+iff.trans mem_insert $ or_congr iff.rfl mem_singleton
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega

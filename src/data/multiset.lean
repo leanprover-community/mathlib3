@@ -360,6 +360,10 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
 /- singleton -/
+instance : has_singleton α (multiset α) := ⟨λ a, a::0⟩
+
+instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
+
 @[simp] theorem singleton_eq_singleton (a : α) : singleton a = a::0 := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a := by simp

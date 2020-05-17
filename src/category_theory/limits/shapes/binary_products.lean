@@ -32,7 +32,7 @@ inductive walking_pair : Type v
 open walking_pair
 
 instance fintype_walking_pair : fintype walking_pair :=
-{ elems := [left, right].to_finset,
+{ elems := {left, right},
   complete := λ x, by { cases x; simp } }
 
 variables {C : Type u} [category.{v} C]

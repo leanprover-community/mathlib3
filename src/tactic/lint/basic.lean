@@ -37,6 +37,8 @@ following declaration:
 ```lean
 meta def bar._nolint.foo : unit := ()
 ```
+
+See Note [user attribute parameters]
 -/
 private meta def mk_nolint_decl_name (decl : name) (linter : name) : name :=
 (decl ++ nolint_infix) ++ linter

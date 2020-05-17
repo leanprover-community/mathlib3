@@ -147,7 +147,7 @@ eq.trans fold_singleton $ mul_one _
 @[to_additive]
 lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
-by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
+by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
 
 @[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
@@ -358,7 +358,7 @@ by simp [prod_apply_ite _ _ (λ x, x)]
 begin
   rw ←finset.prod_filter,
   split_ifs;
-  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton],
+  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
 end
 
 /--
@@ -389,6 +389,18 @@ lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (∏ x in s, f x) = (∏ x in t, g x) :=
 congr_arg multiset.prod
   (multiset.map_eq_map_of_bij_of_nodup f g s.2 t.2 i hi h i_inj i_surj)
+
+@[to_additive]
+lemma prod_bij' {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+  (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
+  (j : Πa∈t, α) (hj : ∀a ha, j a ha ∈ s) (left_inv : ∀ a ha, j (i a ha) (hi a ha) = a)
+  (right_inv : ∀ a ha, i (j a ha) (hj a ha) = a) :
+  (∏ x in s, f x) = (∏ x in t, g x) :=
+begin
+  refine prod_bij i hi h _ _,
+  {intros a1 a2 h1 h2 eq, rw [←left_inv a1 h1, ←left_inv a2 h2], cc,},
+  {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm}
+end
 
 @[to_additive]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
@@ -879,8 +891,8 @@ open_locale classical
 lemma prod_add (f g : α → β) (s : finset α) :
   ∏ a in s, (f a + g a) = ∑ t in s.powerset, ((∏ a in t, f a) * (∏ a in (s \ t), g a)) :=
 calc ∏ a in s, (f a + g a)
-    = ∏ a in s, ∑ p in ({true, false} : finset Prop), if p then f a else g a : by simp
-... = ∑ p in (s.pi (λ _, {true, false}) : finset (Π a ∈ s, Prop)),
+    = ∏ a in s, ∑ p in ({false, true} : finset Prop), if p then f a else g a : by simp
+... = ∑ p in (s.pi (λ _, {false, true}) : finset (Π a ∈ s, Prop)),
         ∏ a in s.attach, if p a.1 a.2 then f a.1 else g a.1 : prod_sum
 ... = ∑ t in s.powerset, (∏ a in t, f a) * (∏ a in (s \ t), g a) : begin
   refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
@@ -983,7 +995,7 @@ lemma sum_eq_zero_iff_of_nonpos : (∀x∈s, f x ≤ 0) → ((∑ x in s, f x) =
 @sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ (∑ x in s, f x) :=
-have ({a} : finset α).sum f ≤ (∑ x in s, f x),
+have (singleton a).sum f ≤ (∑ x in s, f x),
   from sum_le_sum_of_subset_of_nonneg
   (λ x e, (mem_singleton.1 e).symm ▸ h) (λ x h _, hf x h),
 by rwa sum_singleton at this
@@ -1209,7 +1221,7 @@ multiset.induction_on s rfl
       ... = card (a :: s) :
       begin
         by_cases a ∈ s.to_finset,
-        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = ({a} : finset α).sum (λx, ite (x = a) 1 0),
+        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = (finset.singleton a).sum (λx, ite (x = a) 1 0),
           { apply (finset.sum_subset _ _).symm,
             { intros _ H, rwa mem_singleton.1 H },
             { exact λ _ _ H, if_neg (mt finset.mem_singleton.2 H) } },

@@ -72,7 +72,7 @@ theorem zero_succ {α} [semiring α] : (0 + 1 : α) = 1 := zero_add _
 theorem one_succ {α} [semiring α] : (1 + 1 : α) = 2 := rfl
 theorem bit0_succ {α} [semiring α] (a : α) : bit0 a + 1 = bit1 a := rfl
 theorem bit1_succ {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 = bit0 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -96,30 +96,30 @@ theorem zero_adc {α} [semiring α] (a b : α) (h : a + 1 = b) : 0 + a + 1 = b :
 theorem adc_zero {α} [semiring α] (a b : α) (h : a + 1 = b) : a + 0 + 1 = b := by rwa add_zero
 theorem one_add {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + a = b := by rwa add_comm
 theorem add_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b = bit0 c :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem add_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit1 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_assoc]
 theorem add_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit1 a + bit0 b = bit1 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
 theorem add_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b = bit0 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
 theorem adc_one_one {α} [semiring α] : (1 + 1 + 1 : α) = 3 := rfl
 theorem adc_bit0_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit0 a + 1 + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem adc_one_bit0 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit0 a + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem adc_bit1_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_one_bit1 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit1 a + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit0 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit0 a + bit1 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -179,7 +179,7 @@ theorem mul_bit0_bit0 {α} [semiring α] (a b c : α) (h : a * b = c) :
 theorem mul_bit1_bit1 {α} [semiring α] (a b c d e : α)
   (hc : a * b = c) (hd : a + b = d) (he : bit0 c + d = e) :
   bit1 a * bit1 b = bit1 e :=
-by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm]
+by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -637,7 +637,7 @@ theorem lt_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a < b → bi
 theorem lt_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
 lt_of_le_of_lt (bit0_le_bit0.2 h) (lt_add_one _)
 theorem lt_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
-lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one]) (bit0_le_bit0.2 h)
+lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
 theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b := bit1_lt_bit1.2
 
 theorem le_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 ≤ bit0 a :=

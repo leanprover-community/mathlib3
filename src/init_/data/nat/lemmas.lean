@@ -88,4 +88,3 @@ by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 end nat
-

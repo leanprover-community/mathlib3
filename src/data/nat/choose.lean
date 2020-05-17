@@ -26,8 +26,7 @@ begin
     by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
     by exact nat.prime.dvd_choose_add hkp (sub_lt (lt.trans hk hkp) hk) (by rw r) hp,
-  rw r at e,
-  exact e,
+  rwa r at e,
 end
 
 /-- Show that choose is increasing for small values of the right argument. -/

@@ -293,6 +293,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 
 end quotient
 
+section lattice
+variables {R : Type u} [comm_ring R]
+
+theorem mem_Inf {s : set (ideal R)} {x : R} :
+  x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
+⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
+
+end lattice
+
 /-- All ideals in a field are trivial. -/
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=

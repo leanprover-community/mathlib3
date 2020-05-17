@@ -1643,7 +1643,6 @@ apply_nolint mul_action.orbit doc_blame
 apply_nolint mul_action.orbit_equiv_quotient_stabilizer doc_blame
 apply_nolint mul_action.orbit_rel doc_blame
 apply_nolint mul_action.stabilizer doc_blame
-apply_nolint mul_action.to_perm doc_blame
 
 -- group_theory/order_of_element.lean
 apply_nolint exists_pow_eq_one ge_or_gt

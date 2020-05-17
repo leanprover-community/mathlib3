@@ -712,7 +712,11 @@ meta def build_list_expr_for_apply : list pexpr → tactic (list expr)
   <|> return (a::tail)
 
 /--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times -/
+first goal and the resulting subgoals, iteratively, at most `n` times.
+
+Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
+a lemma from the list until it can't.
+ -/
 meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
 do l ← build_list_expr_for_apply hs,
    iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)

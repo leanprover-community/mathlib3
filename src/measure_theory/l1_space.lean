@@ -558,7 +558,7 @@ instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
-    show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
+    show ennreal.to_real (edist (x • f) 0) ≤ ∥x∥ * ennreal.to_real (edist f 0),
     rw [edist_smul, to_real_of_real_mul],
     exact norm_nonneg _
   end ⟩

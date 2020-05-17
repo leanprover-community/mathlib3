@@ -87,7 +87,7 @@ begin
   repeat { rw ←mul_assoc },
   have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
   repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm],
+  simp [sub_eq_add_neg, add_left_comm, add_assoc],
 end
 
 end ring_commutator

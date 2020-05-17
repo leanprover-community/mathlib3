@@ -95,7 +95,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
     { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
+    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
 
 private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :
@@ -137,7 +137,7 @@ m.mod_two_eq_zero_or_one.elim
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
-        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul]
+        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul, add_assoc]
         ... < 4 * (m / 2 : ℕ) ^ 2 + ((4 * (m / 2) : ℕ) * (m % 2 : ℕ) + (m % 2 : ℕ)^2) :
           (lt_add_iff_pos_right _).2 (by rw [hm2, int.coe_nat_one, _root_.one_pow, mul_one];
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one)

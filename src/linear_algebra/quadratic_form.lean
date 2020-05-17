@@ -172,15 +172,15 @@ namespace bilin_form
 open quadratic_form
 
 lemma polar_to_quadratic_form (x y : M) : polar (λ x, B x x) x y = B x y + B y x :=
-by simp [polar, add_left, add_right, sub_eq_add_neg _ (B y y), add_comm (B y x) _]
+by simp [polar, add_left, add_right, sub_eq_add_neg _ (B y y), add_comm (B y x) _, add_assoc]
 
 /-- A bilinear form gives a quadratic form by applying the argument twice. -/
 def to_quadratic_form (B : bilin_form R M) : quadratic_form R M :=
 ⟨ λ x, B x x,
   λ a x, by simp [smul_left, smul_right, mul_assoc],
-  λ x x' y, by simp [polar_to_quadratic_form, add_left, add_right, add_left_comm],
+  λ x x' y, by simp [polar_to_quadratic_form, add_left, add_right, add_left_comm, add_assoc],
   λ a x y, by simp [polar_to_quadratic_form, smul_left, smul_right, mul_add],
-  λ x y y', by simp [polar_to_quadratic_form, add_left, add_right, add_left_comm],
+  λ x y y', by simp [polar_to_quadratic_form, add_left, add_right, add_left_comm, add_assoc],
   λ a x y, by simp [polar_to_quadratic_form, smul_left, smul_right, mul_add] ⟩
 
 @[simp] lemma to_quadratic_form_apply (B : bilin_form R M) (x : M) :

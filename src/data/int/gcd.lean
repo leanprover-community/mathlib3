@@ -68,7 +68,7 @@ gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
   rw [int.mod_def], generalize : (b / a : ℤ) = k,
   rw [p, p'],
-  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add]
+  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
 end
 
 /-- Bézout's lemma: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and

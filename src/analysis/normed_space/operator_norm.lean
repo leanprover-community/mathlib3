@@ -207,8 +207,10 @@ open set real
 
 
 /-- The operator norm of a continuous linear map is the inf of all its bounds. -/
-def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+def op_norm := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
 instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
+
+lemma norm_def : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
 -- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
@@ -300,11 +302,7 @@ lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
     exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
   end))
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ :=
-begin
-  show Inf { c | c ≥ 0 ∧ ∀ x, ∥(-f) x∥ ≤ c * ∥x∥ } = Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ },
-  apply congr_arg, ext, simp,
-end
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/

@@ -370,7 +370,7 @@ instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
 lemma norm_def : ∥f∥ = dist f 0 := rfl
 
-/- Formula for norm. -/
+/- Formula for the norm. -/
 lemma norm_eq (f : α →ᵇ β) :
   ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
 by simp [norm_def, bounded_continuous_function.dist_eq]

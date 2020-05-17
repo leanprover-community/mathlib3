@@ -137,9 +137,7 @@ begin
       rw reflects a,
       rw mem_range at size,
       linarith, },
-
   apply finset.sum_bij' (λ n _, 2 * m + 1 - n) reflect_size preserves (λ n _, 2 * m + 1 - n) reflect_size2,
-
   { intros a a_in_range,
     simp only [],
     rw nat.sub_sub_self,
@@ -158,14 +156,14 @@ begin
   have reflects : ∀ x ≤ 2 * m + 1, choose (2 * m + 1) x = choose (2 * m + 1) (2 * m + 1 - x),
   { intros x pr,
     exact eq.symm (@choose_symm (2 * m + 1) x pr), },
-
   have v : 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) = 2 * 4 ^ m,
     calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i)
-          = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in range (m + 1), nat.choose (2 * m + 1) i : by ring
+          = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in range (m + 1), nat.choose (2 * m + 1) i :
+              by ring
       ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
               by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
       ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i :
-            by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
+              by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
       ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
       ... = 2 * 2 ^ (2 * m) : by ring_exp
       ... = 2 * 4 ^ m : by { rw nat.pow_mul 2 m 2, refl, },

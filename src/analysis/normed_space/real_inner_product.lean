@@ -208,7 +208,7 @@ normed_group.of_core α
 
 /-- An inner product space forms a normed space over reals w.r.t. its associated norm. -/
 instance inner_product_space_is_normed_space : normed_space ℝ α :=
-{ norm_smul := assume r x,
+{ norm_smul_le := assume r x, le_of_eq $
   begin
     rw [norm_eq_sqrt_inner, sqrt_eq_iff_mul_self_eq,
         inner_smul_left, inner_smul_right, inner_self_eq_norm_square],

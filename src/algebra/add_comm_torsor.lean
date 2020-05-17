@@ -58,6 +58,7 @@ class add_comm_torsor (V : Type*) (P : Type*) [add_comm_group V] [nonempty P]
 (vsub_vadd : ∀ (p : P) (v : V), p +ᵥ v -ᵥ p = v)
 
 /-- An `add_comm_group V` is a torsor for itself. -/
+@[priority 100] -- see Note [lower instance priority]
 instance add_comm_group_has_vadd (V : Type*) [add_comm_group V] : has_vadd V V :=
 { vadd := has_add.add,
   vsub := has_sub.sub }

@@ -12,21 +12,6 @@ lemma sum_range_choose_halfway (m : nat) : ∑ i in finset.range (m + 1), nat.ch
 
 private lemma add_one_zero (a : nat) (p : a + 1 = 0) : false := by linarith
 
-private lemma mod_2 (n : nat) : (n % 2 = 0) ∨ ((n + 1) % 2 = 0) :=
-begin
-  induction n,
-  {left, refl},
-  cases n_ih,
-  {right, exact n_ih},
-  {left, exact n_ih},
-end
-
-private lemma twice_m_sub_m (m : nat) : 2 * m - m = m :=
-begin
-  rw two_mul m,
-  exact nat.add_sub_cancel m m,
-end
-
 lemma choose_symmetric
   (m : nat)
   : nat.choose (2 * m + 1) (m + 1) = nat.choose (2 * m + 1) m
@@ -138,7 +123,7 @@ begin
   have t : (p ∣ nat.fact (2 * m + 1 - m.succ)) → false, {
     intros,
     let f := (nat.prime.dvd_fact is_prime).mp a,
-    have t : 2 * m + 1 - m.succ = m, {norm_num, exact twice_m_sub_m m},
+    have t : 2 * m + 1 - m.succ = m, { norm_num, rw two_mul m, exact nat.add_sub_cancel m m, },
     rw t at f,
     clear t a s r p_small is_prime e m_size,
     cases lt_trichotomy p m,

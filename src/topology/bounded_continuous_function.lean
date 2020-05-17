@@ -370,7 +370,8 @@ instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
 lemma norm_def : ∥f∥ = dist f 0 := rfl
 
-/- Formula for the norm. -/
+/-- The norm of a bounded continuous function is the supremum of `∥f x∥`.
+We use `Inf` to ensure that the definition works if `α` has no elements. -/
 lemma norm_eq (f : α →ᵇ β) :
   ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
 by simp [norm_def, bounded_continuous_function.dist_eq]

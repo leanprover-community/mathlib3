@@ -24,7 +24,7 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 * `∑ x in s, f x` is notation for `finset.sum s f` (assuming `β` is an `add_comm_monoid`)
 * `∏ x, f x` is notation for `finset.prod finset.univ f`
   (assuming `α` is a `fintype` and `β` is a `comm_monoid`)
-* `∑ x in s, f x` is notation for `finset.prod finset.univ f`
+* `∑ x, f x` is notation for `finset.sum finset.univ f`
   (assuming `α` is a `fintype` and `β` is an `add_comm_monoid`)
 
 -/

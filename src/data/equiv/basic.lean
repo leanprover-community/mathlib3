@@ -838,6 +838,13 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
   by { rintro ⟨f, h⟩, refl },
   by { rintro f, funext a, exact subtype.eq' rfl }⟩
 
+def subtype_prod_equiv_prod {α : Type u} {β : Type v} {p : α → Prop} {q : β → Prop} :
+  {c : α × β // p c.1 ∧ q c.2} ≃ ({a // p a} × {b // q b}) :=
+⟨λ x, ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩,
+ λ x, ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩,
+ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl,
+ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl⟩
+
 end
 
 namespace set

@@ -766,7 +766,7 @@ begin
     simp [power_def, power, e₁, r₁, split_eq_scale_split' e₂],
     cases k with k,
     { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa, add_assoc] },
-    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc],
+    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc, add_assoc],
       rw [repr_power_aux₁ a00 al aa, scale_power_aux], simp [power_mul],
       rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← power_succ],

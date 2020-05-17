@@ -503,7 +503,7 @@ theorem pos_add_lim_zero {f g : cau_seq α abs} : pos f → lim_zero g → pos (
     rwa [← sub_eq_add_neg, sub_self_div_two] at this
   end⟩
 
-theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
+protected theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
 | ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
   let ⟨i, h⟩ := exists_forall_ge_and hF hG in
   ⟨_, _root_.mul_pos F0 G0, i,

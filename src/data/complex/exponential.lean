@@ -928,7 +928,7 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :
   begin
-    refine (div_le_div_right (mul_pos _ _)).2 _,
+    refine iff.mpr (div_le_div_right (mul_pos _ _)) _,
     exact nat.cast_pos.2 (nat.fact_pos _),
     exact nat.cast_pos.2 hn,
     exact sub_le_self _ (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
@@ -973,7 +973,7 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
 calc abs (exp x - 1 - x) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
-  by simp [sub_eq_add_neg, sum_range_succ]
+  by simp [sub_eq_add_neg, sum_range_succ, add_assoc]
 ... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :

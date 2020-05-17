@@ -142,7 +142,7 @@ by rw [h1, h2, h]
 
 
 lemma add_comm_four [add_comm_semigroup α] (a b : α) : a + a + (b + b) = (a + b) + (a + b) :=
-by simp [add_left_comm]
+by simp [add_left_comm, add_assoc]
 
 lemma add_comm_middle [add_comm_semigroup α] (a b c : α) : a + b + c = a + c + b :=
 by simp [add_comm, add_left_comm]
@@ -197,7 +197,7 @@ lemma bit1_add_one_helper [has_add α] [has_one α] (a t : α) (h : add1 (bit1 a
 by rw [← h]
 
 lemma one_add_bit1 [add_comm_semigroup α] [has_one α] (a : α) : 1 + bit1 a = add1 (bit1 a) :=
-begin unfold bit0 bit1 add1, simp [add_left_comm] end
+begin unfold bit0 bit1 add1, simp [add_left_comm, add_assoc] end
 
 lemma one_add_bit1_helper [add_comm_semigroup α] [has_one α] (a t : α)
         (h : add1 (bit1 a) = t) : 1 + bit1 a = t :=

@@ -10,6 +10,7 @@ import data.list.intervals
 import data.list.antidiagonal
 import data.string.basic
 import algebra.group_power
+import algebra.ordered_group
 import control.traversable.lemmas
 import control.traversable.instances
 

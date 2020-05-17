@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.ordered_ring
 import algebra.field
+import init_.algebra.ordered_field
 
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}

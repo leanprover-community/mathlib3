@@ -8,7 +8,6 @@ The order relation on the integers.
 
 import init_.data.int.basic
 import init_.algebra.ordered_ring
-import init_.algebra.functions
 
 /-
 Results copied from the core library to mathlib by Johan Commelin
@@ -37,4 +36,3 @@ theorem sign_mul_abs (a : ℤ) : sign a * abs a = a :=
 by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
 end int
-

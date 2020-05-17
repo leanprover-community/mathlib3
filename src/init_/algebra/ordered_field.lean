@@ -439,3 +439,20 @@ end linear_ordered_field
 
 class discrete_linear_ordered_field (α : Type u) extends linear_ordered_field α,
       decidable_linear_ordered_comm_ring α
+
+section discrete_linear_ordered_field
+variables {α : Type u} [discrete_linear_ordered_field α]
+
+lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
+decidable.by_cases
+  (assume h : b = 0, by rw [h, abs_zero, div_zero, div_zero, abs_zero])
+  (assume h : b ≠ 0,
+   have h₁ : abs b ≠ 0, from
+     assume h₂, h (eq_zero_of_abs_eq_zero h₂),
+   eq_div_of_mul_eq _ _ h₁
+   (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
+
+lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
+by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
+
+end discrete_linear_ordered_field

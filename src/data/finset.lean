@@ -1850,9 +1850,11 @@ by unfold fold; rw [← fold_add op, ← map_add, union_val,
 
 @[simp] theorem fold_insert_idem [decidable_eq α] [hi : is_idempotent β op] :
   (insert a s).fold op b f = f a * s.fold op b f :=
-by haveI := classical.prop_decidable;
-   rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,
-       fold_erase_dup_idem op]; simp only [map_cons, fold_cons_left, fold]
+begin
+  by_cases (a ∈ s),
+  { rw [← insert_erase h], simp [← ha.assoc, hi.idempotent] },
+  { apply fold_insert h },
+end
 
 lemma fold_op_rel_iff_and
   {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∧ r x z)) {c : β} :
@@ -1974,26 +1976,21 @@ by rw [insert_union, sup_insert, sup_insert, ih, sup_assoc]
 theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.sup f = s₂.sup g :=
 by subst hs; exact finset.fold_congr hfg
 
-lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
-by letI := classical.dec_eq β; from
-finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [sup_insert]; exact sup_le_sup H.1 (ih H.2))
-
-lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-by letI := classical.dec_eq β; from
-calc f b ≤ f b ⊔ s.sup f : le_sup_left
-  ... = (insert b s).sup f : sup_insert.symm
-  ... = s.sup f : by rw [insert_eq_of_mem hb]
+@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+begin
+  apply iff.trans multiset.sup_le,
+  simp only [multiset.mem_map, and_imp, exists_imp_distrib],
+  exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
+end
 
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
-by letI := classical.dec_eq β; from
-finset.induction_on s (λ _, bot_le) (λ n s hns ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [sup_insert]; exact sup_le H.1 (ih H.2))
+sup_le_iff.2
 
-@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
-iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
+lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
+sup_le_iff.1 (le_refl _) _ hb
+
+lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
+sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
 
 lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
@@ -2043,6 +2040,15 @@ lemma inf_val : s.inf f = (s.1.map f).inf := rfl
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
 fold_empty
 
+lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀b ∈ s, a ≤ f b :=
+begin
+  apply iff.trans multiset.le_inf,
+  refine ⟨λ k b hb, k (f b) (multiset.mem_map_of_mem _ hb), λ k b hb, _⟩,
+  rw multiset.mem_map at hb,
+  rcases hb with ⟨a', ha', rfl⟩,
+  apply k a' ha'
+end
+
 @[simp] lemma inf_insert [decidable_eq β] {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
 fold_insert_idem
 
@@ -2056,26 +2062,14 @@ by rw [insert_union, inf_insert, inf_insert, ih, inf_assoc]
 theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.inf f = s₂.inf g :=
 by subst hs; exact finset.fold_congr hfg
 
-lemma inf_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.inf f ≤ s.inf g :=
-by letI := classical.dec_eq β; from
-finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [inf_insert]; exact inf_le_inf H.1 (ih H.2))
-
 lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
-by letI := classical.dec_eq β; from
-calc f b ≥ f b ⊓ s.inf f : inf_le_left
-  ... = (insert b s).inf f : inf_insert.symm
-  ... = s.inf f : by rw [insert_eq_of_mem hb]
+le_inf_iff.1 (le_refl _) _ hb
 
 lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
-by letI := classical.dec_eq β; from
-finset.induction_on s (λ _, le_top) (λ n s hns ih H,
-  by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
-     simp only [inf_insert]; exact le_inf H.1 (ih H.2))
+le_inf_iff.2
 
-lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ (∀b ∈ s, a ≤ f b) :=
-iff.intro (assume h b hb, le_trans h (inf_le hb)) le_inf
+lemma inf_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.inf f ≤ s.inf g :=
+le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
@@ -2150,7 +2144,6 @@ finset.induction_on s (λ _ H, by cases H)
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
 by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
-
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see

@@ -9,7 +9,7 @@ open nat
 
 open_locale big_operators
 
-lemma nat.prime.dvd_choose {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
+lemma nat.prime.dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
   (hp : prime p) : p ∣ choose (a + b) a :=
 have h₁ : p ∣ fact (a + b), from hp.dvd_fact.2 h,
 have h₂ : ¬p ∣ fact a, from mt hp.dvd_fact.1 (not_le_of_gt hap),
@@ -21,8 +21,9 @@ by
 
 lemma nat.prime.dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
 begin
-  have r : k + (p - k) = p, by omega,
-  have e : p ∣ choose (k + (p - k)) k, exact nat.prime.dvd_choose hkp (by omega) (by omega) hp,
+  have r : k + (p - k) = p, by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
+  have e : p ∣ choose (k + (p - k)) k,
+    by exact nat.prime.dvd_choose_add hkp (sub_lt (lt.trans hk hkp) hk) (by rw r) hp,
   {rw r at e, exact e}
 end
 

@@ -484,17 +484,17 @@ by rw [div_div_eq_mul_div', div_mul_cancel' _ hc]
 lemma div_mul_div_cancel' (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
 by rw [← mul_div_assoc'', div_mul_cancel' _ hc]
 
-lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+@[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel' _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel' _ hd]
 
-lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
 by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
 
-lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
 by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=

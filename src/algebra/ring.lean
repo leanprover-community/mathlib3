@@ -194,12 +194,15 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
 
 infixr ` →+* `:25 := ring_hom
 
+@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
+@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
 ⟨ring_hom.to_monoid_hom⟩
 
+@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
@@ -265,10 +268,10 @@ include rβ rγ
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 { to_fun := hnp ∘ hmn,
-  map_zero' := by try_for 1000 {simp},
-  map_one' := by try_for 1000 {simp},
-  map_add' := λ x y, by try_for 1000 {simp},
-  map_mul' := λ x y, by try_for 1000 {simp}}
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_add' := λ x y, by simp,
+  map_mul' := λ x y, by simp}
 
 /-- Composition of semiring homomorphisms is associative. -/
 lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :

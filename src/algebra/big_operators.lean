@@ -438,18 +438,6 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-/-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
-the last and first terms when the function we are summing is monotone. -/
-lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-begin
-  induction n with n IH, { simp },
-  rw [finset.sum_range_succ, IH, nat.succ_eq_add_one],
-  have : f n ≤ f (n+1) := h (nat.le_succ _),
-  have : f 0 ≤ f n := h (nat.zero_le _),
-  omega
-end
-
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
 Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
@@ -521,6 +509,37 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
 
 attribute [to_additive finset.sum_range_one] prod_range_one
+
+/-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
+it's equal to a different function just by checking ratios of adjacent terms.
+This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
+lemma prod_range_induction {M : Type*} [comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
+  ∏ k in finset.range n, f k = s n :=
+begin
+  induction n with k hk,
+  { simp only [h0, finset.prod_range_zero] },
+  { simp only [hk, finset.prod_range_succ, h, mul_comm] }
+end
+
+/-- For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that it's equal
+to a different function just by checking differences of adjacent terms. This is a discrete analogue
+of the fundamental theorem of calculus. -/
+lemma sum_range_induction {M : Type*} [add_comm_monoid M]
+  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
+  ∑ k in finset.range n, f k = s n :=
+@prod_range_induction (multiplicative M) _ f s h0 h n
+
+/-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
+the last and first terms when the function we are summing is monotone. -/
+lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
+begin
+  refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
+  have : f n ≤ f (n+1) := h (nat.le_succ _),
+  have : f 0 ≤ f n := h (nat.zero_le _),
+  omega
+end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
@@ -1151,16 +1170,15 @@ namespace finset
 section gauss_sum
 
 /-- Gauss' summation formula -/
-lemma sum_range_id_mul_two :
-  ∀(n : ℕ), (∑ i in range n, i) * 2 = n * (n - 1)
-| 0       := rfl
-| 1       := rfl
-| ((n + 1) + 1) :=
-  begin
-    rw [sum_range_succ, add_mul, sum_range_id_mul_two (n + 1), mul_comm, two_mul,
-      nat.add_sub_cancel, nat.add_sub_cancel, mul_comm _ n],
-    simp only [add_mul, one_mul, add_comm, add_assoc, add_left_comm]
-  end
+lemma sum_range_id_mul_two (n : ℕ) :
+  (∑ i in range n, i) * 2 = n * (n - 1) :=
+begin
+  rw [sum_mul],
+  refine sum_range_induction _ _ _ _ n, { apply zero_mul },
+  rintro (_|n), { norm_num },
+  simp only [nat.add_sub_cancel, nat.succ_eq_add_one],
+  ring
+end
 
 /-- Gauss' summation formula -/
 lemma sum_range_id (n : ℕ) : (∑ i in range n, i) = (n * (n - 1)) / 2 :=

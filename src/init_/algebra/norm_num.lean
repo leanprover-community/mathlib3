@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis and Leonardo de Moura
 -/
 import algebra.field
-import init_.algebra.ordered_ring
+import algebra.ordered_ring
 
 namespace norm_num
 universe u

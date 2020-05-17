@@ -14,7 +14,7 @@ open_locale classical
 open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale ennreal
+open_locale ennreal big_operators
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -538,7 +538,7 @@ by simp [mul_comm, ennreal.tsum_mul_left]
   (∑'b:α, ⨆ (h : a = b), f b) = f a :=
 le_antisymm
   (by rw [ennreal.tsum_eq_supr_sum]; exact supr_le (assume s,
-    calc s.sum (λb, ⨆ (h : a = b), f b) ≤ (finset.singleton a).sum (λb, ⨆ (h : a = b), f b) :
+    calc (∑ b in s, ⨆ (h : a = b), f b) ≤ ∑ b in {a}, ⨆ (h : a = b), f b :
         finset.sum_le_sum_of_ne_zero $ assume b _ hb,
           suffices a = b, by simpa using this.symm,
           classical.by_contradiction $ assume h,

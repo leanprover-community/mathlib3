@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
 import analysis.complex.basic
+import analysis.calculus.mean_value
 
 
 /-!
@@ -448,5 +449,86 @@ end
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+open_locale big_operators
+
+/-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,
+where the main point of the bound is that it tends to `0`. The goal is to deduce the series
+expansion of the logarithm, in `has_sum_pow_div_log_of_abs_lt_1`.
+-/
+lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : abs x < 1) (n : ℕ) :
+  abs ((∑ i in range n, x^(i+1)/(i+1)) + log (1-x)) ≤ (abs x)^(n+1) / (1 - abs x) :=
+begin
+  /- For the proof, we show that the derivative of the function to be estimated is small,
+  and then apply the mean value inequality. -/
+  let F : ℝ → ℝ := λ x, ∑ i in range n, x^(i+1)/(i+1) + log (1-x),
+  -- First step: compute the derivative of `F`
+  have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = - (y^n) / (1 - y),
+  { assume y hy,
+    have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
+    { congr,
+      ext i,
+      have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
+      field_simp [this, mul_comm] },
+    field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),
+                sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
+    ring },
+  -- second step: show that the derivative of `F` is small
+  have B : ∀ y ∈ set.Icc (-abs x) (abs x), abs (deriv F y) ≤ (abs x)^n / (1 - abs x),
+  { assume y hy,
+    have : y ∈ set.Ioo (-(1 : ℝ)) 1 := ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
+    calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
+    ... ≤ (abs x)^n / (1 - abs x) :
+      begin
+        have : abs y ≤ abs x := abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        have : 0 < 1 - abs x, by linarith,
+        have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
+        simp only [← pow_abs, abs_div, abs_neg],
+        apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left]
+      end },
+  -- third step: apply the mean value inequality
+  have C : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,
+  { have : ∀ y ∈ set.Icc (- abs x) (abs x), differentiable_at ℝ F y,
+    { assume y hy,
+      have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
+      simp [F, this] },
+    apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
+    { simpa using abs_nonneg x },
+    { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
+  -- fourth step: conclude by massaging the inequality of the third step
+  simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C
+end
+
+/-- Power series expansion of the logarithm around `1`. -/
+theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : abs x < 1) :
+  has_sum (λ (n : ℕ), x ^ (n + 1) / (n + 1)) (-log (1 - x)) :=
+begin
+  rw has_sum_iff_tendsto_nat_of_summable,
+  show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (i + 1)) at_top (𝓝 (-log (1 - x))),
+  { rw [tendsto_iff_norm_tendsto_zero],
+    simp only [norm_eq_abs, sub_neg_eq_add],
+    refine squeeze_zero (λ n, abs_nonneg _) (abs_log_sub_add_sum_range_le h) _,
+    suffices : tendsto (λ (t : ℕ), abs x ^ (t + 1) / (1 - abs x)) at_top
+      (𝓝 (abs x * 0 / (1 - abs x))), by simpa,
+    simp only [pow_succ],
+    refine (tendsto_const_nhds.mul _).div_const,
+    exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
+  show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
+  { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
+    calc ∥x ^ (i + 1) / (i + 1)∥
+    = abs x ^ (i+1) / (i+1) :
+      begin
+        have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
+        rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],
+      end
+    ... ≤ abs x ^ (i+1) / (0 + 1) :
+      begin
+        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
+                     add_le_add_right (nat.cast_nonneg i)],
+        norm_num,
+      end
+    ... ≤ abs x ^ i :
+      by simpa [pow_succ'] using mul_le_of_le_one_right (pow_nonneg (abs_nonneg x) i) (le_of_lt h) }
+end
 
 end real

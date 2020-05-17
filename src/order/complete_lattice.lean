@@ -56,8 +56,8 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   inf := λ a b, Inf {a, b},
   le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
-  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
-  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
   sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
   le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
   le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
@@ -628,13 +628,13 @@ theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set 
 by simp
 
 theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x) = f a ⊓ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, infi_insert, inf_comm], simp }
+by rw [infi_insert, infi_singleton]
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 by simp
 
 theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, supr_insert, sup_comm], simp }
+by rw [supr_insert, supr_singleton]
 
 lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨅ c ∈ f '' t, g c) = (⨅ b ∈ t, g (f b)) :=

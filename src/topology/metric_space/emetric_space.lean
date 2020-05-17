@@ -776,18 +776,18 @@ begin
   simpa only [zero_lt_iff_ne_zero, exists_prop] using this
 end
 
-lemma diam_insert : diam (insert x s) = max (diam s) (⨆ y ∈ s, edist y x) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff, max_le_iff,
-  edist_self, zero_le, true_and, supr_le_iff, forall_and_distrib, edist_comm x, and_self,
-  (and_assoc _ _).symm, max_comm (diam s)]
+lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff,
+  edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
+  forall_and_distrib, and_self, ← and_assoc]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
 
 lemma diam_triple :
-  diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
+  diam ({x, y, z} : set α) = max (max (edist x y) (edist x z)) (edist y z) :=
 by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
-  ennreal.max_zero_left, ennreal.sup_eq_max]
+  ennreal.max_zero_right, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=

@@ -19,12 +19,15 @@ by
     norm_num.sub_nat_pos (a + b) a b rfl] at h₁;
   exact h₁.resolve_right (not_or_distrib.2 ⟨h₂, h₃⟩)
 
-lemma nat.prime.dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
+lemma nat.prime.dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) :
+  p ∣ choose p k :=
 begin
-  have r : k + (p - k) = p, by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
+  have r : k + (p - k) = p,
+    by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
     by exact nat.prime.dvd_choose_add hkp (sub_lt (lt.trans hk hkp) hk) (by rw r) hp,
-  {rw r at e, exact e}
+  rw r at e,
+  exact e,
 end
 
 /-- Show that choose is increasing for small values of the right argument. -/

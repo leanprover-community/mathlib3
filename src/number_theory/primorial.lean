@@ -1,5 +1,4 @@
-import data.list
-import data.nat.prime
+import data.list import data.nat.prime
 import data.nat.choose
 import algebra.euclidean_domain
 import algebra.big_operators
@@ -154,10 +153,37 @@ begin
   cc, cc,
 end
 
-lemma primes_divide (n : nat) (s : finset nat) (p : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n) :
+lemma primes_divide (s : finset nat) : ∀ (n : nat) (p : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n),
   (∏ i in s, i) ∣ n :=
 begin
-sorry
+  apply finset.induction_on s,
+  { simp, },
+  { intros a s a_not_in_s induct,
+    intros n primes divs,
+    rw finset.prod_insert a_not_in_s,
+    have a_div_n : a ∣ n, { exact divs a (finset.mem_insert_self a s) },
+    rcases a_div_n with ⟨ k, k_times ⟩,
+    rw k_times,
+    have step : ∏ x in s, x ∣ k,
+      { apply induct k,
+        { intros b b_in_s,
+          exact primes b (finset.mem_insert_of_mem b_in_s), },
+        { intros b b_in_s,
+          have b_div_n, by exact divs b (finset.mem_insert_of_mem b_in_s),
+          have a_prime : nat.prime a, { exact primes a (finset.mem_insert_self a s), },
+          have b_prime : nat.prime b, { exact primes b (finset.mem_insert_of_mem b_in_s), },
+          rw k_times at b_div_n,
+          have r : b ∣ a ∨ b ∣ k, exact (nat.prime.dvd_mul b_prime).mp b_div_n,
+          cases r with b_div_a b_div_k,
+          { exfalso,
+            have b_eq_a : b = a,
+            { cases (nat.dvd_prime a_prime).1 b_div_a with b_eq_1 b_eq_a,
+              { subst b_eq_1, exfalso, exact nat.prime.ne_one b_prime rfl, },
+              { exact b_eq_a } },
+            subst b_eq_a,
+            exact a_not_in_s b_in_s, },
+          { exact b_div_k } } },
+    exact mul_dvd_mul_left a step, }
 end
 
 lemma product_primes_bound : ∀ (n : nat), ∏ i in (finset.filter nat.prime (finset.range (n + 1))), i ≤ 4 ^ n
@@ -203,7 +229,7 @@ begin
       ... ≤ (nat.choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) : by {
         have s : ∏ i in finset.filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ nat.choose (2 * m + 1) (m + 1), {
           -- each of these primes divides the binomial coefficient, middling_prime_divides_binom
-          refine primes_divide (nat.choose (2 * m + 1) (m + 1)) _ _ _,
+          refine primes_divide _ (nat.choose (2 * m + 1) (m + 1)) _ _,
           { intros a, rw finset.mem_filter, cc, },
           {
             intros a, rw finset.mem_filter,

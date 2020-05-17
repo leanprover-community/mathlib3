@@ -110,47 +110,46 @@ by simpa using (add_pow 1 1 n).symm
 # Specific facts about binomial coefficients and their sums
 -/
 
--- This lemma exists only so that we can instantiate it with `i = m + 1`.
-private lemma reflect_sum_lemma (i : nat) (m : nat) (i_bound : i ≤ m + 1) (f : nat → nat)
-  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
-  ∑ j in (Ico (m + 1 - i) (m + 1)), f j = ∑ j in Ico (m + 1) (m + 1 + i), f j :=
-begin
-  induction i with i,
-  { simp },
-  { have t : (m + 1) + (i + 1) = ((m + 1) + i) + 1, norm_num,
-    rw t, clear t,
-    rw ← (@sum_Ico_succ_top _ _ (m + 1) ((m + 1) + i) (by exact nat.le.intro rfl) f).symm,
-    rw ← i_ih, clear i_ih,
-    have t : f (m + 1 + i) = f (m - i), by
-      { have munge : m + 1 + i ≤ 2 * m + 1,
-          { calc m + 1 + i ≤ m + 1 + m : by exact add_le_add_left (nat.lt_succ_iff.mp i_bound) (m + 1)
-          ... = 2 * m + 1 : by ring_exp, },
-        have v : 2 * m + 1 - (m + 1 + i) = m - i,
-          { calc 2 * m + 1 - (m + 1 + i)
-              = 2 * m + 1 - (m + 1) - i : eq.symm (nat.sub_sub (2 * m + 1) (m + 1) i)
-             ... = m + m + 1 - m.succ - i : by rw ← two_mul m
-             ... = m + (m + 1) - (m + 1) - i : by rw ← add_assoc m m 1
-             ... = m - i : by rw nat.add_sub_cancel m m.succ, },
-        have reflected : f (m + 1 + i) = f (2 * m + 1 - (m + 1 + i)), { exact reflects (m + 1 + i) munge },
-        rw v at reflected,
-        exact reflected, },
-    rw t, clear t,
-    { rw nat.succ_sub (nat.lt_succ_iff.mp i_bound),
-      have s : f (m - i) + ∑ j in (Ico (m - i + 1) (m + 1)), f j = ∑ j in (Ico (m - i) (m + 1)), f j,
-        { exact (@sum_eq_sum_Ico_succ_bot _ _ (m - i) (m + 1) (nat.sub_lt_succ m i) f).symm, },
-      simp only [succ_sub_succ_eq_sub],
-      rw ← s,
-      ring, },
-    exact le_of_lt i_bound, }
-end
-
 private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat)
   (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
   ∑ i in (range (m + 1)), f i = ∑ i in (Ico (m + 1) (2 * m + 2)), f i :=
 begin
-  have r : 2 * m + 2 = 2 * (m + 1), ring,
-  rw r,
-  simpa [finset.Ico.zero_bot (m + 1), two_mul (m + 1)] using (reflect_sum_lemma (m + 1) m (le_refl _) f reflects),
+  have reflect_size : ∀ a (ha : a ∈ range (m + 1)), 2 * m + 1 - a ∈ Ico (m + 1) (2 * m + 2),
+    { intros a size,
+      rw Ico.mem,
+      rw mem_range at size,
+      split,
+      { apply nat.le_sub_right_of_add_le,
+        linarith, },
+      { apply (nat.sub_lt_left_iff_lt_add _).2,
+        by linarith,
+        by linarith, } },
+  have reflect_size2 : ∀ a (ha : a ∈ Ico (m + 1) (2 * m + 2)), 2 * m + 1 - a ∈ range (m + 1),
+    { intros a size,
+      rw Ico.mem at size,
+      rw mem_range,
+      cases size with a_big a_small,
+      apply (nat.sub_lt_left_iff_lt_add _).2,
+      by linarith,
+      by linarith, },
+  have preserves : ∀ a (ha : a ∈ range (m + 1)), f a = f (2 * m + 1 - a),
+    { intros a size,
+      rw reflects a,
+      rw mem_range at size,
+      linarith, },
+
+  apply finset.sum_bij' (λ n _, 2 * m + 1 - n) reflect_size preserves (λ n _, 2 * m + 1 - n) reflect_size2,
+
+  { intros a a_in_range,
+    simp only [],
+    rw nat.sub_sub_self,
+    rw mem_range at a_in_range,
+    linarith, },
+  { intros a a_in_ico,
+    rw Ico.mem at a_in_ico,
+    simp only [],
+    rw nat.sub_sub_self,
+    linarith, },
 end
 
 lemma sum_range_choose_halfway (m : nat) :

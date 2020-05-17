@@ -1,5 +1,14 @@
+/-
+Copyright (c) 2020 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Mario Carneiro
+-/
 import deprecated.ring
 import algebra.field
+
+/-!
+# Field properties of unbundled ring homomorphisms (deprecated)
+-/
 
 namespace is_ring_hom
 open ring_hom (of)

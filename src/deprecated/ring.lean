@@ -1,5 +1,27 @@
+/-
+Copyright (c) 2020 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Mario Carneiro
+-/
 import deprecated.group
 import algebra.ring
+
+/-!
+# Unbundled semiring and ring homomorphisms (deprecated)
+
+This file defines typeclasses for unbundled semiring and ring homomorphisms. Though these classes are
+deprecated, they are still widely used in mathlib, and probably will not go away before Lean 4
+because Lean 3 often fails to coerce a bundled homomorphism to a function.
+
+## main definitions
+
+is_semiring_hom (deprecated), is_ring_hom (deprecated)
+
+## Tags
+
+is_semiring_hom, is_ring_hom
+
+-/
 
 universes u v w
 

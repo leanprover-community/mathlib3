@@ -436,14 +436,6 @@ lemma unfold_sub {α} [add_group α] (a b c : α)
 lemma unfold_div {α} [division_ring α] (a b c : α)
   (h : a * b⁻¹ = c) : a / b = c := h
 
-lemma subst_into_add {α} [has_add α] (l r tl tr t)
-  (prl : (l : α) = tl) (prr : r = tr) (prt : tl + tr = t) : l + r = t :=
-by rw [prl, prr, prt]
-
-lemma subst_into_mul {α} [has_mul α] (l r tl tr t)
-  (prl : (l : α) = tl) (prr : r = tr) (prt : tl * tr = t) : l * r = t :=
-by rw [prl, prr, prt]
-
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
 meta def eval : expr → ring_m (horner_expr × expr)
@@ -451,7 +443,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_add e₁' e₂',
-  p ← ic_lift $ λ ic, ic.mk_app ``subst_into_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
   mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
@@ -471,7 +463,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_mul e₁' e₂',
-  p ← ic_lift $ λ ic, ic.mk_app ``subst_into_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← lift $ norm_num.derive e <|> refl_conv e,

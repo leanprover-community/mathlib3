@@ -52,6 +52,14 @@ open tactic
 namespace norm_num
 variable {α : Type u}
 
+lemma subst_into_add {α} [has_add α] (l r tl tr t)
+  (prl : (l : α) = tl) (prr : r = tr) (prt : tl + tr = t) : l + r = t :=
+by rw [prl, prr, prt]
+
+lemma subst_into_mul {α} [has_mul α] (l r tl tr t)
+  (prl : (l : α) = tl) (prr : r = tr) (prt : tl * tr = t) : l * r = t :=
+by rw [prl, prr, prt]
+
 lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
 by simp [pra, prt]
 

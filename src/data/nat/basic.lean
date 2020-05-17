@@ -1318,7 +1318,7 @@ units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
 add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
-@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
+@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
 iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)

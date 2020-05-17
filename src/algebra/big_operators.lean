@@ -382,6 +382,12 @@ calc s.attach.prod (λx, f x.val) = ((s.attach).image subtype.val).prod f :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
 
+/--
+  Reorder a product.
+
+  The difference with `prod_bij'` is that the bijection is specified as a surjective injection,
+  rather than by an inverse function.
+-/
 @[to_additive]
 lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
@@ -390,6 +396,12 @@ lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
 congr_arg multiset.prod
   (multiset.map_eq_map_of_bij_of_nodup f g s.2 t.2 i hi h i_inj i_surj)
 
+/--
+  Reorder a product.
+
+  The difference with `prod_bij` is that the bijection is specified with an inverse, rather than
+  as a surjective injection.
+-/
 @[to_additive]
 lemma prod_bij' {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
@@ -399,7 +411,7 @@ lemma prod_bij' {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
 begin
   refine prod_bij i hi h _ _,
   {intros a1 a2 h1 h2 eq, rw [←left_inv a1 h1, ←left_inv a2 h2], cc,},
-  {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm}
+  {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm,},
 end
 
 @[to_additive]

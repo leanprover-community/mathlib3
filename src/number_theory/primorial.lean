@@ -25,7 +25,7 @@ begin
   have t :
     ∏ i in (filter prime (range (n + 1))), i
     = (∏ i in (filter prime (range n)), i) * (if prime n then n else 1),
-    { have s : range n.succ = insert n (range n), by exact range_succ,
+    { have s : range (n + 1) = insert n (range n), by exact range_succ,
       rw [s, filter_insert, if_neg not_prime, if_neg not_prime],
       ring, },
   rw t,
@@ -73,30 +73,30 @@ begin
   exact sup_eq_left.mp rfl,
 end
 
-lemma succ_not_lt (m : ℕ) : m.succ < m → false :=
+lemma succ_not_lt (m : ℕ) : (m + 1) < m → false :=
 begin
   intros pr,
   induction m, { norm_num at pr, }, { exact m_ih (nat.lt_of_succ_lt_succ pr) },
 end
 
 lemma middling_prime_divides_binom (p : ℕ) (is_prime : prime p) (m : ℕ)
-  (p_big : m.succ < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) m.succ :=
+  (p_big : m + 1 < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) (m + 1) :=
 begin
-  have m_size : m.succ ≤ 2 * m + 1, by exact le_of_lt (lt_of_lt_of_le p_big p_small),
-  let e := @choose_mul_fact_mul_fact (2 * m + 1) m.succ m_size,
+  have m_size : m + 1 ≤ 2 * m + 1, by exact le_of_lt (lt_of_lt_of_le p_big p_small),
+  let e := @choose_mul_fact_mul_fact (2 * m + 1) (m + 1) m_size,
   have r : p ∣ nat.fact (2 * m + 1), exact (prime.dvd_fact is_prime).mpr p_small,
-  have s : (p ∣ nat.fact m.succ) → false,
+  have s : (p ∣ nat.fact (m + 1)) → false,
     { intros,
       let e := (prime.dvd_fact is_prime).mp a,
       linarith, },
-  have t : (p ∣ nat.fact (2 * m + 1 - m.succ)) → false,
+  have t : (p ∣ nat.fact (2 * m + 1 - (m + 1))) → false,
     { intros,
       let f := (prime.dvd_fact is_prime).mp a,
-      have t : 2 * m + 1 - m.succ = m, { norm_num, rw two_mul m, exact nat.add_sub_cancel m m, },
+      have t : 2 * m + 1 - (m + 1) = m, { norm_num, rw two_mul m, exact nat.add_sub_cancel m m, },
       rw t at f,
       clear t a s r p_small is_prime e m_size,
       cases lt_trichotomy p m,
-      { have r : m < m.succ, exact lt_add_one m, linarith },
+      { have r : m < m + 1, exact lt_add_one m, linarith, },
       { cases h,
         { rw h at p_big,
           exact succ_not_lt m p_big,
@@ -142,25 +142,21 @@ begin
     exact mul_dvd_mul_left a step, }
 end
 
-lemma product_primes_bound : ∀ (n : ℕ), ∏ i in (filter prime (range (n + 1))), i ≤ 4 ^ n
+lemma primorial_le_pow_4 : ∀ (n : ℕ), ∏ i in (filter prime (range (n + 1))), i ≤ 4 ^ n
 | 0 := le_refl _
 | 1 := le_of_inf_eq rfl
-| (nat.succ (nat.succ n)) :=
+| (n + 2) :=
 begin
-  cases nat.mod_two_eq_zero_or_one n.succ,
+  cases nat.mod_two_eq_zero_or_one (n + 1),
   { rcases (can_halve (n + 1) h) with ⟨m, twice_m⟩,
     calc (∏ i in filter prime (range (n + 3)), i)
           = ∏ i in filter prime (range (2 * m + 2)), i : by rw twice_m
       ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
             by
-            { rw range_eq_Ico,
-              rw range_eq_Ico,
-              rw finset.union_comm,
-              rw finset.Ico.union_consecutive,
+            { rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
               exact bot_le,
-              have u : m ≤ 2 * m, by linarith,
               simp only [add_le_add_iff_right],
-              exact u, }
+              linarith, }
       ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter prime (range (m + 2)))), i :
             by rw filter_union
       ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
@@ -175,8 +171,8 @@ begin
             by
             { have r : ∏ i in filter prime (range (m + 2)), i ≤ 4 ^ (m + 1),
               { have m_nonzero : 0 < m, by linarith,
-                have recurse : m + 1 < n.succ.succ, exact halve_wellfounded m n twice_m m_nonzero,
-                exact product_primes_bound (m + 1), },
+                have recurse : m + 1 < n + 2, exact halve_wellfounded m n twice_m m_nonzero,
+                exact primorial_le_pow_4 (m + 1), },
               exact nat.mul_le_mul_left _ r, }
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
             by
@@ -199,14 +195,10 @@ begin
       ... = 4 ^ ((m + m) + 1) : by rw add_assoc m m 1
       ... = 4 ^ (2 * m + 1) : by ring
       ... = 4 ^ (n + 2) : by rw twice_m, },
-  { cases lt_trichotomy 1 n.succ with one_lt_n n_lt_one,
-    { have u : nat.succ n + 1 = n.succ.succ, norm_num,
-      rw <- u,
-      have recurse : n.succ < n.succ.succ, exact lt_add_one (nat.succ n),
-      let e := product_primes_bound n.succ,
-      rw <- extend_prime_product_odd (nat.succ (nat.succ n)) (by linarith) (increment_bit _ h),
+  { cases lt_trichotomy 1 (n + 1) with one_lt_n n_lt_one,
+    { rw <- extend_prime_product_odd (n + 2) (by linarith) (increment_bit _ h),
       calc ∏ i in filter prime (range (n + 2)), i
-            ≤ 4 ^ n.succ : product_primes_bound n.succ
+            ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
         ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },
     cases n_lt_one,
     { cases n,

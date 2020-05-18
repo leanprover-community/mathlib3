@@ -152,7 +152,11 @@ jobs:
           path: artifact.zip
 
       - name: unpack build
-        run: unzip ../artifact.zip -d ..
+        run: |
+          pwd
+          ls
+          ls ..
+          unzip ../artifact.zip -d ..
 
       - name: install elan
         run: |

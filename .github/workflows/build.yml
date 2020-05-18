@@ -84,13 +84,15 @@ jobs:
       - name: setup precompiled zip file
         id: setup_precompiled
         run: |
+          touch workspace.tar
+          tar -cf workspace.tar --exclude=workspace.tar .
           git_hash="$(git log -1 --pretty=format:%h)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
-          path: ..
+          path: workspace.tar
 
   lint:
     name: Lint mathlib
@@ -98,10 +100,13 @@ jobs:
     needs: build
     steps:
       - name: retrieve build
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ needs.build.outputs.artifact_name }}
-          path: ..
+
+      - name: untar build
+        run:
+          tar -xf workspace.tar
 
       - name: install elan
         run: |
@@ -113,7 +118,6 @@ jobs:
 
       - name: lint
         run: |
-          chmod +x scripts/mk_all.sh scripts/rm_all.sh
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
           mv nolints.txt scripts/nolints.txt
@@ -123,7 +127,6 @@ jobs:
       - name: update nolints.txt
         if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
         run: |
-          chmod +x scripts/update_nolints.sh
           ./scripts/update_nolints.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
@@ -135,10 +138,13 @@ jobs:
     needs: build
     steps:
       - name: retrieve build
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ needs.build.outputs.artifact_name }}
-          path: ..
+
+      - name: untar build
+        run:
+          tar -xf workspace.tar
 
       - name: install elan
         run: |
@@ -168,7 +174,6 @@ jobs:
 
       - name: generate docs
         run: |
-          chmod +x scripts/deploy_docs.sh
           ./scripts/deploy_docs.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

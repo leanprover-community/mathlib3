@@ -5,9 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial
-import algebra.pi_instances
 import field_theory.finite
-import tactic.nth_rewrite
 
 /-!
 # The Chevalley–Warning theorem

@@ -148,7 +148,7 @@ jobs:
       - name: retrieve build
         uses: actions/download-artifact@v1
         with:
-          name: {{ needs.build.outputs.artifact_name }}
+          name: ${{ needs.build.outputs.artifact_name }}
           path: ../artifact.zip
 
       - name: unpack build

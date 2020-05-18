@@ -6,6 +6,7 @@ Authors: Kenny Lau
 Opposites.
 -/
 import data.opposite
+import algebra.field
 
 namespace opposite
 universes u

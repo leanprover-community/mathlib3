@@ -365,7 +365,7 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   have nf := onote.add_NF a o,
   conv at nf in (_+o) {simp [(+)]},
   conv in (_+o) {simp [(+), add]},
-  cases add a o with e' n' a'; simp [add, h'.symm],
+  cases add a o with e' n' a'; simp [add, h'.symm, add_assoc],
   have := h₁.fst, have := nf.fst, have ee := cmp_compares e e',
   cases cmp e e'; simp [add],
   { rw [← add_assoc, @add_absorp _ (repr e') (ω ^ repr e' * (n':ℕ))],
@@ -571,7 +571,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $
         lt_of_le_of_lt (le_add_right _ m') _),
       rw [← this, ← IH₂], exact h.snd'.repr_lt },
-    { rw this, simp [ordinal.mul_add, mul_assoc] } }
+    { rw this, simp [ordinal.mul_add, mul_assoc, add_assoc] } }
 end
 
 theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
@@ -709,7 +709,7 @@ begin
     have e0 := pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
     apply add_lt_omega_power,
-    { simp [power_mul, ω0, power_add],
+    { simp [power_mul, ω0, power_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.power_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
       refine mul_lt_omega_power rr0 this (nat_lt_omega _),
@@ -765,8 +765,8 @@ begin
     cases NF_repr_split' e₂ with _ r₂,
     simp [power_def, power, e₁, r₁, split_eq_scale_split' e₂],
     cases k with k,
-    { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa] },
-    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc],
+    { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa, add_assoc] },
+    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc, add_assoc],
       rw [repr_power_aux₁ a00 al aa, scale_power_aux], simp [power_mul],
       rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← power_succ],

@@ -15,33 +15,59 @@ import algebra.geom_sum
 
 section
 
-open finset polynomial
+open finset polynomial function
+open_locale big_operators nat
 
-variables {R : Type*} [integral_domain R] (S : set (units R)) [is_subgroup S] [fintype S]
+variables {R : Type*} {G : Type*} [integral_domain R] [group G] [fintype G]
 
-lemma card_nth_roots_subgroup_units [decidable_eq R] {n : ℕ} (hn : 0 < n) (a : S) :
-  (univ.filter (λ b : S, b ^ n = a)).card ≤ (nth_roots n ((a : units R) : R)).card :=
-card_le_card_of_inj_on (λ a, ((a : units R) : R))
-  (by simp [mem_nth_roots hn, (units.coe_pow _ _).symm, -units.coe_pow, units.ext_iff.symm, subtype.coe_ext])
-  (by simp [units.ext_iff.symm, subtype.coe_ext.symm])
+lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
+  ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
+begin
+  apply card_le_card_of_inj_on f,
+  { intros g hg, rw [sep_def, mem_filter] at hg, rw [mem_nth_roots hn, ← f.map_pow, hg.2] },
+  { intros, apply hf, assumption }
+end
 
+/-- A finite subgroup of the unit group of an integral domain is cyclic. -/
+lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
+begin
+  haveI := classical.dec_eq G,
+  apply is_cyclic_of_card_pow_eq_one_le,
+  intros n hn,
+  convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
+end
+
+/-- The unit group of a finite integral domain is cyclic. -/
+instance [fintype R] : is_cyclic (units R) :=
+is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
+
+/-- Every finite integral domain is a field. -/
+def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
+{ inv := λ a, if h : a = 0 then 0
+    else fintype.bij_inv (show function.bijective (* a),
+      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
+  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
+    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
+  inv_zero := dif_pos rfl,
+  ..show integral_domain R, by apply_instance }
+
+section
+
+variables (S : set (units R)) [is_subgroup S] [fintype S]
+
+/-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
-by haveI := classical.dec_eq R; exact
-is_cyclic_of_card_pow_eq_one_le
-  (λ n hn, le_trans (card_nth_roots_subgroup_units S hn 1) (card_nth_roots _ _))
+begin
+  refine is_cyclic_of_subgroup_integral_domain ⟨(coe : S → R), _, _⟩
+    (units.ext.comp subtype.val_injective),
+  { simp only [is_submonoid.coe_one, units.coe_one, coe_coe] },
+  { intros, simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] },
+end
 
 end
 
-section
-variables {G : Type*} {R : Type*} [group G] [integral_domain R]
-
-open_locale big_operators nat
-
-open finset
-
-lemma card_fiber_eq_of_mem_range [fintype G]
-  {H : Type*} [group H] [decidable_eq H] (f : G →* H) {x y : H}
-  (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
+lemma card_fiber_eq_of_mem_range {H : Type*} [group H] [decidable_eq H]
+  (f : G →* H) {x y : H} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
   (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
 begin
   rcases hx with ⟨x, rfl⟩,
@@ -55,8 +81,6 @@ begin
       eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
-
-variables {G} [fintype G]
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero. -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=

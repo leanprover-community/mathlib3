@@ -10,6 +10,7 @@ import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import tactic.ring_exp
+import deprecated.field
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -1603,7 +1604,7 @@ else
   have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
     from eq_of_sub_eq_zero
       (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
-        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm]),
+        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]),
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,

@@ -6,7 +6,7 @@ Authors: Jeremy Avigad
 Instances, copied from the core library by Johan Commelin
 -/
 
-import init_.algebra.ring
+import algebra.ring
 
 instance : comm_ring int :=
 { add            := int.add,
@@ -43,4 +43,3 @@ instance : distrib int            := by apply_instance
 
 instance : zero_ne_one_class ℤ :=
 { zero := 0, one := 1, zero_ne_one := int.zero_ne_one }
-

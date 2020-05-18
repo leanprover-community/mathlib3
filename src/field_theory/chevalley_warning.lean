@@ -186,9 +186,8 @@ begin
   convert char_dvd_card_solutions_family p univ F _ using 1,
   { apply fintype.card_congr,
     apply equiv.subtype_congr_right,
-    simp only [fintype.univ_punit, iff_self, forall_eq, singleton_eq_singleton,
-      mem_singleton, forall_true_iff], },
-  { simpa only [fintype.univ_punit, singleton_eq_singleton, sum_singleton] using h, }
+    simp only [fintype.univ_punit, iff_self, forall_eq, mem_singleton, forall_true_iff], },
+  { simpa only [fintype.univ_punit, sum_singleton] using h, }
 end
 
 end finite_field

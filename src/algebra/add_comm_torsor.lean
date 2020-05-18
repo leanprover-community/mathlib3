@@ -2,9 +2,6 @@
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
-
-Torsors of additive commutative group actions, to the extent needed
-for affine spaces.
 -/
 import algebra.group.basic
 import data.set.basic

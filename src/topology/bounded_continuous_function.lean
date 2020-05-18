@@ -466,7 +466,10 @@ sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 end normed_group
 
 section normed_space
-/- In this section, if `β` is a normed space, then we show that the space of bounded
+/-!
+### Normed space structure
+
+In this section, if `β` is a normed space, then we show that the space of bounded
 continuous functions from `α` to `β` inherits a normed space structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
@@ -500,9 +503,9 @@ section normed_ring
 continuous functions from `α` to `R` inherits a normed ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α]
+variables [topological_space α] {R : Type*} [normed_ring R]
 
-instance {R : Type*} [normed_ring R] : ring (α →ᵇ R) :=
+instance : ring (α →ᵇ R) :=
 { one := const α 1,
   mul := λ f g, of_normed_group (f * g) (f.2.1.mul g.2.1) (∥f∥ * ∥g∥) $ λ x,
     le_trans (normed_ring.norm_mul (f x) (g x)) $
@@ -514,7 +517,7 @@ instance {R : Type*} [normed_ring R] : ring (α →ᵇ R) :=
   right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
   .. bounded_continuous_function.add_comm_group }
 
-instance {R : Type*} [normed_ring R] : normed_ring (α →ᵇ R) :=
+instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   .. bounded_continuous_function.normed_group }
 
@@ -530,7 +533,8 @@ variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables [normed_ring γ] [normed_algebra 𝕜 γ]
 variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
 
-def C : ring_hom 𝕜 (α →ᵇ γ) :=
+/-- `bounded_continuous_function.const` as a `ring_hom`. -/
+def C : 𝕜 →+* (α →ᵇ γ) :=
 { to_fun    := λ (c : 𝕜), const α (algebra.to_ring_hom.to_fun c),
   map_one'  := by rw algebra.to_ring_hom.map_one'; exact rfl,
   map_mul'  := λ c₁ c₂, by rw algebra.to_ring_hom.map_mul'; exact rfl,

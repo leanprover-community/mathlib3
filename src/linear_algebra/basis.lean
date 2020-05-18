@@ -810,7 +810,7 @@ def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
-def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} {f : M → M'} {g : M' → M}
+def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
@@ -827,6 +827,14 @@ def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} {f : M → M'} {g : M' �
       (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
+
+/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
+`v` and `v'` and a bijection between the indexing sets of the two bases. -/
+def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
+  (e : ι ≃ ι') : M ≃ₗ[R] M' :=
+equiv_of_is_basis (hv.constr (v' ∘ e)) (hv'.constr (v ∘ e.symm)) hv hv'
+  (λ i, by simpa using set.mem_range_self _) (λ i, by simpa using set.mem_range_self _)
+  (λ i, by simp) (λ i, by simp)
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :
@@ -912,6 +920,10 @@ linear_equiv.trans (module_equiv_finsupp h)
     add := λ x y, by ext; exact finsupp.add_apply,
     smul := λ x y, by ext; exact finsupp.smul_apply,
     ..finsupp.equiv_fun_on_fintype }
+
+/-- A module over a finite ring that admits a finite basis is finite. -/
+def module.fintype_of_fintype [fintype R] : fintype M :=
+fintype.of_equiv _ (equiv_fun_basis h).to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=

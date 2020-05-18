@@ -241,7 +241,7 @@ end
 end char_p
 
 open_locale nat
-open zmod nat
+open zmod
 
 /-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/

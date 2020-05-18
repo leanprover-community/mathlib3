@@ -44,7 +44,8 @@ by finish using [h barber]
 end barber
 
 constant real : Type
-@[instance] constant  orreal : ordered_ring real
+@[instance] constant orreal : ordered_ring real
+@[irreducible] noncomputable instance : has_lt real := by apply_instance -- TODO(Mario): suspicious fix
 constants (log exp : real → real)
 constant  log_exp_eq : ∀ x, log (exp x) = x
 constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x

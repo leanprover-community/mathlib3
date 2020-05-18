@@ -73,7 +73,7 @@ lemma one_div_mul_cancel (h : a ≠ 0) : (1 / a) * a = 1 := by simp [h]
 lemma one_div_one : 1 / 1 = (1:α) :=
 div_self (ne.symm zero_ne_one)
 
-@[simp] theorem inv_one : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
+theorem inv_one : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
 
 lemma mul_div_assoc (a b c : α) : (a * b) / c = a * (b / c) := by simp
 
@@ -102,11 +102,9 @@ calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
 
 local attribute [simp] one_inv_eq
 
-@[simp] lemma div_one (a : α) : a / 1 = a :=
-by simp
+lemma div_one (a : α) : a / 1 = a := by simp
 
-@[simp] lemma zero_div (a : α) : 0 / a = 0 :=
-by simp
+lemma zero_div (a : α) : 0 / a = 0 := by simp
 
 -- note: integral domain has a "mul_ne_zero". a commutative division ring is an integral
 -- domain, but let's not define that class for now.
@@ -179,7 +177,7 @@ match classical.em (a = 0) with
 | or.inr h := eq.symm (eq_one_div_of_mul_eq_one_left (mul_one_div_cancel h))
 end
 
-@[simp] lemma inv_inv' (a : α) : a⁻¹⁻¹ = a :=
+lemma inv_inv' (a : α) : a⁻¹⁻¹ = a :=
 by rw [inv_eq_one_div, inv_eq_one_div, one_div_one_div]
 
 lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=

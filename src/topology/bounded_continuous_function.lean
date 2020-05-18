@@ -499,7 +499,10 @@ instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_l
 end normed_space
 
 section normed_ring
-/- In this section, if `R` is a normed ring, then we show that the space of bounded
+/-!
+### Normed ring structure
+
+In this section, if `R` is a normed ring, then we show that the space of bounded
 continuous functions from `α` to `R` inherits a normed ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
@@ -524,7 +527,10 @@ instance : normed_ring (α →ᵇ R) :=
 end normed_ring
 
 section normed_algebra
-/- In this section, if `γ` is a normed algebra, then we show that the space of bounded
+/-!
+### Normed algebra structure
+
+In this section, if `γ` is a normed algebra, then we show that the space of bounded
 continuous functions from `α` to `γ` inherits a normed algebra structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
@@ -556,7 +562,11 @@ instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
   end,
   ..bounded_continuous_function.algebra }
 
-/- If `β` is a normed 𝕜-space, then we show that the space of bounded continuous
+
+/-!
+### Structure as normed module over scalar functions
+
+If `β` is a normed 𝕜-space, then we show that the space of bounded continuous
 functions from `α` to `β` is naturally a module over the algebra of bounded continuous
 functions from `α` to 𝕜. -/
 
@@ -579,8 +589,8 @@ module.of_core $
 lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ∥f • g∥ ≤ ∥f∥ * ∥g∥ :=
 norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 
-/- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts 
-show that the space of bounded continuous functions from `α` to `β` is naturally a normed 
+/- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
+show that the space of bounded continuous functions from `α` to `β` is naturally a normed
 module over the algebra of bounded continuous functions from `α` to 𝕜. -/
 
 end normed_algebra

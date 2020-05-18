@@ -807,7 +807,7 @@ end prio
 normed_algebra.norm_algebra_map_eq _
 
 @[priority 100]
-instance to_normed_space {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+instance to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := begin
     intros s x,

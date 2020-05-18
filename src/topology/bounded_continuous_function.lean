@@ -442,7 +442,7 @@ lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=
 (@ext_iff _ _ _ _ f 0).symm
 
 instance : add_comm_group (α →ᵇ β) :=
-{ add_assoc    := assume f g h, by ext; simp,
+{ add_assoc    := assume f g h, by ext; simp [add_assoc],
   zero_add     := assume f, by ext; simp,
   add_zero     := assume f, by ext; simp,
   add_left_neg := assume f, by ext; simp,

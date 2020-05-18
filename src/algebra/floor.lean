@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.linarith
 import tactic.abel
+import algebra.ordered_group
 /-!
 # Floor and Ceil
 
@@ -148,7 +149,7 @@ theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : 
     rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
     rcases h with ⟨hge, hlt, ⟨z, hz⟩⟩,
     rw [hz, int.cast_inj, floor_eq_iff, ←hz],
-    clear hz, split; simpa [sub_eq_add_neg]
+    clear hz, split; simpa [sub_eq_add_neg, add_assoc]
   end⟩
 
 theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
@@ -162,11 +163,11 @@ theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z
   split, exact fract_lt_one _,
   use z + ⌊s⌋,
   rw [eq_add_of_sub_eq hz, int.cast_add],
-  unfold fract, simp [sub_eq_add_neg]
+  unfold fract, simp [sub_eq_add_neg, add_assoc]
 end⟩
 
 @[simp] lemma fract_fract (r : α) : fract (fract r) = fract r :=
-by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, fract]⟩
+by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, add_assoc, fract]⟩
 
 theorem fract_add (r s : α) : ∃ z : ℤ, fract (r + s) - fract r - fract s = z :=
 ⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp [sub_eq_add_neg]; abel⟩

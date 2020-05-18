@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 import tactic.nth_rewrite
+import init_.data.nat.lemmas
 import data.vector
 
 structure F :=

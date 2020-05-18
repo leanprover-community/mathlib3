@@ -1,4 +1,5 @@
-import tactic.ring data.real.basic
+import tactic.ring
+import data.real.basic
 
 example (x y : ℕ) : x + y = y + x := by ring
 example (x y : ℕ) : x + y + y = 2 * y + x := by ring

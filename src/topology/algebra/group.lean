@@ -317,7 +317,7 @@ topological_space.nhds_mk_of_nhds _ _
         simpa using eqt 0 b t0 hbt },
       { rintros _ ⟨c, hb, rfl⟩,
         refine (Z α).sets_of_superset ht (assume x hxt, _),
-        simpa using eqt _ _ hxt hb }
+        simpa [add_assoc] using eqt _ _ hxt hb }
     end)
 
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id

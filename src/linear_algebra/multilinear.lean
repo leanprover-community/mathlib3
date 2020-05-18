@@ -106,7 +106,7 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm], λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm, add_assoc], λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 

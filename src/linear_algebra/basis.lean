@@ -1150,7 +1150,7 @@ begin
     (by ext; simp) _⟩,
   ext ⟨⟨x⟩, y, hy⟩; simp,
   { apply (submodule.quotient.eq p).2,
-    simpa [sub_eq_add_neg, add_left_comm] using sub_mem p hy (fp x) },
+    simpa [sub_eq_add_neg, add_left_comm, add_assoc] using sub_mem p hy (fp x) },
   { refine subtype.coe_ext.2 _,
     simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
 end

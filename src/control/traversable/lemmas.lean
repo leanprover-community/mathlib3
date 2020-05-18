@@ -13,6 +13,7 @@ Inspired by:
     <http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf>
 -/
 import control.traversable.basic
+import control.applicative
 
 universe variables u
 

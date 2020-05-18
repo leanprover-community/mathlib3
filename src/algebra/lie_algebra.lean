@@ -85,9 +85,9 @@ begin
   repeat { rw add_sub },
   repeat { rw ←sub_add },
   repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z := by simp [sub_eq_add_neg, add_left_comm],
+  have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
   repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm],
+  simp [sub_eq_add_neg, add_left_comm, add_assoc],
 end
 
 end ring_commutator
@@ -572,7 +572,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
-  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg],
+  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,
   apply submodule.add_mem,
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },

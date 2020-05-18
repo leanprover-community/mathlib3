@@ -1,4 +1,5 @@
 import tactic
+import data.nat.parity
 
 open_locale big_operators
 open finset
@@ -8,13 +9,11 @@ open nat
 lemma sum_range_choose_halfway (m : ℕ) : ∑ i in range (m + 1), choose (2 * m + 1) i = 4 ^ m :=
    by sorry
 
-private lemma add_one_zero (a : ℕ) (p : a + 1 = 0) : false := by linarith
-
 private lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
 by apply choose_symm_of_eq_add; ring
 
 lemma extend_prime_product_odd (n : ℕ) (n_big : 2 < n) (r : n % 2 = 0) :
-  ∏ i in (filter prime (range n)), i = ∏ i in (filter prime (range (n + 1))), i
+  ∏ p in (filter prime (range n)), p = ∏ p in (filter prime (range (n + 1))), p
   :=
 begin
   have not_prime : ¬prime n,
@@ -22,14 +21,9 @@ begin
       cases (prime.eq_two_or_odd is_prime),
       { subst h, linarith, },
       { linarith }, },
-  have t :
-    ∏ i in (filter prime (range (n + 1))), i
-    = (∏ i in (filter prime (range n)), i) * (if prime n then n else 1),
-    { have s : range (n + 1) = insert n (range n), by exact range_succ,
-      rw [s, filter_insert, if_neg not_prime, if_neg not_prime],
-      ring, },
-  rw t,
-  simp only [not_prime, mul_one, if_false],
+  apply finset.prod_congr,
+  { rw [range_succ, filter_insert, if_neg not_prime], },
+  { exact λ _ _, rfl, },
 end
 
 private lemma range_contains_upper_bound (n : ℕ) : n ∈ range (n + 1) :=
@@ -43,40 +37,6 @@ begin
   have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i,
     exact select_from_sum (choose (2 * n + 1)) (range (n + 1)) n (range_contains_upper_bound n),
   simpa only [sum_range_choose_halfway n] using t
-end
-
-private lemma can_halve : ∀ (m : ℕ), (m % 2 = 0) → ∃ n, 2 * n = m
-| 0 := λ _, ⟨ 0, rfl ⟩
-| 1 := λ one_even, by {exfalso, norm_num at one_even}
-| (m + 1 + 1) := λ is_even, by
-  { rcases can_halve m is_even with ⟨ half, is_half ⟩,
-    use (half + 1),
-    ring,
-    subst is_half, }
-
-private lemma halve_wellfounded (m n : ℕ) (pr : 2 * m = n + 1) (m_big : 0 < m) : m + 1 < n + 1 + 1 :=
-begin
-  rw <- pr,
-  simp only [add_lt_add_iff_right],
-  linarith,
-end
-
-private lemma increment_bit : ∀ (m : ℕ), (m % 2 = 1) → (m + 1) % 2 = 0
-| 0 := λ pr, by norm_num at pr
-| 1 := λ pr, by norm_num
-| (m + 1 + 1) := λ pr, by
-begin
-  rw nat.mod_def _ 2,
-  simp only [true_and, nat.succ_pos', nat.succ_sub_succ_eq_sub, nat.sub_zero],
-  rw increment_bit m (by exact pr),
-  rw if_pos,
-  exact sup_eq_left.mp rfl,
-end
-
-lemma succ_not_lt (m : ℕ) : (m + 1) < m → false :=
-begin
-  intros pr,
-  induction m, { norm_num at pr, }, { exact m_ih (nat.lt_of_succ_lt_succ pr) },
 end
 
 lemma middling_prime_divides_binom (p : ℕ) (is_prime : prime p) (m : ℕ)
@@ -99,8 +59,7 @@ begin
       { have r : m < m + 1, exact lt_add_one m, linarith, },
       { cases h,
         { rw h at p_big,
-          exact succ_not_lt m p_big,
-        },
+          linarith, },
         linarith, }, },
   rw [←e, mul_assoc] at r,
   cases (prime.dvd_mul is_prime).1 r,
@@ -110,7 +69,7 @@ begin
 end
 
 private lemma primes_divide (s : finset ℕ) : ∀ (n : ℕ) (p : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
-  (∏ i in s, i) ∣ n :=
+  (∏ p in s, p) ∣ n :=
 begin
   apply finset.induction_on s,
   { simp, },
@@ -120,7 +79,7 @@ begin
     have a_div_n : a ∣ n, { exact divs a (finset.mem_insert_self a s) },
     rcases a_div_n with ⟨ k, k_times ⟩,
     rw k_times,
-    have step : ∏ x in s, x ∣ k,
+    have step : ∏ p in s, p ∣ k,
       { apply induct k,
         { intros b b_in_s,
           exact primes b (finset.mem_insert_of_mem b_in_s), },
@@ -142,15 +101,15 @@ begin
     exact mul_dvd_mul_left a step, }
 end
 
-lemma primorial_le_pow_4 : ∀ (n : ℕ), ∏ i in (filter prime (range (n + 1))), i ≤ 4 ^ n
+lemma primorial_le_pow_4 : ∀ (n : ℕ), ∏ p in (filter prime (range (n + 1))), p ≤ 4 ^ n
 | 0 := le_refl _
 | 1 := le_of_inf_eq rfl
 | (n + 2) :=
 begin
   cases nat.mod_two_eq_zero_or_one (n + 1),
-  { rcases (can_halve (n + 1) h) with ⟨m, twice_m⟩,
+  { rcases (nat.even_iff.2 h) with ⟨m, twice_m⟩,
     calc (∏ i in filter prime (range (n + 3)), i)
-          = ∏ i in filter prime (range (2 * m + 2)), i : by rw twice_m
+          = ∏ i in filter prime (range (2 * m + 2)), i : by rw ←twice_m
       ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
             by
             { rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
@@ -171,7 +130,7 @@ begin
             by
             { have r : ∏ i in filter prime (range (m + 2)), i ≤ 4 ^ (m + 1),
               { have m_nonzero : 0 < m, by linarith,
-                have recurse : m + 1 < n + 2, exact halve_wellfounded m n twice_m m_nonzero,
+                have recurse : m + 1 < n + 2, by linarith,
                 exact primorial_le_pow_4 (m + 1), },
               exact nat.mul_le_mul_left _ r, }
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
@@ -194,16 +153,16 @@ begin
       ... = 4 ^ (m + (m + 1)) : eq.symm (nat.pow_add 4 m (m + 1))
       ... = 4 ^ ((m + m) + 1) : by rw add_assoc m m 1
       ... = 4 ^ (2 * m + 1) : by ring
-      ... = 4 ^ (n + 2) : by rw twice_m, },
+      ... = 4 ^ (n + 2) : by rw ←twice_m, },
   { cases lt_trichotomy 1 (n + 1) with one_lt_n n_lt_one,
-    { rw <- extend_prime_product_odd (n + 2) (by linarith) (increment_bit _ h),
+    { rw <- extend_prime_product_odd (n + 2) (by linarith) (by { rw [add_mod (n + 1) 1 2, h], norm_num, }),
       calc ∏ i in filter prime (range (n + 2)), i
             ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
         ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },
     cases n_lt_one,
     { cases n,
       exact le_of_inf_eq rfl,
-      exfalso, exact add_one_zero n (eq.symm (nat.succ_inj n_lt_one)), },
+      exfalso, exact nat.succ_ne_zero n (eq.symm (nat.succ_inj n_lt_one)), },
     { have e : n < 0, exact nat.lt_of_succ_lt_succ n_lt_one,
       interval_cases n, }, },
 end

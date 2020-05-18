@@ -65,15 +65,45 @@ also receives each element's index.
 def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
+section mfold_with_index
+
+variables {m : Type v → Type w} [monad m]
+
 /-- Monadic variant of `foldl_with_index`. -/
-def mfoldl_with_index {m : Type u → Type w} [monad m] (f : ℕ → α → β → m α)
-  (a : α) (l : list β) : m α :=
-l.foldl_with_index (λ i ma b, do a ← ma, f i a b) (pure a)
+def mfoldl_with_index (f : ℕ → β → α → m β) (b : β) (as : list α) : m β :=
+as.foldl_with_index (λ i ma b, do a ← ma, f i a b) (pure b)
 
 /-- Monadic variant of `foldr_with_index`. -/
-def mfoldr_with_index {m : Type v → Type w} [monad m] (f : ℕ → α → β → m β)
-  (b : β) (l : list α) : m β :=
-l.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
+def mfoldr_with_index (f : ℕ → α → β → m β) (b : β) (as : list α) : m β :=
+as.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
+
+end mfold_with_index
+
+section mmap_with_index
+
+variables {m : Type v → Type w} [applicative m]
+
+def mmap_with_index_aux (f : ℕ → α → m β) : ℕ → list α → m (list β)
+| _ [] := pure []
+| i (a :: as) := list.cons <$> f i a <*> mmap_with_index_aux (i + 1) as
+
+def mmap_with_index (f : ℕ → α → m β) (as : list α) : m (list β) :=
+mmap_with_index_aux f 0 as
+
+end mmap_with_index
+
+section mmap_with_index'
+
+variables {m : Type → Type v} [applicative m]
+
+def mmap_with_index'_aux (f : ℕ → α → m unit) : ℕ → list α → m unit
+| _ [] := pure punit.star
+| i (a :: as) := f i a *> mmap_with_index'_aux (i + 1) as
+
+def mmap_with_index' (f : ℕ → α → m unit) (as : list α) : m unit :=
+mmap_with_index'_aux f 0 as
+
+end mmap_with_index'
 
 /-- The list of indices of a list. `index_list l = [0, ..., length l - 1]`. -/
 def index_list : list α → list ℕ := map_with_index (λ i _, i)
@@ -708,7 +738,8 @@ on any of the hypotheses in `fixed`.
 TODO example
 TODO precond: `fixed` contains only locals
 -/
--- TODO efficiency
+-- TODO efficiency: we could put the locals that appear in each hypothesis in a
+-- map to avoid multiple traversals
 meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name) := do
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp,
@@ -744,8 +775,39 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   pure ()
 
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
-  : tactic (expr × list expr) := do
-  sorry
+  : tactic (expr × list (expr × expr) × list expr) := do
+  let ⟨locals, nonlocals⟩ :=
+    index_args.partition (λ arg : expr, arg.is_local_constant),
+
+  -- If there aren't any complex index arguments, we don't need to do anything.
+  (_ :: _) ← pure nonlocals | pure ⟨eliminee, [], []⟩,
+
+  num_reverted ← revert eliminee,
+  index_equations ← nonlocals.mmap_with_index $ λ i arg, do {
+    num_reverted ← revert_kdependencies arg,
+    let arg_name := mk_simple_name $ "index_" ++ to_string i,
+    let eq_name := (mk_simple_name $ "index_" ++ to_string i) ++ "eq",
+    tgt ← target,
+    -- if generalizing fails, fall back to not replacing anything
+    tgt' ← do {
+      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize arg arg_name >> target),
+      to_expr ``(Π x, %%arg = x → %%(tgt'.binding_body.lift_vars 0 1))
+    } <|> to_expr ``(Π x, %%arg = x → %%tgt),
+    t ← assert eq_name tgt',
+    swap,
+    interactive.exact ``(%%t %%arg rfl),
+    -- TODO generalize with equation
+    tactic.generalize arg arg_name,
+    h ← intro1,
+    intron num_reverted,
+    let arg_locals :=
+      arg.fold [] (λ e _ locals, if e.is_local_constant then e::locals else locals),
+    arg_locals.mmap' (try ∘ clear),
+    pure (h, h)
+  },
+  intron (num_reverted - 1),
+  eliminee ← intro1,
+  pure ⟨eliminee, index_equations, locals⟩
 
 meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
 focus1 $ do
@@ -780,8 +842,11 @@ focus1 $ do
 
   -- Generalise complex indices
   let eliminee_index_args := eliminee_args.drop iinfo.num_params,
-  ⟨eliminee, index_equations⟩ ←
+  ⟨eliminee, eliminee_index_equations, eliminee_local_index_args⟩ ←
     generalize_complex_index_args eliminee eliminee_index_args,
+
+  -- NOTE: The previous step may have changed the unique names of all hyps in
+  -- the context.
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -794,7 +859,7 @@ focus1 $ do
     -- TODO simplify the index equations
 
     -- Clear the index args (unless other stuff in the goal depends on them)
-    eliminee_index_args.mmap' (try ∘ clear),
+    eliminee_local_index_args.mmap' (try ∘ clear),
     -- TODO is this the right thing to do? I don't think this necessarily
     -- preserves provability: The args we clear could contain interesting
     -- information, even if nothing else depends on them. Is there a way to avoid

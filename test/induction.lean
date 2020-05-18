@@ -490,49 +490,50 @@ inductive curried_big_step : stmt → state → state → Prop
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
-  generalize heq : while (λ_, true) S = w,
-  intro hw,
-  induction hw generalizing S,
-  /- Desired syntax for all of the above: `induction hw`. -/
-  /- It is not possible (or necessary) to generalize `s` here, probably because
-  it does not occur elsewhere in the goal. -/
-  all_goals {
-    cases heq;
-    clear heq
-  },
-  { /- case while_true -/
-    clear w t,
-    rename hw_S S,
-    rename hw_s s,
-    rename hw_t ta,
-    rename hw_u t,
-    rename hw_hcond hcond,
-    have ih_hbody : ∀{Sa : stmt}, while (λ (_x : state), true) Sa = S → false :=
-      begin
-        intros,
-        apply hw_ih_hbody,
-        rw a
-      end,
-    clear hw_ih_hbody,
-    rename hw_hbody hbody,
-    rename hw_hrest hrest,
-    have ih_hrest : false :=
-      begin
-        apply hw_ih_hrest,
-        refl
-      end,
-    clear hw_ih_hrest,
-    /- Desired state here. -/
-    exact ih_hrest },
-  { /- case while_false -/
-    clear w t hw_S,
-    rename hw_s s,
-      -- `rename hw_s t` would also be OK, but let us proceed from left to right
-    rename hw_hcond hcond,
-    /- Desired state here. -/
-    apply hcond,
-    apply true.intro
-  }
+  intro hw, induction' hw,
+  -- generalize heq : while (λ_, true) S = w,
+  -- intro hw,
+  -- induction hw generalizing S,
+  -- /- Desired syntax for all of the above: `induction hw`. -/
+  -- /- It is not possible (or necessary) to generalize `s` here, probably because
+  -- it does not occur elsewhere in the goal. -/
+  -- all_goals {
+  --   cases heq;
+  --   clear heq
+  -- },
+  -- { /- case while_true -/
+  --   clear w t,
+  --   rename hw_S S,
+  --   rename hw_s s,
+  --   rename hw_t ta,
+  --   rename hw_u t,
+  --   rename hw_hcond hcond,
+  --   have ih_hbody : ∀{Sa : stmt}, while (λ (_x : state), true) Sa = S → false :=
+  --     begin
+  --       intros,
+  --       apply hw_ih_hbody,
+  --       rw a
+  --     end,
+  --   clear hw_ih_hbody,
+  --   rename hw_hbody hbody,
+  --   rename hw_hrest hrest,
+  --   have ih_hrest : false :=
+  --     begin
+  --       apply hw_ih_hrest,
+  --       refl
+  --     end,
+  --   clear hw_ih_hrest,
+  --   /- Desired state here. -/
+  --   exact ih_hrest },
+  -- { /- case while_false -/
+  --   clear w t hw_S,
+  --   rename hw_s s,
+  --     -- `rename hw_s t` would also be OK, but let us proceed from left to right
+  --   rename hw_hcond hcond,
+  --   /- Desired state here. -/
+  --   apply hcond,
+  --   apply true.intro
+  -- }
 end
 
 end semantics
@@ -555,7 +556,6 @@ inductive small_step : stmt × state → stmt × state → Prop
   small_step (ite b S T, s) (T, s)
 | while {b : state → Prop} {S s} :
   small_step (while b S, s) (ite b (seq S (while b S)) skip, s)
---ouq
 
 /- The next example yields unprovable subgoals, where the variables `S`, `s'`,
 `T`, and `T'` are not instantiated properly. The reason seems to be that

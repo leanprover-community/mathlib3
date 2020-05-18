@@ -169,10 +169,14 @@ begin
 end
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma sub_vsub_vsub_cancel (p1 p2 p3 : P) : (p1 -ᵥ p3 : V) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
-begin
-  rw [←vsub_vadd_eq_vsub_sub V p1 p3, vadd_vsub_self V p3]
-end
+@[simp] lemma sub_vsub_vsub_cancel_right (p1 p2 p3 : P) :
+  (p1 -ᵥ p3 : V) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
+by rw [←vsub_vadd_eq_vsub_sub V p1 p3, vadd_vsub_self V p3]
+
+/-- Cancellation subtracting the results of two subtractions. -/
+@[simp] lemma sub_vsub_vsub_cancel_left (p1 p2 p3 : P) :
+  (p3 -ᵥ p2 : V) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
+by rw [sub_eq_add_neg, ←vsub_rev_eq_neg_vsub, add_comm, add_vsub_vsub_cancel]
 
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set V := ⋃₀((λ p1 : P, (λ p2 : P, p1 -ᵥ p2) '' s) '' s)

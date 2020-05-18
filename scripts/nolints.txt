@@ -514,9 +514,6 @@ apply_nolint nat.unpaired doc_blame
 apply_nolint primcodable.of_equiv doc_blame
 apply_nolint primcodable.subtype doc_blame
 
--- control/applicative.lean
-apply_nolint comp.seq doc_blame
-
 -- control/basic.lean
 apply_nolint is_comm_applicative doc_blame
 apply_nolint list.mmap_accuml doc_blame
@@ -582,6 +579,7 @@ apply_nolint functor.comp has_inhabited_instance
 apply_nolint functor.comp.map doc_blame
 apply_nolint functor.comp.mk doc_blame
 apply_nolint functor.comp.run doc_blame
+apply_nolint functor.comp.seq doc_blame
 apply_nolint functor.const has_inhabited_instance
 apply_nolint functor.const.mk doc_blame
 apply_nolint functor.const.mk' doc_blame

@@ -656,7 +656,7 @@ begin
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-          by simpa [sub_eq_add_neg],
+          by simpa [sub_add_sub_cancel],
         apply lt_of_le_of_lt,
         { apply padic_norm_e.add },
         { apply add_lt_add,

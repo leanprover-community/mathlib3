@@ -579,9 +579,9 @@ module.of_core $
 lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ∥f • g∥ ≤ ∥f∥ * ∥g∥ :=
 norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 
-/- TODO: When `normed_module` has been implemented, the above facts show that the space
-of bounded continuous functions from `α` to `β` is naturally a normed module over the
-algebra of bounded continuous functions from `α` to 𝕜. -/
+/- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts 
+show that the space of bounded continuous functions from `α` to `β` is naturally a normed 
+module over the algebra of bounded continuous functions from `α` to 𝕜. -/
 
 end normed_algebra
 

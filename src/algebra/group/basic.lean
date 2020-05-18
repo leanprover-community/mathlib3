@@ -38,8 +38,6 @@ universe u
 @[ancestor has_add] class add_semigroup (α : Type u) extends has_add α :=
 (add_assoc : ∀ a b c : α, a + b + c = a + (b + c))
 attribute [to_additive add_semigroup] semigroup
-attribute [to_additive add_semigroup.to_has_add] semigroup.to_has_mul
-attribute [to_additive add_semigroup.add_assoc] semigroup.mul_assoc
 
 section semigroup
 variables {α : Type u} [semigroup α]
@@ -47,6 +45,7 @@ variables {α : Type u} [semigroup α]
 @[no_rsimp, to_additive]
 lemma mul_assoc : ∀ a b c : α, a * b * c = a * (b * c) :=
 semigroup.mul_assoc
+
 attribute [no_rsimp] add_assoc -- TODO(Mario): find out why this isn't copying
 
 @[to_additive add_semigroup_to_is_eq_associative]
@@ -60,8 +59,6 @@ end semigroup
 @[ancestor add_semigroup] class add_comm_semigroup (α : Type u) extends add_semigroup α :=
 (add_comm : ∀ a b : α, a + b = b + a)
 attribute [to_additive add_comm_semigroup] comm_semigroup
-attribute [to_additive add_comm_semigroup.to_add_semigroup] comm_semigroup.to_semigroup
-attribute [to_additive add_comm_semigroup.add_comm] comm_semigroup.mul_comm
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
@@ -97,9 +94,6 @@ local attribute [simp] mul_assoc
 @[ancestor add_semigroup] class add_left_cancel_semigroup (α : Type u) extends add_semigroup α :=
 (add_left_cancel : ∀ a b c : α, a + b = a + c → b = c)
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
-attribute [to_additive add_left_cancel_semigroup.mk] left_cancel_semigroup.mk
-attribute [to_additive add_left_cancel_semigroup.to_add_semigroup] left_cancel_semigroup.to_semigroup
-attribute [to_additive add_left_cancel_semigroup.add_left_cancel] left_cancel_semigroup.mul_left_cancel
 
 section left_cancel_semigroup
 variables {α : Type u} [left_cancel_semigroup α] {a b c : α}
@@ -129,9 +123,6 @@ end left_cancel_semigroup
 @[ancestor add_semigroup] class add_right_cancel_semigroup (α : Type u) extends add_semigroup α :=
 (add_right_cancel : ∀ a b c : α, a + b = c + b → a = c)
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-attribute [to_additive add_right_cancel_semigroup.mk] right_cancel_semigroup.mk
-attribute [to_additive add_right_cancel_semigroup.to_add_semigroup] right_cancel_semigroup.to_semigroup
-attribute [to_additive add_right_cancel_semigroup.add_right_cancel] right_cancel_semigroup.mul_right_cancel
 
 section right_cancel_semigroup
 variables {α : Type u} [right_cancel_semigroup α] {a b c : α}
@@ -163,10 +154,6 @@ class monoid (M : Type u) extends semigroup M, has_one M :=
 class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
 (zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
 attribute [to_additive add_monoid] monoid
-attribute [to_additive add_monoid.to_has_zero] monoid.to_has_one
-attribute [to_additive add_monoid.to_add_semigroup] monoid.to_semigroup
-attribute [to_additive add_monoid.zero_add] monoid.one_mul
-attribute [to_additive add_monoid.add_zero] monoid.mul_one
 
 section monoid
 variables {M : Type u} [monoid M]
@@ -209,8 +196,6 @@ class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 @[ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 attribute [to_additive add_comm_monoid] comm_monoid
-attribute [to_additive add_comm_monoid.to_add_monoid] comm_monoid.to_monoid
-attribute [to_additive add_comm_monoid.to_add_comm_semigroup] comm_monoid.to_comm_semigroup
 
 section comm_monoid
 variables {M : Type u} [comm_monoid M] {x y z : M}
@@ -230,18 +215,13 @@ variables {M : Type u} [add_left_cancel_monoid M]
 
 end add_left_cancel_monoid
 
-@[ancestor add_monoid has_neg]
+@[ancestor monoid has_inv]
 class group (α : Type u) extends monoid α, has_inv α :=
 (mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-@[ancestor monoid has_inv]
+@[ancestor add_monoid has_neg]
 class add_group (α : Type u) extends add_monoid α, has_neg α :=
 (add_left_neg : ∀ a : α, -a + a = 0)
 attribute [to_additive add_group] group
-attribute [to_additive add_group.add] group.mul
-attribute [to_additive add_group.add_assoc] group.mul_assoc
-attribute [to_additive add_group.to_has_neg] group.to_has_inv
-attribute [to_additive add_group.to_add_monoid] group.to_monoid
-attribute [to_additive add_group.add_left_neg] group.mul_left_inv
 
 section group
 variables {G : Type u} [group G] {a b c : G}
@@ -589,8 +569,6 @@ class comm_group (G : Type u) extends group G, comm_monoid G
 @[ancestor add_group add_comm_monoid]
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive add_comm_group] comm_group
-attribute [to_additive add_comm_group.to_add_group] comm_group.to_group
-attribute [to_additive add_comm_group.to_add_comm_monoid] comm_group.to_comm_monoid
 
 section comm_group
 variables {G : Type u} [comm_group G]

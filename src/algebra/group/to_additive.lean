@@ -73,13 +73,8 @@ that the new name differs from the original one.
 
 * Automatically transport structures and other inductive types.
 
-* Handle `protected` attribute. Currently all new definitions are public.
-
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Mapping of prefixes that do not correspond to any definition, see
-  `quotient_group`.
 
 * Rewrite rules for the last part of the name that work in more
   cases. E.g., we can replace `monoid` with `add_monoid` etc.
@@ -202,12 +197,4 @@ protected meta def attr : user_attribute unit value_type :=
 end to_additive
 
 /- map operations -/
-attribute [to_additive has_add.add] has_mul.mul
-attribute [to_additive has_zero.zero] has_one.one
-attribute [to_additive has_neg.neg] has_inv.inv
 attribute [to_additive] has_mul has_one has_inv
-
-/- map constructors -/
-attribute [to_additive has_add.mk] has_mul.mk
-attribute [to_additive has_zero.mk] has_one.mk
-attribute [to_additive has_neg.mk] has_inv.mk

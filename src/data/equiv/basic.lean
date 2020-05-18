@@ -838,6 +838,14 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
   by { rintro ⟨f, h⟩, refl },
   by { rintro f, funext a, exact subtype.eq' rfl }⟩
 
+instance subtype.unique {α : Type*} (a : α) : unique {x // x = a} :=
+{ default := ⟨a, rfl⟩,
+  uniq := λ ⟨x, h⟩, subtype.val_injective h }
+
+instance subtype.not_not_unique {α : Type*} (p : α → Prop) [decidable_pred p] [unique {x // p x}] :
+  unique {x // ¬ ¬ p x} :=
+(equiv.subtype_congr_right $ λ a, not_not).unique_of_equiv ‹_›
+
 end
 
 namespace set

@@ -25,24 +25,11 @@ Throughout most of this file, `K` denotes a finite field with `q` elements.
    the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
    Then the number of common solutions of the `f i`
    is divisible by the characteristic of `K`.
-
 -/
 
 universes u v
 
 open_locale big_operators
-
-section
-
-instance subtype.unique {α : Type*} (a : α) : unique {x // x = a} :=
-{ default := ⟨a, rfl⟩,
-  uniq := λ ⟨x, h⟩, subtype.val_injective h }
-
-instance subtype.not_not_unique {α : Type*} (p : α → Prop) [decidable_pred p] [unique {x // p x}] :
-  unique {x // ¬ ¬ p x} :=
-(equiv.subtype_congr_right $ λ a, not_not).unique_of_equiv ‹_›
-
-end
 
 namespace finite_field
 open mv_polynomial function finset
@@ -168,7 +155,6 @@ begin
       rw finset.prod_eq_zero hi,
       simp only [pow_card_sub_one_eq_one (eval x (f i)) hx, add_right_neg, sub_self], } }
 end
-
 
 /-- The Chevalley–Warning theorem.
 Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)

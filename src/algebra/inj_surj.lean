@@ -6,6 +6,24 @@ Authors: Johan Commelin
 
 import algebra.ring
 
+/-!
+# Lifting algebraic data classes along injective/surjective maps
+
+This file provides definitions that are meant to deal with
+situations such as the following:
+
+Suppose that `G` is a group, and `H` is a type endowed with
+`has_one H`, `has_mul H`, and `has_inv H`.
+Suppose furthermore, that `f : G → H` is a surjective map
+that respects the multiplication, and the unit elements.
+Then `H` satisfies the group axioms.
+
+The relevant definition in this case is `group_of_surjective`.
+Dually, there is also `group_of_injective`.
+And there are versions for (additive) (commutative) semigroups/monoids,
+and for (commutative) (semi)rings.
+-/
+
 section
 open function
 variables {M₁ : Type*} {M₂ : Type*} [has_mul M₁]

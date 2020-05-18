@@ -3,8 +3,9 @@ Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 -/
-import logic.function
+import logic.function.basic
 import algebra.group.to_additive
+import algebra.group.hom
 import tactic.norm_cast
 
 /-!
@@ -117,6 +118,19 @@ by rw [mul_assoc, inv_mul, mul_one]
 
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
+
+variable (α)
+
+/-- The injective homomorphism from `units M` to the monoid `M`. -/
+@[to_additive "The injective homomorphism from `add_units M` to the additive monoid `M`."]
+def val_hom : units α →* α :=
+{ to_fun   := coe,
+  map_one' := coe_one,
+  map_mul' := coe_mul }
+
+variable {α}
+
+@[simp, to_additive] lemma coe_val_hom : (val_hom α : units α → α) = coe := rfl
 
 end units
 

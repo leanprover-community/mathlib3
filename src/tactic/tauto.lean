@@ -17,8 +17,8 @@ open tactic.interactive ( casesm constructor_matching )
 meta def distrib_not : tactic unit :=
 do hs ← local_context,
    hs.for_each $ λ h,
-    all_goals $
-    iterate_at_most 3 $
+    all_goals' $
+    iterate_at_most' 3 $
       do h ← get_local h.local_pp_name,
          e ← infer_type h,
          match e with

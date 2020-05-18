@@ -148,7 +148,7 @@ end lim
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
-{ t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
+{ t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, rfl, rfl,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 

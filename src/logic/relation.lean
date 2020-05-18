@@ -190,7 +190,7 @@ end
 @[trans] lemma trans_left (hab : trans_gen r a b) (hbc : refl_trans_gen r b c) : trans_gen r a c :=
 begin
   induction hbc,
-  case refl_trans_gen.refl : c hab { assumption },
+  case refl_trans_gen.refl : { assumption },
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 

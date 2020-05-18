@@ -37,6 +37,20 @@ begin
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
 end
 
+/-- The unit group of a finite integral domain is cyclic. -/
+instance [fintype R] : is_cyclic (units R) :=
+is_cyclic_of_subgroup_integral_domain (units.val_hom R) $ units.ext
+
+/-- Every finite integral domain is a field. -/
+def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
+{ inv := λ a, if h : a = 0 then 0
+    else fintype.bij_inv (show function.bijective (* a),
+      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
+  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
+    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
+  inv_zero := dif_pos rfl,
+  ..show integral_domain R, by apply_instance }
+
 section
 
 variables (S : set (units R)) [is_subgroup S] [fintype S]
@@ -45,7 +59,7 @@ variables (S : set (units R)) [is_subgroup S] [fintype S]
 instance subgroup_units_cyclic : is_cyclic S :=
 begin
   refine is_cyclic_of_subgroup_integral_domain ⟨(coe : S → R), _, _⟩
-    (injective_comp units.ext subtype.val_injective),
+    (units.ext.comp subtype.val_injective),
   { simp only [is_submonoid.coe_one, units.coe_one, coe_coe] },
   { intros, simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] },
 end

@@ -961,7 +961,7 @@ by rw [ne.def, ← degree_eq_bot];
 
 @[simp] lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
 by rw [coeff_mul, nat.antidiagonal_zero];
-simp only [polynomial.coeff_X_zero, finset.insert_empty_eq_singleton, finset.sum_singleton, mul_zero]
+simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
 
 end comm_semiring
 

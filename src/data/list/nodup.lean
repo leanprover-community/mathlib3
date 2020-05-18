@@ -173,7 +173,7 @@ by simp only [list.bind, nodup_join, pairwise_map, and_comm, and.left_comm, mem_
 theorem nodup_product {l₁ : list α} {l₂ : list β} (d₁ : nodup l₁) (d₂ : nodup l₂) :
   nodup (product l₁ l₂) :=
  nodup_bind.2
-  ⟨λ a ma, nodup_map (injective_of_left_inverse (λ b, (rfl : (a,b).2 = b))) d₂,
+  ⟨λ a ma, nodup_map (left_inverse.injective (λ b, (rfl : (a,b).2 = b))) d₂,
   d₁.imp $ λ a₁ a₂ n x h₁ h₂, begin
     rcases mem_map.1 h₁ with ⟨b₁, mb₁, rfl⟩,
     rcases mem_map.1 h₂ with ⟨b₂, mb₂, ⟨⟩⟩,

@@ -667,15 +667,14 @@ lemma degrees_monomial (s : σ →₀ ℕ) (a : α) : degrees (monomial s a) ≤
 finset.sup_le $ assume t h,
 begin
   have := finsupp.support_single_subset h,
-  rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  rw [finset.mem_singleton] at this,
   rw this
 end
 
 lemma degrees_monomial_eq (s : σ →₀ ℕ) (a : α) (ha : a ≠ 0) :
   degrees (monomial s a) = s.to_multiset :=
 le_antisymm (degrees_monomial s a) $ finset.le_sup $
-  by rw [monomial, finsupp.support_single_ne_zero ha,
-    finset.singleton_eq_singleton, finset.mem_singleton]
+  by rw [monomial, finsupp.support_single_ne_zero ha, finset.mem_singleton]
 
 lemma degrees_C (a : α) : degrees (C a : mv_polynomial σ α) = 0 :=
 multiset.le_zero.1 $ degrees_monomial _ _
@@ -711,7 +710,7 @@ lemma degrees_mul (p q : mv_polynomial σ α) : (p * q).degrees ≤ p.degrees + 
 begin
   refine finset.sup_le (assume b hb, _),
   have := support_mul p q hb,
-  simp only [finset.mem_bind, finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  simp only [finset.mem_bind, finset.mem_singleton] at this,
   rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
   rw [finsupp.to_multiset_add],
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
@@ -799,7 +798,7 @@ end
 nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   have _ := finsupp.support_single_subset hn,
   begin
-    rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+    rw [finset.mem_singleton] at this,
     subst this,
     exact le_refl _
   end
@@ -814,8 +813,7 @@ total_degree_C (1 : α)
   (X s : mv_polynomial σ α).total_degree = 1 :=
 begin
   rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
-  simp only [finset.sup, sum_single_index, finset.insert_empty_eq_singleton,
-    finset.fold_singleton, sup_bot_eq],
+  simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
 end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :
@@ -834,7 +832,7 @@ lemma total_degree_mul (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := add_monoid_algebra.support_mul a b hn,
   begin
-    simp only [finset.mem_bind, finset.mem_singleton, finset.singleton_eq_singleton] at this,
+    simp only [finset.mem_bind, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
     rw [finsupp.sum_add_index],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
@@ -1219,7 +1217,7 @@ theorem exists_fin_rename (p : mv_polynomial γ α) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
-  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, q.rename e, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end

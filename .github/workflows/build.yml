@@ -120,6 +120,7 @@ jobs:
       - name: lint
         if: success() || steps.build.outputs.status == 'built'
         run: |
+          chmod +x scripts/mk_all.sh
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
           mv nolints.txt scripts/nolints.txt

@@ -50,7 +50,7 @@ given by the `-ᵥ` operation. In the case of a vector space, it is an
 affine space.  (The result of adding a zero vector does not need to be
 included here because it is deduced below from the other axioms.) -/
 class add_comm_torsor (V : Type*) (P : Type*) [add_comm_group V] [nonempty P]
-    extends has_vadd V P :=
+  extends has_vadd V P :=
 (vadd_assoc : ∀ (p : P) (v1 v2 : V), p +ᵥ v1 +ᵥ v2 = p +ᵥ (v1 + v2))
 (vadd_vsub : ∀ (p1 p2 : P), p1 +ᵥ (p2 -ᵥ p1 : V) = p2)
 (vsub_vadd : ∀ (p : P) (v : V), p +ᵥ v -ᵥ p = v)

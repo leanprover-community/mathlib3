@@ -109,9 +109,6 @@ jobs:
           name: ${{ needs.build.outputs.artifact_name }}
           path: ..
 
-      - name: unpack build
-        run: unzip "../${{ needs.build.outputs.artifact_name }}" -d ..
-
       - name: install elan
         run: |
           set -o pipefail
@@ -150,14 +147,6 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact_name }}
           path: ..
-
-      - name: unpack build
-        run: |
-          pwd
-          ls
-          echo "..."
-          ls ..
-          unzip "../${{ needs.build.outputs.artifact_name }}" -d ..
 
       - name: install elan
         run: |

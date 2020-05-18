@@ -535,11 +535,11 @@ variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
 
 /-- `bounded_continuous_function.const` as a `ring_hom`. -/
 def C : 𝕜 →+* (α →ᵇ γ) :=
-{ to_fun    := λ (c : 𝕜), const α (algebra.to_ring_hom.to_fun c),
-  map_one'  := by rw algebra.to_ring_hom.map_one'; exact rfl,
-  map_mul'  := λ c₁ c₂, by rw algebra.to_ring_hom.map_mul'; exact rfl,
-  map_zero' := by rw algebra.to_ring_hom.map_zero'; exact rfl,
-  map_add'  := λ c₁ c₂, by rw algebra.to_ring_hom.map_add'; exact rfl }
+{ to_fun    := λ (c : 𝕜), const α ((algebra_map 𝕜 γ) c),
+  map_one'  := by rw (algebra_map 𝕜 γ).map_one; exact rfl,
+  map_mul'  := λ c₁ c₂, by rw (algebra_map 𝕜 γ).map_mul; exact rfl,
+  map_zero' := by rw (algebra_map 𝕜 γ).map_zero; exact rfl,
+  map_add'  := λ c₁ c₂, by rw (algebra_map 𝕜 γ).map_add; exact rfl }
 
 instance : algebra 𝕜 (α →ᵇ γ) :=
 { to_ring_hom := C,
@@ -564,8 +564,8 @@ instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
 (continuous.smul f.2.1 g.2.1) (∥f∥ * ∥g∥) (λ x, begin
   calc ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
-  ... ≤ ∥f∥ * ∥g x∥ : mul_le_mul_of_nonneg_right (f.norm_coe_le_norm _) (norm_nonneg _)
-  ... ≤ ∥f∥ * ∥g∥ : mul_le_mul_of_nonneg_left (g.norm_coe_le_norm _) (norm_nonneg _),
+  ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
+    (norm_nonneg _),
 end )⟩
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=

@@ -11,7 +11,8 @@ import field_theory.finite
 # The Chevalley–Warning theorem
 
 This file contains a proof of the Chevalley–Warning theorem.
-Throughout most of this file, `K` denotes a finite field with `q` elements.
+Throughout most of this file, `K` denotes a finite field
+and `q` is notation for the cardinality of `K`.
 
 ## Main results
 
@@ -25,6 +26,13 @@ Throughout most of this file, `K` denotes a finite field with `q` elements.
    the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
    Then the number of common solutions of the `f i`
    is divisible by the characteristic of `K`.
+
+## Notation
+
+- `K` is a finite field
+- `q` is notation for the cardinality of `K`
+- `σ` is the indexing type for the variables of a multivariate polynomial ring over `K`
+
 -/
 
 universes u v
@@ -45,13 +53,15 @@ begin
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
   contrapose! h,
-  refine le_trans _ (finset.le_sup hd),
-  have : univ.sum (λ s:σ, q-1) ≤ univ.sum (λ s, d s) := sum_le_sum (λ s _, h s),
-  rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ] at this,
-  rwa [finsupp.sum, show d.support = univ, from _],
-  rw eq_univ_iff_forall,
-  intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
-  exact lt_of_lt_of_le hq (h _),
+  have : d.support = univ,
+  { rw eq_univ_iff_forall,
+    intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
+    exact lt_of_lt_of_le hq (h _) },
+  calc (q - 1) * fintype.card σ = ∑ s:σ, (q - 1) :
+                                  by rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ]
+                            ... ≤ ∑ s, d s : sum_le_sum (λ s _, h s)
+                            ... ≤ d.sum (λ (n : σ) (e : ℕ), e) : by rwa [finsupp.sum, this]
+                            ... ≤ f.total_degree : finset.le_sup hd,
 end
 
 lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
@@ -69,12 +79,10 @@ begin
   let cd : K := f.coeff d,
   calc (∑ x : σ → K, cd * ∏ i, x i ^ d i) = cd * (∑ x : σ → K, ∏ i, x i ^ d i) : mul_sum.symm
                                       ... = 0 : (mul_eq_zero.mpr ∘ or.inr) _,
-
   calc (∑ x : σ → K, ∏ i, x i ^ d i) =
           ∑ (x₀ : {j // j ≠ i} → K) (x : {x : σ → K // x ∘ coe = x₀}),
             ∏ j, (x : σ → K) j ^ d j     : (fintype.sum_fiberwise _ _).symm
                                  ... = 0 : fintype.sum_eq_zero _ _,
-
   intros x₀,
   let e : K ≃ {x // x ∘ coe = x₀} :=  (equiv.fun_unique _ _).symm.trans (equiv.subtype_preimage _ x₀).symm,
   calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j) =
@@ -82,20 +90,19 @@ begin
             ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i         : fintype.sum_congr _ _ _
             ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i         : by rw mul_sum
             ... = 0 : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
-
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,
   calc (∏ j : σ, (e a : σ → K) j ^ d j) =
           (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
   begin
     rw [← finset.prod_equiv e', fintype.prod_sum_type],
-    have this : _ = (e a : σ → K) i ^ d i := @fintype.prod_unique {j // j = i} _ _ _ (λ j, (e a : σ → K) j ^ d j),
+    have this : _ = (e a : σ → K) i ^ d i :=
+      @fintype.prod_unique {j // j = i} _ _ _ (λ j, (e a : σ → K) j ^ d j),
     rw ← this,
     congr,
   end
                                     ... = a ^ d i * (∏ j, x₀ j ^ d j) : _
                                     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
-
   show (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) =
     a ^ d i * ∏ j, x₀ j ^ d j,
   congr' 1,
@@ -115,45 +122,57 @@ Assume that the sum of the total degrees of the `f i` is less than the cardinali
 Then the number of common solutions of the `f i` is divisible by `p`. -/
 theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   {ι : Type*} (s : finset ι) (f : ι → (mv_polynomial σ K))
-  (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
+  (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
-  have hq : 0 < q - 1,
-  { rw [← card_units, fintype.card_pos_iff],
-    exact ⟨1⟩ },
-  let F : mv_polynomial σ K := s.prod (λ i, (1 - (f i)^(q-1))),
-  suffices : univ.sum (λ x, F.eval x) = fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
-  { rw [← char_p.cast_eq_zero_iff K, ← this],
-    apply sum_mv_polynomial_eq_zero,
-    calc F.total_degree ≤ s.sum (λ i, (1 - (f i)^(q-1)).total_degree) : total_degree_finset_prod s _
-      ... ≤ s.sum (λ i, (q - 1) * (f i).total_degree) :
-      begin
-        apply sum_le_sum,
-        intros i hi,
-        refine le_trans (total_degree_sub _ _) (le_trans _ (total_degree_pow _ _)),
-        simp only [max_eq_right, nat.zero_le, total_degree_one]
-      end
-      ... = (q - 1) * (s.sum $ λ i, (f i).total_degree) : mul_sum.symm
-      ... < (q - 1) * (fintype.card σ) : by rwa mul_lt_mul_left hq },
-  { let S : finset (σ → K) := univ.filter (λ x : σ → K, ∀ i ∈ s, (f i).eval x = 0),
-    have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
-    { intros x, simp only [mem_filter, mem_univ, true_and], },
-    rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
-        ← fintype.sum_extend_by_zero S],
-    apply sum_congr rfl,
-    intros x hx, clear hx,
-    rw show F.eval x = finset.prod s (λ (i : ι), (1 - f i ^ (q - 1)).eval x),
-    { convert eval₂_prod id _ _ _, exact is_semiring_hom.id },
+  have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
+  let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, (f i).eval x = 0 },
+  have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
+  { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
+  /- The polynomial `F = ∏ i in s, (1 - (f i)^(q - 1))` has the nice property
+  that it takes the value `1` on elements of `{x : σ → K // ∀ i ∈ s, (f i).eval x = 0}`
+  while it is `0` outside that locus.
+  Hence the sum of its values is equal to the cardinality of
+  `{x : σ → K // ∀ i ∈ s, (f i).eval x = 0}` modulo `p`. -/
+  let F : mv_polynomial σ K := ∏ i in s, (1 - (f i)^(q - 1)),
+  have hF : ∀ x, F.eval x = if x ∈ S then 1 else 0,
+  { intro x,
+    calc F.eval x = ∏ i in s, (1 - f i ^ (q - 1)).eval x :
+      by { convert eval₂_prod id _ _ _, exact is_semiring_hom.id }
+              ... = if x ∈ S then 1 else 0 : _,
     simp only [eval_sub, eval_pow, eval_one],
     split_ifs with hx hx,
     { rw finset.prod_eq_one,
       intros i hi,
-      rw mem_filter at hx,
-      simp only [hx.right i hi, add_right_eq_self, neg_eq_zero, zero_pow hq, sub_zero], },
-    { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ ¬eval x (f i) = 0,
-      { simpa only [mem_filter, true_and, classical.not_forall, mem_univ, classical.not_imp] using hx },
+      rw hS at hx,
+      rw [hx i hi, zero_pow hq, sub_zero], },
+    { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ (f i).eval x ≠ 0,
+      { simpa only [hS, classical.not_forall, classical.not_imp] using hx },
       rw finset.prod_eq_zero hi,
-      simp only [pow_card_sub_one_eq_one (eval x (f i)) hx, add_right_neg, sub_self], } }
+      rw [pow_card_sub_one_eq_one ((f i).eval x) hx, sub_self], } },
+  -- In particular, we can now show:
+  have key : ∑ x, F.eval x = fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
+  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+      ← fintype.sum_extend_by_zero S, sum_congr rfl (λ x hx, hF x)],
+  -- With these preparations under our belt, we will approach the main goal.
+  show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → (f i).eval x = 0},
+  rw [← char_p.cast_eq_zero_iff K, ← key],
+  show ∑ x, F.eval x = 0,
+  -- We are now ready to apply the main machine, proven before.
+  apply sum_mv_polynomial_eq_zero,
+  -- It remains to verify the crucial assumption of this machine
+  show F.total_degree < (q - 1) * fintype.card σ,
+  calc F.total_degree ≤ ∑ i in s, (1 - (f i)^(q - 1)).total_degree : total_degree_finset_prod s _
+                  ... ≤ ∑ i in s, (q - 1) * (f i).total_degree     : sum_le_sum $ λ i hi, _ -- see ↓
+                  ... = (q - 1) * (∑ i in s, (f i).total_degree)   : mul_sum.symm
+                  ... < (q - 1) * (fintype.card σ)                 : by rwa mul_lt_mul_left hq,
+  -- Now we prove the remaining step from the preceding calculation
+  show (1 - f i ^ (q - 1)).total_degree ≤ (q - 1) * (f i).total_degree,
+  calc (1 - f i ^ (q - 1)).total_degree
+          ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
+      ... ≤ (f i ^ (fintype.card K - 1)).total_degree :
+            by simp only [max_eq_right, nat.zero_le, total_degree_one]
+      ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
 /-- The Chevalley–Warning theorem.

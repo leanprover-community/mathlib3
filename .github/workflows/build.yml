@@ -107,7 +107,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ needs.build.outputs.artifact_name }}
-          path: ../artifact.zip
+          path: artifact.zip
 
       - name: unpack build
         run: unzip artifact.zip -d ..
@@ -156,7 +156,7 @@ jobs:
           pwd
           ls
           ls ..
-          unzip ../artifact.zip -d ..
+          unzip artifact.zip -d ..
 
       - name: install elan
         run: |

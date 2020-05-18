@@ -18,6 +18,8 @@ jobs:
     env:
       # number of commits to check for olean cache
       GIT_HISTORY_DEPTH: 20
+    outputs:
+      artifact_name: ${{ steps.setup_precompiled.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -93,6 +95,31 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: ..
 
+  lint:
+    name: lint mathlib
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      # number of commits to check for olean cache
+      GIT_HISTORY_DEPTH: 20
+    steps:
+      - name: retrieve build
+        uses: actions/download-artifact@v1
+        with:
+          name: {{ jobs.build.outputs.artifact_name }}
+          path: ../artifact.zip
+
+      - name: unpack build
+        run: unzip ../artifact.zip -d ..
+
+      - name: install elan
+        run: |
+          set -o pipefail
+          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          ~/.elan/bin/lean --version
+          echo "::add-path::$HOME/.elan/bin"
+          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
+
       - name: lint
         if: success() || steps.build.outputs.status == 'built'
         run: |
@@ -109,6 +136,31 @@ jobs:
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
           DEPLOY_NIGHTLY_GITHUB_USER: leanprover-community-bot
+
+  tests:
+    name: run tests and docs
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      # number of commits to check for olean cache
+      GIT_HISTORY_DEPTH: 20
+    steps:
+      - name: retrieve build
+        uses: actions/download-artifact@v1
+        with:
+          name: {{ jobs.build.outputs.artifact_name }}
+          path: ../artifact.zip
+
+      - name: unpack build
+        run: unzip ../artifact.zip -d ..
+
+      - name: install elan
+        run: |
+          set -o pipefail
+          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          ~/.elan/bin/lean --version
+          echo "::add-path::$HOME/.elan/bin"
+          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
 
       - name: tests
         if: success() || steps.build.outputs.status == 'built'

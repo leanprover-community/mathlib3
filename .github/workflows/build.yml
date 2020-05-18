@@ -107,10 +107,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ needs.build.outputs.artifact_name }}
-          path: artifact.zip
+          path: ..
 
       - name: unpack build
-        run: unzip ../artifact.zip -d ..
+        run: unzip "../${{ needs.build.outputs.artifact_name }}" -d ..
 
       - name: install elan
         run: |
@@ -149,7 +149,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ needs.build.outputs.artifact_name }}
-          path: artifact.zip
+          path: ..
 
       - name: unpack build
         run: |
@@ -157,7 +157,7 @@ jobs:
           ls
           echo "..."
           ls ..
-          unzip ../artifact.zip -d ..
+          unzip "../${{ needs.build.outputs.artifact_name }}" -d ..
 
       - name: install elan
         run: |

@@ -2314,8 +2314,7 @@ show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
 
 @[simp] lemma degree_normalize : degree (normalize p) = degree p :=
 if hp0 : p = 0 then by simp [hp0]
-else
-by rw [normalize, degree_mul_eq, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
+else by rw [normalize, degree_mul_eq, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),

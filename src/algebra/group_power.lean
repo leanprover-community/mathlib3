@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import data.int.basic
 import data.equiv.basic
+import deprecated.ring
 
 /-!
 # Power operations on monoids and groups

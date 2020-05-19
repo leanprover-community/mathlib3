@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
-import init_.algebra.ordered_ring
+import algebra.ordered_ring
 
 /-
 Results copied from the core library to mathlib by Johan Commelin
@@ -88,4 +88,3 @@ by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 end nat
-

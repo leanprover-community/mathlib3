@@ -460,7 +460,7 @@ begin
     f (a • x + b • y) + g (a • x + b • y) ≤ (a * f x + b * f y) + (a * g x + b * g y)
       : add_le_add (hf.2 hx hy ha hb hab) (hg.2 hx hy ha hb hab)
     ... = a * f x + a * g x + b * f y + b * g y : by linarith
-    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add]
+    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add, add_assoc]
 end
 
 lemma convex_on.smul {c : ℝ} (hc : 0 ≤ c) (hf : convex_on s f) : convex_on s (λx, c * f x) :=

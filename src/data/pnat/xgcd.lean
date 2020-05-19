@@ -318,7 +318,7 @@ begin
   split; ring,
 end
 
-theorem gcd_eq : gcd_d a b  = gcd a b :=
+theorem gcd_eq : gcd_d a b = gcd a b :=
 begin
   rcases gcd_props a b with ⟨h₀, h₁, h₂, h₃, h₄, h₅, h₆⟩,
   apply dvd_antisymm,

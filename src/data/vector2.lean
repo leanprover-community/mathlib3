@@ -9,6 +9,7 @@ import tactic.tauto
 import data.vector
 import data.list.nodup
 import data.list.of_fn
+import control.applicative
 
 universes u
 variables {n : ℕ}

@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Mario Carneiro
 The complex numbers, modelled as R^2 in the obvious way.
 -/
 import data.real.basic
+import deprecated.field
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)

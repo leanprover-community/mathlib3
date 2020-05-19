@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
 import algebra.field
+import deprecated.ring
 
 /-!
 # (Semi)ring equivs

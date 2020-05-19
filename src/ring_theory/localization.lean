@@ -288,8 +288,8 @@ end
 variables {g : R →+* P} (hg : ∀ y : M, is_unit (g y))
 
 /-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
-    `g : R →* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
-    `S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
+`g : R →* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
+`S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
 lemma lift_mk' (x y) :
   f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) hg y)⁻¹ :=
 f.to_localization_map.lift_mk' _ _ _

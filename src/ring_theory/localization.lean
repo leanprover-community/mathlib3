@@ -247,7 +247,7 @@ lemma is_unit_comp (j : S →+* P) (y : M) :
 f.to_localization_map.is_unit_comp j.to_monoid_hom _
 
 /-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
-    `g : R →+* P` such that `g(M) ⊆ units P`, `f x = f y → g x = g y` for all `x y : R`. -/
+`g : R →+* P` such that `g(M) ⊆ units P`, `f x = f y → g x = g y` for all `x y : R`. -/
 lemma eq_of_eq {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) {x y} (h : f.to_map x = f.to_map y) :
   g x = g y :=
 @submonoid.localization_map.eq_of_eq _ _ _ _ _ _ _

@@ -50,6 +50,9 @@ A ring localization map is defined to be a localization map of the underlying `c
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
 
+We define an instance coercing a localization map `f` to its codomain `S` so that the `R`-algebra
+instance on `S` can 'know' the map needed to induce the `R`-algebra structure.
+
 ## Tags
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
@@ -375,8 +378,19 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
     k.mk' (j x) ⟨j y, H ▸ set.mem_image_of_mem j y.2⟩ :=
 f.to_localization_map.mul_equiv_of_mul_equiv_mk' H _ _
 
+/-!
+### `algebra` section
+
+Defines the `R`-algebra instance on `S` by coercing a localization map `f` to its codomain `S`,
+so that the instance 'knows' the map `f` needed to induce the `R`-algebra structure.
+-/
+
+/-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
+    can 'know' the map needed to induce the `R`-algebra structure. -/
 instance : has_coe_to_sort (localization_map M S) := ⟨_, λ f, S⟩
 
+/-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
+    can 'know' the map needed to induce the `R`-algebra structure. -/
 instance : algebra R f := f.to_map.to_algebra
 
 /-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of

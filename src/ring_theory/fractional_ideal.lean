@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import ring_theory.localization
+
 /-!
 # Fractional ideals
 
@@ -40,6 +41,11 @@ proving that the result of this operation is fractional if the input is fraction
 Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
 We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
+
+There is an instance in `ring_theory.localization` coercing a localization map `f` to its
+codomain `P` so that the `R`-algebra instance on `P` 'knows' the map `f` needed to induce
+the `R`-algebra structure. This is why this file contains, for instance, `submodule R f`
+instead of `submodule R P`.
 
 We don't assume that the localization is a field until we need it to define ideal quotients.
 When this assumption is needed, we replace `S` with `non_zero_divisors R`, making the localization

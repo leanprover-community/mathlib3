@@ -530,7 +530,7 @@ show x * dite _ _ _ = 1, by rw [dif_neg hx,
   one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (φ.mk'_sec x).symm
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a
-    field. -/
+field. -/
 noncomputable def to_field [comm_ring K] (φ : fraction_map A K) : field K :=
 { inv := φ.inv,
   mul_inv_cancel := φ.mul_inv_cancel,

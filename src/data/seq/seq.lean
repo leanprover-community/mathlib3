@@ -48,10 +48,15 @@ def nth : seq α → ℕ → option α := subtype.val
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
+section
+local attribute [instance] option.decidable_eq_none
+
 /-- It is decidable whether a sequence terminates at a given position. -/
 instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
 if p : s.nth n = none then is_true p
 else is_false (assume h, by contradiction)
+
+end
 
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n

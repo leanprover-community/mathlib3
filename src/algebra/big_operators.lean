@@ -469,7 +469,7 @@ Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cance
 @[to_additive]
 lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
   (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
+@sum_Ico_add (additive β) _ f m n k
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -530,7 +530,7 @@ by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (∑ k in range 1, f k) = f 0 :=
-by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
+@prod_range_one (multiplicative δ) _ f
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
@@ -564,6 +564,23 @@ begin
   have : f 0 ≤ f n := h (nat.zero_le _),
   omega
 end
+
+lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n) :
+  ∏ j in Ico (n + 1 - m) (n + 1 - k), f j = ∏ j in Ico k m, f (n - j) :=
+begin
+  cases le_total k m with hkm hkm,
+  { rw [← finset.Ico.image_const_sub (le_trans hkm h)],
+    apply prod_image,
+    simp only [Ico.mem],
+    rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
+    rw [← nat.sub_sub_self (le_trans (le_of_lt im) h), Hij,
+      nat.sub_sub_self (le_trans (le_of_lt jm) h)] },
+  { simp [Ico.eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+end
+
+lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ} (h : m ≤ n) :
+  ∑ j in Ico (n + 1 - m) (n + 1 - k), f j = ∑ j in Ico k m, f (n - j) :=
+@prod_Ico_reflect (multiplicative δ) _ f k m n h
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact

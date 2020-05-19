@@ -132,7 +132,7 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, nat.iterate_zero, pow_zero] },
+    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, nat.iterate_zero, pow_zero, id] },
     { rw [nat.iterate_succ'],
       apply le_trans (hle _) _,
       rw [pow_succ, mul_assoc],

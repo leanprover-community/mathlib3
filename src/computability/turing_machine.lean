@@ -555,10 +555,10 @@ by rintro ⟨⟩; refl
   ((tape.move dir.right)^[n] (tape.mk' L (R.modify_nth f n))) :=
 begin
   induction n with n IH generalizing L R,
-  { simp only [list_blank.nth_zero, list_blank.modify_nth, nat.iterate_zero],
+  { simp only [list_blank.nth_zero, list_blank.modify_nth, nat.iterate_zero, id],
     rw [← tape.write_mk', list_blank.cons_head_tail] },
   simp only [list_blank.head_cons, list_blank.nth_succ, list_blank.modify_nth,
-    tape.move_right_mk', list_blank.tail_cons, nat.iterate_succ, IH]
+    tape.move_right_mk', list_blank.tail_cons, nat.iterate_succ, (∘), IH]
 end
 
 theorem tape.map_move {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -1414,7 +1414,7 @@ begin
     step_aux (stmt.move d^[i] q) v T =
     step_aux q v (tape.move d^[i] T), from this n,
   intro, induction i with i IH generalizing T, {refl},
-  rw [nat.iterate_succ', step_aux, IH, ← nat.iterate_succ]
+  rw [nat.iterate_succ', step_aux, IH, nat.iterate_succ]
 end
 
 theorem supports_stmt_move {S d q} :
@@ -1489,7 +1489,7 @@ begin
       using this (list.reverse_reverse _).symm },
   intros, induction l₁ with b l₁ IH generalizing l₂,
   { cases e, refl },
-  simp only [list.length, list.cons_append, nat.iterate_succ],
+  simp only [list.length, list.cons_append, nat.iterate_succ, (∘)],
   convert IH e,
   simp only [list_blank.tail_cons, list_blank.append, tape.move_left_mk', list_blank.head_cons]
 end
@@ -1503,7 +1503,7 @@ begin
     simp only [tr_tape'_move_left, list_blank.cons_head_tail,
       list_blank.head_cons, list_blank.tail_cons] },
   intros, induction i with i IH, {refl},
-  rw [nat.iterate_succ, nat.iterate_succ', tape.move_left_right, IH]
+  rw [nat.iterate_succ, nat.iterate_succ', function.comp_app, tape.move_left_right, IH]
 end
 
 theorem step_aux_write (q v a b L R) :
@@ -2208,7 +2208,7 @@ begin
   case TM2to1.st_act.pop : f {
     cases e : S k,
     { simp only [tape.mk'_head, list_blank.head_cons, tape.move_left_mk',
-        list.length, tape.write_mk', list.head', nat.iterate_zero, list.tail_nil],
+        list.length, tape.write_mk', list.head', nat.iterate_zero, list.tail_nil, id],
       rw [← e, function.update_eq_self], exact ⟨L, hL, by rw [add_bottom_head_fst, cond]⟩ },
     { refine ⟨_, λ k', _, by rw [
         list.length_cons, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_succ_fst,

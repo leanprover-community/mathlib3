@@ -1527,8 +1527,8 @@ lemma iter_deriv_pow' {k : ℕ} :
   deriv^[k] (λx:𝕜, x^n) = λ x, ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
 begin
   induction k with k ihk,
-  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, nat.sub_zero, nat.cast_one] },
-  { simp only [nat.iterate_succ', ihk, finset.prod_range_succ],
+  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, nat.sub_zero, nat.cast_one, id] },
+  { simp only [nat.iterate_succ', (∘), ihk, finset.prod_range_succ],
     ext x,
     rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_left_comm, mul_assoc,
       nat.succ_eq_add_one, nat.sub_sub] }
@@ -1631,7 +1631,7 @@ lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
 begin
   induction k with k ihk generalizing x hx,
   { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, int.coe_nat_zero, sub_zero,
-      int.cast_one] },
+      int.cast_one, id] },
   { rw [nat.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm, int.coe_nat_succ,
       ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
     apply deriv_congr_of_mem_nhds,

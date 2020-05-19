@@ -47,17 +47,6 @@ We don't assume that the localization is a field until we need it to define idea
 When this assumption is needed, we replace `S` with `non_zero_divisors R`, making the localization
 a field.
 
-If `P` is the localization of `R` at `S`, Lean cannot infer the `R`-algebra structure of `P`
-without being given a localization hom `f` from `R` to `P`. For this reason, we either define
-copies of lemmas about the algebra structure which take `f` as an explicit argument (if they are
-used often), or preface such lemmas with `@` and explicitly provide the `R`-algebra instance. This
-applies also to lemmas about the `R`-module structure of `P`, given by `f.to_module`, an
-abbreviation for the `R`-module structure given by the `R`-algebra structure (to preserve
-definitional equalities) and defined in `ring_theory.localization`.
-
-For similar typeclass inference reasons, we must write the scalar multiplication `R × P → P`
-explicitly as `f.to_map r * s` as opposed to `r • s`.
-
 ## References
 
   * https://en.wikipedia.org/wiki/Fractional_ideal
@@ -77,7 +66,7 @@ variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ri
   (f : localization_map S P)
 
 /-- A submodule `I` is a fractional ideal if `a I ⊆ R` for some `a ≠ 0`. -/
-def is_fractional (I : f.submodule) :=
+def is_fractional (I : submodule R f) :=
 ∃ a ≠ (0 : R), ∀ b ∈ I, f.is_integer (f.to_map a * b)
 
 /-- The fractional ideals of a domain `R` are ideals of `R` divided by some `a ∈ R`.
@@ -87,7 +76,7 @@ def is_fractional (I : f.submodule) :=
   such that there is a nonzero `a : R` with `a I ⊆ R`.
 -/
 def fractional_ideal :=
-{I : f.submodule // is_fractional f I}
+{I : submodule R f // is_fractional f I}
 
 end defs
 
@@ -110,15 +99,14 @@ instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ I.1⟩
 lemma ext {I J : fractional_ideal f} : I.1 = J.1 → I = J :=
 subtype.ext.mpr
 
-lemma fractional_of_subset_one (I : f.submodule)
-  (h : I ≤ (f.submodule_span {1})) :
+lemma fractional_of_subset_one (I : submodule R f)
+  (h : I ≤ (submodule.span R {1})) :
   is_fractional f I :=
 begin
   use [1, one_ne_zero],
   intros b hb,
   rw [f.to_map.map_one, one_mul],
-  unfold submodule_span at h,
-  rw ←@submodule.one_eq_span _ _ _ _ f.to_map.to_algebra at h,
+  rw ←submodule.one_eq_span at h,
   obtain ⟨b', b'_mem, b'_eq_b⟩ := h hb,
   rw (show b = f.to_map b', from b'_eq_b.symm),
   exact set.mem_range_self b',
@@ -126,8 +114,7 @@ end
 
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal f) :=
 ⟨ λ I, ⟨↑I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
-  (@submodule.mem_span_singleton _ _ _ _ f.to_module _ _).2
-    ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
+  submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
 
 instance : has_zero (fractional_ideal f) := ⟨(0 : ideal R)⟩
 
@@ -198,14 +185,14 @@ begin
   use aI * aJ,
   use mul_ne_zero haI haJ,
   intros b hb,
-  rcases (@mem_sup _ _ _ _ f.to_map.to_module _ _ _).mp hb with
+  rcases mem_sup.mp hb with
     ⟨bI, hbI, bJ, hbJ, hbIJ⟩,
   rw [←hbIJ, mul_add],
-  apply f.is_integer_add,
+  apply is_integer_add,
   { rw [mul_comm aI, f.to_map.map_mul, mul_assoc],
-    apply f.is_integer_smul (hI bI hbI), },
+    apply is_integer_smul (hI bI hbI), },
   { rw [f.to_map.map_mul, mul_assoc],
-    apply f.is_integer_smul (hJ bJ hbJ) }
+    apply is_integer_smul (hJ bJ hbJ) }
 end
 
 lemma fractional_inf (I J : fractional_ideal f) : is_fractional f (I.1 ⊓ J.1) :=
@@ -214,7 +201,7 @@ begin
   use aI,
   use haI,
   intros b hb,
-  rcases (@mem_inf _ _ _ _ f.to_module _ _ _).mp hb with ⟨hbI, hbJ⟩,
+  rcases mem_inf.mp hb with ⟨hbI, hbJ⟩,
   exact (hI b hbI)
 end
 
@@ -244,45 +231,41 @@ lemma sup_eq_add (I J : fractional_ideal f) : I ⊔ J = I + J := rfl
 @[simp]
 lemma val_add (I J : fractional_ideal f) : (I + J).1 = I.1 + J.1 := rfl
 
-/-- The multiplication of submodules of the `R`-algebra `P` for `P` a localization of `R`. -/
-private def mul_aux :=
-((@submodule.has_mul _ _ _ _ f.to_map.to_algebra).mul : f.submodule → f.submodule → f.submodule)
-
-lemma fractional_mul (I J : fractional_ideal f) : is_fractional f (mul_aux I.1 J.1) :=
+lemma fractional_mul (I J : fractional_ideal f) : is_fractional f (I.1 * J.1) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨I, aJ, haJ, hJ⟩,
   use aI * aJ,
   use mul_ne_zero haI haJ,
   intros b hb,
-  apply mul_induction_on hb,
+  apply submodule.mul_induction_on hb,
   { intros m hm n hn,
     obtain ⟨n', hn'⟩ := hJ n hn,
     rw [f.to_map.map_mul, mul_comm m, ←mul_assoc, mul_assoc _ _ n],
     erw ←hn', rw mul_assoc,
     apply hI,
-    exact f.submodule_smul_mem _ _ hm },
+    exact submodule.smul_mem _ _ hm },
   { rw [mul_zero],
     exact ⟨0, f.to_map.map_zero⟩ },
   { intros x y hx hy,
     rw [mul_add],
-    apply f.is_integer_add hx hy },
+    apply is_integer_add hx hy },
   { intros r x hx,
     show f.is_integer (_ * (f.to_map r * x)),
     rw [←mul_assoc, ←f.to_map.map_mul, mul_comm _ r, f.to_map.map_mul, mul_assoc],
-    apply f.is_integer_smul hx },
+    apply is_integer_smul hx },
 end
 
-instance : has_mul (fractional_ideal f) := ⟨λ I J, ⟨mul_aux I.1 J.1, fractional_mul I J⟩⟩
+instance : has_mul (fractional_ideal f) := ⟨λ I J, ⟨I.1 * J.1, fractional_mul I J⟩⟩
 
 @[simp]
-lemma val_mul (I J : fractional_ideal f) : (I * J).1 = mul_aux I.1 J.1 := rfl
+lemma val_mul (I J : fractional_ideal f) : (I * J).1 = I.1 * J.1 := rfl
 
 lemma mul_left_mono (I : fractional_ideal f) : monotone ((*) I) :=
-λ J J' h, f.mul_le.mpr (λ x hx y hy, f.mul_mem_mul hx (h hy))
+λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul hx (h hy))
 
 lemma mul_right_mono (I : fractional_ideal f) : monotone (λ J, J * I) :=
-λ J J' h, f.mul_le.mpr (λ x hx y hy, f.mul_mem_mul (h hx) hy)
+λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul (h hx) hy)
 
 instance add_comm_monoid : add_comm_monoid (fractional_ideal f) :=
 { add_assoc := λ I J K, sup_assoc,
@@ -293,38 +276,38 @@ instance add_comm_monoid : add_comm_monoid (fractional_ideal f) :=
   ..fractional_ideal.has_add }
 
 instance comm_monoid : comm_monoid (fractional_ideal f) :=
-{ mul_assoc := λ I J K, ext (@submodule.mul_assoc _ _ _ _ f.to_map.to_algebra _ _ _),
-  mul_comm := λ I J, ext (@submodule.mul_comm _ _ _ _ f.to_map.to_algebra _ _),
+{ mul_assoc := λ I J K, ext (submodule.mul_assoc _ _ _),
+  mul_comm := λ I J, ext (submodule.mul_comm _ _),
   mul_one := λ I, begin
     ext,
     split; intro h,
-    { apply f.mul_le.mpr _ h,
+    { apply mul_le.mpr _ h,
       rintros x hx y ⟨y', y'_mem_R, y'_eq_y⟩,
       rw [←y'_eq_y, mul_comm],
-      exact f.submodule_smul_mem _ _ hx },
-    { have : x * 1 ∈ (I * 1) := f.to_map.map_one ▸ f.mul_mem_mul h (coe_mem_one _),
+      exact submodule.smul_mem _ _ hx },
+    { have : x * 1 ∈ (I * 1) := f.to_map.map_one ▸ mul_mem_mul h (coe_mem_one _),
       simpa }
   end,
   one_mul := λ I, begin
     ext,
     split; intro h,
-    { apply f.mul_le.mpr _ h,
+    { apply mul_le.mpr _ h,
       rintros x ⟨x', x'_mem_R, x'_eq_x⟩ y hy,
       rw ←x'_eq_x,
-      exact f.submodule_smul_mem _ _ hy },
-    { have : 1 * x ∈ (1 * I) := f.to_map.map_one ▸ f.mul_mem_mul (coe_mem_one _) h,
+      exact submodule.smul_mem _ _ hy },
+    { have : 1 * x ∈ (1 * I) := f.to_map.map_one ▸ mul_mem_mul (coe_mem_one _) h,
       simpa }
   end,
   ..fractional_ideal.has_mul,
   ..fractional_ideal.has_one }
 
 instance comm_semiring : comm_semiring (fractional_ideal f) :=
-{ mul_zero := λ I, eq_zero_iff.mpr (λ x hx, mul_induction_on hx
+{ mul_zero := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [mem_zero_iff.mp hy])
     rfl
     (λ x y hx hy, by simp [hx, hy])
     (λ r x hx, by simp [hx])),
-  zero_mul := λ I, eq_zero_iff.mpr (λ x hx, mul_induction_on hx
+  zero_mul := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [mem_zero_iff.mp hx])
     rfl
     (λ x y hx hy, by simp [hx, hy])
@@ -364,9 +347,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := @exists_of_lt _ _ _ _ g.to_module 0 J
-      (bot_lt_iff_ne_bot.2 (λ h0, h $ subtype.ext.2 $ by
-        dsimp; rw h0; exact val_zero.symm)),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := exists_of_lt (bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,
@@ -376,10 +357,10 @@ begin
     obtain aJ_zero | y_zero := mul_eq_zero.mp this,
     { have : aJ = 0 := g.to_map.injective_iff.1 g.injective _ aJ_zero,
       contradiction },
-    { exact not_mem_zero (by rw [zero_eq_bot, mem_bot, y_zero]) } },
+    { exact not_mem_zero (mem_zero_iff.mpr y_zero) } },
   intros b hb,
   rw [g.to_map.map_mul, mul_assoc, mul_comm _ b, hy'],
-  exact hI _ (hb _ (g.submodule_smul_mem _ aJ mem_J)),
+  exact hI _ (hb _ (submodule.smul_mem _ aJ mem_J)),
 end
 
 noncomputable instance fractional_ideal_has_div :
@@ -401,12 +382,12 @@ begin
   rw [div_nonzero (@one_ne_zero (fractional_ideal g) _)],
   ext,
   split; intro h,
-  { convert (@mem_div_iff_forall_mul_mem _ _ _ _ g.to_map.to_algebra _ _ _).mp h 1
+  { convert mem_div_iff_forall_mul_mem.mp h 1
       (g.to_map.map_one ▸ coe_mem_one 1), simp },
   { apply mem_div_iff_forall_mul_mem.mpr,
     rintros y ⟨y', _, y_eq_y'⟩,
     rw [mul_comm],
-    convert g.submodule_smul_mem _ y' h,
+    convert submodule.smul_mem _ y' h,
     rw ←y_eq_y',
     refl }
 end
@@ -427,13 +408,13 @@ begin
   { apply submodule.mul_le.mpr _,
     intros x hx y hy,
     rw [mul_comm],
-    exact (@mem_div_iff_forall_mul_mem _ _ _ _ g.to_map.to_algebra _ _ _).mp hy x hx },
+    exact mem_div_iff_forall_mul_mem.mp hy x hx },
   rw [←h],
   apply mul_left_mono I,
   apply submodule.le_div_iff.mpr _,
   intros y hy x hx,
   rw [mul_comm],
-  exact g.mul_mem_mul hx hy
+  exact mul_mem_mul hx hy
 end
 
 end quotient

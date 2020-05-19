@@ -161,11 +161,7 @@ end
 
 theorem lookup_eq_none {a : α} {l : list (sigma β)} :
   lookup a l = none ↔ a ∉ l.keys :=
-begin
-  have := not_congr (@lookup_is_some _ _ _ a l),
-  simp at this, refine iff.trans _ this,
-  cases lookup a l; exact dec_trivial
-end
+by simp [← lookup_is_some, option.is_none_iff_eq_none]
 
 theorem of_mem_lookup
   {a : α} {b : β a} : ∀ {l : list (sigma β)}, b ∈ lookup a l → sigma.mk a b ∈ l

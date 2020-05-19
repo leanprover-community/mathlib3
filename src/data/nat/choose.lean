@@ -5,7 +5,6 @@ Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
 import tactic.linarith
-import tactic.ring_exp
 
 open nat
 

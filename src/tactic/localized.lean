@@ -49,7 +49,10 @@ meta def localized_attr : user_attribute (rb_lmap name string) unit := {
 /-- Get all commands in the given notation namespace and return them as a list of strings -/
 meta def get_localized (ns : list name) : tactic (list string) :=
 do m ← localized_attr.get_cache,
-   return (ns.bind $ λ nm, m.find nm)
+   ns.mfoldl (λ l nm, match m.find nm with
+   | [] := fail format!"locale {nm} does not exist"
+   | new_l := return $ l.append new_l
+   end) []
 
 /-- Execute all commands in the given notation namespace -/
 @[user_command] meta def open_locale_cmd (_ : parse $ tk "open_locale") : parser unit :=

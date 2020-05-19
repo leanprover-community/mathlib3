@@ -191,7 +191,7 @@ section
     apply le_of_not_gt,
     intro l,
     refine not_le_of_gt _ h,
-    simp [sq_le, mul_add, mul_comm, mul_left_comm],
+    simp [sq_le, mul_add, mul_comm, mul_left_comm, add_assoc],
     have hm := sq_le_add_mixed zw (le_of_lt l),
     simp [sq_le, mul_assoc] at l zw,
     exact lt_of_le_of_lt (add_le_add_right zw _)
@@ -360,7 +360,7 @@ parameter {d : ℕ}
 
   protected theorem le_trans {a b c : ℤ√d} (ab : a ≤ b) (bc : b ≤ c) : a ≤ c :=
   have nonneg (b - a + (c - b)), from nonneg_add ab bc,
-  by simpa [sub_eq_add_neg, add_left_comm]
+  by simpa [sub_add_sub_cancel']
 
   theorem nonneg_iff_zero_le {a : ℤ√d} : nonneg a ↔ 0 ≤ a := show _ ↔ nonneg _, by simp
 
@@ -371,9 +371,9 @@ parameter {d : ℕ}
   theorem le_arch (a : ℤ√d) : ∃n : ℕ, a ≤ n :=
   let ⟨x, y, (h : a ≤ ⟨x, y⟩)⟩ := show ∃x y : ℕ, nonneg (⟨x, y⟩ + -a), from match -a with
   | ⟨int.of_nat x, int.of_nat y⟩ := ⟨0, 0, trivial⟩
-  | ⟨int.of_nat x, -[1+ y]⟩      := ⟨0, y+1, by simp [int.neg_succ_of_nat_coe]⟩
-  | ⟨-[1+ x],      int.of_nat y⟩ := ⟨x+1, 0, by simp [int.neg_succ_of_nat_coe]⟩
-  | ⟨-[1+ x],      -[1+ y]⟩      := ⟨x+1, y+1, by simp [int.neg_succ_of_nat_coe]⟩
+  | ⟨int.of_nat x, -[1+ y]⟩      := ⟨0, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
+  | ⟨-[1+ x],      int.of_nat y⟩ := ⟨x+1, 0, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
+  | ⟨-[1+ x],      -[1+ y]⟩      := ⟨x+1, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
   end in begin
     refine ⟨x + d*y, zsqrtd.le_trans h _⟩,
     rw [← int.cast_coe_nat, ← of_int_eq_coe],

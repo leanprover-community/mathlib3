@@ -100,10 +100,10 @@ theorem const_add_termg {α} [add_comm_group α] (k n x a a') (h : k + a = a') :
   k + @termg α _ n x a = termg n x a' := by simp [h.symm, termg]; ac_refl
 
 theorem term_add_const {α} [add_comm_monoid α] (n x a k a') (h : a + k = a') :
-  @term α _ n x a + k = term n x a' := by simp [h.symm, term]
+  @term α _ n x a + k = term n x a' := by simp [h.symm, term, add_assoc]
 
 theorem term_add_constg {α} [add_comm_group α] (n x a k a') (h : a + k = a') :
-  @termg α _ n x a + k = termg n x a' := by simp [h.symm, termg]
+  @termg α _ n x a + k = termg n x a' := by simp [h.symm, termg, add_assoc]
 
 theorem term_add_term {α} [add_comm_monoid α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
@@ -225,7 +225,7 @@ meta def eval (c : cache) : expr → tactic (normal_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_add c e₁' e₂',
-  p ← c.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← c.mk_app ``norm_num.subst_into_add ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | `(%%e₁ - %%e₂) := do
   e₂' ← mk_app ``has_neg.neg [e₂],

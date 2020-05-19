@@ -10,6 +10,7 @@ Two equivalent types have the same cardinality.
 -/
 import data.set.function
 import data.option.basic
+import algebra.group.basic
 
 open function
 

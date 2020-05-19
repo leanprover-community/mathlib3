@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-Fractional ideals of an integral domain.
 -/
 import ring_theory.localization
 /-!
@@ -145,10 +143,11 @@ mem_one_iff.mpr ⟨x, rfl⟩
 
 section lattice
 
-/-! ### `lattice` section
+/-!
+### `lattice` section
 
-  Defines the order on fractional ideals as inclusion of their underlying sets,
-  and ports the lattice structure on submodules to fractional ideals.
+Defines the order on fractional ideals as inclusion of their underlying sets,
+and ports the lattice structure on submodules to fractional ideals.
 -/
 
 instance : partial_order (fractional_ideal f) :=
@@ -320,7 +319,8 @@ end semiring
 
 section quotient
 
-/-! ### `quotient` section
+/-!
+### `quotient` section
 
 This section defines the ideal quotient of fractional ideals.
 

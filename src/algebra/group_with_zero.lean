@@ -3,10 +3,12 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.is_unit
+import algebra.group.units
+import algebra.ring
+import tactic.push_neg
 
 /-!
-# G₀roups with an adjoined zero element
+# Groups with an adjoined zero element
 
 This file describes structures that are not usually studied on their own right in mathematics,
 namely a special sort of monoid: apart from a distinguished “zero element” they form a group,
@@ -278,9 +280,7 @@ mul_inv_cancel_assoc_left a b h
 lemma mul_div_assoc'' {a b c : G₀} : a * b / c = a * (b / c) :=
 mul_assoc _ _ _
 
-local attribute [simp]
-div_eq_mul_inv mul_comm mul_assoc
-mul_left_comm mul_inv_cancel inv_mul_cancel
+local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 lemma div_eq_mul_one_div' (a b : G₀) : a / b = a * (1 / b) :=
 by simp
@@ -486,17 +486,17 @@ by rw [div_div_eq_mul_div', div_mul_cancel' _ hc]
 lemma div_mul_div_cancel' (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
 by rw [← mul_div_assoc'', div_mul_cancel' _ hc]
 
-lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+@[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel' _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel' _ hd]
 
-lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
 by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
 
-lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
 by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=

@@ -90,7 +90,7 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
 include h
 
 
-def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 

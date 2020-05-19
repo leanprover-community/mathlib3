@@ -305,8 +305,8 @@ theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 λ hmn hnm, subtype.eq (nat.dvd_antisymm hmn hnm)
 
-theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
-@_root_.dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
+protected theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
+@dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
 
 theorem one_dvd (n : ℕ+) : 1 ∣ n := dvd_intro n (one_mul n)
 

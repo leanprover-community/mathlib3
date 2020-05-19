@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.ordered_ring
+import init_.data.nat.lemmas
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true

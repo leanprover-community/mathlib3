@@ -194,7 +194,7 @@ by simp [h.symm, horner]; cc
 
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
-by simp [h.symm, horner]
+by simp [h.symm, horner, add_assoc]
 
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
@@ -428,7 +428,7 @@ do c ← get_cache,
 
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
-by simp [prl, prr, prt]
+by rw [prl, prr, prt]
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
   (h : a + -b = c) : a - b = c := h
@@ -443,7 +443,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_add e₁' e₂',
-  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_sum [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
   mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
@@ -463,7 +463,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
   (e', p') ← eval_mul e₁' e₂',
-  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_prod [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+  p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← lift $ norm_num.derive e <|> refl_conv e,

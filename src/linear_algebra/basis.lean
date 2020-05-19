@@ -809,8 +809,21 @@ def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
+`v` and `v'` and a bijection between the indexing sets of the two bases. -/
+def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
+  (e : ι ≃ ι') : M ≃ₗ[R] M' :=
+{ inv_fun := hv'.constr (v ∘ e.symm),
+  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
+      from hv.ext $ by simp,
+    λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
+  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
+      from hv'.ext $ by simp,
+    λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
+  ..hv.constr (v' ∘ e) }
+
+/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
-def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} {f : M → M'} {g : M' → M}
+def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
@@ -912,6 +925,10 @@ linear_equiv.trans (module_equiv_finsupp h)
     add := λ x y, by ext; exact finsupp.add_apply,
     smul := λ x y, by ext; exact finsupp.smul_apply,
     ..finsupp.equiv_fun_on_fintype }
+
+/-- A module over a finite ring that admits a finite basis is finite. -/
+def module.fintype_of_fintype [fintype R] : fintype M :=
+fintype.of_equiv _ (equiv_fun_basis h).to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
@@ -1150,7 +1167,7 @@ begin
     (by ext; simp) _⟩,
   ext ⟨⟨x⟩, y, hy⟩; simp,
   { apply (submodule.quotient.eq p).2,
-    simpa [sub_eq_add_neg, add_left_comm] using sub_mem p hy (fp x) },
+    simpa [sub_eq_add_neg, add_left_comm, add_assoc] using sub_mem p hy (fp x) },
   { refine subtype.coe_ext.2 _,
     simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
 end

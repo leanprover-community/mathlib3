@@ -372,7 +372,7 @@ g.to_monoid_hom _ hy _ _ k.to_localization_map _ _
 f.lift_id _
 
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
-    of the induced maps equals the map of localizations induced by `l ∘ g`. -/
+of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
   (j : localization_map U W) {l : P →+* A} (hl : ∀ w : T, l w ∈ U) :
   (k.map hl j).comp (f.map hy k) = f.map (λ x, show l.comp g x ∈ U, from hl ⟨g x, hy x⟩) j :=

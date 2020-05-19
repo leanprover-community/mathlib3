@@ -166,7 +166,7 @@ by rw [hx, f.to_map.map_zero] at h;
   exact (is_unit.mul_left_eq_zero_iff_eq_zero (f.map_units y)).1 h
 
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
-    `f x * (f y)⁻¹`. -/
+`f x * (f y)⁻¹`. -/
 noncomputable def mk' (f : localization_map M S) (x : R) (y : M) : S :=
 f.to_localization_map.mk' x y
 

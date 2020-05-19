@@ -126,10 +126,12 @@ lemma primorial_le_pow_4 : ∀ (n : ℕ), n# ≤ 4 ^ n
 | 0 := le_refl _
 | 1 := le_of_inf_eq rfl
 | (n + 2) :=
-begin
-  cases nat.mod_two_eq_zero_or_one (n + 1) with n_odd n_even,
-  { rcases (nat.even_iff.2 n_odd) with ⟨m, twice_m⟩,
-    calc (n + 2)#
+  match nat.mod_two_eq_zero_or_one (n + 1) with
+  | or.inl n_odd :=
+    match nat.even_iff.2 n_odd with
+    | ⟨m, twice_m⟩ :=
+      let recurse : m + 1 < n + 2 := by linarith in
+      by { calc (n + 2)#
           = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
       ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
             by
@@ -151,7 +153,6 @@ begin
             by
             { have r : (m + 1)# ≤ 4 ^ (m + 1),
               { have m_nonzero : 0 < m, by linarith,
-                have recurse : m + 1 < n + 2, by linarith,
                 exact primorial_le_pow_4 (m + 1), },
               exact nat.mul_le_mul_left _ r, }
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
@@ -174,16 +175,25 @@ begin
       ... = 4 ^ (m + (m + 1)) : eq.symm (nat.pow_add 4 m (m + 1))
       ... = 4 ^ ((m + m) + 1) : by rw add_assoc m m 1
       ... = 4 ^ (2 * m + 1) : by ring
-      ... = 4 ^ (n + 2) : by rw ←twice_m, },
-  { cases lt_trichotomy 1 (n + 1) with one_lt_n n_lt_one,
-    { rw primorial_succ (by linarith) n_even,
-      calc (n + 1)#
-            ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
-        ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },
-    cases n_lt_one,
-    { cases n,
-      exact le_of_inf_eq rfl,
-      exfalso, exact nat.succ_ne_zero n (eq.symm (nat.succ_inj n_lt_one)), },
-    { have e : n < 0, exact nat.lt_of_succ_lt_succ n_lt_one,
-      interval_cases n, }, },
+      ... = 4 ^ (n + 2) : by rw ←twice_m, }
+    end
+  | or.inr n_even :=
+    by { cases lt_trichotomy 1 (n + 1) with one_lt_n n_lt_one,
+      { rw primorial_succ (by linarith) n_even,
+        calc (n + 1)#
+              ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
+          ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },
+      cases n_lt_one,
+      { cases lt_trichotomy 0 n,
+        { exfalso, linarith, },
+        { cases h,
+          { rw ←h,
+            norm_num,
+            have r : 2# = 2, by refl,
+            rw r,
+            norm_num, },
+          linarith, }, },
+      { have e : n < 0, exact nat.lt_of_succ_lt_succ n_lt_one,
+        interval_cases n, }, }
+
 end

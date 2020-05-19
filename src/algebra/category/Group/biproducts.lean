@@ -14,7 +14,6 @@ import algebra.pi_instances
 
 open category_theory
 open category_theory.limits
-open category_theory.preadditive
 
 open_locale big_operators
 

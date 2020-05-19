@@ -1225,10 +1225,6 @@ eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 @[simp] lemma comap_subtype_self : p.comap p.subtype = ⊤ :=
 comap_subtype_eq_top.2 (le_refl _)
 
-@[simp] lemma range_range_restrict (f : M →ₗ[R] M₂) :
-  f.range_restrict.range = ⊤ :=
-by simp [range_cod_restrict]
-
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
 by rw [of_le, ker_cod_restrict, ker_subtype]
 
@@ -1395,6 +1391,11 @@ def comap_mkq.lt_order_embedding :
 (comap_mkq.le_order_embedding p).lt_embedding_of_le_embedding
 
 end submodule
+
+@[simp] lemma linear_map.range_range_restrict [ring R] [add_comm_group M] [add_comm_group M₂]
+  [module R M] [module R M₂] (f : M →ₗ[R] M₂) :
+  f.range_restrict.range = ⊤ :=
+by simp [f.range_cod_restrict _]
 
 section
 set_option old_structure_cmd true

@@ -385,6 +385,10 @@ rfl
   (f.cod_restrict p h x : M₂) = f x :=
 rfl
 
+@[simp] lemma ker_cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
+  ker (f.cod_restrict p h) = ker f :=
+(f : M →ₗ[R] M₂).ker_cod_restrict p h
+
 /-- Embedding of a submodule into the ambient space as a continuous linear map. -/
 def subtype_val (p : submodule R M) : p →L[R] M :=
 { cont := continuous_subtype_val,
@@ -816,6 +820,13 @@ def complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x : p, f
 lemma complemented.has_closed_complement {p : submodule R M} [t1_space p] (h : complemented p) :
   ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
 exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
+
+@[simp] lemma complemented_bot : complemented (⊥ : submodule R M) :=
+⟨0, λ x, by simp only [continuous_linear_map.zero_apply, eq_zero_of_bot_submodule x]⟩
+
+@[simp] lemma complemented_top : complemented (⊤ : submodule R M) :=
+⟨(continuous_linear_map.id R M).cod_restrict ⊤ (λ x, trivial),
+  λ x, subtype.coe_ext.2 $ by simp⟩
 
 end submodule
 

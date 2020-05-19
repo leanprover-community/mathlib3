@@ -809,8 +809,21 @@ def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
+`v` and `v'` and a bijection between the indexing sets of the two bases. -/
+def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
+  (e : ι ≃ ι') : M ≃ₗ[R] M' :=
+{ inv_fun := hv'.constr (v ∘ e.symm),
+  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
+      from hv.ext $ by simp,
+    λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
+  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
+      from hv'.ext $ by simp,
+    λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
+  ..hv.constr (v' ∘ e) }
+
+/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
-def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
+def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
@@ -827,19 +840,6 @@ def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
       (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
-
-/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
-`v` and `v'` and a bijection between the indexing sets of the two bases. -/
-def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
-  (e : ι ≃ ι') : M ≃ₗ[R] M' :=
-{ inv_fun := hv'.constr (v ∘ e.symm),
-  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
-      from hv.ext $ by simp,
-    λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
-  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
-      from hv'.ext $ by simp,
-    λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
-  ..hv.constr (v' ∘ e) }
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :

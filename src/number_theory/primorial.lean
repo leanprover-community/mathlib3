@@ -31,7 +31,7 @@ lemma sum_range_choose_halfway (m : ℕ) : ∑ i in range (m + 1), choose (2 * m
 private lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
 by apply choose_symm_of_eq_add; ring
 
-lemma primorial_succ {n : ℕ} (n_big : 2 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
+lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
   have not_prime : ¬prime (n + 1),
     { intros is_prime,
@@ -89,7 +89,7 @@ begin
   cc, cc,
 end
 
-private lemma primes_divide (s : finset ℕ) : ∀ (n : ℕ) (p : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
+lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (p : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
   (∏ p in s, p) ∣ n :=
 begin
   apply finset.induction_on s,
@@ -157,7 +157,7 @@ begin
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
             by
             { have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
-              { refine primes_divide _ (choose (2 * m + 1) (m + 1)) _ _,
+              { refine prod_primes_dvd (choose (2 * m + 1) (m + 1)) _ _,
                 { intros a, rw finset.mem_filter, cc, },
                 { intros a, rw finset.mem_filter,
                   intros pr,
@@ -176,13 +176,7 @@ begin
       ... = 4 ^ (2 * m + 1) : by ring
       ... = 4 ^ (n + 2) : by rw ←twice_m, },
   { cases lt_trichotomy 1 (n + 1) with one_lt_n n_lt_one,
-    { have r : 2 < n + 1, by
-      { cases n,
-        { linarith },
-        { cases n,
-          { norm_num at n_even, trivial },
-          { exact nat.lt_of_sub_eq_succ rfl, }, }, },
-      rw primorial_succ r n_even,
+    { rw primorial_succ (by linarith) n_even,
       calc (n + 1)#
             ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
         ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },

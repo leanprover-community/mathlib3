@@ -2090,6 +2090,22 @@ this.elim
     by rw h₁ at h₂; exact absurd h₂ dec_trivial)
   (λ hgu, by rw [hg, degree_mul_eq, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
+lemma prime_of_degree_eq_one_of_monic (hp1 : degree p = 1)
+  (hm : monic p) : prime p :=
+have p = X - C (- p.coeff 0),
+  by simpa [hm.leading_coeff] using eq_X_add_C_of_degree_eq_one hp1,
+⟨mt degree_eq_bot.2 $ hp1.symm ▸ dec_trivial,
+  mt degree_eq_zero_of_is_unit (by simp [hp1]; exact dec_trivial),
+    λ _ _, begin
+      rw [this, dvd_iff_is_root, dvd_iff_is_root, dvd_iff_is_root,
+        is_root, is_root, is_root, eval_mul, mul_eq_zero],
+      exact id
+    end⟩
+
+lemma irreducible_of_degree_eq_one_of_monic (hp1 : degree p = 1)
+  (hm : monic p) : irreducible p :=
+irreducible_of_prime (prime_of_degree_eq_one_of_monic hp1 hm)
+
 end integral_domain
 
 section field
@@ -2112,19 +2128,6 @@ lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
 lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
   exact (hp $ is_unit.map' C $
     is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
-
-lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
-⟨mt is_unit_iff_dvd_one.1 (λ ⟨q, hq⟩,
-  absurd (congr_arg degree hq) (λ h,
-    have degree q = 0, by rw [degree_one, degree_mul_eq, hp1, eq_comm,
-      nat.with_bot.add_eq_zero_iff] at h; exact h.2,
-    by simp [degree_mul_eq, this, degree_one, hp1] at h;
-      exact absurd h dec_trivial)),
-λ q r hpqr, begin
-  have := congr_arg degree hpqr,
-  rw [hp1, degree_mul_eq, eq_comm, nat.with_bot.add_eq_one_iff] at this,
-  rw [is_unit_iff_degree_eq_zero, is_unit_iff_degree_eq_zero]; tautology
-end⟩
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=
@@ -2308,6 +2311,20 @@ by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
 
 lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
+
+@[simp] lemma degree_normalize : degree (normalize p) = degree p :=
+if hp0 : p = 0 then by simp [hp0]
+else
+by rw [normalize, degree_mul_eq, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
+
+lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
+have prime (normalize p),
+  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+    (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
+prime_of_associated normalize_associated this
+
+lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
+irreducible_of_prime (prime_of_degree_eq_one hp1)
 
 end field
 

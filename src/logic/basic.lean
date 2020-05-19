@@ -874,7 +874,9 @@ variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
 
+@[priority 20]
 instance has_zero.to_nonempty [has_zero α] : nonempty α := ⟨0⟩
+@[priority 20]
 instance has_one.to_nonempty [has_one α] : nonempty α := ⟨1⟩
 
 lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=

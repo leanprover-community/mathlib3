@@ -388,8 +388,8 @@ lemma map_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
 by rw ←f.map_comp_map hy j hl; refl
 
 /-- Given localization maps `f : R →+* S, k : P →+* Q` for submonoids `M, T` respectively, an
-    isomorphism `j : R ≃+* P` such that `j(M) = T` induces an isomorphism of localizations
-    `S ≃+* Q`. -/
+isomorphism `j : R ≃+* P` such that `j(M) = T` induces an isomorphism of localizations
+`S ≃+* Q`. -/
 noncomputable def ring_equiv_of_ring_equiv (k : localization_map T Q) (h : R ≃+* P)
   (H : M.map h.to_monoid_hom = T) :
   S ≃+* Q :=

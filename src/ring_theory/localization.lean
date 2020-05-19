@@ -423,7 +423,7 @@ so that the instance 'knows' the map `f` needed to induce the `R`-algebra struct
 -/
 
 /-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
-    can 'know' the map needed to induce the `R`-algebra structure. -/
+can 'know' the map needed to induce the `R`-algebra structure. -/
 instance : has_coe_to_sort (localization_map M S) := ⟨_, λ f, S⟩
 
 /-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`

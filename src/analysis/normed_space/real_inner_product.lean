@@ -3,9 +3,8 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
-import analysis.convex.basic algebra.quadratic_discriminant analysis.complex.exponential
-       analysis.specific_limits
+import algebra.quadratic_discriminant
+import analysis.special_functions.pow
 import tactic.monotonicity
 
 
@@ -50,7 +49,6 @@ universes u v w
 
 variables {α : Type u} {F : Type v} {G : Type w}
 
-set_option class.instance_max_depth 40
 
 class has_inner (α : Type*) := (inner : α → α → ℝ)
 
@@ -117,7 +115,7 @@ by { simp [sub_eq_add_neg, inner_add_right] }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self {x y : α} : inner (x + y) (x + y) = inner x x + 2 * inner x y + inner y y :=
-by { simpa [inner_add_left, inner_add_right, two_mul] using inner_comm _ _ }
+by simpa [inner_add_left, inner_add_right, two_mul, add_assoc] using inner_comm _ _
 
 /-- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : inner (x - y) (x - y) = inner x x - 2 * inner x y + inner y y :=
@@ -210,7 +208,7 @@ normed_group.of_core α
 
 /-- An inner product space forms a normed space over reals w.r.t. its associated norm. -/
 instance inner_product_space_is_normed_space : normed_space ℝ α :=
-{ norm_smul := assume r x,
+{ norm_smul_le := assume r x, le_of_eq $
   begin
     rw [norm_eq_sqrt_inner, sqrt_eq_iff_mul_self_eq,
         inner_smul_left, inner_smul_right, inner_self_eq_norm_square],
@@ -240,31 +238,29 @@ theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
-  have zero_le_δ : 0 ≤ δ,
-    apply le_cinfi, intro, exact norm_nonneg _,
+  have zero_le_δ : 0 ≤ δ := le_cinfi (λ _, norm_nonneg _),
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
-    assume w, apply cinfi_le, use (0:ℝ), rintros _ ⟨_, rfl⟩, exact norm_nonneg _,
+    from cinfi_le ⟨0, forall_range_iff.2 $ λ _, norm_nonneg _⟩,
   have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
   -- Step 1: since `δ` is the infimum, can find a sequence `w : ℕ → K` in `K`
   -- such that `∥u - w n∥ < δ + 1 / (n + 1)` (which implies `∥u - w n∥ --> δ`);
   -- maybe this should be a separate lemma
   have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
-    have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
+  { have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
       λ n, lt_add_of_le_of_pos (le_refl _) nat.one_div_pos_of_nat,
     have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
-    exact ⟨w, λ n, classical.some_spec (h n)⟩,
+    exact ⟨w, λ n, classical.some_spec (h n)⟩ },
   rcases exists_seq with ⟨w, hw⟩,
   have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (𝓝 δ),
-    have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ),
-      exact tendsto_const_nhds,
+  { have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ) := tendsto_const_nhds,
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
-      convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
+    { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero] },
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (λ x, δ_le _) (λ x, le_of_lt (hw _)),
+      (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
-    rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
+  { rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
     let b := λ n:ℕ, (8 * δ * (1/(n+1)) + 4 * (1/(n+1)) * (1/(n+1))),
     use (λn, sqrt (b n)),
     split,
@@ -296,13 +292,13 @@ begin
       end
       ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
-      rw smul_add,
+    { rw smul_add,
       apply δ_le', apply h₂,
         repeat {exact subtype.mem _},
         repeat {exact le_of_lt one_half_pos},
-        exact add_halves 1,
+        exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-      mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _,
+    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -325,15 +321,15 @@ begin
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
     have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
+    { convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
     have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
+    { convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
     have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
-    convert eq₁.add eq₂, simp only [add_zero],
+    { convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
+    convert eq₁.add eq₂, simp only [add_zero] },
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
@@ -373,7 +369,8 @@ begin
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
-          {rw [smul_sub, sub_smul, one_smul], simp [sub_eq_add_neg, add_comm, add_left_comm]},
+        { rw [smul_sub, sub_smul, one_smul],
+          simp only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :

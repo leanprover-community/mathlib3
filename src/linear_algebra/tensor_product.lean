@@ -6,7 +6,6 @@ Authors: Kenny Lau, Mario Carneiro
 Tensor product of modules over commutative rings.
 
 -/
-
 import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
@@ -17,7 +16,6 @@ variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 include R
 
 
-set_option class.instance_max_depth 100
 
 namespace linear_map
 

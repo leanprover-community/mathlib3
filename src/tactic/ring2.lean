@@ -3,9 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import tactic.ring data.num.lemmas data.tree
-import tactic.converter.interactive
+import tactic.ring
+import data.num.lemmas
+import data.tree
 
 /-!
 # ring2
@@ -477,9 +477,12 @@ open tactic.ring2
 
 local postfix `?`:9001 := optional
 
-/-- Tactic for solving equations in the language of rings.
+/-- `ring2` solves equations in the language of rings.
+
+It supports only the commutative semiring operations, i.e. it does not normalize subtraction or division.
+
   This variant on the `ring` tactic uses kernel computation instead
-  of proof generation. -/
+  of proof generation. In general, you should use `ring` instead of `ring2`. -/
 meta def ring2 : tactic unit :=
 do `[repeat {rw ← nat.pow_eq_pow}],
   `(%%e₁ = %%e₂) ← target
@@ -501,6 +504,12 @@ do `[repeat {rw ← nat.pow_eq_pow}],
       ++ to_string (horner_expr.of_csexpr r₁) ++
       "\n  =?=\n" ++ to_string (horner_expr.of_csexpr r₂)),
   tactic.exact e
+
+add_tactic_doc
+{ name        := "ring2",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ring2],
+  tags        := ["arithmetic", "simplification", "decision procedure"] }
 
 end interactive
 end tactic

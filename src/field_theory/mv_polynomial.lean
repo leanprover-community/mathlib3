@@ -6,7 +6,8 @@ Author: Johannes Hölzl
 Multivariate functions of the form `α^n → α` are isomorphic to multivariate polynomials in
 `n` variables.
 -/
-import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
+import linear_algebra.finsupp_vector_space
+import field_theory.finite
 noncomputable theory
 
 open_locale classical
@@ -147,7 +148,6 @@ begin
   exact degrees_X _
 end
 
-set_option class.instance_max_depth 50
 lemma indicator_mem_restrict_degree (c : σ → α) :
   indicator c ∈ restrict_degree σ α (fintype.card α - 1) :=
 begin
@@ -207,7 +207,6 @@ noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
-set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :

@@ -42,7 +42,8 @@ notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair
 
-/-! ### The hypercube
+/-!
+### The hypercube
 
 Notations:
 - `ℕ` denotes natural numbers (including zero).
@@ -278,7 +279,7 @@ lemma f_squared : ∀ v : V n, (f n) (f n v) = (n : ℝ) • v :=
 begin
   induction n with n IH; intro,
   { simpa only [nat.cast_zero, zero_smul] },
-  { cases v, simp [f_succ_apply, IH, add_smul], abel }
+  { cases v, simp [f_succ_apply, IH, add_smul, add_assoc], abel }
 end
 
 /-! We now compute the matrix of `f` in the `e` basis (`p` is the line index,

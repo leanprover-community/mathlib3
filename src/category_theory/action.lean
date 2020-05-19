@@ -3,11 +3,7 @@ Copyright (c) 2020 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-
-import category_theory.groupoid
-import category_theory.endomorphism
 import category_theory.elements
-import group_theory.group_action
 import category_theory.single_obj
 
 /-!

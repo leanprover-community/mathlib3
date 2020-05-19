@@ -70,7 +70,7 @@ theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
   (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
- λ h, subset_of_sublist (range'_sublist_right.2 h)⟩
+ λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
 | s 0     (n+1) _ := rfl

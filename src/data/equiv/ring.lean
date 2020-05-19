@@ -3,8 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.mul_add algebra.field
+import data.equiv.mul_add
+import algebra.field
+import deprecated.ring
 
 /-!
 # (Semi)ring equivs
@@ -221,7 +222,7 @@ protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain 
 end ring_equiv
 
 /-- The group of ring automorphisms. -/
-def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
+@[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
 

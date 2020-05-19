@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
 import data.list.basic
-import logic.relator
-import tactic.mk_iff_of_inductive_prop
 
 universes u v w z
 
@@ -19,7 +17,7 @@ namespace list
 variables {r : α → β → Prop} {p : γ → δ → Prop}
 open relator
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
+mk_iff_of_inductive_prop list.forall₂ list.forall₂_iff
 
 @[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
@@ -57,10 +55,10 @@ begin
   { assume h, subst h, exact forall₂_refl _ }
 end
 
-@[simp] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
-@[simp] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
 lemma forall₂_cons_left_iff {a l u} : forall₂ r (a::l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=

@@ -3,14 +3,12 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import
-  data.nat.gcd
-  data.pnat.basic data.int.sqrt data.equiv.encodable
-  algebra.group algebra.ordered_group algebra.group_power
-  algebra.euclidean_domain
-  algebra.ordered_field
-  tactic.norm_cast
-  tactic.lift
+import data.int.sqrt
+import data.equiv.encodable
+import algebra.group
+import algebra.euclidean_domain
+import algebra.ordered_field
+
 /-!
 # Basics for the Rational Numbers
 
@@ -361,7 +359,7 @@ protected theorem add_assoc : a + b + c = a + (b + c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
-by simp [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm]
+by simp [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm, add_assoc]
 
 protected theorem add_left_neg : -a + a = 0 :=
 num_denom_cases_on' a $ λ n d h,

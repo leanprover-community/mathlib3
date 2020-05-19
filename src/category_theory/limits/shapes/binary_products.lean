@@ -3,9 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.terminal
-import category_theory.discrete_category
 
 /-!
 # Binary (co)products
@@ -34,11 +32,10 @@ inductive walking_pair : Type v
 open walking_pair
 
 instance fintype_walking_pair : fintype walking_pair :=
-{ elems := [left, right].to_finset,
+{ elems := {left, right},
   complete := λ x, by { cases x; simp } }
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
@@ -70,8 +67,7 @@ def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj righ
 end
 
 section
-variables {D : Type u} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u} [category.{v} D]
 
 /-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=

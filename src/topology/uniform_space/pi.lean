@@ -5,7 +5,6 @@ Authors: Patrick Massot
 
 Indexed product of uniform spaces
 -/
-
 import topology.uniform_space.cauchy
 import topology.uniform_space.separation
 noncomputable theory

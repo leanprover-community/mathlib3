@@ -3,7 +3,7 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
-import topology.subset_properties topology.dense_embedding
+import topology.dense_embedding
 
 open set
 
@@ -166,6 +166,12 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
   .. equiv.prod_assoc α β γ }
 
 end
+
+/-- `ulift α` is homeomorphic to `α`. -/
+def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
+{ continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
 
 section distrib
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]

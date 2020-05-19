@@ -1,12 +1,28 @@
+/-
+Copyright (c) 2020 Patrick Stevens. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Stevens
+-/
 import tactic
 import data.nat.parity
 
-open_locale big_operators
+/-!
+# Primorial
+
+This file defines the primorial function, and proves a bound on its size.
+
+## Notations
+
+We use the notation `n#` for the primorial of `n`: that is, the product of the primes less than
+or equal to `n`.
+-/
+
 open finset
 open nat
+open_locale big_operators
 
 def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
-notation x`#` := primorial x
+local notation x`#` := primorial x
 
 -- This is going into stdlib
 lemma sum_range_choose_halfway (m : ℕ) : ∑ i in range (m + 1), choose (2 * m + 1) i = 4 ^ m :=
@@ -15,7 +31,7 @@ lemma sum_range_choose_halfway (m : ℕ) : ∑ i in range (m + 1), choose (2 * m
 private lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
 by apply choose_symm_of_eq_add; ring
 
-lemma primorial_succ (n : ℕ) (n_big : 2 < n) (r : n % 2 = 1) : n# = (n + 1)# :=
+lemma primorial_succ {n : ℕ} (n_big : 2 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
   have not_prime : ¬prime (n + 1),
     { intros is_prime,
@@ -37,7 +53,7 @@ by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
 private lemma select_from_sum (f : ℕ → ℕ) (s : finset ℕ) (a : ℕ) (t : a ∈ s) : f a ≤ ∑ i in s, f i :=
 by rw <- finset.insert_erase t; simp
 
-lemma bound_binomial_coefficient (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
+private lemma bound_binomial_coefficient (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
 begin
   have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i,
     exact select_from_sum (choose (2 * n + 1)) (range (n + 1)) n (range_contains_upper_bound n),
@@ -166,7 +182,7 @@ begin
         { cases n,
           { norm_num at n_even, trivial },
           { exact nat.lt_of_sub_eq_succ rfl, }, }, },
-      rw <- primorial_succ (n + 1) r n_even,
+      rw primorial_succ r n_even,
       calc (n + 1)#
             ≤ 4 ^ n.succ : primorial_le_pow_4 (n + 1)
         ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },

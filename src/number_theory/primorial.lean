@@ -60,7 +60,7 @@ begin
   simpa only [sum_range_choose_halfway n] using t
 end
 
-lemma middling_prime_divides_binom (p : ℕ) (is_prime : prime p) (m : ℕ)
+lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
   (p_big : m + 1 < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) (m + 1) :=
 begin
   have m_size : m + 1 ≤ 2 * m + 1, by exact le_of_lt (lt_of_lt_of_le p_big p_small),
@@ -89,7 +89,7 @@ begin
   cc, cc,
 end
 
-lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (p : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
+lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
   (∏ p in s, p) ∣ n :=
 begin
   apply finset.induction_on s,
@@ -157,14 +157,14 @@ begin
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
             by
             { have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
-              { refine prod_primes_dvd (choose (2 * m + 1) (m + 1)) _ _,
+              { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
                 { intros a, rw finset.mem_filter, cc, },
                 { intros a, rw finset.mem_filter,
                   intros pr,
                   rcases pr with ⟨ size, is_prime ⟩,
                   simp only [finset.Ico.mem] at size,
                   rcases size with ⟨ a_big , a_small ⟩,
-                  exact middling_prime_divides_binom a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
+                  exact dvd_choose_of_middling_prime a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
               have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
                 { refine @nat.le_of_dvd _ _ _ s,
                   exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },

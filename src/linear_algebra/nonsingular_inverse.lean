@@ -1,9 +1,7 @@
 /-
-  Copyright (c) 2019 Tim Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Tim Baanen.
-
-  Inverses for nonsingular square matrices.
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
 -/
 import algebra.associated
 import linear_algebra.determinant
@@ -196,7 +194,8 @@ calc s.sum (λ x, cramer α A (λ j, f j x) i)
 end cramer
 
 section adjugate
-/-! ### `adjugate` section
+/-!
+### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
 These will hold for any matrix over a commutative ring,
@@ -348,7 +347,8 @@ end
 end adjugate
 
 section inv
-/-! ### `inv` section
+/-!
+### `inv` section
 
 Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.

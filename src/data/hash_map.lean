@@ -395,7 +395,7 @@ begin
     rw bucket_array.foldl_eq,
     exact p (v.as_list_nodup _) },
   intro l, induction l with c l IH; intros t sz v nd, {exact v},
-  rw show sz + (c :: l).length = sz + 1 + l.length, by simp [add_comm],
+  rw show sz + (c :: l).length = sz + 1 + l.length, by simp [add_comm, add_assoc],
   rcases (show (l.map sigma.fst).nodup ∧
       ((bucket_array.as_list t).map sigma.fst).nodup ∧
       c.fst ∉ l.map sigma.fst ∧

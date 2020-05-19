@@ -8,6 +8,7 @@ Characteristic of semirings.
 
 import data.fintype.basic
 import data.nat.choose
+import data.int.modeq
 import algebra.module
 
 universes u v
@@ -77,12 +78,17 @@ begin
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
     { intros b h1 h2,
-      have := nat.prime.dvd_choose (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
+      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
       rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
       simp only [mul_zero] },
     { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
   rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
 end
+
+lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = b ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
 
 section frobenius
 

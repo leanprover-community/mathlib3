@@ -3,7 +3,8 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel
 -/
-import data.complex.basic ring_theory.algebra
+import data.complex.basic
+import ring_theory.algebra
 /-!
 This file contains two instance, the fact the ℂ is an ℝ algebra,
 and an instance to view any complex vector space as a

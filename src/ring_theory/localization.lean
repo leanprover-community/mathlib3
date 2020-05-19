@@ -600,9 +600,10 @@ def le_order_embedding :
 end ideals
 
 section module
-/-! ### `module` section
+/-!
+### `module` section
 
-  Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
+Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
 -/
 
 

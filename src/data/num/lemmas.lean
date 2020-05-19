@@ -9,6 +9,8 @@ import data.num.bitwise
 import data.int.basic
 import data.nat.gcd
 
+local attribute [simp] add_assoc
+
 namespace pos_num
   variables {α : Type*}
 

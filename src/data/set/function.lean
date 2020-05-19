@@ -6,7 +6,8 @@ Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryasho
 import data.set.basic
 import logic.function.basic
 
-/-! # Functions over sets
+/-!
+# Functions over sets
 
 ## Main definitions
 

@@ -1045,14 +1045,13 @@ local attribute [instance, priority 100]
   encodable.decidable_range_encode encodable.decidable_eq_of_encodable
 
 instance ulower : primcodable (ulower α) :=
-have primrec_pred (λ n, none ≠ encodable.decode2 α n),
-from primrec.not (primrec.eq.comp (primrec.const _) (primrec.option_bind primrec.decode
+have primrec_pred (λ n, encodable.decode2 α n ≠ none),
+from primrec.not (primrec.eq.comp (primrec.option_bind primrec.decode
   (primrec.ite (primrec.eq.comp (primrec.encode.comp primrec.snd) primrec.fst)
-    (primrec.option_some.comp primrec.snd) (primrec.const _)))),
-(primcodable.subtype $
+    (primrec.option_some.comp primrec.snd) (primrec.const _))) (primrec.const _)),
+primcodable.subtype $
   primrec_pred.of_eq this $
-  by simp [set.range, option.eq_none_iff_forall_not_mem, encodable.mem_decode2,
-    show ∀ α (a : option α), none = a ↔ a = none, by intros; cc])
+  by simp [set.range, option.eq_none_iff_forall_not_mem, encodable.mem_decode2]
 
 end ulower
 

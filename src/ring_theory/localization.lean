@@ -496,7 +496,7 @@ variables {A : Type*} [integral_domain A]
 local attribute [instance] classical.dec_eq
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-    integral domain. -/
+integral domain. -/
 def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin

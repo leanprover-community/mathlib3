@@ -141,7 +141,7 @@ end
 variables (f)
 
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
-    that `z * f y = f x` (so this lemma is true by definition). -/
+that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec {f : localization_map M S} (z : S) :
   z * f.to_map (f.to_localization_map.sec z).2 = f.to_map (f.to_localization_map.sec z).1 :=
 classical.some_spec $ f.surj z

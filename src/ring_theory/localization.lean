@@ -327,8 +327,8 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.lift_unique
 f.to_localization_map.lift_id _
 
 /-- Given two localization maps `f : R →+* S, k : R →+* P` for a submonoid `M ⊆ R`,
-    the hom from `P` to `S` induced by `f` is left inverse to the hom from `S` to `P`
-    induced by `k`. -/
+the hom from `P` to `S` induced by `f` is left inverse to the hom from `S` to `P`
+induced by `k`. -/
 @[simp] lemma lift_left_inverse {k : localization_map M S} (z : S) :
   k.lift f.map_units (f.lift k.map_units z) = z :=
 f.to_localization_map.lift_left_inverse _

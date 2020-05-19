@@ -47,7 +47,8 @@ linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   (quotient.mk (quotient_equiv_of_is_compl p q h x) : p.quotient) = x :=
 (quotient_equiv_of_is_compl p q h).symm_apply_apply x
 
-/-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. -/
+/-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. It is the unique
+linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x ∈ q`. -/
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
   apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),

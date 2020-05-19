@@ -715,7 +715,8 @@ variables {E : Type*} {F : Type*}
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.topological_vector_space : topological_vector_space α E :=
 begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $ λ p, tendsto_iff_norm_tendsto_zero.2 _ },
+  refine { continuous_smul := continuous_iff_continuous_at.2 $
+    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
   refine squeeze_zero (λ _, norm_nonneg _) _ _,
   { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
   { intro q,
@@ -723,20 +724,95 @@ begin
     exact norm_add_le _ _ },
   { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
       rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul (continuous_snd.tendsto p).norm).add
-            (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
+    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
+      (continuous_snd.tendsto p).norm).add
+        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
 
 /-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
 See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
-lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α] [normed_group E]
-  [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
+lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α]
+  [normed_group E] [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
   s = ⊤ :=
 begin
   refine s.eq_top_of_nonempty_interior' _ hs,
   simp only [is_unit_iff_ne_zero, @ne.def α, set.mem_singleton_iff.symm],
   exact normed_field.punctured_nhds_ne_bot _
 end
+
+theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+  closure (ball x r) = closed_ball x r :=
+begin
+  refine set.subset.antisymm closure_ball_subset_closed_ball (λ y hy, _),
+  have : continuous_within_at (λ c : ℝ, c • (y - x) + x) (set.Ico 0 1) 1 :=
+    ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
+  convert this.mem_closure _ _,
+  { rw [one_smul, sub_add_cancel] },
+  { simp [closure_Ico (@zero_lt_one ℝ _), zero_le_one] },
+  { rintros c ⟨hc0, hc1⟩,
+    rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
+      abs_of_nonneg hc0, mul_comm, ← mul_one r],
+    rw [mem_closed_ball, dist_eq_norm] at hy,
+    apply mul_lt_mul'; assumption }
+end
+
+theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+  frontier (ball x r) = sphere x r :=
+begin
+  rw [frontier, closure_ball x hr, interior_eq_of_open is_open_ball],
+  ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
+end
+
+theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+  interior (closed_ball x r) = ball x r :=
+begin
+  refine set.subset.antisymm _ ball_subset_interior_closed_ball,
+  intros y hy,
+  rcases le_iff_lt_or_eq.1 (mem_closed_ball.1 $ interior_subset hy) with hr|rfl, { exact hr },
+  set f : ℝ → E := λ c : ℝ, c • (y - x) + x,
+  suffices : f ⁻¹' closed_ball x (dist y x) ⊆ set.Icc (-1) 1,
+  { have hfc : continuous f := (continuous_id.smul continuous_const).add continuous_const,
+    have hf1 : (1:ℝ) ∈ f ⁻¹' (interior (closed_ball x $ dist y x)), by simpa [f],
+    have h1 : (1:ℝ) ∈ interior (set.Icc (-1:ℝ) 1) :=
+      interior_mono this (preimage_interior_subset_interior_preimage hfc hf1),
+    contrapose h1,
+    simp },
+  intros c hc,
+  rw [set.mem_Icc, ← abs_le, ← real.norm_eq_abs, ← mul_le_mul_right hr],
+  simpa [f, dist_eq_norm, norm_smul] using hc
+end
+
+theorem interior_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
+  interior (closed_ball x r) = ball x r :=
+begin
+  rcases lt_trichotomy r 0 with hr|rfl|hr,
+  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
+  { suffices : x ∉ interior {x},
+    { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
+      intros y hy,
+      obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
+      exact this hy },
+    rw [← set.mem_compl_iff, ← closure_compl],
+    rcases hE with ⟨z, hz⟩,
+    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure (-{x} : set E),
+      by simpa only [zero_smul, add_zero] using this,
+    have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
+    refine (continuous_const.add (continuous_id.smul
+      continuous_const)).continuous_within_at.mem_closure this _,
+    intros c hc,
+    simp [smul_eq_zero, hz, ne_of_gt hc] },
+  { exact interior_closed_ball x hr }
+end
+
+theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+  frontier (closed_ball x r) = sphere x r :=
+by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball x hr,
+  closed_ball_diff_ball]
+
+theorem frontier_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
+  frontier (closed_ball x r) = sphere x r :=
+by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball' x r hE,
+  closed_ball_diff_ball]
 
 open normed_field
 
@@ -805,6 +881,15 @@ end prio
 @[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 normed_algebra.norm_algebra_map_eq _
+
+@[priority 100]
+instance to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
+{ norm_smul_le := λ s x, calc
+    ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }
+    ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : normed_ring.norm_mul _ _
+    ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
+  ..h }
 
 end normed_algebra
 

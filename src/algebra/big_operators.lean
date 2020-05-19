@@ -469,7 +469,7 @@ Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cance
 @[to_additive]
 lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
   (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
+@sum_Ico_add (additive β) _ f m n k
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -530,7 +530,7 @@ by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (∑ k in range 1, f k) = f 0 :=
-by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
+@prod_range_one (multiplicative δ) _ f
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
@@ -564,6 +564,40 @@ begin
   have : f 0 ≤ f n := h (nat.zero_le _),
   omega
 end
+
+lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
+  ∏ j in Ico (n + 1 - m) (n + 1 - k), f j = ∏ j in Ico k m, f (n - j) :=
+begin
+  have : ∀ i < m, i ≤ n,
+  { intros i hi,
+    exact (add_le_add_iff_right 1).1 (le_trans (nat.lt_iff_add_one_le.1 hi) h) },
+  cases lt_or_le k m with hkm hkm,
+  { rw [← finset.Ico.image_const_sub (this _ hkm)],
+    apply prod_image,
+    simp only [Ico.mem],
+    rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
+    rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
+  { simp [Ico.eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+end
+
+lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
+  (h : m ≤ n + 1) :
+  ∑ j in Ico (n + 1 - m) (n + 1 - k), f j = ∑ j in Ico k m, f (n - j) :=
+@prod_Ico_reflect (multiplicative δ) _ f k m n h
+
+lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
+  ∏ j in range n, f (n - 1 - j) = ∏ j in range n, f j :=
+begin
+  cases n,
+  { simp },
+  { simp only [range_eq_Ico, nat.succ_sub_succ_eq_sub, nat.sub_zero],
+    rw [← prod_Ico_reflect _ _ (le_refl _)],
+    simp }
+end
+
+lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : ℕ) :
+  ∑ j in range n, f (n - 1 - j) = ∑ j in range n, f j :=
+@prod_range_reflect (multiplicative δ) _ f n
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
@@ -1196,13 +1230,12 @@ section gauss_sum
 /-- Gauss' summation formula -/
 lemma sum_range_id_mul_two (n : ℕ) :
   (∑ i in range n, i) * 2 = n * (n - 1) :=
-begin
-  rw [sum_mul],
-  refine sum_range_induction _ _ _ _ n, { apply zero_mul },
-  rintro (_|n), { norm_num },
-  simp only [nat.add_sub_cancel, nat.succ_eq_add_one],
-  ring
-end
+calc (∑ i in range n, i) * 2 = (∑ i in range n, i) + (∑ i in range n, (n - 1 - i)) :
+  by rw [sum_range_reflect (λ i, i) n, mul_two]
+... = ∑ i in range n, (i + (n - 1 - i)) : sum_add_distrib.symm
+... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, nat.add_sub_cancel' $
+  nat.le_pred_of_lt $ mem_range.1 hi
+... = n * (n - 1) : by rw [sum_const, card_range, nat.smul_eq_mul]
 
 /-- Gauss' summation formula -/
 lemma sum_range_id (n : ℕ) : (∑ i in range n, i) = (n * (n - 1)) / 2 :=

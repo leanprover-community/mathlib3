@@ -1,4 +1,4 @@
-DEPLOY_NIGHTLY_GITHUB_USER=leanprover-community-bot
+DEPLOY_GITHUB_USER=leanprover-community-bot
 
 set -e
 set -x
@@ -13,7 +13,7 @@ cd doc-gen
 sed -i "s/rev = \"\S*\"/rev = \"$git_hash\"/" leanpkg.toml
 
 echo -e "builtin_path\npath ./src\npath ../src" > leanpkg.path
-git clone "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs.git"
+git clone "https://$DEPLOY_GITHUB_USER:$DEPLOY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs.git"
 
 # skip if docs for this commit have already been generated
 if [ "$(cd mathlib_docs && git log -1 --pretty=format:%s)" == "automatic update to $git_hash" ]; then

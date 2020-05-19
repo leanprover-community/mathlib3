@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
 import tactic.lint.basic
+import data.buffer
 
 /-!
 # Linter frontend and commands
@@ -64,6 +65,16 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   list.append default <$> get_linters extra
 
 /--
+Maps a tactic-valued function over a list with parallel execution.
+
+Note: in Lean 3, VM functions executed in tasks need to copy their whole closure and return values
+twice. Therefore you should only use this for expensive functions.
+-/
+meta def list.mmap_async {α β} (xs : list α) (f : α → tactic β) : tactic (list β) := do
+async_bs ← xs.mmap (λ a, run_async (f a)),
+pure $ async_bs.map task.get
+
+/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.
@@ -72,9 +83,11 @@ well as a map from declaration name to warning.
 -/
 meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
   tactic (list (name × linter × rb_map name string)) := do
-checks.mmap $ λ ⟨linter_name, linter⟩, do
+let all_decls := all_decls.to_buffer,
+let non_auto_decls := non_auto_decls.to_buffer,
+checks.mmap_async $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
-  results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
+  results ← test_decls.to_list.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,
     s ← read,
     let linter_warning : option string :=

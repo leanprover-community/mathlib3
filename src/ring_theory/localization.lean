@@ -65,10 +65,10 @@ open function
 set_option old_structure_cmd true
 
 /-- The type of ring homomorphisms satisfying the characteristic predicate: if `f : R →+* S`
-    satisfies this predicate, then `S` is isomorphic to the localization of `R` at `M`.
-    We later define an instance coercing a localization map `f` to its codomain `S` so
-    that the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
-    structure. -/
+satisfies this predicate, then `S` is isomorphic to the localization of `R` at `M`.
+We later define an instance coercing a localization map `f` to its codomain `S` so
+that the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
+structure. -/
 @[nolint has_inhabited_instance] structure localization_map
 extends ring_hom R S, submonoid.localization_map M S
 

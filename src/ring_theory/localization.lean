@@ -65,7 +65,10 @@ open function
 set_option old_structure_cmd true
 
 /-- The type of ring homomorphisms satisfying the characteristic predicate: if `f : R →+* S`
-    satisfies this predicate, then `S` is isomorphic to the localization of `R` at `M`. -/
+    satisfies this predicate, then `S` is isomorphic to the localization of `R` at `M`.
+    We later define an instance coercing a localization map `f` to its codomain `S` so
+    that the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
+    structure. -/
 @[nolint has_inhabited_instance] structure localization_map
 extends ring_hom R S, submonoid.localization_map M S
 
@@ -102,6 +105,40 @@ lemma ext_iff {f g : localization_map M S} : f = g ↔ ∀ x, f.to_map x = g.to_
 
 lemma to_map_injective : injective (@localization_map.to_map _ _ M S _) :=
 λ _ _ h, ext $ ring_hom.ext_iff.1 h
+
+/-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of
+    the localization map from `R` to `S`. -/
+def is_integer (a : S) : Prop := a ∈ set.range f.to_map
+
+variables {f}
+
+lemma is_integer_add {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
+  f.is_integer (a + b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' + b',
+  rw [f.to_map.map_add, ha, hb]
+end
+
+lemma is_integer_mul {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
+  f.is_integer (a * b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' * b',
+  rw [f.to_map.map_mul, ha, hb]
+end
+
+lemma is_integer_smul {a : R} {b} (hb : f.is_integer b) :
+  f.is_integer (f.to_map a * b) :=
+begin
+  rcases hb with ⟨b', hb⟩,
+  use a * b',
+  rw [←hb, f.to_map.map_mul]
+end
+
+variables (f)
 
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
     that `z * f y = f x` (so this lemma is true by definition). -/
@@ -393,37 +430,7 @@ instance : has_coe_to_sort (localization_map M S) := ⟨_, λ f, S⟩
     can 'know' the map needed to induce the `R`-algebra structure. -/
 instance : algebra R f := f.to_map.to_algebra
 
-/-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of
-    the localization map from `R` to `S`. -/
-def is_integer (a : S) : Prop := a ∈ set.range f.to_map
 
-variables {f}
-
-lemma is_integer_add {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
-  f.is_integer (a + b) :=
-begin
-  rcases ha with ⟨a', ha⟩,
-  rcases hb with ⟨b', hb⟩,
-  use a' + b',
-  rw [f.to_map.map_add, ha, hb]
-end
-
-lemma is_integer_mul {a b} (ha : f.is_integer a) (hb : f.is_integer b) :
-  f.is_integer (a * b) :=
-begin
-  rcases ha with ⟨a', ha⟩,
-  rcases hb with ⟨b', hb⟩,
-  use a' * b',
-  rw [f.to_map.map_mul, ha, hb]
-end
-
-lemma is_integer_smul {a : R} {b} (hb : f.is_integer b) :
-  f.is_integer (f.to_map a * b) :=
-begin
-  rcases hb with ⟨b', hb⟩,
-  use a * b',
-  rw [←hb, f.to_map.map_mul]
-end
 
 @[simp] lemma of_id (a : R) :
   (algebra.of_id R f) a = f.to_map a :=

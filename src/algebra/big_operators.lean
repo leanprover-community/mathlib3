@@ -566,14 +566,14 @@ begin
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
-  ∏ j in Ico (n + 1 - m) (n + 1 - k), f j = ∏ j in Ico k m, f (n - j) :=
+  ∏ j in Ico k m, f (n - j) = ∏ j in Ico (n + 1 - m) (n + 1 - k), f j :=
 begin
   have : ∀ i < m, i ≤ n,
   { intros i hi,
     exact (add_le_add_iff_right 1).1 (le_trans (nat.lt_iff_add_one_le.1 hi) h) },
   cases lt_or_le k m with hkm hkm,
   { rw [← finset.Ico.image_const_sub (this _ hkm)],
-    apply prod_image,
+    refine (prod_image _).symm,
     simp only [Ico.mem],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
     rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
@@ -582,7 +582,7 @@ end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
   (h : m ≤ n + 1) :
-  ∑ j in Ico (n + 1 - m) (n + 1 - k), f j = ∑ j in Ico k m, f (n - j) :=
+  ∑ j in Ico k m, f (n - j) = ∑ j in Ico (n + 1 - m) (n + 1 - k), f j :=
 @prod_Ico_reflect (multiplicative δ) _ f k m n h
 
 lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
@@ -591,7 +591,7 @@ begin
   cases n,
   { simp },
   { simp only [range_eq_Ico, nat.succ_sub_succ_eq_sub, nat.sub_zero],
-    rw [← prod_Ico_reflect _ _ (le_refl _)],
+    rw [prod_Ico_reflect _ _ (le_refl _)],
     simp }
 end
 

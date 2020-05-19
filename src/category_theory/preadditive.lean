@@ -220,13 +220,13 @@ local attribute [tidy] tactic.case_bash
 instance (X Y : C) [has_preadditive_binary_biproduct.{v} X Y] : has_binary_biproduct.{v} X Y :=
 { bicone := has_preadditive_binary_biproduct.bicone,
   is_limit :=
-  { lift := λ s, binary_fan.fst s ≫ has_preadditive_binary_biproduct.bicone.ι₁
-      + binary_fan.snd s ≫ has_preadditive_binary_biproduct.bicone.ι₂,
+  { lift := λ s, binary_fan.fst s ≫ has_preadditive_binary_biproduct.bicone.ι₁ +
+      binary_fan.snd s ≫ has_preadditive_binary_biproduct.bicone.ι₂,
     uniq' := λ s m h, by erw [←category.comp_id m, ←has_preadditive_binary_biproduct.total,
       comp_add, reassoc_of (h walking_pair.left), reassoc_of (h walking_pair.right)] },
   is_colimit :=
-  { desc := λ s, has_preadditive_binary_biproduct.bicone.π₁ ≫ binary_cofan.inl s
-      + has_preadditive_binary_biproduct.bicone.π₂ ≫ binary_cofan.inr s,
+  { desc := λ s, has_preadditive_binary_biproduct.bicone.π₁ ≫ binary_cofan.inl s +
+      has_preadditive_binary_biproduct.bicone.π₂ ≫ binary_cofan.inr s,
     uniq' := λ s m h, by erw [←category.id_comp m, ←has_preadditive_binary_biproduct.total,
       add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right] } }
 

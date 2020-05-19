@@ -5,9 +5,6 @@ set -x
 
 lean_version="$(sed '/^lean_version/!d;s/.*"\(.*\)".*/\1/' leanpkg.toml)"
 
-# Note that since update_nolints.sh runs before this script, 
-# git_hash could refer to that "update nolints" commit,
-# and thus we might be building docs for a future commit
 git_hash="$(git log -1 --pretty=format:%h)"
 git clone https://github.com/leanprover-community/doc-gen.git
 cd doc-gen

@@ -150,9 +150,10 @@ calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_di
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
 
 section det_zero
-/-! ### `det_zero` section
+/-!
+### `det_zero` section
 
-  Prove that a matrix with a repeated column has determinant equal to zero.
+Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=

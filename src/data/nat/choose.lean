@@ -123,64 +123,21 @@ by simpa using (add_pow 1 1 n).symm
 # Specific facts about binomial coefficients and their sums
 -/
 
-private lemma sum_range_reflects_halfway (m : nat) (f : nat → nat)
-  (reflects : ∀ x ≤ 2 * m + 1, f x = f (2 * m + 1 - x)) :
-  ∑ i in (range (m + 1)), f i = ∑ i in (Ico (m + 1) (2 * m + 2)), f i :=
-begin
-  have reflect_size : ∀ a (ha : a ∈ range (m + 1)), 2 * m + 1 - a ∈ Ico (m + 1) (2 * m + 2),
-    { intros a size,
-      rw Ico.mem,
-      rw mem_range at size,
-      split,
-      { apply nat.le_sub_right_of_add_le,
-        linarith, },
-      { apply (nat.sub_lt_left_iff_lt_add _).2,
-        by linarith,
-        by linarith, } },
-  have reflect_size2 : ∀ a (ha : a ∈ Ico (m + 1) (2 * m + 2)), 2 * m + 1 - a ∈ range (m + 1),
-    { intros a size,
-      rw Ico.mem at size,
-      rw mem_range,
-      cases size with a_big a_small,
-      apply (nat.sub_lt_left_iff_lt_add _).2,
-      by linarith,
-      by linarith, },
-  have preserves : ∀ a (ha : a ∈ range (m + 1)), f a = f (2 * m + 1 - a),
-    { intros a size,
-      rw reflects a,
-      rw mem_range at size,
-      linarith, },
-  apply finset.sum_bij' (λ n _, 2 * m + 1 - n) reflect_size preserves (λ n _, 2 * m + 1 - n) reflect_size2,
-  { intros a a_in_range,
-    simp only [],
-    rw nat.sub_sub_self,
-    rw mem_range at a_in_range,
-    linarith, },
-  { intros a a_in_ico,
-    rw Ico.mem at a_in_ico,
-    simp only [],
-    rw nat.sub_sub_self,
-    linarith, },
-end
-
 lemma sum_range_choose_halfway (m : nat) :
   ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
-begin
-  have reflects : ∀ x ≤ 2 * m + 1, choose (2 * m + 1) x = choose (2 * m + 1) (2 * m + 1 - x),
-  { intros x pr,
-    exact eq.symm (@choose_symm (2 * m + 1) x pr), },
-  have v : 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) = 2 * 4 ^ m,
-    calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i)
-          = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in range (m + 1), nat.choose (2 * m + 1) i :
-              by ring
-      ... = ∑ i in range (m + 1), nat.choose (2 * m + 1) i + ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
-              by rw (sum_range_reflects_halfway m (choose (2 * m + 1)) reflects)
-      ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i :
-              by rw @sum_range_add_sum_Ico _ _ (choose (2 * m + 1)) (m + 1) (2 * m + 2) (by linarith)
-      ... = 2 ^ (2 * m + 1) : sum_range_choose (2 * m + 1)
-      ... = 2 * 2 ^ (2 * m) : by ring_exp
-      ... = 2 * 4 ^ m : by { rw nat.pow_mul 2 m 2, refl, },
-  exact (@nat.mul_right_inj 2 _ (4 ^ m) (by norm_num)).1 v,
-end
+have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
+  ∑ i in range (m + 1), choose (2 * m + 1) i,
+from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
+(nat.mul_right_inj zero_lt_two).1 $
+calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
+  (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+    ∑ i in range (m + 1), nat.choose (2 * m + 1) (2 * m + 1 - i) :
+  by rw [two_mul, this]
+... = (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+  ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
+  by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
+... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
+... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
 
 end binomial

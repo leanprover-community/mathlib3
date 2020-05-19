@@ -832,9 +832,14 @@ def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
 `v` and `v'` and a bijection between the indexing sets of the two bases. -/
 def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
   (e : ι ≃ ι') : M ≃ₗ[R] M' :=
-equiv_of_is_basis (hv.constr (v' ∘ e)) (hv'.constr (v ∘ e.symm)) hv hv'
-  (λ i, by simpa using set.mem_range_self _) (λ i, by simpa using set.mem_range_self _)
-  (λ i, by simp) (λ i, by simp)
+{ inv_fun := hv'.constr (v ∘ e.symm),
+  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
+      from hv.ext $ by simp,
+    λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
+  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
+      from hv'.ext $ by simp,
+    λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
+  ..hv.constr (v' ∘ e) }
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :

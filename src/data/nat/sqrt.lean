@@ -7,7 +7,8 @@ An efficient binary implementation of a (sqrt n) function that
 returns s s.t.
     s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.basic
+import data.nat.cast
+import init_.data.int.order
 
 namespace nat
 
@@ -72,7 +73,8 @@ begin
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
     rw [nat.sub_lt_right_iff_lt_add h₁],
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_comm, add_left_comm] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
+      add_comm, add_assoc, add_left_comm] },
   have re : div2 (2 * r * 2^m) = r * 2^m, {
     rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
@@ -85,7 +87,7 @@ begin
     apply eq.symm, apply nat.sub_eq_of_eq_add,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (nat.add_sub_cancel' hl).symm,
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },
 end
 
 private lemma sqrt_aux_is_sqrt (n) : ∀ m r,

@@ -107,7 +107,7 @@ begin
   calc inf_edist x s ≤ edist x z : inf_edist_le_edist_of_mem zs
         ... ≤ edist x y + edist y z : edist_triangle _ _ _
         ... ≤ (inf_edist x (closure s) + ε / 2) + (ε/2) : add_le_add' (le_of_lt hy) (le_of_lt dyz)
-        ... = inf_edist x (closure s) + ↑ε : by simp [ennreal.add_halves]
+        ... = inf_edist x (closure s) + ↑ε : by rw [add_assoc, ennreal.add_halves]
 end
 
 /-- A point belongs to the closure of `s` iff its infimum edistance to this set vanishes -/

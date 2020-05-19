@@ -71,7 +71,7 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
   eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
   dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp [sub_eq_add_neg]
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
             ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
@@ -293,11 +293,13 @@ instance prod.normed_group : normed_group (α × β) :=
   dist_eq := assume (x y : α × β),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
+lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
+
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
-by simp [norm, le_max_left]
+le_max_left _ _
 
 lemma norm_snd_le (x : α × β) : ∥x.2∥ ≤ ∥x∥ :=
-by simp [norm, le_max_right]
+le_max_right _ _
 
 lemma norm_prod_le_iff {x : α × β} {r : ℝ} :
   ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
@@ -671,20 +673,31 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
-equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
+equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
+`∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
   extends module α β :=
-(norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
+(norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 end prio
 
 variables [normed_field α] [normed_group β]
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul := normed_field.norm_mul }
-
+{ norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
-normed_space.norm_smul s x
+begin
+  classical,
+  by_cases h : s = 0,
+  { simp [h] },
+  { refine le_antisymm (normed_space.norm_smul_le s x) _,
+    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
+               ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) : _
+               ... = ∥s • x∥                 : _,
+    exact mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _),
+    rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel, one_mul],
+    rwa [ne.def, norm_eq_zero] }
+end
 
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
@@ -756,14 +769,8 @@ end
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance : normed_space α (E × F) :=
-{ norm_smul :=
-  begin
-    intros s x,
-    cases x with x₁ x₂,
-    change max (∥s • x₁∥) (∥s • x₂∥) = ∥s∥ * max (∥x₁∥) (∥x₂∥),
-    rw [norm_smul, norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg _)]
-  end,
-
+{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
+  -- TODO: without the next two lines Lean unfolds `≤` to `real.le`
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
@@ -772,7 +779,7 @@ instance : normed_space α (E × F) :=
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
-{ norm_smul := λ a f,
+{ norm_smul_le := λ a f, le_of_eq $
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
@@ -780,7 +787,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
-{ norm_smul := λc x, norm_smul c (x : E) }
+{ norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 end normed_space
 
@@ -809,7 +816,7 @@ variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
-{ norm_smul := λc x, begin
+{ norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,

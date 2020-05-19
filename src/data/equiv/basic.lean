@@ -10,6 +10,7 @@ Two equivalent types have the same cardinality.
 -/
 import data.set.function
 import data.option.basic
+import algebra.group.basic
 
 open function
 
@@ -46,7 +47,7 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
   have g₁ = g₂, from funext $ assume x,
     have f₁ (g₁ x) = f₂ (g₂ x), from (r₁ x).trans (r₂ x).symm,
     have f₁ (g₁ x) = f₁ (g₂ x), by { subst f₂, exact this },
-    show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
+    show g₁ x = g₂ x,           from l₁.injective this,
   by simp *
 
 @[ext] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
@@ -70,10 +71,10 @@ lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
 lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
 
 protected theorem injective : ∀ f : α ≃ β, injective f
-| ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
+| ⟨f, g, h₁, h₂⟩ := h₁.injective
 
 protected theorem surjective : ∀ f : α ≃ β, surjective f
-| ⟨f, g, h₁, h₂⟩ := surjective_of_has_right_inverse ⟨_, h₂⟩
+| ⟨f, g, h₁, h₂⟩ := h₂.surjective
 
 protected theorem bijective (f : α ≃ β) : bijective f :=
 ⟨f.injective, f.surjective⟩
@@ -109,8 +110,8 @@ rfl
 @[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
-@[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
-| ⟨f₁, g₁, l₁, r₁⟩ x y := (injective_of_left_inverse l₁).eq_iff
+@[simp] theorem apply_eq_iff_eq (f : α ≃ β) (x y : α) : f x = f y ↔ x = y :=
+f.injective.eq_iff
 
 theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
   f x = y ↔ x = f.symm y :=
@@ -716,7 +717,7 @@ end
 def list_equiv_of_equiv {α β : Type*} : α ≃ β → list α ≃ list β
 | ⟨f, g, l, r⟩ :=
   by refine ⟨list.map f, list.map g, λ x, _, λ x, _⟩;
-     simp [id_of_left_inverse l, id_of_right_inverse r]
+     simp [l.comp_eq_id, r.comp_eq_id]
 
 def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
 ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩

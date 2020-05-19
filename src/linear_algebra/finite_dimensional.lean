@@ -319,13 +319,10 @@ end
 lemma injective_iff_surjective [finite_dimensional K V] {f : V →ₗ[K] V} :
   injective f ↔ surjective f :=
 ⟨surjective_of_injective,
-  λ hsurj, let ⟨g, hg⟩ := exists_right_inverse_linear_map_of_surjective
-    (range_eq_top.2 hsurj) in
-  have function.right_inverse g f,
-    from λ x, show (linear_map.comp f g) x = (@linear_map.id K V _ _ _ : V → V) x, by rw hg,
-  injective_of_has_left_inverse ⟨g, left_inverse_of_surjective_of_right_inverse
-    (surjective_of_injective (injective_of_has_left_inverse ⟨_, this⟩))
-      this⟩⟩
+  λ hsurj, let ⟨g, hg⟩ := f.exists_right_inverse_of_surjective (range_eq_top.2 hsurj) in
+  have function.right_inverse g f, from linear_map.ext_iff.1 hg,
+  (left_inverse_of_surjective_of_right_inverse
+    (surjective_of_injective this.injective) this).injective⟩
 
 lemma ker_eq_bot_iff_range_eq_top [finite_dimensional K V] {f : V →ₗ[K] V} :
   f.ker = ⊥ ↔ f.range = ⊤ :=
@@ -335,9 +332,9 @@ by rw [range_eq_top, ker_eq_bot, injective_iff_surjective]
 are also inverse to each other on the other side. -/
 lemma mul_eq_one_of_mul_eq_one [finite_dimensional K V] {f g : V →ₗ[K] V} (hfg : f * g = 1) :
   g * f = 1 :=
-have ginj : injective g, from injective_of_has_left_inverse
-  ⟨f, λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl⟩,
-let ⟨i, hi⟩ := exists_right_inverse_linear_map_of_surjective
+have ginj : injective g, from has_left_inverse.injective
+  ⟨f, (λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl)⟩,
+let ⟨i, hi⟩ := g.exists_right_inverse_of_surjective
   (range_eq_top.2 (injective_iff_surjective.1 ginj)) in
 have f * (g * i) = f * 1, from congr_arg _ hi,
 by rw [← mul_assoc, hfg, one_mul, mul_one] at this; rwa ← this

@@ -281,7 +281,7 @@ begin
         (b * g.h + a) / b = b * g.h / b + a / b  : by ring -- requires `field` rather than `division_ring`
                       ... = g.h + a / b          : by rw (mul_div_cancel_left _ b_ne_zero) },
     case nat.succ
-    { obtain ⟨⟨pa, pb⟩, s_n'th_eq⟩ : ∃ gp_n', g.s.nth n' = some gp_n', from
+    { obtain ⟨⟨pa, pb⟩, s_n'th_eq⟩ : ∃ gp_n', g.s.nth n' = some gp_n' :=
         g.s.ge_stable n'.le_succ s_nth_eq,
       -- Notations
       let g' := squash_gcf g (n' + 1),
@@ -294,34 +294,33 @@ begin
       let ppB' := ppredConts'.b,
       -- first compute the convergent of the squashed gcf
       have : g'.convergents (n' + 1)
-           = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'), by
-      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩, by
-          simpa only [squash_nth_gcf] using
-            (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq),
+           = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'),
+      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩,
+        { simpa only [squash_nth_gcf] using
+            (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq) },
         rw [convergent_eq_conts_a_div_conts_b,
           (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
       rw this,
       -- then compute the convergent of the original gcf by recursively unfolding the continuants
       -- computation twice
       have : g.convergents (n' + 2)
-           = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB), by
+           = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB),
       { -- use the recurrence once
-        have : g.continuants_aux (n' + 2) = ⟨pb * pA + pa * ppA, pb * pB + pa * ppB⟩, from
+        have : g.continuants_aux (n' + 2) = ⟨pb * pA + pa * ppA, pb * pB + pa * ppB⟩ :=
           continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
         -- and a second time
         rw [convergent_eq_conts_a_div_conts_b,
           (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
       rw this,
       suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
-               = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB) * b/b, by
-      { obtain ⟨eq1, eq2, eq3, eq4⟩ : pA' = pA ∧ pB' = pB ∧ ppA' = ppA ∧ ppB' = ppB, by
-          simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
-            (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm],
+               = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB),
+      { obtain ⟨eq1, eq2, eq3, eq4⟩ : pA' = pA ∧ pB' = pB ∧ ppA' = ppA ∧ ppB' = ppB,
+        { simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
+            (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm] },
         symmetry,
         simpa only [eq1, eq2, eq3, eq4, mul_div_cancel'' _  b_ne_zero] },
       field_simp [b_ne_zero],
-      congr' 1;
-      ring } }
+      congr' 1; ring } }
 end
 
 end squash

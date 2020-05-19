@@ -115,7 +115,7 @@ by { simp [sub_eq_add_neg, inner_add_right] }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self {x y : α} : inner (x + y) (x + y) = inner x x + 2 * inner x y + inner y y :=
-by { simpa [inner_add_left, inner_add_right, two_mul] using inner_comm _ _ }
+by simpa [inner_add_left, inner_add_right, two_mul, add_assoc] using inner_comm _ _
 
 /-- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : inner (x - y) (x - y) = inner x x - 2 * inner x y + inner y y :=
@@ -208,7 +208,7 @@ normed_group.of_core α
 
 /-- An inner product space forms a normed space over reals w.r.t. its associated norm. -/
 instance inner_product_space_is_normed_space : normed_space ℝ α :=
-{ norm_smul := assume r x,
+{ norm_smul_le := assume r x, le_of_eq $
   begin
     rw [norm_eq_sqrt_inner, sqrt_eq_iff_mul_self_eq,
         inner_smul_left, inner_smul_right, inner_self_eq_norm_square],
@@ -369,7 +369,8 @@ begin
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
-          {rw [smul_sub, sub_smul, one_smul], simp [sub_eq_add_neg, add_comm, add_left_comm]},
+        { rw [smul_sub, sub_smul, one_smul],
+          simp only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :

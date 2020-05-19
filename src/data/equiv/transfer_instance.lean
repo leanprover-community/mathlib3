@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.equiv.basic
 import algebra.field
+import algebra.group.type_tags
 
 /-!
 # Transfer algebraic structures across `equiv`s

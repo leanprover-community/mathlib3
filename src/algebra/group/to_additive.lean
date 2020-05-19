@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury Kudryashov.
 -/
-import tactic.basic
 import tactic.transform_decl
 import tactic.algebra
 
@@ -74,13 +73,8 @@ that the new name differs from the original one.
 
 * Automatically transport structures and other inductive types.
 
-* Handle `protected` attribute. Currently all new definitions are public.
-
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Mapping of prefixes that do not correspond to any definition, see
-  `quotient_group`.
 
 * Rewrite rules for the last part of the name that work in more
   cases. E.g., we can replace `monoid` with `add_monoid` etc.
@@ -195,7 +189,7 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict src tgt
-        [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator],
+        [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator, `no_rsimp],
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
@@ -204,56 +198,3 @@ end to_additive
 
 /- map operations -/
 attribute [to_additive] has_mul has_one has_inv
-
-/- map structures -/
-attribute [to_additive add_semigroup] semigroup
-attribute [to_additive add_comm_semigroup] comm_semigroup
-attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
-attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-
-attribute [to_additive add_monoid] monoid
-attribute [to_additive add_comm_monoid] comm_monoid
-attribute [to_additive add_group] group
-attribute [to_additive add_comm_group] comm_group
-
-/- map theorems -/
-attribute [to_additive] mul_assoc
-attribute [to_additive add_semigroup_to_is_eq_associative] semigroup_to_is_associative
-attribute [to_additive] mul_comm
-attribute [to_additive add_comm_semigroup_to_is_eq_commutative] comm_semigroup_to_is_commutative
-attribute [to_additive] mul_left_comm
-attribute [to_additive] mul_right_comm
-attribute [to_additive] mul_left_cancel
-attribute [to_additive] mul_right_cancel
-attribute [to_additive] mul_left_cancel_iff
-attribute [to_additive] mul_right_cancel_iff
-attribute [to_additive] one_mul
-attribute [to_additive] mul_one
-attribute [to_additive] mul_left_inv
-attribute [to_additive] inv_mul_self
-attribute [to_additive] inv_mul_cancel_left
-attribute [to_additive] inv_mul_cancel_right
-attribute [to_additive] inv_eq_of_mul_eq_one
-attribute [to_additive neg_zero] one_inv
-attribute [to_additive] inv_inv
-attribute [to_additive] mul_right_inv
-attribute [to_additive] mul_inv_self
-attribute [to_additive] inv_inj
-attribute [to_additive] group.mul_left_cancel
-attribute [to_additive] group.mul_right_cancel
-attribute [to_additive to_left_cancel_add_semigroup] group.to_left_cancel_semigroup
-attribute [to_additive to_right_cancel_add_semigroup] group.to_right_cancel_semigroup
-attribute [to_additive] mul_inv_cancel_left
-attribute [to_additive] mul_inv_cancel_right
-attribute [to_additive neg_add_rev] mul_inv_rev
-attribute [to_additive] eq_inv_of_eq_inv
-attribute [to_additive] eq_inv_of_mul_eq_one
-attribute [to_additive] eq_mul_inv_of_mul_eq
-attribute [to_additive] eq_inv_mul_of_mul_eq
-attribute [to_additive] inv_mul_eq_of_eq_mul
-attribute [to_additive] mul_inv_eq_of_eq_mul
-attribute [to_additive] eq_mul_of_mul_inv_eq
-attribute [to_additive] eq_mul_of_inv_mul_eq
-attribute [to_additive] mul_eq_of_eq_inv_mul
-attribute [to_additive] mul_eq_of_eq_mul_inv
-attribute [to_additive neg_add] mul_inv

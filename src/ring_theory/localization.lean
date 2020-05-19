@@ -265,9 +265,9 @@ begin
 end
 
 /-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
-    `g : R →+* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
-    `S` to `P` sending `z : S` to `g x * (g y)⁻¹`, where `(x, y) : R × M` are such that
-    `z = f x * (f y)⁻¹`. -/
+`g : R →+* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
+`S` to `P` sending `z : S` to `g x * (g y)⁻¹`, where `(x, y) : R × M` are such that
+`z = f x * (f y)⁻¹`. -/
 noncomputable def lift {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) : S →+* P :=
 ring_hom.mk' (@submonoid.localization_map.lift _ _ _ _ _ _ _
   f.to_localization_map g.to_monoid_hom hg) $

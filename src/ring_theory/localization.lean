@@ -76,7 +76,7 @@ extends ring_hom R S, submonoid.localization_map M S
 add_decl_doc localization_map.to_ring_hom
 
 /-- The `comm_monoid` `localization_map` underlying a `comm_ring` `localization_map`.
-    See `group_theory.monoid_localization` for its definition. -/
+See `group_theory.monoid_localization` for its definition. -/
 add_decl_doc localization_map.to_localization_map
 
 namespace localization_map

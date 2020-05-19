@@ -473,7 +473,7 @@ In this section, if `β` is a normed space, then we show that the space of bound
 continuous functions from `α` to `β` inherits a normed space structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜]
 variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
@@ -534,7 +534,7 @@ In this section, if `γ` is a normed algebra, then we show that the space of bou
 continuous functions from `α` to `γ` inherits a normed algebra structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜]
 variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables [normed_ring γ] [normed_algebra 𝕜 γ]
 variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
@@ -542,15 +542,15 @@ variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
 /-- `bounded_continuous_function.const` as a `ring_hom`. -/
 def C : 𝕜 →+* (α →ᵇ γ) :=
 { to_fun    := λ (c : 𝕜), const α ((algebra_map 𝕜 γ) c),
-  map_one'  := by rw (algebra_map 𝕜 γ).map_one; exact rfl,
-  map_mul'  := λ c₁ c₂, by rw (algebra_map 𝕜 γ).map_mul; exact rfl,
-  map_zero' := by rw (algebra_map 𝕜 γ).map_zero; exact rfl,
-  map_add'  := λ c₁ c₂, by rw (algebra_map 𝕜 γ).map_add; exact rfl }
+  map_one'  := ext $ λ x, (algebra_map 𝕜 γ).map_one,
+  map_mul'  := λ c₁ c₂, ext $ λ x, (algebra_map 𝕜 γ).map_mul _ _,
+  map_zero' := ext $ λ x, (algebra_map 𝕜 γ).map_zero,
+  map_add'  := λ c₁ c₂, ext $ λ x, (algebra_map 𝕜 γ).map_add _ _ }
 
 instance : algebra 𝕜 (α →ᵇ γ) :=
 { to_ring_hom := C,
-  commutes' := λ c f, by ext; apply algebra.commutes',
-  smul_def' := λ c f, by ext; apply algebra.smul_def',
+  commutes' := λ c f, ext $ λ x, algebra.commutes' _ _,
+  smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
   ..bounded_continuous_function.module,
   ..bounded_continuous_function.ring }
 
@@ -562,21 +562,19 @@ instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
   end,
   ..bounded_continuous_function.algebra }
 
-
 /-!
 ### Structure as normed module over scalar functions
 
-If `β` is a normed 𝕜-space, then we show that the space of bounded continuous
+If `β` is a normed `𝕜`-space, then we show that the space of bounded continuous
 functions from `α` to `β` is naturally a module over the algebra of bounded continuous
-functions from `α` to 𝕜. -/
+functions from `α` to `𝕜`. -/
 
 instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
-(continuous.smul f.2.1 g.2.1) (∥f∥ * ∥g∥) (λ x, begin
-  calc ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
+(continuous.smul f.2.1 g.2.1) (∥f∥ * ∥g∥) (λ x, calc
+  ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
   ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
-    (norm_nonneg _),
-end )⟩
+    (norm_nonneg _)) ⟩
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=
 module.of_core $
@@ -591,7 +589,7 @@ norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
-module over the algebra of bounded continuous functions from `α` to 𝕜. -/
+module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
 

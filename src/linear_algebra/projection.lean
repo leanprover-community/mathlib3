@@ -75,7 +75,7 @@ end
   (prod_equiv_of_is_compl p q h).symm x = (0, x) :=
 (prod_equiv_of_is_compl p q h).symm_apply_eq.2 $ by simp
 
-@[simp] lemma prod_equiv_of_is_compl_symm_apply_fst_eq_zero {h : is_compl p q} {x : E} :
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_fst_eq_zero (h : is_compl p q) {x : E} :
   ((prod_equiv_of_is_compl p q h).symm x).1 = 0 ↔ x ∈ q :=
 begin
   conv_rhs { rw [← (prod_equiv_of_is_compl p q h).apply_symm_apply x] },
@@ -83,7 +83,7 @@ begin
     mem_right_iff_eq_zero_of_disjoint h.disjoint]
 end
 
-@[simp] lemma prod_equiv_of_is_compl_symm_apply_snd_eq_zero {h : is_compl p q} {x : E} :
+@[simp] lemma prod_equiv_of_is_compl_symm_apply_snd_eq_zero (h : is_compl p q) {x : E} :
   ((prod_equiv_of_is_compl p q h).symm x).2 = 0 ↔ x ∈ p :=
 begin
   conv_rhs { rw [← (prod_equiv_of_is_compl p q h).apply_symm_apply x] },

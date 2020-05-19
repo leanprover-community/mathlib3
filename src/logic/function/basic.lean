@@ -2,11 +2,13 @@
 Copyright (c) 2016 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Miscellaneous function constructions and lemmas.
 -/
 import logic.basic
 import data.option.defs
+
+/-!
+# Miscellaneous function constructions and lemmas
+-/
 
 universes u v w
 
@@ -57,15 +59,17 @@ instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
 
-theorem cantor_surjective {α} (f : α → α → Prop) : ¬ function.surjective f | h :=
+/-- Cantor's diagonal argument implies that there are no surjective functions from `α`
+to `set α`. -/
+theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-theorem cantor_injective {α : Type*} (f : (α → Prop) → α) :
+/-- Cantor's diagonal argument implies that there are no injective functions from `set α` to `α`. -/
+theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
-surjective_of_has_right_inverse ⟨f, λ U, funext $
-  λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩⟩
+right_inverse.surjective (λ U, funext $ λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩)
 
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
@@ -97,6 +101,20 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
+theorem left_inverse.right_inverse {f : α → β} {g : β → α} (h : left_inverse g f) :
+  right_inverse f g := h
+
+theorem right_inverse.left_inverse {f : α → β} {g : β → α} (h : right_inverse g f) :
+  left_inverse f g := h
+
+theorem left_inverse.surjective {f : α → β} {g : β → α} (h : left_inverse f g) :
+  surjective f :=
+h.right_inverse.surjective
+
+theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inverse f g) :
+  injective f :=
+h.left_inverse.injective
+
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
@@ -124,7 +142,8 @@ variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set
 include n
 local attribute [instance, priority 10] classical.prop_decidable
 
-/-- Construct the inverse for a function `f` on domain `s`. -/
+/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
+on `f '' s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 
@@ -168,7 +187,7 @@ have f (inv_fun f (f b)) = f b,
 hf this
 
 lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
-surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
+(left_inverse_inv_fun hf).surjective
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
@@ -182,7 +201,7 @@ lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
-⟨injective.has_left_inverse, injective_of_has_left_inverse⟩
+⟨injective.has_left_inverse, has_left_inverse.injective⟩
 
 end inv_fun
 
@@ -205,14 +224,14 @@ lemma surjective.has_right_inverse (hf : surjective f) : has_right_inverse f :=
 ⟨_, right_inverse_surj_inv hf⟩
 
 lemma surjective_iff_has_right_inverse : surjective f ↔ has_right_inverse f :=
-⟨surjective.has_right_inverse, surjective_of_has_right_inverse⟩
+⟨surjective.has_right_inverse, has_right_inverse.surjective⟩
 
 lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ right_inverse g f :=
 ⟨λ hf, ⟨_, left_inverse_surj_inv hf, right_inverse_surj_inv hf.2⟩,
- λ ⟨g, gl, gr⟩, ⟨injective_of_left_inverse gl, surjective_of_has_right_inverse ⟨_, gr⟩⟩⟩
+ λ ⟨g, gl, gr⟩, ⟨gl.injective,  gr.surjective⟩⟩
 
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
-injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
+(right_inverse_surj_inv h).injective
 
 end surj_inv
 
@@ -258,25 +277,17 @@ end
 end update
 
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
-funext $ assume ⟨a, b⟩, rfl
-
--- `uncurry'` is the version of `uncurry` with correct definitional reductions
-def uncurry' {α β γ} (f : α → β → γ) := λ p : α × β, f p.1 p.2
-
-@[simp]
-lemma curry_uncurry' {α : Type*} {β : Type*} {γ : Type*} (f : α → β → γ) : curry (uncurry' f) = f :=
-by funext ; refl
-
-@[simp]
-lemma uncurry'_curry {α : Type*} {β : Type*} {γ : Type*} (f : α × β → γ) : uncurry' (curry f) = f :=
-by { funext, simp [curry, uncurry', prod.mk.eta] }
+rfl
 
 section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
+/-- Compose a binary function `f` with a pair of unary functions `g` and `h`.
+If both arguments of `f` have the same type and `g = h`, then `bicompl f g g = f on g`. -/
 def bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) (a b) :=
 f (g a) (h b)
 
+/-- Compose an unary function `f` with a binary function `g`. -/
 def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
@@ -284,11 +295,12 @@ f (g a b)
 local notation f `∘₂` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
-  uncurry (g ∘₂ f) = (g ∘ uncurry f) :=
-funext $ λ ⟨p, q⟩, rfl
+  uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
 
-lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
-  uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
+lemma uncurry_bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) :
+  uncurry (bicompl f g h) = (uncurry f) ∘ (prod.map g h) :=
+rfl
+
 end bicomp
 
 /-- A function is involutive, if `f ∘ f = id`. -/
@@ -303,7 +315,7 @@ variables {α : Sort u} {f : α → α} (h : involutive f)
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h
 
-protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma injective : injective f := h.left_inverse.injective
 protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
 protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 

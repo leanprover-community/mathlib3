@@ -5,6 +5,7 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
   Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.group.basic
+import tactic.ext
 
 /-!
 # monoid and group homomorphisms
@@ -69,12 +70,14 @@ infixr ` →* `:25 := monoid_hom
 instance {M : Type*} {N : Type*} {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
-
 namespace monoid_hom
 variables {mM : monoid M} {mN : monoid N} {mP : monoid P}
 variables [group G] [comm_group H]
 
 include mM mN
+
+@[simp, to_additive]
+lemma to_fun_eq_coe (f : M →* N) : f.to_fun = f := rfl
 
 @[simp, to_additive]
 lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
@@ -277,22 +280,5 @@ namespace add_monoid_hom
 /-- Additive group homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
-
-/-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
-{ to_fun := (*) r,
-  map_zero' := mul_zero r,
-  map_add' := mul_add r }
-
-@[simp] lemma coe_mul_left {R : Type*} [semiring R] (r : R) : ⇑(mul_left r) = (*) r := rfl
-
-/-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
-{ to_fun := λ a, a * r,
-  map_zero' := zero_mul r,
-  map_add' := λ _ _, add_mul _ _ r }
-
-@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
-  (mul_right r : R → R) a = a * r := rfl
 
 end add_monoid_hom

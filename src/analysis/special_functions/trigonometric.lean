@@ -789,7 +789,7 @@ lemma cos_inj_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π
   (hxy : cos x = cos y) : x = y :=
 begin
   rw [← sin_pi_div_two_sub, ← sin_pi_div_two_sub] at hxy,
-  refine (sub_left_inj).1 (sin_inj_of_le_of_le_pi_div_two _ _ _ _ hxy);
+  refine (sub_right_inj).1 (sin_inj_of_le_of_le_pi_div_two _ _ _ _ hxy);
   linarith
 end
 
@@ -893,7 +893,7 @@ begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
     cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
-    { left, rw coe_sub at h, exact sub_left_inj.1 h },
+    { left, rw coe_sub at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
@@ -1137,7 +1137,7 @@ have h₂ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
 by rw [arctan, cos_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _)),
     one_div_eq_inv, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
     div_pow, pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
-    ← domain.mul_left_inj (ne.symm (ne_of_lt h₁)), mul_sub,
+    ← domain.mul_right_inj (ne.symm (ne_of_lt h₁)), mul_sub,
     mul_div_cancel' _ (ne.symm (ne_of_lt h₁)), mul_inv_cancel (ne.symm (ne_of_lt h₁))];
   simp
 
@@ -1160,7 +1160,7 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
 lemma tan_surjective : function.surjective tan :=
-function.surjective_of_has_right_inverse ⟨_, tan_arctan⟩
+function.right_inverse.surjective tan_arctan
 
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)

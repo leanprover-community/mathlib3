@@ -356,12 +356,12 @@ begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
   have hap : a ∣ p, from ⟨y, by rwa [ha, nat.pow_two,
-        mul_assoc, nat.mul_left_inj hp.pos, eq_comm] at h⟩,
+        mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, nat.pow_two, nat.mul_left_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, nat.pow_two, nat.mul_right_inj hp.pos] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, nat.pow_two, mul_comm, mul_assoc,
-      nat.mul_left_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
+      nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (nat.pow_two _).symm⟩
@@ -400,7 +400,7 @@ begin
     { apply pp.not_dvd_one.elim,
       simp at e, rw ← e, apply dvd_mul_right },
     { refine ⟨k, le_of_succ_le_succ h, _⟩,
-      rwa [mul_comm, pow_succ, nat.mul_right_inj pp.pos] at e } },
+      rwa [mul_comm, pow_succ, nat.mul_left_inj pp.pos] at e } },
   { split; intro d,
     { rw (pp.coprime_pow_of_not_dvd h).eq_one_of_dvd d,
       exact ⟨0, zero_le _, rfl⟩ },
@@ -443,7 +443,7 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
     (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
   have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
   have hl : prod l₁ = prod ((b :: l₂).erase a) :=
-  (nat.mul_left_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
+  (nat.mul_right_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
     by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
   perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
 

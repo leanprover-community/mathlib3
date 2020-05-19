@@ -58,7 +58,7 @@ is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
     exact (hxS $ hTS hxT).elim },
   cases (mem_iff_generator_dvd _).1 h with y hy,
   have : generator S ≠ 0 := mt (eq_bot_iff_generator_eq_zero _).2 hS,
-  rw [← mul_one (generator S), hy, mul_left_comm, domain.mul_left_inj this] at hz,
+  rw [← mul_one (generator S), hy, mul_left_comm, domain.mul_right_inj this] at hz,
   exact hz.symm ▸ ideal.mul_mem_right _ (generator_mem T)
 end⟩
 
@@ -104,8 +104,9 @@ variables [principal_ideal_domain α]
 instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin
-  cases (principal s).principal with a hs,
-  refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, refl
+  rcases (principal s).principal with ⟨a, rfl⟩,
+  rw [← finset.coe_singleton],
+  exact ⟨{a}, submodule.ext' rfl⟩
 end⟩
 
 section

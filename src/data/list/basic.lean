@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import algebra.group
+import deprecated.group
 import data.nat.basic
 
 /-!
@@ -206,15 +207,15 @@ injective_length_iff.mpr $ by apply_instance
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
-lemma singleton_eq [decidable_eq α] (x : α) : ({x} : list α) = [x] := by refl
+lemma singleton_eq (x : α) : ({x} : list α) = [x] := rfl
 lemma insert_neg [decidable_eq α] {x : α} {l : list α} (h : x ∉ l) :
   has_insert.insert x l = x :: l :=
 if_neg h
 lemma insert_pos [decidable_eq α] {x : α} {l : list α} (h : x ∈ l) :
   has_insert.insert x l = l :=
 if_pos h
-lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [y, x] :=
-by { rw [insert_neg, singleton_eq], show y ∉ [x], rw [mem_singleton], exact h.symm }
+lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [x, y] :=
+by { rw [insert_neg, singleton_eq], rwa [singleton_eq, mem_singleton] }
 
 /-! ### bounded quantifiers over lists -/
 
@@ -366,32 +367,32 @@ theorem append_inj : ∀ {s₁ s₂ t₁ t₂ : list α}, s₁ ++ t₁ = s₂ ++
   let ⟨e1, e2⟩ := @append_inj s₁ s₂ t₁ t₂ hap (succ.inj hl) in
   by rw [ab, e1, e2]; exact ⟨rfl, rfl⟩
 
-theorem append_inj_left {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : t₁ = t₂ :=
+theorem append_inj_right {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : t₁ = t₂ :=
 (append_inj h hl).right
 
-theorem append_inj_right {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : s₁ = s₂ :=
+theorem append_inj_left {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : s₁ = s₂ :=
 (append_inj h hl).left
 
 theorem append_inj' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ ∧ t₁ = t₂ :=
 append_inj h $ @nat.add_right_cancel _ (length t₁) _ $
 let hap := congr_arg length h in by simp only [length_append] at hap; rwa [← hl] at hap
 
-theorem append_inj_left' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : t₁ = t₂ :=
+theorem append_inj_right' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : t₁ = t₂ :=
 (append_inj' h hl).right
 
-theorem append_inj_right' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
+theorem append_inj_left' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
 (append_inj' h hl).left
 
 theorem append_left_cancel {s t₁ t₂ : list α} (h : s ++ t₁ = s ++ t₂) : t₁ = t₂ :=
-append_inj_left h rfl
+append_inj_right h rfl
 
 theorem append_right_cancel {s₁ s₂ t : list α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
-append_inj_right' h rfl
+append_inj_left' h rfl
 
-theorem append_left_inj {t₁ t₂ : list α} (s) : s ++ t₁ = s ++ t₂ ↔ t₁ = t₂ :=
+theorem append_right_inj {t₁ t₂ : list α} (s) : s ++ t₁ = s ++ t₂ ↔ t₁ = t₂ :=
 ⟨append_left_cancel, congr_arg _⟩
 
-theorem append_right_inj {s₁ s₂ : list α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
+theorem append_left_inj {s₁ s₂ : list α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
 ⟨append_right_cancel, congr_arg _⟩
 
 theorem map_eq_append_split {f : α → β} {l : list α} {s₁ s₂ : list β}
@@ -507,7 +508,7 @@ simp only [*, cons_append, reverse_cons, append_assoc]]
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
 theorem reverse_injective : injective (@reverse α) :=
-injective_of_left_inverse reverse_reverse
+left_inverse.injective reverse_reverse
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
@@ -2663,11 +2664,11 @@ theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: joi
 | (l' :: L) l (or.inr h)   :=
   is_infix.trans (infix_of_mem_join h) $ infix_of_suffix $ suffix_append _ _
 
-theorem prefix_append_left_inj {l₁ l₂ : list α} (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ :=
-exists_congr $ λ r, by rw [append_assoc, append_left_inj]
+theorem prefix_append_right_inj {l₁ l₂ : list α} (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ :=
+exists_congr $ λ r, by rw [append_assoc, append_right_inj]
 
 theorem prefix_cons_inj {l₁ l₂ : list α} (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
-prefix_append_left_inj [a]
+prefix_append_right_inj [a]
 
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 

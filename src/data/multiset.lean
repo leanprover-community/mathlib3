@@ -10,6 +10,7 @@ import data.list.intervals
 import data.list.antidiagonal
 import data.string.basic
 import algebra.group_power
+import algebra.ordered_group
 import control.traversable.lemmas
 import control.traversable.instances
 
@@ -360,6 +361,10 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
 /- singleton -/
+instance : has_singleton α (multiset α) := ⟨λ a, a::0⟩
+
+instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
+
 @[simp] theorem singleton_eq_singleton (a : α) : singleton a = a::0 := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ a::0 ↔ b = a := by simp
@@ -1294,7 +1299,7 @@ theorem union_le_add (s t : multiset α) : s ∪ t ≤ s + t :=
 union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
-by simpa [(∪), union, eq_comm] using show s + u - (t + u) = s - t,
+by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
 by rw [add_comm t, sub_add', add_sub_cancel]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=

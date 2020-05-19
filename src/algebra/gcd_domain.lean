@@ -8,6 +8,7 @@ GCD domain and integral domains with normalization functions
 TODO: abstract the domains to to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
 -/
 import algebra.associated
+import data.nat.basic
 import data.int.gcd
 
 variables {α : Type*}
@@ -291,7 +292,7 @@ classical.by_cases (assume : lcm a b = 0, by rw [this, normalize_zero]) $
     rintros ⟨rfl, rfl⟩; left; refl) h_lcm,
   have h2 : normalize (gcd a b * lcm a b) = gcd a b * lcm a b,
     by rw [gcd_mul_lcm, normalize_idem],
-  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_left_inj h1] using h2
+  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_right_inj h1] using h2
 
 theorem lcm_comm (a b : α) : lcm a b = lcm b a :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
@@ -573,7 +574,7 @@ lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
         (λ ha, or.inr (nat.dvd_antisymm h ha))
         (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
             (hab.symm ▸ dvd_mul_left _ _),
-          (nat.mul_left_inj (show 0 < p, from
+          (nat.mul_right_inj (show 0 < p, from
               nat.pos_of_ne_zero hp.1)).1 $
             by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
 
@@ -582,7 +583,7 @@ lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
   λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
     rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
   λ hp, nat.prime_iff_prime.2 ⟨int.coe_nat_ne_zero.1 hp.1,
-      mt is_unit_nat.1 $ λ h, by simpa [h, not_prime_one] using hp,
+      mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
     λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
 def associates_int_equiv_nat : associates ℤ ≃ ℕ :=

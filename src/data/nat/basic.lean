@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
 import algebra.order_functions
+import init_.data.nat.lemmas
 
 /-!
 # Basic operations on the natural numbers
@@ -18,6 +19,19 @@ and extra recursors:
 -/
 
 universes u v
+
+instance : canonically_ordered_comm_semiring ℕ :=
+{ le_iff_exists_add := assume a b,
+  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  zero_ne_one       := ne_of_lt zero_lt_one,
+  mul_eq_zero_iff   := assume a b,
+    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  bot               := 0,
+  bot_le            := nat.zero_le,
+  .. (infer_instance : ordered_add_comm_monoid ℕ),
+  .. (infer_instance : linear_ordered_semiring ℕ),
+  .. (infer_instance : comm_semiring ℕ) }
 
 namespace nat
 variables {m n k : ℕ}
@@ -461,17 +475,17 @@ nat.pos_of_ne_zero (λ h, lt_irrefl a
       ... < b : nat.mod_lt a hb
       ... ≤ a : hba))
 
-protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
+protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
 
-protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
+protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
 
 protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
 | a     0     h₁ h₂ := by rw eq_zero_of_zero_dvd h₁; refl
 | 0     b     h₁ h₂ := absurd h₂ dec_trivial
 | (a+1) (b+1) h₁ h₂ :=
-(nat.mul_right_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
+(nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
   by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
 
 protected lemma div_lt_of_lt_mul {m n k : ℕ} (h : m < n * k) : m / n < k :=
@@ -486,7 +500,7 @@ lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
-  λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  λ h, by rw [← nat.mul_right_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
@@ -545,10 +559,10 @@ nat.dvd_add_right (dvd_refl m)
 nat.dvd_add_left (dvd_refl m)
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
+exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
+exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
 
 lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
   a / b + if b ∣ a + 1 then 1 else 0
@@ -574,7 +588,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -678,7 +692,7 @@ lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
-nat.mul_left_inj ha
+nat.mul_right_inj ha
 
 lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
@@ -1298,6 +1312,17 @@ begin
   exact mul_le_mul_left _ hk,
 end
 
+theorem units_eq_one (u : units ℕ) : u = 1 :=
+units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
+
+theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
+add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
+
+@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
+iff.intro
+  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (assume h, h.symm ▸ ⟨1, rfl⟩)
+
 section find_greatest
 
 /-- `find_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`
@@ -1524,15 +1549,15 @@ namespace function
 
 theorem injective.iterate {α : Type u} {op : α → α} (Hinj : injective op) :
   ∀ n, injective (op^[n]) :=
-nat.iterate_ind op Hinj injective_id $ λ _ _, injective_comp
+nat.iterate_ind op Hinj injective_id $ λ _ _, injective.comp
 
 theorem surjective.iterate {α : Type u} {op : α → α} (Hinj : surjective op) :
   ∀ n, surjective (op^[n]) :=
-nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective_comp
+nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective.comp
 
 theorem bijective.iterate {α : Type u} {op : α → α} (Hinj : bijective op) :
   ∀ n, bijective (op^[n]) :=
-nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective_comp
+nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective.comp
 
 end function
 

@@ -429,7 +429,7 @@ lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
     obtain ⟨a, C, ha, hC⟩ : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * (nnnorm y)^n ≤ C * a^n :=
       p.geometric_bound_of_lt_radius hy,
     refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
-      ((summable_geometric a.2 ha).mul_left _) (λ n, _)).has_sum,
+      ((summable_geometric_of_lt_1 a.2 ha).mul_left _) (λ n, _)).has_sum,
     calc ∥(p n) (λ (i : fin n), y)∥
       ≤ ∥p n∥ * (finset.univ.prod (λ i : fin n, ∥y∥)) : continuous_multilinear_map.le_op_norm _ _
       ... = nnnorm (p n) * (nnnorm y)^n : by simp
@@ -757,7 +757,7 @@ theorem has_fpower_series_on_ball.change_origin
       edist (y + z) 0 ≤ ↑(nnnorm y) + ↑(nnnorm z) :
         by { rw [edist_eq_coe_nnnorm, ← ennreal.coe_add, ennreal.coe_le_coe], exact norm_add_le y z }
       ... < r : A,
-    simpa using hf.sum this
+    simpa only [add_assoc] using hf.sum this
   end }
 
 lemma has_fpower_series_on_ball.analytic_at_of_mem

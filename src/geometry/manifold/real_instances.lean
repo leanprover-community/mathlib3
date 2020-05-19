@@ -319,20 +319,9 @@ begin
     either the left chart or the right chart, leaving 4 possibilities that we handle successively.
     -/
     rcases he with rfl | rfl; rcases he' with rfl | rfl,
-    { -- `e = right chart`, `e' = right chart`
+    { -- `e = left chart`, `e' = left chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
-    { -- `e = right chart`, `e' = left chart`
-      apply M.congr_mono _ (subset_univ _),
-      assume z hz,
-      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
-      have A : 0 ≤ z 0 := hz.2,
-      have B : x ≤ y - z 0, by { have := hz.1.1.1, linarith },
-      ext i,
-      rw subsingleton.elim i 0,
-      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-        sub_right_comm y] },
     { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
@@ -344,7 +333,18 @@ begin
       rw subsingleton.elim i 0,
       simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
         sub_add_eq_sub_sub_swap] },
-    { -- `e = left chart`, `e' = left chart`
+    { -- `e = right chart`, `e' = left chart`
+      apply M.congr_mono _ (subset_univ _),
+      assume z hz,
+      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
+            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
+      have A : 0 ≤ z 0 := hz.2,
+      have B : x ≤ y - z 0, by { have := hz.1.1.1, linarith },
+      ext i,
+      rw subsingleton.elim i 0,
+      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+        sub_right_comm y] },
+    { -- `e = right chart`, `e' = right chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,

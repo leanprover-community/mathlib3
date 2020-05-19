@@ -37,6 +37,7 @@ usual formulas (and existence assertions) for the derivative of
 * bounded linear maps
 * bounded bilinear maps
 * sum of two functions
+* sum of finitely many functions
 * multiplication of a function by a scalar constant
 * negative of a function
 * subtraction of two functions
@@ -1505,6 +1506,66 @@ lemma fderiv_const_add
 (hf.has_fderiv_at.const_add c).fderiv
 
 end add
+
+
+section sum
+/-! ### Derivative of a finite sum of functions -/
+
+open_locale big_operators
+
+variables {ι : Type*} {u : finset ι} {A : ι → (E → F)} {A' : ι → (E →L[𝕜] F)}
+
+theorem has_strict_fderiv_at.sum (h : ∀ i ∈ u, has_strict_fderiv_at (A i) (A' i) x) :
+  has_strict_fderiv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+begin
+  dsimp [has_strict_fderiv_at] at *,
+  convert is_o.sum h,
+  simp [finset.sum_sub_distrib, continuous_linear_map.sum_apply]
+end
+
+theorem has_fderiv_at_filter.sum (h : ∀ i ∈ u, has_fderiv_at_filter (A i) (A' i) x L) :
+  has_fderiv_at_filter (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x L :=
+begin
+  dsimp [has_fderiv_at_filter] at *,
+  convert is_o.sum h,
+  simp [continuous_linear_map.sum_apply]
+end
+
+theorem has_fderiv_within_at.sum (h : ∀ i ∈ u, has_fderiv_within_at (A i) (A' i) s x) :
+  has_fderiv_within_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) s x :=
+has_fderiv_at_filter.sum h
+
+theorem has_fderiv_at.sum (h : ∀ i ∈ u, has_fderiv_at (A i) (A' i) x) :
+  has_fderiv_at (λ y, ∑ i in u, A i y) (∑ i in u, A' i) x :=
+has_fderiv_at_filter.sum h
+
+theorem differentiable_within_at.sum (h : ∀ i ∈ u, differentiable_within_at 𝕜 (A i) s x) :
+  differentiable_within_at 𝕜 (λ y, ∑ i in u, A i y) s x :=
+has_fderiv_within_at.differentiable_within_at $ has_fderiv_within_at.sum $
+λ i hi, (h i hi).has_fderiv_within_at
+
+@[simp] theorem differentiable_at.sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+  differentiable_at 𝕜 (λ y, ∑ i in u, A i y) x :=
+has_fderiv_at.differentiable_at $ has_fderiv_at.sum $ λ i hi, (h i hi).has_fderiv_at
+
+theorem differentiable_on.sum (h : ∀ i ∈ u, differentiable_on 𝕜 (A i) s) :
+  differentiable_on 𝕜 (λ y, ∑ i in u, A i y) s :=
+λ x hx, differentiable_within_at.sum $ λ i hi, h i hi x hx
+
+@[simp] theorem differentiable.sum (h : ∀ i ∈ u, differentiable 𝕜 (A i)) :
+  differentiable 𝕜 (λ y, ∑ i in u, A i y) :=
+λ x, differentiable_at.sum $ λ i hi, h i hi x
+
+theorem fderiv_within_sum (hxs : unique_diff_within_at 𝕜 s x)
+  (h : ∀ i ∈ u, differentiable_within_at 𝕜 (A i) s x) :
+  fderiv_within 𝕜 (λ y, ∑ i in u, A i y) s x = (∑ i in u, fderiv_within 𝕜 (A i) s x) :=
+(has_fderiv_within_at.sum (λ i hi, (h i hi).has_fderiv_within_at)).fderiv_within hxs
+
+theorem fderiv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
+  fderiv 𝕜 (λ y, ∑ i in u, A i y) x = (∑ i in u, fderiv 𝕜 (A i) x) :=
+(has_fderiv_at.sum (λ i hi, (h i hi).has_fderiv_at)).fderiv
+
+end sum
 
 section neg
 /-! ### Derivative of the negative of a function -/

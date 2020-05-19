@@ -150,29 +150,6 @@ def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometr
   right_inv := hfg,
   isometry_to_fun := hf }
 
-section normed_group
-
-variables {G : Type*} [normed_group G]
-
-/-- Addition `y ↦ y + x` as an `isometry`. -/
-protected def add_right (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
-  .. equiv.add_right x }
-
-/-- Addition `y ↦ x + y` as an `isometry`. -/
-protected def add_left (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
-  .. equiv.add_left x }
-
-variable (G)
-
-/-- Negation `x ↦ -x` as an `isometry`. -/
-protected def neg : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
-  .. equiv.neg G }
-
-end normed_group
-
 /-- The identity isometry of a space. -/
 protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
 { isometry_to_fun := isometry_id, .. equiv.refl α }
@@ -187,7 +164,9 @@ protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry.right_inv h.right_inv,
-  .. h.to_equiv.symm }
+  to_equiv := h.to_equiv.symm }
+
+@[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=
 h.to_equiv.apply_symm_apply y
@@ -218,6 +197,9 @@ image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
 lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 (image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
 
+@[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
+  (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
+
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
@@ -229,6 +211,57 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 @[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
+
+section normed_group
+
+variables {G : Type*} [normed_group G]
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+@[simp] lemma add_right_to_equiv (x : G) :
+  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
+
+@[simp] lemma coe_add_right (x : G) : (isometric.add_right x : G → G) = λ y, y + x := rfl
+
+lemma add_right_apply (x y : G) : (isometric.add_right x : G → G) y = y + x := rfl
+
+@[simp] lemma add_right_symm (x : G) :
+  (isometric.add_right x).symm = isometric.add_right (-x) :=
+ext $ λ y, rfl
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  to_equiv := equiv.add_left x }
+
+@[simp] lemma add_left_to_equiv (x : G) :
+  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
+
+@[simp] lemma coe_add_left (x : G) : ⇑(isometric.add_left x) = (+) x := rfl
+
+@[simp] lemma add_left_symm (x : G) :
+  (isometric.add_left x).symm = isometric.add_left (-x) :=
+ext $ λ y, rfl
+
+variable (G)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  to_equiv := equiv.neg G }
+
+variable {G}
+
+@[simp] lemma neg_symm : (isometric.neg G).symm = isometric.neg G := rfl
+
+@[simp] lemma neg_to_equiv : (isometric.neg G).to_equiv = equiv.neg G := rfl
+
+@[simp] lemma coe_neg : ⇑(isometric.neg G) = has_neg.neg := rfl
+
+end normed_group
 
 end isometric
 
@@ -291,7 +324,7 @@ begin
   rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp [embedding_of_subset_coe, sub_eq_add_neg] },
+    by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
@@ -300,7 +333,7 @@ begin
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
       begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      begin rw [← coe_diff], apply add_le_add_left, rw [coe_diff, ←real.dist_eq], apply dist_coe_le_dist end
+      begin rw [← sub_apply], apply add_le_add_left, rw [sub_apply, ←real.dist_eq], apply dist_coe_le_dist end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import data.int.basic
 import data.equiv.basic
+import deprecated.ring
 
 /-!
 # Power operations on monoids and groups
@@ -547,7 +548,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem pow_right_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
+theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
   (Hxyn : x ^ n = y ^ n) : x = y :=
 begin
   rcases lt_trichotomy x y with hxy | rfl | hyx,

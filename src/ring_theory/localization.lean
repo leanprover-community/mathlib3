@@ -107,7 +107,7 @@ lemma to_map_injective : injective (@localization_map.to_map _ _ M S _) :=
 λ _ _ h, ext $ ring_hom.ext_iff.1 h
 
 /-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of
-    the localization map from `R` to `S`. -/
+the localization map from `R` to `S`. -/
 def is_integer (a : S) : Prop := a ∈ set.range f.to_map
 
 variables {f}

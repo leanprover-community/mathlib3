@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Anne Baanen
-
-Quadratic forms over modules.
 -/
 
 import algebra.invertible
@@ -158,7 +156,8 @@ end comp
 
 end quadratic_form
 
-/-! ### Associated bilinear forms
+/-!
+### Associated bilinear forms
 
 Over a commutative ring with an inverse of 2, the theory of quadratic forms is
 basically identical to that of symmetric bilinear forms. The map from quadratic
@@ -251,7 +250,8 @@ lemma smul_pos_def_of_nonzero {K : Type u} [linear_ordered_field K] [module K M]
 end pos_def
 end quadratic_form
 
-/-! ### Quadratic forms and matrices
+/-!
+### Quadratic forms and matrices
 
 Connect quadratic forms and matrices, in order to explicitly compute with them.
 The convention is twos out, so there might be a factor 2⁻¹ in the entries of the

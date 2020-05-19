@@ -433,8 +433,11 @@ In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
-/-! ### Various tactics related to local definitions (local constants of the form `x : α := t`)
-We call `t` the value of `x`. -/
+/-!
+### Various tactics related to local definitions (local constants of the form `x : α := t`)
+
+We call `t` the value of `x`.
+-/
 
 /-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
   locally using a `let` expression. Otherwise it fails. -/

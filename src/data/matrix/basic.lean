@@ -2,11 +2,11 @@
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
-
-Matrices
 -/
 import algebra.pi_instances
-
+/-!
+# Matrices
+-/
 universes u v w
 
 open_locale big_operators
@@ -491,9 +491,10 @@ def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
 sub_down (sub_left A)
 
 section row_col
-/-! ### `row_col` section
+/-!
+### `row_col` section
 
-  Simplification lemmas for `matrix.row` and `matrix.col`.
+Simplification lemmas for `matrix.row` and `matrix.col`.
 -/
 open_locale matrix
 

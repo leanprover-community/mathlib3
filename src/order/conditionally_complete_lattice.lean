@@ -2,7 +2,6 @@
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
-Adapted from the corresponding theory for complete lattices.
 -/
 import data.nat.enat
 
@@ -586,7 +585,8 @@ end order_dual
 
 section with_top_bot
 
-/-! ### Complete lattice structure on `with_top (with_bot α)`
+/-!
+### Complete lattice structure on `with_top (with_bot α)`
 
 If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
 also inherit the structure of conditionally complete lattices. Furthermore, we show

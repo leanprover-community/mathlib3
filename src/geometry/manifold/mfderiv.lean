@@ -1066,7 +1066,8 @@ end specific_functions
 
 section mfderiv_fderiv
 
-/-! ### Relations between vector space derivative and manifold derivative
+/-!
+### Relations between vector space derivative and manifold derivative
 
 The manifold derivative `mfderiv`, when considered on the model vector space with its trivial
 manifold structure, coincides with the usual Frechet derivative `fderiv`. In this section, we prove

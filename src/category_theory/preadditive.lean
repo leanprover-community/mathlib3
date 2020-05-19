@@ -5,6 +5,7 @@ Authors: Markus Himmel
 -/
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
+import category_theory.limits.shapes.biproducts
 
 /-!
 # Preadditive categories
@@ -19,10 +20,16 @@ available, the contents of this file should become obsolete.
 
 ## Main results
 
-* Definition of preadditive categories and basic properties
+We define preadditive categories and show their basic properties, including the following
+statements:
+
 * In a preadditive category, `f : Q ⟶ R` is mono if and only if `g ≫ f = 0 → g = 0` for all
   composable `g`.
 * A preadditive category with kernels has equalizers.
+
+Furthermore, we define the notion of "preadditive binary biproduct", which is a preadditive version
+of the notion of biproduct. We show that a preadditive binary biproduct is a binary biproduct and
+construct preadditive binary biproducts both from binary products and binary coproducts.
 
 ## Implementation notes
 
@@ -178,4 +185,118 @@ def has_coequalizers_of_has_cokernels [has_cokernels.{v} C] : has_coequalizers.{
 end
 
 end equalizers
+
+section biproduct
+variables {C : Type u} [category.{v} C] [preadditive.{v} C]
+
+/-- A preadditive binary biproduct is a bicone on two objects `X` and `Y` satisfying a set of five
+    axioms expressing the properties of a biproduct in additive terms. The notion of preadditive
+    binary biproduct is strictly stronger than the notion of binary biproduct (but it can be shown
+    that in any preadditive category, the existence of a binary biproduct implies the existence of
+    a preadditive binary biproduct). -/
+class has_preadditive_binary_biproduct (X Y : C) :=
+(bicone : binary_bicone.{v} X Y)
+(ι₁_π₁' : bicone.ι₁ ≫ bicone.π₁ = 𝟙 X . obviously)
+(ι₂_π₂' : bicone.ι₂ ≫ bicone.π₂ = 𝟙 Y . obviously)
+(ι₂_π₁' : bicone.ι₂ ≫ bicone.π₁ = 0 . obviously)
+(ι₁_π₂' : bicone.ι₁ ≫ bicone.π₂ = 0 . obviously)
+(total' : bicone.π₁ ≫ bicone.ι₁ + bicone.π₂ ≫ bicone.ι₂ = 𝟙 bicone.X . obviously)
+
+restate_axiom has_preadditive_binary_biproduct.ι₁_π₁'
+restate_axiom has_preadditive_binary_biproduct.ι₂_π₂'
+restate_axiom has_preadditive_binary_biproduct.ι₂_π₁'
+restate_axiom has_preadditive_binary_biproduct.ι₁_π₂'
+restate_axiom has_preadditive_binary_biproduct.total'
+attribute [simp, reassoc] has_preadditive_binary_biproduct.ι₁_π₁
+  has_preadditive_binary_biproduct.ι₂_π₂ has_preadditive_binary_biproduct.ι₂_π₁
+  has_preadditive_binary_biproduct.ι₁_π₂
+attribute [simp] has_preadditive_binary_biproduct.total
+
+section
+local attribute [tidy] tactic.case_bash
+
+/-- A preadditive binary biproduct is a binary biproduct. -/
+@[priority 100]
+instance (X Y : C) [has_preadditive_binary_biproduct.{v} X Y] : has_binary_biproduct.{v} X Y :=
+{ bicone := has_preadditive_binary_biproduct.bicone,
+  is_limit :=
+  { lift := λ s, binary_fan.fst s ≫ has_preadditive_binary_biproduct.bicone.ι₁
+      + binary_fan.snd s ≫ has_preadditive_binary_biproduct.bicone.ι₂,
+    uniq' := λ s m h, by erw [←category.comp_id m, ←has_preadditive_binary_biproduct.total,
+      comp_add, reassoc_of (h walking_pair.left), reassoc_of (h walking_pair.right)] },
+  is_colimit :=
+  { desc := λ s, has_preadditive_binary_biproduct.bicone.π₁ ≫ binary_cofan.inl s
+      + has_preadditive_binary_biproduct.bicone.π₂ ≫ binary_cofan.inr s,
+    uniq' := λ s m h, by erw [←category.id_comp m, ←has_preadditive_binary_biproduct.total,
+      add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right] } }
+
+end
+
+section
+variables (X Y : C) [has_preadditive_binary_biproduct.{v} X Y]
+
+@[simp, reassoc] lemma biprod.inl_fst : (biprod.inl : X ⟶ X ⊞ Y) ≫ biprod.fst = 𝟙 X :=
+has_preadditive_binary_biproduct.ι₁_π₁
+@[simp, reassoc] lemma biprod.inr_snd : (biprod.inr : Y ⟶ X ⊞ Y) ≫ biprod.snd = 𝟙 Y :=
+has_preadditive_binary_biproduct.ι₂_π₂
+@[simp, reassoc] lemma biprod.inr_fst : (biprod.inr : Y ⟶ X ⊞ Y) ≫ biprod.fst = 0 :=
+has_preadditive_binary_biproduct.ι₂_π₁
+@[simp, reassoc] lemma biprod.inl_snd : (biprod.inl : X ⟶ X ⊞ Y) ≫ biprod.snd = 0 :=
+has_preadditive_binary_biproduct.ι₁_π₂
+@[simp] lemma biprod.total : biprod.fst ≫ biprod.inl + biprod.snd ≫ biprod.inr = 𝟙 (X ⊞ Y) :=
+has_preadditive_binary_biproduct.total
+
+end
+
+section has_limit_pair
+
+/-- In a preadditive category, if the product of `X` and `Y` exists, then the preadditive binary
+    biproduct of `X` and `Y` exists. -/
+def has_preadditive_binary_biproduct.of_has_limit_pair (X Y : C) [has_limit.{v} (pair X Y)] :
+  has_preadditive_binary_biproduct.{v} X Y :=
+{ bicone :=
+  { X := X ⨯ Y,
+    π₁ := category_theory.limits.prod.fst,
+    π₂ := category_theory.limits.prod.snd,
+    ι₁ := prod.lift (𝟙 X) 0,
+    ι₂ := prod.lift 0 (𝟙 Y) } }
+
+/-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the preadditive binary
+    biproduct of `X` and `Y` exists. -/
+def has_preadditive_binary_biproduct.of_has_colimit_pair (X Y : C) [has_colimit.{v} (pair X Y)] :
+  has_preadditive_binary_biproduct.{v} X Y :=
+{ bicone :=
+  { X := X ⨿ Y,
+    π₁ := coprod.desc (𝟙 X) 0,
+    π₂ := coprod.desc 0 (𝟙 Y),
+    ι₁ := category_theory.limits.coprod.inl,
+    ι₂ := category_theory.limits.coprod.inr } }
+
+end has_limit_pair
+
+section
+variable (C)
+
+/-- A preadditive category `has_preadditive_binary_biproducts` if the preadditive binary biproduct
+    exists for every pair of objects. -/
+class has_preadditive_binary_biproducts :=
+(has_preadditive_binary_biproduct : Π (X Y : C), has_preadditive_binary_biproduct.{v} X Y)
+
+attribute [instance, priority 100] has_preadditive_binary_biproducts.has_preadditive_binary_biproduct
+
+/-- If a preadditive category has all binary products, then it has all preadditive binary
+    biproducts. -/
+def has_preadditive_binary_biproducts_of_has_binary_products [has_binary_products.{v} C] :
+  has_preadditive_binary_biproducts.{v} C :=
+⟨λ X Y, has_preadditive_binary_biproduct.of_has_limit_pair X Y⟩
+
+/-- If a preadditive category has all binary coproducts, then it has all preadditive binary
+    biproducts. -/
+def has_preadditive_binary_biproducts_of_has_binary_coproducts [has_binary_coproducts.{v} C] :
+  has_preadditive_binary_biproducts.{v} C :=
+⟨λ X Y, has_preadditive_binary_biproduct.of_has_colimit_pair X Y⟩
+
+end
+
+end biproduct
 end category_theory.preadditive

@@ -345,10 +345,10 @@ variables {T : submonoid P} (hy : ∀ y : M, g y ∈ T) {Q : Type*} [comm_ring Q
           (k : localization_map T Q)
 
 /-- Given a `comm_ring` homomorphism `g : R →+* P` where for submonoids `M ⊆ R, T ⊆ P` we have
-    `g(M) ⊆ T`, the induced ring homomorphism from the localization of `R` at `M` to the
-    localization of `P` at `T`: if `f : R →+* S` and `k : P →+* Q` are localization maps for `M`
-    and `T` respectively, we send `z : S` to `k (g x) * (k (g y))⁻¹`, where `(x, y) : R × M` are
-    such that `z = f x * (f y)⁻¹`. -/
+`g(M) ⊆ T`, the induced ring homomorphism from the localization of `R` at `M` to the
+localization of `P` at `T`: if `f : R →+* S` and `k : P →+* Q` are localization maps for `M`
+and `T` respectively, we send `z : S` to `k (g x) * (k (g y))⁻¹`, where `(x, y) : R × M` are
+such that `z = f x * (f y)⁻¹`. -/
 noncomputable def map : S →+* Q :=
 @lift _ _ _ _ _ _ _ f (k.to_map.comp g) $ λ y, k.map_units ⟨g y, hy y⟩
 

@@ -81,6 +81,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 [] ← get_eqn_lemmas_for ff d.to_name | pure none,
 try_for timeout $
+timetac d.to_name.to_string $
 retrieve $ do
 g ← mk_meta_var d.type,
 set_goals [g],

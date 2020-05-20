@@ -786,7 +786,7 @@ def linear_map_algebra_module : module R (V →ₗ[S] W) :=
         smul_smul, algebra.commutes],
   end,
   smul_zero := λ r, by { ext v, dsimp [(•)], refl, },
-  smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add],
+  smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add], },
   zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
   add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }, }
 

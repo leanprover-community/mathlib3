@@ -209,6 +209,10 @@ finsupp.semimodule G k
 instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
+lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
+  single 1 r * f = f * single 1 r :=
+by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
+
 instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
 { to_fun := single 1,
   map_one' := rfl,
@@ -216,8 +220,7 @@ instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
   map_zero' := single_zero,
   map_add' := λ x y, single_add,
   smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_one_mul_apply _ _ _).symm },
-  commutes' := λ r f, show single 1 r * f = f * single 1 r,
-    by ext; rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
+  commutes' := λ r f, single_one_comm r f }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :
   (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
@@ -258,6 +261,41 @@ def lift [comm_semiring k] [monoid G] {R : Type u₃} [semiring R] [algebra k R]
 instance [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action_self
+
+section
+variables (k)
+def group_smul.linear_map [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
+  (module.restrict_scalars k V) →ₗ[k] (module.restrict_scalars k V) :=
+{ to_fun := λ v, (single g (1 : k) • v : V),
+  add := λ x y, smul_add (single g (1 : k)) x y,
+  smul := λ c x,
+  by simp only [module.restrict_scalars_def, coe_algebra_map, ←mul_smul, single_one_comm], }
+
+@[simp]
+lemma group_smul.linear_map_apply [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) (v : V) :
+  (group_smul.linear_map k V g : module.restrict_scalars k V → module.restrict_scalars k V) v =
+    (single g (1 : k) • v : V) := rfl
+
+section
+variables {k}
+variables [group G] [comm_ring k]
+  {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
+  {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
+  (f : (module.restrict_scalars k V) →ₗ[k] (module.restrict_scalars k W))
+  (h : ∀ g : G, f.comp (group_smul.linear_map k V g) = (group_smul.linear_map k W g).comp f)
+include h
+
+def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
+sorry
+
+@[simp]
+lemma equivariant_of_linear_of_comm_apply (v : V) : (equivariant_of_linear_of_comm f h) v = f v :=
+sorry
+
+end
+end
 
 universe ui
 variable {ι : Type ui}

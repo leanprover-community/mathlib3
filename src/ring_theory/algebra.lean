@@ -618,15 +618,18 @@ def module.restrict_scalars' : module R E :=
   add_smul  := by simp [add_smul],
   zero_smul := by simp [zero_smul] }
 
-
 /--
 When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
 module structure over `R`, provided as a type synonym `module.restrict_scalars R E := E`.
 -/
 def module.restrict_scalars (R : Type*) (E : Type*) : Type* := E
-instance [add_comm_group E] : add_comm_group (module.restrict_scalars R E) := by assumption
-instance : module R (module.restrict_scalars R E) :=
+instance module.add_comm_group_restrict_scalars (R : Type*) (E : Type*) [add_comm_group E] :
+  add_comm_group (module.restrict_scalars R E) := by assumption
+instance module.module_restrict_scalars : module R (module.restrict_scalars R E) :=
 (module.restrict_scalars' R S E : module R E)
+
+lemma module.restrict_scalars_def (c : R) (x : module.restrict_scalars R E) :
+  c • x = ((algebra_map R S c) • x : E) := rfl
 
 /--
 `module.restrict_scalars R S` is `R`-linearly equivalent to the original algebra `S`.
@@ -672,16 +675,6 @@ def submodule.restrict_scalars (V : submodule S E) : submodule R (restrict_scala
 lemma submodule.restrict_scalars_mem (V : submodule S E) (e : E) :
   e ∈ V.restrict_scalars R ↔ e ∈ V :=
 iff.refl _
-
-/--
-The `R`-submodule of the `R`-module given by restriction of scalars,
-corresponding to an `S`-submodule of the original `S`-module.
--/
-def submodule.restrict_scalars (V : submodule S E) : submodule R E :=
-{ carrier := V.carrier,
-  zero := V.zero,
-  smul := λ c e h, V.smul _ h,
-  add := λ x y hx hy, V.add hx hy, }
 
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) :

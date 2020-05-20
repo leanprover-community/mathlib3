@@ -47,39 +47,6 @@ variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
   (V : Type*) [add_comm_group V] [module S V]
   (W : Type*) [add_comm_group W] [module S W]
 
-def linear_map_algebra_has_scalar : has_scalar R (V →ₗ[S] W) :=
-{ smul := λ r f,
-  { to_fun := λ v, f ((algebra_map R S r) • v),
-    add := λ x y, by simp [smul_add],
-    smul := λ s v, by simp [smul_smul, algebra.commutes], } }
-
-local attribute [instance] linear_map_algebra_has_scalar
-
-def linear_map_algebra_mul_action : mul_action R (V →ₗ[S] W) :=
-{ one_smul := λ f, begin ext v, dsimp [(•)], simp, end,
-  mul_smul := λ r r' f,
-  begin
-    ext v, dsimp [(•)],
-    rw [linear_map.map_smul, linear_map.map_smul, linear_map.map_smul, ring_hom.map_mul,
-        smul_smul, algebra.commutes],
-  end, }
-
-local attribute [instance] linear_map_algebra_mul_action
-
-def linear_map_algebra_distrib_mul_action : distrib_mul_action R (V →ₗ[S] W) :=
-{ smul_zero := λ r, by { ext v, dsimp [(•)], refl, },
-  smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add], }, }
-
-local attribute [instance] linear_map_algebra_distrib_mul_action
-
-def linear_map_algebra_semimodule : semimodule R (V →ₗ[S] W) :=
-{ zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
-  add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }
-
-local attribute [instance] linear_map_algebra_semimodule
-
-def linear_map_algebra_module : module R (V →ₗ[S] W) := {}
-
 local attribute [instance] linear_map_algebra_module
 
 variables {R S V W}

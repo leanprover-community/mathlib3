@@ -79,9 +79,24 @@ add_decl_doc localization_map.to_ring_hom
 See `group_theory.monoid_localization` for its definition. -/
 add_decl_doc localization_map.to_localization_map
 
+variables {M S}
+
+namespace ring_hom
+
+/-- Makes a localization map from a `comm_ring` hom satisfying the characteristic predicate. -/
+def to_localization_map (f : R →+* S) (H1 : ∀ y : M, is_unit (f y))
+  (H2 : ∀ z, ∃ x : R × M, z * f x.2 = f x.1) (H3 : ∀ x y, f x = f y ↔ ∃ c : M, x * c = y * c) :
+  localization_map M S :=
+{ map_units' := H1,
+  surj' := H2,
+  eq_iff_exists' := H3,
+  .. f }
+
+end ring_hom
+
 namespace localization_map
 
-variables {M S} (f : localization_map M S)
+variables (f : localization_map M S)
 
 /-- Short for `to_ring_hom`; used for applying a localization map as a function. -/
 abbreviation to_map := f.to_ring_hom
@@ -429,8 +444,6 @@ instance : has_coe_to_sort (localization_map M S) := ⟨_, λ f, S⟩
 /-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
 can 'know' the map needed to induce the `R`-algebra structure. -/
 instance : algebra R f := f.to_map.to_algebra
-
-
 
 @[simp] lemma of_id (a : R) :
   (algebra.of_id R f) a = f.to_map a :=

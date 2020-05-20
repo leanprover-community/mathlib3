@@ -42,7 +42,8 @@ notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair
 
-/-! ### The hypercube
+/-!
+### The hypercube
 
 Notations:
 - `ℕ` denotes natural numbers (including zero).

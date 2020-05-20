@@ -44,12 +44,12 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: try to find olean cache
-        run: ./scripts/fetch_olean_cache.sh
+      # - name: try to find olean cache
+      #   run: ./scripts/fetch_olean_cache.sh
 
       - name: leanpkg build
         id: build
-        run: leanpkg build -- -T100000 | python scripts/detect_errors.py
+        run: leanpkg build -- -T50000 | python scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib'

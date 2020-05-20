@@ -147,7 +147,7 @@ lemma sec_spec {f : localization_map M S} (z : S) :
 classical.some_spec $ f.surj z
 
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
-    that `z * f y = f x`, so this lemma is just an application of `S`'s commutativity. -/
+that `z * f y = f x`, so this lemma is just an application of `S`'s commutativity. -/
 lemma sec_spec' {f : localization_map M S} (z : S) :
   f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
 by rw [mul_comm, sec_spec]

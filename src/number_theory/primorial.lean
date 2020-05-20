@@ -5,6 +5,7 @@ Authors: Patrick Stevens
 -/
 import tactic
 import data.nat.parity
+import data.nat.choose
 
 /-!
 # Primorial
@@ -53,7 +54,7 @@ private lemma bound_binomial_coefficient (n : ℕ) : choose (2 * n + 1) n ≤ 4 
 begin
   have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i,
     exact select_from_sum (choose (2 * n + 1)) (range (n + 1)) n (range_contains_upper_bound n),
-  simpa only [sum_range_choose_halfway n] using t
+  simpa [sum_range_choose_halfway n] using t
 end
 
 lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)

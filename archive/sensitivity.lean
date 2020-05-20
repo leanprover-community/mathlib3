@@ -37,6 +37,9 @@ but rather use classical logic. -/
 noncomputable theory
 open_locale classical
 
+/-! We also want to use the notation `∑` for sums. -/
+open_locale big_operators
+
 notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
@@ -402,11 +405,10 @@ begin
     ... = abs (ε q (f (m+1) (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
     ... = abs ((coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘ λ (i : Q (m + 1)), e i) i)): by
                   { erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
-    ... ≤ (coeffs y).support.sum (λ p,
-           |(coeffs y p) * (ε q $ f (m+1) $ e p)| ) : norm_sum_le _ $ λ p, coeffs y p * _
-    ... = (coeffs y).support.sum (λ p, |coeffs y p| * ite (q.adjacent p) 1 0) : by simp only [abs_mul, f_matrix]
-    ... = ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y p| ) : by simp [finset.sum_filter]
-    ... ≤ ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y q| ) : finset.sum_le_sum (λ p _, H_max p)
+    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| : norm_sum_le _ $ λ p, coeffs y p * _
+    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
+    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
+    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
     ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [← smul_eq_mul, ← finset.sum_const']
     ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :

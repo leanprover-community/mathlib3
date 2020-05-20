@@ -3,8 +3,8 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
-import order.filter.extr topology.continuous_on
+import order.filter.extr
+import topology.continuous_on
 
 /-! # Local extrema of functions on topological spaces
 

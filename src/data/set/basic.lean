@@ -3,8 +3,11 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-
-import tactic.basic tactic.finish data.subtype logic.unique data.prod
+import tactic.basic
+import tactic.finish
+import data.subtype
+import logic.unique
+import data.prod
 
 /-!
 
@@ -127,7 +130,7 @@ instance : inhabited (set α) := ⟨∅⟩
 theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 
-theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
+theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
 @[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
@@ -578,10 +581,11 @@ by finish [iff_def]
 
 /-! ### Lemmas about singletons -/
 
-theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
+theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ :=
+(insert_emptyc_eq _).symm
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
-by finish [singleton_def]
+iff.rfl
 
 @[simp]
 lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
@@ -604,7 +608,8 @@ by finish [ext_iff, or_comm]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
-@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
+@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
+⟨a, rfl⟩
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
@@ -612,11 +617,11 @@ by finish
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
 ext $ by simp
 
-@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
-by simp [singleton_def]
-
 @[simp] theorem singleton_union : {a} ∪ s = insert a s :=
-by rw [union_comm, union_singleton]
+rfl
+
+@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
+by rw [union_comm, singleton_union]
 
 theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
@@ -705,6 +710,9 @@ ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
 lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
 not_iff_not_of_iff mem_singleton_iff
+
+lemma compl_singleton_eq (a : α) : -({a} : set α) = {x | x ≠ a} :=
+ext $ λ x,  mem_compl_singleton_iff
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
 by simp [compl_inter, compl_compl]
@@ -994,8 +1002,7 @@ iff.intro
 
 theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
-⟨λ ⟨y, ⟨x, hx, hxy⟩, hy⟩, ⟨x, hx, hxy.symm ▸ hy⟩,
-  λ ⟨x, hxs, hpx⟩, ⟨f x, mem_image_of_mem f hxs, hpx⟩⟩
+by simp
 
 theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
@@ -1294,7 +1301,7 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 ⟨assume h i, h (f i) (mem_range_self _), assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
 
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
-⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
+by simp
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
@@ -1375,7 +1382,7 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 range_iff_surjective.2 quot.exists_rep
 
 lemma range_const_subset {c : α} : range (λx:ι, c) ⊆ {c} :=
-range_subset_iff.2 $ λ x, or.inl rfl
+range_subset_iff.2 $ λ x, rfl
 
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $

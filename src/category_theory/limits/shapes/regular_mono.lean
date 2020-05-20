@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.epi_mono
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.strong_epi
 
@@ -28,8 +27,7 @@ open category_theory.limits
 
 universes v₁ u₁
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 variables {X Y : C}
 

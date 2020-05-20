@@ -37,6 +37,8 @@ following declaration:
 ```lean
 meta def bar._nolint.foo : unit := ()
 ```
+
+See Note [user attribute parameters]
 -/
 private meta def mk_nolint_decl_name (decl : name) (linter : name) : name :=
 (decl ++ nolint_infix) ++ linter
@@ -85,7 +87,7 @@ meta structure linter :=
 (no_errors_found : string)
 (errors_found : string)
 (is_fast : bool := tt)
-(auto_decls : bool := ff)
+(auto_decls : bool)
 
 /-- Takes a list of names that resolve to declarations of type `linter`,
 and produces a list of linters. -/

@@ -15,8 +15,7 @@ instance punit_category : small_category punit :=
   comp := λ _ _ _ _ _, punit.star }
 
 namespace functor
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 def star : C ⥤ punit.{w+1} := (const C).obj punit.star
 @[simp] lemma star_obj (X : C) : star.obj X = punit.star := rfl

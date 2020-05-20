@@ -3,11 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.pnat.basic data.array.lemmas
-   logic.basic algebra.group
-   data.list.defs data.nat.basic data.option.basic
-   data.bool data.prod
-import tactic.finish data.sigma.basic
+import data.pnat.basic
+import data.array.lemmas
+import algebra.group
+import data.sigma.basic
 
 universes u v w
 
@@ -396,7 +395,7 @@ begin
     rw bucket_array.foldl_eq,
     exact p (v.as_list_nodup _) },
   intro l, induction l with c l IH; intros t sz v nd, {exact v},
-  rw show sz + (c :: l).length = sz + 1 + l.length, by simp [add_comm],
+  rw show sz + (c :: l).length = sz + 1 + l.length, by simp [add_comm, add_assoc],
   rcases (show (l.map sigma.fst).nodup ∧
       ((bucket_array.as_list t).map sigma.fst).nodup ∧
       c.fst ∉ l.map sigma.fst ∧

@@ -1,4 +1,5 @@
-import data.nat.cast tactic.norm_cast
+import data.nat.cast
+import tactic.norm_cast
 
 constant ℝ : Type
 @[instance] constant real.add_monoid : add_monoid ℝ

@@ -3,8 +3,9 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-
 import data.int.basic
+import data.equiv.basic
+import deprecated.ring
 
 /-!
 # Power operations on monoids and groups
@@ -23,8 +24,10 @@ We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for
 We adopt the convention that `0^0 = 1`.
 -/
 
-variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
-  {R : Type*} {S : Type*}
+universes u v w x y z u₁ u₂
+
+variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+  {R : Type u₁} {S : Type u₂}
 
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
@@ -81,7 +84,7 @@ by rw [succ_smul, smul_add_comm']
 
 theorem pow_two (a : M) : a^2 = a * a :=
 show a*(a*1)=a*a, by rw mul_one
-theorem two_smul (a : A) : 2•a = a + a :=
+theorem two_smul' (a : A) : 2•a = a + a :=
 show a+(a+0)=a+a, by rw add_zero
 
 theorem pow_add (a : M) (m n : ℕ) : a^(m + n) = a^m * a^n :=
@@ -153,7 +156,7 @@ theorem is_add_monoid_hom.map_smul (f : A → B) [is_add_monoid_hom f] (a : A) (
   f (n • a) = n • f a :=
 (add_monoid_hom.of f).map_smul a n
 
-@[simp] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
+@[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 end monoid
@@ -414,6 +417,10 @@ f.to_monoid_hom.map_pow a
 
 variable (f : R →+* R)
 
+lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
+| 0 := rfl
+| (n+1) := by { simp only [nat.iterate_succ', pow_succ', coe_mul, coe_pow n], refl }
+
 lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
@@ -541,7 +548,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem pow_right_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
+theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
   (Hxyn : x ^ n = y ^ n) : x = y :=
 begin
   rcases lt_trichotomy x y with hxy | rfl | hyx,
@@ -668,3 +675,57 @@ end int
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
+
+lemma of_add_smul [add_monoid A] (x : A) (n : ℕ) :
+  multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
+
+lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
+  multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
+
+variables (M G A)
+
+/-- Monoid homomorphisms from `multiplicative ℕ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := pow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← of_add_smul] } }
+
+/-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
+of `multiplicative.of_add 1`. -/
+def gpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
+{ to_fun := λ x, ⟨λ n, x ^ n.to_add, gpow_zero x, λ m n, gpow_add x m n⟩,
+  inv_fun := λ f, f (multiplicative.of_add 1),
+  left_inv := gpow_one,
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_gpow, ← of_add_gsmul ] } }
+
+/-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
+def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n • x, add_monoid.zero_smul x, λ m n, add_monoid.add_smul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := add_monoid.one_smul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_smul] }
+
+/-- Additive homomorphisms from `ℤ` are defined by the image of `1`. -/
+def gmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
+{ to_fun := λ x, ⟨λ n, n •ℤ x, zero_gsmul x, λ m n, add_gsmul _ _ _⟩,
+  inv_fun := λ f, f 1,
+  left_inv := one_gsmul,
+  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_gsmul] }
+
+variables {M G A}
+
+@[simp] lemma powers_hom_apply [monoid M] (x : M) (n : multiplicative ℕ) :
+  powers_hom M x n = x ^ n.to_add := rfl
+
+@[simp] lemma powers_hom_symm_apply [monoid M] (f : multiplicative ℕ →* M) :
+  (powers_hom M).symm f = f (multiplicative.of_add 1) := rfl
+
+lemma mnat_monoid_hom_eq [monoid M] (f : multiplicative ℕ →* M) (n : multiplicative ℕ) :
+  f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
+by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
+
+lemma mnat_monoid_hom_ext [monoid M] ⦃f g : multiplicative ℕ →* M⦄
+  (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
+monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]

@@ -326,8 +326,8 @@ case nat.zero {
   have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
   have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp hpos {
-  replace hpos : 0 < gcd k m := hpos.symm ▸ nat.zero_lt_succ _; clear tmp,
+case nat.succ : tmp {
+  have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
   have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
   refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
   apply dvd_of_mul_dvd_mul_left hpos,

@@ -3,19 +3,15 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
 import category_theory.products.bifunctor
-import category_theory.equivalence
-import category_theory.eq_to_hom
 
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,

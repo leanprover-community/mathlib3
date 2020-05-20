@@ -3,7 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup data.equiv.basic data.quot
+import group_theory.subgroup
 open set function
 
 variable {α : Type*}
@@ -243,7 +243,8 @@ have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
 end quotient_group
 
 /--
-We use the class `has_coe_t` instead of `has_coe` if the first-argument is a variable.
+We use the class `has_coe_t` instead of `has_coe` if the first argument is a variable,
+or if the second argument is a variable not occurring in the first.
 Using `has_coe` would cause looping of type-class inference. See
 <https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain>
 -/

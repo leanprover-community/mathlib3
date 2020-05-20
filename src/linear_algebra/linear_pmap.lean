@@ -220,7 +220,7 @@ begin
     rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
     apply fg_eq,
     simp only [coe_add, coe_mk, ← add_assoc],
-    rw [add_right_comm (x _), hxy, add_assoc, hxy] },
+    rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk] },
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,

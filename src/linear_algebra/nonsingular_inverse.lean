@@ -6,8 +6,6 @@
   Inverses for nonsingular square matrices.
 -/
 import algebra.associated
-import algebra.big_operators
-import data.matrix.basic
 import linear_algebra.determinant
 import tactic.linarith
 import tactic.ring_exp
@@ -53,8 +51,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 
@@ -299,7 +295,7 @@ begin
   have univ_eq_i := univ_eq_singleton_of_card_one i h,
   have univ_eq_j := univ_eq_singleton_of_card_one j h,
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
 end

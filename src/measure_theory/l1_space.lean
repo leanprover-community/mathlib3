@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.ae_eq_fun
 
 /-!
@@ -53,7 +52,6 @@ integrable, function space, l1
 noncomputable theory
 open_locale classical topological_space
 
-set_option class.instance_max_depth 100
 
 namespace measure_theory
 open set filter topological_space ennreal emetric
@@ -560,7 +558,7 @@ instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
-    show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
+    show ennreal.to_real (edist (x • f) 0) ≤ ∥x∥ * ennreal.to_real (edist f 0),
     rw [edist_smul, to_real_of_real_mul],
     exact norm_nonneg _
   end ⟩

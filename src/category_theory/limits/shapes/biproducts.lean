@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.epi_mono
-import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 
 /-!
@@ -48,8 +47,7 @@ open category_theory.functor
 namespace category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /--
 A `c : bicone F` is:
@@ -138,8 +136,7 @@ end category_theory.limits
 
 namespace category_theory.limits
 variables {J : Type v}
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an
    abbreviation for `limit (functor.of_function f)`, so for most facts about `biproduct f`, you will

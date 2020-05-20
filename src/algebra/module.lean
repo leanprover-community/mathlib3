@@ -3,7 +3,7 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
+import group_theory.group_action
 
 /-!
 # Modules over a ring
@@ -71,27 +71,33 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
-variable {R}
+theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
+
+variable (M)
+
+/-- `(•)` as an `add_monoid_hom`. -/
+def smul_add_hom : R →+ M →+ M :=
+{ to_fun := const_smul_hom M,
+  map_zero' := add_monoid_hom.ext $ λ r, by simp,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
+
+variables {R M}
+
+@[simp] lemma smul_add_hom_apply (r : R) (x : M) :
+  smul_add_hom R M r x = r • x := rfl
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
-instance smul.is_add_monoid_hom (x : M) : is_add_monoid_hom (λ r:R, r • x) :=
-{ map_zero := zero_smul _ x,
-  map_add := λ r₁ r₂, add_smul r₁ r₂ x }
-
 lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (list.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_list_sum l
 
 lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
-from (multiset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_multiset_sum l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   s.sum f • x = s.sum (λ r, (f r) • x) :=
-show (λ r, r • x) (s.sum f) = s.sum (λ r, (f r) • x),
-from (finset.sum_hom _ _).symm
+((smul_add_hom R M).flip x).map_sum f s
 
 end semimodule
 
@@ -160,8 +166,7 @@ by simp [add_smul, sub_eq_add_neg]
 theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
   {c : R} {x : E} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
-⟨λ h, classical.by_cases or.inl
-  (λ hc, or.inr $ by rw [← one_smul R x, ← inv_mul_cancel hc, mul_smul, h, smul_zero]),
+⟨λ h, classical.or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
   λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
@@ -238,6 +243,9 @@ theorem is_linear : is_linear_map R f := {..f}
 variables {f g}
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
+
+lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
@@ -349,14 +357,27 @@ structure submodule (R : Type u) (M : Type v) [ring R]
 (smul : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
 
 namespace submodule
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [ring R] [add_comm_group M]
 
-section
 variables [module R M]
 
 instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
-end
+instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+end submodule
+
+protected theorem submodule.exists [ring R] [add_comm_group M] [module R M] {p : submodule R M}
+  {q : p → Prop} :
+  (∃ x, q x) ↔ (∃ x (hx : x ∈ p), q ⟨x, hx⟩) :=
+set_coe.exists
+
+protected theorem submodule.forall [ring R] [add_comm_group M] [module R M] {p : submodule R M}
+  {q : p → Prop} :
+  (∀ x, q x) ↔ (∀ x (hx : x ∈ p), q ⟨x, hx⟩) :=
+set_coe.forall
+
+namespace submodule
+variables [ring R] [add_comm_group M] [add_comm_group M₂]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
@@ -386,8 +407,8 @@ lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smu
 
 lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
 
-lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa using p.neg_mem h, p.neg_mem⟩
+@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
+⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
 
 lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 ⟨λ h₂, by simpa using p.sub_mem h₂ h₁, λ h₂, p.add_mem h₂ h₁⟩
@@ -402,7 +423,7 @@ begin
   exact finset.induction_on t (by simp [zero_mem]) (by simp [add_mem] {contextual := tt})
 end
 
-lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
+@[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, p.add_mem x.2 y.2⟩⟩
@@ -411,12 +432,17 @@ instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, p.neg_mem x.2⟩⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, p.smul_mem c x.2⟩⟩
 
+@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
+
 variables {p}
+@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext.symm
+@[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 := @coe_eq_coe _ _ _ _ _ _ x 0
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
 @[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
+@[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
 
 @[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 

@@ -32,7 +32,7 @@ def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
 @[simp] theorem xgcd_zero_left {s t r' s' t'} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by simp [xgcd_aux]
 
-@[simp] theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
+theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by cases r; [exact absurd h (lt_irrefl _), {simp only [xgcd_aux], refl}]
 

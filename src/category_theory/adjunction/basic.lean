@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Johan Commelin
+Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
 import data.equiv.basic
@@ -204,6 +204,48 @@ def id : 𝟭 C ⊣ 𝟭 C :=
   unit := 𝟙 _,
   counit := 𝟙 _ }
 
+/-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/
+@[reducible]
+def equiv_homset_left_of_nat_iso
+  {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} :
+  (F.obj X ⟶ Y) ≃ (G.obj X ⟶ Y) :=
+{ to_fun := λ f, (iso.app _).inv ≫ f,
+  inv_fun := λ g, (iso.app _).hom ≫ g,
+  left_inv := λ f, by simp,
+  right_inv := λ g, by simp }
+
+/-- If G and H are naturally isomorphic functors, establish an equivalence of hom-sets. -/
+@[reducible]
+def equiv_homset_right_of_nat_iso
+  {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} :
+  (X ⟶ G.obj Y) ≃ (X ⟶ H.obj Y) :=
+{ to_fun := λ f, f ≫ (iso.app _).hom,
+  inv_fun := λ g, g ≫ (iso.app _).inv,
+  left_inv := λ f, by simp,
+  right_inv := λ g, by simp }
+
+/-- Transport an adjunction along an natural isomorphism on the left. -/
+def of_nat_iso_left
+  {F G : C ⥤ D} {H : D ⥤ C} (adj : F ⊣ H) (iso : F ≅ G) :
+  G ⊣ H :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, (equiv_homset_left_of_nat_iso iso.symm).trans (adj.hom_equiv X Y) }
+
+/-- Transport an adjunction along an natural isomorphism on the right. -/
+def of_nat_iso_right
+  {F : C ⥤ D} {G H : D ⥤ C} (adj : F ⊣ G) (iso : G ≅ H) :
+  F ⊣ H :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, (adj.hom_equiv X Y).trans (equiv_homset_right_of_nat_iso iso) }
+
+def right_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_right_adjoint F] : is_right_adjoint G :=
+{ left := r.left,
+  adj := of_nat_iso_right r.adj h }
+
+def left_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_left_adjoint F] : is_left_adjoint G :=
+{ right := r.right,
+  adj := of_nat_iso_left r.adj h }
+
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
@@ -213,6 +255,16 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
   (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,
   counit := (functor.associator _ _ _).hom ≫
     (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
+
+def left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E) [Fr : is_left_adjoint F] [Gr : is_left_adjoint G] :
+  is_left_adjoint (F ⋙ G) :=
+{ right := Gr.right ⋙ Fr.right,
+  adj := adjunction.comp _ _ Fr.adj Gr.adj }
+
+def right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E} [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] :
+  is_right_adjoint (F ⋙ G) :=
+{ left := Gr.left ⋙ Fr.left,
+  adj := comp _ _ Gr.adj Fr.adj }
 
 end
 
@@ -299,6 +351,14 @@ namespace functor
 
 def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
 (E.as_equivalence).to_adjunction
+
+def left_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_left_adjoint F :=
+{ right := _,
+  adj := functor.adjunction F }
+
+def right_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_right_adjoint F :=
+{ left := _,
+  adj := functor.adjunction F.inv }
 
 end functor
 

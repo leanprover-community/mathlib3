@@ -123,7 +123,7 @@ lemma decr : ∀ n, 0 < n → ∃ m, m + 1 = n
 | 0 := λ bad, by linarith
 | (n + 1) := λ _, ⟨n, by simp⟩
 
-lemma foo (n p : nat) (big : 2 * n ≤ 3 * p) : 3 * (n % p) < n :=
+lemma foo (n p : nat) (small : p ≤ n) (big : 2 * n ≤ 3 * p) : 3 * (n % p) < n :=
 begin
   have r : n % p + p * (n / p) = n, by exact nat.mod_add_div n p,
   have s : 3 * (n % p) + (3 * p) * (n / p) = 3 * n, by
@@ -132,7 +132,9 @@ begin
     ... = 3 * n : by rw r,
 
   have tt : (2 * n) * (n / p) ≤ (3 * p) * (n / p), by exact nat.mul_le_mul_right (n / p) big,
-  have t : 3 * (n % p) + (2 * n) * (n / p) < 3 * n,
+  have u : 3 * (n % p) + 2 * n * (n / p) ≤ 3 * n, by
+    calc 3 * (n % p) + 2 * n * (n / p) ≤ 3 * (n % p) + 3 * p * (n / p) : add_le_add_left tt (3 * (n % p))
+    ... = 3 * n : s,
 end
 
 lemma claim_3
@@ -170,7 +172,7 @@ begin
           rw r at t,
           have bad : p ^ a < 3, by simpa [nat.prime.pos is_prime] using t,
           rcases prime_pow_bound a p is_prime bad with a_zero,
-          { subst a_zero, tidy, },
+          { subst a_zero, tidy, clear t r_1 bad a_geq_1 a_le_twon r, },
           { cases h, subst h_left, linarith, }
         }
       },

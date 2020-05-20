@@ -7,10 +7,8 @@ Ring-theoretic supplement of data.polynomial.
 
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
-
-import data.equiv.fin data.polynomial data.mv_polynomial
-import ring_theory.subring
-import ring_theory.ideals ring_theory.noetherian
+import data.mv_polynomial
+import ring_theory.noetherian
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -113,8 +111,9 @@ omit hp
 
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
-    (set.singleton_subset_iff.2 is_submonoid.one_mem)) = 1 :=
+    (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
 end to_subring
 
 variables (T : set R) [is_subring T]

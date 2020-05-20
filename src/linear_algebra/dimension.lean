@@ -48,13 +48,12 @@ variables {K V}
 open vector_space
 
 section
-set_option class.instance_max_depth 50
 theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
-    let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
+    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
@@ -63,25 +62,22 @@ begin
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this,
       replace : hv.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
-      rw [hv.repr_eq_single, finsupp.mem_supported, finsupp.support_single_ne_zero zero_ne_one.symm] at this,
-      rw ← hi,
-      apply mem_Union.2,
-      rcases mem_Union.1 (this (mem_singleton _)) with ⟨j, hj⟩,
-      use j,
-      rw mem_image,
-      use i,
-      exact ⟨hj, rfl⟩ },
+      rw [hv.repr_eq_single, finsupp.mem_supported,
+        finsupp.support_single_ne_zero zero_ne_one.symm] at this,
+      subst b,
+      rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
+      exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
     refine le_of_not_lt (λ IJ, _),
     suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
-    { exact not_le_of_lt this ⟨set.embedding_of_subset hs⟩ },
+    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finite_image _ (finset.finite_to_set _)) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
+        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 end
@@ -239,7 +235,6 @@ dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
 section
 variables [add_comm_group V₃] [vector_space K V₃]
 variables [add_comm_group V₄] [vector_space K V₄]
-set_option class.instance_max_depth 70
 open linear_map
 
 /-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/

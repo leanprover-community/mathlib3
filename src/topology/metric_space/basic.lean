@@ -9,7 +9,8 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
+import topology.metric_space.emetric_space
+import topology.algebra.ordered
 
 open set filter classical topological_space
 noncomputable theory
@@ -778,6 +779,22 @@ lemma cauchy_seq_iff_tendsto_dist_at_top_0 [nonempty β] [semilattice_sup β] {u
 by rw [cauchy_seq_iff_tendsto, metric.uniformity_eq_comap_nhds_zero, tendsto_comap_iff,
   prod.map_def]
 
+lemma tendsto_uniformity_iff_dist_tendsto_zero {ι : Type*} {f : ι → α × α} {p : filter ι} :
+  tendsto f p (𝓤 α) ↔ tendsto (λ x, dist (f x).1 (f x).2) p (𝓝 0) :=
+by rw [metric.uniformity_eq_comap_nhds_zero, tendsto_comap_iff]
+
+lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
+  (h₁ : tendsto f₁ p (𝓝 a)) (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
+  tendsto f₂ p (𝓝 a) :=
+h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
+
+alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+
+lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
+  (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
+  tendsto f₁ p (𝓝 a) ↔ tendsto f₂ p (𝓝 a) :=
+uniform.tendsto_congr $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
+
 end real
 
 section cauchy_seq
@@ -1447,7 +1464,7 @@ by simp only [diam, emetric.diam_pair, dist_edist]
 
 -- Does not work as a simp-lemma, since {x, y, z} reduces to (insert z (insert y {x}))
 lemma diam_triple :
-  metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
+  metric.diam ({x, y, z} : set α) = max (max (dist x y) (dist x z)) (dist y z) :=
 begin
   simp only [metric.diam, emetric.diam_triple, dist_edist],
   rw [ennreal.to_real_max, ennreal.to_real_max];

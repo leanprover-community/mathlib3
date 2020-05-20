@@ -5,7 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.nnreal topology.instances.real topology.algebra.infinite_sum
+import topology.algebra.infinite_sum
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -101,7 +101,7 @@ end
 
 open_locale classical
 
-@[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
+@[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑'a, f a) = (∑'a, (f a : ℝ)) :=
 if hf : summable f
 then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ hf.has_sum)
 else by simp [tsum, hf, mt summable_coe.1 hf]

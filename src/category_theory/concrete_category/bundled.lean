@@ -35,6 +35,8 @@ def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, 
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
 
+@[simp]
+lemma coe_mk (α) (str) : (@bundled.mk c α str : Type u) = α := rfl
 
 /-
 `bundled.map` is reducible so that, if we define a category
@@ -47,7 +49,7 @@ a (semi)ring homomorphism from R.α to S.α, and not merely from
 -/
 /-- Map over the bundled structure -/
 @[reducible] def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
-⟨b.α, f b.str⟩
+⟨b, f b.str⟩
 
 end bundled
 

@@ -3,7 +3,8 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import category_theory.category.Cat category_theory.groupoid data.quot
+import category_theory.category.Cat
+import category_theory.groupoid
 
 /-!
 # Objects of a category up to an isomorphism
@@ -18,8 +19,7 @@ namespace category_theory
 
 section category
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- An object `X` is isomorphic to an object `Y`, if `X ≅ Y` is not empty. -/
 def is_isomorphic : C → C → Prop := λ X Y, nonempty (X ≅ Y)

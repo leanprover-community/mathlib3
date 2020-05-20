@@ -15,7 +15,7 @@ namespace list
 
 /- pairwise relation (generalized no duplicate) -/
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.pairwise `list.pairwise_iff
+mk_iff_of_inductive_prop list.pairwise list.pairwise_iff
 
 variable {R : α → α → Prop}
 
@@ -80,7 +80,7 @@ theorem pairwise_of_sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pairwis
 | ._ ._ sublist.slnil h := h
 | ._ ._ (sublist.cons l₁ l₂ a s) (pairwise.cons i n) := pairwise_of_sublist s n
 | ._ ._ (sublist.cons2 l₁ l₂ a s) (pairwise.cons i n) :=
-  (pairwise_of_sublist s n).cons (ball.imp_left (subset_of_sublist s) i)
+  (pairwise_of_sublist s n).cons (ball.imp_left s.subset i)
 
 theorem forall_of_forall_of_pairwise (H : symmetric R)
   {l : list α} (H₁ : ∀ x ∈ l, R x x) (H₂ : pairwise R l) :
@@ -220,7 +220,7 @@ theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
     refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons), _⟩,
     intros l₁ sl₁ x l₂ sl₂ e, subst e,
     cases l₁ with b l₁, {constructor},
-    exact lex.rel (H₁ _ $ subset_of_sublist sl₁ $ mem_cons_self _ _)
+    exact lex.rel (H₁ _ $ sl₁.subset $ mem_cons_self _ _)
   end
 
 theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
@@ -264,7 +264,7 @@ theorem pw_filter_sublist : ∀ (l : list α), pw_filter R l <+ l
 end
 
 theorem pw_filter_subset (l : list α) : pw_filter R l ⊆ l :=
-subset_of_sublist (pw_filter_sublist _)
+(pw_filter_sublist _).subset
 
 theorem pairwise_pw_filter : ∀ (l : list α), pairwise R (pw_filter R l)
 | []     := pairwise.nil

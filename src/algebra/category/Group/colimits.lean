@@ -229,13 +229,13 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- zero
-    { erw ((s.ι).app r).map_zero },
+    { simp, },
     -- neg
-    { rw ((s.ι).app r_j).map_neg },
+    { simp, },
     -- add
-    { rw ((s.ι).app r_j).map_add },
+    { simp, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -273,17 +273,9 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_zero],
-      erw m.map_zero,
-      refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw m.map_neg,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw m.map_add,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp *, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 

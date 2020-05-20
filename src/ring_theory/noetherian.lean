@@ -3,10 +3,7 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-
-import linear_algebra.finsupp
 import ring_theory.ideal_operations
-import ring_theory.subring
 import linear_algebra.basis
 
 /-!
@@ -182,9 +179,9 @@ end
 
 end submodule
 
-/-- 
+/--
 `is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module,
-implemented as the predicate that all `R`-submodules of `M` are finitely generated. 
+implemented as the predicate that all `R`-submodules of `M` are finitely generated.
 -/
 class is_noetherian (R M) [ring R] [add_comm_group M] [module R M] : Prop :=
 (noetherian : ∀ (s : submodule R M), s.fg)
@@ -351,7 +348,7 @@ begin
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff (@zero_ne_one R _) hs (this a) (this b),
-      set.image_subset_image_iff (injective_comp subtype.val_injective f.inj'),
+      set.image_subset_image_iff (subtype.val_injective.comp f.inj),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
   exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),
@@ -359,8 +356,8 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
-/-- 
-A ring is Noetherian if it is Noetherian as a module over itself, 
+/--
+A ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
 -/
 @[class] def is_noetherian_ring (R) [ring R] : Prop := is_noetherian R R
@@ -372,7 +369,7 @@ instance is_noetherian_ring.to_is_noetherian {R : Type*} [ring R] :
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
-⟨assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩⟩
+⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
 by haveI := subsingleton_of_zero_eq_one R h01;
@@ -413,7 +410,7 @@ begin
     { intros c f, apply subtype.eq,
       change s.attach.sum (λ i, (c • f i) • _) = _,
       simp only [smul_eq_mul, mul_smul],
-      exact s.attach.sum_hom _ } },
+      exact finset.smul_sum.symm } },
   rw linear_map.range_eq_top,
   rintro ⟨n, hn⟩, change n ∈ N at hn,
   rw [← hs, ← set.image_id ↑s, finsupp.mem_span_iff_total] at hn,
@@ -513,7 +510,7 @@ fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm 
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-(⟨finset.singleton 1, by simp [one_eq_span]⟩)
+(⟨{1}, by simp [one_eq_span]⟩)
 (λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule

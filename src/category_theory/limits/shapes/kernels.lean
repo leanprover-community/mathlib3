@@ -46,8 +46,7 @@ open category_theory.limits.walking_parallel_pair
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {X Y : C} (f : X ⟶ Y)
 
@@ -106,7 +105,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 /-- Every kernel of the zero morphism is an isomorphism -/
 def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
-limit_cone_parallel_pair_self_is_iso _ _ (limit.is_limit _)
+equalizer.ι_of_self _
 
 end
 
@@ -125,7 +124,7 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
 fork.is_limit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
-    convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
+    convert (zero_of_comp_mono f _).symm,
     exact kernel_fork.condition _ })
   (λ _ _ _, has_zero_object.zero_of_to_zero _)
 
@@ -222,7 +221,7 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
 cofork.is_colimit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
-    convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
+    convert (zero_of_epi_comp f _).symm,
     exact cokernel_cofork.condition _ })
   (λ _ _ _, has_zero_object.zero_of_from_zero _)
 
@@ -258,19 +257,18 @@ variables [has_zero_morphisms.{v} C]
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=
-equalizer.ι_of_self' _ _ $ cokernel.π_of_epi f
+equalizer.ι_of_eq $ cokernel.π_of_epi f
 
 /-- The cokernel of the kernel of a monomorphism is an isomorphism -/
 instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
   [has_colimit (parallel_pair (kernel.ι f) 0)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
-coequalizer.π_of_self' _ _ $ kernel.ι_of_mono f
+coequalizer.π_of_eq $ kernel.ι_of_mono f
 
 end has_zero_object
 
 end category_theory.limits
 namespace category_theory.limits
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables [has_zero_morphisms.{v} C]
 

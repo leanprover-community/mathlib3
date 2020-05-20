@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-
-import algebra.group.hom data.prod
+import algebra.group.hom
+import data.prod
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -46,6 +46,9 @@ lemma fst_one [has_one M] [has_one N] : (1 : M × N).1 = 1 := rfl
 lemma snd_one [has_one M] [has_one N] : (1 : M × N).2 = 1 := rfl
 @[to_additive]
 lemma one_eq_mk [has_one M] [has_one N] : (1 : M × N) = (1, 1) := rfl
+@[simp, to_additive]
+lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 ∧ y = 1 :=
+mk.inj_iff
 
 @[to_additive]
 lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :

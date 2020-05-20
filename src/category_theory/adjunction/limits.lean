@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.preserves
+import category_theory.limits.creates
 
 open opposite
 
@@ -15,8 +15,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj
@@ -126,6 +125,14 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
           cases c_π,
           congr; rw functor.comp_id }
       end } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
+{ creates_limits_of_shape := λ J 𝒥, by exactI
+  { creates_limit := λ F,
+    { lifts := λ c t,
+      { lifted_cone := H.map_cone_inv c,
+        valid_lift := H.map_cone_map_cone_inv c } } } }
 
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]

@@ -807,7 +807,8 @@ roption.ext $ λ b₂,
     rwa bb at h
   end⟩
 
-/-! ## The TM0 model
+/-!
+## The TM0 model
 
 A TM0 turing machine is essentially a Post-Turing machine, adapted for type theory.
 
@@ -977,7 +978,8 @@ end
 
 end TM0
 
-/-! ## The TM1 model
+/-!
+## The TM1 model
 
 The TM1 model is a simplification and extension of TM0 (Post-Turing model) in the direction of
 Wang B-machines. The machine's internal state is extended with a (finite) store `σ` of variables
@@ -1174,7 +1176,8 @@ end
 
 end TM1
 
-/-! ## TM1 emulator in TM0
+/-!
+## TM1 emulator in TM0
 
 To prove that TM1 computable functions are TM0 computable, we need to reduce each TM1 program to a
 TM0 program. So suppose a TM1 program is given. We take the following:
@@ -1316,7 +1319,8 @@ end⟩
 end
 end TM1to0
 
-/-! ## TM1(Γ) emulator in TM1(bool)
+/-!
+## TM1(Γ) emulator in TM1(bool)
 
 The most parsimonious Turing machine model that is still Turing complete is `TM0` with `Γ = bool`.
 Because our construction in the previous section reducing `TM1` to `TM0` doesn't change the
@@ -1666,7 +1670,8 @@ end
 
 end TM1to1
 
-/-! ## TM0 emulator in TM1
+/-!
+## TM0 emulator in TM1
 
 To establish that TM0 and TM1 are equivalent computational models, we must also have a TM0 emulator
 in TM1. The main complication here is that TM0 allows an action to depend on the value at the head
@@ -1740,7 +1745,8 @@ end
 
 end TM0to1
 
-/-! ## The TM2 model
+/-!
+## The TM2 model
 
 The TM2 model removes the tape entirely from the TM1 model, replacing it with an arbitrary (finite)
 collection of stacks, each with elements of different types (the alphabet of stack `k : K` is
@@ -1935,7 +1941,8 @@ end
 
 end TM2
 
-/-! ## TM2 emulator in TM1
+/-!
+## TM2 emulator in TM1
 
 To prove that TM2 computable functions are TM1 computable, we need to reduce each TM2 program to a
 TM1 program. So suppose a TM2 program is given. This program has to maintain a whole collection of

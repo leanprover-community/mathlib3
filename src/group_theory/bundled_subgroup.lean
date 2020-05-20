@@ -467,7 +467,7 @@ end
 @[to_additive]
 lemma mem_Sup_of_directed_on {K : set (subgroup G)} (Kne : K.nonempty)
   (hK : directed_on (≤) K) {x : G} :
-  x ∈ Sup  K↔ ∃ s ∈ K, x ∈ s :=
+  x ∈ Sup K ↔ ∃ s ∈ K, x ∈ s :=
 begin
   haveI : nonempty K := Kne.to_subtype,
   rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],

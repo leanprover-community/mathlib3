@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
+import tactic.linarith
 
 open nat
 
@@ -116,5 +117,26 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
 theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
+
+/-!
+# Specific facts about binomial coefficients and their sums
+-/
+
+lemma sum_range_choose_halfway (m : nat) :
+  ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
+have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
+  ∑ i in range (m + 1), choose (2 * m + 1) i,
+from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
+(nat.mul_right_inj zero_lt_two).1 $
+calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
+  (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+    ∑ i in range (m + 1), nat.choose (2 * m + 1) (2 * m + 1 - i) :
+  by rw [two_mul, this]
+... = (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+  ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
+  by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
+... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
+... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
 
 end binomial

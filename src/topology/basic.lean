@@ -572,7 +572,7 @@ is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : f ⁻¹' s ∈ b) : a ∈ closure s :=
+  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
@@ -666,6 +666,10 @@ def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
+
+lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
+  (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
+interior_maximal (preimage_mono interior_subset) (hf _ is_open_interior)
 
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h

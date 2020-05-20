@@ -15,10 +15,12 @@ begin
   exact function.embedding.inj e,
 end
 
+@[simp]
 lemma function.embedding.equiv_of_fintype_endomorphism_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   (e.equiv_of_fintype_endomorphism).to_embedding = e :=
 by { ext, refl, }
 
+@[simp]
 lemma finset.univ_map_equiv_to_embedding {α : Type*} [fintype α] (e : α ≃ α) :
   (finset.univ).map e.to_embedding = finset.univ :=
 begin
@@ -32,16 +34,11 @@ begin
     simp, },
 end
 
-
 lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) : (finset.univ).map e = finset.univ :=
 begin
   rw ←e.equiv_of_fintype_endomorphism_to_embedding,
   apply finset.univ_map_equiv_to_embedding,
 end
-
-lemma add_monoid_smul_eq_smul
-  {R : Type*} [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V] (n : ℕ) (v : V) :
-  add_monoid.smul n v = (n : R) • v := semimodule.smul_eq_smul R n v
 
 section
 variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
@@ -116,14 +113,14 @@ monoid_algebra.equivariant_of_linear_of_comm (sum_of_conjugates π) (λ g,
 begin
   ext,
   dsimp [sum_of_conjugates],
-  simp [linear_map.sum_apply, finset.smul_sum], -- thank you, library_search!
+  simp only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
   conv_lhs {
     rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp [mul_right_embedding],
+    simp only [mul_right_embedding],
   },
-  simp only [←mul_smul, single_mul_single],
-  simp,
+  simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
+    finset.sum_map, inv_inv, inv_mul_cancel_right],
 end)
 
 variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
@@ -134,8 +131,8 @@ lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
 begin
   dsimp [conjugate],
   simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
-  -- TODO: should work by simp:
-  convert one_smul _ v,
+  change (1 : monoid_algebra k G) • v = v,
+  simp,
 end
 end
 
@@ -148,23 +145,20 @@ local attribute [instance] linear_map_algebra_module
 We construct our `k[G]`-linear retraction of `i` as
 $$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
 -/
-def retraction_of_retraction_res :
+def equivariant_projection :
   W →ₗ[monoid_algebra k G] V :=
 ⅟(fintype.card G : k) • (sum_of_conjugates_equivariant π)
 end
 
 include h
 
-lemma retraction_of_retraction_res_condition (v : V) : (retraction_of_retraction_res π) (i v) = v :=
+lemma equivariant_projection_condition (v : V) : (equivariant_projection π) (i v) = v :=
 begin
-  dsimp [retraction_of_retraction_res],
-  simp,
-  dsimp [sum_of_conjugates_equivariant],
-  simp,
-  dsimp [sum_of_conjugates],
-  simp [linear_map.sum_apply, conjugate_i π i h],
-  -- hideous!
-  erw [@add_monoid_smul_eq_smul k _ (restrict_scalars k V) _ _ (fintype.card G) v],
-  simp only [←mul_smul, invertible.inv_of_mul_self],
-  simp,
+  rw [equivariant_projection, linear_map_algebra_module.smul_apply, sum_of_conjugates_equivariant,
+    equivariant_of_linear_of_comm_apply, sum_of_conjugates],
+  rw [linear_map.sum_apply],
+  simp only [conjugate_i π i h],
+  rw [finset.sum_const, finset.card_univ,
+    @semimodule.add_monoid_smul_eq_smul k _ (restrict_scalars k V) _ _ (fintype.card G) v,
+    ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end

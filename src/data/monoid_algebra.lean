@@ -329,9 +329,6 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
 
 end lift
 
--- TODO we should prove here that G and k commute;
--- presumably a `linear_mul_action` typeclass is in order
-
 section
 variables (k)
 def group_smul.linear_map [group G] [comm_ring k]
@@ -357,12 +354,28 @@ variables [group G] [comm_ring k]
   (h : ∀ g : G, f.comp (group_smul.linear_map k V g) = (group_smul.linear_map k W g).comp f)
 include h
 
+/-- Build a `k[G]` linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
-sorry
+{ to_fun := f,
+  add := λ v v', by simp,
+  smul := λ c v,
+  begin
+  apply finsupp.induction c,
+  { simp, },
+  { intros g r c' nm nz w,
+    rw [add_smul, linear_map.map_add, w, add_smul, add_left_inj,
+      single_eq_algebra_map_mul_of, ←smul_smul, ←smul_smul],
+    erw [f.map_smul],
+    replace h := (congr_arg linear_map.to_fun (h g)),
+    replace h := congr_fun h v,
+    simp at h,
+    erw h,
+    refl, }
+  end, }
 
 @[simp]
 lemma equivariant_of_linear_of_comm_apply (v : V) : (equivariant_of_linear_of_comm f h) v = f v :=
-sorry
+rfl
 
 end
 end

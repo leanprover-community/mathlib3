@@ -3,30 +3,94 @@ import ring_theory.algebra
 
 universes u
 
-def t {G : Type*} [group G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g⁻¹,
-  inj := sorry, }
+def mul_right_embedding {G : Type*} [group G] (g : G) : G ↪ G :=
+{ to_fun := λ h, h * g,
+  inj' := λ h h', (mul_left_inj g).mp, }
 
-lemma b {α : Type*} [fintype α] (e : α ↪ α) : (finset.univ).map e = finset.univ := sorry
+noncomputable def function.embedding.equiv_of_fintype_endomorphism {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+begin
+  apply function.embedding.equiv_of_surjective e _,
+  apply (fintype.injective_iff_surjective_of_equiv (equiv.refl α)).mp _,
+  exact function.embedding.inj e,
+end
+
+lemma function.embedding.equiv_of_fintype_endomorphism_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  (e.equiv_of_fintype_endomorphism).to_embedding = e :=
+by { ext, refl, }
+
+lemma finset.univ_map_equiv_to_embedding {α : Type*} [fintype α] (e : α ≃ α) :
+  (finset.univ).map e.to_embedding = finset.univ :=
+begin
+  ext,
+  split,
+  { intro h,
+    simp, },
+  { intro h,
+    rw [finset.mem_map],
+    use e.symm a,
+    simp, },
+end
+
+
+lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) : (finset.univ).map e = finset.univ :=
+begin
+  rw ←e.equiv_of_fintype_endomorphism_to_embedding,
+  apply finset.univ_map_equiv_to_embedding,
+end
 
 lemma add_monoid_smul_eq_smul
   {R : Type*} [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V] (n : ℕ) (v : V) :
-  add_monoid.smul n v = (n : R) • v := by library_search
+  add_monoid.smul n v = (n : R) • v := semimodule.smul_eq_smul R n v
 
 section
 variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
   (V : Type*) [add_comm_group V] [module S V]
   (W : Type*) [add_comm_group W] [module S W]
 
--- This can't be an instance.
-def linear_map_algebra_module : module R (V →ₗ[S] W) := sorry
+def linear_map_algebra_has_scalar : has_scalar R (V →ₗ[S] W) :=
+{ smul := λ r f,
+  { to_fun := λ v, f ((algebra_map R S r) • v),
+    add := λ x y, by simp [smul_add],
+    smul := λ s v, by simp [smul_smul, algebra.commutes], } }
+
+local attribute [instance] linear_map_algebra_has_scalar
+
+def linear_map_algebra_mul_action : mul_action R (V →ₗ[S] W) :=
+{ one_smul := λ f, begin ext v, dsimp [(•)], simp, end,
+  mul_smul := λ r r' f,
+  begin
+    ext v, dsimp [(•)],
+    rw [linear_map.map_smul, linear_map.map_smul, linear_map.map_smul, ring_hom.map_mul,
+        smul_smul, algebra.commutes],
+  end, }
+
+local attribute [instance] linear_map_algebra_mul_action
+
+def linear_map_algebra_distrib_mul_action : distrib_mul_action R (V →ₗ[S] W) :=
+{ smul_zero := λ r, by { ext v, dsimp [(•)], refl, },
+  smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add], }, }
+
+local attribute [instance] linear_map_algebra_distrib_mul_action
+
+def linear_map_algebra_semimodule : semimodule R (V →ₗ[S] W) :=
+{ zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
+  add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }
+
+local attribute [instance] linear_map_algebra_semimodule
+
+def linear_map_algebra_module : module R (V →ₗ[S] W) := {}
 
 local attribute [instance] linear_map_algebra_module
 
 variables {R S V W}
 @[simp]
 lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
-  (c • f) v = (c • (f v) : module.restrict_scalars R W) := sorry
+  (c • f) v = (c • (f v) : module.restrict_scalars R W) :=
+begin
+  dsimp [(•)],
+  rw [linear_map.map_smul],
+  refl,
+end
 
 end
 
@@ -53,8 +117,8 @@ We now construct a splitting of the inclusion as a `k[G]`-linear map,
 by the formula
 $$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
 
-There's a certain amount of work afterwards to get all
-the formulations of Maschke's theorem you might like
+There may be a certain amount of work afterwards to get
+the specific formulation of Maschke's theorem you might be thinking of
 (possibly requiring setting up some infrastructure about semisimplicity,
 or abelian categories, depending on the formulation),
 but they should all rely on this calculation.
@@ -90,8 +154,8 @@ begin
   simp [linear_map.sum_apply, finset.smul_sum], -- thank you, library_search!
   dsimp [conjugate],
   conv_lhs {
-    rw [←b (t g)],
-    simp [t],
+    rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
+    simp [mul_right_embedding],
   },
   simp only [←mul_smul, single_mul_single],
   simp,
@@ -114,9 +178,7 @@ include h
 lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
 begin
   dsimp [conjugate],
-  simp only [←i.map_smul, h],
-  simp only [←mul_smul],
-  simp [single_mul_single],
+  simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
   -- TODO: should work by simp:
   convert one_smul _ v,
 end

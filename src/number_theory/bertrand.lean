@@ -74,7 +74,7 @@ begin
   have r : 2 * n - n = n, by
     calc 2 * n - n = n + n - n: by rw two_mul n
     ... = n: nat.add_sub_cancel n n,
-  simp [r],
+  simp only [r, finset.filter_congr_decidable],
   have s : ∀ i, p ^ i ≤ n % p ^ i + n % p ^ i → i ≤ 1, by
     { intros i pr,
       cases le_or_lt i 1, {exact h,},
@@ -105,19 +105,81 @@ begin
   exact card_singleton_inter,
 end
 
+lemma prime_pow_bound : ∀ (a : nat) (p : nat) (pr : nat.prime p) (hyp : p ^ a < 3), (a = 0) ∨ (p = 2 ∧ a = 1)
+| 0 := λ _ _ _, or.inl rfl
+| 1 := λ p pr hyp, or.inr ⟨begin simp at hyp, interval_cases p, norm_num at pr, norm_num at pr, end, rfl⟩
+| (a + 2) := begin
+intros p prime hyp,
+exfalso,
+have s : 1 < p, by exact nat.prime.one_lt prime,
+sorry,
+end
+
+lemma mod_nonzero : ∀ (n m : nat) (r : 0 < n % m), 0 < n
+| 0 := λ m pr, by { simp only [nat.zero_mod] at pr, linarith }
+| (n + 1) := λ _ _, nat.succ_pos n
+
+lemma decr : ∀ n, 0 < n → ∃ m, m + 1 = n
+| 0 := λ bad, by linarith
+| (n + 1) := λ _, ⟨n, by simp⟩
+
+lemma foo (n p : nat) (big : 2 * n ≤ 3 * p) : 3 * (n % p) < n :=
+begin
+  have r : n % p + p * (n / p) = n, by exact nat.mod_add_div n p,
+  have s : 3 * (n % p) + (3 * p) * (n / p) = 3 * n, by
+    calc 3 * (n % p) + (3 * p) * (n / p) = 3 * (n % p) + 3 * (p * (n / p)) : by rw ←mul_assoc 3 p (n / p)
+    ... = 3 * (n % p + (p * (n / p))) : by ring
+    ... = 3 * n : by rw r,
+
+  have tt : (2 * n) * (n / p) ≤ (3 * p) * (n / p), by exact nat.mul_le_mul_right (n / p) big,
+  have t : 3 * (n % p) + (2 * n) * (n / p) < 3 * n,
+end
+
 lemma claim_3
   (p : nat)
   (is_prime : nat.prime p)
   (n : nat)
   (n_big : 3 < n)
-  (biggish : 2 * n < 3 * p)
-  : α n (by linarith) p is_prime = 1
+  (small : p ≤ n)
+  (big : 2 * n < 3 * p)
+  : α n (by linarith) p is_prime = 0
   :=
 begin
+  unfold α,
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
+  have r : 2 * n - n = n, by
+    calc 2 * n - n = n + n - n: by rw two_mul n
+    ... = n: nat.add_sub_cancel n n,
+  simp only [r, finset.filter_congr_decidable],
+  have s : finset.filter (λ i, p ^ i ≤ n % p ^ i + n % p ^ i) (finset.Ico 1 (2 * n)) = ∅,
+    { ext,
+      split,
+      { intros a_mem,
+        exfalso,
+        simp only [finset.Ico.mem, finset.mem_filter] at a_mem,
+        rcases a_mem with ⟨ ⟨ a_geq_1 , a_le_twon ⟩ , sized ⟩,
+        have t : p ^ a < 3 * p, by
+          calc p ^ a ≤ n % p ^ a + n % p ^ a : sized
+            ... = 2 * (n % p ^ a) : (two_mul _).symm
+            ... ≤ 2 * n : by { have w : n % p ^ a ≤ n, exact (nat.mod_le _ _), linarith, }
+            ... < 3 * p : big,
+        cases a,
+        { linarith, },
+        {
+          have r : p ^ a.succ = p ^ a * p, by refl,
+          rw r at t,
+          have bad : p ^ a < 3, by simpa [nat.prime.pos is_prime] using t,
+          rcases prime_pow_bound a p is_prime bad with a_zero,
+          { subst a_zero, tidy, },
+          { cases h, subst h_left, linarith, }
+        }
+      },
+      { intros bad, simp at bad, trivial, },
+    },
+  simp [s],
 -- Have p appearing twice in the factorisation of (2n)!
 -- but only once in n!
 -- and hence no times in 2n!/n!n!
-sorry
 end
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=

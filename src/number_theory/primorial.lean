@@ -24,10 +24,6 @@ open_locale big_operators
 def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
 local notation x`#` := primorial x
 
--- This is going into stdlib
-lemma sum_range_choose_halfway (m : ℕ) : ∑ i in range (m + 1), choose (2 * m + 1) i = 4 ^ m :=
-   by sorry
-
 private lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
 by apply choose_symm_of_eq_add; ring
 

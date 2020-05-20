@@ -1584,7 +1584,6 @@ begin
   apply submodule.eq_zero_of_bot_submodule
 end
 end
-end
 
 end ring
 

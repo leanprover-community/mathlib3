@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
 import category_theory.limits.limits
+import category_theory.limits.shapes.binary_products
 
 /-!
 # Preservation and reflection of (co)limits.
@@ -229,5 +230,71 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
 
 end
+
+section preserves_binary_products
+
+variables [has_finite_products.{v} C] [has_finite_products.{v} D] (F : C ⥤ D)
+
+-- (implementation)
+@[simps]
+private def alternative_cone (A B : C) : cone (pair A B ⋙ F) :=
+{ X := F.obj A ⨯ F.obj B,
+  π := nat_trans.of_homs (λ j, walking_pair.cases_on j limits.prod.fst limits.prod.snd)}
+
+def alt_is_limit' (A B : C) : is_limit (alternative_cone F A B) :=
+{ lift := λ s, prod.lift (s.π.app walking_pair.left) (s.π.app walking_pair.right),
+  fac' := λ s j, walking_pair.cases_on j (prod.lift_fst _ _) (prod.lift_snd _ _),
+  uniq' := λ s m w, prod.hom_ext
+    (by { rw prod.lift_fst, apply w walking_pair.left })
+    (by { rw prod.lift_snd, apply w walking_pair.right }) }
+
+def preserves_binary_prod_of_prod_comparison_iso (A B : C) [is_iso (prod_comparison F A B)] : preserves_limit (pair A B) F :=
+preserves_limit_of_preserves_limit_cone (limit.is_limit (pair A B))
+begin
+  apply is_limit.of_iso_limit (alt_is_limit' F A B) _,
+  apply cones.ext _ _,
+  apply (as_iso (prod_comparison F A B)).symm,
+  rintro ⟨j⟩,
+  apply (as_iso (prod_comparison F A B)).eq_inv_comp.2,
+  apply prod.lift_fst,
+  apply (as_iso (prod_comparison F A B)).eq_inv_comp.2,
+  apply prod.lift_snd,
+end
+
+def preserves_binary_prods_of_prod_comparison_iso [∀ A B, is_iso (prod_comparison F A B)] :
+  preserves_limits_of_shape (discrete walking_pair) F :=
+{ preserves_limit := λ K,
+  begin
+    haveI := preserves_binary_prod_of_prod_comparison_iso F (K.obj walking_pair.left) (K.obj walking_pair.right),
+    apply preserves_limit_of_iso F (diagram_iso_pair K).symm,
+  end }
+
+variables [preserves_limits_of_shape (discrete walking_pair) F]
+
+-- (implementation)
+private def alt_is_limit (A B : C) : is_limit (functor.map_cone F (limit.cone (pair A B))) :=
+preserves_limit.preserves (limit.is_limit (pair A B))
+
+/--
+The product comparison isomorphism. Technically a special case of `preserves_limit_iso`, but
+this version is convenient to have.
+-/
+instance prod_comparison_iso_of_preserves_binary_prods (A B : C) : is_iso (prod_comparison F A B) :=
+{ inv := (alt_is_limit F A B).lift (alternative_cone F A B),
+  hom_inv_id' :=
+  begin
+    apply is_limit.hom_ext (alt_is_limit F A B),
+    rintro ⟨j⟩,
+    { rw [category.assoc, (alt_is_limit F A B).fac, category.id_comp], apply prod.lift_fst },
+    { rw [category.assoc, (alt_is_limit F A B).fac, category.id_comp], apply prod.lift_snd },
+  end,
+  inv_hom_id' :=
+  begin
+    ext ⟨j⟩,
+    { simpa [prod_comparison] using (alt_is_limit F A B).fac _ _ },
+    { simpa [prod_comparison] using (alt_is_limit F A B).fac _ _ }
+  end }
+
+end preserves_binary_products
 
 end category_theory.limits

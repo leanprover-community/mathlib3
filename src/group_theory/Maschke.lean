@@ -1,5 +1,6 @@
 import data.monoid_algebra
 import ring_theory.algebra
+import algebra.invertible
 
 universes u
 
@@ -54,8 +55,7 @@ variables {R S V W}
 lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
   (c • f) v = (c • (f v) : module.restrict_scalars R W) :=
 begin
-  dsimp [(•)],
-  rw [linear_map.map_smul],
+  erw [linear_map.map_smul],
   refl,
 end
 
@@ -66,8 +66,6 @@ open module
 open monoid_algebra
 
 variables {k : Type u} [comm_ring k] {G : Type u} [fintype G] [group G]
--- Is there a `char_not_div` typeclass? :-)
-variables (card_inv : k) (card_inv_mul_card : card_inv * (fintype.card G : k) = 1)
 
 variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
@@ -128,18 +126,8 @@ begin
   simp,
 end)
 
-section
-local attribute [instance] linear_map_algebra_module
-/--
-We construct our `k[G]`-linear retraction of `i` as
-$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
--/
-def retraction_of_retraction_res :
-  W →ₗ[monoid_algebra k G] V :=
-card_inv • (sum_of_conjugates_equivariant π)
-end
-
 variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
+section
 include h
 
 lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
@@ -149,9 +137,25 @@ begin
   -- TODO: should work by simp:
   convert one_smul _ v,
 end
+end
 
-include card_inv_mul_card
-lemma retraction_of_retraction_res_condition (v : V) : (retraction_of_retraction_res card_inv π) (i v) = v :=
+variables [inv : invertible (fintype.card G : k)]
+include inv
+
+section
+local attribute [instance] linear_map_algebra_module
+/--
+We construct our `k[G]`-linear retraction of `i` as
+$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
+-/
+def retraction_of_retraction_res :
+  W →ₗ[monoid_algebra k G] V :=
+⅟(fintype.card G : k) • (sum_of_conjugates_equivariant π)
+end
+
+include h
+
+lemma retraction_of_retraction_res_condition (v : V) : (retraction_of_retraction_res π) (i v) = v :=
 begin
   dsimp [retraction_of_retraction_res],
   simp,
@@ -161,6 +165,6 @@ begin
   simp [linear_map.sum_apply, conjugate_i π i h],
   -- hideous!
   erw [@add_monoid_smul_eq_smul k _ (restrict_scalars k V) _ _ (fintype.card G) v],
-  simp only [←mul_smul, card_inv_mul_card],
+  simp only [←mul_smul, invertible.inv_of_mul_self],
   simp,
 end

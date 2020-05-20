@@ -90,3 +90,6 @@ io.print $ to_string $ format_linter_results env results decls non_auto_decls
   mathlib_path_len "in mathlib" tt tt,
 io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path_len results₀,
 if results.all (λ r, r.2.2.empty) then pure () else io.fail ""
+
+set_option profiler true
+#eval main

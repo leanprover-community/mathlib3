@@ -267,15 +267,15 @@ by tidy
 
 -- I don't think it's a good idea to make any of the following simp lemmas.
 @[reassoc]
-lemma prod_map_comm {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) :
+lemma prod_map_map {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) :
   prod.map (𝟙 X) f ≫ prod.map g (𝟙 B) = prod.map g (𝟙 A) ≫ prod.map (𝟙 Y) f :=
 by tidy
 
-@[reassoc] lemma prod_functorial {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[reassoc] lemma prod_map_comp_id {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   prod.map (f ≫ g) (𝟙 W) = prod.map f (𝟙 W) ≫ prod.map g (𝟙 W) :=
 by tidy
 
-@[reassoc] lemma prod_functorial' {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[reassoc] lemma prod_map_id_comp {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   prod.map (𝟙 W) (f ≫ g) = prod.map (𝟙 W) f ≫ prod.map (𝟙 W) g :=
 by tidy
 
@@ -306,19 +306,19 @@ by tidy
 
 -- I don't think it's a good idea to make any of the following simp lemmas.
 @[reassoc]
-lemma coprod_map_comm {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) :
+lemma coprod_map_map {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) :
   coprod.map (𝟙 X) f ≫ coprod.map g (𝟙 B) = coprod.map g (𝟙 A) ≫ coprod.map (𝟙 Y) f :=
 by tidy
 
-@[reassoc] lemma coprod_functorial {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[reassoc] lemma coprod_map_comp_id {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   coprod.map (f ≫ g) (𝟙 W) = coprod.map f (𝟙 W) ≫ coprod.map g (𝟙 W) :=
 by tidy
 
-@[reassoc] lemma coprod_functorial' {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[reassoc] lemma coprod_map_id_comp {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   coprod.map (𝟙 W) (f ≫ g) = coprod.map (𝟙 W) f ≫ coprod.map (𝟙 W) g :=
 by tidy
 
-@[reassoc] lemma coprod.desc_map {S T U V W : C} (f : U ⟶ S) (g : W ⟶ S) (h : T ⟶ U) (k : V ⟶ W) :
+@[reassoc] lemma coprod.map_desc {S T U V W : C} (f : U ⟶ S) (g : W ⟶ S) (h : T ⟶ U) (k : V ⟶ W) :
   coprod.map h k ≫ coprod.desc f g = coprod.desc (h ≫ f) (k ≫ g) :=
 by tidy
 
@@ -397,7 +397,8 @@ by simp
     (prod.lift prod.fst (prod.snd ≫ prod.fst))
     (prod.snd ≫ prod.snd) }
 
-def prod_functor_left_comp (X Y : C) [has_finite_products.{v} C] :
+/-- The product functor can be decomposed. -/
+def prod_functor_left_comp (X Y : C) :
   prod_functor.obj (X ⨯ Y) ≅ prod_functor.obj Y ⋙ prod_functor.obj X :=
 nat_iso.of_components (prod.associator _ _) (by tidy)
 

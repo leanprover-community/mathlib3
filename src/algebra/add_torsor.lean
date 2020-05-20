@@ -20,10 +20,12 @@ defines the notation `+ᵥ` for adding a group element to a point and
 
 Affine spaces are the motivating example of torsors of additive group
 actions.  It may be appropriate to refactor in terms of the general
-definition of group actions (currently mathlib only has multiplicative
-group actions).  The variable `G` is an explicit rather than implicit
-argument to lemmas because otherwise the elaborator sometimes has
-problems inferring appropriate types and type class instances.
+definition of group actions, via `to_additive`, when there is a use
+for multiplicative torsors (currently mathlib only develops the theory
+of group actions for multiplicative group actions).  The variable `G`
+is an explicit rather than implicit argument to lemmas because
+otherwise the elaborator sometimes has problems inferring appropriate
+types and type class instances.
 
 ## References
 

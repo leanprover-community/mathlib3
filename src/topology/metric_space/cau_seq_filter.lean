@@ -5,7 +5,8 @@ Authors: Robert Y. Lewis, Sébastien Gouëzel
 -/
 import analysis.normed_space.basic
 
-/-! # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences
+/-!
+# Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences
 
 In this file we apply `metric.complete_of_cauchy_seq_tendsto` to prove that a `normed_ring`
 is complete in terms of `cauchy` filter if and only if it is complete in terms

@@ -10,7 +10,6 @@ import logic.unique
 import data.prod
 
 /-!
-
 # Basic properties of sets
 
 Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
@@ -513,9 +512,11 @@ ext (assume x, or_and_distrib_left)
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
 ext (assume x, and_or_distrib_right)
 
-/-! ### Lemmas about `insert`
+/-!
+### Lemmas about `insert`
 
-`insert α s` is the set `{α} ∪ s`. -/
+`insert α s` is the set `{α} ∪ s`.
+-/
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 

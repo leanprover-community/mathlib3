@@ -29,10 +29,6 @@ of a finite group is a direct sum of irreducibles.
 
 universes u
 
-def mul_right_embedding {G : Type*} [group G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g,
-  inj' := λ h h', (mul_left_inj g).mp, }
-
 noncomputable theory
 open module
 open monoid_algebra
@@ -50,11 +46,11 @@ variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
 We now do the key calculation in Maschke's theorem.
 
 Given `V → W`, an inclusion of `k[G]` modules,,
-assume we have some splitting `π` of the inclusion `V → W`,
-just as as a `k`-linear map.
+assume we have some retraction `π` (i.e. `∀ v, π (i v) = v`),
+just as a `k`-linear map.
 (When `k` is a field, this will be available cheaply, by choosing a basis.)
 
-We now construct a splitting of the inclusion as a `k[G]`-linear map,
+We now construct a retraction of the inclusion as a `k[G]`-linear map,
 by the formula
 $$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
 -/

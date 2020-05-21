@@ -6,6 +6,7 @@ Author: Scott Morrison
 import data.monoid_algebra
 import ring_theory.algebra
 import algebra.invertible
+import algebra.char_p
 import linear_algebra.basis
 
 /-!
@@ -76,13 +77,15 @@ or abelian categories, depending on the formulation),
 but they should all rely on this calculation.
 -/
 
-variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V))
+variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k]
+               (restrict_scalars k (monoid_algebra k G) V))
 include π
 
 /--
 We define the conjugate of `π` by `g`, as a `k`-linear map.
 -/
-def conjugate (g : G) : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
+def conjugate (g : G) :
+  (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
 ((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
 
 /--
@@ -149,42 +152,37 @@ begin
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],
   rw [finset.sum_const, finset.card_univ,
-    @semimodule.add_monoid_smul_eq_smul k _ (restrict_scalars k (monoid_algebra k G) V) _ _ (fintype.card G) v,
+    @semimodule.add_monoid_smul_eq_smul k _
+      (restrict_scalars k (monoid_algebra k G) V) _ _ (fintype.card G) v,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
 end
 end
 
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
-
 variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
 
--- lemma restrict_scalars_ker (f : V →ₗ[monoid_algebra k G] W) :
---   (f.restrict_scalars k).ker = sorry :=
--- sorry
--- lemma restrict_scalars_ker (f : V →ₗ[monoid_algebra k G] W) :
---   (f.restrict_scalars k).ker = module.restrict_scalars k (monoid_algebra k G) f.ker :=
--- sorry
-
-instance foo : invertible (fintype.card G : k) := sorry -- it's a field?
-
 lemma monoid_algebra.exists_left_inverse_of_injective
+  (not_dvd : ¬(ring_char k ∣ fintype.card G))
   (f : V →ₗ[monoid_algebra k G] W) (hf_inj : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
-let E := (linear_map.exists_left_inverse_of_injective (f.restrict_scalars k) sorry) in
-⟨equivariant_projection (classical.some E),
 begin
-  ext v,
-  apply equivariant_projection_condition,
-  intro v,
-  have := classical.some_spec E,
-  have := congr_arg linear_map.to_fun this,
-  have := congr_fun this v,
-  exact this,
-end⟩
+  let E := (linear_map.exists_left_inverse_of_injective (f.restrict_scalars k) (by simp [hf_inj])),
+  fsplit,
+  haveI : invertible (fintype.card G : k) :=
+    invertible_of_ring_char_not_dvd not_dvd,
+  exact equivariant_projection (classical.some E),
+  { ext v,
+    apply equivariant_projection_condition,
+    intro v,
+    have := classical.some_spec E,
+    have := congr_arg linear_map.to_fun this,
+    exact congr_fun this v, }
+end
 
-lemma monoid_algebra.submodule.exists_is_compl (p : submodule (monoid_algebra k G) V) :
+lemma monoid_algebra.submodule.exists_is_compl
+  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
-let ⟨f, hf⟩ := exists_left_inverse_of_injective p.subtype p.ker_subtype in
+let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
 ⟨f.ker, f.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩

@@ -801,6 +801,16 @@ lemma submodule.restrict_scalars_mem (V : submodule S E) (e : E) :
   e ∈ V.restrict_scalars R ↔ e ∈ V :=
 iff.refl _
 
+@[simp]
+lemma submodule.restrict_scalars_bot :
+  submodule.restrict_scalars R (⊥ : submodule S E) = ⊥ :=
+rfl
+
+@[simp]
+lemma submodule.restrict_scalars_top :
+  submodule.restrict_scalars R (⊤ : submodule S E) = ⊤ :=
+rfl
+
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) :
   (restrict_scalars R S E) →ₗ[R] (restrict_scalars R S F) :=
@@ -810,6 +820,11 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) :
 
 @[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
+
+@[simp]
+lemma restrict_scalars_ker (f : E →ₗ[S] F) :
+  (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
+rfl
 
 end restrict_scalars
 

@@ -7,6 +7,7 @@ A typeclass for the two-sided multiplicative inverse.
 -/
 
 import algebra.char_zero
+import algebra.char_p
 import tactic.norm_cast
 
 /-!
@@ -160,6 +161,14 @@ def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
 ⟨ a, by simp, by simp ⟩
 
 end group_with_zero
+
+section ring_char
+
+def invertible_of_ring_char_not_dvd {R : Type*} [field R] {t : ℕ} (not_dvd : ¬(ring_char R ∣ t)) :
+  invertible (t : R) :=
+invertible_of_nonzero (λ h, not_dvd ((ring_char.spec R t).mp h))
+
+end ring_char
 
 section division_ring
 

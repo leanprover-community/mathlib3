@@ -751,3 +751,43 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=
   (f.restrict_scalars R : E → F) = f := rfl
 
 end restrict_scalars
+
+
+/-!
+When `V` and `W` are `S`-modules, for some `R`-algebra `S`,
+the collection of `S`-linear maps from `V` to `W` forms an `R`-module.
+(But not generally an `S`-module, because `S` may be non-commutative.)
+-/
+section module_of_linear_maps
+
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
+  (V : Type*) [add_comm_group V] [module S V]
+  (W : Type*) [add_comm_group W] [module S W]
+
+/--
+For `r : R`, and `f : V →ₗ[S] W` (where `S` is an `R`-algebra) we define
+`(r • f) v = f (r • v)`.
+-/
+def linear_map_algebra_has_scalar : has_scalar R (V →ₗ[S] W) :=
+{ smul := λ r f,
+  { to_fun := λ v, f ((algebra_map R S r) • v),
+    add := λ x y, by simp [smul_add],
+    smul := λ s v, by simp [smul_smul, algebra.commutes], } }
+
+local attribute [instance] linear_map_algebra_has_scalar
+
+/-- The `R`-module structure on `S`-linear maps, for `S` an `R`-algebra. -/
+def linear_map_algebra_module : module R (V →ₗ[S] W) :=
+{ one_smul := λ f, begin ext v, dsimp [(•)], simp, end,
+  mul_smul := λ r r' f,
+  begin
+    ext v, dsimp [(•)],
+    rw [linear_map.map_smul, linear_map.map_smul, linear_map.map_smul, ring_hom.map_mul,
+        smul_smul, algebra.commutes],
+  end,
+  smul_zero := λ r, by { ext v, dsimp [(•)], refl, },
+  smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add], },
+  zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
+  add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }
+
+end module_of_linear_maps

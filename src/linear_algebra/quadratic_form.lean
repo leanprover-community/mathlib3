@@ -315,9 +315,14 @@ variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
 variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
 variables [module R M₁] [module R M₂] [module R M₃]
 
+/-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
+is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
 structure isometry (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
 (map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
 
+/-- Two quadratic forms over a ring `R` are equivalent
+if there exists an isometry between them:
+a linear equivalence that transforms one quadratic form into the other. -/
 def equiv (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
 
 namespace isometry
@@ -331,16 +336,19 @@ instance : has_coe_to_fun (Q₁.isometry Q₂) :=
 
 @[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
 
+/-- The identity isomoetry from a quadratic form to itself. -/
 @[refl]
 def refl (Q : quadratic_form R M) : Q.isometry Q :=
 { map_app' := λ m, rfl,
   .. linear_equiv.refl R M }
 
+/-- The inverse isometry of an isometry between two quadratic forms. -/
 @[symm]
 def symm (f : Q₁.isometry Q₂) : Q₂.isometry Q₁ :=
 { map_app' := by { intro m, rw ← f.map_app, congr, exact f.to_linear_equiv.apply_symm_apply m },
   .. (f : M₁ ≃ₗ[R] M₂).symm }
 
+/-- The composition of two isometries between quadratic forms. -/
 @[trans]
 def trans (f : Q₁.isometry Q₂) (g : Q₂.isometry Q₃) : Q₁.isometry Q₃ :=
 { map_app' := by { intro m, rw [← f.map_app, ← g.map_app], refl },

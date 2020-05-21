@@ -134,6 +134,14 @@ variable {p}
 
 open submodule
 
+lemma ker_id_sub_eq_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
+  ker (id - p.subtype.comp f) = p :=
+begin
+  ext x,
+  simp only [comp_apply, mem_ker, subtype_apply, sub_apply, id_apply, sub_eq_zero],
+  exact ⟨λ h, h.symm ▸ submodule.coe_mem _, λ hx, by erw [hf ⟨x, hx⟩, subtype.coe_mk]⟩
+end
+
 lemma is_compl_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
   is_compl p f.ker :=
 begin

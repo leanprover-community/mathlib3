@@ -22,6 +22,8 @@ open finset
 open nat
 open_locale big_operators
 
+/-- The primorial `n#` of `n` is the product of the primes less than or equal to `n`.
+-/
 def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
 local notation x`#` := primorial x
 

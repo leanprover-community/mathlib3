@@ -746,7 +746,7 @@ variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
 
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
 ⟨λ h x hx, begin
-  rw [← mem_comap, ← h],
+  erw [ring_hom.ker, ← h],
   exact comap_map_le hx
 end,
 λ h, le_antisymm

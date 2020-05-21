@@ -56,7 +56,7 @@ begin
   exact ((subtype_val p).coprod (subtype_val q)).continuous
 end
 
-/-- Projection to a closed submodule along its closed complement. -/
+/-- Projection to a closed submodule along a closed complement. -/
 def linear_proj_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   (hq : is_closed (q : set E)) :
   E →L[𝕜] p :=

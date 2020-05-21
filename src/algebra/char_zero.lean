@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
 import algebra.field
+import data.nat.cast
 import tactic.wlog
 
 /-- Typeclass for monoids with characteristic zero.
@@ -58,6 +59,9 @@ by rw [← cast_zero, cast_inj]
 
 @[norm_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
+
+lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : α) ≠ 0 :=
+by exact_mod_cast n.succ_ne_zero
 
 end nat
 

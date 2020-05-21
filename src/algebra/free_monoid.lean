@@ -28,7 +28,7 @@ def free_monoid (α) := list α
 namespace free_monoid
 
 @[to_additive]
-instance {α} : monoid (free_monoid α) :=
+instance : monoid (free_monoid α) :=
 { one := [],
   mul := λ x y, (x ++ y : list α),
   mul_one := by intros; apply list.append_nil,
@@ -36,13 +36,13 @@ instance {α} : monoid (free_monoid α) :=
   mul_assoc := by intros; apply list.append_assoc }
 
 @[to_additive]
-instance {α} : inhabited (free_monoid α) := ⟨1⟩
+instance : inhabited (free_monoid α) := ⟨1⟩
 
 @[to_additive]
-lemma one_def {α} : (1 : free_monoid α) = [] := rfl
+lemma one_def : (1 : free_monoid α) = [] := rfl
 
 @[to_additive]
-lemma mul_def {α} (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
+lemma mul_def (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
 rfl
 
 /-- Embeds an element of `α` into `free_monoid α` as a singleton list. -/
@@ -50,17 +50,22 @@ rfl
 def of (x : α) : free_monoid α := [x]
 
 @[to_additive]
-lemma of_mul_eq_cons (x : α) (l : free_monoid α) : of x * l = x :: l := rfl
+lemma of_def (x : α) : of x = [x] := rfl
+
+/-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
+@[to_additive "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
+def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
+  (ih : Π x xs, C xs → C (of x * xs)) : C xs := list.rec_on xs h0 ih
+
+attribute [elab_as_eliminator] rec_on free_add_monoid.rec_on
 
 @[to_additive]
 lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) :
   f = g :=
-begin
-  ext l,
-  induction l with a l ihl,
-  { exact f.map_one.trans g.map_one.symm },
-  { rw [← of_mul_eq_cons, f.map_mul, h, ihl, ← g.map_mul] }
-end
+monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
+  λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
+
+attribute [ext, priority 1500] hom_eq free_add_monoid.hom_eq
 
 section
 -- TODO[Lean 4] : make these arguments implicit
@@ -92,7 +97,7 @@ lemma lift_restrict (f : free_monoid α →* M) : lift α M (f ∘ of) = f :=
 (lift α M).apply_symm_apply f
 
 lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift α M f) = lift α N (g ∘ f) :=
-hom_eq $ λ x, by simp
+by { ext, simp }
 
 /-- The unique monoid homomorphism `free_monoid α →* free_monoid β` that sends
 each `of x` to `of (f x)`. -/

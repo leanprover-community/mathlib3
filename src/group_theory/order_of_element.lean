@@ -193,6 +193,10 @@ by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
+lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
+  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
+(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
 section classical
 open_locale classical
 open quotient_group
@@ -248,6 +252,10 @@ dvd_antisymm
       (dvd_of_mul_dvd_mul_right gcd_pos
         (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
             nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
+
+lemma image_range_order_of (a : α) :
+  finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a).to_finset :=
+by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
 
 omit dec
 open_locale classical
@@ -368,6 +376,27 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
     exact le_of_dvd hn0 (gcd_dvd_left _ _)
   end
 
+lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
+  ∃ x : α, ∀ y : α, y ∈ powers x :=
+by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator α
+
+section
+
+variables [group α] [fintype α] [decidable_eq α]
+
+lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
+begin
+  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
+  convert set.to_finset_univ
+end
+
+lemma is_cyclic.image_range_card (ha : ∀ x : α, x ∈ gpowers a) :
+  finset.image (λ i, a ^ i) (range (fintype.card α)) = univ :=
+by rw [← order_of_eq_card_of_forall_mem_gpowers ha, is_cyclic.image_range_order_of ha]
+
+end
+
 section totient
 
 variables [group α] [fintype α] [decidable_eq α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
@@ -413,7 +442,7 @@ have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
-(add_right_inj (((range d.succ).filter (∣ d.succ)).sum
+(add_left_inj (((range d.succ).filter (∣ d.succ)).sum
   (λ m, (univ.filter (λ a : α, order_of a = m)).card))).1
   (calc _ = (insert d.succ (filter (∣ d.succ) (range d.succ))).sum
         (λ m, (univ.filter (λ a : α, order_of a = m)).card) :
@@ -451,7 +480,7 @@ lt_irrefl c $
       have hmc : m ∣ c, by simp at hm; tauto,
       (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim
         (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
-        (by simp [le_refl] {contextual := tt}))
+        (by { intro h, rw h, apply le_refl }))
   ... < φ d + (((range c.succ).filter (∣ c)).erase d).sum φ :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
       (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))

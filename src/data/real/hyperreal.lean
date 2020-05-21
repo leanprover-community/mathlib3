@@ -586,19 +586,19 @@ lemma zero_of_infinitesimal_real {r : ℝ} : infinitesimal r → r = 0 := eq_of_
 lemma zero_iff_infinitesimal_real {r : ℝ} : infinitesimal r ↔ r = 0 :=
 ⟨zero_of_infinitesimal_real, λ hr, by rw hr; exact infinitesimal_zero⟩
 
-lemma infinitesimal_add {x y : ℝ*} :
-  infinitesimal x → infinitesimal y → infinitesimal (x + y) :=
-zero_add 0 ▸ is_st_add
+lemma infinitesimal_add {x y : ℝ*} (hx : infinitesimal x) (hy : infinitesimal y) :
+  infinitesimal (x + y) :=
+by simpa only [add_zero] using is_st_add hx hy
 
-lemma infinitesimal_neg {x : ℝ*} : infinitesimal x → infinitesimal (-x) :=
-(neg_zero : -(0 : ℝ) = 0) ▸ is_st_neg
+lemma infinitesimal_neg {x : ℝ*} (hx : infinitesimal x) : infinitesimal (-x) :=
+by simpa only [neg_zero] using is_st_neg hx
 
 lemma infinitesimal_neg_iff {x : ℝ*} : infinitesimal x ↔ infinitesimal (-x) :=
 ⟨infinitesimal_neg, λ h, (neg_neg x) ▸ @infinitesimal_neg (-x) h⟩
 
-lemma infinitesimal_mul {x y : ℝ*} :
-  infinitesimal x → infinitesimal y → infinitesimal (x * y) :=
-zero_mul 0 ▸ is_st_mul
+lemma infinitesimal_mul {x y : ℝ*} (hx : infinitesimal x) (hy : infinitesimal y) :
+  infinitesimal (x * y) :=
+by simpa only [mul_zero] using is_st_mul hx hy
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
   tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=

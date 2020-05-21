@@ -14,8 +14,8 @@ The proof used is close to Lagrange's original proof.
 -/
 import data.zmod.basic
 import field_theory.finite
-import group_theory.perm.sign
 import data.int.parity
+import data.fintype.card
 
 open finset polynomial finite_field equiv
 
@@ -27,7 +27,7 @@ have (x^2 + y^2).even, by simp [h.symm, even_mul],
 have hxaddy : (x + y).even, by simpa [pow_two] with parity_simps,
 have hxsuby : (x - y).even, by simpa [pow_two] with parity_simps,
 have (x^2 + y^2) % 2 = 0, by simp [h.symm],
-(domain.mul_left_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
+(domain.mul_right_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
   by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
@@ -91,11 +91,11 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
   begin
     rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
       ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
-      ← domain.mul_left_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
+      ← domain.mul_right_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
-    { conv_rhs { rw finset.sum_univ_perm σ } },
+    { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
+    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
 
 private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :
@@ -137,7 +137,7 @@ m.mod_two_eq_zero_or_one.elim
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
-        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul]
+        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul, add_assoc]
         ... < 4 * (m / 2 : ℕ) ^ 2 + ((4 * (m / 2) : ℕ) * (m % 2 : ℕ) + (m % 2 : ℕ)^2) :
           (lt_add_iff_pos_right _).2 (by rw [hm2, int.coe_nat_one, _root_.one_pow, mul_one];
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one)
@@ -154,13 +154,13 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-          by simpa [add_eq_zero_iff_eq_zero_of_nonneg (pow_two_nonneg _) (pow_two_nonneg _),
-            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _)] using hwxyz0,
+          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _) (pow_two_nonneg _),
+            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
-            (domain.mul_left_inj (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0)).1 $
+            (domain.mul_right_inj (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0)).1 $
               by rw [← habcd, hma, hmb, hmc, hmd]; ring⟩,
         (hp.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
@@ -181,11 +181,11 @@ m.mod_two_eq_zero_or_one.elim
           (by rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← _root_.pow_two]; exact hwxyzlt)
           (int.coe_nat_nonneg m)),
       have hstuv : s^2 + t^2 + u^2 + v^2 = n.nat_abs * p,
-        from (domain.mul_left_inj (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
+        from (domain.mul_right_inj (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
             (int.coe_nat_ne_zero_iff_pos.2 hm0))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
-            by simp; ring
+            by simp [_root_.mul_pow]; ring
           ... = (w^2 + x^2 + y^2 + z^2) * (a^2 + b^2 + c^2 + d^2) :
             by simp only [hs.symm, ht.symm, hu.symm, hv.symm]; ring
           ... = _ : by rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg]; dsimp [m]; ring,

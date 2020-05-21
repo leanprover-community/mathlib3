@@ -6,9 +6,10 @@ Authors: Jeremy Avigad
 The integers, with addition, multiplication, and subtraction.
 -/
 import algebra.char_zero
+import init_.data.int.order
+import algebra.ring
 import data.list.range
 open nat
-
 
 namespace int
 
@@ -380,6 +381,9 @@ by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
 @[simp] theorem add_mod_mod (m n k : ℤ) : (m + n % k) % k = (m + n) % k :=
 by rw [add_comm, mod_add_mod, add_comm]
 
+lemma add_mod (a b n : ℤ) : (a + b) % n = ((a % n) + (b % n)) % n :=
+by rw [add_mod_mod, mod_add_mod]
+
 theorem add_mod_eq_add_mod_right {m n k : ℤ} (i : ℤ) (H : m % n = k % n) :
   (m + i) % n = (k + i) % n :=
 by rw [← mod_add_mod, ← mod_add_mod k, H]
@@ -410,6 +414,14 @@ by rw [← zero_add (a * b), add_mul_mod_self, zero_mod]
 
 @[simp] theorem mul_mod_right (a b : ℤ) : (a * b) % a = 0 :=
 by rw [mul_comm, mul_mod_left]
+
+lemma mul_mod (a b n : ℤ) : (a * b) % n = ((a % n) * (b % n)) % n :=
+begin
+  conv_lhs {
+    rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
+        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
+        mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+end
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_self {a : ℤ} : a % a = 0 :=
@@ -1087,12 +1099,8 @@ end classical
 
 /- cast (injection into groups with one) -/
 
--- We use the int.has_coe instance for the simp-normal form.
--- Increase the priority so that it is used preferentially.
-attribute [priority 1001] int.has_coe
-
 @[simp] theorem nat_cast_eq_coe_nat : ∀ n,
-  @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n =
+  @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
 | 0     := rfl
 | (n+1) := congr_arg (+(1:ℤ)) (nat_cast_eq_coe_nat n)
@@ -1111,14 +1119,15 @@ protected def cast : ℤ → α
 | (n : ℕ) := n
 | -[1+ n] := -(n+1)
 
-@[priority 10] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
+-- see Note [coercion into rings]
+@[priority 900] instance cast_coe : has_coe_t ℤ α := ⟨int.cast⟩
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 
 theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
 theorem cast_coe_nat' (n : ℕ) :
-  (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
+  (@coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n : α) = n :=
 by simp
 
 @[simp, norm_cast] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl
@@ -1157,7 +1166,7 @@ end
 | (n : ℕ) := cast_neg_of_nat _
 | -[1+ n] := (neg_neg _).symm
 
-@[norm_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
+@[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
 by simp [sub_eq_add_neg]
 
 @[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=

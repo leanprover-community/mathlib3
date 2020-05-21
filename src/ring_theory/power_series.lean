@@ -133,7 +133,7 @@ instance : has_one (mv_power_series σ α) := ⟨monomial α (0 : σ →₀ ℕ)
 lemma coeff_one :
   coeff α n (1 : mv_power_series σ α) = if n = 0 then 1 else 0 := rfl
 
-@[simp, priority 1100] lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
+lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial' 0 1
 
 instance : has_mul (mv_power_series σ α) :=
@@ -201,7 +201,7 @@ begin
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l+j), (l, j)⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
     simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, rw mul_assoc },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
   { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
     simp only [finset.mem_sigma, mem_antidiagonal_support,
       and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
@@ -276,12 +276,11 @@ variables {σ} {α}
 
 @[simp] lemma monomial_zero_eq_C : monomial α (0 : σ →₀ ℕ) = C σ α := rfl
 
-@[simp] lemma monomial_zero_eq_C_apply (a : α) : monomial α (0 : σ →₀ ℕ) a = C σ α a := rfl
+lemma monomial_zero_eq_C_apply (a : α) : monomial α (0 : σ →₀ ℕ) a = C σ α a := rfl
 
 lemma coeff_C (n : σ →₀ ℕ) (a : α) :
   coeff α n (C σ α a) = if n = 0 then a else 0 := rfl
 
-@[simp, priority 1100]
 lemma coeff_zero_C (a : α) : coeff α (0 : σ →₀ℕ) (C σ α a) = a :=
 coeff_monomial' 0 a
 
@@ -293,13 +292,12 @@ lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
 
 lemma coeff_index_single_X (s t : σ) :
   coeff α (single t 1) (X s : mv_power_series σ α) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_right_inj one_ne_zero], split_ifs; refl }
+by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff α (single s 1) (X s : mv_power_series σ α) = 1 :=
 if_pos rfl
 
-@[simp, priority 1100]
 lemma coeff_zero_X (s : σ) : coeff α (0 : σ →₀ ℕ) (X s : mv_power_series σ α) = 0 :=
 by { rw [coeff_X, if_neg], intro h, exact one_ne_zero (single_eq_zero.mp h.symm) }
 
@@ -340,7 +338,7 @@ begin
   obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0,
   { rw finsupp.mem_antidiagonal_support at hij,
     simpa using hij },
-  simp,
+  simp [coeff_zero_X]
 end
 
 variables (σ) (α)
@@ -356,7 +354,7 @@ variables {σ} {α}
 
 @[simp] lemma coeff_zero_eq_constant_coeff :
   coeff α (0 : σ →₀ ℕ) = constant_coeff σ α := rfl
-@[simp] lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ α) :
+lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ α) :
   coeff α (0 : σ →₀ ℕ) φ = constant_coeff σ α φ := rfl
 
 @[simp] lemma constant_coeff_C (a : α) : constant_coeff σ α (C σ α a) = a := rfl
@@ -515,9 +513,7 @@ begin
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal_support at hij,
         rw coeff_X_pow, split_ifs with hi,
-        { exfalso, apply H, rw [← hij, hi], ext t,
-          simp only [nat.add_sub_cancel_left, add_comm,
-            finsupp.add_apply, add_right_inj, finsupp.nat_sub_apply] },
+        { exfalso, apply H, rw [← hij, hi], ext, simp, cc },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -803,7 +799,7 @@ lemma ext_iff {φ ψ : power_series α} : φ = ψ ↔ (∀ n, coeff α n φ = co
 ⟨λ h n, congr_arg (coeff α n) h, ext⟩
 
 /-- Constructor for formal power series.-/
-def mk (f : ℕ → α) : power_series α := λ s, f (s ())
+def mk {α} (f : ℕ → α) : power_series α := λ s, f (s ())
 
 @[simp] lemma coeff_mk (n : ℕ) (f : ℕ → α) : coeff α n (mk f) = f n :=
 congr_arg f finsupp.single_eq_same
@@ -850,21 +846,21 @@ begin
   rw [constant_coeff, ← mv_power_series.coeff_zero_eq_constant_coeff, coeff_def], refl
 end
 
-@[simp] lemma coeff_zero_eq_constant_coeff_apply (φ : power_series α) :
+lemma coeff_zero_eq_constant_coeff_apply (φ : power_series α) :
   coeff α 0 φ = constant_coeff α φ :=
 by rw [coeff_zero_eq_constant_coeff]; refl
 
 @[simp] lemma monomial_zero_eq_C : monomial α 0 = C α :=
 by rw [monomial, finsupp.single_zero, mv_power_series.monomial_zero_eq_C, C]
 
-@[simp] lemma monomial_zero_eq_C_apply (a : α) : monomial α 0 a = C α a :=
-by rw [monomial_zero_eq_C]; refl
+lemma monomial_zero_eq_C_apply (a : α) : monomial α 0 a = C α a :=
+by simp
 
 lemma coeff_C (n : ℕ) (a : α) :
   coeff α n (C α a : power_series α) = if n = 0 then a else 0 :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial]
 
-@[simp] lemma coeff_zero_C (a : α) : coeff α 0 (C α a) = a :=
+lemma coeff_zero_C (a : α) : coeff α 0 (C α a) = a :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial' 0 a]
 
 lemma X_eq : (X : power_series α) = monomial α 1 1 := rfl
@@ -873,7 +869,7 @@ lemma coeff_X (n : ℕ) :
   coeff α n (X : power_series α) = if n = 1 then 1 else 0 :=
 by rw [X_eq, coeff_monomial]
 
-@[simp] lemma coeff_zero_X : coeff α 0 (X : power_series α) = 0 :=
+lemma coeff_zero_X : coeff α 0 (X : power_series α) = 0 :=
 by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 
 @[simp] lemma coeff_one_X : coeff α 1 (X : power_series α) = 1 :=
@@ -896,7 +892,7 @@ calc coeff α n (1 : power_series α) = _ : mv_power_series.coeff_one _
     ... = if n = 0 then 1 else 0 :
 by { simp only [finsupp.single_eq_zero], split_ifs; refl }
 
-@[simp] lemma coeff_zero_one : coeff α 0 (1 : power_series α) = 1 :=
+lemma coeff_zero_one : coeff α 0 (1 : power_series α) = 1 :=
 coeff_zero_C 1
 
 lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
@@ -933,15 +929,6 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
-@[simp] lemma coeff_zero_mul_X (φ : power_series α) :
-  coeff α 0 (φ * X) = 0 :=
-begin
-  rw [coeff_mul _ φ, finset.sum_eq_zero],
-  rintro ⟨i,j⟩ hij,
-  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
-  simp,
-end
-
 @[simp] lemma constant_coeff_C (a : α) : constant_coeff α (C α a) = a := rfl
 @[simp] lemma constant_coeff_comp_C :
   (constant_coeff α).comp (C α) = ring_hom.id α := rfl
@@ -949,6 +936,8 @@ end
 @[simp] lemma constant_coeff_zero : constant_coeff α 0 = 0 := rfl
 @[simp] lemma constant_coeff_one : constant_coeff α 1 = 1 := rfl
 @[simp] lemma constant_coeff_X : constant_coeff α X = 0 := mv_power_series.coeff_zero_X _
+
+lemma coeff_zero_mul_X (φ : power_series α) : coeff α 0 (φ * X) = 0 := by simp
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series α) (h : is_unit φ) :
@@ -1145,7 +1134,7 @@ begin
       { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
         exfalso, exact ne_of_lt this hij.symm },
       contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
-      simpa [ne.def, prod.mk.inj_iff] using (add_left_inj m).mp hij },
+      simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 

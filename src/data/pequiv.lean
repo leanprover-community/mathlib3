@@ -68,15 +68,10 @@ lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a �
 
 @[simp] lemma symm_refl : (pequiv.refl α).symm = pequiv.refl α := rfl
 
-@[simp] lemma symm_refl_apply (a : α) : (pequiv.refl α).symm a = some a := rfl
-
 @[simp] lemma symm_symm (f : α ≃. β) : f.symm.symm = f := by cases f; refl
 
-@[simp] lemma symm_symm_apply (f : α ≃. β) (a : α) : f.symm.symm a = f a :=
-by rw symm_symm
-
 lemma symm_injective : function.injective (@pequiv.symm α β) :=
-injective_of_has_left_inverse ⟨_, symm_symm⟩
+left_inverse.injective symm_symm
 
 lemma trans_assoc (f : α ≃. β) (g : β ≃. γ) (h : γ ≃. δ) :
   (f.trans g).trans h = f.trans (g.trans h) :=
@@ -98,18 +93,12 @@ by ext; dsimp [pequiv.trans]; refl
 @[simp] lemma trans_refl (f : α ≃. β) : f.trans (pequiv.refl β) = f :=
 by ext; dsimp [pequiv.trans]; simp
 
-@[simp] lemma refl_trans_apply (f : α ≃. β) (a : α) : (pequiv.refl α).trans f a = f a :=
-by rw refl_trans
-
-@[simp] lemma trans_refl_apply (f : α ≃. β) (a : α) : f.trans (pequiv.refl β) a = f a :=
-by rw trans_refl
-
 protected lemma inj (f : α ≃. β) {a₁ a₂ : α} {b : β} (h₁ : b ∈ f a₁) (h₂ : b ∈ f a₂) : a₁ = a₂ :=
 by rw ← mem_iff_mem at *; cases h : f.symm b; simp * at *
 
 lemma injective_of_forall_ne_is_some (f : α ≃. β) (a₂ : α)
   (h : ∀ (a₁ : α), a₁ ≠ a₂ → is_some (f a₁)) : injective f :=
-injective_of_has_left_inverse
+has_left_inverse.injective
   ⟨λ b, option.rec_on b a₂ (λ b', option.rec_on (f.symm b') a₂ id),
     λ x, begin
       classical,
@@ -216,8 +205,6 @@ by dsimp [single]; split_ifs; simp [*, eq_comm]
 @[simp] lemma symm_single (a : α) (b : β) : (single a b).symm = single b a := rfl
 
 @[simp] lemma single_apply (a : α) (b : β) : single a b a = some b := if_pos rfl
-
-@[simp] lemma symm_single_apply (a : α) (b : β) : (single a b).symm b = some a := by dsimp; simp
 
 lemma single_apply_of_ne {a₁ a₂ : α} (h : a₁ ≠ a₂) (b : β) : single a₁ b a₂ = none := if_neg h.symm
 

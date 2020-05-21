@@ -93,7 +93,7 @@ outer_measure.of_function_le _ _ _
 
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
-  (of_real (b - a) : ennreal) ≤ ∑ i, of_real (d i - c i) :=
+  (of_real (b - a) : ennreal) ≤ ∑' i, of_real (d i - c i) :=
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),

@@ -1,9 +1,7 @@
 /-
-  Copyright (c) 2019 Tim Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Tim Baanen.
-
-  Inverses for nonsingular square matrices.
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
 -/
 import algebra.associated
 import linear_algebra.determinant
@@ -51,8 +49,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 
@@ -198,7 +194,8 @@ calc s.sum (λ x, cramer α A (λ j, f j x) i)
 end cramer
 
 section adjugate
-/-! ### `adjugate` section
+/-!
+### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
 These will hold for any matrix over a commutative ring,
@@ -297,7 +294,7 @@ begin
   have univ_eq_i := univ_eq_singleton_of_card_one i h,
   have univ_eq_j := univ_eq_singleton_of_card_one j h,
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
 end
@@ -350,7 +347,8 @@ end
 end adjugate
 
 section inv
-/-! ### `inv` section
+/-!
+### `inv` section
 
 Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.

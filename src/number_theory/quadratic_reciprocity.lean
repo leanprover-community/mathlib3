@@ -229,7 +229,7 @@ private lemma gauss_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
   (a^(p / 2) : zmod p) = (-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
-(domain.mul_right_inj
+(domain.mul_left_inj
     (show ((p / 2).fact : zmod p) ≠ 0,
       by rw [ne.def, char_p.cast_eq_zero_iff (zmod p) p, hp.dvd_fact, not_le];
           exact nat.div_lt_self hp.pos dec_trivial)).1 $
@@ -273,7 +273,7 @@ private lemma eisenstein_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact 
 have ha2 : (a : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 ha2,
 (eq_iff_modeq_nat 2).1 $ sub_eq_zero.1 $
   by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast,
-            add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two]
+            add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two, add_assoc]
     using eq.symm (eisenstein_lemma_aux₁ p hap)
 
 lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b =

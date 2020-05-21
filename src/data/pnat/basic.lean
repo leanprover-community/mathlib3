@@ -66,6 +66,16 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 instance : decidable_linear_order ℕ+ :=
 subtype.decidable_linear_order _
 
+@[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
+  (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
+
+@[simp] lemma mk_lt_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
+  (⟨n, hn⟩ : ℕ+) < ⟨k, hk⟩ ↔ n < k := iff.rfl
+
+@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n:ℕ) ≤ k ↔ n ≤ k := iff.rfl
+
+@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n:ℕ) < k ↔ n < k := iff.rfl
+
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
@@ -84,14 +94,14 @@ instance : add_left_cancel_semigroup ℕ+ :=
 { add_left_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_left_inj (a : ℕ)).mp h)},
+    exact eq ((add_right_inj (a : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 instance : add_right_cancel_semigroup ℕ+ :=
 { add_right_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_right_inj (b : ℕ)).mp h)},
+    exact eq ((add_left_inj (b : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
@@ -157,13 +167,13 @@ by induction n with n ih;
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_left_inj a.pos).mp h)},
+   exact eq ((nat.mul_right_inj a.pos).mp h)},
   .. (pnat.comm_monoid) }
 
 instance : right_cancel_semigroup ℕ+ :=
 { mul_right_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj b.pos).mp h)},
+   exact eq ((nat.mul_left_inj b.pos).mp h)},
   .. (pnat.comm_monoid) }
 
 instance : distrib ℕ+ :=
@@ -295,8 +305,8 @@ theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 λ hmn hnm, subtype.eq (nat.dvd_antisymm hmn hnm)
 
-theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
-@_root_.dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
+protected theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
+@dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
 
 theorem one_dvd (n : ℕ+) : 1 ∣ n := dvd_intro n (one_mul n)
 

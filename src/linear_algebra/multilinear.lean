@@ -106,7 +106,7 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm], λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm, add_assoc], λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
@@ -300,8 +300,8 @@ begin
   obtain ⟨i₀, hi₀⟩ : ∃ i, 1 < (A i).card := Ai_singleton,
   obtain ⟨j₁, j₂, hj₁, hj₂, j₁_ne_j₂⟩ : ∃ j₁ j₂, (j₁ ∈ A i₀) ∧ (j₂ ∈ A i₀) ∧ j₁ ≠ j₂ :=
     finset.one_lt_card_iff.1 hi₀,
-  let B := function.update A i₀ (A i₀ \ finset.singleton j₂),
-  let C := function.update A i₀ (finset.singleton j₂),
+  let B := function.update A i₀ (A i₀ \ {j₂}),
+  let C := function.update A i₀ {j₂},
   have B_subset_A : ∀ i, B i ⊆ A i,
   { assume i,
     by_cases hi : i = i₀,
@@ -320,8 +320,7 @@ begin
     { rw [hi],
       simp only [function.update_same],
       have : A i₀ = B i₀ ∪ C i₀,
-      { simp only [B, C, function.update_same, finset.insert_empty_eq_singleton,
-                   finset.sdiff_union_self_eq_union],
+      { simp only [B, C, function.update_same, finset.sdiff_union_self_eq_union],
         symmetry,
         simp only [hj₂, finset.singleton_subset_iff, union_eq_left_iff_subset] },
       rw this,
@@ -350,9 +349,8 @@ begin
   { have : finset.univ.sum (λ i, finset.card (B i)) < finset.univ.sum (λ i, finset.card (A i)),
     { refine finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (B_subset_A i))
         ⟨i₀, finset.mem_univ _, _⟩,
-      have : finset.singleton j₂ ⊆ A i₀, by simp [hj₂],
-      simp only [B, finset.card_sdiff this, function.update_same, finset.insert_empty_eq_singleton,
-                  finset.card_singleton],
+      have : {j₂} ⊆ A i₀, by simp [hj₂],
+      simp only [B, finset.card_sdiff this, function.update_same, finset.card_singleton],
       exact nat.pred_lt (ne_of_gt (lt_trans zero_lt_one hi₀)) },
     rw h at this,
     exact IH _ this B rfl },

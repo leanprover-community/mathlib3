@@ -194,7 +194,7 @@ have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
       ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (principal t)) :
         le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
       ... ≤ map f (comap i (𝓝 b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
-      ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
+      ... ≤ _ : inf_le_inf_right _ (ht₁ hb').left,
   show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
   begin
     rw [closure_eq_nhds],

@@ -2,12 +2,14 @@
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
-
-Matrices
 -/
 import algebra.pi_instances
-
+/-!
+# Matrices
+-/
 universes u v w
+
+open_locale big_operators
 
 @[nolint unused_arguments]
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
@@ -71,6 +73,15 @@ theorem diagonal_val_ne' [has_zero α] {d : n → α} {i j : n} (h : j ≠ i) :
 @[simp] theorem diagonal_zero [has_zero α] : (diagonal (λ _, 0) : matrix n n α) = 0 :=
 by simp [diagonal]; refl
 
+@[simp] lemma diagonal_transpose [has_zero α] (v : n → α) :
+  (diagonal v)ᵀ = diagonal v :=
+begin
+  ext i j,
+  by_cases h : i = j,
+  { simp [h, transpose] },
+  { simp [h, transpose, diagonal_val_ne' h] }
+end
+
 section one
 variables [has_zero α] [has_one α]
 
@@ -95,16 +106,83 @@ end diagonal
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
 by ext i j; by_cases i = j; simp [h]
 
+section dot_product
+
+/-- `dot_product v w` is the sum of the entrywise products `v i * w i` -/
+def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
+∑ i, v i * w i
+
+lemma dot_product_assoc [semiring α] (u : m → α) (v : m → n → α) (w : n → α) :
+  dot_product (λ j, dot_product u (λ i, v i j)) w = dot_product u (λ i, dot_product (v i) w) :=
+by simpa [dot_product, finset.mul_sum, finset.sum_mul, mul_assoc] using finset.sum_comm
+
+lemma dot_product_comm [comm_semiring α] (v w : m → α) :
+  dot_product v w = dot_product w v :=
+by simp_rw [dot_product, mul_comm]
+
+@[simp] lemma dot_product_punit [add_comm_monoid α] [has_mul α] (v w : punit → α) :
+  dot_product v w = v ⟨⟩ * w ⟨⟩ :=
+by simp [dot_product]
+
+@[simp] lemma dot_product_zero [semiring α] (v : m → α) : dot_product v 0 = 0 :=
+by simp [dot_product]
+
+@[simp] lemma dot_product_zero' [semiring α] (v : m → α) : dot_product v (λ _, 0) = 0 :=
+dot_product_zero v
+
+@[simp] lemma zero_dot_product [semiring α] (v : m → α) : dot_product 0 v = 0 :=
+by simp [dot_product]
+
+@[simp] lemma zero_dot_product' [semiring α] (v : m → α) : dot_product (λ _, (0 : α)) v = 0 :=
+zero_dot_product v
+
+@[simp] lemma add_dot_product [semiring α] (u v w : m → α) :
+  dot_product (u + v) w = dot_product u w + dot_product v w :=
+by simp [dot_product, add_mul, finset.sum_add_distrib]
+
+@[simp] lemma dot_product_add [semiring α] (u v w : m → α) :
+  dot_product u (v + w) = dot_product u v + dot_product u w :=
+by simp [dot_product, mul_add, finset.sum_add_distrib]
+
+@[simp] lemma diagonal_dot_product [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
+  dot_product (diagonal v i) w = v i * w i :=
+have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_val_ne' hij],
+by convert finset.sum_eq_single i (λ j _, this j) _; simp
+
+@[simp] lemma dot_product_diagonal [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
+  dot_product v (diagonal w i) = v i * w i :=
+have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_val_ne' hij],
+by convert finset.sum_eq_single i (λ j _, this j) _; simp
+
+@[simp] lemma dot_product_diagonal' [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
+  dot_product v (λ j, diagonal w j i) = v i * w i :=
+have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_val_ne hij],
+by convert finset.sum_eq_single i (λ j _, this j) _; simp
+
+@[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
+by simp [dot_product]
+
+@[simp] lemma dot_product_neg [ring α] (v w : m → α) : dot_product v (-w) = - dot_product v w :=
+by simp [dot_product]
+
+@[simp] lemma smul_dot_product [semiring α] (x : α) (v w : m → α) :
+  dot_product (x • v) w = x * dot_product v w :=
+by simp [dot_product, finset.mul_sum, mul_assoc]
+
+@[simp] lemma dot_product_smul [comm_semiring α] (x : α) (v w : m → α) :
+  dot_product v (x • w) = x * dot_product v w :=
+by simp [dot_product, finset.mul_sum, mul_assoc, mul_comm, mul_left_comm]
+
+end dot_product
+
 protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : matrix m n α) :
   matrix l n α :=
-λ i k, finset.univ.sum (λ j, M i j * N j k)
+λ i k, dot_product (λ j, M i j) (λ j, N j k)
 
 localized "infixl ` ⬝ `:75 := matrix.mul" in matrix
 
 theorem mul_val [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
-  (M ⬝ N) i k = finset.univ.sum (λ j, M i j * N j k) := rfl
-
-local attribute [simp] mul_val
+  (M ⬝ N) i k = ∑ j, M i j * N j k := rfl
 
 instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matrix.mul⟩
 
@@ -112,16 +190,14 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
   M * N = M ⬝ N := rfl
 
 theorem mul_val' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
-  (M * N) i k = finset.univ.sum (λ j, M i j * N j k) := rfl
+  (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
 section semigroup
 variables [semiring α]
 
 protected theorem mul_assoc (L : matrix l m α) (M : matrix m n α) (N : matrix n o α) :
   (L ⬝ M) ⬝ N = L ⬝ (M ⬝ N) :=
-by classical; funext i k;
-   simp [finset.mul_sum, finset.sum_mul, mul_assoc];
-   rw finset.sum_comm
+by { ext, apply dot_product_assoc }
 
 instance : semigroup (matrix n n α) :=
 { mul_assoc := matrix.mul_assoc, ..matrix.has_mul }
@@ -136,24 +212,24 @@ section semiring
 variables [semiring α]
 
 @[simp] protected theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
-by ext i j; simp
+by { ext i j, apply dot_product_zero }
 
 @[simp] protected theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
-by ext i j; simp
+by { ext i j, apply zero_dot_product }
 
 protected theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=
-by ext i j; simp [finset.sum_add_distrib, mul_add]
+by { ext i j, apply dot_product_add }
 
 protected theorem add_mul (L M : matrix l m α) (N : matrix m n α) : (L + M) ⬝ N = L ⬝ N + M ⬝ N :=
-by ext i j; simp [finset.sum_add_distrib, add_mul]
+by { ext i j, apply add_dot_product }
 
 @[simp] theorem diagonal_mul [decidable_eq m]
   (d : m → α) (M : matrix m n α) (i j) : (diagonal d).mul M i j = d i * M i j :=
-by simp; rw finset.sum_eq_single i; simp [diagonal_val_ne'] {contextual := tt}
+diagonal_dot_product _ _ _
 
 @[simp] theorem mul_diagonal [decidable_eq n]
   (d : n → α) (M : matrix m n α) (i j) : (M ⬝ diagonal d) i j = M i j * d j :=
-by simp; rw finset.sum_eq_single j; simp {contextual := tt}
+by { rw ← diagonal_transpose, apply dot_product_diagonal }
 
 @[simp] protected theorem one_mul [decidable_eq m] (M : matrix m n α) : (1 : matrix m m α) ⬝ M = M :=
 by ext i j; rw [← diagonal_one, diagonal_mul, one_mul]
@@ -204,16 +280,22 @@ protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
 
+@[simp]
+lemma row_mul_col_val (v w : m → α) (i j) : (row v ⬝ col w) i j = dot_product v w :=
+rfl
+
 end semiring
 
 section ring
 variables [ring α]
 
 @[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul_val]
+  (-M) ⬝ N = -(M ⬝ N) :=
+by { ext, apply neg_dot_product }
 
 @[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul_val]
+  M ⬝ (-N) = -(M ⬝ N) :=
+by { ext, apply dot_product_neg }
 
 end ring
 
@@ -240,22 +322,10 @@ lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
 by { ext, simp [mul_comm] }
 
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
-begin
-  ext i j,
-  simp only [matrix.mul_val, has_scalar.smul, finset.mul_sum],
-  congr,
-  ext,
-  ac_refl
-end
+by { ext, apply dot_product_smul }
 
 @[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
-begin
-  ext i j,
-  simp only [matrix.mul_val, has_scalar.smul, finset.mul_sum],
-  congr,
-  ext,
-  ac_refl
-end
+by { ext, apply smul_dot_product }
 
 end comm_semiring
 
@@ -266,10 +336,10 @@ def vec_mul_vec (w : m → α) (v : n → α) : matrix m n α
 | x y := w x * v y
 
 def mul_vec (M : matrix m n α) (v : n → α) : m → α
-| x := finset.univ.sum (λy:n, M x y * v y)
+| i := dot_product (λ j, M i j) v
 
 def vec_mul (v : m → α) (M : matrix m n α) : n → α
-| y := finset.univ.sum (λx:m, v x * M x y)
+| j := dot_product v (λ i, M i j)
 
 instance mul_vec.is_add_monoid_hom_left (v : n → α) :
   is_add_monoid_hom (λM:matrix m n α, mul_vec M v) :=
@@ -278,29 +348,16 @@ instance mul_vec.is_add_monoid_hom_left (v : n → α) :
   begin
     intros x y,
     ext m,
-    rw pi.add_apply (mul_vec x v) (mul_vec y v) m,
-    simp [mul_vec, finset.sum_add_distrib, right_distrib]
+    apply add_dot_product
   end }
 
 lemma mul_vec_diagonal [decidable_eq m] (v w : m → α) (x : m) :
   mul_vec (diagonal v) w x = v x * w x :=
-begin
-  transitivity,
-  refine finset.sum_eq_single x _ _,
-  { assume b _ ne, simp [diagonal, ne.symm] },
-  { simp },
-  { rw [diagonal_val_eq] }
-end
+diagonal_dot_product v w x
 
 lemma vec_mul_diagonal [decidable_eq m] (v w : m → α) (x : m) :
   vec_mul v (diagonal w) x = v x * w x :=
-begin
-  transitivity,
-  refine finset.sum_eq_single x _ _,
-  { assume b _ ne, simp [diagonal, if_neg ne] },
-  { simp },
-  { rw [diagonal_val_eq] }
-end
+dot_product_diagonal' v w x
 
 @[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
@@ -316,25 +373,35 @@ by { ext, simp [vec_mul] }
 
 @[simp] lemma vec_mul_vec_mul (v : m → α) (M : matrix m n α) (N : matrix n o α) :
   vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
-begin
-  ext,
-  simp_rw [vec_mul, matrix.mul, finset.mul_sum, finset.sum_mul, mul_assoc],
-  apply finset.sum_comm
-end
+by { ext, apply dot_product_assoc }
 
 @[simp] lemma mul_vec_mul_vec (v : o → α) (M : matrix m n α) (N : matrix n o α) :
   mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
-begin
-  ext,
-  simp_rw [mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum, mul_assoc],
-  apply finset.sum_comm
-end
+by { ext, symmetry, apply dot_product_assoc }
 
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
-by { ext i j, simp, refl }
+by { ext i j, simp [vec_mul_vec, mul_val], refl }
 
 end semiring
+
+section ring
+
+variables [ring α]
+
+lemma neg_vec_mul (v : m → α) (A : matrix m n α) : vec_mul (-v) A = - vec_mul v A :=
+by { ext, apply neg_dot_product }
+
+lemma vec_mul_neg (v : m → α) (A : matrix m n α) : vec_mul v (-A) = - vec_mul v A :=
+by { ext, apply dot_product_neg }
+
+lemma neg_mul_vec (v : n → α) (A : matrix m n α) : mul_vec (-A) v = - mul_vec A v :=
+by { ext, apply neg_dot_product }
+
+lemma mul_vec_neg (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
+by { ext, apply dot_product_neg }
+
+end ring
 
 section transpose
 
@@ -371,10 +438,7 @@ by { ext i j, simp }
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
 begin
   ext i j,
-  simp only [matrix.mul_val, transpose],
-  congr,
-  ext,
-  ac_refl
+  apply dot_product_comm
 end
 
 @[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
@@ -427,9 +491,10 @@ def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
 sub_down (sub_left A)
 
 section row_col
-/-! ### `row_col` section
+/-!
+### `row_col` section
 
-  Simplification lemmas for `matrix.row` and `matrix.col`.
+Simplification lemmas for `matrix.row` and `matrix.col`.
 -/
 open_locale matrix
 

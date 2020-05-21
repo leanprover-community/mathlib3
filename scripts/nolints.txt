@@ -49,6 +49,13 @@ apply_nolint euclidean_domain.gcd doc_blame
 apply_nolint euclidean_domain.lcm doc_blame
 apply_nolint euclidean_domain.xgcd_aux doc_blame
 
+-- algebra/field.lean
+apply_nolint algebra.div doc_blame
+apply_nolint div_zero simp_nf
+apply_nolint division_ring doc_blame
+apply_nolint field doc_blame
+apply_nolint inv_zero simp_nf
+
 -- algebra/free.lean
 apply_nolint free_magma doc_blame
 apply_nolint free_magma.length doc_blame
@@ -74,6 +81,31 @@ apply_nolint magma.free_semigroup.r doc_blame
 apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
+
+-- algebra/group/basic.lean
+apply_nolint add_comm_group doc_blame
+apply_nolint add_comm_monoid doc_blame
+apply_nolint add_comm_semigroup doc_blame
+apply_nolint add_group doc_blame
+apply_nolint add_left_cancel_semigroup doc_blame
+apply_nolint add_monoid doc_blame
+apply_nolint add_neg_self def_lemma doc_blame
+apply_nolint add_right_cancel_semigroup doc_blame
+apply_nolint add_semigroup doc_blame
+apply_nolint algebra.sub doc_blame
+apply_nolint comm_group doc_blame
+apply_nolint comm_monoid doc_blame
+apply_nolint comm_semigroup doc_blame
+apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
+apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
+apply_nolint group doc_blame
+apply_nolint inv_mul_self def_lemma doc_blame
+apply_nolint left_cancel_semigroup doc_blame
+apply_nolint monoid doc_blame
+apply_nolint mul_inv_self def_lemma doc_blame
+apply_nolint neg_add_self def_lemma doc_blame
+apply_nolint right_cancel_semigroup doc_blame
+apply_nolint semigroup doc_blame
 
 -- algebra/group/conj.lean
 apply_nolint is_conj doc_blame
@@ -114,9 +146,42 @@ apply_nolint ge_iff_le ge_or_gt
 apply_nolint gt_iff_lt ge_or_gt
 apply_nolint ordering.compares.eq_gt ge_or_gt
 
+-- algebra/ordered_field.lean
+apply_nolint discrete_linear_ordered_field doc_blame
+apply_nolint exists_add_lt_and_pos_of_lt ge_or_gt
+apply_nolint ge_of_forall_ge_sub ge_or_gt
+apply_nolint linear_ordered_field doc_blame
+
+-- algebra/ordered_group.lean
+apply_nolint abs doc_blame
+apply_nolint abs_nonneg ge_or_gt
+apply_nolint abs_pos_of_ne_zero ge_or_gt
+apply_nolint abs_pos_of_neg ge_or_gt
+apply_nolint abs_pos_of_pos ge_or_gt
+apply_nolint decidable_linear_ordered_add_comm_group doc_blame
+apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
+apply_nolint dist_bdd_within_interval unused_arguments
+apply_nolint ordered_add_comm_group doc_blame
+apply_nolint ordered_cancel_add_comm_monoid doc_blame
+
 -- algebra/ordered_ring.lean
 apply_nolint canonically_ordered_comm_semiring doc_blame
+apply_nolint decidable_linear_ordered_comm_ring doc_blame
+apply_nolint decidable_linear_ordered_semiring doc_blame
+apply_nolint four_pos ge_or_gt
+apply_nolint gt_of_mul_lt_mul_neg_left ge_or_gt
+apply_nolint linear_ordered_comm_ring doc_blame
+apply_nolint linear_ordered_ring doc_blame
+apply_nolint linear_ordered_semiring doc_blame
+apply_nolint mul_nonneg ge_or_gt
+apply_nolint mul_pos ge_or_gt
+apply_nolint mul_self_nonneg ge_or_gt
 apply_nolint nonneg_ring.to_linear_nonneg_ring doc_blame
+apply_nolint ordered_ring doc_blame
+apply_nolint ordered_semiring doc_blame
+apply_nolint pos_and_pos_or_neg_and_neg_of_mul_pos ge_or_gt
+apply_nolint two_ge_one ge_or_gt
+apply_nolint two_gt_one ge_or_gt
 apply_nolint with_top.canonically_ordered_comm_semiring unused_arguments
 apply_nolint with_top.coe_eq_zero unused_arguments
 apply_nolint with_top.coe_zero unused_arguments
@@ -143,9 +208,25 @@ apply_nolint set.pointwise_one doc_blame
 apply_nolint set.pointwise_zero doc_blame
 
 -- algebra/ring.lean
+apply_nolint add_mul def_lemma doc_blame
+apply_nolint comm_ring doc_blame
+apply_nolint comm_semiring doc_blame
+apply_nolint distrib doc_blame
+apply_nolint dvd.trans def_lemma doc_blame
+apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
+apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
+apply_nolint integral_domain doc_blame
+apply_nolint mul_add def_lemma doc_blame
+apply_nolint mul_sub def_lemma doc_blame
+apply_nolint mul_zero_class doc_blame
+apply_nolint no_zero_divisors doc_blame
+apply_nolint ring doc_blame
 apply_nolint ring_hom has_inhabited_instance
 apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
+apply_nolint semiring doc_blame
+apply_nolint sub_mul def_lemma doc_blame
+apply_nolint zero_ne_one_class doc_blame
 
 -- algebraic_geometry/presheafed_space.lean
 apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
@@ -166,169 +247,6 @@ apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
 
 -- analysis/normed_space/real_inner_product.lean
 apply_nolint has_inner doc_blame
-
--- category/applicative.lean
-apply_nolint comp.seq doc_blame
-
--- category/basic.lean
-apply_nolint is_comm_applicative doc_blame
-apply_nolint list.mmap_accuml doc_blame
-apply_nolint list.mmap_accumr doc_blame
-apply_nolint list.mpartition doc_blame
-apply_nolint mtry doc_blame
-apply_nolint mzip_with doc_blame
-apply_nolint mzip_with' doc_blame
-apply_nolint succeeds doc_blame
-apply_nolint sum.bind doc_blame
-
--- category/bifunctor.lean
-apply_nolint bifunctor doc_blame
-apply_nolint bifunctor.fst doc_blame
-apply_nolint bifunctor.snd doc_blame
-apply_nolint is_lawful_bifunctor doc_blame
-
--- category/bitraversable/basic.lean
-apply_nolint bisequence doc_blame
-apply_nolint bitraversable doc_blame
-apply_nolint is_lawful_bitraversable doc_blame
-
--- category/bitraversable/instances.lean
-apply_nolint bicompl.bitraverse doc_blame
-apply_nolint bicompr.bitraverse doc_blame
-apply_nolint const.bitraverse doc_blame unused_arguments
-apply_nolint flip.bitraverse doc_blame
-apply_nolint prod.bitraverse doc_blame
-apply_nolint sum.bitraverse doc_blame
-
--- category/fold.lean
-apply_nolint monoid.foldl.get doc_blame
-apply_nolint monoid.foldl.mk doc_blame
-apply_nolint monoid.foldl.of_free_monoid doc_blame
-apply_nolint monoid.foldr doc_blame
-apply_nolint monoid.foldr.get doc_blame
-apply_nolint monoid.foldr.mk doc_blame
-apply_nolint monoid.foldr.of_free_monoid doc_blame
-apply_nolint monoid.mfoldl doc_blame
-apply_nolint monoid.mfoldl.get doc_blame
-apply_nolint monoid.mfoldl.mk doc_blame
-apply_nolint monoid.mfoldl.of_free_monoid doc_blame
-apply_nolint monoid.mfoldr doc_blame
-apply_nolint monoid.mfoldr.get doc_blame
-apply_nolint monoid.mfoldr.mk doc_blame
-apply_nolint monoid.mfoldr.of_free_monoid doc_blame
-apply_nolint traversable.fold_map doc_blame
-apply_nolint traversable.foldl doc_blame
-apply_nolint traversable.foldr doc_blame
-apply_nolint traversable.free.map doc_blame
-apply_nolint traversable.free.mk doc_blame
-apply_nolint traversable.length doc_blame
-apply_nolint traversable.map_fold doc_blame
-apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
-apply_nolint traversable.mfoldr doc_blame
-
--- category/functor.lean
-apply_nolint functor.add_const doc_blame has_inhabited_instance
-apply_nolint functor.add_const.mk doc_blame
-apply_nolint functor.add_const.run doc_blame
-apply_nolint functor.comp has_inhabited_instance
-apply_nolint functor.comp.map doc_blame
-apply_nolint functor.comp.mk doc_blame
-apply_nolint functor.comp.run doc_blame
-apply_nolint functor.const has_inhabited_instance
-apply_nolint functor.const.mk doc_blame
-apply_nolint functor.const.mk' doc_blame
-apply_nolint functor.const.run doc_blame
-apply_nolint id.mk doc_blame
-
--- category/monad/cont.lean
-apply_nolint cont doc_blame
-apply_nolint cont_t doc_blame has_inhabited_instance
-apply_nolint cont_t.map doc_blame
-apply_nolint cont_t.monad_lift doc_blame
-apply_nolint cont_t.run doc_blame
-apply_nolint cont_t.with_cont_t doc_blame
-apply_nolint except_t.call_cc doc_blame
-apply_nolint except_t.mk_label doc_blame
-apply_nolint is_lawful_monad_cont doc_blame
-apply_nolint monad_cont doc_blame
-apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label doc_blame has_inhabited_instance
-apply_nolint option_t.call_cc doc_blame
-apply_nolint option_t.mk_label doc_blame
-apply_nolint reader_t.call_cc doc_blame
-apply_nolint reader_t.mk_label doc_blame
-apply_nolint state_t.call_cc doc_blame
-apply_nolint state_t.mk_label doc_blame unused_arguments
-apply_nolint writer_t.call_cc doc_blame
-apply_nolint writer_t.mk_label doc_blame
-apply_nolint writer_t.monad_cont unused_arguments
-
--- category/monad/writer.lean
-apply_nolint except_t.pass_aux doc_blame
-apply_nolint option_t.pass_aux doc_blame
-apply_nolint swap_right doc_blame
-apply_nolint writer doc_blame
-apply_nolint writer_t doc_blame has_inhabited_instance
-apply_nolint writer_t.adapt doc_blame
-apply_nolint writer_t.bind doc_blame
-apply_nolint writer_t.ext unused_arguments
-apply_nolint writer_t.lift doc_blame
-apply_nolint writer_t.listen doc_blame
-apply_nolint writer_t.monad_except unused_arguments
-apply_nolint writer_t.monad_map doc_blame unused_arguments
-apply_nolint writer_t.pass doc_blame
-apply_nolint writer_t.pure doc_blame
-apply_nolint writer_t.tell doc_blame
-
--- category/traversable/basic.lean
-apply_nolint applicative_transformation doc_blame has_inhabited_instance
-apply_nolint is_lawful_traversable doc_blame
-apply_nolint sequence doc_blame
-apply_nolint sum.traverse doc_blame
-apply_nolint traversable doc_blame
-
--- category/traversable/derive.lean
-apply_nolint tactic.interactive.derive_functor doc_blame
-apply_nolint tactic.interactive.derive_lawful_functor doc_blame
-apply_nolint tactic.interactive.derive_lawful_traversable doc_blame
-apply_nolint tactic.interactive.derive_traverse doc_blame
-apply_nolint tactic.interactive.functor_derive_handler doc_blame
-apply_nolint tactic.interactive.functor_derive_handler' doc_blame
-apply_nolint tactic.interactive.get_equations_of doc_blame
-apply_nolint tactic.interactive.guard_class doc_blame
-apply_nolint tactic.interactive.higher_order_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_functor_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_functor_derive_handler' doc_blame
-apply_nolint tactic.interactive.lawful_traversable_derive_handler doc_blame
-apply_nolint tactic.interactive.lawful_traversable_derive_handler' doc_blame
-apply_nolint tactic.interactive.mk_mapp' doc_blame
-apply_nolint tactic.interactive.mk_mapp_aux' doc_blame
-apply_nolint tactic.interactive.mk_one_instance doc_blame
-apply_nolint tactic.interactive.simp_functor doc_blame
-apply_nolint tactic.interactive.traversable_derive_handler doc_blame
-apply_nolint tactic.interactive.traversable_derive_handler' doc_blame
-apply_nolint tactic.interactive.traversable_law_starter doc_blame
-apply_nolint tactic.interactive.traverse_constructor unused_arguments
-apply_nolint tactic.interactive.traverse_field unused_arguments
-apply_nolint tactic.interactive.with_prefix doc_blame
-
--- category/traversable/equiv.lean
-apply_nolint equiv.functor doc_blame
-apply_nolint equiv.is_lawful_traversable doc_blame
-apply_nolint equiv.is_lawful_traversable' doc_blame
-apply_nolint equiv.map doc_blame
-apply_nolint equiv.traversable doc_blame
-apply_nolint equiv.traverse doc_blame
-
--- category/traversable/instances.lean
-apply_nolint list.comp_traverse unused_arguments
-apply_nolint option.comp_traverse unused_arguments
-apply_nolint sum.comp_traverse unused_arguments
-apply_nolint sum.traverse_map unused_arguments
-
--- category/traversable/lemmas.lean
-apply_nolint traversable.pure_transformation doc_blame
 
 -- category_theory/adjunction/basic.lean
 apply_nolint category_theory.adjunction has_inhabited_instance
@@ -677,94 +595,166 @@ apply_nolint nat.unpaired doc_blame
 apply_nolint primcodable.of_equiv doc_blame
 apply_nolint primcodable.subtype doc_blame
 
--- computability/turing_machine.lean
-apply_nolint turing.TM0.cfg.inhabited unused_arguments
-apply_nolint turing.TM0.cfg.map doc_blame
-apply_nolint turing.TM0.machine unused_arguments
-apply_nolint turing.TM0.machine.map doc_blame
-apply_nolint turing.TM0.machine.map_respects unused_arguments
-apply_nolint turing.TM0.machine.map_step unused_arguments
-apply_nolint turing.TM0.stmt.inhabited unused_arguments
-apply_nolint turing.TM0.stmt.map doc_blame
-apply_nolint turing.TM0to1.tr doc_blame
-apply_nolint turing.TM0to1.tr_cfg doc_blame
-apply_nolint turing.TM0to1.Λ' doc_blame
-apply_nolint turing.TM1.cfg.inhabited unused_arguments
-apply_nolint turing.TM1.eval doc_blame
-apply_nolint turing.TM1.init doc_blame
-apply_nolint turing.TM1.step doc_blame
-apply_nolint turing.TM1.stmts doc_blame
-apply_nolint turing.TM1.stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM1.supports_stmt doc_blame unused_arguments
-apply_nolint turing.TM1to0.tr doc_blame
-apply_nolint turing.TM1to0.tr_aux doc_blame
-apply_nolint turing.TM1to0.tr_cfg doc_blame
-apply_nolint turing.TM1to0.tr_eval unused_arguments
-apply_nolint turing.TM1to0.tr_stmts doc_blame
-apply_nolint turing.TM1to0.Λ' doc_blame unused_arguments
-apply_nolint turing.TM1to1.move doc_blame
-apply_nolint turing.TM1to1.read doc_blame
-apply_nolint turing.TM1to1.read_aux doc_blame
-apply_nolint turing.TM1to1.step_aux_move unused_arguments
-apply_nolint turing.TM1to1.step_aux_write unused_arguments
-apply_nolint turing.TM1to1.supports_stmt_move unused_arguments
-apply_nolint turing.TM1to1.supports_stmt_write unused_arguments
-apply_nolint turing.TM1to1.tr doc_blame
-apply_nolint turing.TM1to1.tr_cfg doc_blame
-apply_nolint turing.TM1to1.tr_normal doc_blame
-apply_nolint turing.TM1to1.tr_supp doc_blame
-apply_nolint turing.TM1to1.tr_tape doc_blame
-apply_nolint turing.TM1to1.tr_tape' doc_blame unused_arguments
-apply_nolint turing.TM1to1.tr_tape_drop_right unused_arguments inhabited_nonempty
-apply_nolint turing.TM1to1.write doc_blame
-apply_nolint turing.TM1to1.writes doc_blame
-apply_nolint turing.TM1to1.Λ' doc_blame
-apply_nolint turing.TM2.cfg doc_blame
-apply_nolint turing.TM2.cfg.inhabited unused_arguments
-apply_nolint turing.TM2.eval doc_blame
-apply_nolint turing.TM2.init doc_blame
-apply_nolint turing.TM2.reaches doc_blame
-apply_nolint turing.TM2.step doc_blame
-apply_nolint turing.TM2.step_aux doc_blame
-apply_nolint turing.TM2.stmts doc_blame
-apply_nolint turing.TM2.stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM2.supports doc_blame
-apply_nolint turing.TM2.supports_stmt doc_blame unused_arguments
-apply_nolint turing.TM2to1.st_act doc_blame
-apply_nolint turing.TM2to1.st_run doc_blame unused_arguments
-apply_nolint turing.TM2to1.st_var doc_blame
-apply_nolint turing.TM2to1.st_write doc_blame
-apply_nolint turing.TM2to1.stackel doc_blame
-apply_nolint turing.TM2to1.stackel.get doc_blame
-apply_nolint turing.TM2to1.stackel.is_bottom doc_blame
-apply_nolint turing.TM2to1.stackel.is_top doc_blame
-apply_nolint turing.TM2to1.stackel_equiv doc_blame
-apply_nolint turing.TM2to1.stmt_st_rec doc_blame
-apply_nolint turing.TM2to1.tr doc_blame
-apply_nolint turing.TM2to1.tr_cfg doc_blame
-apply_nolint turing.TM2to1.tr_init doc_blame
-apply_nolint turing.TM2to1.tr_normal doc_blame
-apply_nolint turing.TM2to1.tr_st_act doc_blame
-apply_nolint turing.TM2to1.tr_stk doc_blame unused_arguments
-apply_nolint turing.TM2to1.tr_stmts₁ doc_blame unused_arguments
-apply_nolint turing.TM2to1.tr_supp doc_blame
-apply_nolint turing.TM2to1.Γ' doc_blame
-apply_nolint turing.TM2to1.Λ' doc_blame
-apply_nolint turing.dwrite doc_blame
-apply_nolint turing.eval doc_blame
-apply_nolint turing.frespects doc_blame
-apply_nolint turing.pointed_map doc_blame
-apply_nolint turing.reaches doc_blame
-apply_nolint turing.reaches₀ doc_blame
-apply_nolint turing.reaches₁ doc_blame
-apply_nolint turing.respects doc_blame
-apply_nolint turing.tape doc_blame
-apply_nolint turing.tape.map doc_blame
-apply_nolint turing.tape.mk doc_blame
-apply_nolint turing.tape.mk' doc_blame
-apply_nolint turing.tape.move doc_blame
-apply_nolint turing.tape.nth doc_blame
-apply_nolint turing.tape.write doc_blame
+-- control/basic.lean
+apply_nolint is_comm_applicative doc_blame
+apply_nolint list.mmap_accuml doc_blame
+apply_nolint list.mmap_accumr doc_blame
+apply_nolint list.mpartition doc_blame
+apply_nolint mtry doc_blame
+apply_nolint mzip_with doc_blame
+apply_nolint mzip_with' doc_blame
+apply_nolint succeeds doc_blame
+apply_nolint sum.bind doc_blame
+
+-- control/bifunctor.lean
+apply_nolint bifunctor doc_blame
+apply_nolint bifunctor.fst doc_blame
+apply_nolint bifunctor.snd doc_blame
+apply_nolint is_lawful_bifunctor doc_blame
+
+-- control/bitraversable/basic.lean
+apply_nolint bisequence doc_blame
+apply_nolint bitraversable doc_blame
+apply_nolint is_lawful_bitraversable doc_blame
+
+-- control/bitraversable/instances.lean
+apply_nolint bicompl.bitraverse doc_blame
+apply_nolint bicompr.bitraverse doc_blame
+apply_nolint const.bitraverse doc_blame unused_arguments
+apply_nolint flip.bitraverse doc_blame
+apply_nolint prod.bitraverse doc_blame
+apply_nolint sum.bitraverse doc_blame
+
+-- control/fold.lean
+apply_nolint monoid.foldl.get doc_blame
+apply_nolint monoid.foldl.mk doc_blame
+apply_nolint monoid.foldl.of_free_monoid doc_blame
+apply_nolint monoid.foldr doc_blame
+apply_nolint monoid.foldr.get doc_blame
+apply_nolint monoid.foldr.mk doc_blame
+apply_nolint monoid.foldr.of_free_monoid doc_blame
+apply_nolint monoid.mfoldl doc_blame
+apply_nolint monoid.mfoldl.get doc_blame
+apply_nolint monoid.mfoldl.mk doc_blame
+apply_nolint monoid.mfoldl.of_free_monoid doc_blame
+apply_nolint monoid.mfoldr doc_blame
+apply_nolint monoid.mfoldr.get doc_blame
+apply_nolint monoid.mfoldr.mk doc_blame
+apply_nolint monoid.mfoldr.of_free_monoid doc_blame
+apply_nolint traversable.fold_map doc_blame
+apply_nolint traversable.foldl doc_blame
+apply_nolint traversable.foldr doc_blame
+apply_nolint traversable.free.map doc_blame
+apply_nolint traversable.free.mk doc_blame
+apply_nolint traversable.length doc_blame
+apply_nolint traversable.map_fold doc_blame
+apply_nolint traversable.mfoldl doc_blame
+apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
+apply_nolint traversable.mfoldr doc_blame
+
+-- control/functor.lean
+apply_nolint functor.add_const doc_blame has_inhabited_instance
+apply_nolint functor.add_const.mk doc_blame
+apply_nolint functor.add_const.run doc_blame
+apply_nolint functor.comp has_inhabited_instance
+apply_nolint functor.comp.map doc_blame
+apply_nolint functor.comp.mk doc_blame
+apply_nolint functor.comp.run doc_blame
+apply_nolint functor.comp.seq doc_blame
+apply_nolint functor.const has_inhabited_instance
+apply_nolint functor.const.mk doc_blame
+apply_nolint functor.const.mk' doc_blame
+apply_nolint functor.const.run doc_blame
+apply_nolint id.mk doc_blame
+
+-- control/monad/cont.lean
+apply_nolint cont doc_blame
+apply_nolint cont_t doc_blame has_inhabited_instance
+apply_nolint cont_t.map doc_blame
+apply_nolint cont_t.monad_lift doc_blame
+apply_nolint cont_t.run doc_blame
+apply_nolint cont_t.with_cont_t doc_blame
+apply_nolint except_t.call_cc doc_blame
+apply_nolint except_t.mk_label doc_blame
+apply_nolint is_lawful_monad_cont doc_blame
+apply_nolint monad_cont doc_blame
+apply_nolint monad_cont.goto doc_blame
+apply_nolint monad_cont.label doc_blame has_inhabited_instance
+apply_nolint option_t.call_cc doc_blame
+apply_nolint option_t.mk_label doc_blame
+apply_nolint reader_t.call_cc doc_blame
+apply_nolint reader_t.mk_label doc_blame
+apply_nolint state_t.call_cc doc_blame
+apply_nolint state_t.mk_label doc_blame unused_arguments
+apply_nolint writer_t.call_cc doc_blame
+apply_nolint writer_t.mk_label doc_blame
+apply_nolint writer_t.monad_cont unused_arguments
+
+-- control/monad/writer.lean
+apply_nolint except_t.pass_aux doc_blame
+apply_nolint option_t.pass_aux doc_blame
+apply_nolint swap_right doc_blame
+apply_nolint writer doc_blame
+apply_nolint writer_t doc_blame has_inhabited_instance
+apply_nolint writer_t.adapt doc_blame
+apply_nolint writer_t.bind doc_blame
+apply_nolint writer_t.ext unused_arguments
+apply_nolint writer_t.lift doc_blame
+apply_nolint writer_t.listen doc_blame
+apply_nolint writer_t.monad_except unused_arguments
+apply_nolint writer_t.monad_map doc_blame unused_arguments
+apply_nolint writer_t.pass doc_blame
+apply_nolint writer_t.pure doc_blame
+apply_nolint writer_t.tell doc_blame
+
+-- control/traversable/basic.lean
+apply_nolint applicative_transformation doc_blame has_inhabited_instance
+apply_nolint is_lawful_traversable doc_blame
+apply_nolint sequence doc_blame
+apply_nolint sum.traverse doc_blame
+apply_nolint traversable doc_blame
+
+-- control/traversable/derive.lean
+apply_nolint tactic.interactive.derive_functor doc_blame
+apply_nolint tactic.interactive.derive_lawful_functor doc_blame
+apply_nolint tactic.interactive.derive_lawful_traversable doc_blame
+apply_nolint tactic.interactive.derive_traverse doc_blame
+apply_nolint tactic.interactive.functor_derive_handler doc_blame
+apply_nolint tactic.interactive.functor_derive_handler' doc_blame
+apply_nolint tactic.interactive.get_equations_of doc_blame
+apply_nolint tactic.interactive.guard_class doc_blame
+apply_nolint tactic.interactive.higher_order_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_functor_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_functor_derive_handler' doc_blame
+apply_nolint tactic.interactive.lawful_traversable_derive_handler doc_blame
+apply_nolint tactic.interactive.lawful_traversable_derive_handler' doc_blame
+apply_nolint tactic.interactive.mk_mapp' doc_blame
+apply_nolint tactic.interactive.mk_mapp_aux' doc_blame
+apply_nolint tactic.interactive.mk_one_instance doc_blame
+apply_nolint tactic.interactive.simp_functor doc_blame
+apply_nolint tactic.interactive.traversable_derive_handler doc_blame
+apply_nolint tactic.interactive.traversable_derive_handler' doc_blame
+apply_nolint tactic.interactive.traversable_law_starter doc_blame
+apply_nolint tactic.interactive.traverse_constructor unused_arguments
+apply_nolint tactic.interactive.traverse_field unused_arguments
+apply_nolint tactic.interactive.with_prefix doc_blame
+
+-- control/traversable/equiv.lean
+apply_nolint equiv.functor doc_blame
+apply_nolint equiv.is_lawful_traversable doc_blame
+apply_nolint equiv.is_lawful_traversable' doc_blame
+apply_nolint equiv.map doc_blame
+apply_nolint equiv.traversable doc_blame
+apply_nolint equiv.traverse doc_blame
+
+-- control/traversable/instances.lean
+apply_nolint list.comp_traverse unused_arguments
+apply_nolint option.comp_traverse unused_arguments
+apply_nolint sum.comp_traverse unused_arguments
+apply_nolint sum.traverse_map unused_arguments
+
+-- control/traversable/lemmas.lean
+apply_nolint traversable.pure_transformation doc_blame
 
 -- data/W.lean
 apply_nolint W has_inhabited_instance
@@ -830,18 +820,7 @@ apply_nolint real.tan doc_blame
 apply_nolint real.tanh doc_blame
 
 -- data/dfinsupp.lean
-apply_nolint decidable_zero_symm doc_blame
-apply_nolint dfinsupp doc_blame
-apply_nolint dfinsupp.erase doc_blame
-apply_nolint dfinsupp.lmk doc_blame
-apply_nolint dfinsupp.lsingle doc_blame
-apply_nolint dfinsupp.mk doc_blame
 apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.single doc_blame
-apply_nolint dfinsupp.support doc_blame
-apply_nolint dfinsupp.to_has_scalar doc_blame
-apply_nolint dfinsupp.to_module doc_blame
-apply_nolint dfinsupp.zip_with doc_blame
 apply_nolint dfinsupp.zip_with_def unused_arguments
 
 -- data/dlist/basic.lean
@@ -927,7 +906,6 @@ apply_nolint equiv.sigma_congr_left doc_blame
 apply_nolint equiv.sigma_congr_right doc_blame
 apply_nolint equiv.sigma_equiv_prod doc_blame
 apply_nolint equiv.sigma_equiv_prod_of_equiv doc_blame
-apply_nolint equiv.sigma_preimage_equiv doc_blame
 apply_nolint equiv.sigma_prod_distrib doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv_subtype doc_blame
@@ -1003,9 +981,6 @@ apply_nolint encodable.fintype_pi doc_blame
 apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 apply_nolint equiv.list_equiv_self_of_equiv_nat doc_blame
 apply_nolint equiv.list_nat_equiv_nat doc_blame
-
--- data/equiv/local_equiv.lean
-apply_nolint local_equiv has_inhabited_instance
 
 -- data/equiv/mul_add.lean
 apply_nolint add_equiv has_inhabited_instance
@@ -1141,16 +1116,11 @@ apply_nolint alist.foldl unused_arguments
 apply_nolint list.to_alist doc_blame
 
 -- data/list/defs.lean
-apply_nolint list.choose doc_blame
-apply_nolint list.choose_x doc_blame
 apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
 apply_nolint list.insert_nth doc_blame
-apply_nolint list.map_head doc_blame
-apply_nolint list.map_last doc_blame
-apply_nolint list.map_with_index doc_blame
 apply_nolint list.map_with_index_core doc_blame
 apply_nolint list.of_fn doc_blame
 apply_nolint list.of_fn_aux doc_blame
@@ -1159,14 +1129,11 @@ apply_nolint list.partition_map doc_blame
 apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame
 apply_nolint list.permutations_aux2 doc_blame
-apply_nolint list.reduce_option doc_blame
 apply_nolint list.revzip doc_blame
 apply_nolint list.scanr_aux doc_blame
-apply_nolint list.split_on_p_aux doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
-apply_nolint list.take' doc_blame
 apply_nolint list.transpose_aux doc_blame
 apply_nolint list.traverse doc_blame
 
@@ -1495,7 +1462,6 @@ apply_nolint polynomial.div_mod_by_monic_aux doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
-apply_nolint polynomial.map_injective unused_arguments
 apply_nolint polynomial.mod doc_blame
 apply_nolint polynomial.nonzero_comm_ring.of_polynomial_ne doc_blame
 apply_nolint polynomial.nonzero_comm_semiring.of_polynomial_ne doc_blame
@@ -1589,9 +1555,7 @@ apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 apply_nolint nnreal.of_real doc_blame
 
 -- data/real/pi.lean
-apply_nolint real.pi_gt_314 ge_or_gt
 apply_nolint real.pi_gt_sqrt_two_add_series ge_or_gt
-apply_nolint real.pi_gt_three ge_or_gt
 apply_nolint real.sqrt_two_add_series_nonneg ge_or_gt
 apply_nolint real.sqrt_two_add_series_zero_nonneg ge_or_gt
 
@@ -1637,17 +1601,12 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/countable.lean
-apply_nolint set.countable.to_encodable doc_blame
-
 -- data/set/enumerate.lean
 apply_nolint set.enumerate doc_blame
 
 -- data/set/finite.lean
-apply_nolint finset.preimage doc_blame
 apply_nolint set.fintype_bUnion doc_blame
 apply_nolint set.fintype_bind doc_blame
-apply_nolint set.fintype_insert' doc_blame
 apply_nolint set.fintype_of_fintype_image doc_blame
 apply_nolint set.fintype_subset doc_blame
 
@@ -1689,9 +1648,6 @@ apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 apply_nolint gaussian_int.to_complex doc_blame
 
--- field_theory/finite.lean
-apply_nolint finite_field.field_of_integral_domain doc_blame
-
 -- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
@@ -1702,27 +1658,6 @@ apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
 -- field_theory/subfield.lean
 apply_nolint is_subfield doc_blame
-
--- geometry/manifold/basic_smooth_bundle.lean
-apply_nolint basic_smooth_bundle_core has_inhabited_instance
-apply_nolint tangent_bundle has_inhabited_instance
-apply_nolint tangent_space has_inhabited_instance
-
--- geometry/manifold/manifold.lean
-apply_nolint manifold_core has_inhabited_instance
-apply_nolint manifold_core.local_homeomorph doc_blame
-apply_nolint manifold_core.to_manifold doc_blame
-apply_nolint pregroupoid has_inhabited_instance
-apply_nolint structomorph has_inhabited_instance
-apply_nolint structure_groupoid has_inhabited_instance
-
--- geometry/manifold/real_instances.lean
-apply_nolint euclidean_half_space has_inhabited_instance
-apply_nolint euclidean_quadrant has_inhabited_instance
-apply_nolint euclidean_space has_inhabited_instance
-
--- geometry/manifold/smooth_manifold_with_corners.lean
-apply_nolint model_with_corners has_inhabited_instance
 
 -- group_theory/abelianization.lean
 apply_nolint abelianization doc_blame
@@ -1784,7 +1719,6 @@ apply_nolint mul_action.orbit doc_blame
 apply_nolint mul_action.orbit_equiv_quotient_stabilizer doc_blame
 apply_nolint mul_action.orbit_rel doc_blame
 apply_nolint mul_action.stabilizer doc_blame
-apply_nolint mul_action.to_perm doc_blame
 
 -- group_theory/order_of_element.lean
 apply_nolint exists_pow_eq_one ge_or_gt
@@ -1850,6 +1784,14 @@ apply_nolint simple_group doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
+
+-- init_/algebra/norm_num.lean
+apply_nolint norm_num.add1 doc_blame
+apply_nolint norm_num.mul_div_helper unused_arguments
+apply_nolint norm_num.nonneg_bit0_helper ge_or_gt
+apply_nolint norm_num.nonneg_bit1_helper ge_or_gt
+apply_nolint norm_num.pos_bit0_helper ge_or_gt
+apply_nolint norm_num.pos_bit1_helper ge_or_gt
 
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame
@@ -1920,29 +1862,18 @@ apply_nolint not.elim doc_blame
 apply_nolint pempty.elim doc_blame
 
 -- logic/embedding.lean
-apply_nolint equiv.to_embedding doc_blame
-apply_nolint function.embedding doc_blame has_inhabited_instance
+apply_nolint function.embedding has_inhabited_instance
 apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
 apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.equiv_of_surjective doc_blame
-apply_nolint function.embedding.image doc_blame
 apply_nolint function.embedding.of_not_nonempty doc_blame
-apply_nolint function.embedding.of_surjective doc_blame
 apply_nolint function.embedding.prod_congr doc_blame
 apply_nolint function.embedding.refl doc_blame
-apply_nolint function.embedding.set_value doc_blame
 apply_nolint function.embedding.sigma_congr_right doc_blame
-apply_nolint function.embedding.subtype doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.sum_congr doc_blame
 apply_nolint function.embedding.trans doc_blame
-
--- logic/function.lean
-apply_nolint function.bicompl doc_blame
-apply_nolint function.bicompr doc_blame
-apply_nolint function.uncurry' doc_blame
 
 -- logic/relation.lean
 apply_nolint relation.comp doc_blame
@@ -2071,7 +2002,6 @@ apply_nolint pell.yz doc_blame
 
 -- order/basic.lean
 apply_nolint classical.DLO doc_blame
-apply_nolint decidable_linear_order.lift doc_blame
 apply_nolint decidable_linear_order_of_is_well_order doc_blame
 apply_nolint dense_or_discrete ge_or_gt
 apply_nolint directed_order doc_blame
@@ -2090,9 +2020,6 @@ apply_nolint gt.is_irrefl ge_or_gt
 apply_nolint gt.is_strict_order ge_or_gt
 apply_nolint gt.is_trans ge_or_gt
 apply_nolint gt.is_trichotomous ge_or_gt
-apply_nolint linear_order.lift doc_blame
-apply_nolint partial_order.lift doc_blame
-apply_nolint preorder.lift doc_blame
 apply_nolint well_founded.succ doc_blame
 apply_nolint well_founded.sup doc_blame
 
@@ -2152,16 +2079,12 @@ apply_nolint order_iso.prod_lex_congr doc_blame
 apply_nolint order_iso.refl doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
 apply_nolint order_iso.symm doc_blame
-apply_nolint order_iso.to_order_embedding doc_blame
 apply_nolint order_iso.trans doc_blame
 apply_nolint subrel.order_embedding doc_blame
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame
 apply_nolint pilex doc_blame
-
--- ring_theory/adjoin.lean
-apply_nolint subalgebra.fg doc_blame
 
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame
@@ -2252,15 +2175,12 @@ apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
-apply_nolint power_series.mk unused_arguments
 apply_nolint power_series.order_add_ge ge_or_gt
 apply_nolint power_series.order_ge ge_or_gt
 apply_nolint power_series.order_ge_nat ge_or_gt
 apply_nolint power_series.order_mul_ge ge_or_gt
 
 -- ring_theory/principal_ideal_domain.lean
-apply_nolint ideal.is_principal doc_blame
-apply_nolint ideal.is_principal.generator doc_blame
 apply_nolint principal_ideal_domain doc_blame
 apply_nolint principal_ideal_domain.factors doc_blame
 
@@ -2769,21 +2689,7 @@ apply_nolint tactic.interactive.unify_with_instance doc_blame
 apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
 
 -- tactic/norm_num.lean
-apply_nolint conv.interactive.norm_num doc_blame
-apply_nolint conv.interactive.norm_num1 doc_blame
 apply_nolint norm_num.derive doc_blame
-apply_nolint norm_num.derive1 doc_blame
-apply_nolint norm_num.eval_div_ext doc_blame
-apply_nolint norm_num.eval_ineq doc_blame
-apply_nolint norm_num.eval_pow doc_blame
-apply_nolint norm_num.eval_prime doc_blame
-apply_nolint norm_num.min_fac_helper doc_blame
-apply_nolint norm_num.prove_lt doc_blame unused_arguments
-apply_nolint norm_num.prove_min_fac doc_blame
-apply_nolint norm_num.prove_non_prime doc_blame
-apply_nolint norm_num.prove_pos doc_blame
-apply_nolint tactic.refl_conv doc_blame
-apply_nolint tactic.trans_conv doc_blame
 
 -- tactic/omega/eq_elim.lean
 apply_nolint omega.cancel doc_blame
@@ -2942,37 +2848,6 @@ apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_lhs doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_rhs doc_blame
 
--- tactic/ring.lean
-apply_nolint tactic.interactive.ring.mode doc_blame
-apply_nolint tactic.ring.add_atom doc_blame
-apply_nolint tactic.ring.cache doc_blame
-apply_nolint tactic.ring.cache.cs_app doc_blame
-apply_nolint tactic.ring.eval doc_blame
-apply_nolint tactic.ring.eval' doc_blame
-apply_nolint tactic.ring.eval_add doc_blame
-apply_nolint tactic.ring.eval_atom doc_blame
-apply_nolint tactic.ring.eval_const_mul doc_blame
-apply_nolint tactic.ring.eval_horner doc_blame
-apply_nolint tactic.ring.eval_mul doc_blame
-apply_nolint tactic.ring.eval_neg doc_blame
-apply_nolint tactic.ring.eval_pow doc_blame
-apply_nolint tactic.ring.get_atom doc_blame
-apply_nolint tactic.ring.get_cache doc_blame
-apply_nolint tactic.ring.get_transparency doc_blame
-apply_nolint tactic.ring.horner doc_blame
-apply_nolint tactic.ring.horner_expr doc_blame
-apply_nolint tactic.ring.horner_expr.e doc_blame
-apply_nolint tactic.ring.horner_expr.pp doc_blame
-apply_nolint tactic.ring.horner_expr.refl_conv doc_blame
-apply_nolint tactic.ring.horner_expr.to_string doc_blame
-apply_nolint tactic.ring.horner_expr.xadd' doc_blame
-apply_nolint tactic.ring.lift doc_blame
-apply_nolint tactic.ring.normalize doc_blame
-apply_nolint tactic.ring.normalize_mode doc_blame
-apply_nolint tactic.ring.ring_m doc_blame
-apply_nolint tactic.ring.ring_m.mk_app doc_blame
-apply_nolint tactic.ring.ring_m.run doc_blame
-
 -- tactic/ring2.lean
 apply_nolint conv.interactive.ring2 doc_blame
 apply_nolint tactic.ring2.horner_expr.add doc_blame
@@ -3072,10 +2947,6 @@ apply_nolint topological_add_group.to_uniform_space doc_blame
 -- topology/algebra/uniform_ring.lean
 apply_nolint uniform_space.sep_quot_equiv_ring_quot doc_blame
 
--- topology/bounded_continuous_function.lean
-apply_nolint bounded_continuous_function.dist_eq ge_or_gt
-apply_nolint bounded_continuous_function.dist_set_exists ge_or_gt
-
 -- topology/category/Top/limits.lean
 apply_nolint Top.colimit doc_blame
 apply_nolint Top.colimit_is_colimit doc_blame
@@ -3116,9 +2987,6 @@ apply_nolint ennreal.nhds_of_ne_top ge_or_gt
 apply_nolint ennreal.tendsto_at_top ge_or_gt
 apply_nolint ennreal.tendsto_nhds ge_or_gt
 apply_nolint infi_real_pos_eq_infi_nnreal_pos ge_or_gt
-
--- topology/local_homeomorph.lean
-apply_nolint local_homeomorph has_inhabited_instance
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame

@@ -96,7 +96,7 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
     conv {to_rhs, rw ← vector.cons_head_tail v},
     suffices : (v.tail.to_list.prod)⁻¹ = v.head,
     { rw this },
-    rw [← mul_right_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
+    rw [← mul_left_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
       ← vector.to_list_cons, vector.cons_head_tail, h]
   end⟩,
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
@@ -128,7 +128,6 @@ lemma one_mem_fixed_points_rotate (n : ℕ) [fact (0 < n)] :
   (⟨vector.repeat (1 : G) n, one_mem_vectors_prod_eq_one n⟩ : vectors_prod_eq_one G n) ∈
   fixed_points (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
 λ m, subtype.eq $ vector.eq _ _ $
-by haveI : nonempty G := ⟨1⟩; exact
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
@@ -159,7 +158,6 @@ have hlt : 1 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one
 let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
   ⟨_, one_mem_fixed_points_rotate p⟩ in
 have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] using hx₄,
-have nG : nonempty G, from ⟨1⟩,
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
     subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
@@ -204,7 +202,7 @@ let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI
 have hcard : card (quotient H) = s * p :=
-  (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2
+  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, is_submonoid.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
       nat.pow_succ, mul_assoc, mul_comm p]),

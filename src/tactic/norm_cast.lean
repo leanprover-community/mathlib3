@@ -205,7 +205,11 @@ The optional label is used to overwrite the classifier.
 -/
 meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
-/-- Efficient getter for the `@[norm_cast]` attribute parameter that does not call `eval_expr`.  -/
+/--
+Efficient getter for the `@[norm_cast]` attribute parameter that does not call `eval_expr`.
+
+See Note [user attribute parameters].
+-/
 meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
 p ← attr.get_param_untyped decl,
 match p with
@@ -631,7 +635,7 @@ meta def norm_cast : conv unit := replace_lhs derive
 end conv.interactive
 
 -- TODO: move this elsewhere?
-@[norm_cast] lemma ite_cast {α β : Type} [has_coe α β]
+@[norm_cast] lemma ite_cast {α β} [has_lift_t α β]
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]

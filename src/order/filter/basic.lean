@@ -7,7 +7,8 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! # Theory of filters on sets
+/-! 
+# Theory of filters on sets
 
 ## Main definitions
 
@@ -585,7 +586,7 @@ instance : bounded_distrib_lattice (filter α) :=
 /- the complementary version with ⨆i, f ⊓ g i does not hold! -/
 lemma infi_sup_eq {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
 begin
-  refine le_antisymm _ (le_infi $ assume i, sup_le_sup (le_refl f) $ infi_le _ _),
+  refine le_antisymm _ (le_infi $ assume i, sup_le_sup_left (infi_le _ _) _),
   rintros t ⟨h₁, h₂⟩,
   rw [infi_sets_eq_finite] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
@@ -702,19 +703,20 @@ empty_in_sets_eq_bot.symm.trans $ mem_principal_sets.trans subset_empty_iff
 lemma principal_ne_bot_iff {s : set α} : principal s ≠ ⊥ ↔ s.nonempty :=
 (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
+lemma is_compl_principal (s : set α) : is_compl (principal s) (principal (-s)) :=
+⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
+  by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
+
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f) : f ⊓ principal s = ⊥ :=
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
 
 theorem mem_inf_principal (f : filter α) (s t : set α) :
   s ∈ f ⊓ principal t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
 begin
-  simp only [mem_inf_sets, mem_principal_sets, exists_prop], split,
-  { rintros ⟨u, ul, v, tsubv, uvinter⟩,
-    apply filter.mem_sets_of_superset ul,
-    intros x xu xt, exact uvinter ⟨xu, tsubv xt⟩ },
-  intro h, refine ⟨_, h, t, set.subset.refl t, _⟩,
-  rintros x ⟨hx, xt⟩,
-  exact hx xt
+  simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint, inf_assoc,
+    inf_principal, imp_iff_not_or],
+  rw [← disjoint, ← (is_compl_principal (t ∩ -s)).le_right_iff, compl_inter, compl_compl],
+  refl
 end
 
 @[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
@@ -1409,7 +1411,7 @@ protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
 begin
   apply le_antisymm,
   { calc map f (F ⊓ comap f G) ≤ map f F ⊓ (map f $ comap f G) : map_inf_le
-      ... ≤ map f F ⊓ G : inf_le_inf_right (map f F) map_comap_le },
+      ... ≤ map f F ⊓ G : inf_le_inf_left (map f F) map_comap_le },
   { rintros U ⟨V, V_in, W, ⟨Z, Z_in, hZ⟩, h⟩,
     rw ← image_subset_iff at h,
     use [f '' V, image_mem_map V_in, Z, Z_in],
@@ -2162,7 +2164,8 @@ by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an
 insertion and a connetion above `b'`. -/
-lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → β} (g : β → α) (b' : β)(hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
+lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → β} (g : β → α) (b' : β)
+  (hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
   map f at_top = at_top :=
 begin
   rw [@map_at_top_eq α _ ⟨g b'⟩],

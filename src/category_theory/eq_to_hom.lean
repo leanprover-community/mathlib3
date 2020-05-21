@@ -10,8 +10,7 @@ universes v v' u u' -- declare the `v`'s first; see `category_theory.category` f
 namespace category_theory
 open opposite
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
 
@@ -39,8 +38,7 @@ begin
   refl
 end
 
-variables {D : Type u'} [𝒟 : category.{v'} D]
-include 𝒟
+variables {D : Type u'} [category.{v'} D]
 
 namespace functor
 
@@ -69,15 +67,15 @@ by subst h; simp
 
 end functor
 
-lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+@[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
-lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+@[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
-lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
+@[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
   (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 

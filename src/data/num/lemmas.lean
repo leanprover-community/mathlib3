@@ -9,6 +9,8 @@ import data.num.bitwise
 import data.int.basic
 import data.nat.gcd
 
+local attribute [simp] add_assoc
+
 namespace pos_num
   variables {α : Type*}
 
@@ -202,7 +204,7 @@ namespace num
   by rw [← cast_to_nat, to_of_nat]
 
   @[norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
-  ⟨λ h, function.injective_of_left_inverse to_of_nat h, congr_arg _⟩
+  ⟨λ h, function.left_inverse.injective to_of_nat h, congr_arg _⟩
 
   @[norm_cast]
   theorem add_to_nat : ∀ m n, ((m + n : num) : ℕ) = m + n
@@ -261,7 +263,7 @@ namespace num
   | (pos p) := p.of_to_nat
 
   @[norm_cast] theorem to_nat_inj {m n : num} : (m : ℕ) = n ↔ m = n :=
-  ⟨λ h, function.injective_of_left_inverse of_to_nat h, congr_arg _⟩
+  ⟨λ h, function.left_inverse.injective of_to_nat h, congr_arg _⟩
 
   meta def transfer_rw : tactic unit :=
   `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
@@ -924,7 +926,7 @@ namespace znum
     int.nat_cast_eq_coe_nat, num.to_of_nat]
 
   theorem to_int_inj {m n : znum} : (m : ℤ) = n ↔ m = n :=
-  ⟨λ h, function.injective_of_left_inverse of_to_int h, congr_arg _⟩
+  ⟨λ h, function.left_inverse.injective of_to_int h, congr_arg _⟩
 
   @[simp, norm_cast] theorem of_int_cast [add_group α] [has_one α] (n : ℤ) : ((n : znum) : α) = n :=
   by rw [← cast_to_int, to_of_int]

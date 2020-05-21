@@ -76,7 +76,8 @@ uniform_space.of_core {
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
     have (2 : ennreal) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2 ⟨ne_of_gt h, this ▸ ennreal.nat_ne_top 2⟩,
+    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
+      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
     (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
@@ -655,7 +656,7 @@ begin
   choose T T_in_s finite_T using B,
   let t := ⋃n:ℕ, T n⁻¹,
   have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₂ : countable t := by finish [countable_Union, finite.countable],
   have T₃ : s ⊆ closure t,
   { intros x x_in_s,
     apply mem_closure_iff.2,
@@ -698,7 +699,7 @@ lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 ⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-{ apply countable_bUnion S_countable,
+{ apply S_countable.bUnion,
   intros a aS,
   apply countable_Union,
   simp },
@@ -775,18 +776,18 @@ begin
   simpa only [zero_lt_iff_ne_zero, exists_prop] using this
 end
 
-lemma diam_insert : diam (insert x s) = max (diam s) (⨆ y ∈ s, edist y x) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff, max_le_iff,
-  edist_self, zero_le, true_and, supr_le_iff, forall_and_distrib, edist_comm x, and_self,
-  (and_assoc _ _).symm, max_comm (diam s)]
+lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff,
+  edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
+  forall_and_distrib, and_self, ← and_assoc]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
 
 lemma diam_triple :
-  diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
+  diam ({x, y, z} : set α) = max (max (edist x y) (edist x z)) (edist y z) :=
 by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
-  ennreal.max_zero_left, ennreal.sup_eq_max]
+  ennreal.max_zero_right, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=

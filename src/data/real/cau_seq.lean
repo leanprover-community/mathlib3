@@ -40,7 +40,7 @@ variables {α : Type*} [discrete_linear_ordered_field α]
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 
 theorem abv_one' (h : (1:β) ≠ 0) : abv 1 = 1 :=
-(domain.mul_left_inj $ mt (abv_eq_zero abv).1 h).1 $
+(domain.mul_right_inj $ mt (abv_eq_zero abv).1 h).1 $
 by rw [← abv_mul abv, mul_one, mul_one]
 
 theorem abv_one
@@ -71,7 +71,7 @@ theorem abv_div
 by rw [division_def, abv_mul abv, abv_inv abv]; refl
 
 lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
-by simpa [sub_eq_add_neg] using abv_add abv (a - b) (b - c)
+by simpa [sub_eq_add_neg, add_assoc] using abv_add abv (a - b) (b - c)
 
 lemma sub_abv_le_abv_sub (a b : β) : abv a - abv b ≤ abv (a - b) :=
 sub_le_iff_le_add.2 $ by simpa using abv_add abv (a - b) b
@@ -110,7 +110,7 @@ theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
 ⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm]
+  by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
     using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
@@ -345,7 +345,7 @@ instance equiv : setoid (cau_seq β abv) :=
 ⟨λ f g, lim_zero (f - g),
 ⟨λ f, by simp [zero_lim_zero],
  λ f g h, by simpa using neg_lim_zero h,
- λ f g h fg gh, by simpa [sub_eq_add_neg] using add_lim_zero fg gh⟩⟩
+ λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε:α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -503,7 +503,7 @@ theorem pos_add_lim_zero {f g : cau_seq α abs} : pos f → lim_zero g → pos (
     rwa [← sub_eq_add_neg, sub_self_div_two] at this
   end⟩
 
-theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
+protected theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
 | ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
   let ⟨i, h⟩ := exists_forall_ge_and hF hG in
   ⟨_, _root_.mul_pos F0 G0, i,

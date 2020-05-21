@@ -87,7 +87,7 @@ instance to_lin.is_add_monoid_hom :
 
 lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-by { ext, simp [to_lin_apply, mul_vec, matrix.mul_val, finset.sum_mul, finset.mul_sum] }
+by { ext, simp }
 
 @[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
 by { ext, simp }
@@ -152,7 +152,7 @@ begin
   change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = ({j} : finset n).sum (λ y, ite (j = y) (M i y) 0),
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
       { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
@@ -197,6 +197,8 @@ def diag (n : Type u) (R : Type v) (M : Type w)
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
 
+@[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
+
 @[simp] lemma diag_one [decidable_eq n] :
   diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
 
@@ -210,6 +212,8 @@ def trace (n : Type u) (R : Type v) (M : Type w)
   to_fun := finset.univ.sum ∘ (diag n R M),
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
+
+@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = finset.univ.sum (diag n R M A) := rfl
 
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
@@ -265,7 +269,6 @@ begin
   exact le_refl _
 end
 
-set_option class.instance_max_depth 100
 
 lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=

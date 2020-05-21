@@ -59,9 +59,11 @@ instance has_forget_to_AddCommMon : has_forget₂ SemiRing AddCommMon :=
 end SemiRing
 
 /-- The category of rings. -/
-def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring)
+def Ring : Type (u+1) := bundled ring
 
 namespace Ring
+
+instance : bundled_hom.parent_projection @ring.to_semiring := ⟨⟩
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
@@ -77,7 +79,7 @@ instance (R : Ring) : ring R := R.str
 instance : category Ring := infer_instance -- short-circuit type class inference
 instance : concrete_category Ring := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance  -- short-circuit type class inference
+instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := bundled_hom.forget₂ _ _
 instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 -- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
 { forget₂ :=
@@ -87,9 +89,11 @@ instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 end Ring
 
 /-- The category of commutative semirings. -/
-def CommSemiRing : Type (u+1) := induced_category SemiRing (bundled.map comm_semiring.to_semiring)
+def CommSemiRing : Type (u+1) := bundled comm_semiring
 
 namespace CommSemiRing
+
+instance : bundled_hom.parent_projection @comm_semiring.to_semiring := ⟨⟩
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
@@ -105,7 +109,7 @@ instance (R : CommSemiRing) : comm_semiring R := R.str
 instance : category CommSemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommSemiRing := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := infer_instance -- short-circuit type class inference
+instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled_hom.forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommMon : has_forget₂ CommSemiRing CommMon :=
@@ -116,9 +120,11 @@ has_forget₂.mk'
 end CommSemiRing
 
 /-- The category of commutative rings. -/
-def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring)
+def CommRing : Type (u+1) := bundled comm_ring
 
 namespace CommRing
+
+instance : bundled_hom.parent_projection @comm_ring.to_ring := ⟨⟩
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
@@ -134,7 +140,7 @@ instance (R : CommRing) : comm_ring R := R.str
 instance : category CommRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommRing := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_Ring : has_forget₂ CommRing Ring := infer_instance -- short-circuit type class inference
+instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=

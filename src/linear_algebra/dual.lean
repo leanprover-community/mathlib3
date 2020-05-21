@@ -29,14 +29,6 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 We sometimes use `V'` as local notation for `dual K V`.
 
-## Implementation details
-
-Because of unresolved type class issues, the following local instance can be of use:
-
-```
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
-local attribute [instance] help_tcs
-```
 -/
 
 namespace module
@@ -97,9 +89,8 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
   smul := by intros; rw finsupp.smul_apply }
 include h
 
-set_option class.instance_max_depth 50
 
-def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
@@ -170,18 +161,15 @@ h.to_dual_equiv.is_basis h
 @[simp] lemma to_dual_to_dual [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h,
-  intros i,
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h.dual_basis_is_basis,
-  intros j,
+  refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply],
   apply eq.trans (to_dual_apply h.dual_basis_is_basis i j),
   { dunfold dual_basis,
     rw to_dual_apply,
-    split_ifs with h₁ h₂; try {refl},
-    { exfalso, apply h₂ h₁.symm },
-    { exfalso, apply ne.symm h₁ (by assumption) } }
+    by_cases h : i = j,
+    { rw [if_pos h, if_pos h.symm] },
+    { rw [if_neg h, if_neg (ne.symm h)] } }
 end
 
 omit de
@@ -207,40 +195,33 @@ open module module.dual submodule linear_map cardinal is_basis
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
 begin
-  haveI := classical.dec_eq K,
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq (dual K V),
+  classical,
   rw ker_eq_bot',
   intros v h,
   rw linear_map.ext_iff at h,
   by_contradiction H,
   rcases exists_subset_is_basis (linear_independent_singleton H) with ⟨b, hv, hb⟩,
   swap 4, assumption,
-  have hv' : v = (λ (i : b), i.val) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
+  have hv' : v = (coe : b → V) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
   let hx := h (hb.to_dual v),
-  erw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply _] at hx,
+  rw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply] at hx,
   exact one_ne_zero hx
 end
 
 theorem dual_dim_eq (h : dim K V < omega) :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
-  letI := classical.dec_eq (dual K V),
-  letI := classical.dec_eq V,
+  classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   exact hb.dual_dim_eq
 end
 
-set_option class.instance_max_depth 70
 
 lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
-  haveI := classical.dec_eq (dual K V),
-  haveI := classical.dec_eq (dual K (dual K V)),
-  letI := classical.dec_eq V,
+  classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
-  resetI,
   rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
   apply_instance
 end
@@ -290,10 +271,6 @@ def coeffs (v : V) : ι →₀ K :=
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
 omit h
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar
-
-local attribute [instance] help_tcs
-
 /-- linear combinations of elements of `e`.
 This is a convenient abbreviation for `finsupp.total _ V K e l` -/
 def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))

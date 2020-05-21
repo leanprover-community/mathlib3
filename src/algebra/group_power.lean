@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import data.int.basic
 import data.equiv.basic
+import deprecated.ring
 
 /-!
 # Power operations on monoids and groups
@@ -83,7 +84,7 @@ by rw [succ_smul, smul_add_comm']
 
 theorem pow_two (a : M) : a^2 = a * a :=
 show a*(a*1)=a*a, by rw mul_one
-theorem two_smul (a : A) : 2•a = a + a :=
+theorem two_smul' (a : A) : 2•a = a + a :=
 show a+(a+0)=a+a, by rw add_zero
 
 theorem pow_add (a : M) (m n : ℕ) : a^(m + n) = a^m * a^n :=
@@ -155,7 +156,7 @@ theorem is_add_monoid_hom.map_smul (f : A → B) [is_add_monoid_hom f] (a : A) (
   f (n • a) = n • f a :=
 (add_monoid_hom.of f).map_smul a n
 
-@[simp] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
+@[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 end monoid
@@ -416,6 +417,10 @@ f.to_monoid_hom.map_pow a
 
 variable (f : R →+* R)
 
+lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
+| 0 := rfl
+| (n+1) := by { simp only [nat.iterate_succ', pow_succ', coe_mul, coe_pow n], refl }
+
 lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
@@ -543,7 +548,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem pow_right_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
+theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
   (Hxyn : x ^ n = y ^ n) : x = y :=
 begin
   rcases lt_trichotomy x y with hxy | rfl | hyx,

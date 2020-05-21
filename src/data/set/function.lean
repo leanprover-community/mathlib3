@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
 -/
 import data.set.basic
-import logic.function
+import logic.function.basic
 
-/-! # Functions over sets
+/-!
+# Functions over sets
 
 ## Main definitions
 

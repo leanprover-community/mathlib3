@@ -367,7 +367,7 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = (finset.singleton (⟨one, zero⟩ : Σ a : fin n, fin n)).prod
+show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
   (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
   ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
 begin
@@ -414,7 +414,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
@@ -683,8 +683,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
-      by conv in (f) {rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1 };
-        simp [mul_def, one_def],
+      begin
+        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
+        simp [mul_def, one_def]
+      end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         card_support_swap hx.1.symm]; refl
   else
@@ -700,14 +702,3 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support
 end sign
 
 end equiv.perm
-
-lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
-eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
-  (λ _ _ _ _ H, σ.injective H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
-
-lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
-@finset.prod_univ_perm _ (multiplicative β) _ _ f σ
-
-attribute [to_additive] finset.prod_univ_perm

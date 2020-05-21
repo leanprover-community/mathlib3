@@ -49,8 +49,7 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 
 end End
 
-variables {C : Type u} [𝒞 : category.{v} C] (X : C)
-include 𝒞
+variables {C : Type u} [category.{v} C] (X : C)
 
 def Aut (X : C) := X ≅ X
 
@@ -78,8 +77,7 @@ end Aut
 
 namespace functor
 
-variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
-include 𝒟
+variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
 def map_End : End X →* End (f.obj X) :=

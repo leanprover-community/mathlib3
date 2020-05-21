@@ -21,8 +21,7 @@ open opposite
 namespace category_theory.limits
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {J : Type v} [small_category J]
 
@@ -73,6 +72,8 @@ the original diagram `F`. -/
       dsimp,
       simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
     end }, }.
+
+local attribute [semireducible] op unop opposite
 
 /-- The morphism from cones over the original diagram `F` to cones over the walking pair diagram
 `diagram F`. -/

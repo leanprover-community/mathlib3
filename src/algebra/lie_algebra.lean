@@ -46,6 +46,12 @@ class has_bracket (L : Type v) := (bracket : L → L → L)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
+/-- An Abelian Lie algebra is one in which all brackets vanish. Arguably this class belongs in the
+`has_bracket` namespace but it seems much more user-friendly to compromise slightly and put it in
+the `lie_algebra` namespace. -/
+class lie_algebra.is_abelian (L : Type v) [has_bracket L] [has_zero L] : Prop :=
+(abelian : ∀ (x y : L), ⁅x, y⁆ = 0)
+
 namespace ring_commutator
 
 variables {A : Type v} [ring A]
@@ -79,9 +85,9 @@ begin
   repeat { rw add_sub },
   repeat { rw ←sub_add },
   repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z := by simp [sub_eq_add_neg, add_left_comm],
+  have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
   repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm],
+  simp [sub_eq_add_neg, add_left_comm, add_assoc],
 end
 
 end ring_commutator
@@ -153,6 +159,19 @@ def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
   lie_add  := ring_commutator.add_right,
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }
+
+local attribute [instance] lie_ring.of_associative_ring
+
+lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
+  ⁅x, y⁆ = x*y - y*x := rfl
+
+lemma commutative_ring_iff_abelian_lie_ring (A : Type v) [ring A] :
+  is_commutative A (*) ↔ lie_algebra.is_abelian A :=
+begin
+  have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  have h₂ : lie_algebra.is_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
+end
 
 end lie_ring
 
@@ -303,15 +322,31 @@ An associative algebra gives rise to a Lie algebra by taking the bracket to be t
 -/
 def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
   @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
-{ lie_smul :=
-    begin
-      intros,
-      show _ - _ = _ • (_ - _),
-      rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
-    end }
+{ lie_smul := λ t x y,
+    by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
+           algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
+functorial. -/
+def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
+ { map_lie := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
+     by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
+  ..f.to_linear_map, }
+
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+
+@[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
+  [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
+  (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  of_associative_algebra_hom (g.comp f) = (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) := rfl
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
@@ -365,20 +400,32 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
-/-- A Lie subalgebra forms a new Lie ring.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
+/-- A Lie subalgebra forms a new Lie ring. -/
+instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },
   jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, } }
 
-/-- A Lie subalgebra forms a new Lie algebra.
-This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
     @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+
+local attribute [instance] lie_ring.of_associative_ring
+local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
+def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
+  (A' : subalgebra R A) : lie_subalgebra R A :=
+{ lie_mem := λ x y hx hy, by {
+    change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
+    rw lie_ring.of_associative_ring_bracket,
+    have hxy := subalgebra.mul_mem A' x y hx hy,
+    have hyx := subalgebra.mul_mem A' y x hy hx,
+    exact submodule.sub_mem A'.to_submodule hxy hyx, },
+  ..A'.to_submodule }
 
 end lie_subalgebra
 
@@ -468,6 +515,15 @@ def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L := {
   lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
 
+/-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
+class lie_module.is_irreducible [lie_module R L M] : Prop :=
+(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+
+/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
+action, and it is non-Abelian. -/
+class lie_algebra.is_simple : Prop :=
+(simple : lie_module.is_irreducible R L L ∧ ¬lie_algebra.is_abelian L)
+
 end lie_module
 
 namespace lie_submodule
@@ -516,7 +572,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
-  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg],
+  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,
   apply submodule.add_mem,
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },

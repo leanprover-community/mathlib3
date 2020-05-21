@@ -20,7 +20,6 @@ the right endpoint of an interval, are given in
 of the one-dimensional derivative `deriv ℝ f`.
 -/
 
-set_option class.instance_max_depth 40
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -67,7 +66,7 @@ begin
   { rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
     have conv : convex (B ∩ s) := (convex_ball _ _).inter s_conv,
     have diff : differentiable_on ℝ f (B ∩ s) := f_diff.mono (inter_subset_right _ _),
-    refine conv.norm_image_sub_le_of_norm_deriv_le diff (λz z_in, _) u_in v_in,
+    refine conv.norm_image_sub_le_of_norm_fderiv_within_le diff (λz z_in, _) u_in v_in,
     convert le_of_lt (hδ _ z_in.2 z_in.1),
     have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
     rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),

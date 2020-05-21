@@ -284,7 +284,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     ... ≤ c : by simp [this, inf_le_right],
   assume : a ≤ c,
   bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by rw [inf_comm]; exact inf_le_inf (le_refl _) this
+    calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
 /- Prop instance -/
@@ -327,7 +327,8 @@ end logic
 /- Function lattices -/
 
 /- TODO:
- * build up the lattice hierarchy for `fun`-functor piecewise. semilattic_*, bounded_lattice, lattice ...
+ * build up the lattice hierarchy for `fun`-functor piecewise. semilattic_*, bounded_lattice,
+   lattice ...
  * can this be generalized to the dependent function space?
 -/
 instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
@@ -799,3 +800,122 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 { .. prod.bounded_lattice α β, .. prod.distrib_lattice α β }
 
 end prod
+
+section disjoint
+variable [semilattice_inf_bot α]
+
+/-- Two elements of a lattice are disjoint if their inf is the bottom element.
+  (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
+def disjoint (a b : α) : Prop := a ⊓ b ≤ ⊥
+
+theorem disjoint.eq_bot {a b : α} (h : disjoint a b) : a ⊓ b = ⊥ :=
+eq_bot_iff.2 h
+
+theorem disjoint_iff {a b : α} : disjoint a b ↔ a ⊓ b = ⊥ :=
+eq_bot_iff.symm
+
+theorem disjoint.comm {a b : α} : disjoint a b ↔ disjoint b a :=
+by rw [disjoint, disjoint, inf_comm]
+
+@[symm] theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
+disjoint.comm.1
+
+@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
+@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+
+theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
+  disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
+
+theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
+disjoint.mono h (le_refl _)
+
+theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
+disjoint.mono (le_refl _) h
+
+@[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
+by simp [disjoint]
+
+lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
+by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
+
+end disjoint
+
+/-!
+### `is_compl` predicate
+-/
+
+/-- Two elements `x` and `y` are complements of each other if
+`x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
+structure is_compl [bounded_lattice α] (x y : α) : Prop :=
+(inf_le_bot : x ⊓ y ≤ ⊥)
+(top_le_sup : ⊤ ≤ x ⊔ y)
+
+namespace is_compl
+
+section bounded_lattice
+
+variables [bounded_lattice α] {x y z : α}
+
+protected lemma disjoint (h : is_compl x y) : disjoint x y := h.1
+
+@[symm] protected lemma symm (h : is_compl x y) : is_compl y x :=
+⟨by { rw inf_comm, exact h.1 }, by { rw sup_comm, exact h.2 }⟩
+
+lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y :=
+⟨le_of_eq h₁, le_of_eq h₂.symm⟩
+
+lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
+
+lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := top_unique h.top_le_sup
+
+lemma to_order_dual (h : is_compl x y) : @is_compl (order_dual α) _ x y := ⟨h.2, h.1⟩
+
+end bounded_lattice
+
+variables [bounded_distrib_lattice α] {x y z : α}
+
+lemma le_left_iff (h : is_compl x y) : z ≤ x ↔ disjoint z y :=
+⟨λ hz, h.disjoint.mono_left hz,
+  λ hz, le_of_inf_le_sup_le (le_trans hz bot_le) (le_trans le_top h.top_le_sup)⟩
+
+lemma le_right_iff (h : is_compl x y) : z ≤ y ↔ disjoint z x :=
+h.symm.le_left_iff
+
+lemma left_le_iff (h : is_compl x y) : x ≤ z ↔ ⊤ ≤ z ⊔ y :=
+h.to_order_dual.le_left_iff
+
+lemma right_le_iff (h : is_compl x y) : y ≤ z ↔ ⊤ ≤ z ⊔ x :=
+h.symm.left_le_iff
+
+lemma antimono {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
+  y' ≤ y :=
+h'.right_le_iff.2 $ le_trans h.symm.top_le_sup (sup_le_sup_left hx _)
+
+lemma right_unique (hxy : is_compl x y) (hxz : is_compl x z) :
+  y = z :=
+le_antisymm (hxz.antimono hxy $ le_refl x) (hxy.antimono hxz $ le_refl x)
+
+lemma left_unique (hxz : is_compl x z) (hyz : is_compl y z) :
+  x = y :=
+hxz.symm.right_unique hyz.symm
+
+lemma sup_inf {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
+  is_compl (x ⊔ x') (y ⊓ y') :=
+of_eq
+  (by rw [inf_sup_right, ← inf_assoc, h.inf_eq_bot, bot_inf_eq, bot_sup_eq, inf_left_comm,
+    h'.inf_eq_bot, inf_bot_eq])
+  (by rw [sup_inf_left, @sup_comm _ _ x, sup_assoc, h.sup_eq_top, sup_top_eq, top_inf_eq,
+    sup_assoc, sup_left_comm, h'.sup_eq_top, sup_top_eq])
+
+lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
+  is_compl (x ⊓ x') (y ⊔ y') :=
+(h.symm.sup_inf h'.symm).symm
+
+end is_compl
+
+lemma is_compl_bot_top [bounded_lattice α] : is_compl (⊥ : α) ⊤ :=
+is_compl.of_eq bot_inf_eq sup_top_eq
+
+lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
+is_compl.of_eq inf_bot_eq top_sup_eq
+

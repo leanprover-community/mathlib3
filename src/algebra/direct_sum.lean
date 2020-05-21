@@ -64,7 +64,7 @@ theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
 dfinsupp.mk_inj s
 
 theorem of_inj (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp [finset.to_set]⟩
+λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_sum ι β → Prop}
@@ -130,7 +130,7 @@ is_add_group_hom.map_neg _ x
 is_add_group_hom.map_sub _ x y
 
 @[simp] lemma to_group_of (i) (x : β i) : to_group φ (of β i x) = φ i x :=
-(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ finset.singleton i then x else 0) = x,
+(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
 from dif_pos $ finset.mem_singleton_self i
 
 variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]

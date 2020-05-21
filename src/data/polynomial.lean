@@ -8,6 +8,7 @@ import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import tactic.ring_exp
+import deprecated.field
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -953,7 +954,7 @@ by rw [ne.def, ← degree_eq_bot];
 
 @[simp] lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
 by rw [coeff_mul, nat.antidiagonal_zero];
-simp only [polynomial.coeff_X_zero, finset.insert_empty_eq_singleton, finset.sum_singleton, mul_zero]
+simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
 
 end comm_semiring
 
@@ -1013,7 +1014,7 @@ lemma nat_degree_map' (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map' hf p)
 
-lemma map_injective (p : polynomial R) : injective (map f) :=
+lemma map_injective : injective (map f) :=
 λ p q h, ext $ λ m, hf $
 begin
   rw ext_iff at h,
@@ -1557,7 +1558,7 @@ else
   have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
     from eq_of_sub_eq_zero
       (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
-        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm]),
+        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]),
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
@@ -1789,7 +1790,7 @@ begin
   exact multiplicity.is_greatest'
     (multiplicity_finite_of_degree_pos_of_monic
     (show (0 : with_bot ℕ) < degree (X - C a),
-      by rw degree_X_sub_C; exact dec_trivial) _ hp)
+      by rw degree_X_sub_C; exact dec_trivial) (monic_X_sub_C _) hp)
     (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
 end
 
@@ -2268,7 +2269,7 @@ end field
 section derivative
 variables [comm_semiring R]
 
-/-- `derivative p` formal derivative of the polynomial `p` -/
+/-- `derivative p` is the formal derivative of the polynomial `p` -/
 def derivative (p : polynomial R) : polynomial R := p.sum (λn a, C (a * n) * X^(n - 1))
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) : coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
@@ -2308,12 +2309,26 @@ derivative_C
 by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
+/-- The formal derivative of polynomials, as additive homomorphism. -/
+def derivative_hom (R : Type*) [comm_semiring R] : polynomial R →+ polynomial R :=
+{ to_fun := derivative,
+  map_zero' := derivative_zero,
+  map_add' := λ p q, derivative_add }
+
+@[simp] lemma derivative_neg {R : Type*} [comm_ring R] (f : polynomial R) :
+  derivative (-f) = -derivative f :=
+(derivative_hom R).map_neg f
+
+@[simp] lemma derivative_sub {R : Type*} [comm_ring R] (f g : polynomial R) :
+  derivative (f - g) = derivative f - derivative g :=
+(derivative_hom R).map_sub f g
+
 instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
-{ map_add := λ _ _, derivative_add, map_zero := derivative_zero }
+(derivative_hom R).is_add_monoid_hom
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-(s.sum_hom derivative).symm
+(derivative_hom R).map_sum f s
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -2344,6 +2359,36 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
 
 lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp [derivative, eval_sum, eval_pow]
+
+@[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
+by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
+
+/-- The formal derivative of polynomials, as linear homomorphism. -/
+def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
+{ to_fun := derivative,
+  add    := λ p q, derivative_add,
+  smul   := λ r p, derivative_smul r p }
+
+/-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
+then `f / (X - a)` is coprime with `X - a`.
+Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
+lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
+  (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
+  ideal.is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
+begin
+  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
+  contrapose! hf' with h,
+  have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
+  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
+    exact monic_X_sub_C a },
+  replace key := congr_arg derivative key,
+  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
+  have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
+  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
+  rw [← C_inj, this, C_0],
+end
 
 end derivative
 
@@ -2434,7 +2479,7 @@ begin
   { symmetry, apply finsupp.sum_mul }
 end
 
-def pow_sub_pow_factor (x y : R) : Π {i : ℕ},{z : R // x^i - y^i = z*(x - y)}
+def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - y)}
 | 0 := ⟨0, by simp⟩
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
@@ -2448,18 +2493,15 @@ def pow_sub_pow_factor (x y : R) : Π {i : ℕ},{z : R // x^i - y^i = z*(x - y)}
   end
 
 def eval_sub_factor (f : polynomial R) (x y : R) :
-  {z : R // f.eval x - f.eval y = z*(x - y)} :=
+  {z : R // f.eval x - f.eval y = z * (x - y)} :=
 begin
-  existsi f.sum (λ a b, b * (pow_sub_pow_factor x y).val),
-  unfold eval eval₂,
-  rw [←finsupp.sum_sub],
-  have : finsupp.sum f (λ (a : ℕ) (b : R), b * (pow_sub_pow_factor x y).val) * (x - y) =
-    finsupp.sum f (λ (a : ℕ) (b : R), b * (pow_sub_pow_factor x y).val * (x - y)),
-  { apply finsupp.sum_mul },
-  rw this,
-  congr, ext e a,
-  rw [mul_assoc, ←(pow_sub_pow_factor x y).property],
-  simp [mul_sub]
+  refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,
+  delta eval eval₂,
+  rw ← finsupp.sum_sub,
+  rw finsupp.sum_mul,
+  delta finsupp.sum,
+  congr, ext i r, dsimp,
+  rw [mul_assoc, ←(pow_sub_pow_factor x y _).property, mul_sub],
 end
 
 end identities

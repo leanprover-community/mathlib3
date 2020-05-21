@@ -25,8 +25,7 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [fintype J] [de
   fin_category (discrete J) :=
 { }
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 class has_finite_limits :=
 (has_limits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_limits_of_shape.{v} J C)

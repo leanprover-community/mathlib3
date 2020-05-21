@@ -11,7 +11,7 @@ import analysis.convex.topology
 
 In this file we prove the following facts:
 
-* `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentaible on a convex set `s`
+* `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentiable on a convex set `s`
   and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
   constant `C`.
 
@@ -54,7 +54,6 @@ In this file we prove the following facts:
   is increasing or its second derivative is nonnegative, then the original function is convex.
 -/
 
-set_option class.instance_max_depth 120
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -413,14 +412,15 @@ end
 
 /-! ### Vector-valued functions `f : E → F` -/
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by C, then
-the function is C-Lipschitz -/
-theorem convex.norm_image_sub_le_of_norm_deriv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
-  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`, then
+the function is `C`-Lipschitz. Version with `has_fderiv_within`. -/
+theorem convex.norm_image_sub_le_of_norm_has_fderiv_within_le
+  {f : E → F} {C : ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] F)}
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
-  /- By composition with t ↦ x + t • (y-x), we reduce to a statement for functions defined
-  on [0,1], for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
+  /- By composition with `t ↦ x + t • (y-x)`, we reduce to a statement for functions defined
+  on `[0,1]`, for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
   We just have to check the differentiability of the composition and bounds on its derivative,
   which is straightforward but tedious for lack of automation. -/
   have C0 : 0 ≤ C := le_trans (norm_nonneg _) (bound x xs),
@@ -436,15 +436,31 @@ begin
   have : f y = f (g 1), by { simp only [g], rw [one_smul, add_sub_cancel'_right] },
   rw this,
   have D2: ∀ t ∈ Icc (0:ℝ) 1, has_deriv_within_at (f ∘ g)
-    ((fderiv_within ℝ f s (g t) : E → F) (y-x)) (Icc (0:ℝ) 1) t,
+    ((f' (g t) : E → F) (y-x)) (Icc (0:ℝ) 1) t,
   { intros t ht,
-    exact (hf (g t) $ segm ht).has_fderiv_within_at.comp_has_deriv_within_at _
+    exact (hf (g t) $ segm ht).comp_has_deriv_within_at _
       (Dg t).has_deriv_within_at segm },
   apply norm_image_sub_le_of_norm_deriv_le_segment_01' D2,
   assume t ht,
   refine le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
   exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
+
+/-- The mean value theorem on a convex set: if the derivative of a function within this set is
+bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/
+theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
+hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
+bound xs ys
+
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`,
+then the function is `C`-Lipschitz. Version with `fderiv`. -/
+theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
+hs.norm_image_sub_le_of_norm_has_fderiv_within_le
+(λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
 
 /-- If a function has zero Fréchet derivative at every point of a convex set,
 then it is a constant on this set. -/
@@ -455,13 +471,39 @@ theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
 have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
   from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
-  using hs.norm_image_sub_le_of_norm_deriv_le hf bound hx hy
+  using hs.norm_image_sub_le_of_norm_fderiv_within_le hf bound hx hy
 
 theorem is_const_of_fderiv_eq_zero {f : E → F} (hf : differentiable ℝ f)
   (hf' : ∀ x, fderiv ℝ f x = 0) (x y : E) :
   f x = f y :=
 convex_univ.is_const_of_fderiv_within_eq_zero hf.differentiable_on
   (λ x _, by rw fderiv_within_univ; exact hf' x) trivial trivial
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C`, then the function is `C`-Lipschitz. Version with `has_deriv_within`. -/
+theorem convex.norm_image_sub_le_of_norm_has_deriv_within_le
+  {f f' : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
+  (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
+convex.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
+(λ x hx, le_trans (by simp) (bound x hx)) hs xs ys
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function within
+this set is bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv_within` -/
+theorem convex.norm_image_sub_le_of_norm_deriv_within_le
+  {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥deriv_within f s x∥ ≤ C)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
+hs.norm_image_sub_le_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_within_at)
+bound xs ys
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv`. -/
+theorem convex.norm_image_sub_le_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
+hs.norm_image_sub_le_of_norm_has_deriv_within_le
+(λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound xs ys
 
 /-! ### Functions `[a, b] → ℝ`. -/
 

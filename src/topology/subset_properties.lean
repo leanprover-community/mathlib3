@@ -45,7 +45,7 @@ assume f hnf hstf,
 let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
 have a ∈ t,
   from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot (by { rw inf_comm at ha, exact ha }) $
-    inf_le_inf (le_refl _) (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
+    inf_le_inf_left _ (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
 lemma compact.inter_left {s t : set α} (ht : compact t) (hs : is_closed s) : compact (s ∩ t) :=
@@ -86,7 +86,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
   have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
-  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
+  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf_right _ ultrafilter_of_le)⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
@@ -594,7 +594,7 @@ theorem is_preirreducible_empty : is_preirreducible (∅ : set α) :=
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 ⟨singleton_nonempty x,
  λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
- substs y z; exact ⟨x, or.inl rfl, h2, h4⟩⟩
+ substs y z; exact ⟨x, rfl, h2, h4⟩⟩
 
 theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
   is_preirreducible (closure s) :=
@@ -736,11 +736,10 @@ begin
   { split,
     { simpa using h ∅ _ _; intro u; simp },
     intros u v hu hv hu' hv',
-    simpa using h {v,u} _ _,
+    simpa using h {u,v} _ _,
     all_goals
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption } }
 end
 
@@ -803,13 +802,11 @@ begin
       { intro z, simp },
       { simpa [set.nonempty] using hs } },
     intros z₁ z₂ hz₁ hz₂ H,
-    have := h {z₂, z₁} _ _,
-    simp only [exists_prop, finset.insert_empty_eq_singleton,
-      finset.mem_insert, finset.mem_singleton] at this,
+    have := h {z₁, z₂} _ _,
+    simp only [exists_prop, finset.mem_insert, finset.mem_singleton] at this,
     { rcases this with ⟨z, rfl|rfl, hz⟩; tauto },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using H } }
 end
@@ -883,8 +880,8 @@ end
 theorem is_preconnected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
   (H3 : is_preconnected s) (H4 : is_preconnected t) : is_preconnected (s ∪ t) :=
 sUnion_pair s t ▸ is_preconnected_sUnion x {s, t}
-  (by rintro r (rfl | rfl | h); [exact H2, exact H1, exact h.elim])
-  (by rintro r (rfl | rfl | h); [exact H4, exact H3, exact h.elim])
+  (by rintro r (rfl | rfl | h); assumption)
+  (by rintro r (rfl | rfl | h); assumption)
 
 theorem is_connected.union {s t : set α} (H : (s ∩ t).nonempty)
   (Hs : is_connected s) (Ht : is_connected t) : is_connected (s ∪ t) :=
@@ -1117,20 +1114,17 @@ begin
       by_contradiction hs, push_neg at hs, subst hs,
       simpa using h ∅ _ _ _; simp },
     intros u v hu hv hs hsuv,
-    rcases h {v, u} _ _ _ with ⟨t, ht, ht'⟩,
-    { rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht,
+    rcases h {u, v} _ _ _ with ⟨t, ht, ht'⟩,
+    { rw [finset.mem_insert, finset.mem_singleton] at ht,
       rcases ht with rfl|rfl; tauto },
     { intros t₁ t₂ ht₁ ht₂ hst,
       rw ← ne_empty_iff_nonempty at hst,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
+      rw [finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
       rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
       all_goals { refl <|> contradiction <|> skip },
       rw inter_comm t₁ at hst, contradiction },
     { intro t,
-      rw [finset.insert_empty_eq_singleton,
-          finset.mem_insert, finset.mem_singleton],
+      rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using hs } }
 end
@@ -1175,7 +1169,7 @@ theorem is_totally_disconnected_of_is_totally_separated {s : set α}
 λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
 assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
-((ext_iff _ _).1 huv r).1 hruv⟩
+(ext_iff.1 huv r).1 hruv⟩
 
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/

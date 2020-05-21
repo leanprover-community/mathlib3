@@ -16,8 +16,7 @@ variables {C : Type u₁}
 
 section has_hom
 
-variables [𝒞 : has_hom.{v₁} C]
-include 𝒞
+variables [has_hom.{v₁} C]
 
 /-- The hom types of the opposite of a category (or graph).
 
@@ -46,8 +45,7 @@ lemma has_hom.hom.unop_inj {X Y : Cᵒᵖ} :
 
 end has_hom
 
-variables [𝒞 : category.{v₁} C]
-include 𝒞
+variables [category.{v₁} C]
 
 instance category.opposite : category.{v₁} Cᵒᵖ :=
 { comp := λ _ _ _ f g, (g.unop ≫ f.unop).op,
@@ -93,8 +91,7 @@ namespace functor
 
 section
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 variables {C D}
 
@@ -179,11 +176,12 @@ end functor
 
 namespace nat_trans
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 section
 variables {F G : C ⥤ D}
+
+local attribute [semireducible] has_hom.opposite
 
 @[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
@@ -193,7 +191,14 @@ variables {F G : C ⥤ D}
 
 @[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' :=
+  begin
+    intros X Y f,
+    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    dsimp at this,
+    erw this,
+    refl,
+  end }
 
 @[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
@@ -201,6 +206,8 @@ end
 
 section
 variables {F G : C ⥤ Dᵒᵖ}
+
+local attribute [semireducible] has_hom.opposite
 
 protected definition left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
 { app         := λ X, (α.app (unop X)).unop,
@@ -212,7 +219,13 @@ rfl
 
 protected definition right_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).op,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' :=
+  begin
+    intros X Y f,
+    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    dsimp at this,
+    erw this
+  end }
 
 @[simp] lemma right_op_app (α : F.left_op ⟶ G.left_op) (X) :
   (nat_trans.right_op α).app X = (α.app (op X)).op :=
@@ -238,8 +251,7 @@ end iso
 
 namespace nat_iso
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 variables {F G : C ⥤ D}
 
 /-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural

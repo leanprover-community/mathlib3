@@ -112,7 +112,7 @@ by haveI := classical.dec_pred (λ (x : α), x ∈ s);
 
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
-set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
+set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 
 lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
@@ -139,7 +139,6 @@ linear_map.cod_restrict _
 variables {M R}
 
 section
-set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
   ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
@@ -209,7 +208,6 @@ begin
 end
 
 section
-set_option class.instance_max_depth 37
 def supported_equiv_finsupp (s : set α) :
   (supported M R s) ≃ₗ[R] (s →₀ M) :=
 (restrict_support_equiv s).to_linear_equiv
@@ -395,7 +393,7 @@ begin
 end
 
 lemma total_comap_domain
- (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) :
+ (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
  finsupp.total α M R v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 

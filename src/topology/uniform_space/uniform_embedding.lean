@@ -51,7 +51,7 @@ lemma uniform_embedding_set_inclusion {s t : set α} (hst : s ⊆ t) :
 
 lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
   {f : α → β} (hf : uniform_embedding f) : uniform_embedding (g ∘ f) :=
-{ inj := function.injective_comp hg.inj hf.inj,
+{ inj := hg.inj.comp hf.inj,
   ..hg.to_uniform_inducing.comp hf.to_uniform_inducing }
 
 theorem uniform_embedding_def {f : α → β} :
@@ -281,7 +281,7 @@ let ⟨x, (hx : map m (filter.comap m g) ≤ 𝓝 x)⟩ := h _ this in
 have map m (filter.comap m g) ⊓ 𝓝 x ≠ ⊥,
   from (le_nhds_iff_adhp_of_cauchy (cauchy_map hm.uniform_continuous this)).mp hx,
 have g ⊓ 𝓝 x ≠ ⊥,
-  from ne_bot_of_le_ne_bot this (inf_le_inf (assume s hs, ⟨s, hs, subset.refl _⟩) (le_refl _)),
+  from ne_bot_of_le_ne_bot this (inf_le_inf_right _ (assume s hs, ⟨s, hs, subset.refl _⟩)),
 
 ⟨x, calc f ≤ g : by assumption
   ... ≤ 𝓝 x : le_nhds_of_cauchy_adhp ‹cauchy g› this⟩⟩

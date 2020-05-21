@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import algebra.ordered_group
-import algebra.ring
+import algebra.ordered_field
+import data.nat.basic
 
 namespace nat
 variables {α : Type*}
@@ -19,7 +19,35 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
-@[priority 10] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
+/--
+Coercions such as `nat.cast_coe` that go from a concrete structure such as
+`ℕ` to an arbitrary ring `α` should be set up as follows:
+```lean
+@[priority 900] instance : has_coe_t ℕ α := ⟨...⟩
+```
+
+It needs to be `has_coe_t` instead of `has_coe` because otherwise type-class
+inference would loop when constructing the transitive coercion `ℕ → ℕ → ℕ → ...`.
+The reduced priority is necessary so that it doesn't conflict with instances
+such as `has_coe_t α (option α)`.
+
+For this to work, we reduce the priority of the `coe_base` and `coe_trans`
+instances because we want the instances for `has_coe_t` to be tried in the
+following order:
+
+ 1. `has_coe_t` instances declared in mathlib (such as `has_coe_t α (with_top α)`, etc.)
+ 2. `coe_base`, which contains instances such as `has_coe (fin n) n`
+ 3. `nat.cast_coe : has_coe_t ℕ α` etc.
+ 4. `coe_trans`
+
+If `coe_trans` is tried first, then `nat.cast_coe` doesn't get a chance to apply.
+-/
+library_note "coercion into rings"
+attribute [instance, priority 950] coe_base
+attribute [instance, priority 500] coe_trans
+
+-- see note [coercion into rings]
+@[priority 900] instance cast_coe : has_coe_t ℕ α := ⟨nat.cast⟩
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
@@ -106,6 +134,23 @@ by by_cases a ≤ b; simp [h, max]
 @[simp, norm_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
+section linear_ordered_field
+variables [linear_ordered_field α]
+
+lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
+inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
+
+lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
+by { rw one_div_eq_inv, exact inv_pos_of_nat }
+
+lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
+by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
+
+lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
+by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
+
+end linear_ordered_field
+
 end nat
 
 lemma add_monoid_hom.eq_nat_cast {A} [add_monoid A] [has_one A] (f : ℕ →+ A) (h1 : f 1 = 1) :
@@ -122,3 +167,45 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 ((ring_hom.id ℕ).eq_nat_cast n).symm
+
+@[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
+  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
+| 0     := rfl
+| (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
+
+namespace with_top
+variables {α : Type*} [canonically_ordered_comm_semiring α] [decidable_eq α]
+
+@[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
+| 0     := rfl
+| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
+           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
+
+@[simp] lemma nat_ne_top (n : nat) : (n : with_top α) ≠ ⊤ :=
+by rw [←coe_nat n]; apply coe_ne_top
+
+@[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
+by rw [←coe_nat n]; apply top_ne_coe
+
+lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
+begin
+  cases n, { exact le_top },
+  cases i, { exact (not_le_of_lt h le_top).elim },
+  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
+end
+
+@[elab_as_eliminator]
+lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
+  (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=
+begin
+  have A : ∀n:ℕ, P n,
+  { assume n,
+    induction n with n IH,
+    { exact h0 },
+    { exact hsuc n IH } },
+  cases a,
+  { exact htop A },
+  { exact A a }
+end
+
+end with_top

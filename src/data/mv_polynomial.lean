@@ -340,13 +340,12 @@ begin
     rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
     { intros x hx,
       rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
-      rw if_neg,
-      exact hx.2 hx.1 },
+      simp only [if_neg (hx.2 hx.1)] },
     { apply finset.sum_bij, swap 5,
       { intros x hx, exact (x.1, x.2) },
       { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
         simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
-      { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
+      { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
       { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
       { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
         { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
@@ -526,6 +525,8 @@ def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
 
+@[simp] lemma eval_one : (1 : mv_polynomial σ α).eval f = 1 := eval₂_one _ _
+
 @[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
 lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
@@ -536,6 +537,8 @@ eval₂_monomial _ _
 @[simp] lemma eval_X : ∀ n, (X n).eval f = f n := eval₂_X _ _
 
 @[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
+
+@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval f = (p.eval f) ^ n := eval₂_pow _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
@@ -664,15 +667,14 @@ lemma degrees_monomial (s : σ →₀ ℕ) (a : α) : degrees (monomial s a) ≤
 finset.sup_le $ assume t h,
 begin
   have := finsupp.support_single_subset h,
-  rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  rw [finset.mem_singleton] at this,
   rw this
 end
 
 lemma degrees_monomial_eq (s : σ →₀ ℕ) (a : α) (ha : a ≠ 0) :
   degrees (monomial s a) = s.to_multiset :=
 le_antisymm (degrees_monomial s a) $ finset.le_sup $
-  by rw [monomial, finsupp.support_single_ne_zero ha,
-    finset.singleton_eq_singleton, finset.mem_singleton]
+  by rw [monomial, finsupp.support_single_ne_zero ha, finset.mem_singleton]
 
 lemma degrees_C (a : α) : degrees (C a : mv_polynomial σ α) = 0 :=
 multiset.le_zero.1 $ degrees_monomial _ _
@@ -708,7 +710,7 @@ lemma degrees_mul (p q : mv_polynomial σ α) : (p * q).degrees ≤ p.degrees + 
 begin
   refine finset.sup_le (assume b hb, _),
   have := support_mul p q hb,
-  simp only [finset.mem_bind, finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  simp only [finset.mem_bind, finset.mem_singleton] at this,
   rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
   rw [finsupp.to_multiset_add],
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
@@ -792,20 +794,27 @@ begin
   exact finset.sup_le (assume s hs, multiset.card_le_of_le $ finset.le_sup hs)
 end
 
-lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
 nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   have _ := finsupp.support_single_subset hn,
   begin
-    rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+    rw [finset.mem_singleton] at this,
     subst this,
     exact le_refl _
   end
 
-lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
 by rw [← C_0]; exact total_degree_C (0 : α)
 
-lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
+
+@[simp] lemma total_degree_X {α} [nonzero_comm_ring α] (s : σ) :
+  (X s : mv_polynomial σ α).total_degree = 1 :=
+begin
+  rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
+  simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
+end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :
   (a + b).total_degree ≤ max a.total_degree b.total_degree :=
@@ -823,13 +832,24 @@ lemma total_degree_mul (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := add_monoid_algebra.support_mul a b hn,
   begin
-    simp only [finset.mem_bind, finset.mem_singleton, finset.singleton_eq_singleton] at this,
+    simp only [finset.mem_bind, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
     rw [finsupp.sum_add_index],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
     { assume a, refl },
     { assume a b₁ b₂, refl }
   end
+
+lemma total_degree_pow (a : mv_polynomial σ α) (n : ℕ) :
+  (a ^ n).total_degree ≤ n * a.total_degree :=
+begin
+  induction n with n ih,
+  { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
+  rw pow_succ,
+  calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul _ _
+    ... ≤ a.total_degree + n * a.total_degree : add_le_add_left ih _
+    ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
+end
 
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ α)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
@@ -986,6 +1006,20 @@ eval₂.is_ring_hom _ _
 @[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 
 end map
+
+section total_degree
+
+@[simp] lemma total_degree_neg (a : mv_polynomial σ α) :
+  (-a).total_degree = a.total_degree :=
+by simp only [total_degree, finsupp.support_neg]
+
+lemma total_degree_sub (a b : mv_polynomial σ α) :
+  (a - b).total_degree ≤ max a.total_degree b.total_degree :=
+calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_add_neg
+                      ... ≤ max a.total_degree (-b).total_degree : total_degree_add a (-b)
+                      ... = max a.total_degree b.total_degree    : by rw total_degree_neg
+
+end total_degree
 
 section aeval
 
@@ -1183,7 +1217,7 @@ theorem exists_fin_rename (p : mv_polynomial γ α) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
-  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, q.rename e, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end

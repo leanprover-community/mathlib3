@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-import category.monad.basic
+import control.monad.basic
 import data.fintype.basic
 
 /-!
@@ -12,7 +12,7 @@ than `fintype` in that it assigns each element a rank in a finite
 enumeration.
 -/
 
-open finset (hiding singleton)
+open finset
 
 /-- `fin_enum α` means that `α` is finite and can be enumerated in some order,
   i.e. `α` has an explicit bijection with `fin n` for some n. -/
@@ -111,11 +111,11 @@ begin
       { exact or.inl hx },
       { exact or.inr (h _ hx) }  },
     intro h, existsi s \ ({xs_hd} : finset α),
-    simp only [and_imp, union_comm, mem_sdiff, insert_empty_eq_singleton, mem_singleton],
+    simp only [and_imp, union_comm, mem_sdiff, mem_singleton],
     simp only [or_iff_not_imp_left] at h,
     existsi h,
     by_cases xs_hd ∈ s,
-    { have : finset.singleton xs_hd ⊆ s, simp only [has_subset.subset, *, forall_eq, mem_singleton],
+    { have : {xs_hd} ⊆ s, simp only [has_subset.subset, *, forall_eq, mem_singleton],
       simp only [union_sdiff_of_subset this, or_true, finset.union_sdiff_of_subset, eq_self_iff_true], },
     { left, symmetry, simp only [sdiff_eq_self],
       intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],

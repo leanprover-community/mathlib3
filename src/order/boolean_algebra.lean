@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
-import logic.function
+import logic.function.basic
 set_option old_structure_cmd true
 
 universes u
@@ -39,24 +39,26 @@ boolean_algebra.sup_compl_eq_top x
 @[simp] theorem compl_sup_eq_top : - x ⊔ x = ⊤ :=
 eq.trans sup_comm sup_compl_eq_top
 
+theorem is_compl_neg : is_compl x (-x) :=
+is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
+
+theorem is_compl.neg_eq (h : is_compl x y) : -x = y :=
+(h.right_unique is_compl_neg).symm
+
 theorem sub_eq : x - y = x ⊓ - y :=
 boolean_algebra.sub_eq x y
 
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : - x = y :=
-calc -x = -x ⊓ (x ⊔ y)    : by simp [s]
-    ... = -x ⊓ x ⊔ -x ⊓ y : inf_sup_left
-    ... = y ⊓ x ⊔ y ⊓ -x  : by simp [i, inf_comm]
-    ... = y ⊓ (x ⊔ -x)    : inf_sup_left.symm
-    ... = y               : by simp
+(is_compl.of_eq i s).neg_eq
 
 @[simp] theorem compl_top : - ⊤ = (⊥:α) :=
-compl_unique (by simp) (by simp)
+is_compl_top_bot.neg_eq
 
 @[simp] theorem compl_bot : - ⊥ = (⊤:α) :=
-compl_unique (by simp) (by simp)
+is_compl_bot_top.neg_eq
 
 @[simp] theorem compl_compl' : - (- x) = x :=
-compl_unique (by simp) (by simp)
+is_compl_neg.symm.neg_eq
 
 theorem compl_inj : function.injective (has_neg.neg : α → α) :=
 function.involutive.injective $ λ x, compl_compl'
@@ -65,19 +67,13 @@ function.involutive.injective $ λ x, compl_compl'
 compl_inj.eq_iff
 
 @[simp] theorem compl_inf : - (x ⊓ y) = -x ⊔ -y :=
-compl_unique -- TODO: try rsimp if it supports custom lemmas
-  (calc (x ⊓ y) ⊓ (- x ⊔ - y) = (y ⊓ (x ⊓ - x)) ⊔ (x ⊓ (y ⊓ - y)) : by rw [inf_sup_left]; ac_refl
-                          ... = ⊥ : by simp)
-  (calc (x ⊓ y) ⊔ (- x ⊔ - y) = (- y ⊔ (x ⊔ - x)) ⊓ (- x ⊔ (y ⊔ - y)) : by rw [sup_inf_right]; ac_refl
-                          ... = ⊤ : by simp)
+(is_compl_neg.inf_sup is_compl_neg).neg_eq
 
 @[simp] theorem compl_sup : - (x ⊔ y) = -x ⊓ -y :=
-begin [smt] eblast_using [compl_compl', compl_inf] end
+(is_compl_neg.sup_inf is_compl_neg).neg_eq
 
 theorem compl_le_compl (h : y ≤ x) : - x ≤ - y :=
-le_of_inf_eq $
-  calc -x ⊓ -y = - (x ⊔ y) : compl_sup.symm
-           ... = -x        : congr_arg has_neg.neg $ sup_of_le_left h
+is_compl_neg.antimono is_compl_neg h
 
 theorem compl_le_compl_iff_le : - y ≤ - x ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
@@ -98,10 +94,7 @@ theorem sup_sub_same : x ⊔ (y - x) = x ⊔ y :=
 by simp [sub_eq, sup_inf_left]
 
 theorem sub_eq_left (h : x ⊓ y = ⊥) : x - y = x :=
-calc x - y = (x ⊓ -y) ⊔ (x ⊓ y) : by simp [h, sub_eq]
-  ... = (-y ⊓ x) ⊔ (y ⊓ x) : by simp [inf_comm]
-  ... = (-y ⊔ y) ⊓ x : inf_sup_right.symm
-  ... = x : by simp
+by rwa [sub_eq, inf_eq_left, is_compl_neg.le_right_iff, disjoint_iff]
 
 theorem boolean_algebra.sub_le_sub (h₁ : w ≤ y) (h₂ : z ≤ x) : w - x ≤ y - z :=
 by rw [sub_eq, sub_eq]; from inf_le_inf h₁ (compl_le_compl h₂)

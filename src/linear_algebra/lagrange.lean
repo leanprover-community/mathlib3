@@ -65,7 +65,9 @@ by { unfold basis, generalize hsx : s.erase x = sx,
 
 variables (f : (↑s : set F) → F)
 
-/-- Lagrange interpolation. -/
+/-- Lagrange interpolation: given a finset `s` and a function `f : s → F`,
+`interpolate s f` is the unique polynomial of degree `< s.card`
+that takes value `f x` on all `x` in `s`. -/
 def interpolate : polynomial F :=
 s.attach.sum $ λ x, C (f x) * basis s x
 

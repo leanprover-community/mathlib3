@@ -449,8 +449,8 @@ lemma is_adjoint_pair_smul (c : R) (T T' : module.End R M) (hT : B.is_adjoint_pa
 λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply, smul_left, smul_right, hT]
 
 lemma is_adjoint_pair_mul
-  (T S T' S' : module.End R M) (hT : is_adjoint_pair B T T') (hS : is_adjoint_pair B S S') :
-  is_adjoint_pair B (T * S) (S' * T') :=
+  (T S T' S' : module.End R M) (hT : B.is_adjoint_pair T T') (hS : B.is_adjoint_pair S S') :
+  B.is_adjoint_pair (T * S) (S' * T') :=
 λ x y, by rw [linear_map.mul_app, linear_map.mul_app, hT, hS]
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form, if it serves as an
@@ -491,7 +491,7 @@ lemma is_skew_adjoint_smul (c : R) (T : module.End R M)
 /-- Given an `R`-module `M`, equipped with a bilinear form, the set of self-adjoint endomorphisms
 form a submodule of End R M. (In fact they form a Jordan subalgebra.) -/
 def self_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { T | is_self_adjoint B T },
+{ carrier := { T | B.is_self_adjoint T },
   zero    := B.is_self_adjoint_zero,
   add     := B.is_self_adjoint_add,
   smul    := B.is_self_adjoint_smul, }
@@ -499,7 +499,7 @@ def self_adjoint_submodule : submodule R (module.End R M) :=
 /-- Given an `R`-module `M`, equipped with a bilinear form, the set of skew-adjoint endomorphisms
 form a submodule of End R M. (In fact they form a Lie subalgebra.) -/
 def skew_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { T | is_skew_adjoint B T },
+{ carrier := { T | B.is_skew_adjoint T },
   zero    := B.is_skew_adjoint_zero,
   add     := B.is_skew_adjoint_add,
   smul    := B.is_skew_adjoint_smul, }
@@ -581,9 +581,8 @@ def skew_adjoint_matrices_submodule (J : matrix n n R) : submodule R (matrix n n
 lemma self_adjoint_matrices_submodule_spec (J A : matrix n n R) :
   A ∈ self_adjoint_matrices_submodule J ↔ J.is_self_adjoint A :=
 begin
-  suffices : A ∈ self_adjoint_matrices_submodule J ↔ J.to_bilin_form.is_adjoint_pair _ _, by
-    { change _ ↔ J.is_adjoint_pair A A, rw [this, matrix_is_adjoint_pair_bilin_form], },
-  change A ∈ (self_adjoint_matrices_linear_embedding J).range ↔ _, rw linear_map.mem_range,
+  change A ∈ (self_adjoint_matrices_linear_embedding J).range ↔ J.is_adjoint_pair A A,
+  rw [matrix_is_adjoint_pair_bilin_form, linear_map.mem_range],
   simp only [self_adjoint_matrices_linear_embedding_apply], split,
   { rintros ⟨⟨A', hA'⟩, h⟩, rw ←h, rw to_matrix_to_lin, exact hA', },
   { intros h, exact ⟨⟨A.to_lin, h⟩, to_lin_to_matrix⟩, },
@@ -592,9 +591,8 @@ end
 lemma skew_adjoint_matrices_submodule_spec (J A : matrix n n R) :
   A ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A :=
 begin
-  suffices : A ∈ skew_adjoint_matrices_submodule J ↔ J.to_bilin_form.is_adjoint_pair _ _, by
-    { change _ ↔ J.is_adjoint_pair A (-A), rw [this, matrix_is_adjoint_pair_bilin_form, A.to_lin_neg], },
-  change A ∈ (skew_adjoint_matrices_linear_embedding J).range ↔ _, rw linear_map.mem_range,
+  change A ∈ (skew_adjoint_matrices_linear_embedding J).range ↔ J.is_adjoint_pair A (-A),
+  rw [matrix_is_adjoint_pair_bilin_form, matrix.to_lin_neg, linear_map.mem_range],
   simp only [skew_adjoint_matrices_linear_embedding_apply], split,
   { rintros ⟨⟨A', hA'⟩, h⟩, rw ←h, rw to_matrix_to_lin, exact hA', },
   { intros h, exact ⟨⟨A.to_lin, h⟩, to_lin_to_matrix⟩, },

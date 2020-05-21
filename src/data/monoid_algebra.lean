@@ -354,7 +354,7 @@ variables [group G] [comm_ring k]
   (h : ∀ g : G, f.comp (group_smul.linear_map k V g) = (group_smul.linear_map k W g).comp f)
 include h
 
-/-- Build a `k[G]` linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
+/-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,
   add := λ v v', by simp,

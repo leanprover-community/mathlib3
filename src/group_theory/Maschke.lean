@@ -37,7 +37,7 @@ local attribute [instance] linear_map_algebra_module
 variables {R S V W}
 @[simp]
 lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
-  (c • f) v = (c • (f v) : module.restrict_scalars R W) :=
+  (c • f) v = (c • (f v) : module.restrict_scalars R S W) :=
 begin
   erw [linear_map.map_smul],
   refl,
@@ -73,13 +73,13 @@ or abelian categories, depending on the formulation),
 but they should all rely on this calculation.
 -/
 
-variables (π : (restrict_scalars k W) →ₗ[k] (restrict_scalars k V))
+variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V))
 include π
 
 /--
 We define the conjugate of `π` by `g`, as a `k`-linear map.
 -/
-def conjugate (g : G) : (restrict_scalars k W) →ₗ[k] (restrict_scalars k V) :=
+def conjugate (g : G) : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
 ((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
 
 /--
@@ -88,7 +88,7 @@ The sum of the conjugates of `π` by each element `g : G`, as a `k`-linear map.
 (We postpone dividing by the size of the group as long as possible.)
 -/
 def sum_of_conjugates :
-  (restrict_scalars k W) →ₗ[k] (restrict_scalars k V) :=
+  (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
 (finset.univ : finset G).sum (λ g, conjugate π g)
 
 /--

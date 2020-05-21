@@ -330,28 +330,33 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
 end lift
 
 section
+
 variables (k)
+/-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
+-- FIXME: this takes incredibly long to elaborate, and I don't know why.
 def group_smul.linear_map [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
-  (module.restrict_scalars k V) →ₗ[k] (module.restrict_scalars k V) :=
+  (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+  (module.restrict_scalars k (monoid_algebra k G) V) :=
 { to_fun := λ v, (single g (1 : k) • v : V),
   add := λ x y, smul_add (single g (1 : k)) x y,
   smul := λ c x,
-  by simp only [module.restrict_scalars_def, coe_algebra_map, ←mul_smul, single_one_comm], }
+  by simp only [module.restrict_scalars_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
 
 @[simp]
 lemma group_smul.linear_map_apply [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) (v : V) :
-  (group_smul.linear_map k V g : module.restrict_scalars k V → module.restrict_scalars k V) v =
-    (single g (1 : k) • v : V) := rfl
+  (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
+rfl
 
 section
 variables {k}
 variables [group G] [comm_ring k]
   {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
   {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
-  (f : (module.restrict_scalars k V) →ₗ[k] (module.restrict_scalars k W))
-  (h : ∀ g : G, f.comp (group_smul.linear_map k V g) = (group_smul.linear_map k W g).comp f)
+  (f : (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+       (module.restrict_scalars k (monoid_algebra k G) W))
+  (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
 
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
@@ -365,11 +370,7 @@ def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
   { intros g r c' nm nz w,
     rw [add_smul, linear_map.map_add, w, add_smul, add_left_inj,
       single_eq_algebra_map_mul_of, ←smul_smul, ←smul_smul],
-    erw [f.map_smul],
-    replace h := (congr_arg linear_map.to_fun (h g)),
-    replace h := congr_fun h v,
-    simp at h,
-    erw h,
+    erw [f.map_smul, h g v],
     refl, }
   end, }
 

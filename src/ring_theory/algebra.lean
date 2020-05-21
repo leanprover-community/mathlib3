@@ -731,7 +731,7 @@ module structure over `R`, called `module.restrict_scalars' R S E`.
 We do not register this as an instance as `S` can not be inferred.
 -/
 def module.restrict_scalars' : module R E :=
-{ smul      := λc x, (algebra_map R S c) • x,
+{ smul      := λ c x, (algebra_map R S c) • x,
   one_smul  := by simp,
   mul_smul  := by simp [mul_smul],
   smul_add  := by simp [smul_add],
@@ -753,7 +753,7 @@ instance [I : add_comm_group E] : add_comm_group (module.restrict_scalars R S E)
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 
-lemma module.restrict_scalars_def (c : R) (x : module.restrict_scalars R E) :
+lemma module.restrict_scalars_def (c : R) (x : module.restrict_scalars R S E) :
   c • x = ((algebra_map R S c) • x : E) := rfl
 
 /--

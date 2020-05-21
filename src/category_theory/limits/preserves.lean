@@ -248,17 +248,16 @@ def alt_is_limit' (A B : C) : is_limit (alternative_cone F A B) :=
     (by { rw prod.lift_fst, apply w walking_pair.left })
     (by { rw prod.lift_snd, apply w walking_pair.right }) }
 
-def preserves_binary_prod_of_prod_comparison_iso (A B : C) [is_iso (prod_comparison F A B)] : preserves_limit (pair A B) F :=
+def preserves_binary_prod_of_prod_comparison_iso (A B : C) [is_iso (prod_comparison F A B)] :
+  preserves_limit (pair A B) F :=
 preserves_limit_of_preserves_limit_cone (limit.is_limit (pair A B))
 begin
   apply is_limit.of_iso_limit (alt_is_limit' F A B) _,
   apply cones.ext _ _,
-  apply (as_iso (prod_comparison F A B)).symm,
-  rintro ⟨j⟩,
-  apply (as_iso (prod_comparison F A B)).eq_inv_comp.2,
-  apply prod.lift_fst,
-  apply (as_iso (prod_comparison F A B)).eq_inv_comp.2,
-  apply prod.lift_snd,
+  { apply (as_iso (prod_comparison F A B)).symm },
+  { rintro ⟨j⟩,
+    { apply (as_iso (prod_comparison F A B)).eq_inv_comp.2 (prod.lift_fst _ _) },
+    { apply (as_iso (prod_comparison F A B)).eq_inv_comp.2 (prod.lift_snd _ _) } },
 end
 
 def preserves_binary_prods_of_prod_comparison_iso [∀ A B, is_iso (prod_comparison F A B)] :
@@ -272,7 +271,7 @@ def preserves_binary_prods_of_prod_comparison_iso [∀ A B, is_iso (prod_compari
 variables [preserves_limits_of_shape (discrete walking_pair) F]
 
 -- (implementation)
-private def alt_is_limit (A B : C) : is_limit (functor.map_cone F (limit.cone (pair A B))) :=
+private def alt_is_limit (A B : C) : is_limit (F.map_cone (limit.cone (pair A B))) :=
 preserves_limit.preserves (limit.is_limit (pair A B))
 
 /--

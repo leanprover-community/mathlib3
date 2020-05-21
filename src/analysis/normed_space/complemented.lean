@@ -11,7 +11,7 @@ import analysis.normed_space.finite_dimension
 
 A submodule `p` of a topological module `E` over `R` is called *complemented* if there exists
 a continuous linear projection `f : E →ₗ[R] p`, `∀ x : p, f x = x`. We prove that for
-a subspace of a normed space this condition is equivalent to existence of a closed subspace `q`
+a closed subspace of a normed space this condition is equivalent to existence of a closed subspace `q`
 such that `p ⊓ q = ⊥`, `p ⊔ q = ⊤`. We also prove that a subspace of finite codimension is
 always a complemented subspace.
 

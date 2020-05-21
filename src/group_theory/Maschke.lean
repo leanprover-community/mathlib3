@@ -53,6 +53,8 @@ open monoid_algebra
 
 section
 
+-- At first we work with any `[comm_ring k]`, and add the assumption that
+-- `[invertible (fintype.card G : k)]` when it is required.
 variables {k : Type u} [comm_ring k] {G : Type u} [fintype G] [group G]
 
 variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
@@ -159,6 +161,8 @@ end
 end
 end
 
+-- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
+-- with `¬(ring_char k ∣ fintype.card G)`.
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
 variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]

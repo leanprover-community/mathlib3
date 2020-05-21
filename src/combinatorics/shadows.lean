@@ -155,16 +155,22 @@ section shadow
   lemma sub_iff_shadow_one {𝒜 : finset (finset α)} {B : finset α} :
     B ∈ ∂𝒜 ↔ ∃ A ∈ 𝒜, B ⊆ A ∧ card (A \ B) = 1 :=
   begin
-    rw mem_shadow', split,
-      rintro ⟨i, ih, inA⟩,
+    rw mem_shadow',
+    split,
+    { rintro ⟨i, ih, inA⟩,
       refine ⟨insert i B, inA, subset_insert _ _, _⟩,
-      rw card_sdiff (subset_insert _ _), simp [card_insert_of_not_mem ih],
-    rintro ⟨A, hA, _⟩,
-    rw card_eq_one at a_h_h, rcases a_h_h with ⟨subs, j, eq⟩,
-    use j, refine ⟨_, _⟩,
-      intro, have: j ∈ finset.singleton j := mem_singleton_self _,
-      rw [← eq, mem_sdiff] at this, exact this.2 a,
-    rwa [insert_eq j B, singleton_eq_singleton, ← eq, sdiff_union_of_subset subs],
+      rw card_sdiff (subset_insert _ _),
+      simp [card_insert_of_not_mem ih] },
+    { rintro ⟨A, hA, _⟩,
+      rw card_eq_one at a_h_h,
+      rcases a_h_h with ⟨subs, j, eq⟩,
+      refine ⟨j, _, _⟩,
+      { intro,
+        have : j ∉ A \ B := not_mem_sdiff_of_mem_right a,
+        apply this,
+        rw eq,
+        apply mem_singleton_self },
+      { rwa [insert_eq j B, ← eq, sdiff_union_of_subset subs] } },
   end
 
   /--

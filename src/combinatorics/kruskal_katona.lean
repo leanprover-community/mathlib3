@@ -309,8 +309,7 @@ section
       have: card (A \ B ∪ A ∩ B) = card (B \ A ∪ B ∩ A),
         rwa [sdiff_union_inter, sdiff_union_inter],
       rwa [card_disjoint_union (disjoint_sdiff_inter _ _),
-           card_disjoint_union (disjoint_sdiff_inter _ _),
-           inter_comm, add_right_inj] at this },
+          card_disjoint_union (disjoint_sdiff_inter _ _), inter_comm, add_left_inj] at this },
     have Bcomp := h₂ U V this, rw is_compressed at Bcomp,
     suffices: compress U V B ∈ compress_family U V ℬ,
       rw [Bcomp, cB_eq_A] at this, exact a this,
@@ -493,7 +492,7 @@ section
     is_init_seg_of_colex (∂𝒜) (r - 1) :=
   begin
     rcases nat.eq_zero_or_pos r with rfl | hr,
-      have: 𝒜 ⊆ finset.singleton ∅,
+      have: 𝒜 ⊆ {∅},
         intros A hA, rw mem_singleton, rw ← card_eq_zero, apply h₁.1 A hA,
       have := shadow_monotone this,
       simp only [all_removals, shadow, subset_empty, singleton_bind, image_empty] at this,
@@ -631,7 +630,7 @@ begin
     rw [card_eq_zero, eq_empty_iff_forall_not_mem],
     intros A HA, apply h A HA A HA, rw disjoint_self_iff_empty,
     rw eq_empty_iff_forall_not_mem, intro x, rw b at x, exact (fin.elim0 ‹_›),
-  set f: finset X → finset (finset X) := λ A, insert (univ \ A) (finset.singleton A),
+  set f: finset X → finset (finset X) := λ A, insert (univ \ A) {A},
   have disjs: ∀ x ∈ 𝒜, ∀ y ∈ 𝒜, x ≠ y → disjoint (f x) (f y),
     intros A hA B hB k,
     simp [not_or_distrib, and_assoc], refine ⟨_, _, _, _⟩,

@@ -174,7 +174,7 @@ instance colex_decidable_order [decidable_linear_order α] :
 
 /-- Colex is an extension of the base ordering on α. -/
 lemma colex_singleton [linear_order α] {x y : α} :
-  finset.singleton x <ᶜ finset.singleton y ↔ x < y :=
+  ({x} : finset α) <ᶜ {y} ↔ x < y :=
 begin
   rw colex_lt, simp, conv_lhs { conv {congr, funext, rw and_comm,
                                       rw and_comm (¬k=x), rw and_assoc},

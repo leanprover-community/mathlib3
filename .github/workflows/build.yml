@@ -77,7 +77,7 @@ jobs:
       - name: configure git setup
         if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
         run: |
-          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
+          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"
           git config user.name "leanprover-community-bot"
 
@@ -121,7 +121,7 @@ jobs:
       - name: configure git setup
         if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
         run: |
-          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
+          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"
           git config user.name "leanprover-community-bot"
 

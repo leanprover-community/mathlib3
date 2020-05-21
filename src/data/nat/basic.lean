@@ -979,6 +979,8 @@ variables {α : Sort*} (op : α → α)
 
 @[simp] theorem iterate_zero : op^[0] = id := rfl
 
+theorem iterate_zero_apply (x : α) : op^[0] x = x := rfl
+
 @[simp] theorem iterate_succ (n : ℕ) : op^[succ n] = (op^[n]) ∘ op := rfl
 
 theorem iterate_succ_apply (n : ℕ) (x : α) : op^[succ n] x = (op^[n]) (op x) := rfl

@@ -69,11 +69,11 @@ def linear_proj_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   E →L[𝕜] p :=
 (continuous_linear_map.fst 𝕜 p q).comp $ (prod_equiv_of_closed_compl p q h hp hq).symm
 
-@[simp] lemma coe_continuous_linear_proj_of_is_compl (h : is_compl p q)
+@[simp] lemma coe_continuous_linear_proj_of_closed_compl (h : is_compl p q)
   (hp : is_closed (p : set E)) (hq : is_closed (q : set E)) :
   (p.linear_proj_of_closed_compl q h hp hq : E →ₗ[𝕜] p) = p.linear_proj_of_is_compl q h := rfl
 
-@[simp] lemma coe_continuous_linear_proj_of_is_compl' (h : is_compl p q)
+@[simp] lemma coe_continuous_linear_proj_of_closed_compl' (h : is_compl p q)
   (hp : is_closed (p : set E)) (hq : is_closed (q : set E)) :
   ⇑(p.linear_proj_of_closed_compl q h hp hq) = p.linear_proj_of_is_compl q h := rfl
 

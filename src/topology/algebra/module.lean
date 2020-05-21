@@ -814,6 +814,8 @@ variables
 {M : Type*} [topological_space M] [add_comm_group M] [module R M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
 
+open continuous_linear_map
+
 /-- A submodule `p` is called *complemented* if there exists a continuous projection `M →ₗ[R] p`. -/
 def complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x : p, f x = x
 
@@ -821,12 +823,20 @@ lemma complemented.has_closed_complement {p : submodule R M} [t1_space p] (h : c
   ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
 exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
 
+protected lemma complemented.is_closed [topological_add_group M] [t1_space M]
+  {p : submodule R M} (h : complemented p) :
+  is_closed (p : set M) :=
+begin
+  rcases h with ⟨f, hf⟩,
+  have : ker (id R M - (subtype_val p).comp f) = p := (f : M →ₗ[R] p).ker_id_sub_eq_of_proj hf,
+  exact this ▸ (is_closed_ker _)
+end
+
 @[simp] lemma complemented_bot : complemented (⊥ : submodule R M) :=
-⟨0, λ x, by simp only [continuous_linear_map.zero_apply, eq_zero_of_bot_submodule x]⟩
+⟨0, λ x, by simp only [zero_apply, eq_zero_of_bot_submodule x]⟩
 
 @[simp] lemma complemented_top : complemented (⊤ : submodule R M) :=
-⟨(continuous_linear_map.id R M).cod_restrict ⊤ (λ x, trivial),
-  λ x, subtype.coe_ext.2 $ by simp⟩
+⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.coe_ext.2 $ by simp⟩
 
 end submodule
 

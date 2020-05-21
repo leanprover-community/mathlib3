@@ -74,7 +74,7 @@ begin
   rw [finsupp.mem_support_iff] at hkq, apply hkq, apply this,
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
 end
-#print algebra.adjoin
+
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨{1}, le_antisymm

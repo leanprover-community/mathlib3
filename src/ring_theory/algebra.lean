@@ -742,24 +742,24 @@ def module.restrict_scalars' : module R E :=
 
 /--
 When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
-module structure over `R`, provided as a type synonym `module.restrict_scalars R E := E`.
+module structure over `R`, provided as a type synonym `module.restrict_scalars R S E := E`.
 -/
-def module.restrict_scalars (R : Type*) (E : Type*) : Type* := E
-instance [add_comm_group E] : add_comm_group (module.restrict_scalars R E) := by assumption
-instance : module R (module.restrict_scalars R E) :=
+def module.restrict_scalars (R : Type*) (S : Type*) (E : Type*) : Type* := E
+instance [add_comm_group E] : add_comm_group (module.restrict_scalars R S E) := by assumption
+instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 
 /--
-`module.restrict_scalars R S` is `R`-linearly equivalent to the original algebra `S`.
+`module.restrict_scalars R S S` is `R`-linearly equivalent to the original algebra `S`.
 
 Unfortunately these structures are not generally definitionally equal:
 the `R`-module structure on `S` is part of the data of `S`,
-while the `R`-module structure on `module.restrict_scalars R S`
+while the `R`-module structure on `module.restrict_scalars R S S`
 comes from the ring homomorphism `R →+* S`, which is a separate part of the data of `S`.
 The field `algebra.smul_def'` gives the equation we need here.
 -/
 def algebra.restrict_scalars_equiv :
-  (module.restrict_scalars R S) ≃ₗ[R] S :=
+  (module.restrict_scalars R S S) ≃ₗ[R] S :=
 { to_fun := λ s, s,
   inv_fun := λ s, s,
   left_inv := λ s, rfl,
@@ -783,7 +783,7 @@ open module
 corresponding to `V`, an `S`-submodule of the original `S`-module.
 -/
 @[simps]
-def submodule.restrict_scalars (V : submodule S E) : submodule R (restrict_scalars R E) :=
+def submodule.restrict_scalars (V : submodule S E) : submodule R (restrict_scalars R S E) :=
 { carrier := V.carrier,
   zero := V.zero,
   smul := λ c e h, V.smul _ h,
@@ -796,7 +796,7 @@ iff.refl _
 
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) :
-  (restrict_scalars R E) →ₗ[R] (restrict_scalars R F) :=
+  (restrict_scalars R S E) →ₗ[R] (restrict_scalars R S F) :=
 { to_fun := f.to_fun,
   add := λx y, f.map_add x y,
   smul := λc x, f.map_smul (algebra_map R S c) x }

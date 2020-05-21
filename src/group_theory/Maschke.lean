@@ -6,6 +6,7 @@ Author: Scott Morrison
 import data.monoid_algebra
 import ring_theory.algebra
 import algebra.invertible
+import linear_algebra.basis
 
 /-!
 # Maschke's theorem
@@ -48,6 +49,8 @@ end
 noncomputable theory
 open module
 open monoid_algebra
+
+section
 
 variables {k : Type u} [comm_ring k] {G : Type u} [fintype G] [group G]
 
@@ -122,6 +125,7 @@ begin
 end
 end
 
+section
 variables [inv : invertible (fintype.card G : k)]
 include inv
 
@@ -148,3 +152,39 @@ begin
     @semimodule.add_monoid_smul_eq_smul k _ (restrict_scalars k (monoid_algebra k G) V) _ _ (fintype.card G) v,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
+end
+end
+
+variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
+
+variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
+variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
+
+-- lemma restrict_scalars_ker (f : V →ₗ[monoid_algebra k G] W) :
+--   (f.restrict_scalars k).ker = sorry :=
+-- sorry
+-- lemma restrict_scalars_ker (f : V →ₗ[monoid_algebra k G] W) :
+--   (f.restrict_scalars k).ker = module.restrict_scalars k (monoid_algebra k G) f.ker :=
+-- sorry
+
+instance foo : invertible (fintype.card G : k) := sorry -- it's a field?
+
+lemma monoid_algebra.exists_left_inverse_of_injective
+  (f : V →ₗ[monoid_algebra k G] W) (hf_inj : f.ker = ⊥) :
+  ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
+let E := (linear_map.exists_left_inverse_of_injective (f.restrict_scalars k) sorry) in
+⟨equivariant_projection (classical.some E),
+begin
+  ext v,
+  apply equivariant_projection_condition,
+  intro v,
+  have := classical.some_spec E,
+  have := congr_arg linear_map.to_fun this,
+  have := congr_fun this v,
+  exact this,
+end⟩
+
+lemma monoid_algebra.submodule.exists_is_compl (p : submodule (monoid_algebra k G) V) :
+  ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
+let ⟨f, hf⟩ := exists_left_inverse_of_injective p.subtype p.ker_subtype in
+⟨f.ker, f.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩

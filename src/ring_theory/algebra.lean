@@ -744,8 +744,13 @@ def module.restrict_scalars' : module R E :=
 When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
 module structure over `R`, provided as a type synonym `module.restrict_scalars R S E := E`.
 -/
+@[nolint unused_arguments]
 def module.restrict_scalars (R : Type*) (S : Type*) (E : Type*) : Type* := E
-instance [add_comm_group E] : add_comm_group (module.restrict_scalars R S E) := by assumption
+
+instance [I : inhabited E] : inhabited (module.restrict_scalars R S E) := I
+
+instance [I : add_comm_group E] : add_comm_group (module.restrict_scalars R S E) := I
+
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 

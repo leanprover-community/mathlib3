@@ -454,7 +454,7 @@ span_le.trans set.image_subset_iff
 @[simp] theorem mem_comap {x} : x ∈ comap f K ↔ f x ∈ K := iff.rfl
 
 theorem comap_mono (h : K ≤ L) : comap f K ≤ comap f L :=
-set.preimage_mono h
+set.preimage_mono (λ x hx, h hx)
 variables (f)
 
 theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=

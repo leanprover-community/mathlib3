@@ -63,16 +63,6 @@ section shadow
   -/
   def all_removals (A : finset α) : finset (finset α) := A.image (erase A)
 
-  /-- When we remove any one element from `A`, each set has size `r-1` -/
-  lemma all_removals_size {A : finset α} {r : ℕ} (h : A.card = r) :
-    all_sized (all_removals A) (r-1) :=
-  begin
-    intros B H,
-    rw [all_removals, mem_image] at H,
-    rcases H with ⟨i, ih, rfl⟩,
-    rw [card_erase_of_mem ih, h], refl
-  end
-
   /-- B ∈ all_removals A iff we can remove something from A to get B. -/
   lemma mem_all_removals {A : finset α} {B : finset α} :
     B ∈ all_removals A ↔ ∃ i ∈ A, erase A i = B :=
@@ -144,9 +134,10 @@ section shadow
     all_sized (∂𝒜) (r-1) :=
   begin
     intros A H,
-    rw [shadow, mem_bind] at H,
-    rcases H with ⟨B, _, _⟩,
-    exact all_removals_size (a _ ‹_›) _ ‹A ∈ all_removals B›,
+    simp_rw [shadow, mem_bind, all_removals, mem_image] at H,
+    rcases H with ⟨A, hA, i, hi, rfl⟩,
+    rw [card_erase_of_mem hi, a _ hA],
+    refl,
   end
 
   /--
@@ -322,7 +313,12 @@ section local_lym
     intros x1 x1h _ _ h, injection h,
     have q := mem_insert_self x1 x, rw [h_1, mem_insert] at q,
       apply q.resolve_right (mem_sdiff.1 x1h).2,
-    intros _ _ _ _ t, rw disjoint_left, simp, intros, cc
+    intros _ _ _ _ t,
+    rw disjoint_left,
+    simp_rw [mem_image, not_exists, exists_prop, mem_sdiff, mem_univ, true_and, exists_imp_distrib,
+             prod.forall, prod.mk.inj_iff, and_imp, not_and],
+    rintro _ b i hi rfl rfl j hj k,
+    rwa eq_comm,
   end
 
   /--
@@ -383,8 +379,7 @@ section slice
   lemma ne_of_diff_slice {𝒜 : finset (finset α)} {r₁ r₂ : ℕ}
     {A₁ A₂ : finset α} (h₁ : A₁ ∈ 𝒜#r₁) (h₂ : A₂ ∈ 𝒜#r₂) :
     r₁ ≠ r₂ → A₁ ≠ A₂ :=
-  mt $ λ h,
-  (sized_slice A₁ h₁).symm.trans ((congr_arg card h).trans (sized_slice A₂ h₂))
+  mt $ λ h, (sized_slice A₁ h₁).symm.trans ((congr_arg card h).trans (sized_slice A₂ h₂))
 end slice
 
 /- It's useful to abbreviate this. We can think of α = fin n. -/

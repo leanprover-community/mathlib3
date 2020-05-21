@@ -80,6 +80,12 @@ begin
   }
 end
 
+example {k} (h : lt (k + 1) k) : false :=
+begin
+  induction' h,
+  { apply ih }
+end
+
 -- This example tests type-based naming.
 example (k : ℕ') (i : ℕ') : ℕ :=
 begin
@@ -486,54 +492,13 @@ inductive curried_big_step : stmt → state → state → Prop
 | while_false {b : state → Prop} {S s} (hcond : ¬ b s) :
   curried_big_step (while b S) s s
 
--- TODO case tags, complex indices
+-- TODO case tags
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
   intro hw, induction' hw,
-  -- generalize heq : while (λ_, true) S = w,
-  -- intro hw,
-  -- induction hw generalizing S,
-  -- /- Desired syntax for all of the above: `induction hw`. -/
-  -- /- It is not possible (or necessary) to generalize `s` here, probably because
-  -- it does not occur elsewhere in the goal. -/
-  -- all_goals {
-  --   cases heq;
-  --   clear heq
-  -- },
-  -- { /- case while_true -/
-  --   clear w t,
-  --   rename hw_S S,
-  --   rename hw_s s,
-  --   rename hw_t ta,
-  --   rename hw_u t,
-  --   rename hw_hcond hcond,
-  --   have ih_hbody : ∀{Sa : stmt}, while (λ (_x : state), true) Sa = S → false :=
-  --     begin
-  --       intros,
-  --       apply hw_ih_hbody,
-  --       rw a
-  --     end,
-  --   clear hw_ih_hbody,
-  --   rename hw_hbody hbody,
-  --   rename hw_hrest hrest,
-  --   have ih_hrest : false :=
-  --     begin
-  --       apply hw_ih_hrest,
-  --       refl
-  --     end,
-  --   clear hw_ih_hrest,
-  --   /- Desired state here. -/
-  --   exact ih_hrest },
-  -- { /- case while_false -/
-  --   clear w t hw_S,
-  --   rename hw_s s,
-  --     -- `rename hw_s t` would also be OK, but let us proceed from left to right
-  --   rename hw_hcond hcond,
-  --   /- Desired state here. -/
-  --   apply hcond,
-  --   apply true.intro
-  -- }
+  { apply ih_hw_1 },
+  { apply hcond, trivial }
 end
 
 end semantics
@@ -567,7 +532,7 @@ lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
 begin
-  induction hstep,
+  induction' hstep,
   repeat { sorry }
 end
 
@@ -585,7 +550,7 @@ begin
     /- Desired state here. -/
     rw [hs, ht],
     exact small_step.assign },
-  case small_step.seq_step : S S' T hS {
+  case small_step.seq_step : S S' T s t hS {
     clear hstep,
     have ih : ∀s s' t t', s' = s → t' = t →
       small_step (S, s') (S', t') := sorry,
@@ -598,12 +563,12 @@ begin
     /- Desired state here. -/
     rw [hs, ht],
     exact small_step.seq_skip },
-  case small_step.ite_true : b t hcond {
+  case small_step.ite_true : _ _ _ _ hcond {
     clear hstep,
     /- Desired state here. -/
     rw [hs, ht],
     exact small_step.ite_true hcond },
-  case small_step.ite_false : b s hcond {
+  case small_step.ite_false : _ _ _ _ hcond {
     clear hstep,
     /- Desired state here. -/
     rw [hs, ht],

@@ -96,9 +96,8 @@ In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear
 -/
 def sum_of_conjugates_equivariant :
   W →ₗ[monoid_algebra k G] V :=
-monoid_algebra.equivariant_of_linear_of_comm (sum_of_conjugates π) (λ g,
+monoid_algebra.equivariant_of_linear_of_comm (sum_of_conjugates π) (λ g v,
 begin
-  ext,
   dsimp [sum_of_conjugates],
   simp only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
@@ -146,6 +145,6 @@ begin
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],
   rw [finset.sum_const, finset.card_univ,
-    @semimodule.add_monoid_smul_eq_smul k _ (restrict_scalars k V) _ _ (fintype.card G) v,
+    @semimodule.add_monoid_smul_eq_smul k _ (restrict_scalars k (monoid_algebra k G) V) _ _ (fintype.card G) v,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end

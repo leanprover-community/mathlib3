@@ -42,10 +42,9 @@ Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
 We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
 
-There is an instance in `ring_theory.localization` coercing a localization map `f` to its
-codomain `P` so that the `R`-algebra instance on `P` 'knows' the map `f` needed to induce
-the `R`-algebra structure. This is why this file contains, for instance, `submodule R f`
-instead of `submodule R P`.
+In `ring_theory.localization`, we define a copy of the localization map `f`'s codomain `P`
+(`f.codomain`) so that the `R`-algebra instance on `P` can 'know' the map needed to induce
+the `R`-algebra structure.
 
 We don't assume that the localization is a field until we need it to define ideal quotients.
 When this assumption is needed, we replace `S` with `non_zero_divisors R`, making the localization
@@ -60,17 +59,17 @@ a field.
 fractional ideal, fractional ideals, invertible ideal
 -/
 
-open localization_map
+open localization
 
 namespace ring
 
 section defs
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  (f : localization_map S P)
+  (f : localization S P)
 
 /-- A submodule `I` is a fractional ideal if `a I ⊆ R` for some `a ≠ 0`. -/
-def is_fractional (I : submodule R f) :=
+def is_fractional (I : submodule R f.codomain) :=
 ∃ a ≠ (0 : R), ∀ b ∈ I, f.is_integer (f.to_map a * b)
 
 /-- The fractional ideals of a domain `R` are ideals of `R` divided by some `a ∈ R`.
@@ -80,7 +79,7 @@ def is_fractional (I : submodule R f) :=
   such that there is a nonzero `a : R` with `a I ⊆ R`.
 -/
 def fractional_ideal :=
-{I : submodule R f // is_fractional f I}
+{I : submodule R f.codomain // is_fractional f I}
 
 end defs
 
@@ -90,7 +89,7 @@ open set
 open submodule
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  {f : localization_map S P}
+  {f : localization S P}
 
 instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ I.1⟩
 
@@ -103,7 +102,7 @@ instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ I.1⟩
 lemma ext {I J : fractional_ideal f} : I.1 = J.1 → I = J :=
 subtype.ext.mpr
 
-lemma fractional_of_subset_one (I : submodule R f)
+lemma fractional_of_subset_one (I : submodule R f.codomain)
   (h : I ≤ (submodule.span R {1})) :
   is_fractional f I :=
 begin

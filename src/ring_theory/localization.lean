@@ -20,17 +20,17 @@ ring homomorphism `f : R →+* S` satisfying 3 properties:
 3. For all `x, y : R`, `f x = f y` iff there exists `c ∈ M` such that `x * c = y * c`.
 
 Given such a localization map `f : R →+* S`, we can define the surjection
-`localization_map.mk'` sending `(x, y) : R × M` to `f x * (f y)⁻¹`, and
-`localization_map.lift`, the homomorphism from `S` induced by a homomorphism from `R` which maps
+`localization.mk'` sending `(x, y) : R × M` to `f x * (f y)⁻¹`, and
+`localization.lift`, the homomorphism from `S` induced by a homomorphism from `R` which maps
 elements of `M` to invertible elements of the codomain. Similarly, given commutative rings
 `P, Q`, a submonoid `T` of `P` and a localization map for `T` from `P` to `Q`, then a homomorphism
 `g : R →+* P` such that `g(M) ⊆ T` induces a homomorphism of localizations,
-`localization_map.map`, from `S` to `Q`.
+`localization.map`, from `S` to `Q`.
 
 We prove some lemmas about the `R`-algebra structure of `S`.
 
 When `R` is an integral domain, we define `fraction_map R K` as an abbreviation for
-`localization_map (non_zero_divisors R) K`, the natural map to `R`'s field of fractions.
+`localization (non_zero_divisors R) K`, the natural map to `R`'s field of fractions.
 
 We show that a `comm_ring` `K` which is the localization of an integral domain `R` at `R \ {0}`
 is a field.
@@ -43,15 +43,15 @@ a structure up to isomorphism, and reason about things that satisfy the predicat
 
 A ring localization map is defined to be a localization map of the underlying `comm_monoid` (a
 `submonoid.localization_map`) which is also a ring hom. To prove most lemmas about a
-`localization_map` `f` in this file we invoke the corresponding proof for the underlying
+`localization` `f` in this file we invoke the corresponding proof for the underlying
 `comm_monoid` localization map `f.to_localization_map`, which can be found in
 `group_theory.monoid_localization` and the namespace `submonoid.localization_map`.
 
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
 
-We define an instance coercing a localization map `f` to its codomain `S` so that the `R`-algebra
-instance on `S` can 'know' the map needed to induce the `R`-algebra structure.
+We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
+`R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure.
 
 ## Tags
 localization, ring localization, commutative ring localization, characteristic predicate,
@@ -69,24 +69,24 @@ satisfies this predicate, then `S` is isomorphic to the localization of `R` at `
 We later define an instance coercing a localization map `f` to its codomain `S` so
 that the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
 structure. -/
-@[nolint has_inhabited_instance] structure localization_map
+@[nolint has_inhabited_instance] structure localization
 extends ring_hom R S, submonoid.localization_map M S
 
-/-- The ring hom underlying a `localization_map`. -/
-add_decl_doc localization_map.to_ring_hom
+/-- The ring hom underlying a `localization`. -/
+add_decl_doc localization.to_ring_hom
 
-/-- The `comm_monoid` `localization_map` underlying a `comm_ring` `localization_map`.
+/-- The `comm_monoid` `localization_map` underlying a `comm_ring` `localization`.
 See `group_theory.monoid_localization` for its definition. -/
-add_decl_doc localization_map.to_localization_map
+add_decl_doc localization.to_localization_map
 
 variables {M S}
 
 namespace ring_hom
 
 /-- Makes a localization map from a `comm_ring` hom satisfying the characteristic predicate. -/
-def to_localization_map (f : R →+* S) (H1 : ∀ y : M, is_unit (f y))
+def to_localization (f : R →+* S) (H1 : ∀ y : M, is_unit (f y))
   (H2 : ∀ z, ∃ x : R × M, z * f x.2 = f x.1) (H3 : ∀ x y, f x = f y ↔ ∃ c : M, x * c = y * c) :
-  localization_map M S :=
+  localization M S :=
 { map_units' := H1,
   surj' := H2,
   eq_iff_exists' := H3,
@@ -94,9 +94,9 @@ def to_localization_map (f : R →+* S) (H1 : ∀ y : M, is_unit (f y))
 
 end ring_hom
 
-namespace localization_map
+namespace localization
 
-variables (f : localization_map M S)
+variables (f : localization M S)
 
 /-- Short for `to_ring_hom`; used for applying a localization map as a function. -/
 abbreviation to_map := f.to_ring_hom
@@ -107,7 +107,7 @@ lemma surj (z) : ∃ x : R × M, z * f.to_map x.2 = f.to_map x.1 := f.7 z
 
 lemma eq_iff_exists {x y} : f.to_map x = f.to_map y ↔ ∃ c : M, x * c = y * c := f.8 x y
 
-@[ext] lemma ext {f g : localization_map M S}
+@[ext] lemma ext {f g : localization M S}
   (h : ∀ x, f.to_map x = g.to_map x) : f = g :=
 begin
   cases f, cases g,
@@ -115,10 +115,10 @@ begin
   exact funext h
 end
 
-lemma ext_iff {f g : localization_map M S} : f = g ↔ ∀ x, f.to_map x = g.to_map x :=
+lemma ext_iff {f g : localization M S} : f = g ↔ ∀ x, f.to_map x = g.to_map x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-lemma to_map_injective : injective (@localization_map.to_map _ _ M S _) :=
+lemma to_map_injective : injective (@localization.to_map _ _ M S _) :=
 λ _ _ h, ext $ ring_hom.ext_iff.1 h
 
 /-- Given `a : S`, `S` a localization of `R`, `is_integer a` iff `a` is in the image of
@@ -157,13 +157,13 @@ variables (f)
 
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
-lemma sec_spec {f : localization_map M S} (z : S) :
+lemma sec_spec {f : localization M S} (z : S) :
   z * f.to_map (f.to_localization_map.sec z).2 = f.to_map (f.to_localization_map.sec z).1 :=
 classical.some_spec $ f.surj z
 
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x`, so this lemma is just an application of `S`'s commutativity. -/
-lemma sec_spec' {f : localization_map M S} (z : S) :
+lemma sec_spec' {f : localization M S} (z : S) :
   f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
 
@@ -182,7 +182,7 @@ by rw [hx, f.to_map.map_zero] at h;
 
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/
-noncomputable def mk' (f : localization_map M S) (x : R) (y : M) : S :=
+noncomputable def mk' (f : localization M S) (x : R) (y : M) : S :=
 f.to_localization_map.mk' x y
 
 @[simp] lemma mk'_sec (z : S) :
@@ -220,11 +220,11 @@ protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ ∃ c : M, a₁ * b₂ * c = b₁ * a₂ * c :=
 f.to_localization_map.eq
 
-lemma eq_iff_eq (g : localization_map M P) {x y} :
+lemma eq_iff_eq (g : localization M P) {x y} :
   f.to_map x = f.to_map y ↔ g.to_map x = g.to_map y :=
 f.to_localization_map.eq_iff_eq g.to_localization_map
 
-lemma mk'_eq_iff_mk'_eq (g : localization_map M P) {x₁ x₂}
+lemma mk'_eq_iff_mk'_eq (g : localization M P) {x₁ x₂}
   {y₁ y₂ : M} : f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ g.mk' x₁ y₁ = g.mk' x₂ y₂ :=
 f.to_localization_map.mk'_eq_iff_mk'_eq g.to_localization_map
 
@@ -344,7 +344,7 @@ f.to_localization_map.lift_id _
 /-- Given two localization maps `f : R →+* S, k : R →+* P` for a submonoid `M ⊆ R`,
 the hom from `P` to `S` induced by `f` is left inverse to the hom from `S` to `P`
 induced by `k`. -/
-@[simp] lemma lift_left_inverse {k : localization_map M S} (z : S) :
+@[simp] lemma lift_left_inverse {k : localization M S} (z : S) :
   k.lift f.map_units (f.lift k.map_units z) = z :=
 f.to_localization_map.lift_left_inverse _
 
@@ -357,7 +357,7 @@ lemma lift_injective_iff :
 f.to_localization_map.lift_injective_iff hg
 
 variables {T : submonoid P} (hy : ∀ y : M, g y ∈ T) {Q : Type*} [comm_ring Q]
-          (k : localization_map T Q)
+          (k : localization T Q)
 
 /-- Given a `comm_ring` homomorphism `g : R →+* P` where for submonoids `M ⊆ R, T ⊆ P` we have
 `g(M) ⊆ T`, the induced ring homomorphism from the localization of `R` at `M` to the
@@ -389,7 +389,7 @@ f.lift_id _
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
-  (j : localization_map U W) {l : P →+* A} (hl : ∀ w : T, l w ∈ U) :
+  (j : localization U W) {l : P →+* A} (hl : ∀ w : T, l w ∈ U) :
   (k.map hl j).comp (f.map hy k) = f.map (λ x, show l.comp g x ∈ U, from hl ⟨g x, hy x⟩) j :=
 ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.map_comp_map _ _ _ _ _ _ _
   f.to_localization_map g.to_monoid_hom _ hy _ _ k.to_localization_map
@@ -398,14 +398,14 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.map_comp_map _
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
-  (j : localization_map U W) {l : P →+* A} (hl : ∀ w : T, l w ∈ U) (x) :
+  (j : localization U W) {l : P →+* A} (hl : ∀ w : T, l w ∈ U) (x) :
   k.map hl j (f.map hy k x) = f.map (λ x, show l.comp g x ∈ U, from hl ⟨g x, hy x⟩) j x :=
 by rw ←f.map_comp_map hy j hl; refl
 
 /-- Given localization maps `f : R →+* S, k : P →+* Q` for submonoids `M, T` respectively, an
 isomorphism `j : R ≃+* P` such that `j(M) = T` induces an isomorphism of localizations
 `S ≃+* Q`. -/
-noncomputable def ring_equiv_of_ring_equiv (k : localization_map T Q) (h : R ≃+* P)
+noncomputable def ring_equiv_of_ring_equiv (k : localization T Q) (h : R ≃+* P)
   (H : M.map h.to_monoid_hom = T) :
   S ≃+* Q :=
 (f.to_localization_map.mul_equiv_of_mul_equiv k.to_localization_map H).to_ring_equiv $
@@ -433,39 +433,40 @@ f.to_localization_map.mul_equiv_of_mul_equiv_mk' H _ _
 /-!
 ### `algebra` section
 
-Defines the `R`-algebra instance on `S` by coercing a localization map `f` to its codomain `S`,
-so that the instance 'knows' the map `f` needed to induce the `R`-algebra structure.
--/
+Defines the `R`-algebra instance on a copy of `S` carrying the data of the localization map
+`f` needed to induce the `R`-algebra structure. -/
 
-/-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
-can 'know' the map needed to induce the `R`-algebra structure. -/
-instance : has_coe_to_sort (localization_map M S) := ⟨_, λ f, S⟩
+variables (f)
+/-- We define a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that
+    the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
+    structure. -/
+@[reducible] def codomain (f : localization M S) := S
 
-/-- We coerce a localization map `f` to its codomain `S` so that the `R`-algebra instance on `S`
-can 'know' the map needed to induce the `R`-algebra structure. -/
-instance : algebra R f := f.to_map.to_algebra
+/-- We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
+    `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure. -/
+instance : algebra R f.codomain := f.to_map.to_algebra
 
 @[simp] lemma of_id (a : R) :
-  (algebra.of_id R f) a = f.to_map a :=
+  (algebra.of_id R f.codomain) a = f.to_map a :=
 rfl
 
 variables (f)
 /-- Localization map `f` from `R` to `S` as an `R`-linear map. -/
-def lin_coe : R →ₗ[R] f :=
+def lin_coe : R →ₗ[R] f.codomain :=
 { to_fun := f.to_map,
   add := f.to_map.map_add,
   smul := f.to_map.map_mul }
 
 variables {f}
 
-instance coe_submodules : has_coe (ideal R) (submodule R f) :=
+instance coe_submodules : has_coe (ideal R) (submodule R f.codomain) :=
 ⟨λ I, submodule.map f.lin_coe I⟩
 
 lemma mem_coe (I : ideal R) {x : S} :
-  x ∈ (I : submodule R f) ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
+  x ∈ (I : submodule R f.codomain) ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
 iff.rfl
 
-end localization_map
+end localization
 variables (R)
 
 /-- The submonoid of non-zero-divisors of a `comm_ring` `R`. -/
@@ -488,10 +489,10 @@ lemma mem_non_zero_divisors_iff_ne_zero {A : Type*} [integral_domain A] {x : A} 
 variables (K : Type*)
 
 /-- Localization map from an integral domain `R` to its field of fractions. -/
-@[reducible] def fraction_map [comm_ring K] := localization_map (non_zero_divisors R) K
+@[reducible] def fraction_map [comm_ring K] := localization (non_zero_divisors R) K
 
 namespace fraction_map
-open localization_map
+open localization
 variables {R K}
 
 protected theorem injective [comm_ring K] (φ : fraction_map R K) :

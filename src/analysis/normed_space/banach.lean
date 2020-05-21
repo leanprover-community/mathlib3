@@ -36,7 +36,6 @@ is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
 lemma exists_approx_preimage_norm_le (surj : surjective f) :
   ∃C ≥ 0, ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
-  haveI : nonempty F := ⟨0⟩,
   have A : (⋃n:ℕ, closure (f '' (ball 0 n))) = univ,
   { refine subset.antisymm (subset_univ _) (λy hy, _),
     rcases surj y with ⟨x, hx⟩,
@@ -132,7 +131,8 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, nat.iterate_zero, pow_zero] },
+    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, nat.iterate_zero_apply,
+        pow_zero] },
     { rw [nat.iterate_succ'],
       apply le_trans (hle _) _,
       rw [pow_succ, mul_assoc],

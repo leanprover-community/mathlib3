@@ -37,6 +37,9 @@ but rather use classical logic. -/
 noncomputable theory
 open_locale classical
 
+/-! We also want to use the notation `∑` for sums. -/
+open_locale big_operators
+
 notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
@@ -162,19 +165,7 @@ by { induction n ; { dunfold V, resetI, apply_instance } }
 
 instance : vector_space ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
-
-/-! The next five definitions are short circuits helping Lean to quickly find
-relevant structures on `V n`. -/
-def module : module ℝ (V n) := by apply_instance
-def add_comm_semigroup : add_comm_semigroup (V n) := by apply_instance
-def add_comm_monoid : add_comm_monoid (V n) := by apply_instance
-def has_scalar : has_scalar ℝ (V n) := by apply_instance
-def has_add : has_add (V n) := by apply_instance
-
 end V
-
-local attribute [instance, priority 100000]
-  V.module V.add_comm_semigroup V.add_comm_monoid V.has_scalar V.has_add
 
 /-- The basis of `V` indexed by the hypercube, defined inductively. -/
 noncomputable def e : Π {n}, Q n → V n
@@ -234,7 +225,7 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
 since this cardinal is finite, as a natural number in `findim_V` -/
 
 lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
-have vector_space.dim ℝ (V n) = ↑(2^n : ℕ),
+have vector_space.dim ℝ (V n) = (2^n : ℕ),
   by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
@@ -262,7 +253,7 @@ The next two lemmas unbury them. -/
 @[simp] lemma f_zero : f 0 = 0 := rfl
 
 lemma f_succ_apply (v : V (n+1)) :
-  (f (n+1) : V (n+1) → V (n+1)) v = (f n v.1 + v.2, v.1 - f n v.2) :=
+  f (n+1) v = (f n v.1 + v.2, v.1 - f n v.2) :=
 begin
   cases v,
   rw f,
@@ -323,7 +314,7 @@ begin
 end
 
 lemma f_image_g (w : V (m + 1)) (hv : ∃ v, g m v = w) :
-  (f (m + 1) : _) w = √(m + 1) • w :=
+  f (m + 1) w = √(m + 1) • w :=
 begin
   rcases hv with ⟨v, rfl⟩,
   have : √(m+1) * √(m+1) = m+1 :=
@@ -407,20 +398,17 @@ begin
     from (mul_le_mul_right H_q_pos).mp ‹_›,
 
   let coeffs := (dual_pair_e_ε (m+1)).coeffs,
-  let φ : V (m+1) → V (m+1) := f (m+1),
   calc
     s * (abs (ε q y))
         = abs (ε q (s • y)) : by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
-    ... = abs (ε q (φ y)) : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = abs (ε q (φ (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
+    ... = abs (ε q (f (m+1) y)) : by rw [← f_image_g y (by simpa using y_mem_g)]
+    ... = abs (ε q (f (m+1) (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
     ... = abs ((coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘ λ (i : Q (m + 1)), e i) i)): by
-                  { dsimp only [φ],
-                    erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
-    ... ≤ (coeffs y).support.sum (λ p,
-           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_sum_le _ $ λ p, coeffs y p * _
-    ... = (coeffs y).support.sum (λ p, |coeffs y p| * ite (q.adjacent p) 1 0) : by simp only [abs_mul, f_matrix]
-    ... = ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y p| ) : by simp [finset.sum_filter]
-    ... ≤ ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y q| ) : finset.sum_le_sum (λ p _, H_max p)
+                  { erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
+    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| : norm_sum_le _ $ λ p, coeffs y p * _
+    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
+    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
+    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
     ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [← smul_eq_mul, ← finset.sum_const']
     ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :

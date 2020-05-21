@@ -2181,8 +2181,6 @@ apply_nolint power_series.order_ge_nat ge_or_gt
 apply_nolint power_series.order_mul_ge ge_or_gt
 
 -- ring_theory/principal_ideal_domain.lean
-apply_nolint ideal.is_principal doc_blame
-apply_nolint ideal.is_principal.generator doc_blame
 apply_nolint principal_ideal_domain doc_blame
 apply_nolint principal_ideal_domain.factors doc_blame
 

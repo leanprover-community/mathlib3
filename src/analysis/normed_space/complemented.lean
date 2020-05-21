@@ -29,12 +29,13 @@ namespace continuous_linear_map
 
 variables [complete_space 𝕜]
 
-lemma ker_complemented_of_finite_dimensional_range (f : E →L[𝕜] F) [finite_dimensional 𝕜 f.range] :
-  f.ker.complemented :=
+lemma ker_closed_complemented_of_finite_dimensional_range (f : E →L[𝕜] F)
+  [finite_dimensional 𝕜 f.range] :
+  f.ker.closed_complemented :=
 begin
   set f' : E →L[𝕜] f.range := f.cod_restrict _ (f : E →ₗ[𝕜] F).mem_range_self,
   rcases f'.exists_right_inverse_of_surjective (f : E →ₗ[𝕜] F).range_range_restrict with ⟨g, hg⟩,
-  simpa only [ker_cod_restrict] using f'.complemented_ker_of_right_inverse g (ext_iff.1 hg)
+  simpa only [ker_cod_restrict] using f'.closed_complemented_ker_of_right_inverse g (ext_iff.1 hg)
 end
 
 end continuous_linear_map
@@ -79,22 +80,22 @@ variables {p q}
   (hp : is_closed (p : set E)) (hq : is_closed (q : set E)) :
   ⇑(p.linear_proj_of_closed_compl q h hp hq) = p.linear_proj_of_is_compl q h := rfl
 
-lemma complemented_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
-  (hq : is_closed (q : set E)) : p.complemented :=
+lemma closed_complemented_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
+  (hq : is_closed (q : set E)) : p.closed_complemented :=
 ⟨p.linear_proj_of_closed_compl q h hp hq, p.linear_proj_of_is_compl_apply_left q h⟩
 
-lemma complemented_iff_has_closed_compl : complemented p ↔
+lemma closed_complemented_iff_has_closed_compl : closed_complemented p ↔
   is_closed (p : set E) ∧ ∃ (q : subspace 𝕜 E) (hq : is_closed (q : set E)), is_compl p q :=
 ⟨λ h, ⟨h.is_closed, h.has_closed_compl⟩,
-  λ ⟨hp, ⟨q, hq, hpq⟩⟩, complemented_of_closed_compl hpq hp hq⟩
+  λ ⟨hp, ⟨q, hq, hpq⟩⟩, closed_complemented_of_closed_compl hpq hp hq⟩
 
-lemma complemented_of_quotient_finite_dimensional [complete_space 𝕜]
+lemma closed_complemented_of_quotient_finite_dimensional [complete_space 𝕜]
   [finite_dimensional 𝕜 p.quotient] (hp : is_closed (p : set E)) :
-  p.complemented :=
+  p.closed_complemented :=
 begin
   obtain ⟨q, hq⟩ : ∃ q, is_compl p q := p.exists_is_compl,
   haveI : finite_dimensional 𝕜 q := (p.quotient_equiv_of_is_compl q hq).finite_dimensional,
-  exact complemented_of_closed_compl hq hp q.closed_of_finite_dimensional
+  exact closed_complemented_of_closed_compl hq hp q.closed_of_finite_dimensional
 end
 
 end subspace

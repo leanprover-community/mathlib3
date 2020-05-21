@@ -1,44 +1,31 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Scott Morrison
+-/
 import data.monoid_algebra
 import ring_theory.algebra
 import algebra.invertible
+
+/-!
+# Maschke's theorem
+
+This file does not yet do all of Maschke's theorem, but only the core computational part:
+if `V ↪ W` is an inclusion of `k[G]`-modules, then it has a `k[G]`-linear retraction `π : W → V`.
+
+This requires the assumption that `fintype.card G` is invertible in `k`, and builds the retraction
+by picking an arbitrary `k`-linear retraction, and averaging over `G`.
+
+## Future work
+It's not so far to give the usual statement, that every finite dimensional representation
+of a finite group is a direct sum of irreducibles.
+-/
 
 universes u
 
 def mul_right_embedding {G : Type*} [group G] (g : G) : G ↪ G :=
 { to_fun := λ h, h * g,
   inj' := λ h h', (mul_left_inj g).mp, }
-
-noncomputable def function.embedding.equiv_of_fintype_endomorphism {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
-begin
-  apply function.embedding.equiv_of_surjective e _,
-  apply (fintype.injective_iff_surjective_of_equiv (equiv.refl α)).mp _,
-  exact function.embedding.inj e,
-end
-
-@[simp]
-lemma function.embedding.equiv_of_fintype_endomorphism_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
-  (e.equiv_of_fintype_endomorphism).to_embedding = e :=
-by { ext, refl, }
-
-@[simp]
-lemma finset.univ_map_equiv_to_embedding {α : Type*} [fintype α] (e : α ≃ α) :
-  (finset.univ).map e.to_embedding = finset.univ :=
-begin
-  ext,
-  split,
-  { intro h,
-    simp, },
-  { intro h,
-    rw [finset.mem_map],
-    use e.symm a,
-    simp, },
-end
-
-lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) : (finset.univ).map e = finset.univ :=
-begin
-  rw ←e.equiv_of_fintype_endomorphism_to_embedding,
-  apply finset.univ_map_equiv_to_embedding,
-end
 
 section
 variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]

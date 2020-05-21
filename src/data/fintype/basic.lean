@@ -50,6 +50,20 @@ by rw [inter_comm, univ_inter]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
+@[simp]
+lemma univ_map_equiv_to_embedding {α : Type*} [fintype α] (e : α ≃ α) :
+  (finset.univ).map e.to_embedding = finset.univ :=
+begin
+  ext,
+  split,
+  { intro h,
+    simp, },
+  { intro h,
+    rw [finset.mem_map],
+    use e.symm a,
+    simp, },
+end
+
 end finset
 
 open finset function
@@ -518,6 +532,26 @@ instance Prop.fintype : fintype Prop :=
 
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
+
+namespace function.embedding
+
+noncomputable def equiv_of_fintype_endomorphism {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
+
+@[simp]
+lemma equiv_of_fintype_endomorphism_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  (e.equiv_of_fintype_endomorphism).to_embedding = e :=
+by { ext, refl, }
+
+end function.embedding
+
+@[simp]
+lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  (finset.univ).map e = finset.univ :=
+begin
+  rw ←e.equiv_of_fintype_endomorphism_to_embedding,
+  apply finset.univ_map_equiv_to_embedding,
+end
 
 namespace fintype
 

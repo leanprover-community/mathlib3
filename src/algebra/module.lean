@@ -420,17 +420,17 @@ lemma sum_mem {t : finset ι} {f : ι → M} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 begin
   classical,
-  exact finset.induction_on t (by simp [zero_mem]) (by simp [add_mem] {contextual := tt})
+  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
 end
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
-instance : has_add p := ⟨λx y, ⟨x.1 + y.1, p.add_mem x.2 y.2⟩⟩
-instance : has_zero p := ⟨⟨0, p.zero_mem⟩⟩
+instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
+instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_neg p := ⟨λx, ⟨-x.1, p.neg_mem x.2⟩⟩
-instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, p.smul_mem c x.2⟩⟩
+instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
+instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
 

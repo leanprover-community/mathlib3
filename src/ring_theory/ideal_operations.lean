@@ -514,7 +514,7 @@ end)
 variables {I f}
 lemma comap_map_le : I ≤ (I.map f).comap f :=
 λ x hx, begin
-  rw [submodule.mem_coe, mem_comap],
+  rw [mem_comap],
   exact mem_map_of_mem hx
 end
 
@@ -746,7 +746,7 @@ variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
 
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
 ⟨λ h x hx, begin
-  erw [← mem_comap, ← h],
+  rw [← mem_comap, ← h],
   exact comap_map_le hx
 end,
 λ h, le_antisymm

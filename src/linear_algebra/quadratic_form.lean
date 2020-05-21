@@ -250,6 +250,7 @@ lemma smul_pos_def_of_nonzero {K : Type u} [linear_ordered_field K] [module K M]
 end pos_def
 end quadratic_form
 
+section
 /-!
 ### Quadratic forms and matrices
 
@@ -277,8 +278,12 @@ lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R
   (a • Q).to_matrix = (a * a) • Q.to_matrix :=
 by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
 
+end
+
 namespace quadratic_form
 
+variables {n : Type w} [fintype n]
+variables [decidable_eq n] [invertible (2 : R₁)]
 variables {m : Type w} [fintype m] [decidable_eq m]
 open_locale matrix
 
@@ -301,5 +306,62 @@ lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
 by simp [discr, mul_left_comm, mul_comm]
 
 end discriminant
+
+end quadratic_form
+
+namespace quadratic_form
+
+variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
+variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M₁] [module R M₂] [module R M₃]
+
+structure isometry (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
+(map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
+
+def equiv (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
+
+namespace isometry
+
+variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
+
+instance : has_coe (Q₁.isometry Q₂) (M₁ ≃ₗ[R] M₂) := ⟨isometry.to_linear_equiv⟩
+
+instance : has_coe_to_fun (Q₁.isometry Q₂) :=
+{ F := λ _, M₁ → M₂, coe := λ f, ⇑(f : M₁ ≃ₗ[R] M₂) }
+
+@[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
+
+@[refl]
+def refl (Q : quadratic_form R M) : Q.isometry Q :=
+{ map_app' := λ m, rfl,
+  .. linear_equiv.refl R M }
+
+@[symm]
+def symm (f : Q₁.isometry Q₂) : Q₂.isometry Q₁ :=
+{ map_app' := by { intro m, rw ← f.map_app, congr, exact f.to_linear_equiv.apply_symm_apply m },
+  .. (f : M₁ ≃ₗ[R] M₂).symm }
+
+@[trans]
+def trans (f : Q₁.isometry Q₂) (g : Q₂.isometry Q₃) : Q₁.isometry Q₃ :=
+{ map_app' := by { intro m, rw [← f.map_app, ← g.map_app], refl },
+  .. (f : M₁ ≃ₗ[R] M₂).trans (g : M₂ ≃ₗ[R] M₃) }
+
+end isometry
+
+namespace equiv
+
+variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
+
+@[refl]
+lemma refl (Q : quadratic_form R M) : Q.equiv Q := ⟨isometry.refl Q⟩
+
+@[symm]
+lemma symm (h : Q₁.equiv Q₂) : Q₂.equiv Q₁ := h.elim $ λ f, ⟨f.symm⟩
+
+@[trans]
+lemma trans (h : Q₁.equiv Q₂) (h' : Q₂.equiv Q₃) : Q₁.equiv Q₃ :=
+h'.elim $ h.elim $ λ f g, ⟨f.trans g⟩
+
+end equiv
 
 end quadratic_form

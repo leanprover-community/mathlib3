@@ -866,4 +866,15 @@ def linear_map_algebra_module : module R (V →ₗ[S] W) :=
   zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
   add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }
 
+local attribute [instance] linear_map_algebra_module
+
+variables {R S V W}
+@[simp]
+lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
+  (c • f) v = (c • (f v) : module.restrict_scalars R S W) :=
+begin
+  erw [linear_map.map_smul],
+  refl,
+end
+
 end module_of_linear_maps

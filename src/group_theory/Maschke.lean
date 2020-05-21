@@ -12,11 +12,15 @@ import linear_algebra.basis
 /-!
 # Maschke's theorem
 
-This file does not yet do all of Maschke's theorem, but only the core computational part:
-if `V ↪ W` is an inclusion of `k[G]`-modules, then it has a `k[G]`-linear retraction `π : W → V`.
+We prove Maschke's theorem,
+in the formulation that every submodule of a `k[G]` module has a complement,
+when `k` is a field with `¬(ring_char k ∣ fintype.card G)`.
 
-This requires the assumption that `fintype.card G` is invertible in `k`, and builds the retraction
-by picking an arbitrary `k`-linear retraction, and averaging over `G`.
+We do the core computation in greater generality.
+For any `[comm_ring k]` in which  `[invertible (fintype.card G : k)]`,
+and a `k[G]`-linear map `i : V → W` which admits a `k`-linear retraction `π`,
+we produce a `k[G]`-linear retraction by
+taking the average over `G` of the conjugates of `π`.
 
 ## Future work
 It's not so far to give the usual statement, that every finite dimensional representation
@@ -28,24 +32,6 @@ universes u
 def mul_right_embedding {G : Type*} [group G] (g : G) : G ↪ G :=
 { to_fun := λ h, h * g,
   inj' := λ h h', (mul_left_inj g).mp, }
-
-section
-variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
-  (V : Type*) [add_comm_group V] [module S V]
-  (W : Type*) [add_comm_group W] [module S W]
-
-local attribute [instance] linear_map_algebra_module
-
-variables {R S V W}
-@[simp]
-lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
-  (c • f) v = (c • (f v) : module.restrict_scalars R S W) :=
-begin
-  erw [linear_map.map_smul],
-  refl,
-end
-
-end
 
 noncomputable theory
 open module
@@ -66,17 +52,11 @@ We now do the key calculation in Maschke's theorem.
 Given `V → W`, an inclusion of `k[G]` modules,,
 assume we have some splitting `π` of the inclusion `V → W`,
 just as as a `k`-linear map.
-(This is available cheaply, by choosing a basis.)
+(When `k` is a field, this will be available cheaply, by choosing a basis.)
 
 We now construct a splitting of the inclusion as a `k[G]`-linear map,
 by the formula
 $$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
-
-There may be a certain amount of work afterwards to get
-the specific formulation of Maschke's theorem you might be thinking of
-(possibly requiring setting up some infrastructure about semisimplicity,
-or abelian categories, depending on the formulation),
-but they should all rely on this calculation.
 -/
 
 variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k]

@@ -84,9 +84,9 @@ lemma closed_complemented_of_closed_compl (h : is_compl p q) (hp : is_closed (p 
   (hq : is_closed (q : set E)) : p.closed_complemented :=
 ⟨p.linear_proj_of_closed_compl q h hp hq, p.linear_proj_of_is_compl_apply_left q h⟩
 
-lemma closed_complemented_iff_has_closed_compl : closed_complemented p ↔
+lemma closed_complemented_iff_has_closed_compl : p.closed_complemented ↔
   is_closed (p : set E) ∧ ∃ (q : subspace 𝕜 E) (hq : is_closed (q : set E)), is_compl p q :=
-⟨λ h, ⟨h.is_closed, h.has_closed_compl⟩,
+⟨λ h, ⟨h.is_closed, h.has_closed_complement⟩,
   λ ⟨hp, ⟨q, hq, hpq⟩⟩, closed_complemented_of_closed_compl hpq hp hq⟩
 
 lemma closed_complemented_of_quotient_finite_dimensional [complete_space 𝕜]

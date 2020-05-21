@@ -29,7 +29,7 @@ variables {F : Type u} [decidable_eq F] [field F] (s : finset F)
 
 open polynomial
 
-/-- Lagrange basis polynomials that evaluate to $1$ at `x` and $0$ at other elements of `s`. -/
+/-- Lagrange basis polynomials that evaluate to 1 at `x` and 0 at other elements of `s`. -/
 def basis (x : F) : polynomial F :=
 (s.erase x).prod $ λ y, C (x - y)⁻¹ * (X - C y)
 

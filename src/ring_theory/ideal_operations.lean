@@ -251,6 +251,24 @@ mul_comm r s ▸ mul_mem_mul hr hs
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
+lemma mul_le_left : I * J ≤ J :=
+ideal.mul_le.2 (λ r hr s, ideal.mul_mem_left _)
+
+lemma mul_le_right : I * J ≤ I :=
+ideal.mul_le.2 (λ r hr s hs, ideal.mul_mem_right _ hr)
+
+@[simp] lemma sup_mul_right_self : I ⊔ (I * J) = I :=
+sup_eq_left.2 ideal.mul_le_right
+
+@[simp] lemma sup_mul_left_self : I ⊔ (J * I) = I :=
+sup_eq_left.2 ideal.mul_le_left
+
+@[simp] lemma mul_right_self_sup : (I * J) ⊔ I = I :=
+sup_eq_right.2 ideal.mul_le_right
+
+@[simp] lemma mul_left_self_sup : (J * I) ⊔ I = I :=
+sup_eq_right.2 ideal.mul_le_left
+
 variables (I J K)
 protected theorem mul_comm : I * J = J * I :=
 le_antisymm (mul_le.2 $ λ r hrI s hsJ, mul_mem_mul_rev hsJ hrI)
@@ -474,6 +492,33 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
   by rw [← f.map_mul];
   exact mem_map_of_mem (mul_mem_mul hri hsj))
 
+@[simp] lemma map_id : I.map (ring_hom.id R) = I :=
+by ext; simp [ideal.map]
+
+lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
+  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
+le_antisymm begin
+  refine ideal.span_le.2 _,
+  rintros x ⟨y, hy, rfl⟩,
+  rw [submodule.mem_coe, ← ideal.mem_comap],
+  refine ideal.span_le.2 _ hy,
+  rintros y ⟨z, hz, rfl⟩,
+  rw [submodule.mem_coe, ideal.mem_comap, ← ring_hom.comp_apply],
+  exact ideal.mem_map_of_mem hz
+end
+(ideal.span_mono begin
+  rw [ring_hom.coe_comp, set.image_comp],
+  exact set.image_subset _ ideal.subset_span,
+end)
+
+variables {I f}
+lemma comap_map_le : I ≤ (I.map f).comap f :=
+λ x hx, begin
+  rw [submodule.mem_coe, mem_comap],
+  exact mem_map_of_mem hx
+end
+
+variables (I f)
 theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
@@ -694,6 +739,21 @@ lemma ker_is_prime [integral_domain S] (f : R →+* S) :
 λ x y, by simpa only [mem_ker, f.map_mul] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 end ring_hom
+
+namespace ideal
+
+variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
+
+lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
+⟨λ h x hx, begin
+  erw [← mem_comap, ← h],
+  exact comap_map_le hx
+end,
+λ h, le_antisymm
+  (ideal.span_le.2 (by rintros x ⟨y, hy, rfl⟩; exact h hy))
+  bot_le⟩
+
+end ideal
 
 namespace submodule
 

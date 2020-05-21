@@ -156,9 +156,9 @@ instance : comm_monoid (perfect_closure K p) :=
       ← nat.iterate_add_apply, add_comm, add_left_comm],
   one := mk K p (0, 1),
   one_mul := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero, id, one_mul, zero_add]),
+    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero_apply, one_mul, zero_add]),
   mul_one := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero, id, mul_one, add_zero]),
+    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero_apply, mul_one, add_zero]),
   mul_comm := λ e f, quot.induction_on e (λ ⟨m, x⟩, quot.induction_on f (λ ⟨n, y⟩,
     congr_arg (quot.mk _) $ by simp only [add_comm, mul_comm])),
   .. (infer_instance : has_mul (perfect_closure K p)) }
@@ -210,7 +210,7 @@ have := r.intro n (0:K); rwa [frobenius_zero K p] at this
 
 theorem r.sound (m n : ℕ) (x y : K) (H : frobenius K p^[m] x = y) :
   mk K p (n, x) = mk K p (m + n, y) :=
-by subst H; induction m with m ih; [simp only [zero_add, nat.iterate_zero, id],
+by subst H; induction m with m ih; [simp only [zero_add, nat.iterate_zero_apply],
   rw [ih, nat.succ_add, nat.iterate_succ']]; apply quot.sound; apply r.intro
 
 instance : comm_ring (perfect_closure K p) :=
@@ -220,9 +220,9 @@ instance : comm_ring (perfect_closure K p) :=
       ← nat.iterate_add_apply, add_comm, add_left_comm],
   zero := 0,
   zero_add := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero, id, zero_add]),
+    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero_apply, zero_add]),
   add_zero := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero, id, add_zero]),
+    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero_apply, add_zero]),
   add_left_neg := λ e, quot.induction_on e (λ ⟨n, x⟩,
     by simp only [quot_mk_eq_mk, neg_mk, mk_add_mk,
       nat.iterate₁ (frobenius_neg K p), add_left_neg, mk_zero]),
@@ -349,7 +349,7 @@ instance : field (perfect_closure K p) :=
   mul_inv_cancel := λ e, induction_on e $ λ ⟨m, x⟩ H,
     have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
       (by simp only [(frobenius _ _).iterate_map_one, (frobenius K p).iterate_map_zero,
-        nat.iterate_zero, ← (frobenius _ p).iterate_map_mul, id] at this ⊢;
+        nat.iterate_zero_apply, ← (frobenius _ p).iterate_map_mul] at this ⊢;
         rw [mul_inv_cancel this, (frobenius _ _).iterate_map_one]),
   inv_zero := congr_arg (quot.mk (r K p)) (by rw [inv_zero]),
   .. (infer_instance : has_inv (perfect_closure K p)),

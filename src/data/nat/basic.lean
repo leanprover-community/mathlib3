@@ -1013,21 +1013,21 @@ theorem iterate_ind {α : Type u} (f : α → α) {p : (α → α) → Prop} (hf
 
 theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
   op^[n] x = x :=
-by induction n; [simp only [iterate_zero, id], simp only [iterate_succ', (∘), H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β} {op'' : α → β}
   (H : ∀ x, op' (op'' x) = op'' (op x)) {n : ℕ} {x : α} :
   op'^[n] (op'' x) = op'' (op^[n] x) :=
-by induction n; [simp only [iterate_zero, id], simp only [iterate_succ', (∘), H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α}
   (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
   op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
-by induction n; [simp only [iterate_zero, id], simp only [iterate_succ', (∘), H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
   op^[n] (op'^[n] x) = x :=
-by induction n; [refl, rwa [iterate_succ, iterate_succ', function.comp_apply, H]]
+by induction n; [refl, rwa [iterate_succ_apply, iterate_succ_apply', H]]
 
 end
 

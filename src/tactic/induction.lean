@@ -295,6 +295,10 @@ meta def decompose_pi_normalizing
   | _ := pure ([] , e)
   end
 
+meta def recompose_pi (binders : list (name × binder_info × expr)) (ret : expr)
+  : expr :=
+binders.foldr (λ ⟨name, info, t⟩ acc, pi name info t acc) ret
+
 /-- Auxiliary function for `decompose_app`. -/
 meta def decompose_app_aux : expr → expr × list expr
 | (app t u) :=
@@ -364,13 +368,17 @@ occs.foldl_with_index
   (λ i occ_map occs, occs.fold occ_map (λ var occ_map, occ_map.insert var i))
   (mk_rb_multimap ℕ ℕ)
 
-meta def eta_expand_leading_implicit_arguments (e : expr) (t : expr) : expr :=
+meta def eta_expand_leading_implicit_arguments (e : expr) (t : expr) : expr × ℕ :=
 let ⟨args, _⟩ := decompose_pi t in
 let implicit_args := args.take_while (λ x, x.2.1.is_implicit) in
+let num_implicit_args := implicit_args.length in
 let implicit_arg_types := implicit_args.map (λ ⟨name, _, type, _⟩, (name, type)) in
 let applications :=
   implicit_arg_types.foldr_with_index (λ i _ res, app res (var i)) e in
-implicit_arg_types.foldr (λ ⟨name, type⟩ res, lam name binder_info.implicit type res) applications
+let result :=
+  implicit_arg_types.foldr (λ ⟨name, type⟩ res, lam name binder_info.implicit type res)
+    (applications.lift_vars 0 num_implicit_args) in
+(result, num_implicit_args)
 
 -- TODO debug
 example (x : Π {n m : ℕ} (k : unit), ℕ) : unit :=
@@ -993,90 +1001,62 @@ meta def simplify_index_equations : list expr → tactic bool
 
 -- TODO remove
 meta inductive ih_arg
-| refl (type value : expr)
-| eq_to_heq (type lhs rhs : expr) (binder_ref : ℕ)
+| refl (u : level) (type value : expr)
+| eq_to_heq (u : level) (type lhs rhs : expr) (binder_ref : ℕ)
 | heq (binder_ref : ℕ)
 
--- meta def simplify_ih₁
---   : list expr → ℕ → list pexpr → list ih_arg → tactic (ℕ × list pexpr × list ih_arg)
--- | [] num_new_binders new_binders new_args :=
---   pure ⟨num_new_binders, new_binders, new_args⟩
--- | (b@`(@heq %%lhs_type %%lhs %%rhs_type %%rhs) :: binders) num_new_binders new_binders new_args := do
---   types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
---   ⟨num_new_binders, new_binders, new_args⟩ ← do {
---     if ¬ types_eq
---       then
---         pure ( num_new_binders + 1
---              , to_pexpr b :: new_binders
---              , ih_arg.heq num_new_binders :: new_args )
---       else do
---         rhs_eq_lhs ← succeeds $ is_def_eq lhs rhs,
---         if ¬ rhs_eq_lhs
---           then
---             pure ( num_new_binders + 1
---                  , ``(@eq %%lhs_type %%lhs %%rhs) :: new_binders
---                  , ih_arg.eq_to_heq lhs_type lhs rhs num_new_binders :: new_args)
---           else
---             pure ( num_new_binders
---                  , new_binders
---                  , ih_arg.refl lhs_type lhs :: new_args
---                  )
---   },
---   simplify_ih₁ binders num_new_binders new_binders new_args
--- | (b :: _) _ _ _ :=
---   fail! "simplify_ih₁: expected a heterogeneous equation, but got:\n{b}"
-
-meta def simplify_ih₁ : list expr → tactic (ℕ × list pexpr × list ih_arg)
+meta def simplify_ih₁ : list expr → tactic (ℕ × list expr × list ih_arg)
 | [] := pure (0, [], [])
-| (b@`(@heq %%lhs_type %%lhs %%rhs_type %%rhs) :: binders) := do
+| (b@(app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) :: binders) := do
+  -- can't use pretty expression pattern matching because it doesn't allow us to bind u
   ⟨num_binders, binders, args⟩ ← simplify_ih₁ binders,
   types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
   if ¬ types_eq
     then
       pure ( num_binders + 1
-           , to_pexpr b :: binders
+           , b :: binders
            , ih_arg.heq num_binders :: args )
     else do
       rhs_eq_lhs ← succeeds $ is_def_eq lhs rhs,
       if ¬ rhs_eq_lhs
         then
           pure ( num_binders + 1
-                , ``(@eq %%lhs_type %%lhs %%rhs) :: binders
-                , ih_arg.eq_to_heq lhs_type lhs rhs num_binders :: args )
+                , app (app (app (const `eq [u]) lhs_type) lhs) rhs :: binders
+                , ih_arg.eq_to_heq u lhs_type lhs rhs num_binders :: args )
         else
           pure ( num_binders
                 , binders
-                , ih_arg.refl lhs_type lhs :: args
+                , ih_arg.refl u lhs_type lhs :: args
                 )
 | (b :: _) :=
   fail! "simplify_ih₁: expected a heterogeneous equation, but got:\n{b}"
 
-meta def render_ih_arg (num_binders : ℕ) : ih_arg → pexpr
-| (ih_arg.refl type value) :=
-  ``(@heq.refl %%type %%value)
-| (ih_arg.eq_to_heq type lhs rhs binder_ref) :=
-  let v : expr := expr.var binder_ref in
-  ``(@heq_of_eq %%type %%lhs %%rhs %%v)
+meta def render_ih_arg (num_binders : ℕ) : ih_arg → expr
+| (ih_arg.refl u type value) :=
+  app (app (const `heq.refl [u]) type) value
+| (ih_arg.eq_to_heq u type lhs rhs binder_ref) :=
+  app (app (app (app (const `heq_of_eq [u]) type) lhs) rhs) (var binder_ref)
 | (ih_arg.heq binder_ref) :=
   expr.var $ binder_ref
 
-meta def simplify_ih₂
-  : expr → ℕ → list pexpr → list ih_arg → pexpr := λ ih num_binders binder_types args,
+meta def simplify_ih₂ (ih : expr) (remaining_type : expr) (num_binders : ℕ)
+  (binder_types : list expr) (args : list ih_arg) : expr :=
 let ih_app :=
   args.foldl (λ res arg, ``(%%res %%(render_ih_arg num_binders arg)))
-    (to_pexpr ih) in
-binder_types.foldr (λ t res, (lam `_a binder_info.default t res)) ih_app
+    (pexpr.mk_explicit $ to_pexpr ih) in
+let ⟨ih_app_expanded, num_implicit_args⟩ :=
+  (unsafe_cast ih_app).eta_expand_leading_implicit_arguments remaining_type in
+binder_types.foldr (λ t res, (lam `_a binder_info.default t res))
+  (unsafe_cast ih_app_expanded)
 
 meta def simplify_ih (num_index_vars : ℕ) (ih : expr) : tactic expr := do
   ih_type ← infer_type ih,
-  let ⟨args, _⟩ := decompose_pi ih_type,
+  let ⟨args, _, ret⟩ := decompose_pi ih_type,
   let index_eq_args := (args.take num_index_vars).map (λ ⟨_, _, type, _⟩, type),
+  let remaining_type :=
+    recompose_pi ((args.drop num_index_vars).map (λ ⟨n, bi, t, _⟩, (n, bi, t))) ret,
   ⟨num_binders, new_binders, new_args⟩ ← simplify_ih₁ index_eq_args,
-  let new_ih := simplify_ih₂ ih num_binders new_binders new_args,
-  trace "before to_expr",
-  new_ih ← to_expr new_ih ff ff,
-  trace "after to_expr",
-  -- let new_ih := new_ih.eta_expand_leading_implicit_arguments,
+  let new_ih := simplify_ih₂ ih remaining_type num_binders new_binders new_args,
   replace' ih new_ih
 
 meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := focus1 $ do

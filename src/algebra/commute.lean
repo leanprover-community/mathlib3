@@ -3,8 +3,8 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland, Yury Kudryashov
 -/
-
-import algebra.semiconj group_theory.submonoid group_theory.subgroup ring_theory.subring
+import algebra.semiconj
+import ring_theory.subring
 
 /-!
 # Commuting pairs of elements in monoids

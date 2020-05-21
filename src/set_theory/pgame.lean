@@ -757,9 +757,9 @@ le_of_relabelling (neg_add_relabelling x y)
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩,
-  { rintros (_|_); { dsimp [left_moves_add], apply add_comm_relabelling, } },
-  { rintros (_|_); { dsimp [right_moves_add], apply add_comm_relabelling, } },
+  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
+  rintros (_|_);
+  { simp [left_moves_add, right_moves_add], apply add_comm_relabelling }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

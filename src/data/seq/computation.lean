@@ -5,7 +5,8 @@ Author: Mario Carneiro
 
 Coinductive formalization of unbounded computations.
 -/
-import data.stream logic.relator tactic.basic
+import data.stream
+import tactic.basic
 universes u v w
 
 /-
@@ -421,7 +422,7 @@ theorem results_thinkN {s : computation α} {a m} :
 | (n+1) h := results_think (results_thinkN n h)
 
 theorem results_thinkN_ret (a : α) (n) : results (thinkN (return a) n) a n :=
-by have := results_thinkN n (results_ret a); rwa zero_add at this
+by have := results_thinkN n (results_ret a); rwa nat.zero_add at this
 
 @[simp] theorem length_thinkN (s : computation α) [h : terminates s] (n) :
   length (thinkN s n) = length s + n :=

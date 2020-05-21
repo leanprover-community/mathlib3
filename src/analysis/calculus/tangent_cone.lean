@@ -3,8 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.convex.basic analysis.normed_space.bounded_linear_maps analysis.specific_limits
+import analysis.convex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.specific_limits
 
 /-!
 # Tangent cone
@@ -34,7 +35,6 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
-set_option class.instance_max_depth 50
 open filter set
 open_locale topological_space
 

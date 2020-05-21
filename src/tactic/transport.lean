@@ -49,7 +49,7 @@ do
   -- We explode the goal into individual fields using `refine_struct`.
   -- Later we'll want to also consider falling back to `fconstructor`,
   -- but for now this suffices.
-  seq `[refine_struct { .. }]
+  seq' `[refine_struct { .. }]
   -- We now deal with each field sequentially.
   -- Since we may pass goals through to the user if the heuristics here fail,
   -- we wrap everything in `propagate_tags`.

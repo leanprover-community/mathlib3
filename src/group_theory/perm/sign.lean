@@ -45,6 +45,8 @@ by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y :=
 by rw [eq_comm, eq_inv_iff_eq, eq_comm]
 
+/-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
+every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
 
 @[symm] lemma disjoint.symm {f g : perm α} : disjoint f g → disjoint g f :=
@@ -84,14 +86,7 @@ end
 
 lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoint)
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
-begin
-  induction hp,
-  { refl },
-  { rw [list.prod_cons, list.prod_cons, hp_ih (list.pairwise_cons.1 hl).2] },
-  { simp [list.prod_cons, disjoint_mul_comm, (mul_assoc _ _ _).symm, *,
-      list.pairwise_cons] at * },
-  { rw [hp_ih_a hl, hp_ih_a_1 ((list.perm_pairwise (λ x y (h : disjoint x y), disjoint.symm h) hp_a).1 hl)] }
-end
+hp.prod_eq' $ hl.imp $ λ f g, disjoint_mul_comm
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p] (h₁ : ∀ x, p x ↔ p (f x))
   (h₂ : ∀ x, f x ≠ x → p x) : of_subtype (subtype_perm f h₁) = f :=
@@ -372,7 +367,7 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = (finset.singleton (⟨one, zero⟩ : Σ a : fin n, fin n)).prod
+show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
   (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
   ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
 begin
@@ -419,7 +414,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
@@ -429,7 +424,7 @@ def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) �
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
-      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp [list.mem_of_perm h])
+      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
 
@@ -688,8 +683,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
-      by conv in (f) {rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1 };
-        simp [mul_def, one_def],
+      begin
+        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
+        simp [mul_def, one_def]
+      end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         card_support_swap hx.1.symm]; refl
   else
@@ -705,14 +702,3 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support
 end sign
 
 end equiv.perm
-
-lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
-eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
-  (λ _ _ _ _ H, σ.injective H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
-
-lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
-@finset.prod_univ_perm _ (multiplicative β) _ _ f σ
-
-attribute [to_additive] finset.prod_univ_perm

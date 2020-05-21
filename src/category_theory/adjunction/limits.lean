@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.preserves
 import category_theory.limits.creates
 
 open opposite
@@ -16,8 +15,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj

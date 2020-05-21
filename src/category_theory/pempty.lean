@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.discrete_category
-import category_theory.equivalence
 
 /-!
 # The empty category
@@ -23,8 +22,7 @@ instance pempty_category : small_category.{w} pempty.{w+1} :=
   comp := by obviously }
 
 namespace functor
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- The unique functor from the empty category to any target category. -/
 def empty : pempty.{v+1} ⥤ C := by tidy

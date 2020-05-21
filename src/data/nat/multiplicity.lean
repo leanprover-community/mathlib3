@@ -3,7 +3,10 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.choose ring_theory.multiplicity data.nat.modeq algebra.gcd_domain
+import data.nat.choose
+import ring_theory.multiplicity
+import data.nat.modeq
+import algebra.gcd_domain
 /-!
 
 # Natural number multiplicity
@@ -54,7 +57,7 @@ namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) :
   multiplicity p 1 = 0 :=
-by rw [multiplicity.one_right (mt is_unit_nat.mp (ne_of_gt hp.one_lt))]
+by rw [multiplicity.one_right (mt nat.is_unit_iff.mp (ne_of_gt hp.one_lt))]
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=

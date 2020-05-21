@@ -5,9 +5,9 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-
-import category_theory.category category_theory.isomorphism category_theory.groupoid category_theory.functor
-import algebra.group.units data.equiv.mul_add
+import category_theory.category
+import category_theory.groupoid
+import data.equiv.mul_add
 
 universes v v' u u'
 
@@ -49,8 +49,7 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 
 end End
 
-variables {C : Type u} [𝒞 : category.{v} C] (X : C)
-include 𝒞
+variables {C : Type u} [category.{v} C] (X : C)
 
 def Aut (X : C) := X ≅ X
 
@@ -78,8 +77,7 @@ end Aut
 
 namespace functor
 
-variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
-include 𝒟
+variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
 def map_End : End X →* End (f.obj X) :=

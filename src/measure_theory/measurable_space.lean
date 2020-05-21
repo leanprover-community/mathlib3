@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Measurable spaces -- σ-algberas
 -/
-import data.set.disjointed order.galois_connection data.set.countable
+import data.set.disjointed
+import data.set.countable
 
 /-!
 # Measurable spaces and measurable functions

@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-
-import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
-import ring_theory.ideal_operations ring_theory.free_ring
+import data.equiv.functor
+import data.mv_polynomial
+import ring_theory.ideal_operations
+import ring_theory.free_ring
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -201,7 +202,7 @@ end
 theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
-  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ finset.mem_singleton_self _⟩)
+  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
   (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
@@ -210,7 +211,7 @@ free_comm_ring.induction_on x
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
 
 theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_supported x ↑s :=
-let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
+let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa set.finite.coe_to_finset⟩
 
 end free_comm_ring
 

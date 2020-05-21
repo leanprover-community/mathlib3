@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite group_theory.coset
+import data.set.finite
+import group_theory.coset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -15,7 +16,7 @@ infixr ` • `:73 := has_scalar.smul
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
+/-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
@@ -34,7 +35,29 @@ lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
 
-variables {α} (p : Prop) [decidable p]
+variables {α}
+
+@[simp] lemma units.inv_smul_smul (u : units α) (x : β) :
+  (↑u⁻¹:α) • (u:α) • x = x :=
+by rw [smul_smul, u.inv_mul, one_smul]
+
+@[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
+  (u:α) • (↑u⁻¹:α) • x = x :=
+by rw [smul_smul, u.mul_inv, one_smul]
+
+section gwz
+
+variables {G : Type*} [group_with_zero G] [mul_action G β]
+
+lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
+(units.mk0 c hc).inv_smul_smul x
+
+lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
+(units.mk0 c hc).smul_inv_smul x
+
+end gwz
+
+variables (p : Prop) [decidable p]
 
 lemma ite_smul (a₁ a₂ : α) (b : β) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
 by split_ifs; refl
@@ -46,7 +69,15 @@ end
 
 namespace mul_action
 
-variables (α) [monoid α] [mul_action α β]
+variables (α) [monoid α]
+
+/-- The regular action of a monoid on itself by left multiplication. -/
+def regular : mul_action α α :=
+{ smul := λ a₁ a₂, a₁ * a₂,
+  one_smul := λ a, one_mul a,
+  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+
+variables [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 
@@ -107,13 +138,20 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
+lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+(to_units α c).inv_smul_smul x
+
+lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+(to_units α c).smul_inv_smul x
+
 variables (α) (β)
 
+/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := (•) g,
   inv_fun := (•) g⁻¹,
-  left_inv := λ a, by rw [← mul_action.mul_smul, inv_mul_self, mul_action.one_smul],
-  right_inv := λ a, by rw [← mul_action.mul_smul, mul_inv_self, mul_action.one_smul] }
+  left_inv := inv_smul_smul g,
+  right_inv := smul_inv_smul g }
 
 variables {α} {β}
 
@@ -207,14 +245,32 @@ distrib_mul_action.smul_add _ _ _
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
 
-instance distrib_mul_action.is_add_monoid_hom (r : α) :
-  is_add_monoid_hom ((•) r : β → β) :=
-{ map_zero := smul_zero r,
-  map_add := smul_add r }
+theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
+⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
+
+theorem units.smul_ne_zero (u : units α) {x : β} : (u : α) • x ≠ 0 ↔ x ≠ 0 :=
+not_congr u.smul_eq_zero
+
+@[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
+  u • x = 0 ↔ x = 0 :=
+exists.elim hu $ λ u hu, hu.symm ▸ u.smul_eq_zero
+
+variable (β)
+
+/-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
+def const_smul_hom (r : α) : β →+ β :=
+{ to_fun := (•) r,
+  map_zero' := smul_zero r,
+  map_add' := smul_add r }
+
+variable {β}
+
+@[simp] lemma const_smul_hom_apply (r : α) (x : β) :
+  const_smul_hom β r x = r • x := rfl
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(list.sum_hom _ _).symm
+(const_smul_hom β r).map_list_sum l
 
 end
 
@@ -223,10 +279,10 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(multiset.sum_hom _ _).symm
+(const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • s.sum f = s.sum (λ x, r • f x) :=
-(finset.sum_hom _ _).symm
+(const_smul_hom β r).map_sum f s
 
 end

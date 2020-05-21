@@ -5,8 +5,8 @@ Authors: Kevin Buzzard, Mario Carneiro
 
 The complex numbers, modelled as R^2 in the obvious way.
 -/
-import data.real.basic tactic.ring algebra.field_power
-import tactic.norm_cast
+import data.real.basic
+import deprecated.field
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
@@ -134,7 +134,7 @@ by simpa using @conj_inj z 0
 
 lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
- λ ⟨h, e⟩, e.symm ▸ rfl⟩
+ λ ⟨h, e⟩, by rw [e, conj_of_real]⟩
 
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
@@ -283,6 +283,12 @@ by ext; simp [neg_div]
 
 @[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
 by rw [division_def, conj_mul, conj_inv]; refl
+
+@[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
+(div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
+
+@[simp] lemma inv_I : I⁻¹ = -I :=
+by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 by classical; exact

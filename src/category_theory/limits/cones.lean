@@ -5,7 +5,6 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
-import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -17,8 +16,7 @@ open category_theory
 -- not into `Sort v`.
 -- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 open category_theory
 open category_theory.category
@@ -194,18 +192,17 @@ namespace cones
 
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
-by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
 def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
-by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
+@[simps]
 def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
-begin
-  refine equivalence.mk (postcompose α.hom) (postcompose α.inv) _ _,
-  { symmetry,
-    refine (postcompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact postcompose_id },
-  { refine (postcompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact postcompose_id }
-end
+{ functor := postcompose α.hom,
+  inverse := postcompose α.inv,
+  unit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy) }
 
 section
 variable (F)
@@ -214,8 +211,7 @@ variable (F)
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 @[simps] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
 { obj := λ A,
@@ -275,8 +271,7 @@ variable (F)
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 @[simps] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
 { obj := λ A,

@@ -466,20 +466,9 @@ theorem is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
   by simp only [mem_comap, f.map_mul]; apply hK.2⟩
 
 variables (I J K L)
-theorem map_bot : map f ⊥ = ⊥ :=
-le_antisymm (map_le_iff_le_comap.2 bot_le) bot_le
 
 theorem map_top : map f ⊤ = ⊤ :=
 (eq_top_iff_one _).2 $ subset_span ⟨1, trivial, f.map_one⟩
-
-theorem comap_top : comap f ⊤ = ⊤ :=
-(eq_top_iff_one _).2 trivial
-
-theorem map_sup : map f (I ⊔ J) = map f I ⊔ map f J :=
-le_antisymm (map_le_iff_le_comap.2 $ sup_le
-  (map_le_iff_le_comap.1 le_sup_left)
-  (map_le_iff_le_comap.1 le_sup_right))
-(sup_le (map_mono le_sup_left) (map_mono le_sup_right))
 
 theorem map_mul : map f (I * J) = map f I * map f J :=
 le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
@@ -511,14 +500,55 @@ end
   exact set.image_subset _ ideal.subset_span,
 end)
 
-variables {I f}
-lemma comap_map_le : I ≤ (I.map f).comap f :=
-λ x hx, begin
-  rw [mem_comap],
-  exact mem_map_of_mem hx
-end
+variable (f)
+lemma gc_map_comap : galois_connection (ideal.map f) (ideal.comap f) :=
+λ I J, ideal.map_le_iff_le_comap
 
-variables (I f)
+variables {f I J K L}
+
+lemma map_le_of_le_comap : I ≤ K.comap f → I.map f ≤ K :=
+(gc_map_comap f).l_le
+
+lemma le_comap_of_map_le : I.map f ≤ K → I ≤ K.comap f :=
+(gc_map_comap f).le_u
+
+lemma le_comap_map : I ≤ (I.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+lemma map_comap_le : (K.comap f).map f ≤ K :=
+(gc_map_comap f).l_u_le _
+
+@[simp] lemma comap_top : (⊤ : ideal S).comap f = ⊤ :=
+(gc_map_comap f).u_top
+
+@[simp] lemma map_bot : (⊥ : ideal R).map f = ⊥ :=
+(gc_map_comap f).l_bot
+
+variables (f I J K L)
+
+@[simp] lemma map_comap_map : ((I.map f).comap f).map f = I.map f :=
+congr_fun (gc_map_comap f).l_u_l_eq_l I
+
+@[simp] lemma comap_map_comap : ((K.comap f).map f).comap f = K.comap f :=
+congr_fun (gc_map_comap f).u_l_u_eq_u K
+
+lemma map_sup : (I ⊔ J).map f = I.map f ⊔ J.map f :=
+(gc_map_comap f).l_sup
+
+variables {ι : Type*}
+
+lemma map_supr (K : ι → ideal R) : (supr K).map f = ⨆ i, (K i).map f :=
+(gc_map_comap f).l_supr
+
+lemma comap_infi (K : ι → ideal S) : (infi K).comap f = ⨅ i, (K i).comap f :=
+(gc_map_comap f).u_infi
+
+lemma map_Sup (s : set (ideal R)): (Sup s).map f = ⨆ I ∈ s, (I : ideal R).map f :=
+(gc_map_comap f).l_Sup
+
+lemma comap_Inf (s : set (ideal S)): (Inf s).comap f = ⨅ I ∈ s, (I : ideal S).comap f :=
+(gc_map_comap f).u_Inf
+
 theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
@@ -747,7 +777,7 @@ variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
 ⟨λ h x hx, begin
   erw [ring_hom.ker, ← h],
-  exact comap_map_le hx
+  exact le_comap_map hx
 end,
 λ h, le_antisymm
   (ideal.span_le.2 (by rintros x ⟨y, hy, rfl⟩; exact h hy))

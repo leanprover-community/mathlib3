@@ -731,14 +731,13 @@ module structure over `R`, called `module.restrict_scalars' R S E`.
 We do not register this as an instance as `S` can not be inferred.
 -/
 def module.restrict_scalars' : module R E :=
-{ smul      := λc x, (algebra_map R S c) • x,
+{ smul      := λ c x, (algebra_map R S c) • x,
   one_smul  := by simp,
   mul_smul  := by simp [mul_smul],
   smul_add  := by simp [smul_add],
   smul_zero := by simp [smul_zero],
   add_smul  := by simp [add_smul],
   zero_smul := by simp [zero_smul] }
-
 
 /--
 When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
@@ -753,6 +752,9 @@ instance [I : add_comm_group E] : add_comm_group (module.restrict_scalars R S E)
 
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
+
+lemma module.restrict_scalars_def (c : R) (x : module.restrict_scalars R S E) :
+  c • x = ((algebra_map R S c) • x : E) := rfl
 
 /--
 `module.restrict_scalars R S S` is `R`-linearly equivalent to the original algebra `S`.
@@ -799,6 +801,16 @@ lemma submodule.restrict_scalars_mem (V : submodule S E) (e : E) :
   e ∈ V.restrict_scalars R ↔ e ∈ V :=
 iff.refl _
 
+@[simp]
+lemma submodule.restrict_scalars_bot :
+  submodule.restrict_scalars R (⊥ : submodule S E) = ⊥ :=
+rfl
+
+@[simp]
+lemma submodule.restrict_scalars_top :
+  submodule.restrict_scalars R (⊤ : submodule S E) = ⊤ :=
+rfl
+
 /-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
 def linear_map.restrict_scalars (f : E →ₗ[S] F) :
   (restrict_scalars R S E) →ₗ[R] (restrict_scalars R S F) :=
@@ -808,6 +820,11 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) :
 
 @[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
+
+@[simp]
+lemma restrict_scalars_ker (f : E →ₗ[S] F) :
+  (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
+rfl
 
 end restrict_scalars
 
@@ -848,5 +865,16 @@ def linear_map_algebra_module : module R (V →ₗ[S] W) :=
   smul_add := λ r f g, by { ext v, dsimp [(•)], simp [linear_map.map_add], },
   zero_smul := λ f, by { ext v, dsimp [(•)], simp, },
   add_smul := λ r r' f, by { ext v, dsimp [(•)], simp [add_smul], }, }
+
+local attribute [instance] linear_map_algebra_module
+
+variables {R S V W}
+@[simp]
+lemma linear_map_algebra_module.smul_apply (c : R) (f : V →ₗ[S] W) (v : V) :
+  (c • f) v = (c • (f v) : module.restrict_scalars R S W) :=
+begin
+  erw [linear_map.map_smul],
+  refl,
+end
 
 end module_of_linear_maps

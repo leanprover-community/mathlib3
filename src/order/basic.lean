@@ -83,34 +83,48 @@ lemma antisymm_of_asymm (r) [is_asymm α r] : is_antisymm α r :=
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_refl α (≥) := is_refl.swap _
 instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (≥) := is_trans.swap _
 instance [preorder α] : is_preorder α (≤) := {}
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_preorder α (≥) := {}
 instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (>) := is_trans.swap _
 instance [preorder α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_asymm α (>) := is_asymm.swap _
 instance [preorder α] : is_antisymm α (<) := antisymm_of_asymm _
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_antisymm α (>) := antisymm_of_asymm _
 instance [preorder α] : is_strict_order α (<) := {}
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_strict_order α (>) := {}
 instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
   by apply_instance
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 
 theorem preorder.ext {α} {A B : preorder α}
@@ -445,6 +459,7 @@ lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
 classical.or_iff_not_imp_left.2 $ assume h,
@@ -518,6 +533,8 @@ by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..LO }
 
+/-- Any `linear_order` is a noncomputable `decidable_linear_order`. This is not marked
+as an instance to avoid a loop. -/
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
 
@@ -753,6 +770,8 @@ theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : �
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+/-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
+there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 end prio

@@ -140,6 +140,28 @@ by rw [←category.id_comp (kernel.ι f), ←iso.hom_inv_id (kernel.of_mono f), 
 
 end has_zero_object
 
+section transport
+variables [has_zero_morphisms.{v} C]
+
+/-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then the kernel of `f` is a kernel of `l`.-/
+def kernel.of_comp_iso [has_limit (parallel_pair f 0)]
+  {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom = f) :
+  is_limit (kernel_fork.of_ι (kernel.ι f) $
+    show kernel.ι f ≫ l = 0, by simp [←(iso.comp_inv_eq i).2 h.symm]) :=
+fork.is_limit.mk _
+  (λ s, kernel.lift f (fork.ι s) $ by simp [←h])
+  (λ s, by simp)
+  (λ s m h, equalizer.hom_ext $ by simpa using h walking_parallel_pair.zero)
+
+/-- If `i` is an isomorphism such that `i.hom ≫ kernel.ι f = l`, then `l` is a kernel of `f`. -/
+def kernel.iso_kernel [has_limit (parallel_pair f 0)]
+  {Z : C} (l : Z ⟶ X) (i : Z ≅ kernel f) (h : i.hom ≫ kernel.ι f = l) :
+  is_limit (kernel_fork.of_ι l $ by simp [←h]) :=
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext i.symm $ λ j,
+  by { cases j, { exact (iso.eq_inv_comp i).2 h }, { simp } }
+
+end transport
+
 section
 variables (X) (Y) [has_zero_morphisms.{v} C]
 
@@ -265,6 +287,29 @@ instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
 coequalizer.π_of_eq $ kernel.ι_of_mono f
 
 end has_zero_object
+
+section transport
+variables [has_zero_morphisms.{v} C]
+
+/-- If `i` is an isomorphism such that `i.hom ≫ l = f`, then the cokernel of `f` is a cokernel of
+    `l`. -/
+def cokernel.of_iso_comp [has_colimit (parallel_pair f 0)]
+  {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l = f) :
+  is_colimit (cokernel_cofork.of_π (cokernel.π f) $
+    show l ≫ cokernel.π f = 0, by simp [(iso.eq_inv_comp i).2 h]) :=
+cofork.is_colimit.mk _
+  (λ s, cokernel.desc f (cofork.π s) $ by simp [←h])
+  (λ s, by simp)
+  (λ s m h, coequalizer.hom_ext $ by simpa using h walking_parallel_pair.one)
+
+/-- If `i` is an isomorphism such that `cokernel.π f ≫ i.hom = l`, then `l` is a cokernel of `f`. -/
+def cokernel.cokernel_iso [has_colimit (parallel_pair f 0)]
+  {Z : C} (l : Y ⟶ Z) (i : cokernel f ≅ Z) (h : cokernel.π f ≫ i.hom = l) :
+  is_colimit (cokernel_cofork.of_π l $ by simp [←h]) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) $ cocones.ext i $ λ j,
+  by { cases j, { simp }, { exact h } }
+
+end transport
 
 end category_theory.limits
 namespace category_theory.limits

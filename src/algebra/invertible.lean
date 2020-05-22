@@ -164,17 +164,19 @@ end group_with_zero
 
 section ring_char
 
-def invertible_of_ring_char_not_dvd {R : Type*} [field R]
-  {t : ℕ} (not_dvd : ¬(ring_char R ∣ t)) : invertible (t : R) :=
-invertible_of_nonzero (λ h, not_dvd ((ring_char.spec R t).mp h))
+/-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide `t`. -/
+def invertible_of_ring_char_not_dvd {K : Type*} [field K]
+  {t : ℕ} (not_dvd : ¬(ring_char K ∣ t)) : invertible (t : K) :=
+invertible_of_nonzero (λ h, not_dvd ((ring_char.spec K t).mp h))
 
 end ring_char
 
 section char_p
 
-def invertible_of_char_p_not_dvd {R : Type*} [field R] {p : ℕ} [char_p R p]
-  {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : R) :=
-invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff R p t).mp h))
+/-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide `t`. -/
+def invertible_of_char_p_not_dvd {K : Type*} [field K] {p : ℕ} [char_p R p]
+  {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
+invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
 end char_p
 

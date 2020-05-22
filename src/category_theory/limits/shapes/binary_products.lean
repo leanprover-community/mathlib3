@@ -16,6 +16,9 @@ We define `prod X Y` and `coprod X Y` as limits and colimits of such functors.
 
 Typeclasses `has_binary_products` and `has_binary_coproducts` assert the existence
 of (co)limits shaped as walking pairs.
+
+We include lemmas for simplifying equations involving projections and coprojections, and define
+braiding and associating isomorphisms, and the product comparison morphism.
 -/
 
 universes v u u₂

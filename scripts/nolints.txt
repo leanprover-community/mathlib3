@@ -51,10 +51,8 @@ apply_nolint euclidean_domain.xgcd_aux doc_blame
 
 -- algebra/field.lean
 apply_nolint algebra.div doc_blame
-apply_nolint div_zero simp_nf
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
-apply_nolint inv_zero simp_nf
 
 -- algebra/free.lean
 apply_nolint free_magma doc_blame

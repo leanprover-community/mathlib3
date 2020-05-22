@@ -105,7 +105,8 @@ instance [partial_order α] : is_partial_order α (≤) := {}
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
 instance [linear_order α] : is_total α (≥) := is_total.swap _
-instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) := by apply_instance
+instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
+  by apply_instance
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_linear_order α (≥) := {}
@@ -291,16 +292,22 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] 
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
-instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] : partial_order (Πi, α i) :=
+instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
+  partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
   ..pi.preorder }
 
 theorem comp_le_comp_left_of_monotone [preorder α] [preorder β]
-  {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
+  {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) :
+  has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
 assume x, m_f (le_gh x)
 
 section monotone
 variables [preorder α] [preorder γ]
+
+theorem monotone.order_dual {f : α → γ} (hf : monotone f) :
+  @monotone (order_dual α) (order_dual γ) _ _ f :=
+λ x y hxy, hf hxy
 
 theorem monotone_lam {f : α → β → γ} (m : ∀b, monotone (λa, f a b)) : monotone f :=
 assume a a' h b, m b h
@@ -309,6 +316,10 @@ theorem monotone_app (f : β → α → γ) (b : β) (m : monotone (λa b, f b a
 assume a a' h, m h b
 
 end monotone
+
+theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f) :
+  @strict_mono (order_dual α) (order_dual β) _ _ f :=
+λ x y hxy, hf hxy
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`. -/
 def preorder.lift {α β} (f : α → β) (i : preorder β) : preorder α :=
@@ -346,7 +357,8 @@ by exactI
 instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val i
 
-instance subtype.partial_order {α} [i : partial_order α] (p : α → Prop) : partial_order (subtype p) :=
+instance subtype.partial_order {α} [i : partial_order α] (p : α → Prop) :
+  partial_order (subtype p) :=
 partial_order.lift subtype.val subtype.val_injective i
 
 instance subtype.linear_order {α} [i : linear_order α] (p : α → Prop) : linear_order (subtype p) :=
@@ -411,7 +423,8 @@ instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
-lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
+lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+  (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
@@ -421,7 +434,8 @@ lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃>a₂, a₁ ≤ a₃) : a₁ = a₂ :=
 le_antisymm (le_of_forall_le_of_dense h₂) h₁
 
-lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}(h : ∀a₃<a₁, a₂ ≥ a₃) :
+lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
+  (h : ∀a₃<a₁, a₂ ≥ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
@@ -483,7 +497,8 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
-@[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop) extends is_trichotomous α lt, is_strict_order α lt : Prop.
+@[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
+  extends is_trichotomous α lt, is_strict_order α lt : Prop.
 end prio
 
 /-- Construct a linear order from a `is_strict_total_order'` relation -/
@@ -497,7 +512,8 @@ def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
   ..partial_order_of_SO r }
 
 /-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
-def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] : decidable_linear_order α :=
+def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
+  decidable_linear_order α :=
 by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..LO }
@@ -505,7 +521,8 @@ by letI LO := linear_order_of_STO' r; exact
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
 
-theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] : is_strict_total_order' α (swap r) :=
+theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
+  is_strict_total_order' α (swap r) :=
 {..is_trichotomous.swap r, ..is_strict_order.swap r}
 
 instance [linear_order α] : is_strict_total_order' α (<) := {}
@@ -560,22 +577,29 @@ instance is_extensional_of_is_strict_total_order'
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
-@[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
+@[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
+  extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
 end prio
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
+  is_strict_total_order α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
+  is_extensional α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
+  is_trichotomous α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
+  is_trans α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
+  is_irrefl α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
+instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
+  is_asymm α r := by apply_instance
 
 noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
   decidable_linear_order α :=
@@ -589,13 +613,15 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
-instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
+instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] :
+  is_well_order (α ⊕ β) (sum.lex r s) :=
 { trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
   irrefl       := λ a, by cases a; simp; apply irrefl,
   trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
   wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
 
-instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_well_order (α × β) (prod.lex r s) :=
+instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
+  is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
     match @trichotomous _ r _ a₁ b₁ with
     | or.inl h₁ := or.inl $ prod.lex.left _ _ h₁

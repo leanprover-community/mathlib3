@@ -604,7 +604,7 @@ lemma comap_injective_of_surjective : injective (comap f) :=
 lemma map_sup_comap_of_surjective (I J : ideal S) : (I.comap f ⊔ J.comap f).map f = I ⊔ J :=
 (gi_map_comap f hf).l_sup_u _ _
 
-lemma map_supr_comap_of_srjective (K : ι → ideal S) : (⨆i, (K i).comap f).map f = supr K :=
+lemma map_supr_comap_of_surjective (K : ι → ideal S) : (⨆i, (K i).comap f).map f = supr K :=
 (gi_map_comap f hf).l_supr_u _
 
 lemma map_inf_comap_of_surjective (I J : ideal S) : (I.comap f ⊓ J.comap f).map f = I ⊓ J :=

@@ -580,6 +580,8 @@ le_antisymm (map_le_iff_le_comap.2 (le_refl _))
 (λ s hsi, let ⟨r, hfrs⟩ := hf s in
   hfrs ▸ (mem_map_of_mem $ show f r ∈ I, from hfrs.symm ▸ hsi))
 
+/-- `map` and `comap` are adjoint, and the composition `map f ∘ comap f` is the
+  identity -/
 def gi_map_comap : galois_insertion (map f) (comap f) :=
 galois_insertion.monotone_intro
   ((gc_map_comap f).monotone_u)

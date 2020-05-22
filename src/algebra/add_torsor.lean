@@ -75,12 +75,12 @@ instance add_group_is_add_torsor (G : Type*) [add_group G] :
   vsub_vadd' := sub_add_cancel,
   vadd_vsub' := add_sub_cancel }
 
-namespace add_torsor
+namespace add_action
 
 section general
 
-variables (G : Type*) {P : Type*} [add_group G] [S : add_torsor G P]
-include S
+variables (G : Type*) {P : Type*} [add_monoid G] [A : add_action G P]
+include A
 
 /-- Adding the zero group element to a point gives the same point. -/
 @[simp] lemma zero_vadd (p : P) : (0 : G) +ᵥ p = p :=
@@ -90,6 +90,46 @@ zero_vadd' p
 adding their sum. -/
 lemma vadd_assoc (g1 g2 : G) (p : P) : g1 +ᵥ (g2 +ᵥ p) = (g1 + g2) +ᵥ p :=
 vadd_assoc' g1 g2 p
+
+end general
+
+section comm
+
+variables (G : Type*) {P : Type*} [add_comm_monoid G] [A : add_action G P]
+include A
+
+/-- Adding two group elements to a point produces the same result in either
+order. -/
+lemma vadd_comm (p : P) (g1 g2 : G) : g1 +ᵥ (g2 +ᵥ p) = g2 +ᵥ (g1 +ᵥ p) :=
+by rw [vadd_assoc, vadd_assoc, add_comm]
+
+end comm
+
+section group
+
+variables (G : Type*) {P : Type*} [add_group G] [A : add_action G P]
+include A
+
+/-- If the same group element added to two points produces equal results,
+those points are equal. -/
+lemma vadd_left_cancel {p1 p2 : P} (g : G) (h : g +ᵥ p1 = g +ᵥ p2) : p1 = p2 :=
+begin
+  have h2 : -g +ᵥ (g +ᵥ p1) = -g +ᵥ (g +ᵥ p2), { rw h },
+  rwa [vadd_assoc, vadd_assoc, add_left_neg, zero_vadd, zero_vadd] at h2
+end
+
+end group
+
+end add_action
+
+namespace add_torsor
+
+open add_action
+
+section general
+
+variables (G : Type*) {P : Type*} [add_group G] [T : add_torsor G P]
+include T
 
 /-- Adding the result of subtracting from another point produces that
 point. -/
@@ -103,7 +143,7 @@ vadd_vsub' g p
 
 /-- If the same point added to two group elements produces equal
 results, those group elements are equal. -/
-lemma vadd_cancel_right (g1 g2 : G) (p : P) (h : g1 +ᵥ p = g2 +ᵥ p) : g1 = g2 :=
+lemma vadd_right_cancel {g1 g2 : G} (p : P) (h : g1 +ᵥ p = g2 +ᵥ p) : g1 = g2 :=
 by rw [←vadd_vsub G g1, h, vadd_vsub]
 
 /-- Adding a group element to a point, then subtracting another point,
@@ -111,7 +151,7 @@ produces the same result as subtracting the points then adding the
 group element. -/
 lemma vadd_vsub_assoc (g : G) (p1 p2 : P) : g +ᵥ p1 -ᵥ p2 = g + (p1 -ᵥ p2) :=
 begin
-  apply vadd_cancel_right G _ _ p2,
+  apply vadd_right_cancel G p2,
   rw [vsub_vadd, ←vadd_assoc, vsub_vadd]
 end
 
@@ -125,44 +165,33 @@ by rw [←vsub_vadd G p1 p2, h, zero_vadd]
 
 /-- Subtracting two points produces 0 if and only if they are
 equal. -/
-lemma vsub_eq_zero_iff_eq (p1 p2 : P) : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
+@[simp] lemma vsub_eq_zero_iff_eq {p1 p2 : P} : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
 iff.intro (eq_of_vsub_eq_zero G) (λ h, h ▸ vsub_self G _)
 
 /-- Subtracting two points in the reverse order produces the negation
 of subtracting them. -/
-lemma vsub_rev_eq_neg_vsub (p1 p2 : P) : (p2 -ᵥ p1 : G) = -(p1 -ᵥ p2) :=
+@[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1 : G) :=
 begin
-  symmetry,
   apply neg_eq_of_add_eq_zero,
-  apply vadd_cancel_right G _ _ p1,
+  apply vadd_right_cancel G p1,
   rw [zero_vadd, ←vadd_assoc, vsub_vadd, vsub_vadd]
-end
-
-/-- If the same group element added to two points produces equal results,
-those points are equal. -/
-lemma vadd_cancel_left (p1 p2 : P) (g : G) (h : g +ᵥ p1 = g +ᵥ p2) : p1 = p2 :=
-begin
-  have h2 : -g +ᵥ (g +ᵥ p1) = -g +ᵥ (g +ᵥ p2), { rw h },
-  rwa [vadd_assoc, vadd_assoc, add_left_neg, zero_vadd, zero_vadd] at h2
 end
 
 /-- Cancellation adding the results of two subtractions. -/
 @[simp] lemma vsub_add_vsub_cancel (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) + (p2 -ᵥ p3) = (p1 -ᵥ p3) :=
 begin
-  apply vadd_cancel_right G _ _ p3,
+  apply vadd_right_cancel G p3,
   rw [←vadd_assoc, vsub_vadd, vsub_vadd, vsub_vadd]
 end
 
 /-- Subtracting the result of adding a group element produces the same result
 as subtracting the points and subtracting that group element. -/
 lemma vsub_vadd_eq_vsub_sub (p1 p2 : P) (g : G) : p1 -ᵥ (g +ᵥ p2) = (p1 -ᵥ p2) - g :=
-begin
-  rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, vsub_rev_eq_neg_vsub, vadd_vsub,
-      ←add_sub_assoc, vsub_rev_eq_neg_vsub, neg_add_self, zero_sub]
-end
+by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_vsub_rev, vadd_vsub,
+       ←add_sub_assoc, ←neg_vsub_eq_vsub_rev, neg_add_self, zero_sub]
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_cancel_right (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_right_cancel (p1 p2 p3 : P) :
   (p1 -ᵥ p3 : G) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 
@@ -176,15 +205,10 @@ section comm
 variables (G : Type*) {P : Type*} [add_comm_group G] [S : add_torsor G P]
 include S
 
-/-- Adding two group elements to a point produces the same result in either
-order. -/
-lemma vadd_comm (p : P) (g1 g2 : G) : g1 +ᵥ (g2 +ᵥ p) = g2 +ᵥ (g1 +ᵥ p) :=
-by rw [vadd_assoc, vadd_assoc, add_comm]
-
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_left_cancel (p1 p2 p3 : P) :
   (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
-by rw [sub_eq_add_neg, ←vsub_rev_eq_neg_vsub, add_comm, vsub_add_vsub_cancel]
+by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 
 end comm
 

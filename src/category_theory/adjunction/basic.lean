@@ -205,24 +205,38 @@ def id : 𝟭 C ⊣ 𝟭 C :=
   counit := 𝟙 _ }
 
 /-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/
-@[reducible]
 def equiv_homset_left_of_nat_iso
   {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} :
   (F.obj X ⟶ Y) ≃ (G.obj X ⟶ Y) :=
-{ to_fun := λ f, (iso.app _).inv ≫ f,
-  inv_fun := λ g, (iso.app _).hom ≫ g,
+{ to_fun := λ f, iso.inv.app _ ≫ f,
+  inv_fun := λ g, iso.hom.app _ ≫ g,
   left_inv := λ f, by simp,
   right_inv := λ g, by simp }
 
+@[simp]
+lemma equiv_homset_left_of_nat_iso_apply {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} (f : F.obj X ⟶ Y) :
+  (equiv_homset_left_of_nat_iso iso) f = iso.inv.app _ ≫ f := rfl
+
+@[simp]
+lemma equiv_homset_left_of_nat_iso_symm_apply {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} (g : G.obj X ⟶ Y) :
+  (equiv_homset_left_of_nat_iso iso).symm g = iso.hom.app _ ≫ g := rfl
+
 /-- If G and H are naturally isomorphic functors, establish an equivalence of hom-sets. -/
-@[reducible]
 def equiv_homset_right_of_nat_iso
   {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} :
   (X ⟶ G.obj Y) ≃ (X ⟶ H.obj Y) :=
-{ to_fun := λ f, f ≫ (iso.app _).hom,
-  inv_fun := λ g, g ≫ (iso.app _).inv,
+{ to_fun := λ f, f ≫ iso.hom.app _,
+  inv_fun := λ g, g ≫ iso.inv.app _,
   left_inv := λ f, by simp,
   right_inv := λ g, by simp }
+
+@[simp]
+lemma equiv_homset_right_of_nat_iso_apply {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} (f : X ⟶ G.obj Y)  :
+  (equiv_homset_right_of_nat_iso iso) f = f ≫ iso.hom.app _ := rfl
+
+@[simp]
+lemma equiv_homset_right_of_nat_iso_symm_apply {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} (g : X ⟶ H.obj Y) :
+  (equiv_homset_right_of_nat_iso iso).symm g = g ≫ iso.inv.app _ := rfl
 
 /-- Transport an adjunction along an natural isomorphism on the left. -/
 def of_nat_iso_left
@@ -359,11 +373,13 @@ def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
 (E.as_equivalence).to_adjunction
 
 /-- If `F` is an equivalence, it's a left adjoint. -/
+@[priority 10]
 instance left_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_left_adjoint F :=
 { right := _,
   adj := functor.adjunction F }
 
 /-- If `F` is an equivalence, it's a right adjoint. -/
+@[priority 10]
 instance right_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_right_adjoint F :=
 { left := _,
   adj := functor.adjunction F.inv }

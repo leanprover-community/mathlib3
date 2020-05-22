@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 import algebra.group.to_additive
 import tactic.simpa
 import logic.function.basic
-import logic.embedding
 
 set_option default_priority 100
 set_option old_structure_cmd true

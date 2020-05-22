@@ -1,4 +1,8 @@
-
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Reid Barton, Bhavik Mehta, Scott Morrison, Ainsley Pahljina
+-/
 import data.nat.prime
 import data.nat.basic
 import data.zmod.basic
@@ -15,6 +19,39 @@ section mathlib_supplementation
 
 /- Additions to Mathlib -/
 
+lemma zero_not_mem_range_coe_units (R : Type*) [nonzero_semiring R] : (0 : R) ∉ set.range (coe : units R → R) :=
+begin
+  rintro ⟨⟨v,w',h,h'⟩, a⟩,
+  dsimp at a,
+  subst a,
+  simpa using h,
+end
+
+open finset
+open_locale classical
+
+lemma mem_range_of_mem_image_univ {α β : Type*} [fintype α] {f : α → β} {b : β} (w : b ∈ image f univ) : b ∈ set.range f :=
+begin
+  simp at w,
+  obtain ⟨a, rfl⟩ := w,
+  use a,
+end
+
+lemma card_lt_card_of_injective_of_not_mem
+  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
+  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+calc
+  fintype.card α = (univ : finset α).card : rfl
+... = (image f univ).card : (card_image_of_injective univ h).symm
+... < (insert b (image f univ)).card :
+        card_lt_card (ssubset_insert (mt mem_range_of_mem_image_univ w))
+... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
+... = fintype.card β : rfl
+
+lemma card_units_lt (R : Type*) [nonzero_semiring R] [fintype R] :
+  fintype.card (units R) < fintype.card R :=
+card_lt_card_of_injective_of_not_mem (coe : units R → R) units.ext (zero_not_mem_range_coe_units R)
+
 -- The square of the smallest prime factor of a natural number n is less than or equal to n.
 lemma min_fac_sq (n : ℕ) (h_1 : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
 begin
@@ -26,7 +63,7 @@ begin
 end
 
 -- Credit Bhavik Mehta
-lemma pow_monotonic { a m n : ℕ } ( ha : 2 ≤ a ) ( k : a^n ≤ a^m ) : n ≤ m :=
+lemma pow_monotonic {a m n : ℕ} (ha : 2 ≤ a) (k : a^n ≤ a^m) : n ≤ m :=
   le_of_not_gt (λ r, not_le_of_lt (pow_lt_pow_of_lt_right ha r) k)
 
 -- Credit Bhavik Mehta
@@ -120,7 +157,7 @@ def q (p : ℕ) : ℕ+ := ⟨min_fac (M p), by exact min_fac_pos (M p)⟩
 
 /- X q : the group of tuples (a,b) taken modulo q, of the form a + (3)^(1/2) -/
 
-@[derive add_comm_group]
+@[derive [add_comm_group, decidable_eq]]
 def X (q : ℕ+) := (zmod q) × (zmod q)
 
 namespace X
@@ -136,6 +173,9 @@ end
 @[simp] lemma add_fst (x y : X q) : (x + y).1 = x.1 + y.1 := rfl
 @[simp] lemma add_snd (x y : X q) : (x + y).2 = x.2 + y.2 := rfl
 
+@[simp] lemma neg_fst (x : X q) : (-x).1 = -x.1 := rfl
+@[simp] lemma neg_snd (x : X q) : (-x).2 = -x.2 := rfl
+
 instance : has_mul (X q) :=
 { mul := λ x y, (x.1*y.1 + 3*x.2*y.2, x.1*y.2 + x.2*y.1) }
 
@@ -147,6 +187,11 @@ instance : has_one (X q) :=
 
 @[simp] lemma one_fst : (1 : X q).1 = 1 := rfl
 @[simp] lemma one_snd : (1 : X q).2 = 0 := rfl
+
+@[simp] lemma bit0_fst (x : X q) : (bit0 x).1 = bit0 x.1 := rfl
+@[simp] lemma bit0_snd (x : X q) : (bit0 x).2 = bit0 x.2 := rfl
+@[simp] lemma bit1_fst (x : X q) : (bit1 x).1 = bit1 x.1 := rfl
+@[simp] lemma bit1_snd (x : X q) : (bit1 x).2 = bit0 x.2 := by { dsimp [bit1], simp, }
 
 instance : monoid (X q) :=
 { mul_assoc := λ x y z, by { ext; { dsimp, ring }, },
@@ -170,6 +215,10 @@ instance : ring (X q) :=
 instance : comm_ring (X q) :=
 { mul_comm := λ x y, by { ext; { dsimp, ring }, },
   ..(infer_instance : ring (X q))}
+
+instance [fact (1 < (q : ℕ))] : nonzero_comm_ring (X q) :=
+{ zero_ne_one := λ h, begin injection h, exact @zero_ne_one (zmod q) _ h_1, end,
+  ..(infer_instance : comm_ring (X q)) }
 
 instance fintype_zmod_pnat : fintype (zmod q) :=
 begin
@@ -210,7 +259,12 @@ Mathematically the cardinality of the units will be
 less than or equal to the cardinality of X q. However 0 in X q,
 is a known element without an inverse, thus the inequality holds.
 -/
-lemma units_card : fintype.card (units (X q)) < q^2 := sorry
+lemma units_card : fintype.card (units (X q)) < q^2 :=
+begin
+  haveI : fact (1 < (q : ℕ)) := sorry,
+  convert card_units_lt (X q),
+  rw X_card,
+end
 
 
 def ω : X q := (2, 1)
@@ -228,14 +282,30 @@ begin
   ext; simp; ring,
 end
 
-instance : has_coe ℤ (X q) :=
-{ coe := λ n, (n, 0) }
+-- instance : has_coe ℤ (X q) :=
+-- { coe := λ n, (n, 0) }
 
 @[simp]
-lemma coe_fst (n : ℤ) : (n : X q).fst = n := rfl
+lemma nat_coe_fst (n : ℕ) : (n : X q).fst = n :=
+begin
+  induction n,
+  { refl, },
+  { dsimp, simp only [add_left_inj], exact n_ih, }
+end
 @[simp]
-lemma coe_snd (n : ℤ) : (n : X q).snd = 0 := rfl
+lemma nat_coe_snd (n : ℕ) : (n : X q).snd = 0 :=
+begin
+  induction n,
+  { refl, },
+  { dsimp, simp only [add_zero], exact n_ih, }
+end
 
+@[simp]
+lemma int_coe_fst (n : ℤ) : (n : X q).fst = n :=
+by { induction n; simp, }
+@[simp]
+lemma int_coe_snd (n : ℤ) : (n : X q).snd = 0 :=
+by { induction n; simp, }
 
 @[norm_cast]
 lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
@@ -251,21 +321,22 @@ end
 
 /- Closed form solution for the recurrence relation -/
 
+-- set_option pp.all true
 lemma closed_form (i : ℕ) : (s i : X q) = (ω : X q)^(2^i) + (ωb : X q)^(2^i) :=
 begin
   induction i with i ih,
-  { dsimp[s, ω, ωb],
-    ext; { dsimp, norm_num, }, },
-  { calc (s (succ i) : X q) = (((s i)^2 - 2) : ℤ) : begin dsimp[s], refl, end
-              ... = ((((s i) : X q) ^2 - 2)) : sorry /- the coercion from ↑(s i^2-2) to ↑(s i)^2-2 -/
+  { dsimp [s, ω, ωb],
+    ext; { simp; refl, }, },
+  { calc (s (i + 1) : X q) = (((s i)^2 - 2) : ℤ) : rfl
+              ... = ((s i : X q)^2 - 2) : by push_cast
               ... = (ω^(2^i) + ωb^(2^i))^2 - 2 : by rw ih
-              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*ωb^(2^i)*ω^(2^i) - 2 : sorry /- (a + b)^2 = a^2 + b^2 + 2*a*b -/
-              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*(ωb*ω)^(2^i) - 2 : sorry
-              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*1^(2^i) - 2 : by rw inverse_val
-              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*1 - 2 : by simp only [_root_.one_pow]
-              ... = ω^(2^i)^2 + ωb^(2^i)^2 : by simp only [mul_one, add_sub_cancel]
-              ... = ω^(2^i*2) + ωb^(2^i*2) : sorry /- (2^(2^i))^2 = (2^((2^i)+(2^i)) = 2^(2*(2^i)) -/
-              ... = ω^(2^(succ i)) + ωb^(2^(succ i)) : sorry /- 2^i * 2 = 2^(i+1) -/ }
+              ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*(ωb^(2^i)*ω^(2^i)) - 2 : by ring
+              ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*(ωb*ω)^(2^i) - 2 : by rw [mul_pow ωb ω]
+              ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*1^(2^i) - 2 : by rw inverse_val
+              ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*1 - 2 : by simp only [_root_.one_pow]
+              ... = (ω^(2^i))^2 + (ωb^(2^i))^2 : by simp only [mul_one, add_sub_cancel]
+              ... = ω^(2^i*2) + ωb^(2^i*2) : by simp only [pow_mul]
+              ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : rfl }
 end
 
 
@@ -294,12 +365,14 @@ end
 
 lemma foo' {p : ℕ} (w : 1 < p) : 2^(p-1) = 2^(p-2) + 2^(p-2) :=
 begin
+  convert mul_two _,
+  rw [←nat.pow_succ],
+  congr,
   cases p,
   cases w,
   cases p,
   cases w with _ w, cases w,
   simp only [nat.sub_zero, succ_sub_succ_eq_sub],
-  apply mul_two,
 end
 
 theorem multiple_k (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
@@ -326,7 +399,11 @@ end
 
 /- This theorem holds as q is by definition the minimum factor of M p.sorry
 As a multiple of q, M p evaluates to 0 mod q -/
-theorem modulo_q (p : ℕ ) : ((M p) : X (q p)) = 0 := sorry
+theorem modulo_q (p : ℕ) : (M p : X (q p)) = 0 :=
+begin
+  ext; simp [M],
+
+end
 
 theorem sufficiency_simp (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : (ω : X (q p))^(2^(p-1)) = -1 :=
 begin

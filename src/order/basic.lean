@@ -52,6 +52,7 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 

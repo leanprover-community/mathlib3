@@ -2134,24 +2134,6 @@ apply_nolint local_ring.residue_field.map doc_blame
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
 
--- ring_theory/localization.lean
-apply_nolint localization.at_prime doc_blame
-apply_nolint localization.away doc_blame
-apply_nolint localization.away.inv_self doc_blame
-apply_nolint localization.away.lift doc_blame
-apply_nolint localization.away_to_away_right doc_blame
-apply_nolint localization.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.inv_aux doc_blame
-apply_nolint localization.fraction_ring.map doc_blame
-apply_nolint localization.le_order_embedding doc_blame
-apply_nolint localization.lift doc_blame
-apply_nolint localization.lift' doc_blame
-apply_nolint localization.map doc_blame
-apply_nolint localization.mk doc_blame
-apply_nolint localization.non_zero_divisors doc_blame
-apply_nolint localization.r doc_blame
-
 -- ring_theory/maps.lean
 apply_nolint comm_ring.anti_equiv_to_equiv doc_blame
 apply_nolint comm_ring.equiv_to_anti_equiv doc_blame

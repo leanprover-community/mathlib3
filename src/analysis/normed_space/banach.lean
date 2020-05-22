@@ -237,3 +237,26 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
   ⇑(e.to_continuous_linear_equiv_of_continuous h).symm = e.symm := rfl
 
 end linear_equiv
+
+namespace continuous_linear_equiv
+
+/-- Convert a bijective continuous linear map `f : E →L[𝕜] F` between two Banach spaces
+to a continuous linear equivalence. -/
+noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
+  E ≃L[𝕜] F :=
+(linear_equiv.of_bijective ↑f hinj hsurj).to_continuous_linear_equiv_of_continuous f.continuous
+
+@[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
+  ⇑(of_bijective f hinj hsurj) = f := rfl
+
+@[simp] lemma of_bijective_symm_apply_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
+  (hsurj : f.range = ⊤) (x : E) :
+  (of_bijective f hinj hsurj).symm (f x) = x :=
+(of_bijective f hinj hsurj).symm_apply_apply x
+
+@[simp] lemma of_bijective_apply_symm_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
+  (hsurj : f.range = ⊤) (y : F) :
+  f ((of_bijective f hinj hsurj).symm y) = y :=
+(of_bijective f hinj hsurj).apply_symm_apply y
+
+end continuous_linear_equiv

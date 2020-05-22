@@ -206,36 +206,36 @@ def id : 𝟭 C ⊣ 𝟭 C :=
 
 /-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/
 def equiv_homset_left_of_nat_iso
-  {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} :
-  (F.obj X ⟶ Y) ≃ (G.obj X ⟶ Y) :=
+  {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} :
+  (F.obj X ⟶ Y) ≃ (F'.obj X ⟶ Y) :=
 { to_fun := λ f, iso.inv.app _ ≫ f,
   inv_fun := λ g, iso.hom.app _ ≫ g,
   left_inv := λ f, by simp,
   right_inv := λ g, by simp }
 
 @[simp]
-lemma equiv_homset_left_of_nat_iso_apply {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} (f : F.obj X ⟶ Y) :
+lemma equiv_homset_left_of_nat_iso_apply {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} (f : F.obj X ⟶ Y) :
   (equiv_homset_left_of_nat_iso iso) f = iso.inv.app _ ≫ f := rfl
 
 @[simp]
-lemma equiv_homset_left_of_nat_iso_symm_apply {F G : C ⥤ D} (iso : F ≅ G) {X : C} {Y : D} (g : G.obj X ⟶ Y) :
+lemma equiv_homset_left_of_nat_iso_symm_apply {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} (g : F'.obj X ⟶ Y) :
   (equiv_homset_left_of_nat_iso iso).symm g = iso.hom.app _ ≫ g := rfl
 
 /-- If G and H are naturally isomorphic functors, establish an equivalence of hom-sets. -/
 def equiv_homset_right_of_nat_iso
-  {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} :
-  (X ⟶ G.obj Y) ≃ (X ⟶ H.obj Y) :=
+  {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} :
+  (X ⟶ G.obj Y) ≃ (X ⟶ G'.obj Y) :=
 { to_fun := λ f, f ≫ iso.hom.app _,
   inv_fun := λ g, g ≫ iso.inv.app _,
   left_inv := λ f, by simp,
   right_inv := λ g, by simp }
 
 @[simp]
-lemma equiv_homset_right_of_nat_iso_apply {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} (f : X ⟶ G.obj Y)  :
+lemma equiv_homset_right_of_nat_iso_apply {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} (f : X ⟶ G.obj Y)  :
   (equiv_homset_right_of_nat_iso iso) f = f ≫ iso.hom.app _ := rfl
 
 @[simp]
-lemma equiv_homset_right_of_nat_iso_symm_apply {G H : D ⥤ C} (iso : G ≅ H) {X : C} {Y : D} (g : X ⟶ H.obj Y) :
+lemma equiv_homset_right_of_nat_iso_symm_apply {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} (g : X ⟶ G'.obj Y) :
   (equiv_homset_right_of_nat_iso iso).symm g = g ≫ iso.inv.app _ := rfl
 
 /-- Transport an adjunction along an natural isomorphism on the left. -/
@@ -274,14 +274,14 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
     (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
 
 /-- If `F` and `G` are left adjoints then `F ⋙ G` is a left adjoint too. -/
-instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E) [Fr : is_left_adjoint F] [Gr : is_left_adjoint G] :
-  is_left_adjoint (F ⋙ G) :=
-{ right := Gr.right ⋙ Fr.right,
-  adj := adjunction.comp _ _ Fr.adj Gr.adj }
+instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E)
+  [Fl : is_left_adjoint F] [Gl : is_left_adjoint G] : is_left_adjoint (F ⋙ G) :=
+{ right := Gl.right ⋙ Fl.right,
+  adj := comp _ _ Fl.adj Gl.adj }
 
 /-- If `F` and `G` are right adjoints then `F ⋙ G` is a right adjoint too. -/
-instance right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E} [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] :
-  is_right_adjoint (F ⋙ G) :=
+instance right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E}
+  [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] : is_right_adjoint (F ⋙ G) :=
 { left := Gr.left ⋙ Fr.left,
   adj := comp _ _ Gr.adj Fr.adj }
 

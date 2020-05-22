@@ -62,6 +62,7 @@ def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
   {l : W ⟶ X // l ≫ f = k} :=
 fork.is_limit.lift' regular_mono.is_limit _ h
 
+/-- If `h` is a regular mono and `g` is a pullback of `g`, then `g` is a regular mono. -/
 def regular_of_is_pullback_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hr : regular_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono g :=

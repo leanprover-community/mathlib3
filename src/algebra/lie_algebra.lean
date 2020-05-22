@@ -711,7 +711,7 @@ lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form)
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J` -/
 def skew_adjoint_matrices_lie_subalgebra (J : matrix n n R) : lie_subalgebra R (matrix n n R) :=
-  (skew_adjoint_matrices_lie_embedding J).range
+(skew_adjoint_matrices_lie_embedding J).range
 
 end skew_adjoint_matrices
 

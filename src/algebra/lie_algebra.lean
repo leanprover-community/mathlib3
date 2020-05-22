@@ -657,11 +657,13 @@ local attribute [instance] matrix.lie_algebra
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the Lie algebra structures. -/
 def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
-{ map_lie := λ T S, by {
+{ map_lie := λ T S,
+  begin
     let f := @linear_map.to_matrixₗ n n _ _ R _ _,
     change f (T.comp S - S.comp T) = (f T) * (f S) - (f S) * (f T),
     have h : ∀ (T S : module.End R _), f (T.comp S) = (f T) ⬝ (f S) := matrix.comp_to_matrix_mul,
-    rw [linear_map.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul], },
+    rw [linear_map.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul],
+  end,
   ..linear_equiv_matrix' }
 
 end matrices

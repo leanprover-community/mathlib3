@@ -52,6 +52,8 @@ theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 @[simp] theorem coe_fn_to_embedding (f : r ≼o s) : (f.to_embedding : α → β) = f := rfl
 
+/-- The map `coe_fn : (r ≼o s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
@@ -227,6 +229,8 @@ lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x 
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃o s) : (f.to_equiv : α → β) = f := rfl
 
+/-- The map `coe_fn : (r ≃o s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≃o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact equiv.coe_fn_injective h }
 

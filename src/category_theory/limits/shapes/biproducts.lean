@@ -324,9 +324,10 @@ open category_theory.preadditive
 
 /-- A preadditive binary biproduct is a bicone on two objects `X` and `Y` satisfying a set of five
     axioms expressing the properties of a biproduct in additive terms. The notion of preadditive
-    binary biproduct is strictly stronger than the notion of binary biproduct (but it can be shown
-    that in any preadditive category, the existence of a binary biproduct implies the existence of
-    a preadditive binary biproduct). -/
+    binary biproduct is strictly stronger than the notion of binary biproduct (but it in any
+    preadditive category, the existence of a binary biproduct implies the existence of a
+    preadditive binary biproduct: a biproduct is, in particular, a product, and every product gives
+    rise to a preadditive binary biproduct, see `has_preadditive_binary_biproduct.of_has_limit_pair`). -/
 class has_preadditive_binary_biproduct (X Y : C) :=
 (bicone : binary_bicone.{v} X Y)
 (ι₁_π₁' : bicone.ι₁ ≫ bicone.π₁ = 𝟙 X . obviously)

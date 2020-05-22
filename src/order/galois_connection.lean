@@ -83,6 +83,12 @@ funext (assume x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _))
 lemma l_u_l_eq_l : l ∘ u ∘ l = l :=
 funext (assume x, le_antisymm (gc.l_u_le _) (gc.monotone_l (gc.le_u_l _)))
 
+lemma l_unique {l' : α → β} (gc' : galois_connection l' u) {a : α} : l a = l' a :=
+le_antisymm (gc.l_le $ gc'.le_u_l _) (gc'.l_le $ gc.le_u_l _)
+
+lemma u_unique {u' : β → α} (gc' : galois_connection l u') {b : β} : u b = u' b :=
+le_antisymm (gc'.le_u $ gc.l_u_le _) (gc.le_u $ gc'.l_u_le _)
+
 end partial_order
 
 section order_top
@@ -110,9 +116,6 @@ include gc
 lemma l_sup : l (a₁ ⊔ a₂) = l a₁ ⊔ l a₂ :=
 (gc.is_lub_l_image is_lub_pair).unique $ by simp only [image_pair, is_lub_pair]
 
-lemma le_u_sup : u b₁ ⊔ u b₂ ≤ u (b₁ ⊔ b₂) :=
-sup_le (gc.monotone_u le_sup_left) (gc.monotone_u le_sup_right)
-
 end semilattice_sup
 
 section semilattice_inf
@@ -121,9 +124,6 @@ include gc
 
 lemma u_inf : u (b₁ ⊓ b₂) = u b₁ ⊓ u b₂ :=
 (gc.is_glb_u_image is_glb_pair).unique $ by simp only [image_pair, is_glb_pair]
-
-lemma l_inf_le : l (a₁ ⊓ a₂) ≤ l a₁ ⊓ l a₂ :=
-le_inf (gc.monotone_l inf_le_left) (gc.monotone_l inf_le_right)
 
 end semilattice_inf
 
@@ -135,29 +135,15 @@ lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
 eq.symm $ is_lub.supr_eq $ show is_lub (range (l ∘ f)) (l (supr f)),
   by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image (is_lub_Sup _)
 
-lemma le_u_supr {f : ι → β} : (⨆i, u (f i)) ≤ u (supr f) :=
-supr_le (λ i, gc.monotone_u (le_supr _ _))
-
 lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
 eq.symm $ is_glb.infi_eq $ show is_glb (range (u ∘ f)) (u (infi f)),
   by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image (is_glb_Inf _)
 
-lemma l_infi_le {f : ι → α} : l (infi f) ≤ (⨅ i, l (f i)) :=
-le_infi (λ i, gc.monotone_l (infi_le _ _))
-
 lemma l_Sup {s : set α} : l (Sup s) = (⨆a∈s, l a) :=
 by simp only [Sup_eq_supr, gc.l_supr]
 
-lemma Sup_u_le {s : set β} : (⨆a∈s, u a) ≤ u (Sup s) :=
-by simp only [Sup_eq_supr];
-  exact le_trans (supr_le_supr (λ _, gc.le_u_supr)) gc.le_u_supr
-
 lemma u_Inf {s : set β} : u (Inf s) = (⨅a∈s, u a) :=
 by simp only [Inf_eq_infi, gc.u_infi]
-
-lemma l_Inf_le {s : set α} : l (Inf s) ≤ (⨅a∈s, l a) :=
-by simp only [Inf_eq_infi];
-  exact le_trans gc.l_infi_le (infi_le_infi (λ _, gc.l_infi_le))
 
 end complete_lattice
 

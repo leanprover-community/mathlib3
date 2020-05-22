@@ -484,25 +484,16 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
 @[simp] lemma map_id : I.map (ring_hom.id R) = I :=
 by ext; simp [ideal.map]
 
-lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
-  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
-le_antisymm begin
-  refine ideal.span_le.2 _,
-  rintros x ⟨y, hy, rfl⟩,
-  rw [submodule.mem_coe, ← ideal.mem_comap],
-  refine ideal.span_le.2 _ hy,
-  rintros y ⟨z, hz, rfl⟩,
-  rw [submodule.mem_coe, ideal.mem_comap, ← ring_hom.comp_apply],
-  exact ideal.mem_map_of_mem hz
-end
-(ideal.span_mono begin
-  rw [ring_hom.coe_comp, set.image_comp],
-  exact set.image_subset _ ideal.subset_span,
-end)
-
 variable (f)
 lemma gc_map_comap : galois_connection (ideal.map f) (ideal.comap f) :=
 λ I J, ideal.map_le_iff_le_comap
+
+lemma comap_comap {T : Type*} [comm_ring T] {I : ideal T} (f : R →+* S)
+  (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
+
+lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
+  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
+((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique (gc_map_comap (g.comp f))
 
 variables {f I J K L}
 
@@ -564,13 +555,13 @@ eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
-(gc_map_comap f).l_inf_le
+(gc_map_comap f).monotone_l.map_inf_le _ _
 
 theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
 map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem hrni⟩
 
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
-(gc_map_comap f).le_u_sup
+(gc_map_comap f).monotone_u.le_map_sup _ _
 
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸

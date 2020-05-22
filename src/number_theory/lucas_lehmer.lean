@@ -60,13 +60,15 @@ end
 variables {G : Type} [group G] [fintype G] [decidable_eq G]
 
 lemma order_of_dvd_iff {n : ℕ} {g : G} : order_of g ∣ n ↔ g^n = 1 :=
-⟨λ h, by { rcases h with ⟨k,rfl⟩, simp only [pow_mul, _root_.one_pow,
-pow_order_of_eq_one] },
-   order_of_dvd_of_pow_eq_one⟩
+⟨λ h,
+ begin
+   rcases h with ⟨k,rfl⟩,
+   simp only [pow_mul, _root_.one_pow, pow_order_of_eq_one]
+ end,
+ order_of_dvd_of_pow_eq_one⟩
 
--- Credit Scott Morrison
-lemma multiple_mod {a b : ℕ} (h : a % b = 0) : ∃ k, k * b = a :=
-⟨a / b, nat.div_mul_cancel (nat.dvd_of_mod_eq_zero h)⟩
+lemma multiple_mod {a : ℤ} {b : ℕ} (h : a % b = 0) : ∃ (k : ℤ), k * b = a :=
+⟨a / b, int.div_mul_cancel (int.dvd_of_mod_eq_zero h)⟩
 
 end  mathlib_supplementation
 
@@ -76,90 +78,73 @@ section Mersenne
 
 def M (p : ℕ) : ℕ := 2^p - 1
 
-lemma M_pos {p : ℕ} (h : 0 < p) : 0 < M p := begin
-dsimp [M],
-calc 0 < 2^1 - 1 : by norm_num
-   ... ≤ 2^p - 1 : pred_le_pred (pow_le_pow_of_le_right (succ_pos 1) h)
+lemma M_pos {p : ℕ} (h : 0 < p) : 0 < M p :=
+begin
+  dsimp [M],
+  calc 0 < 2^1 - 1 : by norm_num
+     ... ≤ 2^p - 1 : pred_le_pred (pow_le_pow_of_le_right (succ_pos 1) h)
 end
-
-
 
 end Mersenne
 
 
-/- Defining the Recurrance Reltion -/
-
--- Defining s' a recurrance relation taken mod (2^p -1). Modulo taken iteratively.
-def s' (p : ℕ) : ℕ → ℕ
+def s' (p : ℕ) : ℕ → zmod (2^p - 1)
 | 0 := 4
-| (i+1) := ((s' i)^2 - 2) % (2^p - 1)
+| (i+1) := ((s' i)^2 - 2)
 
--- Defining s a recurrance relation, without modulo
-def s : ℕ → ℕ
+def s : ℕ → ℤ
 | 0 := 4
 | (i+1) := (s i)^2 - 2
 
--- The above definition are equivalent
--- Equivalence may be established by induction on i.
-lemma s_eq_s' (p : ℕ) (i : ℕ) : (s i) % (2^p - 1) = s' p i :=
+lemma s_eq_s' (p : ℕ) (w : 1 < p) (i : ℕ) : ((s i) : zmod (2^p - 1)) = s' p i :=
 begin
-  induction i,
-  dsimp [s, s'],
-  -- oops
-
+  induction i with i ih,
+  { dsimp [s, s'], norm_num, },
+  { dsimp [s, s'],
+    push_cast,
+    rw ih, },
 end
 
 
 /- Lucas Lehmer Residue -/
 
-def Lucas_Lehmer_residue (p : ℕ) := s' p (p-2) % (2^p - 1)
+def Lucas_Lehmer_residue (p : ℕ) := s' p (p-2)
 
 /- Test for Primality -/
 
+@[derive decidable_pred]
 def Lucas_Lehmer_test (p : ℕ) := Lucas_Lehmer_residue p = 0
-
-/- Decidability Instance -/
-
-instance : decidable_pred Lucas_Lehmer_test := λ p, by { dsimp[Lucas_Lehmer_test], apply_instance }
 
 -- q is defined as the minimum factor of (M p)
 def q (p : ℕ) : ℕ+ := ⟨min_fac (M p), by exact min_fac_pos (M p)⟩
 
-
 /- X q : the group of tuples (a,b) taken modulo q, of the form a + (3)^(1/2) -/
 
+@[derive add_comm_group]
 def X (q : ℕ+) := (zmod q) × (zmod q)
+
 namespace X
 variable {q : ℕ+}
 
 @[ext]
-lemma ext {x y : X q} (h_1 : x.1 = y.1) (h_2 : x.2 = y.2) : x = y :=
+lemma ext {x y : X q} (h₁ : x.1 = y.1) (h₂ : x.2 = y.2) : x = y :=
 begin
-  cases x,
-  cases y,
-  congr,
-  exact h_1,
-  exact h_2,
+  cases x, cases y,
+  congr; assumption
 end
-
--- Establishing X q as an additive, commutative group.
-instance : add_comm_group (X q) := begin
-  dsimp[X],
-  apply_instance,
-end
-
-instance : has_mul (X q) :=
-{ mul := λ x y, (x.1*y.1+3*x.2*y.2,x.1*y.2+x.2*y.1) }
-instance : has_add (X q) :=
-{ add := λ x y, (x.1+y.1,x.2+y.2) }
 
 @[simp] lemma add_fst (x y : X q) : (x + y).1 = x.1 + y.1 := rfl
 @[simp] lemma add_snd (x y : X q) : (x + y).2 = x.2 + y.2 := rfl
 
-instance : has_one (X q) := {one := ⟨1,0⟩}
+instance : has_mul (X q) :=
+{ mul := λ x y, (x.1*y.1 + 3*x.2*y.2, x.1*y.2 + x.2*y.1) }
 
 @[simp] lemma mul_fst (x y : X q) : (x * y).1 = x.1 * y.1 + 3 * x.2 * y.2 := rfl
 @[simp] lemma mul_snd (x y : X q) : (x * y).2 = x.1 * y.2 + x.2 * y.1 := rfl
+
+instance : has_one (X q) :=
+{ one := ⟨1,0⟩ }
+
 @[simp] lemma one_fst : (1 : X q).1 = 1 := rfl
 @[simp] lemma one_snd : (1 : X q).2 = 0 := rfl
 
@@ -180,7 +165,11 @@ instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
   ..(infer_instance : add_comm_group (X q)),
-  ..(infer_instance : monoid (X q))}
+  ..(infer_instance : monoid (X q)) }
+
+instance : comm_ring (X q) :=
+{ mul_comm := λ x y, by { ext; { dsimp, ring }, },
+  ..(infer_instance : ring (X q))}
 
 instance fintype_zmod_pnat : fintype (zmod q) :=
 begin
@@ -214,10 +203,7 @@ end
 
 -- For the purpose of this we do not need to produce the list of units so leave as non-computable
 noncomputable instance fintype_units : fintype (units (X q)) :=
-begin
-apply fintype.of_injective (coe : units (X q) → (X q)),
-exact units.ext,
-end
+fintype.of_injective (coe : units (X q) → (X q)) units.ext
 
 /- The cardinality of the units is less than q^2.
 Mathematically the cardinality of the units will be
@@ -230,45 +216,56 @@ lemma units_card : fintype.card (units (X q)) < q^2 := sorry
 def ω : X q := (2, 1)
 def ωb : X q := (2, -1)
 
-lemma val_inverse (q : ℕ+): (ω : X q) * (ωb) = 1 := begin
-dsimp[ω, ωb],
-ext; simp; ring,
+lemma val_inverse (q : ℕ+): (ω : X q) * ωb = 1 :=
+begin
+  dsimp [ω, ωb],
+  ext; simp; ring,
 end
 
-lemma inverse_val (q : ℕ+): (ωb : X q) * (ω) = 1 := begin
-dsimp[ω, ωb],
-ext; simp; ring,
+lemma inverse_val (q : ℕ+): (ωb : X q) * ω = 1 :=
+begin
+  dsimp [ω, ωb],
+  ext; simp; ring,
 end
 
-def e : ℕ → X q := λ n, (n, 0)
-instance : has_coe ℕ (X q) := {coe := e}
+instance : has_coe ℤ (X q) :=
+{ coe := λ n, (n, 0) }
 
-@[simp]lemma nat_Xq_fst (n : ℕ) : (n : X q).fst = n := rfl
-@[simp]lemma nat_Xq_snd (n : ℕ) : (n : X q).snd = 0 := rfl
+@[simp]
+lemma coe_fst (n : ℤ) : (n : X q).fst = n := rfl
+@[simp]
+lemma coe_snd (n : ℤ) : (n : X q).snd = 0 := rfl
 
+
+@[norm_cast]
+lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
+by { ext; simp; ring }
+
+@[norm_cast]
+lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
+begin
+  induction n with n ih,
+  { ext; refl, },
+  { ext; simp [←ih], }
+end
 
 /- Closed form solution for the recurrence relation -/
 
-lemma closed_form (i : ℕ) : (s i : X q) = (ω : X q)^(2^i) + (ωb : X q)^(2^i) := begin
-induction i with i ih,
- {dsimp[s, ω, ωb],
- simp,
- ring,
- ext,
- simp,
- simp,
- },
- {calc (s (succ i) : X q)  = (((s i)^2 -2) : ℕ) : begin dsimp[s], refl, end
-              ... = ((((s i) : X q) ^2 -2)) : sorry /- the coercion from ↑(s i^2-2) to ↑(s i)^2-2 -/
-              ... = (ω^(2^(i)) + ωb^(2^(i)))^2 - 2 : by rw ih
-              ... = ω^(2^(i))^2 + ωb^(2^(i))^2 + 2*(ωb)^(2^(i))*(ω)^(2^(i)) - 2 : sorry /- (a + b)^2 = a^2 + b^2 + 2*a*b -/
-              ... = ω^(2^(i))^2 + ωb^(2^(i))^2 + 2*(ωb*ω)^(2^(i)) - 2 : sorry
-              ... = ω^(2^(i))^2 + ωb^(2^(i))^2 + 2*(1)^(2^(i)) - 2 : by rw inverse_val
-              ... = ω^(2^(i))^2 + ωb^(2^(i))^2 + 2*(1) - 2 : by simp only[_root_.one_pow]
-              ... = ω^(2^(i))^2 + ωb^(2^(i))^2 : by simp only[mul_one, add_sub_cancel]
-              ... = ω^(2^(i)*2) + ωb^(2^(i)*2) : sorry /- (2^(2^i))^2 = (2^((2^i)+(2^i)) = 2^(2*(2^i)) -/
-              ... = ω^(2^(succ i)) + ωb^(2^(succ i)) : sorry /- 2^i * 2 = 2^(i+1) -/
- }
+lemma closed_form (i : ℕ) : (s i : X q) = (ω : X q)^(2^i) + (ωb : X q)^(2^i) :=
+begin
+  induction i with i ih,
+  { dsimp[s, ω, ωb],
+    ext; { dsimp, norm_num, }, },
+  { calc (s (succ i) : X q) = (((s i)^2 - 2) : ℤ) : begin dsimp[s], refl, end
+              ... = ((((s i) : X q) ^2 - 2)) : sorry /- the coercion from ↑(s i^2-2) to ↑(s i)^2-2 -/
+              ... = (ω^(2^i) + ωb^(2^i))^2 - 2 : by rw ih
+              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*ωb^(2^i)*ω^(2^i) - 2 : sorry /- (a + b)^2 = a^2 + b^2 + 2*a*b -/
+              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*(ωb*ω)^(2^i) - 2 : sorry
+              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*1^(2^i) - 2 : by rw inverse_val
+              ... = ω^(2^i)^2 + ωb^(2^i)^2 + 2*1 - 2 : by simp only [_root_.one_pow]
+              ... = ω^(2^i)^2 + ωb^(2^i)^2 : by simp only [mul_one, add_sub_cancel]
+              ... = ω^(2^i*2) + ωb^(2^i*2) : sorry /- (2^(2^i))^2 = (2^((2^i)+(2^i)) = 2^(2*(2^i)) -/
+              ... = ω^(2^(succ i)) + ωb^(2^(succ i)) : sorry /- 2^i * 2 = 2^(i+1) -/ }
 end
 
 
@@ -283,58 +280,75 @@ lemma min_fac_eq_one_iff (n : ℕ) : min_fac n = 1 ↔ n = 1 := sorry
 lemma min_fac_eq_two_iff (n : ℕ) : min_fac n = 2 ↔ 2 ∣ n := sorry
 
 -- q is at least 2
-lemma minimum_q {p : ℕ} : 2 < q p := begin
+lemma minimum_q {p : ℕ} (w : 1 < p) : 2 < q p := begin
   by_contradiction,
   simp at a,
-  interval_cases q p, clear a,
-  dsimp [q] at h, injection h with h', clear h,
-  simp [M] at h',
+  interval_cases q p; clear a,
+  { dsimp [q] at h, injection h with h', clear h,
+    simp [M] at h',
+    sorry, },
+  { dsimp [q] at h, injection h with h', clear h,
+    simp [M] at h',
+    sorry, }
 end
 
-theorem multiple_k (p : ℕ) (h : Lucas_Lehmer_residue p = 0) : ∃ (k : ℕ), (ω : X (q p))^(2^(p-1)) = k*(M p)*((ω : X (q p))^(2^(p-2)))-1 := begin
-dsimp[Lucas_Lehmer_residue] at h,
-rewrite ←s_eq_s' at h,
-simp at h,
-replace h := multiple_mod h,
-cases h with k h,
-use k,
-replace h := congr_arg (λ (n : ℕ), (n : X (q p))) h, -- coercion from ℕ to X q
-dsimp at h,
-rewrite closed_form at h,
-dsimp[M],
-/- From this point, we require algebraic manipulation on our hypothesis h,
-to ultimately obtain our goal. This involves multiplication by ω^2^(p-2) and
-rearranging the equation (moving the one to the other side)-/
-sorry
+lemma foo' {p : ℕ} (w : 1 < p) : 2^(p-1) = 2^(p-2) + 2^(p-2) :=
+begin
+  cases p,
+  cases w,
+  cases p,
+  cases w with _ w, cases w,
+  simp only [nat.sub_zero, succ_sub_succ_eq_sub],
+  apply mul_two,
+end
+
+theorem multiple_k (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+  ∃ (k : ℤ), (ω : X (q p))^(2^(p-1)) = k * (M p) * ((ω : X (q p))^(2^(p-2))) - 1 :=
+begin
+  dsimp [Lucas_Lehmer_residue] at h,
+  rewrite ←s_eq_s' p w at h,
+  replace h : ((2^p - 1 : ℕ) : ℤ) ∣ s (p-2) := sorry,
+  cases h with k h,
+  use k,
+  replace h := congr_arg (λ (n : ℤ), (n : X (q p))) h, -- coercion from ℤ to X q
+  dsimp at h,
+  rewrite closed_form at h,
+  dsimp [M],
+  replace h := congr_arg (λ x, ω^2^(p-2) * x) h,
+  dsimp at h,
+  rw [mul_add, ←pow_add ω, ←foo' w, ←mul_pow ω ωb (2^(p-2)), val_inverse, _root_.one_pow] at h,
+  rw [mul_comm, coe_mul] at h,
+  rw [mul_comm _ (k : X (q p))] at h,
+  replace h := eq_sub_of_add_eq h,
+  push_cast at h,
+  exact h,
 end
 
 /- This theorem holds as q is by definition the minimum factor of M p.sorry
 As a multiple of q, M p evaluates to 0 mod q -/
 theorem modulo_q (p : ℕ ) : ((M p) : X (q p)) = 0 := sorry
 
-theorem sufficiency_simp (p : ℕ) (h : Lucas_Lehmer_residue p = 0) : (ω : X (q p))^(2^(p-1)) = -1 :=
+theorem sufficiency_simp (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : (ω : X (q p))^(2^(p-1)) = -1 :=
 begin
-have w := multiple_k p h,
-cases w with k w,
-rewrite[modulo_q] at w,
-simp at w,
-exact w,
+  have w := multiple_k p w h,
+  cases w with k w,
+  rw [modulo_q] at w,
+  simp at w,
+  exact w,
 end
 
 /- This result is achieved by squaring the above equation.-/
-theorem suff_squared (p : ℕ) (h : Lucas_Lehmer_residue p = 0) : (ω: X (q p))^(2^p) = 1 := begin
-calc (ω : X (q p))^2^p = (ω^(2^(p-1)))*(ω^(2^(p-1))) : sorry
-         ... = (-1) * (ω^(2^(p-1))) : begin rw sufficiency_simp _, exact h, end
-         ... = (-1) * (-1) : begin rw sufficiency_simp _, exact h, end
-         ... = -1 * -1 : by ring
-         ... = 1 : by simp
-end
+theorem suff_squared (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+  (ω : X (q p))^(2^p) = 1 :=
+calc (ω : X (q p))^2^p = (ω^(2^(p-1)))^2 : sorry
+         ... = (-1)^2                    : by rw sufficiency_simp _ w h
+         ... = 1                         : by simp
 
 def omega_unit (p : ℕ) : units (X (q p)) :=
 { val := ω,
   inv := ωb,
-  val_inv := by simp[val_inverse],
-  inv_val := by simp[inverse_val], }
+  val_inv := by simp [val_inverse],
+  inv_val := by simp [inverse_val], }
 
 @[simp] lemma omega_unit_coe (p : ℕ) : (omega_unit p : X (q p)) = ω := rfl
 
@@ -367,43 +381,46 @@ begin
 end
 
 -- the order of omega is 2^p
-theorem order_omega (p : ℕ) (h : 0 < p) (h_2 : Lucas_Lehmer_residue p = 0): order_of (omega_unit p) = 2^p :=
+theorem order_omega (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+  order_of (omega_unit p) = 2^p :=
 begin
-  have t : p = p - 1 + 1 := (nat.sub_eq_iff_eq_add h).mp rfl,
+  have t : p = p - 1 + 1 := (nat.sub_eq_iff_eq_add sorry).mp rfl,
   conv { to_rhs, rw t },
   apply dvd_prime_power, -- the order of ω divides 2^p
-  norm_num,
-  { intro h,
-    have w := order_of_dvd_iff.1 h,
-    have w' := coercion _ w,
-    have h' := sufficiency_simp p h_2,
-    have h_2 := (w'.symm).trans h',
+  { norm_num, },
+  { intro o,
+    have ω_pow := coercion _ (order_of_dvd_iff.1 o),
+    have h' := sufficiency_simp p w h,
+    have h_2 := (ω_pow.symm).trans h',
     have h_3 := congr_arg (prod.fst) h_2,
     have h_4 : (1 : zmod (q p)) = -1 := h_3,
     have h_5 : (2 : zmod (q p)) = 0 :=
-      calc 2 = ((1 + 1) : zmod((q p)))  : rfl
-         ... = ((1 + -1) : zmod((q p))) : by rw ←h_4
-         ... = 0 : add_neg_self 1,
+      calc 2 = (1 + 1 : zmod (q p))  : rfl
+         ... = (1 + -1 : zmod (q p)) : by rw ←h_4
+         ... = 0                     : add_neg_self 1,
     have h_6 : q p = 1 ∨ q p = 2 := mod_eq_one_or_two _ h_5,
-    have h_7 :  2 < q p := minimum_q,
-    have h_8 : 2 ≠ q p := ne_of_lt h_7,
-    have h_9 : 1 ≠ q p := begin by_contradiction, simp at a, sorry end,
-    sorry
-    /- Generate a contradiction by combining the hypothesises -/
-     },
-  { rw ←t, apply order_of_dvd_iff.2, apply units.ext, simp, apply (suff_squared _), exact h_2 }
+    have h_7 : 2 < q p := minimum_q w,
+    cases h_6,
+    rw h_6 at h_7, cases h_7, cases h_7_a,
+    rw h_6 at h_7, cases h_7, cases h_7_a, cases h_7_a_a, },
+  { rw ←t,
+    apply order_of_dvd_iff.2,
+    apply units.ext,
+    simp,
+    exact (suff_squared _ w h), }
 end
 
 -- The order of an element is at most the size of the group.
-lemma order_ineq (p : ℕ) (h : 0 < p) (h_2 : Lucas_Lehmer_residue p = 0): 2^p < (q p : ℕ)^2 :=
-calc 2^p = order_of (omega_unit p) : (order_omega _ h h_2).symm
-     ... ≤ fintype.card _          : order_of_le_card_univ
-     ... < (q p : ℕ)^2             : units_card
+lemma order_ineq (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : 2^p < (q p : ℕ)^2 :=
+calc 2^p = order_of (omega_unit p)    : (order_omega _ w h).symm
+     ... ≤ fintype.card (units (X _)) : order_of_le_card_univ
+     ... < (q p : ℕ)^2                : units_card
+
 end residue_zero
 
 theorem final (p : ℕ) : Lucas_Lehmer_residue p = 0 → prime (M p) :=
 begin
-by_cases w : 0 < p,
+by_cases w : 1 < p,
 { contrapose,
   intros a t,
   have h₁ := order_ineq p w t,

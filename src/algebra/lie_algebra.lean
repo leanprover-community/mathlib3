@@ -680,10 +680,10 @@ variables (B : bilin_form R M)
 lemma is_skew_adjoint_bracket (T S : module.End R M)
   (hT : B.is_skew_adjoint T) (hS : B.is_skew_adjoint S) : B.is_skew_adjoint ⁅T, S⁆ :=
 begin
-  have hST : B.is_adjoint_pair (S * T) (T * S) := by {
-    rw ←neg_mul_neg T S, exact B.is_adjoint_pair_mul _ _ _ _ hS hT, },
-  have hTS : B.is_adjoint_pair (T * S) (S * T) := by {
-    rw ←neg_mul_neg S T, exact B.is_adjoint_pair_mul _ _ _ _ hT hS, },
+  have hST : B.is_adjoint_pair (S * T) (T * S),
+  { rw ←neg_mul_neg T S, exact B.is_adjoint_pair_mul _ _ _ _ hS hT, },
+  have hTS : B.is_adjoint_pair (T * S) (S * T),
+  { rw ←neg_mul_neg S T, exact B.is_adjoint_pair_mul _ _ _ _ hT hS, },
   change B.is_adjoint_pair (T * S - S * T) (-(T * S - S * T)), rw neg_sub,
   exact B.is_adjoint_pair_sub _ _ _ _ hTS hST,
 end

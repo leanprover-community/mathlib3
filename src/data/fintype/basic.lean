@@ -535,12 +535,13 @@ fintype.subtype (univ.filter (∈ s)) (by simp)
 
 namespace function.embedding
 
-noncomputable def equiv_of_fintype_endomorphism {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+/-- An embedding from a `fintype` to itself can be lifted to an equivalence. -/
+noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
 equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
-lemma equiv_of_fintype_endomorphism_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
-  (e.equiv_of_fintype_endomorphism).to_embedding = e :=
+lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  (e.equiv_of_fintype_self_embedding).to_embedding = e :=
 by { ext, refl, }
 
 end function.embedding

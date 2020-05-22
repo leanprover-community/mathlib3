@@ -45,7 +45,7 @@ theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
 λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn
 
-theorem annihilator_supr (ι : Type w) (f : ι → submodule R M) :
+theorem annihilator_supr (ι : Sort w) (f : ι → submodule R M) :
   (annihilator ⨆ i, f i) = ⨅ i, annihilator (f i) :=
 le_antisymm (le_infi $ λ i, annihilator_mono $ le_supr _ _)
 (λ r H, mem_annihilator'.2 $ supr_le $ λ i,
@@ -61,8 +61,8 @@ mem_colon
 theorem colon_mono (hn : N₁ ≤ N₂) (hp : P₁ ≤ P₂) : N₁.colon P₂ ≤ N₂.colon P₁ :=
 λ r hrnp, mem_colon.2 $ λ p₁ hp₁, hn $ mem_colon.1 hrnp p₁ $ hp hp₁
 
-theorem infi_colon_supr (ι₁ : Type w) (f : ι₁ → submodule R M)
-  (ι₂ : Type x) (g : ι₂ → submodule R M) :
+theorem infi_colon_supr (ι₁ : Sort w) (f : ι₁ → submodule R M)
+  (ι₂ : Sort x) (g : ι₂ → submodule R M) :
   (⨅ i, f i).colon (⨆ j, g j) = ⨅ i j, (f i).colon (g j) :=
 le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _ _))
 (λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
@@ -535,7 +535,9 @@ congr_fun (gc_map_comap f).u_l_u_eq_u K
 lemma map_sup : (I ⊔ J).map f = I.map f ⊔ J.map f :=
 (gc_map_comap f).l_sup
 
-variables {ι : Type*}
+theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
+
+variables {ι : Sort*}
 
 lemma map_supr (K : ι → ideal R) : (supr K).map f = ⨆ i, (K i).map f :=
 (gc_map_comap f).l_supr
@@ -548,8 +550,6 @@ lemma map_Sup (s : set (ideal R)): (Sup s).map f = ⨆ I ∈ s, (I : ideal R).ma
 
 lemma comap_Inf (s : set (ideal S)): (Inf s).comap f = ⨅ I ∈ s, (I : ideal S).comap f :=
 (gc_map_comap f).u_Inf
-
-theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
@@ -564,15 +564,13 @@ eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
-map_le_iff_le_comap.2 $ (comap_inf f (map f I) (map f J)).symm ▸
-inf_le_inf (map_le_iff_le_comap.1 $ le_refl _) (map_le_iff_le_comap.1 $ le_refl _)
+(gc_map_comap f).l_inf_le
 
 theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
 map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem hrni⟩
 
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
-map_le_iff_le_comap.1 $ (map_sup f (comap f K) (comap f L)).symm ▸
-sup_le_sup (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+(gc_map_comap f).le_u_sup
 
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
@@ -582,11 +580,38 @@ section surjective
 variables (hf : function.surjective f)
 include hf
 
+open function
+
 theorem map_comap_of_surjective (I : ideal S) :
   map f (comap f I) = I :=
 le_antisymm (map_le_iff_le_comap.2 (le_refl _))
 (λ s hsi, let ⟨r, hfrs⟩ := hf s in
   hfrs ▸ (mem_map_of_mem $ show f r ∈ I, from hfrs.symm ▸ hsi))
+
+lemma gi_map_comap : galois_insertion (map f) (comap f) :=
+galois_insertion.monotone_intro
+  ((gc_map_comap f).monotone_u)
+  ((gc_map_comap f).monotone_l)
+  (λ _, le_comap_map)
+  (map_comap_of_surjective _ hf)
+
+lemma map_surjective_of_surjective : surjective (map f) :=
+(gi_map_comap f hf).l_surjective
+
+lemma comap_injective_of_surjective : injective (comap f) :=
+(gi_map_comap f hf).u_injective
+
+lemma map_sup_comap_of_surjective (I J : ideal S) : (I.comap f ⊔ J.comap f).map f = I ⊔ J :=
+(gi_map_comap f hf).l_sup_u _ _
+
+lemma map_supr_comap_of_srjective (K : ι → ideal S) : (⨆i, (K i).comap f).map f = supr K :=
+(gi_map_comap f hf).l_supr_u _
+
+lemma map_inf_comap_of_surjective (I J : ideal S) : (I.comap f ⊓ J.comap f).map f = I ⊓ J :=
+(gi_map_comap f hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (K : ι → ideal S) : (⨅i, (K i).comap f).map f = infi K :=
+(gi_map_comap f hf).l_infi_u _
 
 theorem mem_image_of_mem_map_of_surjective {I : ideal R} {y}
   (H : y ∈ map f I) : y ∈ f '' I :=

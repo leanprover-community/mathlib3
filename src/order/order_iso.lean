@@ -52,8 +52,8 @@ theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 @[simp] theorem coe_fn_to_embedding (f : r ≼o s) : (f.to_embedding : α → β) = f := rfl
 
-theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ → e₁ = e₂
-| ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by congr; exact h
+theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+| ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≼o r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩
@@ -227,8 +227,8 @@ lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x 
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃o s) : (f.to_equiv : α → β) = f := rfl
 
-theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≃o s}, (e₁ : α → β) = e₂ → e₁ = e₂
-| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by congr; exact equiv.eq_of_to_fun_eq h
+theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≃o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact equiv.coe_fn_injective h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≃o r :=
 ⟨equiv.refl _, λ a b, iff.rfl⟩

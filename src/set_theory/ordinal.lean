@@ -17,7 +17,9 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
-/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the range of `f`. -/
+/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order
+embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
+range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
@@ -66,7 +68,7 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact order_embedding.eq_of_to_fun_eq this },
+    congr, exact order_embedding.coe_fn_injective this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -95,7 +97,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.eq_of_to_fun_eq rfl
+order_iso.coe_fn_injective rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
@@ -211,7 +213,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_order_embedding] },
   cases f, cases g,
-  have := order_embedding.eq_of_to_fun_eq ef; congr'
+  have := order_embedding.coe_fn_injective ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.strong_epi
+import category_theory.limits.shapes.pullbacks
 
 /-!
 # Definitions and basic properties of regular and normal monomorphisms and epimorphisms.
@@ -60,6 +61,31 @@ def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
   (h : k ≫ (regular_mono.left : Y ⟶ @regular_mono.Z _ _ _ _ f _) = k ≫ regular_mono.right) :
   {l : W ⟶ X // l ≫ f = k} :=
 fork.is_limit.lift' regular_mono.is_limit _ h
+
+def regular_of_is_pullback_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+  [hr : regular_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
+regular_mono g :=
+{ Z := hr.Z,
+  left := k ≫ hr.left,
+  right := k ≫ hr.right,
+  w := by rw [← reassoc_of comm, ← reassoc_of comm, hr.w],
+  is_limit :=
+  begin
+    apply fork.is_limit.mk' _ _,
+    intro s,
+    have l₁ : (fork.ι s ≫ k) ≫ regular_mono.left = (fork.ι s ≫ k) ≫ regular_mono.right,
+      rw [category.assoc, s.condition, category.assoc],
+    let l₂ : fork hr.left hr.right := fork.of_ι (s.ι ≫ k) l₁,
+    let p₂ : pullback_cone h k := pullback_cone.mk (hr.is_limit.lift l₂) s.ι (hr.is_limit.fac _ walking_parallel_pair.zero),
+    refine ⟨t.lift p₂, t.fac p₂ walking_cospan.right, _⟩,
+    intros m w,
+    have z : m ≫ g = t.lift p₂ ≫ g,
+    { erw w, exact (t.fac p₂ walking_cospan.right).symm },
+    apply t.hom_ext,
+    apply (pullback_cone.mk f g comm).equalizer_ext,
+    { erw [← cancel_mono h, category.assoc, category.assoc, comm, reassoc_of z] },
+    { exact z },
+  end }
 
 section
 variables [has_zero_morphisms.{v₁} C]

@@ -205,6 +205,19 @@ def is_limit.mk (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X 
     (λ j', walking_pair.cases_on j' (fac_left s) (fac_right s)),
   uniq' := uniq }
 
+/-- This is another convenient method to verify that a fork is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content, and allows access to the
+    same `s` for all parts. -/
+def is_limit.mk' (t : pullback_cone f g)
+  (create : Π (s : pullback_cone f g),
+    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧ ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
+is_limit t :=
+pullback_cone.is_limit.mk t
+  (λ s, (create s).1)
+  (λ s, (create s).2.1)
+  (λ s, (create s).2.2.1)
+  (λ s m w, (create s).2.2.2 (w walking_cospan.left) (w walking_cospan.right))
+
 end pullback_cone
 
 /-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and

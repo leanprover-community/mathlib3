@@ -47,10 +47,10 @@ theorem coe_fn_injective : ∀ ⦃e₁ e₂ : equiv α β⦄, (e₁ : α → β)
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
-@[ext] lemma ext ⦃f g : equiv α β⦄ (H : ∀ x, f x = g x) : f = g :=
+@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
 coe_fn_injective (funext H)
 
-@[ext] lemma perm.ext ⦃σ τ : equiv.perm α⦄ (H : ∀ x, σ x = τ x) : σ = τ :=
+@[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩

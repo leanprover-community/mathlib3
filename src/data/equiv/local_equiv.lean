@@ -192,7 +192,7 @@ lemma target_subset_preimage_source : e.target ⊆ e.symm ⁻¹' e.source :=
 
 /-- Two local equivs that have the same `source`, same `to_fun` and same `inv_fun`, coincide. -/
 @[ext]
-protected lemma ext ⦃e e' : local_equiv α β⦄ (h : ∀x, e x = e' x)
+protected lemma ext {e e' : local_equiv α β} (h : ∀x, e x = e' x)
   (hsymm : ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
 begin
   have A : (e : α → β) = e', by { ext x, exact h x },

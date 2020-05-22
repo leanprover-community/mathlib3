@@ -25,7 +25,7 @@ univ.sum (λ (σ : perm n), ε σ * univ.prod (λ i, M (σ i) i))
 begin
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
-    cases not_forall.1 (λ h, h2 (equiv.ext h)) with x h3,
+    cases not_forall.1 (mt equiv.ext h2) with x h3,
     convert ring.mul_zero _,
     apply finset.prod_eq_zero,
     { change x ∈ _, simp },

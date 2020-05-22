@@ -440,7 +440,7 @@ variables (f)
 /-- We define a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that
     the `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra
     structure. -/
-@[reducible] def codomain (f : localization M S) := S
+@[reducible, nolint unused_arguments] def codomain (f : localization M S) := S
 
 /-- We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
     `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure. -/

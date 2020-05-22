@@ -800,13 +800,7 @@ namespace ideal
 variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
 
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
-⟨λ h x hx, begin
-  erw [ring_hom.ker, ← h],
-  exact le_comap_map hx
-end,
-λ h, le_antisymm
-  (ideal.span_le.2 (by rintros x ⟨y, hy, rfl⟩; exact h hy))
-  bot_le⟩
+by rw [ring_hom.ker, eq_bot_iff, map_le_iff_le_comap]
 
 end ideal
 

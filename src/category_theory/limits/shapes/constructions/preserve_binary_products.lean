@@ -23,12 +23,13 @@ variables {D : Type u₂} [category.{v} D]
 
 variables [has_binary_products.{v} C] [has_binary_products.{v} D] (F : C ⥤ D)
 
--- (implementation)
+/-- (Implementation). Construct a cone for `pair A B ⋙ F` which we will show is limiting. -/
 @[simps]
-private def alternative_cone (A B : C) : cone (pair A B ⋙ F) :=
+def alternative_cone (A B : C) : cone (pair A B ⋙ F) :=
 { X := F.obj A ⨯ F.obj B,
   π := nat_trans.of_homs (λ j, walking_pair.cases_on j limits.prod.fst limits.prod.snd)}
 
+/-- (Implementation). Show that we have a limit for the shape `pair A B ⋙ F`. -/
 def alternative_cone_is_limit (A B : C) : is_limit (alternative_cone F A B) :=
 { lift := λ s, prod.lift (s.π.app walking_pair.left) (s.π.app walking_pair.right),
   fac' := λ s j, walking_pair.cases_on j (prod.lift_fst _ _) (prod.lift_snd _ _),
@@ -36,6 +37,7 @@ def alternative_cone_is_limit (A B : C) : is_limit (alternative_cone F A B) :=
     (by { rw prod.lift_fst, apply w walking_pair.left })
     (by { rw prod.lift_snd, apply w walking_pair.right }) }
 
+/-- If `prod_comparison F A B` is an iso, then `F` preserves the limit `A ⨯ B`. -/
 def preserves_binary_prod_of_prod_comparison_iso (A B : C) [is_iso (prod_comparison F A B)] :
   preserves_limit (pair A B) F :=
 preserves_limit_of_preserves_limit_cone (limit.is_limit (pair A B))
@@ -48,6 +50,7 @@ begin
     { apply (as_iso (prod_comparison F A B)).eq_inv_comp.2 (prod.lift_snd _ _) } },
 end
 
+/-- If `prod_comparison F A B` is an iso for all `A, B` , then `F` preserves binary products. -/
 instance preserves_binary_prods_of_prod_comparison_iso [∀ A B, is_iso (prod_comparison F A B)] :
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ K,

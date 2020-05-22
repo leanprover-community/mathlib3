@@ -422,7 +422,7 @@ local attribute [instance] lie_ring.of_associative_ring
 local attribute [instance] lie_algebra.of_associative_algebra
 
 /-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
-def lie_subalgebra.subtype
+def lie_subalgebra.incl
   {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
   (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
 { map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
@@ -707,7 +707,7 @@ embedding from the corresponding Lie subalgebra of skew-adjoint endomorphisms in
 of matrices. -/
 def skew_adjoint_matrices_lie_embedding (J : matrix n n R) :
   J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
-lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).subtype
+lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J` -/
 def skew_adjoint_matrices_lie_subalgebra (J : matrix n n R) : lie_subalgebra R (matrix n n R) :=

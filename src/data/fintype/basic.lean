@@ -549,7 +549,7 @@ end function.embedding
 lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   (finset.univ).map e = finset.univ :=
 begin
-  rw ←e.equiv_of_fintype_endomorphism_to_embedding,
+  rw ←e.equiv_of_fintype_self_embedding_to_embedding,
   apply finset.univ_map_equiv_to_embedding,
 end
 

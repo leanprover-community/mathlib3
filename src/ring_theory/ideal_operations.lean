@@ -493,7 +493,8 @@ lemma comap_comap {T : Type*} [comm_ring T] {I : ideal T} (f : R →+* S)
 
 lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
   (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
-((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique (gc_map_comap (g.comp f))
+((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
+  (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
 
 variables {f I J K L}
 
@@ -579,7 +580,7 @@ le_antisymm (map_le_iff_le_comap.2 (le_refl _))
 (λ s hsi, let ⟨r, hfrs⟩ := hf s in
   hfrs ▸ (mem_map_of_mem $ show f r ∈ I, from hfrs.symm ▸ hsi))
 
-lemma gi_map_comap : galois_insertion (map f) (comap f) :=
+def gi_map_comap : galois_insertion (map f) (comap f) :=
 galois_insertion.monotone_intro
   ((gc_map_comap f).monotone_u)
   ((gc_map_comap f).monotone_l)

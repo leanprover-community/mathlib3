@@ -337,7 +337,7 @@ instance : has_coe_to_fun (Q₁.isometry Q₂) :=
 
 @[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
 
-/-- The identity isomoetry from a quadratic form to itself. -/
+/-- The identity isometry from a quadratic form to itself. -/
 @[refl]
 def refl (Q : quadratic_form R M) : Q.isometry Q :=
 { map_app' := λ m, rfl,

@@ -1294,6 +1294,9 @@ by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
 lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
 
+lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
+by apply choose_symm_of_eq_add; rw [add_comm m 1, add_assoc 1 m m, add_comm (2 * m) 1, two_mul m]
+
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),

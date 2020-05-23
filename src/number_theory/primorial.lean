@@ -14,8 +14,8 @@ This file defines the primorial function, and proves a bound on its size.
 
 ## Notations
 
-We use the notation `n#` for the primorial of `n`: that is, the product of the primes less than
-or equal to `n`.
+We use the local notation `n#` for the primorial of `n`: that is, the product of the primes less
+than or equal to `n`.
 -/
 
 open finset
@@ -27,18 +27,15 @@ open_locale big_operators
 def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
 local notation x`#` := primorial x
 
-private lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
-by apply choose_symm_of_eq_add; ring
-
 lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
   have not_prime : ¬prime (n + 1),
     { intros is_prime,
       cases (prime.eq_two_or_odd is_prime),
       { linarith, },
-      { rw ←not_even_iff at h r,
+      { exfalso,
+        rw ←not_even_iff at h r,
         have e : even (n + 1 - n), exact (even_sub (le_of_lt (lt_add_one n))).2 (iff_of_false h r),
-        exfalso,
         simp only [nat.add_sub_cancel_left, not_even_one] at e,
         exact e, }, },
   apply finset.prod_congr,
@@ -93,10 +90,9 @@ lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, prime a
 begin
   apply finset.induction_on s,
   { simp, },
-  { intros a s a_not_in_s induct,
-    intros n primes divs,
+  { intros a s a_not_in_s induct n primes divs,
     rw finset.prod_insert a_not_in_s,
-    have a_div_n : a ∣ n, { exact divs a (finset.mem_insert_self a s) },
+    have a_div_n : a ∣ n, by exact divs a (finset.mem_insert_self a s),
     rcases a_div_n with ⟨ k, k_times ⟩,
     rw k_times,
     have step : ∏ p in s, p ∣ k,
@@ -144,16 +140,12 @@ lemma primorial_le_pow_4 : ∀ (n : ℕ), n# ≤ 4 ^ n
             * (∏ i in filter prime (range (m + 2)), i) :
             by
             { apply finset.prod_union,
-              have u : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
+              have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
               { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt, finset.mem_range],
                 intros _ pr _, exact pr, },
-              exact finset.disjoint_filter_filter u, }
+              exact finset.disjoint_filter_filter disj, }
       ... ≤ (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
-            by
-            { have r : (m + 1)# ≤ 4 ^ (m + 1),
-              { have m_nonzero : 0 < m, by linarith,
-                exact primorial_le_pow_4 (m + 1), },
-              exact nat.mul_le_mul_left _ r, }
+            by exact nat.mul_le_mul_left _ (primorial_le_pow_4 (m + 1))
       ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
             by
             { have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),

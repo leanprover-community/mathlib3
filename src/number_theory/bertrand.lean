@@ -105,16 +105,6 @@ begin
   exact card_singleton_inter,
 end
 
-lemma prime_pow_bound : ∀ (a : nat) (p : nat) (pr : nat.prime p) (hyp : p ^ a < 3), (a = 0) ∨ (p = 2 ∧ a = 1)
-| 0 := λ _ _ _, or.inl rfl
-| 1 := λ p pr hyp, or.inr ⟨begin simp at hyp, interval_cases p, norm_num at pr, norm_num at pr, end, rfl⟩
-| (a + 2) := begin
-intros p prime hyp,
-exfalso,
-have s : 1 < p, by exact nat.prime.one_lt prime,
-sorry,
-end
-
 lemma mod_nonzero : ∀ (n m : nat) (r : 0 < n % m), 0 < n
 | 0 := λ m pr, by { simp only [nat.zero_mod] at pr, linarith }
 | (n + 1) := λ _ _, nat.succ_pos n

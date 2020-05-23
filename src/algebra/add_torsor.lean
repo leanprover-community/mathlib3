@@ -59,7 +59,7 @@ by the `+ᵥ` operation and a corresponding subtraction given by the
 `-ᵥ` operation. In the case of a vector space, it is an affine
 space. -/
 class add_torsor (G : Type*) (P : Type*) [add_group G] extends add_action G P, has_vsub G P :=
-(nonempty : nonempty P)
+[nonempty : nonempty P]
 (vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
 (vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
 end prio
@@ -71,7 +71,6 @@ instance add_group_is_add_torsor (G : Type*) [add_group G] :
   vsub := has_sub.sub,
   zero_vadd' := zero_add,
   vadd_assoc' := λ a b c, (add_assoc a b c).symm,
-  nonempty := ⟨0⟩,
   vsub_vadd' := sub_add_cancel,
   vadd_vsub' := add_sub_cancel }
 

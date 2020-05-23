@@ -77,7 +77,7 @@ have hc : continuous (λ t : 𝕜, t • x), from
 let ⟨r, hr₁, hr₂⟩ :=
   metric.is_open_iff.mp (hc _ hw₂) 0
   (by rwa [mem_preimage, zero_smul]) in
-have hr₃ : (r/2)⁻¹ > 0, from inv_pos (half_pos hr₁),
+have hr₃ : (r/2)⁻¹ > 0, from inv_pos.2 (half_pos hr₁),
 begin
   use [(r/2)⁻¹, hr₃], intros a ha₁,
   have ha₂ : 0 < ∥a∥, from calc 0 < _ : hr₃ ... ≤ _ : ha₁,
@@ -85,7 +85,7 @@ begin
     rw [metric.mem_ball, dist_eq_norm, sub_zero, norm_inv],
     calc _ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).1 ha₁
        ... < r : half_lt_self hr₁ }),
-  rw [mem_smul_set_iff_inv_smul_mem ((norm_pos_iff _).1 ha₂)],
+  rw [mem_smul_set_iff_inv_smul_mem (norm_pos_iff.1 ha₂)],
   exact hw₁ ha₃,
 end
 
@@ -101,7 +101,7 @@ lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
   (λ heq, begin
     rw [heq, zero_smul_set],
     apply subset_union_left {(0 : E)},
-    exact ne_empty_of_mem (mem_union_left _ (mem_singleton _)),
+    exact nonempty_of_mem (mem_union_left _ (mem_singleton _)),
   end)
   (λ hne, begin
     have h : (λ x, a • x) '' interior A ⊆ _, from

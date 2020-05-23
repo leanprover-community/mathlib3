@@ -30,7 +30,7 @@ have r : 2 * n - n = n, by
   calc 2 * n - n = n + n - n: by rw two_mul n
   ... = n: nat.add_sub_cancel n n,
 simp [r],
-
+sorry,
 end
 
 lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
@@ -51,7 +51,8 @@ begin
     exact ⟨ ⟨ le_refl a, size ⟩, le_refl a ⟩ }
 end
 
-lemma card_singleton_inter {A : Type*} [d : decidable_eq A] {x : A} {s : finset A} : finset.card ({x} ∩ s) ≤ 1 :=
+lemma card_singleton_inter {A : Type*} [d : decidable_eq A] {x : A} {s : finset A} :
+  finset.card ({x} ∩ s) ≤ 1 :=
 begin
   cases (finset.decidable_mem x s),
   { rw finset.singleton_inter_of_not_mem h,
@@ -103,24 +104,6 @@ begin
   simp only [finset.filter_and],
   simp only [filter_Ico_bot 1 (2 * n) (by linarith)],
   exact card_singleton_inter,
-end
-
-lemma mod_nonzero : ∀ (n m : nat) (r : 0 < n % m), 0 < n
-| 0 := λ m pr, by { simp only [nat.zero_mod] at pr, linarith }
-| (n + 1) := λ _ _, nat.succ_pos n
-
-lemma foo (n p : nat) (small : p ≤ n) (big : 2 * n ≤ 3 * p) : 3 * (n % p) < n :=
-begin
-  have r : n % p + p * (n / p) = n, by exact nat.mod_add_div n p,
-  have s : 3 * (n % p) + (3 * p) * (n / p) = 3 * n, by
-    calc 3 * (n % p) + (3 * p) * (n / p) = 3 * (n % p) + 3 * (p * (n / p)) : by rw ←mul_assoc 3 p (n / p)
-    ... = 3 * (n % p + (p * (n / p))) : by ring
-    ... = 3 * n : by rw r,
-
-  have tt : (2 * n) * (n / p) ≤ (3 * p) * (n / p), by exact nat.mul_le_mul_right (n / p) big,
-  have u : 3 * (n % p) + 2 * n * (n / p) ≤ 3 * n, by
-    calc 3 * (n % p) + 2 * n * (n / p) ≤ 3 * (n % p) + 3 * p * (n / p) : add_le_add_left tt (3 * (n % p))
-    ... = 3 * n : s,
 end
 
 lemma move_mul (m p i : nat) (b : m < i * p) : m / p < i :=
@@ -189,22 +172,26 @@ begin
           linarith [nat.mul_div_le_mul_div_assoc 2 n p], }, }, },
   have p_pos : 0 < p, by exact nat.prime.pos is_prime,
 
+  have two_n_small : ∀ i > 1, 2 * n < p ^ i, by
+    { intros i one_less,
+      cases lt_trichotomy 2 p,
+      { calc 2 * n < 3 * p: big
+        ... ≤ p * p : nat.mul_le_mul_right p h
+        ... ≤ p ^ i : pow_big i p p_pos one_less, },
+      cases h,
+      { exfalso, rw ← h at big, linarith },
+      { have u : 2 ≤ p, by exact nat.prime.two_le is_prime, linarith, }, },
+
   have mult_in_two_n : multiplicity p (nat.fact (2 * n)) = 2,
     { rw @nat.prime.multiplicity_fact p is_prime (2 * n) (2 * n) (by linarith),
       have first_term_two : (2 * n) / p = 2, by linarith [nat.mul_div_le_mul_div_assoc 2 n p],
-      have other_terms_zero : ∀ i > 1, (2 * n) / (p ^ i) = 0, by
-        { intros i one_less,
-          refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
-          cases lt_trichotomy 2 p,
-          { calc 2 * n < 3 * p: big
-            ... ≤ p * p : nat.mul_le_mul_right p h
-            ... ≤ p ^ i : pow_big i p p_pos one_less, },
-          cases h,
-          { exfalso, rw ← h at big, linarith },
-          { have u : 2 ≤ p, by exact nat.prime.two_le is_prime, linarith, }, },
       rw @finset.sum_eq_sum_Ico_succ_bot _ _ 1 (2 * n) (by linarith) (λ i, 2 * n / p ^ i),
       have t : ∑ k in finset.Ico 2 (2 * n), 2 * n / p ^ k = 0, by
         { apply finset.sum_eq_zero,
+          have other_terms_zero : ∀ i > 1, (2 * n) / (p ^ i) = 0, by
+            { intros i one_less,
+              refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
+              exact two_n_small i one_less, },
           intros i pr,
           exact other_terms_zero i (by linarith [(list.Ico.mem.mp pr).1]), },
       rw t,
@@ -218,7 +205,8 @@ begin
       have other_terms_zero : ∀ i > 1, n / (p ^ i) = 0, by
         { intros i one_less,
           refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
-          sorry
+          calc n ≤ 2 * n : by linarith
+            ... < p ^ i : two_n_small i one_less,
         },
       have t : ∑ k in finset.Ico 2 n, n / p ^ k = 0, by
         { apply finset.sum_eq_zero,
@@ -235,9 +223,22 @@ begin
   unfold α, simp [mult_choose_zero],
 end
 
-lemma nearly (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
+lemma truncate_prod (n : nat) (n_pos : 0 < n) :
+  ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (α n n_pos p (by sorry))
+  = ∏ p in finset.filter nat.prime (finset.range ((2 * n) / 3)), p ^ (α n n_pos p (by sorry)) :=
 begin
 end
+
+lemma choose_halfway_is_big (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
+begin
+-- 2nCn is the biggest entry of a list of 2n+1 elements which all sum to 2^(2n)
+-- so it is at least the average.
+end
+
+/-
+finally:
+4 ^ n ≤ 2nCn * (2n+1) = prod p^(α p) * (2n+1)
+-/
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin

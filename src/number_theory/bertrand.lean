@@ -1,3 +1,4 @@
+import data.subtype
 import data.nat.prime
 import data.nat.choose
 import data.nat.multiplicity
@@ -223,33 +224,20 @@ begin
   unfold α, simp [mult_choose_zero],
 end
 
--- This formulation is required because we go by induction, but we need to
--- make sure that our inductive hypothesis tells us that an element of s respects the bound.
-lemma mean_le_biggest_aux {A B : Type*} [decidable_eq A] [ordered_semiring B]
-  (f : A → B) {m : B} : ∀ (s : finset { x : A // f x ≤ m }), ∑ i in s, f i ≤ m * (s.card) :=
-begin
-  intros s,
-  apply finset.induction_on s,
-  {simp,},
-  { intros a s a_not_in ind,
-    rw [finset.card_insert_of_not_mem a_not_in, finset.sum_insert a_not_in],
-    calc f a + (∑ i in s, f i)
-        = (∑ i in s, f i) + f a : add_comm _ _
-    ... ≤ (∑ i in s, f i) + m : add_le_add_left a.property _
-    ... ≤ (m * ↑(s.card)) + m : add_le_add_right ind m
-    ... = (m * ↑(s.card)) + (m * 1) : by simp only [mul_one m]
-    ... = m * (↑(s.card) + 1) : (mul_add m ↑(finset.card s) 1).symm, },
-end
-
 /--
-"The mean of a bounded list is less than the bound".
+"The mean of a bounded list is less than or equal to the bound".
 -/
 lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
-  (f : A → B) {m : B} (s : finset A) (bound : ∀ x, x ∈ s → f x ≤ m) : ∑ i in s, f i ≤ m * (s.card) :=
+  (f : A → B) {m : B} (s : finset A) (bound : ∀ x ∈ s, f x ≤ m) : ∑ i in s, f i ≤ s.card * m :=
 begin
-  have r : finset {x : A // f x ≤ m} := s,
-  let result := mean_le_biggest_aux f r,
-  sorry
+  rw [← add_monoid.smul_eq_mul, ← finset.sum_const],
+  apply finset.sum_le_sum bound,
+end
+
+lemma choose_le_middle_2 (r n : ℕ) : nat.choose (2 * n) r ≤ nat.choose (2 * n) n :=
+begin
+  have s : (2 * n) / 2 = n, by exact nat.mul_div_cancel_left n (by linarith),
+  simpa [] using (@choose_le_middle r (2 * n)),
 end
 
 lemma choose_halfway_is_big (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
@@ -258,21 +246,16 @@ begin
 -- so it is at least the average.
   have big : ∀ i, i ∈ finset.range (2 * n + 1) → nat.choose (2 * n) i ≤ nat.choose (2 * n) n, by
     { intros i mem,
-      let r := @choose_le_middle i (2 * n),
-      sorry
+      exact choose_le_middle_2 i n,
     },
   calc 4 ^ n
     = 2 ^ (2 * n) : (nat.pow_mul 2 n 2).symm
   ... = ∑ i in finset.range (2 * n + 1), nat.choose (2 * n) i : (sum_range_choose (2 * n)).symm
-  ... ≤ (nat.choose (2 * n) n) * ↑(finset.range (2 * n + 1)).card : mean_le_biggest _ _ big
-  ... = (nat.choose (2 * n) n) * ↑(2 * n + 1) : by rw finset.card_range (2 * n + 1)
-  ... = (nat.choose (2 * n) n) * (2 * n + 1) : by sorry,
+  ... ≤ ↑(finset.range (2 * n + 1)).card * (nat.choose (2 * n) n) : mean_le_biggest _ _ big
+  ... = ↑(2 * n + 1) * (nat.choose (2 * n) n)  : by rw finset.card_range (2 * n + 1)
+  ... = (2 * n + 1) * (nat.choose (2 * n) n) : by simp only [nat.cast_id]
+  ... = (nat.choose (2 * n) n) * (2 * n + 1) : mul_comm _ _,
 end
-
-/-
-finally:
-4 ^ n ≤ 2nCn * (2n+1) = prod p^(α p) * (2n+1)
--/
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin

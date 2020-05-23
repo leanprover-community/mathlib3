@@ -1998,11 +1998,6 @@ apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 apply_nolint pell.xz doc_blame
 apply_nolint pell.yz doc_blame
 
--- order/basic.lean
-apply_nolint decidable_linear_order_of_is_well_order doc_blame
-apply_nolint well_founded.succ doc_blame
-apply_nolint well_founded.sup doc_blame
-
 -- order/bounded_lattice.lean
 apply_nolint with_top doc_blame
 

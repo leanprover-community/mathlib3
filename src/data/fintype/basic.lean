@@ -51,11 +51,11 @@ by rw [inter_comm, univ_inter]
 by { ext i, simp [piecewise] }
 
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
-  (finset.univ).map e.to_embedding = finset.univ :=
+  univ.map e.to_embedding = univ :=
 begin
   apply eq_univ_iff_forall.mpr,
   intro b,
-  rw [finset.mem_map],
+  rw [mem_map],
   use e.symm b,
   simp,
 end
@@ -537,18 +537,15 @@ equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
 lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
-  (e.equiv_of_fintype_self_embedding).to_embedding = e :=
+  e.equiv_of_fintype_self_embedding.to_embedding = e :=
 by { ext, refl, }
 
 end function.embedding
 
 @[simp]
 lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
-  (finset.univ).map e = finset.univ :=
-begin
-  rw ←e.equiv_of_fintype_self_embedding_to_embedding,
-  apply finset.univ_map_equiv_to_embedding,
-end
+  univ.map e = univ :=
+by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
 namespace fintype
 

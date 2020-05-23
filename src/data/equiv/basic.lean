@@ -135,7 +135,7 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β :=  ext (by simp)
+@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
 
 @[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
 

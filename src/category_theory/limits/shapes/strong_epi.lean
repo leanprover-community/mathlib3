@@ -76,7 +76,7 @@ def strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
 end
 
 /-- A strong epimorphism that is a monomorphism is an isomorphism. -/
-def mono_strong_epi_is_iso (f : P ⟶ Q) [strong_epi f] [mono f] : is_iso f :=
+def is_iso_of_mono_of_strong_epi (f : P ⟶ Q) [mono f] [strong_epi f] : is_iso f :=
 { inv := arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp }
 
 end category_theory

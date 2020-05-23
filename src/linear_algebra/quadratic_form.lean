@@ -324,7 +324,7 @@ is a linear equivalence between `M₁` and `M₂` that commutes with the quadrat
 /-- Two quadratic forms over a ring `R` are equivalent
 if there exists an isometry between them:
 a linear equivalence that transforms one quadratic form into the other. -/
-def equiv (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
+def equivalent (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
 
 namespace isometry
 
@@ -357,20 +357,20 @@ def trans (f : Q₁.isometry Q₂) (g : Q₂.isometry Q₃) : Q₁.isometry Q₃
 
 end isometry
 
-namespace equiv
+namespace equivalent
 
 variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
 
 @[refl]
-lemma refl (Q : quadratic_form R M) : Q.equiv Q := ⟨isometry.refl Q⟩
+lemma refl (Q : quadratic_form R M) : Q.equivalent Q := ⟨isometry.refl Q⟩
 
 @[symm]
-lemma symm (h : Q₁.equiv Q₂) : Q₂.equiv Q₁ := h.elim $ λ f, ⟨f.symm⟩
+lemma symm (h : Q₁.equivalent Q₂) : Q₂.equivalent Q₁ := h.elim $ λ f, ⟨f.symm⟩
 
 @[trans]
-lemma trans (h : Q₁.equiv Q₂) (h' : Q₂.equiv Q₃) : Q₁.equiv Q₃ :=
+lemma trans (h : Q₁.equivalent Q₂) (h' : Q₂.equivalent Q₃) : Q₁.equivalent Q₃ :=
 h'.elim $ h.elim $ λ f g, ⟨f.trans g⟩
 
-end equiv
+end equivalent
 
 end quadratic_form

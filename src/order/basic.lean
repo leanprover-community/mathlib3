@@ -619,6 +619,7 @@ instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
   is_asymm α r := by apply_instance
 
+/-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
   decidable_linear_order α :=
 by { haveI := linear_order_of_STO' r, exact classical.DLO α }
@@ -677,7 +678,7 @@ end
 by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace well_founded
-/-- If `r` is a well founded relation, then any nonempty set has a minimum element
+/-- If `r` is a well-founded relation, then any nonempty set has a minimum element
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
@@ -698,6 +699,7 @@ theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
 open set
+/-- The supremum of a bounded, well-founded order -/
 protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
 wf.min { x | ∀a ∈ s, r a x } h
@@ -708,6 +710,8 @@ min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
 section
 open_locale classical
+/-- The successor of an element `x` in a well-founded order is the minimum element `y` such that
+`x < y` if one exists. Otherwise it is `x` itself. -/
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x
 

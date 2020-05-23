@@ -50,17 +50,14 @@ by rw [inter_comm, univ_inter]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
-lemma univ_map_equiv_to_embedding {α : Type*} [fintype α] (e : α ≃ α) :
+lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
   (finset.univ).map e.to_embedding = finset.univ :=
 begin
-  ext,
-  split,
-  { intro h,
-    simp, },
-  { intro h,
-    rw [finset.mem_map],
-    use e.symm a,
-    simp, },
+  apply eq_univ_iff_forall.mpr,
+  intro b,
+  rw [finset.mem_map],
+  use e.symm b,
+  simp,
 end
 
 end finset

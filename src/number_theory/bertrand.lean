@@ -223,16 +223,50 @@ begin
   unfold α, simp [mult_choose_zero],
 end
 
-lemma truncate_prod (n : nat) (n_pos : 0 < n) :
-  ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (α n n_pos p (by sorry))
-  = ∏ p in finset.filter nat.prime (finset.range ((2 * n) / 3)), p ^ (α n n_pos p (by sorry)) :=
+-- This formulation is required because we go by induction, but we need to
+-- make sure that our inductive hypothesis tells us that an element of s respects the bound.
+lemma mean_le_biggest_aux {A B : Type*} [decidable_eq A] [ordered_semiring B]
+  (f : A → B) {m : B} : ∀ (s : finset { x : A // f x ≤ m }), ∑ i in s, f i ≤ m * (s.card) :=
 begin
+  intros s,
+  apply finset.induction_on s,
+  {simp,},
+  { intros a s a_not_in ind,
+    rw [finset.card_insert_of_not_mem a_not_in, finset.sum_insert a_not_in],
+    calc f a + (∑ i in s, f i)
+        = (∑ i in s, f i) + f a : add_comm _ _
+    ... ≤ (∑ i in s, f i) + m : add_le_add_left a.property _
+    ... ≤ (m * ↑(s.card)) + m : add_le_add_right ind m
+    ... = (m * ↑(s.card)) + (m * 1) : by simp only [mul_one m]
+    ... = m * (↑(s.card) + 1) : (mul_add m ↑(finset.card s) 1).symm, },
+end
+
+/--
+"The mean of a bounded list is less than the bound".
+-/
+lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
+  (f : A → B) {m : B} (s : finset A) (bound : ∀ x, x ∈ s → f x ≤ m) : ∑ i in s, f i ≤ m * (s.card) :=
+begin
+  have r : finset {x : A // f x ≤ m} := s,
+  let result := mean_le_biggest_aux f r,
+  sorry
 end
 
 lemma choose_halfway_is_big (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
 begin
 -- 2nCn is the biggest entry of a list of 2n+1 elements which all sum to 2^(2n)
 -- so it is at least the average.
+  have big : ∀ i, i ∈ finset.range (2 * n + 1) → nat.choose (2 * n) i ≤ nat.choose (2 * n) n, by
+    { intros i mem,
+      let r := @choose_le_middle i (2 * n),
+      sorry
+    },
+  calc 4 ^ n
+    = 2 ^ (2 * n) : (nat.pow_mul 2 n 2).symm
+  ... = ∑ i in finset.range (2 * n + 1), nat.choose (2 * n) i : (sum_range_choose (2 * n)).symm
+  ... ≤ (nat.choose (2 * n) n) * ↑(finset.range (2 * n + 1)).card : mean_le_biggest _ _ big
+  ... = (nat.choose (2 * n) n) * ↑(2 * n + 1) : by rw finset.card_range (2 * n + 1)
+  ... = (nat.choose (2 * n) n) * (2 * n + 1) : by sorry,
 end
 
 /-

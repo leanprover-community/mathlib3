@@ -174,9 +174,8 @@ Should not be used outside of this file, because it is superseded by `to_local_h
 
 This is a first step towards the inverse function. -/
 def to_local_equiv (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
-  (hc : subsingleton E ∨ c < N⁻¹) :
-  local_equiv E F :=
-by haveI : nonempty E := ⟨0⟩; exact (hf.inj_on hc).to_local_equiv _ _
+  (hc : subsingleton E ∨ c < N⁻¹) : local_equiv E F :=
+(hf.inj_on hc).to_local_equiv _ _
 
 /-- The inverse function is continuous on `f '' s`. Use properties of `local_homeomorph` instead. -/
 lemma inverse_continuous_on (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)

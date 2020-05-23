@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.doc_commands
-import init_
 
 /-!
 # Basic logic properties
@@ -874,6 +873,11 @@ universe variables u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
+
+@[priority 20]
+instance has_zero.nonempty [has_zero α] : nonempty α := ⟨0⟩
+@[priority 20]
+instance has_one.nonempty [has_one α] : nonempty α := ⟨1⟩
 
 lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
 iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)

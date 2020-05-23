@@ -594,7 +594,7 @@ lt_iff_lt_of_le_iff_le (iff.trans
 @[simp] theorem sqrt_mul' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x * y) = sqrt x * sqrt y :=
 begin
   cases le_total 0 x with hx hx,
-  { refine (mul_self_inj_of_nonneg _ (mul_nonneg _ _)).1 _; try {apply sqrt_nonneg},
+  { refine iff.mp (mul_self_inj_of_nonneg _ (mul_nonneg _ _)) _; try {apply sqrt_nonneg},
     rw [mul_self_sqrt (mul_nonneg hx hy), mul_assoc,
         mul_left_comm (sqrt y), mul_self_sqrt hy, ← mul_assoc, mul_self_sqrt hx] },
   { rw [sqrt_eq_zero'.2 (mul_nonpos_of_nonpos_of_nonneg hx hy),

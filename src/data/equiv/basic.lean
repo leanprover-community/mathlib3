@@ -10,6 +10,7 @@ Two equivalent types have the same cardinality.
 -/
 import data.set.function
 import data.option.basic
+import algebra.group.basic
 
 open function
 
@@ -40,20 +41,19 @@ instance : has_coe_to_fun (α ≃ β) :=
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
-theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
+theorem coe_fn_injective : ∀ ⦃e₁ e₂ : equiv α β⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
-  have g₁ = g₂, from funext $ assume x,
-    have f₁ (g₁ x) = f₂ (g₂ x), from (r₁ x).trans (r₂ x).symm,
-    have f₁ (g₁ x) = f₁ (g₂ x), by { subst f₂, exact this },
-    show g₁ x = g₂ x,           from l₁.injective this,
+  have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
-@[ext] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
-eq_of_to_fun_eq (funext H)
+@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
+coe_fn_injective (funext H)
 
-@[ext] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
-equiv.ext _ _ H
+@[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
+equiv.ext H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
@@ -135,13 +135,13 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β :=  ext _ _ (by simp)
+@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
 
-@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext _ _ (by simp)
+@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
-equiv.ext _ _ $ assume a, rfl
+equiv.ext $ assume a, rfl
 
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
@@ -243,8 +243,8 @@ def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
   inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
-  left_inv := λ f, funext $ λ x, by { dsimp, simp },
-  right_inv := λ f, funext $ λ x, by { dsimp, simp } }
+  left_inv := λ f, funext $ λ x, by simp,
+  right_inv := λ f, funext $ λ x, by simp }
 
 @[simp] lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂)
   (f : α₁ → β₁) (x : α₂) :
@@ -1027,10 +1027,10 @@ def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
 theorem swap_self (a : α) : swap a a = equiv.refl _ :=
-eq_of_to_fun_eq $ funext $ λ r, swap_core_self r a
+ext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=
-eq_of_to_fun_eq $ funext $ λ r, swap_core_comm r _ _
+ext $ λ r, swap_core_comm r _ _
 
 theorem swap_apply_def (a b x : α) : swap a b x = if x = a then b else if x = b then a else x :=
 rfl
@@ -1045,7 +1045,7 @@ theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x
 by simp [swap_apply_def] {contextual := tt}
 
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
-eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
+ext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
@@ -1056,7 +1056,7 @@ by { cases π, refl }
 
 @[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
-equiv.ext _ _ (λ x, begin
+equiv.ext (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
     λ a, by { rw @eq_comm _ (e.symm x), split; intros; simp * at * },
   simp [swap_apply_def, this],

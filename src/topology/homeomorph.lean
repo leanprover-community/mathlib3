@@ -167,6 +167,12 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
 
 end
 
+/-- `ulift α` is homeomorphic to `α`. -/
+def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
+{ continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
+
 section distrib
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 

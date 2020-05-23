@@ -4,17 +4,31 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import algebra.commute
+import tactic.linarith
 
 open nat
 
 open_locale big_operators
 
-lemma nat.prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
-have h₁ : p ∣ fact p, from hp.dvd_fact.2 (le_refl _),
-have h₂ : ¬p ∣ fact k, from mt hp.dvd_fact.1 (not_le_of_gt hkp),
-have h₃ : ¬p ∣ fact (p - k), from mt hp.dvd_fact.1 (not_le_of_gt (nat.sub_lt_self hp.pos hk)),
-by rw [← choose_mul_fact_mul_fact (le_of_lt hkp), mul_assoc, hp.dvd_mul, hp.dvd_mul] at h₁;
+lemma nat.prime.dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
+  (hp : prime p) : p ∣ choose (a + b) a :=
+have h₁ : p ∣ fact (a + b), from hp.dvd_fact.2 h,
+have h₂ : ¬p ∣ fact a, from mt hp.dvd_fact.1 (not_le_of_gt hap),
+have h₃ : ¬p ∣ fact b, from mt hp.dvd_fact.1 (not_le_of_gt hbp),
+by
+  rw [← choose_mul_fact_mul_fact (le.intro rfl), mul_assoc, hp.dvd_mul, hp.dvd_mul,
+    norm_num.sub_nat_pos (a + b) a b rfl] at h₁;
   exact h₁.resolve_right (not_or_distrib.2 ⟨h₂, h₃⟩)
+
+lemma nat.prime.dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) :
+  p ∣ choose p k :=
+begin
+  have r : k + (p - k) = p,
+    by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
+  have e : p ∣ choose (k + (p - k)) k,
+    by exact nat.prime.dvd_choose_add hkp (sub_lt (lt.trans hk hkp) hk) (by rw r) hp,
+  rwa r at e,
+end
 
 /-- Show that choose is increasing for small values of the right argument. -/
 lemma choose_le_succ_of_lt_half_left {r n : ℕ} (h : r < n/2) :
@@ -100,8 +114,29 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
 (commute.all x y).add_pow n
 
 /-- The sum of entries in a row of Pascal's triangle -/
-theorem sum_range_choose (n : ℕ) : 
+theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
+
+/-!
+# Specific facts about binomial coefficients and their sums
+-/
+
+lemma sum_range_choose_halfway (m : nat) :
+  ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
+have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
+  ∑ i in range (m + 1), choose (2 * m + 1) i,
+from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
+(nat.mul_right_inj zero_lt_two).1 $
+calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
+  (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+    ∑ i in range (m + 1), nat.choose (2 * m + 1) (2 * m + 1 - i) :
+  by rw [two_mul, this]
+... = (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
+  ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
+  by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
+... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
+... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
 
 end binomial

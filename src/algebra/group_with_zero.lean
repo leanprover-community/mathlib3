@@ -3,10 +3,12 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.is_unit
+import algebra.group.units
+import algebra.ring
+import tactic.push_neg
 
 /-!
-# G₀roups with an adjoined zero element
+# Groups with an adjoined zero element
 
 This file describes structures that are not usually studied on their own right in mathematics,
 namely a special sort of monoid: apart from a distinguished “zero element” they form a group,
@@ -71,7 +73,7 @@ lemma div_eq_mul_inv {G₀ : Type*} [group_with_zero G₀] {a b : G₀} :
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 
-@[simp] lemma inv_zero' : (0 : G₀)⁻¹ = 0 :=
+@[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
 group_with_zero.inv_zero
 
 @[simp] lemma mul_inv_cancel' (a : G₀) (h : a ≠ 0) : a * a⁻¹ = 1 :=
@@ -253,7 +255,7 @@ begin
   have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
     congr_arg (λ x:G₀, a⁻¹ * x * a⁻¹) H.symm,
   classical,
-  by_cases h : a = 0, { rw [h, inv_zero', zero_mul, mul_zero] },
+  by_cases h : a = 0, { rw [h, inv_zero, zero_mul, mul_zero] },
   rwa [inv_mul_cancel_assoc_right _ _ h, mul_assoc, mul_inv_cancel_assoc_left _ _ h] at this,
 end
 
@@ -266,8 +268,8 @@ lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 
 @[simp] lemma zero_div' (a : G₀) : 0 / a = 0 := zero_mul _
 
-@[simp] lemma div_zero' (a : G₀) : a / 0 = 0 :=
-show a * 0⁻¹ = 0, by rw [inv_zero', mul_zero]
+@[simp] lemma div_zero (a : G₀) : a / 0 = 0 :=
+show a * 0⁻¹ = 0, by rw [inv_zero, mul_zero]
 
 @[simp] lemma div_mul_cancel' (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
 inv_mul_cancel_assoc_left a b h
@@ -278,9 +280,7 @@ mul_inv_cancel_assoc_left a b h
 lemma mul_div_assoc'' {a b c : G₀} : a * b / c = a * (b / c) :=
 mul_assoc _ _ _
 
-local attribute [simp]
-div_eq_mul_inv mul_comm mul_assoc
-mul_left_comm mul_inv_cancel inv_mul_cancel
+local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 lemma div_eq_mul_one_div' (a b : G₀) : a / b = a * (1 / b) :=
 by simp
@@ -334,7 +334,7 @@ variables {G₀ : Type*} [group_with_zero G₀]
 variables {a b c : G₀}
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
-by rw [inv_eq_iff, inv_zero', eq_comm]
+by rw [inv_eq_iff, inv_zero, eq_comm]
 
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev']
@@ -448,7 +448,7 @@ lemma eq_of_mul_eq_mul_of_nonzero_right' {a b c : G₀} (h : c ≠ 0) (h2 : a * 
 by rw [← mul_one a, ← div_self' h, ← mul_div_assoc'', h2, mul_div_cancel'' _ h]
 
 lemma ne_zero_of_one_div_ne_zero' {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
-assume ha : a = 0, begin rw [ha, div_zero'] at h, contradiction end
+assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
 
 lemma eq_zero_of_one_div_eq_zero' {a : G₀} (h : 1 / a = 0) : a = 0 :=
 classical.by_cases
@@ -486,17 +486,17 @@ by rw [div_div_eq_mul_div', div_mul_cancel' _ hc]
 lemma div_mul_div_cancel' (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
 by rw [← mul_div_assoc'', div_mul_cancel' _ hc]
 
-lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+@[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel' _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel' _ hd]
 
-lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
 by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
 
-lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
 by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=

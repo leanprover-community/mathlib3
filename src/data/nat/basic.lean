@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
 import algebra.order_functions
+import init_.data.nat.lemmas
 
 /-!
 # Basic operations on the natural numbers
@@ -18,6 +19,19 @@ and extra recursors:
 -/
 
 universes u v
+
+instance : canonically_ordered_comm_semiring ℕ :=
+{ le_iff_exists_add := assume a b,
+  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  zero_ne_one       := ne_of_lt zero_lt_one,
+  mul_eq_zero_iff   := assume a b,
+    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  bot               := 0,
+  bot_le            := nat.zero_le,
+  .. (infer_instance : ordered_add_comm_monoid ℕ),
+  .. (infer_instance : linear_ordered_semiring ℕ),
+  .. (infer_instance : comm_semiring ℕ) }
 
 namespace nat
 variables {m n k : ℕ}
@@ -574,7 +588,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -963,18 +977,28 @@ by unfold bodd div2; cases bodd_div2 n; refl
 section
 variables {α : Sort*} (op : α → α)
 
-@[simp] theorem iterate_zero (a : α) : op^[0] a = a := rfl
+@[simp] theorem iterate_zero : op^[0] = id := rfl
 
-@[simp] theorem iterate_succ (n : ℕ) (a : α) : op^[succ n] a = (op^[n]) (op a) := rfl
+theorem iterate_zero_apply (x : α) : op^[0] x = x := rfl
 
-theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] a)
-| m 0 a := rfl
-| m (succ n) a := iterate_add m n _
+@[simp] theorem iterate_succ (n : ℕ) : op^[succ n] = (op^[n]) ∘ op := rfl
+
+theorem iterate_succ_apply (n : ℕ) (x : α) : op^[succ n] x = (op^[n]) (op x) := rfl
+
+theorem iterate_add : ∀ (m n : ℕ), op^[m + n] = (op^[m]) ∘ (op^[n])
+| m 0 := rfl
+| m (succ n) := by rw [iterate_succ, iterate_succ, iterate_add]
+
+theorem iterate_add_apply (m n : ℕ) (x : α) : op^[m + n] x = (op^[m] (op^[n] x)) :=
+by rw iterate_add
 
 @[simp] theorem iterate_one : op^[1] = op := funext $ λ a, rfl
 
-theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
+theorem iterate_succ' (n : ℕ) : op^[succ n] = op ∘ (op^[n]) :=
 by rw [← one_add, iterate_add, iterate_one]
+
+theorem iterate_succ_apply' (n : ℕ) (x : α) : op^[succ n] x = op (op^[n] x) :=
+by rw [iterate_succ']
 
 lemma iterate_mul (m : ℕ) : ∀ n, op^[m * n] = (op^[m]^[n])
 | 0 := by { ext a, simp only [mul_zero, iterate_zero] }
@@ -989,21 +1013,21 @@ theorem iterate_ind {α : Type u} (f : α → α) {p : (α → α) → Prop} (hf
 
 theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
   op^[n] x = x :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β} {op'' : α → β}
   (H : ∀ x, op' (op'' x) = op'' (op x)) {n : ℕ} {x : α} :
   op'^[n] (op'' x) = op'' (op^[n] x) :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α}
   (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
   op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
+by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
 
 theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
   op^[n] (op'^[n] x) = x :=
-by induction n; [refl, rwa [iterate_succ, iterate_succ', H]]
+by induction n; [refl, rwa [iterate_succ_apply, iterate_succ_apply', H]]
 
 end
 
@@ -1297,6 +1321,17 @@ begin
   apply nat.add_sub_cancel',
   exact mul_le_mul_left _ hk,
 end
+
+theorem units_eq_one (u : units ℕ) : u = 1 :=
+units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
+
+theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
+add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
+
+@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
+iff.intro
+  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 section find_greatest
 

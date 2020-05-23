@@ -1,5 +1,6 @@
 /- test cases for coinductive predicates -/
-import data.stream meta.coinductive_predicates
+import data.stream
+import meta.coinductive_predicates
 universe u
 
 coinductive all_stream {α : Type u} (s : set α) : stream α → Prop

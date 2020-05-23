@@ -120,7 +120,7 @@ in finitely many variables (`X s`, `s : σ`) over a finite field of characterist
 Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
 Then the number of common solutions of the `f i` is divisible by `p`. -/
 theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
-  {ι : Type*} {s : finset ι} (f : ι → (mv_polynomial σ K))
+  {ι : Type*} {s : finset ι} {f : ι → mv_polynomial σ K}
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
@@ -181,13 +181,13 @@ Assume that the total degree of `f` is less than the cardinality of `σ`.
 Then the number of solutions of `f` is divisible by `p`.
 See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
 theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
-  (f : mv_polynomial σ K) {h : f.total_degree < fintype.card σ} :
+  {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // f.eval x = 0} :=
 begin
   let F : unit → mv_polynomial σ K := λ _, f,
   have : ∑ i : unit, (F i).total_degree < fintype.card σ,
   { simpa only [fintype.univ_punit, sum_singleton] using h, },
-  have key := char_dvd_card_solutions_family p F this,
+  have key := char_dvd_card_solutions_family p this,
   simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
   convert key,
 end

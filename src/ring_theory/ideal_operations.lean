@@ -481,12 +481,15 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
   by rw [← f.map_mul];
   exact mem_map_of_mem (mul_mem_mul hri hsj))
 
-@[simp] lemma map_id : I.map (ring_hom.id R) = I :=
-by ext; simp [ideal.map]
-
 variable (f)
 lemma gc_map_comap : galois_connection (ideal.map f) (ideal.comap f) :=
 λ I J, ideal.map_le_iff_le_comap
+
+@[simp] lemma comap_id : I.comap (ring_hom.id R) = I :=
+ideal.ext $ λ _, iff.rfl
+
+@[simp] lemma map_id : I.map (ring_hom.id R) = I :=
+(gc_map_comap (ring_hom.id R)).l_unique galois_connection.id comap_id
 
 lemma comap_comap {T : Type*} [comm_ring T] {I : ideal T} (f : R →+* S)
   (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl

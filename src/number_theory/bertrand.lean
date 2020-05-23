@@ -25,13 +25,13 @@ lemma claim_1
   : pow p (α n (by linarith) p is_prime) ≤ 2 * n
   :=
 begin
-unfold α,
-simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
-have r : 2 * n - n = n, by
-  calc 2 * n - n = n + n - n: by rw two_mul n
-  ... = n: nat.add_sub_cancel n n,
-simp [r],
-sorry,
+  unfold α,
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
+  have r : 2 * n - n = n, by
+    calc 2 * n - n = n + n - n: by rw two_mul n
+    ... = n: nat.add_sub_cancel n n,
+  simp [r],
+  sorry,
 end
 
 lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
@@ -242,8 +242,6 @@ end
 
 lemma choose_halfway_is_big (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
 begin
--- 2nCn is the biggest entry of a list of 2n+1 elements which all sum to 2^(2n)
--- so it is at least the average.
   have big : ∀ i, i ∈ finset.range (2 * n + 1) → nat.choose (2 * n) i ≤ nat.choose (2 * n) n, by
     { intros i mem,
       exact choose_le_middle_2 i n,
@@ -256,6 +254,28 @@ begin
   ... = (2 * n + 1) * (nat.choose (2 * n) n) : by simp only [nat.cast_id]
   ... = (nat.choose (2 * n) n) * (2 * n + 1) : mul_comm _ _,
 end
+
+/-
+Then:
+4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
+= prod (primes <= 2n) p^(α n p) * (2n+1) ---- need to prove this
+= prod (primes <= n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
+= prod (primes <= 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes <= 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 3
+= prod (primes <= 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes <= sqrt(2n)) p^α * prod(primes sqrt(2n) to 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+≤ prod (primes <= sqrt(2n)) p^α * prod(primes sqrt(2n) to 2n/3) p * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 2
+≤ prod (primes <= sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by primorial bound, proved in different PR
+≤ prod (primes <= sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 1
+= (2n)^π (sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by "prime count of x is less than x", need to prove
+
+For sufficiently large n, that last product term is > 1.
+Indeed, suppose for contradiction it's equal to 1.
+Then 4^n ≤ (2n)^(sqrt 2n) * 4^(2n/3) * (2n+1)
+so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
+and this is Clearly False for sufficiently large n.
+-/
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin

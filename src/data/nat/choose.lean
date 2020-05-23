@@ -52,7 +52,7 @@ decreasing_induction
   hr (λ _, le_refl _) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
-lemma choose_le_middle {r n : ℕ} : nat.choose n r ≤ nat.choose n (n/2) :=
+lemma choose_le_middle (r n : ℕ) : nat.choose n r ≤ nat.choose n (n/2) :=
 begin
   cases le_or_gt r n with b b,
   { cases le_or_lt r (n/2) with a h,

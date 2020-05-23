@@ -83,7 +83,7 @@ s.attach.sum $ λ x, C (f x) * basis s x
 @[simp] theorem interpolate_empty (f) : interpolate (∅ : finset F) f = 0 :=
 rfl
 
-@[simp] theorem eval_interpolate (x ∈ s) : eval x (interpolate s f) = f ⟨x, H⟩ :=
+@[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f ⟨x, H⟩ :=
 begin
   rw [interpolate, ← finset.sum_hom _ (eval x), finset.sum_eq_single (⟨x, H⟩ : { x // x ∈ s })],
   { rw [eval_mul, eval_C, subtype.coe_mk, eval_basis_self, mul_one] },

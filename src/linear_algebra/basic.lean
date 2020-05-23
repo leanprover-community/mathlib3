@@ -1436,8 +1436,8 @@ variables (e e' : M ≃ₗ[R] M₂)
 
 section
 variables {e e'}
-@[ext] lemma ext (h : (e : M → M₂) = e') : e = e' :=
-to_equiv_injective (equiv.eq_of_to_fun_eq h)
+@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
+to_equiv_injective (equiv.ext h)
 end
 
 section

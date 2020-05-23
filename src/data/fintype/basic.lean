@@ -71,7 +71,7 @@ decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
-λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext _ _ (congr_fun h), congr_arg _⟩
+λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
 
 instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
@@ -711,7 +711,7 @@ begin
 end
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
-| []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *
+| []     f h := list.mem_singleton.2 $ equiv.ext $ λ x, by simp [imp_false, *] at *
 | (a::l) f h :=
 if hfa : f a = a
 then

@@ -11,8 +11,8 @@ import control.applicative
 
 ## Main definitions
 
-* `free_magma α`: free magma over alphabet `α`, defined inductively, with traversable instance
-  and decidable equality.
+* `free_magma α`: free magma (structure with binary operation without any axioms) over alphabet `α`,
+  defined inductively, with traversable instance and decidable equality.
 * `magma.free_semigroup α`: free semigroup over magma `α`.
 * `free_semigroup α`: free semigroup over alphabet `α`, defined as a synonym for `α × list α`
   (i.e. nonempty lists), with traversable instance and decidable equality.

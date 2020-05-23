@@ -29,7 +29,7 @@ variables {F : Type u} [decidable_eq F] [field F] (s : finset F)
 
 open polynomial
 
-/-- Lagrange basis polynomials that evaluate to $1$ at `x` and $0$ at other elements of `s`. -/
+/-- Lagrange basis polynomials that evaluate to 1 at `x` and 0 at other elements of `s`. -/
 def basis (x : F) : polynomial F :=
 (s.erase x).prod $ λ y, C (x - y)⁻¹ * (X - C y)
 
@@ -74,7 +74,9 @@ end
 
 variables (f : (↑s : set F) → F)
 
-/-- Lagrange interpolation. -/
+/-- Lagrange interpolation: given a finset `s` and a function `f : s → F`,
+`interpolate s f` is the unique polynomial of degree `< s.card`
+that takes value `f x` on all `x` in `s`. -/
 def interpolate : polynomial F :=
 s.attach.sum $ λ x, C (f x) * basis s x
 

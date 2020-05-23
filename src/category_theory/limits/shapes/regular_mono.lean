@@ -76,12 +76,11 @@ regular_mono g :=
     intro s,
     have l₁ : (fork.ι s ≫ k) ≫ regular_mono.left = (fork.ι s ≫ k) ≫ regular_mono.right,
       rw [category.assoc, s.condition, category.assoc],
-    let l₂ : fork hr.left hr.right := fork.of_ι (s.ι ≫ k) l₁,
-    let p₂ : pullback_cone h k := pullback_cone.mk (hr.is_limit.lift l₂) s.ι (hr.is_limit.fac _ walking_parallel_pair.zero),
-    refine ⟨t.lift p₂, t.fac p₂ walking_cospan.right, _⟩,
+    obtain ⟨l, hl⟩ := fork.is_limit.lift' hr.is_limit _ l₁,
+    obtain ⟨p, hp₁, hp₂⟩ := pullback_cone.is_limit.lift' t _ _ hl,
+    refine ⟨p, hp₂, _⟩,
     intros m w,
-    have z : m ≫ g = t.lift p₂ ≫ g,
-    { erw w, exact (t.fac p₂ walking_cospan.right).symm },
+    have z : m ≫ g = p ≫ g := w.trans hp₂.symm,
     apply t.hom_ext,
     apply (pullback_cone.mk f g comm).equalizer_ext,
     { erw [← cancel_mono h, category.assoc, category.assoc, comm, reassoc_of z] },
@@ -110,6 +109,22 @@ instance normal_mono.regular_mono (f : X ⟶ Y) [I : normal_mono f] : regular_mo
 def normal_mono.lift' {W : C} (f : X ⟶ Y) [normal_mono f] (k : W ⟶ Y) (h : k ≫ normal_mono.g = 0) :
   {l : W ⟶ X // l ≫ f = k} :=
 kernel_fork.is_limit.lift' normal_mono.is_limit _ h
+
+/-- If `h` is a normal mono and `g` is a pullback of `g`, then `g` is a normal mono. -/
+def normal_of_is_pullback_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+  [hn : normal_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
+normal_mono g :=
+{ Z := hn.Z,
+  g := k ≫ hn.g,
+  w := by rw [← reassoc_of comm, hn.w, has_zero_morphisms.comp_zero],
+  is_limit :=
+  begin
+    letI gr := regular_of_is_pullback_of_regular comm t,
+    have q := (has_zero_morphisms.comp_zero k hn.Z).symm,
+    convert gr.is_limit,
+    dunfold kernel_fork.of_ι fork.of_ι,
+    congr, exact q, exact q, exact q, apply proof_irrel_heq,
+  end }
 
 end
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/

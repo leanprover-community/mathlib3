@@ -590,3 +590,5 @@ end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.
 example : prime 31 := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
+
+-- example : prime (M 7) := Lucas_Lehmer_sufficiency 7 (by norm_num) dec_trivial

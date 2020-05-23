@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-
-import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
+import tactic.tauto
+import algebra.order_functions
+import algebra.ordered_field
 
 /-!
 # Intervals
@@ -129,17 +130,11 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
 
-lemma Iio_ne_empty [no_bot_order α] (a : α) : Iio a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_bot a)
+lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
+⟨λ h, h $ left_mem_Ici, λ h x hx, le_trans h hx⟩
 
-lemma Ioi_ne_empty [no_top_order α] (a : α) : Ioi a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_top a)
-
-lemma Iic_ne_empty (b : α) : Iic b ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨b, le_refl b⟩
-
-lemma Ici_ne_empty (a : α) : Ici a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨a, le_refl a⟩
+lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b :=
+@Ici_subset_Ici (order_dual α) _ _ _
 
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩
@@ -323,6 +318,11 @@ end partial_order
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+
+lemma compl_Iic : -(Iic a) = Ioi a := ext $ λ _, not_le
+lemma compl_Ici : -(Ici a) = Iio a := ext $ λ _, not_le
+lemma compl_Iio : -(Iio a) = Ici a := ext $ λ _, not_lt
+lemma compl_Ioi : -(Ioi a) = Iic a := ext $ λ _, not_lt
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
@@ -528,7 +528,6 @@ end linear_order
 
 section lattice
 
-open lattice
 
 section inf
 
@@ -556,10 +555,14 @@ end sup
 
 section both
 
-variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a₁ a₂ b₁ b₂ : α}
+variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a b c a₁ a₂ b₁ b₂ : α}
 
 lemma Icc_inter_Icc : Icc a₁ b₁ ∩ Icc a₂ b₂ = Icc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_refl
+
+@[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
+  Icc a b ∩ Icc b c = {b} :=
+by rw [Icc_inter_Icc, sup_of_le_right hab, inf_of_le_left hbc, Icc_self]
 
 include ht
 
@@ -587,9 +590,9 @@ set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
 end decidable_linear_order
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables {α : Type u} [ordered_comm_group α]
+variables {α : Type u} [ordered_add_comm_group α]
 
 lemma image_add_left_Icc (a b c : α) : ((+) a) '' Icc b c = Icc (a + b) (a + c) :=
 begin
@@ -640,11 +643,11 @@ begin
     exact neg_le.1 hz }
 end
 
-end ordered_comm_group
+end ordered_add_comm_group
 
-section decidable_linear_ordered_comm_group
+section decidable_linear_ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_comm_group α]
+variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -655,7 +658,7 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section linear_ordered_field
 

@@ -7,7 +7,7 @@ Lift filters along filter and set functions.
 -/
 import order.filter.basic
 
-open lattice set
+open set
 
 open_locale classical
 
@@ -260,7 +260,7 @@ lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
 le_antisymm
   (le_infi $ assume t, le_infi $ assume ht,
     calc filter.lift' f h ⊓ principal s ≤ principal (h t) ⊓ principal s :
-        inf_le_inf (infi_le_of_le t $ infi_le _ ht) (le_refl _)
+        inf_le_inf_right _ (infi_le_of_le t $ infi_le _ ht)
       ... = _ : by simp only [principal_eq_iff_eq, inf_principal, eq_self_iff_true, function.comp_app])
   (le_inf
     (le_infi $ assume t, le_infi $ assume ht,
@@ -269,10 +269,10 @@ le_antisymm
     (infi_le_of_le univ $ infi_le_of_le univ_mem_sets $
     by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
 
-lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, h s ≠ ∅) :=
+lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, (h s).nonempty) :=
 calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, principal (h s) ≠ ⊥) :
     lift_ne_bot_iff (monotone_principal.comp hh)
-  ... ↔ (∀s∈f, h s ≠ ∅) : by simp only [principal_eq_bot_iff, ne.def]
+  ... ↔ (∀s∈f, (h s).nonempty) : by simp only [principal_ne_bot_iff]
 
 @[simp] lemma lift'_id {f : filter α} : f.lift' id = f :=
 lift_principal2

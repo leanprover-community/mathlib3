@@ -3,8 +3,6 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
 -/
-
-import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 /-!
@@ -30,7 +28,7 @@ begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : E, x ∉ F := hF,
   let d := metric.inf_dist x F,
-  have hFn : (F : set E) ≠ ∅, from set.ne_empty_of_mem (submodule.zero F),
+  have hFn : (F : set E).nonempty, from ⟨_, submodule.zero F⟩,
   have hdp : 0 < d,
     from lt_of_le_of_ne metric.inf_dist_nonneg (λ heq, hx
     ((metric.mem_iff_inf_dist_zero_of_closed hFc hFn).2 heq.symm)),

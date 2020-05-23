@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.products.basic
-import category_theory.natural_isomorphism
-import tactic.basic
-import tactic.slice
 
 open category_theory
 
@@ -40,7 +37,7 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
-(tensor_unit              : C)
+(tensor_unit []           : C)
 (notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
@@ -102,8 +99,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
 { ..(as_iso f ⊗ as_iso g) }
@@ -314,9 +310,9 @@ begin
   rw [category.assoc, monoidal_category.pentagon]
 end
 
-@[simp] lemma triangle_assoc_comp_left (X Y : C) :
+lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
-monoidal_category.triangle C X Y
+monoidal_category.triangle X Y
 
 @[simp] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
@@ -341,8 +337,7 @@ end
 end
 
 section
-variables (C : Type u) [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
 def tensor : (C × C) ⥤ C :=

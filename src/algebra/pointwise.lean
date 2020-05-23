@@ -3,8 +3,7 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import data.set.finite data.set.lattice group_theory.group_action algebra.module
+import algebra.module
 
 /-!
 
@@ -166,12 +165,8 @@ lemma pointwise_mul_eq_Union_mul_right [has_mul α] {s t : set α} : s * t = ⋃
 by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨x, hx, a, ha, ax.symm⟩ }
 
 @[to_additive]
-lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} : s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
-begin
-  simp only [ne_empty_iff_exists_mem],
-  rintros ⟨x, hx⟩ ⟨y, hy⟩,
-  exact ⟨x * y, mul_mem_pointwise_mul hx hy⟩
-end
+lemma nonempty.pointwise_mul [has_mul α] {s t : set α} : s.nonempty → t.nonempty → (s * t).nonempty
+| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x * y, ⟨x, hx, y, hy, rfl⟩⟩
 
 @[simp, to_additive]
 lemma univ_pointwise_mul_univ [monoid α] : (univ : set α) * univ = univ :=
@@ -323,10 +318,10 @@ local attribute [instance] set.smul_set
 /-- A nonempty set in a semimodule is scaled by zero to the singleton
 containing 0 in the semimodule. -/
 lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β]
-  {s : set β} (h : s ≠ ∅) : (0 : α) • s = {(0 : β)} :=
+  {s : set β} (h : s.nonempty) : (0 : α) • s = {(0 : β)} :=
 set.ext $ λ x, iff.intro
 (λ ⟨_, _, hx⟩, mem_singleton_iff.mpr (by { rwa [hx, zero_smul] }))
-(λ hx, let ⟨_, hs⟩ := set.ne_empty_iff_exists_mem.mp h in
+(λ hx, let ⟨_, hs⟩ := h in
   ⟨_, hs, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
 
 lemma mem_inv_smul_set_iff [field α] [mul_action α β]
@@ -337,7 +332,7 @@ iff.intro
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β]
   {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
-by conv_lhs { rw ←(division_ring.inv_inv ha) };
+by conv_lhs { rw ← inv_inv'' a };
    exact (mem_inv_smul_set_iff (inv_ne_zero ha) _ _)
 
 end

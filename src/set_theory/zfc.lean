@@ -121,7 +121,7 @@ def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
 /-- Two pre-sets are equivalent iff they have the same members. -/
 theorem equiv.eq {x y : pSet} : equiv x y ↔ to_set x = to_set y :=
-equiv_iff_mem.trans (set.ext_iff _ _).symm
+equiv_iff_mem.trans set.ext_iff.symm
 
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
@@ -139,6 +139,10 @@ protected def insert : pSet → pSet → pSet
 | u ⟨α, A⟩ := ⟨option α, λo, option.rec u A o⟩
 
 instance : has_insert pSet pSet := ⟨pSet.insert⟩
+
+instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
+
+instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
 
 /-- The n-th von Neumann ordinal -/
 def of_nat : ℕ → pSet
@@ -247,7 +251,7 @@ def eval_aux : Π {n}, { f : resp n → arity Set.{u} n // ∀ (a b : resp n), r
 /-- An equivalence-respecting function yields an n-ary Set function. -/
 def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-@[simp] theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
 
 end resp
 
@@ -283,7 +287,7 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
       rw @quotient.sound pSet _ _ _ h,
       exact (definable.resp (F ⟦y⟧)).2 },
     exact funext (λq, quotient.induction_on q $ λx,
-      by simp [resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
+      by simp [resp.eval_val, resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
   end
 
 end classical
@@ -294,6 +298,10 @@ open pSet
 def mk : pSet → Set := quotient.mk
 
 @[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+
+@[simp] lemma eval_mk {n f x} :
+  (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
+rfl
 
 def mem : Set → Set → Prop :=
 quotient.lift₂ pSet.mem
@@ -345,6 +353,10 @@ resp.eval 2 ⟨pSet.insert, λu v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 instance : has_insert Set Set := ⟨Set.insert⟩
 
+instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
+
+instance : is_lawful_singleton Set Set := ⟨λ x, rfl⟩
+
 @[simp] theorem mem_insert {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
 quotient.induction_on₃ x y z
  (λx y ⟨α, A⟩, show x ∈ pSet.mk (option α) (λo, option.rec y A o) ↔
@@ -357,13 +369,11 @@ quotient.induction_on₃ x y z
   | or.inl h := ⟨none, quotient.exact h⟩
   end⟩)
 
-@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ _ y ↔ x = y :=
+@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
 iff.trans mem_insert ⟨λo, or.rec (λh, h) (λn, absurd n (mem_empty _)) o, or.inl⟩
 
-@[simp] theorem mem_singleton' {x y : Set.{u}} : x ∈ @insert Set.{u} Set.{u} _ y ∅ ↔ x = y := mem_singleton
-
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
-iff.trans mem_insert $ iff.trans or.comm $ let m := @mem_singleton x y in ⟨or.imp_left m.1, or.imp_left m.2⟩
+iff.trans mem_insert $ or_congr iff.rfl mem_singleton
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega

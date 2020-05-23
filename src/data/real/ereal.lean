@@ -3,7 +3,6 @@ Copyright (c) 2019 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-
 import data.real.basic
 
 /-!
@@ -36,17 +35,17 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 -/
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [linear_order, lattice.order_bot, lattice.order_top,
-  lattice.has_Sup, lattice.has_Inf, lattice.complete_lattice, has_add]]
+@[derive [linear_order, order_bot, order_top,
+  has_Sup, has_Inf, complete_lattice, has_add]]
 def ereal := with_top (with_bot ℝ)
 
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
-@[simp, elim_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+@[simp, norm_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
+@[simp, norm_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
+@[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 
 /- neg -/
@@ -59,7 +58,7 @@ protected def neg : ereal → ereal
 
 instance : has_neg ereal := ⟨ereal.neg⟩
 
-@[move_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
+@[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 /-- - -a = a on ereal -/
 protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
@@ -77,10 +76,10 @@ theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
 /-- if -a ≤ b then -b ≤ a on ereal -/
 protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊥ ⊥ h := h
-| ⊥ (some b) h := by cases (lattice.top_le_iff.1 h)
-| ⊤ l h := lattice.le_top
-| (a : ℝ) ⊥ h := by cases (lattice.le_bot_iff.1 h)
-| l ⊤ h := lattice.bot_le
+| ⊥ (some b) h := by cases (top_le_iff.1 h)
+| ⊤ l h := le_top
+| (a : ℝ) ⊥ h := by cases (le_bot_iff.1 h)
+| l ⊤ h := bot_le
 | (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
 
 /-- -a ≤ b ↔ -b ≤ a on ereal-/

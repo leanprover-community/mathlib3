@@ -6,22 +6,23 @@ Author: Johannes Hölzl
 Multivariate functions of the form `α^n → α` are isomorphic to multivariate polynomials in
 `n` variables.
 -/
-import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
+import linear_algebra.finsupp_vector_space
+import field_theory.finite
 noncomputable theory
 
 open_locale classical
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 namespace mv_polynomial
 universes u v
 variables {σ : Type u} {α : Type v}
 
-instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
+instance [field α] : vector_space α (mv_polynomial σ α) :=
 finsupp.vector_space _ _
 
 section
-variables (σ α) [discrete_field α] (m : ℕ)
+variables (σ α) [field α] (m : ℕ)
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=
 finsupp.supported _ _ {n | n.sum (λn e, e) ≤ m }
 
@@ -36,18 +37,18 @@ end
 
 section
 variables (σ α)
-def restrict_degree (m : ℕ) [discrete_field α] : submodule α (mv_polynomial σ α) :=
+def restrict_degree (m : ℕ) [field α] : submodule α (mv_polynomial σ α) :=
 finsupp.supported _ _ {n | ∀i, n i ≤ m }
 end
 
-lemma mem_restrict_degree [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+lemma mem_restrict_degree [field α] (p : mv_polynomial σ α) (n : ℕ) :
   p ∈ restrict_degree σ α n ↔ (∀s ∈ p.support, ∀i, (s : σ →₀ ℕ) i ≤ n) :=
 begin
   rw [restrict_degree, finsupp.mem_supported],
   refl
 end
 
-lemma mem_restrict_degree_iff_sup [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+lemma mem_restrict_degree_iff_sup [field α] (p : mv_polynomial σ α) (n : ℕ) :
   p ∈ restrict_degree σ α n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
   simp only [mem_restrict_degree, degrees, multiset.count_sup, finsupp.count_to_multiset,
@@ -69,7 +70,7 @@ end
 
 section
 variables (σ α)
-lemma is_basis_monomials [discrete_field α] :
+lemma is_basis_monomials [field α] :
   is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
 suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),
 begin
@@ -93,7 +94,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [discrete_field α]
+variables (σ : Type u) (α : Type u) [field α]
 
 open_locale classical
 
@@ -105,7 +106,7 @@ end mv_polynomial
 namespace mv_polynomial
 
 variables {α : Type*} {σ : Type*}
-variables [discrete_field α] [fintype α] [fintype σ]
+variables [field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
 finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
@@ -147,7 +148,6 @@ begin
   exact degrees_X _
 end
 
-set_option class.instance_max_depth 50
 lemma indicator_mem_restrict_degree (c : σ → α) :
   indicator c ∈ restrict_degree σ α (fintype.card α - 1) :=
 begin
@@ -198,7 +198,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [fintype σ] [discrete_field α] [fintype α]
+variables (σ : Type u) (α : Type u) [fintype σ] [field α] [fintype α]
 
 @[derive [add_comm_group, vector_space α, inhabited]]
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
@@ -207,7 +207,6 @@ noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
-set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :

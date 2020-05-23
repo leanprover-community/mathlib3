@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick MAssot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import topology.uniform_space.absolute_value
 import topology.instances.real
 import topology.uniform_space.completion
@@ -50,7 +49,7 @@ does use ℝ).
 real numbers, completion, uniform spaces
 -/
 
-open set function lattice filter cau_seq uniform_space
+open set function filter cau_seq uniform_space
 
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/

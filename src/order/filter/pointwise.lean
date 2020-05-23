@@ -8,11 +8,10 @@ The pointwise operations on filters have nice properties, such as
   • 𝓝 x * 𝓝 y = 𝓝 (x * y)
 
 -/
-
 import algebra.pointwise
 import order.filter.basic
 
-open classical set lattice
+open classical set
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -75,10 +74,9 @@ lemma pointwise_mul_le_mul [monoid α] {f₁ f₂ g₁ g₂ : filter α} (hf : f
 @[to_additive]
 lemma pointwise_mul_ne_bot [monoid α] {f g : filter α} : f ≠ ⊥ → g ≠ ⊥ → f * g ≠ ⊥ :=
 begin
-  simp only [forall_sets_ne_empty_iff_ne_bot.symm],
+  simp only [forall_sets_nonempty_iff_ne_bot.symm],
   rintros hf hg s ⟨a, ha, b, hb, ab⟩,
-  rcases ne_empty_iff_exists_mem.1 (pointwise_mul_ne_empty (hf a ha) (hg b hb)) with ⟨x, hx⟩,
-  exact ne_empty_iff_exists_mem.2 ⟨x, ab hx⟩
+  exact ((hf a ha).pointwise_mul (hg b hb)).mono ab
 end
 
 @[to_additive]

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Gluing metric spaces
 Authors: Sébastien Gouëzel
 -/
-
-import topology.metric_space.isometry topology.metric_space.premetric_space
+import topology.metric_space.isometry
+import topology.metric_space.premetric_space
 
 /-!
 # Metric space gluing
@@ -52,14 +52,13 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric lattice
+open function set premetric
 
 namespace metric
 section approx_gluing
 
 variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
-open lattice
 open sum (inl inr)
 
 /-- Define a predistance on α ⊕ β, for which Φ p and Ψ p are at distance ε -/
@@ -82,7 +81,7 @@ begin
     refine le_antisymm _ (le_cinfi A),
     have : 0 = dist (Φ p) (Φ p) + dist (Ψ p) (Ψ p), by simp,
     rw this,
-    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ },
+    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ p },
   rw [glue_dist, this, zero_add]
 end
 
@@ -174,12 +173,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -194,12 +193,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -225,7 +224,8 @@ private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : �
   end
 | (inr x) (inl y) h := begin
     have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
-      le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
+      le_cinfi (λp, by simpa [add_comm]
+                         using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
     exfalso,
     linarith
@@ -272,7 +272,7 @@ def sum.dist : α ⊕ β → α ⊕ β → ℝ
 
 lemma sum.dist_eq_glue_dist {p q : α ⊕ β} :
   sum.dist p q = glue_dist (λ_ : unit, default α) (λ_ : unit, default β) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm]
+by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
 by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]

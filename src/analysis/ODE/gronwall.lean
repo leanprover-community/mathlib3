@@ -3,7 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value analysis.complex.exponential
+import analysis.calculus.mean_value
+import analysis.special_functions.exp_log
 
 /-!
 # Grönwall's inequality
@@ -30,7 +31,7 @@ Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics filter real
+open metric set asymptotics filter real
 open_locale classical
 
 /-! ### Technical lemmas about `gronwall_bound` -/
@@ -55,8 +56,8 @@ begin
     convert ((has_deriv_at_id x).const_mul ε).const_add δ,
     rw [mul_one] },
   { simp only [gronwall_bound_of_K_ne_0 hK],
-    convert (((has_deriv_at_id x).const_mul K).rexp.const_mul δ).add
-      ((((has_deriv_at_id x).const_mul K).rexp.sub_const 1).const_mul (ε / K)) using 1,
+    convert (((has_deriv_at_id x).const_mul K).exp.const_mul δ).add
+      ((((has_deriv_at_id x).const_mul K).exp.sub_const 1).const_mul (ε / K)) using 1,
     simp only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
     ring }
 end
@@ -65,7 +66,7 @@ lemma has_deriv_at_gronwall_bound_shift (δ K ε x a : ℝ) :
   has_deriv_at (λ y, gronwall_bound δ K ε (y - a)) (K * (gronwall_bound δ K ε (x - a)) + ε) x :=
 begin
   convert (has_deriv_at_gronwall_bound δ K ε _).comp x ((has_deriv_at_id x).sub_const a),
-  rw [id, one_smul]
+  rw [id, mul_one]
 end
 
 lemma gronwall_bound_x0 (δ K ε : ℝ) : gronwall_bound δ K ε 0 = δ :=
@@ -188,8 +189,8 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' f_bound hfs
-  hg hg' g_bound (λ t ht, trivial) ha
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+  hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
 can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
@@ -234,8 +235,8 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' hfs
-  hg hg' (λ t ht, trivial) ha
+dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+  hf hf' hfs hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
 a given initial value provided that RHS is Lipschitz continuous in `x` within `s`,
@@ -270,5 +271,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, hv t x y)
+ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

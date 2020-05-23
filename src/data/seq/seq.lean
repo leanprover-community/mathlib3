@@ -3,8 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.list.basic
+import data.stream
+import data.lazy_list
+import data.seq.computation
 
 universes u v w
 
@@ -48,8 +50,7 @@ def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
 /-- It is decidable whether a sequence terminates at a given position. -/
 instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
-if p : s.nth n = none then is_true p
-else is_false (assume h, by contradiction)
+decidable_of_iff' (s.nth n).is_none $ by unfold terminated_at; cases s.nth n; simp
 
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
@@ -76,7 +77,7 @@ theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
-lemma terminated_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
+lemma terminated_stable (s : seq α) {m n : ℕ} (m_le_n : m ≤ n)
 (terminated_at_m : s.terminated_at m) :
   s.terminated_at n :=
 le_stable s m_le_n terminated_at_m
@@ -548,7 +549,7 @@ destruct_eq_cons $ by simp [join]
   join (cons (a, cons b s) S) = cons a (join (cons (b, s) S)) :=
 destruct_eq_cons $ by simp [join]
 
-@[simp] theorem join_cons (a : α) (s S) :
+@[simp, priority 990] theorem join_cons (a : α) (s S) :
   join (cons (a, s) S) = cons a (append s (join S)) :=
 begin
   apply eq_of_bisim (λs1 s2, s1 = s2 ∨

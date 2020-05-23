@@ -5,7 +5,6 @@ Authors: Kenny Lau
 
 Direct sum of abelian groups, indexed by a discrete type.
 -/
-
 import data.dfinsupp
 
 universes u v w u₁
@@ -65,7 +64,7 @@ theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
 dfinsupp.mk_inj s
 
 theorem of_inj (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp [finset.to_set]⟩
+λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_sum ι β → Prop}
@@ -131,12 +130,14 @@ is_add_group_hom.map_neg _ x
 is_add_group_hom.map_sub _ x y
 
 @[simp] lemma to_group_of (i) (x : β i) : to_group φ (of β i x) = φ i x :=
-(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ finset.singleton i then x else 0) = x,
+(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
 from dif_pos $ finset.mem_singleton_self i
 
 variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]
 
-theorem to_group.unique (f : direct_sum ι β) : ψ f = to_group (λ i, ψ ∘ of β i) f :=
+theorem to_group.unique (f : direct_sum ι β) :
+  ψ f = @to_group _ _ _ _ _ _ (λ i, ψ ∘ of β i) (λ i, is_add_group_hom.comp (of β i) ψ) f :=
+by haveI : ∀ i, is_add_group_hom (ψ ∘ of β i) := (λ _, is_add_group_hom.comp _ _); exact
 direct_sum.induction_on f
   (by rw [is_add_group_hom.map_zero ψ, is_add_group_hom.map_zero (to_group (λ i, ψ ∘ of β i))])
   (λ i x, by rw [to_group_of])

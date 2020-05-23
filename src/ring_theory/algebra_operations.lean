@@ -3,16 +3,15 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Multiplication of submodules of an algebra.
+Multiplication and division of submodules of an algebra.
 -/
-
-import ring_theory.algebra algebra.pointwise
-import tactic.chain
-import tactic.monotonicity.basic
+import ring_theory.algebra
+import ring_theory.ideals
+import algebra.pointwise
 
 universes u v
 
-open lattice algebra
+open algebra
 
 local attribute [instance] set.pointwise_mul_semiring
 
@@ -44,10 +43,8 @@ end
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
-set_option class.instance_max_depth 50
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
-set_option class.instance_max_depth 32
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
 (le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
@@ -80,7 +77,6 @@ end
 variables {R}
 
 variables (M N P Q)
-set_option class.instance_max_depth 50
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap ((algebra.lmul R A).flip p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
@@ -88,7 +84,6 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap (
 (mul_le.2 $ λ m hm np hnp, suffices N * P ≤ (M * N * P).comap (algebra.lmul R A m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
-set_option class.instance_max_depth 32
 
 @[simp] theorem mul_bot : M * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -196,7 +191,6 @@ instance semimodule_set : semimodule (set A) (submodule R A) :=
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
   smul_zero := λ _, mul_bot _ }
 
-set_option class.instance_max_depth 45
 
 variables {R A}
 
@@ -221,6 +215,35 @@ begin
   { rintros _ ⟨m, hm, rfl⟩,
     exact subset_span ⟨a, set.mem_singleton a, m, hm, rfl⟩ }
 end
+
+section quotient
+
+local attribute [instance] set.smul_set_action
+
+/-- The elements of `I / J` are the `x` such that `x • J ⊆ I`.
+
+In fact, we define `x ∈ I / J` to be `∀ y ∈ J, x * y ∈ I` (see `mem_div_iff_forall_mul_mem`),
+which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nicer to use in proofs.
+
+This is the general form of the ideal quotient, traditionally written $I : J$.
+-/
+instance : has_div (submodule R A) :=
+⟨ λ I J, {
+  carrier := { x | ∀ y ∈ J, x * y ∈ I },
+  zero    := λ y hy, by { rw zero_mul, apply submodule.zero },
+  add     := λ a b ha hb y hy, by { rw add_mul, exact submodule.add _ (ha _ hy) (hb _ hy) },
+  smul    := λ r x hx y hy, by { rw algebra.smul_mul_assoc, exact submodule.smul _ _ (hx _ hy) } } ⟩
+
+lemma mem_div_iff_forall_mul_mem {x : A} {I J : submodule R A} :
+  x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=
+iff.refl _
+
+lemma mem_div_iff_smul_subset {x : A} {I J : submodule R A} : x ∈ I / J ↔ x • (J : set A) ⊆ I :=
+⟨ λ h y ⟨y', hy', y_eq_xy'⟩, by { rw y_eq_xy', apply h, assumption },
+  λ h y hy, h (set.smul_mem_smul_set _ hy)⟩
+
+lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ K), x * z ∈ J := iff.refl _
+end quotient
 
 end comm_ring
 

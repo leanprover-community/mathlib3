@@ -34,8 +34,7 @@ This formalization is mostly based on
   I. M. James: Topologies and Uniformities
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
-import data.set.basic
-import topology.uniform_space.abstract_completion topology.uniform_space.separation
+import topology.uniform_space.abstract_completion
 
 noncomputable theory
 open filter set
@@ -92,7 +91,7 @@ let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : s
 have t₂ ∩ t₃ ∈ h.val,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
-  inhabited_of_mem_sets (h.property.left) this in
+  nonempty_of_mem_sets (h.property.left) this in
 (filter.prod f.val g.val).sets_of_superset
   (prod_mem_prod ht₁ ht₄)
   (assume ⟨a, b⟩ ⟨(ha : a ∈ t₁), (hb : b ∈ t₄)⟩,
@@ -162,7 +161,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   have t' ∈ filter.prod (f.val) (f.val),
     from f.property.right ht'₁,
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
-  let ⟨x, (hx : x ∈ t)⟩ := inhabited_of_mem_sets f.property.left ht in
+  let ⟨x, (hx : x ∈ t)⟩ := nonempty_of_mem_sets f.property.left ht in
   have t'' ∈ filter.prod f.val (pure x),
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       h $ mk_mem_prod hx hx,
@@ -176,7 +175,7 @@ begin
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
         from ⟨mem_range_self y, hy⟩,
-      ne_empty_of_mem this)
+      ⟨_, this⟩)
 end
 
 lemma dense_inducing_pure_cauchy : dense_inducing pure_cauchy :=
@@ -189,8 +188,7 @@ lemma nonempty_Cauchy_iff : nonempty (Cauchy α) ↔ nonempty α :=
 begin
   split ; rintro ⟨c⟩,
   { have := eq_univ_iff_forall.1 dense_embedding_pure_cauchy.to_dense_inducing.closure_range c,
-    have := mem_closure_iff.1 this _ is_open_univ trivial,
-    rcases exists_mem_of_ne_empty this with ⟨_, ⟨_, a, _⟩⟩,
+    obtain ⟨_, ⟨_, a, _⟩⟩ := mem_closure_iff.1 this _ is_open_univ trivial,
     exact ⟨a⟩ },
   { exact ⟨pure_cauchy c⟩ }
 end
@@ -275,8 +273,8 @@ begin
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,
-      exact lattice.ne_bot_of_le_ne_bot f.2.1
-        (lattice.le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
+      exact ne_bot_of_le_ne_bot f.2.1
+        (le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,
     rw closure_prod_eq at this,
     refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
@@ -547,7 +545,7 @@ cpkg.extend₂ cpkg f
 
 variables [separated γ] {f}
 
-@[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
+@[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
 cpkg.extension₂_coe_coe cpkg hf a b
 
@@ -564,7 +562,7 @@ open function
 protected def map₂ (f : α → β → γ) : completion α → completion β → completion γ :=
 cpkg.map₂ cpkg cpkg f
 
-lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous (uncurry' $ completion.map₂ f) :=
+lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous₂ (completion.map₂ f) :=
 cpkg.uniform_continuous_map₂ cpkg cpkg f
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
@@ -572,7 +570,7 @@ lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
   continuous (λd:δ, completion.map₂ f (a d) (b d)) :=
 cpkg.continuous_map₂ cpkg cpkg ha hb
 
-lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous $ uncurry' f) :
+lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous₂ f) :
   completion.map₂ f (a : completion α) (b : completion β) = f a b :=
 cpkg.map₂_coe_coe cpkg cpkg a b f hf
 

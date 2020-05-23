@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype
+import data.fintype.basic
+import algebra.big_operators
 
 universes u v
 open equiv function fintype finset
@@ -16,7 +17,7 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
   λ _, by simp, λ _, by simp⟩
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
-equiv.ext _ _ $ λ ⟨_, _⟩, rfl
+equiv.ext $ λ ⟨_, _⟩, rfl
 
 def of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) : perm α :=
 ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
@@ -26,7 +27,7 @@ def of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) : per
     by simp; split_ifs at *; simp * at *⟩
 
 instance of_subtype.is_group_hom {p : α → Prop} [decidable_pred p] : is_group_hom (@of_subtype α p _) :=
-{ map_mul := λ f g, equiv.ext _ _ $ λ x, begin
+{ map_mul := λ f g, equiv.ext $ λ x, begin
   rw [of_subtype, of_subtype, of_subtype],
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
@@ -44,6 +45,8 @@ by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y :=
 by rw [eq_comm, eq_inv_iff_eq, eq_comm]
 
+/-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
+every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
 
 @[symm] lemma disjoint.symm {f g : perm α} : disjoint f g → disjoint g f :=
@@ -53,7 +56,7 @@ lemma disjoint_comm {f g : perm α} : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
 
 lemma disjoint_mul_comm {f g : perm α} (h : disjoint f g) : f * g = g * f :=
-equiv.ext _ _ $ λ x, (h x).elim
+equiv.ext $ λ x, (h x).elim
   (λ hf, (h (g x)).elim (λ hg, by simp [mul_apply, hf, hg])
     (λ hg, by simp [mul_apply, hf, g.injective hg]))
   (λ hg, (h (f x)).elim (λ hf, by simp [mul_apply, f.injective hf, hg])
@@ -83,18 +86,11 @@ end
 
 lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoint)
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
-begin
-  induction hp,
-  { refl },
-  { rw [list.prod_cons, list.prod_cons, hp_ih (list.pairwise_cons.1 hl).2] },
-  { simp [list.prod_cons, disjoint_mul_comm, (mul_assoc _ _ _).symm, *,
-      list.pairwise_cons] at * },
-  { rw [hp_ih_a hl, hp_ih_a_1 ((list.perm_pairwise (λ x y (h : disjoint x y), disjoint.symm h) hp_a).1 hl)] }
-end
+hp.prod_eq' $ hl.imp $ λ f g, disjoint_mul_comm
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p] (h₁ : ∀ x, p x ↔ p (f x))
   (h₂ : ∀ x, f x ≠ x → p x) : of_subtype (subtype_perm f h₁) = f :=
-equiv.ext _ _ $ λ x, begin
+equiv.ext $ λ x, begin
   rw [of_subtype, subtype_perm],
   by_cases hx : p x,
   { simp [hx] },
@@ -112,7 +108,7 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
-equiv.ext _ _ $ λ ⟨x, hx⟩, by dsimp [subtype_perm, of_subtype]; simp [show p x, from hx]
+equiv.ext $ λ ⟨x, hx⟩, by dsimp [subtype_perm, of_subtype]; simp [show p x, from hx]
 
 lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℕ, (f ^ n) x = x
@@ -149,7 +145,7 @@ by simp [support]
 def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
 
 lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f⁻¹ x) (f⁻¹ y) :=
-equiv.ext _ _ $ λ z, begin
+equiv.ext $ λ z, begin
   simp [mul_apply, swap_apply_def],
   split_ifs;
   simp [*, eq_inv_iff_eq] at * <|> cc
@@ -158,30 +154,24 @@ end
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 
-@[simp] lemma swap_mul_self (i j : α) : equiv.swap i j * equiv.swap i j = 1 :=
-equiv.swap_swap i j
-
 /-- Multiplying a permutation with `swap i j` twice gives the original permutation.
 
   This specialization of `swap_mul_self` is useful when using cosets of permutations.
 -/
 @[simp]
 lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
-by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.perm.swap_mul_self, one_mul]
+by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.swap_mul_self, one_mul]
 
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
   by {rw [←swap_apply_right i j, swap_id], refl}),
 (assume h, by erw [h, swap_self, one_mul])⟩
 
-@[simp] lemma swap_swap_apply (i j k : α) : equiv.swap i j (equiv.swap i j k) = k :=
-equiv.swap_core_swap_core k i j
-
 lemma is_swap_of_subtype {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : is_swap f) : is_swap (of_subtype f) :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by simp at hxy; tauto,
-  equiv.ext _ _ $ λ z, begin
+  equiv.ext $ λ z, begin
     rw [hxy.2, of_subtype],
     simp [swap_apply_def],
     split_ifs;
@@ -217,7 +207,7 @@ finset.card_lt_card
 
 def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
-| []       := λ f h, ⟨[], equiv.ext _ _ $ λ x, by rw [list.prod_nil];
+| []       := λ f h, ⟨[], equiv.ext $ λ x, by rw [list.prod_nil];
     exact eq.symm (not_not.1 (mt h (list.not_mem_nil _))), by simp⟩
 | (x :: l) := λ f h,
 if hfx : x = f x
@@ -258,7 +248,7 @@ end
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
-equiv.ext _ _ $ λ n, by simp only [swap_apply_def, mul_apply]; split_ifs; cc
+equiv.ext $ λ n, by simp only [swap_apply_def, mul_apply]; split_ifs; cc
 
 lemma is_conj_swap {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
 have h : ∀ {y z : α}, y ≠ z → w ≠ z →
@@ -377,7 +367,7 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = (finset.singleton (⟨one, zero⟩ : Σ a : fin n, fin n)).prod
+show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
   (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
   ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
 begin
@@ -401,7 +391,7 @@ lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
 | (n+2) := λ x y hxy,
 have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
-  exact is_group_hom.is_conj _ (is_conj_swap hxy dec_trivial)
+  exact (monoid_hom.of sign_aux).map_is_conj (is_conj_swap hxy dec_trivial)
 
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
@@ -409,7 +399,7 @@ def sign_aux2 : list α → perm α → units ℤ
 
 lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α ≃ fin n)
   (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
-| []     f e h := have f = 1, from equiv.ext _ _ $
+| []     f e h := have f = 1, from equiv.ext $
   λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
 by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
   sign_aux_one, sign_aux2]
@@ -424,7 +414,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
+      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
@@ -434,7 +424,7 @@ def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) �
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
-      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp [list.mem_of_perm h])
+      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
 
@@ -449,7 +439,7 @@ begin
   show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
     ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
   have hfg : (e.symm.trans (f * g)).trans e = (e.symm.trans f).trans e * (e.symm.trans g).trans e,
-    from equiv.ext _ _ (λ h, by simp [mul_apply]),
+    from equiv.ext (λ h, by simp [mul_apply]),
   split,
   { rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _),
       ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
@@ -501,7 +491,7 @@ quotient.induction_on₂ t s
     from let n := trunc.out (equiv_fin β) in
     by rw [← sign_aux_eq_sign_aux2 _ _ n (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ (e.trans n) (λ _ _, h₂ _)];
-      exact congr_arg sign_aux (equiv.ext _ _ (λ x, by simp)))
+      exact congr_arg sign_aux (equiv.ext (λ x, by simp)))
   ht hs
 
 lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
@@ -529,7 +519,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       by rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'];
-        exact is_group_hom.is_conj _ (is_conj_swap hab hxy),
+        exact (monoid_hom.of s).map_is_conj (is_conj_swap hab hxy),
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
@@ -564,7 +554,7 @@ by conv {to_rhs, rw [← subtype_perm_of_subtype f, sign_subtype_perm _ _ this]}
 
 lemma sign_eq_sign_of_equiv [decidable_eq β] [fintype β] (f : perm α) (g : perm β)
   (e : α ≃ β) (h : ∀ x, e (f x) = g (e x)) : sign f = sign g :=
-have hg : g = (e.symm.trans f).trans e, from equiv.ext _ _ $ by simp [h],
+have hg : g = (e.symm.trans f).trans e, from equiv.ext $ by simp [h],
 by rw [hg, sign_symm_trans_trans]
 
 lemma sign_bij [decidable_eq β] [fintype β]
@@ -650,7 +640,7 @@ lemma is_cycle_swap_mul_aux₂ : ∀ (n : ℤ) {b x : α} {f : perm α}
 
 lemma eq_swap_of_is_cycle_of_apply_apply_eq_self {f : perm α} (hf : is_cycle f) {x : α}
   (hfx : f x ≠ x) (hffx : f (f x) = x) : f = swap x (f x) :=
-equiv.ext _ _ $ λ y,
+equiv.ext $ λ y,
 let ⟨z, hz⟩ := hf in
 let ⟨i, hi⟩ := hz.2 x hfx in
 if hyx : y = x then by simp [hyx]
@@ -693,8 +683,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
-      by conv in (f) {rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1 };
-        simp [mul_def, one_def],
+      begin
+        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
+        simp [mul_def, one_def]
+      end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         card_support_swap hx.1.symm]; refl
   else
@@ -710,14 +702,3 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support
 end sign
 
 end equiv.perm
-
-lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
-eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
-  (λ _ _ _ _ H, σ.injective H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
-
-lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
-  (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
-@finset.prod_univ_perm _ (multiplicative β) _ _ f σ
-
-attribute [to_additive] finset.prod_univ_perm

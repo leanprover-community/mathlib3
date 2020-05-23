@@ -3,8 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
-import data.nat.sqrt data.int.basic
+import data.nat.sqrt
+import data.int.basic
 
 namespace int
 

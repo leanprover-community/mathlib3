@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jan-David Salchow
+Authors: Jan-David Salchow, Patrick Massot
 -/
-
-import topology.basic
 import topology.bases
+import topology.subset_properties
 
 /-!
 # Sequences in topological spaces
@@ -29,28 +28,18 @@ variables {α : Type*} {β : Type*}
 
 local notation f ` ⟶ ` limit := tendsto f at_top (𝓝 limit)
 
-/- Statements about sequences in general topological spaces. -/
+/-! ### Sequential closures, sequential continuity, and sequential spaces. -/
 section topological_space
 variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (𝓝 limit) ↔
-    ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
-iff.intro
-  (assume ttol : tendsto x at_top (𝓝 limit),
-    show ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
-      assume U limitInU isOpenU,
-      have ∀ᶠ n in at_top, (x n) ∈ U :=
-        mem_map.mp $ le_def.mp ttol U $ mem_nhds_sets isOpenU limitInU,
-      show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
-  (assume xtol : ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U,
-    suffices ∀ U, is_open U → limit ∈ U → x ⁻¹' U ∈ at_top,
-      from tendsto_nhds.mpr this,
-    assume U isOpenU limitInU,
-    suffices ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simp [this],
-    xtol U limitInU isOpenU)
+    ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
+(at_top_basis.tendsto_iff (nhds_basis_opens limit)).trans $
+  by simp only [and_imp, exists_prop, true_and, set.mem_Ici, ge_iff_le, id]
 
 /-- The sequential closure of a subset M ⊆ α of a topological space α is
 the set of all p ∈ α which arise as limit of sequences in M. -/
@@ -61,7 +50,9 @@ lemma subset_sequential_closure (M : set α) : M ⊆ sequential_closure M :=
 assume p (_ : p ∈ M), show p ∈ sequential_closure M, from
   ⟨λ n, p, assume n, ‹p ∈ M›, tendsto_const_nhds⟩
 
-def is_seq_closed (A : set α) : Prop := A = sequential_closure A
+/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
+the limit belongs to `s` as well. -/
+def is_seq_closed (s : set α) : Prop := s = sequential_closure s
 
 /-- A convenience lemma for showing that a set is sequentially closed. -/
 lemma is_seq_closed_of_def {A : set α}
@@ -151,39 +142,31 @@ namespace topological_space
 
 namespace first_countable_topology
 
+variables [topological_space α] [first_countable_topology α]
+
 /-- Every first-countable space is sequential. -/
 @[priority 100] -- see Note [lower instance priority]
-instance [topological_space α] [first_countable_topology α] : sequential_space α :=
+instance : sequential_space α :=
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
     from set.subset.antisymm (sequential_closure_subset_closure M) this,
   -- For every p ∈ closure M, we need to construct a sequence x in M that converges to p:
   assume (p : α) (hp : p ∈ closure M),
-  -- Since we are in a first-countable space, there exists a monotonically decreasing
-  -- sequence g of sets generating the neighborhood filter around p:
-  exists.elim (mono_seq_of_has_countable_basis _
-    (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
-  -- (g i) is a neighborhood of p and hence intersects M.
-  -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
-  have x : ∀ i, g i ∩ M,
-  { rw mem_closure_iff_nhds at hp,
-    intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
-    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
-  -- It remains to show that x converges to p. Intuitively this is the case
-  -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
-  have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,
-  { intro s, rw gbasis, rw mem_infi,
-    { simp, intros i hi, use i, assumption },
-    { apply lattice.directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
-    { apply_instance } },
-  -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
-  ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],
-    begin
-      rw tendsto_at_top', intros s nhdss,
-      rcases gssnhds s nhdss with ⟨i, hi⟩,
-      use i, intros j hij, apply hi, apply gmon _ _ hij,
-      simp [(x j).property.left]
-    end⟩⟩
+  -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
+  -- basis `U` indexed by `ℕ`.
+  let ⟨U, hU ⟩ := (nhds_generated_countable p).has_antimono_basis in
+  -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
+  have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
+    by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
+  begin
+    -- The axiom of (countable) choice builds our sequence from the later fact
+    choose u hu using hp,
+    rw forall_and_distrib at hu,
+    -- It clearly takes values in `M`
+    use [u, hu.1],
+    -- and converges to `p` because the basis is decreasing.
+    apply hU.tendsto hu.2,
+  end⟩
 
 end first_countable_topology
 

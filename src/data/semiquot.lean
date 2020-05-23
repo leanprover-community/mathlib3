@@ -10,7 +10,7 @@ element of `S`. This can be used to model nondeterministic functions,
 which return something in a range of values (represented by the
 predicate `S`) but are not completely determined.
 -/
-import data.set.lattice data.quot
+import data.set.lattice
 
 /-- A member of `semiquot α` is classically a nonempty `set α`,
   and in the VM is represented by an element of `α`; the relation
@@ -36,7 +36,7 @@ theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
  λ h, by cases q₁; cases q₂; congr; exact h⟩
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
-ext_s.trans (set.ext_iff _ _)
+ext_s.trans set.ext_iff
 
 theorem exists_mem (q : semiquot α) : ∃ a, a ∈ q :=
 let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
@@ -44,8 +44,7 @@ let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
 theorem eq_mk_of_mem {q : semiquot α} {a : α} (h : a ∈ q) :
   q = @mk _ a q.1 h := ext_s.2 rfl
 
-theorem ne_empty (q : semiquot α) : q.s ≠ ∅ :=
-let ⟨a, h⟩ := q.exists_mem in set.ne_empty_of_mem h
+theorem nonempty (q : semiquot α) : q.s.nonempty := q.exists_mem
 
 /-- `pure a` is `a` reinterpreted as an unspecified element of `{a}`. -/
 protected def pure (a : α) : semiquot α := mk (set.mem_singleton a)
@@ -130,7 +129,7 @@ instance : partial_order (semiquot α) :=
   le_trans := λ s t u, set.subset.trans,
   le_antisymm := λ s t h₁ h₂, ext_s.2 (set.subset.antisymm h₁ h₂) }
 
-instance : lattice.semilattice_sup (semiquot α) :=
+instance : semilattice_sup (semiquot α) :=
 { sup := λ s, blur s.s,
   le_sup_left := λ s t, set.subset_union_left _ _,
   le_sup_right := λ s t, set.subset_union_right _ _,
@@ -185,13 +184,13 @@ ext.2 $ by simp
 @[simp] theorem is_pure_univ [inhabited α] : @is_pure α univ ↔ subsingleton α :=
 ⟨λ h, ⟨λ a b, h a b trivial trivial⟩, λ ⟨h⟩ a b _ _, h a b⟩
 
-instance [inhabited α] : lattice.order_top (semiquot α) :=
+instance [inhabited α] : order_top (semiquot α) :=
 { top := univ,
   le_top := λ s, set.subset_univ _,
   ..semiquot.partial_order }
 
-instance [inhabited α] : lattice.semilattice_sup_top (semiquot α) :=
-{ ..semiquot.lattice.order_top,
-  ..semiquot.lattice.semilattice_sup }
+instance [inhabited α] : semilattice_sup_top (semiquot α) :=
+{ ..semiquot.order_top,
+  ..semiquot.semilattice_sup }
 
 end semiquot

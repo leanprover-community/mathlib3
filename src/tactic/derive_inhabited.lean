@@ -2,7 +2,6 @@
 Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-
 import logic.basic
 
 /-!
@@ -36,7 +35,7 @@ argument `inhabited α`, even if it is not used.  (This is due to the implementa
 instance_derive_handler ``inhabited $ do
 applyc ``inhabited.mk,
 `[refine {..}] <|> (constructor >> skip),
-all_goals $ do
+all_goals' $ do
   applyc ``default <|> (do s ← read,
     fail $ to_fmt "could not find inhabited instance for:\n" ++ to_fmt s)
 
@@ -64,6 +63,8 @@ attribute [derive inhabited]
   rbnode.color
   ordering
   unification_constraint pprod unification_hint
+  doc_category
+  tactic_doc_entry
 
 instance {α} : inhabited (bin_tree α) := ⟨bin_tree.empty⟩
 

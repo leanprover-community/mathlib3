@@ -5,10 +5,10 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Theory of topological rings with uniform structure.
 -/
+import topology.algebra.group_completion
+import topology.algebra.ring
 
-import topology.algebra.group_completion topology.algebra.ring
-
-open classical set lattice filter topological_space add_comm_group
+open classical set filter topological_space add_comm_group
 open_locale classical
 noncomputable theory
 
@@ -19,14 +19,13 @@ variables (α : Type*) [ring α] [uniform_space α]
 instance : has_one (completion α) := ⟨(1:α)⟩
 
 instance : has_mul (completion α) :=
-  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry' (*))⟩
+  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry (*))⟩
 
-@[elim_cast]
-lemma coe_one : ((1 : α) : completion α) = 1 := rfl
+@[norm_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
 variables {α} [topological_ring α]
 
-@[move_cast]
+@[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul) (a, b)).symm
@@ -35,7 +34,7 @@ variables [uniform_add_group α]
 
 lemma continuous_mul : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
-  haveI : is_Z_bilin ((coe ∘ uncurry' (*)) : α × α → completion α) :=
+  haveI : is_Z_bilin ((coe ∘ uncurry (*)) : α × α → completion α) :=
   { add_left := begin
       introv,
       change coe ((a + a')*b) = coe (a*b) + coe (a'*b),
@@ -46,7 +45,7 @@ begin
       change coe (a*(b + b')) = coe (a*b) + coe (a*b'),
       rw_mod_cast mul_add
     end },
-  have : continuous ((coe ∘ uncurry' (*)) : α × α → completion α),
+  have : continuous ((coe ∘ uncurry (*)) : α × α → completion α),
     from (continuous_coe α).comp continuous_mul,
   convert dense_inducing_coe.extend_Z_bilin dense_inducing_coe this,
   simp only [(*), curry, prod.mk.eta]
@@ -96,7 +95,9 @@ universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
           {f : α → β} [is_ring_hom f] (hf : continuous f)
 
-instance is_ring_hom_extension [complete_space β] [separated β] :
+/-- The completion extension is a ring morphism.
+This cannot be an instance, since it depends on the continuity of `f`. -/
+protected lemma is_ring_hom_extension [complete_space β] [separated β] :
   is_ring_hom (completion.extension f) :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_one := by rw [← coe_one, extension_coe hf, is_ring_hom.map_one f],
@@ -120,8 +121,11 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_mul := continuous_mul,
   continuous_neg := continuous_neg }
 
-instance is_ring_hom_map : is_ring_hom (completion.map f) :=
-(completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
+/-- The completion map is a ring morphism.
+This cannot be an instance, since it depends on the continuity of `f`. -/
+protected lemma is_ring_hom_map : is_ring_hom (completion.map f) :=
+@completion.is_ring_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_ring_hom.comp _ _)
+  ((continuous_coe β).comp hf) _ _
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

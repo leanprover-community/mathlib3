@@ -9,8 +9,8 @@ Authors: Kenny Lau
 
 And finally, magma.free_semigroup (free_magma α) ≃ free_semigroup α.
 -/
-
-import data.equiv.basic category.traversable.basic
+import data.equiv.basic
+import control.applicative
 
 universes u v
 
@@ -252,7 +252,7 @@ def lift (x : free_semigroup α) : β :=
 lift' f x.1 x.2
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x := rfl
-@[simp] lemma lift_of_mul (x y) : lift f (of x * y) = f x * lift f y := rfl
+lemma lift_of_mul (x y) : lift f (of x * y) = f x * lift f y := rfl
 
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 free_semigroup.induction_on x (λ p, rfl)

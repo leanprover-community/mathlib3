@@ -5,7 +5,9 @@ Authors: Sean Leather, Mario Carneiro
 
 Finite maps over `multiset`.
 -/
-import data.list.alist data.finset data.pfun
+import data.list.alist
+import data.finset
+import data.pfun
 
 universes u v w
 open list
@@ -137,7 +139,7 @@ def singleton (a : α) (b : β a) : finmap β :=
 ⟦ alist.singleton a b ⟧
 
 @[simp] theorem keys_singleton (a : α) (b : β a) :
-  (singleton a b).keys = finset.singleton a := rfl
+  (singleton a b).keys = {a} := rfl
 
 @[simp] lemma mem_singleton (x y : α) (b : β y) : x ∈ singleton y b ↔ x = y :=
 by simp only [singleton]; erw [mem_cons_eq,mem_nil_iff,or_false]
@@ -231,8 +233,8 @@ induction_on s $ lookup_erase a
   lookup a (erase a' s) = lookup a s :=
 induction_on s $ λ s, lookup_erase_ne h
 
-@[simp] theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
-induction_on s $ λ s, ext (by simp)
+theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
+induction_on s $ λ s, ext (by simp [alist.erase_erase])
 
 lemma mem_iff {a : α} {s : finmap β} : a ∈ s ↔ ∃ b, s.lookup a = some b :=
 induction_on s $ λ s,

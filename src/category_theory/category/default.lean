@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-
 import tactic.basic
 import tactic.tidy
 
@@ -19,7 +18,7 @@ Introduces notations
 * `f ≫ g` for composition in the 'arrows' convention.
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
-```
+```lean
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
@@ -31,7 +30,7 @@ namespace category_theory
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
 which is defined here as a
-[`replacer` tactic](https://github.com/leanprover/mathlib/blob/master/docs/tactics.md#def_replacer).
+[`replacer` tactic](https://leanprover-community.github.io/mathlib_docs/commands.html#def_replacer).
 We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
 powerful tactics.
 -/
@@ -87,8 +86,17 @@ A `small_category` has objects and morphisms in the same universe level.
 abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 
 section
-variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
-include 𝒞
+variables {C : Type u} [category.{v} C] {X Y Z : C}
+
+/-- postcompose an equation between morphisms by another morphism -/
+lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
+by rw w
+/-- precompose an equation between morphisms by another morphism -/
+lemma whisker_eq (f : X ⟶ Y) {g h : Y ⟶ Z} (w : g = h) : f ≫ g = f ≫ h :=
+by rw w
+
+infixr ` =≫ `:80 := eq_whisker
+infixr ` ≫= `:80 := whisker_eq
 
 lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=
 by { convert w (𝟙 Y), tidy }
@@ -110,10 +118,59 @@ class epi  (f : X ⟶ Y) : Prop :=
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+instance (X : C) : epi.{v} (𝟙 X) :=
+⟨λ Z g h w, by simpa using w⟩
+instance (X : C) : mono.{v} (𝟙 X) :=
+⟨λ Z g h w, by simpa using w⟩
+
+lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
+lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+
+lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
+by { convert cancel_epi f, simp, }
+lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
+by { convert cancel_mono f, simp, }
+
+lemma epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_epi g).1,
+  apply (cancel_epi f).1,
+  simpa using w,
+end
+lemma mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_mono f).1,
+  apply (cancel_mono g).1,
+  simpa using w,
+end
+
+lemma mono_of_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [mono (f ≫ g)] : mono f :=
+begin
+  split, intros Z a b w,
+  replace w := congr_arg (λ k, k ≫ g) w,
+  dsimp at w,
+  rw [category.assoc, category.assoc] at w,
+  exact (cancel_mono _).1 w,
+end
+
+lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) : mono f :=
+by { resetI, subst h, exact mono_of_mono f g, }
+
+lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
+begin
+  split, intros Z a b w,
+  replace w := congr_arg (λ k, f ≫ k) w,
+  dsimp at w,
+  rw [←category.assoc, ←category.assoc] at w,
+  exact (cancel_epi _).1 w,
+end
+
+lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) : epi g :=
+by { resetI, subst h, exact epi_of_epi f g, }
 end
 
 section

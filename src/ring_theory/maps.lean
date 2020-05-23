@@ -3,8 +3,7 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow, Kenny Lau
 -/
-
-import data.equiv.algebra
+import data.equiv.ring
 
 /-!
 # Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions
@@ -30,9 +29,9 @@ variables {R : Type*} {F : Type*}
 
 /- The Proposition that a function from a ring to a ring is an antihomomorphism -/
 class is_ring_anti_hom [ring R] [ring F] (f : R → F) : Prop :=
-(map_one : f 1 = 1)
-(map_mul : ∀ {x y : R}, f (x * y) = f y * f x)
-(map_add : ∀ {x y : R}, f (x + y) = f x + f y)
+(map_one [] : f 1 = 1)
+(map_mul [] : ∀ {x y : R}, f (x * y) = f y * f x)
+(map_add [] : ∀ {x y : R}, f (x + y) = f x + f y)
 
 namespace is_ring_anti_hom
 

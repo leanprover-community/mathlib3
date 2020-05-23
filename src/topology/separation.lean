@@ -5,10 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Separation properties of topological spaces.
 -/
-
 import topology.subset_properties
 
-open set filter lattice
+open set filter
 open_locale topological_space
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
@@ -22,95 +21,40 @@ section separation
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
-theorem exists_open_singleton_of_fintype [t0_space α]
-  [f : fintype α] [decidable_eq α] [ha : nonempty α] :
-  ∃ x:α, is_open ({x}:set α) :=
-have H : ∀ (T : finset α), T ≠ ∅ → ∃ x ∈ T, ∃ u, is_open u ∧ {x} = {y | y ∈ T} ∩ u :=
+theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
+  (hso : is_open (↑s : set α)) :
+  ∃ x ∈ s, is_open ({x} : set α):=
 begin
-  intro T,
-  apply finset.case_strong_induction_on T,
-  { intro h, exact (h rfl).elim },
-  { intros x S hxS ih h,
-    by_cases hs : S = ∅,
-    { existsi [x, finset.mem_insert_self x S, univ, is_open_univ],
-      rw [hs, inter_univ], refl },
-    { rcases ih S (finset.subset.refl S) hs with ⟨y, hy, V, hv1, hv2⟩,
-      by_cases hxV : x ∈ V,
-      { cases t0_space.t0 x y (λ hxy, hxS $ by rwa hxy) with U hu,
-        rcases hu with ⟨hu1, ⟨hu2, hu3⟩ | ⟨hu2, hu3⟩⟩,
-        { existsi [x, finset.mem_insert_self x S, U ∩ V, is_open_inter hu1 hv1],
-          apply set.ext,
-          intro z,
-          split,
-          { intro hzx,
-            rw set.mem_singleton_iff at hzx,
-            rw hzx,
-            exact ⟨finset.mem_insert_self x S, ⟨hu2, hxV⟩⟩ },
-          { intro hz,
-            rw set.mem_singleton_iff,
-            rcases hz with ⟨hz1, hz2, hz3⟩,
-            cases finset.mem_insert.1 hz1 with hz4 hz4,
-            { exact hz4 },
-            { have h1 : z ∈ {y : α | y ∈ S} ∩ V,
-              { exact ⟨hz4, hz3⟩ },
-              rw ← hv2 at h1,
-              rw set.mem_singleton_iff at h1,
-              rw h1 at hz2,
-              exact (hu3 hz2).elim } } },
-        { existsi [y, finset.mem_insert_of_mem hy, U ∩ V, is_open_inter hu1 hv1],
-          apply set.ext,
-          intro z,
-          split,
-          { intro hz,
-            rw set.mem_singleton_iff at hz,
-            rw hz,
-            refine ⟨finset.mem_insert_of_mem hy, hu2, _⟩,
-            have h1 : y ∈ {y} := set.mem_singleton y,
-            rw hv2 at h1,
-            exact h1.2 },
-          { intro hz,
-            rw set.mem_singleton_iff,
-            cases hz with hz1 hz2,
-            cases finset.mem_insert.1 hz1 with hz3 hz3,
-            { rw hz3 at hz2,
-              exact (hu3 hz2.1).elim },
-            { have h1 : z ∈ {y : α | y ∈ S} ∩ V := ⟨hz3, hz2.2⟩,
-              rw ← hv2 at h1,
-              rw set.mem_singleton_iff at h1,
-              exact h1 } } } },
-      { existsi [y, finset.mem_insert_of_mem hy, V, hv1],
-        apply set.ext,
-        intro z,
-        split,
-        { intro hz,
-          rw set.mem_singleton_iff at hz,
-          rw hz,
-          split,
-          { exact finset.mem_insert_of_mem hy },
-          { have h1 : y ∈ {y} := set.mem_singleton y,
-            rw hv2 at h1,
-            exact h1.2 } },
-        { intro hz,
-          rw hv2,
-          cases hz with hz1 hz2,
-          cases finset.mem_insert.1 hz1 with hz3 hz3,
-          { rw hz3 at hz2,
-            exact (hxV hz2).elim },
-          { exact ⟨hz3, hz2⟩ } } } } }
-end,
-begin
-  apply nonempty.elim ha, intro x,
-  specialize H finset.univ (finset.ne_empty_of_mem $ finset.mem_univ x),
-  rcases H with ⟨y, hyf, U, hu1, hu2⟩,
-  existsi y,
-  have h1 : {y : α | y ∈ finset.univ} = (univ : set α),
-  { exact set.eq_univ_of_forall (λ x : α,
-      by rw mem_set_of_eq; exact finset.mem_univ x) },
-  rw h1 at hu2,
-  rw set.univ_inter at hu2,
-  rw hu2,
-  exact hu1
+  induction s using finset.strong_induction_on with s ihs,
+  by_cases hs : set.subsingleton (↑s : set α),
+  { rcases sne with ⟨x, hx⟩,
+    refine ⟨x, hx, _⟩,
+    have : (↑s : set α) = {x}, from hs.eq_singleton_of_mem hx,
+    rwa this at hso },
+  { dunfold set.subsingleton at hs,
+    push_neg at hs,
+    rcases hs with ⟨x, hx, y, hy, hxy⟩,
+    rcases t0_space.t0 x y hxy with ⟨U, hU, hxyU⟩,
+    wlog H : x ∈ U ∧ y ∉ U := hxyU using [x y, y x],
+    obtain ⟨z, hzs, hz⟩ : ∃ z ∈ s.filter (λ z, z ∈ U), is_open ({z} : set α),
+    { refine ihs _ (finset.filter_ssubset.2 ⟨y, hy, H.2⟩) ⟨x, finset.mem_filter.2 ⟨hx, H.1⟩⟩ _,
+      rw [finset.coe_filter],
+      exact is_open_inter hso hU },
+    exact ⟨z, (finset.mem_filter.1 hzs).1, hz⟩ }
 end
+
+theorem exists_open_singleton_of_fintype [t0_space α] [f : fintype α] [ha : nonempty α] :
+  ∃ x:α, is_open ({x}:set α) :=
+begin
+  refine ha.elim (λ x, _),
+  have : is_open (↑(finset.univ : finset α) : set α), { simp },
+  rcases exists_open_singleton_of_open_finset _ ⟨x, finset.mem_univ x⟩ this with ⟨x, _, hx⟩,
+  exact ⟨x, hx⟩
+end
+
+instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.coe_ext).1 hxy) in
+  ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
   where every singleton set is closed. Equivalently, for every pair
@@ -121,10 +65,17 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
+compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
+
+instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
+  t1_space (subtype p) :=
+⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
+  by simp [subtype.coe_ext]⟩⟩
+
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
-⟨λ x y h, ⟨-{x}, is_open_compl_iff.2 is_closed_singleton,
-  or.inr ⟨λ hyx, or.cases_on hyx h.symm id, λ hx, hx $ or.inl rfl⟩⟩⟩
+⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ 𝓝 y :=
 mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
@@ -147,14 +98,12 @@ t2_space.t2 x y h
 instance t2_space.t1_space [t2_space α] : t1_space α :=
 ⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
-⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
+⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
 lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
-have u ∩ v ∈ 𝓝 x ⊓ 𝓝 y,
-  from inter_mem_inf_sets (mem_nhds_sets hu hx) (mem_nhds_sets hv hy),
-h $ empty_in_sets_eq_bot.mp $ huv ▸ this
+absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne_empty
 
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
@@ -163,7 +112,7 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ �
    let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
        ⟨u, uu', uo, hu⟩ := mem_nhds_sets_iff.mp hu',
        ⟨v, vv', vo, hv⟩ := mem_nhds_sets_iff.mp hv' in
-   ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint_mono uu' vv' u'v'⟩⟩⟩
+   ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint.mono uu' vv' u'v'⟩⟩⟩
 
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
@@ -171,7 +120,7 @@ t2_iff_nhds.trans
   ⟨assume h f x y u fx fy, h $ ne_bot_of_le_ne_bot u.1 (le_inf fx fy),
    assume h x y xy,
      let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
-     h f uf (le_trans hf lattice.inf_le_left) (le_trans hf lattice.inf_le_right)⟩
+     h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
@@ -184,7 +133,7 @@ lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : �
 eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
 
 section lim
-variables [inhabited α] [t2_space α] {f : filter α}
+variables [nonempty α] [t2_space α] {f : filter α}
 
 lemma lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) : lim f = a :=
 eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot hf $ le_inf (lim_spec ⟨_, h⟩) h
@@ -199,7 +148,7 @@ end lim
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
-{ t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
+{ t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, rfl, rfl,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
@@ -317,9 +266,18 @@ have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,
-  mem_sets_of_eq_bot $ by rwa [lattice.neg_neg],
+  mem_sets_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
+
+instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
+⟨begin
+   intros s a hs ha,
+   rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
+   rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
+   refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
+   rw [nhds_induced, ← comap_principal, ← comap_inf, hat, comap_bot]
+ end⟩
 
 variable (α)
 @[priority 100] -- see Note [lower instance priority]

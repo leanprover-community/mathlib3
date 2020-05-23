@@ -3,7 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import analysis.convex.basic analysis.normed_space.finite_dimension
+import analysis.convex.basic
+import analysis.normed_space.finite_dimension
 
 /-!
 # Topological and metric properties of convex sets
@@ -39,7 +40,7 @@ lemma std_simplex_subset_closed_ball :
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
-  refine (nnreal.coe_one ▸ nnreal.coe_le.2 $ finset.sup_le $ λ x hx, _),
+  refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
   change abs (f x) ≤ 1,
   rw [abs_of_nonneg $ hf.1 x],
   exact (mem_Icc_of_mem_std_simplex hf x).2
@@ -132,7 +133,8 @@ calc
   dist (a • x + b • y) z = ∥ (a • x + b • y) - (a + b) • z ∥ :
     by rw [hab, one_smul, normed_group.dist_eq]
   ... = ∥a • (x - z) + b • (y - z)∥ :
-    by rw [add_smul, smul_sub, smul_sub]; simp
+    by rw [add_smul, smul_sub, smul_sub, sub_eq_add_neg, sub_eq_add_neg, sub_eq_add_neg, neg_add,
+           ←add_assoc, add_assoc (a • x), add_comm (b • y)]; simp only [add_assoc]
   ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥ :
     norm_add_le (a • (x - z)) (b • (y - z))
   ... = a * dist x z + b * dist y z :
@@ -166,7 +168,7 @@ end
 @[simp] lemma convex_hull_ediam (s : set E) :
   emetric.diam (convex_hull s) = emetric.diam s :=
 begin
-  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x y hx hy, _)
+  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x hx y hy, _)
     (emetric.diam_mono $ subset_convex_hull s),
   rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
   rw edist_dist,
@@ -183,6 +185,6 @@ by simp only [metric.diam, convex_hull_ediam]
 /-- Convex hull of `s` is bounded if and only if `s` is bounded. -/
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull s) ↔ metric.bounded s :=
-by simp only [metric.bounded_iff_diam_ne_top, convex_hull_ediam]
+by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
 
 end normed_space

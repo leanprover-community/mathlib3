@@ -71,7 +71,7 @@ def id (X : PresheafedSpace.{v} C) : hom X X :=
 
 def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { f := α.f ≫ β.f,
-  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) }
+  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
 
 variables (C)
 
@@ -90,27 +90,31 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },
-    { ext U,
-      op_induction,
-      cases U,
+    { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, map_id] },
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id], },
   end,
   comp_id' := λ X Y f,
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext U,
-      op_induction,
-      cases U,
+    { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id] }
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id], }
   end,
   assoc' := λ W X Y Z f g h,
   begin
-    simp only [true_and, presheaf.pushforward, id, comp, whisker_left_twice, whisker_left_comp,
-               heq_iff_eq, category.assoc],
-    split; refl
+     ext1, swap,
+     refl,
+     { ext U, op_induction, cases U,
+       dsimp,
+       simp only [assoc, map_id, comp_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+       dsimp,
+       simp only [comp_id, id_comp], }
   end }
 
 end
@@ -120,12 +124,18 @@ variables {C}
 instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
 { coe := λ α, α.f }
 
+-- see Note [function coercion]
+instance {X Y : PresheafedSpace.{v} C} : has_coe_to_fun (X ⟶ Y) :=
+⟨λ _, X.to_Top → Y.to_Top, λ h, h⟩
+
 @[simp] lemma hom_mk_coe {X Y : PresheafedSpace.{v} C} (f) (c) :
   (({ f := f, c := c } : X ⟶ Y) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
 @[simp] lemma f_as_coe {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) :
   α.f = (α : (X : Top.{v}) ⟶ (Y : Top.{v})) := rfl
 @[simp] lemma id_coe (X : PresheafedSpace.{v} C) :
   (((𝟙 X) : X ⟶ X) : (X : Top.{v}) ⟶ X) = 𝟙 (X : Top.{v}) := rfl
+@[simp] lemma id_coe_fn (X : PresheafedSpace.{v} C) :
+  (((𝟙 X) : X ⟶ X) : (X : Top.{v}) → X) = 𝟙 (X : Top.{v}) := rfl
 @[simp] lemma comp_coe {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   ((α ≫ β : X ⟶ Z) : (X : Top.{v}) ⟶ Z) = (α : (X : Top.{v}) ⟶ Y) ≫ (β : Y ⟶ Z) := rfl
 
@@ -143,7 +153,7 @@ lemma id_c (X : PresheafedSpace.{v} C) :
 by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) ≫ (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
 /-- The forgetful functor from `PresheafedSpace` to `Top`. -/
 def forget : PresheafedSpace.{v} C ⥤ Top :=
@@ -187,7 +197,11 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   begin
     ext1, swap,
     { refl, },
-    { ext, dsimp, simp only [comp_id, assoc, map_comp, map_id], },
+    { ext, dsimp,
+      simp only [comp_id, assoc, map_comp, map_id, comp_c_app,
+        presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id, map_id] }
   end }
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
@@ -218,7 +232,9 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
       op_induction,
       cases U,
       dsimp,
-      simp only [comp_id, assoc, map_id, nat_trans.naturality] }
+      simp only [comp_id, assoc, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      dsimp,
+      simp only [comp_id, nat_trans.naturality], }
   end }
 
 -- TODO Assemble the last two constructions into a functor

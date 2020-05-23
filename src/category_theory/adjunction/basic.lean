@@ -13,8 +13,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 local attribute [elab_simple] whisker_left whisker_right
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
 `F ⊣ G` represents the data of an adjunction between two functors
@@ -100,6 +99,14 @@ adj.counit.naturality f
   (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
 (adj.unit.naturality f).symm
 
+lemma hom_equiv_apply_eq {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
+  adj.hom_equiv A B f = g ↔ f = (adj.hom_equiv A B).symm g :=
+⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+
+lemma eq_hom_equiv_apply {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
+  g = adj.hom_equiv A B f ↔ (adj.hom_equiv A B).symm g = f :=
+⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+
 end
 
 end adjunction
@@ -175,7 +182,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
     left_inv := λ f, begin
       change F.map (_ ≫ _) ≫ _ = _,
       rw [F.map_comp, assoc, ←functor.comp_map, adj.counit.naturality, ←assoc],
-      convert id_comp _ f,
+      convert id_comp f,
       have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle,
       dsimp at t,
       simp only [id_comp] at t,
@@ -184,7 +191,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
     right_inv := λ g, begin
       change _ ≫ G.map (_ ≫ _) = _,
       rw [G.map_comp, ←assoc, ←functor.comp_map, ←adj.unit.naturality, assoc],
-      convert comp_id _ g,
+      convert comp_id g,
       have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle,
       dsimp at t,
       simp only [id_comp] at t,
@@ -192,15 +199,10 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
   end },
   .. adj }
 
-section
-omit 𝒟
-
 def id : 𝟭 C ⊣ 𝟭 C :=
 { hom_equiv := λ X Y, equiv.refl _,
   unit := 𝟙 _,
   counit := 𝟙 _ }
-
-end
 
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)

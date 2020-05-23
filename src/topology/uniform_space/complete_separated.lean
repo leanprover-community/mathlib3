@@ -7,7 +7,8 @@ Theory of complete separated uniform spaces.
 
 This file is for elementary lemmas that depend on both Cauchy filters and separation.
 -/
-import topology.uniform_space.cauchy topology.uniform_space.separation
+import topology.uniform_space.cauchy
+import topology.uniform_space.separation
 import topology.dense_embedding
 
 open filter
@@ -20,9 +21,9 @@ lemma is_closed_of_is_complete  [uniform_space α] [separated α] {s : set α} (
   is_closed s :=
 is_closed_iff_nhds.2 $ λ a ha, begin
   let f := 𝓝 a ⊓ principal s,
-  have : cauchy f := cauchy_downwards (cauchy_nhds) ha (lattice.inf_le_left),
-  rcases h f this (lattice.inf_le_right) with ⟨y, ys, fy⟩,
-  rwa (tendsto_nhds_unique ha lattice.inf_le_left fy : a = y)
+  have : cauchy f := cauchy_downwards (cauchy_nhds) ha (inf_le_left),
+  rcases h f this (inf_le_right) with ⟨y, ys, fy⟩,
+  rwa (tendsto_nhds_unique ha inf_le_left fy : a = y)
 end
 
 namespace dense_inducing

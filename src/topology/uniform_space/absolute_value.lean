@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import data.real.cau_seq
 import topology.uniform_space.basic
 
@@ -30,7 +29,7 @@ the current file does not depend on real numbers. TODO: extract absolute values 
 absolute value, uniform spaces
 -/
 
-open set function lattice filter uniform_space
+open set function filter uniform_space
 
 namespace is_absolute_value
 variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]

@@ -21,11 +21,12 @@ generalizations:
 * Archimedean fields
 
 -/
-import topology.metric_space.basic topology.algebra.uniform_group
-       topology.algebra.ring tactic.linarith
+import topology.metric_space.basic
+import topology.algebra.uniform_group
+import topology.algebra.ring
 
 noncomputable theory
-open classical set lattice filter topological_space metric
+open classical set filter topological_space metric
 open_locale classical
 open_locale topological_space
 
@@ -37,7 +38,7 @@ metric_space.induced coe rat.cast_injective real.metric_space
 
 theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
-@[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
 section low_prio
 -- we want to ignore this instance for the next declaration
@@ -49,16 +50,18 @@ begin
     (le_antisymm refl_le_uniformity $ λ r ru,
       mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
       mem_principal_sets.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
-    (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
+  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
+  have : abs (a - b) < 1, by norm_cast at this; assumption,
+  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
+  norm_cast, assumption
 end
 end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
-@[elim_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
 
-@[elim_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+@[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
@@ -72,7 +75,7 @@ uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
-ne_empty_iff_exists_mem.2 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
+⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
 theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.to_embedding
 
@@ -231,7 +234,7 @@ metric.totally_bounded_iff.2 $ λ ε ε0, begin
   let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
   have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
     int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
-  simp, refine ⟨_, ⟨i, _, rfl⟩, _⟩,
+  simp, use i, split,
   { rw [← int.coe_nat_lt, this],
     refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
     rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],
@@ -301,7 +304,7 @@ subset.antisymm
 λ x hx, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε, ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨p, h₁, h₂⟩ := exists_rat_btwn ((lt_add_iff_pos_right x).2 ε0) in
-ne_empty_iff_exists_mem.2 ⟨_, hε (show abs _ < _,
+⟨_, hε (show abs _ < _,
     by rwa [abs_of_nonneg (le_of_lt $ sub_pos.2 h₁), sub_lt_iff_lt_add']),
   p, rat.cast_lt.1 (@lt_of_le_of_lt ℝ _ _ _ _ hx h₁), rfl⟩
 

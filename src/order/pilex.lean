@@ -3,8 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import algebra.order_functions tactic.tauto algebra.pi_instances
+import algebra.pi_instances
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
@@ -65,8 +64,10 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
         (λ hyx, lt_irrefl (x i) (by simpa [hyx] using hi.2))⟩, by tauto⟩,
   ..pilex.has_lt }
 
-instance [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
-  linear_order (pilex ι β) :=
+/-- `pilex` is a linear order if the original order is well-founded.
+This cannot be an instance, since it depends on the well-foundedness of `<`. -/
+protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop))
+  [∀ a, linear_order (β a)] : linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
@@ -82,15 +83,12 @@ instance [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a
     end),
   ..pilex.partial_order }
 
-instance [linear_order ι] [∀ a, ordered_comm_group (β a)] : ordered_comm_group (pilex ι β) :=
+instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=
 { add_le_add_left := λ x y hxy z,
     hxy.elim
       (λ ⟨i, hi⟩,
         or.inl ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
           add_lt_add_left hi.2 _⟩)
       (λ hxy, hxy ▸ le_refl _),
-  add_lt_add_left := λ x y ⟨i, hi⟩ z,
-    ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
-      add_lt_add_left hi.2 _⟩,
   ..pilex.partial_order,
   ..pi.add_comm_group }

@@ -5,6 +5,8 @@ Authors: Gabriel Ebner.
 
 Tactic to split if-then-else-expressions.
 -/
+import tactic.hint
+
 open expr tactic
 
 namespace tactic
@@ -83,6 +85,14 @@ ite-expression.
 -/
 meta def split_ifs (at_ : parse location) (names : parse with_ident_list) : tactic unit :=
 tactic.split_ifs names at_
+
+add_hint_tactic "split_ifs"
+
+add_tactic_doc
+{ name := "split_ifs",
+  category := doc_category.tactic,
+  decl_names := [``split_ifs],
+  tags := ["case bashing"] }
 
 end interactive
 

@@ -1,6 +1,11 @@
+/-
+Copyright (c) 2019 Johan Commelin All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
 import order.filter.lift
-import linear_algebra.basic
-import topology.opens topology.algebra.ring
+import topology.opens
+import topology.algebra.ring
 
 section
 open topological_space
@@ -20,7 +25,7 @@ namespace open_add_subgroup
 end open_add_subgroup
 
 namespace open_subgroup
-open function lattice topological_space
+open function topological_space
 open_locale topological_space
 variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G}
@@ -48,7 +53,8 @@ variable (U)
 protected lemma is_open : is_open (U : set G) := U.2.1
 
 @[to_additive]
-protected lemma one_mem : (1 : G) ∈ U := is_submonoid.one_mem (U : set G)
+protected lemma one_mem : (1 : G) ∈ U :=
+@is_submonoid.one_mem _ _ (U : set G) _
 
 @[to_additive]
 protected lemma inv_mem {g : G} (h : g ∈ U) : g⁻¹ ∈ U :=
@@ -112,7 +118,7 @@ begin
     simp },
   split,
   { exact (continuous_mul_right _) _ U.is_open },
-  { simpa using is_submonoid.one_mem (U : set G) }
+  { simpa using @is_submonoid.one_mem _ _ (U : set G) _ }
 end
 
 section
@@ -151,7 +157,7 @@ instance [topological_monoid G] : semilattice_sup_top (open_subgroup G) :=
   le_sup_left := λ U V, set.subset.trans (set.subset_union_left _ _) group.subset_closure,
   le_sup_right := λ U V, set.subset.trans (set.subset_union_right _ _) group.subset_closure,
   sup_le := λ U V W hU hV, group.closure_subset $ set.union_subset hU hV,
-  ..open_subgroup.lattice.semilattice_inf_top }
+  ..open_subgroup.semilattice_inf_top }
 
 @[simp, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 

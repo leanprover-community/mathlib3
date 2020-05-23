@@ -1,13 +1,12 @@
 /-
-  Copyright (c) 2019 Tim Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Tim Baanen.
-
-  Inverses for nonsingular square matrices.
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
 -/
-import algebra.big_operators
-import data.matrix.basic
+import algebra.associated
 import linear_algebra.determinant
+import tactic.linarith
+import tactic.ring_exp
 
 /-!
 # Nonsingular inverses
@@ -49,6 +48,7 @@ universes u v
 variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
+
 
 section update
 
@@ -127,7 +127,7 @@ begin
     congr, ext σ,
     rw [←mul_add ↑↑(sign σ)],
     congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i), prod_singleton, prod_singleton,
       prod_singleton, ←add_mul],
     refl },
@@ -136,10 +136,9 @@ begin
     rw [smul_eq_mul, mul_sum],
     congr, ext σ,
     rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i),
-      prod_singleton, prod_singleton, mul_assoc],
-    refl }
+      prod_singleton, prod_singleton, mul_assoc], }
 end
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) :=
@@ -181,7 +180,7 @@ end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
-  s.sum (λ x, cramer α A (f x)) = cramer α A (sum s f) :=
+  s.sum (λ x, cramer α A (f x)) = cramer α A (s.sum f) :=
 (linear_map.map_sum (cramer α A)).symm
 
 /-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
@@ -195,7 +194,8 @@ calc s.sum (λ x, cramer α A (λ j, f j x) i)
 end cramer
 
 section adjugate
-/-! ### `adjugate` section
+/-!
+### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
 These will hold for any matrix over a commutative ring,
@@ -251,22 +251,22 @@ lemma mul_adjugate_val (A : matrix n n α) (i j k) :
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
   congr, ext,
-  rw [pi.smul_apply, smul_eq_mul, mul_ite]
+  rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_ite],
+  rw [mul_val, smul_val, one_val, mul_boole],
   calc
-    sum univ (λ (k : n), A i k * adjugate A k j)
-        = sum univ (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
+    univ.sum (λ (k : n), A i k * adjugate A k j)
+        = univ.sum (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
       : by {congr, ext k, apply mul_adjugate_val A i j k}
-    ... = cramer α A (λ j, sum univ (λ (k : n), if k = j then A i k else 0)) j
+    ... = cramer α A (λ j, univ.sum (λ (k : n), if k = j then A i k else 0)) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
       rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
-    ... = if i = j then det A else 0 : by rw cramer_column_self
+    ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
@@ -274,10 +274,81 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
+/-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
+  used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_cancel` covers the case that `det A` cancels
+  on the left of the equation `A.det * b = A.det ^ n`.
+-/
+lemma det_adjugate_of_cancel {A : matrix n n α}
+  (h : ∀ b, A.det * b = A.det ^ fintype.card n → b = A.det ^ (fintype.card n - 1)) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
+                                              ... = A.det ^ fintype.card n : by simp [mul_adjugate])
+
+lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
+begin
+  ext i j,
+  have univ_eq_i := univ_eq_singleton_of_card_one i h,
+  have univ_eq_j := univ_eq_singleton_of_card_one j h,
+  have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
+  have perm_eq : (univ : finset (perm n)) = {1} :=
+    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+end
+
+@[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj']
+end
+
+lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
+calc (adjugate A).det
+    = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
+... = 1                            : by rw [h, one_pow]
+
+/-- `det_adjugate_of_is_unit` gives the formula for `(adjugate A).det` if `A.det` has an inverse.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_is_unit` covers the case that `det A` has an inverse.
+-/
+lemma det_adjugate_of_is_unit {A : matrix n n α} (h : is_unit A.det) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+begin
+  rcases is_unit_iff_exists_inv'.mp h with ⟨a, ha⟩,
+  by_cases card_lt_zero : fintype.card n ≤ 0,
+  { have h : fintype.card n = 0 := by linarith,
+    simp [det_eq_one_of_card_eq_zero h] },
+  have zero_lt_card : 0 < fintype.card n := by linarith,
+  have n_nonempty : nonempty n := fintype.card_pos_iff.mp zero_lt_card,
+
+  by_cases card_lt_one : fintype.card n ≤ 1,
+  { have h : fintype.card n = 1 := by linarith,
+    simp [h, adjugate_eq_one_of_card_eq_one h] },
+  have one_lt_card : 1 < fintype.card n := by linarith,
+  have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
+    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+
+  apply det_adjugate_of_cancel,
+  intros b hb,
+  calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
+       by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
+     ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
+     ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
+end
+
 end adjugate
 
 section inv
-/-! ### `inv` section
+/-!
+### `inv` section
 
 Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
@@ -297,17 +368,10 @@ lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
 lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
-section
-
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
-
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
-by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, @one_smul _ _ _ (pi.mul_action _)]
-
-end
+by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :

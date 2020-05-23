@@ -3,8 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import ring_theory.noetherian linear_algebra.dimension
+import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
 
 /-!
@@ -65,13 +64,13 @@ open_locale classical
 
 open vector_space cardinal submodule module function
 
-variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vector_space K V]
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
 from a conventional definition. -/
-@[reducible] def finite_dimensional (K V : Type*) [discrete_field K]
+@[reducible] def finite_dimensional (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
 
 namespace finite_dimensional
@@ -97,7 +96,7 @@ end
 
 /-- The dimension of a finite-dimensional vector space, as a cardinal, is strictly less than the
 first infinite cardinal `omega`. -/
-lemma dim_lt_omega (K V : Type*) [discrete_field K] [add_comm_group V] [vector_space K V] :
+lemma dim_lt_omega (K V : Type*) [field K] [add_comm_group V] [vector_space K V] :
   ∀ [finite_dimensional K V], dim K V < omega.{v} :=
 finite_dimensional_iff_dim_lt_omega.1
 
@@ -146,12 +145,12 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 
 /-- The dimension of a finite-dimensional vector space as a natural number. Defined by convention to
 be `0` if the space is infinite-dimensional. -/
-noncomputable def findim (K V : Type*) [discrete_field K]
+noncomputable def findim (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] : ℕ :=
 if h : dim K V < omega.{v} then classical.some (lt_omega.1 h) else 0
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its `findim`. -/
-lemma findim_eq_dim (K : Type u) (V : Type v) [discrete_field K]
+lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   (findim K V : cardinal.{v}) = dim K V :=
 begin
@@ -320,13 +319,10 @@ end
 lemma injective_iff_surjective [finite_dimensional K V] {f : V →ₗ[K] V} :
   injective f ↔ surjective f :=
 ⟨surjective_of_injective,
-  λ hsurj, let ⟨g, hg⟩ := exists_right_inverse_linear_map_of_surjective
-    (range_eq_top.2 hsurj) in
-  have function.right_inverse g f,
-    from λ x, show (linear_map.comp f g) x = (@linear_map.id K V _ _ _ : V → V) x, by rw hg,
-  injective_of_has_left_inverse ⟨g, left_inverse_of_surjective_of_right_inverse
-    (surjective_of_injective (injective_of_has_left_inverse ⟨_, this⟩))
-      this⟩⟩
+  λ hsurj, let ⟨g, hg⟩ := f.exists_right_inverse_of_surjective (range_eq_top.2 hsurj) in
+  have function.right_inverse g f, from linear_map.ext_iff.1 hg,
+  (left_inverse_of_surjective_of_right_inverse
+    (surjective_of_injective this.injective) this).injective⟩
 
 lemma ker_eq_bot_iff_range_eq_top [finite_dimensional K V] {f : V →ₗ[K] V} :
   f.ker = ⊥ ↔ f.range = ⊤ :=
@@ -336,9 +332,9 @@ by rw [range_eq_top, ker_eq_bot, injective_iff_surjective]
 are also inverse to each other on the other side. -/
 lemma mul_eq_one_of_mul_eq_one [finite_dimensional K V] {f g : V →ₗ[K] V} (hfg : f * g = 1) :
   g * f = 1 :=
-have ginj : injective g, from injective_of_has_left_inverse
-  ⟨f, λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl⟩,
-let ⟨i, hi⟩ := exists_right_inverse_linear_map_of_surjective
+have ginj : injective g, from has_left_inverse.injective
+  ⟨f, (λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl)⟩,
+let ⟨i, hi⟩ := g.exists_right_inverse_of_surjective
   (range_eq_top.2 (injective_iff_surjective.1 ginj)) in
 have f * (g * i) = f * 1, from congr_arg _ hi,
 by rw [← mul_assoc, hfg, one_mul, mul_one] at this; rwa ← this

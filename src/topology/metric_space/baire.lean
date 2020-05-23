@@ -3,8 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import topology.metric_space.basic analysis.specific_limits
+import analysis.specific_limits
 
 /-!
 # Baire theorem
@@ -24,7 +23,7 @@ the statement. "Baire" is however in the docstring of all the theorems, to facil
 noncomputable theory
 open_locale classical
 
-open filter lattice encodable set
+open filter encodable set
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -41,7 +40,7 @@ lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 
 lemma is_Gδ_bInter_of_open {ι : Type*} {I : set ι} (hI : countable I) {f : ι → set α}
   (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
-⟨f '' I, by rwa ball_image_iff, countable_image _ hI, by rw sInter_image⟩
+⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
 
 lemma is_Gδ_Inter_of_open {ι : Type*} [encodable ι] {f : ι → set α}
   (hf : ∀i, is_open (f i)) : is_Gδ (⋂i, f i) :=
@@ -60,7 +59,7 @@ begin
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,
     exact (hT s hs).1 t tTs },
-  { exact countable_bUnion hS (λs hs, (hT s hs).2.1) },
+  { exact hS.bUnion (λs hs, (hT s hs).2.1) },
   { exact (sInter_bUnion (λs hs, (hT s hs).2.2)).symm }
 end
 
@@ -100,7 +99,7 @@ begin
   { assume n x δ,
     by_cases δpos : δ > 0,
     { have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
-      rcases mem_closure_iff'.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
+      rcases metric.mem_closure_iff.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
       rw dist_comm at xy,
       rcases is_open_iff.1 (ho n) y ys with ⟨r, rpos, hr⟩,
       refine ⟨y, min (min (δ/2) (r/2)) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
@@ -120,7 +119,7 @@ begin
   choose center radius H using this,
 
   refine subset.antisymm (subset_univ _) (λx hx, _),
-  refine metric.mem_closure_iff'.2 (λε εpos, _),
+  refine metric.mem_closure_iff.2 (λε εpos, _),
   /- ε is positive. We have to find a point in the ball of radius ε around x belonging to all `f n`.
   For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
@@ -187,9 +186,9 @@ end
 theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS : countable S)
   (hd : ∀s∈S, closure s = univ) : closure (⋂₀S) = univ :=
 begin
-  by_cases h : S = ∅,
+  cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
-  { rcases exists_surjective_of_countable h hS with ⟨f, hf⟩,
+  { rcases hS.exists_surjective h with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
     rw [hf, sInter_range],
     exact dense_Inter_of_open_nat (λn, ho _ (F n)) (λn, hd _ (F n)) }
@@ -203,7 +202,7 @@ begin
   rw ← sInter_image,
   apply dense_sInter_of_open,
   { rwa ball_image_iff },
-  { exact countable_image _ hS },
+  { exact hS.image _ },
   { rwa ball_image_iff }
 end
 
@@ -233,7 +232,7 @@ begin
   choose T hT using this,
   have : ⋂₀ S = ⋂₀ (⋃s∈S, T s) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
   rw this,
-  refine dense_sInter_of_open (λt ht, _) (countable_bUnion hS (λs hs, (hT s hs).2.1)) (λt ht, _),
+  refine dense_sInter_of_open (λt ht, _) (hS.bUnion (λs hs, (hT s hs).2.1)) (λt ht, _),
   show is_open t,
   { simp only [exists_prop, set.mem_Union] at ht,
     rcases ht with ⟨s, hs, tTs⟩,
@@ -256,7 +255,7 @@ begin
   rw ← sInter_image,
   apply dense_sInter_of_Gδ,
   { rwa ball_image_iff },
-  { exact countable_image _ hS },
+  { exact hS.image _ },
   { rwa ball_image_iff }
 end
 
@@ -318,17 +317,17 @@ end
 
 /-- One of the most useful consequences of Baire theorem: if a countable union of closed sets
 covers the space, then one of the sets has nonempty interior. -/
-theorem nonempty_interior_of_Union_of_closed [n : nonempty α] [encodable β] {f : β → set α}
+theorem nonempty_interior_of_Union_of_closed [nonempty α] [encodable β] {f : β → set α}
   (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) : ∃s x ε, ε > 0 ∧ ball x ε ⊆ f s :=
 begin
-  have : ∃s, interior (f s) ≠ ∅,
+  have : ∃s, (interior (f s)).nonempty,
   { by_contradiction h,
-    simp only [not_exists_not, ne.def] at h,
+    simp only [not_exists, not_nonempty_iff_eq_empty] at h,
     have := calc ∅ = closure (⋃s, interior (f s)) : by simp [h]
                  ... = univ : dense_Union_interior_of_closed hc hU,
-    exact nonempty_iff_univ_ne_empty.1 n this.symm },
+    exact univ_nonempty.ne_empty this.symm },
   rcases this with ⟨s, hs⟩,
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+  rcases hs with ⟨x, hx⟩,
   rcases mem_nhds_iff.1 (mem_interior_iff_mem_nhds.1 hx) with ⟨ε, εpos, hε⟩,
   exact ⟨s, x, ε, εpos, hε⟩,
 end

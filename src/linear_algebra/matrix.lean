@@ -2,15 +2,10 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
-
-The equivalence between matrices and linear maps.
 -/
-
-import data.matrix.basic
-import linear_algebra.dimension linear_algebra.tensor_product
+import linear_algebra.dimension
 
 /-!
-
 # Linear maps and matrices
 
 This file defines the maps to send matrices to a linear map,
@@ -90,15 +85,12 @@ instance to_lin.is_add_monoid_hom :
 @[simp] lemma to_lin_apply (M : matrix m n R) (v : n → R) :
   (M.to_lin : (n → R) → (m → R)) v = mul_vec M v := rfl
 
-lemma mul_to_lin [decidable_eq l] (M : matrix m n R) (N : matrix n l R) :
+lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-begin
-  ext v x,
-  simp [to_lin_apply, mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum],
-  rw [finset.sum_comm],
-  congr, funext x, congr, funext y,
-  rw [mul_assoc]
-end
+by { ext, simp }
+
+@[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
+by { ext, simp }
 
 end matrix
 
@@ -116,6 +108,10 @@ end
 
 /-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
 def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
+
+@[simp] lemma to_matrix_id [decidable_eq n] :
+  (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
 
 end linear_map
 
@@ -156,7 +152,7 @@ begin
   change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = ({j} : finset n).sum (λ y, ite (j = y) (M i y) 0),
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
       { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
@@ -178,7 +174,7 @@ between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -
 def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
-  [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
+  [fintype ι] [decidable_eq ι] [fintype κ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
 linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) linear_equiv_matrix'
@@ -201,6 +197,8 @@ def diag (n : Type u) (R : Type v) (M : Type w)
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
 
+@[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
+
 @[simp] lemma diag_one [decidable_eq n] :
   diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
 
@@ -215,6 +213,8 @@ def trace (n : Type u) (R : Type v) (M : Type w)
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
 
+@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = finset.univ.sum (diag n R M A) := rfl
+
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
@@ -222,11 +222,10 @@ by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
-@[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
+@[simp] lemma trace_transpose_mul (A : matrix m n R) (B : matrix n m R) :
   trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
 
-lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n]
-  (A : matrix m n S) (B : matrix n m S) :
+lemma trace_mul_comm {S : Type v} [comm_ring S] (A : matrix m n S) (B : matrix n m S) :
   trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 
@@ -256,11 +255,11 @@ end ring
 
 section vector_space
 
-variables {K : Type u} [discrete_field K] -- maybe try to relax the universe constraint
+variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
-lemma rank_vec_mul_vec [decidable_eq n] (w : m → K) (v : n → K) :
+lemma rank_vec_mul_vec (w : m → K) (v : n → K) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, mul_to_lin],
@@ -270,7 +269,6 @@ begin
   exact le_refl _
 end
 
-set_option class.instance_max_depth 100
 
 lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
@@ -295,7 +293,7 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] (w : m → K) :
+lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },

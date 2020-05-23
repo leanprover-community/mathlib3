@@ -7,7 +7,7 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical topological_space
 noncomputable theory
 set_option eqn_compiler.zeta true
@@ -75,7 +75,7 @@ instance separated_regular [separated α] : regular_space α :=
     have -s ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
     have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
-      from mem_nhds_uniformity_iff.mp this,
+      from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
     have hae : a ∈ closure e, from subset_closure $ refl_mem_uniformity hd,

@@ -3,10 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
 import category_theory.concrete_category
-import algebra.group
-import data.equiv.algebra
 import algebra.punit_instances
 
 /-!
@@ -21,15 +18,11 @@ along with the relevant forgetful functors between them.
 
 ## Implementation notes
 
-See Note [locally reducible category instances]
-
-TODO: Probably @[derive] should be able to create instances of the
-required form (without `id`), and then we could use that instead of
-this obscure `local attribute [reducible]` method.
+See the note [locally reducible category instances].
 -/
 
-library_note "locally reducible category instances"
-"We make SemiRing (and the other categories) locally reducible in order
+/--
+We make SemiRing (and the other categories) locally reducible in order
 to define its instances. This is because writing, for example,
 
 ```
@@ -43,7 +36,13 @@ SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
 to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that
-we always access `R.α` through the coercion rather than directly)."
+we always access `R.α` through the coercion rather than directly).
+
+TODO: Probably @[derive] should be able to create instances of the
+required form (without `id`), and then we could use that instead of
+this obscure `local attribute [reducible]` method.
+-/
+library_note "locally reducible category instances"
 
 universes u v
 
@@ -78,15 +77,21 @@ instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
 
 @[to_additive]
+instance : category Mon := infer_instance -- short-circuit type class inference
+
+@[to_additive]
 instance : concrete_category Mon := infer_instance -- short-circuit type class inference
 
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
 @[to_additive AddCommMon]
-def CommMon : Type (u+1) := induced_category Mon (bundled.map @comm_monoid.to_monoid)
+def CommMon : Type (u+1) := bundled comm_monoid
 
 namespace CommMon
+
+@[to_additive]
+instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
 /-- Construct a bundled CommMon from the underlying type and typeclass. -/
 @[to_additive]
@@ -107,10 +112,13 @@ instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class
 instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive]
+instance : category CommMon := infer_instance -- short-circuit type class inference
+
+@[to_additive]
 instance : concrete_category CommMon := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ CommMon Mon := infer_instance -- short-circuit type class inference
+instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
 
 end CommMon
 
@@ -118,6 +126,19 @@ end CommMon
 example {R S : Mon}     (f : R ⟶ S) : (R : Type) → (S : Type) := f
 example {R S : CommMon} (f : R ⟶ S) : (R : Type) → (S : Type) := f
 
+-- We verify that when constructing a morphism in `CommMon`,
+-- when we construct the `to_fun` field, the types are presented as `↥R`,
+-- rather than `R.α` or (as we used to have) `↥(bundled.map comm_monoid.to_monoid R)`.
+example (R : CommMon.{u}) : R ⟶ R :=
+{ to_fun := λ x,
+  begin
+    match_target (R : Type u),
+    match_hyp x := (R : Type u),
+    exact x * x
+  end ,
+  map_one' := by simp,
+  map_mul' := λ x y,
+  begin rw [mul_assoc x y (x * y), ←mul_assoc y x y, mul_comm y x, mul_assoc, mul_assoc], end, }
 
 variables {X Y : Type u}
 

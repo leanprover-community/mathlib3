@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.category.Top.basic
-import category_theory.natural_isomorphism
-import category_theory.opposites
 import category_theory.eq_to_hom
-import topology.opens
 
 open category_theory
 open topological_space
@@ -38,11 +35,11 @@ def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨ f.val ⁻¹' U, f.property _ p ⟩ :=
 rfl
 
-@[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
-rfl
-
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+
+@[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
+rfl
 
 @[simp] lemma map_id_obj_unop (U : (opens X)ᵒᵖ) : (map (𝟙 X)).obj (unop U) = unop U :=
 by simp
@@ -59,11 +56,11 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 @[simp] lemma map_id_inv_app (U) : (map_id X).inv.app U = eq_to_hom (map_id_obj U).symm := rfl
 end
 
-@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) : (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
-rfl
-
 @[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+
+@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) : (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
+rfl
 
 @[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
 by simp

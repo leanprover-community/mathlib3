@@ -39,14 +39,14 @@ universes u v
 
 open_locale big_operators
 
-namespace finite_field
-open mv_polynomial function finset
+section finite_field
+open mv_polynomial function finset finite_field
 
 variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K
 
-lemma exists_degree_lt_card_sub_one (f : mv_polynomial σ K)
-  (h : f.total_degree < (q - 1) * fintype.card σ) (d : σ →₀ ℕ) (hd : d ∈ f.support) :
+lemma mv_polynomial.exists_degree_lt_card_sub_one (f : mv_polynomial σ K)
+  (h : f.total_degree < (q - 1) * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
   ∃ i, d i < q - 1 :=
 begin
   have hq : 0 < q - 1,
@@ -64,7 +64,7 @@ begin
                             ... ≤ f.total_degree : finset.le_sup hd,
 end
 
-lemma sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
+lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   (∑ x, f.eval x) = 0 :=
 begin
@@ -73,9 +73,8 @@ begin
                    ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
                    ... = 0 : sum_eq_zero _,
   { simp only [eval, eval₂, finsupp.sum, id.def, finsupp.prod_pow], refl, },
-
   intros d hd,
-  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from exists_degree_lt_card_sub_one f h d hd,
+  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from f.exists_degree_lt_card_sub_one h hd,
   let cd : K := f.coeff d,
   calc (∑ x : σ → K, cd * ∏ i, x i ^ d i) = cd * (∑ x : σ → K, ∏ i, x i ^ d i) : mul_sum.symm
                                       ... = 0 : (mul_eq_zero.mpr ∘ or.inr) _,
@@ -121,9 +120,9 @@ in finitely many variables (`X s`, `s : σ`) over a finite field of characterist
 Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
 Then the number of common solutions of the `f i` is divisible by `p`. -/
 theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
-  {ι : Type*} (s : finset ι) (f : ι → (mv_polynomial σ K))
+  {ι : Type*} {s : finset ι} (f : ι → (mv_polynomial σ K))
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
-  (p:ℕ) ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
+  p ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
   have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, (f i).eval x = 0 },
@@ -159,7 +158,7 @@ begin
   rw [← char_p.cast_eq_zero_iff K, ← key],
   show ∑ x, F.eval x = 0,
   -- We are now ready to apply the main machine, proven before.
-  apply sum_mv_polynomial_eq_zero,
+  apply F.sum_mv_polynomial_eq_zero,
   -- It remains to verify the crucial assumption of this machine
   show F.total_degree < (q - 1) * fintype.card σ,
   calc F.total_degree ≤ ∑ i in s, (1 - (f i)^(q - 1)).total_degree : total_degree_finset_prod s _
@@ -182,15 +181,15 @@ Assume that the total degree of `f` is less than the cardinality of `σ`.
 Then the number of solutions of `f` is divisible by `p`.
 See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
 theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
-  (f : mv_polynomial σ K) (h : f.total_degree < fintype.card σ) :
-  (p:ℕ) ∣ fintype.card {x : σ → K // f.eval x = 0} :=
+  (f : mv_polynomial σ K) {h : f.total_degree < fintype.card σ} :
+  p ∣ fintype.card {x : σ → K // f.eval x = 0} :=
 begin
   let F : unit → mv_polynomial σ K := λ _, f,
-  convert char_dvd_card_solutions_family p univ F _ using 1,
-  { apply fintype.card_congr,
-    apply equiv.subtype_congr_right,
-    simp only [fintype.univ_punit, iff_self, forall_eq, mem_singleton, forall_true_iff], },
-  { simpa only [fintype.univ_punit, sum_singleton] using h, }
+  have : ∑ i : unit, (F i).total_degree < fintype.card σ,
+  { simpa only [fintype.univ_punit, sum_singleton] using h, },
+  have key := char_dvd_card_solutions_family p F this,
+  simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
+  convert key,
 end
 
 end finite_field

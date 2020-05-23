@@ -6,7 +6,7 @@ import tactic
 
 open_locale big_operators
 
-def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
+private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
   (multiplicity p (nat.choose (2 * n) n)).get $
   begin
     have not_one : p ≠ 1 := nat.prime.ne_one is_prime,
@@ -119,10 +119,6 @@ lemma mod_nonzero : ∀ (n m : nat) (r : 0 < n % m), 0 < n
 | 0 := λ m pr, by { simp only [nat.zero_mod] at pr, linarith }
 | (n + 1) := λ _ _, nat.succ_pos n
 
-lemma decr : ∀ n, 0 < n → ∃ m, m + 1 = n
-| 0 := λ bad, by linarith
-| (n + 1) := λ _, ⟨n, by simp⟩
-
 lemma foo (n p : nat) (small : p ≤ n) (big : 2 * n ≤ 3 * p) : 3 * (n % p) < n :=
 begin
   have r : n % p + p * (n / p) = n, by exact nat.mod_add_div n p,
@@ -137,6 +133,34 @@ begin
     ... = 3 * n : s,
 end
 
+lemma move_mul (m p i : nat) (b : m < i * p) : m / p < i :=
+begin
+  cases lt_or_le (m / p) i,
+  { exact h },
+  exfalso,
+  have u : i * p ≤ m, by exact le_trans (nat.mul_le_mul_right p h) (nat.div_mul_le_self m p),
+  linarith,
+end
+
+private lemma collapse_enat (n : enat) (s : 2 = n + 1 + 1) : n = 0 :=
+begin
+  have u : 0 + 1 = n + 1, by simpa using (enat.add_right_cancel_iff (enat.coe_ne_top 1)).1 s,
+  have v : 0 = n, by exact (enat.add_right_cancel_iff (enat.coe_ne_top 1)).1 u,
+  exact v.symm
+end
+
+lemma twice_nat_small : ∀ (n : nat) (h : 2 * n < 2), n = 0
+| 0 := λ _, rfl
+| (n + 1) := λ pr, by linarith
+
+lemma pow_big : ∀ (i p : nat) (p_pos : 0 < p) (i_big : 1 < i), p * p ≤ p ^ i
+| 0 := λ _ _ pr, by linarith
+| 1 := λ _ _ pr, by linarith
+| (i + 2) := λ p p_pos i_big, by {
+  calc p * p = p ^ 2 : by ring_exp
+  ... ≤ p ^ (i + 2) : nat.pow_le_pow_of_le_right p_pos i_big,
+}
+
 lemma claim_3
   (p : nat)
   (is_prime : nat.prime p)
@@ -147,41 +171,82 @@ lemma claim_3
   : α n (by linarith) p is_prime = 0
   :=
 begin
-  unfold α,
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
-  have r : 2 * n - n = n, by
-    calc 2 * n - n = n + n - n: by rw two_mul n
-    ... = n: nat.add_sub_cancel n n,
-  simp only [r, finset.filter_congr_decidable],
-  have s : finset.filter (λ i, p ^ i ≤ n % p ^ i + n % p ^ i) (finset.Ico 1 (2 * n)) = ∅,
-    { ext,
-      split,
-      { intros a_mem,
-        exfalso,
-        simp only [finset.Ico.mem, finset.mem_filter] at a_mem,
-        rcases a_mem with ⟨ ⟨ a_geq_1 , a_le_twon ⟩ , sized ⟩,
-        have t : p ^ a < 3 * p, by
-          calc p ^ a ≤ n % p ^ a + n % p ^ a : sized
-            ... = 2 * (n % p ^ a) : (two_mul _).symm
-            ... ≤ 2 * n : by { have w : n % p ^ a ≤ n, exact (nat.mod_le _ _), linarith, }
-            ... < 3 * p : big,
-        cases a,
-        { linarith, },
-        {
-          have r : p ^ a.succ = p ^ a * p, by refl,
-          rw r at t,
-          have bad : p ^ a < 3, by simpa [nat.prime.pos is_prime] using t,
-          rcases prime_pow_bound a p is_prime bad with a_zero,
-          { subst a_zero, tidy, clear t r_1 bad a_geq_1 a_le_twon r, },
-          { cases h, subst h_left, linarith, }
-        }
-      },
-      { intros bad, simp at bad, trivial, },
+  have expand : nat.choose (2 * n) n * (nat.fact n) * (nat.fact n) = nat.fact (2 * n), by
+    calc nat.choose (2 * n) n * (nat.fact n) * (nat.fact n)
+        = nat.choose (2 * n) n * (nat.fact n) * (nat.fact (n + n - n)) : by rw nat.add_sub_cancel n n
+      ... = nat.choose (2 * n) n * (nat.fact n) * (nat.fact (2 * n - n)) : by rw two_mul n
+      ... = nat.fact (2 * n) : nat.choose_mul_fact_mul_fact (by linarith),
+
+  have mult_fact_two_n : multiplicity p (nat.fact (2 * n)) = _, by
+    calc multiplicity p (nat.fact (2 * n))
+        = multiplicity p (nat.choose (2 * n) n * (nat.fact n) * (nat.fact n)) :
+            congr_arg (multiplicity p) expand.symm
+      ... = multiplicity p (nat.choose (2 * n) n * nat.fact n) + multiplicity p (nat.fact n) :
+            by rw nat.prime.multiplicity_mul is_prime
+      ... = multiplicity p (nat.choose (2 * n) n) + multiplicity p (nat.fact n) + multiplicity p (nat.fact n) :
+            by rw nat.prime.multiplicity_mul is_prime,
+
+  have two_n_div_p_small : (2 * n) / p < 3, by exact move_mul (2 * n) p 3 big,
+  have n_div_p : n / p = 1,
+    { cases lt_trichotomy (n / p) 1,
+      { exfalso,
+        have n_zero : n / p = 0, by exact twice_nat_small (n / p) (by linarith),
+        have r : n < p, by exact (nat.div_eq_zero_iff (nat.prime.pos is_prime)).1 n_zero,
+        linarith, },
+      { cases h,
+        { exact h },
+        { have s : 2 < 2 * (n / p), by linarith,
+          linarith [nat.mul_div_le_mul_div_assoc 2 n p], }, }, },
+  have p_pos : 0 < p, by exact nat.prime.pos is_prime,
+
+  have mult_in_two_n : multiplicity p (nat.fact (2 * n)) = 2,
+    { rw @nat.prime.multiplicity_fact p is_prime (2 * n) (2 * n) (by linarith),
+      have first_term_two : (2 * n) / p = 2, by linarith [nat.mul_div_le_mul_div_assoc 2 n p],
+      have other_terms_zero : ∀ i > 1, (2 * n) / (p ^ i) = 0, by
+        { intros i one_less,
+          refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
+          cases lt_trichotomy 2 p,
+          { calc 2 * n < 3 * p: big
+            ... ≤ p * p : nat.mul_le_mul_right p h
+            ... ≤ p ^ i : pow_big i p p_pos one_less, },
+          cases h,
+          { exfalso, rw ← h at big, linarith },
+          { have u : 2 ≤ p, by exact nat.prime.two_le is_prime, linarith, }, },
+      rw @finset.sum_eq_sum_Ico_succ_bot _ _ 1 (2 * n) (by linarith) (λ i, 2 * n / p ^ i),
+      have t : ∑ k in finset.Ico 2 (2 * n), 2 * n / p ^ k = 0, by
+        { apply finset.sum_eq_zero,
+          intros i pr,
+          exact other_terms_zero i (by linarith [(list.Ico.mem.mp pr).1]), },
+      rw t,
+      simp only [add_zero, nat.pow_one],
+      rw first_term_two,
+      exact enat.coe_add 1 1 },
+  have mult_in_n : multiplicity p (nat.fact n) = 1,
+    { rw @nat.prime.multiplicity_fact p is_prime n n (by linarith),
+      have r : 0 < p, by exact nat.prime.pos is_prime,
+      rw @finset.sum_eq_sum_Ico_succ_bot _ _ 1 n (by linarith) (λ i, n / p ^ i),
+      have other_terms_zero : ∀ i > 1, n / (p ^ i) = 0, by
+        { intros i one_less,
+          refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
+          sorry
+        },
+      have t : ∑ k in finset.Ico 2 n, n / p ^ k = 0, by
+        { apply finset.sum_eq_zero,
+          intros i pr,
+          exact other_terms_zero i (by linarith [(list.Ico.mem.mp pr).1]), },
+      rw t,
+      simp only [add_zero, nat.pow_one],
+      rw n_div_p,
+      simp only [enat.coe_one],
     },
-  simp [s],
--- Have p appearing twice in the factorisation of (2n)!
--- but only once in n!
--- and hence no times in 2n!/n!n!
+  rw [mult_in_two_n, mult_in_n] at mult_fact_two_n,
+  have mult_choose_zero : multiplicity p (nat.choose (2 * n) n) = 0,
+    by exact collapse_enat (multiplicity p (nat.choose (2 * n) n)) mult_fact_two_n,
+  unfold α, simp [mult_choose_zero],
+end
+
+lemma nearly (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
+begin
 end
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=

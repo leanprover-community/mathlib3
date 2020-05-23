@@ -11,11 +11,11 @@ open euclidean_domain set ideal
 theorem span_gcd {α} [euclidean_domain α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=
 begin
-  apply le_antisymm; refine span_le.1 _,
-  { simp [submodule.span_span, mem_span_pair, submodule.le_def', mem_span_singleton'],
-    assume a b ha,
-    exact ⟨b * gcd_a x y, b * gcd_b x y, by rw [← ha, gcd_eq_gcd_ab x y];
-      simp [mul_add, mul_comm, mul_left_comm]⟩ },
+  apply le_antisymm,
+  { refine span_le.2 (λ x, _),
+    simp only [set.mem_singleton_iff, submodule.mem_coe, mem_span_pair],
+    rintro rfl,
+    exact ⟨gcd_a x y, gcd_b x y, by simp [gcd_eq_gcd_ab, mul_comm]⟩ },
   { assume z ,
     simp [mem_span_singleton, euclidean_domain.gcd_dvd_left, mem_span_pair,
       @eq_comm _ _ z] {contextual := tt},

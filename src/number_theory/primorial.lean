@@ -163,7 +163,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
         { linarith, },
         { have n_zero : n = 0 := eq_bot_iff.mpr n_le_zero,
           norm_num [n_zero],
-          exact sup_eq_left.mp rfl, }, }, }
+          exact sup_eq_left.mp rfl, }, },
     end
 
 end

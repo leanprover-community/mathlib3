@@ -115,6 +115,16 @@ begin
         ... = a                 : by simp [inv_ne_zero' h]
 end
 
+/-- Multiplying `a` by itself and then by its inverse results in `a`
+(whether or not `a` is zero). -/
+@[simp] lemma mul_self_mul_inv (a : G₀) : a * a * a⁻¹ = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [mul_assoc, mul_inv_cancel' a h, mul_one] }
+end
+
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
 inv_inv''
 

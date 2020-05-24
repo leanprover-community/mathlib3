@@ -710,7 +710,7 @@ min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
 section
 open_locale classical
-/-- The successor of an element `x` in a well-founded order is the minimal element `y` such that
+/-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x

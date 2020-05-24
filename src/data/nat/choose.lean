@@ -67,13 +67,6 @@ begin
     apply nat.zero_le }
 end
 
-lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
-begin
-  have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i :=
-    le_sum_nat_of_mem (choose (2 * n + 1)) (range (n + 1)) n (self_mem_range_succ n),
-  simpa [sum_range_choose_halfway n] using t
-end
-
 section binomial
 open finset
 
@@ -145,5 +138,12 @@ calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
 ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
 ... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
+
+lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
+begin
+  have t : choose (2 * n + 1) n ≤ ∑ i in finset.range (n + 1), choose (2 * n + 1) i :=
+    finset.single_le_sum (λ x _, by linarith) (finset.self_mem_range_succ n),
+  simpa [sum_range_choose_halfway n] using t
+end
 
 end binomial

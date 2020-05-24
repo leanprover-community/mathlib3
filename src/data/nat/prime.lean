@@ -408,7 +408,7 @@ begin
       rw e, exact pow_dvd_pow _ l } }
 end
 
-/-- If p is prime, then p^k divides p^l implies that k is less than or equal to l. -/
+/-- If `p` is prime, then `p^k` divides `p^l` implies that `k` is less than or equal to `l`. -/
 lemma prime_pow_dvd_prime_pow {p k l : ℕ} (pp : prime p) : p^k ∣ p^l ↔ k ≤ l :=
 begin
   split,

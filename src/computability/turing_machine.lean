@@ -654,10 +654,21 @@ theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
   (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
 h _ (trans_gen.single h₂)
 
+theorem eval_match_lemma {σ} {a : σ} {a' b} :
+  sum.inr b ∈ roption.some (eval._match_1 a a') ↔ a' = some b :=
+by cases a'; simp only [eval, eq_comm, roption.mem_some_iff]
+
+@[elab_as_eliminator] def eval_induction {σ}
+  {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
+  (H : ∀ a, b ∈ eval f a →
+    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+  roption.mem_some_iff.2 $ by rw e; refl)
+
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
 ⟨λ h, begin
-  refine pfun.fix_induction h (λ a h IH, _),
+  refine eval_induction h (λ a h IH, _),
   cases e : f a with a',
   { rw roption.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       roption.mem_some_iff.2 $ by rw e; refl),

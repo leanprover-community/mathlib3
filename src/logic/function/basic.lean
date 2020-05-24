@@ -274,6 +274,19 @@ begin
   { simp [h] }
 end
 
+theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
+  {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
+  update (update f a v) b w = update (update f b w) a v :=
+begin
+  funext c, simp [update],
+  by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
+  cases h (h₂.symm.trans h₁),
+end
+
+@[simp] theorem update_idem {α} [decidable_eq α] {β : α → Sort*}
+  {a : α} (v w : β a) (f : Πa, β a) : update (update f a v) a w = update f a w :=
+by {funext b, by_cases b = a; simp [update, h]}
+
 end update
 
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=

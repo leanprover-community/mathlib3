@@ -535,6 +535,7 @@ do `(Lucas_Lehmer_test %%p) ← target,
 
 example : prime (Mersenne 5) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
 
+-- FIXME
 -- Unfortunately this doesn't actually work yet, as we get:
 -- deep recursion was detected at 'replace' (potential solution: increase stack space in your system)Lean
 lemma Lucas_Lehmer_test_7 : Lucas_Lehmer_test 7 := by run_Lucas_Lehmer_test

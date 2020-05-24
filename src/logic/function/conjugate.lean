@@ -22,7 +22,7 @@ namespace function
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- We say that `f : α → β` semiconjugates `ga : α → α` to `gb : β → β` if `f ∘ ga = gb ∘ f`. -/
-def semiconj (f : α → β) (ga : α → α) (gb : β → β) := ∀ x, f (ga x) = gb (f x)
+def semiconj (f : α → β) (ga : α → α) (gb : β → β) : Prop := ∀ x, f (ga x) = gb (f x)
 
 namespace semiconj
 
@@ -32,7 +32,7 @@ protected lemma comp_eq (h : semiconj f ga gb) : f ∘ ga = gb ∘ f := funext h
 
 protected lemma eq (h : semiconj f ga gb) (x : α) : f (ga x) = gb (f x) := h x
 
-lemma comp_right  (h : semiconj f ga gb) (h' : semiconj f ga' gb') :
+lemma comp_right (h : semiconj f ga gb) (h' : semiconj f ga' gb') :
   semiconj f (ga ∘ ga') (gb ∘ gb') :=
 λ x, by rw [comp_app, h.eq, h'.eq]
 
@@ -52,7 +52,7 @@ lemma inverses_right (h : semiconj f ga gb) (ha : right_inverse ga' ga)
 end semiconj
 
 /-- Two maps `f g : α → α` commute if `f ∘ g = g ∘ f`. -/
-def commute (f g : α → α) := semiconj f g g
+def commute (f g : α → α) : Prop := semiconj f g g
 
 lemma semiconj.commute {f g : α → α} (h : semiconj f g g) : commute f g := h
 

@@ -18,7 +18,7 @@ namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
 /-- Fix a discrete linear order floor field and a value `v`. -/
-variables {α : Type*} [discrete_linear_ordered_field α] [floor_ring α] {v : α}
+variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K] {v : K}
 
 namespace int_fract_pair
 /-!
@@ -32,7 +32,7 @@ later on.
 
 variable {n : ℕ}
 
-lemma stream_eq_none_of_fr_eq_zero {ifp_n : int_fract_pair α}
+lemma stream_eq_none_of_fr_eq_zero {ifp_n : int_fract_pair K}
   (stream_nth_eq : int_fract_pair.stream v n = some ifp_n) (nth_fr_eq_zero : ifp_n.fr = 0) :
   int_fract_pair.stream v (n + 1) = none :=
 begin
@@ -52,9 +52,9 @@ begin
     finish [int_fract_pair.stream] }
 end
 
-lemma succ_nth_stream_eq_some_iff {ifp_succ_n : int_fract_pair α} :
+lemma succ_nth_stream_eq_some_iff {ifp_succ_n : int_fract_pair K} :
     int_fract_pair.stream v (n + 1) = some ifp_succ_n
-  ↔ ∃ (ifp_n : int_fract_pair α), int_fract_pair.stream v n = some ifp_n
+  ↔ ∃ (ifp_n : int_fract_pair K), int_fract_pair.stream v n = some ifp_n
       ∧ ifp_n.fr ≠ 0
       ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n :=
 begin
@@ -80,10 +80,10 @@ begin
   { rintro ⟨⟨_⟩, ifp_n_props⟩, finish [int_fract_pair.stream, ifp_n_props] }
 end
 
-lemma obtain_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair α}
+lemma obtain_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n)
   (succ_nth_fr_eq_zero : ifp_succ_n.fr = 0) :
-  ∃ (ifp_n : int_fract_pair α), int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋ :=
+  ∃ (ifp_n : int_fract_pair K), int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋ :=
 begin
   -- get the witness from `succ_nth_stream_eq_some_iff` and prove that it has the additional
   -- properties
@@ -165,7 +165,7 @@ section values
 #### Translation of The Values of The Sequence
 -/
 
-lemma nth_of_eq_some_of_succ_nth_int_fract_pair_stream {ifp_succ_n : int_fract_pair α}
+lemma nth_of_eq_some_of_succ_nth_int_fract_pair_stream {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
   (gcf.of v).s.nth n = some ⟨1, ifp_succ_n.b⟩ :=
 begin
@@ -174,12 +174,12 @@ begin
   simp [seq.nth, stream_succ_nth_eq]
 end
 
-lemma int_fract_pair.obtain_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair α}
+lemma int_fract_pair.obtain_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair K}
   (s_nth_eq : (gcf.of v).s.nth n = some gp_n) :
-  ∃ (ifp : int_fract_pair α), int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : α) = gp_n.b :=
+  ∃ (ifp : int_fract_pair K), int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b :=
 begin
   obtain ⟨ifp, stream_succ_nth_eq, gp_n_eq⟩ :
-    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ gcf.pair.mk 1 (ifp.b : α) = gp_n, by
+    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ gcf.pair.mk 1 (ifp.b : K) = gp_n, by
     { unfold gcf.of int_fract_pair.seq1 at s_nth_eq,
       rwa [seq.map_tail, seq.nth_tail, seq.map_nth, option.map_eq_some'] at s_nth_eq },
   cases gp_n_eq,
@@ -188,7 +188,7 @@ begin
   exact ⟨stream_succ_nth_eq, ifp_b_eq_gp_n_b⟩
 end
 
-lemma nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero {ifp_n : int_fract_pair α}
+lemma nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero {ifp_n : int_fract_pair K}
   (stream_nth_eq : int_fract_pair.stream v n = some ifp_n) (nth_fr_ne_zero : ifp_n.fr ≠ 0) :
   (gcf.of v).s.nth n = some ⟨1, (int_fract_pair.of ifp_n.fr⁻¹).b⟩ :=
 have int_fract_pair.stream v (n + 1) = some (int_fract_pair.of ifp_n.fr⁻¹), by

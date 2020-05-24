@@ -33,38 +33,38 @@ numerics, number theory, approximations, fractions
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
--- Fix a carrier `α`.
-variable (α : Type*)
+-- Fix a carrier `K`.
+variable (K : Type*)
 
 /--
 We collect an integer part `b = ⌊v⌋` and fractional part `fr = v - ⌊v⌋` of a value `v` in a pair
 `⟨b, fr⟩`.
 -/
-structure int_fract_pair := (b : ℤ) (fr : α)
+structure int_fract_pair := (b : ℤ) (fr : K)
 
 /- Interlude: define some expected coercions and instances. -/
 namespace int_fract_pair
 
 /-- Make an `int_fract_pair` printable. -/
-instance [has_repr α] : has_repr (int_fract_pair α) :=
+instance [has_repr K] : has_repr (int_fract_pair K) :=
 ⟨λ p, "(b : " ++ (repr p.b) ++ ", fract : " ++ (repr p.fr) ++ ")"⟩
 
-instance inhabited [inhabited α] : inhabited (int_fract_pair α) := ⟨⟨0, (default _)⟩⟩
+instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
 
-variable {α}
+variable {K}
 
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β` and assume `α` can be converted to `β`. -/
-variables {β : Type*} [has_coe α β]
+/- Fix another type `β` and assume `K` can be converted to `β`. -/
+variables {β : Type*} [has_coe K β]
 
 /-- Coerce a pair by coercion the fractional component. -/
-instance has_coe_to_int_fract_pair : has_coe (int_fract_pair α) (int_fract_pair β) :=
+instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
 ⟨λ ⟨b, fr⟩, ⟨b, (fr : β)⟩⟩
 
 
 @[simp, norm_cast]
-lemma coe_to_int_fract_pair {b : ℤ} {fr : α} :
+lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl
 
@@ -73,13 +73,13 @@ end coe
 -- Note: this could be relaxed to something like `discrete_linear_ordered_division_ring` in the
 -- future.
 /-- Fix a linear ordered ring with `floor` function. -/
-variables [discrete_linear_ordered_field α] [floor_ring α]
+variables [discrete_linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
-protected def of (v : α) : int_fract_pair α := ⟨⌊v⌋, fract v⟩
+protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
 
 /-- Creates the stream of integer and fractional parts of a value `v`. -/
-protected def stream (v : α) : stream $ option (int_fract_pair α)
+protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)
 | (n + 1) := do ap_n ← stream n,
   if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
@@ -88,11 +88,11 @@ protected def stream (v : α) : stream $ option (int_fract_pair α)
 Shows that `stream` has the sequence property, that is once we return `none` at position `n`,
 we also return `none` at `n + 1`.
 -/
-lemma stream_is_seq (v : α) : (int_fract_pair.stream v).is_seq :=
+lemma stream_is_seq (v : K) : (int_fract_pair.stream v).is_seq :=
 by { assume _ hyp, simp [int_fract_pair.stream, hyp] }
 
 /-- Creates the sequence with head of `int_fract_pair`s. -/
-protected def seq1 (v : α) : seq1 $ int_fract_pair α :=
+protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
 ⟨
   int_fract_pair.of v,--the head
   seq.tail -- take the tail of `int_fract_pair.stream` since the first element is in the head
@@ -103,13 +103,13 @@ protected def seq1 (v : α) : seq1 $ int_fract_pair α :=
 ⟩
 end int_fract_pair
 
-variable {α}
+variable {K}
 
 /--
 Returns the `generalized continued fraction` of a value. In fact, the returned gcf is also
 a regular continued fraction (the proof will be added in a future commit).
 -/
-protected def of [discrete_linear_ordered_field α] [floor_ring α] (v : α) : gcf α :=
+protected def of [discrete_linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨
   h.b, -- the head is just the first integer part

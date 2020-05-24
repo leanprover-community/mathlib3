@@ -520,15 +520,7 @@ by rwa [← h, ← not_lt, not_iff_self] at this
 
 lemma neg_one_ne_one {n : ℕ} [fact (2 < n)] :
   (-1 : zmod n) ≠ 1 :=
-begin
-  suffices : (2 : zmod n) ≠ 0,
-  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
-  assume h,
-  rw [show (2 : zmod n) = (2 : ℕ), by norm_cast] at h,
-  have := (char_p.cast_eq_zero_iff (zmod n) n 2).mp h,
-  have := nat.le_of_dvd dec_trivial this,
-  rw fact at *, linarith,
-end
+char_p.neg_one_ne_one (zmod n) n
 
 @[simp] lemma neg_eq_self_mod_two : ∀ (a : zmod 2), -a = a := dec_trivial
 

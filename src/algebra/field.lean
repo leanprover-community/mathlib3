@@ -31,15 +31,6 @@ instance division_ring_has_div : has_div α :=
 lemma division_def (a b : α) : a / b = a * b⁻¹ :=
 rfl
 
-@[simp] lemma inv_zero : 0⁻¹ = (0:α) :=
-division_ring.inv_zero
-
-@[simp] lemma div_zero (a : α) : a / 0 = (0:α) :=
-calc
-  a / 0 = (a:α) * 0⁻¹ : by rw division_def
-    ... = a * 0       : by rw inv_zero
-    ... = (0:α)       : by rw mul_zero
-
 @[simp] lemma mul_inv_cancel (h : a ≠ 0) : a * a⁻¹ = 1 :=
 division_ring.mul_inv_cancel h
 

@@ -21,7 +21,7 @@ variables {α : Type u} {β : Type v} {ι : Type*}
 
 namespace measure_theory
 open ennreal nat metric
-open_locale measure_theory
+
 variables [measure_space α] [normed_group β] [second_countable_topology β]
   [measurable_space β] [borel_space β]
 

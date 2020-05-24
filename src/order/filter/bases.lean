@@ -6,7 +6,8 @@ Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 import order.filter.basic
 import data.set.countable
 
-/-! # Filter bases
+/-!
+# Filter bases
 
 A filter basis `B : filter_basis α` on a type `α` is a nonempty collection of sets of `α`
 such that the intersection of two elements of this collection contains some element of

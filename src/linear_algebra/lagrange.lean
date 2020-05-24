@@ -78,7 +78,7 @@ variables (f : (↑s : set F) → F)
 `interpolate s f` is the unique polynomial of degree `< s.card`
 that takes value `f x` on all `x` in `s`. -/
 def interpolate : polynomial F :=
-s.attach.sum $ λ x, C (f x) * basis s x
+∑ x in s.attach, C (f x) * basis s x
 
 @[simp] theorem interpolate_empty (f) : interpolate (∅ : finset F) f = 0 :=
 rfl

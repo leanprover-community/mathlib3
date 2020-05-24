@@ -13,7 +13,7 @@ import algebra.continued_fractions.translations
 This is a collection of simple lemmas between the different structures used for the computation
 of continued fractions defined in `algebra.continued_fractions.computation.basic`. The file consists
 of three sections:
-1. Translation and inversion lemmas for `int_fract_pair.stream`: these lemmas give us inversion
+1. Recurrences and inversion lemmas for `int_fract_pair.stream`: these lemmas give us inversion
 rules and recurrences for the computation of the stream of integer and fractional parts of a value.
 2. Translation lemmas for the head term: these lemmas show us that the head term of the computed
 continued fraction of a value `v` is `⌊v⌋` and how this head term is moved along the structures used

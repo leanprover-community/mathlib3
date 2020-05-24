@@ -317,7 +317,7 @@ begin
   have : _ ⊆ tangent_cone_at 𝕜 (s.prod t) (x, y) :=
     union_subset (subset_tangent_cone_prod_left ht.2) (subset_tangent_cone_prod_right hs.2),
   refine subset.trans _ (closure_mono $ submodule.span_mono this),
-  rw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
+  erw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
     hs.1, ht.1, univ_prod_univ]
 end
 

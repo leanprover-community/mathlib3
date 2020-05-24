@@ -252,6 +252,11 @@ supr_le $ le_supr _ ∘ h
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
+theorem Sup_eq_supr {s : set α} : Sup s = (⨆a ∈ s, a) :=
+le_antisymm
+  (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)
+  (supr_le $ assume b, supr_le $ assume h, le_Sup h)
+
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
@@ -265,6 +270,10 @@ lemma monotone.le_map_supr2 [complete_lattice β] {f : α → β} (hf : monotone
 calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
   supr_le_supr $ λ i, hf.le_map_supr
 ... ≤ f (⨆ i (h : ι' i), s i h) : hf.le_map_supr
+
+lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
+  (⨆a∈s, f a) ≤ f (Sup s) :=
+by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
@@ -321,6 +330,11 @@ le_infi $ infi_le _ ∘ h
 @[simp] theorem le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
 
+theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
+le_antisymm
+  (le_infi $ assume b, le_infi $ assume h, Inf_le h)
+  (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
+
 lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
   f (infi s) ≤ (⨅ i, f (s i)) :=
 le_infi $ λ i, hf $ infi_le _ _
@@ -330,6 +344,10 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
   f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
 calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
 ... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
+
+lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
+  f (Inf s) ≤ ⨅ a∈s, f a :=
+by rw [Inf_eq_infi]; exact hf.map_infi2_le _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=
@@ -549,16 +567,6 @@ le_antisymm
   (sup_le
     (supr_le_supr2 $ assume i, ⟨or.inl i, le_refl _⟩)
     (supr_le_supr2 $ assume j, ⟨or.inr j, le_refl _⟩))
-
-theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
-le_antisymm
-  (le_infi $ assume b, le_infi $ assume h, Inf_le h)
-  (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
-
-theorem Sup_eq_supr {s : set α} : Sup s = (⨆a ∈ s, a) :=
-le_antisymm
-  (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)
-  (supr_le $ assume b, supr_le $ assume h, le_Sup h)
 
 lemma Sup_range {α : Type u} [has_Sup α] {f : ι → α} : Sup (range f) = supr f := rfl
 

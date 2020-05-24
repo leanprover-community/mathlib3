@@ -54,7 +54,7 @@ begin
     erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
     simp only [hfx, mem_coe, zero_mem] },
   { intros x hx,
-    rw [mem_coe, mem_sup'],
+    rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
     rw [mem_ker, linear_map.map_sub, hf, sub_self] }
 end

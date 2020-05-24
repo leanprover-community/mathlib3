@@ -347,7 +347,8 @@ variables {r : R} {x y : M}
 open set
 
 instance : partial_order (submodule R M) :=
-partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
+{ le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
+  ..partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)  }
 
 variables {p p'}
 
@@ -1461,8 +1462,8 @@ variables (e e' : M ≃ₗ[R] M₂)
 
 section
 variables {e e'}
-@[ext] lemma ext (h : (e : M → M₂) = e') : e = e' :=
-to_equiv_injective (equiv.eq_of_to_fun_eq h)
+@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
+to_equiv_injective (equiv.ext h)
 end
 
 section

@@ -413,8 +413,7 @@ lemma prime_pow_dvd_prime_pow {p k l : ℕ} (pp : prime p) : p^k ∣ p^l ↔ k �
 begin
   split,
   { intro h,
-    have t := (dvd_prime_pow pp).1 h,
-    rcases t with ⟨m, ⟨h₁, h₂⟩⟩,
+    rcases (dvd_prime_pow pp).1 h with ⟨m, ⟨h₁, h₂⟩⟩,
     have t : k = m := pow_right_injective (prime.two_le pp) h₂,
     subst t, exact h₁ },
   { exact pow_dvd_pow p, },

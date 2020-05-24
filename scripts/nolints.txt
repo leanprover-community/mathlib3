@@ -250,7 +250,6 @@ apply_nolint has_inner doc_blame
 apply_nolint category_theory.adjunction has_inhabited_instance
 apply_nolint category_theory.adjunction.adjunction_of_equiv_left doc_blame
 apply_nolint category_theory.adjunction.adjunction_of_equiv_right doc_blame
-apply_nolint category_theory.adjunction.comp doc_blame
 apply_nolint category_theory.adjunction.core_hom_equiv doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.core_unit_counit doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.id doc_blame
@@ -259,7 +258,6 @@ apply_nolint category_theory.adjunction.mk_of_hom_equiv doc_blame
 apply_nolint category_theory.adjunction.mk_of_unit_counit doc_blame
 apply_nolint category_theory.adjunction.right_adjoint_of_equiv doc_blame
 apply_nolint category_theory.equivalence.to_adjunction doc_blame
-apply_nolint category_theory.functor.adjunction doc_blame
 apply_nolint category_theory.is_left_adjoint doc_blame
 apply_nolint category_theory.is_right_adjoint doc_blame
 apply_nolint category_theory.left_adjoint doc_blame

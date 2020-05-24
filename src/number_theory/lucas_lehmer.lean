@@ -90,73 +90,6 @@ begin
   { exact two_not_dvd_odd a, }
 end
 
-/--
-The square of the smallest prime factor of a composite number n is at most n.
--/
-lemma min_fac_sq_le_self (n : ℕ) (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
-begin
-  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
-  calc
-   (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
-             ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
-             ... ≤ n                           : div_mul_le_self n (min_fac n)
-end
-
-@[simp]
-lemma min_fac_eq_one_iff (n : ℕ) : min_fac n = 1 ↔ n = 1 :=
-begin
-  split,
-  { intro h,
-    by_contradiction,
-    have := min_fac_prime a,
-    rw h at this,
-    norm_num at this, },
-  { rintro rfl, refl, }
-end
-
-@[simp]
-lemma min_fac_eq_two_iff (n : ℕ) : min_fac n = 2 ↔ 2 ∣ n :=
-begin
-  split,
-  { intro h,
-    convert min_fac_dvd _,
-    rw h, },
-  { intro h,
-    have := min_fac_le_of_dvd (le_refl 2) h,
-    have := min_fac_pos n,
-    interval_cases n.min_fac,
-    { norm_num at h, },
-    { assumption, }, }
-end
-
--- Credit Bhavik Mehta
-lemma pow_monotonic {a m n : ℕ} (ha : 2 ≤ a) (k : a^n ≤ a^m) : n ≤ m :=
-  le_of_not_gt (λ r, not_le_of_lt (pow_lt_pow_of_lt_right ha r) k)
-
--- Credit Bhavik Mehta
-lemma pow_inj (a b c : ℕ) (h : 2 ≤ a) (h_2 : a^b = a^c) : b = c :=
-by apply le_antisymm; apply pow_monotonic h; apply le_of_eq; rw h_2
-
--- If p is prime, then p^k divides p^l implies that k is less than or equal to l.
-lemma prime_pow_dvd_prime_pow {p k l : ℕ} (pp : prime p) : p^k ∣ p^l ↔ k ≤ l :=
-begin
-split,
-{ intro h,
-  have t :=  (dvd_prime_pow pp).1 h,
-  rcases t with ⟨m, ⟨h₁, h₂⟩⟩,
-  have t : k = m := pow_inj p k m (prime.two_le pp) h₂,
-  subst t, exact h₁ },
-exact pow_dvd_pow p,
-end
-
--- If p is prime, a doesn't divide p^k, but a does divide p^(k+1) then a = p^(k+1)
-lemma dvd_prime_power (a p k : ℕ) (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) : a = p^(k+1) :=
-begin
-  rcases (dvd_prime_pow pp).1 h₂ with ⟨l,⟨h,rfl⟩⟩,
-  congr,
-  exact le_antisymm h (not_le.1 ((not_congr (prime_pow_dvd_prime_pow pp)).1 h₁)),
-end
-
 end nat
 
 lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
@@ -201,17 +134,6 @@ begin
   apply int.modeq.mod_modeq,
 end
 
-
--- Order properties
-variables {G : Type} [group G] [fintype G] [decidable_eq G]
-
-lemma order_of_dvd_iff {n : ℕ} {g : G} : order_of g ∣ n ↔ g^n = 1 :=
-⟨λ h,
- begin
-   rcases h with ⟨k,rfl⟩,
-   simp only [pow_mul, one_pow, pow_order_of_eq_one]
- end,
- order_of_dvd_of_pow_eq_one⟩
 
 section Mersenne
 open nat
@@ -646,10 +568,10 @@ theorem order_ω (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
 begin
   have t : p = p - 1 + 1 := (nat.sub_eq_iff_eq_add (le_of_lt w)).mp rfl,
   conv { to_rhs, rw t },
-  apply nat.dvd_prime_power, -- the order of ω divides 2^p
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
   { norm_num, },
   { intro o,
-    have ω_pow := coercion _ (order_of_dvd_iff.1 o),
+    have ω_pow := coercion _ (order_of_dvd_iff_pow_eq_one.1 o),
     have h' := sufficiency_simp p w h,
     have h_2 := (ω_pow.symm).trans h',
     have h_3 := congr_arg (prod.fst) h_2,

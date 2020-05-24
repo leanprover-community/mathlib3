@@ -539,19 +539,10 @@ begin
   { norm_num, },
   { intro o,
     have ω_pow := coercion _ (order_of_dvd_iff_pow_eq_one.1 o),
-    have h' := sufficiency_simp p w h,
-    have h_2 := (ω_pow.symm).trans h',
-    have h_3 := congr_arg (prod.fst) h_2,
-    have h_4 : (1 : zmod (q p)) = -1 := h_3,
-    have h_5 : (2 : zmod (q p)) = 0 :=
-      calc 2 = (1 + 1 : zmod (q p))  : rfl
-         ... = (1 + -1 : zmod (q p)) : by rw ←h_4
-         ... = 0                     : add_neg_self 1,
-    have h_6 : q p = 1 ∨ q p = 2 := mod_eq_one_or_two _ h_5,
-    have h_7 : 2 < q p := two_lt_q w,
-    cases h_6,
-    rw h_6 at h_7, cases h_7, cases h_7_a,
-    rw h_6 at h_7, cases h_7, cases h_7_a, cases h_7_a_a, },
+    have h : (1 : zmod (q p)) = -1 :=
+      congr_arg (prod.fst) ((ω_pow.symm).trans (sufficiency_simp p w h)),
+    haveI : fact (2 < (q p : ℕ)) := two_lt_q w,
+    apply zmod.neg_one_ne_one h.symm, },
   { rw ←t,
     apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
@@ -559,7 +550,6 @@ begin
     exact (suff_squared _ w h), }
 end
 
--- The order of an element is at most the size of the group.
 lemma order_ineq (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : 2^p < (q p : ℕ)^2 :=
 calc 2^p = order_of (ω_unit p)        : (order_ω _ w h).symm
      ... ≤ fintype.card (units (X _)) : order_of_le_card_univ
@@ -632,3 +622,6 @@ lemma Lucas_Lehmer_test_7 : Lucas_Lehmer_test 7 := by run_Lucas_Lehmer_test
 --   n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
 -- and the fact that `% 2^p` and `/ 2^p` are very efficient on the binary representation.
 -- Someone should do this, too!
+
+-- It's hard to know what the limiting factor for large Mersenne primes would be.
+-- In the purely computational world, it's the squaring operation in `s`.

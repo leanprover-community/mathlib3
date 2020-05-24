@@ -141,10 +141,6 @@ end
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
 
--- TODO: this code compiles if it asks only for much weaker instances
--- [has_norm 𝕜] [has_scalar 𝕜 E] [has_add E], but that feels weird,
--- especially since this is not a class that extends something else
--- which contains additional hypotheses that make the maths sensible.
 structure seminorm (𝕜 : Type*) (E : Type*)
   [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
 (to_fun   : E → ℝ)
@@ -154,18 +150,6 @@ structure seminorm (𝕜 : Type*) (E : Type*)
 variables
 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [vector_space 𝕜 E]
-
--- TODO: this section contains lemmas all named like `seminorm_lemma`,
--- mimicking e.g. `norm_sub_rev`. Immediately after there is a
--- namespace `seminorm`, which contains the definition `seminorm.ball`
--- and related lemmas named `seminorm.property_ball`, mimicking
--- `metric.ball` and `metric.bounded_ball`. What is the
--- convention/rationale?
-
--- also, it feels like I should somehow be reusing results from
--- `metric_space.premetric_space`, but I was afraid to construct class
--- instances just for the sake of passing through them and invoking
--- lemmas.
 
 section seminorm
 
@@ -196,7 +180,6 @@ calc 0 = p (x + (-x)) : by rw [add_neg_self, seminorm_zero]
 ...    = 2 * p x      : by rw [seminorm_neg, two_mul],
 nonneg_of_mul_nonneg_left this zero_lt_two
 
-@[simp]
 lemma seminorm_sub_rev : p (x - y) = p (y - x) :=
 by rw [←neg_sub, seminorm_neg]
 

@@ -37,6 +37,7 @@ open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
 /-- Data for the general version -/
+@[nolint has_inhabited_instance]
 structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
   (F : Type*) [normed_group F] [normed_space 𝕜 F] [complete_space F]

@@ -25,9 +25,8 @@ namespace int_fract_pair
 ### Translation and Inversion Lemmas for `int_fract_pair.stream`
 
 Here we state some technical lemmas that deal with the computation of the sequence of integer and
-fractional parts used to obtain a continued fraction.
-The lemmas themselves are not interesting and are just needed to prove properties about the sequence
-later on.
+fractional parts used to obtain a continued fraction. The lemmas themselves are not interesting and
+are just needed to prove properties about the sequence later on.
 -/
 
 variable {n : ℕ}

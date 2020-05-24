@@ -17,37 +17,6 @@ open nat (prime)
 
 /- Additions to Mathlib -/
 
-lemma zero_not_mem_range_coe_units (R : Type*) [nonzero_semiring R] :
-  (0 : R) ∉ set.range (coe : units R → R) :=
-begin
-  rintro ⟨⟨v,w',h,h'⟩, a⟩,
-  dsimp at a,
-  subst a,
-  simpa using h,
-end
-
-open finset
-open_locale classical
-
-lemma mem_image_univ_iff_mem_range
-  {α β : Type*} [fintype α] {f : α → β} {b : β} : b ∈ image f univ ↔ b ∈ set.range f :=
-by simp
-
-lemma card_lt_card_of_injective_of_not_mem
-  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
-  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
-calc
-  fintype.card α = (univ : finset α).card : rfl
-... = (image f univ).card : (card_image_of_injective univ h).symm
-... < (insert b (image f univ)).card :
-        card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
-... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
-... = fintype.card β : rfl
-
-lemma card_units_lt (R : Type*) [nonzero_semiring R] [fintype R] :
-  fintype.card (units R) < fintype.card R :=
-card_lt_card_of_injective_of_not_mem (coe : units R → R) units.ext (zero_not_mem_range_coe_units R)
-
 namespace nat
 
 lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
@@ -102,10 +71,12 @@ begin
   rw int.modeq.modeq_iff_dvd,
 end
 
-lemma zmod.int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) : (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
+lemma zmod.int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
 char_p.int_coe_eq_int_coe_iff (zmod c) c a b
 
-lemma zmod.nat_coe_eq_nat_coe_iff (a b c : ℕ) : (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
+lemma zmod.nat_coe_eq_nat_coe_iff (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
 begin
   convert zmod.int_coe_eq_int_coe_iff a b c,
   simp [nat.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd],

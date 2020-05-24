@@ -5,6 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
 import ring_theory.algebra
+import linear_algebra.projection
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -364,11 +365,23 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 
 @[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
 
+@[simp] lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  ker (f.prod g) = ker f ⊓ ker g :=
+linear_map.ker_prod f g
+
 /-- Range of a continuous linear map. -/
 def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).range
 
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
+
+lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  range (f.prod g) ≤ (range f).prod (range g) :=
+(f : M →ₗ[R] M₂).range_prod_le g
+
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (f.prod g) = (range f).prod (range g) :=
+linear_map.range_prod_eq h
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
@@ -383,6 +396,10 @@ rfl
 @[simp] lemma coe_cod_restrict_apply (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) (x) :
   (f.cod_restrict p h x : M₂) = f x :=
 rfl
+
+@[simp] lemma ker_cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
+  ker (f.cod_restrict p h) = ker f :=
+(f : M →ₗ[R] M₂).ker_cod_restrict p h
 
 /-- Embedding of a submodule into the ambient space as a continuous linear map. -/
 def subtype_val (p : submodule R M) : p →L[R] M :=
@@ -726,6 +743,12 @@ by { ext x, refl }
 theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
 
+lemma symm_apply_eq (e : M ≃L[R] M₂) {x y} : e.symm x = y ↔ x = e y :=
+e.to_linear_equiv.symm_apply_eq
+
+lemma eq_symm_apply (e : M ≃L[R] M₂) {x y} : y = e.symm x ↔ e y = x :=
+e.to_linear_equiv.eq_symm_apply
+
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/
 def equiv_of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.left_inverse f₂ f₁)
@@ -801,3 +824,45 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end continuous_linear_equiv
+
+namespace submodule
+
+variables
+{R : Type*} [ring R]
+{M : Type*} [topological_space M] [add_comm_group M] [module R M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
+
+open continuous_linear_map
+
+/-- A submodule `p` is called *complemented* if there exists a continuous projection `M →ₗ[R] p`. -/
+def closed_complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x : p, f x = x
+
+lemma closed_complemented.has_closed_complement {p : submodule R M} [t1_space p]
+  (h : closed_complemented p) :
+  ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
+exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
+
+protected lemma closed_complemented.is_closed [topological_add_group M] [t1_space M]
+  {p : submodule R M} (h : closed_complemented p) :
+  is_closed (p : set M) :=
+begin
+  rcases h with ⟨f, hf⟩,
+  have : ker (id R M - (subtype_val p).comp f) = p := (f : M →ₗ[R] p).ker_id_sub_eq_of_proj hf,
+  exact this ▸ (is_closed_ker _)
+end
+
+@[simp] lemma closed_complemented_bot : closed_complemented (⊥ : submodule R M) :=
+⟨0, λ x, by simp only [zero_apply, eq_zero_of_bot_submodule x]⟩
+
+@[simp] lemma closed_complemented_top : closed_complemented (⊤ : submodule R M) :=
+⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.coe_ext.2 $ by simp⟩
+
+end submodule
+
+lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*} [ring R]
+  {M : Type*} [topological_space M] [add_comm_group M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M] [module R M₂]
+  [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) :
+  f₁.ker.closed_complemented :=
+⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩

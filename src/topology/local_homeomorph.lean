@@ -140,7 +140,7 @@ called `eq_on_source`. -/
 @[ext]
 protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e x = e' x)
   (hinv: ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
-eq_of_local_equiv_eq (local_equiv.ext e.to_local_equiv e'.to_local_equiv h hinv hs)
+eq_of_local_equiv_eq (local_equiv.ext h hinv hs)
 
 @[simp] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 -- The following lemmas are already simp via local_equiv

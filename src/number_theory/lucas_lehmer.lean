@@ -156,7 +156,7 @@ begin
   { exact Mersenne_int_ne_zero p w, },
 end
 
-lemma s_zmod_eq_s (p : ℕ) (w : 1 < p) (i : ℕ) : s_zmod p i = (s i : zmod (2^p - 1)):=
+lemma s_zmod_eq_s (p' : ℕ) (i : ℕ) : s_zmod (p'+2) i = (s i : zmod (2^(p'+2) - 1)):=
 begin
   induction i with i ih,
   { dsimp [s, s_zmod], norm_num, },
@@ -410,43 +410,40 @@ section residue_zero
 
 
 /-- If 1 < p, then `q p`, the smallest prime factor of `M p`, is more than 2. -/
-lemma two_lt_q {p : ℕ} (w : 1 < p) : 2 < q p := begin
+lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction,
   simp at a,
-  interval_cases q p; clear a,
+  interval_cases q (p'+2); clear a,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [M] at h',
     exact lt_irrefl 2
-    (calc 2 ≤ p : w
-      ...  < 2^p : nat.lt_two_pow p
-      ...  = 2 : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
+    (calc 2 ≤ p'+2    : nat.le_add_left _ _
+      ...  < 2^(p'+2) : nat.lt_two_pow _
+      ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
-    simp [M] at h',
-    cases p,
-    cases w,
-    simp only [nat.pow_succ, nat.mul_comm] at h',
-    exact nat.two_not_dvd_odd' (2^p) (nat.one_le_two_pow _) h', }
+    rw [M, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
+    exact nat.two_not_dvd_odd' (2^(p'+1)) (nat.one_le_two_pow _) h', }
 end
 
-theorem ω_pow_formula {p : ℕ} (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
-  ∃ (k : ℤ), (ω : X (q p))^(2^(p-1)) = k * (M p) * ((ω : X (q p))^(2^(p-2))) - 1 :=
+theorem ω_pow_formula (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+  ∃ (k : ℤ), (ω : X (q (p'+2)))^(2^(p'+1)) = k * (M (p'+2)) * ((ω : X (q (p'+2)))^(2^p')) - 1 :=
 begin
   dsimp [Lucas_Lehmer_residue] at h,
-  rw s_zmod_eq_s p w at h,
+  rw s_zmod_eq_s p' at h,
   simp at h,
   cases h with k h,
   use k,
-  replace h := congr_arg (λ (n : ℤ), (n : X (q p))) h, -- coercion from ℤ to X q
+  replace h := congr_arg (λ (n : ℤ), (n : X (q (p'+2)))) h, -- coercion from ℤ to X q
   dsimp at h,
   rw closed_form at h,
-  replace h := congr_arg (λ x, ω^2^(p-2) * x) h,
+  replace h := congr_arg (λ x, ω^2^p' * x) h,
   dsimp at h,
-  have t : 2^(p-2) + 2^(p-2) = 2^(p-1) := by { rw show (p - 1) = (p - 2) + 1, by omega, ring_exp },
-  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^(p-2)), ω_mul_ωb, one_pow] at h,
+  have t : 2^p' + 2^p' = 2^(p'+1) := by ring_exp,
+  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^p'), ω_mul_ωb, one_pow] at h,
   rw [mul_comm, coe_mul] at h,
-  rw [mul_comm _ (k : X (q p))] at h,
+  rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
   exact_mod_cast h,
 end
@@ -458,21 +455,20 @@ begin
   apply nat.min_fac_dvd,
 end
 
-theorem ω_pow_eq_neg_one (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
-  (ω : X (q p))^(2^(p-1)) = -1 :=
+theorem ω_pow_eq_neg_one (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+  (ω : X (q (p'+2)))^(2^(p'+1)) = -1 :=
 begin
-  cases ω_pow_formula w h with k w,
+  cases ω_pow_formula p' h with k w,
   rw [Mersenne_coe_X] at w,
   simpa using w,
 end
 
 lemma nat.succ_pred (n : ℕ) (w : 0 < n) : (n - 1) + 1 = n := nat.pred_inj (nat.succ_pos _) w rfl
 
-theorem ω_pow_eq_one (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
-  (ω : X (q p))^(2^p) = 1 :=
-calc (ω : X (q p))^2^p = (ω^(2^(p-1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one,
-                                                  nat.succ_pred p (nat.lt_of_succ_lt w)]
-         ... = (-1)^2 : by rw ω_pow_eq_neg_one _ w h
+theorem ω_pow_eq_one (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+  (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
+calc (ω : X (q (p'+2)))^2^(p'+2) = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one]
+         ... = (-1)^2 : by rw ω_pow_eq_neg_one p' h
          ... = 1      : by simp
 
 def ω_unit (p : ℕ) : units (X (q p)) :=
@@ -484,41 +480,43 @@ def ω_unit (p : ℕ) : units (X (q p)) :=
 @[simp] lemma ω_unit_coe (p : ℕ) : (ω_unit p : X (q p)) = ω := rfl
 
 /-- The order of ω in the unit group is exactly 2^p. -/
-theorem order_ω (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
-  order_of (ω_unit p) = 2^p :=
+theorem order_ω (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+  order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
-  have t : p = p - 1 + 1 := (nat.sub_eq_iff_eq_add (le_of_lt w)).mp rfl,
-  conv { to_rhs, rw t },
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
   { norm_num, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
-    replace ω_pow := congr_arg (units.coe_hom (X (q p)) : units (X (q p)) → X (q p)) ω_pow,
+    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) : units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
     simp at ω_pow,
-    have h : (1 : zmod (q p)) = -1 :=
-      congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p w h)),
-    haveI : fact (2 < (q p : ℕ)) := two_lt_q w,
+    have h : (1 : zmod (q (p'+2))) = -1 :=
+      congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
+    haveI : fact (2 < (q (p'+2) : ℕ)) := two_lt_q _,
     apply zmod.neg_one_ne_one h.symm, },
-  { rw ←t,
-    apply order_of_dvd_iff_pow_eq_one.2,
+  { apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
     push_cast,
-    exact ω_pow_eq_one _ w h, }
+    exact ω_pow_eq_one p' h, }
 end
 
-lemma order_ineq (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : 2^p < (q p : ℕ)^2 :=
-calc 2^p = order_of (ω_unit p)        : (order_ω _ w h).symm
-     ... ≤ fintype.card (units (X _)) : order_of_le_card_univ
-     ... < (q p : ℕ)^2                : units_card (nat.lt_of_succ_lt (two_lt_q w))
+lemma order_ineq (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) : 2^(p'+2) < (q (p'+2) : ℕ)^2 :=
+calc 2^(p'+2) = order_of (ω_unit (p'+2)) : (order_ω p' h).symm
+     ... ≤ fintype.card (units (X _))    : order_of_le_card_univ
+     ... < (q (p'+2) : ℕ)^2              : units_card (nat.lt_of_succ_lt (two_lt_q _))
 
 end residue_zero
 
 theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_test p → prime (M p) :=
 begin
+  let p' := p - 2,
+  have z : p = p' + 2 := (nat.sub_eq_iff_eq_add w).mp rfl,
+  have w : 1 < p' + 2 := (nat.lt_of_sub_eq_succ rfl),
   contrapose,
   intros a t,
-  have h₁ := order_ineq p w t,
-  have h₂ := nat.min_fac_sq_le_self (M p) (M_pos (nat.lt_of_succ_lt w)) a,
+  rw z at a,
+  rw z at t,
+  have h₁ := order_ineq p' t,
+  have h₂ := nat.min_fac_sq_le_self (M (p'+2)) (M_pos (nat.lt_of_succ_lt w)) a,
   have h := lt_of_lt_of_le h₁ h₂,
   exact not_lt_of_ge (nat.sub_le _ _) h,
 end

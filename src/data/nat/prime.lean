@@ -421,7 +421,7 @@ end
 
 /-- If `p` is prime, `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)` then `a = p^(k+1)` -/
 lemma eq_prime_pow_of_dvd_least_prime_pow
-  (a p k : ℕ) (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
+  {a p k : ℕ} (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
   a = p^(k+1) :=
 begin
   rcases (dvd_prime_pow pp).1 h₂ with ⟨l, ⟨h, rfl⟩⟩,

@@ -19,7 +19,7 @@ import data.polynomial algebra.big_operators
 -/
 
 noncomputable theory
-open_locale classical
+open_locale big_operators classical
 
 universe u
 

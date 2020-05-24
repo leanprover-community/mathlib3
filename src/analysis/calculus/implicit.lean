@@ -9,17 +9,24 @@ import analysis.normed_space.complemented
 /-!
 # Implicit function theorem
 
-We prove three versions of the implicit function theorem.
+We prove three versions of the implicit function theorem. First we define a structure
+`implicit_function_data` that holds arguments for the most general version of the implicit function
+theorem, see `implicit_function_data.implicit_function`
+and `implicit_function_data.to_implicit_function`. This version allows a user to choose
+a specific implicit function but provides only a little convenience over the inverse function
+theorem.
 
-* `implicit_function_of_proj` : TODO
+Then we define `implicit_function_of_complemented`: implicit function defined by `f (g z y) = z`,
+where `f : E → F` is a function strictly differentiable at `a` such that its defivative `f'`
+is surjective and has a `complemented` kernel.
 
-* `implicit_function_of_complemented`: implicit function defined by `f (g z y) = z`, where
-  `f : E → F` is a function strictly differentiable at `a` such that its defivative `f'`
-  is surjective and has a `complemented` kernel;
+Finally, if the codomain of `f` is a finitely dimensional space, then we can automatically prove
+that the kernel of `f'` is complemented, hence the only assumptions are `has_strict_fderiv_at`
+and `f'.range = ⊤`. This version is named `implicit_function`.
 
-* `implicit_function`: implicit function defined by `f (g z y) = z`, where `f : E → F` is a function
-  with finitely dimensional codomain such that `f` is strictly differentiable at `a` and its
-  defivative `f'` is surjective.
+## Tags
+
+implicit function, inverse function
 -/
 
 noncomputable theory
@@ -53,6 +60,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {G : Type*} [normed_group G] [normed_space 𝕜 G] [complete_space G]
   (φ : implicit_function_data 𝕜 E F G)
 
+/-- The function given by `x ↦ (left_fun x, right_fun x)`. -/
 def prod_fun (x : E) : F × G := (φ.left_fun x, φ.right_fun x)
 
 @[simp] lemma prod_fun_apply (x : E) : φ.prod_fun x = (φ.left_fun x, φ.right_fun x) := rfl
@@ -237,6 +245,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
   (f : E → F) (f' : E →L[𝕜] F) {a : E}
 
+/-- Given a map `f : E → F` to a finite dimensional space with a surjective derivative `f'`,
+returns a local homeomorphism between `E` and `F × ker f'`. -/
 def implicit_to_local_homeomorph (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   local_homeomorph E (F × f'.ker) :=
 by haveI := finite_dimensional.complete 𝕜 F; exact

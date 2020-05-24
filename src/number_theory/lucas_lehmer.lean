@@ -204,7 +204,8 @@ begin
   exact int.nat_abs_lt_nat_abs_of_nonneg_of_lt w₁ w₂,
 end
 
-lemma foo (p : ℕ) (w : 1 < p) : Lucas_Lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
+lemma residue_eq_zero_iff_s_mod_eq_zero (p : ℕ) (w : 1 < p) :
+  Lucas_Lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
 begin
   dsimp [Lucas_Lehmer_residue],
   -- We want to use that fact that `s_mod p (p-2) < 2^p - 1`
@@ -221,8 +222,6 @@ begin
     refl, },
   { intro h, rw h, simp, },
 end
-
-/- Test for Primality -/
 
 @[derive decidable_pred]
 def Lucas_Lehmer_test (p : ℕ) := Lucas_Lehmer_residue p = 0
@@ -431,19 +430,7 @@ lemma two_lt_q {p : ℕ} (w : 1 < p) : 2 < q p := begin
     exact nat.two_not_dvd_odd' (2^p) (nat.one_le_two_pow _) h', }
 end
 
-lemma foo' {p : ℕ} (w : 1 < p) : 2^(p-1) = 2^(p-2) + 2^(p-2) :=
-begin
-  convert mul_two _,
-  rw [←nat.pow_succ],
-  congr,
-  cases p,
-  cases w,
-  cases p,
-  cases w with _ w, cases w,
-  simp only [nat.sub_zero, nat.succ_sub_succ_eq_sub],
-end
-
-theorem multiple_k (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+theorem ω_pow_formula {p : ℕ} (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
   ∃ (k : ℤ), (ω : X (q p))^(2^(p-1)) = k * (M p) * ((ω : X (q p))^(2^(p-2))) - 1 :=
 begin
   dsimp [Lucas_Lehmer_residue] at h,
@@ -456,41 +443,36 @@ begin
   rw closed_form at h,
   replace h := congr_arg (λ x, ω^2^(p-2) * x) h,
   dsimp at h,
-  rw [mul_add, ←pow_add ω, ←foo' w, ←mul_pow ω ωb (2^(p-2)), ω_mul_ωb, one_pow] at h,
+  have t : 2^(p-2) + 2^(p-2) = 2^(p-1) := by { rw show (p - 1) = (p - 2) + 1, by omega, ring_exp },
+  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^(p-2)), ω_mul_ωb, one_pow] at h,
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q p))] at h,
   replace h := eq_sub_of_add_eq h,
-  dsimp [M],
-  push_cast at h,
-  exact h,
+  exact_mod_cast h,
 end
 
-
-
-/- This theorem holds as q is by definition the minimum factor of M p.
-As a multiple of q, M p evaluates to 0 mod q -/
+/-- `q` is the minimum factor of M p, so `M p = 0` in `X q`. -/
 theorem Mersenne_coe_X (p : ℕ) : (M p : X (q p)) = 0 :=
 begin
   ext; simp [M, q],
   apply nat.min_fac_dvd,
 end
 
-theorem sufficiency_simp (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+theorem ω_pow_eq_neg_one (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
   (ω : X (q p))^(2^(p-1)) = -1 :=
 begin
-  cases multiple_k p w h with k w,
+  cases ω_pow_formula w h with k w,
   rw [Mersenne_coe_X] at w,
   simpa using w,
 end
 
 lemma nat.succ_pred (n : ℕ) (w : 0 < n) : (n - 1) + 1 = n := nat.pred_inj (nat.succ_pos _) w rfl
 
-/- This result is achieved by squaring the above equation.-/
-theorem suff_squared (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
+theorem ω_pow_eq_one (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
   (ω : X (q p))^(2^p) = 1 :=
 calc (ω : X (q p))^2^p = (ω^(2^(p-1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one,
                                                   nat.succ_pred p (nat.lt_of_succ_lt w)]
-         ... = (-1)^2 : by rw sufficiency_simp _ w h
+         ... = (-1)^2 : by rw ω_pow_eq_neg_one _ w h
          ... = 1      : by simp
 
 def ω_unit (p : ℕ) : units (X (q p)) :=
@@ -501,35 +483,7 @@ def ω_unit (p : ℕ) : units (X (q p)) :=
 
 @[simp] lemma ω_unit_coe (p : ℕ) : (ω_unit p : X (q p)) = ω := rfl
 
--- Coercion from omega_unit to X (q p)
-lemma coercion (p : ℕ) (h : ω_unit p ^ 2 ^ (p - 1) = 1) : (ω : X (q p))^(2^(p-1)) = 1 :=
-begin
- have := congr_arg (units.coe_hom (X (q p)) : units (X (q p)) → X (q p)) h,
- convert this,
- simp,
-end
-
-lemma mod_eq_one_or_two (q : ℕ+) (h : (2 : zmod q) = 0) : q = 1 ∨ q = 2 :=
-begin
-  have w : (2 : zmod q) = ((2 : ℕ) : zmod q) := by simp,
-  rw w at h,
-  replace h := congr_arg zmod.val h,
-  rw zmod.val_cast_nat at h,
-  simp at h,
-  by_cases t : q ≤ 2,
-  { -- case bashing
-    rcases q with ⟨q,qp⟩,
-    cases q, cases qp,
-    cases q, { left, refl, },
-    cases q, { right, refl, },
-    cases t, cases t_a, cases t_a_a, },
-  { simp at t,
-    have t' : 2 % ↑q = 2 := nat.mod_eq_of_lt t,
-    rw t' at h,
-    cases h, }
-end
-
--- the order of omega is 2^p
+/-- The order of ω in the unit group is exactly 2^p. -/
 theorem order_ω (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
   order_of (ω_unit p) = 2^p :=
 begin
@@ -538,16 +492,18 @@ begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
   { norm_num, },
   { intro o,
-    have ω_pow := coercion _ (order_of_dvd_iff_pow_eq_one.1 o),
+    have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
+    replace ω_pow := congr_arg (units.coe_hom (X (q p)) : units (X (q p)) → X (q p)) ω_pow,
+    simp at ω_pow,
     have h : (1 : zmod (q p)) = -1 :=
-      congr_arg (prod.fst) ((ω_pow.symm).trans (sufficiency_simp p w h)),
+      congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p w h)),
     haveI : fact (2 < (q p : ℕ)) := two_lt_q w,
     apply zmod.neg_one_ne_one h.symm, },
   { rw ←t,
     apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
-    simp,
-    exact (suff_squared _ w h), }
+    push_cast,
+    exact ω_pow_eq_one _ w h, }
 end
 
 lemma order_ineq (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) : 2^p < (q p : ℕ)^2 :=
@@ -563,10 +519,7 @@ begin
   intros a t,
   have h₁ := order_ineq p w t,
   have h₂ := nat.min_fac_sq_le_self (M p) (M_pos (nat.lt_of_succ_lt w)) a,
-  dsimp [q] at h₁,
   have h := lt_of_lt_of_le h₁ h₂,
-  dsimp [M] at h,
-  exfalso,
   exact not_lt_of_ge (nat.sub_le _ _) h,
 end
 
@@ -590,7 +543,7 @@ by { dsimp [s_mod, M], rw [h1, h2, pow_two, h3] }
 meta def run_Lucas_Lehmer_test : tactic unit :=
 do `(Lucas_Lehmer_test %%p) ← target,
    `[dsimp [Lucas_Lehmer_test]],
-   `[rw foo, swap, norm_num],
+   `[rw residue_eq_zero_iff_s_mod_eq_zero, swap, norm_num],
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
    M ← to_expr ``(2^%%p - 1 : ℤ) >>= eval_expr ℤ,

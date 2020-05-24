@@ -667,15 +667,18 @@ lemma mem_image_univ_iff_mem_range
 by simp
 
 lemma card_lt_card_of_injective_of_not_mem
-  {α β : Type*} [fintype α] [fintype β] [decidable_eq β] (f : α → β) (h : function.injective f)
+  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
   {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
-calc
-  fintype.card α = (univ : finset α).card : rfl
-... = (image f univ).card : (card_image_of_injective univ h).symm
-... < (insert b (image f univ)).card :
-        card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
-... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
-... = fintype.card β : rfl
+begin
+  classical,
+  calc
+    fintype.card α = (univ : finset α).card : rfl
+  ... = (image f univ).card : (card_image_of_injective univ h).symm
+  ... < (insert b (image f univ)).card :
+          card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
+  ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
+  ... = fintype.card β : rfl
+end
 
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :

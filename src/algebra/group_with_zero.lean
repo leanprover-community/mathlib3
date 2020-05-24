@@ -125,6 +125,36 @@ begin
   { rw [mul_assoc, mul_inv_cancel' a h, mul_one] }
 end
 
+/-- Multiplying `a` by its inverse and then by itself results in `a`
+(whether or not `a` is zero). -/
+@[simp] lemma mul_inv_mul_self (a : G₀) : a * a⁻¹ * a = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [mul_inv_cancel' a h, one_mul] }
+end
+
+/-- Multiplying `a⁻¹` by `a` twice results in `a` (whether or not `a`
+is zero). -/
+@[simp] lemma inv_mul_mul_self (a : G₀) : a⁻¹ * a * a = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [inv_mul_cancel' a h, one_mul] }
+end
+
+/-- Multiplying `a` by itself and then dividing by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma mul_self_div_self (a : G₀) : a * a / a = a :=
+mul_self_mul_inv a
+
+/-- Dividing `a` by itself and then multiplying by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_self_mul_self (a : G₀) : a / a * a = a :=
+mul_inv_mul_self a
+
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
 inv_inv''
 

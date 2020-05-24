@@ -97,6 +97,8 @@ def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
 (linear_map.fst R p q).comp $ (prod_equiv_of_is_compl p q h).symm
 
+variables {p q}
+
 @[simp] lemma linear_proj_of_is_compl_apply_left (h : is_compl p q) (x : p) :
   linear_proj_of_is_compl p q h x = x :=
 by simp [linear_proj_of_is_compl]
@@ -111,20 +113,24 @@ by simp [linear_proj_of_is_compl]
 
 lemma linear_proj_of_is_compl_apply_right' (h : is_compl p q) (x : E) (hx : x ∈ q) :
   linear_proj_of_is_compl p q h x = 0 :=
-(linear_proj_of_is_compl_apply_eq_zero_iff p q h).2 hx
+(linear_proj_of_is_compl_apply_eq_zero_iff h).2 hx
 
 @[simp] lemma linear_proj_of_is_compl_apply_right (h : is_compl p q) (x : q) :
   linear_proj_of_is_compl p q h x = 0 :=
-linear_proj_of_is_compl_apply_right' p q h x x.2
+linear_proj_of_is_compl_apply_right' h x x.2
 
 @[simp] lemma linear_proj_of_is_compl_ker (h : is_compl p q) :
   (linear_proj_of_is_compl p q h).ker = q :=
-ext $ λ x, mem_ker.trans (linear_proj_of_is_compl_apply_eq_zero_iff p q h)
+ext $ λ x, mem_ker.trans (linear_proj_of_is_compl_apply_eq_zero_iff h)
+
+lemma linear_proj_of_is_compl_comp_subtype (h : is_compl p q) :
+  (linear_proj_of_is_compl p q h).comp p.subtype = id :=
+linear_map.ext $ linear_proj_of_is_compl_apply_left h
 
 lemma linear_proj_of_is_compl_idempotent (h : is_compl p q) (x : E) :
   linear_proj_of_is_compl p q h (linear_proj_of_is_compl p q h x) =
     linear_proj_of_is_compl p q h x :=
-linear_proj_of_is_compl_apply_left p q h _
+linear_proj_of_is_compl_apply_left h _
 
 end submodule
 
@@ -150,7 +156,7 @@ begin
     erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
     simp only [hfx, mem_coe, zero_mem] },
   { intros x hx,
-    rw [mem_coe, mem_sup'],
+    rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
     rw [mem_ker, linear_map.map_sub, hf, sub_self] }
 end
@@ -173,7 +179,7 @@ namespace submodule
 such that `∀ x : p, f x = x`. -/
 def is_compl_equiv_proj :
   {q // is_compl p q} ≃ {f : E →ₗ[R] p // ∀ x : p, f x = x} :=
-{ to_fun := λ q, ⟨linear_proj_of_is_compl p q q.2, linear_proj_of_is_compl_apply_left p q q.2⟩,
+{ to_fun := λ q, ⟨linear_proj_of_is_compl p q q.2, linear_proj_of_is_compl_apply_left q.2⟩,
   inv_fun := λ f, ⟨(f : E →ₗ[R] p).ker, f.1.is_compl_of_proj f.2⟩,
   left_inv := λ ⟨q, hq⟩, by simp only [linear_proj_of_is_compl_ker, subtype.coe_mk],
   right_inv := λ ⟨f, hf⟩, subtype.eq $ f.linear_proj_of_is_compl_of_proj hf }
@@ -185,4 +191,3 @@ def is_compl_equiv_proj :
   (p.is_compl_equiv_proj.symm f : submodule R E) = (f : E →ₗ[R] p).ker := rfl
 
 end submodule
-

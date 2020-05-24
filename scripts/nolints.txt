@@ -1998,29 +1998,6 @@ apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 apply_nolint pell.xz doc_blame
 apply_nolint pell.yz doc_blame
 
--- order/basic.lean
-apply_nolint classical.DLO doc_blame
-apply_nolint decidable_linear_order_of_is_well_order doc_blame
-apply_nolint dense_or_discrete ge_or_gt
-apply_nolint directed_order doc_blame
-apply_nolint ge.is_antisymm ge_or_gt
-apply_nolint ge.is_linear_order ge_or_gt
-apply_nolint ge.is_partial_order ge_or_gt
-apply_nolint ge.is_preorder ge_or_gt
-apply_nolint ge.is_refl ge_or_gt
-apply_nolint ge.is_total ge_or_gt
-apply_nolint ge.is_total_preorder ge_or_gt
-apply_nolint ge.is_trans ge_or_gt
-apply_nolint ge_of_eq ge_or_gt
-apply_nolint gt.is_antisymm ge_or_gt
-apply_nolint gt.is_asymm ge_or_gt
-apply_nolint gt.is_irrefl ge_or_gt
-apply_nolint gt.is_strict_order ge_or_gt
-apply_nolint gt.is_trans ge_or_gt
-apply_nolint gt.is_trichotomous ge_or_gt
-apply_nolint well_founded.succ doc_blame
-apply_nolint well_founded.sup doc_blame
-
 -- order/bounded_lattice.lean
 apply_nolint with_top doc_blame
 
@@ -2133,24 +2110,6 @@ apply_nolint local_ring.residue_field.map doc_blame
 
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
-
--- ring_theory/localization.lean
-apply_nolint localization.at_prime doc_blame
-apply_nolint localization.away doc_blame
-apply_nolint localization.away.inv_self doc_blame
-apply_nolint localization.away.lift doc_blame
-apply_nolint localization.away_to_away_right doc_blame
-apply_nolint localization.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.inv_aux doc_blame
-apply_nolint localization.fraction_ring.map doc_blame
-apply_nolint localization.le_order_embedding doc_blame
-apply_nolint localization.lift doc_blame
-apply_nolint localization.lift' doc_blame
-apply_nolint localization.map doc_blame
-apply_nolint localization.mk doc_blame
-apply_nolint localization.non_zero_divisors doc_blame
-apply_nolint localization.r doc_blame
 
 -- ring_theory/maps.lean
 apply_nolint comm_ring.anti_equiv_to_equiv doc_blame

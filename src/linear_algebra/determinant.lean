@@ -25,7 +25,7 @@ univ.sum (λ (σ : perm n), ε σ * univ.prod (λ i, M (σ i) i))
 begin
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
-    cases not_forall.1 (mt (equiv.ext _ _) h2) with x h3,
+    cases not_forall.1 (mt equiv.ext h2) with x h3,
     convert ring.mul_zero _,
     apply finset.prod_eq_zero,
     { change x ∈ _, simp },
@@ -66,7 +66,7 @@ begin
       by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
     (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext _ _ $ by simp)
+    (λ _ _, equiv.ext $ by simp)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
@@ -82,7 +82,7 @@ calc det (M ⬝ N) = univ.sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
   sum_bij (λ p h, equiv.of_bijective (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
-    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, eq_of_to_fun_eq rfl⟩)
+    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = univ.sum (λ σ : perm n, univ.sum (λ τ : perm n,
     (univ.prod (λ i, N (σ i) i) * ε τ) * univ.prod (λ j, M (τ j) (σ j)))) :
   by simp [mul_sum, det, mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]

@@ -82,7 +82,7 @@ variables {p q}
 
 lemma closed_complemented_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   (hq : is_closed (q : set E)) : p.closed_complemented :=
-⟨p.linear_proj_of_closed_compl q h hp hq, p.linear_proj_of_is_compl_apply_left q h⟩
+⟨p.linear_proj_of_closed_compl q h hp hq, submodule.linear_proj_of_is_compl_apply_left h⟩
 
 lemma closed_complemented_iff_has_closed_compl : p.closed_complemented ↔
   is_closed (p : set E) ∧ ∃ (q : subspace 𝕜 E) (hq : is_closed (q : set E)), is_compl p q :=

@@ -365,11 +365,23 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 
 @[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
 
+@[simp] lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  ker (f.prod g) = ker f ⊓ ker g :=
+linear_map.ker_prod f g
+
 /-- Range of a continuous linear map. -/
 def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).range
 
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
+
+lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  range (f.prod g) ≤ (range f).prod (range g) :=
+(f : M →ₗ[R] M₂).range_prod_le g
+
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (f.prod g) = (range f).prod (range g) :=
+linear_map.range_prod_eq h
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
@@ -730,6 +742,12 @@ by { ext x, refl }
 
 theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
+
+lemma symm_apply_eq (e : M ≃L[R] M₂) {x y} : e.symm x = y ↔ x = e y :=
+e.to_linear_equiv.symm_apply_eq
+
+lemma eq_symm_apply (e : M ≃L[R] M₂) {x y} : y = e.symm x ↔ e y = x :=
+e.to_linear_equiv.eq_symm_apply
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/

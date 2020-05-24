@@ -253,7 +253,7 @@ section min_fac
   end
 
   /--
-  The square of the smallest prime factor of a composite number n is at most n.
+  The square of the smallest prime factor of a composite number `n` is at most `n`.
   -/
   lemma min_fac_sq_le_self (n : ℕ) (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
   have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,

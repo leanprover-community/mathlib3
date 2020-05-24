@@ -462,12 +462,6 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-lemma le_sum_nat_of_mem (f : ℕ → ℕ) (s : finset ℕ) (a : ℕ) (t : a ∈ s) : f a ≤ ∑ i in s, f i :=
-begin
-  rw ← finset.insert_erase t,
-  simp only [sum_insert, eq_self_iff_true, mem_erase, not_true, zero_le, le_add_iff_nonneg_right, ne.def, not_false_iff, false_and],
-end
-
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
 Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h

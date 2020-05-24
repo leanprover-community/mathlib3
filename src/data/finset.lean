@@ -980,8 +980,7 @@ range_succ
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
 
-theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
-by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := self_mem_range_succ
 
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 

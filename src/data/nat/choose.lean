@@ -52,7 +52,7 @@ decreasing_induction
   hr (λ _, le_refl _) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
-lemma choose_le_middle {r n : ℕ} : nat.choose n r ≤ nat.choose n (n/2) :=
+lemma choose_le_middle (r n : ℕ) : nat.choose n r ≤ nat.choose n (n/2) :=
 begin
   cases le_or_gt r n with b b,
   { cases le_or_lt r (n/2) with a h,
@@ -65,6 +65,13 @@ begin
       exact le_of_lt h } },
   { rw nat.choose_eq_zero_of_lt b,
     apply nat.zero_le }
+end
+
+lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
+begin
+  have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i :=
+    le_sum_nat_of_mem (choose (2 * n + 1)) (range (n + 1)) n (self_mem_range_succ n),
+  simpa [sum_range_choose_halfway n] using t
 end
 
 section binomial

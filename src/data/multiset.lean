@@ -512,6 +512,8 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
 
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := self_mem_range_succ
+
 /- erase -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}

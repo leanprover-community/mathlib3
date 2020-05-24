@@ -10,7 +10,8 @@ import data.nat.choose
 /-!
 # Primorial
 
-This file defines the primorial function, and proves a bound on its size.
+This file defines the primorial function (the product of primes less than or equal to some bound),
+and proves that `primorial n ≤ 4 ^ n`.
 
 ## Notations
 
@@ -41,13 +42,6 @@ begin
   apply finset.prod_congr,
   { rw [@range_succ (n + 1), filter_insert, if_neg not_prime], },
   { exact λ _ _, rfl, },
-end
-
-private lemma bound_binomial_coefficient (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
-begin
-  have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i :=
-    le_sum_nat_of_mem (choose (2 * n + 1)) (range (n + 1)) n (self_mem_range_succ n),
-  simpa [sum_range_choose_halfway n] using t
 end
 
 lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
@@ -116,48 +110,50 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
     match nat.even_iff.2 n_odd with
     | ⟨m, twice_m⟩ :=
       let recurse : m + 1 < n + 2 := by linarith in
-      by { calc (n + 2)#
-          = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
-      ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
-            by
-            { rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
-              exact bot_le,
-              simp only [add_le_add_iff_right],
-              linarith, }
-      ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter prime (range (m + 2)))), i :
-            by rw filter_union
-      ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
-            * (∏ i in filter prime (range (m + 2)), i) :
-            by
-            { apply finset.prod_union,
-              have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
-              { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt, finset.mem_range],
-                intros _ pr _, exact pr, },
-              exact finset.disjoint_filter_filter disj, }
-      ... ≤ (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
-            by exact nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
-      ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
-            by
-            { have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
-              { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
-                { intros a, rw finset.mem_filter, cc, },
-                { intros a, rw finset.mem_filter,
-                  intros pr,
-                  rcases pr with ⟨ size, is_prime ⟩,
-                  simp only [finset.Ico.mem] at size,
-                  rcases size with ⟨ a_big , a_small ⟩,
-                  exact dvd_choose_of_middling_prime a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
-              have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
-                { refine @nat.le_of_dvd _ _ _ s,
-                  exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },
-              exact nat.mul_le_mul_right _ r, }
-      ... = (choose (2 * m + 1) m) * 4 ^ (m + 1) : by rw choose_symm_half m
-      ... ≤ 4 ^ m * 4 ^ (m + 1) : nat.mul_le_mul_right _ (bound_binomial_coefficient m)
-      ... = 4 ^ (2 * m + 1) : by ring_exp
-      ... = 4 ^ (n + 2) : by rw ←twice_m, }
+      begin
+        calc (n + 2)#
+            = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
+        ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
+              by
+              { rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
+                exact bot_le,
+                simp only [add_le_add_iff_right],
+                linarith, }
+        ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter prime (range (m + 2)))), i :
+              by rw filter_union
+        ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
+              * (∏ i in filter prime (range (m + 2)), i) :
+              by
+              { apply finset.prod_union,
+                have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
+                { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt, finset.mem_range],
+                  intros _ pr _, exact pr, },
+                exact finset.disjoint_filter_filter disj, }
+        ... ≤ (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
+              by exact nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
+        ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
+              by
+              { have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
+                { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
+                  { intros a, rw finset.mem_filter, cc, },
+                  { intros a, rw finset.mem_filter,
+                    intros pr,
+                    rcases pr with ⟨ size, is_prime ⟩,
+                    simp only [finset.Ico.mem] at size,
+                    rcases size with ⟨ a_big , a_small ⟩,
+                    exact dvd_choose_of_middling_prime a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
+                have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
+                  { refine @nat.le_of_dvd _ _ _ s,
+                    exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },
+                exact nat.mul_le_mul_right _ r, }
+        ... = (choose (2 * m + 1) m) * 4 ^ (m + 1) : by rw choose_symm_half m
+        ... ≤ 4 ^ m * 4 ^ (m + 1) : nat.mul_le_mul_right _ (choose_middle_le_pow m)
+        ... = 4 ^ (2 * m + 1) : by ring_exp
+        ... = 4 ^ (n + 2) : by rw ←twice_m,
+      end
     end
   | or.inr n_even :=
-    by {
+    begin
       obtain one_lt_n | n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := lt_or_le 1 (n + 1),
       { rw primorial_succ (by linarith) n_even,
         calc (n + 1)#
@@ -168,5 +164,6 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
         { have n_zero : n = 0 := eq_bot_iff.mpr n_le_zero,
           norm_num [n_zero],
           exact sup_eq_left.mp rfl, }, }, }
+    end
 
 end

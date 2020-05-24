@@ -685,7 +685,7 @@ theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
 | ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- The minimal element of a nonempty set in a well-founded order -/
+/-- A minimal element of a nonempty set in a well-founded order -/
 noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)

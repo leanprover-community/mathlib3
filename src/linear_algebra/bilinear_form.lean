@@ -118,6 +118,8 @@ instance : add_comm_group (bilin_form R M) :=
 
 lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
 
+lemma neg_apply (x y : M) : (-B) x y = -(B x y) := rfl
+
 instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
@@ -417,9 +419,14 @@ variables {R : Type u} [comm_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
 variables (B : bilin_form R M)
 
+/-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
+maps between them to be mutually adjoint. -/
+def is_adjoint_maps {M' : Type v} [add_comm_group M'] [module R M'] (B' : bilin_form R M')
+  (T : M →ₗ[R] M') (T' : M' →ₗ[R] M) := ∀ x y, B' (T x) y = B x (T' y)
+
 /-- Given a module equipped with a bilinear form, this is the condition for a pair of endomorphims
 to be mutually adjoint. -/
-def is_adjoint_pair (T S : module.End R M) := ∀ x y, B (T x) y = B x (S y)
+def is_adjoint_pair (T S : module.End R M) := is_adjoint_maps B B T S
 
 lemma is_adjoint_pair_iff_comp_left_eq_comp_right (T S : module.End R M) :
   B.is_adjoint_pair T S ↔ B.comp_left T = B.comp_right S :=
@@ -460,6 +467,13 @@ def is_self_adjoint (T : module.End R M) := B.is_adjoint_pair T T
 /-- An endomorphism of a module is skew-adjoint with respect to a bilinear form, if its negation
 serves as an adjoint. -/
 def is_skew_adjoint (T : module.End R M) := B.is_adjoint_pair T (-T)
+
+lemma is_skew_adjoint_iff_neg_self_adjoint (T : module.End R M) :
+  B.is_skew_adjoint T ↔ is_adjoint_maps (-B) B T T :=
+begin
+  change (∀ x y, B (T x) y = B x ((-T) y)) ↔ ∀ x y, B (T x) y = (-B) x (T y),
+  simp only [linear_map.neg_apply, bilin_form.neg_right, bilin_form.neg_apply, neg_eq_iff_neg_eq],
+end
 
 lemma is_self_adjoint_zero : B.is_self_adjoint 0 := B.is_adjoint_pair_zero
 

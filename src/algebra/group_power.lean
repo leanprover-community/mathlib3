@@ -137,16 +137,8 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := f.map_one
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
-theorem monoid_hom.iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
-show f^[n] ((λ x, x^m) a) = (λ x, x^m) (f^[n] a),
-from nat.iterate₁ $ λ x, f.map_pow x m
-
 theorem add_monoid_hom.map_smul (f : A →+ B) (a : A) (n : ℕ) : f (n • a) = n • f a :=
 f.to_multiplicative.map_pow a n
-
-theorem add_monoid_hom.iterate_map_smul (f : A →+ A) (a : A) (n m : ℕ) :
-  f^[n] (m • a) = m • (f^[n] a) :=
-f.to_multiplicative.iterate_map_pow a n m
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
@@ -420,12 +412,6 @@ variable (f : R →+* R)
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
 | (n+1) := by { simp only [nat.iterate_succ, pow_succ', coe_mul, coe_pow n] }
-
-lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
-f.to_monoid_hom.iterate_map_pow a n m
-
-lemma iterate_map_smul (a) (n m : ℕ) : f^[n] (m • a) = m • (f^[n] a) :=
-f.to_add_monoid_hom.iterate_map_smul a n m
 
 end ring_hom
 

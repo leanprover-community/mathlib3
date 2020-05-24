@@ -57,9 +57,22 @@ begin
   induction n with n ih,
   { exact le_refl _, },
   { calc 1 ≤ m^n : ih
-       ... ≤ m^n * m : by exact (@le_mul_iff_one_le_right ℕ _ m (m^n) ih).mpr h },
+       ... ≤ m^n * m : (@le_mul_iff_one_le_right ℕ _ m (m^n) ih).mpr h },
 end
+lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
 lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
+
+lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
+begin
+  induction n with n ih,
+  { cases h₀, },
+  { calc 1 ≤ m^n : one_le_pow n m (lt_of_succ_lt h₁)
+       ... < m^n * m : (lt_mul_iff_one_lt_right (by exact one_le_pow n m (lt_of_succ_lt h₁))).mpr h₁ }
+end
+lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
+  one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
+lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
+lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
 
 lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
@@ -180,7 +193,14 @@ begin
   rw nat.modeq.modeq_zero_iff,
 end
 
--- Credit Scott Morrison
+@[push_cast]
+lemma mod_coe_zmod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
+begin
+  rw zmod.int_coe_eq_int_coe_iff,
+  apply int.modeq.mod_modeq,
+end
+
+
 -- Order properties
 variables {G : Type} [group G] [fintype G] [decidable_eq G]
 
@@ -188,7 +208,7 @@ lemma order_of_dvd_iff {n : ℕ} {g : G} : order_of g ∣ n ↔ g^n = 1 :=
 ⟨λ h,
  begin
    rcases h with ⟨k,rfl⟩,
-   simp only [pow_mul, _root_.one_pow, pow_order_of_eq_one]
+   simp only [pow_mul, one_pow, pow_order_of_eq_one]
  end,
  order_of_dvd_of_pow_eq_one⟩
 
@@ -208,20 +228,43 @@ end
 
 end Mersenne
 
-
-def s' (p : ℕ) : ℕ → zmod (2^p - 1)
-| 0 := 4
-| (i+1) := ((s' i)^2 - 2)
-
 def s : ℕ → ℤ
 | 0 := 4
 | (i+1) := (s i)^2 - 2
 
-lemma s_eq_s' (p : ℕ) (w : 1 < p) (i : ℕ) : ((s i) : zmod (2^p - 1)) = s' p i :=
+def s_zmod (p : ℕ) : ℕ → zmod (2^p - 1)
+| 0 := 4
+| (i+1) := (s_zmod i)^2 - 2
+
+def s_mod (p : ℕ) : ℕ → ℤ
+| 0 := 4 % (2^p - 1)
+| (i+1) := ((s_mod i)^2 - 2) % (2^p - 1)
+
+lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
+begin
+  cases i; dsimp [s_mod],
+  { trivial, },
+  { apply int.mod_nonneg, apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
+    have := nat.one_lt_two_pow p w,
+    have : ((1 : ℕ) : ℤ) < ((2^p : ℕ) : ℤ) := int.lt_to_nat.mp this,
+    push_cast at this,
+    exact this, },
+end
+
+lemma s_mod_lt (p : ℕ) (w : 0 < p) (i : ℕ) : s_mod p i < 2^p - 1 :=
+begin
+  cases i; dsimp [s_mod],
+  sorry,
+  convert int.mod_lt _ _,
+  sorry,
+  sorry,
+end
+
+lemma s_zmod_eq_s (p : ℕ) (w : 1 < p) (i : ℕ) : s_zmod p i = (s i : zmod (2^p - 1)):=
 begin
   induction i with i ih,
-  { dsimp [s, s'], norm_num, },
-  { dsimp [s, s'],
+  { dsimp [s, s_zmod], norm_num, },
+  { dsimp [s, s_zmod],
     push_cast,
     rw ih, },
 end
@@ -229,7 +272,58 @@ end
 
 /- Lucas Lehmer Residue -/
 
-def Lucas_Lehmer_residue (p : ℕ) := s' p (p-2)
+def Lucas_Lehmer_residue (p : ℕ) : zmod (2^p - 1) := s_zmod p (p-2)
+
+-- These next two don't make good `norm_cast` lemmas.
+lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
+begin
+  have : 1 ≤ b^p := nat.one_le_pow p b w,
+  simp only [this] with push_cast, -- `push_cast` should allow extra lemmas
+end
+lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
+int.coe_nat_pow_pred 2 p dec_trivial
+
+lemma s_zmod_eq_s_mod (p : ℕ) (w : 1 < p) (i : ℕ) : s_zmod p i = (s_mod p i : zmod (2^p - 1)) :=
+begin
+  induction i with i ih;
+  -- { dsimp [s_mod, s_zmod], norm_num, },
+  { dsimp [s_mod, s_zmod],
+    -- unfortunately this is too complicated for `push_cast` to handle on its own...
+    rw ←int.coe_nat_two_pow_pred p,
+    push_cast;
+    rw ih, },
+end
+
+lemma int.nat_abs_lt_nat_abs_of_nonneg_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a < b) :
+  a.nat_abs < b.nat_abs :=
+begin
+  lift b to ℕ using le_of_lt (lt_of_le_of_lt w₁ w₂),
+  lift a to ℕ using w₁,
+  simpa using w₂,
+end
+
+lemma int.eq_zero_of_dvd_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a < b) (h : b ∣ a) : a = 0 :=
+begin
+  apply int.eq_zero_of_dvd_of_nat_abs_lt_nat_abs h,
+  exact int.nat_abs_lt_nat_abs_of_nonneg_of_lt w₁ w₂,
+end
+
+lemma foo (p : ℕ) (w : 1 < p) : Lucas_Lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
+begin
+  dsimp [Lucas_Lehmer_residue],
+  -- We want to use that fact that `s_mod p (p-2) < 2^p - 1`
+  -- to show that the coercion into `zmod (2^p - 1)` is injective,
+  -- and then use the previous lemma.
+  rw s_zmod_eq_s_mod p w,
+  split,
+  { intro h,
+    simp at h,
+    apply int.eq_zero_of_dvd_of_lt _ _ h; clear h,
+    apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
+    sorry,
+    },
+  { intro h, rw h, simp, },
+end
 
 /- Test for Primality -/
 
@@ -456,19 +550,20 @@ theorem multiple_k (p : ℕ) (w : 1 < p) (h : Lucas_Lehmer_residue p = 0) :
   ∃ (k : ℤ), (ω : X (q p))^(2^(p-1)) = k * (M p) * ((ω : X (q p))^(2^(p-2))) - 1 :=
 begin
   dsimp [Lucas_Lehmer_residue] at h,
-  rewrite ←s_eq_s' p w at h,
+  rw s_zmod_eq_s p w at h,
   simp at h,
   cases h with k h,
   use k,
   replace h := congr_arg (λ (n : ℤ), (n : X (q p))) h, -- coercion from ℤ to X q
   dsimp at h,
-  rewrite closed_form at h,
+  rw closed_form at h,
   replace h := congr_arg (λ x, ω^2^(p-2) * x) h,
   dsimp at h,
   rw [mul_add, ←pow_add ω, ←foo' w, ←mul_pow ω ωb (2^(p-2)), ω_mul_ωb, one_pow] at h,
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q p))] at h,
   replace h := eq_sub_of_add_eq h,
+  dsimp [M],
   push_cast at h,
   exact h,
 end
@@ -575,7 +670,7 @@ calc 2^p = order_of (ω_unit p)        : (order_ω _ w h).symm
 
 end residue_zero
 
-theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_residue p = 0 → prime (M p) :=
+theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_test p → prime (M p) :=
 begin
   contrapose,
   intros a t,
@@ -589,6 +684,54 @@ begin
 end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.
-example : prime 31 := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
+example : prime (M 5) := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
 
--- example : prime (M 7) := Lucas_Lehmer_sufficiency 7 (by norm_num) dec_trivial
+-- Next we switch to trying to use `norm_num` to calculate each `s p i`.
+
+open tactic
+
+meta instance nat_pexpr : has_to_pexpr ℕ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
+meta instance int_pexpr : has_to_pexpr ℤ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
+
+lemma s_mod_succ {p a i b c}
+  (h1 : (2^p - 1 : ℤ) = a)
+  (h2 : s_mod p i = b)
+  (h3 : (b * b - 2) % a = c) :
+  s_mod p (i+1) = c :=
+by { dsimp [s_mod, M], rw [h1, h2, pow_two, h3] }
+
+meta def run_Lucas_Lehmer_test : tactic unit :=
+do `(Lucas_Lehmer_test %%p) ← target,
+   `[dsimp [Lucas_Lehmer_test]],
+   `[rw foo, swap, norm_num],
+   p ← eval_expr ℕ p,
+   -- Calculate the candidate Mersenne prime
+   M ← to_expr ``(2^%%p - 1 : ℤ) >>= eval_expr ℤ,
+   t ← to_expr ``(2^%%p - 1 = %%M),
+   v ← to_expr ``(by norm_num : 2^%%p - 1 = %%M),
+   w ← assertv `w t v,
+   -- Unfortunately this creates something like `w : 2^5 - 1 = int.of_nat 31`.
+   -- We could make a better `has_to_pexpr ℤ` instance, or just:
+   `[simp only [int.coe_nat_zero, int.coe_nat_succ, int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
+   -- base case
+   t ← to_expr ``(s_mod %%p 0 = 4),
+   v ← to_expr ``(rfl),
+   h ← assertv `h t v,
+   -- step case, repeated p-2 times
+   iterate_exactly (p-2) `[replace h := s_mod_succ w h (by { norm_num, refl })],
+   -- now close the goal
+   h ← get_local `h,
+   exact h
+
+example : prime (M 5) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
+
+-- Unfortunately this doesn't actually work yet, as we get:
+-- deep recursion was detected at 'replace' (potential solution: increase stack space in your system)Lean
+lemma Lucas_Lehmer_test_7 : Lucas_Lehmer_test 7 := by run_Lucas_Lehmer_test
+-- example : prime (M 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
+
+-- If we get that sorted out, there's still a much faster method of doing these calculations,
+-- based on the formula
+--   n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+-- and the fact that `% 2^p` and `/ 2^p` are very efficient on the binary representation.
+-- Someone should do this, too!

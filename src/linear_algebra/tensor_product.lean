@@ -2,20 +2,19 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
-
-Tensor product of modules over commutative rings.
-
 -/
 import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
+
+/-!
+# Tensor product of modules over commutative rings.
+-/
 
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
 variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 include R
-
-
 
 namespace linear_map
 
@@ -173,64 +172,49 @@ lemma smul_tmul (r : R) (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r �
 sub_eq_zero.1 $ eq.symm $ quotient.sound $
   add_group.in_closure.basic $ or.inr $ or.inr $ ⟨r, m, n, rfl⟩
 
-local attribute [instance] quotient_add_group.is_add_group_hom_quotient_lift
-
-def smul.aux (r : R) : free_abelian_group (M × N) → M ⊗[R] N :=
-free_abelian_group.lift (λ (y : M × N), (r • y.1) ⊗ₜ y.2)
-
-instance (r : R) : is_add_group_hom (smul.aux r : _ → M ⊗ N) :=
-by unfold smul.aux; apply_instance
+def smul.aux (r : R) : free_abelian_group (M × N) →+ M ⊗[R] N :=
+free_abelian_group.lift (λ (y : M × N), (r • y.1) ⊗ₜ[R] y.2)
 
 instance : has_scalar R (M ⊗ N) :=
-⟨λ r, quotient_add_group.lift _ (smul.aux r) $ λ x hx, begin
-  refine (is_add_group_hom.mem_ker (smul.aux r : _ → M ⊗ N)).1
+⟨λ r, quotient_add_group.lift _ (smul.aux r : _ →+ M ⊗[R] N) $ λ x hx, begin
+  refine (is_add_group_hom.mem_ker (smul.aux r : _ →+ M ⊗ N)).1
     (add_group.closure_subset _ hx),
   clear hx x, rintro x (⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨q, m, n, rfl⟩);
   simp only [smul.aux, is_add_group_hom.mem_ker, -sub_eq_add_neg,
     sub_self, add_tmul, tmul_add, smul_tmul,
-    smul_add, smul_smul, mul_comm, free_abelian_group.lift.of,
-    free_abelian_group.lift.add, free_abelian_group.lift.sub]
+    smul_add, smul_smul, mul_comm, free_abelian_group.lift_eval_of,
+    add_monoid_hom.map_add, add_monoid_hom.map_sub]
 end⟩
 
-instance smul.is_add_group_hom (r : R) : is_add_group_hom ((•) r : M ⊗[R] N → M ⊗[R] N) :=
-by unfold has_scalar.smul; apply_instance
+protected def smul_hom (r : R) : M ⊗[R] N →+ M ⊗[R] N :=
+add_monoid_hom.mk' ((•) r) $ by { rintros ⟨a⟩ ⟨b⟩, exact (smul.aux r).map_add a b }
 
-protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
-  r • (x + y) = r • x + r • y :=
-is_add_hom.map_add _ _ _
+local attribute [simp]
+protected lemma coe_smul_hom (r : R) : ⇑(tensor_product.smul_hom r : M ⊗[R] N →+ _) = ((•) r) := rfl
 
-instance : module R (M ⊗ N) := module.of_core
-{ smul := (•),
-  smul_add := tensor_product.smul_add,
-  add_smul := begin
-      intros r s x,
-      apply quotient_add_group.induction_on' x,
-      intro z,
-      symmetry,
-      refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
-      { simp [tensor_product.smul_add, add_comm, add_left_comm] },
-      rintro ⟨m, n⟩,
-      change (r • m) ⊗ₜ n + (s • m) ⊗ₜ n = ((r + s) • m) ⊗ₜ n,
-      rw [add_smul, add_tmul]
-    end,
-  mul_smul := begin
-      intros r s x,
-      apply quotient_add_group.induction_on' x,
-      intro z,
-      symmetry,
-      refine @free_abelian_group.lift.unique _ _ _ _ _
-        (is_add_group_hom.mk' $ λ p q, _) _ z,
-      { simp [tensor_product.smul_add] },
-      rintro ⟨m, n⟩,
-      change r • s • (m ⊗ₜ n) = ((r * s) • m) ⊗ₜ n,
-      rw mul_smul, refl
-    end,
-  one_smul := λ x, quotient.induction_on x $ λ _,
-    eq.symm $ free_abelian_group.lift.unique _ _ $ λ ⟨p, q⟩,
-    by rw one_smul; refl }
+lemma smul_tmul' (r : R) (x : M) (y : N) : r • (x ⊗ₜ[R] y) = (r • x) ⊗ₜ y := rfl
 
 @[simp] lemma tmul_smul (r : R) (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
+
+instance : module R (M ⊗ N) := module.of_core
+{ smul := (•),
+  smul_add := λ r, (tensor_product.smul_hom r).map_add,
+  add_smul := begin
+      rintros r s ⟨x⟩,
+      suffices : smul.aux (r + s) = smul.aux r + smul.aux s,
+      { exact add_monoid_hom.ext_iff.1 this x },
+      ext x,
+      simp [smul.aux, add_smul, add_tmul]
+    end,
+  mul_smul := begin
+      rintros r s ⟨x⟩,
+      change smul.aux (r * s) x = (tensor_product.smul_hom r) (smul.aux s x),
+      simp [smul.aux, free_abelian_group.hom_map_lift, (∘), mul_smul, smul_tmul']
+    end,
+  one_smul := λ x, quotient.induction_on x $ λ _,
+    eq.symm $ free_abelian_group.lift_unique' _ (quotient_add_group.coe_add _) $ λ ⟨p, q⟩,
+    by rw one_smul; refl }
 
 variables (R M N)
 def mk : M →ₗ N →ₗ M ⊗ N :=
@@ -265,11 +249,9 @@ section UMP
 variables {M N P Q}
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
-local attribute [instance] free_abelian_group.lift.is_add_group_hom
-
 def lift_aux : (M ⊗[R] N) → P :=
 quotient_add_group.lift _
-  (free_abelian_group.lift $ λ z, f z.1 z.2) $ λ x hx,
+  (free_abelian_group.lift $ λ (z : M × N), f z.1 z.2) $ λ x hx,
 begin
   refine (is_add_group_hom.mem_ker _).1 (add_group.closure_subset _ hx),
   clear hx x, rintro x (⟨m₁, m₂, n, rfl⟩ | ⟨m, n₁, n₂, rfl⟩ | ⟨q, m, n, rfl⟩);
@@ -278,10 +260,8 @@ begin
 end
 variable {f}
 
-local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
-
 @[simp] lemma lift_aux.add (x y) : lift_aux f (x + y) = lift_aux f x + lift_aux f y :=
-quotient.induction_on₂ x y $ λ m n, free_abelian_group.lift.add _ _ _
+quotient.induction_on₂ x y $ λ m n, add_monoid_hom.map_add _ _ _
 
 @[simp] lemma lift_aux.smul (r:R) (x) : lift_aux f (r • x) = r • lift_aux f x :=
 tensor_product.induction_on _ _ x (smul_zero _).symm
@@ -306,8 +286,8 @@ theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) 
   g = lift f :=
 linear_map.ext $ λ z, begin
   apply quotient_add_group.induction_on' z,
-  intro z,
-  refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
+  intro z',
+  refine @free_abelian_group.lift_unique' _ _ _ _ _ _ _ z',
   { simp [g.2] },
   exact λ ⟨m, n⟩, H m n
 end
@@ -329,9 +309,6 @@ by rw ← lift_mk_compr₂ h; exact lift.unique H
 theorem mk_compr₂_inj {g h : M ⊗ N →ₗ P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
-
-example : M → N → (M → N → P) → P :=
-λ m, flip $ λ f, f m
 
 variables (R M N P)
 def uncurry : (M →ₗ N →ₗ[R] P) →ₗ M ⊗ N →ₗ P :=

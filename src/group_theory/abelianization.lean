@@ -24,10 +24,10 @@ quotient_group.quotient $ commutator α
 
 namespace abelianization
 
-local attribute [instance] quotient_group.left_rel normal_subgroup.to_is_subgroup
+local attribute [instance] normal_subgroup.to_is_subgroup
 
 instance : comm_group (abelianization α) :=
-{ mul_comm := λ x y, quotient.induction_on₂ x y $ λ a b, quotient.sound
+{ mul_comm := λ x y, quotient.induction_on₂' x y $ λ a b, quotient.sound'
     (group.subset_normal_closure ⟨b⁻¹,a⁻¹, by simp [mul_inv_rev, inv_inv, mul_assoc]⟩),
 .. quotient_group.group _}
 
@@ -35,25 +35,26 @@ instance : inhabited (abelianization α) := ⟨1⟩
 
 variable {α}
 
-def of (x : α) : abelianization α :=
-quotient.mk x
-
-instance of.is_group_hom : is_group_hom (@of α _) :=
-{ map_mul := λ _ _, rfl }
+/-- Quotient map `α →* abelianization α`. -/
+def of : α →* abelianization α :=
+{ to_fun := λ x, (x : quotient_group.quotient $ commutator α),
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 section lift
 
-variables {β : Type v} [comm_group β] (f : α → β) [is_group_hom f]
+variables {β : Type v} [comm_group β] (f : α →* β)
 
 lemma commutator_subset_ker : commutator α ⊆ is_group_hom.ker f  :=
 group.normal_closure_subset (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
   (by {rw ←w, simp [is_mul_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
 
-def lift : abelianization α → β :=
-quotient_group.lift _ f (λ x h, (is_group_hom.mem_ker f).1 (commutator_subset_ker f h))
-
-instance lift.is_group_hom : is_group_hom (lift f) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
+def lift : (α →* β) ≃ (abelianization α →* β) :=
+{ to_fun := λ f, monoid_hom.of $ quotient_group.lift _ f
+      (λ x h, (is_group_hom.mem_ker f).1 (commutator_subset_ker f h)),
+  inv_fun := λ f, f.comp of,
+  left_inv := λ f, by { ext, simp [of] },
+  right_inv := λ f, by { ext ⟨x⟩, refl } }
 
 @[simp] lemma lift.of (x : α) : lift f (of x) = f x :=
 rfl

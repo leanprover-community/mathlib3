@@ -20,7 +20,7 @@ instance : inhabited (free_ring α) := ⟨0⟩
 
 variables {α}
 def of (x : α) : free_ring α :=
-free_abelian_group.of [x]
+free_abelian_group.of $ free_monoid.of x
 
 @[elab_as_eliminator] protected lemma induction_on
   {C : free_ring α → Prop} (z : free_ring α)
@@ -39,8 +39,8 @@ section lift
 
 variables {β : Type v} [ring β] (f : α → β)
 
-def lift : free_ring α → β :=
-free_abelian_group.lift $ λ L, (list.map f L).prod
+def lift : (α → β) ≃ (free_ring α →+* β) :=
+free_monoid.lift.trans _
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
 

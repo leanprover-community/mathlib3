@@ -81,7 +81,7 @@ def lift : (α → M) ≃ (free_monoid α →* M) :=
 lemma lift_apply (f : α → M) (l : list α) : lift f l = (l.map f).prod := rfl
 
 @[to_additive]
-lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := (lift α M).symm_apply_apply f
+lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := lift.symm_apply_apply f
 
 @[simp, to_additive]
 lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x :=

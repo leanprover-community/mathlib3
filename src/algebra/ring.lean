@@ -7,7 +7,6 @@ import algebra.group.hom
 import algebra.group.units
 import tactic.norm_cast
 import tactic.split_ifs
-import algebra.group.units
 
 /-!
 # Properties and homomorphisms of semirings and rings

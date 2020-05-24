@@ -1050,7 +1050,7 @@ lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:�
 by rw [closure_singleton_eq, mem_mrange]; refl
 
 @[to_additive]
-lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift s M coe).mrange :=
+lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift coe).mrange :=
 by rw [mrange, ← free_monoid.closure_range_of, map_mclosure,
   ← set.range_comp, free_monoid.lift_comp_of, set.range_coe_subtype]
 

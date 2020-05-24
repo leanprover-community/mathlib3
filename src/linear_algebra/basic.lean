@@ -1141,9 +1141,35 @@ lemma span_inl_union_inr {s : set M} {t : set M₂} :
   span R (prod.inl '' s ∪ prod.inr '' t) = (span R s).prod (span R t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
-lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
+@[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   ker (prod f g) = ker f ⊓ ker g :=
 by rw [ker, ← prod_bot, comap_prod_prod]; refl
+
+lemma range_prod_le (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
+  range (prod f g) ≤ (range f).prod (range g) :=
+begin
+  simp only [le_def', prod_apply, mem_range, mem_coe, mem_prod, exists_imp_distrib],
+  rintro _ x rfl,
+  exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
+end
+
+/-- If the union of the kernels `ker f` and `ker g` spans the domain, then range of
+`prod f g` is equal to the product of `range f` and `range g`. -/
+lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (prod f g) = (range f).prod (range g) :=
+begin
+  refine le_antisymm (f.range_prod_le g) _,
+  simp only [le_def', prod_apply, mem_range, mem_coe, mem_prod, exists_imp_distrib, and_imp,
+    prod.forall],
+  rintros _ _ x rfl y rfl,
+  simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
+  have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
+  rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
+  refine ⟨x' + x, _, _⟩,
+  { rwa add_sub_cancel },
+  { rwa [← eq_sub_iff_add_eq.1 H, add_sub_add_right_eq_sub, ← neg_mem_iff, neg_sub,
+      add_sub_cancel'] }
+end
 
 end linear_map
 

@@ -376,7 +376,7 @@ instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] 
   complete_space f.ker :=
 f.is_closed_ker.complete_space_coe
 
-lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+@[simp] lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
   ker (f.prod g) = ker f ⊓ ker g :=
 linear_map.ker_prod f g
 
@@ -385,6 +385,14 @@ def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).rang
 
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
+
+lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  range (f.prod g) ≤ (range f).prod (range g) :=
+(f : M →ₗ[R] M₂).range_prod_le g
+
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (f.prod g) = (range f).prod (range g) :=
+linear_map.range_prod_eq h
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :

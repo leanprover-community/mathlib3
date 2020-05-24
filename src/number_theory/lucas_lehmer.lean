@@ -17,7 +17,8 @@ open nat (prime)
 
 /- Additions to Mathlib -/
 
-lemma zero_not_mem_range_coe_units (R : Type*) [nonzero_semiring R] : (0 : R) ∉ set.range (coe : units R → R) :=
+lemma zero_not_mem_range_coe_units (R : Type*) [nonzero_semiring R] :
+  (0 : R) ∉ set.range (coe : units R → R) :=
 begin
   rintro ⟨⟨v,w',h,h'⟩, a⟩,
   dsimp at a,
@@ -28,12 +29,9 @@ end
 open finset
 open_locale classical
 
-lemma mem_range_of_mem_image_univ {α β : Type*} [fintype α] {f : α → β} {b : β} (w : b ∈ image f univ) : b ∈ set.range f :=
-begin
-  simp at w,
-  obtain ⟨a, rfl⟩ := w,
-  use a,
-end
+lemma mem_image_univ_iff_mem_range
+  {α β : Type*} [fintype α] {f : α → β} {b : β} : b ∈ image f univ ↔ b ∈ set.range f :=
+by simp
 
 lemma card_lt_card_of_injective_of_not_mem
   {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
@@ -42,7 +40,7 @@ calc
   fintype.card α = (univ : finset α).card : rfl
 ... = (image f univ).card : (card_image_of_injective univ h).symm
 ... < (insert b (image f univ)).card :
-        card_lt_card (ssubset_insert (mt mem_range_of_mem_image_univ w))
+        card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
 ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
 ... = fintype.card β : rfl
 
@@ -92,14 +90,16 @@ begin
   { exact two_not_dvd_odd a, }
 end
 
--- The square of the smallest prime factor of a natural number n is less than or equal to n.
-lemma min_fac_sq (n : ℕ) (h_1 : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+/--
+The square of the smallest prime factor of a composite number n is at most n.
+-/
+lemma min_fac_sq_le_self (n : ℕ) (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
 begin
-  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div h_1 h,
+  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
   calc
-   (min_fac n)^2 = (min_fac n) *(min_fac n) :  by exact pow_two (min_fac n)
-             ... ≤ (n/min_fac n)* (min_fac n) : by exact mul_le_mul_right (min_fac n) t
-             ... ≤ n : by exact div_mul_le_self n (min_fac n)
+   (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+             ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
+             ... ≤ n                           : div_mul_le_self n (min_fac n)
 end
 
 @[simp]
@@ -113,6 +113,7 @@ begin
     norm_num at this, },
   { rintro rfl, refl, }
 end
+
 @[simp]
 lemma min_fac_eq_two_iff (n : ℕ) : min_fac n = 2 ↔ 2 ∣ n :=
 begin
@@ -240,24 +241,30 @@ def s_mod (p : ℕ) : ℕ → ℤ
 | 0 := 4 % (2^p - 1)
 | (i+1) := ((s_mod i)^2 - 2) % (2^p - 1)
 
+lemma Mersenne_int_ne_zero (p : ℕ) (w : 0 < p) : (2^p - 1 : ℤ) ≠ 0 :=
+begin
+  apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
+  exact_mod_cast nat.one_lt_two_pow p w,
+end
+
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
   { trivial, },
-  { apply int.mod_nonneg, apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
-    have := nat.one_lt_two_pow p w,
-    have : ((1 : ℕ) : ℤ) < ((2^p : ℕ) : ℤ) := int.lt_to_nat.mp this,
-    push_cast at this,
-    exact this, },
+  { apply int.mod_nonneg, exact Mersenne_int_ne_zero p w },
 end
+
+lemma s_mod_mod (p i : ℕ) : s_mod p i % (2^p - 1) = s_mod p i :=
+by cases i; { dsimp [s_mod], simp, }
 
 lemma s_mod_lt (p : ℕ) (w : 0 < p) (i : ℕ) : s_mod p i < 2^p - 1 :=
 begin
-  cases i; dsimp [s_mod],
-  sorry,
+  rw ←s_mod_mod,
   convert int.mod_lt _ _,
-  sorry,
-  sorry,
+  { refine (abs_of_nonneg _).symm,
+    simp only [sub_nonneg, ge_iff_le],
+    exact_mod_cast nat.one_le_two_pow p, },
+  { exact Mersenne_int_ne_zero p w, },
 end
 
 lemma s_zmod_eq_s (p : ℕ) (w : 1 < p) (i : ℕ) : s_zmod p i = (s i : zmod (2^p - 1)):=
@@ -320,8 +327,9 @@ begin
     simp at h,
     apply int.eq_zero_of_dvd_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
-    sorry,
-    },
+    convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
+    simp only [nat.one_le_two_pow p] with push_cast,
+    refl, },
   { intro h, rw h, simp, },
 end
 
@@ -675,7 +683,7 @@ begin
   contrapose,
   intros a t,
   have h₁ := order_ineq p w t,
-  have h₂ := nat.min_fac_sq (M p) (M_pos (nat.lt_of_succ_lt w)) a,
+  have h₂ := nat.min_fac_sq_le_self (M p) (M_pos (nat.lt_of_succ_lt w)) a,
   dsimp [q] at h₁,
   have h := lt_of_lt_of_le h₁ h₂,
   dsimp [M] at h,

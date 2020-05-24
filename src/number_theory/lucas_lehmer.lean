@@ -4,14 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Reid Barton, Bhavik Mehta, Scott Morrison, Ainsley Pahljina
 -/
 import data.nat.prime
-import data.nat.basic
 import data.zmod.basic
-import tactic
 import algebra.pi_instances
 import group_theory.order_of_element
-import data.rat.basic
-import tactic.interactive
-import data.multiset
+import ring_theory.fintype
 
 open nat (prime)
 
@@ -557,7 +553,7 @@ begin
     rw h_6 at h_7, cases h_7, cases h_7_a,
     rw h_6 at h_7, cases h_7, cases h_7_a, cases h_7_a_a, },
   { rw ←t,
-    apply order_of_dvd_iff.2,
+    apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
     simp,
     exact (suff_squared _ w h), }

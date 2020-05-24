@@ -678,14 +678,14 @@ end
 by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace well_founded
-/-- If `r` is a well-founded relation, then any nonempty set has a minimum element
+/-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
 | ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- The minimum element of a nonempty set in a well-founded order -/
+/-- A minimal element of a nonempty set in a well-founded order -/
 noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
@@ -710,7 +710,7 @@ min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
 section
 open_locale classical
-/-- The successor of an element `x` in a well-founded order is the minimum element `y` such that
+/-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x

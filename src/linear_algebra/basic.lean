@@ -1154,7 +1154,7 @@ begin
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
 end
 
-/-- If the union of the kernels `ker f` and `ker g` spans the domain, then range of
+/-- If the union of the kernels `ker f` and `ker g` spans the domain, then the range of
 `prod f g` is equal to the product of `range f` and `range g`. -/
 lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
   range (prod f g) = (range f).prod (range g) :=

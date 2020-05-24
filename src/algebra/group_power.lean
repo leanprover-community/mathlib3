@@ -407,12 +407,6 @@ variables [semiring R] [semiring S]
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 f.to_monoid_hom.map_pow a
 
-variable (f : R →+* R)
-
-lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
-| 0 := rfl
-| (n+1) := by { simp only [nat.iterate_succ, pow_succ', coe_mul, coe_pow n] }
-
 end ring_hom
 
 lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :

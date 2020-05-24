@@ -2,14 +2,17 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau, Joey van Langen, Casper Putz
-
-Characteristic of semirings.
 -/
 
 import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
 import algebra.module
+import algebra.iterate_hom
+
+/-!
+# Characteristic of semirings
+-/
 
 universes u v
 
@@ -122,7 +125,7 @@ g.map_pow x p
 
 theorem monoid_hom.map_iterate_frobenius (n : ℕ) :
   f (frobenius R p^[n] x) = (frobenius S p^[n] (f x)) :=
-(nat.iterate₁ $ λ x, (f.map_frobenius p x).symm).symm
+function.semiconj.iterate_right (f.map_frobenius p) n x
 
 theorem ring_hom.map_iterate_frobenius (n : ℕ) :
   g (frobenius R p^[n] x) = (frobenius S p^[n] (g x)) :=

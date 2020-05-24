@@ -107,11 +107,11 @@ open nat
 
 /- Defining the Mersenne Numbers -/
 
-def M (p : ℕ) : ℕ := 2^p - 1
+def Mersenne (p : ℕ) : ℕ := 2^p - 1
 
-lemma M_pos {p : ℕ} (h : 0 < p) : 0 < M p :=
+lemma Mersenne_pos {p : ℕ} (h : 0 < p) : 0 < Mersenne p :=
 begin
-  dsimp [M],
+  dsimp [Mersenne],
   calc 0 < 2^1 - 1 : by norm_num
      ... ≤ 2^p - 1 : nat.pred_le_pred (pow_le_pow_of_le_right (succ_pos 1) h)
 end
@@ -226,12 +226,14 @@ end
 @[derive decidable_pred]
 def Lucas_Lehmer_test (p : ℕ) := Lucas_Lehmer_residue p = 0
 
--- q is defined as the minimum factor of (M p)
-def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (M p), by exact nat.min_fac_pos (M p)⟩
+/-- `q` is defined as the minimum factor of `Mersenne p`, bundled as an `ℕ+`. -/
+def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (Mersenne p), nat.min_fac_pos (Mersenne p)⟩
 
-/- X q : the group of tuples (a,b) taken modulo q, of the form a + 3^(1/2) b -/
+instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
+q.2
 
-@[derive [add_comm_group, decidable_eq]]
+/-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
+@[derive [add_comm_group, decidable_eq, fintype]]
 def X (q : ℕ+) := (zmod q) × (zmod q)
 
 namespace X
@@ -294,52 +296,6 @@ instance [fact (1 < (q : ℕ))] : nonzero_comm_ring (X q) :=
 { zero_ne_one := λ h, begin injection h, exact @zero_ne_one (zmod q) _ h_1, end,
   ..(infer_instance : comm_ring (X q)) }
 
-instance fintype_zmod_pnat : fintype (zmod q) :=
-begin
-  rcases q with ⟨q,p⟩, cases q,
-  { exfalso, cases p, },
-  { dsimp [zmod],
-    apply_instance, },
-end
-
-instance fintype_X : fintype (X q) :=
-begin
-  dsimp [X],
-  apply_instance,
-end
-
-instance fact_pnat_pos : fact ((0 : ℕ) < q) :=
-q.2
-
-/-- The cardinality of the group `zmod q` is q. -/
-lemma fin_zmod : fintype.card (zmod q) = q :=
-by convert zmod.card q
-
-/-- The cardinality of X is q^2. -/
-lemma X_card : fintype.card (X q) = q^2 :=
-begin
-  dsimp [X],
-  simp only [fintype.card_prod, fin_zmod],
-  ring,
-end
-
-
--- For the purpose of this we do not need to produce the list of units so leave as non-computable
-noncomputable instance fintype_units : fintype (units (X q)) :=
-fintype.of_injective (coe : units (X q) → (X q)) units.ext
-
-/- The cardinality of the units is less than q^2.
-Mathematically the cardinality of the units will be
-less than or equal to the cardinality of X q. However 0 in X q,
-is a known element without an inverse, thus the inequality holds.
--/
-lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
-begin
-  haveI : fact (1 < (q : ℕ)) := w,
-  convert card_units_lt (X q),
-  rw X_card,
-end
-
 @[simp]
 lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=
 begin
@@ -370,7 +326,25 @@ by { ext; simp; ring }
 lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
 by { ext; simp, }
 
+/-- The cardinality of `X` is `q^2`. -/
+lemma X_card : fintype.card (X q) = q^2 :=
+begin
+  dsimp [X],
+  rw [fintype.card_prod, zmod.card q],
+  ring,
+end
+
+/-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
+lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
+begin
+  haveI : fact (1 < (q : ℕ)) := w,
+  convert card_units_lt (X q),
+  rw X_card,
+end
+
+/-- We define `ω = 2 + √3`. -/
 def ω : X q := (2, 1)
+/-- We define `ωb = 2 - √3`, which is the inverse of `ω`. -/
 def ωb : X q := (2, -1)
 
 lemma ω_mul_ωb (q : ℕ+): (ω : X q) * ωb = 1 :=
@@ -385,8 +359,7 @@ begin
   ext; simp; ring,
 end
 
-/- Closed form solution for the recurrence relation -/
-
+/-- A closed form for the recurrence relation. -/
 lemma closed_form (i : ℕ) : (s i : X q) = (ω : X q)^(2^i) + (ωb : X q)^(2^i) :=
 begin
   induction i with i ih,
@@ -405,30 +378,32 @@ end
 end X
 
 open X
-section residue_zero
 
+/-!
+Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction in ℕ.
+-/
 
-
-/-- If 1 < p, then `q p`, the smallest prime factor of `M p`, is more than 2. -/
+/-- If 1 < p, then `q p`, the smallest prime factor of `Mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction,
   simp at a,
   interval_cases q (p'+2); clear a,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
-    simp [M] at h',
+    simp [Mersenne] at h',
     exact lt_irrefl 2
     (calc 2 ≤ p'+2    : nat.le_add_left _ _
       ...  < 2^(p'+2) : nat.lt_two_pow _
       ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
-    rw [M, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
+    rw [Mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
     exact nat.two_not_dvd_odd' (2^(p'+1)) (nat.one_le_two_pow _) h', }
 end
 
 theorem ω_pow_formula (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
-  ∃ (k : ℤ), (ω : X (q (p'+2)))^(2^(p'+1)) = k * (M (p'+2)) * ((ω : X (q (p'+2)))^(2^p')) - 1 :=
+  ∃ (k : ℤ), (ω : X (q (p'+2)))^(2^(p'+1)) =
+    k * (Mersenne (p'+2)) * ((ω : X (q (p'+2)))^(2^p')) - 1 :=
 begin
   dsimp [Lucas_Lehmer_residue] at h,
   rw s_zmod_eq_s p' at h,
@@ -448,10 +423,10 @@ begin
   exact_mod_cast h,
 end
 
-/-- `q` is the minimum factor of M p, so `M p = 0` in `X q`. -/
-theorem Mersenne_coe_X (p : ℕ) : (M p : X (q p)) = 0 :=
+/-- `q` is the minimum factor of Mersenne p, so `M p = 0` in `X q`. -/
+theorem Mersenne_coe_X (p : ℕ) : (Mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [M, q],
+  ext; simp [Mersenne, q],
   apply nat.min_fac_dvd,
 end
 
@@ -463,13 +438,12 @@ begin
   simpa using w,
 end
 
-lemma nat.succ_pred (n : ℕ) (w : 0 < n) : (n - 1) + 1 = n := nat.pred_inj (nat.succ_pos _) w rfl
-
 theorem ω_pow_eq_one (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
-calc (ω : X (q (p'+2)))^2^(p'+2) = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one]
-         ... = (-1)^2 : by rw ω_pow_eq_neg_one p' h
-         ... = 1      : by simp
+calc (ω : X (q (p'+2)))^2^(p'+2)
+        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one]
+    ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
+    ... = 1                : by simp
 
 def ω_unit (p : ℕ) : units (X (q p)) :=
 { val := ω,
@@ -504,9 +478,7 @@ calc 2^(p'+2) = order_of (ω_unit (p'+2)) : (order_ω p' h).symm
      ... ≤ fintype.card (units (X _))    : order_of_le_card_univ
      ... < (q (p'+2) : ℕ)^2              : units_card (nat.lt_of_succ_lt (two_lt_q _))
 
-end residue_zero
-
-theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_test p → prime (M p) :=
+theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_test p → prime (Mersenne p) :=
 begin
   let p' := p - 2,
   have z : p = p' + 2 := (nat.sub_eq_iff_eq_add w).mp rfl,
@@ -516,13 +488,13 @@ begin
   rw z at a,
   rw z at t,
   have h₁ := order_ineq p' t,
-  have h₂ := nat.min_fac_sq_le_self (M (p'+2)) (M_pos (nat.lt_of_succ_lt w)) a,
+  have h₂ := nat.min_fac_sq_le_self (Mersenne (p'+2)) (Mersenne_pos (nat.lt_of_succ_lt w)) a,
   have h := lt_of_lt_of_le h₁ h₂,
   exact not_lt_of_ge (nat.sub_le _ _) h,
 end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.
-example : prime (M 5) := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
+example : prime (Mersenne 5) := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
 
 -- Next we switch to trying to use `norm_num` to calculate each `s p i`.
 
@@ -536,7 +508,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, M], rw [h1, h2, pow_two, h3] }
+by { dsimp [s_mod, Mersenne], rw [h1, h2, pow_two, h3] }
 
 meta def run_Lucas_Lehmer_test : tactic unit :=
 do `(Lucas_Lehmer_test %%p) ← target,
@@ -561,18 +533,30 @@ do `(Lucas_Lehmer_test %%p) ← target,
    h ← get_local `h,
    exact h
 
-example : prime (M 5) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
+example : prime (Mersenne 5) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
 
 -- Unfortunately this doesn't actually work yet, as we get:
 -- deep recursion was detected at 'replace' (potential solution: increase stack space in your system)Lean
 lemma Lucas_Lehmer_test_7 : Lucas_Lehmer_test 7 := by run_Lucas_Lehmer_test
--- example : prime (M 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
+-- example : prime (Mersenne 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by run_Lucas_Lehmer_test).
 
 -- If we get that sorted out, there's still a much faster method of doing these calculations,
 -- based on the formula
 --   n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
 -- and the fact that `% 2^p` and `/ 2^p` are very efficient on the binary representation.
 -- Someone should do this, too!
+
+example (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
+-- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
+begin
+  conv in k {rw [← nat.mod_add_div k (2^n), add_comm]},
+  refine nat.modeq.modeq_add _ (by refl),
+  conv {congr, skip, skip, rw ← one_mul (k/2^n)},
+  refine nat.modeq.modeq_mul _ (by refl),
+  symmetry,
+  rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],
+  exact nat.pow_pos dec_trivial _
+end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.
 -- In the purely computational world, it's the squaring operation in `s`.

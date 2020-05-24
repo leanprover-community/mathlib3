@@ -17,7 +17,7 @@ Some simple translation lemmas between the different structures used for the com
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-/-- Fix a discrete linear order floor field and a value `v`. -/
+/-- Fix a discrete linear ordered floor field and a value `v`. -/
 variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K] {v : K}
 
 namespace int_fract_pair

@@ -58,7 +58,7 @@ section coe
 /- Fix another type `β` and assume `K` can be converted to `β`. -/
 variables {β : Type*} [has_coe K β]
 
-/-- Coerce a pair by coercion the fractional component. -/
+/-- Coerce a pair by coercing the fractional component. -/
 instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
 ⟨λ ⟨b, fr⟩, ⟨b, (fr : β)⟩⟩
 

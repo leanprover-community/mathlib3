@@ -21,7 +21,7 @@ This process stops when the fractional part hits 0.
 
 In other words: to calculate a continued fraction representation of a number `v`, write down the
 integer part (i.e. the floor) of `v`. Subtract this integer part from `v`. If the difference is 0,
-stop; otherwise find the reciprocal of the difference and repeat. The procedure will termiante if
+stop; otherwise find the reciprocal of the difference and repeat. The procedure will terminate if
 and only if `v` is rational.
 
 For an example, refer to `int_fract_pair.stream`.

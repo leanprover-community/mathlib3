@@ -94,6 +94,9 @@ lift.apply_symm_apply f
 lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift f) = lift (g ∘ f) :=
 by { ext, simp }
 
+lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
+monoid_hom.ext_iff.1 (comp_lift g f) x
+
 /-- The unique monoid homomorphism `free_monoid α →* free_monoid β` that sends
 each `of x` to `of (f x)`. -/
 @[to_additive "The unique additive monoid homomorphism `free_add_monoid α →+ free_add_monoid β`

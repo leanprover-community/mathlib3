@@ -355,7 +355,7 @@ begin
 end
 
 @[push_cast]
-lemma int_mod_coe_zmod_self (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
+lemma cast_mod_int (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,

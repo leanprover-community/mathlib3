@@ -14,8 +14,7 @@ import data.list.basic
 * `free_monoid α`: free monoid over alphabet `α`; defined as a synonym for `list α`
   with multiplication given by `(++)`.
 * `free_monoid.of`: embedding `α → free_monoid α` sending each element `x` to `[x]`;
-* `free_monoid.lift`: natural equivalence between `α → M` and `free_monoid α →* M`;
-  for technical reasons `α` and `M` are explicit arguments;
+* `free_monoid.lift`: natural equivalence between `α → M` and `free_monoid α →* M`
 * `free_monoid.map`: embedding of `α → β` into `free_monoid α →* free_monoid β` given by `list.map`.
 -/
 

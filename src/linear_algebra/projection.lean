@@ -22,9 +22,44 @@ We also provide some lemmas justifying correctness of our definitions.
 projection, complement subspace
 -/
 
-variables {R : Type*} {E : Type*} [ring R] [add_comm_group E] [module R E] (p q : submodule R E)
+variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
+  {F : Type*} [add_comm_group F] [module R F]
+  {G : Type*} [add_comm_group G] [module R G] (p q : submodule R E)
 
 noncomputable theory
+
+namespace linear_map
+
+variable {p}
+
+open submodule
+
+lemma ker_id_sub_eq_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
+  ker (id - p.subtype.comp f) = p :=
+begin
+  ext x,
+  simp only [comp_apply, mem_ker, subtype_apply, sub_apply, id_apply, sub_eq_zero],
+  exact ⟨λ h, h.symm ▸ submodule.coe_mem _, λ hx, by erw [hf ⟨x, hx⟩, subtype.coe_mk]⟩
+end
+
+lemma range_eq_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
+  range f = ⊤ :=
+range_eq_top.2 $ λ x, ⟨x, hf x⟩
+
+lemma is_compl_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
+  is_compl p f.ker :=
+begin
+  split,
+  { rintros x ⟨hpx, hfx⟩,
+    erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
+    simp only [hfx, mem_coe, zero_mem] },
+  { intros x hx,
+    rw [mem_sup'],
+    refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
+    rw [mem_ker, linear_map.map_sub, hf, sub_self] }
+end
+
+end linear_map
 
 namespace submodule
 
@@ -105,7 +140,7 @@ by simp [linear_proj_of_is_compl]
 
 @[simp] lemma linear_proj_of_is_compl_range (h : is_compl p q) :
   (linear_proj_of_is_compl p q h).range = ⊤ :=
-by simp [linear_proj_of_is_compl, range_comp]
+range_eq_of_proj (linear_proj_of_is_compl_apply_left h)
 
 @[simp] lemma linear_proj_of_is_compl_apply_eq_zero_iff (h : is_compl p q) {x : E} :
   linear_proj_of_is_compl p q h x = 0 ↔ x ∈ q:=
@@ -140,47 +175,47 @@ variable {p}
 
 open submodule
 
-lemma ker_id_sub_eq_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
-  ker (id - p.subtype.comp f) = p :=
-begin
-  ext x,
-  simp only [comp_apply, mem_ker, subtype_apply, sub_apply, id_apply, sub_eq_zero],
-  exact ⟨λ h, h.symm ▸ submodule.coe_mem _, λ hx, by erw [hf ⟨x, hx⟩, subtype.coe_mk]⟩
-end
-
-lemma is_compl_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
-  is_compl p f.ker :=
-begin
-  split,
-  { rintros x ⟨hpx, hfx⟩,
-    erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
-    simp only [hfx, mem_coe, zero_mem] },
-  { intros x hx,
-    rw [mem_sup'],
-    refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
-    rw [mem_ker, linear_map.map_sub, hf, sub_self] }
-end
-
 @[simp] lemma linear_proj_of_is_compl_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
-  p.linear_proj_of_is_compl f.ker (f.is_compl_of_proj hf) = f :=
+  p.linear_proj_of_is_compl f.ker (is_compl_of_proj hf) = f :=
 begin
   ext x,
   have : x ∈ p ⊔ f.ker,
-  { simp only [(f.is_compl_of_proj hf).sup_eq_top, mem_top] },
+  { simp only [(is_compl_of_proj hf).sup_eq_top, mem_top] },
   rcases mem_sup'.1 this with ⟨x, y, rfl⟩,
   simp [hf]
 end
+
+/-- If `f : E →ₗ[R] F` and `g : E →ₗ[R] G` are two surjective linear maps and
+their kernels are complement of each other, then `x ↦ (f x, g x)` defines
+a linear equivalence `E ≃ₗ[R] F × G`. -/
+def equiv_prod_of_surjective_of_is_compl (f : E →ₗ[R] F) (g : E →ₗ[R] G) (hf : f.range = ⊤)
+  (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
+  E ≃ₗ[R] F × G :=
+linear_equiv.of_bijective (f.prod g) (by simp [hfg.inf_eq_bot])
+  (by simp [range_prod_eq hfg.sup_eq_top, *])
+
+@[simp] lemma coe_equiv_prod_of_surjective_of_is_compl {f : E →ₗ[R] F} {g : E →ₗ[R] G}
+  (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
+  (equiv_prod_of_surjective_of_is_compl f g hf hg hfg : E →ₗ[R] F × G) = f.prod g :=
+rfl
+
+@[simp] lemma equiv_prod_of_surjective_of_is_compl_apply {f : E →ₗ[R] F} {g : E →ₗ[R] G}
+  (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) (x : E):
+  equiv_prod_of_surjective_of_is_compl f g hf hg hfg x = (f x, g x) :=
+rfl
 
 end linear_map
 
 namespace submodule
 
-/-- Equivalence between submoddules `q` such that `is_compl p q` and linear maps `f : E →ₗ[R] p`
+open linear_map
+
+/-- Equivalence between submodules `q` such that `is_compl p q` and linear maps `f : E →ₗ[R] p`
 such that `∀ x : p, f x = x`. -/
 def is_compl_equiv_proj :
   {q // is_compl p q} ≃ {f : E →ₗ[R] p // ∀ x : p, f x = x} :=
 { to_fun := λ q, ⟨linear_proj_of_is_compl p q q.2, linear_proj_of_is_compl_apply_left q.2⟩,
-  inv_fun := λ f, ⟨(f : E →ₗ[R] p).ker, f.1.is_compl_of_proj f.2⟩,
+  inv_fun := λ f, ⟨(f : E →ₗ[R] p).ker, is_compl_of_proj f.2⟩,
   left_inv := λ ⟨q, hq⟩, by simp only [linear_proj_of_is_compl_ker, subtype.coe_mk],
   right_inv := λ ⟨f, hf⟩, subtype.eq $ f.linear_proj_of_is_compl_of_proj hf }
 

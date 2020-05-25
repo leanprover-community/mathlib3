@@ -628,6 +628,15 @@ begin
   rw [eq_span_singleton_of_principal I, generator_I_eq_zero, span_singleton_zero]
 end
 
+lemma invertible_of_principal (I : fractional_ideal g)
+[submodule.is_principal I.1] (h : I ≠ 0) :
+I * I⁻¹ = 1 :=
+begin
+  refine mul_inv_cancel_iff.mpr ⟨span_singleton (generator I.1)⁻¹, _⟩,
+  apply mul_generator_self_inv,
+  assumption
+end
+
 lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
   ∃ (a : K) (aI : ideal R), I = span_singleton a * aI :=
 begin

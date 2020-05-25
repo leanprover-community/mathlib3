@@ -964,6 +964,18 @@ by rw [ne.def, ← degree_eq_bot];
 by rw [coeff_mul, nat.antidiagonal_zero];
 simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
 
+lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
+begin
+  rw [is_unit_iff_dvd_one, is_unit_iff_dvd_one],
+  split,
+  { rintros ⟨g, hg⟩,
+    replace hg := congr_arg (eval 0) hg,
+    rw [eval_one, eval_mul, eval_C] at hg,
+    exact ⟨g.eval 0, hg⟩ },
+  { rintros ⟨y, hy⟩,
+    exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
+end
+
 end comm_semiring
 
 instance subsingleton [subsingleton R] [comm_semiring R] : subsingleton (polynomial R) :=

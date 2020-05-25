@@ -19,7 +19,8 @@ We construct a tactic `Lucas_Lehmer.run_test`, which iteratively certifies the a
 required to calculate the residue, and enables us to prove
 
 ```
-example : prime (Mersenne 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test)
+example : prime (Mersenne 127) :=
+Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test)
 ```
 
 ## TODO

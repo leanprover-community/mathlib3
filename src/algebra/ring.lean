@@ -33,7 +33,7 @@ notation is to use the bundled hom as a function via this coercion.
 
 There is no `semiring_hom` -- the idea is that `ring_hom` is used.
 The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
+`map_add` as well as `map_mul`; a separate constructor `x'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
 Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
@@ -47,7 +47,7 @@ is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, r
 domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
 universes u v w
-variable {α : Type u}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
@@ -219,7 +219,7 @@ lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : se
 
 namespace ring_hom
 
-variables {β : Type v} {γ : Type w} [rα : semiring α] [rβ : semiring β]
+variables [rα : semiring α] [rβ : semiring β]
 
 section
 include rα rβ
@@ -326,7 +326,7 @@ end ring_hom
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
 section comm_semiring
-variables [comm_semiring α] {a b c : α}
+variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
 instance comm_semiring_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
@@ -406,6 +406,9 @@ dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
 
 theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
 dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
+
+lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
+λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
 end comm_semiring
 

@@ -481,6 +481,14 @@ lemma div_mul_eq_div_mul_one_div' (a b c : G₀) :
       a / (b * c) = (a / b) * (1 / c) :=
 by rw [← div_div_eq_div_mul', ← div_eq_mul_one_div']
 
+/-- Dividing `a` by the result of dividing `a` by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
+begin
+  rw div_div_eq_mul_div',
+  exact mul_self_div_self a
+end
+
 lemma eq_of_mul_eq_mul_of_nonzero_left' {a b c : G₀} (h : a ≠ 0) (h₂ : a * b = a * c) : b = c :=
 by rw [← one_mul b, ← div_self' h, div_mul_eq_mul_div', h₂, mul_div_cancel_left' _ h]
 

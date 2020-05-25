@@ -39,8 +39,7 @@ include V
 
 open add_torsor
 
-/-- The distance defines a metric space structure on the affine
-space. -/
+/-- The distance defines a metric space structure on the torsor. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_add_torsor_is_metric_space : metric_space P :=
 { dist_self := begin

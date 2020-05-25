@@ -541,7 +541,7 @@ do na ← a.to_nat, nb ← b.to_nat,
 than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
 theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
 
-/-- Given `a : int`,`b : int` integral numerals, returns `(c, ⊢ a - b = c)`. -/
+/-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
 meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
 do (_, c, p) ← prove_sub ic a b,
   return (c, `(int_sub_hack).mk_app [a, b, c, p])

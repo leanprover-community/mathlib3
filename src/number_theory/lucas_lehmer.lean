@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Scott Morrison, Ainsley Pahljina
 -/
-import data.nat.prime
+
 import data.nat.parity
 import data.zmod.basic
-import algebra.pi_instances
 import group_theory.order_of_element
 import ring_theory.fintype
 
@@ -28,6 +27,12 @@ example : prime (Mersenne 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by Luc
 - Show reverse implication.
 - Speed up the calculations using `n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]`.
 - Find some bigger primes!
+
+## History
+
+This development began as a student project by Ainsley Pahljina,
+and was then cleaned up for mathlib by Scott Morrison.
+The tactic for certified computation of Lucas-Lehmer residues was provided by Mario Carneiro.
 -/
 
 /-- The Mersenne numbers, 2^p - 1. -/

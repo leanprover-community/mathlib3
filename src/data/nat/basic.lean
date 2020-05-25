@@ -931,23 +931,6 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 
-/-- If `1 < b`, then `b^k` divides `b^l` if and only if `k` is at most `l`. -/
-lemma pow_dvd_pow_iff_le {b k l : ℕ} (w : 1 < b) : b^k ∣ b^l ↔ k ≤ l :=
-begin
-  split,
-  { contrapose,
-    intro h,
-    rw [not_le] at h,
-    have lt : b^l < b^k := pow_right_strict_mono w h,
-    intro h',
-    have le : b^k ≤ b^l := le_of_dvd (pow_pos (lt_of_succ_lt w) l) h',
-    exact lt_le_antisymm lt le, },
-  { exact pow_dvd_pow b, },
-end
-
-lemma pow_dvd_pow_iff_le' {b k l : ℕ} : (b+2)^k ∣ (b+2)^l ↔ k ≤ l :=
-pow_dvd_pow_iff_le (nat.lt_of_sub_eq_succ rfl)
-
 lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
 strict_mono.le_iff_le (pow_right_strict_mono k)
 

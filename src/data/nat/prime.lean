@@ -408,20 +408,6 @@ begin
       rw e, exact pow_dvd_pow _ l } }
 end
 
-/-- If `1 < b`, then `b^k` divides `b^l` if and only if `k` is at most `l`. -/
-lemma pow_dvd_pow_iff_le {b k l : ℕ} (w : 1 < b) : b^k ∣ b^l ↔ k ≤ l :=
-begin
-  split,
-  { contrapose,
-    intro h,
-    rw [not_le] at h,
-    have lt : b^l < b^k := pow_right_strict_mono w h,
-    intro h',
-    have le : b^k ≤ b^l := le_of_dvd (pow_pos (lt_of_succ_lt w) l) h',
-    exact lt_le_antisymm lt le, },
-  { exact pow_dvd_pow b, },
-end
-
 /-- If `p` is prime, `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)` then `a = p^(k+1)` -/
 lemma eq_prime_pow_of_dvd_least_prime_pow
   {a p k : ℕ} (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
@@ -429,7 +415,7 @@ lemma eq_prime_pow_of_dvd_least_prime_pow
 begin
   rcases (dvd_prime_pow pp).1 h₂ with ⟨l, ⟨h, rfl⟩⟩,
   congr,
-  exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le (prime.one_lt pp))).1 h₁)),
+  exact le_antisymm h (not_le.1 ((not_congr (pow_le_iff_le_right (prime.one_lt pp))).1 h₁)),
 end
 
 section

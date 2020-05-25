@@ -1614,6 +1614,12 @@ lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∀ᶠ x in l₁, p (f x) :=
 hf h
 
+lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
+  {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)
+  (htendsto : tendsto g₂ fb fa) :
+  ∀ᶠ y in fb, g₁ y = g₂ y :=
+(htendsto.eventually hleft).mp $ hright.mono $ λ y hr hl, (congr_arg g₁ hr.symm).trans hl
+
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap

@@ -160,9 +160,6 @@ by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_tr
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
-@[simp] lemma nat_abs_pow_two (a : ℤ) : (a.nat_abs ^ 2 : ℤ) = a ^ 2 :=
-by rw [pow_two, int.nat_abs_mul_self', pow_two]
-
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq, sub_eq_neg_add]
 

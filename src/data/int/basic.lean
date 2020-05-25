@@ -172,7 +172,7 @@ lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 lemma nat_abs_lt_nat_abs_of_nonneg_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a < b) :
   a.nat_abs < b.nat_abs :=
 begin
-  lift b to ℕ using le_of_lt (lt_of_le_of_lt w₁ w₂),
+  lift b to ℕ using le_trans w₁ (le_of_lt w₂),
   lift a to ℕ using w₁,
   simpa using w₂,
 end

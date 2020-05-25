@@ -455,25 +455,18 @@ begin
       rw e, exact pow_dvd_pow _ l } }
 end
 
-/-- If `p` is prime, then `p^k` divides `p^l` implies that `k` is less than or equal to `l`. -/
-lemma prime_pow_dvd_prime_pow {p k l : ℕ} (pp : prime p) : p^k ∣ p^l ↔ k ≤ l :=
-begin
-  split,
-  { intro h,
-    rcases (dvd_prime_pow pp).1 h with ⟨m, ⟨h₁, h₂⟩⟩,
-    have t : k = m := pow_right_injective (prime.two_le pp) h₂,
-    subst t, exact h₁ },
-  { exact pow_dvd_pow p, },
-end
-
-/-- If `p` is prime, `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)` then `a = p^(k+1)` -/
+/--
+If `p` is prime,
+and `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)`
+then `a = p^(k+1)`.
+-/
 lemma eq_prime_pow_of_dvd_least_prime_pow
   {a p k : ℕ} (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
   a = p^(k+1) :=
 begin
   rcases (dvd_prime_pow pp).1 h₂ with ⟨l, ⟨h, rfl⟩⟩,
   congr,
-  exact le_antisymm h (not_le.1 ((not_congr (prime_pow_dvd_prime_pow pp)).1 h₁)),
+  exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le_right (prime.one_lt pp))).1 h₁)),
 end
 
 section

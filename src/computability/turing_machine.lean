@@ -653,6 +653,10 @@ theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
   (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
 h _ (trans_gen.single h₂)
 
+/-- (co-)Induction principle for `eval`. If a property `C` holds of any point `a` evaluating to `b`
+which is either terminal (meaning `a = b`) or where the next point also satisfies `C`, then it
+holds of any point where `eval f a` evaluates to `b`. This formalizes the notion that if
+`eval f a` evaluates to `b` then it reaches terminal state `b` in finitely many steps. -/
 @[elab_as_eliminator] def eval_induction {σ}
   {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
   (H : ∀ a, b ∈ eval f a →

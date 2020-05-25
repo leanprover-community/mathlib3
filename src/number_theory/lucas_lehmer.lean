@@ -131,7 +131,7 @@ begin
   { -- We want to use that fact that `0 ≤ s_mod p (p-2) < 2^p - 1`
     -- and `Lucas_Lehmer_residue p = 0 → 2^p - 1 ∣ s_mod p (p-2)`.
     intro h,
-    simp at h,
+    simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
     convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
@@ -328,7 +328,7 @@ theorem ω_pow_formula (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
 begin
   dsimp [Lucas_Lehmer_residue] at h,
   rw s_zmod_eq_s p' at h,
-  simp at h,
+  simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
   cases h with k h,
   use k,
   replace h := congr_arg (λ (n : ℤ), (n : X (q (p'+2)))) h, -- coercion from ℤ to X q
@@ -347,7 +347,7 @@ end
 /-- `q` is the minimum factor of Mersenne p, so `M p = 0` in `X q`. -/
 theorem Mersenne_coe_X (p : ℕ) : (Mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [Mersenne, q],
+  ext; simp [Mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
   apply nat.min_fac_dvd,
 end
 

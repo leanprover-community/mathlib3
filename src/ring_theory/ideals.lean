@@ -164,6 +164,7 @@ theorem is_coprime_self {x : α} :
   is_coprime x x ↔ is_unit x :=
 by rw [← span_singleton_eq_top]; simp [is_coprime]
 
+/- an indexed set of elements that are pairwise coprime -/
 def pairwise_coprime {α : Type u} [comm_ring α] {I : Type v} (s : I → α) : Prop :=
 ∀ i j : I, i ≠ j → is_coprime (s i) (s j)
 

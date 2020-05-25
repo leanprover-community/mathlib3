@@ -22,6 +22,12 @@ required to calculate the residue, and enables us to prove
 ```
 example : prime (Mersenne 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test)
 ```
+
+## TODO
+
+- Show reverse implication.
+- Speed up the calculations using `n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]`.
+- Find some bigger primes!
 -/
 
 /-- The Mersenne numbers, 2^p - 1. -/

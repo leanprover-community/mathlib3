@@ -931,7 +931,6 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 
-
 lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
 strict_mono.le_iff_le (pow_right_strict_mono k)
 

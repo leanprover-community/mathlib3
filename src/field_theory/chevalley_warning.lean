@@ -169,7 +169,7 @@ begin
   show (1 - f i ^ (q - 1)).total_degree ≤ (q - 1) * (f i).total_degree,
   calc (1 - f i ^ (q - 1)).total_degree
           ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
-      ... ≤ (f i ^ (fintype.card K - 1)).total_degree :
+      ... ≤ (f i ^ (q - 1)).total_degree :
             by simp only [max_eq_right, nat.zero_le, total_degree_one]
       ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end

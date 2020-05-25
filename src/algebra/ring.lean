@@ -33,7 +33,7 @@ notation is to use the bundled hom as a function via this coercion.
 
 There is no `semiring_hom` -- the idea is that `ring_hom` is used.
 The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `x'` will construct ring homs
+`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
 Throughout the section on `ring_hom` implicit `{}` brackets are often used instead

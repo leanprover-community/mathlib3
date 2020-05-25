@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Reid Barton, Bhavik Mehta, Scott Morrison, Ainsley Pahljina
 -/
 import data.nat.prime
+import data.nat.parity
 import data.zmod.basic
 import algebra.pi_instances
 import group_theory.order_of_element
@@ -13,96 +14,6 @@ open nat (prime)
 
 /- Additions to Mathlib -/
 
-namespace nat
-
-lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
-begin
-  induction n with n ih,
-  { exact le_refl _, },
-  { calc 1 ≤ m^n : ih
-       ... ≤ m^n * m : (@le_mul_iff_one_le_right ℕ _ m (m^n) ih).mpr h },
-end
-lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
-lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
-
-lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
-begin
-  induction n with n ih,
-  { cases h₀, },
-  { calc 1 ≤ m^n : one_le_pow n m (lt_of_succ_lt h₁)
-       ... < m^n * m : (lt_mul_iff_one_lt_right (by exact one_le_pow n m (lt_of_succ_lt h₁))).mpr h₁ }
-end
-lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
-  one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
-lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
-lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
-
-lemma lt_two_pow (n : ℕ) : n < 2^n :=
-lt_pow_self dec_trivial n
-
-lemma two_not_dvd_odd (a : ℕ) : ¬(2 ∣ 2 * a + 1) :=
-begin
-  intro h,
-  cases h with b h,
-  replace h := congr_arg (λ n, n % 2) h,
-  simp only [add_mod, mod_mod, mul_mod_right, zero_add] at h,
-  cases h,
-end
-lemma two_not_dvd_odd' (a : ℕ) (w : 0 < a) : ¬(2 ∣ 2 * a - 1) :=
-begin
-  cases a,
-  { cases w, },
-  { exact two_not_dvd_odd a, }
-end
-
-end nat
-
-lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
-  (a : R) = b ↔ a ≡ b [ZMOD p] :=
-begin
-  rw eq_comm,
-  rw ←sub_eq_zero,
-  rw ←int.cast_sub,
-  rw char_p.int_cast_eq_zero_iff R p,
-  rw int.modeq.modeq_iff_dvd,
-end
-
-lemma zmod.int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
-  (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
-char_p.int_coe_eq_int_coe_iff (zmod c) c a b
-
-lemma zmod.nat_coe_eq_nat_coe_iff (a b c : ℕ) :
-  (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
-begin
-  convert zmod.int_coe_eq_int_coe_iff a b c,
-  simp [nat.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd],
-end
-
-@[simp]
-lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
-begin
-  change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
-  rw zmod.int_coe_eq_int_coe_iff,
-  rw int.modeq.modeq_zero_iff,
-end
-
-@[simp]
-lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=
-begin
-  change (a : zmod b) = ((0 : ℕ) : zmod b) ↔ b ∣ a,
-  rw zmod.nat_coe_eq_nat_coe_iff,
-  rw nat.modeq.modeq_zero_iff,
-end
-
-@[push_cast]
-lemma mod_coe_zmod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
-begin
-  rw zmod.int_coe_eq_int_coe_iff,
-  apply int.modeq.mod_modeq,
-end
-
-
-section Mersenne
 open nat
 
 /- Defining the Mersenne Numbers -/
@@ -115,8 +26,6 @@ begin
   calc 0 < 2^1 - 1 : by norm_num
      ... ≤ 2^p - 1 : nat.pred_le_pred (pow_le_pow_of_le_right (succ_pos 1) h)
 end
-
-end Mersenne
 
 def s : ℕ → ℤ
 | 0 := 4
@@ -398,7 +307,7 @@ lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
     rw [Mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
-    exact nat.two_not_dvd_odd' (2^(p'+1)) (nat.one_le_two_pow _) h', }
+    exact nat.two_not_dvd_two_mul_sub_one (nat.one_le_two_pow _) h', }
 end
 
 theorem ω_pow_formula (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :

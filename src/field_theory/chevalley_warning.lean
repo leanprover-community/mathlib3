@@ -39,69 +39,98 @@ universes u v
 
 open_locale big_operators
 
+namespace finsupp
+
+@[to_additive]
+lemma prod_fintype {ι : Type*} {X : Type*} {M : Type*} [fintype ι] [has_zero X] [comm_monoid M]
+  (f : ι →₀ X) (g : ι → X → M) (h : ∀ i, g i 0 = 1) :
+  f.prod g = ∏ i, g i (f i) :=
+begin
+  classical,
+  rw [finsupp.prod, ← fintype.prod_extend_by_one, finset.prod_congr rfl],
+  intros i hi,
+  split_ifs with hif hif,
+  { refl },
+  { rw finsupp.not_mem_support_iff at hif,
+    rw [hif, h] }
+end
+
+end finsupp
+
+namespace mv_polynomial
+open finset
+variables {R : Type*} {σ : Type*} [comm_semiring R] [fintype σ]
+
+lemma exists_degree_lt (f : mv_polynomial σ R) (n : ℕ)
+  (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
+  ∃ i, d i < n :=
+begin
+  contrapose! h,
+  calc n * fintype.card σ
+        = ∑ s:σ, n         : by rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ]
+    ... ≤ ∑ s, d s         : sum_le_sum (λ s _, h s)
+    ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
+    ... ≤ f.total_degree   : finset.le_sup hd,
+end
+
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_eq (g : R →+* S) (x : σ → S) (f : mv_polynomial σ R) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
+by { simp only [eval₂, finsupp.sum, finsupp.prod_pow], refl }
+
+lemma eval_eq (x : σ → R) (f : mv_polynomial σ R) :
+  f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
+eval₂_eq (ring_hom.id R) x f
+
+lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
+  eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
+eval₂_prod (ring_hom.id R) g s f
+
+end mv_polynomial
+
 section finite_field
 open mv_polynomial function finset finite_field
 
 variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K
 
-lemma mv_polynomial.exists_degree_lt_card_sub_one (f : mv_polynomial σ K)
-  (h : f.total_degree < (q - 1) * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
-  ∃ i, d i < q - 1 :=
-begin
-  have hq : 0 < q - 1,
-  { rw [← card_units, fintype.card_pos_iff],
-    exact ⟨1⟩ },
-  contrapose! h,
-  have : d.support = univ,
-  { rw eq_univ_iff_forall,
-    intro i, rw [finsupp.mem_support_iff, ← nat.pos_iff_ne_zero],
-    exact lt_of_lt_of_le hq (h _) },
-  calc (q - 1) * fintype.card σ = ∑ s:σ, (q - 1) :
-                                  by rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ]
-                            ... ≤ ∑ s, d s : sum_le_sum (λ s _, h s)
-                            ... ≤ d.sum (λ (n : σ) (e : ℕ), e) : by rwa [finsupp.sum, this]
-                            ... ≤ f.total_degree : finset.le_sup hd,
-end
-
 lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   (∑ x, f.eval x) = 0 :=
 begin
   haveI : decidable_eq K := classical.dec_eq K,
-  calc (∑ x, f.eval x) = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : _
-                   ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
-                   ... = 0 : sum_eq_zero _,
-  { simp only [eval, eval₂, finsupp.sum, id.def, finsupp.prod_pow], refl, },
+  calc (∑ x, f.eval x)
+        = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq]
+    ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
+    ... = 0 : sum_eq_zero _,
   intros d hd,
-  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from f.exists_degree_lt_card_sub_one h hd,
-  let cd : K := f.coeff d,
-  calc (∑ x : σ → K, cd * ∏ i, x i ^ d i) = cd * (∑ x : σ → K, ∏ i, x i ^ d i) : mul_sum.symm
-                                      ... = 0 : (mul_eq_zero.mpr ∘ or.inr) _,
-  calc (∑ x : σ → K, ∏ i, x i ^ d i) =
-          ∑ (x₀ : {j // j ≠ i} → K) (x : {x : σ → K // x ∘ coe = x₀}),
-            ∏ j, (x : σ → K) j ^ d j     : (fintype.sum_fiberwise _ _).symm
-                                 ... = 0 : fintype.sum_eq_zero _ _,
+  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1, from f.exists_degree_lt (q - 1) h hd,
+  calc (∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i)
+        = f.coeff d * (∑ x : σ → K, ∏ i, x i ^ d i) : mul_sum.symm
+    ... = 0                                         : (mul_eq_zero.mpr ∘ or.inr) _,
+  calc (∑ x : σ → K, ∏ i, x i ^ d i)
+        = ∑ (x₀ : {j // j ≠ i} → K) (x : {x : σ → K // x ∘ coe = x₀}), ∏ j, (x : σ → K) j ^ d j :
+              (fintype.sum_fiberwise _ _).symm
+    ... = 0 : fintype.sum_eq_zero _ _,
   intros x₀,
-  let e : K ≃ {x // x ∘ coe = x₀} :=  (equiv.fun_unique _ _).symm.trans (equiv.subtype_preimage _ x₀).symm,
-  calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j) =
-                  ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j      : (finset.sum_equiv e _).symm
-            ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i         : fintype.sum_congr _ _ _
-            ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i         : by rw mul_sum
-            ... = 0 : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
+  let e : K ≃ {x // x ∘ coe = x₀} := (equiv.fun_unique _ _).symm.trans (equiv.subtype_preimage _ x₀).symm,
+  calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j)
+        = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (finset.sum_equiv e _).symm
+    ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i    : fintype.sum_congr _ _ _
+    ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i    : by rw mul_sum
+    ... = 0                                       : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,
-  calc (∏ j : σ, (e a : σ → K) j ^ d j) =
-          (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
-  begin
-    rw [← finset.prod_equiv e', fintype.prod_sum_type],
+  calc (∏ j : σ, (e a : σ → K) j ^ d j)
+        = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : _
+    ... = a ^ d i * (∏ j, x₀ j ^ d j) : _
+    ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
+  { rw [← finset.prod_equiv e', fintype.prod_sum_type],
     have this : _ = (e a : σ → K) i ^ d i :=
       @fintype.prod_unique {j // j = i} _ _ _ (λ j, (e a : σ → K) j ^ d j),
     rw ← this,
-    congr,
-  end
-                                    ... = a ^ d i * (∏ j, x₀ j ^ d j) : _
-                                    ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
+    congr, },
   show (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) =
     a ^ d i * ∏ j, x₀ j ^ d j,
   congr' 1,
@@ -136,18 +165,17 @@ begin
   let F : mv_polynomial σ K := ∏ i in s, (1 - (f i)^(q - 1)),
   have hF : ∀ x, F.eval x = if x ∈ S then 1 else 0,
   { intro x,
-    calc F.eval x = ∏ i in s, (1 - f i ^ (q - 1)).eval x :
-      by { convert eval₂_prod id _ _ _, exact is_semiring_hom.id }
+    calc F.eval x = ∏ i in s, (1 - f i ^ (q - 1)).eval x : eval_prod s _ x
               ... = if x ∈ S then 1 else 0 : _,
     simp only [eval_sub, eval_pow, eval_one],
     split_ifs with hx hx,
-    { rw finset.prod_eq_one,
+    { apply finset.prod_eq_one,
       intros i hi,
       rw hS at hx,
       rw [hx i hi, zero_pow hq, sub_zero], },
     { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ (f i).eval x ≠ 0,
       { simpa only [hS, classical.not_forall, classical.not_imp] using hx },
-      rw finset.prod_eq_zero hi,
+      apply finset.prod_eq_zero hi,
       rw [pow_card_sub_one_eq_one ((f i).eval x) hx, sub_self], } },
   -- In particular, we can now show:
   have key : ∑ x, F.eval x = fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},

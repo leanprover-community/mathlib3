@@ -434,6 +434,8 @@ variables {R M M₂}
 
 @[simp, norm_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
 
+@[simp] lemma fst_prod_snd : (fst R M M₂).prod (snd R M M₂) = id R (M × M₂) := ext $ λ ⟨x, y⟩, rfl
+
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=
 (f₁.comp (fst R M M₃)).prod (f₂.comp (snd R M M₃))

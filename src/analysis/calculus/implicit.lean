@@ -17,10 +17,10 @@ a specific implicit function but provides only a little convenience over the inv
 theorem.
 
 Then we define `implicit_function_of_complemented`: implicit function defined by `f (g z y) = z`,
-where `f : E → F` is a function strictly differentiable at `a` such that its defivative `f'`
+where `f : E → F` is a function strictly differentiable at `a` such that its derivative `f'`
 is surjective and has a `complemented` kernel.
 
-Finally, if the codomain of `f` is a finitely dimensional space, then we can automatically prove
+Finally, if the codomain of `f` is a finite dimensional space, then we can automatically prove
 that the kernel of `f'` is complemented, hence the only assumptions are `has_strict_fderiv_at`
 and `f'.range = ⊤`. This version is named `implicit_function`.
 
@@ -74,14 +74,14 @@ protected lemma has_strict_fderiv_at :
 
 /-- Implicit function theorem. If `f : E → F` and `g : E → G` are two maps strictly differentiable
 at `a`, their derivatives `f'`, `g'` are surjective, and the kernels of these derivatives are
-complement subspaces of `E`, then `x ↦ (f x, g x)` defines a local homeomorphism between
-`E` and `F × G`. In particular, `f x = f a` is locally homeomorphic to `G`. -/
+complementary subspaces of `E`, then `x ↦ (f x, g x)` defines a local homeomorphism between
+`E` and `F × G`. In particular, `{x | f x = f a}` is locally homeomorphic to `G`. -/
 def to_local_homeomorph : local_homeomorph E (F × G) :=
 φ.has_strict_fderiv_at.to_local_homeomorph _
 
 /-- Implicit function theorem. If `f : E → F` and `g : E → G` are two maps strictly differentiable
 at `a`, their derivatives `f'`, `g'` are surjective, and the kernels of these derivatives are
-complement subspaces of `E`, then `implicit_function_of_is_compl_ker` is the unique (germ of a) map
+complementary subspaces of `E`, then `implicit_function_of_is_compl_ker` is the unique (germ of a) map
 `φ : F → G → E` such that `f (φ y z) = y` and `g (φ y z) = z`. -/
 def implicit_function : F → G → E := function.curry $ φ.to_local_homeomorph.symm
 
@@ -115,7 +115,7 @@ lemma implicit_function_apply_image :
   ∀ᶠ x in 𝓝 φ.pt, φ.implicit_function (φ.left_fun x) (φ.right_fun x) = x :=
 φ.has_strict_fderiv_at.eventually_left_inverse
 
-lemma to_implicit_function
+lemma implicit_function_has_strict_fderiv_at
   (g'inv : G →L[𝕜] E) (hg'inv : φ.right_deriv.comp g'inv = continuous_linear_map.id 𝕜 G)
   (hg'invf : φ.left_deriv.comp g'inv = 0) :
   has_strict_fderiv_at (φ.implicit_function (φ.left_fun φ.pt)) g'inv (φ.right_fun φ.pt) :=
@@ -145,8 +145,8 @@ section defs
 
 variables (f f')
 
-/-- Data used to apply generic implicit function theorem to the case of a strictrly differentiable
- map such that its derivative is surjective has has a complemented kernel. -/
+/-- Data used to apply the generic implicit function theorem to the case of a strictly differentiable
+ map such that its derivative is surjective and has a complemented kernel. -/
 @[simp] def implicit_function_data_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   implicit_function_data 𝕜 E F f'.ker :=
@@ -163,7 +163,7 @@ variables (f f')
   is_compl_ker := linear_map.is_compl_of_proj (classical.some_spec hker) }
 
 /-- A local homeomorphism between E` and `F × f'.ker` sending level surfaces of `f`
-to horizontal subspaces. -/
+to vertical subspaces. -/
 def implicit_to_local_homeomorph_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   local_homeomorph E (F × f'.ker) :=
@@ -286,7 +286,7 @@ lemma mem_implicit_to_local_homeomorph_target (hf : has_strict_fderiv_at f f' a)
   (f a, (0 : f'.ker)) ∈ (hf.implicit_to_local_homeomorph f f' hf').target :=
 by apply mem_implicit_to_local_homeomorph_of_complemented_target
 
-/-- `implicit_function_of_complemented` sends `(z, y)` to a point in `f ⁻¹' z`. -/
+/-- `implicit_function` sends `(z, y)` to a point in `f ⁻¹' z`. -/
 lemma map_implicit_function_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   ∀ᶠ (p : F × f'.ker) in 𝓝 (f a, 0), f (hf.implicit_function f f' hf' p.1 p.2) = p.1 :=
 by apply map_implicit_function_of_complemented_eq

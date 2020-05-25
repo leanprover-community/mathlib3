@@ -290,11 +290,11 @@ section min_fac
       cases h : n.min_fac with m,
       { rw h at lb, cases lb, },
       { cases m with m,
-        { simp at h, subst h, cases h, cases h_w, cases h_h, cases h_h, },
+        { simp at h, subst h, cases h with n h, cases n; cases h, },
         { cases m with m,
           { refl, },
           { rw h at ub,
-            cases ub, cases ub_a, cases ub_a_a, } } } }
+            cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
   end
 
 end min_fac

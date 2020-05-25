@@ -143,22 +143,35 @@ end has_zero_object
 section transport
 variables [has_zero_morphisms.{v} C]
 
+/-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then any kernel of `f` is a kernel of `l`.-/
+def is_kernel.of_comp_iso {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom = f)
+  {s : kernel_fork f} (hs : is_limit s) : is_limit (kernel_fork.of_ι (fork.ι s) $
+    show fork.ι s ≫ l = 0, by simp [←(iso.comp_inv_eq i).2 h.symm]) :=
+fork.is_limit.mk _
+  (λ s, hs.lift $ kernel_fork.of_ι (fork.ι s) $ by simp [←h])
+  (λ s, by simp)
+  (λ s m h, by { apply fork.is_limit.hom_ext hs, simpa using h walking_parallel_pair.zero })
+
 /-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then the kernel of `f` is a kernel of `l`.-/
 def kernel.of_comp_iso [has_limit (parallel_pair f 0)]
   {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom = f) :
   is_limit (kernel_fork.of_ι (kernel.ι f) $
     show kernel.ι f ≫ l = 0, by simp [←(iso.comp_inv_eq i).2 h.symm]) :=
-fork.is_limit.mk _
-  (λ s, kernel.lift f (fork.ι s) $ by simp [←h])
-  (λ s, by simp)
-  (λ s m h, equalizer.hom_ext $ by simpa using h walking_parallel_pair.zero)
+is_kernel.of_comp_iso f l i h $ limit.is_limit _
+
+/-- If `s` is any limit kernel cone over `f` and if  `i` is an isomorphism such that
+    `i.hom ≫ s.ι  = l`, then `l` is a kernel of `f`. -/
+def is_kernel.iso_kernel {Z : C} (l : Z ⟶ X) {s : kernel_fork f} (hs : is_limit s)
+  (i : Z ≅ s.X) (h : i.hom ≫ fork.ι s = l) : is_limit (kernel_fork.of_ι l $
+    show l ≫ f = 0, by simp [←h]) :=
+is_limit.of_iso_limit hs $ cones.ext i.symm $ λ j,
+  by { cases j, { exact (iso.eq_inv_comp i).2 h }, { simp } }
 
 /-- If `i` is an isomorphism such that `i.hom ≫ kernel.ι f = l`, then `l` is a kernel of `f`. -/
 def kernel.iso_kernel [has_limit (parallel_pair f 0)]
   {Z : C} (l : Z ⟶ X) (i : Z ≅ kernel f) (h : i.hom ≫ kernel.ι f = l) :
   is_limit (kernel_fork.of_ι l $ by simp [←h]) :=
-is_limit.of_iso_limit (limit.is_limit _) $ cones.ext i.symm $ λ j,
-  by { cases j, { exact (iso.eq_inv_comp i).2 h }, { simp } }
+is_kernel.iso_kernel f l (limit.is_limit _) i h
 
 end transport
 
@@ -291,23 +304,36 @@ end has_zero_object
 section transport
 variables [has_zero_morphisms.{v} C]
 
+/-- If `i` is an isomorphism such that `i.hom ≫ l = f`, then any cokernel of `f` is a cokernel of
+    `l`. -/
+def is_cokernel.of_iso_comp {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l = f)
+  {s : cokernel_cofork f} (hs : is_colimit s) : is_colimit (cokernel_cofork.of_π (cofork.π s) $
+    show l ≫ cofork.π s = 0, by simp [(iso.eq_inv_comp i).2 h]) :=
+cofork.is_colimit.mk _
+  (λ s, hs.desc $ cokernel_cofork.of_π (cofork.π s) $ by simp [←h])
+  (λ s, by simp)
+  (λ s m h, by { apply cofork.is_colimit.hom_ext hs, simpa using h walking_parallel_pair.one })
+
 /-- If `i` is an isomorphism such that `i.hom ≫ l = f`, then the cokernel of `f` is a cokernel of
     `l`. -/
 def cokernel.of_iso_comp [has_colimit (parallel_pair f 0)]
   {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l = f) :
   is_colimit (cokernel_cofork.of_π (cokernel.π f) $
     show l ≫ cokernel.π f = 0, by simp [(iso.eq_inv_comp i).2 h]) :=
-cofork.is_colimit.mk _
-  (λ s, cokernel.desc f (cofork.π s) $ by simp [←h])
-  (λ s, by simp)
-  (λ s m h, coequalizer.hom_ext $ by simpa using h walking_parallel_pair.one)
+is_cokernel.of_iso_comp f l i h $ colimit.is_colimit _
+
+/-- If `s` is any colimit cokernel cocone over `f` and `i` is an isomorphism such that
+    `s.π ≫ i.hom = l`, then `l` is a cokernel of `f`. -/
+def is_cokernel.cokernel_iso {Z : C} (l : Y ⟶ Z) {s : cokernel_cofork f} (hs : is_colimit s)
+  (i : s.X ≅ Z) (h : cofork.π s ≫ i.hom = l) : is_colimit (cokernel_cofork.of_π l $
+    show f ≫ l = 0, by simp [←h]) :=
+is_colimit.of_iso_colimit hs $ cocones.ext i $ λ j, by { cases j, { simp }, { exact h } }
 
 /-- If `i` is an isomorphism such that `cokernel.π f ≫ i.hom = l`, then `l` is a cokernel of `f`. -/
 def cokernel.cokernel_iso [has_colimit (parallel_pair f 0)]
   {Z : C} (l : Y ⟶ Z) (i : cokernel f ≅ Z) (h : cokernel.π f ≫ i.hom = l) :
   is_colimit (cokernel_cofork.of_π l $ by simp [←h]) :=
-is_colimit.of_iso_colimit (colimit.is_colimit _) $ cocones.ext i $ λ j,
-  by { cases j, { simp }, { exact h } }
+is_cokernel.cokernel_iso f l (colimit.is_colimit _) i h
 
 end transport
 

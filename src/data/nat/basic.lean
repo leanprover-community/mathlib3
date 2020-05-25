@@ -928,6 +928,34 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
 
+lemma lt_two_pow (n : ℕ) : n < 2^n :=
+lt_pow_self dec_trivial n
+
+lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
+begin
+  induction n with n ih,
+  { exact le_refl _, },
+  { calc 1 ≤ m^n : ih
+       ... ≤ m^n * m : (@le_mul_iff_one_le_right ℕ _ m (m^n) ih).mpr h },
+end
+lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
+
+lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
+
+lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
+begin
+  induction n with n ih,
+  { cases h₀, },
+  { calc 1 ≤ m^n : one_le_pow n m (lt_of_succ_lt h₁)
+       ... < m^n * m :
+         (lt_mul_iff_one_lt_right (by exact one_le_pow n m (lt_of_succ_lt h₁))).mpr h₁ }
+end
+lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
+  one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
+
+lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
+lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
+
 lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 

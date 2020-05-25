@@ -582,8 +582,7 @@ theorem tape.map_mk₁ {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : pointed_map 
 state returned before a `none` result. If the state transition function always returns `some`,
 then the computation diverges, returning `roption.none`. -/
 def eval {σ} (f : σ → option σ) : σ → roption σ :=
-pfun.fix (λ s, roption.some $
-  match f s with none := sum.inl s | some s' := sum.inr s' end)
+pfun.fix (λ s, roption.some $ (f s).elim (sum.inl s) sum.inr)
 
 /-- The reflexive transitive closure of a state transition function. `reaches f a b` means
 there is a finite sequence of steps `f a = some a₁`, `f a₁ = some a₂`, ... such that `aₙ = b`.
@@ -653,10 +652,6 @@ theorem reaches.to₀ {σ} {f : σ → option σ} {a b : σ}
 theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
   (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
 h _ (trans_gen.single h₂)
-
-theorem eval_match_lemma {σ} {a : σ} {a' b} :
-  sum.inr b ∈ roption.some (eval._match_1 a a') ↔ a' = some b :=
-by cases a'; simp only [eval, eq_comm, roption.mem_some_iff]
 
 @[elab_as_eliminator] def eval_induction {σ}
   {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)

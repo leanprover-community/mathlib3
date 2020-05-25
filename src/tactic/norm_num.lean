@@ -538,7 +538,7 @@ do na ← a.to_nat, nb ← b.to_nat,
     return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
 
 /-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
-than unfold the instances in order to prove that `add_group_has_sub = int.has_add`. -/
+than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
 theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
 
 /-- Given `a : int`,`b : int` integral numerals, returns `(c, ⊢ a - b = c)`. -/

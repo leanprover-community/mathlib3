@@ -83,6 +83,11 @@ lemma eval_eq (x : σ → R) (f : mv_polynomial σ R) :
   f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
 eval₂_eq (ring_hom.id R) x f
 
+lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
+  eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
+eval₂_sum (ring_hom.id R) g s f
+
+@[to_additive]
 lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
   eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
 eval₂_prod (ring_hom.id R) g s f
@@ -123,22 +128,24 @@ begin
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,
   calc (∏ j : σ, (e a : σ → K) j ^ d j)
-        = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : _
-    ... = a ^ d i * (∏ j, x₀ j ^ d j) : _
+        = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : _ -- see below
+    ... = a ^ d i * (∏ j, x₀ j ^ d j) : _ -- see below
     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
-  { rw [← finset.prod_equiv e', fintype.prod_sum_type],
+  { -- we now fill in the first step of the preceding calculation
+    rw [← finset.prod_equiv e', fintype.prod_sum_type],
     have this : _ = (e a : σ → K) i ^ d i :=
       @fintype.prod_unique {j // j = i} _ _ _ (λ j, (e a : σ → K) j ^ d j),
     rw ← this,
     congr, },
-  show (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) =
-    a ^ d i * ∏ j, x₀ j ^ d j,
-  congr' 1,
-  { simp [e, equiv.subtype_preimage_symm_apply_coe_neg _ x₀ _ _ (not_not.mpr rfl)], },
-  { apply fintype.prod_congr,
-    rintros ⟨j, hj⟩,
-    show (e a : σ → K) j ^ d j = x₀ ⟨j, hj⟩ ^ d j,
-    simp [e, equiv.subtype_preimage_symm_apply_coe_pos _ x₀ _ _ hj], }
+  { -- the remaining step of the calculation above
+    show (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) =
+      a ^ d i * ∏ j, x₀ j ^ d j,
+    congr' 1,
+    { simp [e, equiv.subtype_preimage_symm_apply_coe_neg _ x₀ _ _ (not_not.mpr rfl)], },
+    { apply fintype.prod_congr,
+      rintros ⟨j, hj⟩,
+      show (e a : σ → K) j ^ d j = x₀ ⟨j, hj⟩ ^ d j,
+      simp [e, equiv.subtype_preimage_symm_apply_coe_pos _ x₀ _ _ hj], } }
 end
 
 variables [decidable_eq K] [decidable_eq σ]
@@ -196,10 +203,9 @@ begin
   -- Now we prove the remaining step from the preceding calculation
   show (1 - f i ^ (q - 1)).total_degree ≤ (q - 1) * (f i).total_degree,
   calc (1 - f i ^ (q - 1)).total_degree
-          ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
-      ... ≤ (f i ^ (q - 1)).total_degree :
-            by simp only [max_eq_right, nat.zero_le, total_degree_one]
-      ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
+        ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
+    ... ≤ (f i ^ (q - 1)).total_degree : by simp only [max_eq_right, nat.zero_le, total_degree_one]
+    ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
 /-- The Chevalley–Warning theorem.

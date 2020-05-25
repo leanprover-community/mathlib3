@@ -255,7 +255,7 @@ section min_fac
   /--
   The square of the smallest prime factor of a composite number `n` is at most `n`.
   -/
-  lemma min_fac_sq_le_self (n : ℕ) (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+  lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
   have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
   calc
   (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
@@ -263,7 +263,7 @@ section min_fac
             ... ≤ n                           : div_mul_le_self n (min_fac n)
 
   @[simp]
-  lemma min_fac_eq_one_iff (n : ℕ) : min_fac n = 1 ↔ n = 1 :=
+  lemma min_fac_eq_one_iff {n : ℕ} : min_fac n = 1 ↔ n = 1 :=
   begin
     split,
     { intro h,

@@ -108,7 +108,7 @@ end
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
 int.coe_nat_pow_pred 2 p dec_trivial
 
-lemma s_zmod_eq_s_mod (p : ℕ) (w : 1 < p) (i : ℕ) : s_zmod p i = (s_mod p i : zmod (2^p - 1)) :=
+lemma s_zmod_eq_s_mod (p : ℕ) (i : ℕ) : s_zmod p i = (s_mod p i : zmod (2^p - 1)) :=
 begin
   induction i with i ih;
   -- { dsimp [s_mod, s_zmod], norm_num, },
@@ -126,7 +126,7 @@ lemma residue_eq_zero_iff_s_mod_eq_zero (p : ℕ) (w : 1 < p) :
   Lucas_Lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
 begin
   dsimp [Lucas_Lehmer_residue],
-  rw s_zmod_eq_s_mod p w,
+  rw s_zmod_eq_s_mod p,
   split,
   { -- We want to use that fact that `0 ≤ s_mod p (p-2) < 2^p - 1`
     -- and `Lucas_Lehmer_residue p = 0 → 2^p - 1 ∣ s_mod p (p-2)`.
@@ -140,6 +140,10 @@ begin
   { intro h, rw h, simp, },
 end
 
+/--
+A Mersenne number 2^p-1 is prime if and only if
+the Lucas-Lehmer residue `s p (p-2) % (2^p - 1)` is zero.
+-/
 @[derive decidable_pred]
 def Lucas_Lehmer_test (p : ℕ) := Lucas_Lehmer_residue p = 0
 
@@ -362,6 +366,7 @@ calc (ω : X (q (p'+2)))^2^(p'+2)
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
     ... = 1                : by simp
 
+/-- ω as an element of the group of units. -/
 def ω_unit (p : ℕ) : units (X (q p)) :=
 { val := ω,
   inv := ωb,

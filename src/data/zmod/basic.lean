@@ -331,6 +331,38 @@ lemma cast_int_cast (k : ℤ) : ((k : zmod n) : R) = k :=
 
 end universal_property
 
+lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
+char_p.int_coe_eq_int_coe_iff (zmod c) c a b
+
+lemma nat_coe_eq_nat_coe_iff (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
+begin
+  convert zmod.int_coe_eq_int_coe_iff a b c,
+  simp [nat.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd],
+end
+
+@[simp]
+lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
+begin
+  change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
+  rw [zmod.int_coe_eq_int_coe_iff, int.modeq.modeq_zero_iff],
+end
+
+@[simp]
+lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=
+begin
+  change (a : zmod b) = ((0 : ℕ) : zmod b) ↔ b ∣ a,
+  rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq.modeq_zero_iff],
+end
+
+@[push_cast]
+lemma int_mod_coe_zmod_self (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
+begin
+  rw zmod.int_coe_eq_int_coe_iff,
+  apply int.modeq.mod_modeq,
+end
+
 lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=
 begin

@@ -309,9 +309,21 @@ open norm_cast
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
+
+`push_cast` can also be used at hypotheses and with extra simp rules.
+
+```lean
+example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast at h1,
+  push_cast [int.add_zero] at h2,
+end
+```
 -/
-meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast] l
+meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
+tactic.interactive.simp none tt hs [`push_cast] l
 
 end tactic.interactive
 

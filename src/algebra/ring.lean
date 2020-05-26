@@ -938,11 +938,11 @@ variables [semiring α]
 
 theorem mul_left_eq_zero_iff_eq_zero {r u : α}
   (hu : is_unit u) : r * u = 0 ↔ r = 0 :=
-by cases hu with u hu; exact hu.symm ▸ units.mul_left_eq_zero_iff_eq_zero u
+by cases hu with u hu; exact hu ▸ units.mul_left_eq_zero_iff_eq_zero u
 
 theorem mul_right_eq_zero_iff_eq_zero {r u : α}
   (hu : is_unit u) : u * r = 0 ↔ r = 0 :=
-by cases hu with u hu; exact hu.symm ▸ units.mul_right_eq_zero_iff_eq_zero u
+by cases hu with u hu; exact hu ▸ units.mul_right_eq_zero_iff_eq_zero u
 
 end semiring
 

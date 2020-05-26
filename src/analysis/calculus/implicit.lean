@@ -64,7 +64,7 @@ between `E` and `F × G`. We use this fact to define a function `φ : F → G �
 (see `implicit_function_data.implicit_function`) such that for `(y, z)` close enough to `(f a, g a)`
 we have `f (φ y z) = y` and `g (φ y z) = z`.
 
-We also prove a formula for $$\frac{\partial\varphi}{\partial z}$$.
+We also prove a formula for $$\frac{\partial\varphi}{\partial z}.$$
 
 Though this statement is almost symmetric with respect to `F`, `G`, we interpret it in the following
 way. Consider a family of surfaces `{x | f x = y}`, `y ∈ 𝓝 (f a)`. Each of these surfaces is
@@ -225,7 +225,7 @@ differentiable map such that its derivative is surjective and has a complemented
   right_range := linear_map.range_eq_of_proj (classical.some_spec hker),
   is_compl_ker := linear_map.is_compl_of_proj (classical.some_spec hker) }
 
-/-- A local homeomorphism between E` and `F × f'.ker` sending level surfaces of `f`
+/-- A local homeomorphism between `E` and `F × f'.ker` sending level surfaces of `f`
 to vertical subspaces. -/
 def implicit_to_local_homeomorph_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :

@@ -1561,20 +1561,22 @@ begin
   { exact mul_is_limit l.pos lb }
 end
 
+protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
+⟨a, succ_le.1 $
+  by simpa only [succ_zero, one_mul]
+    using mul_le_mul_right (succ a) (succ_le.2 (pos_iff_ne_zero.2 h))⟩
+
 /-- `a / b` is the unique ordinal `o` satisfying
   `a = b * o + o'` with `o' < b`. -/
 protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else
-omin {o | a < b * succ o} ⟨a, succ_le.1 $
-  by simpa only [succ_zero, one_mul] using mul_le_mul_right (succ a) (succ_le.2 (pos_iff_ne_zero.2 h))⟩
+if h : b = 0 then 0 else omin {o | a < b * succ o} (ordinal.div_aux a b h)
 
 instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
-@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
-def div_def (a) {b : ordinal} (h : b ≠ 0) :
-  a / b = omin {o | a < b * succ o} _ := dif_neg h
+lemma div_def (a) {b : ordinal} (h : b ≠ 0) :
+  a / b = omin {o | a < b * succ o} (ordinal.div_aux a b h) := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
 by rw div_def a h; exact omin_mem {o | a < b * succ o} _

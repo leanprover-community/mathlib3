@@ -12,6 +12,7 @@ This is a tiny wrapper over `multiplicative (multiset α)` that provides some de
 lemmas expected from a `free_*` object.
 -/
 
+/-- Free commutative monoid over `α`. Defined as `multiplicative (multiset α)`. -/
 @[reducible] def free_comm_monoid (α : Type*) := multiplicative (multiset α)
 
 namespace free_comm_monoid

@@ -24,6 +24,20 @@ Finally, if the codomain of `f` is a finite dimensional space, then we can autom
 that the kernel of `f'` is complemented, hence the only assumptions are `has_strict_fderiv_at`
 and `f'.range = ⊤`. This version is named `implicit_function`.
 
+## TODO
+
+* Add a version for a function `f : E × F → G` such that $$\frac{\partial f}{\partial y}$$ is
+  invertible.
+* Add a version for `f : 𝕜 × 𝕜 → 𝕜` proving `has_strict_deriv_at` and `deriv φ = ...`.
+* Prove that in a real vector space the implicit function has the same smoothness as the original
+  one.
+* If the original function is differentiable in a neighborhood, then the implicit function is
+  differentiable in a neighborhood as well. Current setup only proves differentiability at one
+  point for the implicit function constructed in this file (as opposed to an unspecified implicit
+  function). One of the ways to overcome this difficulty is to use uniqueness of the implicit
+  function in the general version of the theorem. Another way is to prove that *any* implicit
+  function satisfying some predicate is strictly differentiable.
+
 ## Tags
 
 implicit function, inverse function
@@ -36,7 +50,43 @@ open filter
 open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
-/-- Data for the general version -/
+/-!
+### General version
+
+Consider two functions `f : E → F` and `g : E → G` and a point `a` such that
+
+* both functions are strictly differentiable at `a`;
+* the derivatives are surjective;
+* the kernels of the derivatives are complementary subspaces of `E`.
+
+Note that the map `x ↦ (f x, g x)` has a bijective derivative, hence it is a local homeomorphism
+between `E` and `F × G`. We use this fact to define a function `φ : F → G → E`
+(see `implicit_function_data.implicit_function`) such that for `(y, z)` close enough to `(f a, g a)`
+we have `f (φ y z) = y` and `g (φ y z) = z`.
+
+We also prove a formula for $$\frac{\partial\varphi}{\partial z}$$.
+
+Though this statement is almost symmetric with respect to `F`, `G`, we interpret it in the following
+way. Consider a family of surfaces `{x | f x = y}`, `y ∈ 𝓝 (f a)`. Each of these surfaces is
+parametrized by `φ y`.
+
+There are many ways to choose a (differentiable) function `φ` such that `f (φ y z) = y` but the
+extra condition `g (φ y z) = z` allows a user to select one of these functions. If we imagine
+that the level surfaces `f = const` form a local horizontal foliation, then the choice of
+`g` fixes a transverse foliation `g = const`, and `φ` is the inverse function of the projection
+of `{x | f x = y}` along this transverse foliation.
+
+This version of the theorem is used to prove the other versions and can be used if a user
+needs to have a complete control over the choice of the implicit function.
+-/
+
+/-- Data for the general version of the implicit function theorem. It holds two functions
+`f : E → F` and `g : E → G` (named `left_fun` and `right_fun`) and a point `a` (named `pt`)
+such that
+
+* both functions are strictly differentiable at `a`;
+* the derivatives are surjective;
+* the kernels of the derivatives are complementary subspaces of `E`. -/
 @[nolint has_inhabited_instance]
 structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
@@ -81,8 +131,8 @@ def to_local_homeomorph : local_homeomorph E (F × G) :=
 
 /-- Implicit function theorem. If `f : E → F` and `g : E → G` are two maps strictly differentiable
 at `a`, their derivatives `f'`, `g'` are surjective, and the kernels of these derivatives are
-complementary subspaces of `E`, then `implicit_function_of_is_compl_ker` is the unique (germ of a) map
-`φ : F → G → E` such that `f (φ y z) = y` and `g (φ y z) = z`. -/
+complementary subspaces of `E`, then `implicit_function_of_is_compl_ker` is the unique (germ of a)
+map `φ : F → G → E` such that `f (φ y z) = y` and `g (φ y z) = z`. -/
 def implicit_function : F → G → E := function.curry $ φ.to_local_homeomorph.symm
 
 @[simp] lemma to_local_homeomorph_coe : ⇑(φ.to_local_homeomorph) = φ.prod_fun := rfl
@@ -129,12 +179,25 @@ begin
   simp [continuous_linear_equiv.eq_symm_apply, *]
 end
 
-
 end implicit_function_data
 
 namespace has_strict_fderiv_at
 
 section complemented
+
+/-!
+### Case of a complemented kernel
+
+In this section we prove the following version of the implicit function theorem. Consider a map
+`f : E → F` and a point `a : E` such that `f` is strictly differentiable at `a`, its derivative `f'`
+is surjective and the kernel of `f'` is a complemented subspace of `E` (i.e., it has a closed
+complementary subspace). Then there exists a function `φ : F → ker f' → E` such that for `(y, z)`
+close to `(f a, 0)` we have `f (φ y z) = y` and the derivative of `φ (f a)` at zero is the
+embedding `ker f' → E`.
+
+Note that a map with these properties is not unique. E.g., different choices of a subspace
+complementary to `ker f'` lead to different maps `φ`.
+-/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
@@ -145,8 +208,8 @@ section defs
 
 variables (f f')
 
-/-- Data used to apply the generic implicit function theorem to the case of a strictly differentiable
- map such that its derivative is surjective and has a complemented kernel. -/
+/-- Data used to apply the generic implicit function theorem to the case of a strictly
+differentiable map such that its derivative is surjective and has a complemented kernel. -/
 @[simp] def implicit_function_data_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   implicit_function_data 𝕜 E F f'.ker :=
@@ -239,6 +302,23 @@ by convert (implicit_function_data_of_complemented f f' hf hf'
     [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
+
+/-!
+### Finite dimensional case
+
+In this section we prove the following version of the implicit function theorem. Consider a map
+`f : E → F` from a Banach normed space to a finite dimensional space.
+Take a point `a : E` such that `f` is strictly differentiable at `a` and its derivative `f'`
+is surjective. Then there exists a function `φ : F → ker f' → E` such that for `(y, z)`
+close to `(f a, 0)` we have `f (φ y z) = y` and the derivative of `φ (f a)` at zero is the
+embedding `ker f' → E`.
+
+This version deduces that `ker f'` is a complemented subspace from the fact that `F` is a finite
+dimensional space, then applies the previous version.
+
+Note that a map with these properties is not unique. E.g., different choices of a subspace
+complementary to `ker f'` lead to different maps `φ`.
+-/
 
 section finite_dimensional
 

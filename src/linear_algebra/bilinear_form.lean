@@ -564,7 +564,7 @@ given matrices `J`, `J₂`. -/
 def pair_self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
   (pair_self_adjoint_matrices_linear_embedding J J₂).range
 
-lemma mem_pair_self_adjoint_matrices_submodule :
+@[simp] lemma mem_pair_self_adjoint_matrices_submodule :
   A ∈ (pair_self_adjoint_matrices_submodule J J₂) ↔ matrix.is_adjoint_pair J J₂ A A :=
 begin
   change A ∈ (pair_self_adjoint_matrices_linear_embedding J J₂).range ↔ matrix.is_adjoint_pair J J₂ A A,

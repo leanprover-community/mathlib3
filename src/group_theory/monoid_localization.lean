@@ -380,7 +380,7 @@ by rw [mul_comm, mk'_mul_cancel_right]
   is_unit (j.comp f.to_map y) :=
 ⟨units.map j $ is_unit.lift_right (f.to_map.restrict S) f.map_units y,
   show j _ = j _, from congr_arg j $
-    (is_unit.coe_lift_right (f.to_map.restrict S) f.map_units _).symm⟩
+    (is_unit.coe_lift_right (f.to_map.restrict S) f.map_units _)⟩
 
 variables {g : M →* P}
 

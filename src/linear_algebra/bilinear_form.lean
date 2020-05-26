@@ -494,7 +494,7 @@ by simp only [linear_map.neg_apply, bilin_form.neg_apply, bilin_form.neg_right]
 it is a Jordan subalgebra.) -/
 def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
 
-lemma mem_self_adjoint_submodule (f : module.End R M) :
+@[simp] lemma mem_self_adjoint_submodule (f : module.End R M) :
   f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
 
 /-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact

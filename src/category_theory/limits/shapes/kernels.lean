@@ -146,7 +146,7 @@ variables [has_zero_morphisms.{v} C]
 /-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then any kernel of `f` is a kernel of `l`.-/
 def is_kernel.of_comp_iso {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom = f)
   {s : kernel_fork f} (hs : is_limit s) : is_limit (kernel_fork.of_ι (fork.ι s) $
-    show fork.ι s ≫ l = 0, by simp [←(iso.comp_inv_eq i).2 h.symm]) :=
+    show fork.ι s ≫ l = 0, by simp [←i.comp_inv_eq.2 h.symm]) :=
 fork.is_limit.mk _
   (λ s, hs.lift $ kernel_fork.of_ι (fork.ι s) $ by simp [←h])
   (λ s, by simp)
@@ -156,7 +156,7 @@ fork.is_limit.mk _
 def kernel.of_comp_iso [has_limit (parallel_pair f 0)]
   {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom = f) :
   is_limit (kernel_fork.of_ι (kernel.ι f) $
-    show kernel.ι f ≫ l = 0, by simp [←(iso.comp_inv_eq i).2 h.symm]) :=
+    show kernel.ι f ≫ l = 0, by simp [←i.comp_inv_eq.2 h.symm]) :=
 is_kernel.of_comp_iso f l i h $ limit.is_limit _
 
 /-- If `s` is any limit kernel cone over `f` and if  `i` is an isomorphism such that
@@ -308,7 +308,7 @@ variables [has_zero_morphisms.{v} C]
     `l`. -/
 def is_cokernel.of_iso_comp {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l = f)
   {s : cokernel_cofork f} (hs : is_colimit s) : is_colimit (cokernel_cofork.of_π (cofork.π s) $
-    show l ≫ cofork.π s = 0, by simp [(iso.eq_inv_comp i).2 h]) :=
+    show l ≫ cofork.π s = 0, by simp [i.eq_inv_comp.2 h]) :=
 cofork.is_colimit.mk _
   (λ s, hs.desc $ cokernel_cofork.of_π (cofork.π s) $ by simp [←h])
   (λ s, by simp)

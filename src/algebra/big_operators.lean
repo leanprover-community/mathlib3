@@ -1286,10 +1286,8 @@ multiset.induction_on s rfl
       ... = card (a :: s) :
       begin
         by_cases a ∈ s.to_finset,
-        { have : ∑ x in s.to_finset ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
-          { apply (finset.sum_subset _ _).symm,
-            { intros _ H, rwa mem_singleton.1 H },
-            { exact λ _ _ H, if_neg (mt finset.mem_singleton.2 H) } },
+        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
+          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
           rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
             finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
         { have ha : a ∉ s, by rwa mem_to_finset at h,

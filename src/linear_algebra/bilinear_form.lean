@@ -425,6 +425,9 @@ variables (f f' : M →ₗ[R] M₂) (g g' : M₂ →ₗ[R] M)
 maps between them to be mutually adjoint. -/
 def is_adjoint_pair := ∀ {{x y}}, B₂ (f x) y = B x (g y)
 
+lemma is_adjoint_pair.eq (h : is_adjoint_pair B B2 f g) :
+  ∀ {x y}, B₂ (f x) y = B x (g y) := h
+
 lemma is_adjoint_pair_iff_comp_left_eq_comp_right (f g : module.End R M) :
   is_adjoint_pair B B' f g ↔ B'.comp_left f = B.comp_right g :=
 begin

@@ -932,26 +932,15 @@ lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
 
 lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
-begin
-  induction n with n ih,
-  { exact le_refl _, },
-  { calc 1 ≤ m^n : ih
-       ... ≤ m^n * m : (@le_mul_iff_one_le_right ℕ _ m (m^n) ih).mpr h },
-end
+one_pow n ▸ pow_le_pow_of_le_left h n
 lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
 
 lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
 
 lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
-begin
-  induction n with n ih,
-  { cases h₀, },
-  { calc 1 ≤ m^n : one_le_pow n m (lt_of_succ_lt h₁)
-       ... < m^n * m :
-         (lt_mul_iff_one_lt_right (by exact one_le_pow n m (lt_of_succ_lt h₁))).mpr h₁ }
-end
+one_pow n ▸ pow_lt_pow_of_lt_left h₁ h₀
 lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
-  one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
+one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 
 lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
 lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
@@ -1559,6 +1548,13 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
     with_bot.coe_eq_coe]; simp
 | (some n) (some (m + 1)) := by erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
     with_bot.coe_eq_coe, with_bot.coe_eq_coe]; simp [nat.add_succ, nat.succ_inj', nat.succ_ne_zero]
+
+@[simp] lemma with_bot.coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
+by rw [← with_bot.coe_zero, with_bot.coe_le_coe]; exact nat.zero_le _
+
+@[simp] lemma with_bot.lt_zero_iff (n : with_bot ℕ) : n < 0 ↔ n = ⊥ :=
+option.cases_on n dec_trivial (λ n, iff_of_false
+  (by simp [with_bot.some_eq_coe]) (λ h, option.no_confusion h))
 
 -- induction
 

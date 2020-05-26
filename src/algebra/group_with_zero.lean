@@ -42,7 +42,7 @@ class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
 
 /-- A type `M` is a commutative “monoid with zero”
 if it is a commutative monoid with zero element. -/
-class comm_monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
+class comm_monoid_with_zero (G₀ : Type*) extends comm_monoid G₀, monoid_with_zero G₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
@@ -59,7 +59,7 @@ class group_with_zero (G₀ : Type*)
 if it is a commutative monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`. -/
-class comm_group_with_zero (G₀ : Type*) extends comm_monoid G₀, group_with_zero G₀.
+class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
 /-- The division operation on a group with zero element. -/
 instance group_with_zero.has_div {G₀ : Type*} [group_with_zero G₀] :

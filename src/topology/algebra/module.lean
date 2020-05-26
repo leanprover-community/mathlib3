@@ -434,6 +434,8 @@ variables {R M M₂}
 
 @[simp, norm_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
 
+@[simp] lemma fst_prod_snd : (fst R M M₂).prod (snd R M M₂) = id R (M × M₂) := ext $ λ ⟨x, y⟩, rfl
+
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=
 (f₁.comp (fst R M M₃)).prod (f₂.comp (snd R M M₃))
@@ -840,14 +842,14 @@ def closed_complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x
 lemma closed_complemented.has_closed_complement {p : submodule R M} [t1_space p]
   (h : closed_complemented p) :
   ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
-exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
+exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, linear_map.is_compl_of_proj hf⟩
 
 protected lemma closed_complemented.is_closed [topological_add_group M] [t1_space M]
   {p : submodule R M} (h : closed_complemented p) :
   is_closed (p : set M) :=
 begin
   rcases h with ⟨f, hf⟩,
-  have : ker (id R M - (subtype_val p).comp f) = p := (f : M →ₗ[R] p).ker_id_sub_eq_of_proj hf,
+  have : ker (id R M - (subtype_val p).comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
   exact this ▸ (is_closed_ker _)
 end
 

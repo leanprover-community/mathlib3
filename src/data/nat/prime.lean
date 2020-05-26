@@ -396,6 +396,13 @@ by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
 
+lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
+λ hp, (hp.2 x $ dvd_trans ⟨x, nat.pow_two _⟩ (nat.pow_dvd_pow _ hn)).elim
+  (λ hx1, hp.ne_one $ hx1.symm ▸ nat.one_pow _)
+  (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (nat.pow_one _).symm
+     ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
+     ... = x : hxn.symm)
+
 lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
 ⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [nat.pow_two],

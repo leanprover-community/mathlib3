@@ -27,15 +27,15 @@ bundling just the distance and using an instance for the metric space
 results in type class problems). -/
 class normed_add_torsor (V : Type*) (P : Type*) [normed_group V] [metric_space P]
   extends add_torsor V P :=
-(norm_dist' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
+(torsor_dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 end prio
 
 /-- The distance equals the norm of subtracting two points. This lemma
 is needed to make V an explicit rather than implicit argument. -/
-lemma norm_dist (V : Type*) {P : Type*} [normed_group V] [metric_space P] [normed_add_torsor V P]
-    (x y : P) :
+lemma torsor_dist_eq_norm (V : Type*) {P : Type*} [normed_group V] [metric_space P]
+    [normed_add_torsor V P] (x y : P) :
   dist x y = ∥(x -ᵥ y : V)∥ :=
-normed_add_torsor.norm_dist' x y
+normed_add_torsor.torsor_dist_eq_norm' x y
 
 open add_torsor
 

@@ -157,7 +157,7 @@ variables (f)
 
 /-- Each element `a : S` has an `M`-multiple which is an integer.
 
-This verion multiplies `a` on the right, matching the argument order in `localization.surj`.
+This version multiplies `a` on the right, matching the argument order in `localization.surj`.
 -/
 lemma exists_integer_multiple' (a : S) :
   ∃ (b : M), is_integer f (a * f.to_map b) :=

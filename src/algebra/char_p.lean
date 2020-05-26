@@ -32,6 +32,11 @@ begin
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
 
+lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+
 theorem char_p.eq (α : Type u) [semiring α] {p q : ℕ} (c1 : char_p α p) (c2 : char_p α q) : p = q :=
 nat.dvd_antisymm
   ((char_p.cast_eq_zero_iff α p q).1 (char_p.cast_eq_zero _ _))
@@ -89,6 +94,18 @@ lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
        char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+
+lemma char_p.neg_one_ne_one (R : Type*) [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
+  (-1 : R) ≠ (1 : R) :=
+begin
+  suffices : (2 : R) ≠ 0,
+  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
+  assume h,
+  rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
+  have := (char_p.cast_eq_zero_iff R p 2).mp h,
+  have := nat.le_of_dvd dec_trivial this,
+  rw fact at *, linarith,
+end
 
 section frobenius
 

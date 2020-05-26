@@ -14,8 +14,7 @@ import data.list.basic
 * `free_monoid α`: free monoid over alphabet `α`; defined as a synonym for `list α`
   with multiplication given by `(++)`.
 * `free_monoid.of`: embedding `α → free_monoid α` sending each element `x` to `[x]`;
-* `free_monoid.lift`: natural equivalence between `α → M` and `free_monoid α →* M`;
-  for technical reasons `α` and `M` are explicit arguments;
+* `free_monoid.lift`: natural equivalence between `α → M` and `free_monoid α →* M`
 * `free_monoid.map`: embedding of `α → β` into `free_monoid α →* free_monoid β` given by `list.map`.
 -/
 
@@ -81,7 +80,7 @@ def lift : (α → M) ≃ (free_monoid α →* M) :=
 lemma lift_apply (f : α → M) (l : list α) : lift f l = (l.map f).prod := rfl
 
 @[to_additive]
-lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := (lift α M).symm_apply_apply f
+lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := lift.symm_apply_apply f
 
 @[simp, to_additive]
 lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x :=
@@ -93,6 +92,9 @@ lift.apply_symm_apply f
 
 lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift f) = lift (g ∘ f) :=
 by { ext, simp }
+
+lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
+monoid_hom.ext_iff.1 (comp_lift g f) x
 
 /-- The unique monoid homomorphism `free_monoid α →* free_monoid β` that sends
 each `of x` to `of (f x)`. -/

@@ -446,26 +446,22 @@ le_antisymm
   (supr_le $ assume i, supr_le $ assume j, le_supr_of_le j $ le_supr _ i)
   (supr_le $ assume j, supr_le $ assume i, le_supr_of_le i $ le_supr _ j)
 
-@[simp] theorem infi_infi_eq_left {b : β} {f : Πx:β, x = b → α} :
-  (⨅ x (h : x = b), f x h) = f b rfl :=
+@[simp] theorem infi_infi_eq_left {b : β} {f : Πx:β, x = b → α} : (⨅x, ⨅h:x = b, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
   (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
 
-@[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} :
-  (⨅ x (h : b = x), f x h) = f b rfl :=
+@[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} : (⨅x, ⨅h:b = x, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
   (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
 
-@[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} :
-  (⨆ x (h : x = b), f x h) = f b rfl :=
+@[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} : (⨆x, ⨆h : x = b, f x h) = f b rfl :=
 le_antisymm
   (supr_le $ assume b', supr_le $ assume eq, match b', eq with ._, rfl := le_refl _ end)
   (le_supr_of_le b $ le_supr _ rfl)
 
-@[simp] theorem supr_supr_eq_right {b : β} {f : Πx:β, b = x → α} :
-  (⨆ x (h : b = x), f x h) = f b rfl :=
+@[simp] theorem supr_supr_eq_right {b : β} {f : Πx:β, b = x → α} : (⨆x, ⨆h : b = x, f x h) = f b rfl :=
 le_antisymm
   (supr_le $ assume b', supr_le $ assume eq, match b', eq with ._, rfl := le_refl _ end)
   (le_supr_of_le b $ le_supr _ rfl)

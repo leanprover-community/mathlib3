@@ -501,7 +501,7 @@ def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
 it is a Lie subalgebra.) -/
 def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
 
-lemma mem_skew_adjoint_submodule (f : module.End R M) :
+@[simp] lemma mem_skew_adjoint_submodule (f : module.End R M) :
   f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=
 by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl, }
 

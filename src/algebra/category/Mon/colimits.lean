@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
 import category_theory.limits.limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of monoids has all colimits.
@@ -50,7 +51,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| one {} : prequotient
+| one : prequotient
 | mul : prequotient → prequotient → prequotient
 
 instance : inhabited (prequotient F) := ⟨prequotient.one⟩
@@ -158,7 +159,7 @@ quot.mk _ (of j x)
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
-  map_one' := quot.sound (relation.one _ _),
+  map_one' := quot.sound (relation.one _),
   map_mul' := λ x y, quot.sound (relation.mul _ _ _) }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
@@ -199,11 +200,11 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- mul
-    { rw monoid_hom.map_mul ((s.ι).app r_j) },
+    { simp, },
     -- one
-    { erw monoid_hom.map_one ((s.ι).app r), refl },
+    { simp, },
     -- mul_1
     { rw r_ih, },
     -- mul_2
@@ -234,13 +235,8 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_one],
-      erw monoid_hom.map_one m,
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw monoid_hom.map_mul m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 

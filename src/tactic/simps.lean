@@ -29,8 +29,9 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
-  when add_simp $
-    set_basic_attribute `simp decl_name tt >> set_basic_attribute `_refl_lemma decl_name tt
+  when add_simp $ do
+    set_basic_attribute `_refl_lemma decl_name tt,
+    set_basic_attribute `simp decl_name tt
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/

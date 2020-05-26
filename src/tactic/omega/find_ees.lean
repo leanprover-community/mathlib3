@@ -4,7 +4,6 @@ Author: Seul Baek
 
 A tactic for finding a sequence of equality
 elimination rules for a given set of constraints. -/
-
 import tactic.omega.eq_elim
 
 variables {α β : Type}

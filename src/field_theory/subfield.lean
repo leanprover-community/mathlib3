@@ -3,7 +3,6 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
-
 import ring_theory.subring
 
 variables {F : Type*} [field F] (S : set F)
@@ -26,7 +25,7 @@ instance univ.is_subfield : is_subfield (@set.univ F) :=
 { inv_mem := by intros; trivial }
 
 /- note: in the next two declarations, if we let type-class inference figure out the instance
-  `is_ring_hom.is_subring_preimage` then that instance only applies when particular instances of
+  `ring_hom.is_subring_preimage` then that instance only applies when particular instances of
   `is_add_subgroup _` and `is_submonoid _` are chosen (which are not the default ones).
   If we specify it explicitly, then it doesn't complain. -/
 instance preimage.is_subfield {K : Type*} [field K]
@@ -47,13 +46,14 @@ by { rw ← set.image_univ, apply_instance }
 
 namespace field
 
+/-- `field.closure s` is the minimal subfield that includes `s`. -/
 def closure : set F :=
 { x | ∃ y ∈ ring.closure S, ∃ z ∈ ring.closure S, y / z = x }
 
 variables {S}
 
 theorem ring_closure_subset : ring.closure S ⊆ closure S :=
-λ x hx, ⟨x, hx, 1, is_submonoid.one_mem _, div_one x⟩
+λ x hx, ⟨x, hx, 1, is_submonoid.one_mem, div_one x⟩
 
 instance closure.is_submonoid : is_submonoid (closure S) :=
 { mul_mem := by rintros _  _ ⟨p, hp, q, hq, hq0, rfl⟩ ⟨r, hr, s, hs, hs0, rfl⟩;
@@ -62,10 +62,10 @@ instance closure.is_submonoid : is_submonoid (closure S) :=
           q * s,
           is_submonoid.mul_mem hq hs,
           (div_mul_div _ _ _ _).symm⟩,
-  one_mem := ring_closure_subset $ is_submonoid.one_mem _ }
+  one_mem := ring_closure_subset $ is_submonoid.one_mem }
 
 instance closure.is_subfield : is_subfield (closure S) :=
-have h0 : (0:F) ∈ closure S, from ring_closure_subset $ is_add_submonoid.zero_mem _,
+have h0 : (0:F) ∈ closure S, from ring_closure_subset $ is_add_submonoid.zero_mem,
 { add_mem := begin
     intros a b ha hb,
     rcases (id ha) with ⟨p, hp, q, hq, rfl⟩,
@@ -111,3 +111,11 @@ lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]
 { inv_mem := λ x hx, let ⟨i, hi⟩ := set.mem_Union.1 hx in
     set.mem_Union.2 ⟨i, is_subfield.inv_mem hi⟩,
   to_is_subring := is_subring_Union_of_directed s directed }
+
+instance is_subfield.inter (S₁ S₂ : set F) [is_subfield S₁] [is_subfield S₂] :
+  is_subfield (S₁ ∩ S₂) :=
+{ inv_mem := λ x hx, ⟨is_subfield.inv_mem hx.1, is_subfield.inv_mem hx.2⟩ }
+
+instance is_subfield.Inter {ι : Sort*} (S : ι → set F) [h : ∀ y : ι, is_subfield (S y)] :
+  is_subfield (set.Inter S) :=
+{ inv_mem := λ x hx, set.mem_Inter.2 $ λ y, is_subfield.inv_mem $ set.mem_Inter.1 hx y }

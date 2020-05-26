@@ -3,8 +3,9 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
-import group_theory.group_action algebra.pi_instances data.set.disjointed
+import algebra.pi_instances
+import data.set.disjointed
+import data.support
 
 /-!
 # Indicator function
@@ -44,6 +45,9 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 @[simp] lemma indicator_of_mem (h : a ∈ s) (f : α → β) : indicator s f a = f a := if_pos h
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
+
+lemma support_indicator : function.support (s.indicator f) ⊆ s :=
+λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
 lemma indicator_congr (h : ∀ a ∈ s, f a = g a) : indicator s f = indicator s g :=
 funext $ λx, by { simp only [indicator], split_ifs, { exact h _ h_1 }, refl }

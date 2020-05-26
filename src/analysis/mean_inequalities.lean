@@ -3,8 +3,8 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
-  analysis.convex.specific_functions
+import analysis.convex.specific_functions
+import analysis.special_functions.pow
 
 /-!
 # Mean value inequalities

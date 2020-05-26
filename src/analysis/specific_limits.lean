@@ -5,13 +5,16 @@ Authors: Johannes Hölzl
 
 A collection of specific limit computations.
 -/
-import analysis.normed_space.basic algebra.geom_sum
+import analysis.normed_space.basic
+import algebra.geom_sum
 import topology.instances.ennreal
 
 noncomputable theory
 open_locale classical topological_space
 
 open classical function filter finset metric
+
+open_locale big_operators
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -115,13 +118,33 @@ lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_sp
 tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
-  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
+  (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
   begin
     refine summable_of_summable_norm ⟨r, (has_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
     exact assume i, norm_nonneg _,
     simpa only using hr
   end
+
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
+tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+
+lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
+
+lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
+by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
+
+lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
+  tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
+
+lemma tendsto_one_div_add_at_top_nhds_0_nat :
+  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
+suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
+(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
+
+/-! ### Powers -/
 
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
@@ -162,14 +185,18 @@ begin
   apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
 end
 
-lemma tendsto_pow_at_top_nhds_0_of_lt_1_normed_field {K : Type*} [normed_field K] {ξ : K}
+lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {K : Type*} [normed_field K] {ξ : K}
   (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (𝓝 0) :=
 begin
-  rw[tendsto_iff_norm_tendsto_zero],
+  rw [tendsto_iff_norm_tendsto_zero],
   convert tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg ξ) ‹∥ξ∥ < 1›,
   ext n,
   simp
 end
+
+lemma tendsto_pow_at_top_nhds_0_of_abs_lt_1 {r : ℝ} (h : abs r < 1) :
+  tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
+tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
 
 lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
   tendsto (λn:ℕ, k ^ n) at_top at_top :=
@@ -177,62 +204,48 @@ tendsto_coe_nat_real_at_top_iff.1 $
   have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
-lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
-lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
+/-! ### Geometric series-/
+section geometric
 
-lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
-by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
-
-lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
-  tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
-
-lemma tendsto_one_div_add_at_top_nhds_0_nat :
-  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
-suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
-(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
-
-lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
+lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
 have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
-have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
+have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_series r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 
-lemma summable_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
-⟨_, has_sum_geometric h₁ h₂⟩
+lemma summable_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
+⟨_, has_sum_geometric_of_lt_1 h₁ h₂⟩
 
-lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
-tsum_eq_has_sum (has_sum_geometric h₁ h₂)
+lemma tsum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+tsum_eq_has_sum (has_sum_geometric_of_lt_1 h₁ h₂)
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
-by convert has_sum_geometric _ _; norm_num
+by convert has_sum_geometric_of_lt_1 _ _; norm_num
 
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
 
-lemma tsum_geometric_two : (∑n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
+lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
 tsum_eq_has_sum has_sum_geometric_two
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
-  convert has_sum.mul_left (a / 2) (has_sum_geometric
+  convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1
     (le_of_lt one_half_pos) one_half_lt_one),
   { funext n, simp, refl, },
-  { norm_num, rw div_mul_cancel, norm_num }
+  { norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
 ⟨a, has_sum_geometric_two' a⟩
 
-lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
+lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
 tsum_eq_has_sum $ has_sum_geometric_two' a
 
 lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
@@ -241,18 +254,18 @@ begin
   apply nnreal.has_sum_coe.1,
   push_cast,
   rw [nnreal.coe_sub (le_of_lt hr)],
-  exact has_sum_geometric r.coe_nonneg hr
+  exact has_sum_geometric_of_lt_1 r.coe_nonneg hr
 end
 
 lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, nnreal.has_sum_geometric hr⟩
 
-lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_eq_has_sum (nnreal.has_sum_geometric hr)
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ennreal) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma ennreal.tsum_geometric (r : ennreal) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -263,25 +276,48 @@ begin
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
-    calc (n:ennreal) = (range n).sum (λ _, 1) : by rw [sum_const, add_monoid.smul_one, card_range]
-    ... ≤ (range n).sum (pow r) : sum_le_sum (λ k _, this k) }
+    calc (n:ennreal) = (∑ i in range n, 1) : by rw [sum_const, add_monoid.smul_one, card_range]
+    ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
 end
 
-/-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
-def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
-  (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
+variables {K : Type*} [normed_field K] {ξ : K}
+
+lemma has_sum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : has_sum (λn:ℕ, ξ ^ n) (1 - ξ)⁻¹ :=
 begin
-  let f := λ n, (ε / 2) / 2 ^ n,
-  have hf : has_sum f ε := has_sum_geometric_two' _,
-  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
-  refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
-    with ⟨c, hg⟩,
-  refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
-  { assume i _, exact le_of_lt (f0 _) },
-  { assume n, exact le_refl _ }
+  have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
+  have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
+    from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
+  have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
+  rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
+  { simpa [geom_sum, xi_ne_one, neg_inv] using A },
+  { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
+lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ ^ n) :=
+⟨_, has_sum_geometric_of_norm_lt_1 h⟩
+
+lemma tsum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : (∑'n:ℕ, ξ ^ n) = (1 - ξ)⁻¹ :=
+tsum_eq_has_sum (has_sum_geometric_of_norm_lt_1 h)
+
+lemma has_sum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
+has_sum_geometric_of_norm_lt_1 h
+
+lemma summable_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : summable (λn:ℕ, r ^ n) :=
+summable_geometric_of_norm_lt_1 h
+
+lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+tsum_geometric_of_norm_lt_1 h
+
+end geometric
+
+/-!
+### Sequences with geometrically decaying distance in metric spaces
+
+In this paragraph, we discuss sequences in metric spaces or emetric spaces for which the distance
+between two consecutive terms decays geometrically. We show that such sequences are Cauchy
+sequences, and bound their distances to the limit. We also discuss series with geometrically
+decaying terms.
+-/
 section edist_le_geometric
 
 variables [emetric_space α] (r C : ennreal) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
@@ -328,7 +364,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -341,8 +377,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow'],
+  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end
@@ -371,7 +407,7 @@ begin
   { have rnonneg: r ≥ 0, from nonneg_of_mul_nonneg_left
       (by simpa only [pow_one] using le_trans dist_nonneg (hu 1)) Cpos,
     refine has_sum.mul_left C _,
-    by simpa using has_sum_geometric rnonneg hr }
+    by simpa using has_sum_geometric_of_lt_1 rnonneg hr }
 end
 
 variables (r C)
@@ -434,11 +470,11 @@ section summable_le_geometric
 variables [normed_group α] {r C : ℝ} {f : ℕ → α}
 
 lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
-  dist ((finset.range n).sum f) ((finset.range (n+1)).sum f) ≤ C * r ^ n :=
+  dist (∑ i in range n, f i) (∑ i in range (n+1), f i) ≤ C * r ^ n :=
 begin
   rw [sum_range_succ, dist_eq_norm, ← norm_neg],
   convert hf n,
-  abel
+  rw [neg_sub, add_sub_cancel]
 end
 
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
@@ -462,6 +498,23 @@ end
 
 end summable_le_geometric
 
+/-! ### Positive sequences with small sums on encodable types -/
+
+/-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
+def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
+  (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
+begin
+  let f := λ n, (ε / 2) / 2 ^ n,
+  have hf : has_sum f ε := has_sum_geometric_two' _,
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
+  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
+    with ⟨c, hg⟩,
+  refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
+  { assume i _, exact le_of_lt (f0 _) },
+  { assume n, exact le_refl _ }
+end
+
 namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
@@ -477,7 +530,7 @@ end nnreal
 namespace ennreal
 
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑ i, (ε' i : ennreal)) < ε :=
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
   rcases dense hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

@@ -3,11 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
-
 import algebra.category.Group
-import category_theory.fully_faithful
-import algebra.ring
-import data.int.basic
 import data.equiv.ring
 
 /-!
@@ -22,8 +18,7 @@ along with the relevant forgetful functors between them.
 
 ## Implementation notes
 
-See the note [locally reducible category instances] and
-the note [reducible has_coe_to_sort instances for bundled categories].
+See the note [locally reducible category instances].
 
 -/
 
@@ -43,11 +38,6 @@ instance : inhabited SemiRing := ⟨of punit⟩
 
 local attribute [reducible] SemiRing
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
 instance : has_coe_to_sort SemiRing := infer_instance -- short-circuit type class inference
 
 instance (R : SemiRing) : semiring R := R.str
@@ -69,9 +59,11 @@ instance has_forget_to_AddCommMon : has_forget₂ SemiRing AddCommMon :=
 end SemiRing
 
 /-- The category of rings. -/
-def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring)
+def Ring : Type (u+1) := bundled ring
 
 namespace Ring
+
+instance : bundled_hom.parent_projection @ring.to_semiring := ⟨⟩
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
@@ -80,11 +72,6 @@ instance : inhabited Ring := ⟨of punit⟩
 
 local attribute [reducible] Ring
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
 instance : has_coe_to_sort Ring := by apply_instance -- short-circuit type class inference
 
 instance (R : Ring) : ring R := R.str
@@ -92,7 +79,7 @@ instance (R : Ring) : ring R := R.str
 instance : category Ring := infer_instance -- short-circuit type class inference
 instance : concrete_category Ring := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance  -- short-circuit type class inference
+instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := bundled_hom.forget₂ _ _
 instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 -- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
 { forget₂ :=
@@ -102,9 +89,11 @@ instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 end Ring
 
 /-- The category of commutative semirings. -/
-def CommSemiRing : Type (u+1) := induced_category SemiRing (bundled.map comm_semiring.to_semiring)
+def CommSemiRing : Type (u+1) := bundled comm_semiring
 
 namespace CommSemiRing
+
+instance : bundled_hom.parent_projection @comm_semiring.to_semiring := ⟨⟩
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
@@ -113,11 +102,6 @@ instance : inhabited CommSemiRing := ⟨of punit⟩
 
 local attribute [reducible] CommSemiRing
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
 instance : has_coe_to_sort CommSemiRing := infer_instance -- short-circuit type class inference
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
@@ -125,7 +109,7 @@ instance (R : CommSemiRing) : comm_semiring R := R.str
 instance : category CommSemiRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommSemiRing := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := infer_instance -- short-circuit type class inference
+instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled_hom.forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommMon : has_forget₂ CommSemiRing CommMon :=
@@ -136,9 +120,11 @@ has_forget₂.mk'
 end CommSemiRing
 
 /-- The category of commutative rings. -/
-def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring)
+def CommRing : Type (u+1) := bundled comm_ring
 
 namespace CommRing
+
+instance : bundled_hom.parent_projection @comm_ring.to_ring := ⟨⟩
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
@@ -147,11 +133,6 @@ instance : inhabited CommRing := ⟨of punit⟩
 
 local attribute [reducible] CommRing
 
-/--
-`has_coe_to_sort` instances for bundled categories must be `[reducible]`,
-see note [reducible has_coe_to_sort instances for bundled categories].
--/
-@[reducible]
 instance : has_coe_to_sort CommRing := infer_instance -- short-circuit type class inference
 
 instance (R : CommRing) : comm_ring R := R.str
@@ -159,7 +140,7 @@ instance (R : CommRing) : comm_ring R := R.str
 instance : category CommRing := infer_instance -- short-circuit type class inference
 instance : concrete_category CommRing := infer_instance -- short-circuit type class inference
 
-instance has_forget_to_Ring : has_forget₂ CommRing Ring := infer_instance -- short-circuit type class inference
+instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
@@ -167,12 +148,10 @@ has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂
 
 end CommRing
 
-/--
-We verify that `has_coe_to_sort` instances for bundled categories have been correctly marked `reducible`,
-so that `simp` lemmas for morphisms work.
-
-See note [reducible has_coe_to_sort instances for bundled categories].
--/
+-- This example verifies an improvement possible in Lean 3.8.
+-- Before that, to have `add_ring_hom.map_zero` usable by `simp` here,
+-- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
+-- Now, it just works.
 example {R S : CommRing} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 by simp [h]
 

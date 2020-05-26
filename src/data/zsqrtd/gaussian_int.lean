@@ -3,8 +3,10 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
-import data.zsqrtd.basic data.complex.basic ring_theory.principal_ideal_domain
-import data.zmod.quadratic_reciprocity
+import data.zsqrtd.basic
+import data.complex.basic
+import ring_theory.principal_ideal_domain
+import number_theory.quadratic_reciprocity
 /-!
 # Gaussian integers
 
@@ -189,7 +191,7 @@ instance : euclidean_domain ℤ[i] :=
 
 open principal_ideal_domain
 
-lemma mod_four_eq_three_of_nat_prime_of_prime {p : ℕ} (hp : p.prime) (hpi : prime (p : ℤ[i])) :
+lemma mod_four_eq_three_of_nat_prime_of_prime (p : ℕ) [hp : fact p.prime] (hpi : prime (p : ℤ[i])) :
   p % 4 = 3 :=
 hp.eq_two_or_odd.elim
   (λ hp2, absurd hpi (mt irreducible_iff_prime.2 $
@@ -207,42 +209,45 @@ hp.eq_two_or_odd.elim
         generalize hm : p % 4 = m, clear hm, revert m,
         exact dec_trivial,
       end,
-    let ⟨k, hk⟩ := (zmodp.exists_pow_two_eq_neg_one_iff_mod_four_ne_three hp).2 $
+    let ⟨k, hk⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).2 $
       by rw hp41; exact dec_trivial in
-    have hpk : p ∣ k.val ^ 2 + 1,
-      by rw [← zmodp.eq_zero_iff_dvd_nat hp]; simp *,
-    have hkmul : (k.val ^ 2 + 1 : ℤ[i]) = ⟨k.val, 1⟩ * ⟨k.val, -1⟩ :=
-      by simp [_root_.pow_two, zsqrtd.ext],
-    have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
-    have hkltp : 1 + k.val * k.val < p * p,
-      from calc 1 + k.val * k.val ≤ k.val + k.val * k.val :
-        add_le_add_right (nat.pos_of_ne_zero
-          (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
-      ... = k.val * (k.val + 1) : by simp [add_comm, mul_add]
-      ... < p * p : mul_lt_mul k.2 k.2 (nat.succ_pos _) (nat.zero_le _),
-    have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k.val, -1⟩ :=
-      λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-        calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k.val, -1⟩).nat_abs : by rw hx
-        ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
-        ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
-          (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
-            by simpa [hx0] using congr_arg zsqrtd.im hx),
-    have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k.val, 1⟩ :=
-      λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-        calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k.val, 1⟩).nat_abs : by rw hx
-        ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
-        ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
-          (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
+    begin
+      obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
+      { refine ⟨k.val, k.val_lt, zmod.cast_val k⟩ },
+      have hpk : p ∣ k ^ 2 + 1,
+        by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
+      have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
+        by simp [_root_.pow_two, zsqrtd.ext],
+      have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
+      have hkltp : 1 + k * k < p * p,
+        from calc 1 + k * k ≤ k + k * k :
+          add_le_add_right (nat.pos_of_ne_zero
+            (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
+        ... = k * (k + 1) : by simp [add_comm, mul_add]
+        ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
+      have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
+        λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
+          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, -1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
+            (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
               by simpa [hx0] using congr_arg zsqrtd.im hx),
-    have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
-      by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-      exact λ h, (ne_of_lt hp.one_lt).symm h.1,
-    let ⟨y, hy⟩ := hpk in
-    by have := hpi.2.2 ⟨k.val, 1⟩ ⟨k.val, -1⟩
-      ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩;
-        clear_aux_decl; tauto)
+      have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k, 1⟩ :=
+        λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
+          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, 1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
+            (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
+                by simpa [hx0] using congr_arg zsqrtd.im hx),
+      have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2
+        (by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
+        exact λ h, (ne_of_lt hp.one_lt).symm h.1),
+      obtain ⟨y, hy⟩ := hpk,
+      have := hpi.2.2 ⟨k, 1⟩ ⟨k, -1⟩ ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩,
+      clear_aux_decl, tauto
+    end)
 
-lemma sum_two_squares_of_nat_prime_of_not_irreducible {p : ℕ} (hp : p.prime)
+lemma sum_two_squares_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
@@ -257,16 +262,16 @@ have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     simp).1,
 ⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, nat.pow_two] using hnap⟩
 
-lemma prime_of_nat_prime_of_mod_four_eq_three {p : ℕ} (hp : p.prime) (hp3 : p % 4 = 3) :
+lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
-  let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible hp hpi in
+  let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible p hpi in
 have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.cast_mod_nat 4 p, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/
-lemma prime_iff_mod_four_eq_three_of_nat_prime {p : ℕ} (hp : p.prime) :
+lemma prime_iff_mod_four_eq_three_of_nat_prime (p : ℕ) [hp : fact p.prime] :
   prime (p : ℤ[i]) ↔ p % 4 = 3 :=
-⟨mod_four_eq_three_of_nat_prime_of_prime hp, prime_of_nat_prime_of_mod_four_eq_three hp⟩
+⟨mod_four_eq_three_of_nat_prime_of_prime p, prime_of_nat_prime_of_mod_four_eq_three p⟩
 
 end gaussian_int

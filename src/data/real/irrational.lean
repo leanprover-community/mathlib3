@@ -3,7 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
 -/
-import data.real.basic algebra.gcd_domain ring_theory.multiplicity tactic.alias
+import data.real.basic
+import algebra.gcd_domain
+import ring_theory.multiplicity
 /-!
 # Irrational real numbers
 
@@ -48,7 +50,7 @@ end
 /-- If `x^n = m` is an integer and `n` does not divide the `multiplicity p m`, then `x`
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
-  [hp : nat.prime p] (hxr : x ^ n = m)
+  [hp : fact p.prime] (hxr : x ^ n = m)
   (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
@@ -66,7 +68,7 @@ begin
 end
 
 theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
-  (p : ℕ) [hp : nat.prime p]
+  (p : ℕ) [hp : fact p.prime]
   (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp
@@ -192,7 +194,7 @@ theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
 
 theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, h.of_one_div.of_pow _
+| -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 

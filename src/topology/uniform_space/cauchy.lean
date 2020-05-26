@@ -2,11 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
-import topology.uniform_space.basic topology.bases data.set.intervals
-
+import topology.uniform_space.basic
+import topology.bases
+import data.set.intervals
+/-!
+# Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
+-/
 universes u v
 
 open filter topological_space set classical
@@ -73,7 +75,7 @@ begin
   -- Consider a neighborhood `s` of `x`
   assume s hs,
   -- Take an entourage twice smaller than `s`
-  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
+  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 hs) with ⟨U, U_mem, hU⟩,
   -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
   rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
   apply mem_sets_of_superset t_mem,
@@ -97,8 +99,7 @@ end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
-⟨assume h, (inf_of_le_left h).symm ▸ hf.left,
-le_nhds_of_cauchy_adhp hf⟩
+⟨assume h, left_eq_inf.2 h ▸ hf.left, le_nhds_of_cauchy_adhp hf⟩
 
 lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
   (hm : uniform_continuous m) (hf : cauchy f) : cauchy (map m f) :=
@@ -143,7 +144,7 @@ begin
   rw ← bot_lt_iff_ne_bot,
   have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
     by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
-  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
+  exact lt_of_lt_of_le this (inf_le_inf_right _ (map_mono hf))
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -398,12 +399,13 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
 
-/-! ### Sequentially complete space
+/-!
+### Sequentially complete space
 
 In this section we prove that a uniform space is complete provided that it is sequentially complete
 (i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
-In particular, this applies to (e)metric spaces, see the files `topology/metric_space/emetric_space` and
-`topology/metric_space/basic`.
+In particular, this applies to (e)metric spaces, see the files `topology/metric_space/emetric_space`
+and `topology/metric_space/basic`.
 
 More precisely, we assume that there is a sequence of entourages `U_n` such that any other
 entourage includes one of `U_n`. Then any Cauchy filter `f` generates a decreasing sequence of
@@ -484,7 +486,7 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (H : has_countable_basis (𝓤 α))
+variables (H : is_countably_generated (𝓤 α))
 
 include H
 
@@ -494,7 +496,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases (𝓤 α).has_countable_basis_iff_mono_seq'.1 H with ⟨U', U'_mono, hU'⟩,
+  rcases H.exists_antimono_seq' with ⟨U', U'_mono, hU'⟩,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem_sets (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -509,7 +511,7 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := (𝓤 α).has_countable_basis_iff_mono_seq'.1 H in
+let ⟨U', U'_mono, hU'⟩ := H.exists_antimono_seq' in
 complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 

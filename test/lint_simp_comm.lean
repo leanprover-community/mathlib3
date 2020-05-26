@@ -1,4 +1,5 @@
 import tactic.lint
+import algebra.group.basic
 
 /-! ## Commutativity lemmas should be rejected  -/
 

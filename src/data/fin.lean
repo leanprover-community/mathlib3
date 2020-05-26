@@ -3,7 +3,7 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import data.nat.basic
+import data.nat.cast
 /-!
 # The finite type with `n` elements
 
@@ -87,7 +87,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
-@[simp] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
@@ -98,11 +98,70 @@ attribute [simp] val_zero
 @[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
+/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+iff.rfl
+
+/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+iff.rfl
+
+lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
+
+@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
+
+@[simp]
+lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
+begin
+  induction a with a ih, { refl },
+  ext, show (a+1) % (n+1) = fin.val (a+1 : fin (n+1)),
+  { rw [val_add, ← ih, of_nat],
+    exact add_mod _ _ _ }
+end
+
+/-- Converting an in-range number to `fin (n + 1)` produces a result
+whose value is the original number.  -/
+lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  (a : fin (n + 1)).val = a :=
+begin
+  rw ←of_nat_eq_coe,
+  exact nat.mod_eq_of_lt h
+end
+
+/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
+in the same value.  -/
+@[simp] lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
+begin
+  rw fin.eq_iff_veq,
+  exact coe_val_of_lt a.is_lt
+end
+
+/-- Coercing an in-range number to `fin (n + 1)`, and converting back
+to `ℕ`, results in that number. -/
+lemma coe_coe_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  ((a : fin (n + 1)) : ℕ) = a :=
+coe_val_of_lt h
+
+/-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
+value. -/
+@[simp] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
+coe_val_eq_self a
+
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
-protected lemma heq {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α}
-  (H : ∀ (i : fin k), f i = g ⟨i.val, lt_of_lt_of_le i.2 (le_of_eq h)⟩) : f == g :=
-by { induction h, rw heq_iff_eq, ext i, convert H i, exact (fin.ext_iff _ _).mpr rfl }
+protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
+  f == g ↔ (∀ (i : fin k), f i = g ⟨i.val, h ▸ i.2⟩) :=
+by { induction h, simp [heq_iff_eq, function.funext_iff] }
+
+protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
+  i == j ↔ i.val = j.val :=
+by { induction h, simp [fin.ext_iff] }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
@@ -208,6 +267,8 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
+@[simp, norm_cast] lemma coe_last {n : ℕ} : (last n : ℕ) = n := rfl
+
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
@@ -280,6 +341,25 @@ begin
       rw [lt_iff_val_lt_val, succ_val] at h₁,
       exact h₀ (lt_trans (nat.lt_succ_self _) h₁) },
     { rw [pred_succ] } }
+end
+
+/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
+  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
+begin
+  split,
+  { assume H i hi,
+    apply H,
+    exact nat.lt_succ_self _ },
+  { assume H,
+    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
+    { assume i j h h',
+      induction h with k h IH,
+      { exact H _ _ },
+      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
+    assume i j hij,
+    convert A (i : ℕ) (j : ℕ) hij j.2;
+    simp [fin.ext_iff, fin.coe_eq_val] }
 end
 
 section rec

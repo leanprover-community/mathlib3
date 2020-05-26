@@ -3,8 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-
-import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
+import tactic.tauto
+import algebra.order_functions
+import algebra.ordered_field
 
 /-!
 # Intervals
@@ -561,12 +562,7 @@ by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_re
 
 @[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
   Icc a b ∩ Icc b c = {b} :=
-begin
-  rw [Icc_inter_Icc],
-  convert Icc_self b,
-  exact sup_of_le_right hab,
-  exact inf_of_le_left hbc
-end
+by rw [Icc_inter_Icc, sup_of_le_right hab, inf_of_le_left hbc, Icc_self]
 
 include ht
 
@@ -594,9 +590,9 @@ set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
 end decidable_linear_order
 
-section ordered_comm_group
+section ordered_add_comm_group
 
-variables {α : Type u} [ordered_comm_group α]
+variables {α : Type u} [ordered_add_comm_group α]
 
 lemma image_add_left_Icc (a b c : α) : ((+) a) '' Icc b c = Icc (a + b) (a + c) :=
 begin
@@ -647,11 +643,11 @@ begin
     exact neg_le.1 hz }
 end
 
-end ordered_comm_group
+end ordered_add_comm_group
 
-section decidable_linear_ordered_comm_group
+section decidable_linear_ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_comm_group α]
+variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -662,7 +658,7 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 section linear_ordered_field
 

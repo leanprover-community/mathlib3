@@ -7,6 +7,7 @@ A set of test cases for the `simp_rw` tactic.
 -/
 import tactic.simp_rw
 import data.set.basic
+import data.nat.basic
 
 -- `simp_rw` can perform rewrites under binders:
 example : (λ (x y : ℕ), x + y) = (λ x y, y + x) := by simp_rw [add_comm]

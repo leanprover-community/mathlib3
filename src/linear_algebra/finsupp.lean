@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.monoid_algebra linear_algebra.basic
+import data.monoid_algebra
 
 noncomputable theory
 
@@ -112,9 +112,9 @@ by haveI := classical.dec_pred (λ (x : α), x ∈ s);
 
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
-set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
+set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 
-lemma supported_eq_span_single [has_one M] (s : set α) :
+lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
 begin
   refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
@@ -139,7 +139,6 @@ linear_map.cod_restrict _
 variables {M R}
 
 section
-set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
   ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
@@ -184,7 +183,7 @@ begin
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
-  rintro l ⟨⟩, rw mem_coe,
+  rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
   haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
@@ -209,7 +208,6 @@ begin
 end
 
 section
-set_option class.instance_max_depth 37
 def supported_equiv_finsupp (s : set α) :
   (supported M R s) ≃ₗ[R] (s →₀ M) :=
 (restrict_support_equiv s).to_linear_equiv
@@ -324,8 +322,7 @@ begin
     rw finsupp.total_apply,
     unfold finsupp.sum,
     apply sum_mem (span R (range v)),
-    { exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
-    apply_instance },
+    exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -396,7 +393,7 @@ begin
 end
 
 lemma total_comap_domain
- (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) :
+ (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
  finsupp.total α M R v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 
@@ -427,7 +424,7 @@ variables {R : Type*} {M : Type*} {N : Type*}
 variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 lemma linear_map.map_finsupp_total
-  (f : M →ₗ[R] N) {ι : Type*} [fintype ι] {g : ι → M} (l : ι →₀ R) :
+  (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
 by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
 

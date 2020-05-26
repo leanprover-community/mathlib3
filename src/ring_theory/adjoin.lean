@@ -5,9 +5,8 @@ Authors: Kenny Lau
 
 Adjoining elements to form subalgebras.
 -/
-
-import ring_theory.algebra_operations ring_theory.polynomial ring_theory.principal_ideal_domain
-import algebra.pointwise
+import ring_theory.polynomial
+import ring_theory.principal_ideal_domain
 
 universes u v w
 
@@ -40,7 +39,7 @@ variables (s t)
 theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
 le_antisymm
   (closure_mono $ set.union_subset
-    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map (adjoin R s) r, rfl⟩)
+    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
     (set.union_subset_union_left _ $ λ x hxs, ⟨⟨_, subset_adjoin hxs⟩, rfl⟩))
   (closure_subset $ set.union_subset
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
@@ -50,26 +49,27 @@ theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s
 begin
   apply le_antisymm,
   { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
-    induction L with hd tl ih, { rw mem_coe, exact zero_mem _ },
+    induction L with hd tl ih, { exact zero_mem _ },
     rw list.forall_mem_cons at HL,
-    rw [list.map_cons, list.sum_cons, mem_coe],
+    rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
     suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
-    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem _, one_smul _ _⟩ },
+    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨⟨hd, rfl⟩ | hs⟩ | rfl,
-    { refine ⟨hd * z, r, hr, _⟩, rw [smul_def, smul_def, map_mul, ring.mul_assoc], refl },
+    { refine ⟨hd * z, r, hr, _⟩,
+      rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
     { refine ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr, _⟩,
       rw [smul_def, smul_def, mul_left_comm] },
     { refine ⟨-z, r, hr, _⟩, rw [neg_smul, neg_one_mul] } },
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
 
-theorem adjoin_eq_range [decidable_eq R] [decidable_eq A] :
+theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
@@ -79,15 +79,16 @@ le_antisymm
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ _ _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range [decidable_eq R] [decidable_eq A] (x : A) :
+theorem adjoin_singleton_eq_range (x : A) :
   adjoin R {x} = (polynomial.aeval R A x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
     (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).3 ⟨r, rfl⟩)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ n r ih, by rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul, polynomial.aeval_def _ _ _ polynomial.X,
-      polynomial.eval₂_X]; exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl)))
+    (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
+      polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
+      exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
@@ -132,7 +133,7 @@ begin
     rw [← hq', ← set.image_id q, finsupp.mem_span_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
-    rw [this, finsupp.sum, mem_coe],
+    rw [this, finsupp.sum],
     refine sum_mem _ _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
@@ -153,12 +154,14 @@ namespace subalgebra
 variables {R : Type u} {A : Type v}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
+/-- A subalgebra `S` is finitely generated if there exists `t : finset A` such that
+`algebra.adjoin R t = S`. -/
 def fg (S : subalgebra R A) : Prop :=
 ∃ t : finset A, algebra.adjoin R ↑t = S
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
 ⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa finset.coe_to_finset⟩⟩
+λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
@@ -171,8 +174,6 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
-
-variables [decidable_eq R] [decidable_eq A]
 
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=

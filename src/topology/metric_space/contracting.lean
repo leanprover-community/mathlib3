@@ -3,8 +3,8 @@ Copyright (c) 2019 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-
-import topology.metric_space.lipschitz analysis.specific_limits data.setoid
+import analysis.specific_limits
+import data.setoid
 
 /-!
 # Contracting maps
@@ -21,6 +21,9 @@ of convergence, and some properties of the map sending a contracting map to its 
   in `emetric.ball x ∞`;
 * `fixed_point` : the unique fixed point of a contracting map on a complete nonempty metric space.
 
+## Tags
+
+contracting map, fixed point, Banach fixed point theorem
 -/
 
 open_locale nnreal topological_space classical
@@ -35,8 +38,8 @@ lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : �
   f x = x :=
 begin
   rcases hx with ⟨x₀, hx⟩,
-  refine tendsto_nhds_unique at_top_ne_bot _ hx,
-  rw [← tendsto_add_at_top_iff_nat 1, funext (assume n, nat.iterate_succ' f n x₀)],
+  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hx,
+  simp only [nat.iterate_succ' f],
   exact tendsto.comp hf hx
 end
 

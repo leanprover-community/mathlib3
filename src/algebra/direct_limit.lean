@@ -14,11 +14,7 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 -/
-
-import linear_algebra.direct_sum_module
-import algebra.big_operators
 import ring_theory.free_comm_ring
-import ring_theory.ideal_operations
 
 universes u v w u₁
 
@@ -33,8 +29,8 @@ variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 This is used for abelian groups and rings and fields because their maps are not bundled.
 See module.directed_system -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
@@ -42,8 +38,8 @@ variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
@@ -204,7 +200,6 @@ local attribute [instance] directed_system
 instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
-set_option class.instance_max_depth 50
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
@@ -360,31 +355,34 @@ begin
   refine span_induction (ideal.quotient.eq_zero_iff_mem.1 H) _ _ _ _,
   { rintros x (⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩),
     { refine ⟨j, {⟨i, x⟩, ⟨j, f i j hij x⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inl rfl) (is_supported_of.2 $ or.inr $ or.inl rfl), _⟩,
-      { rintros k (rfl | ⟨rfl | h⟩), refl, exact hij, cases h },
+        is_supported_sub (is_supported_of.2 $ or.inr rfl) (is_supported_of.2 $ or.inl rfl), _⟩,
+      { rintros k (rfl | ⟨rfl | _⟩), exact hij, refl },
       { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
         dsimp only, rw directed_system.map_map f, exact sub_self _,
-        { left, refl }, { right, left, refl }, } },
-    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 $ or.inl rfl) is_supported_one, _⟩,
-      { rintros k (rfl | h), refl, cases h },
+        exacts [or.inr rfl, or.inl rfl] } },
+    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
+      { rintros k (rfl|h), refl },
       { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_of, lift_one],
-        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exact _inst_7 i i _, { left, refl } } },
+        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exacts [_inst_7 i i _, rfl] } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
-      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
+        is_supported_sub (is_supported_of.2 $ or.inl rfl)
+          (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
+            (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
+      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
       { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
-        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } },
+        exacts [or.inl rfl, by apply_instance, or.inr (or.inr rfl), or.inr (or.inl rfl)] } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
-      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
+        is_supported_sub (is_supported_of.2 $ or.inl rfl)
+          (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl)
+            (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
+      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
       { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_of, lift_of, lift_of],
-        dsimp only, rw is_ring_hom.map_mul (f i i _), exact sub_self _,
-        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } } },
+        dsimp only, rw is_ring_hom.map_mul (f i i _),
+        exacts [sub_self _, or.inl rfl, by apply_instance, or.inr (or.inr rfl),
+          or.inr (or.inl rfl)] } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
     rw [restriction_zero, lift_zero] },

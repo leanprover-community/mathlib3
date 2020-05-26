@@ -413,112 +413,96 @@ end alt_bilin_form
 
 namespace bilin_form
 
-section endomorphism_adjoints
+section linear_adjoints
 
 variables {R : Type u} [comm_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
-variables (B : bilin_form R M)
+variables {M₂ : Type v} [add_comm_group M₂] [module R M₂]
+variables (B B' : bilin_form R M) (B₂ : bilin_form R M₂)
+variables (f f' : M →ₗ[R] M₂) (g g' : M₂ →ₗ[R] M)
 
 /-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
 maps between them to be mutually adjoint. -/
-def is_adjoint_maps {M' : Type v} [add_comm_group M'] [module R M'] (B' : bilin_form R M')
-  (T : M →ₗ[R] M') (T' : M' →ₗ[R] M) := ∀ x y, B' (T x) y = B x (T' y)
+def is_adjoint_pair := ∀ x y, B₂ (f x) y = B x (g y)
 
-/-- Given a module equipped with a bilinear form, this is the condition for a pair of endomorphims
-to be mutually adjoint. -/
-def is_adjoint_pair (T S : module.End R M) := is_adjoint_maps B B T S
-
-lemma is_adjoint_pair_iff_comp_left_eq_comp_right (T S : module.End R M) :
-  B.is_adjoint_pair T S ↔ B.comp_left T = B.comp_right S :=
+lemma is_adjoint_pair_iff_comp_left_eq_comp_right (f g : module.End R M) :
+  is_adjoint_pair B B' f g ↔ B'.comp_left f = B.comp_right g :=
 begin
   split; intros h,
   { ext x y, rw [comp_left_apply, comp_right_apply], exact h x y, },
   { intros x y, rw [←comp_left_apply, ←comp_right_apply], rw h, },
 end
 
-lemma is_adjoint_pair_zero : B.is_adjoint_pair 0 0 :=
+lemma is_adjoint_pair_zero : is_adjoint_pair B B₂ 0 0 :=
 λ x y, by simp only [bilin_form.zero_left, bilin_form.zero_right, linear_map.zero_apply]
 
-lemma is_adjoint_pair_id : B.is_adjoint_pair 1 1 := λ x y, rfl
+lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
 
-lemma is_adjoint_pair_add
-  (T S T' S' : module.End R M) (hT : B.is_adjoint_pair T T') (hS : B.is_adjoint_pair S S') :
-  B.is_adjoint_pair (T + S) (T' + S') :=
-λ x y, by rw [linear_map.add_apply, linear_map.add_apply, add_left, add_right, hT, hS]
+lemma is_adjoint_pair_add (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
+  is_adjoint_pair B B₂ (f + f') (g + g') :=
+λ x y, by rw [linear_map.add_apply, linear_map.add_apply, add_left, add_right, h, h']
 
-lemma is_adjoint_pair_sub
-  (T S T' S' : module.End R M) (hT : B.is_adjoint_pair T T') (hS : B.is_adjoint_pair S S') :
-  B.is_adjoint_pair (T - S) (T' - S') :=
-λ x y, by rw [linear_map.sub_apply, linear_map.sub_apply, sub_left, sub_right, hT, hS]
+lemma is_adjoint_pair_sub (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
+  is_adjoint_pair B B₂ (f - f') (g - g') :=
+λ x y, by rw [linear_map.sub_apply, linear_map.sub_apply, sub_left, sub_right, h, h']
 
-lemma is_adjoint_pair_smul (c : R) (T T' : module.End R M) (hT : B.is_adjoint_pair T T') :
-  B.is_adjoint_pair (c • T) (c • T') :=
-λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply, smul_left, smul_right, hT]
+lemma is_adjoint_pair_smul (c : R) (h : is_adjoint_pair B B₂ f g) :
+  is_adjoint_pair B B₂ (c • f) (c • g) :=
+λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply, smul_left, smul_right, h]
+
+lemma is_adjoint_pair_comp {M₃ : Type v} [add_comm_group M₃] [module R M₃] (B₃ : bilin_form R M₃)
+  (f' : M₂ →ₗ[R] M₃) (g' : M₃ →ₗ[R] M₂)
+  (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B₂ B₃ f' g') :
+  is_adjoint_pair B B₃ (f'.comp f) (g.comp g') :=
+λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h' (f x) y, h x (g' y)]
 
 lemma is_adjoint_pair_mul
-  (T S T' S' : module.End R M) (hT : B.is_adjoint_pair T T') (hS : B.is_adjoint_pair S S') :
-  B.is_adjoint_pair (T * S) (S' * T') :=
-λ x y, by rw [linear_map.mul_app, linear_map.mul_app, hT, hS]
+  (f g f' g' : module.End R M) (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
+  is_adjoint_pair B B (f * f') (g' * g) :=
+λ x y, by rw [linear_map.mul_app, linear_map.mul_app, h, h']
 
-/-- An endomorphism of a module is self-adjoint with respect to a bilinear form, if it serves as an
+/-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
+on the underlying module. In the case that these two forms are identical, this is the usual concept
+of self adjointness. In the case that one of the forms is the negation of the other, this is the
+usual concept of skew adjointness. -/
+def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
+
+/-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
+def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
+{ carrier := { f | is_pair_self_adjoint B B' f },
+  zero    := is_adjoint_pair_zero B B',
+  add     := λ f g hf hg, is_adjoint_pair_add B B' _ _ _ _ hf hg,
+  smul    := λ c f h, is_adjoint_pair_smul B B' _ _ c h, }
+
+/-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/
-def is_self_adjoint (T : module.End R M) := B.is_adjoint_pair T T
+def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
 
-/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form, if its negation
+/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
 serves as an adjoint. -/
-def is_skew_adjoint (T : module.End R M) := B.is_adjoint_pair T (-T)
+def is_skew_adjoint (f : module.End R M) := is_adjoint_pair B B f (-f)
 
-lemma is_skew_adjoint_iff_neg_self_adjoint (T : module.End R M) :
-  B.is_skew_adjoint T ↔ is_adjoint_maps (-B) B T T :=
-begin
-  change (∀ x y, B (T x) y = B x ((-T) y)) ↔ ∀ x y, B (T x) y = (-B) x (T y),
-  simp only [linear_map.neg_apply, bilin_form.neg_right, bilin_form.neg_apply, neg_eq_iff_neg_eq],
-end
+lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R M) :
+  B.is_skew_adjoint f ↔ is_adjoint_pair (-B) B f f :=
+show (∀ x y, B (f x) y = B x ((-f) y)) ↔ ∀ x y, B (f x) y = (-B) x (f y),
+by simp only [linear_map.neg_apply, bilin_form.neg_apply, bilin_form.neg_right]
 
-lemma is_self_adjoint_zero : B.is_self_adjoint 0 := B.is_adjoint_pair_zero
+/-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Jordan subalgebra.) -/
+def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
 
-lemma is_skew_adjoint_zero : B.is_skew_adjoint 0 :=
-  λ x y, by simp only [bilin_form.zero_left, bilin_form.zero_right, linear_map.zero_apply, neg_zero]
+lemma mem_self_adjoint_submodule (f : module.End R M) :
+  f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
 
-lemma is_self_adjoint_add (T S : module.End R M)
-  (hT : B.is_self_adjoint T) (hS : B.is_self_adjoint S) : B.is_self_adjoint (T + S) :=
-λ x y, by rw [linear_map.add_apply, linear_map.add_apply,
-              bilin_form.add_left, bilin_form.add_right, hT, hS]
+/-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Lie subalgebra.) -/
+def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
 
-lemma is_skew_adjoint_add (T S : module.End R M)
-  (hT : B.is_skew_adjoint T) (hS : B.is_skew_adjoint S) : B.is_skew_adjoint (T + S) :=
-λ x y, by rw [linear_map.neg_apply, linear_map.add_apply, linear_map.add_apply, neg_right,
-              bilin_form.add_left, bilin_form.add_right, hT, hS, neg_add_rev, add_comm,
-              linear_map.neg_apply, linear_map.neg_apply, bilin_form.neg_right, bilin_form.neg_right]
+lemma mem_skew_adjoint_submodule (f : module.End R M) :
+  f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=
+by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl, }
 
-lemma is_self_adjoint_smul (c : R) (T : module.End R M)
-  (hT : B.is_self_adjoint T) : B.is_self_adjoint (c • T) :=
-λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply,
-              bilin_form.smul_left, bilin_form.smul_right, hT]
-
-lemma is_skew_adjoint_smul (c : R) (T : module.End R M)
-  (hT : B.is_skew_adjoint T) : B.is_skew_adjoint (c • T) :=
-λ x y, by rw [linear_map.smul_apply, linear_map.neg_apply, linear_map.smul_apply,
-              bilin_form.neg_right, bilin_form.smul_left, bilin_form.smul_right, hT,
-              linear_map.neg_apply, bilin_form.neg_right, mul_neg_eq_neg_mul_symm]
-
-/-- Given an `R`-module `M`, equipped with a bilinear form, the set of self-adjoint endomorphisms
-form a submodule of End R M. (In fact they form a Jordan subalgebra.) -/
-def self_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { T | B.is_self_adjoint T },
-  zero    := B.is_self_adjoint_zero,
-  add     := B.is_self_adjoint_add,
-  smul    := B.is_self_adjoint_smul, }
-
-/-- Given an `R`-module `M`, equipped with a bilinear form, the set of skew-adjoint endomorphisms
-form a submodule of End R M. (In fact they form a Lie subalgebra.) -/
-def skew_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { T | B.is_skew_adjoint T },
-  zero    := B.is_skew_adjoint_zero,
-  add     := B.is_skew_adjoint_add,
-  smul    := B.is_skew_adjoint_smul, }
-
-end endomorphism_adjoints
+end linear_adjoints
 
 end bilin_form
 
@@ -527,89 +511,74 @@ open_locale matrix
 
 variables {R : Type u} [comm_ring R]
 variables {n : Type w} [fintype n]
+variables (J J₂ A B : matrix n n R)
 
 /-- The condition for the square matrices `A`, `B` to be an adjoint pair with respect to the square
-matrix `J`. -/
-def matrix.is_adjoint_pair (J A B : matrix n n R) := Aᵀ ⬝ J = J ⬝ B
+matrices `J`, `J₂`. -/
+def matrix.is_adjoint_pair := Aᵀ ⬝ J₂ = J ⬝ B
 
 /-- The condition for a square matrix `A` to be self-adjoint with respect to the square matrix
 `J`. -/
-def matrix.is_self_adjoint (J A : matrix n n R) := J.is_adjoint_pair A A
+def matrix.is_self_adjoint := matrix.is_adjoint_pair J J A A
 
 /-- The condition for a square matrix `A` to be skew-adjoint with respect to the square matrix
 `J`. -/
-def matrix.is_skew_adjoint (J A : matrix n n R) := J.is_adjoint_pair A (-A)
+def matrix.is_skew_adjoint := matrix.is_adjoint_pair J J A (-A)
 
-lemma matrix_is_adjoint_pair_bilin_form (J A B : matrix n n R) :
-  J.is_adjoint_pair A B ↔ J.to_bilin_form.is_adjoint_pair A.to_lin B.to_lin :=
+lemma matrix_is_adjoint_pair_bilin_form :
+  matrix.is_adjoint_pair J J₂ A B ↔
+  bilin_form.is_adjoint_pair J.to_bilin_form J₂.to_bilin_form A.to_lin B.to_lin :=
 begin
   classical,
   rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
   have h : ∀ (B B' : bilin_form R (n → R)), B = B' ↔ B.to_matrix = B'.to_matrix := λ B B', by {
     split; intros h, { rw h, }, { rw [←to_matrix_to_bilin_form B, h, to_matrix_to_bilin_form B'], }, },
-  rw [h, J.to_bilin_form.to_matrix_comp_left A.to_lin, J.to_bilin_form.to_matrix_comp_right B.to_lin,
-      to_lin_to_matrix, to_lin_to_matrix, to_bilin_form_to_matrix],
+  rw [h, J₂.to_bilin_form.to_matrix_comp_left A.to_lin, J.to_bilin_form.to_matrix_comp_right B.to_lin,
+      to_lin_to_matrix, to_lin_to_matrix, to_bilin_form_to_matrix, to_bilin_form_to_matrix],
   refl,
 end
 
 variables [decidable_eq n]
 
-/-- Given a square matrix `J` defining a bilinear form on the free module, there is a natural
-embedding from the corresponding submodule of self-adjoint endomorphisms into the module of
-matrices. -/
-def self_adjoint_matrices_linear_embedding (J : matrix n n R) :
-  J.to_bilin_form.self_adjoint_submodule →ₗ[R] matrix n n R :=
-linear_equiv_matrix'.to_linear_map.comp J.to_bilin_form.self_adjoint_submodule.subtype
+/-- Given a pair of square matrices `J`, `J₂` defining a bilinear forms on the free module, there
+is a natural embedding from the corresponding submodule of pair-skew-adjoint endomorphisms into the
+module of matrices. -/
+def pair_self_adjoint_matrices_linear_embedding :
+  bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form →ₗ[R] matrix n n R :=
+linear_equiv_matrix'.to_linear_map.comp
+  (bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form).subtype
 
-/-- Given a square matrix `J` defining a bilinear form on the free module, there is a natural
-embedding from the corresponding submodule of skew-adjoint endomorphisms into the module of
-matrices. -/
-def skew_adjoint_matrices_linear_embedding (J : matrix n n R) :
-  J.to_bilin_form.skew_adjoint_submodule →ₗ[R] matrix n n R :=
-linear_equiv_matrix'.to_linear_map.comp J.to_bilin_form.skew_adjoint_submodule.subtype
+lemma pair_self_adjoint_matrices_linear_embedding_apply
+  (f : bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form) :
+  (pair_self_adjoint_matrices_linear_embedding J J₂ : _ →ₗ _) f = (f : module.End R (n → R)).to_matrix := rfl
 
-lemma self_adjoint_matrices_linear_embedding_apply
-  (J : matrix n n R) (T : J.to_bilin_form.self_adjoint_submodule) :
-  (self_adjoint_matrices_linear_embedding J : _ →ₗ _) T = (T : module.End R (n → R)).to_matrix := rfl
+lemma pair_self_adjoint_matrices_linear_embedding_injective :
+  function.injective (pair_self_adjoint_matrices_linear_embedding J J₂) :=
+λ f g h, by { apply set_coe.ext, exact linear_equiv_matrix'.injective h, }
 
-lemma skew_adjoint_matrices_linear_embedding_apply
-  (J : matrix n n R) (T : J.to_bilin_form.skew_adjoint_submodule) :
-  (skew_adjoint_matrices_linear_embedding J : _ →ₗ _) T = (T : module.End R (n → R)).to_matrix := rfl
+/-- The submodule of pair-self-adjoint matrices with respect to bilinear forms corresponding to
+given matrices `J`, `J₂`. -/
+def pair_self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+  (pair_self_adjoint_matrices_linear_embedding J J₂).range
 
-lemma self_adjoint_matrices_linear_embedding_injective (J : matrix n n R) :
-  function.injective (self_adjoint_matrices_linear_embedding J) :=
-λ T S h, by { apply set_coe.ext, exact linear_equiv_matrix'.injective h, }
-
-lemma skew_adjoint_matrices_linear_embedding_injective (J : matrix n n R) :
-  function.injective (skew_adjoint_matrices_linear_embedding J) :=
-λ T S h, by { apply set_coe.ext, exact linear_equiv_matrix'.injective h, }
-
-/-- The submodule of self-adjoint square matrices corresponding to a square matrix `J` -/
-def self_adjoint_matrices_submodule (J : matrix n n R) : submodule R (matrix n n R) :=
-  (self_adjoint_matrices_linear_embedding J).range
-
-/-- The submodule of skew-adjoint square matrices corresponding to a square matrix `J` -/
-def skew_adjoint_matrices_submodule (J : matrix n n R) : submodule R (matrix n n R) :=
-  (skew_adjoint_matrices_linear_embedding J).range
-
-lemma self_adjoint_matrices_submodule_spec (J A : matrix n n R) :
-  A ∈ self_adjoint_matrices_submodule J ↔ J.is_self_adjoint A :=
+lemma mem_pair_self_adjoint_matrices_submodule :
+  A ∈ (pair_self_adjoint_matrices_submodule J J₂) ↔ matrix.is_adjoint_pair J J₂ A A :=
 begin
-  change A ∈ (self_adjoint_matrices_linear_embedding J).range ↔ J.is_adjoint_pair A A,
+  change A ∈ (pair_self_adjoint_matrices_linear_embedding J J₂).range ↔ matrix.is_adjoint_pair J J₂ A A,
   rw [matrix_is_adjoint_pair_bilin_form, linear_map.mem_range],
-  simp only [self_adjoint_matrices_linear_embedding_apply], split,
+  simp only [pair_self_adjoint_matrices_linear_embedding_apply], split,
   { rintros ⟨⟨A', hA'⟩, h⟩, rw ←h, rw to_matrix_to_lin, exact hA', },
   { intros h, exact ⟨⟨A.to_lin, h⟩, to_lin_to_matrix⟩, },
 end
 
-lemma skew_adjoint_matrices_submodule_spec (J A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A :=
-begin
-  change A ∈ (skew_adjoint_matrices_linear_embedding J).range ↔ J.is_adjoint_pair A (-A),
-  rw [matrix_is_adjoint_pair_bilin_form, matrix.to_lin_neg, linear_map.mem_range],
-  simp only [skew_adjoint_matrices_linear_embedding_apply], split,
-  { rintros ⟨⟨A', hA'⟩, h⟩, rw ←h, rw to_matrix_to_lin, exact hA', },
-  { intros h, exact ⟨⟨A.to_lin, h⟩, to_lin_to_matrix⟩, },
-end
+/-- The submodule of self-adjoint matrices with respect to the bilinear form corresponding to
+the matrix `J`. -/
+def self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+  pair_self_adjoint_matrices_submodule J J
+
+/-- The submodule of skew-adjoint matrices with respect to the bilinear form corresponding to
+the matrix `J`. -/
+def skew_adjoint_matrices_submodule : submodule R (matrix n n R) :=
+  pair_self_adjoint_matrices_submodule (-J) J
 
 end matrix_adjoints

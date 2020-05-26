@@ -677,15 +677,17 @@ section skew_adjoint_endomorphisms
 variables {M : Type v} [add_comm_group M] [module R M]
 variables (B : bilin_form R M)
 
-lemma is_skew_adjoint_bracket (T S : module.End R M)
-  (hT : B.is_skew_adjoint T) (hS : B.is_skew_adjoint S) : B.is_skew_adjoint ⁅T, S⁆ :=
+lemma is_skew_adjoint_bracket (f g : module.End R M)
+  (hf : f ∈ B.skew_adjoint_submodule) (hg : g ∈ B.skew_adjoint_submodule) :
+  ⁅f, g⁆ ∈ B.skew_adjoint_submodule :=
 begin
-  have hST : B.is_adjoint_pair (S * T) (T * S),
-  { rw ←neg_mul_neg T S, exact B.is_adjoint_pair_mul _ _ _ _ hS hT, },
-  have hTS : B.is_adjoint_pair (T * S) (S * T),
-  { rw ←neg_mul_neg S T, exact B.is_adjoint_pair_mul _ _ _ _ hT hS, },
-  change B.is_adjoint_pair (T * S - S * T) (-(T * S - S * T)), rw neg_sub,
-  exact B.is_adjoint_pair_sub _ _ _ _ hTS hST,
+  rw mem_skew_adjoint_submodule at *,
+  have hfg : is_adjoint_pair B B (f * g) (g * f),
+  { rw ←neg_mul_neg g f, exact B.is_adjoint_pair_mul _ _ _ _ hf hg, },
+  have hgf : is_adjoint_pair B B (g * f) (f * g),
+  { rw ←neg_mul_neg f g, exact B.is_adjoint_pair_mul _ _ _ _ hg hf, },
+  change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
+  exact bilin_form.is_adjoint_pair_sub _ _ _ _ _ _ hfg hgf,
 end
 
 /-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
@@ -709,7 +711,7 @@ def skew_adjoint_matrices_lie_embedding (J : matrix n n R) :
   J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
 lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
 
-/-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J` -/
+/-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
 def skew_adjoint_matrices_lie_subalgebra (J : matrix n n R) : lie_subalgebra R (matrix n n R) :=
 (skew_adjoint_matrices_lie_embedding J).range
 

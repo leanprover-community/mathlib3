@@ -420,7 +420,7 @@ begin
 end
 
 /-- Preimages are respected by equivalence -/
-lemma eq_on_source_preimage {e e' : local_equiv α β} (he : e ≈ e') (s : set β) :
+lemma eq_on_source.source_inter_preimage_eq {e e' : local_equiv α β} (he : e ≈ e') (s : set β) :
   e.source ∩ e ⁻¹' s = e'.source ∩ e' ⁻¹' s :=
 begin
   ext x,

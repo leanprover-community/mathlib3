@@ -419,7 +419,7 @@ variable (f : R →+* R)
 
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
-| (n+1) := by { simp only [nat.iterate_succ', pow_succ', coe_mul, coe_pow n], refl }
+| (n+1) := by { simp only [nat.iterate_succ, pow_succ', coe_mul, coe_pow n] }
 
 lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
@@ -670,6 +670,9 @@ lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
 
 lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]
+
+@[simp] lemma nat_abs_pow_two (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
+by rw [pow_two, int.nat_abs_mul_self', pow_two]
 
 end int
 

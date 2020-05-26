@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Reid Barton
+Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
 import category_theory.limits.limits
 
@@ -123,6 +123,21 @@ end
 def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
+
+/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
+def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
+  preserves_limit K₂ F :=
+{ preserves := λ c t,
+  begin
+    have t' := is_limit.of_cone_equiv (cones.postcompose_equivalence h) t,
+    let hF := iso_whisker_right h F,
+    have := is_limit.of_cone_equiv (cones.postcompose_equivalence hF).symm (preserves_limit.preserves t'),
+    apply is_limit.of_iso_limit this,
+    refine cones.ext (iso.refl _) (λ j, _),
+    dsimp,
+    rw [← F.map_comp],
+    simp,
+  end }
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/

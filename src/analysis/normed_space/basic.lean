@@ -564,7 +564,7 @@ begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
-  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos εpos) (pow_pos norm_r_pos 2),
+  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos (half_pos εpos) (pow_pos norm_r_pos 2),
   have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
   refine ⟨δ, δpos, λ x hx, _⟩,
   have rx : ∥r∥/2 ≤ ∥x∥ := calc
@@ -900,12 +900,14 @@ variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
+-- We could add a type synonym equipped with this as an instance,
+-- as we've done for `module.restrict_scalars`.
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..module.restrict_scalars 𝕜 𝕜' E }
+  ..module.restrict_scalars' 𝕜 𝕜' E }
 
 end restrict_scalars
 

@@ -136,6 +136,12 @@ le_antisymm
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
+@[simp] lemma sup_left_idem : a ⊔ (a ⊔ b) = a ⊔ b :=
+by rw [← sup_assoc, sup_idem]
+
+@[simp] lemma sup_right_idem : (a ⊔ b) ⊔ b = a ⊔ b :=
+by rw [sup_assoc, sup_idem]
+
 lemma sup_left_comm (a b c : α) : a ⊔ (b ⊔ c) = b ⊔ (a ⊔ c) :=
 by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 
@@ -261,6 +267,12 @@ le_antisymm
     (inf_le_right_of_le inf_le_right))
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
+
+@[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
+by rw [← inf_assoc, inf_idem]
+
+@[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
+by rw [inf_assoc, inf_idem]
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]

@@ -183,7 +183,7 @@ begin
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
-  rintro l ⟨⟩, rw mem_coe,
+  rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
   haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),

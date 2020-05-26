@@ -1820,7 +1820,7 @@ instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, defaul
 
 parameters {Γ Λ σ K}
 /-- The step function for the TM2 model. -/
-def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
+@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | (push k f q)     v S := step_aux q v (update S k (f v :: S k))
 | (peek k f q)     v S := step_aux q (f v (S k).head') S
 | (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
@@ -1831,7 +1831,7 @@ def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | halt             v S := ⟨none, v, S⟩
 
 /-- The step function for the TM2 model. -/
-def step (M : Λ → stmt) : cfg → option cfg
+@[simp] def step (M : Λ → stmt) : cfg → option cfg
 | ⟨none,   v, S⟩ := none
 | ⟨some l, v, S⟩ := some (step_aux (M l) v S)
 

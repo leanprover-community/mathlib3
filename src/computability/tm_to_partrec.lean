@@ -102,7 +102,7 @@ we functions that return a single result return a singleton `[n]`, or in some ca
   * `fix f v = w` if `f v = 0 :: w`
   * `fix f v = fix f w` if `f v = n+1 :: w` (the exact value of `n` is discarded)
 -/
-def code.eval : code → list ℕ →. list ℕ
+@[simp] def code.eval : code → list ℕ →. list ℕ
 | code.zero' := λ v, pure (0 :: v)
 | code.succ := λ v, pure [v.head.succ]
 | code.tail := λ v, pure v.tail
@@ -114,29 +114,27 @@ def code.eval : code → list ℕ →. list ℕ
 
 namespace code
 
-local attribute [simp] is_lawful_monad.pure_bind eval
-
 /-- `nil` is the constant nil function: `nil v = []`. -/
 def nil : code := tail.comp succ
-local attribute [simp] theorem nil_eval (v) : nil.eval v = pure [] := by simp [nil]
+@[simp] theorem nil_eval (v) : nil.eval v = pure [] := by simp [nil]
 
 /-- `id` is the identity function: `id v = v`. -/
 def id : code := tail.comp zero'
-local attribute [simp] theorem id_eval (v) : id.eval v = pure v := by simp [id]
+@[simp] theorem id_eval (v) : id.eval v = pure v := by simp [id]
 
 /-- `head` gets the head of the input list: `head [] = [0]`, `head (n :: v) = [n]`. -/
 def head : code := cons id nil
-local attribute [simp] theorem head_eval (v) : head.eval v = pure [v.head] := by simp [head]
+@[simp] theorem head_eval (v) : head.eval v = pure [v.head] := by simp [head]
 
 /-- `zero` is the constant zero function: `zero v = [0]`. -/
 def zero : code := cons zero' nil
-local attribute [simp] theorem zero_eval (v) : zero.eval v = pure [0] := by simp [zero]
+@[simp] theorem zero_eval (v) : zero.eval v = pure [0] := by simp [zero]
 
 /-- `pred` returns the predecessor of the head of the input:
 `pred [] = [0]`, `pred (0 :: v) = [0]`, `pred (n+1 :: v) = [n]`. -/
 def pred : code := case zero head
 
-local attribute [simp] theorem pred_eval (v) : pred.eval v = pure [v.head.pred] :=
+@[simp] theorem pred_eval (v) : pred.eval v = pure [v.head.pred] :=
 by simp [pred]; cases v.head; simp
 
 /-- `rfind f` performs the function of the `rfind` primitive of partial recursive functions.
@@ -473,7 +471,7 @@ def code.ok (c : code) :=
 theorem code.ok.zero {c} (h : code.ok c) {v} :
   eval step (step_normal c cont.halt v) = cfg.halt <$> code.eval c v :=
 begin
-  rw [h, ← is_lawful_monad.bind_pure_comp_eq_map], congr, funext v,
+  rw [h, ← bind_pure_comp_eq_map], congr, funext v,
   exact roption.eq_some_iff.2 (mem_eval.2 ⟨refl_trans_gen.single rfl, rfl⟩),
 end
 
@@ -980,8 +978,6 @@ def tr_cfg : cfg → cfg' → Prop
 | (cfg.ret k v) c' := ∃ s, c' =
   ⟨some (Λ'.ret (tr_cont k)), s, K'.elim (tr_list v) [] [] (tr_cont_stack k)⟩
 | (cfg.halt v) c' := c' = halt v
-
-local attribute [simp] TM2.step_aux TM2.step
 
 /-- This could be a general list definition, but it is also somewhat specialized to this
 application. `split_at_pred p L` will search `L` for the first element satisfying `p`.

@@ -341,7 +341,7 @@ def group_smul.linear_map [group G] [comm_ring k]
 { to_fun := λ v, (single g (1 : k) • v : V),
   add := λ x y, smul_add (single g (1 : k)) x y,
   smul := λ c x,
-  by simp only [module.restrict_scalars_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
+  by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
 
 @[simp]
 lemma group_smul.linear_map_apply [group G] [comm_ring k]

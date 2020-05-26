@@ -661,7 +661,7 @@ prove that only finitely many labels are accessible.) The labels are:
 * `clear p k q`: delete elements from stack `k` until `p` is true. Like `move`, the last element is
   left in the local storage. Then do `q`.
 * `copy q`: Move all elements from `rev` to both `main` and `stack` (in reverse order),
-  then do `q`. That is, it takes `(a, b, c, d)` to `(b.reverse ++ a, [], c, d.reverse ++ a)`.
+  then do `q`. That is, it takes `(a, b, c, d)` to `(b.reverse ++ a, [], c, b.reverse ++ d)`.
 * `push k f q`: push `f s`, where `s` is the local store, to stack `k`, then do `q`. This is a
   duplicate of the `push` instruction that is part of the TM2 model, but by having a subroutine
   just for this purpose we can build up programs to execute inside a `goto` statement, where we

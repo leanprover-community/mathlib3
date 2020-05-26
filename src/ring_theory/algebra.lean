@@ -755,7 +755,7 @@ instance [I : add_comm_group E] : add_comm_group (module.restrict_scalars R S E)
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 
-lemma module.restrict_scalars_def (c : R) (x : module.restrict_scalars R S E) :
+lemma module.restrict_scalars_smul_def (c : R) (x : module.restrict_scalars R S E) :
   c • x = ((algebra_map R S c) • x : E) := rfl
 
 /--

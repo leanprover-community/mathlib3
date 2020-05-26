@@ -115,7 +115,7 @@ end
 lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
 begin
   have : 1 ≤ b^p := nat.one_le_pow p b w,
-  simp only [this] with push_cast, -- `push_cast` should allow extra lemmas
+  push_cast [this],
 end
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
 int.coe_nat_pow_pred 2 p dec_trivial
@@ -147,7 +147,7 @@ begin
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
     convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
-    simp only [nat.one_le_two_pow p] with push_cast,
+    push_cast [nat.one_le_two_pow p],
     refl, },
   { intro h, rw h, simp, },
 end

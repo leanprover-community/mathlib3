@@ -744,7 +744,9 @@ When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` i
 module structure over `R`, provided as a type synonym `module.restrict_scalars R S E := E`.
 -/
 @[nolint unused_arguments]
-def module.restrict_scalars (R : Type*) (S : Type*) (E : Type*) : Type* := E
+def module.restrict_scalars
+  (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
+  (E : Type*) [add_comm_group E] [module S E] : Type* := E
 
 instance [I : inhabited E] : inhabited (module.restrict_scalars R S E) := I
 

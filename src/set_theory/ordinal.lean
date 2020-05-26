@@ -17,7 +17,9 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
-/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the range of `f`. -/
+/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order
+embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
+range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
@@ -66,7 +68,7 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact order_embedding.eq_of_to_fun_eq this },
+    congr, exact order_embedding.coe_fn_injective this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -95,7 +97,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.eq_of_to_fun_eq rfl
+order_iso.coe_fn_injective rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
@@ -211,7 +213,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_order_embedding] },
   cases f, cases g,
-  have := order_embedding.eq_of_to_fun_eq ef; congr'
+  have := order_embedding.coe_fn_injective ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]
@@ -1559,20 +1561,22 @@ begin
   { exact mul_is_limit l.pos lb }
 end
 
+protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
+⟨a, succ_le.1 $
+  by simpa only [succ_zero, one_mul]
+    using mul_le_mul_right (succ a) (succ_le.2 (pos_iff_ne_zero.2 h))⟩
+
 /-- `a / b` is the unique ordinal `o` satisfying
   `a = b * o + o'` with `o' < b`. -/
 protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else
-omin {o | a < b * succ o} ⟨a, succ_le.1 $
-  by simpa only [succ_zero, one_mul] using mul_le_mul_right (succ a) (succ_le.2 (pos_iff_ne_zero.2 h))⟩
+if h : b = 0 then 0 else omin {o | a < b * succ o} (ordinal.div_aux a b h)
 
 instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
-@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
-def div_def (a) {b : ordinal} (h : b ≠ 0) :
-  a / b = omin {o | a < b * succ o} _ := dif_neg h
+lemma div_def (a) {b : ordinal} (h : b ≠ 0) :
+  a / b = omin {o | a < b * succ o} (ordinal.div_aux a b h) := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
 by rw div_def a h; exact omin_mem {o | a < b * succ o} _

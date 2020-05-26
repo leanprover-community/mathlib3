@@ -365,11 +365,23 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 
 @[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
 
+@[simp] lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  ker (f.prod g) = ker f ⊓ ker g :=
+linear_map.ker_prod f g
+
 /-- Range of a continuous linear map. -/
 def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).range
 
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
+
+lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  range (f.prod g) ≤ (range f).prod (range g) :=
+(f : M →ₗ[R] M₂).range_prod_le g
+
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (f.prod g) = (range f).prod (range g) :=
+linear_map.range_prod_eq h
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
@@ -421,6 +433,8 @@ variables {R M M₂}
 @[simp, norm_cast] lemma coe_snd : (snd R M M₂ : M × M₂ →ₗ[R] M₂) = linear_map.snd R M M₂ := rfl
 
 @[simp, norm_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
+
+@[simp] lemma fst_prod_snd : (fst R M M₂).prod (snd R M M₂) = id R (M × M₂) := ext $ λ ⟨x, y⟩, rfl
 
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=
@@ -731,6 +745,12 @@ by { ext x, refl }
 theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
 
+lemma symm_apply_eq (e : M ≃L[R] M₂) {x y} : e.symm x = y ↔ x = e y :=
+e.to_linear_equiv.symm_apply_eq
+
+lemma eq_symm_apply (e : M ≃L[R] M₂) {x y} : y = e.symm x ↔ e y = x :=
+e.to_linear_equiv.eq_symm_apply
+
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/
 def equiv_of_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h₁ : function.left_inverse f₂ f₁)
@@ -822,14 +842,14 @@ def closed_complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x
 lemma closed_complemented.has_closed_complement {p : submodule R M} [t1_space p]
   (h : closed_complemented p) :
   ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
-exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, (f : M →ₗ[R] p).is_compl_of_proj hf⟩
+exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, linear_map.is_compl_of_proj hf⟩
 
 protected lemma closed_complemented.is_closed [topological_add_group M] [t1_space M]
   {p : submodule R M} (h : closed_complemented p) :
   is_closed (p : set M) :=
 begin
   rcases h with ⟨f, hf⟩,
-  have : ker (id R M - (subtype_val p).comp f) = p := (f : M →ₗ[R] p).ker_id_sub_eq_of_proj hf,
+  have : ker (id R M - (subtype_val p).comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
   exact this ▸ (is_closed_ker _)
 end
 

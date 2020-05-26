@@ -450,8 +450,6 @@ end quotient
 
 section principal_ideal_domain
 
-open_locale classical
-
 variables {K : Type*} [field K] {g : fraction_map R K}
 
 open_locale classical

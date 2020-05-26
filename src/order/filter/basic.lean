@@ -1793,6 +1793,11 @@ begin
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
 
+lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
+  (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
+    (pb : β → Prop) (hb : ∀ᶠ y in g, pb y), ∀ {x}, pa x → ∀ {y}, pb y → p (x, y) :=
+by simpa only [set.prod_subset_iff] using @mem_prod_iff α β p f g
+
 lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (f ×ᶠ g) f :=
 tendsto_inf_left tendsto_comap
 
@@ -1815,6 +1820,14 @@ lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in l
   {lb : filter β} {pb : β → Prop} (hb : ∀ᶠ y in lb, pb y) :
   ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
 (ha.prod_inl lb).and (hb.prod_inr la)
+
+lemma eventually.curry {la : filter α} {lb : filter β} {p : α × β → Prop}
+  (h : ∀ᶠ x in la.prod lb, p x) :
+  ∀ᶠ x in la, ∀ᶠ y in lb, p (x, y) :=
+begin
+  rcases eventually_prod_iff.1 h with ⟨pa, ha, pb, hb, h⟩,
+  exact ha.mono (λ a ha, hb.mono $ λ b hb, h ha hb)
+end
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=

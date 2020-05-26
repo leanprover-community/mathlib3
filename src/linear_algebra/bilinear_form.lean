@@ -445,7 +445,7 @@ lemma is_adjoint_pair.add (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair
   is_adjoint_pair B B₂ (f + f') (g + g') :=
 λ x y, by rw [linear_map.add_apply, linear_map.add_apply, add_left, add_right, h, h']
 
-lemma is_adjoint_pair_sub (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
+lemma is_adjoint_pair.sub (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
   is_adjoint_pair B B₂ (f - f') (g - g') :=
 λ x y, by rw [linear_map.sub_apply, linear_map.sub_apply, sub_left, sub_right, h, h']
 

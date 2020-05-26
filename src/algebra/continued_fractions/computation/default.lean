@@ -5,5 +5,5 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.basic
 /-!
-# Default Exports for The Computation of Continued Fractions
+# Default Exports for the Computation of Continued Fractions
 -/

@@ -29,10 +29,10 @@ For an example, refer to `int_fract_pair.stream`.
 ## Main definitions
 
 - `generalized_continued_fraction.int_fract_pair.stream`: computes the stream of integer and
-fractional parts of a given value as described in the summary.
+  fractional parts of a given value as described in the summary.
 - `generalized_continued_fraction.of`: computes the generalised continued fraction of a value `v`.
-In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
-(those proofs will be added in a future commit).
+  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
+  (those proofs will be added in a future commit).
 
 ## Implementation Notes
 
@@ -72,7 +72,7 @@ We collect an integer part `b = ⌊v⌋` and fractional part `fr = v - ⌊v⌋` 
 -/
 structure int_fract_pair := (b : ℤ) (fr : K)
 
-/- Interlude: define some expected coercions and instances. -/
+/-! Interlude: define some expected coercions and instances. -/
 namespace int_fract_pair
 
 /-- Make an `int_fract_pair` printable. -/
@@ -102,7 +102,7 @@ end coe
 
 -- Note: this could be relaxed to something like `discrete_linear_ordered_division_ring` in the
 -- future.
-/-- Fix a discrete linear ordered field with `floor` function. -/
+/- Fix a discrete linear ordered field with `floor` function. -/
 variables [discrete_linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/

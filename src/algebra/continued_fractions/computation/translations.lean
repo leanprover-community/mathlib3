@@ -14,29 +14,30 @@ This is a collection of simple lemmas between the different structures used for 
 of continued fractions defined in `algebra.continued_fractions.computation.basic`. The file consists
 of three sections:
 1. Recurrences and inversion lemmas for `int_fract_pair.stream`: these lemmas give us inversion
-rules and recurrences for the computation of the stream of integer and fractional parts of a value.
+   rules and recurrences for the computation of the stream of integer and fractional parts of a value.
 2. Translation lemmas for the head term: these lemmas show us that the head term of the computed
-continued fraction of a value `v` is `⌊v⌋` and how this head term is moved along the structures used
-in the computation process.
+   continued fraction of a value `v` is `⌊v⌋` and how this head term is moved along the structures
+   used in the computation process.
 3. Translation lemmas for the sequence: these lemmas show how the sequences of the involved
-structures (`int_fract_pair.stream`, `int_fract_pair.seq1`, and `generalized_continued_fraction.of`)
-are connected, i.e. how the values are moved along the structures and the termination of one
-sequence implies the termination of another sequence.
+   structures (`int_fract_pair.stream`, `int_fract_pair.seq1`, and `generalized_continued_fraction.of`)
+   are connected, i.e. how the values are moved along the structures and the termination of one
+   sequence implies the termination of another sequence.
 
 ## Main Theorems
+
 - `succ_nth_stream_eq_some_iff` gives as a recurrence to compute the `n + 1`th value of the sequence
-of integer and fractional parts of a value in case of non-termination.
+  of integer and fractional parts of a value in case of non-termination.
 - `succ_nth_stream_eq_none_iff` gives as a recurrence to compute the `n + 1`th value of the sequence
-of integer and fractional parts of a value in case of termination.
+  of integer and fractional parts of a value in case of termination.
 - `nth_of_eq_some_of_succ_nth_int_fract_pair_stream` and
-`nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero` show how the entries of the sequence
-of the computed continued fraction can be obtained from the stream of integer and fractional parts.
+  `nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero` show how the entries of the sequence
+  of the computed continued fraction can be obtained from the stream of integer and fractional parts.
 -/
 
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-/-- Fix a discrete linear ordered floor field and a value `v`. -/
+/- Fix a discrete linear ordered floor field and a value `v`. -/
 variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K] {v : K}
 
 namespace int_fract_pair
@@ -59,7 +60,7 @@ begin
 end
 
 /--
-Gives as a recurrence to compute the `n + 1`th value of the sequence of integer and fractional
+Gives a recurrence to compute the `n + 1`th value of the sequence of integer and fractional
 parts of a value in case of termination.
 -/
 lemma succ_nth_stream_eq_none_iff : int_fract_pair.stream v (n + 1) = none
@@ -74,7 +75,7 @@ begin
 end
 
 /--
-Gives as a recurrence to compute the `n + 1`th value of the sequence of integer and fractional
+Gives a recurrence to compute the `n + 1`th value of the sequence of integer and fractional
 parts of a value in case of non-termination.
 -/
 lemma succ_nth_stream_eq_some_iff {ifp_succ_n : int_fract_pair K} :
@@ -131,21 +132,21 @@ end int_fract_pair
 
 section head
 /-!
-### Translation of The Head Term
+### Translation of the Head Term
 
 Here we state some lemmas that show us that the head term of the computed continued fraction of a
 value `v` is `⌊v⌋` and how this head term is moved along the structures used in the computation
 process.
 -/
 
-/- The head term of the sequence with head of `v` is just the integer part of `v`. -/
+/-- The head term of the sequence with head of `v` is just the integer part of `v`. -/
 @[simp]
 lemma int_fract_pair.seq1_fst_eq_of : (int_fract_pair.seq1 v).fst = int_fract_pair.of v := rfl
 
 lemma of_h_eq_int_fract_pair_seq1_fst_b : (gcf.of v).h = (int_fract_pair.seq1 v).fst.b :=
 by { cases aux_seq_eq : (int_fract_pair.seq1 v), simp [gcf.of, aux_seq_eq] }
 
-/- The head term of the gcf of `v` is ⌊v⌋. -/
+/-- The head term of the gcf of `v` is `⌊v⌋`. -/
 @[simp]
 lemma of_h_eq_floor : (gcf.of v).h = ⌊v⌋ :=
 by simp [of_h_eq_int_fract_pair_seq1_fst_b, int_fract_pair.of]
@@ -169,9 +170,9 @@ lemma int_fract_pair.nth_seq1_eq_succ_nth_stream :
 
 section termination
 /-!
-#### Translation of The Termination of The Sequences
+#### Translation of the Termination of the Sequences
 
-Let's first show how he termination of one sequence implies the termination of another sequence.
+Let's first show how the termination of one sequence implies the termination of another sequence.
 -/
 
 lemma of_terminated_at_iff_int_fract_pair_seq1_terminated_at :
@@ -192,9 +193,9 @@ end termination
 
 section values
 /-!
-#### Translation of The Values of The Sequence
+#### Translation of the Values of the Sequence
 
-Now let's show how he values of the sequences correspond to one another.
+Now let's show how the values of the sequences correspond to one another.
 -/
 
 lemma int_fract_pair.obtain_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair K}

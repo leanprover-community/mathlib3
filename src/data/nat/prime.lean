@@ -417,7 +417,7 @@ lemma eq_prime_pow_of_dvd_least_prime_pow
   {a p k : ℕ} (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
   a = p^(k+1) :=
 begin
-  rcases (dvd_prime_pow pp).1 h₂ with ⟨l, ⟨h, rfl⟩⟩,
+  obtain ⟨l, ⟨h, rfl⟩⟩ := (dvd_prime_pow pp).1 h₂,
   congr,
   exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le_right (prime.one_lt pp))).1 h₁)),
 end

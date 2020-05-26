@@ -940,16 +940,16 @@ strict_mono.lt_iff_lt (pow_right_strict_mono k)
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
 strict_mono.injective (pow_right_strict_mono k)
 
-lemma pow_dvd_pow_iff_pow_le_pow {x k l : ℕ} (w : 0 < x) : x^k ∣ x^l ↔ x^k ≤ x^l :=
+lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
+| (x+1) w :=
 begin
-cases x,
-{ cases w, },
-{ split,
+  split,
   { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
-  { intro a, cases x, simp,
-    have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
-    use (x+2)^(l-k),
-    rw [←nat.pow_add, add_comm k, nat.sub_add_cancel le], } }
+  { intro a, cases x with x,
+    { simp only [one_pow], },
+    { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
+      use (x+2)^(l-k),
+      rw [←nat.pow_add, add_comm k, nat.sub_add_cancel le], } }
 end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/

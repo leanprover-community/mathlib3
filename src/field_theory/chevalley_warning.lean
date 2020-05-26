@@ -59,7 +59,35 @@ end finsupp
 
 namespace mv_polynomial
 open finset
-variables {R : Type*} {σ : Type*} [comm_semiring R] [fintype σ]
+variables {R : Type*} {σ : Type*} [comm_semiring R]
+variables {S : Type*} [comm_semiring S]
+
+lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
+  eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
+eval₂_sum (ring_hom.id R) g s f
+
+@[to_additive]
+lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
+  eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
+eval₂_prod (ring_hom.id R) g s f
+
+lemma eval₂_eq (g : R →+* S) (x : σ → S) (f : mv_polynomial σ R) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i in d.support, x i ^ d i :=
+rfl
+
+lemma eval_eq (x : σ → R) (f : mv_polynomial σ R) :
+  f.eval x = ∑ d in f.support, f.coeff d * ∏ i in d.support, x i ^ d i :=
+rfl
+
+variables [fintype σ]
+
+lemma eval₂_eq' (g : R →+* S) (x : σ → S) (f : mv_polynomial σ R) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
+by { simp only [eval₂_eq, ← finsupp.prod_pow], refl }
+
+lemma eval_eq' (x : σ → R) (f : mv_polynomial σ R) :
+  f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
+eval₂_eq' (ring_hom.id R) x f
 
 lemma exists_degree_lt (f : mv_polynomial σ R) (n : ℕ)
   (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
@@ -72,25 +100,6 @@ begin
     ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
     ... ≤ f.total_degree   : finset.le_sup hd,
 end
-
-variables {S : Type*} [comm_semiring S]
-
-lemma eval₂_eq (g : R →+* S) (x : σ → S) (f : mv_polynomial σ R) :
-  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
-by { simp only [eval₂, finsupp.sum, finsupp.prod_pow], refl }
-
-lemma eval_eq (x : σ → R) (f : mv_polynomial σ R) :
-  f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
-eval₂_eq (ring_hom.id R) x f
-
-lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
-  eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
-eval₂_sum (ring_hom.id R) g s f
-
-@[to_additive]
-lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) (g : σ → R) :
-  eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
-eval₂_prod (ring_hom.id R) g s f
 
 end mv_polynomial
 
@@ -106,7 +115,7 @@ lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomi
 begin
   haveI : decidable_eq K := classical.dec_eq K,
   calc (∑ x, f.eval x)
-        = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq]
+        = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq']
     ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
     ... = 0 : sum_eq_zero _,
   intros d hd,

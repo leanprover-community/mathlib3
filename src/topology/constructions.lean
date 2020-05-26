@@ -174,6 +174,10 @@ lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : �
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
+lemma filter.eventually.curry_nhds {p : α × β → Prop} {x : α} {y : β} (h : ∀ᶠ x in 𝓝 (x, y), p x) :
+  ∀ᶠ x' in 𝓝 x, ∀ᶠ y' in 𝓝 y, p (x', y') :=
+by { rw [nhds_prod_eq] at h, exact h.curry }
+
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
 hf.prod_mk_nhds hg

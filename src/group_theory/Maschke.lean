@@ -66,6 +66,20 @@ def conjugate (g : G) :
   (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
 ((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
 
+variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
+
+section
+include h
+
+lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
+begin
+  dsimp [conjugate],
+  simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
+  change (1 : monoid_algebra k G) • v = v,
+  simp,
+end
+end
+
 variables [fintype G]
 
 /--
@@ -94,19 +108,6 @@ begin
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right],
 end)
-
-variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
-section
-include h
-
-lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
-begin
-  dsimp [conjugate],
-  simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
-  change (1 : monoid_algebra k G) • v = v,
-  simp,
-end
-end
 
 section
 variables [inv : invertible (fintype.card G : k)]

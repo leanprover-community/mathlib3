@@ -459,7 +459,7 @@ lemma is_adjoint_pair.comp {M₃ : Type v} [add_comm_group M₃] [module R M₃]
   is_adjoint_pair B B₃ (f'.comp f) (g.comp g') :=
 λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
 
-lemma is_adjoint_pair_mul
+lemma is_adjoint_pair.mul
   (f g f' g' : module.End R M) (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
   is_adjoint_pair B B (f * f') (g' * g) :=
 λ x y, by rw [linear_map.mul_app, linear_map.mul_app, h, h']

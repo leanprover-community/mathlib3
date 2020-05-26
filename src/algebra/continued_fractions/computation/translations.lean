@@ -155,11 +155,11 @@ end head
 
 section sequence
 /-!
-### Translation of The Sequences
+### Translation of the Sequences
 
 Here we state some lemmas that show how the sequences of the involved structures
 (`int_fract_pair.stream`, `int_fract_pair.seq1`, and `generalized_continued_fraction.of`) are
-connected, i.e. how the values are moved along the structures and the termination of one sequence
+connected, i.e. how the values are moved along the structures and how the termination of one sequence
 implies the termination of another sequence.
 -/
 

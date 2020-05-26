@@ -10,6 +10,10 @@ inductive decl_reducibility
 | semireducible
 | irreducible
 
+/-- Satisfy the inhabited linter -/
+instance : inhabited decl_reducibility :=
+⟨decl_reducibility.semireducible⟩
+
 /-- Get the reducibility attribute of a declaration.
 Fails if the name does not refer to an existing declaration. -/
 meta def get_decl_reducibility (n : name) : tactic decl_reducibility :=

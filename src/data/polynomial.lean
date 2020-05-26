@@ -976,6 +976,34 @@ begin
     exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
 end
 
+lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
+⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
+  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+
+lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
+if hp0 : p = 0 then by simp [hp0]
+else by rw [degree_eq_nat_degree hp0, ← with_bot.coe_zero, with_bot.coe_le_coe,
+  nat.le_zero_iff]
+
+lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
+have degree p ≤ 0,
+  from calc degree p ≤ degree (1 : polynomial R) :
+    let ⟨u, hu⟩ := is_unit_iff_dvd_one.1 hpu in
+    if hu0 : u = 0
+    then begin
+        rw [hu0, mul_zero] at hu,
+        rw [← mul_one p, hu, mul_zero],
+        simp
+      end
+    else have p.leading_coeff * u.leading_coeff ≠ 0,
+        by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
+          exact hu0,
+      by rw [hu, degree_mul_eq' this];
+        exact le_add_of_nonneg_right' (degree_nonneg_iff_ne_zero.2 hu0)
+  ... ≤ 0 : degree_one_le,
+by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
+    ← leading_coeff, hm.leading_coeff, C_1]
+
 end comm_semiring
 
 instance subsingleton [subsingleton R] [comm_semiring R] : subsingleton (polynomial R) :=

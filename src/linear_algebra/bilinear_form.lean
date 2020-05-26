@@ -453,8 +453,8 @@ lemma is_adjoint_pair.smul (c : R) (h : is_adjoint_pair B B₂ f g) :
   is_adjoint_pair B B₂ (c • f) (c • g) :=
 λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply, smul_left, smul_right, h]
 
-lemma is_adjoint_pair_comp {M₃ : Type v} [add_comm_group M₃] [module R M₃] (B₃ : bilin_form R M₃)
-  (f' : M₂ →ₗ[R] M₃) (g' : M₃ →ₗ[R] M₂)
+lemma is_adjoint_pair.comp {M₃ : Type v} [add_comm_group M₃] [module R M₃] {B₃ : bilin_form R M₃}
+  {f' : M₂ →ₗ[R] M₃} {g' : M₃ →ₗ[R] M₂}
   (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B₂ B₃ f' g') :
   is_adjoint_pair B B₃ (f'.comp f) (g.comp g') :=
 λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h' (f x) y, h x (g' y)]

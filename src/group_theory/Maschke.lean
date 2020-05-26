@@ -148,7 +148,8 @@ lemma monoid_algebra.exists_left_inverse_of_injective
   (f : V →ₗ[monoid_algebra k G] W) (hf_inj : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
-  let E := (linear_map.exists_left_inverse_of_injective (f.restrict_scalars k) (by simp [hf_inj])),
+  let E := linear_map.exists_left_inverse_of_injective
+    (by convert f.restrict_scalars k) (by simp [hf_inj]),
   fsplit,
   haveI : invertible (fintype.card G : k) :=
     invertible_of_ring_char_not_dvd not_dvd,
@@ -165,4 +166,4 @@ lemma monoid_algebra.submodule.exists_is_compl
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
 let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
-⟨f.ker, f.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
+⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩

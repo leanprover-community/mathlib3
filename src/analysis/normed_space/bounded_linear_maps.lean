@@ -187,7 +187,7 @@ begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),
   apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
-  { apply_rules [mul_nonneg', pow_nonneg, norm_nonneg, norm_nonneg] },
+  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, norm_nonneg] },
   calc ∥f (g ∘ m)∥ ≤
     ∥f∥ * finset.univ.prod (λ (i : ι), ∥g (m i)∥) : f.le_op_norm _
     ... ≤ ∥f∥ * finset.univ.prod (λ (i : ι), ∥g∥ * ∥m i∥) : begin
@@ -248,11 +248,11 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinea
   smul  := λ c x, h.smul_left _ _ _,
   bound := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
-    refine ⟨C * (∥y∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
+    refine ⟨C * (∥y∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
     have : ∥y∥ ≤ ∥y∥ + 1, by simp [zero_le_one],
     calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
     ... ≤ C * ∥x∥ * (∥y∥ + 1) :
-      by apply_rules [norm_nonneg, mul_le_mul_of_nonneg_left, le_of_lt C_pos, mul_nonneg']
+      by apply_rules [norm_nonneg, mul_le_mul_of_nonneg_left, le_of_lt C_pos, mul_nonneg]
     ... = C * (∥y∥ + 1) * ∥x∥ : by ring
   end }
 
@@ -262,7 +262,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_biline
   smul  := λ c y, h.smul_right _ _ _,
   bound := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
-    refine ⟨C * (∥x∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
+    refine ⟨C * (∥x∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
     have : ∥x∥ ≤ ∥x∥ + 1, by simp [zero_le_one],
     calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
     ... ≤ C * (∥x∥ + 1) * ∥y∥ :

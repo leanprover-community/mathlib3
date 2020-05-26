@@ -980,6 +980,8 @@ range_succ
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
 
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := multiset.self_mem_range_succ n
+
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
 theorem range_mono : monotone range := λ _ _, range_subset.2

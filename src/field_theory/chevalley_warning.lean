@@ -67,7 +67,7 @@ rfl
   ((cofiber f).symm y : X → Y) x = y :=
 dif_neg (not_not.mpr rfl)
 
-@[simp] lemma cofiber_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
+lemma cofiber_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
   ((cofiber f).symm y : X → Y) x' = f ⟨x', h⟩ :=
 dif_pos h
 

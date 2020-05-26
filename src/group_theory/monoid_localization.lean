@@ -262,7 +262,7 @@ variables (f : localization_map S N)
 begin
   rw [f.to_map.map_mul, f.to_map.map_mul] at h,
   cases f.map_units c with u hu,
-  rw hu at h,
+  rw ←hu at h,
   exact (units.mul_right_inj u).1 h,
 end
 

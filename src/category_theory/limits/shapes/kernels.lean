@@ -319,7 +319,7 @@ cofork.is_colimit.mk _
 def cokernel.of_iso_comp [has_colimit (parallel_pair f 0)]
   {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l = f) :
   is_colimit (cokernel_cofork.of_π (cokernel.π f) $
-    show l ≫ cokernel.π f = 0, by simp [(iso.eq_inv_comp i).2 h]) :=
+    show l ≫ cokernel.π f = 0, by simp [i.eq_inv_comp.2 h]) :=
 is_cokernel.of_iso_comp f l i h $ colimit.is_colimit _
 
 /-- If `s` is any colimit cokernel cocone over `f` and `i` is an isomorphism such that

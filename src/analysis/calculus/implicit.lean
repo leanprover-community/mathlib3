@@ -234,8 +234,9 @@ lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
     (subtype_val f'.ker) 0 :=
-by convert (implicit_function_data_of_complemented f f' hf hf' hker).to_implicit_function
-  (subtype_val f'.ker) _ _; [skip, ext, ext]; simp [classical.some_spec hker]
+by convert (implicit_function_data_of_complemented f f' hf hf'
+  hker).implicit_function_has_strict_fderiv_at (subtype_val f'.ker) _ _;
+    [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
 

@@ -441,7 +441,7 @@ lemma is_adjoint_pair_zero : is_adjoint_pair B B₂ 0 0 :=
 
 lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
 
-lemma is_adjoint_pair_add (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
+lemma is_adjoint_pair.add (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B B₂ f' g') :
   is_adjoint_pair B B₂ (f + f') (g + g') :=
 λ x y, by rw [linear_map.add_apply, linear_map.add_apply, add_left, add_right, h, h']
 

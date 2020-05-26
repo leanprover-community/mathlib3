@@ -746,9 +746,11 @@ module structure over `R`, provided as a type synonym `module.restrict_scalars R
 @[nolint unused_arguments]
 def module.restrict_scalars (R : Type*) (S : Type*) (E : Type*) : Type* := E
 
-instance [I : inhabited E] : inhabited (module.restrict_scalars R S E) := I
+instance (R : Type*) (S : Type*) (E : Type*) [I : inhabited E] :
+  inhabited (module.restrict_scalars R S E) := I
 
-instance [I : add_comm_group E] : add_comm_group (module.restrict_scalars R S E) := I
+instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
+   add_comm_group (module.restrict_scalars R S E) := I
 
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)

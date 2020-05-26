@@ -96,9 +96,13 @@ protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 @[simp] theorem coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
 rfl
 
-@[simp] theorem refl_apply (x : α) : equiv.refl α x = x := rfl
+@[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
 
-@[simp] theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
+theorem refl_apply (x : α) : equiv.refl α x = x := rfl
+
+@[simp] theorem coe_trans (f : α ≃ β) (g : β ≃ γ) : ⇑(f.trans g) = g ∘ f := rfl
+
+theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
 
 @[simp] theorem apply_symm_apply  (e : α ≃ β) (x : β) : e (e.symm x) = x :=
 e.right_inv x

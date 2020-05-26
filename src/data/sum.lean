@@ -10,7 +10,7 @@ import tactic.lint
 -/
 
 universes u v w x
-variables {α : Type u} {β : Type v} {α' : Type w} {β' : Type x}
+variables {α : Type u} {α' : Type w} {β : Type v} {β' : Type x}
 open sum
 
 attribute [derive decidable_eq] sum

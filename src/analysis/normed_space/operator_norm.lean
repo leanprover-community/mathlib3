@@ -192,7 +192,7 @@ open asymptotics filter
 theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
-theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
+theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
   is_O (λ x', g (f x')) f l :=
 (g.is_O_id ⊤).comp_tendsto le_top
 

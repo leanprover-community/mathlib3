@@ -17,6 +17,8 @@ spaces.
 
 -/
 
+universes u v
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A `normed_add_torsor V P` is a torsor of an additive normed group
@@ -25,42 +27,34 @@ structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a metric space, but
 bundling just the distance and using an instance for the metric space
 results in type class problems). -/
-class normed_add_torsor (V : Type*) (P : Type*) [normed_group V] [metric_space P]
+class normed_add_torsor (V : Type u) (P : Type v) [normed_group V] [metric_space P]
   extends add_torsor V P :=
 (torsor_dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 end prio
 
 /-- The distance equals the norm of subtracting two points. This lemma
 is needed to make V an explicit rather than implicit argument. -/
-lemma torsor_dist_eq_norm (V : Type*) {P : Type*} [normed_group V] [metric_space P]
+lemma torsor_dist_eq_norm (V : Type u) {P : Type v} [normed_group V] [metric_space P]
     [normed_add_torsor V P] (x y : P) :
   dist x y = ∥(x -ᵥ y : V)∥ :=
 normed_add_torsor.torsor_dist_eq_norm' x y
+
+/-- A `normed_group` is a `normed_add_torsor` over itself. -/
+instance normed_group_is_normed_add_torsor (V : Type u) [normed_group V] :
+  normed_add_torsor V V :=
+{ torsor_dist_eq_norm' := dist_eq_norm }
 
 open add_torsor
 
 /-- The distance defines a metric space structure on the torsor. This
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
-def metric_space_of_normed_group_of_add_torsor (V : Type*) (P : Type*) [normed_group V]
+def metric_space_of_normed_group_of_add_torsor (V : Type u) (P : Type v) [normed_group V]
     [add_torsor V P] : metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := begin
-    intro p,
-    change ∥p -ᵥ p∥ = 0,
-    rw [vsub_self, norm_zero]
-  end,
-  eq_of_dist_eq_zero := begin
-    intros p1 p2 h,
-    rw norm_eq_zero at h,
-    exact eq_of_vsub_eq_zero V h
-  end,
-  dist_comm := begin
-    intros x y,
-    change ∥x -ᵥ y∥ = ∥y -ᵥ x∥,
-    convert norm_neg (y -ᵥ x),
-    exact (neg_vsub_eq_vsub_rev V y x).symm
-  end,
+  dist_self := λ x, by simp,
+  eq_of_dist_eq_zero := λ x y h, by simpa using h,
+  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev V y x, norm_neg],
   dist_triangle := begin
     intros x y z,
     change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,

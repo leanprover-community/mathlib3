@@ -155,6 +155,23 @@ end
 
 variables (f)
 
+/-- Each element `a : S` has an `M`-multiple which is an integer.
+
+This verion multiplies `a` on the right, matching the argument order in `localization.surj`.
+-/
+lemma exists_integer_multiple' (a : S) :
+  ∃ (b : M), is_integer f (a * f.to_map b) :=
+let ⟨⟨num, denom⟩, h⟩ := f.surj a in ⟨denom, set.mem_range.mpr ⟨num, h.symm⟩⟩
+
+/-- Each element `a : S` has an `M`-multiple which is an integer.
+
+This version multiplies `a` on the left, matching the argument order in the `has_scalar` instance.
+-/
+lemma exists_integer_multiple (a : S) :
+  ∃ (b : M), is_integer f (f.to_map b * a) :=
+by { simp_rw mul_comm _ a, apply exists_integer_multiple' }
+
+
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec {f : localization M S} (z : S) :
@@ -466,6 +483,8 @@ lemma mem_coe (I : ideal R) {x : S} :
   x ∈ (I : submodule R f.codomain) ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
 iff.rfl
 
+@[simp] lemma lin_coe_apply {x} : f.lin_coe x = f.to_map x := rfl
+
 end localization
 variables (R)
 
@@ -495,15 +514,20 @@ namespace fraction_map
 open localization
 variables {R K}
 
+lemma to_map_eq_zero_iff [comm_ring K] (φ : fraction_map R K) {x : R} :
+  x = 0 ↔ φ.to_map x = 0 :=
+begin
+  rw ← φ.to_map.map_zero,
+  split; intro h,
+  { rw h },
+  { cases φ.eq_iff_exists.mp h with c hc,
+    rw zero_mul at hc,
+    exact c.2 x hc }
+end
+
 protected theorem injective [comm_ring K] (φ : fraction_map R K) :
   injective φ.to_map :=
-φ.to_map.injective_iff.2 $ λ x h,
-  begin
-    rw ←φ.to_map.map_zero at h,
-    cases φ.eq_iff_exists.1 h with c hc,
-    rw zero_mul at hc,
-    exact c.2 x hc
-  end
+φ.to_map.injective_iff.2 (λ _ h, φ.to_map_eq_zero_iff.mpr h)
 
 variables {A : Type*} [integral_domain A]
 
@@ -521,8 +545,7 @@ def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K
         rw [mul_assoc z, hy, ←hx]; ac_refl,
       erw h at this,
       rw [zero_mul, zero_mul, ←φ.to_map.map_mul] at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero (φ.to_map.injective_iff.1
-        φ.injective _ this.symm) with H H,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero (φ.to_map_eq_zero_iff.mpr this.symm) with H H,
         { exact or.inl (φ.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (φ.eq_zero_of_fst_eq_zero hy H) },
     end,

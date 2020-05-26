@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
+import topology.uniform_space.uniform_embedding
 import ring_theory.algebra
 import linear_algebra.projection
 
@@ -364,6 +365,16 @@ lemma is_closed_ker [t1_space M₂] : is_closed (f.ker : set M) :=
 continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 
 @[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
+
+lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_group M']
+  [module R M'] [t1_space M₂] (f : M' →L[R] M₂) :
+  is_complete (f.ker : set M') :=
+is_complete_of_is_closed f.is_closed_ker
+
+instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_group M']
+  [module R M'] [t1_space M₂] (f : M' →L[R] M₂) :
+  complete_space f.ker :=
+f.is_closed_ker.complete_space_coe
 
 @[simp] lemma ker_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
   ker (f.prod g) = ker f ⊓ ker g :=

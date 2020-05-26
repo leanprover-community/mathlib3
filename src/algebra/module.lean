@@ -410,10 +410,10 @@ lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg
 @[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
 
-lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
+@[simp] lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
 
-lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
+@[simp] lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
 
 lemma sum_mem {t : finset ι} {f : ι → M} :

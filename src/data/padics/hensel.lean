@@ -143,7 +143,7 @@ private lemma calc_deriv_dist {z z' z1 : ℤ_[p]} (hz' : z' = z - z1)
 calc
   ∥F.derivative.eval z' - F.derivative.eval z∥
     ≤ ∥z' - z∥ : padic_polynomial_dist _ _ _
-... = ∥z1∥ : by simp [sub_eq_add_neg, hz']
+... = ∥z1∥ : by simp only [sub_eq_add_neg, add_assoc, hz', add_add_neg_cancel'_right, norm_neg]
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ : (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
@@ -223,7 +223,7 @@ private lemma newton_seq_norm_le (n : ℕ) :
 
 private lemma newton_seq_norm_eq (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval (newton_seq n)∥ :=
-by induction n; simp [sub_eq_add_neg, add_left_comm, newton_seq, newton_seq_aux, ih_n]
+by induction n; simp [sub_eq_add_neg, add_left_comm, add_assoc, newton_seq, newton_seq_aux, ih_n]
 
 private lemma newton_seq_succ_dist (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n) :=
@@ -268,7 +268,7 @@ private lemma newton_seq_dist_aux (n : ℕ) :
     by {rw [←nat.pow_eq_pow, ←nat.pow_eq_pow], apply pow_le_pow, norm_num, apply nat.le_add_right},
   calc
   ∥newton_seq (n + (k + 1)) - newton_seq n∥
-    = ∥newton_seq ((n + k) + 1) - newton_seq n∥ : by simp
+    = ∥newton_seq ((n + k) + 1) - newton_seq n∥ : by rw add_assoc
 ... = ∥(newton_seq ((n + k) + 1) - newton_seq (n+k)) + (newton_seq (n+k) - newton_seq n)∥ : by rw ←sub_add_sub_cancel
 ... ≤ max (∥newton_seq ((n + k) + 1) - newton_seq (n+k)∥) (∥newton_seq (n+k) - newton_seq n∥) : padic_norm_z.nonarchimedean _ _
 ... ≤ max (∥F.derivative.eval a∥ * T^(2^((n + k)))) (∥F.derivative.eval a∥ * T^(2^n)) :
@@ -283,7 +283,7 @@ let ⟨_, hex'⟩ := hex in
 by rw hex'; apply newton_seq_dist_aux; assumption
 
 private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥
-| 1 h := by simp [sub_eq_add_neg, newton_seq, newton_seq_aux, ih_n]; apply normed_field.norm_div
+| 1 h := by simp [sub_eq_add_neg, add_assoc, newton_seq, newton_seq_aux, ih_n]; apply normed_field.norm_div
 | (k+2) h :=
   have hlt : ∥newton_seq (k+2) - newton_seq (k+1)∥ < ∥newton_seq (k+1) - a∥,
     by rw newton_seq_dist_to_a (k+1) (succ_pos _); apply newton_seq_succ_dist_weak; assumption,

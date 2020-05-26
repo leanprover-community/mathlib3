@@ -57,7 +57,7 @@ namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) :
   multiplicity p 1 = 0 :=
-by rw [multiplicity.one_right (mt is_unit_nat.mp (ne_of_gt hp.one_lt))]
+by rw [multiplicity.one_right (mt nat.is_unit_iff.mp (ne_of_gt hp.one_lt))]
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=

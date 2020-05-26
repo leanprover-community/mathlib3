@@ -6,7 +6,8 @@ Authors: Simon Hudon, Mario Carneiro
 Tests for norm_num
 -/
 
-import tactic.norm_num data.complex.basic
+import tactic.norm_num
+import data.complex.basic
 
 -- constant real : Type
 -- notation `ℝ` := real
@@ -47,6 +48,7 @@ example : (5 / -2:ℤ) < -1 := by norm_num
 example : (0 + 1) / 2 < 0 + 1 := by norm_num
 example : nat.succ (nat.succ (2 ^ 3)) = 10 := by norm_num
 example : 10 = (-1 : ℤ) % 11 := by norm_num
+example : (12321 - 2 : ℤ) = 12319 := by norm_num
 
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}

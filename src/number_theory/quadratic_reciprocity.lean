@@ -273,7 +273,7 @@ private lemma eisenstein_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact 
 have ha2 : (a : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 ha2,
 (eq_iff_modeq_nat 2).1 $ sub_eq_zero.1 $
   by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast,
-            add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two]
+            add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two, add_assoc]
     using eq.symm (eisenstein_lemma_aux₁ p hap)
 
 lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b =

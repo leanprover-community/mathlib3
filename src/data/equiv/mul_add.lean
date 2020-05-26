@@ -162,7 +162,7 @@ instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
   "Two additive isomorphisms agree if they are defined by the same underlying function."]
 lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
@@ -310,3 +310,16 @@ sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
 end point_reflection
 
 end equiv
+
+section type_tags
+
+/-- Reinterpret `f : G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] (f : G ≃+ H) :
+  multiplicative G ≃* multiplicative H :=
+⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩
+
+/-- Reinterpret `f : G ≃* H` as `additive G ≃+ additive H`. -/
+def mul_equiv.to_additive [monoid G] [monoid H] (f : G ≃* H) : additive G ≃+ additive H :=
+⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩
+
+end type_tags

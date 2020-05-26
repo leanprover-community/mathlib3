@@ -5,6 +5,7 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
   Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.group.basic
+import tactic.ext
 
 /-!
 # monoid and group homomorphisms
@@ -250,6 +251,10 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
+@[simp, to_additive]
+lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
+  ⇑(mk' f map_mul) = f := rfl
+
 omit mM
 
 /-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is
@@ -279,22 +284,5 @@ namespace add_monoid_hom
 /-- Additive group homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
-
-/-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
-{ to_fun := (*) r,
-  map_zero' := mul_zero r,
-  map_add' := mul_add r }
-
-@[simp] lemma coe_mul_left {R : Type*} [semiring R] (r : R) : ⇑(mul_left r) = (*) r := rfl
-
-/-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
-{ to_fun := λ a, a * r,
-  map_zero' := zero_mul r,
-  map_add' := λ _ _, add_mul _ _ r }
-
-@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
-  (mul_right r : R → R) a = a * r := rfl
 
 end add_monoid_hom

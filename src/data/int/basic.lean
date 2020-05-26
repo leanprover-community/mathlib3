@@ -6,6 +6,8 @@ Authors: Jeremy Avigad
 The integers, with addition, multiplication, and subtraction.
 -/
 import algebra.char_zero
+import init_.data.int.order
+import algebra.ring
 import data.list.range
 open nat
 
@@ -166,6 +168,14 @@ lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 
 @[simp] lemma nat_abs_eq_zero {a : ℤ} : a.nat_abs = 0 ↔ a = 0 :=
 ⟨int.eq_zero_of_nat_abs_eq_zero, λ h, h.symm ▸ rfl⟩
+
+lemma nat_abs_lt_nat_abs_of_nonneg_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a < b) :
+  a.nat_abs < b.nat_abs :=
+begin
+  lift b to ℕ using le_trans w₁ (le_of_lt w₂),
+  lift a to ℕ using w₁,
+  simpa using w₂,
+end
 
 /- /  -/
 
@@ -762,6 +772,9 @@ begin
   rw ←nat_abs_eq_zero,
   exact eq_zero_of_dvd_of_lt w h
 end
+
+lemma eq_zero_of_dvd_of_nonneg_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a < b) (h : b ∣ a) : a = 0 :=
+eq_zero_of_dvd_of_nat_abs_lt_nat_abs h (nat_abs_lt_nat_abs_of_nonneg_of_lt w₁ w₂)
 
 /-- If two integers are congruent to a sufficiently large modulus,
 they are equal. -/

@@ -10,6 +10,7 @@ import data.list.intervals
 import data.list.antidiagonal
 import data.string.basic
 import algebra.group_power
+import algebra.ordered_group
 import control.traversable.lemmas
 import control.traversable.instances
 
@@ -510,6 +511,8 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 @[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
+
+theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
 
 /- erase -/
 section erase
@@ -1298,7 +1301,7 @@ theorem union_le_add (s t : multiset α) : s ∪ t ≤ s + t :=
 union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
-by simpa [(∪), union, eq_comm] using show s + u - (t + u) = s - t,
+by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
 by rw [add_comm t, sub_add', add_sub_cancel]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=

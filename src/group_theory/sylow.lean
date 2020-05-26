@@ -128,7 +128,6 @@ lemma one_mem_fixed_points_rotate (n : ℕ) [fact (0 < n)] :
   (⟨vector.repeat (1 : G) n, one_mem_vectors_prod_eq_one n⟩ : vectors_prod_eq_one G n) ∈
   fixed_points (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
 λ m, subtype.eq $ vector.eq _ _ $
-by haveI : nonempty G := ⟨1⟩; exact
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
@@ -159,7 +158,6 @@ have hlt : 1 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one
 let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
   ⟨_, one_mem_fixed_points_rotate p⟩ in
 have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] using hx₄,
-have nG : nonempty G, from ⟨1⟩,
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
     subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),

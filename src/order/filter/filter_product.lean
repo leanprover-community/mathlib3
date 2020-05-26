@@ -386,7 +386,7 @@ protected def ordered_add_comm_group [ordered_add_comm_group β] : ordered_add_c
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
 { mul_pos := λ x y, quotient.induction_on₂' x y $
-    λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, mul_pos,
+    λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, @mul_pos β _ _ _,
   ..filter_product.ring, ..filter_product.ordered_add_comm_group,
   ..filter_product.zero_ne_one_class U.1 }
 

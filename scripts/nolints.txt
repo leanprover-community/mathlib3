@@ -49,6 +49,11 @@ apply_nolint euclidean_domain.gcd doc_blame
 apply_nolint euclidean_domain.lcm doc_blame
 apply_nolint euclidean_domain.xgcd_aux doc_blame
 
+-- algebra/field.lean
+apply_nolint algebra.div doc_blame
+apply_nolint division_ring doc_blame
+apply_nolint field doc_blame
+
 -- algebra/free.lean
 apply_nolint free_magma doc_blame
 apply_nolint free_magma.length doc_blame
@@ -74,6 +79,31 @@ apply_nolint magma.free_semigroup.r doc_blame
 apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
+
+-- algebra/group/basic.lean
+apply_nolint add_comm_group doc_blame
+apply_nolint add_comm_monoid doc_blame
+apply_nolint add_comm_semigroup doc_blame
+apply_nolint add_group doc_blame
+apply_nolint add_left_cancel_semigroup doc_blame
+apply_nolint add_monoid doc_blame
+apply_nolint add_neg_self def_lemma doc_blame
+apply_nolint add_right_cancel_semigroup doc_blame
+apply_nolint add_semigroup doc_blame
+apply_nolint algebra.sub doc_blame
+apply_nolint comm_group doc_blame
+apply_nolint comm_monoid doc_blame
+apply_nolint comm_semigroup doc_blame
+apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
+apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
+apply_nolint group doc_blame
+apply_nolint inv_mul_self def_lemma doc_blame
+apply_nolint left_cancel_semigroup doc_blame
+apply_nolint monoid doc_blame
+apply_nolint mul_inv_self def_lemma doc_blame
+apply_nolint neg_add_self def_lemma doc_blame
+apply_nolint right_cancel_semigroup doc_blame
+apply_nolint semigroup doc_blame
 
 -- algebra/group/conj.lean
 apply_nolint is_conj doc_blame
@@ -114,9 +144,42 @@ apply_nolint ge_iff_le ge_or_gt
 apply_nolint gt_iff_lt ge_or_gt
 apply_nolint ordering.compares.eq_gt ge_or_gt
 
+-- algebra/ordered_field.lean
+apply_nolint discrete_linear_ordered_field doc_blame
+apply_nolint exists_add_lt_and_pos_of_lt ge_or_gt
+apply_nolint ge_of_forall_ge_sub ge_or_gt
+apply_nolint linear_ordered_field doc_blame
+
+-- algebra/ordered_group.lean
+apply_nolint abs doc_blame
+apply_nolint abs_nonneg ge_or_gt
+apply_nolint abs_pos_of_ne_zero ge_or_gt
+apply_nolint abs_pos_of_neg ge_or_gt
+apply_nolint abs_pos_of_pos ge_or_gt
+apply_nolint decidable_linear_ordered_add_comm_group doc_blame
+apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
+apply_nolint dist_bdd_within_interval unused_arguments
+apply_nolint ordered_add_comm_group doc_blame
+apply_nolint ordered_cancel_add_comm_monoid doc_blame
+
 -- algebra/ordered_ring.lean
 apply_nolint canonically_ordered_comm_semiring doc_blame
+apply_nolint decidable_linear_ordered_comm_ring doc_blame
+apply_nolint decidable_linear_ordered_semiring doc_blame
+apply_nolint four_pos ge_or_gt
+apply_nolint gt_of_mul_lt_mul_neg_left ge_or_gt
+apply_nolint linear_ordered_comm_ring doc_blame
+apply_nolint linear_ordered_ring doc_blame
+apply_nolint linear_ordered_semiring doc_blame
+apply_nolint mul_nonneg ge_or_gt
+apply_nolint mul_pos ge_or_gt
+apply_nolint mul_self_nonneg ge_or_gt
 apply_nolint nonneg_ring.to_linear_nonneg_ring doc_blame
+apply_nolint ordered_ring doc_blame
+apply_nolint ordered_semiring doc_blame
+apply_nolint pos_and_pos_or_neg_and_neg_of_mul_pos ge_or_gt
+apply_nolint two_ge_one ge_or_gt
+apply_nolint two_gt_one ge_or_gt
 apply_nolint with_top.canonically_ordered_comm_semiring unused_arguments
 apply_nolint with_top.coe_eq_zero unused_arguments
 apply_nolint with_top.coe_zero unused_arguments
@@ -143,9 +206,25 @@ apply_nolint set.pointwise_one doc_blame
 apply_nolint set.pointwise_zero doc_blame
 
 -- algebra/ring.lean
+apply_nolint add_mul def_lemma doc_blame
+apply_nolint comm_ring doc_blame
+apply_nolint comm_semiring doc_blame
+apply_nolint distrib doc_blame
+apply_nolint dvd.trans def_lemma doc_blame
+apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
+apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
+apply_nolint integral_domain doc_blame
+apply_nolint mul_add def_lemma doc_blame
+apply_nolint mul_sub def_lemma doc_blame
+apply_nolint mul_zero_class doc_blame
+apply_nolint no_zero_divisors doc_blame
+apply_nolint ring doc_blame
 apply_nolint ring_hom has_inhabited_instance
 apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
+apply_nolint semiring doc_blame
+apply_nolint sub_mul def_lemma doc_blame
+apply_nolint zero_ne_one_class doc_blame
 
 -- algebraic_geometry/presheafed_space.lean
 apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
@@ -171,7 +250,6 @@ apply_nolint has_inner doc_blame
 apply_nolint category_theory.adjunction has_inhabited_instance
 apply_nolint category_theory.adjunction.adjunction_of_equiv_left doc_blame
 apply_nolint category_theory.adjunction.adjunction_of_equiv_right doc_blame
-apply_nolint category_theory.adjunction.comp doc_blame
 apply_nolint category_theory.adjunction.core_hom_equiv doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.core_unit_counit doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.id doc_blame
@@ -180,7 +258,6 @@ apply_nolint category_theory.adjunction.mk_of_hom_equiv doc_blame
 apply_nolint category_theory.adjunction.mk_of_unit_counit doc_blame
 apply_nolint category_theory.adjunction.right_adjoint_of_equiv doc_blame
 apply_nolint category_theory.equivalence.to_adjunction doc_blame
-apply_nolint category_theory.functor.adjunction doc_blame
 apply_nolint category_theory.is_left_adjoint doc_blame
 apply_nolint category_theory.is_right_adjoint doc_blame
 apply_nolint category_theory.left_adjoint doc_blame
@@ -514,9 +591,6 @@ apply_nolint nat.unpaired doc_blame
 apply_nolint primcodable.of_equiv doc_blame
 apply_nolint primcodable.subtype doc_blame
 
--- control/applicative.lean
-apply_nolint comp.seq doc_blame
-
 -- control/basic.lean
 apply_nolint is_comm_applicative doc_blame
 apply_nolint list.mmap_accuml doc_blame
@@ -582,6 +656,7 @@ apply_nolint functor.comp has_inhabited_instance
 apply_nolint functor.comp.map doc_blame
 apply_nolint functor.comp.mk doc_blame
 apply_nolint functor.comp.run doc_blame
+apply_nolint functor.comp.seq doc_blame
 apply_nolint functor.const has_inhabited_instance
 apply_nolint functor.const.mk doc_blame
 apply_nolint functor.const.mk' doc_blame
@@ -1706,48 +1781,6 @@ apply_nolint simple_group doc_blame
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
--- init_/algebra/field.lean
-apply_nolint algebra.div doc_blame
-apply_nolint div_zero simp_nf
-apply_nolint division_ring doc_blame
-apply_nolint field doc_blame
-apply_nolint inv_zero simp_nf
-
--- init_/algebra/functions.lean
-apply_nolint abs doc_blame
-apply_nolint abs_nonneg ge_or_gt
-apply_nolint abs_pos_of_ne_zero ge_or_gt
-apply_nolint abs_pos_of_neg ge_or_gt
-apply_nolint abs_pos_of_pos ge_or_gt
-apply_nolint dist_bdd_within_interval unused_arguments
-
--- init_/algebra/group.lean
-apply_nolint add_comm_group doc_blame
-apply_nolint add_comm_monoid doc_blame
-apply_nolint add_comm_semigroup doc_blame
-apply_nolint add_group doc_blame
-apply_nolint add_left_cancel_semigroup doc_blame
-apply_nolint add_monoid doc_blame
-apply_nolint add_neg_self def_lemma doc_blame
-apply_nolint add_right_cancel_semigroup doc_blame
-apply_nolint add_semigroup doc_blame
-apply_nolint algebra.sub doc_blame
-apply_nolint comm_group doc_blame
-apply_nolint comm_monoid doc_blame
-apply_nolint comm_semigroup doc_blame
-apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
-apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
-apply_nolint group doc_blame
-apply_nolint inv_mul_self def_lemma doc_blame
-apply_nolint left_cancel_semigroup doc_blame
-apply_nolint monoid doc_blame
-apply_nolint mul_inv_self def_lemma doc_blame
-apply_nolint neg_add_self def_lemma doc_blame
-apply_nolint right_cancel_semigroup doc_blame
-apply_nolint semigroup doc_blame
-apply_nolint transport_multiplicative_to_additive doc_blame
-apply_nolint transport_with_dict doc_blame
-
 -- init_/algebra/norm_num.lean
 apply_nolint norm_num.add1 doc_blame
 apply_nolint norm_num.mul_div_helper unused_arguments
@@ -1755,57 +1788,6 @@ apply_nolint norm_num.nonneg_bit0_helper ge_or_gt
 apply_nolint norm_num.nonneg_bit1_helper ge_or_gt
 apply_nolint norm_num.pos_bit0_helper ge_or_gt
 apply_nolint norm_num.pos_bit1_helper ge_or_gt
-
--- init_/algebra/ordered_field.lean
-apply_nolint discrete_linear_ordered_field doc_blame
-apply_nolint discrete_linear_ordered_field.to_decidable_linear_ordered_comm_ring instance_priority
-apply_nolint discrete_linear_ordered_field.to_linear_ordered_field instance_priority
-apply_nolint exists_add_lt_and_pos_of_lt ge_or_gt
-apply_nolint ge_of_forall_ge_sub ge_or_gt
-apply_nolint linear_ordered_field doc_blame
-apply_nolint linear_ordered_field.to_field instance_priority
-apply_nolint linear_ordered_field.to_linear_ordered_ring instance_priority
-
--- init_/algebra/ordered_group.lean
-apply_nolint decidable_linear_ordered_add_comm_group doc_blame
-apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
-apply_nolint ordered_add_comm_group doc_blame
-apply_nolint ordered_cancel_add_comm_monoid doc_blame
-
--- init_/algebra/ordered_ring.lean
-apply_nolint decidable_linear_ordered_comm_ring doc_blame
-apply_nolint decidable_linear_ordered_semiring doc_blame
-apply_nolint four_pos ge_or_gt
-apply_nolint gt_of_mul_lt_mul_neg_left ge_or_gt
-apply_nolint linear_ordered_comm_ring doc_blame
-apply_nolint linear_ordered_ring doc_blame
-apply_nolint linear_ordered_semiring doc_blame
-apply_nolint mul_nonneg ge_or_gt
-apply_nolint mul_pos ge_or_gt
-apply_nolint mul_self_nonneg ge_or_gt
-apply_nolint ordered_ring doc_blame
-apply_nolint ordered_semiring doc_blame
-apply_nolint pos_and_pos_or_neg_and_neg_of_mul_pos ge_or_gt
-apply_nolint two_ge_one ge_or_gt
-apply_nolint two_gt_one ge_or_gt
-
--- init_/algebra/ring.lean
-apply_nolint add_mul def_lemma doc_blame
-apply_nolint comm_ring doc_blame
-apply_nolint comm_semiring doc_blame
-apply_nolint distrib doc_blame
-apply_nolint dvd.trans def_lemma doc_blame
-apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
-apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
-apply_nolint integral_domain doc_blame
-apply_nolint mul_add def_lemma doc_blame
-apply_nolint mul_sub def_lemma doc_blame
-apply_nolint mul_zero_class doc_blame
-apply_nolint no_zero_divisors doc_blame
-apply_nolint ring doc_blame
-apply_nolint semiring doc_blame
-apply_nolint sub_mul def_lemma doc_blame
-apply_nolint zero_ne_one_class doc_blame
 
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame
@@ -2014,29 +1996,6 @@ apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 apply_nolint pell.xz doc_blame
 apply_nolint pell.yz doc_blame
 
--- order/basic.lean
-apply_nolint classical.DLO doc_blame
-apply_nolint decidable_linear_order_of_is_well_order doc_blame
-apply_nolint dense_or_discrete ge_or_gt
-apply_nolint directed_order doc_blame
-apply_nolint ge.is_antisymm ge_or_gt
-apply_nolint ge.is_linear_order ge_or_gt
-apply_nolint ge.is_partial_order ge_or_gt
-apply_nolint ge.is_preorder ge_or_gt
-apply_nolint ge.is_refl ge_or_gt
-apply_nolint ge.is_total ge_or_gt
-apply_nolint ge.is_total_preorder ge_or_gt
-apply_nolint ge.is_trans ge_or_gt
-apply_nolint ge_of_eq ge_or_gt
-apply_nolint gt.is_antisymm ge_or_gt
-apply_nolint gt.is_asymm ge_or_gt
-apply_nolint gt.is_irrefl ge_or_gt
-apply_nolint gt.is_strict_order ge_or_gt
-apply_nolint gt.is_trans ge_or_gt
-apply_nolint gt.is_trichotomous ge_or_gt
-apply_nolint well_founded.succ doc_blame
-apply_nolint well_founded.sup doc_blame
-
 -- order/bounded_lattice.lean
 apply_nolint with_top doc_blame
 
@@ -2150,24 +2109,6 @@ apply_nolint local_ring.residue_field.map doc_blame
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
 
--- ring_theory/localization.lean
-apply_nolint localization.at_prime doc_blame
-apply_nolint localization.away doc_blame
-apply_nolint localization.away.inv_self doc_blame
-apply_nolint localization.away.lift doc_blame
-apply_nolint localization.away_to_away_right doc_blame
-apply_nolint localization.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.equiv_of_equiv doc_blame
-apply_nolint localization.fraction_ring.inv_aux doc_blame
-apply_nolint localization.fraction_ring.map doc_blame
-apply_nolint localization.le_order_embedding doc_blame
-apply_nolint localization.lift doc_blame
-apply_nolint localization.lift' doc_blame
-apply_nolint localization.map doc_blame
-apply_nolint localization.mk doc_blame
-apply_nolint localization.non_zero_divisors doc_blame
-apply_nolint localization.r doc_blame
-
 -- ring_theory/maps.lean
 apply_nolint comm_ring.anti_equiv_to_equiv doc_blame
 apply_nolint comm_ring.equiv_to_anti_equiv doc_blame
@@ -2195,8 +2136,6 @@ apply_nolint power_series.order_ge_nat ge_or_gt
 apply_nolint power_series.order_mul_ge ge_or_gt
 
 -- ring_theory/principal_ideal_domain.lean
-apply_nolint ideal.is_principal doc_blame
-apply_nolint ideal.is_principal.generator doc_blame
 apply_nolint principal_ideal_domain doc_blame
 apply_nolint principal_ideal_domain.factors doc_blame
 

@@ -980,6 +980,8 @@ range_succ
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
 
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := multiset.self_mem_range_succ n
+
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
 theorem range_mono : monotone range := λ _ _, range_subset.2
@@ -2782,10 +2784,38 @@ have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
   assume k, and_congr_right $ assume hk, by rw [← not_imp_not]; simp [hk],
 by ext k; by_cases n ≤ k; simp [h, this]
 
+lemma image_const_sub {k m n : ℕ} (hkn : k ≤ n) :
+  (Ico k m).image (λ j, n - j) = Ico (n + 1 - m) (n + 1 - k) :=
+begin
+  rw [nat.sub_add_comm hkn],
+  ext j,
+  simp only [mem, mem_image, exists_prop, nat.lt_iff_add_one_le, add_le_add_iff_right],
+  split,
+  { rintros ⟨j, ⟨hjk, hjm⟩, rfl⟩,
+    split,
+    { simp only [← nat.add_sub_add_right n 1 j, nat.sub_le_sub_left, hjm] },
+    { exact nat.sub_le_sub_left _ hjk } },
+  { rintros ⟨hm, hk⟩,
+    have hj : j ≤ n := le_trans hk (nat.sub_le_self _ _),
+    refine ⟨n - j, ⟨_, _⟩, _⟩,
+    { apply nat.le_sub_right_of_add_le,
+      rwa nat.le_sub_left_iff_add_le hkn at hk },
+    { rwa [← nat.sub_add_comm hj, nat.sub_le_iff] },
+    { exact nat.sub_sub_self hj } }
+end
+
 end Ico
 
 lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
 by { ext i, simp }
+
+lemma range_image_pred_top_sub (n : ℕ) :
+  (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
+begin
+  cases n,
+  { simp },
+  { simp [range_eq_Ico, Ico.image_const_sub] }
+end
 
 -- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
 

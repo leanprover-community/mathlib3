@@ -683,9 +683,9 @@ lemma is_skew_adjoint_bracket (f g : module.End R M)
 begin
   rw mem_skew_adjoint_submodule at *,
   have hfg : is_adjoint_pair B B (f * g) (g * f),
-  { rw ←neg_mul_neg g f, exact B.is_adjoint_pair_mul _ _ _ _ hf hg, },
+  { rw ←neg_mul_neg g f, exact is_adjoint_pair.mul B hf hg, },
   have hgf : is_adjoint_pair B B (g * f) (f * g),
-  { rw ←neg_mul_neg f g, exact B.is_adjoint_pair_mul _ _ _ _ hg hf, },
+  { rw ←neg_mul_neg f g, exact is_adjoint_pair.mul B hg hf, },
   change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
   exact bilin_form.is_adjoint_pair.sub _ _ _ _ _ _ hfg hgf,
 end

@@ -37,7 +37,7 @@ section
 
 -- At first we work with any `[comm_ring k]`, and add the assumption that
 -- `[invertible (fintype.card G : k)]` when it is required.
-variables {k : Type u} [comm_ring k] {G : Type u} [fintype G] [group G]
+variables {k : Type u} [comm_ring k] {G : Type u} [group G]
 
 variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
@@ -65,6 +65,8 @@ We define the conjugate of `π` by `g`, as a `k`-linear map.
 def conjugate (g : G) :
   (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
 ((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
+
+variables [fintype G]
 
 /--
 The sum of the conjugates of `π` by each element `g : G`, as a `k`-linear map.

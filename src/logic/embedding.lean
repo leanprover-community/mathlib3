@@ -214,7 +214,9 @@ end set
 The embedding of a left cancellative semigroup into itself
 by left multiplication by a fixed element.
  -/
-@[to_additive]
+@[to_additive
+  "The embedding of a left cancellative additive semigroup into itself
+   by left translation by a fixed element."]
 def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
 { to_fun := λ h, g * h,
   inj' := λ h h', (mul_right_inj g).mp, }
@@ -228,7 +230,9 @@ rfl
 The embedding of a right cancellative semigroup into itself
 by right multiplication by a fixed element.
  -/
-@[to_additive]
+@[to_additive
+  "The embedding of a right cancellative additive semigroup into itself
+   by right translation by a fixed element."]
 def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
 { to_fun := λ h, h * g,
   inj' := λ h h', (mul_left_inj g).mp, }

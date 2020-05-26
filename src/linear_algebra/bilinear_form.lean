@@ -425,14 +425,14 @@ variables (f f' : M →ₗ[R] M₂) (g g' : M₂ →ₗ[R] M)
 maps between them to be mutually adjoint. -/
 def is_adjoint_pair := ∀ {{x y}}, B₂ (f x) y = B x (g y)
 
-lemma is_adjoint_pair.eq (h : is_adjoint_pair B B2 f g) :
+lemma is_adjoint_pair.eq (h : is_adjoint_pair B B₂ f g) :
   ∀ {x y}, B₂ (f x) y = B x (g y) := h
 
 lemma is_adjoint_pair_iff_comp_left_eq_comp_right (f g : module.End R M) :
   is_adjoint_pair B B' f g ↔ B'.comp_left f = B.comp_right g :=
 begin
   split; intros h,
-  { ext x y, rw [comp_left_apply, comp_right_apply], exact h x y, },
+  { ext x y, rw [comp_left_apply, comp_right_apply], apply h, },
   { intros x y, rw [←comp_left_apply, ←comp_right_apply], rw h, },
 end
 
@@ -457,7 +457,7 @@ lemma is_adjoint_pair.comp {M₃ : Type v} [add_comm_group M₃] [module R M₃]
   {f' : M₂ →ₗ[R] M₃} {g' : M₃ →ₗ[R] M₂}
   (h : is_adjoint_pair B B₂ f g) (h' : is_adjoint_pair B₂ B₃ f' g') :
   is_adjoint_pair B B₃ (f'.comp f) (g.comp g') :=
-λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h' (f x) y, h x (g' y)]
+λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
 
 lemma is_adjoint_pair_mul
   (f g f' g' : module.End R M) (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
@@ -474,8 +474,8 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
 def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
 { carrier := { f | is_pair_self_adjoint B B' f },
   zero    := is_adjoint_pair_zero B B',
-  add     := λ f g hf hg, is_adjoint_pair_add B B' _ _ _ _ hf hg,
-  smul    := λ c f h, is_adjoint_pair_smul B B' _ _ c h, }
+  add     := λ f g hf hg, is_adjoint_pair.add B B' _ _ _ _ hf hg,
+  smul    := λ c f h, is_adjoint_pair.smul B B' _ _ c h, }
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/

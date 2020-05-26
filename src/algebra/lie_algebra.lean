@@ -687,7 +687,7 @@ begin
   have hgf : is_adjoint_pair B B (g * f) (f * g),
   { rw ←neg_mul_neg f g, exact B.is_adjoint_pair_mul _ _ _ _ hg hf, },
   change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
-  exact bilin_form.is_adjoint_pair_sub _ _ _ _ _ _ hfg hgf,
+  exact bilin_form.is_adjoint_pair.sub _ _ _ _ _ _ hfg hgf,
 end
 
 /-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
@@ -700,6 +700,7 @@ end skew_adjoint_endomorphisms
 section skew_adjoint_matrices
 
 variables {n : Type w} [fintype n] [decidable_eq n]
+variables (J : matrix n n R)
 
 local attribute [instance] matrix.lie_ring
 local attribute [instance] matrix.lie_algebra
@@ -707,12 +708,12 @@ local attribute [instance] matrix.lie_algebra
 /-- Given a square matrix `J` defining a bilinear form on the free module, there is a natural
 embedding from the corresponding Lie subalgebra of skew-adjoint endomorphisms into the Lie algebra
 of matrices. -/
-def skew_adjoint_matrices_lie_embedding (J : matrix n n R) :
+def skew_adjoint_matrices_lie_embedding :
   J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
 lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
-def skew_adjoint_matrices_lie_subalgebra (J : matrix n n R) : lie_subalgebra R (matrix n n R) :=
+def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
 (skew_adjoint_matrices_lie_embedding J).range
 
 end skew_adjoint_matrices

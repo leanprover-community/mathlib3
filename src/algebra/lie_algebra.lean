@@ -181,7 +181,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
-class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends module R L :=
+class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 end prio
 

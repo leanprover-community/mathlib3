@@ -303,7 +303,7 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.semiring, ..matrix.add_comm_group }
 
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
-instance {β : Type w} [semiring α] [add_comm_group β] [semimodule α β] :
+instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
   semimodule α (matrix m n β) := pi.semimodule _ _ _
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl

@@ -82,12 +82,12 @@ set_option default_priority 100
 
 /-- A (preadditive) category `C` is called abelian if it has a zero object, all binary products and
     coproducts, all kernels and cokernels, and if every monomorphism is the kernel of some morphism
-    and every epimorphism is the cokernel of somme morphism. -/
+    and every epimorphism is the cokernel of some morphism. -/
 class abelian extends preadditive.{v} C :=
-(has_zero_object : has_zero_object.{v} C)
-(has_binary_products : has_binary_products.{v} C)
-(has_kernels : has_kernels.{v} C)
-(has_cokernels : has_cokernels.{v} C)
+[has_zero_object : has_zero_object.{v} C]
+[has_binary_products : has_binary_products.{v} C]
+[has_kernels : has_kernels.{v} C]
+[has_cokernels : has_cokernels.{v} C]
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono.{v} f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi.{v} f)
 
@@ -269,8 +269,13 @@ end factor
 
 section has_strong_epi_mono_factorisations
 
+/-- An abelian category has strong epi-mono factorisations. -/
 @[priority 100] instance : has_strong_epi_mono_factorisations.{v} C :=
 ⟨λ X Y f, image_strong_epi_mono_factorisation f⟩
+
+/- In particular, this means that it has well-behaved images. -/
+example : has_images.{v} C := by apply_instance
+example : has_image_maps.{v} C := by apply_instance
 
 end has_strong_epi_mono_factorisations
 
@@ -305,7 +310,7 @@ is_cokernel.cokernel_iso _ _
   (as_iso $ abelian.factor_thru_coimage f) (coimage.fac f)
 
 /-- In an abelian category, a mono is the kernel of its cokernel. More precisely:
-    If `f` is a monomorphism is `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
+    If `f` is a monomorphism and `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
     of `cofork.π s`. -/
 def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
   is_limit (kernel_fork.of_ι f (cokernel_cofork.condition s)) :=

@@ -543,7 +543,7 @@ end
 
 variables [decidable_eq n]
 
-/-- Given a pair of square matrices `J`, `J₂` defining a bilinear forms on the free module, there
+/-- Given a pair of square matrices `J`, `J₂` defining bilinear forms on the free module, there
 is a natural embedding from the corresponding submodule of pair-skew-adjoint endomorphisms into the
 module of matrices. -/
 def pair_self_adjoint_matrices_linear_embedding :

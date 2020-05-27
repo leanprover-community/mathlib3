@@ -52,7 +52,8 @@ variables [monoid α]
   a = b ↔ (a : α) = b :=
 ext.eq_iff.symm
 
-@[to_additive] instance [decidable_eq α] : decidable_eq (units α) := λ a b, decidable_of_iff' _ ext_iff
+@[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
+λ a b, decidable_of_iff' _ ext_iff
 
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
@@ -121,7 +122,8 @@ by rw [mul_assoc, inv_mul, mul_one]
 end units
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
-@[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit out of `a`."]
+@[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit
+out of `a`."]
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) :
   units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
@@ -201,7 +203,9 @@ variables {M : Type*} {N : Type*}
 /-- An element `a : M` of a monoid is a unit if it has a two-sided inverse.
 The actual definition says that `a` is equal to some `u : units M`, where
 `units M` is a bundled version of `is_unit`. -/
-@[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has a two-sided additive inverse. The actual definition says that `a` is equal to some `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
+@[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has
+a two-sided additive inverse. The actual definition says that `a` is equal to some
+`u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 
 @[simp, to_additive is_add_unit_add_unit]
@@ -224,7 +228,8 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 by simp [is_unit_iff_exists_inv, mul_comm]
 
 /-- Multiplication by a `u : units M` doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` doesn't affect `is_add_unit`."]
+@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` doesn't affect
+`is_add_unit`."]
 theorem units.is_unit_mul_units [monoid M] (a : M) (u : units M) :
   is_unit (a * u) ↔ is_unit a :=
 iff.intro

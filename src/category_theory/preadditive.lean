@@ -79,21 +79,23 @@ mk' (λ g, f ≫ g) $ λ g g', by simp
 def right_comp (P : C) {Q R : C} (g : Q ⟶ R) : (P ⟶ Q) →+ (P ⟶ R) :=
 mk' (λ f, f ≫ g) $ λ f f', by simp
 
-@[simp] lemma sub_comp {P Q R : C} (f f' : P ⟶ Q) (g : Q ⟶ R) :
+@[simp, reassoc] lemma sub_comp {P Q R : C} (f f' : P ⟶ Q) (g : Q ⟶ R) :
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
-@[simp] lemma comp_sub {P Q R : C} (f : P ⟶ Q) (g g' : Q ⟶ R) :
+/- The redunant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+@[reassoc, simp] lemma comp_sub {P Q R : C} (f : P ⟶ Q) (g g' : Q ⟶ R) :
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'
 
-@[simp] lemma neg_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ g = -(f ≫ g) :=
+@[simp, reassoc] lemma neg_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ g = -(f ≫ g) :=
 map_neg (right_comp _ _) _
 
-@[simp] lemma comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : f ≫ (-g) = -(f ≫ g) :=
+/- The redunant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+@[reassoc, simp] lemma comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : f ≫ (-g) = -(f ≫ g) :=
 map_neg (left_comp _ _) _
 
-lemma neg_comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ (-g) = f ≫ g :=
+@[reassoc] lemma neg_comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ (-g) = f ≫ g :=
 by simp
 
 instance {P Q : C} {f : P ⟶ Q} [epi f] : epi (-f) :=

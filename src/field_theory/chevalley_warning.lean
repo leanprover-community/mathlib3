@@ -39,36 +39,43 @@ universes u v
 
 open_locale big_operators
 
+local attribute [-instance] equiv.subtype.unique
+
 namespace equiv
 
 variables {X : Type*} {Y : Type*} [decidable_eq X] {x : X}
 
 /-- The type of all functions `X → Y` with prescribed values for all `x' ≠ x`
 is equivalent to the codomain `Y`. -/
-def cofiber (f : {x' // x' ≠ x} → Y) : {g : X → Y // g ∘ coe = f} ≃ Y :=
-(subtype_preimage _ f).trans (fun_unique _ _)
+def subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) : {g : X → Y // g ∘ coe = f} ≃ Y :=
+(subtype_preimage _ f).trans $
+@fun_unique {x' // ¬ x' ≠ x} _ $
+show unique {x' // ¬ x' ≠ x},
+  from (equiv.subtype_congr_right $ λ a, not_not).unique_of_equiv $
+show unique {x' // x' = x}, from
+{ default := ⟨x, rfl⟩, uniq := λ ⟨x', h⟩, subtype.val_injective h }
 
-@[simp] lemma coe_cofiber (f : {x' // x' ≠ x} → Y) :
-  (cofiber f : {g : X → Y // g ∘ coe = f} → Y) = λ g, (g : X → Y) x := rfl
+@[simp] lemma coe_subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) :
+  (subtype_equiv_codomain f : {g : X → Y // g ∘ coe = f} → Y) = λ g, (g : X → Y) x := rfl
 
-@[simp] lemma cofiber_apply (f : {x' // x' ≠ x} → Y) (g : {g : X → Y // g ∘ coe = f}) :
-  cofiber f g = (g : X → Y) x := rfl
+@[simp] lemma subtype_equiv_codomain_apply (f : {x' // x' ≠ x} → Y) (g : {g : X → Y // g ∘ coe = f}) :
+  subtype_equiv_codomain f g = (g : X → Y) x := rfl
 
-lemma coe_cofiber_symm (f : {x' // x' ≠ x} → Y) :
-  ((cofiber f).symm : Y → {g : X → Y // g ∘ coe = f}) =
+lemma coe_subtype_equiv_codomain_symm (f : {x' // x' ≠ x} → Y) :
+  ((subtype_equiv_codomain f).symm : Y → {g : X → Y // g ∘ coe = f}) =
   λ y, ⟨λ x', if h : x' ≠ x then f ⟨x', h⟩ else y,
     by { funext x', dsimp, erw [dif_pos x'.2, subtype.coe_eta] }⟩ := rfl
 
-@[simp] lemma cofiber_symm_apply (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) :
-  ((cofiber f).symm y : X → Y) x' = if h : x' ≠ x then f ⟨x', h⟩ else y :=
+@[simp] lemma subtype_equiv_codomain_symm_apply (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = if h : x' ≠ x then f ⟨x', h⟩ else y :=
 rfl
 
-@[simp] lemma cofiber_symm_apply_eq (f : {x' // x' ≠ x} → Y) (y : Y) :
-  ((cofiber f).symm y : X → Y) x = y :=
+@[simp] lemma subtype_equiv_codomain_symm_apply_eq (f : {x' // x' ≠ x} → Y) (y : Y) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x = y :=
 dif_neg (not_not.mpr rfl)
 
-lemma cofiber_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
-  ((cofiber f).symm y : X → Y) x' = f ⟨x', h⟩ :=
+lemma subtype_equiv_codomain_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = f ⟨x', h⟩ :=
 dif_pos h
 
 end equiv
@@ -162,7 +169,7 @@ begin
               (fintype.sum_fiberwise _ _).symm
     ... = 0 : fintype.sum_eq_zero _ _,
   intros x₀,
-  let e : K ≃ {x // x ∘ coe = x₀} := (equiv.cofiber _).symm,
+  let e : K ≃ {x // x ∘ coe = x₀} := (equiv.subtype_equiv_codomain _).symm,
   calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j)
         = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (finset.sum_equiv e _).symm
     ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i    : fintype.sum_congr _ _ _
@@ -170,16 +177,18 @@ begin
     ... = 0                                       : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
   intros a,
   let e' : {j // j = i} ⊕ {j // j ≠ i} ≃ σ := equiv.sum_compl _,
+  letI : unique {j // j = i} :=
+  { default := ⟨i, rfl⟩, uniq := λ ⟨j, h⟩, subtype.val_injective h },
   calc (∏ j : σ, (e a : σ → K) j ^ d j)
         = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
         by { rw [← finset.prod_equiv e', fintype.prod_sum_type, univ_unique, prod_singleton], refl }
-    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : by rw equiv.cofiber_symm_apply_eq
+    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : by rw equiv.subtype_equiv_codomain_symm_apply_eq
     ... = a ^ d i * (∏ j, x₀ j ^ d j) : congr_arg _ (fintype.prod_congr _ _ _) -- see below
     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
   { -- the remaining step of the calculation above
     rintros ⟨j, hj⟩,
     show (e a : σ → K) j ^ d j = x₀ ⟨j, hj⟩ ^ d j,
-    rw equiv.cofiber_symm_apply_ne, }
+    rw equiv.subtype_equiv_codomain_symm_apply_ne, }
 end
 
 variables [decidable_eq K] [decidable_eq σ]

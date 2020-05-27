@@ -133,7 +133,7 @@ structure affine_subspace :=
 (sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction.carrier)
 
 /-- The whole affine space as a subspace of itself. -/
-def affine_subspace.of_affine_space : affine_subspace k V P :=
+def univ_affine_subspace : affine_subspace k V P :=
 { carrier := set.univ,
   direction := submodule.span k set.univ,
   nonempty := set.nonempty_iff_univ_nonempty.1 S.nonempty,
@@ -146,7 +146,7 @@ def affine_subspace.of_affine_space : affine_subspace k V P :=
     exact set.mem_of_mem_of_subset (set.mem_univ _) hx
   end }
 
-instance : inhabited (affine_subspace k V P) := ⟨affine_subspace.of_affine_space k V P⟩
+instance : inhabited (affine_subspace k V P) := ⟨univ_affine_subspace k V P⟩
 
 /-- The affine span of a nonempty set of points is the smallest affine
 subspace containing those points. (Actually defined here in terms of

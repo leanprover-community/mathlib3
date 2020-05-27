@@ -682,12 +682,10 @@ lemma is_skew_adjoint_bracket (f g : module.End R M)
   ⁅f, g⁆ ∈ B.skew_adjoint_submodule :=
 begin
   rw mem_skew_adjoint_submodule at *,
-  have hfg : is_adjoint_pair B B (f * g) (g * f),
-  { rw ←neg_mul_neg g f, exact is_adjoint_pair.mul hf hg, },
-  have hgf : is_adjoint_pair B B (g * f) (f * g),
-  { rw ←neg_mul_neg f g, exact is_adjoint_pair.mul hg hf, },
+  have hfg : is_adjoint_pair B B (f * g) (g * f), { rw ←neg_mul_neg g f, exact hf.mul hg, },
+  have hgf : is_adjoint_pair B B (g * f) (f * g), { rw ←neg_mul_neg f g, exact hg.mul hf, },
   change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
-  exact bilin_form.is_adjoint_pair.sub hfg hgf,
+  exact hfg.sub hgf,
 end
 
 /-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a

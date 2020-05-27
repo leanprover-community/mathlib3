@@ -425,6 +425,8 @@ variables (f f' : M →ₗ[R] M₂) (g g' : M₂ →ₗ[R] M)
 maps between them to be mutually adjoint. -/
 def is_adjoint_pair := ∀ ⦃x y⦄, B₂ (f x) y = B x (g y)
 
+variables {B B' B₂ f f' g g'}
+
 lemma is_adjoint_pair.eq (h : is_adjoint_pair B B₂ f g) :
   ∀ {x y}, B₂ (f x) y = B x (g y) := h
 
@@ -464,6 +466,8 @@ lemma is_adjoint_pair.mul
   is_adjoint_pair B B (f * f') (g' * g) :=
 λ x y, by rw [linear_map.mul_app, linear_map.mul_app, h, h']
 
+variables (B B' B₂)
+
 /-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
 on the underlying module. In the case that these two forms are identical, this is the usual concept
 of self adjointness. In the case that one of the forms is the negation of the other, this is the
@@ -473,9 +477,9 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
 /-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
 def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
 { carrier := { f | is_pair_self_adjoint B B' f },
-  zero    := is_adjoint_pair_zero B B',
-  add     := λ f g hf hg, is_adjoint_pair.add B B' _ _ _ _ hf hg,
-  smul    := λ c f h, is_adjoint_pair.smul B B' _ _ c h, }
+  zero    := is_adjoint_pair_zero,
+  add     := λ f g hf hg, is_adjoint_pair.add hf hg,
+  smul    := λ c f h, is_adjoint_pair.smul c h, }
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/

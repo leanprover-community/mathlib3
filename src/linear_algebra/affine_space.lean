@@ -59,17 +59,9 @@ def span_points (s : set P) : set P :=
 
 /-- The set of points in the affine span of a nonempty set of points
 is nonempty. -/
-lemma span_points_nonempty_of_nonempty {s : set P} (h : s.nonempty) :
-  (span_points k V s).nonempty :=
-begin
-  cases h with p hp,
-  use p,
-  unfold span_points,
-  use p,
-  use hp,
-  use 0,
-  exact and.intro (submodule.zero _) (zero_vadd V p).symm
-end
+lemma span_points_nonempty_of_nonempty {s : set P} :
+  s.nonempty → (span_points k V s).nonempty 
+| ⟨p, hp⟩ := ⟨p, p, hp, 0, submodule.zero _, (zero_vadd V p).symm⟩
 
 /-- Adding a point in the affine span and a vector in the spanning
 subspace produces a point in the affine span. -/

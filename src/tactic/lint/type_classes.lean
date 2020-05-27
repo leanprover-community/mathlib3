@@ -21,7 +21,8 @@ and the appropriate definition of instances:
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
    to `[nonempty α]`
- * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used in the statement, and could thus be removed by using `classical` in the proof.
+ * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
+   in the statement, and could thus be removed by using `classical` in the proof.
 -/
 
 open tactic

@@ -35,7 +35,29 @@ lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
 
-variables {α} (p : Prop) [decidable p]
+variables {α}
+
+@[simp] lemma units.inv_smul_smul (u : units α) (x : β) :
+  (↑u⁻¹:α) • (u:α) • x = x :=
+by rw [smul_smul, u.inv_mul, one_smul]
+
+@[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
+  (u:α) • (↑u⁻¹:α) • x = x :=
+by rw [smul_smul, u.mul_inv, one_smul]
+
+section gwz
+
+variables {G : Type*} [group_with_zero G] [mul_action G β]
+
+lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
+(units.mk0 c hc).inv_smul_smul x
+
+lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
+(units.mk0 c hc).smul_inv_smul x
+
+end gwz
+
+variables (p : Prop) [decidable p]
 
 lemma ite_smul (a₁ a₂ : α) (b : β) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
 by split_ifs; refl
@@ -116,18 +138,25 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
+lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+(to_units α c).inv_smul_smul x
+
+lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+(to_units α c).smul_inv_smul x
+
 variables (α) (β)
 
+/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := (•) g,
   inv_fun := (•) g⁻¹,
-  left_inv := λ a, by rw [← mul_action.mul_smul, inv_mul_self, mul_action.one_smul],
-  right_inv := λ a, by rw [← mul_action.mul_smul, mul_inv_self, mul_action.one_smul] }
+  left_inv := inv_smul_smul g,
+  right_inv := smul_inv_smul g }
 
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
+{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -215,6 +244,16 @@ distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
+
+theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
+⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
+
+theorem units.smul_ne_zero (u : units α) {x : β} : (u : α) • x ≠ 0 ↔ x ≠ 0 :=
+not_congr u.smul_eq_zero
+
+@[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
+  u • x = 0 ↔ x = 0 :=
+exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
 
 variable (β)
 

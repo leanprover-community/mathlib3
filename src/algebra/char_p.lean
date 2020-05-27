@@ -8,6 +8,7 @@ Characteristic of semirings.
 
 import data.fintype.basic
 import data.nat.choose
+import data.int.modeq
 import algebra.module
 
 universes u v
@@ -30,6 +31,11 @@ begin
   { lift a to ℕ using (le_of_lt h) with b,
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
+
+lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
 
 theorem char_p.eq (α : Type u) [semiring α] {p q : ℕ} (c1 : char_p α p) (c2 : char_p α q) : p = q :=
 nat.dvd_antisymm
@@ -77,11 +83,28 @@ begin
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
     { intros b h1 h2,
-      have := nat.prime.dvd_choose (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
+      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
       rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
       simp only [mul_zero] },
     { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
   rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+end
+
+lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = b ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+
+lemma char_p.neg_one_ne_one (R : Type*) [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
+  (-1 : R) ≠ (1 : R) :=
+begin
+  suffices : (2 : R) ≠ 0,
+  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
+  assume h,
+  rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
+  have := (char_p.cast_eq_zero_iff R p 2).mp h,
+  have := nat.le_of_dvd dec_trivial this,
+  rw fact at *, linarith,
 end
 
 section frobenius

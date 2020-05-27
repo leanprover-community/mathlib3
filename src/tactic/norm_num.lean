@@ -3,7 +3,9 @@ Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Mario Carneiro
 -/
-import data.rat.cast data.rat.meta_defs tactic.doc_commands
+import data.rat.cast
+import data.rat.meta_defs
+import tactic.doc_commands
 
 /-!
 # `norm_num`
@@ -52,6 +54,14 @@ open tactic
 namespace norm_num
 variable {α : Type u}
 
+lemma subst_into_add {α} [has_add α] (l r tl tr t)
+  (prl : (l : α) = tl) (prr : r = tr) (prt : tl + tr = t) : l + r = t :=
+by rw [prl, prr, prt]
+
+lemma subst_into_mul {α} [has_mul α] (l r tl tr t)
+  (prl : (l : α) = tl) (prr : r = tr) (prt : tl * tr = t) : l * r = t :=
+by rw [prl, prr, prt]
+
 lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
 by simp [pra, prt]
 
@@ -72,7 +82,7 @@ theorem zero_succ {α} [semiring α] : (0 + 1 : α) = 1 := zero_add _
 theorem one_succ {α} [semiring α] : (1 + 1 : α) = 2 := rfl
 theorem bit0_succ {α} [semiring α] (a : α) : bit0 a + 1 = bit1 a := rfl
 theorem bit1_succ {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 = bit0 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -96,30 +106,30 @@ theorem zero_adc {α} [semiring α] (a b : α) (h : a + 1 = b) : 0 + a + 1 = b :
 theorem adc_zero {α} [semiring α] (a b : α) (h : a + 1 = b) : a + 0 + 1 = b := by rwa add_zero
 theorem one_add {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + a = b := by rwa add_comm
 theorem add_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b = bit0 c :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem add_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit1 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_assoc]
 theorem add_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit1 a + bit0 b = bit1 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
 theorem add_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b = bit0 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
 theorem adc_one_one {α} [semiring α] : (1 + 1 + 1 : α) = 3 := rfl
 theorem adc_bit0_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit0 a + 1 + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem adc_one_bit0 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit0 a + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm]
+h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem adc_bit1_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_one_bit1 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit1 a + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit0 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit0 a + bit1 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm]
+h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -179,7 +189,7 @@ theorem mul_bit0_bit0 {α} [semiring α] (a b c : α) (h : a * b = c) :
 theorem mul_bit1_bit1 {α} [semiring α] (a b c d e : α)
   (hc : a * b = c) (hd : a + b = d) (he : bit0 c + d = e) :
   bit1 a * bit1 b = bit1 e :=
-by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm]
+by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -527,6 +537,15 @@ do na ← a.to_nat, nb ← b.to_nat,
     (ic, p) ← prove_add_nat ic a c b,
     return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
 
+/-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
+than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
+theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
+
+/-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
+meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
+do (_, c, p) ← prove_sub ic a b,
+  return (c, `(int_sub_hack).mk_app [a, b, c, p])
+
 /-- Evaluates the basic field operations `+`,`neg`,`-`,`*`,`inv`,`/` on numerals.
 Also handles nat subtraction. Does not do recursive simplification; that is,
 `1 + 1 + 1` will not simplify but `2 + 1` will. This is handled by the top level
@@ -546,10 +565,10 @@ meta def eval_field : expr → tactic (expr × expr)
 | `(- %%e) := do
   c ← infer_type e >>= mk_instance_cache,
   prod.snd <$> prove_neg c e
-| `(%%a - %%b) := do
-  α ← infer_type a,
+| `(@has_sub.sub %%α %%inst %%a %%b) := do
   c ← mk_instance_cache α,
   if α = `(nat) then prove_sub_nat c a b
+  else if inst = `(int.has_sub) then prove_sub_int c a b
   else prod.snd <$> prove_sub c a b
 | `(has_inv.inv %%e) := do
   n ← e.to_rat,
@@ -637,7 +656,7 @@ theorem lt_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a < b → bi
 theorem lt_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
 lt_of_le_of_lt (bit0_le_bit0.2 h) (lt_add_one _)
 theorem lt_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
-lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one]) (bit0_le_bit0.2 h)
+lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
 theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b := bit1_lt_bit1.2
 
 theorem le_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 ≤ bit0 a :=

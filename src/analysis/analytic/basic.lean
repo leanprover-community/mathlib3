@@ -601,6 +601,7 @@ begin
   ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl,
 end
 
+-- FIXME this causes a deterministic timeout with `-T50000`
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
 `p.change_origin x` is well defined on the largest ball contained in the original ball of
 convergence.-/
@@ -620,7 +621,7 @@ begin
   have A_nonneg : ∀ i, 0 ≤ A i,
   { rintros ⟨k, n, s, hs⟩,
     change 0 ≤ ∥(p n).restr s hs x∥ * (r : ℝ) ^ k,
-    refine mul_nonneg' (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
+    refine mul_nonneg (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
   have tsum_nonneg : 0 ≤ tsum A := tsum_nonneg A_nonneg,
   apply le_radius_of_bound _ (nnreal.of_real (tsum A)) (λ k, _),
   rw [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_pow, coe_nnnorm,
@@ -757,7 +758,7 @@ theorem has_fpower_series_on_ball.change_origin
       edist (y + z) 0 ≤ ↑(nnnorm y) + ↑(nnnorm z) :
         by { rw [edist_eq_coe_nnnorm, ← ennreal.coe_add, ennreal.coe_le_coe], exact norm_add_le y z }
       ... < r : A,
-    simpa using hf.sum this
+    simpa only [add_assoc] using hf.sum this
   end }
 
 lemma has_fpower_series_on_ball.analytic_at_of_mem

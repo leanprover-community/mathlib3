@@ -61,6 +61,9 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
   topological_space (Πa, β a) :=
 ⨅a, induced (λf, f a) (t₂ a)
 
+instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
+t.induced ulift.down
+
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
 eq_univ_of_forall $ λ x, begin
@@ -170,6 +173,10 @@ lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : �
   (ha : tendsto ma f (𝓝 a)) (hb : tendsto mb f (𝓝 b)) :
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
+
+lemma filter.eventually.curry_nhds {p : α × β → Prop} {x : α} {y : β} (h : ∀ᶠ x in 𝓝 (x, y), p x) :
+  ∀ᶠ x' in 𝓝 x, ∀ᶠ y' in 𝓝 y, p (x', y') :=
+by { rw [nhds_prod_eq] at h, exact h.curry }
 
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
@@ -727,6 +734,16 @@ begin
 end
 
 end sigma
+
+section ulift
+
+lemma continuous_ulift_down [topological_space α] : continuous (ulift.down : ulift.{v u} α → α) :=
+continuous_induced_dom
+
+lemma continuous_ulift_up [topological_space α] : continuous (ulift.up : α → ulift.{v u} α) :=
+continuous_induced_rng continuous_id
+
+end ulift
 
 lemma mem_closure_of_continuous [topological_space α] [topological_space β]
   {f : α → β} {a : α} {s : set α} {t : set β}

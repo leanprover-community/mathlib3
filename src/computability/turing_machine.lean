@@ -555,10 +555,10 @@ by rintro ⟨⟩; refl
   ((tape.move dir.right)^[n] (tape.mk' L (R.modify_nth f n))) :=
 begin
   induction n with n IH generalizing L R,
-  { simp only [list_blank.nth_zero, list_blank.modify_nth, nat.iterate_zero],
+  { simp only [list_blank.nth_zero, list_blank.modify_nth, nat.iterate_zero_apply],
     rw [← tape.write_mk', list_blank.cons_head_tail] },
   simp only [list_blank.head_cons, list_blank.nth_succ, list_blank.modify_nth,
-    tape.move_right_mk', list_blank.tail_cons, nat.iterate_succ, IH]
+    tape.move_right_mk', list_blank.tail_cons, nat.iterate_succ_apply, IH]
 end
 
 theorem tape.map_move {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -582,8 +582,7 @@ theorem tape.map_mk₁ {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : pointed_map 
 state returned before a `none` result. If the state transition function always returns `some`,
 then the computation diverges, returning `roption.none`. -/
 def eval {σ} (f : σ → option σ) : σ → roption σ :=
-pfun.fix (λ s, roption.some $
-  match f s with none := sum.inl s | some s' := sum.inr s' end)
+pfun.fix (λ s, roption.some $ (f s).elim (sum.inl s) sum.inr)
 
 /-- The reflexive transitive closure of a state transition function. `reaches f a b` means
 there is a finite sequence of steps `f a = some a₁`, `f a₁ = some a₂`, ... such that `aₙ = b`.
@@ -654,10 +653,21 @@ theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
   (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
 h _ (trans_gen.single h₂)
 
+/-- (co-)Induction principle for `eval`. If a property `C` holds of any point `a` evaluating to `b`
+which is either terminal (meaning `a = b`) or where the next point also satisfies `C`, then it
+holds of any point where `eval f a` evaluates to `b`. This formalizes the notion that if
+`eval f a` evaluates to `b` then it reaches terminal state `b` in finitely many steps. -/
+@[elab_as_eliminator] def eval_induction {σ}
+  {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
+  (H : ∀ a, b ∈ eval f a →
+    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+  roption.mem_some_iff.2 $ by rw e; refl)
+
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
 ⟨λ h, begin
-  refine pfun.fix_induction h (λ a h IH, _),
+  refine eval_induction h (λ a h IH, _),
   cases e : f a with a',
   { rw roption.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       roption.mem_some_iff.2 $ by rw e; refl),
@@ -807,7 +817,8 @@ roption.ext $ λ b₂,
     rwa bb at h
   end⟩
 
-/-! ## The TM0 model
+/-!
+## The TM0 model
 
 A TM0 turing machine is essentially a Post-Turing machine, adapted for type theory.
 
@@ -977,7 +988,8 @@ end
 
 end TM0
 
-/-! ## The TM1 model
+/-!
+## The TM1 model
 
 The TM1 model is a simplification and extension of TM0 (Post-Turing model) in the direction of
 Wang B-machines. The machine's internal state is extended with a (finite) store `σ` of variables
@@ -1174,7 +1186,8 @@ end
 
 end TM1
 
-/-! ## TM1 emulator in TM0
+/-!
+## TM1 emulator in TM0
 
 To prove that TM1 computable functions are TM0 computable, we need to reduce each TM1 program to a
 TM0 program. So suppose a TM1 program is given. We take the following:
@@ -1316,7 +1329,8 @@ end⟩
 end
 end TM1to0
 
-/-! ## TM1(Γ) emulator in TM1(bool)
+/-!
+## TM1(Γ) emulator in TM1(bool)
 
 The most parsimonious Turing machine model that is still Turing complete is `TM0` with `Γ = bool`.
 Because our construction in the previous section reducing `TM1` to `TM0` doesn't change the
@@ -1414,7 +1428,7 @@ begin
     step_aux (stmt.move d^[i] q) v T =
     step_aux q v (tape.move d^[i] T), from this n,
   intro, induction i with i IH generalizing T, {refl},
-  rw [nat.iterate_succ', step_aux, IH, ← nat.iterate_succ]
+  rw [nat.iterate_succ', step_aux, IH, nat.iterate_succ]
 end
 
 theorem supports_stmt_move {S d q} :
@@ -1489,7 +1503,7 @@ begin
       using this (list.reverse_reverse _).symm },
   intros, induction l₁ with b l₁ IH generalizing l₂,
   { cases e, refl },
-  simp only [list.length, list.cons_append, nat.iterate_succ],
+  simp only [list.length, list.cons_append, nat.iterate_succ_apply],
   convert IH e,
   simp only [list_blank.tail_cons, list_blank.append, tape.move_left_mk', list_blank.head_cons]
 end
@@ -1503,7 +1517,7 @@ begin
     simp only [tr_tape'_move_left, list_blank.cons_head_tail,
       list_blank.head_cons, list_blank.tail_cons] },
   intros, induction i with i IH, {refl},
-  rw [nat.iterate_succ, nat.iterate_succ', tape.move_left_right, IH]
+  rw [nat.iterate_succ_apply, nat.iterate_succ_apply', tape.move_left_right, IH]
 end
 
 theorem step_aux_write (q v a b L R) :
@@ -1666,7 +1680,8 @@ end
 
 end TM1to1
 
-/-! ## TM0 emulator in TM1
+/-!
+## TM0 emulator in TM1
 
 To establish that TM0 and TM1 are equivalent computational models, we must also have a TM0 emulator
 in TM1. The main complication here is that TM0 allows an action to depend on the value at the head
@@ -1740,7 +1755,8 @@ end
 
 end TM0to1
 
-/-! ## The TM2 model
+/-!
+## The TM2 model
 
 The TM2 model removes the tape entirely from the TM1 model, replacing it with an arbitrary (finite)
 collection of stacks, each with elements of different types (the alphabet of stack `k : K` is
@@ -1804,7 +1820,7 @@ instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, defaul
 
 parameters {Γ Λ σ K}
 /-- The step function for the TM2 model. -/
-def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
+@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | (push k f q)     v S := step_aux q v (update S k (f v :: S k))
 | (peek k f q)     v S := step_aux q (f v (S k).head') S
 | (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
@@ -1815,7 +1831,7 @@ def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | halt             v S := ⟨none, v, S⟩
 
 /-- The step function for the TM2 model. -/
-def step (M : Λ → stmt) : cfg → option cfg
+@[simp] def step (M : Λ → stmt) : cfg → option cfg
 | ⟨none,   v, S⟩ := none
 | ⟨some l, v, S⟩ := some (step_aux (M l) v S)
 
@@ -1935,7 +1951,8 @@ end
 
 end TM2
 
-/-! ## TM2 emulator in TM1
+/-!
+## TM2 emulator in TM1
 
 To prove that TM2 computable functions are TM1 computable, we need to reduce each TM2 program to a
 TM1 program. So suppose a TM2 program is given. This program has to maintain a whole collection of
@@ -2208,7 +2225,7 @@ begin
   case TM2to1.st_act.pop : f {
     cases e : S k,
     { simp only [tape.mk'_head, list_blank.head_cons, tape.move_left_mk',
-        list.length, tape.write_mk', list.head', nat.iterate_zero, list.tail_nil],
+        list.length, tape.write_mk', list.head', nat.iterate_zero_apply, list.tail_nil],
       rw [← e, function.update_eq_self], exact ⟨L, hL, by rw [add_bottom_head_fst, cond]⟩ },
     { refine ⟨_, λ k', _, by rw [
         list.length_cons, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_succ_fst,

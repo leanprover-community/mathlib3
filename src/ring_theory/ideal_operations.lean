@@ -45,7 +45,7 @@ theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
 λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn
 
-theorem annihilator_supr (ι : Type w) (f : ι → submodule R M) :
+theorem annihilator_supr (ι : Sort w) (f : ι → submodule R M) :
   (annihilator ⨆ i, f i) = ⨅ i, annihilator (f i) :=
 le_antisymm (le_infi $ λ i, annihilator_mono $ le_supr _ _)
 (λ r H, mem_annihilator'.2 $ supr_le $ λ i,
@@ -61,8 +61,8 @@ mem_colon
 theorem colon_mono (hn : N₁ ≤ N₂) (hp : P₁ ≤ P₂) : N₁.colon P₂ ≤ N₂.colon P₁ :=
 λ r hrnp, mem_colon.2 $ λ p₁ hp₁, hn $ mem_colon.1 hrnp p₁ $ hp hp₁
 
-theorem infi_colon_supr (ι₁ : Type w) (f : ι₁ → submodule R M)
-  (ι₂ : Type x) (g : ι₂ → submodule R M) :
+theorem infi_colon_supr (ι₁ : Sort w) (f : ι₁ → submodule R M)
+  (ι₂ : Sort x) (g : ι₂ → submodule R M) :
   (⨅ i, f i).colon (⨆ j, g j) = ⨅ i j, (f i).colon (g j) :=
 le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _ _))
 (λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
@@ -251,6 +251,24 @@ mul_comm r s ▸ mul_mem_mul hr hs
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
+lemma mul_le_left : I * J ≤ J :=
+ideal.mul_le.2 (λ r hr s, ideal.mul_mem_left _)
+
+lemma mul_le_right : I * J ≤ I :=
+ideal.mul_le.2 (λ r hr s hs, ideal.mul_mem_right _ hr)
+
+@[simp] lemma sup_mul_right_self : I ⊔ (I * J) = I :=
+sup_eq_left.2 ideal.mul_le_right
+
+@[simp] lemma sup_mul_left_self : I ⊔ (J * I) = I :=
+sup_eq_left.2 ideal.mul_le_left
+
+@[simp] lemma mul_right_self_sup : (I * J) ⊔ I = I :=
+sup_eq_right.2 ideal.mul_le_right
+
+@[simp] lemma mul_left_self_sup : (J * I) ⊔ I = I :=
+sup_eq_right.2 ideal.mul_le_left
+
 variables (I J K)
 protected theorem mul_comm : I * J = J * I :=
 le_antisymm (mul_le.2 $ λ r hrI s hsJ, mul_mem_mul_rev hsJ hrI)
@@ -436,7 +454,7 @@ span_le.trans set.image_subset_iff
 @[simp] theorem mem_comap {x} : x ∈ comap f K ↔ f x ∈ K := iff.rfl
 
 theorem comap_mono (h : K ≤ L) : comap f K ≤ comap f L :=
-set.preimage_mono h
+set.preimage_mono (λ x hx, h hx)
 variables (f)
 
 theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
@@ -448,20 +466,9 @@ theorem is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
   by simp only [mem_comap, f.map_mul]; apply hK.2⟩
 
 variables (I J K L)
-theorem map_bot : map f ⊥ = ⊥ :=
-le_antisymm (map_le_iff_le_comap.2 bot_le) bot_le
 
 theorem map_top : map f ⊤ = ⊤ :=
 (eq_top_iff_one _).2 $ subset_span ⟨1, trivial, f.map_one⟩
-
-theorem comap_top : comap f ⊤ = ⊤ :=
-(eq_top_iff_one _).2 trivial
-
-theorem map_sup : map f (I ⊔ J) = map f I ⊔ map f J :=
-le_antisymm (map_le_iff_le_comap.2 $ sup_le
-  (map_le_iff_le_comap.1 le_sup_left)
-  (map_le_iff_le_comap.1 le_sup_right))
-(sup_le (map_mono le_sup_left) (map_mono le_sup_right))
 
 theorem map_mul : map f (I * J) = map f I * map f J :=
 le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
@@ -474,7 +481,70 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
   by rw [← f.map_mul];
   exact mem_map_of_mem (mul_mem_mul hri hsj))
 
+variable (f)
+lemma gc_map_comap : galois_connection (ideal.map f) (ideal.comap f) :=
+λ I J, ideal.map_le_iff_le_comap
+
+@[simp] lemma comap_id : I.comap (ring_hom.id R) = I :=
+ideal.ext $ λ _, iff.rfl
+
+@[simp] lemma map_id : I.map (ring_hom.id R) = I :=
+(gc_map_comap (ring_hom.id R)).l_unique galois_connection.id comap_id
+
+lemma comap_comap {T : Type*} [comm_ring T] {I : ideal T} (f : R →+* S)
+  (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
+
+lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
+  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
+((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
+  (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
+
+variables {f I J K L}
+
+lemma map_le_of_le_comap : I ≤ K.comap f → I.map f ≤ K :=
+(gc_map_comap f).l_le
+
+lemma le_comap_of_map_le : I.map f ≤ K → I ≤ K.comap f :=
+(gc_map_comap f).le_u
+
+lemma le_comap_map : I ≤ (I.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+lemma map_comap_le : (K.comap f).map f ≤ K :=
+(gc_map_comap f).l_u_le _
+
+@[simp] lemma comap_top : (⊤ : ideal S).comap f = ⊤ :=
+(gc_map_comap f).u_top
+
+@[simp] lemma map_bot : (⊥ : ideal R).map f = ⊥ :=
+(gc_map_comap f).l_bot
+
+variables (f I J K L)
+
+@[simp] lemma map_comap_map : ((I.map f).comap f).map f = I.map f :=
+congr_fun (gc_map_comap f).l_u_l_eq_l I
+
+@[simp] lemma comap_map_comap : ((K.comap f).map f).comap f = K.comap f :=
+congr_fun (gc_map_comap f).u_l_u_eq_u K
+
+lemma map_sup : (I ⊔ J).map f = I.map f ⊔ J.map f :=
+(gc_map_comap f).l_sup
+
 theorem comap_inf : comap f (K ⊓ L) = comap f K ⊓ comap f L := rfl
+
+variables {ι : Sort*}
+
+lemma map_supr (K : ι → ideal R) : (supr K).map f = ⨆ i, (K i).map f :=
+(gc_map_comap f).l_supr
+
+lemma comap_infi (K : ι → ideal S) : (infi K).comap f = ⨅ i, (K i).comap f :=
+(gc_map_comap f).u_infi
+
+lemma map_Sup (s : set (ideal R)): (Sup s).map f = ⨆ I ∈ s, (I : ideal R).map f :=
+(gc_map_comap f).l_Sup
+
+lemma comap_Inf (s : set (ideal S)): (Inf s).comap f = ⨅ I ∈ s, (I : ideal S).comap f :=
+(gc_map_comap f).u_Inf
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
@@ -489,15 +559,13 @@ eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
-map_le_iff_le_comap.2 $ (comap_inf f (map f I) (map f J)).symm ▸
-inf_le_inf (map_le_iff_le_comap.1 $ le_refl _) (map_le_iff_le_comap.1 $ le_refl _)
+(gc_map_comap f).monotone_l.map_inf_le _ _
 
 theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
 map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem hrni⟩
 
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
-map_le_iff_le_comap.1 $ (map_sup f (comap f K) (comap f L)).symm ▸
-sup_le_sup (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+(gc_map_comap f).monotone_u.le_map_sup _ _
 
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
@@ -507,11 +575,40 @@ section surjective
 variables (hf : function.surjective f)
 include hf
 
+open function
+
 theorem map_comap_of_surjective (I : ideal S) :
   map f (comap f I) = I :=
 le_antisymm (map_le_iff_le_comap.2 (le_refl _))
 (λ s hsi, let ⟨r, hfrs⟩ := hf s in
   hfrs ▸ (mem_map_of_mem $ show f r ∈ I, from hfrs.symm ▸ hsi))
+
+/-- `map` and `comap` are adjoint, and the composition `map f ∘ comap f` is the
+  identity -/
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+galois_insertion.monotone_intro
+  ((gc_map_comap f).monotone_u)
+  ((gc_map_comap f).monotone_l)
+  (λ _, le_comap_map)
+  (map_comap_of_surjective _ hf)
+
+lemma map_surjective_of_surjective : surjective (map f) :=
+(gi_map_comap f hf).l_surjective
+
+lemma comap_injective_of_surjective : injective (comap f) :=
+(gi_map_comap f hf).u_injective
+
+lemma map_sup_comap_of_surjective (I J : ideal S) : (I.comap f ⊔ J.comap f).map f = I ⊔ J :=
+(gi_map_comap f hf).l_sup_u _ _
+
+lemma map_supr_comap_of_surjective (K : ι → ideal S) : (⨆i, (K i).comap f).map f = supr K :=
+(gi_map_comap f hf).l_supr_u _
+
+lemma map_inf_comap_of_surjective (I J : ideal S) : (I.comap f ⊓ J.comap f).map f = I ⊓ J :=
+(gi_map_comap f hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (K : ι → ideal S) : (⨅i, (K i).comap f).map f = infi K :=
+(gi_map_comap f hf).l_infi_u _
 
 theorem mem_image_of_mem_map_of_surjective {I : ideal R} {y}
   (H : y ∈ map f I) : y ∈ f '' I :=
@@ -694,6 +791,15 @@ lemma ker_is_prime [integral_domain S] (f : R →+* S) :
 λ x y, by simpa only [mem_ker, f.map_mul] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 end ring_hom
+
+namespace ideal
+
+variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
+
+lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
+by rw [ring_hom.ker, eq_bot_iff, map_le_iff_le_comap]
+
+end ideal
 
 namespace submodule
 

@@ -25,7 +25,8 @@ monoid_hom.mk'
 
 @[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
 
-@[simp, to_additive] lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
+@[simp, to_additive]
+lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (M)
 @[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id (units M) :=
@@ -41,7 +42,8 @@ variable {M}
 
 /-- If a map `g : M → units N` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/
-@[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map is an add_monoid homomorphism too."]
+@[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map
+is an add_monoid homomorphism too."]
 def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
   M →* units N :=
 { to_fun := g,
@@ -81,3 +83,33 @@ def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* unit
   (f.to_hom_units g : M) = f g := rfl
 
 end monoid_hom
+
+section is_unit
+variables {M : Type*} {N : Type*}
+
+@[to_additive] lemma is_unit.map [monoid M] [monoid N]
+  (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
+by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
+
+/-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
+to `f : M →* units N`. See also `units.lift_right` for a computable version. -/
+@[to_additive "If a homomorphism `f : M →+ N` sends each element to an `is_add_unit`, then it can be
+lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]
+noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
+  (hf : ∀ x, is_unit (f x)) : M →* units N :=
+units.lift_right f (λ x, classical.some (hf x)) $ λ x, classical.some_spec (hf x)
+
+@[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
+  (hf : ∀ x, is_unit (f x)) (x) :
+  (is_unit.lift_right f hf x : N) = f x :=
+units.coe_lift_right _ x
+
+@[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
+  (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
+units.mul_lift_right_inv (λ y, classical.some_spec $ h y) x
+
+@[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
+  (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
+units.lift_right_inv_mul (λ y, classical.some_spec $ h y) x
+
+end is_unit

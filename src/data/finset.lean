@@ -980,6 +980,8 @@ range_succ
 
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
 
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := multiset.self_mem_range_succ n
+
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
 theorem range_mono : monotone range := λ _ _, range_subset.2
@@ -1243,7 +1245,8 @@ theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.
 eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_map]
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
-by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
+by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
+  multiset.map_subset_map h]
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
@@ -1257,10 +1260,13 @@ ext.2 $ λ b, by simp only [mem_filter, mem_image, exists_prop]; exact
 ⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, ⟨h1, h2⟩, rfl⟩,
  by rintro ⟨x, ⟨h1, h2⟩, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
 
-theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
-ext.2 $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right, exists_or_distrib]
+theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) :
+  (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
+ext.2 $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right,
+  exists_or_distrib]
 
-theorem image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀x y, f x = f y → x = y) : (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
+theorem image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀x y, f x = f y → x = y) :
+  (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
 ext.2 $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
 ⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
  λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
@@ -1696,8 +1702,9 @@ lemma injective_pi_cons  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
 assume e₁ e₂ eq,
 @multiset.injective_pi_cons α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
-  have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) = pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
-    by rw [eq],
+  have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) =
+    pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
+  { rw [eq] },
   this
 
 @[simp] lemma pi_empty {t : Πa:α, finset (δ a)} :
@@ -2782,10 +2789,38 @@ have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
   assume k, and_congr_right $ assume hk, by rw [← not_imp_not]; simp [hk],
 by ext k; by_cases n ≤ k; simp [h, this]
 
+lemma image_const_sub {k m n : ℕ} (hkn : k ≤ n) :
+  (Ico k m).image (λ j, n - j) = Ico (n + 1 - m) (n + 1 - k) :=
+begin
+  rw [nat.sub_add_comm hkn],
+  ext j,
+  simp only [mem, mem_image, exists_prop, nat.lt_iff_add_one_le, add_le_add_iff_right],
+  split,
+  { rintros ⟨j, ⟨hjk, hjm⟩, rfl⟩,
+    split,
+    { simp only [← nat.add_sub_add_right n 1 j, nat.sub_le_sub_left, hjm] },
+    { exact nat.sub_le_sub_left _ hjk } },
+  { rintros ⟨hm, hk⟩,
+    have hj : j ≤ n := le_trans hk (nat.sub_le_self _ _),
+    refine ⟨n - j, ⟨_, _⟩, _⟩,
+    { apply nat.le_sub_right_of_add_le,
+      rwa nat.le_sub_left_iff_add_le hkn at hk },
+    { rwa [← nat.sub_add_comm hj, nat.sub_le_iff] },
+    { exact nat.sub_sub_self hj } }
+end
+
 end Ico
 
 lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
 by { ext i, simp }
+
+lemma range_image_pred_top_sub (n : ℕ) :
+  (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
+begin
+  cases n,
+  { simp },
+  { simp [range_eq_Ico, Ico.image_const_sub] }
+end
 
 -- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
 

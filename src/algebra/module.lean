@@ -166,8 +166,7 @@ by simp [add_smul, sub_eq_add_neg]
 theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
   {c : R} {x : E} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
-⟨λ h, classical.by_cases or.inl
-  (λ hc, or.inr $ by rw [← one_smul R x, ← inv_mul_cancel hc, mul_smul, h, smul_zero]),
+⟨λ h, classical.or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
   λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
@@ -411,10 +410,10 @@ lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg
 @[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
 
-lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
+@[simp] lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
 
-lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
+@[simp] lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
 
 lemma sum_mem {t : finset ι} {f : ι → M} :

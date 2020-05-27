@@ -341,7 +341,7 @@ private lemma C_union (h₁ : C s₁) (h₂ : C s₂) : C (s₁ ∪ s₂) :=
     inter_diff_assoc _ _ s₁, set.inter_assoc _ _ s₁,
     inter_eq_self_of_subset_right (set.subset_union_left _ _),
     union_diff_left, h₂ (t ∩ s₁)],
-  simp [diff_eq]
+  simp [diff_eq, add_assoc]
 end
 
 private lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : C s₁) {t : set α} :
@@ -448,7 +448,7 @@ top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
 
 theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
   m₁.caratheodory ⊓ m₂.caratheodory ≤ (m₁ + m₂ : outer_measure α).caratheodory :=
-λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t, add_left_comm]
+λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t, add_left_comm, add_assoc]
 
 theorem le_sum_caratheodory {ι} (m : ι → outer_measure α) :
   (⨅ i, (m i).caratheodory) ≤ (sum m).caratheodory :=

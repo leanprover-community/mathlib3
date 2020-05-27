@@ -48,8 +48,8 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
     by rw [hk, int.nat_abs_of_nonneg hk0, mul_comm],
   lt_of_mul_lt_mul_left
     (calc p * k.nat_abs = a.val_min_abs.nat_abs ^ 2 + b.val_min_abs.nat_abs ^ 2 + 1 :
-        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, nat.pow_two, nat.pow_two,
-          int.nat_abs_mul_self, int.nat_abs_mul_self, ← _root_.pow_two, ← _root_.pow_two,
+        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, int.coe_nat_pow,
+          int.coe_nat_pow, int.nat_abs_pow_two, int.nat_abs_pow_two,
           int.coe_nat_one, hk, int.coe_nat_mul, int.nat_abs_of_nonneg hk0]
       ... ≤ (p / 2) ^ 2 + (p / 2)^2 + 1 :
         add_le_add
@@ -95,7 +95,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
     { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
+    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
 
 private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :
@@ -137,7 +137,7 @@ m.mod_two_eq_zero_or_one.elim
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
-        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul]
+        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul, add_assoc]
         ... < 4 * (m / 2 : ℕ) ^ 2 + ((4 * (m / 2) : ℕ) * (m % 2 : ℕ) + (m % 2 : ℕ)^2) :
           (lt_add_iff_pos_right _).2 (by rw [hm2, int.coe_nat_one, _root_.one_pow, mul_one];
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one)
@@ -154,8 +154,8 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-          by simpa [add_eq_zero_iff_eq_zero_of_nonneg (pow_two_nonneg _) (pow_two_nonneg _),
-            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _)] using hwxyz0,
+          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _) (pow_two_nonneg _),
+            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
@@ -185,7 +185,7 @@ m.mod_two_eq_zero_or_one.elim
             (int.coe_nat_ne_zero_iff_pos.2 hm0))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
-            by simp; ring
+            by simp [_root_.mul_pow]; ring
           ... = (w^2 + x^2 + y^2 + z^2) * (a^2 + b^2 + c^2 + d^2) :
             by simp only [hs.symm, ht.symm, hu.symm, hv.symm]; ring
           ... = _ : by rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg]; dsimp [m]; ring,
@@ -206,8 +206,8 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
  (a * w + b * x + c * y + d * z).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp [nat.pow_two, int.coe_nat_add, int.nat_abs_mul_self'],
-    ring,
+    simp,
+    ring
   end⟩
 
 end nat

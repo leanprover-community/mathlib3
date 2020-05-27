@@ -80,10 +80,15 @@ begin
   }
 end
 
+-- A simple induction with complex arguments.
+-- TODO IH simplification
 example {k} (h : lt (k + 1) k) : false :=
 begin
   induction' h,
-  { apply ih }
+  { specialize ih heq.rfl,
+    -- Desired state here.
+    exact ih
+  }
 end
 
 -- This example tests type-based naming.
@@ -158,25 +163,22 @@ def subst (ρ : string → exp) : exp → exp
 | (Plus e₁ e₂) := Plus (subst e₁) (subst e₂)
 
 
--- TODO case tags, type-based naming
+-- TODO type-based naming
 lemma subst_Var (e : exp) :
   subst (λx, Var x) e = e :=
 begin
   induction' e,
-  -- case Var
-  {
+  case Var {
     rename x s,
     /- Desired state here. -/
     rw [subst]
   },
-  -- case Num {
-  {
+  case Num {
     rename x z,
     /- Desired state here. -/
     rw [subst]
   },
-  -- case Plus {
-  {
+  case Plus {
     rw [subst],
     rw ih_e,
     rw ih_e_1
@@ -198,17 +200,14 @@ inductive lte : nat → nat → Type
 | zero (n : nat) : lte 0 n
 | succ {n m : nat} : lte n m → lte (1 + n) (1 + m)
 
--- TODO case tags
 lemma lt_lte {n m} : lt n m → lte n m :=
   begin
     intro lt_n_m,
     induction' lt_n_m,
-    {
-    -- case less_than.lt.zero_succ : k {
+    case less_than.lt.zero_succ : i {
       constructor
     },
-    -- case less_than.lt.succ_succ : k l lt_k_l ih {
-    {
+    case less_than.lt.succ_succ : i j lt_i_j ih {
       constructor,
       apply ih
     }
@@ -230,21 +229,17 @@ inductive palindrome {α : Type} : list α → Prop
 axiom reverse_append_sandwich {α : Type} (x : α) (ys : list α) :
   list.reverse ([x] ++ ys ++ [x]) = [x] ++ list.reverse ys ++ [x]
 
--- TODO case tags
 lemma rev_palindrome {α : Type} (xs : list α) (hpal : palindrome xs) :
   palindrome (list.reverse xs) :=
 begin
   induction' hpal,
-  -- case palindrome.nil {
-  {
+  case nil {
     exact palindrome.nil
   },
-  -- case palindrome.single {
-  {
+  case single {
     exact palindrome.single _
   },
-  -- case palindrome.sandwich {
-  {
+  case sandwich {
     rw reverse_append_sandwich,
     apply palindrome.sandwich,
     apply ih
@@ -266,65 +261,48 @@ inductive tc {α : Type} (r : α → α → Prop) : α → α → Prop
 of. We start with a lemma where the variable names do not collide with those
 appearing in the definition of the inductive predicate. -/
 
--- TODO case tags
 lemma tc_pets₁ {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b, tc r a b → r b c → tc r a c :=
 begin
   intros a b htab hrbc,
   induction' htab fixing c,
-  -- case tc.base {   -- should be `case base`
-  {
-    rename hr hrab,
-    exact tc.step _ _ _ hrab (tc.base _ _ hrbc) },
-  -- case tc.step {   -- should be `case step`
-  {
-    rename y x,
-    rename hr hrax,
-    exact tc.step _ _ _ hrax (ih hrbc) }
+  case base : _ _ hrab {
+    exact tc.step _ _ _ hrab (tc.base _ _ hrbc)
+  },
+  case step : _ x _ hrax {
+    exact tc.step _ _ _ hrax (ih hrbc)
+  }
 end
 
 /- The same proof, but this time the variable names clash. Also, this time we
 let `xinduction` generalize `z`. -/
 
--- TODO case tags
 lemma tc_pets₂ {α : Type} (r : α → α → Prop) (z : α) :
   ∀x y, tc r x y → r y z → tc r x z :=
 begin
   intros x y htxy hryz,
   induction' htxy,
-  /- Desired syntax above: `induction htxy`. -/
-  -- case tc.base {   -- should be `case base`
-  {
-    /- Desired state here. Writing `case tc.base : hrxy` above would rename `hr`
-    to `hrxy`. -/
-    rename hr hrxy,
-    /- Like this. -/
+  case base : _ _ hrxy {
     exact tc.step _ _ _ hrxy (tc.base _ _ hryz)
   },
-  {   -- should be `case step`
-    /- Desired state here. Writing `case tc.step : x' hrxx' htx'y ih` would also
-    rename `y`, `hr`, `ht`, and `ih` to `x'`, `hrxx'`, `htx'y`, and `ih`,
-    respectively. -/
-    rename [y x', y_1 y],
-    rename hr hrxx',
-    rename htxy htx'y,
-    /- Like this. -/
+  case step : _ x' y hrxx' htx'y ih {
     exact tc.step _ _ _ hrxx' (ih _ hryz)
   }
 end
 
 /- Another proof along the same lines. -/
 
--- TODO case tags
 lemma tc_trans {α : Type} (r : α → α → Prop) (c : α) :
   ∀a b : α, tc r a b → tc r b c → tc r a c :=
 begin
   intros a b htab htbc,
   induction' htab,
-  -- case tc.base {
-  { exact tc.step _ _ _ hr htbc },
-  -- case tc.step {
-  { exact tc.step _ _ _ hr (ih _ htbc) }
+  case base {
+    exact tc.step _ _ _ hr htbc
+  },
+  case step {
+    exact tc.step _ _ _ hr (ih _ htbc)
+  }
 end
 
 end transitive_closure
@@ -336,22 +314,22 @@ inductive even : ℕ → Prop
 | zero    : even 0
 | add_two : ∀k : ℕ, even k → even (k + 2)
 
--- TODO case tags, complex indices
+set_option trace.check true
+
 lemma not_even_2_mul_add_1 (n : ℕ) :
   ¬ even (2 * n + 1) :=
 begin
-  generalize heq : 2 * n + 1 = x,
   intro h,
-  revert n,
-  induction' h; intros,
-  /- Desired syntax for the above: `intro h, induction h`. -/
-  -- case even.zero {
-  { cases heq },
-  -- case even.add_two : k hk ih {
-  { apply ih (n - 1),
+  induction' h,
+  -- TODO no case tag since there's only one goal. I don't really like this, but
+  -- this is the behaviour of induction/cases.
+  {
+    apply ih (n - 1),
     cases n,
-    case nat.zero { linarith },
-    case nat.succ : m {
+    case zero {
+      linarith
+    },
+    case succ {
       simp [nat.succ_eq_add_one] at *,
       linarith
     }
@@ -407,51 +385,20 @@ inductive big_step : stmt × state → state → Prop
 
 infix ` ⟹ `:110 := big_step
 
--- TODO case tags, complex indices
+-- TODO IH simplification
 lemma not_big_step_while_true {S s t} :
   ¬ (while (λ_, true) S, s) ⟹ t :=
 begin
-  generalize heq : (while (λ_, true) S, s) = ws,
   intro hw,
-  induction hw generalizing S s,
-  /- Desired syntax for all of the above: `induction hw`. -/
-  all_goals {
-    cases heq;
-    clear heq
+  induction' hw,
+  case while_true {
+    specialize ih_hw_1 heq.rfl,
+    -- Desired state here
+    exact ih_hw_1
   },
-  { /- case while_true -/
-    clear ws t,
-    rename hw_S S,
-    rename hw_s s,
-    rename hw_t ta,
-    rename hw_u t,
-    rename hw_hcond hcond,
-    have ih_hbody : ∀{Sa : stmt}, while (λ_x : state, true) Sa = S → false :=
-      begin
-        intros,
-        apply hw_ih_hbody,
-        rw a
-      end,
-    clear hw_ih_hbody,
-    rename hw_hbody hbody,
-    rename hw_hrest hrest,
-    have ih_hrest : false :=
-      begin
-        apply hw_ih_hrest,
-        refl
-      end,
-    clear hw_ih_hrest,
-    /- Desired state here. -/
-    exact ih_hrest
-  },
-  { /- case while_false -/
-    clear ws t hw_S,
-    rename hw_s s,
-      -- `rename hw_s t` would also be OK, but let us proceed from left to right
-    rename hw_hcond hcond,
-    /- Desired state here. -/
+  case while_false {
     apply hcond,
-    apply true.intro
+    trivial
   }
 end
 
@@ -492,13 +439,19 @@ inductive curried_big_step : stmt → state → state → Prop
 | while_false {b : state → Prop} {S s} (hcond : ¬ b s) :
   curried_big_step (while b S) s s
 
--- TODO case tags
+-- TODO IH simplification
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
   intro hw, induction' hw,
-  { apply ih_hw_1 },
-  { apply hcond, trivial }
+  case while_true {
+    specialize ih_hw_1 heq.rfl,
+    -- Desired state here.
+    exact ih_hw_1,
+  },
+  case while_false {
+    exact hcond trivial
+  }
 end
 
 end semantics
@@ -528,17 +481,57 @@ inductive small_step : stmt × state → stmt × state → Prop
 are left alone. `cases` does the right thing but gives no induction
 hypothesis. -/
 
+-- TODO tuple equation simplification
 lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
 begin
-  induction' hstep,
-  repeat { sorry }
+  -- revert hstep,
+  -- generalize eq₁ : (S, s) = index₁,
+  -- generalize eq₂ : (T, t) = index₂,
+  -- intro hstep,
+  -- revert S T s t s' t' hs ht,
+  -- induction hstep; clear index₁ index₂; intros S T s t s' t' hs ht eq₁ eq₂,
+  -- case seq_step : S_ S'_ T_ s t hS {
+  --   clear index₁ index₂,
+  --   injection eq₁,
+  --   clear eq₁,
+  --   subst h_1,
+  --   subst h_2,
+  --   injection eq₂,
+  --   clear eq₂,
+  --   subst h_1,
+  --   subst h_2,
+  -- },
+
+  -- induction' hstep,
+  -- { rw [hs, ht],
+  --   exact small_step.assign,
+  -- },
+  -- {
+  --   -- TODO is this the correct IH?
+  --   -- TODO naming
+  --   -- TODO the index equations in the IH could be simplified further
+  --   rw [hs, ht],
+  --   exact small_step.seq_step hstep
+  -- },
+  -- { rw [hs, ht]
+  -- , exact small_step.seq_skip,
+  -- },
+  -- { rw [hs, ht],
+  --   exact small_step.ite_true hcond,
+  -- },
+  -- { rw [hs, ht],
+  --   exact small_step.ite_false hcond,
+  -- },
+  -- { rw [hs, ht],
+  --   exact small_step.while,
+  -- }
+  sorry
 end
 
 /- `cases` is better behaved. -/
 
--- TODO case tags, complex indices
 lemma small_step_if_equal_states₂ {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import control.basic data.sum data.list.defs tactic.basic
+import control.basic data.sum data.list.defs data.vector tactic.basic
 import tactic.type_based_naming
 
 /--
@@ -368,32 +368,6 @@ occs.foldl_with_index
   (λ i occ_map occs, occs.fold occ_map (λ var occ_map, occ_map.insert var i))
   (mk_rb_multimap ℕ ℕ)
 
-meta def eta_expand_leading_implicit_arguments (e : expr) (t : expr) : expr × ℕ :=
-let ⟨args, _⟩ := decompose_pi t in
-let implicit_args := args.take_while (λ x, x.2.1.is_implicit) in
-let num_implicit_args := implicit_args.length in
-let implicit_arg_types := implicit_args.map (λ ⟨name, _, type, _⟩, (name, type)) in
-let applications :=
-  implicit_arg_types.foldr_with_index (λ i _ res, app res (var i)) e in
-let result :=
-  implicit_arg_types.foldr (λ ⟨name, type⟩ res, lam name binder_info.implicit type res)
-    (applications.lift_vars 0 num_implicit_args) in
-(result, num_implicit_args)
-
--- TODO debug
-example (x : Π {n m : ℕ} (k : unit), ℕ) : unit :=
-begin
-  let h : ℕ := @x 0 1 (),
-  (do x ← tactic.get_local `x,
-      t ← tactic.infer_type x,
-      let ⟨args, _⟩ := decompose_pi t,
-      let implicit_args := args.take_while (λ x, x.2.1.is_implicit),
-      tactic.trace $ implicit_args.map (λ ⟨n, _, t, _⟩, (n, t)),
-      tactic.trace $ (eta_expand_leading_implicit_arguments x t)
-  ),
-  exact ()
-end
-
 end expr
 
 
@@ -467,7 +441,7 @@ end name
 
 namespace tactic
 
-open expr native
+open expr native tactic.interactive
 
 meta def open_binder_aux (n : name) (bi : binder_info) (t e : expr)
   : tactic (expr × name × expr) := do
@@ -879,8 +853,6 @@ open simplification_result
 meta def simplify_heterogeneous_index_equation (equ lhs_type rhs_type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  -- TODO debug
-  trace "trying simplify_het_index_equation",
   is_def_eq lhs_type rhs_type,
   p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
   t ← to_expr ``(@eq %%lhs_type %%lhs %%rhs),
@@ -892,8 +864,6 @@ pure not_simplified
 meta def simplify_defeq_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  -- TODO debug
-  trace "trying simplify_defeq_equation",
   is_def_eq lhs rhs,
   clear equ,
   pure $ simplified []
@@ -903,8 +873,6 @@ pure not_simplified
 meta def simplify_var_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  -- TODO debug
-  trace "trying simplify_var_equation",
   guard $ lhs.is_local ∨ rhs.is_local,
   subst equ,
   pure $ simplified []
@@ -927,12 +895,10 @@ meta def decompose_and : expr → tactic (list expr) := λ h, do
   | _ := pure [h]
   end
 
--- TODO This doesn't handle the case "n = n + 1". Does that ever come up?
+-- TODO This doesn't handle the case "n = nat.succ n". Conor calls this a cycle.
 meta def simplify_constructor_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  -- TODO debug
-  trace "trying simplify_constructor_equation",
   (const f _, lhs_args) ← decompose_app_normalizing lhs,
   (const g _, rhs_args) ← decompose_app_normalizing rhs,
   env ← get_env,
@@ -941,8 +907,6 @@ do {
   if f ≠ g
     then do
       cases equ,
-      -- TODO debug
-      trace "solved!",
       pure goal_solved
     else do
       inj ← resolve_name (f ++ "inj"),
@@ -979,19 +943,9 @@ meta def simplify_index_equation_once (equ : expr) : tactic simplification_resul
   | _ := fail! "Expected {equ} to be an equation, but its type is\n{t}."
   end
 
--- TODO unused, remove
-meta def iterate'' {α} : α → (α → tactic α) → tactic α := λ a t, do
-  (some a) ← try_core (t a) | pure a,
-  iterate'' a t
-
 meta def simplify_index_equations : list expr → tactic bool
 | [] := pure ff
 | (h :: hs) := do
-  -- TODO debug
-  t ← infer_type h,
-  trace! "simplifying {h} : {t}",
-  trace_state,
-
   res ← simplify_index_equation_once h,
   match res with
   | simplified hs' := simplify_index_equations $ hs' ++ hs
@@ -999,67 +953,161 @@ meta def simplify_index_equations : list expr → tactic bool
   | goal_solved := pure tt
   end
 
--- TODO remove
-meta inductive ih_arg
-| refl (u : level) (type value : expr)
-| eq_to_heq (u : level) (type lhs rhs : expr) (binder_ref : ℕ)
-| heq (binder_ref : ℕ)
 
-meta def simplify_ih₁ : list expr → tactic (ℕ × list expr × list ih_arg)
-| [] := pure (0, [], [])
-| (b@(app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) :: binders) := do
-  -- can't use pretty expression pattern matching because it doesn't allow us to bind u
-  ⟨num_binders, binders, args⟩ ← simplify_ih₁ binders,
-  types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
-  if ¬ types_eq
-    then
-      pure ( num_binders + 1
-           , b :: binders
-           , ih_arg.heq num_binders :: args )
-    else do
-      rhs_eq_lhs ← succeeds $ is_def_eq lhs rhs,
-      if ¬ rhs_eq_lhs
-        then
-          pure ( num_binders + 1
-                , app (app (app (const `eq [u]) lhs_type) lhs) rhs :: binders
-                , ih_arg.eq_to_heq u lhs_type lhs rhs num_binders :: args )
-        else
-          pure ( num_binders
-                , binders
-                , ih_arg.refl u lhs_type lhs :: args
-                )
-| (b :: _) :=
-  fail! "simplify_ih₁: expected a heterogeneous equation, but got:\n{b}"
+meta inductive binder_app
+| binder (n : name) (type : expr) (f : option expr)
+| no_binder (c : expr)
 
-meta def render_ih_arg (num_binders : ℕ) : ih_arg → expr
-| (ih_arg.refl u type value) :=
-  app (app (const `heq.refl [u]) type) value
-| (ih_arg.eq_to_heq u type lhs rhs binder_ref) :=
-  app (app (app (app (const `heq_of_eq [u]) type) lhs) rhs) (var binder_ref)
-| (ih_arg.heq binder_ref) :=
-  expr.var $ binder_ref
+namespace binder_app
 
-meta def simplify_ih₂ (ih : expr) (remaining_type : expr) (num_binders : ℕ)
-  (binder_types : list expr) (args : list ih_arg) : expr :=
-let ih_app :=
-  args.foldl (λ res arg, ``(%%res %%(render_ih_arg num_binders arg)))
-    (pexpr.mk_explicit $ to_pexpr ih) in
-let ⟨ih_app_expanded, num_implicit_args⟩ :=
-  (unsafe_cast ih_app).eta_expand_leading_implicit_arguments remaining_type in
-binder_types.foldr (λ t res, (lam `_a binder_info.default t res))
-  (unsafe_cast ih_app_expanded)
+section
 
-meta def simplify_ih (num_index_vars : ℕ) (ih : expr) : tactic expr := do
+open format
+
+meta def to_format : binder_app → format
+| (binder n type f) := join
+  [ "(binder "
+  , group $ nest 12 $ join $ list.intersperse line $
+      [to_fmt n, to_fmt type, to_fmt f]
+  , ")"
+  ]
+| (no_binder c) := join
+  [ "(no_binder "
+  , format.nest 10 (to_fmt c)
+  , ")"
+  ]
+
+end
+
+meta instance : has_to_format binder_app :=
+⟨binder_app.to_format⟩
+
+meta def is_binder : binder_app → bool
+| (binder _ _ _) := tt
+| (no_binder _) := ff
+
+end binder_app
+
+
+@[reducible] meta def binder_apps := list binder_app
+
+namespace binder_apps
+
+meta def render_applications
+  : ℕ → expr → binder_apps → expr
+| _ acc [] := acc
+| num_binders acc (binder_app.binder _ _ f :: bs) :=
+  let arg_var : expr := var (num_binders - 1) in
+  let arg :=
+    match f with
+    | none := arg_var
+    | some f := app f arg_var
+    end in
+  render_applications (num_binders - 1) (app acc arg) bs
+| num_binders acc (binder_app.no_binder c :: bs) :=
+  render_applications num_binders (app acc c) bs
+
+meta def render_binders (e : expr) : binder_apps → expr
+| [] := e
+| (binder_app.binder n type _ :: bs) :=
+  lam n binder_info.default type $ render_binders bs
+| (binder_app.no_binder _ :: bs) :=
+  render_binders bs
+
+-- TODO When we render a no_binder, we need to lower the variables of subsequent
+-- expressions by 1.
+meta def render (e : expr) (bs : binder_apps) : expr :=
+let num_binders := bs.countp (λ b, b.is_binder) in
+let apps := render_applications num_binders e bs in
+render_binders apps bs
+
+end binder_apps
+
+
+meta def ih_generalized_binder_apps (arg_types : list (name × expr)) : binder_apps :=
+arg_types.map (λ ⟨n, t⟩, binder_app.binder n t none)
+
+meta def ih_index_eqs_binder_apps (arg_types : list (name × expr)) : tactic binder_apps :=
+arg_types.mmap $ λ ⟨n, t⟩,
+  match t with
+  | (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) := do
+    types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
+    if ¬ types_eq
+      then
+        pure $ binder_app.binder n t none
+      else do
+        rhs_eq_lhs ← succeeds $ is_def_eq lhs rhs,
+        if ¬ rhs_eq_lhs
+          then
+            pure $
+              binder_app.binder n
+                (app (app (app (const `eq [u]) lhs_type) lhs) rhs)
+                (app (app (app (const `heq_of_eq [u]) lhs_type) lhs) rhs)
+          else
+            pure $
+              binder_app.no_binder $ app (app (const `heq.refl [u]) lhs_type) lhs
+  | _ := fail!
+    "ih_index_eqs_binder_apps: expected a heterogeneous equation, but got\n{t}"
+  end
+
+meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)
+  : tactic expr := do
   ih_type ← infer_type ih,
   let ⟨args, _, ret⟩ := decompose_pi ih_type,
-  let index_eq_args := (args.take num_index_vars).map (λ ⟨_, _, type, _⟩, type),
-  let remaining_type :=
-    recompose_pi ((args.drop num_index_vars).map (λ ⟨n, bi, t, _⟩, (n, bi, t))) ret,
-  ⟨num_binders, new_binders, new_args⟩ ← simplify_ih₁ index_eq_args,
-  let new_ih := simplify_ih₂ ih remaining_type num_binders new_binders new_args,
+  let args := args.map (λ ⟨n, _, type, _⟩, (n, type)),
+  let generalized_args := args.take num_generalized,
+  let args := args.drop num_generalized,
+  let index_eq_args := args.take num_index_vars,
+  let bs₁ := ih_generalized_binder_apps generalized_args,
+  bs₂ ← ih_index_eqs_binder_apps index_eq_args,
+  let bs := bs₁ ++ bs₂,
+  let new_ih := bs.render ih,
+  -- TODO sanity check
+  trace! "new_ih: {new_ih.to_raw_fmt}",
+  new_ih_t ← infer_type new_ih,
+  trace! "new_ih_t: {new_ih_t}",
+  type_check new_ih,
   replace' ih new_ih
 
-meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := focus1 $ do
+/--
+Returns the unique names of all hypotheses (local constants) in the context.
+-/
+-- TODO copied from init.meta.interactive
+private meta def hyp_unique_names : tactic name_set :=
+do ctx ← local_context,
+   pure $ ctx.foldl (λ r h, r.insert h.local_uniq_name) mk_name_set
+
+/--
+Returns all hypotheses (local constants) from the context except those whose
+unique names are in `hyp_uids`.
+-/
+-- TODO copied from init.meta.interactive
+private meta def hyps_except (hyp_uids : name_set) : tactic (list expr) :=
+do ctx ← local_context,
+   pure $ ctx.filter (λ (h : expr), ¬ hyp_uids.contains h.local_uniq_name)
+
+/--
+  Updates the tags of new subgoals produced by `cases` or `induction`. `in_tag`
+  is the initial tag, i.e. the tag of the goal on which `cases`/`induction` was
+  applied. `rs` should contain, for each subgoal, the constructor name
+  associated with that goal and the hypotheses that were introduced.
+-/
+-- TODO copied from init.meta.interactive
+private meta def set_cases_tags (in_tag : tag) (rs : list (name × list expr)) : tactic unit :=
+do gs ← get_goals,
+   match gs with
+    -- if only one goal was produced, we should not make the tag longer
+   | [g] := set_tag g in_tag
+   | _   :=
+     let tgs : list (name × list expr × expr) :=
+       rs.map₂ (λ ⟨n, new_hyps⟩ g, ⟨n, new_hyps, g⟩) gs in
+     tgs.mmap' $ λ ⟨n, new_hyps, g⟩, with_enable_tags $
+        set_tag g $
+          (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
+   end
+
+meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
+focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
@@ -1083,6 +1131,11 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
   -- seems to be no way to find out whether an inductive type is mutual/nested.
   -- (`environment.is_ginductive` doesn't seem to work.)
 
+  -- Generalise complex indices
+  ⟨eliminee, index_vars, _⟩ ←
+    generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
+  let num_index_vars := index_vars.length,
+
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
   fix_exprs ← fix.mmap get_local,
@@ -1090,10 +1143,11 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
     revert_all_except_locals (eliminee :: fix_exprs),
   let generalized_names := name_set.of_list generalized_names,
 
-  -- Generalise complex indices
-  ⟨eliminee, index_vars, _⟩ ←
-    generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
-  let num_index_vars := index_vars.length,
+  -- Record the current case tag and the unique names of all hypotheses in the
+  -- context. These will be used later to identify the new hypotheses we
+  -- introduced.
+  in_tag ← get_main_tag,
+  old_hyps ← hyp_unique_names,
 
   -- NOTE: The previous step may have changed the unique names of all hyps in
   -- the context.
@@ -1102,45 +1156,53 @@ meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit := f
   interactive.apply ``(%%rec_const %%eliminee),
 
   -- For each case (constructor):
-  focus $ iinfo.constructors.map $ λ cinfo, do {
-    -- Get the eliminee's arguments. (Some of these may have changed due to the
-    -- generalising step above.)
-    -- TODO propagate this information instead of re-parsing the type here
-    eliminee_type ← infer_type eliminee,
-    ⟨_, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
+  cases : list (option (name × list expr)) ←
+    focus $ iinfo.constructors.map $ λ cinfo, do {
+      -- Get the eliminee's arguments. (Some of these may have changed due to
+      -- the generalising step above.)
+      -- TODO propagate this information instead of re-parsing the type here
+      eliminee_type ← infer_type eliminee,
+      ⟨_, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
 
-    -- Clear the eliminated hypothesis
-    clear eliminee,
+      -- Clear the eliminated hypothesis
+      clear eliminee,
 
-    -- Clear the index args (unless other stuff in the goal depends on them)
-    eliminee_args.mmap' (try ∘ clear),
+      -- Clear the index args (unless other stuff in the goal depends on them)
+      eliminee_args.mmap' (try ∘ clear),
 
-    -- TODO is this the right thing to do? I don't think this necessarily
-    -- preserves provability: The args we clear could contain interesting
-    -- information, even if nothing else depends on them. Is there a way to avoid
-    -- this, i.e. clean up even more conservatively?
+      -- TODO is this the right thing to do? I don't think this necessarily
+      -- preserves provability: The args we clear could contain interesting
+      -- information, even if nothing else depends on them. Is there a way to
+      -- avoid this, i.e. clean up even more conservatively?
 
-    -- Introduce the constructor arguments
-    ihs ← constructor_intros einfo iinfo cinfo generalized_names,
+      -- Introduce the constructor arguments
+      ihs ← constructor_intros einfo iinfo cinfo generalized_names,
 
-    -- Introduce the index equations
-    index_equations ← intron' num_index_vars,
+      -- Introduce any hypotheses we've previously generalised
+      generalized_hyps ← intron' num_generalized,
 
-    -- Simplify the index equations. Stop after this step if the goal has been
-    -- solved by the simplification.
-    ff ← simplify_index_equations index_equations | pure (),
+      -- Introduce the index equations
+      index_equations ← intron' num_index_vars,
 
-    -- The previous step may have changed the unique names of the induction
-    -- hypotheses, so we have to locate them again. Their pretty names should be
-    -- unique in the context, so we can use those.
-    ihs ← ihs.mmap (λ h, get_local h.local_pp_name),
+      -- Simplify the index equations. Stop after this step if the goal has been
+      -- solved by the simplification.
+      ff ← simplify_index_equations index_equations | pure none,
 
-    -- Simplify the induction hypotheses
-    ihs.mmap' (simplify_ih num_index_vars),
+      -- The previous step may have changed the unique names of all relevant
+      -- hypotheses, so we have to locate them again. Their pretty names should
+      -- be unique in the context, so we can use these.
+      -- TODO verify this
+      ihs ← ihs.mmap (λ h, get_local h.local_pp_name),
 
-    -- Introduce any hypotheses we've previously generalised
-    intron num_generalized
-  },
+      -- Simplify the induction hypotheses
+      -- ihs.mmap' (simplify_ih num_generalized num_index_vars),
+
+      -- Return the constructor name and the new hypotheses
+      new_hyps ← hyps_except old_hyps,
+      pure $ some (cinfo.cname, new_hyps)
+    },
+
+  set_cases_tags in_tag (cases.filter_map id),
 
   pure ()
 

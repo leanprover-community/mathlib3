@@ -1759,7 +1759,7 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 open linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
-def smul_of_unit [semimodule R M] (a : units R) : M ≃ₗ[R] M :=
+def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
 of_linear ((a:R) • 1 : M →ₗ M) (((a⁻¹ : units R) : R) • 1 : M →ₗ M)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)

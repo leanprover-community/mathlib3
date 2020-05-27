@@ -75,7 +75,8 @@ instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f 
 
 variables (I f)
 
-instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+instance semimodule (α) {r : semiring α} [m : ∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i] :
+  @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }

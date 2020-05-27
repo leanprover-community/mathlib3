@@ -49,10 +49,10 @@ funext $ map_map f' g' f g
 @[simp] lemma map_id_id (α β) : sum.map (@id α) (@id β) = id :=
 funext $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
 
-@[simp] theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
+theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
-@[simp] theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
+theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
 ⟨inr.inj, congr_arg _⟩
 
 theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.

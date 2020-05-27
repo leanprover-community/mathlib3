@@ -26,6 +26,7 @@ universe u
 namespace lagrange
 
 variables {F : Type u} [decidable_eq F] [field F] (s : finset F)
+variables {F' : Type u} [field F'] (s' : finset F')
 
 open polynomial
 
@@ -103,6 +104,7 @@ calc  (C (f b) * basis s b).degree
 ... = (s.card - 1 : ℕ) : by { rw nat_degree_basis s b b.2 }
 ... < s.card : with_bot.coe_lt_coe.2 (nat.pred_lt $ mt finset.card_eq_zero.1 H)
 
+/-- Linear version of `interpolate`. -/
 def linterpolate : ((↑s : set F) → F) →ₗ[F] polynomial F :=
 { to_fun := interpolate s,
   add := λ f g, by { simp_rw [interpolate, ← finset.sum_add_distrib, ← add_mul, ← C_add], refl },
@@ -123,17 +125,17 @@ def linterpolate : ((↑s : set F) → F) →ₗ[F] polynomial F :=
 @[simp] lemma interpolate_smul (c : F) (f) : interpolate s (c • f) = c • interpolate s f :=
 (linterpolate s).map_smul c f
 
-theorem eq_zero_of_eval_eq_zero {f : polynomial F} (hf1 : f.degree < s.card)
-  (hf2 : ∀ x ∈ s, f.eval x = 0) : f = 0 :=
+theorem eq_zero_of_eval_eq_zero {f : polynomial F'} (hf1 : f.degree < s'.card)
+  (hf2 : ∀ x ∈ s', f.eval x = 0) : f = 0 :=
 by_contradiction $ λ hf3, not_le_of_lt hf1 $
-calc  (s.card : with_bot ℕ)
+calc  (s'.card : with_bot ℕ)
     ≤ f.roots.card : with_bot.coe_le_coe.2 $ finset.card_le_of_subset $ λ x hx,
         (mem_roots hf3).2 $ hf2 x hx
 ... ≤ f.degree : card_roots hf3
 
-theorem eq_of_eval_eq {f g : polynomial F} (hf : f.degree < s.card) (hg : g.degree < s.card)
-  (hfg : ∀ x ∈ s, f.eval x = g.eval x) : f = g :=
-eq_of_sub_eq_zero $ eq_zero_of_eval_eq_zero s
+theorem eq_of_eval_eq {f g : polynomial F'} (hf : f.degree < s'.card) (hg : g.degree < s'.card)
+  (hfg : ∀ x ∈ s', f.eval x = g.eval x) : f = g :=
+eq_of_sub_eq_zero $ eq_zero_of_eval_eq_zero s'
   (lt_of_le_of_lt (degree_sub_le f g) $ max_lt hf hg)
   (λ x hx, by rw [eval_sub, hfg x hx, sub_self])
 

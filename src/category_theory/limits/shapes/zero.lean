@@ -141,6 +141,20 @@ namespace has_zero_object
 
 variables [has_zero_object.{v} C]
 
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+by [rw (has_zero_object.unique_from.{v} X).uniq f, rw (has_zero_object.unique_from.{v} X).uniq g]
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+by [rw (has_zero_object.unique_to.{v} X).uniq f, rw (has_zero_object.unique_to.{v} X).uniq g]
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
+
 /--
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
@@ -169,40 +183,12 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
-@[ext]
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
-begin
-  rw (has_zero_object.unique_from.{v} X).uniq f,
-  rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
-end
+by ext
 
 /-- An arrow starting at the zero object is zero -/
-@[ext]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
-begin
-  rw (has_zero_object.unique_to.{v} X).uniq f,
-  rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
-end
-
-@[ext]
-lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
-begin
-  rw (has_zero_object.unique_from.{v} X).uniq f,
-  rw (has_zero_object.unique_from.{v} X).uniq g,
-end
-
-@[ext]
-lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
-begin
-  rw (has_zero_object.unique_to.{v} X).uniq f,
-  rw (has_zero_object.unique_to.{v} X).uniq g,
-end
-
-instance {X : C} (f : 0 ⟶ X) : mono f :=
-{ right_cancellation := λ Z g h w, by ext, }
-
-instance {X : C} (f : X ⟶ 0) : epi f :=
-{ left_cancellation := λ Z g h w, by ext, }
+by ext
 
 end
 

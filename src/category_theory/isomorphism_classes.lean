@@ -40,13 +40,6 @@ def isomorphism_classes : Cat.{v u} ⥤ Type u :=
 { obj := λ C, quotient (is_isomorphic_setoid C.α),
   map := λ C D F, quot.map F.obj $ λ X Y ⟨f⟩, ⟨F.map_iso f⟩ }
 
-variables {C : Type u} [category.{v} C]
-def iso_class (X : C) : isomorphism_classes.obj (Cat.of C) :=
-@quotient.mk _ (is_isomorphic_setoid _) X
-
-lemma iso_class_exact {X Y : C} (h : iso_class X = iso_class Y) : nonempty (X ≅ Y) :=
-@quotient.exact _ (is_isomorphic_setoid _) _ _ h
-
 lemma groupoid.is_isomorphic_iff_nonempty_hom {C : Type u} [groupoid.{v} C] {X Y : C} :
   is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
 (groupoid.iso_equiv_hom X Y).nonempty_iff_nonempty

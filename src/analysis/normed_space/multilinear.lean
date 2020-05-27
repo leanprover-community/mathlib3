@@ -766,6 +766,9 @@ end
 
 variables (𝕜 E E₂)
 
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
+
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
 the space of continuous linear maps from `E 0` to the space of continuous multilinear maps on
 `Π(i : fin n), E i.succ `, by separating the first variable. We register this isomorphism as a

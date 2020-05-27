@@ -669,6 +669,9 @@ end comm_ring
 /-- Predicate for semirings in which zero does not equal one. -/
 class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
 
+/-- Predicate for rings in which zero does not equal one. -/
+class nonzero_ring (α : Type*) extends ring α, zero_ne_one_class α
+
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
@@ -689,6 +692,20 @@ lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
 instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
   nonzero_semiring α :=
 {..ncs}
+
+/-- A nonzero commutative ring is a nonzero ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance nonzero_comm_ring.to_nonzero_ring {α : Type*} [ncs : nonzero_comm_ring α] :
+  nonzero_ring α :=
+{..ncs}
+
+/-- A nonzero ring is a nonzero semiring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance nonzero_ring.to_nonzero_semiring {α : Type*} [ncs : nonzero_ring α] :
+  nonzero_semiring α :=
+{ zero_mul := zero_mul,
+  mul_zero := mul_zero,
+  ..ncs }
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 @[priority 100] -- see Note [lower instance priority]

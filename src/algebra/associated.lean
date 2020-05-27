@@ -171,8 +171,8 @@ have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
 have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
 have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_right_inj hp0] at h⟩,
 (hp.div_or_div hpd).elim
-  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
-  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/

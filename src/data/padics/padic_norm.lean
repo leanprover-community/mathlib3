@@ -161,7 +161,7 @@ A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
-  _root_.pow_succ, add_mul, add_comm]
+  pow_succ, add_mul, add_comm]
 
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.

@@ -7,7 +7,7 @@ import algebra.associated
 import data.fintype.basic
 
 /-!
-Some facts about finite rings.
+# Some facts about finite rings
 -/
 
 open_locale classical

@@ -253,19 +253,17 @@ section min_fac
   end
 
   /--
-  The square of the smallest prime factor of a composite number n is at most n.
+  The square of the smallest prime factor of a composite number `n` is at most `n`.
   -/
-  lemma min_fac_sq_le_self (n : ℕ) (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
-  begin
-    have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
-    calc
-    (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
-              ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
-              ... ≤ n                           : div_mul_le_self n (min_fac n)
-  end
+  lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
+  calc
+  (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+            ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
+            ... ≤ n                           : div_mul_le_self n (min_fac n)
 
   @[simp]
-  lemma min_fac_eq_one_iff (n : ℕ) : min_fac n = 1 ↔ n = 1 :=
+  lemma min_fac_eq_one_iff {n : ℕ} : min_fac n = 1 ↔ n = 1 :=
   begin
     split,
     { intro h,
@@ -292,11 +290,11 @@ section min_fac
       cases h : n.min_fac with m,
       { rw h at lb, cases lb, },
       { cases m with m,
-        { simp at h, subst h, cases h, cases h_w, cases h_h, cases h_h, },
+        { simp at h, subst h, cases h with n h, cases n; cases h, },
         { cases m with m,
           { refl, },
           { rw h at ub,
-            cases ub, cases ub_a, cases ub_a_a, } } } }
+            cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
   end
 
 end min_fac

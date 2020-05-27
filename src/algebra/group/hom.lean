@@ -251,6 +251,10 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
+@[simp, to_additive]
+lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
+  ⇑(mk' f map_mul) = f := rfl
+
 omit mM
 
 /-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is

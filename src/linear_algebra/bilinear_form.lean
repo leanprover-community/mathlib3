@@ -478,7 +478,7 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
 def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
 { carrier := { f | is_pair_self_adjoint B B' f },
   zero    := is_adjoint_pair_zero,
-  add     := λ f g hf hg, is_adjoint_pair.add hf hg,
+  add     := λ f g hf hg, hf.add hg,
   smul    := λ c f h, is_adjoint_pair.smul c h, }
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an

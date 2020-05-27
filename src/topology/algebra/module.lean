@@ -599,12 +599,15 @@ end comm_ring
 end continuous_linear_map
 
 namespace continuous_linear_equiv
-variables {R : Type*} [ring R]
-{M : Type*} [topological_space M] [add_comm_group M]
-{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
-{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R M₂] [module R M₃] [module R M₄]
+
+section add_comm_monoid
+
+variables {R : Type*} [semiring R]
+{M : Type*} [topological_space M] [add_comm_monoid M]
+{M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
 
 /-- A continuous linear equivalence induces a continuous linear map. -/
 def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
@@ -640,11 +643,8 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
 (e : M →L[R] M₂).map_add x y
-@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
-(e : M →L[R] M₂).map_sub x y
 @[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
 (e : M →L[R] M₂).map_smul c x
-@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
 @[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 
@@ -724,25 +724,6 @@ def prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) : (M × M₃) ≃L[R] (M�
   (e.prod e' : (M × M₃) →L[R] (M₂ × M₄)) = (e : M →L[R] M₂).prod_map (e' : M₃ →L[R] M₄) :=
 rfl
 
-variables [topological_add_group M₄]
-
-/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
-  and `f` is a rectangular block below the diagonal. -/
-def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
-  (M × M₃) ≃L[R] M₂ × M₄ :=
-{ continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk
-    ((e'.continuous_to_fun.comp continuous_snd).add $ f.continuous.comp continuous_fst),
-  continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
-    (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
-      e.continuous_inv_fun.comp continuous_fst),
-.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
-
-@[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
-  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
-
-@[simp] lemma skew_prod_symm_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
-  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
-
 theorem bijective (e : M ≃L[R] M₂) : function.bijective e := e.to_linear_equiv.to_equiv.bijective
 theorem injective (e : M ≃L[R] M₂) : function.injective e := e.to_linear_equiv.to_equiv.injective
 theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_equiv.to_equiv.surjective
@@ -807,6 +788,49 @@ rfl
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 
+end add_comm_monoid
+
+section add_comm_group
+
+variables {R : Type*} [semiring R]
+{M : Type*} [topological_space M] [add_comm_group M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+
+variables [topological_add_group M₄]
+
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
+def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
+  (M × M₃) ≃L[R] M₂ × M₄ :=
+{ continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk
+    ((e'.continuous_to_fun.comp continuous_snd).add $ f.continuous.comp continuous_fst),
+  continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
+    (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
+      e.continuous_inv_fun.comp continuous_fst),
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+
+@[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+
+@[simp] lemma skew_prod_symm_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
+
+end add_comm_group
+
+section ring
+
+variables {R : Type*} [ring R]
+{M : Type*} [topological_space M] [add_comm_group M] [semimodule R M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [semimodule R M₂]
+
+@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
+(e : M →L[R] M₂).map_sub x y
+
+@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
+
 section
 variables (R) [topological_space R] [topological_module R R]
 
@@ -859,6 +883,8 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
 @[simp] lemma equiv_of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (y : M₂ × f₁.ker) :
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
+
+end ring
 
 end continuous_linear_equiv
 

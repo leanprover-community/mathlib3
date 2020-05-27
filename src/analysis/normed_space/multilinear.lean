@@ -57,6 +57,9 @@ noncomputable theory
 open_locale classical
 open finset
 
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
+
 
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
@@ -745,9 +748,6 @@ begin
     linear_map.mk_continuous_norm_le _ (norm_nonneg _) _,
   simpa
 end
-
-attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 variables (𝕜 E E₂)
 

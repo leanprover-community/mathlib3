@@ -805,20 +805,17 @@ apply_nolint equiv has_inhabited_instance
 apply_nolint equiv.Pi_congr_right doc_blame
 apply_nolint equiv.Pi_curry doc_blame
 apply_nolint equiv.Prop_equiv_bool doc_blame
-apply_nolint equiv.arrow_arrow_equiv_prod_arrow doc_blame
 apply_nolint equiv.arrow_congr doc_blame
 apply_nolint equiv.arrow_prod_equiv_prod_arrow doc_blame
 apply_nolint equiv.arrow_punit_equiv_punit doc_blame
 apply_nolint equiv.bool_equiv_punit_sum_punit doc_blame
 apply_nolint equiv.bool_prod_equiv_sum doc_blame
 apply_nolint equiv.cast doc_blame
-apply_nolint equiv.conj doc_blame
 apply_nolint equiv.decidable_eq doc_blame
 apply_nolint equiv.decidable_eq_of_equiv doc_blame
 apply_nolint equiv.empty_arrow_equiv_punit doc_blame
 apply_nolint equiv.empty_equiv_pempty doc_blame
 apply_nolint equiv.empty_of_not_nonempty doc_blame
-apply_nolint equiv.empty_prod doc_blame
 apply_nolint equiv.empty_sum doc_blame
 apply_nolint equiv.equiv_congr doc_blame
 apply_nolint equiv.equiv_empty doc_blame
@@ -837,24 +834,15 @@ apply_nolint equiv.option_equiv_sum_punit doc_blame
 apply_nolint equiv.pempty_arrow_equiv_punit doc_blame
 apply_nolint equiv.pempty_equiv_pempty doc_blame
 apply_nolint equiv.pempty_of_not_nonempty doc_blame
-apply_nolint equiv.pempty_prod doc_blame
 apply_nolint equiv.pempty_sum doc_blame
 apply_nolint equiv.perm_congr doc_blame
 apply_nolint equiv.pi_equiv_subtype_sigma doc_blame
 apply_nolint equiv.plift doc_blame
-apply_nolint equiv.prod_assoc doc_blame
-apply_nolint equiv.prod_comm doc_blame
-apply_nolint equiv.prod_congr doc_blame
-apply_nolint equiv.prod_empty doc_blame
-apply_nolint equiv.prod_pempty doc_blame
-apply_nolint equiv.prod_punit doc_blame
 apply_nolint equiv.prod_sum_distrib doc_blame
 apply_nolint equiv.prop_equiv_punit doc_blame
 apply_nolint equiv.psigma_equiv_sigma doc_blame
-apply_nolint equiv.psum_equiv_sum doc_blame
 apply_nolint equiv.punit_arrow_equiv doc_blame
 apply_nolint equiv.punit_equiv_punit doc_blame
-apply_nolint equiv.punit_prod doc_blame
 apply_nolint equiv.refl doc_blame
 apply_nolint equiv.set.congr doc_blame
 apply_nolint equiv.set.empty doc_blame
@@ -875,8 +863,6 @@ apply_nolint equiv.set.univ doc_blame
 apply_nolint equiv.set_congr doc_blame
 apply_nolint equiv.sigma_congr_left doc_blame
 apply_nolint equiv.sigma_congr_right doc_blame
-apply_nolint equiv.sigma_equiv_prod doc_blame
-apply_nolint equiv.sigma_equiv_prod_of_equiv doc_blame
 apply_nolint equiv.sigma_prod_distrib doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv doc_blame
 apply_nolint equiv.sigma_subtype_preimage_equiv_subtype doc_blame
@@ -889,12 +875,7 @@ apply_nolint equiv.subtype_quotient_equiv_quotient_subtype doc_blame
 apply_nolint equiv.subtype_subtype_equiv_subtype_exists doc_blame
 apply_nolint equiv.subtype_subtype_equiv_subtype_inter doc_blame
 apply_nolint equiv.sum_arrow_equiv_prod_arrow doc_blame
-apply_nolint equiv.sum_assoc doc_blame
-apply_nolint equiv.sum_comm doc_blame
-apply_nolint equiv.sum_congr doc_blame
-apply_nolint equiv.sum_empty doc_blame
 apply_nolint equiv.sum_equiv_sigma_bool doc_blame
-apply_nolint equiv.sum_pempty doc_blame
 apply_nolint equiv.sum_prod_distrib doc_blame
 apply_nolint equiv.swap_core doc_blame
 apply_nolint equiv.symm doc_blame
@@ -1589,10 +1570,6 @@ apply_nolint set.sigma_to_Union doc_blame
 
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
-
--- data/sum.lean
-apply_nolint sum.elim doc_blame
-apply_nolint sum.map doc_blame
 
 -- data/tree.lean
 apply_nolint tree doc_blame

@@ -117,6 +117,7 @@ end
 lemma cases_tail : refl_trans_gen r a b → b = a ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
 (cases_tail_iff r a b).1
 
+@[elab_as_eliminator]
 lemma head_induction_on
   {P : ∀(a:α), refl_trans_gen r a b → Prop}
   {a : α} (h : refl_trans_gen r a b)
@@ -133,6 +134,7 @@ begin
   }
 end
 
+@[elab_as_eliminator]
 lemma trans_induction_on
   {P : ∀{a b : α}, refl_trans_gen r a b → Prop}
   {a b : α} (h : refl_trans_gen r a b)
@@ -254,7 +256,8 @@ end
 
 lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-hab.trans_induction_on (assume a, refl) (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
+refl_trans_gen.trans_induction_on hab (assume a, refl)
+  (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
 
 lemma refl_trans_gen_mono {p : α → α → Prop} :
   (∀a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
@@ -279,7 +282,8 @@ lemma refl_trans_gen_idem :
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
 lemma refl_trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
-  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
+  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b))
+  (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
 by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
 
 lemma refl_trans_gen_closed {p : α → α → Prop} :

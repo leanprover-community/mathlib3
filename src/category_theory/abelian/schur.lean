@@ -8,7 +8,7 @@ import category_theory.abelian.basic
 
 /-!
 # Simple objects
-We prove the version of Schur's Lemma that is true in any abelian category,
+We prove the part of Schur's Lemma that holds in any abelian category,
 that any nonzero morphism between simple objects
 is an isomorphism.
 
@@ -46,7 +46,7 @@ begin
   classical,
   have : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
   have : epi f,
-  { have := is_iso_of_mono_of_nonzero (nonzero_image_of_nonzero w),
+  { have : is_iso (image.ι f) := is_iso_of_mono_of_nonzero (nonzero_image_of_nonzero w),
     exact epi_of_image_is_iso f },
   apply abelian.is_iso_of_mono_of_epi,
 end

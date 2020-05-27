@@ -23,11 +23,13 @@ import control.applicative
 universes u v l
 
 /-- Free magma over a given alphabet. -/
+@[derive decidable_eq]
 inductive free_magma (α : Type u) : Type u
 | of : α → free_magma
 | mul : free_magma → free_magma → free_magma
 
 /-- Free nonabelian additive magma over a given alphabet. -/
+@[derive decidable_eq]
 inductive free_add_magma (α : Type u) : Type u
 | of : α → free_add_magma
 | add : free_add_magma → free_add_magma → free_add_magma
@@ -221,28 +223,6 @@ instance : is_lawful_traversable free_magma.{u} :=
 end category
 
 end free_magma
-
-instance {α : Type u} [decidable_eq α] : decidable_eq (free_magma α)
-| (free_magma.of p) (free_magma.of x) := decidable_of_iff (p = x)
-    ⟨congr_arg free_magma.of, free_magma.of.inj⟩
-| (free_magma.of p) (x * y)           := is_false $ λ H, free_magma.no_confusion H
-| (p * q)           (free_magma.of x) := is_false $ λ H, free_magma.no_confusion H
-| (p * q)           (x * y)           := @decidable_of_iff
-    (p * q = x * y) (p = x ∧ q = y)
-    ⟨λ ⟨hpx, hqy⟩, hpx ▸ hqy ▸ rfl, free_magma.mul.inj⟩
-    (@and.decidable _ _ (free_magma.decidable_eq p x) (free_magma.decidable_eq q y))
-
-instance {α : Type u} [decidable_eq α] : decidable_eq (free_add_magma α)
-| (free_add_magma.of p) (free_add_magma.of x) := decidable_of_iff (p = x)
-    ⟨congr_arg free_add_magma.of, free_add_magma.of.inj⟩
-| (free_add_magma.of p) (x + y)           := is_false $ λ H, free_add_magma.no_confusion H
-| (p + q)               (free_add_magma.of x) := is_false $ λ H, free_add_magma.no_confusion H
-| (p + q)                (x + y)           := @decidable_of_iff
-    (p + q = x + y) (p = x ∧ q = y)
-    ⟨λ ⟨hpx, hqy⟩, hpx ▸ hqy ▸ rfl, free_add_magma.add.inj⟩
-    (@and.decidable _ _ (free_add_magma.decidable_eq p x) (free_add_magma.decidable_eq q y))
-
-attribute [to_additive free_add_magma.decidable_eq] free_magma.decidable_eq
 
 /-- Representation of an element of a free magma. -/
 protected def free_magma.repr {α : Type u} [has_repr α] : free_magma α → string

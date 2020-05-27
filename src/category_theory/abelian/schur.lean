@@ -7,9 +7,23 @@ import category_theory.simple
 import category_theory.abelian.basic
 
 /-!
-We prove Schur's Lemma,
-that any nonzero morphism between simple objects in an abelian category
+# Simple objects
+We prove the version of Schur's Lemma that is true in any abelian category,
+that any nonzero morphism between simple objects
 is an isomorphism.
+
+## TODO
+If the category is enriched over finite dimensional vector spaces
+over an algebraically closed field, then we can further prove that
+`dim (X ⟶ Y) ≤ 1`.
+
+(Probably easiest to prove this for endomorphisms first:
+some polynomial `p` in `f : X ⟶ X` vanishes by finite dimensionality,
+that polynomial factors linearly,
+and at least one factor must be non-invertible, hence zero,
+so `f` is a scalar multiple of the identity.
+Then for any two nonzero `f g : X ⟶ Y`,
+observe `f ≫ g⁻¹` is a multiple of the identity.)
 -/
 
 namespace category_theory

@@ -121,7 +121,7 @@ variable (K)
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := char_p.char_is_prime K p,
-  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_semimodule },
   obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp, h⟩,

@@ -141,20 +141,6 @@ namespace has_zero_object
 
 variables [has_zero_object.{v} C]
 
-@[ext]
-lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
-by [rw (has_zero_object.unique_from.{v} X).uniq f, rw (has_zero_object.unique_from.{v} X).uniq g]
-
-@[ext]
-lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
-by [rw (has_zero_object.unique_to.{v} X).uniq f, rw (has_zero_object.unique_to.{v} X).uniq g]
-
-instance {X : C} (f : 0 ⟶ X) : mono f :=
-{ right_cancellation := λ Z g h w, by ext, }
-
-instance {X : C} (f : X ⟶ 0) : epi f :=
-{ left_cancellation := λ Z g h w, by ext, }
-
 /--
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
@@ -164,6 +150,20 @@ protected def has_zero : has_zero C :=
 
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
+
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+by rw [(has_zero_object.unique_from.{v} X).uniq f, (has_zero_object.unique_from.{v} X).uniq g]
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+by rw [(has_zero_object.unique_to.{v} X).uniq f, (has_zero_object.unique_to.{v} X).uniq g]
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
 
 /-- A category with a zero object has zero morphisms.
 

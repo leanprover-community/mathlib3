@@ -75,7 +75,7 @@ lift.symm.injective $ funext h
 hom_eq $ λ x, by simp
 
 variables {H : Type*} [add_comm_group H]
-  
+
 lemma comp_lift (g : G →+ H) (f : α → G) :
   g.comp (lift f) = lift (g ∘ f) :=
 by { ext, simp }

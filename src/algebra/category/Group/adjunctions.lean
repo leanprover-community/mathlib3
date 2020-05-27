@@ -27,10 +27,10 @@ free abelian group with generators `x : X`.
 -/
 def free : Type u ⥤ AddCommGroup.{u} :=
 { obj := λ α, of (free_abelian_group α),
-  map := λ X Y f, add_monoid_hom.of (λ x : free_abelian_group X, f <$> x),
+  map := λ X Y f, free_abelian_group.lift (free_abelian_group.of ∘ f),
   map_id' := λ X, add_monoid_hom.ext $ by simp [types_id],
   map_comp' := λ X Y Z f g, add_monoid_hom.ext $
-    by { intro x, simp [is_lawful_functor.comp_map, types_comp], } }
+    by { intro x, simp [types_comp, free_abelian_group.hom_map_lift, (∘)] } }
 
 @[simp] lemma free_obj_coe {α : Type u} :
   (free.obj α : Type u) = (free_abelian_group α) := rfl
@@ -43,7 +43,7 @@ The free-forgetful adjunction for abelian groups.
 -/
 def adj : free ⊣ forget AddCommGroup.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
+{ hom_equiv := λ X G, free_abelian_group.lift.symm,
   hom_equiv_naturality_left_symm' :=
   by { intros, ext, simp [types_comp, free_abelian_group.lift_comp], } }
 

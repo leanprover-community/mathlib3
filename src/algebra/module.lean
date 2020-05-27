@@ -155,22 +155,6 @@ begin
   all_goals { apply proof_irrel_heq },
 end
 
-/-- An auxiliary `structure` that is used to define `module`s without verifying
-`zero_smul` and `smul_zero`. -/
-structure module.core (R M) [ring R] [add_comm_group M] extends has_scalar R M :=
-(smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
-(add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
-(mul_smul : ∀(r s : R) (x : M), (r * s) • x = r • s • x)
-(one_smul : ∀x : M, (1 : R) • x = x)
-
-/-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
-structure `module.core`. -/
-def module.of_core [ring R] [add_comm_group M] (Mc : module.core R M) : module R M :=
-by letI := Mc.to_has_scalar; exact
-{ zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, Mc.add_smul r s x)).map_zero,
-  smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (Mc.smul_add r)).map_zero,
-  ..Mc }
-
 section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 

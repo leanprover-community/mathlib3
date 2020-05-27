@@ -202,7 +202,7 @@ protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 is_add_hom.map_add _ _ _
 
-instance : module R (M ⊗ N) := module.of_core
+instance : semimodule R (M ⊗ N) := semimodule.of_core
 { smul := (•),
   smul_add := tensor_product.smul_add,
   add_smul := begin

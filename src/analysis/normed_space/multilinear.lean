@@ -241,7 +241,7 @@ end
 condition. -/
 def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
-{ cont := f.continuous_of_bound C H, ..f }
+{ cont := f.continuous_of_bound C H, .. f }
 
 /-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
 the other coordinates, then the resulting restricted function satisfies an inequality
@@ -545,10 +545,10 @@ namespace continuous_multilinear_map
 /- The next two instances are not found automatically. Register them explicitly.
 TODO: understand why, and fix. -/
 instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_group 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
+@continuous_multilinear_map.to_normed_group 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
 
 instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
+@continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
 
 /-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
 `s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying
@@ -745,6 +745,9 @@ begin
     linear_map.mk_continuous_norm_le _ (norm_nonneg _) _,
   simpa
 end
+
+attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 variables (𝕜 E E₂)
 

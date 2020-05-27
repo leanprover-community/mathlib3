@@ -290,7 +290,7 @@ begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],
   congr, funext i,
-  rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
+  rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end
 
 lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :

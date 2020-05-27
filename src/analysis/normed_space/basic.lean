@@ -676,7 +676,7 @@ set_option default_priority 100 -- see Note [default priority]
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends module α β :=
+  extends semimodule α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 end prio
 
@@ -850,7 +850,7 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.module }
+  ..prod.semimodule }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]

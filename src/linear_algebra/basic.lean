@@ -92,7 +92,8 @@ end
 namespace linear_map
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
 variables (f g : M →ₗ[R] M₂)
 include R
@@ -177,6 +178,9 @@ rfl
 @[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
   ⇑(t.sum f) = t.sum (λ i, (f i : M → M₂)) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
+
+instance : monoid (M →ₗ[R] M) :=
+by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
 
 section
 open_locale classical
@@ -1619,7 +1623,6 @@ variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables {semimodule_M₃ : semimodule R M₃} {semimodule_M₄ : semimodule R M₄}
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 
-
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
 protected def prod :
   (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
@@ -1683,13 +1686,16 @@ def of_linear (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id
 @[simp] protected theorem range : (e : M →ₗ[R] M₂).range = ⊤ :=
 linear_map.range_eq_top.2 e.to_equiv.surjective
 
-lemma eq_bot_of_equiv [semimodule R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
-  p = ⊥ :=
+lemma eq_bot_of_equiv [semimodule R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂)) : p = ⊥ :=
 begin
   refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
   rw [← p.mk_eq_zero hb, ← e.map_eq_zero_iff],
   apply submodule.eq_zero_of_bot_submodule
 end
+
+@[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
+linear_map.ker_eq_bot_of_injective e.to_equiv.injective
+
 end
 
 end add_comm_monoid
@@ -1744,9 +1750,6 @@ noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M
 
 @[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
   of_bijective f hf₁ hf₂ x = f x := rfl
-
-@[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
-linear_map.ker_eq_bot.2 e.to_equiv.injective
 
 end ring
 
@@ -1872,7 +1875,7 @@ def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient 
 end submodule
 
 namespace equiv
-variables [ring R] [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
+variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
 
 /-- An equivalence whose underlying function is linear is a linear equivalence. -/
 def to_linear_equiv (e : M ≃ M₂) (h : is_linear_map R (e : M → M₂)) : M ≃ₗ[R] M₂ :=
@@ -1881,6 +1884,11 @@ def to_linear_equiv (e : M ≃ M₂) (h : is_linear_map R (e : M → M₂)) : M 
 end equiv
 
 namespace linear_map
+
+open submodule
+
+section isomorphism_laws
+
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module R M] [module R M₂] [module R M₃]
 variables (f : M →ₗ[R] M₂)
@@ -1899,8 +1907,6 @@ rfl
 @[simp] lemma quot_ker_equiv_range_symm_apply_image (x : M) (h : f x ∈ f.range) :
   f.quot_ker_equiv_range.symm ⟨f x, h⟩ = f.ker.mkq x :=
 f.quot_ker_equiv_range.symm_apply_apply (f.ker.mkq x)
-
-open submodule
 
 /--
 Canonical linear map from the quotient `p/(p ∩ p')` to `(p+p')/p'`, mapping `x + (p ∩ p')`
@@ -1956,11 +1962,13 @@ lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x
   (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) = 0 :=
 quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
+end isomorphism_laws
+
 section prod
 
 lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*}
-  [comm_ring R] [add_comm_group M] [add_comm_group M₂]
-  [add_comm_group M₃] [module R M] [module R M₂] [module R M₃] :
+  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+  [add_comm_group M₃] [semimodule R M] [semimodule R M₂] [semimodule R M₃] :
   is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)),
     (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
 ⟨λu v, rfl, λc u, rfl⟩
@@ -1969,8 +1977,8 @@ end prod
 
 section pi
 universe i
-variables {φ : ι → Type i}
-variables [∀i, add_comm_group (φ i)] [∀i, module R (φ i)]
+variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
+{φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
 
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
@@ -2074,7 +2082,7 @@ lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 
 by rw [std_basis_apply, update_noteq h]; refl
 
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
-ker_eq_bot.2 $ assume f g hfg,
+ker_eq_bot_of_injective $ assume f g hfg,
   have std_basis R φ i f i = std_basis R φ i g i := hfg ▸ rfl,
   by simpa only [std_basis_same]
 
@@ -2164,6 +2172,9 @@ end
 end
 
 end pi
+
+universe i
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
 variables (R M)
 

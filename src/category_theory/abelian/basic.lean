@@ -62,6 +62,7 @@ convention:
 ## References
 
 * [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
+* [P. Aluffi, *Algebra: Chaper 0*][aluffi2016]
 
 -/
 
@@ -397,7 +398,7 @@ variables [limits.has_pullbacks.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
 
 /-- In an abelian category, the pullback of an epimorphism is an epimorphism.
-    Aluffi IX.2.3, cf. Borceux 2, 1.7.6 -/
+    Proof from [aluffi2016, IX.2.3], cf. [borceux-vol2, 1.7.6] -/
 instance epi_pullback_of_epi_f [epi f] : epi (pullback.snd : pullback f g ⟶ Y) :=
 -- It will suffice to consider some morphism e : Y ⟶ R such that
 -- pullback.snd ≫ e = 0 and show that e = 0.

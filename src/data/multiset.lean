@@ -1721,8 +1721,8 @@ begin
   refine s.induction_on _ _,
   { simp },
   { assume a s ih,
-    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm],
-    cc },
+    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm,
+      add_assoc, add_left_comm, add_comm] },
 end
 
 /- powerset_len -/

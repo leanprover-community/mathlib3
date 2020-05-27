@@ -178,6 +178,26 @@ begin
   rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
 end
 
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+begin
+  rw (has_zero_object.unique_from.{v} X).uniq f,
+  rw (has_zero_object.unique_from.{v} X).uniq g,
+end
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+begin
+  rw (has_zero_object.unique_to.{v} X).uniq f,
+  rw (has_zero_object.unique_to.{v} X).uniq g,
+end
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
+
 end
 
 /-- A zero object is in particular initial. -/

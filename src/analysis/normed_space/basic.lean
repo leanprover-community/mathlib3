@@ -564,7 +564,7 @@ begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
-  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos εpos) (pow_pos norm_r_pos 2),
+  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos (half_pos εpos) (pow_pos norm_r_pos 2),
   have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
   refine ⟨δ, δpos, λ x hx, _⟩,
   have rx : ∥r∥/2 ≤ ∥x∥ := calc

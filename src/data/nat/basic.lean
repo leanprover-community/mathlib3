@@ -957,6 +957,25 @@ strict_mono.lt_iff_lt (pow_right_strict_mono k)
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
 strict_mono.injective (pow_right_strict_mono k)
 
+lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
+| (x+1) w :=
+begin
+  split,
+  { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
+  { intro a, cases x with x,
+    { simp only [one_pow], },
+    { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
+      use (x+2)^(l-k),
+      rw [←nat.pow_add, add_comm k, nat.sub_add_cancel le], } }
+end
+
+/-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
+lemma pow_dvd_pow_iff_le_right {x k l : ℕ} (w : 1 < x) : x^k ∣ x^l ↔ k ≤ l :=
+by rw [pow_dvd_pow_iff_pow_le_pow (lt_of_succ_lt w), pow_le_iff_le_right w]
+
+lemma pow_dvd_pow_iff_le_right' {b k l : ℕ} : (b+2)^k ∣ (b+2)^l ↔ k ≤ l :=
+pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
+
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
@@ -1310,6 +1329,9 @@ by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
 
 lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
+
+lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
+by { apply choose_symm_of_eq_add, rw [add_comm m 1, add_assoc 1 m m, add_comm (2 * m) 1, two_mul m] }
 
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin

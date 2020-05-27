@@ -364,6 +364,7 @@ variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
 
 local attribute [tidy] tactic.case_bash
 
+-- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod_functor : C ⥤ C ⥤ C :=

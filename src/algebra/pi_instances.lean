@@ -2,11 +2,14 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
-
-Pi instances for algebraic structures.
 -/
 import algebra.module
 import ring_theory.subring
+import ring_theory.prod
+
+/-!
+# Pi instances for algebraic structures
+-/
 
 namespace pi
 universes u v w
@@ -337,32 +340,15 @@ lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α 
   (t.prod f).2 = t.prod (λc, (f c).2) :=
 (monoid_hom.snd α β).map_prod f t
 
-instance [semiring α] [semiring β] : semiring (α × β) :=
-{ zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
-  mul_zero := λ a, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
-  left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
-  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
-  ..prod.add_comm_monoid, ..prod.monoid }
-
-instance [ring α] [ring β] : ring (α × β) :=
-{ ..prod.add_comm_group, ..prod.semiring }
-
-instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
-{ ..prod.ring, ..prod.comm_monoid }
-
-instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
-{ zero_ne_one := mt (congr_arg prod.fst) zero_ne_one,
-  ..prod.comm_ring }
-
 instance fst.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_semiring_hom
 instance snd.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_semiring_hom
 
 instance fst.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_ring_hom
 instance snd.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_ring_hom
 
 /-- Left injection function for the inner product
 From a vector space (and also group and module) perspective the product is the same as the sum of

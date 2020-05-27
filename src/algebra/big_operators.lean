@@ -1256,10 +1256,12 @@ variables [group α] [group β]
 theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
 by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
-  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
+  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append,
+    map_singleton, prod_cons, prod_nil, mul_one]]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
+-- TODO there is probably a cleaner proof of this
+λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l
 
 end group
 
@@ -1284,15 +1286,15 @@ multiset.induction_on s rfl
       ... = card (a :: s) :
       begin
         by_cases a ∈ s.to_finset,
-        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = ({a} : finset α).sum (λx, ite (x = a) 1 0),
-          { apply (finset.sum_subset _ _).symm,
-            { intros _ H, rwa mem_singleton.1 H },
-            { exact λ _ _ H, if_neg (mt finset.mem_singleton.2 H) } },
-          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this, finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
+        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
+          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
+          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
+            finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
         { have ha : a ∉ s, by rwa mem_to_finset at h,
           have : (to_finset s).sum (λx, ite (x = a) 1 0) = (to_finset s).sum (λx, 0), from
             finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
-          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this, finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
+          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
+            finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
 
 end multiset

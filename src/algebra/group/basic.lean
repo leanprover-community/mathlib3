@@ -205,15 +205,17 @@ left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
 
-/-- An algebraic class missing in core: an additive monoid in which addition is left-cancellative.
+/-- A monoid in which multiplication is left-cancellative. -/
+@[ancestor left_cancel_semigroup monoid]
+class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+
+/-- An additive monoid in which addition is left-cancellative.
 Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
+@[ancestor add_left_cancel_semigroup add_monoid]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
 
-section add_left_cancel_monoid
-variables {M : Type u} [add_left_cancel_monoid M]
-
-end add_left_cancel_monoid
+attribute [to_additive add_left_cancel_monoid] left_cancel_monoid
 
 @[ancestor monoid has_inv]
 class group (α : Type u) extends monoid α, has_inv α :=

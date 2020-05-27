@@ -1311,6 +1311,9 @@ by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
 lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
 
+lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
+by { apply choose_symm_of_eq_add, rw [add_comm m 1, add_assoc 1 m m, add_comm (2 * m) 1, two_mul m] }
+
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
@@ -1529,6 +1532,13 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
     with_bot.coe_eq_coe]; simp
 | (some n) (some (m + 1)) := by erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
     with_bot.coe_eq_coe, with_bot.coe_eq_coe]; simp [nat.add_succ, nat.succ_inj', nat.succ_ne_zero]
+
+@[simp] lemma with_bot.coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
+by rw [← with_bot.coe_zero, with_bot.coe_le_coe]; exact nat.zero_le _
+
+@[simp] lemma with_bot.lt_zero_iff (n : with_bot ℕ) : n < 0 ↔ n = ⊥ :=
+option.cases_on n dec_trivial (λ n, iff_of_false
+  (by simp [with_bot.some_eq_coe]) (λ h, option.no_confusion h))
 
 -- induction
 

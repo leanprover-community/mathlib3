@@ -162,31 +162,6 @@ apply_nolint dist_bdd_within_interval unused_arguments
 apply_nolint ordered_add_comm_group doc_blame
 apply_nolint ordered_cancel_add_comm_monoid doc_blame
 
--- algebra/ordered_ring.lean
-apply_nolint canonically_ordered_comm_semiring doc_blame
-apply_nolint decidable_linear_ordered_comm_ring doc_blame
-apply_nolint decidable_linear_ordered_semiring doc_blame
-apply_nolint four_pos ge_or_gt
-apply_nolint gt_of_mul_lt_mul_neg_left ge_or_gt
-apply_nolint linear_ordered_comm_ring doc_blame
-apply_nolint linear_ordered_ring doc_blame
-apply_nolint linear_ordered_semiring doc_blame
-apply_nolint mul_nonneg ge_or_gt
-apply_nolint mul_pos ge_or_gt
-apply_nolint mul_self_nonneg ge_or_gt
-apply_nolint nonneg_ring.to_linear_nonneg_ring doc_blame
-apply_nolint ordered_ring doc_blame
-apply_nolint ordered_semiring doc_blame
-apply_nolint pos_and_pos_or_neg_and_neg_of_mul_pos ge_or_gt
-apply_nolint two_ge_one ge_or_gt
-apply_nolint two_gt_one ge_or_gt
-apply_nolint with_top.canonically_ordered_comm_semiring unused_arguments
-apply_nolint with_top.coe_eq_zero unused_arguments
-apply_nolint with_top.coe_zero unused_arguments
-apply_nolint with_top.has_one unused_arguments
-apply_nolint with_top.top_ne_zero unused_arguments
-apply_nolint with_top.zero_ne_top unused_arguments
-
 -- algebra/pointwise.lean
 apply_nolint set.add_comm_monoid doc_blame
 apply_nolint set.comm_monoid doc_blame

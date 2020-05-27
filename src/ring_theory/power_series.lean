@@ -610,7 +610,7 @@ begin
     simpa using congr_arg (constant_coeff σ α) H },
   { intro φ, rcases ‹is_local_ring α›.2 (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩; [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h } }
+      simpa using h.symm } }
 end
 
 -- TODO(jmc): once adic topology lands, show that this is complete
@@ -647,9 +647,9 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   replace h := congr_arg (constant_coeff σ β) h,
   rw constant_coeff_map at h,
   have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
-  rw ← h at this,
+  rw h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-  exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+  exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
 
 end local_ring

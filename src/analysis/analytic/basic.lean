@@ -601,6 +601,7 @@ begin
   ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl,
 end
 
+-- FIXME this causes a deterministic timeout with `-T50000`
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
 `p.change_origin x` is well defined on the largest ball contained in the original ball of
 convergence.-/

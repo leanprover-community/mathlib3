@@ -95,18 +95,22 @@ example (a : ℕ) : ¬ (a < 0) := by library_search -- says `exact not_lt_bot`
 
 example (a : ℕ) (h : a < 0) : false := by library_search -- says `exact not_lt_bot h`
 
-def P : ℕ → Prop := λ _, sorry
+-- An inductive type hides the constructor's arguments enough
+-- so that `library_search` doesn't accidentally close the goal.
+inductive P : ℕ → Prop
+| gt_in_head {n : ℕ} : n < 0 → P n
 
 -- This lemma with `>` as its head symbol should also be found for goals with head symbol `<`.
-lemma lemma_with_gt_in_head (a : ℕ) : P a → 0 > a := sorry
+lemma lemma_with_gt_in_head (a : ℕ) (h : P a) : 0 > a := by { cases h, assumption }
+
+-- This lemma with `false` as its head symbols should also be found for goals with head symbol `¬`.
+lemma lemma_with_false_in_head (a b : ℕ) (h1 : a < b) (h2 : P a) : false :=
+by { apply nat.not_lt_zero, cases h2, assumption }
 
 example (a : ℕ) (h : P a) : 0 > a := by library_search -- says `exact lemma_with_gt_in_head a h`
 
 example (a : ℕ) (h : P a) : a < 0 := by library_search -- says `exact lemma_with_gt_in_head a h`
 
-lemma lemma_with_false_in_head (a b : ℕ) (h1 : a < b) (h2 : P a) : false := sorry
-
-set_option trace.silence_library_search false
 example (a b : ℕ) (h1 : a < b) (h2 : P a) : false := by library_search
 -- says `exact lemma_with_false_in_head a b h1 h2`
 

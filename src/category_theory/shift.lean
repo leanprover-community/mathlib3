@@ -5,7 +5,8 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.zero
 
-/-! #Shift
+/-!
+# Shift
 
 A `shift` on a category is nothing more than an automorphism of the category. An example to
 keep in mind might be the category of complexes ⋯ → C_{n-1} → C_n → C_{n+1} → ⋯ with the shift

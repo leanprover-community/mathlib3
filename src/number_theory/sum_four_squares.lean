@@ -48,8 +48,8 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
     by rw [hk, int.nat_abs_of_nonneg hk0, mul_comm],
   lt_of_mul_lt_mul_left
     (calc p * k.nat_abs = a.val_min_abs.nat_abs ^ 2 + b.val_min_abs.nat_abs ^ 2 + 1 :
-        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, nat.pow_two, nat.pow_two,
-          int.nat_abs_mul_self, int.nat_abs_mul_self, ← _root_.pow_two, ← _root_.pow_two,
+        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, int.coe_nat_pow,
+          int.coe_nat_pow, int.nat_abs_pow_two, int.nat_abs_pow_two,
           int.coe_nat_one, hk, int.coe_nat_mul, int.nat_abs_of_nonneg hk0]
       ... ≤ (p / 2) ^ 2 + (p / 2)^2 + 1 :
         add_le_add
@@ -206,8 +206,8 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
  (a * w + b * x + c * y + d * z).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp [nat.pow_two, int.coe_nat_add, int.nat_abs_mul_self'],
-    ring,
+    simp,
+    ring
   end⟩
 
 end nat

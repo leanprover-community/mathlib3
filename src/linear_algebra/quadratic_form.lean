@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Anne Baanen
-
-Quadratic forms over modules.
 -/
 
 import algebra.invertible
@@ -158,7 +156,8 @@ end comp
 
 end quadratic_form
 
-/-! ### Associated bilinear forms
+/-!
+### Associated bilinear forms
 
 Over a commutative ring with an inverse of 2, the theory of quadratic forms is
 basically identical to that of symmetric bilinear forms. The map from quadratic
@@ -251,7 +250,9 @@ lemma smul_pos_def_of_nonzero {K : Type u} [linear_ordered_field K] [module K M]
 end pos_def
 end quadratic_form
 
-/-! ### Quadratic forms and matrices
+section
+/-!
+### Quadratic forms and matrices
 
 Connect quadratic forms and matrices, in order to explicitly compute with them.
 The convention is twos out, so there might be a factor 2⁻¹ in the entries of the
@@ -277,8 +278,12 @@ lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R
   (a • Q).to_matrix = (a * a) • Q.to_matrix :=
 by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
 
+end
+
 namespace quadratic_form
 
+variables {n : Type w} [fintype n]
+variables [decidable_eq n] [invertible (2 : R₁)]
 variables {m : Type w} [fintype m] [decidable_eq m]
 open_locale matrix
 
@@ -301,5 +306,71 @@ lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
 by simp [discr, mul_left_comm, mul_comm]
 
 end discriminant
+
+end quadratic_form
+
+namespace quadratic_form
+
+variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
+variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M₁] [module R M₂] [module R M₃]
+
+/-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
+is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
+@[nolint has_inhabited_instance] structure isometry
+  (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
+(map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
+
+/-- Two quadratic forms over a ring `R` are equivalent
+if there exists an isometry between them:
+a linear equivalence that transforms one quadratic form into the other. -/
+def equivalent (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
+
+namespace isometry
+
+variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
+
+instance : has_coe (Q₁.isometry Q₂) (M₁ ≃ₗ[R] M₂) := ⟨isometry.to_linear_equiv⟩
+
+instance : has_coe_to_fun (Q₁.isometry Q₂) :=
+{ F := λ _, M₁ → M₂, coe := λ f, ⇑(f : M₁ ≃ₗ[R] M₂) }
+
+@[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
+
+/-- The identity isometry from a quadratic form to itself. -/
+@[refl]
+def refl (Q : quadratic_form R M) : Q.isometry Q :=
+{ map_app' := λ m, rfl,
+  .. linear_equiv.refl R M }
+
+/-- The inverse isometry of an isometry between two quadratic forms. -/
+@[symm]
+def symm (f : Q₁.isometry Q₂) : Q₂.isometry Q₁ :=
+{ map_app' := by { intro m, rw ← f.map_app, congr, exact f.to_linear_equiv.apply_symm_apply m },
+  .. (f : M₁ ≃ₗ[R] M₂).symm }
+
+/-- The composition of two isometries between quadratic forms. -/
+@[trans]
+def trans (f : Q₁.isometry Q₂) (g : Q₂.isometry Q₃) : Q₁.isometry Q₃ :=
+{ map_app' := by { intro m, rw [← f.map_app, ← g.map_app], refl },
+  .. (f : M₁ ≃ₗ[R] M₂).trans (g : M₂ ≃ₗ[R] M₃) }
+
+end isometry
+
+namespace equivalent
+
+variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
+
+@[refl]
+lemma refl (Q : quadratic_form R M) : Q.equivalent Q := ⟨isometry.refl Q⟩
+
+@[symm]
+lemma symm (h : Q₁.equivalent Q₂) : Q₂.equivalent Q₁ := h.elim $ λ f, ⟨f.symm⟩
+
+@[trans]
+lemma trans (h : Q₁.equivalent Q₂) (h' : Q₂.equivalent Q₃) : Q₁.equivalent Q₃ :=
+h'.elim $ h.elim $ λ f g, ⟨f.trans g⟩
+
+end equivalent
 
 end quadratic_form

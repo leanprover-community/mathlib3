@@ -142,20 +142,23 @@ lemma map_mul' (f : α → β) (x y : free_magma α) : (f <$> (x * y)) = (f <$> 
 lemma pure_bind (f : α → free_magma β) (x) : (pure x >>= f) = f x := rfl
 
 @[simp, to_additive]
-lemma mul_bind (f : α → free_magma β) (x y : free_magma α) : (x * y >>= f) = ((x >>= f) * (y >>= f)) := rfl
+lemma mul_bind (f : α → free_magma β) (x y : free_magma α) :
+  (x * y >>= f) = ((x >>= f) * (y >>= f)) := rfl
 
 @[simp, to_additive]
 lemma pure_seq {α β : Type u} {f : α → β} {x : free_magma α} : pure f <*> x = f <$> x := rfl
 
 @[simp, to_additive]
-lemma mul_seq {α β : Type u} {f g : free_magma (α → β)} {x : free_magma α} : (f * g) <*> x = (f <*> x) * (g <*> x) := rfl
+lemma mul_seq {α β : Type u} {f g : free_magma (α → β)} {x : free_magma α} :
+  (f * g) <*> x = (f <*> x) * (g <*> x) := rfl
 
 @[to_additive]
 instance : is_lawful_monad free_magma.{u} :=
 { pure_bind := λ _ _ _ _, rfl,
   bind_assoc := λ α β γ x f g, free_magma.rec_on'' x (λ x, rfl)
     (λ x y ih1 ih2, by rw [mul_bind, mul_bind, mul_bind, ih1, ih2]),
-  id_map := λ α x, free_magma.rec_on'' x (λ _, rfl) (λ x y ih1 ih2, by rw [map_mul', ih1, ih2]) }
+  id_map := λ α x, free_magma.rec_on'' x (λ _, rfl)
+    (λ x y ih1 ih2, by rw [map_mul', ih1, ih2]) }
 
 end category
 
@@ -195,16 +198,20 @@ lemma traverse_pure (x) : traverse F (pure x : free_magma α) = pure <$> F x := 
 lemma traverse_pure' : traverse F ∘ pure = λ x, (pure <$> F x : m (free_magma β)) := rfl
 
 @[simp, to_additive]
-lemma traverse_mul (x y : free_magma α) : traverse F (x * y) = (*) <$> traverse F x <*> traverse F y := rfl
+lemma traverse_mul (x y : free_magma α) :
+  traverse F (x * y) = (*) <$> traverse F x <*> traverse F y := rfl
 
 @[simp, to_additive]
-lemma traverse_mul' : function.comp (traverse F) ∘ @has_mul.mul (free_magma α) _ = λ x y, (*) <$> traverse F x <*> traverse F y := rfl
+lemma traverse_mul' :
+  function.comp (traverse F) ∘ @has_mul.mul (free_magma α) _ =
+    λ x y, (*) <$> traverse F x <*> traverse F y := rfl
 
 @[simp, to_additive]
 lemma traverse_eq (x) : free_magma.traverse F x = traverse F x := rfl
 
 @[simp, to_additive]
-lemma mul_map_seq (x y : free_magma α) : ((*) <$> x <*> y : id (free_magma α)) = (x * y : free_magma α) := rfl
+lemma mul_map_seq (x y : free_magma α) :
+  ((*) <$> x <*> y : id (free_magma α)) = (x * y : free_magma α) := rfl
 
 @[to_additive]
 instance : is_lawful_traversable free_magma.{u} :=
@@ -459,19 +466,24 @@ free_semigroup.rec_on x ih1 ih2
 lemma map_pure (f : α → β) (x) : (f <$> pure x : free_semigroup β) = pure (f x) := rfl
 
 @[simp, to_additive]
-lemma map_mul' (f : α → β) (x y : free_semigroup α) : (f <$> (x * y)) = (f <$> x * f <$> y) :=
+lemma map_mul' (f : α → β) (x y : free_semigroup α) :
+  (f <$> (x * y)) = (f <$> x * f <$> y) :=
 map_mul _ _ _
 
-@[simp, to_additive] lemma pure_bind (f : α → free_semigroup β) (x) : (pure x >>= f) = f x := rfl
+@[simp, to_additive] lemma pure_bind (f : α → free_semigroup β) (x) :
+  (pure x >>= f) = f x := rfl
 
 @[simp, to_additive]
-lemma mul_bind (f : α → free_semigroup β) (x y : free_semigroup α) : (x * y >>= f) = ((x >>= f) * (y >>= f)) :=
+lemma mul_bind (f : α → free_semigroup β) (x y : free_semigroup α) :
+  (x * y >>= f) = ((x >>= f) * (y >>= f)) :=
 lift_mul _ _ _
 
-@[simp, to_additive] lemma pure_seq {f : α → β} {x : free_semigroup α} : pure f <*> x = f <$> x := rfl
+@[simp, to_additive] lemma pure_seq {f : α → β} {x : free_semigroup α} :
+  pure f <*> x = f <$> x := rfl
 
 @[simp, to_additive]
-lemma mul_seq {f g : free_semigroup (α → β)} {x : free_semigroup α} : (f * g) <*> x = (f <*> x) * (g <*> x) :=
+lemma mul_seq {f g : free_semigroup (α → β)} {x : free_semigroup α} :
+  (f * g) <*> x = (f <*> x) * (g <*> x) :=
 mul_bind _ _ _
 
 @[to_additive]
@@ -483,7 +495,8 @@ instance : is_lawful_monad free_semigroup.{u} :=
 
 /-- `free_semigroup` is traversable. -/
 @[to_additive "`free_add_semigroup` is traversable."]
-protected def traverse {m : Type u → Type u} [applicative m] {α β : Type u} (F : α → m β) (x : free_semigroup α) : m (free_semigroup β) :=
+protected def traverse {m : Type u → Type u} [applicative m]
+  {α β : Type u} (F : α → m β) (x : free_semigroup α) : m (free_semigroup β) :=
 rec_on' x (λ x, pure <$> F x) (λ x y ihx ihy, (*) <$> ihx <*> ihy)
 
 @[to_additive]
@@ -496,18 +509,24 @@ variables {m : Type u → Type u} [applicative m] (F : α → m β)
 
 section
 variables [is_lawful_applicative m]
-@[simp, to_additive] lemma traverse_mul (x y : free_semigroup α) : traverse F (x * y) = (*) <$> traverse F x <*> traverse F y :=
+@[simp, to_additive] lemma traverse_mul (x y : free_semigroup α) :
+  traverse F (x * y) = (*) <$> traverse F x <*> traverse F y :=
 let ⟨x, L1⟩ := x, ⟨y, L2⟩ := y in
-list.rec_on L1 (λ x, rfl) (λ hd tl ih x, show (*) <$> pure <$> F x <*> traverse F ((hd, tl) * (y, L2) : free_semigroup α) =
-  (*) <$> ((*) <$> pure <$> F x <*> traverse F (hd, tl)) <*> traverse F (y, L2), by rw ih; simp only [(∘), (mul_assoc _ _ _).symm] with functor_norm) x
+list.rec_on L1 (λ x, rfl) (λ hd tl ih x,
+  show (*) <$> pure <$> F x <*> traverse F ((hd, tl) * (y, L2) : free_semigroup α) =
+  (*) <$> ((*) <$> pure <$> F x <*> traverse F (hd, tl)) <*> traverse F (y, L2),
+  by rw ih; simp only [(∘), (mul_assoc _ _ _).symm] with functor_norm) x
 
-@[simp, to_additive] lemma traverse_mul' : function.comp (traverse F) ∘ @has_mul.mul (free_semigroup α) _ = λ x y, (*) <$> traverse F x <*> traverse F y :=
+@[simp, to_additive] lemma traverse_mul' :
+  function.comp (traverse F) ∘ @has_mul.mul (free_semigroup α) _ =
+    λ x y, (*) <$> traverse F x <*> traverse F y :=
 funext $ λ x, funext $ λ y, traverse_mul F x y
 end
 
 @[simp, to_additive] lemma traverse_eq (x) : free_semigroup.traverse F x = traverse F x := rfl
 
-@[simp, to_additive] lemma mul_map_seq (x y : free_semigroup α) : ((*) <$> x <*> y : id (free_semigroup α)) = (x * y : free_semigroup α) := rfl
+@[simp, to_additive] lemma mul_map_seq (x y : free_semigroup α) :
+  ((*) <$> x <*> y : id (free_semigroup α)) = (x * y : free_semigroup α) := rfl
 
 @[to_additive]
 instance : is_lawful_traversable free_semigroup.{u} :=
@@ -532,17 +551,20 @@ end free_semigroup
 
 /-- Isomorphism between `magma.free_semigroup (free_magma α)` and `free_semigroup α`. -/
 @[to_additive free_add_semigroup_free_add_magma "Isomorphism between `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
-def free_semigroup_free_magma (α : Type u) : magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
+def free_semigroup_free_magma (α : Type u) :
+  magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
 { to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),
   inv_fun := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
   left_inv := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
     exact free_magma.rec_on' p
       (λ x, by rw [free_magma.lift_of, free_semigroup.lift_of])
-      (λ x y ihx ihy, by rw [free_magma.lift_mul, free_semigroup.lift_mul, ihx, ihy, magma.free_semigroup.of_mul]),
+      (λ x y ihx ihy, by rw [free_magma.lift_mul, free_semigroup.lift_mul, ihx, ihy,
+        magma.free_semigroup.of_mul]),
   right_inv := λ x, free_semigroup.rec_on x
     (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_of])
     (λ x y ihx ihy, by rw [free_semigroup.lift_mul, magma.free_semigroup.lift_mul, ihx, ihy]) }
 
 @[simp, to_additive] lemma free_semigroup_free_magma_mul {α : Type u} (x y) :
-  free_semigroup_free_magma α (x * y) = free_semigroup_free_magma α x * free_semigroup_free_magma α y :=
+  free_semigroup_free_magma α (x * y) = free_semigroup_free_magma α x *
+    free_semigroup_free_magma α y :=
 magma.free_semigroup.lift_mul _ _ _

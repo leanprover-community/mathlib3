@@ -139,7 +139,7 @@ lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.t
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
 
 @[ext] lemma ext ⦃h₁ h₂ : α ≃ᵢ β⦄ (H : ∀ x, h₁ x = h₂ x) : h₁ = h₂ :=
-to_equiv_inj $ equiv.ext _ _ H
+to_equiv_inj $ equiv.ext H
 
 /-- Alternative constructor for isometric bijections,
 taking as input an isometry, and a right inverse. -/

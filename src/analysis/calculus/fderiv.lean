@@ -784,7 +784,8 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 end const
 
 section continuous_linear_map
-/-! ### Continuous linear maps
+/-!
+### Continuous linear maps
 
 There are currently two variants of these in mathlib, the bundled version
 (named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
@@ -2370,11 +2371,13 @@ end
 end tangent_cone
 
 section restrict_scalars
-/-! ### Restricting from `ℂ` to `ℝ`, or generally from `𝕜'` to `𝕜`
+/-!
+### Restricting from `ℂ` to `ℝ`, or generally from `𝕜'` to `𝕜`
 
 If a function is differentiable over `ℂ`, then it is differentiable over `ℝ`. In this paragraph,
 we give variants of this statement, in the general situation where `ℂ` and `ℝ` are replaced
-respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`. -/
+respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`.
+-/
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']

@@ -252,6 +252,51 @@ section min_fac
     end
   end
 
+  /--
+  The square of the smallest prime factor of a composite number `n` is at most `n`.
+  -/
+  lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
+  calc
+  (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+            ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
+            ... ≤ n                           : div_mul_le_self n (min_fac n)
+
+  @[simp]
+  lemma min_fac_eq_one_iff {n : ℕ} : min_fac n = 1 ↔ n = 1 :=
+  begin
+    split,
+    { intro h,
+      by_contradiction,
+      have := min_fac_prime a,
+      rw h at this,
+      exact not_prime_one this, },
+    { rintro rfl, refl, }
+  end
+
+  @[simp]
+  lemma min_fac_eq_two_iff (n : ℕ) : min_fac n = 2 ↔ 2 ∣ n :=
+  begin
+    split,
+    { intro h,
+      convert min_fac_dvd _,
+      rw h, },
+    { intro h,
+      have ub := min_fac_le_of_dvd (le_refl 2) h,
+      have lb := min_fac_pos n,
+      -- If `interval_cases` and `norm_num` were already available here,
+      -- this would be easy and pleasant.
+      -- But they aren't, so it isn't.
+      cases h : n.min_fac with m,
+      { rw h at lb, cases lb, },
+      { cases m with m,
+        { simp at h, subst h, cases h with n h, cases n; cases h, },
+        { cases m with m,
+          { refl, },
+          { rw h at ub,
+            cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
+  end
+
 end min_fac
 
 theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
@@ -348,6 +393,13 @@ theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p �
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
+
+lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
+λ hp, (hp.2 x $ dvd_trans ⟨x, nat.pow_two _⟩ (nat.pow_dvd_pow _ hn)).elim
+  (λ hx1, hp.ne_one $ hx1.symm ▸ nat.one_pow _)
+  (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (nat.pow_one _).symm
+     ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
+     ... = x : hxn.symm)
 
 lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=

@@ -21,5 +21,5 @@ end complex
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real
 vector space. -/
 instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-module.restrict_scalars ℝ ℂ E
+module.restrict_scalars' ℝ ℂ E
 attribute [instance, priority 900] module.complex_to_real

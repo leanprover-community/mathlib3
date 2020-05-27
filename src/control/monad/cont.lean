@@ -114,8 +114,11 @@ instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
 { call_cc := λ α β, except_t.call_cc }
 
 instance {ε} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (except_t ε m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp, congr, ext ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
-  call_cc_bind_left  := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
+{ call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
+    congr, ext ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
+  call_cc_bind_left  := by { intros,
+    simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
+      bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,except_t.call_cc,@call_cc_dummy m _], ext, refl }, }
 
 def option_t.mk_label {α β} : label (option.{u} α) m β → label α (option_t m) β
@@ -124,15 +127,18 @@ def option_t.mk_label {α β} : label (option.{u} α) m β → label α (option_
 lemma option_t.goto_mk_label {α β : Type*} (x : label (option.{u} α) m β) (i : α) :
   goto (option_t.mk_label x) i = ⟨ some <$> goto x (some i) ⟩ := by cases x; refl
 
-def option_t.call_cc [monad_cont m] {α β : Type*} (f : label α (option_t m) β → option_t m α) : option_t m α :=
+def option_t.call_cc [monad_cont m] {α β : Type*} (f : label α (option_t m) β → option_t m α) :
+  option_t m α :=
 option_t.mk (call_cc $ λ x : label _ m β, option_t.run $ f (option_t.mk_label x) : m (option α))
 
 instance [monad_cont m] : monad_cont (option_t m) :=
 { call_cc := λ α β, option_t.call_cc }
 
 instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_t m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp, congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
-  call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
+{ call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
+    congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
+  call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,
+    option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
 
 def writer_t.mk_label {α β ω} [has_one ω] : label (α × ω) m β → label α (writer_t ω m) β
@@ -141,7 +147,8 @@ def writer_t.mk_label {α β ω} [has_one ω] : label (α × ω) m β → label 
 lemma writer_t.goto_mk_label {α β ω : Type*} [has_one ω] (x : label (α × ω) m β) (i : α) :
   goto (writer_t.mk_label x) i = monad_lift (goto x (i,1)) := by cases x; refl
 
-def writer_t.call_cc [monad_cont m] {α β ω : Type*} [has_one ω] (f : label α (writer_t ω m) β → writer_t ω m α) : writer_t ω m α :=
+def writer_t.call_cc [monad_cont m] {α β ω : Type*} [has_one ω]
+  (f : label α (writer_t ω m) β → writer_t ω m α) : writer_t ω m α :=
 ⟨ call_cc (writer_t.run ∘ f ∘ writer_t.mk_label : label (α × ω) m β → m (α × ω)) ⟩
 
 instance (ω) [monad m] [has_one ω] [monad_cont m] : monad_cont (writer_t ω m) :=
@@ -153,16 +160,21 @@ def state_t.mk_label {α β σ : Type u} : label (α × σ) m (β × σ) → lab
 lemma state_t.goto_mk_label {α β σ : Type u} (x : label (α × σ) m (β × σ)) (i : α) :
   goto (state_t.mk_label x) i = ⟨ λ s, (goto x (i,s)) ⟩ := by cases x; refl
 
-def state_t.call_cc {σ}  [monad_cont m] {α β : Type*} (f : label α (state_t σ m) β → state_t σ m α) : state_t σ m α :=
+def state_t.call_cc {σ}  [monad_cont m] {α β : Type*}
+  (f : label α (state_t σ m) β → state_t σ m α) : state_t σ m α :=
 ⟨ λ r, call_cc (λ f', (f $ state_t.mk_label f').run r) ⟩
 
 instance {σ} [monad_cont m] : monad_cont (state_t σ m) :=
 { call_cc := λ α β, state_t.call_cc }
 
 instance {σ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (state_t σ m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp, congr, ext ⟨x₀,x₁⟩, refl },
-  call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),state_t.bind,state_t.goto_mk_label], ext, refl },
-  call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind,@call_cc_dummy m _], ext, refl }, }
+{ call_cc_bind_right := by { intros,
+    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp, congr,
+    ext ⟨x₀,x₁⟩, refl },
+  call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
+    state_t.bind,state_t.goto_mk_label], ext, refl },
+  call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),
+    state_t.bind,@call_cc_dummy m _], ext, refl }, }
 
 def reader_t.mk_label {α β} (ρ) : label α m β → label α (reader_t ρ m) β
 | ⟨ f ⟩ := ⟨ monad_lift ∘ f ⟩
@@ -170,13 +182,16 @@ def reader_t.mk_label {α β} (ρ) : label α m β → label α (reader_t ρ m) 
 lemma reader_t.goto_mk_label {α ρ β} (x : label α m β) (i : α) :
   goto (reader_t.mk_label ρ x) i = monad_lift (goto x i) := by cases x; refl
 
-def reader_t.call_cc {ε}  [monad_cont m] {α β : Type*} (f : label α (reader_t ε m) β → reader_t ε m α) : reader_t ε m α :=
+def reader_t.call_cc {ε}  [monad_cont m] {α β : Type*}
+  (f : label α (reader_t ε m) β → reader_t ε m α) : reader_t ε m α :=
 ⟨ λ r, call_cc (λ f', (f $ reader_t.mk_label _ f').run r) ⟩
 
 instance {ρ} [monad_cont m] : monad_cont (reader_t ρ m) :=
 { call_cc := λ α β, reader_t.call_cc }
 
 instance {ρ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (reader_t ρ m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_right], ext, refl },
-  call_cc_bind_left  := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_left,reader_t.goto_mk_label], ext, refl },
+{ call_cc_bind_right :=
+    by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_right], ext, refl },
+  call_cc_bind_left  := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_left,
+    reader_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,reader_t.call_cc,@call_cc_dummy m _], ext, refl } }

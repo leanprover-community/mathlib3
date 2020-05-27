@@ -252,10 +252,31 @@ theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
+/-- `sphere x ε` is the set of all points `y` with `dist y x = ε` -/
+def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
+
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
+
+theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
+λ y, le_of_eq
+
+theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
+λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
+
+@[simp] theorem ball_union_sphere : ball x ε ∪ sphere x ε = closed_ball x ε :=
+set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm
+
+@[simp] theorem sphere_union_ball : sphere x ε ∪ ball x ε = closed_ball x ε :=
+by rw [union_comm, ball_union_sphere]
+
+@[simp] theorem closed_ball_diff_sphere : closed_ball x ε \ sphere x ε = ball x ε :=
+by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm]
+
+@[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
+by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
 
 theorem pos_of_mem_ball (hy : y ∈ ball x ε) : ε > 0 :=
 lt_of_le_of_lt dist_nonneg hy
@@ -294,13 +315,21 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
-theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
-(eq_empty_iff_forall_not_mem.trans
+@[simp] theorem ball_eq_empty_iff_nonpos : ball x ε = ∅ ↔ ε ≤ 0 :=
+eq_empty_iff_forall_not_mem.trans
 ⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
- λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩).symm
+ λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩
+
+@[simp] theorem closed_ball_eq_empty_iff_neg : closed_ball x ε = ∅ ↔ ε < 0 :=
+eq_empty_iff_forall_not_mem.trans
+⟨λ h, not_le.1 $ λ ε0, h x $ mem_closed_ball_self ε0,
+  λ ε0 y h, not_lt_of_le (mem_closed_ball.1 h) (lt_of_lt_of_le ε0 dist_nonneg)⟩
 
 @[simp] lemma ball_zero : ball x 0 = ∅ :=
-by rw [← metric.ball_eq_empty_iff_nonpos]
+by rw [ball_eq_empty_iff_nonpos]
+
+@[simp] lemma closed_ball_zero : closed_ball x 0 = {x} :=
+set.ext $ λ y, dist_le_zero
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
@@ -1017,6 +1046,18 @@ variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_id.dist continuous_const) continuous_const
+
+theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
+closure_minimal ball_subset_closed_ball is_closed_ball
+
+theorem frontier_ball_subset_sphere : frontier (ball x ε) ⊆ sphere x ε :=
+frontier_lt_subset_eq (continuous_id.dist continuous_const) continuous_const
+
+theorem frontier_closed_ball_subset_sphere : frontier (closed_ball x ε) ⊆ sphere x ε :=
+frontier_le_subset_eq (continuous_id.dist continuous_const) continuous_const
+
+theorem ball_subset_interior_closed_ball : ball x ε ⊆ interior (closed_ball x ε) :=
+interior_maximal ball_subset_closed_ball is_open_ball
 
 /-- ε-characterization of the closure in metric spaces-/
 @[nolint ge_or_gt] -- see Note [nolint_ge]

@@ -157,7 +157,8 @@ equiv_congr e e
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
-protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) : t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
+protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
 lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
@@ -599,7 +600,8 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : ∀ a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
-def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) : (Π x : sigma β, γ x.1 x.2) ≃ (Π a b, γ a b) :=
+def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
+  (Π x : sigma β, γ x.1 x.2) ≃ (Π a b, γ a b) :=
 { to_fun := λ f x y, f ⟨x,y⟩,
   inv_fun := λ f x, f x.1 x.2,
   left_inv := λ f, funext $ λ ⟨x,y⟩, rfl,
@@ -1066,7 +1068,8 @@ end)
 @[simp] lemma swap_mul_self {α : Type*} [decidable_eq α] (i j : α) : swap i j * swap i j = 1 :=
 equiv.swap_swap i j
 
-@[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) : swap i j (swap i j a) = a :=
+@[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) :
+  swap i j (swap i j a) = a :=
 by rw [← perm.mul_apply, swap_mul_self, perm.one_apply]
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
@@ -1100,8 +1103,9 @@ variables {α₁ : Sort ua1} {α₂ : Sort ua2}
           {β₁ : Sort ub1} {β₂ : Sort ub2}
           {γ₁ : Sort ug1} {γ₂ : Sort ug2}
 
-protected lemma forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
-  (h : ∀{x y}, p x y ↔ q (eα x) (eβ y)) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+protected lemma forall₂_congr {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂)
+  (eβ : β₁ ≃ β₂) (h : ∀{x y}, p x y ↔ q (eα x) (eβ y)) :
+  (∀x y, p x y) ↔ (∀x y, q x y) :=
 begin
   apply equiv.forall_congr,
   intros,
@@ -1109,8 +1113,9 @@ begin
   intros,
   apply h,
 end
-protected lemma forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂) (eβ : β₁ ≃ β₂)
-  (h : ∀{x y}, p (eα.symm x) (eβ.symm y) ↔ q x y) : (∀x y, p x y) ↔ (∀x y, q x y) :=
+protected lemma forall₂_congr' {p : α₁ → β₁ → Prop} {q : α₂ → β₂ → Prop} (eα : α₁ ≃ α₂)
+  (eβ : β₁ ≃ β₂) (h : ∀{x y}, p (eα.symm x) (eβ.symm y) ↔ q x y) :
+  (∀x y, p x y) ↔ (∀x y, q x y) :=
 (equiv.forall₂_congr eα.symm eβ.symm (λ x y, h.symm)).symm
 
 protected lemma forall₃_congr {p : α₁ → β₁ → γ₁ → Prop} {q : α₂ → β₂ → γ₂ → Prop}
@@ -1146,8 +1151,10 @@ Transport dependent functions through an equivalence of the base space.
 def Pi_congr_left' : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
 { to_fun := λ f x, f (e.symm x),
   inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
-  left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { dsimp, rw e.symm_apply_apply })),
-  right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { rw e.apply_symm_apply })) }
+  left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans
+    (by { dsimp, rw e.symm_apply_apply })),
+  right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans
+    (by { rw e.apply_symm_apply })) }
 
 @[simp]
 lemma Pi_congr_left'_apply (f : Π a, P a) (b : β) : ((Pi_congr_left' P e) f) b = f (e.symm b) :=

@@ -57,10 +57,6 @@ noncomputable theory
 open_locale classical
 open finset
 
-local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
-
-
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
 {G : Type wG} {E : fin n.succ → Type w} {E₁ : ι → Type w₁} {E₂ : Type w₂}
@@ -392,11 +388,28 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
+instance to_normed_group (𝕜 : Type u) {ι : Type v} (E₁ : ι → Type w₁) (E₂ : Type w₂)
+  [decidable_eq ι] [fintype ι] [nondiscrete_normed_field 𝕜]
+  {nE₁ : ∀i, normed_group (E₁ i)} {nE₂ : normed_group E₂}
+  [∀i, normed_space 𝕜 (E₁ i)] [normed_space 𝕜 E₂] :
+  normed_group (continuous_multilinear_map 𝕜 E₁ E₂) :=
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+
+instance to_normed_space {𝕜 : Type u} {ι : Type v} {E₁ : ι → Type w₁} {E₂ : Type w₂}
+  [decidable_eq ι] [fintype ι] [h𝕜 : nondiscrete_normed_field 𝕜]
+  {nE₁ : ∀i, normed_group (E₁ i)} {nE₂ : normed_group E₂}
+  [∀i, normed_space 𝕜 (E₁ i)] [normed_space 𝕜 E₂] :
+  @normed_space 𝕜 (continuous_multilinear_map 𝕜 E₁ E₂) h𝕜.to_normed_field
+    (continuous_multilinear_map.to_normed_group 𝕜 E₁ E₂) :=
+⟨op_norm_smul_le⟩
+
+/-
 instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E₁ E₂) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜 (continuous_multilinear_map 𝕜 E₁ E₂) :=
 ⟨op_norm_smul_le⟩
+-/
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
 For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads
@@ -545,13 +558,15 @@ continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 namespace continuous_multilinear_map
 
-/- The next two instances are not found automatically. Register them explicitly.
-TODO: understand why, and fix. -/
+-- If you comment the next two lines, then the instances just after don't work
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
+
 instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-@continuous_multilinear_map.to_normed_group 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
+by apply_instance
 
 instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-@continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
+by apply_instance
 
 /-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
 `s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.images
 import category_theory.epi_mono
 import category_theory.punit
 
@@ -97,6 +98,11 @@ by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
 by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
 
+lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
+by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
+
+lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : image.ι f ≠ 0 :=
+λ h, w (eq_zero_of_image_eq_zero h)
 end
 
 section

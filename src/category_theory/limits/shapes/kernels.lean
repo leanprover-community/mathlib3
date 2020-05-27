@@ -107,6 +107,9 @@ def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
+lemma eq_zero_of_kernel_is_iso [is_iso (kernel.ι f)] : f = 0 :=
+(cancel_epi (kernel.ι f)).1 (by simp)
+
 end
 
 section has_zero_object

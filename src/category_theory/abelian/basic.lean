@@ -152,32 +152,24 @@ begin
   haveI : mono u := mono_comp _ _,
   have hu := abelian.normal_mono u,
   let h := hu.g,
-
   -- By hypothesis, p factors through the kernel of g via some t.
   obtain ⟨t, ht⟩ := kernel.lift' g p hpg,
-
   have fh : f ≫ h = 0, calc
     f ≫ h = (p ≫ i) ≫ h : (image.fac f).symm ▸ rfl
        ... = ((t ≫ kernel.ι g) ≫ i) ≫ h : ht ▸ rfl
        ... = t ≫ u ≫ h : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
        ... = t ≫ 0 : hu.w ▸ rfl
        ... = 0 : has_zero_morphisms.comp_zero _ _,
-
   -- h factors through the cokernel of f via some l.
   obtain ⟨l, hl⟩ := cokernel.desc' f h fh,
-
   have hih : i ≫ h = 0, calc
     i ≫ h = i ≫ cokernel.π f ≫ l : hl ▸ rfl
        ... = 0 ≫ l : by rw [←category.assoc, kernel.condition]
        ... = 0 : has_zero_morphisms.zero_comp _ _,
-
   -- i factors through u = ker h via some s.
   obtain ⟨s, hs⟩ := normal_mono.lift' u i hih,
-
   have hs' : (s ≫ kernel.ι g) ≫ i = 𝟙 I ≫ i, by rw [category.assoc, hs, category.id_comp],
-
   haveI : epi (kernel.ι g) := epi_of_epi_fac ((cancel_mono _).1 hs'),
-
   -- ker g is an epimorphism, but ker g ≫ g = 0 = ker g ≫ 0, so g = 0 as required.
   exact zero_of_epi_comp _ (kernel.condition g)
 end
@@ -221,32 +213,24 @@ begin
   haveI : epi u := epi_comp _ _,
   have hu := abelian.normal_epi u,
   let h := hu.g,
-
   -- By hypothesis, i factors through the cokernel of g via some t.
   obtain ⟨t, ht⟩ := cokernel.desc' g i hgi,
-
   have hf : h ≫ f = 0, calc
     h ≫ f = h ≫ (p ≫ i) : (coimage.fac f).symm ▸ rfl
     ... = h ≫ (p ≫ (cokernel.π g ≫ t)) : ht ▸ rfl
     ... = h ≫ u ≫ t : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
     ... = 0 ≫ t : by rw [←category.assoc, hu.w]
     ... = 0 : has_zero_morphisms.zero_comp _ _,
-
   -- h factors through the kernel of f via some l.
   obtain ⟨l, hl⟩ := kernel.lift' f h hf,
-
   have hhp : h ≫ p = 0, calc
     h ≫ p = (l ≫ kernel.ι f) ≫ p : hl ▸ rfl
     ... = l ≫ 0 : by rw [category.assoc, cokernel.condition]
     ... = 0 : has_zero_morphisms.comp_zero _ _,
-
   -- p factors through u = coker h via some s.
   obtain ⟨s, hs⟩ := normal_epi.desc' u p hhp,
-
   have hs' : p ≫ cokernel.π g ≫ s = p ≫ 𝟙 I, by rw [←category.assoc, hs, category.comp_id],
-
   haveI : mono (cokernel.π g) := mono_of_mono_fac ((cancel_epi _).1 hs'),
-
   -- coker g is a monomorphism, but g ≫ coker g = 0 = 0 ≫ coker g, so g = 0 as required.
   exact zero_of_comp_mono _ (cokernel.condition g)
 end
@@ -423,26 +407,21 @@ begin
   let u := biprod.desc (0 : X ⟶ R) e,
   -- The composite pullback f g ⟶ X ⊞ Y ⟶ R is zero by assumption.
   have hu : pullback_to_biproduct_is_kernel.pullback_to_biproduct f g ≫ u = 0 := by simpa,
-
   -- pullback_to_biproduct f g is a kernel of (f, -g), so (f, -g) is a
   -- cokernel of pullback_to_biproduct f g
   have := epi_is_cokernel_of_kernel _
     (pullback_to_biproduct_is_kernel.is_limit_pullback_to_biproduct f g),
-
   -- We use this fact to obtain a factorization of u through (f, -g) via some d : Z ⟶ R.
   obtain ⟨d, hd⟩ := cokernel_cofork.is_colimit.desc' this u hu,
   change Z ⟶ R at d,
   change biprod.desc f (-g) ≫ d = u at hd,
-
   -- But then f ≫ d = 0:
   have : f ≫ d = 0, calc
     f ≫ d = (biprod.inl ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inl_desc
     ... = biprod.inl ≫ u : by rw [category.assoc, hd]
     ... = 0 : coprod.inl_desc _ _,
-
   -- But f is an epimorphism, so d = 0...
   have : d = 0 := (cancel_epi f).1 (by simpa),
-
   -- ...or, in other words, e = 0.
   calc
     e = biprod.inr ≫ u : by rw coprod.inr_desc
@@ -462,26 +441,21 @@ begin
   let u := biprod.desc e (0 : Y ⟶ R),
   -- The composite pullback f g ⟶ X ⊞ Y ⟶ R is zero by assumption.
   have hu : pullback_to_biproduct_is_kernel.pullback_to_biproduct f g ≫ u = 0 := by simpa,
-
   -- pullback_to_biproduct f g is a kernel of (f, -g), so (f, -g) is a
   -- cokernel of pullback_to_biproduct f g
   have := epi_is_cokernel_of_kernel _
     (pullback_to_biproduct_is_kernel.is_limit_pullback_to_biproduct f g),
-
   -- We use this fact to obtain a factorization of u through (f, -g) via some d : Z ⟶ R.
   obtain ⟨d, hd⟩ := cokernel_cofork.is_colimit.desc' this u hu,
   change Z ⟶ R at d,
   change biprod.desc f (-g) ≫ d = u at hd,
-
   -- But then (-g) ≫ d = 0:
   have : (-g) ≫ d = 0, calc
     (-g) ≫ d = (biprod.inr ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inr_desc
     ... = biprod.inr ≫ u : by rw [category.assoc, hd]
     ... = 0 : coprod.inr_desc _ _,
-
   -- But g is an epimorphism, thus so is -g, so d = 0...
   have : d = 0 := (cancel_epi (-g)).1 (by simpa),
-
   -- ...or, in other words, e = 0.
   calc
     e = biprod.inl ≫ u : by rw coprod.inl_desc
@@ -503,21 +477,16 @@ mono_of_cancel_zero _ $ λ R e h,
 begin
   let u := biprod.lift (0 : R ⟶ Y) e,
   have hu : u ≫ biproduct_to_pushout_is_cokernel.biproduct_to_pushout f g = 0 := by simpa,
-
   have := mono_is_kernel_of_cokernel _
     (biproduct_to_pushout_is_cokernel.is_colimit_biproduct_to_pushout f g),
-
   obtain ⟨d, hd⟩ := kernel_fork.is_limit.lift' this u hu,
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
-
   have : d ≫ f = 0, calc
     d ≫ f = d ≫ biprod.lift f (-g) ≫ biprod.fst : by rw prod.lift_fst
     ... = u ≫ biprod.fst : by rw [←category.assoc, hd]
     ... = 0 : prod.lift_fst _ _,
-
   have : d = 0 := (cancel_mono f).1 (by simpa),
-
   calc
     e = u ≫ biprod.snd : by rw prod.lift_snd
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw ←hd
@@ -531,21 +500,16 @@ mono_of_cancel_zero _ $ λ R e h,
 begin
   let u := biprod.lift e (0 : R ⟶ Z),
   have hu : u ≫ biproduct_to_pushout_is_cokernel.biproduct_to_pushout f g = 0 := by simpa,
-
   have := mono_is_kernel_of_cokernel _
     (biproduct_to_pushout_is_cokernel.is_colimit_biproduct_to_pushout f g),
-
   obtain ⟨d, hd⟩ := kernel_fork.is_limit.lift' this u hu,
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
-
   have : d ≫ (-g) = 0, calc
     d ≫ (-g) = d ≫ biprod.lift f (-g) ≫ biprod.snd : by rw prod.lift_snd
     ... = u ≫ biprod.snd : by rw [←category.assoc, hd]
     ... = 0 : prod.lift_snd _ _,
-
   have : d = 0 := (cancel_mono (-g)).1 (by simpa),
-
   calc
     e = u ≫ biprod.fst : by rw prod.lift_fst
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw ←hd

@@ -21,7 +21,7 @@ In this file we define
 * `vector_space k M` : same as `semimodule k M` and `module k M` but assumes that `k` is a `field`
   and `M` is an additive commutative group.
 
-* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`module`s.
+* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`semimodule`s.
 
 * `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map.
 
@@ -32,9 +32,7 @@ In this file we define
 
 ## Implementation notes
 
-* `vector_space` is an abbreviation for `module R M` while the latter `extends semimodule R M`.
-  There were several attempts to make `module` an abbreviation of `semimodule` but this makes
-  class instance search too hard for Lean 3.
+* `vector_space` and `module` are abbreviations for `semimodule R M`.
 
 ## TODO
 
@@ -105,6 +103,11 @@ section add_comm_group
 
 variables (R M) [semiring R] [add_comm_group M]
 
+/-- A structure containing most informations as in a semimodule, except the fields `zero_smul`
+and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
+this provides a way to construct a semimodule structure by checking less properties, in
+`semimodule.of_core`. -/
+@[nolint has_inhabited_instance]
 structure semimodule.core extends has_scalar R M :=
 (smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
@@ -135,6 +138,25 @@ by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 end add_comm_group
 
+/--
+Modules are defined as an `abbreviation` for semimodules,
+if the base semiring is a ring.
+(A previous definition made `module` a structure
+defined to be `semimodule`.)
+This has as advantage that modules are completely transparent
+for type class inference, which means that all instances for semimodules
+are immediately picked up for modules as well.
+A cosmetic disadvantage is that one can not extend modules an sich,
+in definitions such as `normed_space`.
+The solution is to extend `semimodule` instead.
+-/
+library_note "module definition"
+
+/-- A module is the same as a semimodule, except the scalar semiring is actually
+  a ring.
+  This is the traditional generalization of spaces like `ℤ^n`, which have a natural
+  addition operation and a way to multiply them by elements of a ring, but no multiplication
+  operation between vectors. -/
 abbreviation module (R : Type u) (M : Type v) [ring R] [add_comm_group M] :=
 semimodule R M
 
@@ -188,7 +210,7 @@ instance semiring.to_semimodule [semiring R] : semimodule R R :=
 @[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
-def ring_hom.to_module [ring R] [ring M] (f : R →+* M) : semimodule R M :=
+def ring_hom.to_semimodule [semiring R] [ring M] (f : R →+* M) : semimodule R M :=
 semimodule.of_core
 { smul := λ r x, f r * x,
   smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
@@ -196,12 +218,20 @@ semimodule.of_core
   mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
   one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul] }
 
+/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
+`f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
+property. A bundled version is available with `linear_map`, and should be favored over
+`is_linear_map` most of the time. -/
 class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
 (add  : ∀x y, f (x + y) = f x + f y)
 (smul : ∀(c : R) x, f (c • x) = c • f x)
 
+/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
+`f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
+the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
+the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
 (to_fun : M → M₂)
@@ -554,16 +584,16 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 end ideal
 
 /--
-Vector spaces are defined as an `abbreviation` for modules,
+Vector spaces are defined as an `abbreviation` for semimodules,
 if the base ring is a field.
 (A previous definition made `vector_space` a structure
 defined to be `module`.)
 This has as advantage that vector spaces are completely transparent
-for type class inference, which means that all instances for modules
+for type class inference, which means that all instances for semimodules
 are immediately picked up for vector spaces as well.
 A cosmetic disadvantage is that one can not extend vector spaces an sich,
 in definitions such as `normed_space`.
-The solution is to extend `module` instead.
+The solution is to extend `semimodule` instead.
 -/
 library_note "vector space definition"
 

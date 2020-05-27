@@ -34,20 +34,20 @@ variables {R}
   (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
   (mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P) m n = f m n := rfl
 
-variables (f : M →ₗ[R] N →ₗ[R] P)
-
 theorem ext₂ {f g : M →ₗ[R] N →ₗ[R] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
-/-- To a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map from `M × N` to
-`P`, change the order of coordinates and get a linear map from `N` to linear maps from `M` to `P`. -/
-def flip : N →ₗ M →ₗ P :=
+/-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map from `M × N` to
+`P`, change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
+def flip (f : M →ₗ[R] N →ₗ[R] P) : N →ₗ M →ₗ P :=
 mk₂ R (λ n m, f m n)
   (λ n₁ n₂ m, (f m).map_add _ _)
   (λ c n m, (f m).map_smul _ _)
   (λ n m₁ m₂, by rw f.map_add; refl)
   (λ c n m, by rw f.map_smul; refl)
+
+variable (f : M →ₗ[R] N →ₗ[R] P)
 
 @[simp] theorem flip_apply (m : M) (n : N) : flip f n m = f m n := rfl
 

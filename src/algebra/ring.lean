@@ -436,7 +436,7 @@ instance ring.to_semiring : semiring α :=
 { mul_zero := ring.mul_zero, zero_mul := ring.zero_mul, ..‹ring α› }
 
 /- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
-definitions are given in terms of semirings, but many applications use rings or fields. We improve
+definitions are given in terms of semirings, but many applications use rings or fields. We increase
 a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
 more specific instances are tried first. -/
 attribute [instance, priority 200] ring.to_semiring

@@ -620,7 +620,7 @@ begin
   have A_nonneg : ∀ i, 0 ≤ A i,
   { rintros ⟨k, n, s, hs⟩,
     change 0 ≤ ∥(p n).restr s hs x∥ * (r : ℝ) ^ k,
-    refine mul_nonneg' (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
+    refine mul_nonneg (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
   have tsum_nonneg : 0 ≤ tsum A := tsum_nonneg A_nonneg,
   apply le_radius_of_bound _ (nnreal.of_real (tsum A)) (λ k, _),
   rw [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_pow, coe_nnnorm,

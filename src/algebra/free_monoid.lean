@@ -77,7 +77,7 @@ def lift : (α → M) ≃ (free_monoid α →* M) :=
   right_inv := λ f, hom_eq $ λ x, one_mul (f (of x)) }
 
 @[to_additive]
-lemma lift_apply (f : α → M) (l : list α) : lift f l = (l.map f).prod := rfl
+lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.map f).prod := rfl
 
 @[to_additive]
 lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := lift.symm_apply_apply f

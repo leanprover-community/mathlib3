@@ -42,7 +42,7 @@ theorem degree_le_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_le.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum, submodule.mem_coe],
+    rw [← finsupp.sum_single p, finsupp.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
@@ -69,7 +69,7 @@ theorem degree_lt_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_lt.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum, submodule.mem_coe],
+    rw [← finsupp.sum_single p, finsupp.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),

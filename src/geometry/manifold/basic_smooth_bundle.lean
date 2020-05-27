@@ -374,6 +374,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     refl
   end,
   coord_change_comp := λi j u x hx, begin
+    -- FIXME this causes a deterministic timeout with `-T50000`
     /- The cocycle property is just the fact that the derivative of a composition is the product of
     the derivatives. One needs however to check that all the functions one considers are smooth, and
     to pay attention to the domains where these functions are defined, making this proof a little

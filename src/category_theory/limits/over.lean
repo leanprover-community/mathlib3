@@ -96,6 +96,7 @@ wide_pullback_shape.wide_cospan B (λ j, (F.obj j).left) (λ j, (F.obj j).hom)
 
 local attribute [tidy] tactic.case_bash
 
+-- FIXME deterministic timeout with `-T50000`
 /-- (Impl) Pull these out to avoid timeouts. -/
 @[simps]
 def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :

@@ -162,7 +162,7 @@ instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
   "Two additive isomorphisms agree if they are defined by the same underlying function."]
 lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }

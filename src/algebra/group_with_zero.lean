@@ -115,6 +115,46 @@ begin
         ... = a                 : by simp [inv_ne_zero' h]
 end
 
+/-- Multiplying `a` by itself and then by its inverse results in `a`
+(whether or not `a` is zero). -/
+@[simp] lemma mul_self_mul_inv (a : G₀) : a * a * a⁻¹ = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [mul_assoc, mul_inv_cancel' a h, mul_one] }
+end
+
+/-- Multiplying `a` by its inverse and then by itself results in `a`
+(whether or not `a` is zero). -/
+@[simp] lemma mul_inv_mul_self (a : G₀) : a * a⁻¹ * a = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [mul_inv_cancel' a h, one_mul] }
+end
+
+/-- Multiplying `a⁻¹` by `a` twice results in `a` (whether or not `a`
+is zero). -/
+@[simp] lemma inv_mul_mul_self (a : G₀) : a⁻¹ * a * a = a :=
+begin
+  classical,
+  by_cases h : a = 0,
+  { rw [h, inv_zero, mul_zero] },
+  { rw [inv_mul_cancel' a h, one_mul] }
+end
+
+/-- Multiplying `a` by itself and then dividing by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma mul_self_div_self (a : G₀) : a * a / a = a :=
+mul_self_mul_inv a
+
+/-- Dividing `a` by itself and then multiplying by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_self_mul_self (a : G₀) : a / a * a = a :=
+mul_inv_mul_self a
+
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
 inv_inv''
 
@@ -195,7 +235,7 @@ variables {G₀ : Type*} [group_with_zero G₀]
 lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 
 lemma is_unit_iff_ne_zero {x : G₀} : is_unit x ↔ x ≠ 0 :=
-⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
+⟨λ ⟨u, hu⟩, hu ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 lemma mul_eq_zero' (a b : G₀) (h : a * b = 0) : a = 0 ∨ b = 0 :=
 begin
@@ -440,6 +480,14 @@ by rw [div_div_eq_mul_div', div_mul_eq_mul_div', div_div_eq_div_mul']
 lemma div_mul_eq_div_mul_one_div' (a b c : G₀) :
       a / (b * c) = (a / b) * (1 / c) :=
 by rw [← div_div_eq_div_mul', ← div_eq_mul_one_div']
+
+/-- Dividing `a` by the result of dividing `a` by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
+begin
+  rw div_div_eq_mul_div',
+  exact mul_self_div_self a
+end
 
 lemma eq_of_mul_eq_mul_of_nonzero_left' {a b c : G₀} (h : a ≠ 0) (h₂ : a * b = a * c) : b = c :=
 by rw [← one_mul b, ← div_self' h, div_mul_eq_mul_div', h₂, mul_div_cancel_left' _ h]

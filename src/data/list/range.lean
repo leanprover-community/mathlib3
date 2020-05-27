@@ -115,6 +115,9 @@ by simp only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _
 
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
+by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
+
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
 

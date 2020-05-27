@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.simple
-import category_theory.abelian.basic
+import category_theory.preadditive
 
 /-!
 # Simple objects
-We prove the part of Schur's Lemma that holds in any abelian category,
+We prove the part of Schur's Lemma that holds in any preadditive category with kernels,
 that any nonzero morphism between simple objects
 is an isomorphism.
 
@@ -32,23 +32,18 @@ open category_theory.limits
 
 universes v u
 variables {C : Type u} [category.{v} C]
-variables [abelian.{v} C]
-
-local attribute [instance, priority 100] preadditive.has_limit_parallel_pair
+variables [preadditive.{v} C]
+variables [Π {X Y : C} (f : X ⟶ Y), has_limit (limits.parallel_pair f 0)]
 
 /--
-Schur's Lemma (for a general abelian category),
+Schur's Lemma (for a general preadditive category),
 that a nonzero morphism between simple objects is an isomorphism.
 -/
 def schur {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
-  classical,
-  have : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
-  have : epi f,
-  { have : is_iso (image.ι f) := is_iso_of_mono_of_nonzero (nonzero_image_of_nonzero w),
-    exact epi_of_image_is_iso f },
-  apply abelian.is_iso_of_mono_of_epi,
+  haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
+  exact is_iso_of_mono_of_nonzero w
 end
 
 end category_theory

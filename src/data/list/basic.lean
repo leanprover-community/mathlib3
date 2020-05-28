@@ -2720,6 +2720,10 @@ theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop
 
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
 
+theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
+
+theorem tail_subset (l : list α) : tail l ⊆ l := (sublist_of_suffix (tail_suffix l)).subset
+
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩
 

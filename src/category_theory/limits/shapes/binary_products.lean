@@ -362,6 +362,7 @@ section
 variables {C} [has_binary_products.{v} C]
 variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
 
+-- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod_functor : C ⥤ C ⥤ C :=

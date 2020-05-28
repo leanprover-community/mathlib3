@@ -2,8 +2,6 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
-
-Theory of univariate polynomials, represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
 -/
 import data.monoid_algebra
 import algebra.gcd_domain
@@ -11,6 +9,12 @@ import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import tactic.ring_exp
 import deprecated.field
+
+/-!
+# Theory of univariate polynomials
+
+Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
+-/
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable

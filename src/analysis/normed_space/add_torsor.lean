@@ -40,7 +40,7 @@ lemma dist_eq_norm (V : Type u) {P : Type v} [normed_group V] [metric_space P]
 normed_add_torsor.torsor_dist_eq_norm' x y
 
 /-- A `normed_group` is a `normed_add_torsor` over itself. -/
-instance normed_group_is_normed_add_torsor (V : Type u) [normed_group V] :
+instance normed_group.normed_add_torsor (V : Type u) [normed_group V] :
   normed_add_torsor V V :=
 { torsor_dist_eq_norm' := dist_eq_norm }
 

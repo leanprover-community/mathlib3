@@ -336,7 +336,7 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [nonzero_comm_ring R] [add_comm_group M] [module R M]
+lemma finite_of_linear_independent {R M} [comm_ring R] [nonzero R] [add_comm_group M] [module R M]
   [is_noetherian R M] {s : set M} (hs : linear_independent R (subtype.val : s → M)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
@@ -347,7 +347,7 @@ begin
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
-    rw [span_le_span_iff (@zero_ne_one R _) hs (this a) (this b),
+    rw [span_le_span_iff zero_ne_one hs (this a) (this b),
       set.image_subset_image_iff (subtype.val_injective.comp f.inj),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },

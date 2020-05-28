@@ -387,7 +387,7 @@ begin
   intro hw,
   induction' hw,
   case while_true {
-    specialize ih_hw_1 heq.rfl,
+    specialize ih_hw_1 rfl,
     -- Desired state here
     exact ih_hw_1
   },
@@ -443,7 +443,7 @@ begin
   intro hw,
   induction' hw,
   case while_true {
-    specialize ih_hw_1 heq.rfl,
+    specialize ih_hw_1 rfl,
     -- Desired state here.
     exact ih_hw_1,
   },

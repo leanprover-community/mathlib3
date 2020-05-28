@@ -505,20 +505,20 @@ lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 /-- 2147483647.prime, Euler (1772) -/
 example : (mersenne 31).prime :=
 lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-/-- prime 2305843009213693951.prime, Pervouchine (1883), Seelhoff (1886) -/
-example : (mersenne 61).prime :=
-lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
 /-!
-The next three primality tests are too slow to run interactively,
+The next four primality tests are too slow to run interactively with -T100000,
 but work fine on the command line.
 -/
 
--- /-- prime 618970019642690137449562111.prime, Powers (1911) -/
+-- /-- 2305843009213693951.prime, Pervouchine (1883), Seelhoff (1886) -/
+-- example : (mersenne 61).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- /-- 618970019642690137449562111.prime, Powers (1911) -/
 -- -- takes ~100s
 -- example : (mersenne 89).prime :=
 -- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- /-- prime 162259276829213363391578010288127.prime, Power (1914) -/
+-- /-- 162259276829213363391578010288127.prime, Power (1914) -/
 -- -- takes ~190s
 -- example : (mersenne 107).prime :=
 -- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
@@ -530,6 +530,7 @@ but work fine on the command line.
 /-! This still doesn't get us over the big gap and into the computer era, unfortunately. -/
 
 -- /-- (2^521 - 1).prime, Robinson (1954) -/
+-- -- This has not been run successfully!
 -- example : (mersenne 521).prime :=
 -- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 

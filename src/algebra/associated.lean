@@ -18,7 +18,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
   refine ⟨⟨0, 0, _, _⟩, rfl⟩; apply subsingleton.elim
  end⟩
 
-@[simp] theorem not_is_unit_zero [nonzero_semiring α] : ¬ is_unit (0 : α) :=
+@[simp] theorem not_is_unit_zero [semiring α] [nonzero α] : ¬ is_unit (0 : α) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=

@@ -18,8 +18,7 @@ and the plan is to slowly remove them from mathlib.
 
 ## Main definitions
 
-is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero_comm_semiring,
-nonzero_comm_ring, domain
+is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero, domain, integral_domain
 
 ## Notations
 
@@ -43,7 +42,7 @@ to use this method than to use type class inference.
 ## Tags
 
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
-domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
+domain, integral_domain, nonzero, units
 -/
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -739,7 +738,7 @@ theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a =
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
 
-/-- For elements a, b of a domain, if a*b is nonzero, so is b*a. -/
+/-- For elements `a`, `b` of a domain, if `a*b` is nonzero, so is `b*a`. -/
 theorem mul_ne_zero_comm' {a b : α} (h : a * b ≠ 0) : b * a ≠ 0 :=
 mul_ne_zero' (ne_zero_of_mul_ne_zero_left h) (ne_zero_of_mul_ne_zero_right h)
 
@@ -747,7 +746,7 @@ end domain
 
 /- integral domains -/
 
-@[ancestor comm_ring no_zero_divisors zero_ne_one_class]
+@[ancestor comm_ring no_zero_divisors nonzero]
 class integral_domain (α : Type u) extends comm_ring α, no_zero_divisors α, nonzero α
 
 section integral_domain
@@ -883,15 +882,6 @@ iff.intro
   (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
 
 end comm_semiring
-
-section domain
-variables [domain α]
-
-/-- Every unit in a domain is nonzero. -/
-@[simp] theorem ne_zero : ∀(u : units α), (↑u : α) ≠ 0
-| ⟨u, v, (huv : 0 * v = 1), hvu⟩ rfl := by simpa using huv
-
-end domain
 
 end units
 

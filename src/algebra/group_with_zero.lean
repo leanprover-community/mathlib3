@@ -50,10 +50,13 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*)
-  extends monoid_with_zero G₀, has_inv G₀, zero_ne_one_class G₀ :=
+class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
+(zero_ne_one : (0 : G₀) ≠ 1)
+
+instance group_with_zero.to_nonzero (G₀ : Type*) [group_with_zero G₀] : nonzero G₀ :=
+⟨group_with_zero.zero_ne_one⟩
 
 /-- A type `G₀` is a commutative “group with zero”
 if it is a commutative monoid with zero element (distinct from `1`)

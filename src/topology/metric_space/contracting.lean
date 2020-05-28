@@ -21,10 +21,13 @@ of convergence, and some properties of the map sending a contracting map to its 
   in `emetric.ball x ∞`;
 * `fixed_point` : the unique fixed point of a contracting map on a complete nonempty metric space.
 
+## Tags
+
+contracting map, fixed point, Banach fixed point theorem
 -/
 
 open_locale nnreal topological_space classical
-open filter
+open filter function
 
 variables {α : Type*}
 
@@ -35,8 +38,8 @@ lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : �
   f x = x :=
 begin
   rcases hx with ⟨x₀, hx⟩,
-  refine tendsto_nhds_unique at_top_ne_bot _ hx,
-  rw [← tendsto_add_at_top_iff_nat 1, funext (assume n, nat.iterate_succ' f n x₀)],
+  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hx,
+  simp only [iterate_succ' f],
   exact tendsto.comp hf hx
 end
 
@@ -298,7 +301,7 @@ hf.dist_le_of_fixed_point x hf.fixed_point_is_fixed
 /-- Aposteriori estimates on the convergence of iterates to the fixed point. -/
 lemma aposteriori_dist_iterate_fixed_point_le (x n) :
   dist (f^[n] x) (fixed_point f hf) ≤ (dist (f^[n] x) (f^[n+1] x)) / (1 - K) :=
-by { rw [nat.iterate_succ'], apply hf.dist_fixed_point_le }
+by { rw [iterate_succ'], apply hf.dist_fixed_point_le }
 
 lemma apriori_dist_iterate_fixed_point_le (x n) :
   dist (f^[n] x) (fixed_point f hf) ≤ (dist x (f x)) * K^n / (1 - K) :=

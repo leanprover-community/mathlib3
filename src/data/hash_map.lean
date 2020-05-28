@@ -82,7 +82,8 @@ def find_aux (a : α) : list (Σ a, β a) → option (β a)
 | []          := none
 | (⟨a',b⟩::t) := if h : a' = a then some (eq.rec_on h b) else find_aux t
 
-theorem find_aux_iff {a : α} {b : β a} : Π {l : list Σ a, β a}, (l.map sigma.fst).nodup → (find_aux a l = some b ↔ sigma.mk a b ∈ l)
+theorem find_aux_iff {a : α} {b : β a} :
+  Π {l : list Σ a, β a}, (l.map sigma.fst).nodup → (find_aux a l = some b ↔ sigma.mk a b ∈ l)
 | []          nd := ⟨λn, by injection n, false.elim⟩
 | (⟨a',b'⟩::t) nd := begin
   by_cases a' = a,
@@ -100,7 +101,8 @@ end
 def contains_aux (a : α) (l : list Σ a, β a) : bool :=
 (find_aux a l).is_some
 
-theorem contains_aux_iff {a : α} {l : list Σ a, β a} (nd : (l.map sigma.fst).nodup) : contains_aux a l ↔ a ∈ l.map sigma.fst :=
+theorem contains_aux_iff {a : α} {l : list Σ a, β a} (nd : (l.map sigma.fst).nodup) :
+  contains_aux a l ↔ a ∈ l.map sigma.fst :=
 begin
   unfold contains_aux,
   cases h : find_aux a l with b; simp,
@@ -142,7 +144,8 @@ theorem valid.idx_enum_1 {n} {bkts : bucket_array α β n} {sz : nat} (v : valid
   (mk_idx n (hash_fn a)).1 = i :=
 let ⟨h, e⟩ := v.idx_enum _ he hl in by rw e; refl
 
-theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) : (bkts.as_list.map sigma.fst).nodup :=
+theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) :
+  (bkts.as_list.map sigma.fst).nodup :=
 begin
   suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
   { simp [bucket_array.as_list, list.nodup_join, this],
@@ -161,12 +164,14 @@ end
 theorem mk_valid (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=
 ⟨by simp [mk_as_list], λ i a h, by cases h, λ i, list.nodup_nil⟩
 
-theorem valid.find_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) {a : α} {b : β a} :
+theorem valid.find_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) {a : α}
+  {b : β a} :
   find_aux a (bkts.read hash_fn a) = some b ↔ sigma.mk a b ∈ bkts.as_list :=
 (find_aux_iff (v.nodup _)).trans $
 by rw bkts.mem_as_list; exact ⟨λ h, ⟨_, h⟩, λ ⟨i, h⟩, (v.idx h).symm ▸ h⟩
 
-theorem valid.contains_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz) (a : α) :
+theorem valid.contains_aux_iff {n} {bkts : bucket_array α β n} {sz : nat} (v : valid bkts sz)
+  (a : α) :
   contains_aux a (bkts.read hash_fn a) ↔ a ∈ bkts.as_list.map sigma.fst :=
 by simp [contains_aux, option.is_some_iff_exists, v.find_aux_iff hash_fn]
 
@@ -182,7 +187,8 @@ section
             (hfl : f L = u ++ v2 ++ w)
   include hl hfl
 
-  theorem append_of_modify : ∃ u' w', bkts.as_list = u' ++ v1 ++ w' ∧ bkts'.as_list = u' ++ v2 ++ w' :=
+  theorem append_of_modify :
+  ∃ u' w', bkts.as_list = u' ++ v1 ++ w' ∧ bkts'.as_list = u' ++ v2 ++ w' :=
   begin
     unfold bucket_array.as_list,
     have h : bidx.1 < bkts.to_list.length, {simp [bidx.2]},
@@ -324,7 +330,8 @@ structure hash_map (α : Type u) [decidable_eq α] (β : α → Type v) :=
 (is_valid : hash_map.valid hash_fn buckets size)
 
 /-- Construct an empty hash map with buffer size `nbuckets` (default 8). -/
-def mk_hash_map {α : Type u} [decidable_eq α] {β : α → Type v} (hash_fn : α → nat) (nbuckets := 8) : hash_map α β :=
+def mk_hash_map {α : Type u} [decidable_eq α] {β : α → Type v} (hash_fn : α → nat) (nbuckets := 8) :
+  hash_map α β :=
 let n := if nbuckets = 0 then 8 else nbuckets in
 let nz : n > 0 := by abstract { cases nbuckets; simp [if_pos, nat.succ_ne_zero] } in
 { hash_fn  := hash_fn,
@@ -611,11 +618,13 @@ open format prod
 variables [has_to_format α] [∀ a, has_to_format (β a)]
 
 private meta def format_key_data (a : α) (b : β a) (first : bool) : format :=
-(if first then to_fmt "" else to_fmt "," ++ line) ++ to_fmt a ++ space ++ to_fmt "←" ++ space ++ to_fmt b
+(if first then to_fmt "" else to_fmt "," ++ line) ++
+  to_fmt a ++ space ++ to_fmt "←" ++ space ++ to_fmt b
 
 private meta def to_format (m : hash_map α β) : format :=
-group $ to_fmt "⟨" ++ nest 1 (fst (fold m (to_fmt "", tt) (λ p a b, (fst p ++ format_key_data a b (snd p), ff)))) ++
-        to_fmt "⟩"
+group $ to_fmt "⟨" ++
+  nest 1 (fst (fold m (to_fmt "", tt) (λ p a b, (fst p ++ format_key_data a b (snd p), ff)))) ++
+  to_fmt "⟩"
 
 meta instance : has_to_format (hash_map α β) :=
 ⟨to_format⟩

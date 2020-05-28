@@ -110,7 +110,7 @@ begin
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
     rw [f.map_coord_zero i hi, _root_.norm_zero],
-    exact mul_nonneg' (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
+    exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
       λi, rescale_to_shell hc δ_pos (h i),
@@ -233,7 +233,7 @@ begin
     ≤ D * (fintype.card ι) * (max ∥m'∥ ∥m∥) ^ (fintype.card ι - 1) * ∥m' - m∥ :
       f.norm_image_sub_le_of_bound D_pos H m' m
     ... ≤ D * (fintype.card ι) * (∥m∥ + 1) ^ (fintype.card ι - 1) * ∥m' - m∥ :
-      by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul_of_nonneg_left, mul_nonneg',
+      by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul_of_nonneg_left, mul_nonneg,
         norm_nonneg, nat.cast_nonneg, pow_le_pow_of_le_left]
 end
 
@@ -326,7 +326,7 @@ begin
     rw norm_eq_zero at hi,
     have : f m = 0 := f.map_coord_zero i hi,
     rw [this, norm_zero],
-    exact mul_nonneg' (op_norm_nonneg f) A },
+    exact mul_nonneg (op_norm_nonneg f) A },
   { have hlt : 0 < finset.univ.prod (λi, ∥m i∥) := lt_of_le_of_ne A (ne.symm h),
     exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
       (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
@@ -434,7 +434,7 @@ begin
     ... ≤ (∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) * ∥q - p∥
           + ∥q - p∥ * univ.prod (λi, ∥p.2 i∥) :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
-        mul_nonneg', pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
+        mul_nonneg, pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
         norm_fst_le (q - p), norm_nonneg, prod_nonneg]
     ... = ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1)
               + univ.prod (λi, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
@@ -707,7 +707,7 @@ linear_map.mk_continuous
   add    := λx y, by { ext m, exact f.cons_add m x y },
   smul   := λc x, by { ext m, exact f.cons_smul m c x } }
   -- then register its continuity thanks to its boundedness properties.
-(∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg' (norm_nonneg _) (norm_nonneg _)) _)
+(∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _)
 
 @[simp] lemma continuous_multilinear_map.curry_left_apply
   (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
@@ -835,7 +835,7 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[�
   add  := λ m i x y, by { simp, refl },
   smul := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
-  (mul_nonneg' (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
+  (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
 @[simp] lemma continuous_multilinear_map.curry_right_apply
   (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :

@@ -65,7 +65,7 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 
 @[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
 | 0 := rfl
-| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
+| (n+1) := by rw [function.iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
@@ -128,7 +128,7 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 
 @[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
 | 0 := rfl
-| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
+| (n+1) := by rw [function.iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous

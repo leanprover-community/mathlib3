@@ -156,7 +156,7 @@ def to_perm (g : α) : equiv.perm β :=
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
+{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -253,7 +253,7 @@ not_congr u.smul_eq_zero
 
 @[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
   u • x = 0 ↔ x = 0 :=
-exists.elim hu $ λ u hu, hu.symm ▸ u.smul_eq_zero
+exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
 
 variable (β)
 

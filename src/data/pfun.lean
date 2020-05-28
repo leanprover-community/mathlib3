@@ -264,6 +264,7 @@ by rw [show f = id, from funext H]; exact id_map o
 @[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
 by rw [bind_some_eq_map]; simp [map_id']
 
+@[simp] theorem pure_eq_some (a : α) : pure a = some a := rfl
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :

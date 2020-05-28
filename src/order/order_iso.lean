@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import data.nat.basic
+import logic.function.iterate
 
 open function
 
@@ -52,8 +53,10 @@ theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 @[simp] theorem coe_fn_to_embedding (f : r ≼o s) : (f.to_embedding : α → β) = f := rfl
 
-theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≼o s}, (e₁ : α → β) = e₂ → e₁ = e₂
-| ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by congr; exact h
+/-- The map `coe_fn : (r ≼o s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
+theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+| ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≼o r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩
@@ -177,7 +180,7 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
     from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
       ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
   N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by rw nat.iterate_succ'; apply h⟩⟩⟩
+    by { rw [function.iterate_succ'], apply h }⟩⟩⟩
 
 end order_embedding
 
@@ -227,8 +230,10 @@ lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x 
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃o s) : (f.to_equiv : α → β) = f := rfl
 
-theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : r ≃o s}, (e₁ : α → β) = e₂ → e₁ = e₂
-| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by congr; exact equiv.eq_of_to_fun_eq h
+/-- The map `coe_fn : (r ≃o s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
+theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≃o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact equiv.coe_fn_injective h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≃o r :=
 ⟨equiv.refl _, λ a b, iff.rfl⟩

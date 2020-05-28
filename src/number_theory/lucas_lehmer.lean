@@ -156,7 +156,7 @@ A Mersenne number 2^p-1 is prime if and only if
 the Lucas-Lehmer residue `s p (p-2) % (2^p - 1)` is zero.
 -/
 @[derive decidable_pred]
-def lucas_lehmer_test (p : ℕ) := lucas_lehmer_residue p = 0
+def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
@@ -165,8 +165,8 @@ instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
 q.2
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
-@[derive [add_comm_group, decidable_eq, fintype]]
-def X (q : ℕ+) := (zmod q) × (zmod q)
+@[derive [add_comm_group, decidable_eq, fintype, inhabited]]
+def X (q : ℕ+) : Type := (zmod q) × (zmod q)
 
 namespace X
 variable {q : ℕ+}
@@ -279,13 +279,13 @@ def ω : X q := (2, 1)
 /-- We define `ωb = 2 - √3`, which is the inverse of `ω`. -/
 def ωb : X q := (2, -1)
 
-lemma ω_mul_ωb (q : ℕ+): (ω : X q) * ωb = 1 :=
+lemma ω_mul_ωb (q : ℕ+) : (ω : X q) * ωb = 1 :=
 begin
   dsimp [ω, ωb],
   ext; simp; ring,
 end
 
-lemma ωb_mul_ω (q : ℕ+): (ωb : X q) * ω = 1 :=
+lemma ωb_mul_ω (q : ℕ+) : (ωb : X q) * ω = 1 :=
 begin
   dsimp [ω, ωb],
   ext; simp; ring,

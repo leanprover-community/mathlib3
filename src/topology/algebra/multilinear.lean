@@ -259,7 +259,7 @@ variables [comm_ring R]
 
 /-- The space of continuous multilinear maps is a module over `R`, for the pointwise addition and
 scalar multiplication. -/
-instance  : semimodule R (continuous_multilinear_map R M₁ M₂) :=
+instance : semimodule R (continuous_multilinear_map R M₁ M₂) :=
 semimodule.of_core $ by refine { smul := (•), .. };
   intros; ext; simp [smul_add, add_smul, smul_smul]
 

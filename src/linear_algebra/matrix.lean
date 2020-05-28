@@ -251,6 +251,10 @@ begin
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
+lemma diagonal_to_lin [decidable_eq m] (w : m → R) :
+  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
+by ext v j; simp [mul_vec_diagonal]
+
 end ring
 
 section vector_space
@@ -268,11 +272,6 @@ begin
   rw [dim_fun', ← cardinal.fintype_card],
   exact le_refl _
 end
-
-
-lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
-  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
-by ext v j; simp [mul_vec_diagonal]
 
 lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
   ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=

@@ -12,7 +12,7 @@ import linear_algebra.basis
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem,
+We prove Maschke's theorem for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `¬(ring_char k ∣ fintype.card G)`.
 
@@ -24,7 +24,7 @@ taking the average over `G` of the conjugates of `π`.
 
 ## Future work
 It's not so far to give the usual statement, that every finite dimensional representation
-of a finite group is a direct sum of irreducibles.
+of a finite group is semisimple (i.e. a direct sum of irreducibles).
 -/
 
 universes u

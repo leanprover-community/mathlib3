@@ -333,7 +333,6 @@ section
 
 variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
--- FIXME: this takes incredibly long to elaborate, and I don't know why.
 def group_smul.linear_map [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
   (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]

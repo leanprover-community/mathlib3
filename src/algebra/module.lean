@@ -44,6 +44,7 @@ semimodule, module, vector space, submodule, subspace, linear map
 -/
 
 open function
+open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
@@ -94,7 +95,7 @@ lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r
 ((smul_add_hom R M).flip x).map_multiset_sum l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
-  s.sum f • x = s.sum (λ r, (f r) • x) :=
+  (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
 
 end add_comm_monoid
@@ -120,12 +121,8 @@ variables {R M}
 structure `semimodule.core`, when the underlying space is an `add_comm_group`. -/
 def semimodule.of_core (H : semimodule.core R M) : semimodule R M :=
 by letI := H.to_has_scalar; exact
-{ zero_smul := λ x,
-    have (0 : R) • x + (0 : R) • x = (0 : R) • x + 0, by rw ← H.add_smul; simp,
-    add_left_cancel this,
-  smul_zero := λ r,
-    have r • (0:M) + r • 0 = r • 0 + 0, by rw ← H.smul_add; simp,
-    add_left_cancel this,
+{ zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
+  smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
 
 variable [semimodule R M]
@@ -213,19 +210,20 @@ end
 @[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
-def ring_hom.to_semimodule [semiring R] [ring M] (f : R →+* M) : semimodule R M :=
-semimodule.of_core
+def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=
 { smul := λ r x, f r * x,
   smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
   add_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_add, add_mul],
   mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
-  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul] }
+  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul],
+  zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
+  smul_zero := λ r, mul_zero (f r) }
 
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
 property. A bundled version is available with `linear_map`, and should be favored over
 `is_linear_map` most of the time. -/
-class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
+structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
 (add [] : ∀ x y, f (x + y) = f x + f y)
@@ -311,7 +309,7 @@ def to_add_monoid_hom : M →+ M₂ :=
   ((f.to_add_monoid_hom) : M → M₂) = f := rfl
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (t.sum g) = t.sum (λi, f (g i)) :=
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
 end
@@ -473,7 +471,7 @@ lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add h₁ h₂
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} :
-  (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
+  (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 begin
   classical,
   exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
@@ -791,18 +789,18 @@ namespace finset
 variable (R)
 
 lemma sum_const' [semiring R] [add_comm_monoid M] [semimodule R M] {s : finset ι} (b : M) :
-  finset.sum s (λ (i : ι), b) = (finset.card s : R) • b :=
+  (∑ i in s, b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
 
 variables {R} [decidable_linear_ordered_cancel_add_comm_monoid M]
   {s : finset ι} (f : ι → M)
 
 theorem exists_card_smul_le_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.card • f i ≤ s.sum f :=
+  ∃ i ∈ s, s.card • f i ≤ (∑ i in s, f i) :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 theorem exists_card_smul_ge_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.sum f ≤ s.card • f i :=
+  ∃ i ∈ s, (∑ i in s, f i) ≤ s.card • f i :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset

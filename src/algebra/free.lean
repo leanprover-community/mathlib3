@@ -360,7 +360,8 @@ end free_semigroup
 
 end magma
 
-/-- Free semigroup over a given alphabet. -/
+/-- Free semigroup over a given alphabet.
+(Note: In this definition, the free semigroup does not contain the empty word.) -/
 @[to_additive free_add_semigroup "Free additive semigroup over a given alphabet."]
 def free_semigroup (α : Type u) : Type u :=
 α × list α

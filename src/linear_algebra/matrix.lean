@@ -74,6 +74,8 @@ matrix.eval.map_add M N
 @[simp] lemma to_lin_zero : (0 : matrix m n R).to_lin = 0 :=
 matrix.eval.map_zero
 
+@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin := matrix.eval.map_neg M
+
 instance to_lin.is_linear_map :
   @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
 matrix.eval.is_linear
@@ -183,6 +185,12 @@ end linear_equiv_matrix
 
 namespace matrix
 open_locale matrix
+
+lemma comp_to_matrix_mul {R : Type v} [comm_ring R] [decidable_eq l] [decidable_eq m]
+  (f : (m → R) →ₗ[R] (n → R)) (g : (l → R) →ₗ[R] (m → R)) :
+  (f.comp g).to_matrix = f.to_matrix ⬝ g.to_matrix :=
+suffices (f.comp g) = (f.to_matrix ⬝ g.to_matrix).to_lin, by rw [this, to_lin_to_matrix],
+by rw [mul_to_lin, to_matrix_to_lin, to_matrix_to_lin]
 
 section trace
 

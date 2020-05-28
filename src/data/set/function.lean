@@ -335,12 +335,11 @@ theorem inj_on.right_inv_on_of_left_inv_on (hf : inj_on f s) (hf' : left_inv_on 
   right_inv_on f f' s :=
 λ x h, hf (h₂ $ h₁ h) h (hf' (h₁ h))
 
-theorem eq_on_of_left_inv_of_right_inv (h₁ : left_inv_on f₁' f s) (h₂ : right_inv_on f₂' f t)
+theorem eq_on_of_left_inv_on_of_right_inv_on (h₁ : left_inv_on f₁' f s) (h₂ : right_inv_on f₂' f t)
   (h : maps_to f₂' t s) : eq_on f₁' f₂' t :=
 λ y hy,
-calc
-  f₁' y = (f₁' ∘ f ∘ f₂') y : congr_arg f₁' (h₂ hy).symm
-  ...  = f₂' y              : h₁ (h hy)
+calc f₁' y = (f₁' ∘ f ∘ f₂') y : congr_arg f₁' (h₂ hy).symm
+      ...  = f₂' y              : h₁ (h hy)
 
 theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_inv_on f f' s) :
   left_inv_on f f' t :=

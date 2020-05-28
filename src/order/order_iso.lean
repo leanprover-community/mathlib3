@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import data.nat.basic
+import logic.function.iterate
 
 open function
 
@@ -179,7 +180,7 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
     from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
       ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
   N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by rw nat.iterate_succ'; apply h⟩⟩⟩
+    by { rw [function.iterate_succ'], apply h }⟩⟩⟩
 
 end order_embedding
 

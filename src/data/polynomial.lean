@@ -1375,6 +1375,9 @@ is_ring_hom.map_neg _
 @[simp] lemma degree_neg (p : polynomial R) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
 
+lemma degree_sub_le (p q : polynomial R) : degree (p - q) ≤ max (degree p) (degree q) :=
+degree_neg q ▸ degree_add_le p (-q)
+
 @[simp] lemma nat_degree_neg (p : polynomial R) : nat_degree (-p) = nat_degree p :=
 by simp [nat_degree]
 

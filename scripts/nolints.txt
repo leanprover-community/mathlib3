@@ -54,27 +54,6 @@ apply_nolint algebra.div doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
--- algebra/free.lean
-apply_nolint free_magma doc_blame
-apply_nolint free_magma.length doc_blame
-apply_nolint free_magma.lift doc_blame
-apply_nolint free_magma.map doc_blame
-apply_nolint free_magma.repr' doc_blame
-apply_nolint free_magma.traverse doc_blame
-apply_nolint free_semigroup doc_blame
-apply_nolint free_semigroup.lift doc_blame
-apply_nolint free_semigroup.lift' doc_blame
-apply_nolint free_semigroup.map doc_blame
-apply_nolint free_semigroup.of doc_blame
-apply_nolint free_semigroup.traverse doc_blame
-apply_nolint free_semigroup.traverse' doc_blame
-apply_nolint free_semigroup_free_magma doc_blame
-apply_nolint magma.free_semigroup doc_blame
-apply_nolint magma.free_semigroup.lift doc_blame
-apply_nolint magma.free_semigroup.map doc_blame
-apply_nolint magma.free_semigroup.of doc_blame
-apply_nolint magma.free_semigroup.r doc_blame
-
 -- algebra/gcd_domain.lean
 apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame

@@ -2,12 +2,15 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import set_theory.cardinal
 
-Ordinal arithmetic.
+/-!
+# Ordinal arithmetic
 
 Ordinals are defined as equivalences of well-ordered sets by order isomorphism.
 -/
-import set_theory.cardinal
+
 noncomputable theory
 
 open function cardinal set equiv
@@ -87,7 +90,8 @@ by rw subsingleton.elim f g
 theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f :=
 initial_seg.eq (f.trans g) (initial_seg.refl _)
 
-/-- If we have order embeddings between `α` and `β` whose images are initial segments, and β is a well-order then `α` and `β` are order-isomorphic. -/
+/-- If we have order embeddings between `α` and `β` whose images are initial segments, and `β`
+is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃o s :=
 by haveI := f.to_order_embedding.is_well_order; exact
 ⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.ord'⟩
@@ -99,7 +103,8 @@ by haveI := f.to_order_embedding.is_well_order; exact
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
 order_iso.coe_fn_injective rfl
 
-theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
+theorem eq_or_principal [is_well_order β s] (f : r ≼i s) :
+  surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
 acc.rec_on (is_well_order.wf.apply b : acc s b) $ λ x H IH,
 not_forall_not.1 $ λ hn,
@@ -155,7 +160,8 @@ instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
 
 theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
-theorem init_iff [is_trans β s] (f : r ≺i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
+theorem init_iff [is_trans β s] (f : r ≺i s) {a : α} {b : β} :
+  s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
 @initial_seg.init_iff α β r s f a b
 
 theorem irrefl (r : α → α → Prop) [is_well_order α r] (f : r ≺i r) : false :=
@@ -179,10 +185,12 @@ order_embedding.trans_apply _ _ _
 @[trans] protected def trans [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
 lt_le f g
 
-@[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) : (f.trans g) a = g (f a) :=
+@[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) :
+  (f.trans g) a = g (f a) :=
 lt_le_apply _ _ _
 
-@[simp] theorem trans_top [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : (f.trans g).top = g f.top := rfl
+@[simp] theorem trans_top [is_trans γ t] (f : r ≺i s) (g : s ≺i t) :
+  (f.trans g).top = g f.top := rfl
 
 def equiv_lt (f : r ≃o s) (g : s ≺i t) : r ≺i t :=
 ⟨@order_embedding.trans _ _ _ r s t f g, g.top, λ c,
@@ -243,9 +251,11 @@ def cod_restrict (p : set β) (f : r ≺i s)
   f.down'.trans $ exists_congr $ λ a,
   show (⟨f a, H a⟩ : p).1 = _ ↔ _, from ⟨subtype.eq, congr_arg _⟩⟩
 
-@[simp] theorem cod_restrict_apply (p) (f : r ≺i s) (H H₂ a) : cod_restrict p f H H₂ a = ⟨f a, H a⟩ := rfl
+@[simp]
+theorem cod_restrict_apply (p) (f : r ≺i s) (H H₂ a) : cod_restrict p f H H₂ a = ⟨f a, H a⟩ := rfl
 
-@[simp] theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂).top = ⟨f.top, H₂⟩ := rfl
+@[simp]
+theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂).top = ⟨f.top, H₂⟩ := rfl
 
 end principal_seg
 
@@ -782,7 +792,8 @@ quotient.sound ⟨order_iso.preimage equiv.ulift r⟩
 
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
-@[simp] theorem lift_lift (a : ordinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
+@[simp]
+theorem lift_lift (a : ordinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
 induction_on a $ λ α r _,
 quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans $
   (order_iso.preimage equiv.ulift _).trans (order_iso.preimage equiv.ulift _).symm⟩
@@ -1504,13 +1515,16 @@ begin
   { rcases a with ⟨⟨b₁, a₁⟩, h₁⟩,
     rcases b with ⟨⟨b₂, a₂⟩, h₂⟩,
     intro h, by_cases e₁ : b = b₁; by_cases e₂ : b = b₂,
-    { substs b₁ b₂, simpa only [subrel_val, prod.lex_def, @irrefl _ s _ b, true_and, false_or,
-        eq_self_iff_true, dif_pos, sum.lex_inr_inr] using h },
-    { subst b₁, simp only [subrel_val, prod.lex_def, e₂, prod.lex_def, dif_pos, subrel_val,
-      eq_self_iff_true, or_false, dif_neg, not_false_iff, sum.lex_inr_inl, false_and] at h ⊢,
+    { substs b₁ b₂,
+      simpa only [subrel_val, prod.lex_def, @irrefl _ s _ b, true_and, false_or, eq_self_iff_true,
+        dif_pos, sum.lex_inr_inr] using h },
+    { subst b₁,
+      simp only [subrel_val, prod.lex_def, e₂, prod.lex_def, dif_pos, subrel_val, eq_self_iff_true,
+        or_false, dif_neg, not_false_iff, sum.lex_inr_inl, false_and] at h ⊢,
       cases h₂; [exact asymm h h₂_h, exact e₂ rfl] },
     { simp only [e₂, dif_pos, eq_self_iff_true, dif_neg e₁, not_false_iff, sum.lex.sep] },
-    { simpa only [dif_neg e₁, dif_neg e₂, prod.lex_def, subrel_val, subtype.mk_eq_mk, sum.lex_inl_inl] using h } }
+    { simpa only [dif_neg e₁, dif_neg e₂, prod.lex_def, subrel_val, subtype.mk_eq_mk,
+        sum.lex_inl_inl] using h } }
 end
 
 theorem mul_le_of_limit {a b c : ordinal.{u}}
@@ -2644,7 +2658,7 @@ theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
-    λ ⟨n, h⟩, ⟨n+1, by rw nat.iterate_succ'; exact H.lt_iff.2 h⟩⟩)
+    λ ⟨n, h⟩, ⟨n+1, by rw iterate_succ'; exact H.lt_iff.2 h⟩⟩)
   lt_sup.symm
 
 theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
@@ -2683,7 +2697,7 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
   by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
-le_antisymm (sup_le.mpr $ λ i, by rw [nat.iterate₀ h]) (le_nfp_self f a)
+le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- The derivative of a normal function `f` is
   the sequence of fixed points of `f`. -/

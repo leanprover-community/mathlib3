@@ -253,6 +253,15 @@ instance has_colimits_of_shape_walking_pair [has_binary_biproducts.{v} C] :
   has_colimits_of_shape.{v} (discrete walking_pair) C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) }
 
+@[priority 100]
+instance has_binary_products_of_has_binary_biproducts [has_binary_biproducts.{v} C] :
+  has_binary_products.{v} C :=
+⟨by apply_instance⟩
+
+@[priority 100]
+instance has_binary_coproducts_of_has_binary_biproducts [has_binary_biproducts.{v} C] :
+  has_binary_coproducts.{v} C :=
+⟨by apply_instance⟩
 
 /--
 The isomorphism between the specified binary product and the specified binary coproduct for
@@ -312,6 +321,14 @@ instance biprod.fst_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
 instance biprod.snd_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
   split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
 { section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
+
+@[ext] lemma biprod.hom_ext {X Y Z : C} [has_binary_biproduct.{v} X Y] (f g : Z ⟶ X ⊞ Y)
+  (h₀ : f ≫ biprod.fst = g ≫ biprod.fst) (h₁ : f ≫ biprod.snd = g ≫ biprod.snd) : f = g :=
+binary_fan.is_limit.hom_ext has_binary_biproduct.is_limit h₀ h₁
+
+@[ext] lemma biprod.hom_ext' {X Y Z : C} [has_binary_biproduct.{v} X Y] (f g : X ⊞ Y ⟶ Z)
+  (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
+binary_cofan.is_colimit.hom_ext has_binary_biproduct.is_colimit h₀ h₁
 
 -- TODO:
 -- If someone is interested, they could provide the constructions:
@@ -427,6 +444,10 @@ class has_preadditive_binary_biproducts :=
 (has_preadditive_binary_biproduct : Π (X Y : C), has_preadditive_binary_biproduct.{v} X Y)
 
 attribute [instance, priority 100] has_preadditive_binary_biproducts.has_preadditive_binary_biproduct
+
+@[priority 100]
+instance [has_preadditive_binary_biproducts.{v} C] : has_binary_biproducts.{v} C :=
+⟨λ X Y, by apply_instance⟩
 
 /-- If a preadditive category has all binary products, then it has all preadditive binary
     biproducts. -/

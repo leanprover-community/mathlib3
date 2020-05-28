@@ -88,10 +88,6 @@ do let decl_name := note_name.mk_hashed_name `library_note,
    add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
 
-/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
-meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
-to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
-
 open tactic
 
 /--

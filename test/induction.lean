@@ -85,10 +85,7 @@ end
 example {k} (h : lt (k + 1) k) : false :=
 begin
   induction' h,
-  { specialize ih heq.rfl,
-    -- Desired state here.
-    exact ih
-  }
+  { exact ih }
 end
 
 -- This example tests type-based naming.
@@ -314,8 +311,6 @@ inductive even : ℕ → Prop
 | zero    : even 0
 | add_two : ∀k : ℕ, even k → even (k + 2)
 
-set_option trace.check true
-
 lemma not_even_2_mul_add_1 (n : ℕ) :
   ¬ even (2 * n + 1) :=
 begin
@@ -439,11 +434,14 @@ inductive curried_big_step : stmt → state → state → Prop
 | while_false {b : state → Prop} {S s} (hcond : ¬ b s) :
   curried_big_step (while b S) s s
 
+set_option trace.check true
+
 -- TODO IH simplification
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
-  intro hw, induction' hw,
+  intro hw,
+  induction' hw,
   case while_true {
     specialize ih_hw_1 heq.rfl,
     -- Desired state here.

@@ -237,6 +237,11 @@ e.fold (mk_rbtree ℕ) $ λ e depth vars,
   | _ := vars
   end
 
+-- TODO unused
+meta def local_to_lambda : expr → expr → expr
+| (local_const _ pp_name binfo type) e := lam pp_name binfo type e
+| _ e := e
+
 /-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
 returns a tuple `(args, n, V)` where
 
@@ -443,33 +448,55 @@ namespace tactic
 
 open expr native tactic.interactive
 
-meta def open_binder_aux (n : name) (bi : binder_info) (t e : expr)
-  : tactic (expr × name × expr) := do
-  c_name ← tactic.mk_fresh_name,
-  let c := local_const c_name c_name bi t,
-  pure $ ⟨e.instantiate_var c, n, c⟩
+meta def open_binder_aux (pp_name : name) (bi : binder_info) (t e : expr)
+  : tactic (expr × expr) := do
+  uniq_name ← tactic.mk_fresh_name,
+  let c := local_const uniq_name pp_name bi t,
+  pure $ (c, e.instantiate_var c)
 
 /--
 Given an `e` with `e = ∀ (x : T), U` or `e = λ (x : T), U`, `open_binder e`
 returns
 
+- `c`, a new local constant with type `T` (and the same pretty name and binder
+  info as the binder for `x`).
 - `U[x/c]`, where `c` is a new local constant with type `T`;
-- `x` (the binder name);
-- `c` (the local constant).
 
 Note that `c` is not introduced into the context, so `U[x/c]` will not
 type-check.
 
 Fails if `e` does not start with a pi or lambda.
 -/
-meta def open_binder : expr → tactic (expr × name × expr)
+meta def open_binder : expr → tactic (expr × expr)
 | (lam n bi t e) := open_binder_aux n bi t e
 | (pi  n bi t e) := open_binder_aux n bi t e
-| e := fail! "open_binder: expected an expression starting with a pi or lambda, but got:\n{e}"
+| e := fail! "open_binder: expected an expression starting with a pi or lambda, but got\n{e}"
+
+-- TODO could be more efficient: open_binder uses instantiate_var once per
+-- binder, so the expression is traversed a lot. We could use instantiate_vars
+-- instead.
+meta def open_n_pis : ℕ → expr → tactic (list expr × expr)
+| 0       e := pure ([], e)
+| (n + 1) e := do
+  ⟨cnst, e⟩ ← open_binder e,
+  ⟨args, u⟩ ← open_n_pis n e,
+  pure $ (cnst :: args, u)
+
+meta def get_n_pis_aux : ℕ → expr → list expr → tactic (list expr)
+| 0       e acc := pure acc
+| (n + 1) (pi pp_name binfo type e) acc := do
+  unique_name ← tactic.mk_fresh_name,
+  let type := type.instantiate_vars acc,
+  let c := local_const unique_name pp_name binfo type,
+  get_n_pis_aux n e (acc ++ [c])
+| _ e _ := fail! "expected an expression starting with a pi, but got\n{e}"
+
+meta def get_n_pis (n : ℕ) (e : expr) : tactic (list expr) :=
+get_n_pis_aux n e []
 
 /--
 For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
-`decompose_constructor_type e` returns the following:
+`open_pis_normalizing e` returns the following:
 
 - For each `xᵢ`: the name `xᵢ`; a fresh local constant `cᵢ` which
   replaces `xᵢ` in the other returned expressions; and whether `xᵢ` is a
@@ -477,17 +504,21 @@ For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
   The type `Tᵢ` is the type of `cᵢ`.
 - The return type `U`.
 -/
-meta def decompose_constructor_type_pis
-  : expr → tactic (list (name × expr × bool) × expr) := λ e, do
+-- TODO doc
+-- TODO could be more efficient: open_binder uses instantiate_var once per
+-- binder, so the expression is traversed a lot. We could use instantiate_vars
+-- instead.
+meta def open_pis_normalizing
+  : expr → tactic (list (expr × bool) × expr) := λ e, do
   e ← whnf e,
   match e with
   | (pi _ _ _ rest) := do
     -- TODO the next line makes this function quadratic in the size of the
     -- expression.
     let dep := rest.has_var_idx 0,
-    ⟨e, pi_name, cnst⟩ ← open_binder e,
-    ⟨args, u⟩ ← decompose_constructor_type_pis e,
-    pure $ ⟨⟨pi_name, cnst, dep⟩ :: args, u⟩
+    ⟨cnst, e⟩ ← open_binder e,
+    ⟨args, u⟩ ← open_pis_normalizing e,
+    pure $ ⟨(cnst, dep) :: args, u⟩
   | _ := pure ⟨[], e⟩
   end
 
@@ -544,12 +575,12 @@ TODO doc
 -/
 meta def decompose_constructor_type (num_params : ℕ) (e : expr)
   : tactic (list (name × expr × bool × rb_set ℕ)) := do
-  ⟨args, ret⟩ ← decompose_constructor_type_pis e,
-  let arg_constants := rb_map.set_of_list (args.map (λ ⟨_, c, _⟩, c)),
+  ⟨args, ret⟩ ← open_pis_normalizing e,
+  let arg_constants := rb_map.set_of_list (args.map prod.fst),
   index_occs ← decompose_constructor_type_return num_params arg_constants ret,
-  pure $ args.map $ λ ⟨n, c, dep⟩,
+  pure $ args.map $ λ ⟨c, dep⟩,
     let occs := (index_occs.find c).get_or_else mk_rb_map in
-    ⟨n, c.local_type, dep, occs⟩
+    ⟨c.local_pp_name, c.local_type, dep, occs⟩
 
 /-- Returns true iff `arg_type` is the local constant named `type_name`
 (possibly applied to some arguments). If `arg_type` is the type of an argument
@@ -758,6 +789,7 @@ meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp,
     fixed.m_all (λ fixed_hyp, bnot <$> local_depends_on_local fixed_hyp hyp),
+  -- TODO Is the following correct? What happens if there are duplicate names?
   let reverted_names := to_revert.map expr.local_pp_name,
   n ← revert_lst to_revert,
   pure ⟨n, reverted_names⟩
@@ -786,6 +818,8 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   args ← constructor_argument_intros einfo iinfo cinfo reserved_names,
   ih_intros iinfo args reserved_names
 
+-- TODO Generate heterogeneous equations only if necessary. This will simplify
+-- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
   : tactic (expr × list expr × list expr) := do
   let ⟨locals, nonlocals⟩ :=
@@ -1024,11 +1058,13 @@ render_binders apps bs
 end binder_apps
 
 
-meta def ih_generalized_binder_apps (arg_types : list (name × expr)) : binder_apps :=
-arg_types.map (λ ⟨n, t⟩, binder_app.binder n t none)
+-- meta def ih_generalized_binder_apps (args : list expr) : binder_apps :=
+-- args.map (λ c, binder_app.binder c.local_pp_name c.local_type none)
 
-meta def ih_index_eqs_binder_apps (arg_types : list (name × expr)) : tactic binder_apps :=
-arg_types.mmap $ λ ⟨n, t⟩,
+meta def ih_index_eqs_binder_apps (args : list expr) : tactic binder_apps :=
+args.mmap $ λ c, do
+  let n := c.local_pp_name,
+  let t := c.local_type,
   match t with
   | (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) := do
     types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
@@ -1041,11 +1077,11 @@ arg_types.mmap $ λ ⟨n, t⟩,
           then
             pure $
               binder_app.binder n
-                (app (app (app (const `eq [u]) lhs_type) lhs) rhs)
-                (app (app (app (const `heq_of_eq [u]) lhs_type) lhs) rhs)
+                ((const `eq [u])        lhs_type lhs rhs)
+                ((const `heq_of_eq [u]) lhs_type lhs rhs)
           else
             pure $
-              binder_app.no_binder $ app (app (const `heq.refl [u]) lhs_type) lhs
+              binder_app.no_binder $ (const `heq.refl [u]) lhs_type lhs
   | _ := fail!
     "ih_index_eqs_binder_apps: expected a heterogeneous equation, but got\n{t}"
   end
@@ -1053,21 +1089,40 @@ arg_types.mmap $ λ ⟨n, t⟩,
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)
   : tactic expr := do
   ih_type ← infer_type ih,
-  let ⟨args, _, ret⟩ := decompose_pi ih_type,
-  let args := args.map (λ ⟨n, _, type, _⟩, (n, type)),
-  let generalized_args := args.take num_generalized,
-  let args := args.drop num_generalized,
-  let index_eq_args := args.take num_index_vars,
-  let bs₁ := ih_generalized_binder_apps generalized_args,
-  bs₂ ← ih_index_eqs_binder_apps index_eq_args,
-  let bs := bs₁ ++ bs₂,
-  let new_ih := bs.render ih,
-  -- TODO sanity check
-  trace! "new_ih: {new_ih.to_raw_fmt}",
+  ⟨generalized_arg_constants, ih_type⟩ ← open_n_pis num_generalized ih_type,
+  let ⟨args, _⟩ := decompose_pi ih_type,
+  let index_eq_args :=
+    (args.take num_index_vars).map $ λ ⟨pp_name, binfo, type, _⟩,
+      local_const pp_name pp_name binfo type,
+  index_eq_binder_apps ← ih_index_eqs_binder_apps index_eq_args,
+  let num_binders := index_eq_binder_apps.countp (λ b, b.is_binder),
+  let apps := index_eq_binder_apps.render_applications num_binders ih,
+  let apps := generalized_arg_constants.foldl app apps,
+  -- TODO lambdas could be more efficient
+  let new_ih := apps.lambdas generalized_arg_constants,
+  -- TODO debug
+  trace! "new_ih (pretty):\n{new_ih}",
+  trace! "new_ih (raw):\n{new_ih.to_raw_fmt}",
   new_ih_t ← infer_type new_ih,
   trace! "new_ih_t: {new_ih_t}",
   type_check new_ih,
   replace' ih new_ih
+  -- let ⟨args, _, ret⟩ := decompose_pi ih_type,
+  -- let args := args.map (λ ⟨n, _, type, _⟩, (n, type)),
+  -- let generalized_args := args.take num_generalized,
+  -- let args := args.drop num_generalized,
+  -- let index_eq_args := args.take num_index_vars,
+  -- let bs₁ := ih_generalized_binder_apps generalized_args,
+  -- bs₂ ← ih_index_eqs_binder_apps index_eq_args,
+  -- let bs := bs₁ ++ bs₂,
+  -- let new_ih := bs.render ih,
+  -- -- TODO debug
+  -- trace! "new_ih (pretty):\n{new_ih}",
+  -- trace! "new_ih:\n{new_ih.to_raw_fmt}",
+  -- new_ih_t ← infer_type new_ih,
+  -- trace! "new_ih_t: {new_ih_t}",
+  -- type_check new_ih,
+  -- replace' ih new_ih
 
 /--
 Returns the unique names of all hypotheses (local constants) in the context.
@@ -1195,7 +1250,7 @@ focus1 $ do
       ihs ← ihs.mmap (λ h, get_local h.local_pp_name),
 
       -- Simplify the induction hypotheses
-      -- ihs.mmap' (simplify_ih num_generalized num_index_vars),
+      ihs.mmap' (simplify_ih num_generalized num_index_vars),
 
       -- Return the constructor name and the new hypotheses
       new_hyps ← hyps_except old_hyps,

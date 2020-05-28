@@ -83,7 +83,7 @@ mk' (λ f, f ≫ g) $ λ f f', by simp
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
-/- The redunant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+-- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma.
 @[reassoc, simp] lemma comp_sub {P Q R : C} (f : P ⟶ Q) (g g' : Q ⟶ R) :
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'

@@ -1245,7 +1245,8 @@ theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.
 eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_map]
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
-by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
+by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
+  multiset.map_subset_map h]
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
@@ -1259,10 +1260,13 @@ ext.2 $ λ b, by simp only [mem_filter, mem_image, exists_prop]; exact
 ⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, ⟨h1, h2⟩, rfl⟩,
  by rintro ⟨x, ⟨h1, h2⟩, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
 
-theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
-ext.2 $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right, exists_or_distrib]
+theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) :
+  (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
+ext.2 $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right,
+  exists_or_distrib]
 
-theorem image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀x y, f x = f y → x = y) : (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
+theorem image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀x y, f x = f y → x = y) :
+  (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
 ext.2 $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
 ⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
  λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
@@ -1698,8 +1702,9 @@ lemma injective_pi_cons  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
 assume e₁ e₂ eq,
 @multiset.injective_pi_cons α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
-  have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) = pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
-    by rw [eq],
+  have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) =
+    pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
+  { rw [eq] },
   this
 
 @[simp] lemma pi_empty {t : Πa:α, finset (δ a)} :

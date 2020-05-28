@@ -68,7 +68,7 @@ lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 
 theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
-  assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
+  assume h, by rw [norm_unit_mul h (units.coe_ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
 by rw [normalize, normalize, norm_unit_mul_norm_unit, units.coe_one, mul_one]
@@ -79,7 +79,7 @@ begin
   rcases associated_of_dvd_dvd hab hba with ⟨u, rfl⟩,
   refine classical.by_cases (by rintro rfl; simp only [zero_mul]) (assume ha : a ≠ 0, _),
   suffices : a * ↑(norm_unit a) = a * ↑u * ↑(norm_unit a) * ↑u⁻¹,
-    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.ne_zero, norm_unit_coe_units],
+    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.coe_ne_zero, norm_unit_coe_units],
   calc a * ↑(norm_unit a) = a * ↑(norm_unit a) * ↑u * ↑u⁻¹:
       (units.mul_inv_cancel_right _ _).symm
     ... = a * ↑u * ↑(norm_unit a) * ↑u⁻¹ : by rw mul_right_comm a
@@ -282,7 +282,7 @@ iff.intro
   (assume h : lcm a b = 0,
     have normalize (a * b) = 0,
       by rw [← gcd_mul_lcm _ _, h, mul_zero],
-    by simpa only [normalize_eq_zero, mul_eq_zero, units.ne_zero, or_false])
+    by simpa only [normalize_eq_zero, mul_eq_zero, units.coe_ne_zero, or_false])
   (by rintro (rfl | rfl); [apply lcm_zero_left, apply lcm_zero_right])
 
 @[simp] lemma normalize_lcm (a b : α) : normalize (lcm a b) = lcm a b :=

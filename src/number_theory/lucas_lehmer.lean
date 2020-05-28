@@ -12,15 +12,15 @@ import ring_theory.fintype
 /-!
 # The Lucas-Lehmer test for Mersenne primes.
 
-We define `Lucas_Lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
-prove `Lucas_Lehmer_residue p = 0 → prime (Mersenne p)`.
+We define `lucas_lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
+prove `lucas_lehmer_residue p = 0 → prime (mersenne p)`.
 
-We construct a tactic `Lucas_Lehmer.run_test`, which iteratively certifies the arithmetic
+We construct a tactic `lucas_lehmer.run_test`, which iteratively certifies the arithmetic
 required to calculate the residue, and enables us to prove
 
 ```
-example : prime (Mersenne 127) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test)
+example : prime (mersenne 127) :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test)
 ```
 
 ## TODO
@@ -37,16 +37,16 @@ The tactic for certified computation of Lucas-Lehmer residues was provided by Ma
 -/
 
 /-- The Mersenne numbers, 2^p - 1. -/
-def Mersenne (p : ℕ) : ℕ := 2^p - 1
+def mersenne (p : ℕ) : ℕ := 2^p - 1
 
-lemma Mersenne_pos {p : ℕ} (h : 0 < p) : 0 < Mersenne p :=
+lemma mersenne_pos {p : ℕ} (h : 0 < p) : 0 < mersenne p :=
 begin
-  dsimp [Mersenne],
+  dsimp [mersenne],
   calc 0 < 2^1 - 1 : by norm_num
      ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
 end
 
-namespace Lucas_Lehmer
+namespace lucas_lehmer
 
 open nat
 
@@ -76,7 +76,7 @@ def s_mod (p : ℕ) : ℕ → ℤ
 | 0 := 4 % (2^p - 1)
 | (i+1) := ((s_mod i)^2 - 2) % (2^p - 1)
 
-lemma Mersenne_int_ne_zero (p : ℕ) (w : 0 < p) : (2^p - 1 : ℤ) ≠ 0 :=
+lemma mersenne_int_ne_zero (p : ℕ) (w : 0 < p) : (2^p - 1 : ℤ) ≠ 0 :=
 begin
   apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
   exact_mod_cast nat.one_lt_two_pow p w,
@@ -86,7 +86,7 @@ lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
   { trivial, },
-  { apply int.mod_nonneg, exact Mersenne_int_ne_zero p w },
+  { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
 lemma s_mod_mod (p i : ℕ) : s_mod p i % (2^p - 1) = s_mod p i :=
@@ -99,7 +99,7 @@ begin
   { refine (abs_of_nonneg _).symm,
     simp only [sub_nonneg, ge_iff_le],
     exact_mod_cast nat.one_le_two_pow p, },
-  { exact Mersenne_int_ne_zero p w, },
+  { exact mersenne_int_ne_zero p w, },
 end
 
 lemma s_zmod_eq_s (p' : ℕ) (i : ℕ) : s_zmod (p'+2) i = (s i : zmod (2^(p'+2) - 1)):=
@@ -132,16 +132,16 @@ begin
 end
 
 /-- The Lucas-Lehmer residue is `s p (p-2)` in `zmod (2^p - 1)`. -/
-def Lucas_Lehmer_residue (p : ℕ) : zmod (2^p - 1) := s_zmod p (p-2)
+def lucas_lehmer_residue (p : ℕ) : zmod (2^p - 1) := s_zmod p (p-2)
 
 lemma residue_eq_zero_iff_s_mod_eq_zero (p : ℕ) (w : 1 < p) :
-  Lucas_Lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
+  lucas_lehmer_residue p = 0 ↔ s_mod p (p-2) = 0 :=
 begin
-  dsimp [Lucas_Lehmer_residue],
+  dsimp [lucas_lehmer_residue],
   rw s_zmod_eq_s_mod p,
   split,
   { -- We want to use that fact that `0 ≤ s_mod p (p-2) < 2^p - 1`
-    -- and `Lucas_Lehmer_residue p = 0 → 2^p - 1 ∣ s_mod p (p-2)`.
+    -- and `lucas_lehmer_residue p = 0 → 2^p - 1 ∣ s_mod p (p-2)`.
     intro h,
     simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
@@ -157,10 +157,10 @@ A Mersenne number 2^p-1 is prime if and only if
 the Lucas-Lehmer residue `s p (p-2) % (2^p - 1)` is zero.
 -/
 @[derive decidable_pred]
-def Lucas_Lehmer_test (p : ℕ) := Lucas_Lehmer_residue p = 0
+def lucas_lehmer_test (p : ℕ) := lucas_lehmer_residue p = 0
 
-/-- `q` is defined as the minimum factor of `Mersenne p`, bundled as an `ℕ+`. -/
-def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (Mersenne p), nat.min_fac_pos (Mersenne p)⟩
+/-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
+def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
 
 instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
 q.2
@@ -316,29 +316,29 @@ open X
 Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction in ℕ.
 -/
 
-/-- If 1 < p, then `q p`, the smallest prime factor of `Mersenne p`, is more than 2. -/
+/-- If 1 < p, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction,
   simp at a,
   interval_cases q (p'+2); clear a,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
-    simp [Mersenne] at h',
+    simp [mersenne] at h',
     exact lt_irrefl 2
     (calc 2 ≤ p'+2    : nat.le_add_left _ _
       ...  < 2^(p'+2) : nat.lt_two_pow _
       ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
-    rw [Mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
+    rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
     exact nat.two_not_dvd_two_mul_sub_one (nat.one_le_two_pow _) h', }
 end
 
-theorem ω_pow_formula (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+theorem ω_pow_formula (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   ∃ (k : ℤ), (ω : X (q (p'+2)))^(2^(p'+1)) =
-    k * (Mersenne (p'+2)) * ((ω : X (q (p'+2)))^(2^p')) - 1 :=
+    k * (mersenne (p'+2)) * ((ω : X (q (p'+2)))^(2^p')) - 1 :=
 begin
-  dsimp [Lucas_Lehmer_residue] at h,
+  dsimp [lucas_lehmer_residue] at h,
   rw s_zmod_eq_s p' at h,
   simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
   cases h with k h,
@@ -356,22 +356,22 @@ begin
   exact_mod_cast h,
 end
 
-/-- `q` is the minimum factor of Mersenne p, so `M p = 0` in `X q`. -/
-theorem Mersenne_coe_X (p : ℕ) : (Mersenne p : X (q p)) = 0 :=
+/-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
+theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [Mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
+  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
   apply nat.min_fac_dvd,
 end
 
-theorem ω_pow_eq_neg_one (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+theorem ω_pow_eq_neg_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+1)) = -1 :=
 begin
   cases ω_pow_formula p' h with k w,
-  rw [Mersenne_coe_X] at w,
+  rw [mersenne_coe_X] at w,
   simpa using w,
 end
 
-theorem ω_pow_eq_one (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+theorem ω_pow_eq_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
 calc (ω : X (q (p'+2)))^2^(p'+2)
         = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one]
@@ -388,7 +388,7 @@ def ω_unit (p : ℕ) : units (X (q p)) :=
 @[simp] lemma ω_unit_coe (p : ℕ) : (ω_unit p : X (q p)) = ω := rfl
 
 /-- The order of ω in the unit group is exactly 2^p. -/
-theorem order_ω (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) :
+theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
@@ -407,19 +407,18 @@ begin
     exact ω_pow_eq_one p' h, }
 end
 
-lemma order_ineq (p' : ℕ) (h : Lucas_Lehmer_residue (p'+2) = 0) : 2^(p'+2) < (q (p'+2) : ℕ)^2 :=
+lemma order_ineq (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) : 2^(p'+2) < (q (p'+2) : ℕ)^2 :=
 calc 2^(p'+2) = order_of (ω_unit (p'+2)) : (order_ω p' h).symm
      ... ≤ fintype.card (units (X _))    : order_of_le_card_univ
      ... < (q (p'+2) : ℕ)^2              : units_card (nat.lt_of_succ_lt (two_lt_q _))
 
-end Lucas_Lehmer
+end lucas_lehmer
 
-export Lucas_Lehmer (Lucas_Lehmer_test Lucas_Lehmer_residue)
+export lucas_lehmer (lucas_lehmer_test lucas_lehmer_residue)
 
-open Lucas_Lehmer
-open nat (prime)
+open lucas_lehmer
 
-theorem Lucas_Lehmer_sufficiency (p : ℕ) (w : 1 < p) : Lucas_Lehmer_test p → prime (Mersenne p) :=
+theorem lucas_lehmer_sufficiency (p : ℕ) (w : 1 < p) : lucas_lehmer_test p → (mersenne p).prime :=
 begin
   let p' := p - 2,
   have z : p = p' + 2 := (nat.sub_eq_iff_eq_add w).mp rfl,
@@ -429,16 +428,16 @@ begin
   rw z at a,
   rw z at t,
   have h₁ := order_ineq p' t,
-  have h₂ := nat.min_fac_sq_le_self (Mersenne (p'+2)) (Mersenne_pos (nat.lt_of_succ_lt w)) a,
+  have h₂ := nat.min_fac_sq_le_self (mersenne_pos (nat.lt_of_succ_lt w)) a,
   have h := lt_of_lt_of_le h₁ h₂,
   exact not_lt_of_ge (nat.sub_le _ _) h,
 end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.
-example : prime (Mersenne 5) := Lucas_Lehmer_sufficiency 5 (by norm_num) dec_trivial
+example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num) dec_trivial
 
 -- Next we use `norm_num` to calculate each `s p i`.
-namespace Lucas_Lehmer
+namespace lucas_lehmer
 open tactic
 
 meta instance nat_pexpr : has_to_pexpr ℕ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
@@ -449,16 +448,16 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, Mersenne], rw [h1, h2, _root_.pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, _root_.pow_two, h3] }
 
 /--
-Given a goal of the form `Lucas_Lehmer_test p`,
+Given a goal of the form `lucas_lehmer_test p`,
 attempt to do the calculation using `norm_num` to certify each step.
 -/
 meta def run_test : tactic unit :=
-do `(Lucas_Lehmer_test %%p) ← target,
-   `[dsimp [Lucas_Lehmer_test]],
-   `[rw Lucas_Lehmer.residue_eq_zero_iff_s_mod_eq_zero, swap, norm_num],
+do `(lucas_lehmer_test %%p) ← target,
+   `[dsimp [lucas_lehmer_test]],
+   `[rw lucas_lehmer.residue_eq_zero_iff_s_mod_eq_zero, swap, norm_num],
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
    M ← to_expr ``(2^%%p - 1 : ℤ) >>= eval_expr ℤ,
@@ -471,69 +470,69 @@ do `(Lucas_Lehmer_test %%p) ← target,
        int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
    -- base case
    t ← to_expr ``(s_mod %%p 0 = 4),
-   v ← to_expr ``(by norm_num [Lucas_Lehmer.s_mod] : s_mod %%p 0 = 4),
+   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%p 0 = 4),
    h ← assertv `h t v,
    -- step case, repeated p-2 times
-   iterate_exactly (p-2) `[replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl })],
+   iterate_exactly (p-2) `[replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl })],
    -- now close the goal
    h ← get_local `h,
    exact h
 
-end Lucas_Lehmer
+end lucas_lehmer
 
-example : prime (Mersenne 5) := Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+example : (mersenne 5).prime := lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
-lemma Lucas_Lehmer_test_7_by_hand : s_mod 7 5 = 0 :=
+lemma lucas_lehmer_test_7_by_hand : s_mod 7 5 = 0 :=
 begin
   have w : (2^7 - 1 : ℤ) = 127 := by norm_num,
   have h : s_mod 7 0 = 4 := by norm_num [s_mod],
-  replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := Lucas_Lehmer.s_mod_succ w h (by { norm_num, refl }),
+  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
+  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
+  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
+  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
+  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
   exact h,
 end
 
-example : prime (Mersenne 7) := Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+example : (mersenne 7).prime := lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
-example : prime (Mersenne 13) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
-example : prime (Mersenne 17) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
-example : prime (Mersenne 19) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+example : (mersenne 13).prime :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+example : (mersenne 17).prime :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+example : (mersenne 19).prime :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
-/-- prime 2147483647, Euler (1772) -/
-example : prime (Mersenne 31) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
-/-- prime 2305843009213693951, Pervouchine (1883), Seelhoff (1886) -/
-example : prime (Mersenne 61) :=
-Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+/-- 2147483647.prime, Euler (1772) -/
+example : (mersenne 31).prime :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+/-- prime 2305843009213693951.prime, Pervouchine (1883), Seelhoff (1886) -/
+example : (mersenne 61).prime :=
+lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
 /-!
 The next three primality tests are too slow to run interactively,
 but work fine on the command line.
 -/
 
--- /-- prime 618970019642690137449562111, Powers (1911) -/
+-- /-- prime 618970019642690137449562111.prime, Powers (1911) -/
 -- -- takes ~100s
--- example : prime (Mersenne 89) :=
--- Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
--- /-- prime 162259276829213363391578010288127, Power (1914) -/
+-- example : (mersenne 89).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- /-- prime 162259276829213363391578010288127.prime, Power (1914) -/
 -- -- takes ~190s
--- example : prime (Mersenne 107) :=
--- Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
--- /-- prime 170141183460469231731687303715884105727, Lucas (1876) -/
+-- example : (mersenne 107).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- /-- 170141183460469231731687303715884105727.prime, Lucas (1876) -/
 -- -- takes ~370s
--- example : prime (Mersenne 127) :=
--- Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+-- example : (mersenne 127).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
 /-! This still doesn't get us over the big gap and into the computer era, unfortunately. -/
 
--- /-- prime (2^521 - 1), Robinson (1954) -/
--- example : prime (Mersenne 521) :=
--- Lucas_Lehmer_sufficiency _ (by norm_num) (by Lucas_Lehmer.run_test).
+-- /-- (2^521 - 1).prime, Robinson (1954) -/
+-- example : (mersenne 521).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
 
 -- There's still low hanging fruit available to speed this up,

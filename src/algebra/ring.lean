@@ -81,8 +81,7 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
-@[ancestor has_zero has_one]
-class zero_ne_one_class (α : Type u) extends has_zero α, has_one α :=
+class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
 (zero_ne_one : 0 ≠ (1:α))
 
 @[simp]

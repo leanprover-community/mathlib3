@@ -64,7 +64,7 @@ lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize, by rintro rfl; exact normalize_zero⟩
 
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
-⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu.symm ▸ normalize_coe_units u⟩
+⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
 
 theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $

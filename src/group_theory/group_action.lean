@@ -253,7 +253,7 @@ not_congr u.smul_eq_zero
 
 @[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
   u • x = 0 ↔ x = 0 :=
-exists.elim hu $ λ u hu, hu.symm ▸ u.smul_eq_zero
+exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
 
 variable (β)
 

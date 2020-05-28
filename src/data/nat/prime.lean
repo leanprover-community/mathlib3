@@ -252,6 +252,51 @@ section min_fac
     end
   end
 
+  /--
+  The square of the smallest prime factor of a composite number `n` is at most `n`.
+  -/
+  lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+  have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
+  calc
+  (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+            ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
+            ... ≤ n                           : div_mul_le_self n (min_fac n)
+
+  @[simp]
+  lemma min_fac_eq_one_iff {n : ℕ} : min_fac n = 1 ↔ n = 1 :=
+  begin
+    split,
+    { intro h,
+      by_contradiction,
+      have := min_fac_prime a,
+      rw h at this,
+      exact not_prime_one this, },
+    { rintro rfl, refl, }
+  end
+
+  @[simp]
+  lemma min_fac_eq_two_iff (n : ℕ) : min_fac n = 2 ↔ 2 ∣ n :=
+  begin
+    split,
+    { intro h,
+      convert min_fac_dvd _,
+      rw h, },
+    { intro h,
+      have ub := min_fac_le_of_dvd (le_refl 2) h,
+      have lb := min_fac_pos n,
+      -- If `interval_cases` and `norm_num` were already available here,
+      -- this would be easy and pleasant.
+      -- But they aren't, so it isn't.
+      cases h : n.min_fac with m,
+      { rw h at lb, cases lb, },
+      { cases m with m,
+        { simp at h, subst h, cases h with n h, cases n; cases h, },
+        { cases m with m,
+          { refl, },
+          { rw h at ub,
+            cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
+  end
+
 end min_fac
 
 theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
@@ -413,6 +458,20 @@ begin
       exact ⟨0, zero_le _, rfl⟩ },
     { rcases d with ⟨k, l, e⟩,
       rw e, exact pow_dvd_pow _ l } }
+end
+
+/--
+If `p` is prime,
+and `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)`
+then `a = p^(k+1)`.
+-/
+lemma eq_prime_pow_of_dvd_least_prime_pow
+  {a p k : ℕ} (pp : prime p) (h₁ : ¬(a ∣ p^k)) (h₂ : a ∣ p^(k+1)) :
+  a = p^(k+1) :=
+begin
+  obtain ⟨l, ⟨h, rfl⟩⟩ := (dvd_prime_pow pp).1 h₂,
+  congr,
+  exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le_right (prime.one_lt pp))).1 h₁)),
 end
 
 section

@@ -387,7 +387,7 @@ begin
     rw ← mul_assoc, simp },
   rw show (↑u⁻¹ * y) = (1 - ↑u⁻¹ * x),
   { rw eq_sub_iff_add_eq,
-    replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu,
+    replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu.symm,
     simpa [mul_add, add_comm] using hu },
   apply is_unit_one_sub_self_of_mem_nonunits,
   exact mul_mem_nonunits_right hx

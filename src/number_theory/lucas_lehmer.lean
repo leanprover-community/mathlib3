@@ -123,7 +123,6 @@ int.coe_nat_pow_pred 2 p dec_trivial
 lemma s_zmod_eq_s_mod (p : ℕ) (i : ℕ) : s_zmod p i = (s_mod p i : zmod (2^p - 1)) :=
 begin
   induction i with i ih;
-  -- { dsimp [s_mod, s_zmod], norm_num, },
   { dsimp [s_mod, s_zmod],
     -- unfortunately this is too complicated for `push_cast` to handle on its own...
     rw ←int.coe_nat_two_pow_pred p,

@@ -34,7 +34,7 @@ end prio
 
 /-- The distance equals the norm of subtracting two points. This lemma
 is needed to make V an explicit rather than implicit argument. -/
-lemma torsor_dist_eq_norm (V : Type u) {P : Type v} [normed_group V] [metric_space P]
+lemma dist_eq_norm (V : Type u) {P : Type v} [normed_group V] [metric_space P]
     [normed_add_torsor V P] (x y : P) :
   dist x y = ∥(x -ᵥ y : V)∥ :=
 normed_add_torsor.torsor_dist_eq_norm' x y

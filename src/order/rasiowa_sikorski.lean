@@ -45,10 +45,10 @@ generic, filter, countable, cofinal, dense
 variables {P : Type*} [preorder P]
 
 /-- A downwards closed set, or initial segment. -/
-def downwards_closed (s : set P) := ∀ (x : P) (y ∈ s), x ≤ y → x ∈ s
+def downwards_closed (s : set P) : Prop := ∀ (x : P) (y ∈ s), x ≤ y → x ∈ s
 
 /-- A subset of a preorder is cofinal if contains arbitrarily large elements. -/
-def cofinal (s : set P) := ∀ x : P, ∃ y ∈ s, x ≤ y
+def cofinal (s : set P) : Prop := ∀ x : P, ∃ y ∈ s, x ≤ y
 
 namespace cofinal
 

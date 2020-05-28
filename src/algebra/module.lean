@@ -228,8 +228,8 @@ property. A bundled version is available with `linear_map`, and should be favore
 class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
-(add  : ∀x y, f (x + y) = f x + f y)
-(smul : ∀(c : R) x, f (c • x) = c • f x)
+(add [] : ∀ x y, f (x + y) = f x + f y)
+(smul [] : ∀ (c : R) x, f (c • x) = c • f x)
 
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
@@ -335,7 +335,7 @@ section add_comm_group
 
 variables [semiring R] [add_comm_group M] [add_comm_group M₂]
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f g : M →ₗ[R] M₂)
+variables (f : M →ₗ[R] M₂)
 
 @[simp] lemma map_neg (x : M) : f (- x) = - f x :=
 f.to_add_monoid_hom.map_neg x
@@ -500,6 +500,8 @@ variables {p}
 
 @[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
+variables (p)
+
 instance : add_comm_monoid p :=
 by refine {add := (+), zero := 0, ..};
   { intros, apply set_coe.ext, simp [add_comm, add_left_comm] }
@@ -507,8 +509,6 @@ by refine {add := (+), zero := 0, ..};
 instance : semimodule R p :=
 by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
-
-variables (p)
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=

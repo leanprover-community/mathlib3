@@ -350,7 +350,7 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 /--
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
-def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] (M →ₗ[R] (M₂ →ₗ[R] M)) :=
+def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
 { to_fun := λ f, {
     to_fun := linear_map.smul_right f,
     add    := λ m m', by { ext, apply smul_add, },
@@ -1378,7 +1378,7 @@ lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
   disjoint p q ↔ comap p.subtype q = ⊥ :=
 by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
 
-/-- If N ⊆ M then submodules of N are the same as submodules of M contained in N -/
+/-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
 def map_subtype.order_iso :
   ((≤) : submodule R p → submodule R p → Prop) ≃o
   ((≤) : {p' : submodule R M // p' ≤ p} → {p' : submodule R M // p' ≤ p} → Prop) :=
@@ -1389,7 +1389,7 @@ def map_subtype.order_iso :
   ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of M. -/
+submodules of `M`. -/
 def map_subtype.le_order_embedding :
   ((≤) : submodule R p → submodule R p → Prop) ≼o ((≤) : submodule R M → submodule R M → Prop) :=
 (order_iso.to_order_embedding $ map_subtype.order_iso p).trans (subtype.order_embedding _ _)
@@ -1398,7 +1398,7 @@ def map_subtype.le_order_embedding :
   map_subtype.le_order_embedding p p' = map p.subtype p' := rfl
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of M. -/
+submodules of `M`. -/
 def map_subtype.lt_order_embedding :
   ((<) : submodule R p → submodule R p → Prop) ≼o ((<) : submodule R M → submodule R M → Prop) :=
 (map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
@@ -1784,11 +1784,11 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
     rw [linear_map.smul_apply, e₂.smul], refl } }
 
-/-- If M₂ and M₃ are linearly isomorphic then the two spaces of linear maps from M into M₂ and
-M into M₃ are linearly isomorphic. -/
+/-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
+and `M` into `M₃` are linearly isomorphic. -/
 def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl R M) f
 
-/-- If M and M₂ are linearly isomorphic then the two spaces of linear maps from M and M₂ to
+/-- If `M` and `M₂` are linearly isomorphic then the two spaces of linear maps from `M` and `M₂` to
 themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 

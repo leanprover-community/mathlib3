@@ -191,13 +191,10 @@ instance [comm_ring β] : comm_ring β* :=
 
 /-- If `φ ≠ ⊥` then `0 ≠ 1` in the ultraproduct.
 This cannot be an instance, since it depends on `φ ≠ ⊥`. -/
-protected def zero_ne_one_class [zero_ne_one_class β] (NT : φ ≠ ⊥) : zero_ne_one_class β* :=
-{ zero_ne_one := λ c, have c' : _ := quotient.exact' c, by
-  { change _ ∈ _ at c',
-    simp only [set.set_of_false, zero_ne_one, empty_in_sets_eq_bot] at c',
-    exact NT c' },
-  ..filter_product.has_zero,
-  ..filter_product.has_one }
+protected theorem nonzero [has_zero β] [has_one β] [nonzero β] (NT : φ ≠ ⊥) : nonzero β* :=
+{ zero_ne_one := λ c, have c' : _ ∈ _ := quotient.exact' c, by
+  { simp only [set.set_of_false, zero_ne_one, empty_in_sets_eq_bot] at c',
+    exact NT c' } }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a division ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -218,7 +215,7 @@ protected def division_ring [division_ring β] (U : is_ultrafilter φ) : divisio
     simp only [inv_zero, eq_self_iff_true, (set.univ_def).symm, univ_sets],
   ..filter_product.ring,
   ..filter_product.has_inv,
-  ..filter_product.zero_ne_one_class U.1 }
+  ..filter_product.nonzero U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -253,7 +250,7 @@ protected def linear_order [linear_order β] (U : is_ultrafilter φ) : linear_or
 
 theorem of_inj (NT : φ ≠ ⊥) : function.injective (@of _ β φ) :=
 begin
-  intros r s rs, by_contra N,
+  intros r s rs, classical, by_contra N,
   rw [of, of, of_seq, quotient.eq', bigly_equal] at rs,
   simp only [N, eventually_false_iff_eq_bot] at rs,
   exact NT rs
@@ -388,7 +385,7 @@ protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_r
 { mul_pos := λ x y, quotient.induction_on₂' x y $
     λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, @mul_pos β _ _ _,
   ..filter_product.ring, ..filter_product.ordered_add_comm_group,
-  ..filter_product.zero_ne_one_class U.1 }
+  ..filter_product.nonzero U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/

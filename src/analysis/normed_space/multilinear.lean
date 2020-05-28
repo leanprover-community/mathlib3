@@ -57,6 +57,9 @@ noncomputable theory
 open_locale classical
 open finset
 
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
+
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
 {G : Type wG} {E : fin n.succ → Type w} {E₁ : ι → Type w₁} {E₂ : Type w₂}
@@ -558,16 +561,6 @@ continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 namespace continuous_multilinear_map
 
--- If you comment the next two lines, then the instances just after don't work
-local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
-
-instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-by apply_instance
-
-instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-by apply_instance
-
 /-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
 `s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying
 these variables, and fixing the other ones equal to a given value `z`. It is denoted by
@@ -765,9 +758,6 @@ begin
 end
 
 variables (𝕜 E E₂)
-
-local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
 the space of continuous linear maps from `E 0` to the space of continuous multilinear maps on

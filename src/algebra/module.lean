@@ -198,6 +198,8 @@ theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module 
 
 end module
 
+section
+set_option default_priority 910
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
 { smul := (*),
   smul_add := mul_add,
@@ -206,6 +208,7 @@ instance semiring.to_semimodule [semiring R] : semimodule R R :=
   one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
+end
 
 @[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 

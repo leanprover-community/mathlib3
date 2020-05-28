@@ -670,8 +670,10 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 section normed_space
 
 section prio
-set_option default_priority 100 -- see Note [default priority]
--- see Note[vector space definition] for why we extend `module`.
+set_option default_priority 920 -- see Note [default priority]. Here, we set a rather high priority,
+-- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
+-- unification properties.
+-- see Note[vector space definition] for why we extend `semimodule`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/

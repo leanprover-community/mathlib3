@@ -44,6 +44,11 @@ instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
 
+@[simp] lemma comp_def {F : C ⥤ Type w} {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
+  f ≫ g = ⟨f.val ≫ g.val, by obviously⟩ := rfl
+
+@[simp] lemma id_def {F : C ⥤ Type w} {p : F.elements} : 𝟙 p = ⟨𝟙 p.1, by obviously⟩ := rfl
+
 omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
 -- to avoid conflicts.
 instance groupoid_of_elements [groupoid C] (F : C ⥤ Type w) : groupoid F.elements :=

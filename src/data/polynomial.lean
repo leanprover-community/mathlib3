@@ -1250,7 +1250,8 @@ ext $ by simp [div_X]
 def nonzero_comm_semiring.of_polynomial_ne (h : p ≠ q) : nonzero_comm_semiring R :=
 { zero_ne_one := λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero],
-  ..show comm_semiring R, by apply_instance }
+  zero := 0, one := 1, mul := (*), add := (+),
+  .. ‹comm_semiring R› }
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by letI := nonzero_comm_semiring.of_polynomial_ne hp; exact

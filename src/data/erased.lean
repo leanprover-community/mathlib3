@@ -54,6 +54,9 @@ instance {α} [h : inhabited α] : inhabited (erased α) :=
 def bind {α β} (a : erased α) (f : α → erased β) : erased β :=
 ⟨λ b, (f a.out).1 b, (f a.out).2⟩
 
+def map {α β} (f : α → β) (a : erased α) : erased β :=
+bind a (mk ∘ f)
+
 @[simp] theorem bind_eq_out {α β} (a f) : @bind α β a f = f a.out :=
 by delta bind bind._proof_1; cases f a.out; refl
 
@@ -61,8 +64,12 @@ def join {α} (a : erased (erased α)) : erased α := bind a id
 
 @[simp] theorem join_eq_out {α} (a) : @join α a = a.out := bind_eq_out _ _
 
-instance : monad erased := { pure := @mk, bind := @bind }
+instance : monad erased := { pure := @mk, bind := @bind, map := @map }
 
-instance : is_lawful_monad erased := by refine {..}; intros; simp
+@[simp] lemma pure_def {α} : (pure : α → erased α) = @mk _ := rfl
+@[simp] lemma bind_def {α β} : ((>>=) : erased α → (α → erased β) → erased β) = @bind _ _ := rfl
+@[simp] lemma map_def {α β} : ((<$>) : (α → β) → erased α → erased β) = @map _ _ := rfl
+
+instance : is_lawful_monad erased := by refine {..}; intros; simp [map]
 
 end erased

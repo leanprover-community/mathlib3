@@ -594,12 +594,15 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
 @[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
+@[simp, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
+attribute [norm_cast] coe_eq_coe coe_mul coe_one
+attribute [norm_cast] add_submonoid.coe_eq_coe add_submonoid.coe_add add_submonoid.coe_zero
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
+by refine { mul := (*), one := 1, .. }; simp [mul_assoc, ← submonoid.coe_eq_coe]
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is

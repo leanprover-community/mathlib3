@@ -50,29 +50,38 @@ namespace padic_int
 variables {p : ℕ} [fact p.prime]
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
-def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x+y,
-    le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩
+instance : has_add ℤ_[p] :=
+⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x+y,
+    le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩⟩
+
+@[simp, nolint def_lemma, _refl_lemma]
+def add_mk (x y hx hy) : @has_add.add ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x + y, _⟩ := rfl
 
 /-- Multiplication on ℤ_p is inherited from ℚ_p. -/
-def mul : ℤ_[p] → ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x*y,
-    begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩
+instance : has_mul ℤ_[p] :=
+⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x*y,
+    begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩⟩
+
+@[simp, nolint def_lemma, _refl_lemma]
+def mul_mk (x y hx hy) : @has_mul.mul ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x * y, _⟩ := rfl
 
 /-- Negation on ℤ_p is inherited from ℚ_p. -/
-def neg : ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ := ⟨-x, by simpa⟩
+instance : has_neg ℤ_[p] :=
+⟨λ ⟨x, hx⟩, ⟨-x, by simpa⟩⟩
+
+@[simp, nolint def_lemma, _refl_lemma]
+def neg_mk (x hx) : @has_neg.neg ℤ_[p] _ ⟨x, hx⟩ = ⟨-x, _⟩ := rfl
 
 instance : ring ℤ_[p] :=
 begin
-  refine { add := add,
-           mul := mul,
-           neg := neg,
+  refine { add := (+),
+           mul := (*),
+           neg := has_neg.neg,
            zero := ⟨0, by simp [zero_le_one]⟩,
            one := ⟨1, by simp⟩,
            .. };
   { repeat {rintro ⟨_, _⟩},
-    simp [add_comm, add_left_comm, mul_assoc, left_distrib, right_distrib, add, mul, neg] }
+    simp [add_comm, add_left_comm, mul_assoc, left_distrib, right_distrib]; refl }
 end
 
 instance : inhabited ℤ_[p] := ⟨0⟩

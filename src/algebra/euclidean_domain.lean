@@ -248,10 +248,10 @@ rwa [xgcd_aux_val, xgcd_val] at this
 @[priority 70] -- see Note [lower instance priority]
 instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div],
-  ..e }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := by exact
+    λ a b h, (or_iff_not_and_not.2 $ λ h0,
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
+  zero := 0, add := (+), mul := (*), ..e }
 
 end gcd
 

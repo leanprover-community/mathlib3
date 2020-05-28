@@ -691,15 +691,21 @@ lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors �
   {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
-set_option old_structure_cmd false
-
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-class domain (α : Type u) extends ring α, no_zero_divisors α, nonzero α
+class domain (α : Type u) extends ring α :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section domain
 variable [domain α]
+
+instance domain.to_no_zero_divisors : no_zero_divisors α :=
+⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+instance domain.to_nonzero : nonzero α :=
+⟨domain.zero_ne_one⟩
 
 /-- Simplification theorems for the definition of a domain. -/
 @[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
@@ -746,8 +752,8 @@ end domain
 
 /- integral domains -/
 
-@[ancestor comm_ring no_zero_divisors nonzero]
-class integral_domain (α : Type u) extends comm_ring α, no_zero_divisors α, nonzero α
+@[ancestor comm_ring domain]
+class integral_domain (α : Type u) extends comm_ring α, domain α
 
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
@@ -800,10 +806,6 @@ iff.intro
 lemma mul_self_eq_one_iff (a : α) : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 have a * a = 1 * 1 ↔ a = 1 ∨ a = -1, from mul_self_eq_mul_self_iff a 1,
 by rwa mul_one at this
-
-/-- An integral domain is a domain. -/
-instance integral_domain.to_domain : domain α :=
-{..‹integral_domain α›, ..(by apply_instance : semiring α)}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_right_of_ne_zero (ha : a ≠ 0) (h : b * a = c * a) : b = c :=

@@ -25,14 +25,11 @@ theorems that need it.
 
 -/
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `euclidean_affine_space V P` is an affine space with points `P`
 over an `inner_product_space V`. -/
 abbreviation euclidean_affine_space (V : Type*) (P : Type*) [inner_product_space V]
     [metric_space P] :=
 normed_add_torsor V P
-end prio
 
 example (n : Type*) [fintype n] : euclidean_affine_space (euclidean_space n) (euclidean_space n) :=
 by apply_instance

@@ -11,7 +11,7 @@ import data.int.basic
 universe u
 
 section prio
-set_option old_structure_cmd true
+
 set_option default_priority 100 -- see Note [default priority]
 @[protect_proj] class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)

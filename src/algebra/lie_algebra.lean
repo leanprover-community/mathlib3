@@ -708,7 +708,8 @@ embedding from the corresponding Lie subalgebra of skew-adjoint endomorphisms in
 of matrices. -/
 def skew_adjoint_matrices_lie_embedding :
   J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
-lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
+lie_algebra.morphism.comp (lie_algebra.equiv.to_morphism lie_equiv_matrix')
+  (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
 def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=

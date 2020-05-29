@@ -74,7 +74,8 @@ matrix.eval.map_add M N
 @[simp] lemma to_lin_zero : (0 : matrix m n R).to_lin = 0 :=
 matrix.eval.map_zero
 
-@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin := matrix.eval.map_neg M
+@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin :=
+@linear_map.map_neg _ _ ((n → R) →ₗ[R] m → R) _ _ _ _ _ matrix.eval M
 
 instance to_lin.is_linear_map :
   @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=

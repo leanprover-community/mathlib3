@@ -223,7 +223,7 @@ def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodul
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
 property. A bundled version is available with `linear_map`, and should be favored over
 `is_linear_map` most of the time. -/
-structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
+class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
 (add [] : ∀ x y, f (x + y) = f x + f y)

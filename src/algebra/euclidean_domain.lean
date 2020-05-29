@@ -12,6 +12,7 @@ universe u
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
 @[protect_proj without mul_left_not_lt]
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
@@ -341,12 +342,10 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact int.mod_lt _ b0,
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
-    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
-  ..int.comm_ring,
-  ..int.decidable_linear_ordered_comm_ring }
+    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [k : field K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
 { quotient := (/),
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
@@ -356,5 +355,4 @@ instance field.to_euclidean_domain {K : Type u} [k : field K] : euclidean_domain
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
   remainder_lt := λ a b hnb, by simp [hnb],
-  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
-  ..k }
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }

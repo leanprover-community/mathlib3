@@ -3,7 +3,7 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import data.setoid
+import data.setoid.basic
 import algebra.pi_instances
 
 /-!
@@ -282,7 +282,7 @@ protected def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
     `x` is related to `y` by `d` if `x` is related to `y` by `c`. -/
 @[to_additive "For additive congruence relations `c, d` on a type `M` with an addition, `c ≤ d` iff
 `∀ x y ∈ M`, `x` is related to `y` by `d` if `x` is related to `y` by `c`."]
-instance : has_le (con M) := ⟨λ c d, c.to_setoid ≤ d.to_setoid⟩
+instance : has_le (con M) := ⟨λ c d, ∀ ⦃x y⦄, c x y → d x y⟩
 
 /-- Definition of `≤` for congruence relations. -/
 @[to_additive "Definition of `≤` for additive congruence relations."]
@@ -830,6 +830,6 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
   (ker (c.map d h)).quotient ≃* d.quotient :=
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
-  ..quotient_quotient_equiv_quotient _ _ h }
+  ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
 
 end con

@@ -791,7 +791,7 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → submonoid M} (hS : directed (≤) S)
   {x : M} :
-  x ∈ (supr S : submonoid M) ↔ ∃ i, x ∈ S i :=
+  x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
   refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
   suffices : x ∈ closure (⋃ i, (S i : set M)) → ∃ i, x ∈ S i,
@@ -804,6 +804,11 @@ begin
 end
 
 @[to_additive]
+lemma coe_supr_of_directed {ι} [nonempty ι] {S : ι → submonoid M} (hS : directed (≤) S) :
+  ((⨆ i, S i : submonoid M) : set M) = ⋃ i, ↑(S i) :=
+set.ext $ λ x, by simp [mem_supr_of_directed hS]
+
+@[to_additive]
 lemma mem_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : M} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
@@ -812,6 +817,11 @@ begin
   rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
   exact (directed_on_iff_directed _).1 hS
 end
+
+@[to_additive]
+lemma coe_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
+  (↑(Sup S) : set M) = ⋃ s ∈ S, ↑s :=
+set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
 variables {N : Type*} [monoid N] {P : Type*} [monoid P]
 
@@ -969,29 +979,26 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def restrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
+def mrestrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
 
-@[to_additive]
-lemma restrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.restrict S x = f x := rfl
-
-@[simp, to_additive] lemma restrict_eq {N : Type} [monoid N] (f : M →* N) (x) :
-  f.restrict S x = f x := rfl
+@[simp, to_additive]
+lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
-def cod_restrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
+def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
 /-- Restriction of a monoid hom to its range iterpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
-def range_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
-f.cod_restrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+def mrange_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
+f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
 
 @[simp, to_additive]
-lemma coe_range_restrict {N} [monoid N] (f : M →* N) (x : M) :
-  (f.range_restrict x : N) = f x :=
+lemma coe_mrange_restrict {N} [monoid N] (f : M →* N) (x : M) :
+  (f.mrange_restrict x : N) = f x :=
 rfl
 
 @[to_additive]
@@ -1029,7 +1036,7 @@ lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h 
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
 @[to_additive]
-lemma closure_preimage_le (f : M →* N) (s : set N) :
+lemma mclosure_preimage_le (f : M →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
@@ -1041,7 +1048,7 @@ lemma map_mclosure (f : M →* N) (s : set M) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (closure_preimage_le _ _))
+    (mclosure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
 end monoid_hom
@@ -1063,12 +1070,12 @@ namespace submonoid
 
 variables {N : Type*} [monoid N]
 
-open monoid_hom lattice
+open monoid_hom
 
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_restrict _ (λ x, h x.2)
+S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=

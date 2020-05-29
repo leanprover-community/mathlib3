@@ -19,9 +19,11 @@ all of the projections become protected.
 -/
 
 namespace tactic
-/-- Attribute to protect a declaration
-    If a declaration `foo.bar` is marked protected, then it must be referred to
-    by its full name `foo.bar`, even when the `foo` namespace is open.. -/
+/-- 
+Attribute to protect a declaration.
+If a declaration `foo.bar` is marked protected, then it must be referred to
+by its full name `foo.bar`, even when the `foo` namespace is open. 
+-/
 @[user_attribute] meta def protected_attr : user_attribute :=
 { name := "protected",
   descr := "Attribute to protect a declaration

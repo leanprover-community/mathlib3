@@ -42,23 +42,19 @@ instance standard_euclidean_space_has_inner (n : ℕ) : has_inner (fin n → ℝ
 { inner := λ a b, ∑ i, a i * b i }
 instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
   inner_product_space (fin n → ℝ) :=
-{ comm := begin
-    intros x y,
+{ comm := λ x y, begin
     unfold inner,
     conv_lhs {
-      congr,
+      apply_congr,
       skip,
-      funext,
       rw mul_comm
     }
   end,
-  nonneg := begin
-    intro x,
+  nonneg := λ x, begin
     unfold inner,
     exact finset.sum_nonneg (λ i hi, mul_self_nonneg _)
   end,
-  definite := begin
-    intro x,
+  definite := λ x, begin
     unfold inner,
     intro h,
     rw finset.sum_eq_zero_iff_of_nonneg at h,
@@ -68,8 +64,7 @@ instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
       rwa [mul_eq_zero_iff', or_self] at h },
     { exact λ i hi, mul_self_nonneg _ }
   end,
-  add_left := begin
-    intros x y z,
+  add_left := λ x y z, begin
     unfold inner,
     convert finset.sum_add_distrib,
     conv_lhs {
@@ -77,8 +72,7 @@ instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
       rw [pi.add_apply x y i, right_distrib]
     }
   end,
-  smul_left := begin
-    intros x y r,
+  smul_left := λ x y r, begin
     unfold inner,
     rw finset.mul_sum,
     conv_lhs {
@@ -86,7 +80,7 @@ instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
       congr,
       skip,
       funext,
-      rw [(show (r • x) i = r * x i, by refl), mul_assoc]
+      rw [pi.smul_apply, smul_eq_mul, mul_assoc]
     }
   end }
 instance standard_euclidean_affine_space_normed_group (n : ℕ) : normed_group (fin n → ℝ) :=

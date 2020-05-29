@@ -15,13 +15,29 @@ by its full name `foo.bar`, even when the `foo` namespace is open."
 If a structure `foo` is marked with the `protect_proj` user attribute, then
 all of the projections become protected.
 
-`protect_proj without bar baz` will protect all projections except for bar and baz.
+`protect_proj without bar baz` will protect all projections except for `bar` and `baz`.
+
+# Examples
+
+In this example all of `foo.bar`, `foo.baz` and `foo.qux` will be protected.
+```lean
+@[protect_proj] foo : Type :=
+(bar : unit) (baz : unit) (qux : unit)
+```
+
+The following code example define the structure `foo`, and the projections `foo.qux`
+will be protected, but not `foo.baz` or `foo.bar`
+```lean
+@[protect_proj without baz bar] foo : Type :=
+(bar : unit) (baz : unit) (qux : unit)
+```
+
 -/
 
 namespace tactic
 /-- Attribute to protect a declaration
     If a declaration `foo.bar` is marked protected, then it must be referred to
-    by its full name `foo.bar`, even when the `foo` namespace is open.. -/
+    by its full name `foo.bar`, even when the `foo` namespace is open. -/
 @[user_attribute] meta def protected_attr : user_attribute :=
 { name := "protected",
   descr := "Attribute to protect a declaration
@@ -38,14 +54,11 @@ add_tactic_doc
 /-- Tactic that is executed when a structure is marked with the `protect_proj` attribute -/
 meta def protect_proj_tac (n : name) (l : list name) : tactic unit :=
 do env ← get_env,
-option.cases_on (env.structure_fields_full n)
-  (fail "protect_proj failed: declaration is not a structure")
-  (λ fields, fields.foldl
-    (λ t field, cond (l.foldl (λ b m, bor b (m.is_suffix_of field)) ff)
-      t
-      (t >> tactic.mk_protected field))
-    skip)
-
+match env.structure_fields_full n with
+| none := fail "protect_proj failed: declaration is not a structure"
+| some fields := fields.mmap' $ λ field,
+    when (l.all $ λ m, bnot $ m.is_suffix_of field) $ mk_protected field
+end
 /-- Attribute to protect the projections of a structure.
     If a structure `foo` is marked with the `protect_proj` user attribute, then
     all of the projections become protected, meaning they must always be referred to by

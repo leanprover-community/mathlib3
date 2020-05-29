@@ -1,4 +1,9 @@
-import order.rasiowa_sikorski
+/-
+Copyright (c) 2020 David Wärn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: David Wärn
+-/
+import order.generic_cofilter
 import data.finset
 
 noncomputable theory
@@ -14,7 +19,7 @@ ordering.compares.eq_lt $ cmp_compares x y
 @[simp] lemma cmp_eq_eq_iff : cmp x y = ordering.eq ↔ x = y :=
 ordering.compares.eq_eq $ cmp_compares x y
 
-@[simp] lemma cmp_eq_gt_iff : cmp x y = ordering.gt ↔ x > y :=
+@[simp] lemma cmp_eq_gt_iff : cmp x y = ordering.gt ↔ y < x :=
 ordering.compares.eq_gt $ cmp_compares x y
 
 @[simp] lemma cmp_self_eq_eq : cmp x x = ordering.eq :=
@@ -26,12 +31,10 @@ lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
 by { split, rw [←cmp_swap _ y, ←cmp_swap _ y'], cc,
   rw [←cmp_swap _ x, ←cmp_swap _ x'], cc, }
 
-lemma lt_iff_lt_of_cmp_eq (h : cmp x y = cmp x' y') :
-  x < y ↔ x' < y' :=
+lemma lt_iff_lt_of_cmp_eq (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
 
-lemma gt_iff_gt_of_cmp_eq (h : cmp x y = cmp x' y') :
-  x ≤ y ↔ x' ≤ y' :=
+lemma gt_iff_gt_of_cmp_eq (h : cmp x y = cmp x' y') : x ≤ y ↔ x' ≤ y' :=
 begin
   suffices : ¬ y < x ↔ ¬ y' < x',
   { push_neg at this, assumption },
@@ -47,7 +50,11 @@ section orderiso
 variables {α : Type*} {β : Type*} [decidable_linear_order α] [decidable_linear_order β]
   (f : α → β) (g : β → α)
 
-def order_iso_of_cmp_eq_cmp (adj : ∀ a b, cmp a (g b) = cmp (f a) b) :
+/-- To construct an order isomorphism between decidable linear orders `α` and `β`, it
+  suffices to construct maps `f : α → β`, `g : β → α`, satisfying
+  `∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b`. We think of this as a two-sided Galois
+  adjunction. -/
+def order_iso_of_cmp_eq_cmp (adj : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) :
   ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop) :=
 { to_fun := f,
   inv_fun := g,
@@ -134,13 +141,13 @@ else
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
 
 variables (α : Type*) [decidable_linear_order α]
-  [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
   (β : Type*) [decidable_linear_order β]
-  [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
 
-/-- The type of endpoint-preserving order-isomorphisms between finite subsets of α and β. -/
+/-- The type of partial order isomorphism between `α` and `β` defined on finite subsets.
+    A partial order isomorphism is encoded as a finite subset of `α × β`, consisting
+    of pairs which should be identified. -/
 def partial_iso : Type _ :=
-{ funset : finset (α × β) // ∀ (p q ∈ funset),
+{ f : finset (α × β) // ∀ (p q ∈ f),
   cmp (prod.fst p) (prod.fst q) = cmp (prod.snd p) (prod.snd q) }
 
 instance : inhabited (partial_iso α β) :=
@@ -153,9 +160,13 @@ instance : preorder (partial_iso α β) :=
 
 variables {α β}
 
-def pswap (f : partial_iso α β) : partial_iso β α :=
+/-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
+def partial_iso.symm (f : partial_iso α β) : partial_iso β α :=
 { val := f.val.image prod.swap,
   property := λ p q hp hq, eq.symm $ f.property _ _ (mem_swap.mp hp) (mem_swap.mp hq), }
+
+variables [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+          [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
 
 lemma exists_sep (f : partial_iso α β) (a : α) :
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
@@ -186,7 +197,7 @@ begin
     use ⟨p1, p2⟩,
     rw finset.mem_filter,
     exact ⟨⟨hp, hl⟩, rfl⟩, },
-  { suffices : p1 > a ∧ p2 > b,
+  { suffices : a < p1 ∧ b < p2,
       rw [←cmp_eq_gt_iff, ←cmp_eq_gt_iff] at this, cc,
     refine ⟨hr, _⟩,
     apply hb.2,
@@ -196,6 +207,8 @@ begin
     exact ⟨⟨hp, hr⟩, rfl⟩, },
 end
 
+/-- The set of partial isomorphism defined on `a : α`, together with a proof that any
+    partial isomorphism can be extended to include `a`. -/
 def cofinal_left_ins (a : α) : { D : set (partial_iso α β) // cofinal D } :=
 { val := λ f : partial_iso α β, ∃ b : β, (a, b) ∈ f.val,
   property :=
@@ -216,53 +229,60 @@ def cofinal_left_ins (a : α) : { D : set (partial_iso α β) // cofinal D } :=
     { apply finset.subset_insert, }
   end }
 
+/-- The set of partial isomorphism defined on `b : β `, together with a proof that any
+    partial isomorphism can be extended to include `b`. We prove this 'by symmetry'. -/
 def cofinal_right_ins (b : β) : { D : set (partial_iso α β) // cofinal D} :=
 { val := λ f, ∃ a, (a, b) ∈ f.val,
   property :=
   begin
     intro f,
-    rcases (cofinal_left_ins b).property (pswap f) with ⟨f', ⟨a, ha⟩, hl⟩,
-    use pswap f',
+    rcases (cofinal_left_ins b).property (partial_iso.symm f) with ⟨f', ⟨a, ha⟩, hl⟩,
+    use partial_iso.symm f',
     refine ⟨⟨a, mem_swap.mpr ha⟩, _⟩,
     exact sub_swap_iff.mpr hl,
   end, }
 
 variables (α β)
 
+/-- A family of cofinal constraints, indexed by the sum-type `α ⊕ β`. Together these conditions
+    ensure that we get a total isomorphism. -/
 def to_cofinal : α ⊕ β → { D : set (partial_iso α β) // cofinal D}
 | (sum.inl a) := cofinal_left_ins a
 | (sum.inr b) := cofinal_right_ins b
 
 variables [encodable α] [encodable β]
 
-def my_cofilter : set (partial_iso α β) := rasiowa_sikorski.witness (default _) (to_cofinal α β)
+/-- A set of partial isomorphisms whose limit is a total isomorphism. -/
+def our_cofilter : set (partial_iso α β) := generic.cofilter (default _) (to_cofinal α β)
 
 variables {α}
 
-lemma exists_right (a : α) : ∃ (b : β) (f ∈ my_cofilter α β), (a, b) ∈ subtype.val f :=
+lemma exists_right (a : α) : ∃ (b : β) (f ∈ our_cofilter α β), (a, b) ∈ subtype.val f :=
 begin
-  rcases rasiowa_sikorski.meets (default _) (to_cofinal α β) (sum.inl a) with ⟨f, hf, b, hb⟩,
+  rcases generic.meets (default _) (to_cofinal α β) (sum.inl a) with ⟨f, hf, b, hb⟩,
   exact ⟨b, f, hf, hb⟩,
 end
 
 variables (α) {β}
 
-lemma exists_left (b : β) : ∃ (a : α) (f ∈ my_cofilter α β), (a, b) ∈ subtype.val f :=
+lemma exists_left (b : β) : ∃ (a : α) (f ∈ our_cofilter α β), (a, b) ∈ subtype.val f :=
 begin
-  rcases rasiowa_sikorski.meets (default _) (to_cofinal α β) (sum.inr b) with ⟨f, hf, a, ha⟩,
+  rcases generic.meets (default _) (to_cofinal α β) (sum.inr b) with ⟨f, hf, a, ha⟩,
   exact ⟨a, f, hf, ha⟩,
 end
 
 variables {α}
 
-def α_to_β : α → β := λ a, classical.some (exists_right β a)
-def β_to_α : β → α := λ b, classical.some (exists_left α b)
+/-- The limit of our cofilter, as map `α → β`. -/
+def left_to_right : α → β := λ a, classical.some (exists_right β a)
+/-- The limit of our cofilter, as map `β → α`. -/
+def right_to_left : β → α := λ b, classical.some (exists_left α b)
 
-lemma adj (a : α) (b : β) : cmp a (β_to_α b) = cmp (α_to_β a) b :=
+lemma adj (a : α) (b : β) : cmp a (right_to_left b) = cmp (left_to_right a) b :=
 begin
   rcases classical.some_spec (exists_right β a) with ⟨f, hf, ha⟩,
   rcases classical.some_spec (exists_left α b) with ⟨g, hg, hb⟩,
-  rcases rasiowa_sikorski.directed_on (default _) (to_cofinal α β) _ hf _ hg
+  rcases generic.directed_on (default _) (to_cofinal α β) _ hf _ hg
     with ⟨m, hm, fm, gm⟩,
-  exact m.property (a, α_to_β a) (β_to_α b, b) (fm ha) (gm hb),
+  exact m.property (a, left_to_right a) (right_to_left b, b) (fm ha) (gm hb),
 end

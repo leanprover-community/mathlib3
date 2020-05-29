@@ -718,7 +718,7 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_semiring α, by apply_instance }
 
-@[protec_proj, ancestor has_mul has_zero]
+@[protect_proj, ancestor has_mul has_zero]
 class no_zero_divisors (α : Type u) extends has_mul α, has_zero α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 

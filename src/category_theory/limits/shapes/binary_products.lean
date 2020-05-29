@@ -366,11 +366,8 @@ variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
 /-- The binary product functor. -/
 @[simps]
 def prod_functor : C ⥤ C ⥤ C :=
-{ obj := λ X,
-  { obj := λ Y, X ⨯ Y,
-    map := λ Y Z, prod.map (𝟙 X), },
-  map := λ Y Z f,
-  { app := λ T, prod.map f (𝟙 T), }, }
+{ obj := λ X, { obj := λ Y, X ⨯ Y, map := λ Y Z, prod.map (𝟙 X) },
+  map := λ Y Z f, { app := λ T, prod.map f (𝟙 T) }}
 
 /-- The braiding isomorphism which swaps a binary product. -/
 @[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=

@@ -1,4 +1,17 @@
+/-
+Copyright (c) 2020 Reid Barton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton
+-/
+
 import tactic.core
+
+/-!
+# `with_local_reducibility`
+
+Run a tactic in an environment with a temporarily modified reducibility attribute
+for a specified declaration.
+-/
 
 namespace tactic
 

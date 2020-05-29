@@ -1031,6 +1031,12 @@ begin
   rwa [disjoint_span_singleton x0]
 end
 
+lemma linear_independent.fin_succ (n : ℕ) (ι : fin (n+1) → V)
+  (hι : linear_independent K (ι ∘ fin.cast_succ))
+  (hx : ι (fin.last n) ∉ span K (set.range (ι ∘ @fin.cast_succ n))) :
+  linear_independent K ι :=
+sorry
+
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
 begin

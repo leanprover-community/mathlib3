@@ -2466,6 +2466,17 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp only [sum_add_distrib, finset.mul_sum, finset.sum_mul]
     end
 
+@[simp] lemma derivative_pow {f : polynomial R} {n : ℕ} :
+  derivative (f^n) = n * derivative f * f^(n-1) :=
+sorry
+
+@[simp] lemma derivative_coe_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
+sorry
+
+@[simp] lemma iterate_derivative_coe_nat_mul {n k : ℕ} {f : polynomial R} :
+  derivative^[k] (n * f) = n * (derivative^[k] f) :=
+sorry
+
 lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp [derivative, eval_sum, eval_pow]
 
@@ -2498,6 +2509,15 @@ begin
   rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
   rw [← C_inj, this, C_0],
 end
+
+end derivative
+
+section derivative
+variables [comm_ring R]
+
+@[simp] lemma iterate_derivative_sub {k : ℕ} {f g : polynomial R} :
+  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
+sorry
 
 end derivative
 

@@ -7,7 +7,7 @@ import category_theory.simple
 import category_theory.preadditive
 
 /-!
-# Simple objects
+# Schur's lemma
 We prove the part of Schur's Lemma that holds in any preadditive category with kernels,
 that any nonzero morphism between simple objects
 is an isomorphism.
@@ -39,7 +39,7 @@ variables [Π {X Y : C} (f : X ⟶ Y), has_limit (limits.parallel_pair f 0)]
 Schur's Lemma (for a general preadditive category),
 that a nonzero morphism between simple objects is an isomorphism.
 -/
-def schur {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} (w : f ≠ 0) :
+def is_iso_of_hom_simple {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
   haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),

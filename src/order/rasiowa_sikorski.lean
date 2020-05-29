@@ -14,10 +14,12 @@ This file contains the (dual) Rasiowa–Sikorski lemma.
 ## Main definitions
 
 We work with a preorder `P`, a term `p : P`, and a countable family `𝒟` of cofinal subsets of `P`.
+Rasiowa–Sikorski's lemma says that there is a downwards-closed, upwards directed subset of `P`,
+which contains `p` and has non-empty intersection with all sets in `𝒟`.
 
-- `rasiowa_sikorski.witness p 𝒟 : set P`: the witness to the lemma, a `𝒟`-generic 'cofilter'.
-- `rasiowa_sikorski.directed_on p 𝒟`: the fact that the witness is (upwards) directed.
-- `rasiowa_sikorski.meets p 𝒟`: the fact that the witness is `𝒟`-generic.
+- `rasiowa_sikorski.witness p 𝒟 : set P`: the witness to the lemma.
+- `rasiowa_sikorski.directed_on p 𝒟`: the fact that the witness is upwards directed.
+- `rasiowa_sikorski.meets p 𝒟`: the fact that the witness meets all sets in `𝒟`.
 
 ## Usage
 
@@ -58,7 +60,7 @@ variables {s : set P} (h : cofinal s) (x : P)
 noncomputable def above : P :=
 classical.some $ h x
 
-lemma above_elem : above h x ∈ s :=
+lemma above_mem : above h x ∈ s :=
 by { have := classical.some_spec (h x), tauto }
 
 lemma le_above : x ≤ above h x :=
@@ -92,9 +94,14 @@ end
 lemma seq.starting_point : seq p 𝒟 0 = p := rfl
 
 lemma seq.encode_elem (i : ι) : seq p 𝒟 (encodable.encode i + 1) ∈ (𝒟 i).val :=
-by { dunfold seq, rw encodable.encodek, apply cofinal.above_elem, }
+by { dunfold seq, rw encodable.encodek, apply cofinal.above_mem, }
 
-/-- The witness to the Rasiowa–Sikorski lemma: a `𝒟`-generic cofilter. -/
+/-- Given a countable family `𝒟` of cofinal subsets of a preorder `P` and a starting point
+    `p : P`, `raioswa_sikorski.witness p 𝒟` is a subset of `P` which
+    - contains `p`
+    - is downwards closed
+    - is upwards directed
+    - meets every set in `𝒟` -/
 def witness : set P := { x : P | ∃ n, x ≤ seq p 𝒟 n }
 
 lemma downwards_closed : downwards_closed (witness p 𝒟) :=

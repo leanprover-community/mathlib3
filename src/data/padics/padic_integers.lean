@@ -49,42 +49,52 @@ notation `ℤ_[`p`]` := padic_int p
 namespace padic_int
 variables {p : ℕ} [fact p.prime]
 
+@[ext] lemma ext {x y : ℤ_[p]} : x.val = y.val → x = y := subtype.ext.2
+
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 instance : has_add ℤ_[p] :=
 ⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x+y,
     le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩⟩
 
-@[simp, nolint def_lemma doc_blame, _refl_lemma]
-def add_mk (x y hx hy) : @has_add.add ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x + y, _⟩ := rfl
+@[simp] lemma add_val {x y : ℤ_[p]} : (x + y).val = x.val + y.val := by cases x; cases y; refl
 
 /-- Multiplication on ℤ_p is inherited from ℚ_p. -/
 instance : has_mul ℤ_[p] :=
 ⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x*y,
     begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩⟩
 
-@[simp, nolint def_lemma doc_blame, _refl_lemma]
-def mul_mk (x y hx hy) : @has_mul.mul ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x * y, _⟩ := rfl
+@[simp] lemma mul_val {x y : ℤ_[p]} : (x * y).val = x.val * y.val := by cases x; cases y; refl
 
 /-- Negation on ℤ_p is inherited from ℚ_p. -/
 instance : has_neg ℤ_[p] :=
 ⟨λ ⟨x, hx⟩, ⟨-x, by simpa⟩⟩
 
-@[simp, nolint def_lemma doc_blame, _refl_lemma]
-def neg_mk (x hx) : @has_neg.neg ℤ_[p] _ ⟨x, hx⟩ = ⟨-x, _⟩ := rfl
+@[simp] lemma neg_val {x : ℤ_[p]} : (-x).val = -x.val := by cases x; refl
+
+/-- Zero on ℤ_p is inherited from ℚ_p. -/
+instance : has_zero ℤ_[p] :=
+⟨⟨0, by norm_num⟩⟩
+
+@[simp] lemma zero_val : (0 : ℤ_[p]).val = 0 := rfl
+
+instance : inhabited ℤ_[p] := ⟨0⟩
+
+/-- One on ℤ_p is inherited from ℚ_p. -/
+instance : has_one ℤ_[p] :=
+⟨⟨1, by norm_num⟩⟩
+
+@[simp] lemma one_val : (1 : ℤ_[p]).val = 1 := rfl
 
 instance : ring ℤ_[p] :=
 begin
   refine { add := (+),
            mul := (*),
            neg := has_neg.neg,
-           zero := ⟨0, by simp [zero_le_one]⟩,
-           one := ⟨1, by simp⟩,
+           zero := 0,
+           one := 1,
            .. };
-  { repeat {rintro ⟨_, _⟩},
-    simp [add_comm, add_left_comm, mul_assoc, left_distrib, right_distrib]; refl }
+  intros; ext; simp; ring
 end
-
-instance : inhabited ℤ_[p] := ⟨0⟩
 
 lemma zero_def : ∀ x : ℤ_[p], x = 0 ↔ x.val = 0
 | ⟨x, _⟩ := ⟨subtype.mk.inj, λ h, by simp at h; simp only [h]; refl⟩

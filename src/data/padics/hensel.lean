@@ -88,7 +88,7 @@ parameters {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
 include hnorm
 
 /-- `T` is an auxiliary value that is used to control the behavior of the polynomial `F`. -/
-private def T : ℝ := ∥(F.eval a).val / ((F.derivative.eval a).val)^2∥
+private def T : ℝ := ∥(F.eval a / (F.derivative.eval a)^2 : ℚ_[p])∥
 
 private lemma deriv_sq_norm_pos : 0 < ∥F.derivative.eval a∥ ^ 2 :=
 lt_of_le_of_lt (norm_nonneg _) hnorm
@@ -104,7 +104,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
+calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_norm_z]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 

@@ -39,7 +39,7 @@ add_tactic_doc
 meta def protect_proj_tac (n : name) (l : list name) : tactic unit :=
 do env ← get_env,
 option.cases_on (env.structure_fields_full n)
-  (trace ("protect_proj failed: declaration is not a structure"))
+  (fail "protect_proj failed: declaration is not a structure")
   (λ fields, fields.foldl
     (λ t field, cond (l.foldl (λ b m, bor b (m.is_suffix_of field)) ff)
       skip

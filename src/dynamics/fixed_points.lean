@@ -32,7 +32,7 @@ def is_fixed_pt (f : α → α) (x : α) := f x = x
 
 -- TODO: why this is not `rfl`?
 /-- Every point is a fixed point of `id`. -/
-lemma is_fixed_pt_id (x : α) : is_fixed_pt id x := by rw [is_fixed_pt, id]
+lemma is_fixed_pt_id (x : α) : is_fixed_pt id x := (rfl : _)
 
 namespace is_fixed_pt
 

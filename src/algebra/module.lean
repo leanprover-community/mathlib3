@@ -143,7 +143,7 @@ defined to be `semimodule`.)
 This has as advantage that modules are completely transparent
 for type class inference, which means that all instances for semimodules
 are immediately picked up for modules as well.
-A cosmetic disadvantage is that one can not extend modules an sich,
+A cosmetic disadvantage is that one can not extend modules as such,
 in definitions such as `normed_space`.
 The solution is to extend `semimodule` instead.
 -/
@@ -592,7 +592,7 @@ defined to be `module`.)
 This has as advantage that vector spaces are completely transparent
 for type class inference, which means that all instances for semimodules
 are immediately picked up for vector spaces as well.
-A cosmetic disadvantage is that one can not extend vector spaces an sich,
+A cosmetic disadvantage is that one can not extend vector spaces as such,
 in definitions such as `normed_space`.
 The solution is to extend `semimodule` instead.
 -/

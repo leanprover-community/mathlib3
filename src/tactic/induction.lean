@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import control.basic data.sum data.list.defs data.vector tactic.basic
+import control.basic data.sum data.list.defs tactic.basic
 import tactic.type_based_naming
 
 /--
@@ -138,6 +138,16 @@ def m_all {m} [monad m] {α} (p : α → m bool) : list α → m bool
 def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.m_any id
 
 def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.m_all id
+
+def mfilter_map {m : Type u → Type v} [monad m] {α β} (p : α → m (option β))
+  : list α → m (list β)
+| [] := pure []
+| (a :: as) := do
+  mb ← p a,
+  match mb with
+  | some b := (λ z, b :: z) <$> mfilter_map as
+  | none := mfilter_map as
+  end
 
 end list
 
@@ -448,9 +458,22 @@ namespace tactic
 
 open expr native tactic.interactive
 
-meta def fresh_mvar (pp_name : name) (type : expr) : tactic expr := do
-  uniq_name ← mk_fresh_name,
-  pure $ mvar uniq_name pp_name type
+meta def mopen_binder_aux (type e : expr) : tactic (expr × expr) := do
+  mv ← mk_meta_var type,
+  pure $ (mv, e.instantiate_var mv)
+
+meta def mopen_pi : expr → tactic (expr × name × binder_info × expr)
+| (pi pp_name binfo type e) := do
+  ⟨mv, e⟩ ← mopen_binder_aux type e,
+  pure (mv, pp_name, binfo, e)
+| e := fail! "mopen_pi: expected an expression starting with a pi, but got\n{e}"
+
+meta def mopen_n_pis : ℕ → expr → tactic (list (expr × name × binder_info) × expr)
+| 0 e := pure ([], e)
+| (n + 1) e := do
+  ⟨mv, pp_name, binfo, e⟩ ← mopen_pi e,
+  ⟨args, u⟩ ← mopen_n_pis n e,
+  pure $ ((mv, pp_name, binfo) :: args, u)
 
 meta def open_binder_aux (pp_name : name) (bi : binder_info) (t e : expr)
   : tactic (expr × expr) := do
@@ -471,7 +494,7 @@ Fails if `e` does not start with a pi.
 -/
 meta def open_pi : expr → tactic (expr × expr)
 | (pi n bi t e) := open_binder_aux n bi t e
-| e := fail! "open_binder: expected an expression starting with a pi, but got\n{e}"
+| e := fail! "open_pi: expected an expression starting with a pi, but got\n{e}"
 
 -- TODO could be more efficient: open_binder uses instantiate_var once per
 -- binder, so the expression is traversed a lot. We could use instantiate_vars
@@ -482,24 +505,6 @@ meta def open_n_pis : ℕ → expr → tactic (list expr × expr)
   ⟨cnst, e⟩ ← open_pi e,
   ⟨args, u⟩ ← open_n_pis n e,
   pure $ (cnst :: args, u)
-
-meta def mopen_binder_aux (pp_name : name) (type e : expr)
-  : tactic (expr × expr) := do
-  mv ← fresh_mvar pp_name type,
-  pure $ (mv, e.instantiate_var mv)
-
-meta def mopen_pi : expr → tactic (expr × binder_info × expr)
-| (pi n bi t e) := do
-  ⟨mv, e⟩ ← mopen_binder_aux n t e,
-  pure (mv, bi, e)
-| e := fail! "open_binder: expected an expression starting with a pi, but got\n{e}"
-
-meta def mopen_n_pis : ℕ → expr → tactic (list (expr × binder_info) × expr)
-| 0 e := pure ([], e)
-| (n + 1) e := do
-  ⟨mv, bi, e⟩ ← mopen_pi e,
-  ⟨args, u⟩ ← mopen_n_pis n e,
-  pure $ ((mv, bi) :: args, u)
 
 meta def get_n_pis_aux : ℕ → expr → list expr → tactic (list expr)
 | 0 e acc := pure acc
@@ -839,12 +844,12 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
 -- TODO Generate heterogeneous equations only if necessary. This will simplify
 -- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
-  : tactic (expr × list expr × list expr) := do
+  : tactic (expr × ℕ × ℕ) := do
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
 
   -- If there aren't any complex index arguments, we don't need to do anything.
-  (_ :: _) ← pure nonlocals | pure ⟨eliminee, [], []⟩,
+  (_ :: _) ← pure nonlocals | pure (eliminee, 0, 0),
 
   -- Revert the eliminee (and any hypotheses depending on it).
   num_reverted_eliminee ← revert eliminee,
@@ -853,7 +858,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   (num_reverted_args : ℕ) ← list.sum <$> nonlocals.mmap revert_kdependencies,
 
   -- Introduce variables and equations for the complex index arguments
-  index_vars_equations ← nonlocals.mmap $ λ arg, do {
+  index_var_equations ← nonlocals.mmap $ λ arg, do {
     arg_name ← get_unused_name `index,
     eq_name ← get_unused_name $ arg_name ++ "eq",
     tgt ← target,
@@ -865,18 +870,15 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
     interactive.exact ``(%%t %%arg heq.rfl),
     arg_var ← intro arg_name,
     arg_var_eq ← intro eq_name,
-
-    -- TODO The original induction clears some stuff at this point; see
-    -- commented code below. But if I'm not mistaken, all the stuff that might
-    -- be cleared occurs in the index equations, so this wouldn't do anything in
-    -- our case. (The original induction doesn't generate index equations.)
-
-    -- let arg_locals :=
-    --   arg.fold [] (λ e _ locals, if e.is_local_constant then e::locals else locals),
-    -- arg_locals.mmap' (try ∘ clear),
-
-    pure (⟨arg_var, arg_var_eq⟩ : expr × expr)
+    -- arg_var_eqs ← decompose_structure_equality arg_var_eq,
+    -- TODO remove
+    let arg_var_eqs := [arg_var_eq],
+    pure arg_var_eqs
   },
+
+  let num_index_vars := index_var_equations.length,
+  let index_var_equations := index_var_equations.join,
+  let num_index_var_equations := index_var_equations.length,
 
   -- Re-introduce the indices' dependencies
   intron num_reverted_args,
@@ -886,9 +888,9 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   eliminee ← intro1,
 
   -- Re-revert the index equations
-  revert_lst $ index_vars_equations.map prod.snd,
+  revert_lst index_var_equations,
 
-  pure ⟨eliminee, index_vars_equations.map prod.fst, locals⟩
+  pure (eliminee, num_index_vars, num_index_var_equations)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1016,7 +1018,7 @@ meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × l
         c ← mk_local' pp_name binfo type,
         ih_apps_aux (app res c) (c :: cnsts) n e
       else do
-        rhs_eq_lhs ← succeeds $ is_def_eq lhs rhs,
+        rhs_eq_lhs ← succeeds $ unify lhs rhs,
         if ¬ rhs_eq_lhs
           then do
             let type := (const `eq [u]) lhs_type lhs rhs,
@@ -1036,14 +1038,33 @@ meta def ih_apps (num_equations : ℕ) (ih : expr) (ih_type : expr)
   : tactic (expr × list expr) :=
 ih_apps_aux ih [] num_equations ih_type
 
+meta def assign_unassigned_mvar (mv : expr) (pp_name : name)
+  (binfo : binder_info) : tactic (option expr) := do
+  ff ← is_assigned mv | pure none,
+  type ← infer_type mv,
+  c ← mk_local' pp_name binfo type,
+  unify mv c,
+  pure c
+
+meta def assign_unassigned_mvars (mvars : list (expr × name × binder_info))
+  : tactic (list expr) :=
+mvars.mfilter_map $ λ ⟨mv, pp_name, binfo⟩,
+  assign_unassigned_mvar mv pp_name binfo
+
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)
   : tactic expr := do
   ih_type ← infer_type ih,
-  ⟨generalized_arg_constants, ih_type⟩ ← open_n_pis num_generalized ih_type,
-  let apps := ih.app_of_list generalized_arg_constants,
+  ⟨generalized_arg_mvars, ih_type⟩ ← mopen_n_pis num_generalized ih_type,
+  let apps := ih.app_of_list (generalized_arg_mvars.map prod.fst),
   ⟨apps, cnsts⟩ ← ih_apps num_index_vars apps ih_type,
-  -- TODO lambdas could be more efficient
-  let new_ih := apps.lambdas (generalized_arg_constants ++ cnsts),
+  generalized_arg_locals ← assign_unassigned_mvars generalized_arg_mvars,
+  apps ← instantiate_mvars apps,
+  generalized_arg_locals ← generalized_arg_locals.mmap instantiate_mvars,
+  cnsts ← cnsts.mmap instantiate_mvars,
+  -- TODO implement a more efficient 'lambdas'
+  let new_ih := apps.lambdas (generalized_arg_locals ++ cnsts),
+  -- Sanity check to catch any errors in constructing new_ih.
+  type_check new_ih,
   replace' ih new_ih
 
 /--
@@ -1109,9 +1130,8 @@ focus1 $ do
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Generalise complex indices
-  ⟨eliminee, index_vars, _⟩ ←
+  (eliminee, num_index_vars, num_index_equations) ←
     generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
-  let num_index_vars := index_vars.length,
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
@@ -1159,7 +1179,7 @@ focus1 $ do
       generalized_hyps ← intron' num_generalized,
 
       -- Introduce the index equations
-      index_equations ← intron' num_index_vars,
+      index_equations ← intron' num_index_equations,
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.

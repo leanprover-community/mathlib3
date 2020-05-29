@@ -81,7 +81,6 @@ begin
 end
 
 -- A simple induction with complex arguments.
--- TODO IH simplification
 example {k} (h : lt (k + 1) k) : false :=
 begin
   induction' h,
@@ -380,15 +379,12 @@ inductive big_step : stmt × state → state → Prop
 
 infix ` ⟹ `:110 := big_step
 
--- TODO IH simplification
 lemma not_big_step_while_true {S s t} :
   ¬ (while (λ_, true) S, s) ⟹ t :=
 begin
   intro hw,
   induction' hw,
   case while_true {
-    specialize ih_hw_1 rfl,
-    -- Desired state here
     exact ih_hw_1
   },
   case while_false {
@@ -436,15 +432,12 @@ inductive curried_big_step : stmt → state → state → Prop
 
 set_option trace.check true
 
--- TODO IH simplification
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
   intro hw,
   induction' hw,
   case while_true {
-    specialize ih_hw_1 rfl,
-    -- Desired state here.
     exact ih_hw_1,
   },
   case while_false {

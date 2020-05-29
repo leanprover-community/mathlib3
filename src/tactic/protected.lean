@@ -42,7 +42,7 @@ option.cases_on (env.structure_fields_full n)
   (fail "protect_proj failed: declaration is not a structure")
   (λ fields, fields.foldl
     (λ t field, cond (l.foldl (λ b m, bor b (m.is_suffix_of field)) ff)
-      skip
+      t
       (t >> tactic.mk_protected field))
     skip)
 

@@ -97,8 +97,12 @@ by { rw [← zero_smul ℝ (0:α), inner_smul_left, zero_mul] }
 @[simp] lemma inner_zero_right {x : α} : inner x 0 = 0 :=
 by { rw [inner_comm, inner_zero_left] }
 
-lemma inner_self_eq_zero (x : α) : inner x x = 0 ↔ x = 0 :=
+@[simp] lemma inner_self_eq_zero {x : α} : inner x x = 0 ↔ x = 0 :=
 iff.intro (inner_product_space.definite _) (by { rintro rfl, exact inner_zero_left })
+
+@[simp] lemma inner_self_nonpos {x : α} : inner x x ≤ 0 ↔ x = 0 :=
+⟨λ h, inner_self_eq_zero.1 (le_antisymm h inner_self_nonneg),
+  λ h, h.symm ▸ le_of_eq inner_zero_left⟩
 
 @[simp] lemma inner_neg_left {x y : α} : inner (-x) y = -inner x y :=
 by { rw [← neg_one_smul ℝ x, inner_smul_left], simp }
@@ -155,7 +159,8 @@ instance inner_product_space_has_norm : has_norm α := ⟨λx, sqrt (inner x x)�
 
 lemma norm_eq_sqrt_inner {x : α} : ∥x∥ = sqrt (inner x x) := rfl
 
-lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ := (mul_self_sqrt inner_self_nonneg).symm
+lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ :=
+(mul_self_sqrt inner_self_nonneg).symm
 
 /-- Expand the square -/
 lemma norm_add_pow_two {x y : α} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
@@ -222,6 +227,40 @@ instance inner_product_space_is_normed_space : normed_space ℝ α :=
 
 end norm
 
+-- TODO [Lean 3.15]: drop some of these `show`s
+/-- If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
+then `Π i, f i` is an inner product space as well. This is not an instance to avoid conflict
+with the default instance for the norm on `Π i, f i`. -/
+def pi.inner_product_space (ι : Type*) [fintype ι] (f : ι → Type*) [Π i, inner_product_space (f i)] :
+  inner_product_space (Π i, f i) :=
+{ inner := λ x y, ∑ i, inner (x i) (y i),
+  comm := λ x y, finset.sum_congr rfl $ λ i hi, inner_comm (x i) (y i),
+  nonneg := λ x, show (0:ℝ) ≤ ∑ i, inner (x i) (x i),
+    from finset.sum_nonneg (λ i hi, inner_self_nonneg),
+  definite := λ x h, begin
+    have : ∀ i ∈ (finset.univ : finset ι), 0 ≤ inner (x i) (x i) := λ i hi, inner_self_nonneg,
+    simpa [inner, finset.sum_eq_zero_iff_of_nonneg this, function.funext_iff] using h,
+  end,
+  add_left := λ x y z,
+    show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
+    by simp only [inner_add_left, finset.sum_add_distrib],
+  smul_left := λ x y r,
+    show ∑ (i : ι), inner (r • x i) (y i) = r * ∑ i, inner (x i) (y i),
+    by simp only [finset.mul_sum, inner_smul_left] }
+
+/-- The set of real numbers is an inner product space. While the norm given by this definition
+is equal to the default norm `∥x∥ = abs x`, it is not definitionally equal, so we don't turn this
+definition into an instance.
+
+TODO: do the same trick as with `metric_space` and `emetric_space`? -/
+def real.inner_product_space : inner_product_space ℝ :=
+{ inner := (*),
+  comm := mul_comm,
+  nonneg := mul_self_nonneg,
+  definite := λ x, mul_self_eq_zero.1,
+  add_left := add_mul,
+  smul_left := λ _ _ _, mul_assoc _ _ _ }
+
 section instances
 /-- The standard Euclidean space, functions on a finite type. For an `n`-dimensional space
 use `euclidean_space (fin n)`.  -/
@@ -232,18 +271,11 @@ variables {n : Type*} [fintype n]
 
 instance : inhabited (euclidean_space n) := ⟨0⟩
 
-instance : inner_product_space (euclidean_space n) :=
-{ inner := λ a b, ∑ i, a i * b i,
-  comm := λ x y, finset.sum_congr rfl $ λ i hi, mul_comm _ _,
-  nonneg := λ x, finset.sum_nonneg (λ i hi, mul_self_nonneg _),
-  definite := λ x h, begin
-    have : ∀ i ∈ (finset.univ : finset n), 0 ≤ x i * x i := λ i hi, mul_self_nonneg _,
-    simpa [inner, finset.sum_eq_zero_iff_of_nonneg this, function.funext_iff] using h,
-  end,
-  add_left := λ x y z, by simp only [inner, ← finset.sum_add_distrib, ← add_mul,
-    ← pi.add_apply x y],
-  smul_left := λ x y r, by simp [finset.mul_sum, mul_assoc],
-  .. pi.semimodule n (λ _, ℝ) ℝ }
+local attribute [instance] real.inner_product_space
+
+instance : inner_product_space (euclidean_space n) := pi.inner_product_space n (λ _, ℝ)
+
+lemma euclidean_space.inner_def (x y : euclidean_space n) : inner x y = ∑ i, x i * y i := rfl
 
 end instances
 

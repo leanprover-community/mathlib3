@@ -102,13 +102,18 @@ limit.lift_π _ _
 def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f // l ≫ kernel.ι f = k} :=
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
-/-- Every kernel of the zero morphism is an isomorphism -/
+/-- The kernel of the zero morphism is an isomorphism -/
 def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 lemma eq_zero_of_kernel_is_iso [is_iso (kernel.ι f)] : f = 0 :=
 (cancel_epi (kernel.ι f)).1 (by simp)
+
+variables {f}
+
+lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false :=
+λ I, by exactI w (eq_zero_of_kernel_is_iso f)
 
 end
 
@@ -240,6 +245,14 @@ colimit.ι_desc _ _
 def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   {l : cokernel f ⟶ W // cokernel.π f ≫ l = k} :=
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
+
+/-- The cokernel of the zero morphism is an isomorphism -/
+def cokernel.π_zero_is_iso [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
+  is_iso (cokernel.π (0 : X ⟶ Y)) :=
+coequalizer.π_of_self _
+
+lemma eq_zero_of_cokernel_is_iso [is_iso (cokernel.π f)] : f = 0 :=
+(cancel_mono (cokernel.π f)).1 (by simp)
 
 end
 

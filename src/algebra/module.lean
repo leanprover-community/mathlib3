@@ -58,7 +58,7 @@ set_option default_priority 100 -- see Note [default priority]
   connected by a "scalar multiplication" operation `r • x : M`
   (where `r : R` and `x : M`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
-class semimodule (R : Type u) (M : Type v) [semiring R]
+@[protect_proj] class semimodule (R : Type u) (M : Type v) [semiring R]
   [add_comm_monoid M] extends distrib_mul_action R M :=
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : M, (0 : R) • x = 0)
@@ -108,6 +108,7 @@ set_option default_priority 100 -- see Note [default priority]
   connected by a "scalar multiplication" operation `r • x : M`
   (where `r : R` and `x : M`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
+@[protect_proj]
 class module (R : Type u) (M : Type v) [ring R] [add_comm_group M] extends semimodule R M
 end prio
 

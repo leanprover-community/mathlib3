@@ -264,7 +264,7 @@ def real.inner_product_space : inner_product_space ℝ :=
 section instances
 /-- The standard Euclidean space, functions on a finite type. For an `n`-dimensional space
 use `euclidean_space (fin n)`.  -/
-@[derive add_comm_group]
+@[derive add_comm_group, nolint unused_arguments]
 def euclidean_space (n : Type*) [fintype n] : Type* := n → ℝ
 
 variables {n : Type*} [fintype n]

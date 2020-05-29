@@ -7,9 +7,9 @@ import tactic.core
 /-!
 ## `protected` and `protect_proj` user attributes
 
-`protected` is an attribute to protect a declaration
+`protected` is an attribute to protect a declaration.
 If a declaration `foo.bar` is marked protected, then it must be referred to
-by its full name `foo.bar`, even when the `foo` namespace is open."
+by its full name `foo.bar`, even when the `foo` namespace is open.
 
 `protect_proj` attribute to protect the projections of a structure.
 If a structure `foo` is marked with the `protect_proj` user attribute, then

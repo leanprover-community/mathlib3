@@ -198,7 +198,7 @@ by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 instance inner_product_space_is_normed_group : normed_group α :=
 normed_group.of_core α
 { norm_eq_zero_iff := assume x, iff.intro
-    (λ h : sqrt (inner x x) = 0, (inner_self_eq_zero x).1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
+    (λ h : sqrt (inner x x) = 0, inner_self_eq_zero.1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
     (by {rintro rfl, show sqrt (inner (0:α) 0) = 0, simp }),
   triangle := assume x y,
   begin

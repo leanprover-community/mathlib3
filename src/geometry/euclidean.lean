@@ -34,5 +34,5 @@ abbreviation euclidean_affine_space (V : Type*) (P : Type*) [inner_product_space
 normed_add_torsor V P
 end prio
 
-instance (n : ℕ) : euclidean_affine_space (euclidean_space n) (euclidean_space n) :=
-{ dist_eq_norm' := normed_group.dist_eq }
+example (n : ℕ) : euclidean_affine_space (euclidean_space n) (euclidean_space n) :=
+by apply_instance

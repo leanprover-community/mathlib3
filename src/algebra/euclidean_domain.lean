@@ -34,7 +34,24 @@ class euclidean_domain (α : Type u) extends comm_ring α :=
 (zero_ne_one : (0 : α) ≠ 1)
 
 run_cmd do env ← tactic.get_env,
-  tactic.set_env $ environment.mk_protected env ``euclidean_domain.mul_assoc
+  let env := env.mk_protected ``euclidean_domain.add,
+  let env := env.mk_protected ``euclidean_domain.add_assoc,
+  let env := env.mk_protected ``euclidean_domain.zero,
+  let env := env.mk_protected ``euclidean_domain.zero_add,
+  let env := env.mk_protected ``euclidean_domain.add_zero,
+  let env := env.mk_protected ``euclidean_domain.neg,
+  let env := env.mk_protected ``euclidean_domain.add_left_neg,
+  let env := env.mk_protected ``euclidean_domain.add_comm,
+  let env := env.mk_protected ``euclidean_domain.mul,
+  let env := env.mk_protected ``euclidean_domain.mul_assoc,
+  let env := env.mk_protected ``euclidean_domain.one,
+  let env := env.mk_protected ``euclidean_domain.one_mul,
+  let env := env.mk_protected ``euclidean_domain.mul_one,
+  let env := env.mk_protected ``euclidean_domain.left_distrib,
+  let env := env.mk_protected ``euclidean_domain.right_distrib,
+  let env := env.mk_protected ``euclidean_domain.mul_comm,
+  let env := env.mk_protected ``euclidean_domain.zero_ne_one,
+  tactic.set_env env
 end prio
 
 namespace euclidean_domain
@@ -44,7 +61,7 @@ variables [euclidean_domain α]
 local infix ` ≺ `:50 := euclidean_domain.r
 
 @[priority 70] -- see Note [lower instance priority]
-instance : nonzero α := ⟨zero_ne_one⟩
+instance : nonzero α := ⟨euclidean_domain.zero_ne_one⟩
 
 @[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨quotient⟩

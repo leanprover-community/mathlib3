@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import ring_theory.algebra
 import linear_algebra.linear_action
 import linear_algebra.bilinear_form
+import tactic.noncomm_ring
 
 /-!
 # Lie algebras
@@ -79,17 +80,7 @@ by simp [commutator]
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-begin
-  unfold commutator,
-  repeat { rw mul_sub_left_distrib },
-  repeat { rw mul_sub_right_distrib },
-  repeat { rw add_sub },
-  repeat { rw ←sub_add },
-  repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
-  repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm, add_assoc],
-end
+by { unfold commutator, noncomm_ring, }
 
 end ring_commutator
 

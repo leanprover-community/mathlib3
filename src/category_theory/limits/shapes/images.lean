@@ -254,8 +254,8 @@ begin
      ... = h                : by rw [category.id_comp]
 end⟩
 
-lemma epi_of_image_is_iso {X Y : C} (f : X ⟶ Y) [has_image f] [is_iso (image.ι f)]
-  [Π {Z : C} (g h : image f ⟶ Z), has_limit.{v} (parallel_pair g h)] : epi f :=
+lemma epi_of_image_is_iso {X Y : C} (f : X ⟶ Y) [has_image f]
+  [is_iso (image.ι f)] [epi (factor_thru_image f)] : epi f :=
 by { rw [←image.fac f], apply epi_comp, }
 
 end

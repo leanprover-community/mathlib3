@@ -7,9 +7,9 @@ import tactic.core
 /-!
 ## `protected` and `protect_proj` user attributes
 
-`protected` is an attribute to protect a declaration
+`protected` is an attribute to protect a declaration.
 If a declaration `foo.bar` is marked protected, then it must be referred to
-by its full name `foo.bar`, even when the `foo` namespace is open."
+by its full name `foo.bar`, even when the `foo` namespace is open.
 
 `protect_proj` attribute to protect the projections of a structure.
 If a structure `foo` is marked with the `protect_proj` user attribute, then
@@ -20,24 +20,26 @@ all of the projections become protected.
 # Examples
 
 In this example all of `foo.bar`, `foo.baz` and `foo.qux` will be protected.
-```lean
+```
 @[protect_proj] foo : Type :=
 (bar : unit) (baz : unit) (qux : unit)
 ```
 
 The following code example define the structure `foo`, and the projections `foo.qux`
 will be protected, but not `foo.baz` or `foo.bar`
-```lean
+
+```
 @[protect_proj without baz bar] foo : Type :=
 (bar : unit) (baz : unit) (qux : unit)
 ```
-
 -/
-
 namespace tactic
-/-- Attribute to protect a declaration
-    If a declaration `foo.bar` is marked protected, then it must be referred to
-    by its full name `foo.bar`, even when the `foo` namespace is open. -/
+
+/--
+Attribute to protect a declaration.
+If a declaration `foo.bar` is marked protected, then it must be referred to
+by its full name `foo.bar`, even when the `foo` namespace is open.
+-/
 @[user_attribute] meta def protected_attr : user_attribute :=
 { name := "protected",
   descr := "Attribute to protect a declaration
@@ -59,6 +61,7 @@ match env.structure_fields_full n with
 | some fields := fields.mmap' $ λ field,
     when (l.all $ λ m, bnot $ m.is_suffix_of field) $ mk_protected field
 end
+
 /-- Attribute to protect the projections of a structure.
     If a structure `foo` is marked with the `protect_proj` user attribute, then
     all of the projections become protected, meaning they must always be referred to by

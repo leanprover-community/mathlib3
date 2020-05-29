@@ -54,7 +54,7 @@ instance : has_add ℤ_[p] :=
 ⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x+y,
     le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩⟩
 
-@[simp, nolint def_lemma, nolint doc_blame, _refl_lemma]
+@[simp, nolint def_lemma doc_blame, _refl_lemma]
 def add_mk (x y hx hy) : @has_add.add ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x + y, _⟩ := rfl
 
 /-- Multiplication on ℤ_p is inherited from ℚ_p. -/
@@ -62,14 +62,14 @@ instance : has_mul ℤ_[p] :=
 ⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x*y,
     begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩⟩
 
-@[simp, nolint def_lemma, nolint doc_blame, _refl_lemma]
+@[simp, nolint def_lemma doc_blame, _refl_lemma]
 def mul_mk (x y hx hy) : @has_mul.mul ℤ_[p] _ ⟨x, hx⟩ ⟨y, hy⟩ = ⟨x * y, _⟩ := rfl
 
 /-- Negation on ℤ_p is inherited from ℚ_p. -/
 instance : has_neg ℤ_[p] :=
 ⟨λ ⟨x, hx⟩, ⟨-x, by simpa⟩⟩
 
-@[simp, nolint def_lemma, nolint doc_blame, _refl_lemma]
+@[simp, nolint def_lemma doc_blame, _refl_lemma]
 def neg_mk (x hx) : @has_neg.neg ℤ_[p] _ ⟨x, hx⟩ = ⟨-x, _⟩ := rfl
 
 instance : ring ℤ_[p] :=

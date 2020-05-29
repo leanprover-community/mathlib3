@@ -979,9 +979,8 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
-instance : zero_ne_one_class ordinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nonzero ordinal.{u} :=
+{ zero_ne_one := ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨zero_le _, zero_ne_one⟩

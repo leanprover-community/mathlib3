@@ -13,14 +13,18 @@ set_option old_structure_cmd true
 universe u
 variables {α : Type u}
 
-@[protect_proj, ancestor ring has_inv zero_ne_one_class]
-class division_ring (α : Type u) extends ring α, has_inv α, zero_ne_one_class α :=
+@[protect_proj, ancestor ring has_inv]
+class division_ring (α : Type u) extends ring α, has_inv α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_mul_cancel : ∀ {a : α}, a ≠ 0 → a⁻¹ * a = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section division_ring
 variables [division_ring α] {a b : α}
+
+instance division_ring.to_nonzero : nonzero α :=
+⟨division_ring.zero_ne_one⟩
 
 protected definition algebra.div (a b : α) : α :=
 a * b⁻¹
@@ -284,9 +288,10 @@ instance division_ring.to_domain : domain α :=
 end division_ring
 
 @[protect_proj, ancestor division_ring comm_ring]
-class field (α : Type u) extends comm_ring α, has_inv α, zero_ne_one_class α :=
+class field (α : Type u) extends comm_ring α, has_inv α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section field
 

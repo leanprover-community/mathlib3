@@ -392,12 +392,11 @@ begin
   { apply fin.val_mul }
 end
 
-instance nonzero_comm_ring (n : ℕ) [fact (1 < n)] : nonzero_comm_ring (zmod n) :=
+instance nonzero (n : ℕ) [fact (1 < n)] : nonzero (zmod n) :=
 { zero_ne_one := assume h, zero_ne_one $
    calc 0 = (0 : zmod n).val : by rw val_zero
       ... = (1 : zmod n).val : congr_arg zmod.val h
-      ... = 1                : val_one n,
-  .. zmod.comm_ring n }
+      ... = 1                : val_one n }
 
 /-- The inversion on `zmod n`.
 It is setup in such a way that `a * a⁻¹` is equal to `gcd a.val n`.
@@ -712,7 +711,8 @@ end
 instance : field (zmod p) :=
 { mul_inv_cancel := mul_inv_cancel_aux p,
   inv_zero := inv_zero p,
-  .. zmod.nonzero_comm_ring p,
+  .. zmod.comm_ring p,
+  .. zmod.nonzero p,
   .. zmod.has_inv p }
 
 end zmod

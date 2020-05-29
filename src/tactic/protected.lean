@@ -21,7 +21,7 @@ all of the projections become protected.
 
 In this example all of `foo.bar`, `foo.baz` and `foo.qux` will be protected.
 ```
-@[protect_proj] foo : Type :=
+@[protect_proj] structure foo : Type :=
 (bar : unit) (baz : unit) (qux : unit)
 ```
 
@@ -29,7 +29,7 @@ The following code example define the structure `foo`, and the projections `foo.
 will be protected, but not `foo.baz` or `foo.bar`
 
 ```
-@[protect_proj without baz bar] foo : Type :=
+@[protect_proj without baz bar] structure foo : Type :=
 (bar : unit) (baz : unit) (qux : unit)
 ```
 -/

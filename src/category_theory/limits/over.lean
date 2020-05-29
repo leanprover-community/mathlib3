@@ -124,7 +124,7 @@ def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
       { dsimp,
         rw ← f.w j,
         refl }
-    end }, }
+    end } }
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
@@ -134,7 +134,7 @@ def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
   { X := over.mk (c.π.app none),
     π := { app := λ j, over.hom_mk (c.π.app (some j)) (by apply c.w (wide_pullback_shape.hom.term j)) } },
   map := λ c₁ c₂ f,
-  { hom := over.hom_mk f.hom } }.
+  { hom := over.hom_mk f.hom } }
 
 local attribute [tidy] tactic.case_bash
 

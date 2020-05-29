@@ -39,10 +39,10 @@ variables [euclidean_domain α]
 local infix ` ≺ `:50 := euclidean_domain.r
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_div α := ⟨quotient⟩
+instance : has_div α := ⟨euclidean_domain.quotient⟩
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_mod α := ⟨remainder⟩
+instance : has_mod α := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
 quotient_mul_add_remainder_eq _ _

@@ -13,7 +13,7 @@ universe u
 section prio
 set_option default_priority 100 -- see Note [default priority]
 
-@[protect_proj without mul_left_not_lt]
+@[protect_proj without mul_left_not_lt r_well_founded]
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -104,7 +104,7 @@ mod_eq_zero.2 (one_dvd _)
 mod_eq_zero.2 (dvd_zero _)
 
 @[simp] lemma div_zero (a : α) : a / 0 = 0 :=
-quotient_zero a
+euclidean_domain.quotient_zero a
 
 @[simp] lemma zero_div {a : α} : 0 / a = 0 :=
 classical.by_cases

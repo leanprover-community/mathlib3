@@ -128,8 +128,8 @@ to_real_hom.map_sum _ _
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
 to_real_hom.map_prod _ _
 
-@[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
-to_real_hom.to_add_monoid_hom.map_smul _ _
+@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
+to_real_hom.to_add_monoid_hom.map_nsmul _ _
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
@@ -251,7 +251,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (add_monoid.smul n y : nnreal), by simp [*, smul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

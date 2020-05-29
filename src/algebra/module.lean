@@ -552,13 +552,13 @@ variables [add_comm_monoid M]
 -- We don't make this a global instance, as it results in too many instances,
 -- and confusing ambiguity in the notation `n • x` when `n : ℕ`.
 def nat_semimodule : semimodule ℕ M :=
-{ smul := smul,
-  smul_add := λ _ _ _, smul_add _ _ _,
-  add_smul := λ _ _ _, add_smul _ _ _,
-  mul_smul := λ _ _ _, mul_smul _ _ _,
-  one_smul := one_smul,
-  zero_smul := zero_smul,
-  smul_zero := smul_zero }
+{ smul := nsmul,
+  smul_add := λ _ _ _, nsmul_add _ _ _,
+  add_smul := λ _ _ _, add_nsmul _ _ _,
+  mul_smul := λ _ _ _, mul_nsmul _ _ _,
+  one_smul := one_nsmul,
+  zero_smul := zero_nsmul,
+  smul_zero := nsmul_zero }
 
 end add_comm_monoid
 
@@ -620,13 +620,13 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma semimodule.add_monoid_smul_eq_smul (R : Type*) [semiring R]
+lemma semimodule.nsmul_eq_smul (R : Type*) [semiring R]
   {M : Type*} [add_comm_monoid M] [semimodule R M] (n : ℕ) (b : M) :
-  add_monoid.smul n b = (n : R) • b :=
+  n •ℕ b = (n : R) • b :=
 semimodule.smul_eq_smul R n b
 
 lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
-  n • x = add_monoid.smul n x :=
+  n • x = n •ℕ x :=
 rfl
 
 end
@@ -640,9 +640,9 @@ lemma module.gsmul_eq_smul_cast (R : Type*) [ring R] {β : Type*} [add_comm_grou
   (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
 begin
   cases n,
-  { apply semimodule.add_monoid_smul_eq_smul, },
+  { apply semimodule.nsmul_eq_smul, },
   { dsimp,
-    rw semimodule.add_monoid_smul_eq_smul R,
+    rw semimodule.nsmul_eq_smul R,
     push_cast,
     rw neg_smul, }
 end
@@ -669,7 +669,7 @@ lemma add_monoid_hom.map_nat_cast_smul
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : R) • f a :=
-by simp only [← semimodule.add_monoid_smul_eq_smul, f.map_smul]
+by simp only [← semimodule.nsmul_eq_smul, f.map_nsmul]
 
 lemma add_monoid_hom.map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
   {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]

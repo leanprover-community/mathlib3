@@ -755,11 +755,11 @@ calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i
       exact add_le_add' (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
     end
 
-lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ add_monoid.smul n (degree p)
-| 0     := by rw [pow_zero, add_monoid.zero_smul]; exact degree_one_le
+lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ n •ℕ (degree p)
+| 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le
 | (n+1) := calc degree (p ^ (n + 1)) ≤ degree p + degree (p ^ n) :
     by rw pow_succ; exact degree_mul_le _ _
-  ... ≤ _ : by rw succ_smul; exact add_le_add' (le_refl _) (degree_pow_le _)
+  ... ≤ _ : by rw succ_nsmul; exact add_le_add' (le_refl _) (degree_pow_le _)
 
 @[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
 begin
@@ -868,15 +868,15 @@ have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
 by rw [pow_succ, pow_succ, leading_coeff_mul' h₂, ih h₁]
 
 lemma degree_pow_eq' : ∀ {n}, leading_coeff p ^ n ≠ 0 →
-  degree (p ^ n) = add_monoid.smul n (degree p)
+  degree (p ^ n) = n •ℕ (degree p)
 | 0     := λ h, by rw [pow_zero, ← C_1] at *;
-  rw [degree_C h, add_monoid.zero_smul]
+  rw [degree_C h, zero_nsmul]
 | (n+1) := λ h,
 have h₁ : leading_coeff p ^ n ≠ 0 := λ h₁, h $
   by rw [pow_succ, h₁, mul_zero],
 have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
   by rwa [pow_succ, ← leading_coeff_pow' h₁] at h,
-by rw [pow_succ, degree_mul_eq' h₂, succ_smul, degree_pow_eq' h₁]
+by rw [pow_succ, degree_mul_eq' h₂, succ_nsmul, degree_pow_eq' h₁]
 
 lemma nat_degree_pow_eq' {n : ℕ} (h : leading_coeff p ^ n ≠ 0) :
   nat_degree (p ^ n) = n * nat_degree p :=
@@ -889,7 +889,7 @@ have hpn : p ^ n ≠ 0, from λ hpn0,  have h1 : _ := h,
   exact h rfl,
 option.some_inj.1 $ show (nat_degree (p ^ n) : with_bot ℕ) = (n * nat_degree p : ℕ),
   by rw [← degree_eq_nat_degree hpn, degree_pow_eq' h, degree_eq_nat_degree hp0,
-    ← with_bot.coe_smul]; simp
+    ← with_bot.coe_nsmul]; simp
 
 @[simp] lemma leading_coeff_X_pow : ∀ n : ℕ, leading_coeff ((X : polynomial R) ^ n) = 1
 | 0 := by simp
@@ -910,14 +910,13 @@ else with_bot.coe_le_coe.1 $
   ... ≤ _ : sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
-    ... ≤ nat_degree (C (coeff p n)) + add_monoid.smul n (degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
       add_le_add' degree_le_nat_degree (degree_pow_le _ _)
-    ... ≤ nat_degree (C (coeff p n)) + add_monoid.smul n (nat_degree q) :
-      add_le_add_left' (add_monoid.smul_le_smul_of_le_right
-        (@degree_le_nat_degree _ _ q) n)
+    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
+      add_le_add_left' (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n)
     ... = (n * nat_degree q : ℕ) :
-     by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_smul,
-       add_monoid.smul_eq_mul]; simp
+     by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,
+       nsmul_eq_mul]; simp
     ... ≤ (nat_degree p * nat_degree q : ℕ) : with_bot.coe_le_coe.2 $
       mul_le_mul_of_nonneg_right
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
@@ -1901,9 +1900,9 @@ else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
 @[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
-  degree (p ^ n) = add_monoid.smul n (degree p) :=
-by induction n; [simp only [pow_zero, degree_one, add_monoid.zero_smul],
-simp only [*, pow_succ, succ_smul, degree_mul_eq]]
+  degree (p ^ n) = n •ℕ (degree p) :=
+by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
+simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
 
 @[simp] lemma leading_coeff_mul (p q : polynomial R) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=
@@ -2069,7 +2068,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
     dsimp [apply_eq_coeff],
     refine coeff_eq_zero_of_degree_lt _,
     rw [degree_mul_eq, degree_C this, degree_pow_eq, zero_add, degree_eq_nat_degree hq0,
-      ← with_bot.coe_smul, add_monoid.smul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
+      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
     exact (mul_lt_mul_right (nat.pos_of_ne_zero hqd0)).2
       (lt_of_le_of_ne (with_bot.coe_le_coe.1 (by rw ← degree_eq_nat_degree hp0; exact le_sup hbs)) hbp)
   end

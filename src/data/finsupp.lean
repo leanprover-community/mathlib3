@@ -1141,17 +1141,17 @@ section multiset
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
 `f` on the elements of `α`. -/
 def to_multiset (f : α →₀ ℕ) : multiset α :=
-f.sum (λa n, add_monoid.smul n {a})
+f.sum (λa n, n •ℕ {a})
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 :=
 rfl
 
 lemma to_multiset_add (m n : α →₀ ℕ) :
   (m + n).to_multiset = m.to_multiset + n.to_multiset :=
-sum_add_index (assume a, add_monoid.zero_smul _) (assume a b₁ b₂, add_monoid.add_smul _ _ _)
+sum_add_index (assume a, zero_nsmul _) (assume a b₁ b₂, add_nsmul _ _ _)
 
-lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = add_monoid.smul n {a} :=
-by rw [to_multiset, sum_single_index]; apply add_monoid.zero_smul
+lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
+by rw [to_multiset, sum_single_index]; apply zero_nsmul
 
 instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
 { map_zero := to_multiset_zero, map_add := to_multiset_add }
@@ -1174,7 +1174,7 @@ begin
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
       to_multiset_single, to_multiset_add, to_multiset_single,
-      is_add_monoid_hom.map_smul (multiset.map g)],
+      is_add_monoid_hom.map_nsmul (multiset.map g)],
     refl }
 end
 
@@ -1198,7 +1198,7 @@ begin
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
   { assume a n f ha hn ih,
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
-      support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
+      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn,
       multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
     refl,
     refine disjoint.mono_left support_single_subset _,
@@ -1207,7 +1207,7 @@ end
 
 @[simp] lemma count_to_multiset (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
-calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α).count a) :
+calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
   ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl

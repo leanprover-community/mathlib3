@@ -221,7 +221,8 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
-/-- `has_attribute' attr_name decl_name` checks whether `decl_name` has attribute `attr_name`. -/
+/-- `has_attribute' attr_name decl_name` checks
+whether `decl_name` exists and has attribute `attr_name`. -/
 meta def has_attribute' (attr_name decl_name : name) : tactic bool :=
 succeeds (has_attribute attr_name decl_name)
 

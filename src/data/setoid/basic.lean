@@ -3,16 +3,14 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
-import data.set.lattice
+import order.galois_connection
 
 /-!
 # Equivalence relations
 
-The first section of the file defines the complete lattice of equivalence relations
-on a type, results about the inductively defined equivalence closure of a binary relation,
-and the analogues of some isomorphism theorems for quotients of arbitrary types.
-
-The second section comprises properties of equivalence relations viewed as partitions.
+This file defines the complete lattice of equivalence relations on a type, results about the
+inductively defined equivalence closure of a binary relation, and the analogues of some isomorphism
+theorems for quotients of arbitrary types.
 
 ## Implementation notes
 
@@ -30,8 +28,7 @@ reason about them using the existing `setoid` and its infrastructure.
 
 ## Tags
 
-setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence
-class
+setoid, equivalence, iseqv, relation, equivalence relation
 -/
 variables {α : Type*} {β : Type*}
 
@@ -72,7 +69,9 @@ def ker (f : α → β) : setoid α :=
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
 
-/-- Given types `α, β`, the product of two equivalence relations `r` on `α` and `s` on `β`:
+lemma ker_def {f : α → β} {x y : α} : (ker f).rel x y ↔ f x = f y := iff.rfl
+
+/-- Given types `α`, `β`, the product of two equivalence relations `r` on `α` and `s` on `β`:
     `(x₁, x₂), (y₁, y₂) ∈ α × β` are related by `r.prod s` iff `x₁` is related to `y₁`
     by `r` and `x₂` is related to `y₂` by `s`. -/
 protected def prod (r : setoid α) (s : setoid β) : setoid (α × β) :=
@@ -207,21 +206,25 @@ open function
     of equivalence relations on α. -/
 theorem injective_iff_ker_bot (f : α → β) :
   injective f ↔ ker f = ⊥ :=
-⟨λ hf, setoid.ext' $ λ x y, ⟨λ h, hf h, λ h, h ▸ rfl⟩,
- λ hk x y h, show rel ⊥ x y, from hk ▸ (show (ker f).rel x y, from h)⟩
+(@eq_bot_iff (setoid α) _ (ker f)).symm
 
 /-- The elements related to x ∈ α by the kernel of f are those in the preimage of f(x) under f. -/
-lemma ker_apply_eq_preimage (f : α → β) (x) : (ker f).rel x = f ⁻¹' {f x} :=
-set.ext $ λ x,
-  ⟨λ h, set.mem_preimage.2 (set.mem_singleton_iff.2 h.symm),
-   λ h, (set.mem_singleton_iff.1 (set.mem_preimage.1 h)).symm⟩
+lemma ker_iff_mem_preimage {f : α → β} {x y} : (ker f).rel x y ↔ x ∈ f ⁻¹' {f y} :=
+iff.rfl
+
+/-- Equivalence between functions `α → β` such that `r x y → f x = f y` and functions
+`quotient r → β`. -/
+def lift_equiv (r : setoid α) : {f : α → β // r ≤ ker f} ≃ (quotient r → β) :=
+{ to_fun := λ f, quotient.lift (f : α → β) f.2,
+  inv_fun := λ f, ⟨f ∘ quotient.mk, λ x y h, by simp [ker_def, quotient.sound h]⟩,
+  left_inv := λ ⟨f, hf⟩, subtype.eq $ funext $ λ x, rfl,
+  right_inv := λ f, funext $ λ x, quotient.induction_on' x $ λ x, rfl }
 
 /-- The uniqueness part of the universal property for quotients of an arbitrary type. -/
 theorem lift_unique {r : setoid α} {f : α → β} (H : r ≤ ker f) (g : quotient r → β)
   (Hg : f = g ∘ quotient.mk) : quotient.lift f H = g :=
 begin
-  ext,
-  rcases x,
+  ext ⟨x⟩,
   erw [quotient.lift_beta f H, Hg],
   refl
 end
@@ -253,8 +256,7 @@ noncomputable def quotient_ker_equiv_range :
 /-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   quotient (ker f) ≃ β :=
-@equiv.of_bijective _ _ (@quotient.lift _ _ (ker f) f (λ _ _, id))
-  ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
+(quotient_ker_equiv_range f).trans $ equiv.subtype_univ_equiv hf
 
 variables {r f}
 
@@ -312,26 +314,24 @@ def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
 
 variables {r f}
 
-section
 open quotient
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-  def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
-    ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
-  { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
-    inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
-    left_inv := λ s, subtype.ext.2 $ ext' $ λ _ _,
-      ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
-        s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
-       λ h, ⟨_, _, rfl, rfl, h⟩⟩,
-    right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
-        λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
-      ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
-        quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-    ord' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-      λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
-        t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
-end
+def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
+  ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
+{ to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
+  inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
+  left_inv := λ s, subtype.ext.2 $ ext' $ λ _ _,
+    ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
+      s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
+     λ h, ⟨_, _, rfl, rfl, h⟩⟩,
+  right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
+      λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
+    ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
+      quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
+  ord' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+    λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
+      t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
 
 end setoid

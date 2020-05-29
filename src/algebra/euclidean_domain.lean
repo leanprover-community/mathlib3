@@ -12,7 +12,8 @@ universe u
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-@[protect_proj] class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
+@[protect_proj without mul_left_not_lt]
+class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)

@@ -32,28 +32,6 @@ set_option default_priority 100 -- see Note [default priority]
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 end prio
-#print structure_instance_info.field_names
-#print structure_instance_info
-#print environment.structure_fields
-namespace tactic
-
-meta def protect_struct_aux (l : list name) (env : environment) : tactic environment :=
-l.foldl
-  (λ env n, do env ← env, option.cases_on (env.structure_fields_full n)
-    (do trace ("protect_struct failed: " ++ n.to_string ++ " is not a structure"),
-      return env)
-    (λ l, l.foldl (λ env n, do env ← env, return (env.mk_protected n)) (return env)))
-  (return env)
-
-/-- Given a list of names e.g. ``[`group, `ring]`` -/
-meta def protect_struct (l : list name) : tactic unit :=
-get_env >>= protect_struct_aux l >>= set_env
-
-end tactic
-
-run_cmd tactic.protect_struct
-  [`monoid, `add_monoid, `group, `add_group, `ring, `comm_ring, `field]
-#print euclidean_domain.mul_assoc
 
 namespace euclidean_domain
 variable {α : Type u}

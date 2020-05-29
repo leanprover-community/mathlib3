@@ -39,11 +39,16 @@ begin
   simp [*, dvd_add]
 end
 
-lemma coe_nat_dvd {α : Type*} [comm_ring α] (m n : ℕ) (h : m ∣ n) :
-  (m : α) ∣ n :=
-by { rcases h with ⟨k, rfl⟩, refine ⟨k, by norm_cast⟩ }
-
 end finset
+
+namespace ring_hom
+
+@[ext]
+lemma ext_int {R : Type*} [ring R] (f g : ℤ →+* R) : f = g :=
+calc f = int.cast_ring_hom R : ring_hom.eq_int_cast' f
+   ... = g                   : (ring_hom.eq_int_cast' g).symm
+
+end ring_hom
 
 namespace mv_polynomial
 
@@ -84,7 +89,7 @@ end mv_polynomial
 namespace alg_hom
 open mv_polynomial
 
-lemma map_aeval {σ : Type*}
+lemma comp_aeval {σ : Type*}
   {R : Type*} {A : Type*} {B : Type*}
    [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
   (f : σ → A) (φ : A →ₐ[R] B) :
@@ -115,7 +120,7 @@ by { rw eval₂_comp_left (eval₂ f φ), congr, funext, simp }
 noncomputable def map_hom
   {S : Type*} [comm_semiring S]
   {T : Type*} [comm_semiring T]
-  (σ : Type*)
+  {σ : Type*}
   (f : S →+* T) :
   mv_polynomial σ S →+* mv_polynomial σ T :=
 ring_hom.of (mv_polynomial.map f)
@@ -137,6 +142,109 @@ begin
   { intros q n h, rw [eval₂_mul, eval₂_mul, ring_hom.map_mul, eval₂_X, eval₂_X, h] }
 end
 
+lemma aeval_eq_eval₂_hom {σ : Type*} {R : Type*} {A : Type*}
+   [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) :
+  (aeval R A f : mv_polynomial σ R →+* A) = eval₂_hom (algebra_map R A) f :=
+rfl
+
+lemma aeval_eq_eval₂_hom' {σ : Type*} {R : Type*} {A : Type*}
+   [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) (p : mv_polynomial σ R) :
+  aeval R A f p = eval₂_hom (algebra_map R A) f p :=
+rfl
+
+@[simp] lemma eval₂_hom_C {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
+  (f : R →+* A) (g : σ → A) (r : R) :
+  eval₂_hom f g (C r) = f r := eval₂_C f g r
+
+@[simp] lemma eval₂_hom_X' {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
+  (f : R →+* A) (g : σ → A) (i : σ) :
+  eval₂_hom f g (X i) = g i := eval₂_X f g i
+
+@[simp] lemma comp_eval₂_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+  [comm_ring R] [comm_ring A] [comm_ring B]
+  (f : R →+* A) (g : σ → A) (φ : A →+* B) :
+  φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
+begin
+  apply mv_polynomial.ring_hom_ext,
+  { intro r, rw [ring_hom.comp_apply, eval₂_hom_C, eval₂_hom_C, ring_hom.comp_apply] },
+  { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
+end
+
+@[simp] lemma map_eval₂_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+  [comm_ring R] [comm_ring A] [comm_ring B]
+  (f : R →+* A) (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
+  φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
+by { rw ← comp_eval₂_hom, refl }
+
+@[simp] lemma map_aeval {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+  [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
+  (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
+  φ (aeval R A g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
+by { rw ← comp_eval₂_hom, refl }
+
+@[simp] lemma eval_map {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
+  (f : R →+* A) (g : σ → A) (p : mv_polynomial σ R) :
+  eval g (map f p) = eval₂ f g p :=
+by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
+
+@[simp] lemma eval₂_map {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+  [comm_ring R] [comm_ring A] [comm_ring B]
+  (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
+  eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
+by { rw [← eval_map, ← eval_map, map_map], refl }
+
+@[simp] lemma eval₂_hom_map_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+  [comm_ring R] [comm_ring A] [comm_ring B]
+  (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
+  eval₂_hom φ g (map_hom f p) = eval₂_hom (φ.comp f) g p :=
+eval₂_map f g φ p
+
+open_locale big_operators
+
+lemma C_dvd_iff_dvd_coeff {σ : Type*} {R : Type*} [comm_ring R]
+  (r : R) (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ ∀ i, r ∣ (φ.coeff i) :=
+begin
+  split,
+  { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
+  { intro h,
+    choose c hc using h,
+    classical,
+    let c' : (σ →₀ ℕ) → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : mv_polynomial σ R := ∑ i in φ.support, monomial i (c' i),
+    use ψ,
+    apply mv_polynomial.ext, intro i,
+    simp only [coeff_C_mul, coeff_sum, coeff_monomial],
+    rw [finset.sum_eq_single i, if_pos rfl],
+    { dsimp [c'], split_ifs with hi hi,
+      { rw hc },
+      { rw finsupp.not_mem_support_iff at hi, rwa [mul_zero] } },
+    { intros j hj hji, convert if_neg hji },
+    { intro hi, rw [if_pos rfl], exact if_neg hi } }
+end
+
+-- why the hack does ring_hom.ker not exist!!!
+
+lemma C_dvd_iff_map_hom_eq_zero {σ : Type*} {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
+  (q : R →+* S) (hq : function.surjective q) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
+  (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ map_hom q φ = 0 :=
+begin
+  rw C_dvd_iff_dvd_coeff,
+  split,
+  { intro h, apply mv_polynomial.ext, intro i,
+    simp only [map_hom, coeff_map, *, ring_hom.coe_of, coeff_zero], },
+  { rw ← mv_polynomial.ext_iff,
+    simp only [map_hom, coeff_map, *, ring_hom.coe_of, coeff_zero, imp_self] }
+end
+
+lemma C_dvd_iff_zmod {σ : Type*} (n : ℕ) (φ : mv_polynomial σ ℤ) :
+  C (n:ℤ) ∣ φ ↔ map_hom (int.cast_ring_hom (zmod n)) φ = 0 :=
+begin
+  apply C_dvd_iff_map_hom_eq_zero,
+  { exact zmod.int_cast_surjective },
+  { exact char_p.int_cast_eq_zero_iff (zmod n) n, }
+end
 
 end mv_polynomial
 
@@ -225,7 +333,32 @@ begin
   rw rat.coe_int_num
 end
 
+lemma coe_nat_dvd {α : Type*} [comm_ring α] (m n : ℕ) (h : m ∣ n) :
+  (m : α) ∣ n :=
+by { rcases h with ⟨k, rfl⟩, refine ⟨k, by norm_cast⟩ }
+
+lemma rat.denom_div_cast_eq_one_iff (m n : ℤ) (hn : n ≠ 0) :
+  ((m : ℚ) / n).denom = 1 ↔ n ∣ m :=
+begin
+  split,
+  { intro h,
+    lift ((m : ℚ) / n) to ℤ using h with k hk,
+    use k,
+    rw eq_div_iff_mul_eq _ _ (show (n:ℚ) ≠ 0, by exact_mod_cast hn) at hk,
+    norm_cast at hk,
+    rw [← hk, mul_comm], },
+  { rintros ⟨d, rfl⟩,
+    rw [int.cast_mul, mul_comm, mul_div_cancel, rat.coe_int_denom],
+    exact_mod_cast hn }
 end
+
+end
+
+-- move this (and generalize to char_zero fields)
+instance rat.invertible_of_prime (p : ℕ) [hp : fact p.prime] : invertible (p : ℚ) :=
+{ inv_of := 1/p,
+  inv_of_mul_self := one_div_mul_cancel $ by { exact_mod_cast hp.ne_zero },
+  mul_inv_of_self := mul_one_div_cancel $ by { exact_mod_cast hp.ne_zero } }
 
 -- ### end FOR_MATHLIB
 

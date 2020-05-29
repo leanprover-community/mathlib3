@@ -23,13 +23,17 @@ variables (R : Type u) [comm_ring R]
 def degree_le (n : with_bot ℕ) : submodule R (polynomial R) :=
 ⨅ k : ℕ, ⨅ h : ↑k > n, (lcoeff R k).ker
 
+/-- The `R`-submodule of `R[X]` consisting of polynomials of degree < `n`. -/
+def degree_lt (n : ℕ) : submodule R (polynomial R) :=
+⨅ k : ℕ, ⨅ h : k ≥ n, (lcoeff R k).ker
+
 variable {R}
 
 theorem mem_degree_le {n : with_bot ℕ} {f : polynomial R} :
   f ∈ degree_le R n ↔ degree f ≤ n :=
 by simp only [degree_le, submodule.mem_infi, degree_le_iff_coeff_zero, linear_map.mem_ker]; refl
 
-theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n) :
+@[mono] theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n) :
   degree_le R m ≤ degree_le R n :=
 λ f hf, mem_degree_le.2 (le_trans (mem_degree_le.1 hf) H)
 
@@ -48,6 +52,33 @@ begin
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
   intros k hk, apply mem_degree_le.2,
   apply le_trans (degree_X_pow_le _) (with_bot.coe_le_coe.2 $ nat.le_of_lt_succ $ finset.mem_range.1 hk)
+end
+
+theorem mem_degree_lt {n : ℕ} {f : polynomial R} :
+  f ∈ degree_lt R n ↔ degree f < n :=
+by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), finsupp.mem_support_iff, with_bot.some_eq_coe,
+    with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
+
+@[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
+  degree_lt R m ≤ degree_lt R n :=
+λ f hf, mem_degree_lt.2 (lt_of_lt_of_le (mem_degree_lt.1 hf) $ with_bot.coe_le_coe.2 H)
+
+theorem degree_lt_eq_span_X_pow {n : ℕ} :
+  degree_lt R n = submodule.span R ↑((finset.range n).image (λ n, X^n) : finset (polynomial R)) :=
+begin
+  apply le_antisymm,
+  { intros p hp, replace hp := mem_degree_lt.1 hp,
+    rw [← finsupp.sum_single p, finsupp.sum],
+    refine submodule.sum_mem _ (λ k hk, _),
+    show monomial _ _ ∈ _,
+    have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
+    rw [single_eq_C_mul_X, C_mul'],
+    refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
+      finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
+  rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
+  intros k hk, apply mem_degree_lt.2,
+  exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
 /-- Given a polynomial, return the polynomial whose coefficients are in

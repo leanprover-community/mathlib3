@@ -30,9 +30,8 @@ namespace function
 /-- A point `x` is a fixed point of `f : α → α` if `f x = x`. -/
 def is_fixed_pt (f : α → α) (x : α) := f x = x
 
--- TODO: why this is not `rfl`?
 /-- Every point is a fixed point of `id`. -/
-lemma is_fixed_pt_id (x : α) : is_fixed_pt id x := by rw [is_fixed_pt, id]
+lemma is_fixed_pt_id (x : α) : is_fixed_pt id x := (rfl : _)
 
 namespace is_fixed_pt
 
@@ -76,26 +75,45 @@ def fixed_points (f : α → α) : set α := {x : α | is_fixed_pt f x}
 
 @[simp] lemma mem_fixed_points : x ∈ fixed_points f ↔ is_fixed_pt f x := iff.rfl
 
+/-- If `g` semiconjugates `fa` to `fb`, then it sends fixed points of `fa` to fixed points
+of `fb`. -/
 lemma semiconj.maps_to_fixed_pts {g : α → β} (h : semiconj g fa fb) :
   set.maps_to g (fixed_points fa) (fixed_points fb) :=
 λ x hx, hx.map h
 
-lemma left_inv_on_fixed_pts_comp (f g : α → α) :
-  set.left_inv_on f g (fixed_points $ f ∘ g) :=
-λ x, id
+/-- Any two maps `f : α → β` and `g : β → α` are inverse of each other on the sets of fixed points
+of `f ∘ g` and `g ∘ f`, respectively. -/
+lemma inv_on_fixed_pts_comp (f : α → β) (g : β → α) :
+  set.inv_on f g (fixed_points $ f ∘ g) (fixed_points $ g ∘ f) :=
+⟨λ x, id, λ x, id⟩
 
+/-- Any map `f` sends fixed points of `g ∘ f` to fixed points of `f ∘ g`. -/
+lemma maps_to_fixed_pts_comp (f : α → β) (g : β → α) :
+  set.maps_to f (fixed_points $ g ∘ f) (fixed_points $ f ∘ g) :=
+λ x hx, hx.map $ λ x, rfl
+
+/-- Given two maps `f : α → β` and `g : β → α`, `g` is a bijective map between the fixed points
+of `f ∘ g` and the fixed points of `g ∘ f`. The inverse map is `f`, see `inv_on_fixed_pts_comp`. -/
+lemma bij_on_fixed_pts_comp (f : α → β) (g : β → α) :
+  set.bij_on g (fixed_points $ f ∘ g) (fixed_points $ g ∘ f) :=
+(inv_on_fixed_pts_comp f g).bij_on (maps_to_fixed_pts_comp g f) (maps_to_fixed_pts_comp f g)
+
+/-- If self-maps `f` and `g` commute, then they are inverse of each other on the set of fixed points
+of `f ∘ g`. This is a particular case of `function.inv_on_fixed_pts_comp`. -/
 lemma commute.inv_on_fixed_pts_comp (h : commute f g) :
   set.inv_on f g (fixed_points $ f ∘ g) (fixed_points $ f ∘ g) :=
-⟨λ x, id, h.symm.comp_eq ▸ λ x, id⟩
+by simpa only [h.comp_eq] using inv_on_fixed_pts_comp f g
 
+/-- If self-maps `f` and `g` commute, then `f` is bijective on the set of fixed points of `f ∘ g`.
+This is a particular case of `function.bij_on_fixed_pts_comp`. -/
 lemma commute.left_bij_on_fixed_pts_comp (h : commute f g) :
   set.bij_on f (fixed_points $ f ∘ g) (fixed_points $ f ∘ g) :=
-h.inv_on_fixed_pts_comp.symm.bij_on
-  ((commute.refl f).comp_right h).maps_to_fixed_pts
-  (h.symm.comp_right (commute.refl g)).maps_to_fixed_pts
+by simpa only [h.comp_eq] using bij_on_fixed_pts_comp g f
 
+/-- If self-maps `f` and `g` commute, then `g` is bijective on the set of fixed points of `f ∘ g`.
+This is a particular case of `function.bij_on_fixed_pts_comp`. -/
 lemma commute.right_bij_on_fixed_pts_comp (h : commute f g) :
   set.bij_on g (fixed_points $ f ∘ g) (fixed_points $ f ∘ g) :=
-h.symm.comp_eq ▸ h.symm.left_bij_on_fixed_pts_comp
+by simpa only [h.comp_eq] using bij_on_fixed_pts_comp f g
 
 end function

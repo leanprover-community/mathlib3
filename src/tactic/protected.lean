@@ -38,13 +38,11 @@ add_tactic_doc
 /-- Tactic that is executed when a structure is marked with the `protect_proj` attribute -/
 meta def protect_proj_tac (n : name) (l : list name) : tactic unit :=
 do env ← get_env,
-option.cases_on (env.structure_fields_full n)
-  (fail "protect_proj failed: declaration is not a structure")
-  (λ fields, fields.foldl
-    (λ t field, cond (l.foldl (λ b m, bor b (m.is_suffix_of field)) ff)
-      t
-      (t >> tactic.mk_protected field))
-    skip)
+match env.structure_fields_full n with
+| none := fail "protect_proj failed: declaration is not a structure"
+| some fields := fields.mmap' $ λ field,
+    when (l.all $ λ m, bnot $ m.is_suffix_of field) $ mk_protected field
+end
 
 /-- Attribute to protect the projections of a structure.
     If a structure `foo` is marked with the `protect_proj` user attribute, then

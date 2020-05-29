@@ -223,45 +223,28 @@ instance inner_product_space_is_normed_space : normed_space ℝ α :=
 end norm
 
 section instances
-/-- The standard Euclidean space, `fin n → ℝ`. -/
-def euclidean_space (n : ℕ) : Type := fin n → ℝ
+/-- The standard Euclidean space, functions on a finite type. For an `n`-dimensional space
+use `euclidean_space (fin n)`.  -/
+@[derive add_comm_group]
+def euclidean_space (n : Type*) [fintype n] : Type* := n → ℝ
 
-local attribute [reducible] euclidean_space
+variables {n : Type*} [fintype n]
 
-variable {n : ℕ}
+instance : inhabited (euclidean_space n) := ⟨0⟩
 
 instance : inner_product_space (euclidean_space n) :=
 { inner := λ a b, ∑ i, a i * b i,
-  comm := λ x y, begin
-    unfold inner,
-    simp [mul_comm],
+  comm := λ x y, finset.sum_congr rfl $ λ i hi, mul_comm _ _,
+  nonneg := λ x, finset.sum_nonneg (λ i hi, mul_self_nonneg _),
+  definite := λ x h, begin
+    have : ∀ i ∈ (finset.univ : finset n), 0 ≤ x i * x i := λ i hi, mul_self_nonneg _,
+    simpa [inner, finset.sum_eq_zero_iff_of_nonneg this, function.funext_iff] using h,
   end,
-  nonneg := λ x, begin
-    unfold inner,
-    exact finset.sum_nonneg (λ i hi, mul_self_nonneg _)
-  end,
-  definite := λ x, begin
-    unfold inner,
-    intro h,
-    rw finset.sum_eq_zero_iff_of_nonneg at h,
-    { ext i,
-      simpa [mul_eq_zero_iff', or_self] using h i (finset.mem_univ _) },
-    { exact λ i hi, mul_self_nonneg _ }
-  end,
-  add_left := λ x y z, begin
-    unfold inner,
-    convert finset.sum_add_distrib,
-    ext i,
-    rw [pi.add_apply x y i, right_distrib]
-  end,
-  smul_left := λ x y r, begin
-    unfold inner,
-    rw finset.mul_sum,
-    simp [pi.smul_apply, smul_eq_mul, mul_assoc]
-  end }
+  add_left := λ x y z, by simp only [inner, ← finset.sum_add_distrib, ← add_mul,
+    ← pi.add_apply x y],
+  smul_left := λ x y r, by simp [finset.mul_sum, mul_assoc],
+  .. pi.semimodule n (λ _, ℝ) ℝ }
 
-instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
-instance : inhabited (euclidean_space n) := ⟨0⟩
 end instances
 
 section orthogonal

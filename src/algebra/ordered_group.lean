@@ -1541,7 +1541,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
-@[protect_proj] class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
+class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
 (nonneg : α → Prop)
 (pos : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))
 (pos_iff : ∀ a, pos a ↔ nonneg a ∧ ¬ nonneg (-a) . order_laws_tac)

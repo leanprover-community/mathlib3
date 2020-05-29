@@ -165,6 +165,11 @@ instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
 q.2
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
+-- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
+-- obtaining the ring structure for free,
+-- but that seems to be more trouble than it's worth;
+-- if it were easy to make the definition,
+-- cardinality calculations would be somewhat more involved, too.
 @[derive [add_comm_group, decidable_eq, fintype, inhabited]]
 def X (q : ℕ+) : Type := (zmod q) × (zmod q)
 
@@ -479,8 +484,6 @@ do `(lucas_lehmer_test %%p) ← target,
 
 end lucas_lehmer
 
-example : (mersenne 5).prime := lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-
 lemma lucas_lehmer_test_7_by_hand : s_mod 7 5 = 0 :=
 begin
   have w : (2^7 - 1 : ℤ) = 127 := by norm_num,
@@ -493,14 +496,15 @@ begin
   exact h,
 end
 
+/-- We verify that the tactic works to prove `127.prime`. -/
 example : (mersenne 7).prime := lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
-example : (mersenne 13).prime :=
-lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-example : (mersenne 17).prime :=
-lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-example : (mersenne 19).prime :=
-lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- example : (mersenne 13).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- example : (mersenne 17).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
+-- example : (mersenne 19).prime :=
+-- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
 /-- 2147483647.prime, Euler (1772) -/
 example : (mersenne 31).prime :=
@@ -541,7 +545,7 @@ but work fine on the command line.
 -- and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
 -- Someone should do this, too!
 
-example (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
+lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
   conv in k {rw [← nat.mod_add_div k (2^n), add_comm]},

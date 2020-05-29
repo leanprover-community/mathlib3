@@ -45,7 +45,7 @@ instance : has_div α := ⟨euclidean_domain.quotient⟩
 instance : has_mod α := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
-quotient_mul_add_remainder_eq _ _
+euclidean_domain.quotient_mul_add_remainder_eq _ _
 
 lemma mod_eq_sub_mul_div {α : Type*} [euclidean_domain α] (a b : α) :
   a % b = a - b * (a / b) :=
@@ -53,7 +53,7 @@ calc a % b = b * (a / b) + a % b - b * (a / b) : (add_sub_cancel' _ _).symm
 ... = a - b * (a / b) : by rw div_add_mod
 
 theorem mod_lt : ∀ a {b : α}, b ≠ 0 → (a % b) ≺ b :=
-remainder_lt
+euclidean_domain.remainder_lt
 
 theorem mul_right_not_lt {a : α} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
 by rw mul_comm; exact mul_left_not_lt b h

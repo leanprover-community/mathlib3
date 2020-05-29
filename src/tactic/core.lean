@@ -1100,6 +1100,10 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   return ((p :: ps), r)
 | e := return ([], e)
 
+/-- Protect the declaration `n` -/
+meta def mk_protected (n : name) : tactic unit :=
+do env ← get_env, set_env (env.mk_protected n)
+
 end tactic
 
 namespace lean.parser

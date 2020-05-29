@@ -20,7 +20,7 @@ set_option old_structure_cmd true
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
-class normalization_domain (α : Type*) extends integral_domain α :=
+@[protect_proj] class normalization_domain (α : Type*) extends integral_domain α :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
@@ -141,7 +141,7 @@ set_option default_priority 100 -- see Note [default priority]
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
 `0` is top. The type class focuses on `gcd` and we derive the correpsonding `lcm` facts from `gcd`.
 -/
-class gcd_domain (α : Type*) extends normalization_domain α :=
+@[protect_proj] class gcd_domain (α : Type*) extends normalization_domain α :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)

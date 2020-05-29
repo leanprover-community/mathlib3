@@ -38,11 +38,11 @@ section prio
 set_option default_priority 10 -- see Note [default priority]
 
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element. -/
-class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
+@[protect_proj] class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
 
 /-- A type `M` is a commutative “monoid with zero”
 if it is a commutative monoid with zero element. -/
-class comm_monoid_with_zero (G₀ : Type*) extends comm_monoid G₀, monoid_with_zero G₀.
+@[protect_proj] class comm_monoid_with_zero (G₀ : Type*) extends comm_monoid G₀, monoid_with_zero G₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.

@@ -11,8 +11,9 @@ import data.int.basic
 universe u
 
 section prio
+set_option old_structure_cmd true
 set_option default_priority 100 -- see Note [default priority]
-class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
+@[protect_proj] class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
@@ -31,6 +32,28 @@ class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 end prio
+#print structure_instance_info.field_names
+#print structure_instance_info
+#print environment.structure_fields
+namespace tactic
+
+meta def protect_struct_aux (l : list name) (env : environment) : tactic environment :=
+l.foldl
+  (λ env n, do env ← env, option.cases_on (env.structure_fields_full n)
+    (do trace ("protect_struct failed: " ++ n.to_string ++ " is not a structure"),
+      return env)
+    (λ l, l.foldl (λ env n, do env ← env, return (env.mk_protected n)) (return env)))
+  (return env)
+
+/-- Given a list of names e.g. ``[`group, `ring]`` -/
+meta def protect_struct (l : list name) : tactic unit :=
+get_env >>= protect_struct_aux l >>= set_env
+
+end tactic
+
+run_cmd tactic.protect_struct
+  [`monoid, `add_monoid, `group, `add_group, `ring, `comm_ring, `field]
+#print euclidean_domain.mul_assoc
 
 namespace euclidean_domain
 variable {α : Type u}
@@ -340,10 +363,12 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact int.mod_lt _ b0,
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
-    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
+    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
+  ..int.comm_ring,
+  ..int.decidable_linear_ordered_comm_ring }
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type u} [k : field K] : euclidean_domain K :=
 { quotient := (/),
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
@@ -353,4 +378,5 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
   remainder_lt := λ a b hnb, by simp [hnb],
-  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
+  ..k }

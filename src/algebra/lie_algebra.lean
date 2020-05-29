@@ -99,7 +99,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero.
 -/
-class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
+@[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
 import analysis.specific_limits
-import data.setoid
+import data.setoid.basic
 
 /-!
 # Contracting maps

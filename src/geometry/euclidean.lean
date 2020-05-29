@@ -36,14 +36,16 @@ abbreviation euclidean_affine_space (V : Type*) (P : Type*) [inner_product_space
 normed_add_torsor V P
 end prio
 
+section instances
 /-- The standard Euclidean space, fin n → ℝ. -/
-instance standard_euclidean_space_is_vector_space (n : ℕ) : vector_space ℝ (fin n → ℝ) :=
-by apply_instance
-instance standard_euclidean_space_has_inner (n : ℕ) : has_inner (fin n → ℝ) :=
-{ inner := λ a b, ∑ i, a i * b i }
-instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
-  inner_product_space (fin n → ℝ) :=
-{ comm := λ x y, begin
+def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
+local attribute [reducible] euclidean_space
+variable {n : ℕ}
+ -- Short-circuit type class inference.
+instance : vector_space ℝ (euclidean_space n) := by apply_instance
+instance : inner_product_space (euclidean_space n) :=
+{ inner := λ a b, ∑ i, a i * b i,
+  comm := λ x y, begin
     unfold inner,
     conv_lhs {
       apply_congr,
@@ -84,10 +86,14 @@ instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
       rw [pi.smul_apply, smul_eq_mul, mul_assoc]
     }
   end }
-instance standard_euclidean_affine_space_normed_group (n : ℕ) : normed_group (fin n → ℝ) :=
-inner_product_space_is_normed_group
-instance standard_euclidean_affine_space_metric_space (n : ℕ) : metric_space (fin n → ℝ) :=
-normed_group.to_metric_space
-instance standard_euclidean_affine_space (n : ℕ) :
-  euclidean_affine_space (fin n → ℝ) (fin n → ℝ) :=
+-- Ensure the norm and distance derived from the inner product are
+-- used.
+instance : normed_group (euclidean_space n) := inner_product_space_is_normed_group
+instance : normed_space ℝ (euclidean_space n) := inner_product_space_is_normed_space
+instance : metric_space (euclidean_space n) := normed_group.to_metric_space
+ -- Short-circuit type class inference.
+instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
+instance : inhabited (euclidean_space n) := ⟨0⟩
+instance : euclidean_affine_space (euclidean_space n) (euclidean_space n) :=
 { dist_eq_norm' := normed_group.dist_eq }
+end instances

@@ -2,10 +2,13 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-A type for VM-erased data.
 -/
 import data.equiv.basic
+
+/-!
+# A type for VM-erased data
+
+-/
 
 /-- `erased α` is the same as `α`, except that the elements
   of `erased α` are erased in the VM in the same way as types

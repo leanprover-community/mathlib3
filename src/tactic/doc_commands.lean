@@ -425,6 +425,16 @@ add_tactic_doc
   tags := ["core", "simplification"] }
 
 /--
+Accepts terms with the type `component tactic_state string` or `html empty` and
+renders them interactively.
+-/
+add_tactic_doc
+{ name := "#html",
+  category := doc_category.cmd,
+  decl_names := [`show_widget_cmd],
+  tags := ["core", "widgets"] }
+
+/--
 The `add_decl_doc` command is used to add a doc string to an existing declaration.
 
 ```lean

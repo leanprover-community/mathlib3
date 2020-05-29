@@ -74,7 +74,7 @@ instance standard_euclidean_space_is_inner_product_space (n : ℕ) :
     convert finset.sum_add_distrib,
     conv_lhs {
       funext,
-      rw [(show (x + y) i = x i + y i, by refl), right_distrib]
+      rw [pi.add_apply x y i, right_distrib]
     }
   end,
   smul_left := begin

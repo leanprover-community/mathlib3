@@ -29,5 +29,8 @@ example : ⁅a, b * c⁆ = ⁅a, b⁆ * c + b * ⁅a, c⁆ := by noncomm_ring
 example : ⁅2 * a, a⁆ = 0 := by noncomm_ring
 example : ⁅a * 2, a⁆ = 0 := by noncomm_ring
 example : ⁅a^2, a⁆ = 0 := by noncomm_ring
+example : a ⚬ a = 2*a^2 := by noncomm_ring
 example : a ⚬ b = b ⚬ a := by noncomm_ring
+example : a ⚬ (b + c) = a ⚬ b + (a ⚬ c) := by noncomm_ring
+example : (a + b) ⚬ c = a ⚬ c + (b ⚬ c) := by noncomm_ring
 example : (a ⚬ b) ⚬ (a ⚬ a) = a ⚬ (b ⚬ (a ⚬ a)) := by noncomm_ring

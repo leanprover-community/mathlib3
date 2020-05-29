@@ -31,8 +31,9 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A `euclidean_affine_space V P` is an affine space with points `P`
 over an `inner_product_space V`. -/
-class euclidean_affine_space (V : Type*) (P : Type*) [inner_product_space V] [metric_space P]
-  extends normed_add_torsor V P
+abbreviation euclidean_affine_space (V : Type*) (P : Type*) [inner_product_space V]
+    [metric_space P] :=
+normed_add_torsor V P
 end prio
 
 /-- The standard Euclidean space, fin n → ℝ. -/

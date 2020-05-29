@@ -427,6 +427,23 @@ add_tactic_doc
 /--
 Accepts terms with the type `component tactic_state string` or `html empty` and
 renders them interactively.
+Requires a compatible version of the vscode extension to view the resulting widget.
+
+### Example:
+
+```lean
+/-- A simple counter that can be incremented or decremented with some buttons. -/
+meta def counter_widget {π α : Type} : component π α :=
+component.ignore_props $ component.mk_simple int int 0 (λ _ x y, (x + y, none)) (λ _ s,
+  h "div" [] [
+    button "+" (1 : int),
+    html.of_string $ to_string $ s,
+    button "-" (-1)
+  ]
+)
+
+#html counter_widget
+```
 -/
 add_tactic_doc
 { name := "#html",

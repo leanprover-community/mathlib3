@@ -14,6 +14,7 @@ variable {α : Type u}
 
 /-- An `ordered_semiring α` is a semiring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
 (mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
@@ -99,6 +100,7 @@ end ordered_semiring
 
 /-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
 such that multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
 class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α :=
 (zero_lt_one : zero < one)
 
@@ -413,7 +415,7 @@ end mono
 
 /-- A `decidable_linear_ordered_semiring α` is a semiring `α` with a decidable linear order
 such that multiplication with a positive number and addition are monotone. -/
-class decidable_linear_ordered_semiring (α : Type u)
+@[protect_proj] class decidable_linear_ordered_semiring (α : Type u)
   extends linear_ordered_semiring α, decidable_linear_order α
 
 section decidable_linear_ordered_semiring
@@ -429,6 +431,7 @@ end decidable_linear_ordered_semiring
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 (zero_ne_one : (0 : α) ≠ 1)
@@ -524,7 +527,7 @@ end ordered_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
-class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α :=
+@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α :=
 (zero_lt_one : zero < one)
 
 section linear_ordered_ring
@@ -685,6 +688,7 @@ end linear_ordered_ring
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
 such that multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 instance linear_ordered_comm_ring.to_integral_domain [s: linear_ordered_comm_ring α] : integral_domain α :=
@@ -694,7 +698,7 @@ instance linear_ordered_comm_ring.to_integral_domain [s: linear_ordered_comm_rin
 /-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
 decidable linear order such that multiplication with a positive number and
 addition are monotone. -/
-class decidable_linear_ordered_comm_ring (α : Type u) extends linear_ordered_comm_ring α,
+@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u) extends linear_ordered_comm_ring α,
     decidable_linear_ordered_add_comm_group α
 
 instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :

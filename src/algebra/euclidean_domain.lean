@@ -13,6 +13,7 @@ universe u
 section prio
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
+@[protect_proj without mul_left_not_lt r_well_founded]
 class euclidean_domain (α : Type u) extends comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -32,26 +33,6 @@ class euclidean_domain (α : Type u) extends comm_ring α :=
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 (zero_ne_one : (0 : α) ≠ 1)
-
-run_cmd do env ← tactic.get_env,
-  let env := env.mk_protected ``euclidean_domain.add,
-  let env := env.mk_protected ``euclidean_domain.add_assoc,
-  let env := env.mk_protected ``euclidean_domain.zero,
-  let env := env.mk_protected ``euclidean_domain.zero_add,
-  let env := env.mk_protected ``euclidean_domain.add_zero,
-  let env := env.mk_protected ``euclidean_domain.neg,
-  let env := env.mk_protected ``euclidean_domain.add_left_neg,
-  let env := env.mk_protected ``euclidean_domain.add_comm,
-  let env := env.mk_protected ``euclidean_domain.mul,
-  let env := env.mk_protected ``euclidean_domain.mul_assoc,
-  let env := env.mk_protected ``euclidean_domain.one,
-  let env := env.mk_protected ``euclidean_domain.one_mul,
-  let env := env.mk_protected ``euclidean_domain.mul_one,
-  let env := env.mk_protected ``euclidean_domain.left_distrib,
-  let env := env.mk_protected ``euclidean_domain.right_distrib,
-  let env := env.mk_protected ``euclidean_domain.mul_comm,
-  let env := env.mk_protected ``euclidean_domain.zero_ne_one,
-  tactic.set_env env
 end prio
 
 namespace euclidean_domain
@@ -64,13 +45,13 @@ local infix ` ≺ `:50 := euclidean_domain.r
 instance : nonzero α := ⟨euclidean_domain.zero_ne_one⟩
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_div α := ⟨quotient⟩
+instance : has_div α := ⟨euclidean_domain.quotient⟩
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_mod α := ⟨remainder⟩
+instance : has_mod α := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
-quotient_mul_add_remainder_eq _ _
+euclidean_domain.quotient_mul_add_remainder_eq _ _
 
 lemma mod_eq_sub_mul_div {α : Type*} [euclidean_domain α] (a b : α) :
   a % b = a - b * (a / b) :=
@@ -78,7 +59,7 @@ calc a % b = b * (a / b) + a % b - b * (a / b) : (add_sub_cancel' _ _).symm
 ... = a - b * (a / b) : by rw div_add_mod
 
 theorem mod_lt : ∀ a {b : α}, b ≠ 0 → (a % b) ≺ b :=
-remainder_lt
+euclidean_domain.remainder_lt
 
 theorem mul_right_not_lt {a : α} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
 by rw mul_comm; exact mul_left_not_lt b h
@@ -127,7 +108,7 @@ mod_eq_zero.2 (one_dvd _)
 mod_eq_zero.2 (dvd_zero _)
 
 @[simp] lemma div_zero (a : α) : a / 0 = 0 :=
-quotient_zero a
+euclidean_domain.quotient_zero a
 
 @[simp] lemma zero_div {a : α} : 0 / a = 0 :=
 classical.by_cases

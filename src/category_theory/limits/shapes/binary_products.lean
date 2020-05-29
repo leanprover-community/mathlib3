@@ -362,8 +362,6 @@ section
 variables {C} [has_binary_products.{v} C]
 variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
 
-local attribute [tidy] tactic.case_bash
-
 -- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
@@ -411,7 +409,7 @@ nat_iso.of_components (prod.associator _ _) (by tidy)
 lemma prod.pentagon (W X Y Z : C) :
   prod.map ((prod.associator W X Y).hom) (𝟙 Z) ≫
       (prod.associator W (X ⨯ Y) Z).hom ≫ prod.map (𝟙 W) ((prod.associator X Y Z).hom) =
-    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y⨯Z)).hom :=
+    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y ⨯ Z)).hom :=
 by tidy
 
 @[reassoc]
@@ -482,8 +480,6 @@ end
 section
 variables {C} [has_binary_coproducts.{v} C]
 
-local attribute [tidy] tactic.case_bash
-
 /-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
 { hom := coprod.desc coprod.inr coprod.inl,
@@ -512,8 +508,8 @@ by simp
 
 lemma coprod.pentagon (W X Y Z : C) :
   coprod.map ((coprod.associator W X Y).hom) (𝟙 Z) ≫
-      (coprod.associator W (X⨿Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
-    (coprod.associator (W⨿X) Y Z).hom ≫ (coprod.associator W X (Y⨿Z)).hom :=
+      (coprod.associator W (X ⨿ Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
+    (coprod.associator (W ⨿ X) Y Z).hom ≫ (coprod.associator W X (Y ⨿ Z)).hom :=
 by tidy
 
 lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :

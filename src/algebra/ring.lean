@@ -54,7 +54,7 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
-@[ancestor has_mul has_add]
+@[protect_proj, ancestor has_mul has_add]
 class distrib (α : Type u) extends has_mul α, has_add α :=
 (left_distrib : ∀ a b c : α, a * (b + c) = (a * b) + (a * c))
 (right_distrib : ∀ a b c : α, (a + b) * c = (a * c) + (b * c))
@@ -69,7 +69,7 @@ distrib.right_distrib a b c
 
 def add_mul := @right_distrib
 
-@[ancestor has_mul has_zero]
+@[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
 (zero_mul : ∀ a : α, 0 * a = 0)
 (mul_zero : ∀ a : α, a * 0 = 0)
@@ -81,7 +81,7 @@ mul_zero_class.zero_mul a
 mul_zero_class.mul_zero a
 
 /-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure is nonzero. -/
-class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
+@[protect_proj] class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
 (zero_ne_one : 0 ≠ (1:α))
 
 @[simp]
@@ -94,7 +94,7 @@ zero_ne_one.symm
 
 /- semiring -/
 
-@[ancestor add_comm_monoid monoid distrib mul_zero_class]
+@[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
 class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
 
 section semiring
@@ -320,7 +320,7 @@ omit rα rβ rγ
 
 end ring_hom
 
-@[ancestor semiring comm_monoid]
+@[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
 section comm_semiring
@@ -412,7 +412,7 @@ end comm_semiring
 
 /- ring -/
 
-@[ancestor add_comm_group monoid distrib]
+@[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
 section ring
@@ -566,7 +566,7 @@ def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f
 
 end ring_hom
 
-@[ancestor ring comm_semigroup]
+@[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
@@ -680,7 +680,7 @@ lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠
 theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
 { zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
 
-class no_zero_divisors (α : Type u) [has_mul α] [has_zero α] : Prop :=
+@[protect_proj] class no_zero_divisors (α : Type u) [has_mul α] [has_zero α] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
@@ -694,7 +694,7 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-class domain (α : Type u) extends ring α :=
+@[protect_proj] class domain (α : Type u) extends ring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 (zero_ne_one : (0 : α) ≠ 1)
 
@@ -752,7 +752,7 @@ end domain
 
 /- integral domains -/
 
-@[ancestor comm_ring domain]
+@[protect_proj, ancestor comm_ring domain]
 class integral_domain (α : Type u) extends comm_ring α, domain α
 
 section integral_domain

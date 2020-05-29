@@ -5,6 +5,7 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import analysis.specific_limits
 import data.setoid.basic
+import dynamics.fixed_points
 
 /-!
 # Contracting maps
@@ -33,9 +34,9 @@ variables {α : Type*}
 
 /-- If the iterates `f^[n] x₀` converge to `x` and `f` is continuous at `x`,
 then `x` is a fixed point for `f`. -/
-lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : α → α} {x : α}
+lemma is_fixed_pt_of_tendsto_iterate [topological_space α] [t2_space α] {f : α → α} {x : α}
   (hf : continuous_at f x) (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (𝓝 x)) :
-  f x = x :=
+  is_fixed_pt f x :=
 begin
   rcases hx with ⟨x₀, hx⟩,
   refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hx,
@@ -73,17 +74,17 @@ calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_tri
   ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add' (le_refl _) (hf.2 _ _)
 
 lemma edist_le_of_fixed_point (hf : contracting_with K f) {x y}
-  (h : edist x y < ⊤) (hy : f y = y) :
+  (h : edist x y < ⊤) (hy : is_fixed_pt f y) :
   edist x y ≤ (edist x (f x)) / (1 - K) :=
-by simpa only [hy, edist_self, add_zero] using hf.edist_inequality h
+by simpa only [hy.eq, edist_self, add_zero] using hf.edist_inequality h
 
 lemma eq_or_edist_eq_top_of_fixed_points (hf : contracting_with K f) {x y}
-  (hx : f x = x) (hy : f y = y) :
+  (hx : is_fixed_pt f x) (hy : is_fixed_pt f y) :
   x = y ∨ edist x y = ⊤ :=
 begin
   cases eq_or_lt_of_le (le_top : edist x y ≤ ⊤), from or.inr h,
   refine or.inl (edist_le_zero.1 _),
-  simpa only [hx, edist_self, add_zero, ennreal.zero_div]
+  simpa only [hx.eq, edist_self, add_zero, ennreal.zero_div]
     using hf.edist_le_of_fixed_point h hy
 end
 
@@ -102,13 +103,13 @@ We include more conclusions in this theorem to avoid proving them again later.
 The main API for this theorem are the functions `efixed_point` and `fixed_point`,
 and lemmas about these functions. -/
 theorem exists_fixed_point (hf : contracting_with K f) (x : α) (hx : edist x (f x) < ⊤) :
-  ∃ y, f y = y ∧ tendsto (λ n, f^[n] x) at_top (𝓝 y) ∧
+  ∃ y, is_fixed_pt f y ∧ tendsto (λ n, f^[n] x) at_top (𝓝 y) ∧
     ∀ n:ℕ, edist (f^[n] x) y ≤ (edist x (f x)) * K^n / (1 - K) :=
 have cauchy_seq (λ n, f^[n] x),
 from cauchy_seq_of_edist_le_geometric K (edist x (f x)) (ennreal.coe_lt_one_iff.2 hf.1)
   (ne_of_lt hx) (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x),
 let ⟨y, hy⟩ := cauchy_seq_tendsto_of_complete this in
-⟨y, fixed_point_of_tendsto_iterate hf.2.continuous.continuous_at ⟨x, hy⟩, hy,
+⟨y, is_fixed_pt_of_tendsto_iterate hf.2.continuous.continuous_at ⟨x, hy⟩, hy,
   edist_le_of_edist_le_geometric_of_tendsto K (edist x (f x))
     (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x) hy⟩
 
@@ -123,8 +124,8 @@ classical.some $ hf.exists_fixed_point x hx
 
 variables {f}
 
-lemma efixed_point_is_fixed (hf : contracting_with K f) {x : α} (hx : edist x (f x) < ⊤) :
-  f (efixed_point f hf x hx) = efixed_point f hf x hx :=
+lemma efixed_point_is_fixed_pt (hf : contracting_with K f) {x : α} (hx : edist x (f x) < ⊤) :
+  is_fixed_pt f (efixed_point f hf x hx) :=
 (classical.some_spec $ hf.exists_fixed_point x hx).1
 
 lemma tendsto_iterate_efixed_point (hf : contracting_with K f) {x : α} (hx : edist x (f x) < ⊤) :
@@ -150,7 +151,7 @@ lemma efixed_point_eq_of_edist_lt_top (hf : contracting_with K f) {x : α} (hx :
   efixed_point f hf x hx = efixed_point f hf y hy :=
 begin
   refine (hf.eq_or_edist_eq_top_of_fixed_points _ _).elim id (λ h', false.elim (ne_of_lt _ h'));
-    try { apply efixed_point_is_fixed },
+    try { apply efixed_point_is_fixed_pt },
   change edist_lt_top_setoid.rel _ _,
   transitivity x, by { symmetry, exact hf.edist_efixed_point_lt_top hx },
   transitivity y,
@@ -162,7 +163,7 @@ omit cs
 /-- Banach fixed-point theorem for maps contracting on a complete subset. -/
 theorem exists_fixed_point' {s : set α} (hsc : is_complete s) (hsf : maps_to f s s)
   (hf : contracting_with K $ hsf.restrict f s s) {x : α} (hxs : x ∈ s) (hx : edist x (f x) < ⊤) :
-  ∃ y ∈ s, f y = y ∧ tendsto (λ n, f^[n] x) at_top (𝓝 y) ∧
+  ∃ y ∈ s, is_fixed_pt f y ∧ tendsto (λ n, f^[n] x) at_top (𝓝 y) ∧
     ∀ n:ℕ, edist (f^[n] x) y ≤ (edist x (f x)) * K^n / (1 - K) :=
 begin
   haveI := hsc.complete_space_coe,
@@ -191,9 +192,9 @@ lemma efixed_point_mem' {s : set α} (hsc : is_complete s) (hsf : maps_to f s s)
   efixed_point' f hsc hsf hf x hxs hx ∈ s :=
 (classical.some_spec $ hf.exists_fixed_point' hsc hsf hxs hx).fst
 
-lemma efixed_point_is_fixed' {s : set α} (hsc : is_complete s) (hsf : maps_to f s s)
+lemma efixed_point_is_fixed_pt' {s : set α} (hsc : is_complete s) (hsf : maps_to f s s)
   (hf : contracting_with K $ hsf.restrict f s s) {x : α} (hxs : x ∈ s) (hx : edist x (f x) < ⊤) :
-  f (efixed_point' f hsc hsf hf x hxs hx) = efixed_point' f hsc hsf hf x hxs hx :=
+  is_fixed_pt f (efixed_point' f hsc hsf hf x hxs hx) :=
 (classical.some_spec $ hf.exists_fixed_point' hsc hsf hxs hx).snd.1
 
 lemma tendsto_iterate_efixed_point' {s : set α} (hsc : is_complete s) (hsf : maps_to f s s)
@@ -234,7 +235,7 @@ lemma efixed_point_eq_of_edist_lt_top' (hf : contracting_with K f)
   efixed_point' f hsc hsf hfs x hxs hx = efixed_point' f htc htf hft y hyt hy :=
 begin
   refine (hf.eq_or_edist_eq_top_of_fixed_points _ _).elim id (λ h', false.elim (ne_of_lt _ h'));
-    try { apply efixed_point_is_fixed' },
+    try { apply efixed_point_is_fixed_pt' },
   change edist_lt_top_setoid.rel _ _,
   transitivity x, by { symmetry, apply edist_efixed_point_lt_top' },
   transitivity y,
@@ -261,22 +262,22 @@ calc dist x y ≤ dist x (f x) + dist y (f y) + dist (f x) (f y) : dist_triangle
           ... ≤ dist x (f x) + dist y (f y) + K * dist x y :
   add_le_add_left (hf.dist_le_mul _ _) _
 
-lemma dist_le_of_fixed_point (x) {y} (hy : f y = y) :
+lemma dist_le_of_fixed_point (x) {y} (hy : is_fixed_pt f y) :
   dist x y ≤ (dist x (f x)) / (1 - K) :=
-by simpa only [hy, dist_self, add_zero] using hf.dist_inequality x y
+by simpa only [hy.eq, dist_self, add_zero] using hf.dist_inequality x y
 
-theorem fixed_point_unique' {x y} (hx : f x = x) (hy : f y = y) : x = y :=
-(hf.eq_or_edist_eq_top_of_fixed_points hx hy).elim id (λ h, (edist_ne_top _ _ h).elim)
+theorem fixed_point_unique' {x y} (hx : is_fixed_pt f x) (hy : is_fixed_pt f y) : x = y :=
+(hf.eq_or_edist_eq_top_of_fixed_points hx hy).resolve_right (edist_ne_top _ _)
 
 /-- Let `f` be a contracting map with constant `K`; let `g` be another map uniformly
 `C`-close to `f`. If `x` and `y` are their fixed points, then `dist x y ≤ C / (1 - K)`. -/
 lemma dist_fixed_point_fixed_point_of_dist_le' (g : α → α)
-  {x y} (hx : f x = x) (hy : g y = y) {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :
+  {x y} (hx : is_fixed_pt f x) (hy : is_fixed_pt g y) {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :
   dist x y ≤ C / (1 - K) :=
-calc dist x y = dist y x : dist_comm x y
-          ... ≤ (dist y (f y)) / (1 - K) : hf.dist_le_of_fixed_point y hx
-          ... = (dist (f y) (g y)) / (1 - K) : by rw [hy, dist_comm]
-          ... ≤ C / (1 - K) : (div_le_div_right hf.one_sub_K_pos).2 (hfg y)
+calc dist x y = dist y x                     : dist_comm x y
+          ... ≤ (dist y (f y)) / (1 - K)     : hf.dist_le_of_fixed_point y hx
+          ... = (dist (f y) (g y)) / (1 - K) : by rw [hy.eq, dist_comm]
+          ... ≤ C / (1 - K)                  : (div_le_div_right hf.one_sub_K_pos).2 (hfg y)
 
 noncomputable theory
 
@@ -289,14 +290,14 @@ efixed_point f hf _ (edist_lt_top (classical.choice ‹nonempty α›) _)
 variable {f}
 
 /-- The point provided by `contracting_with.fixed_point` is actually a fixed point. -/
-lemma fixed_point_is_fixed : f (fixed_point f hf) = fixed_point f hf :=
-hf.efixed_point_is_fixed _
+lemma fixed_point_is_fixed_pt : is_fixed_pt f (fixed_point f hf) :=
+hf.efixed_point_is_fixed_pt _
 
-lemma fixed_point_unique {x} (hx : f x = x) : x = fixed_point f hf :=
-hf.fixed_point_unique' hx hf.fixed_point_is_fixed
+lemma fixed_point_unique {x} (hx : is_fixed_pt f x) : x = fixed_point f hf :=
+hf.fixed_point_unique' hx hf.fixed_point_is_fixed_pt
 
 lemma dist_fixed_point_le (x) : dist x (fixed_point f hf) ≤ (dist x (f x)) / (1 - K) :=
-hf.dist_le_of_fixed_point x hf.fixed_point_is_fixed
+hf.dist_le_of_fixed_point x hf.fixed_point_is_fixed_pt
 
 /-- Aposteriori estimates on the convergence of iterates to the fixed point. -/
 lemma aposteriori_dist_iterate_fixed_point_le (x n) :
@@ -314,12 +315,13 @@ lemma tendsto_iterate_fixed_point (x) :
 begin
   convert tendsto_iterate_efixed_point hf (edist_lt_top x _),
   refine (fixed_point_unique _ _).symm,
-  apply efixed_point_is_fixed
+  apply efixed_point_is_fixed_pt
 end
 
 lemma fixed_point_lipschitz_in_map {g : α → α} (hg : contracting_with K g)
   {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :
   dist (fixed_point f hf) (fixed_point g hg) ≤ C / (1 - K) :=
-hf.dist_fixed_point_fixed_point_of_dist_le' g hf.fixed_point_is_fixed hg.fixed_point_is_fixed hfg
+hf.dist_fixed_point_fixed_point_of_dist_le' g hf.fixed_point_is_fixed_pt
+  hg.fixed_point_is_fixed_pt hfg
 
 end contracting_with

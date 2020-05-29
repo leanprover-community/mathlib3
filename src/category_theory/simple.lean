@@ -33,7 +33,7 @@ begin
   classical,
   by_contradiction h,
   haveI := is_iso_of_mono_of_nonzero h,
-  exact w (eq_zero_of_kernel_is_iso f),
+  exact w (eq_zero_of_epi_kernel f),
 end
 
 lemma mono_to_simple_zero_of_not_iso
@@ -60,6 +60,31 @@ end
 section abelian
 variables [abelian.{v} C]
 
+/-- In an abelian category, an object satisfying the dual of the definition of a simple object is
+    simple. -/
+def simple_of_single_quotient (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso.{v} f ≃ (f ≠ 0)) :
+  simple.{v} X :=
+⟨λ Y f I,
+ begin
+  classical,
+  have hc := h (cokernel.π f),
+  refine ⟨_, _, _, _⟩,
+  { introsI,
+    have hx := cokernel.π_of_epi f,
+    by_contradiction h,
+    push_neg at h,
+    subst h,
+    exact hc (cokernel.π_of_zero _ _) hx },
+  { intro hf,
+    suffices : epi f,
+    { apply abelian.is_iso_of_mono_of_epi },
+    apply preadditive.epi_of_cokernel_zero,
+    by_contradiction h,
+    apply cokernel_not_iso_of_nonzero hf (hc.symm h) },
+  { intros x, apply subsingleton.elim _ _, apply_instance },
+  { intros x, refl }
+ end⟩
+
 /-- A nonzero epimorphism from a simple object is an isomorphism. -/
 def is_iso_of_epi_of_nonzero {X Y : C} [simple.{v} X] {f : X ⟶ Y} [epi f] (w : f ≠ 0) :
   is_iso f :=
@@ -77,7 +102,7 @@ begin
   classical,
   by_contradiction h,
   haveI := is_iso_of_epi_of_nonzero h,
-  exact w (eq_zero_of_cokernel_is_iso f),
+  exact w (eq_zero_of_mono_cokernel f),
 end
 
 lemma epi_from_simple_zero_of_not_iso

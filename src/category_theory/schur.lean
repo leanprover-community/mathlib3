@@ -32,8 +32,7 @@ open category_theory.limits
 
 universes v u
 variables {C : Type u} [category.{v} C]
-variables [preadditive.{v} C]
-variables [Π {X Y : C} (f : X ⟶ Y), has_limit (limits.parallel_pair f 0)]
+variables [preadditive.{v} C] [has_kernels.{v} C]
 
 /--
 Schur's Lemma (for a general preadditive category),

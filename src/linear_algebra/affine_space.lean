@@ -53,9 +53,10 @@ set of points. -/
 def vector_span (s : set P) : subspace k V := submodule.span k (vsub_set V s)
 
 /-- The points in the affine span of a (possibly empty) set of
-points. -/
+points. Use `affine_span` instead to get an `affine_subspace k V P`,
+if the set of points is known to be nonempty. -/
 def span_points (s : set P) : set P :=
-{p | ∃ p1 ∈ s, ∃ v ∈ (vector_span k V s).carrier, p = v +ᵥ p1}
+{p | ∃ p1 ∈ s, ∃ v ∈ (vector_span k V s), p = v +ᵥ p1}
 
 /-- The set of points in the affine span of a nonempty set of points
 is nonempty. -/
@@ -82,7 +83,7 @@ begin
   rcases hp1 with ⟨p1a, ⟨hp1a, ⟨v1, ⟨hv1, hv1p⟩⟩⟩⟩,
   rcases hp2 with ⟨p2a, ⟨hp2a, ⟨v2, ⟨hv2, hv2p⟩⟩⟩⟩,
   rw [hv1p, hv2p, vsub_vadd_eq_vsub_sub V (v1 +ᵥ p1a), vadd_vsub_assoc, add_comm, add_sub_assoc],
-  have hv1v2 : v1 - v2 ∈ (vector_span k V s).carrier,
+  have hv1v2 : v1 - v2 ∈ vector_span k V s,
   { apply (vector_span k V s).add hv1,
     rw ←neg_one_smul k v2,
     exact (vector_span k V s).smul (-1 : k) hv2 },
@@ -111,8 +112,8 @@ structure affine_subspace :=
 (carrier : set P)
 (direction : subspace k V)
 (nonempty : carrier.nonempty)
-(add : ∀ (p : P) (v : V), p ∈ carrier → v ∈ direction.carrier → v +ᵥ p ∈ carrier)
-(sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction.carrier)
+(add : ∀ (p : P) (v : V), p ∈ carrier → v ∈ direction → v +ᵥ p ∈ carrier)
+(sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction)
 
 /-- The whole affine space as a subspace of itself. -/
 def affine_subspace.univ : affine_subspace k V P :=
@@ -128,7 +129,7 @@ def affine_subspace.univ : affine_subspace k V P :=
     exact set.mem_of_mem_of_subset (set.mem_univ _) hx
   end }
 
-instance : inhabited (affine_subspace k V P) := ⟨univ_affine_subspace k V P⟩
+instance : inhabited (affine_subspace k V P) := ⟨affine_subspace.univ k V P⟩
 
 /-- The affine span of a nonempty set of points is the smallest affine
 subspace containing those points. (Actually defined here in terms of
@@ -174,7 +175,6 @@ def affine_map.comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2
     intros p v,
     rw [function.comp_app, g.add, f.add],
     refl
-  end
-}
+  end }
 
 end affine_map

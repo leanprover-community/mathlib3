@@ -210,11 +210,7 @@ result of subtracting the result of the affine map on those two
 points. -/
 @[simp] lemma affine_map.map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
   f p1 -ᵥ f p2 = f.linear (p1 -ᵥ p2) :=
-begin
-  conv_lhs {
-    rw [←vsub_vadd V1 p1 p2, affine_map.map_vadd, vadd_vsub]
-  }
-end
+by conv_lhs { rw [←vsub_vadd V1 p1 p2, affine_map.map_vadd, vadd_vsub] }
 
 /-- Identity map as an affine map. -/
 def affine_map.id : affine_map k V1 P1 V1 P1 :=

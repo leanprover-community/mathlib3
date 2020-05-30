@@ -1247,9 +1247,7 @@ ext $ by simp [div_X]
 
 theorem nonzero.of_polynomial_ne (h : p ≠ q) : nonzero R :=
 { zero_ne_one := λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero],
-  zero := 0, one := 1, mul := (*), add := (+),
-  .. ‹comm_semiring R› }
+    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] }
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact

@@ -18,7 +18,9 @@ by noncomm_ring
 ```
 -/
 meta def noncomm_ring :=
-`[simp only [add_mul, mul_add, sub_eq_add_neg,
+`[simp only [-- Expand everything out.
+             add_mul, mul_add, sub_eq_add_neg,
+             -- Right associate all products,
              mul_assoc,
              -- We expand powers to numerals.
              pow_bit0, pow_bit1, pow_one,

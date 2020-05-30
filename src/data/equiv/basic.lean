@@ -1257,6 +1257,15 @@ def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
 
+/-- To give an equivalence between two subsingleton types, it is sufficient to give any two
+    functions between them. -/
+def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]
+  (f : α → β) (g : β → α) : α ≃ β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
 namespace quot
 
 /-- An equivalence `e : α ≃ β` generates an equivalence between quotient spaces,

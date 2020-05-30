@@ -114,9 +114,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/module.lean
-apply_nolint module.core has_inhabited_instance
-
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
 apply_nolint ge_iff_le ge_or_gt
@@ -1754,7 +1751,6 @@ apply_nolint fin_dim_vectorspace_equiv doc_blame
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame
 apply_nolint linear_map.compr₂ doc_blame
-apply_nolint linear_map.flip doc_blame
 apply_nolint linear_map.lcomp doc_blame
 apply_nolint linear_map.lflip doc_blame
 apply_nolint linear_map.llcomp doc_blame

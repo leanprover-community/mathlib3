@@ -67,22 +67,19 @@ def simple_of_single_quotient (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is
 ⟨λ Y f I,
  begin
   classical,
-  have hc := h (cokernel.π f),
-  refine ⟨_, _, _, _⟩,
+  apply equiv_of_subsingleton_of_subsingleton,
   { introsI,
     have hx := cokernel.π_of_epi f,
     by_contradiction h,
     push_neg at h,
     subst h,
-    exact hc (cokernel.π_of_zero _ _) hx },
+    exact h _ (cokernel.π_of_zero _ _) hx },
   { intro hf,
     suffices : epi f,
     { apply abelian.is_iso_of_mono_of_epi },
     apply preadditive.epi_of_cokernel_zero,
-    by_contradiction h,
-    apply cokernel_not_iso_of_nonzero hf (hc.symm h) },
-  { intros x, apply subsingleton.elim _ _, apply_instance },
-  { intros x, refl }
+    by_contradiction h',
+    exact cokernel_not_iso_of_nonzero hf ((h _).symm h') }
  end⟩
 
 /-- A nonzero epimorphism from a simple object is an isomorphism. -/

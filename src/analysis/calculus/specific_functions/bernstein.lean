@@ -1,6 +1,7 @@
 import data.polynomial
 import data.nat.choose
 import linear_algebra.basis
+import data.nat.pochhammer
 
 noncomputable theory
 
@@ -98,11 +99,13 @@ lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
 iterate_derivative_at_zero_eq_zero_of_le n (le_refl _)
 
 lemma iterate_derivative_self_at_0 (n ν : ℕ) :
-  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n^ν :=
+  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
 begin
   induction ν with ν ih generalizing n,
   { simp [eval_at_0], },
-  { simp [derivative, ih], }
+  { simp [derivative, ih],
+    rw [nat.falling_factorial_eq_mul_left],
+    push_cast, }
 end
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
@@ -120,7 +123,6 @@ begin
       } }
   -- library_search,
 end
-
 
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=

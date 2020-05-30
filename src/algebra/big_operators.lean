@@ -1012,6 +1012,9 @@ begin
   rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
 end
 
+theorem prod_ne_zero : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
+by { rw [ne, prod_eq_zero_iff], push_neg }
+
 end integral_domain
 
 section ordered_add_comm_monoid

@@ -49,7 +49,7 @@ by simp [cpow_def, *]
 
 @[simp] lemma cpow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
 if hx : x = 0 then by simp [hx, cpow_def]
-else by rw [cpow_def, if_neg (@one_ne_zero ℂ _), if_neg hx, mul_one, exp_log hx]
+else by rw [cpow_def, if_neg (one_ne_zero : (1 : ℂ) ≠ 0), if_neg hx, mul_one, exp_log hx]
 
 @[simp] lemma one_cpow (x : ℂ) : (1 : ℂ) ^ x = 1 :=
 by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *

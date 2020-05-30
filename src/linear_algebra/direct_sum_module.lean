@@ -10,16 +10,16 @@ import linear_algebra.basic
 
 universes u v w u₁
 
-variables (R : Type u) [ring R]
+variables (R : Type u) [semiring R]
 variables (ι : Type v) [decidable_eq ι] (M : ι → Type w)
-variables [Π i, add_comm_group (M i)] [Π i, module R (M i)]
+variables [Π i, add_comm_group (M i)] [Π i, semimodule R (M i)]
 include R
 
 namespace direct_sum
 
 variables {R ι M}
 
-instance : module R (direct_sum ι M) := dfinsupp.to_module
+instance : semimodule R (direct_sum ι M) := dfinsupp.to_semimodule
 
 variables R ι M
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.1) →ₗ[R] direct_sum ι M :=
@@ -38,7 +38,7 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x 
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
-variables {N : Type u₁} [add_comm_group N] [module R N]
+variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
 variables (ι N φ)
@@ -69,7 +69,7 @@ def lset_to_set (S T : set ι) (H : S ⊆ T) :
   direct_sum S (M ∘ subtype.val) →ₗ direct_sum T (M ∘ subtype.val) :=
 to_module R _ _ $ λ i, lof R T (M ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
 
-protected def lid (M : Type v) [add_comm_group M] [module R M] :
+protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
   direct_sum punit (λ _, M) ≃ₗ M :=
 { .. direct_sum.id M,
   .. to_module R punit M (λ i, linear_map.id) }

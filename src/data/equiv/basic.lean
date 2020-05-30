@@ -863,6 +863,15 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
   by { rintro ⟨f, h⟩, refl },
   by { rintro f, funext a, exact subtype.eq' rfl }⟩
 
+/-- A subtype of a product defined by componentwise conditions
+is equivalent to a product of subtypes. -/
+def subtype_prod_equiv_prod {α : Type u} {β : Type v} {p : α → Prop} {q : β → Prop} :
+  {c : α × β // p c.1 ∧ q c.2} ≃ ({a // p a} × {b // q b}) :=
+⟨λ x, ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩,
+ λ x, ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩,
+ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl,
+ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl⟩
+
 end
 
 namespace set
@@ -972,10 +981,7 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
 
 protected def prod {α β} (s : set α) (t : set β) :
   s.prod t ≃ s × t :=
-⟨λp, ⟨⟨p.1.1, p.2.1⟩, ⟨p.1.2, p.2.2⟩⟩,
- λp, ⟨⟨p.1.1, p.2.1⟩, ⟨p.1.2, p.2.2⟩⟩,
- λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, rfl,
- λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, rfl⟩
+@subtype_prod_equiv_prod α β s t
 
 protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
@@ -1250,6 +1256,15 @@ def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 
 def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
+
+/-- To give an equivalence between two subsingleton types, it is sufficient to give any two
+    functions between them. -/
+def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]
+  (f : α → β) (g : β → α) : α ≃ β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
 
 namespace quot
 

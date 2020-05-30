@@ -109,20 +109,19 @@ instance [ring α] : ring (opposite α) :=
 instance [comm_ring α] : comm_ring (opposite α) :=
 { .. opposite.ring α, .. opposite.comm_semigroup α }
 
-instance [zero_ne_one_class α] : zero_ne_one_class (opposite α) :=
-{ zero_ne_one := λ h, zero_ne_one $ op_inj h,
-  .. opposite.has_zero α, .. opposite.has_one α }
+instance [has_zero α] [has_one α] [nonzero α] : nonzero (opposite α) :=
+{ zero_ne_one := λ h : op (0 : α) = op 1, zero_ne_one (op_inj h) }
 
 instance [integral_domain α] : integral_domain (opposite α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_inj H)
       (λ hy, or.inr $ unop_inj $ hy) (λ hx, or.inl $ unop_inj $ hx),
-  .. opposite.comm_ring α, .. opposite.zero_ne_one_class α }
+  .. opposite.comm_ring α, .. opposite.nonzero α }
 
 instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_inj $ inv_mul_cancel $ λ hx', hx $ unop_inj hx',
   inv_zero := unop_inj inv_zero,
-  .. opposite.comm_ring α, .. opposite.zero_ne_one_class α, .. opposite.has_inv α }
+  .. opposite.comm_ring α, .. opposite.nonzero α, .. opposite.has_inv α }
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

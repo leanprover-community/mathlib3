@@ -58,11 +58,15 @@ if the set of points is known to be nonempty. -/
 def span_points (s : set P) : set P :=
 {p | ∃ p1 ∈ s, ∃ v ∈ (vector_span k V s), p = v +ᵥ p1}
 
+/-- A point in a set is in its affine span. -/
+lemma mem_span_points (p : P) (s : set P) : p ∈ s → p ∈ span_points k V s
+| hp := ⟨p, hp, 0, submodule.zero _, (zero_vadd V p).symm⟩
+
 /-- The set of points in the affine span of a nonempty set of points
 is nonempty. -/
 lemma span_points_nonempty_of_nonempty {s : set P} :
   s.nonempty → (span_points k V s).nonempty 
-| ⟨p, hp⟩ := ⟨p, p, hp, 0, submodule.zero _, (zero_vadd V p).symm⟩
+| ⟨p, hp⟩ := ⟨p, mem_span_points k V p s hp⟩
 
 /-- Adding a point in the affine span and a vector in the spanning
 subspace produces a point in the affine span. -/
@@ -115,6 +119,15 @@ structure affine_subspace :=
 (add : ∀ (p : P) (v : V), p ∈ carrier → v ∈ direction → v +ᵥ p ∈ carrier)
 (sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction)
 
+instance : has_coe (affine_subspace k V P) (set P) := ⟨affine_subspace.carrier⟩
+instance : has_mem P (affine_subspace k V P) := ⟨λ p s, p ∈ (s : set P)⟩
+
+/-- A point is in an affine subspace coerced to a set if and only if
+it is in that affine subspace. -/
+@[simp] lemma affine_subspace.mem_coe (p : P) (s : affine_subspace k V P) :
+  p ∈ (s : set P) ↔ p ∈ s :=
+iff.rfl
+
 /-- The whole affine space as a subspace of itself. -/
 def affine_subspace.univ : affine_subspace k V P :=
 { carrier := set.univ,
@@ -129,6 +142,15 @@ def affine_subspace.univ : affine_subspace k V P :=
     exact set.mem_of_mem_of_subset (set.mem_univ _) hx
   end }
 
+/-- `affine_subspace.univ`, coerced to a set, is the whole set of
+points. -/
+@[simp] lemma affine_subspace.univ_coe : (affine_subspace.univ k V P : set P) = set.univ :=
+rfl
+
+/-- All points are in `affine_subspace.univ`. -/
+lemma affine_subspace.mem_univ (p : P) : p ∈ affine_subspace.univ k V P :=
+set.mem_univ p
+
 instance : inhabited (affine_subspace k V P) := ⟨affine_subspace.univ k V P⟩
 
 /-- The affine span of a nonempty set of points is the smallest affine
@@ -140,6 +162,15 @@ def affine_span (s : set P) (h : s.nonempty) : affine_subspace k V P :=
   nonempty := span_points_nonempty_of_nonempty k V h,
   add := λ p v hp hv, vadd_mem_span_points_of_mem_span_points_of_mem_vector_span k V hp hv,
   sub := λ p1 p2 hp1 hp2, vsub_mem_vector_span_of_mem_span_points_of_mem_span_points k V hp1 hp2 }
+
+/-- The affine span, converted to a set, is `span_points`. -/
+@[simp] lemma affine_span_coe (s : set P) (h : s.nonempty) :
+  (affine_span k V P s h : set P) = span_points k V s :=
+rfl
+
+/-- A point in a set is in its affine span. -/
+lemma affine_span_mem (p : P) (s : set P) (hp : p ∈ s) : p ∈ affine_span k V P s ⟨p, hp⟩ :=
+mem_span_points k V p s hp
 
 end affine_subspace
 

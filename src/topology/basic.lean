@@ -41,7 +41,7 @@ open_locale classical
 universes u v w
 
 /-- A topology on `α`. -/
-structure topological_space (α : Type u) :=
+@[protect_proj] structure topological_space (α : Type u) :=
 (is_open        : set α → Prop)
 (is_open_univ   : is_open univ)
 (is_open_inter  : ∀s t, is_open s → is_open t → is_open (s ∩ t))

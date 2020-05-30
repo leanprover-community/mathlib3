@@ -62,7 +62,7 @@ variables [abelian.{v} C]
 
 /-- In an abelian category, an object satisfying the dual of the definition of a simple object is
     simple. -/
-def simple_of_single_quotient (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso.{v} f ≃ (f ≠ 0)) :
+def simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso.{v} f ≃ (f ≠ 0)) :
   simple.{v} X :=
 ⟨λ Y f I,
  begin

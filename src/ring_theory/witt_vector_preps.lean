@@ -84,6 +84,27 @@ begin
   { simpa only [hf] },
 end
 
+lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+  function.injective (C : R → mv_polynomial σ R) :=
+finsupp.injective_single _
+
+lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+  (C r : mv_polynomial σ R) = C s ↔ r = s :=
+(C_injective σ R).eq_iff
+
+end mv_polynomial
+
+namespace mv_polynomial
+
+section char_p
+variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ) [fact p.prime]
+
+instance [char_p R p] : char_p (mv_polynomial σ R) p :=
+{ cast_eq_zero_iff := λ n,
+  by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
+
+end char_p
+
 end mv_polynomial
 
 namespace alg_hom
@@ -117,6 +138,19 @@ lemma eval₂_assoc'
   eval₂ f (λ t, eval₂ f φ (q t)) p = eval₂ f φ (eval₂ C q p) :=
 by { rw eval₂_comp_left (eval₂ f φ), congr, funext, simp }
 
+noncomputable def rename_hom {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R] (f : σ → τ) :
+  mv_polynomial σ R →+* mv_polynomial τ R :=
+ring_hom.of (rename f)
+
+section
+variables {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R] (f : σ → τ)
+
+@[simp] lemma rename_hom_X (i : σ) :
+  rename_hom f (X i : mv_polynomial σ R) = X (f i) :=
+rename_X _ _
+
+end
+
 noncomputable def map_hom
   {S : Type*} [comm_semiring S]
   {T : Type*} [comm_semiring T]
@@ -124,6 +158,31 @@ noncomputable def map_hom
   (f : S →+* T) :
   mv_polynomial σ S →+* mv_polynomial σ T :=
 ring_hom.of (mv_polynomial.map f)
+
+section
+variables {σ : Type*} {R : Type*} {S : Type*} {T : Type*}
+variables [comm_semiring R] [comm_semiring S] [comm_semiring T] (f : R →+* S)
+
+@[simp] lemma map_hom_C (r : R) : map_hom f (C r : mv_polynomial σ R) = C (f r) :=
+map_C f r
+
+@[simp] lemma map_hom_X (i : σ) : map_hom f (X i : mv_polynomial σ R) = X i :=
+map_X f i
+
+@[simp] lemma map_hom_rename_hom {τ : Type*} (g : σ → τ) (p : mv_polynomial σ R) :
+  map_hom f (rename_hom g p) = rename_hom g (map_hom f p) :=
+map_rename f g p
+
+@[simp] lemma eval₂_hom_rename_hom {τ : Type*} (g : τ → S) (h : σ → τ) (p : mv_polynomial σ R) :
+  eval₂_hom f g (rename_hom h p) = eval₂_hom f (g ∘ h) p :=
+eval₂_rename f h g p -- Achtung die Reihenfolge!
+
+end
+
+lemma eval₂_hom_congr {σ : Type*} {R : Type*} {S : Type*} [comm_semiring R] [comm_semiring S]
+  {f₁ f₂ : R →+* S} {g₁ g₂ : σ → S} {p₁ p₂ : mv_polynomial σ R} :
+  f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
+by rintros rfl rfl rfl; refl
 
 lemma map_eval₂'
   {R : Type*} [comm_semiring R]

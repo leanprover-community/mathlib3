@@ -20,15 +20,15 @@ by noncomm_ring
 meta def noncomm_ring :=
 `[simp only [-- Expand everything out.
              add_mul, mul_add, sub_eq_add_neg,
-             -- Right associate all products,
+             -- Right associate all products.
              mul_assoc,
-             -- We expand powers to numerals.
+             -- Expand powers to numerals.
              pow_bit0, pow_bit1, pow_one,
-             -- We replace multiplication by numerals with `gsmul`.
+             -- Replace multiplication by numerals with `gsmul`.
              bit0_mul, mul_bit0, bit1_mul, mul_bit1, one_mul, mul_one, zero_mul, mul_zero,
-             -- We pull `gsmul n` out the front so `abel` can see them.
+             -- Pull `gsmul n` out the front so `abel` can see them.
              ←mul_gsmul_assoc, ←mul_gsmul_left,
-             -- we pull out negations.
+             -- Pull out negations.
              neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm];
   abel]
 

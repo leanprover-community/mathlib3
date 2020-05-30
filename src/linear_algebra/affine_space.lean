@@ -115,7 +115,7 @@ structure affine_subspace :=
 (sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction.carrier)
 
 /-- The whole affine space as a subspace of itself. -/
-def univ_affine_subspace : affine_subspace k V P :=
+def affine_subspace.univ : affine_subspace k V P :=
 { carrier := set.univ,
   direction := submodule.span k set.univ,
   nonempty := set.nonempty_iff_univ_nonempty.1 S.nonempty,

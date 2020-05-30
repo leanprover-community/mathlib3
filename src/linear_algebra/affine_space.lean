@@ -45,7 +45,7 @@ open add_action
 open add_torsor
 
 variables (k : Type*) (V : Type*) {P : Type*} [field k] [add_comm_group V] [vector_space k V]
-          [S : affine_space k V P]
+variables [S : affine_space k V P]
 include S
 
 /-- The vector subspace spanning the differences of a (possibly empty)

@@ -424,6 +424,11 @@ begin
   norm_num
 end
 
+/-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square (x y : V) (h : inner x y = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
 /-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
 inner product form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : V) :
@@ -434,6 +439,12 @@ begin
   norm_num
 end
 
+/-- Pythagorean theorem, subtracting vectors, vector inner product
+form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square (x y : V) (h : inner x y = 0) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
@@ -442,6 +453,11 @@ begin
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
 
+/-- Pythagorean theorem, vector angle form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y = π / 2) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two x y).2 h
+
 /-- Pythagorean theorem, subtracting vectors, if-and-only-if vector angle form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
@@ -449,6 +465,11 @@ begin
   rw norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
+
+/-- Pythagorean theorem, subtracting vectors, vector angle form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y = π / 2) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two x y).2 h
 
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_mul_cos_angle

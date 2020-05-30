@@ -212,17 +212,17 @@ end
 this is π/2. -/
 def angle (x y : V) : ℝ := (inner x y / (∥x∥ * ∥y∥)).arccos
 
+/-- The cosine of the angle between two vectors. -/
+lemma cos_angle (x y : V) : (angle x y).cos = inner x y / (∥x∥ * ∥y∥) :=
+real.cos_arccos (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
+                (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
+
 /-- The angle between two vectors does not depend on their order. -/
 lemma angle_comm (x y : V) : angle x y = angle y x :=
 begin
   unfold angle,
   rw [inner_comm, mul_comm]
 end
-
-/-- The cosine of the angle between two vectors. -/
-lemma cos_angle (x y : V) : (angle x y).cos = inner x y / (∥x∥ * ∥y∥) :=
-real.cos_arccos (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
 
 /-- The angle between the negation of two vectors. -/
 @[simp] lemma angle_neg_neg (x y : V) : angle (-x) (-y) = angle x y :=

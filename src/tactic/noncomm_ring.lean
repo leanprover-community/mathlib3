@@ -6,24 +6,6 @@ Authors: Scott Morrison, Oliver Nash
 import tactic.doc_commands
 import tactic.abel
 
--- TODO this should be moved to `algebra/group_power.lean`.
-section
-variables {R : Type*} [ring R]
-
-lemma bit0_mul {n r : R} : bit0 n * r = gsmul 2 (n * r) :=
-by { dsimp [bit0], rw [add_mul, add_gsmul, one_gsmul], }
-
-lemma mul_bit0 {n r : R} : r * bit0 n = gsmul 2 (r * n) :=
-by { dsimp [bit0], rw [mul_add, add_gsmul, one_gsmul], }
-
-lemma bit1_mul {n r : R} : bit1 n * r = gsmul 2 (n * r) + r :=
-by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
-
-lemma mul_bit1 {n r : R} : r * bit1 n = gsmul 2 (r * n) + r :=
-by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
-
-end
-
 namespace tactic
 namespace interactive
 

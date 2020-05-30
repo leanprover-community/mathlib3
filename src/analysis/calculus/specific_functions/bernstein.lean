@@ -76,7 +76,7 @@ begin
   { apply derivative', }
 end
 
-lemma iterate_derivative_at_0 (n ν k : ℕ) :
+lemma iterate_derivative_at_zero_eq_zero_of_le (n : ℕ) {ν k : ℕ} :
   k ≤ ν → (polynomial.derivative^[k] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
 begin
   induction k with k ih generalizing n ν,
@@ -86,10 +86,23 @@ begin
     right,
     rw ih,
     simp,
-    have := ih (n-1) (ν-1) _,
+    have := @ih (n-1) (ν-1) _,
     -- all easy from here.
     sorry, sorry, sorry,
      }
+end
+
+@[simp]
+lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
+  (polynomial.derivative^[ν] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
+iterate_derivative_at_zero_eq_zero_of_le n (le_refl _)
+
+lemma iterate_derivative_self_at_0 (n ν : ℕ) :
+  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n^ν :=
+begin
+  induction ν with ν ih generalizing n,
+  { simp [eval_at_0], },
+  { simp [derivative, ih], }
 end
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
@@ -104,7 +117,7 @@ begin
       -- We show that the k-th derivate at 1 doesn't vanish,
       -- but vanishes for everything in the span.
 
-      }}
+      } }
   -- library_search,
 end
 

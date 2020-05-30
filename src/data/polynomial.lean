@@ -334,6 +334,9 @@ def eval : R → polynomial R → R := eval₂ id
 
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
+@[simp] lemma eval_coe_nat {n : ℕ} {r : R} : (n : polynomial R).eval r = (n : R) :=
+sorry
+
 instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _

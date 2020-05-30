@@ -16,6 +16,11 @@ example : a ^ 2 = a * a := by noncomm_ring
 example : (-a) * b = -(a * b) := by noncomm_ring
 example : a * (-b) = -(a * b) := by noncomm_ring
 example : a * (b + c + c - b) = 2*a*c := by noncomm_ring
+example : (a + b)^2 = a^2 + a*b + b*a + b^2 := by noncomm_ring
+example : (a - b)^2 = a^2 - a*b - b*a + b^2 := by noncomm_ring
+example : (a + b)^3 = a^3 + a^2*b + a*b*a + a*b^2 + b*a^2 + b*a*b + b^2*a + b^3 := by noncomm_ring
+example : (a - b)^3 = a^3 - a^2*b - a*b*a + a*b^2 - b*a^2 + b*a*b + b^2*a - b^3 := by noncomm_ring
+
 example : ⁅a, a⁆ = 0 := by noncomm_ring
 example : ⁅a, b⁆ = -⁅b, a⁆ := by noncomm_ring
 example : ⁅a + b, c⁆ = ⁅a, c⁆ + ⁅b, c⁆ := by noncomm_ring
@@ -29,6 +34,7 @@ example : ⁅a, b * c⁆ = ⁅a, b⁆ * c + b * ⁅a, c⁆ := by noncomm_ring
 example : ⁅2 * a, a⁆ = 0 := by noncomm_ring
 example : ⁅a * 2, a⁆ = 0 := by noncomm_ring
 example : ⁅a^2, a⁆ = 0 := by noncomm_ring
+
 example : a ⚬ a = 2*a^2 := by noncomm_ring
 example : a ⚬ b = b ⚬ a := by noncomm_ring
 example : a ⚬ (b + c) = a ⚬ b + (a ⚬ c) := by noncomm_ring

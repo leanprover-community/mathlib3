@@ -54,27 +54,6 @@ apply_nolint algebra.div doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
--- algebra/free.lean
-apply_nolint free_magma doc_blame
-apply_nolint free_magma.length doc_blame
-apply_nolint free_magma.lift doc_blame
-apply_nolint free_magma.map doc_blame
-apply_nolint free_magma.repr' doc_blame
-apply_nolint free_magma.traverse doc_blame
-apply_nolint free_semigroup doc_blame
-apply_nolint free_semigroup.lift doc_blame
-apply_nolint free_semigroup.lift' doc_blame
-apply_nolint free_semigroup.map doc_blame
-apply_nolint free_semigroup.of doc_blame
-apply_nolint free_semigroup.traverse doc_blame
-apply_nolint free_semigroup.traverse' doc_blame
-apply_nolint free_semigroup_free_magma doc_blame
-apply_nolint magma.free_semigroup doc_blame
-apply_nolint magma.free_semigroup.lift doc_blame
-apply_nolint magma.free_semigroup.map doc_blame
-apply_nolint magma.free_semigroup.of doc_blame
-apply_nolint magma.free_semigroup.r doc_blame
-
 -- algebra/gcd_domain.lean
 apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
@@ -199,7 +178,6 @@ apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
 apply_nolint semiring doc_blame
 apply_nolint sub_mul def_lemma doc_blame
-apply_nolint zero_ne_one_class doc_blame
 
 -- algebraic_geometry/presheafed_space.lean
 apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
@@ -1415,8 +1393,6 @@ apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
 apply_nolint polynomial.mod doc_blame
-apply_nolint polynomial.nonzero_comm_ring.of_polynomial_ne doc_blame
-apply_nolint polynomial.nonzero_comm_semiring.of_polynomial_ne doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
 apply_nolint polynomial.rec_on_horner doc_blame
@@ -2045,7 +2021,6 @@ apply_nolint ideal.is_prime doc_blame
 apply_nolint ideal.quotient doc_blame has_inhabited_instance
 apply_nolint ideal.quotient.map_mk doc_blame
 apply_nolint ideal.quotient.mk doc_blame
-apply_nolint ideal.quotient.nonzero_comm_ring doc_blame
 apply_nolint ideal.span doc_blame
 apply_nolint is_local_ring doc_blame
 apply_nolint is_local_ring_hom doc_blame

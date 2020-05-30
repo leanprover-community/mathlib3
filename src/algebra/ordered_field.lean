@@ -11,7 +11,7 @@ set_option old_structure_cmd true
 
 variable {α : Type*}
 
-class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
+@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
@@ -640,7 +640,7 @@ mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end linear_ordered_field
 
-class discrete_linear_ordered_field (α : Type*)
+@[protect_proj] class discrete_linear_ordered_field (α : Type*)
   extends linear_ordered_field α, decidable_linear_ordered_comm_ring α
 
 section discrete_linear_ordered_field

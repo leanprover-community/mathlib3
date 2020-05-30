@@ -95,7 +95,7 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 
 instance : comm_group_with_zero ℝ≥0 :=
 { zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
-  inv_zero       := nnreal.eq $ inv_zero,
+  inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
@@ -190,7 +190,7 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.comm_semiring }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, @zero_ne_one ℝ _ $ congr_arg subtype.val $ h,
+{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
   mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
   .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,

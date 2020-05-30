@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 import algebra.group.to_additive
 import tactic.simpa
 import logic.function.basic
+import tactic.protected
 
 set_option default_priority 100
 set_option old_structure_cmd true
@@ -33,9 +34,9 @@ universe u
    to the additive one.
 -/
 
-@[ancestor has_mul] class semigroup (α : Type u) extends has_mul α :=
+@[protect_proj, ancestor has_mul] class semigroup (α : Type u) extends has_mul α :=
 (mul_assoc : ∀ a b c : α, a * b * c = a * (b * c))
-@[ancestor has_add] class add_semigroup (α : Type u) extends has_add α :=
+@[protect_proj, ancestor has_add] class add_semigroup (α : Type u) extends has_add α :=
 (add_assoc : ∀ a b c : α, a + b + c = a + (b + c))
 attribute [to_additive add_semigroup] semigroup
 
@@ -54,9 +55,11 @@ instance semigroup_to_is_associative : is_associative α (*) :=
 
 end semigroup
 
-@[ancestor semigroup] class comm_semigroup (α : Type u) extends semigroup α :=
+@[protect_proj, ancestor semigroup]
+class comm_semigroup (α : Type u) extends semigroup α :=
 (mul_comm : ∀ a b : α, a * b = b * a)
-@[ancestor add_semigroup] class add_comm_semigroup (α : Type u) extends add_semigroup α :=
+@[protect_proj, ancestor add_semigroup]
+class add_comm_semigroup (α : Type u) extends add_semigroup α :=
 (add_comm : ∀ a b : α, a + b = b + a)
 attribute [to_additive add_comm_semigroup] comm_semigroup
 
@@ -89,9 +92,11 @@ end comm_semigroup
 
 local attribute [simp] mul_assoc
 
-@[ancestor semigroup] class left_cancel_semigroup (α : Type u) extends semigroup α :=
+@[protect_proj, ancestor semigroup]
+class left_cancel_semigroup (α : Type u) extends semigroup α :=
 (mul_left_cancel : ∀ a b c : α, a * b = a * c → b = c)
-@[ancestor add_semigroup] class add_left_cancel_semigroup (α : Type u) extends add_semigroup α :=
+@[protect_proj, ancestor add_semigroup]
+class add_left_cancel_semigroup (α : Type u) extends add_semigroup α :=
 (add_left_cancel : ∀ a b c : α, a + b = a + c → b = c)
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
 
@@ -118,9 +123,11 @@ theorem mul_right_inj (a : α) {b c : α} : a * b = a * c ↔ b = c :=
 
 end left_cancel_semigroup
 
-@[ancestor semigroup] class right_cancel_semigroup (α : Type u) extends semigroup α :=
+@[protect_proj,ancestor semigroup]
+class right_cancel_semigroup (α : Type u) extends semigroup α :=
 (mul_right_cancel : ∀ a b c : α, a * b = c * b → a = c)
-@[ancestor add_semigroup] class add_right_cancel_semigroup (α : Type u) extends add_semigroup α :=
+@[protect_proj, ancestor add_semigroup]
+class add_right_cancel_semigroup (α : Type u) extends add_semigroup α :=
 (add_right_cancel : ∀ a b c : α, a + b = c + b → a = c)
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
 
@@ -191,9 +198,9 @@ by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
 
-@[ancestor monoid comm_semigroup]
+@[protect_proj, ancestor monoid comm_semigroup]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-@[ancestor add_monoid add_comm_semigroup]
+@[protect_proj, ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 attribute [to_additive add_comm_monoid] comm_monoid
 
@@ -208,6 +215,7 @@ end comm_monoid
 /-- An algebraic class missing in core: an additive monoid in which addition is left-cancellative.
 Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
+@[protect_proj]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
 
 section add_left_cancel_monoid
@@ -215,10 +223,10 @@ variables {M : Type u} [add_left_cancel_monoid M]
 
 end add_left_cancel_monoid
 
-@[ancestor monoid has_inv]
+@[protect_proj, ancestor monoid has_inv]
 class group (α : Type u) extends monoid α, has_inv α :=
 (mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-@[ancestor add_monoid has_neg]
+@[protect_proj, ancestor add_monoid has_neg]
 class add_group (α : Type u) extends add_monoid α, has_neg α :=
 (add_left_neg : ∀ a : α, -a + a = 0)
 attribute [to_additive add_group] group
@@ -564,9 +572,9 @@ assume x, neg_add_cancel_left c x
 
 end add_group
 
-@[ancestor group comm_monoid]
+@[protect_proj, ancestor group comm_monoid]
 class comm_group (G : Type u) extends group G, comm_monoid G
-@[ancestor add_group add_comm_monoid]
+@[protect_proj, ancestor add_group add_comm_monoid]
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive add_comm_group] comm_group
 

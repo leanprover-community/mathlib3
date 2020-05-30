@@ -413,8 +413,7 @@ lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
-λ h, @zero_ne_one ℂ _ $
-  by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
+λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
 by rw [← domain.mul_right_inj (exp_ne_zero x), ← exp_add];

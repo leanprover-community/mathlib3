@@ -21,6 +21,7 @@ variable {α : Type u}
 /-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
+@[protect_proj]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
@@ -344,6 +345,7 @@ end with_bot
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
+@[protect_proj]
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
@@ -415,7 +417,7 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
 
 end canonically_ordered_add_monoid
 
-class ordered_cancel_add_comm_monoid (α : Type u)
+@[protect_proj] class ordered_cancel_add_comm_monoid (α : Type u)
       extends add_comm_monoid α, add_left_cancel_semigroup α,
               add_right_cancel_semigroup α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
@@ -660,6 +662,7 @@ end mono
 
 end ordered_cancel_add_comm_monoid
 
+@[protect_proj]
 class ordered_add_comm_group (α : Type u) extends add_comm_group α, partial_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
@@ -1270,7 +1273,7 @@ def ordered_add_comm_group.mk' {α : Type u} [add_comm_group α] [partial_order 
   ..(by apply_instance : add_comm_group α),
   ..(by apply_instance : partial_order α)  }
 
-class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
+@[protect_proj] class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, decidable_linear_order α
 
 section decidable_linear_ordered_cancel_add_comm_monoid
@@ -1306,7 +1309,7 @@ begin rw [add_comm a c, add_comm b c, add_comm _ c], apply max_add_add_left end
 
 end decidable_linear_ordered_cancel_add_comm_monoid
 
-class decidable_linear_ordered_add_comm_group (α : Type u)
+@[protect_proj] class decidable_linear_ordered_add_comm_group (α : Type u)
   extends add_comm_group α, decidable_linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 

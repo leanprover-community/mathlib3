@@ -8,8 +8,8 @@ import topology.local_homeomorph
 /-!
 # Fiber bundles
 
-A topological fiber bundle with fiber F over a base B is a space projecting on B for which the
-fibers are all homeomorphic to F, such that the local situation around each point is a direct
+A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B` for which the
+fibers are all homeomorphic to `F`, such that the local situation around each point is a direct
 product. We define a predicate `is_topological_fiber_bundle F p` saying that `p : Z → B` is a
 topological fiber bundle with fiber `F`.
 
@@ -22,25 +22,27 @@ fiber bundle and projection.
 
 ## Main definitions
 
-`bundle_trivialization F p` : structure extending local homeomorphisms, defining a local
+* `bundle_trivialization F p` : structure extending local homeomorphisms, defining a local
                   trivialization of a topological space `Z` with projection `p` and fiber `F`.
-`is_topological_fiber_bundle F p` : Prop saying that the map `p` between topological spaces is a
+* `is_topological_fiber_bundle F p` : Prop saying that the map `p` between topological spaces is a
                   fiber bundle with fiber `F`.
 
-`topological_fiber_bundle_core ι B F` : structure registering how changes of coordinates act on the
-                  fiber `F` above open subsets of `B`, where local trivializations are indexed by ι.
+* `topological_fiber_bundle_core ι B F` : structure registering how changes of coordinates act
+  on the fiber `F` above open subsets of `B`, where local trivializations are indexed by `ι`.
+
 Let `Z : topological_fiber_bundle_core ι B F`. Then we define
-`Z.total_space` : the total space of `Z`, defined as a Type as `B × F`, but with a twisted topology
-                  coming from the fiber bundle structure
-`Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
-`Z.fiber x`     : the fiber above `x`, homeomorphic to `F` (and defeq to `F` as a type).
-`Z.local_triv i`: for `i : ι`, a local homeomorphism from `Z.total_space` to `B × F`, that realizes
-                  a trivialization above the set `Z.base_set i`, which is an open set in `B`.
+
+* `Z.total_space` : the total space of `Z`, defined as a `Type` as `B × F`, but with a twisted
+  topology coming from the fiber bundle structure
+* `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
+* `Z.fiber x`     : the fiber above `x`, homeomorphic to `F` (and defeq to `F` as a type).
+* `Z.local_triv i`: for `i : ι`, a local homeomorphism from `Z.total_space` to `B × F`, that
+  realizes a trivialization above the set `Z.base_set i`, which is an open set in `B`.
 
 ## Implementation notes
 
-A topological fiber bundle with fiber F over a base B is a family of spaces isomorphic to F,
-indexed by B, which is locally trivial in the following sense: there is a covering of B by open
+A topological fiber bundle with fiber `F` over a base `B` is a family of spaces isomorphic to `F`,
+indexed by `B`, which is locally trivial in the following sense: there is a covering of `B` by open
 sets such that, on each such open set `s`, the bundle is isomorphic to `s × F`.
 
 To construct a fiber bundle formally, the main data is what happens when one changes trivializations
@@ -55,7 +57,7 @@ Given such trivialization change data (encoded below in a structure called
 mathematical construction is the following.
 The fiber above `x` is the disjoint union of `F` over all trivializations, modulo the gluing
 identifications: one gets a fiber which is isomorphic to `F`, but non-canonically
-(each choice of one of the trivializations around x gives such an isomorphism). Given a
+(each choice of one of the trivializations around `x` gives such an isomorphism). Given a
 trivialization over a set `s`, one gets an isomorphism between `s × F` and `proj^{-1} s`, by using
 the identification corresponding to this trivialization. One chooses the topology on the bundle that
 makes all of these into homeomorphisms.
@@ -427,7 +429,7 @@ def local_triv (i : ι) : local_homeomorph Z.total_space (B × F) :=
     let e' := Z.local_triv' j,
     let f := e.symm.trans e',
     have : is_open (f.source ∩ f ⁻¹' s),
-    { rw [local_equiv.eq_on_source_preimage (Z.local_triv'_trans i j)],
+    { rw [(Z.local_triv'_trans i j).source_inter_preimage_eq],
       exact (continuous_on_open_iff (Z.triv_change i j).open_source).1
         ((Z.triv_change i j).continuous_on) _ s_open },
     convert this using 1,

@@ -548,10 +548,10 @@ begin
   simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
   { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
+    rw [mul_assoc, mul_assoc, mul_left_comm zs] },
   { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
+    rw [mul_assoc, mul_assoc, mul_left_comm yt] }
 end
 
 @[to_additive gmultiples_eq_closure]

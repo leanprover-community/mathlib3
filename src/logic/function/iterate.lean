@@ -104,6 +104,21 @@ lemma iterate_eq_of_map_eq (h : commute f g) (n : ℕ) {x} (hx : f x = g x) : f^
 nat.rec_on n rfl $ λ n ihn,
 by simp only [iterate_succ_apply, hx, (h.iterate_left n).eq, ihn, ((refl g).iterate_right n).eq]
 
+lemma comp_iterate (h : commute f g) (n : ℕ) : (f ∘ g)^[n] = (f^[n]) ∘ (g^[n]) :=
+begin
+  induction n with n ihn, { refl },
+  funext x,
+  simp only [ihn, (h.iterate_right n).eq, iterate_succ, comp_app]
+end
+
+variable (f)
+
+lemma iterate_self (n : ℕ) : commute (f^[n]) f := (refl f).iterate_left n
+
+lemma self_iterate (n : ℕ) : commute f (f^[n]) := (refl f).iterate_right n
+
+lemma iterate_iterate_self (m n : ℕ) : commute (f^[m]) (f^[n]) := (refl f).iterate_iterate m n
+
 end commute
 
 lemma semiconj₂.iterate {f : α → α} {op : α → α → α} (hf : semiconj₂ f op op) (n : ℕ) :
@@ -113,10 +128,16 @@ nat.rec_on n (semiconj₂.id_left op) (λ n ihn, ihn.comp hf)
 variable (f)
 
 theorem iterate_succ' (n : ℕ) : f^[n.succ] = f ∘ (f^[n]) :=
-by rw [iterate_succ, ((commute.refl f).iterate_right n).comp_eq]
+by rw [iterate_succ, (commute.self_iterate f n).comp_eq]
 
 theorem iterate_succ_apply' (n : ℕ) (x : α) : f^[n.succ] x = f (f^[n] x) :=
 by rw [iterate_succ']
+
+theorem iterate_pred_comp_of_pos {n : ℕ} (hn : 0 < n) : f^[n.pred] ∘ f = (f^[n]) :=
+by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
+
+theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
+by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
 
 variable {f}
 

@@ -617,12 +617,11 @@ end
 
 end comm_ring
 
-section nonzero_comm_ring
-variables [nonzero_comm_ring α]
+section nonzero
+variables [semiring α] [nonzero α]
 
-instance : nonzero_comm_ring (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h,
-  .. mv_power_series.comm_ring }
+instance : nonzero (mv_power_series σ α) :=
+{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
 
 lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
 ⟨begin
@@ -633,7 +632,7 @@ lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
   { exfalso, exact one_ne_zero h }
 end, congr_arg X⟩
 
-end nonzero_comm_ring
+end nonzero
 
 section local_ring
 variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
@@ -684,7 +683,7 @@ lemma inv_eq_zero {φ : mv_power_series σ α} :
 @[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : constant_coeff σ α φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
-  rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
+  rw ← inv_of_unit_eq φ (h.symm ▸ u.coe_ne_zero),
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
@@ -768,7 +767,7 @@ instance [semiring α]        : semiring        (power_series α) := by delta po
 instance [comm_semiring α]   : comm_semiring   (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : ring            (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : comm_ring       (power_series α) := by delta power_series; apply_instance
-instance [nonzero_comm_ring α] : nonzero_comm_ring (power_series α) := by delta power_series; apply_instance
+instance [semiring α] [nonzero α] : nonzero (power_series α) := by delta power_series; apply_instance
 instance [semiring α]        : semimodule α    (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : module α        (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : algebra α       (power_series α) := by delta power_series; apply_instance
@@ -1140,7 +1139,8 @@ end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nonzero_comm_ring }
+  .. power_series.comm_ring,
+  .. power_series.nonzero }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1414,7 +1414,7 @@ by rw [order_monomial, if_neg h]
 end order_basic
 
 section order_zero_ne_one
-variables [nonzero_comm_ring α]
+variables [comm_semiring α] [nonzero α]
 
 /-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=

@@ -18,8 +18,7 @@ and the plan is to slowly remove them from mathlib.
 
 ## Main definitions
 
-is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero_comm_semiring,
-nonzero_comm_ring, domain
+is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero, domain, integral_domain
 
 ## Notations
 
@@ -43,7 +42,7 @@ to use this method than to use type class inference.
 ## Tags
 
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
-domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
+domain, integral_domain, nonzero, units
 -/
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -55,7 +54,7 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
-@[ancestor has_mul has_add]
+@[protect_proj, ancestor has_mul has_add]
 class distrib (α : Type u) extends has_mul α, has_add α :=
 (left_distrib : ∀ a b c : α, a * (b + c) = (a * b) + (a * c))
 (right_distrib : ∀ a b c : α, (a + b) * c = (a * c) + (b * c))
@@ -70,7 +69,7 @@ distrib.right_distrib a b c
 
 def add_mul := @right_distrib
 
-@[ancestor has_mul has_zero]
+@[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
 (zero_mul : ∀ a : α, 0 * a = 0)
 (mul_zero : ∀ a : α, a * 0 = 0)
@@ -81,21 +80,21 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
-@[ancestor has_zero has_one]
-class zero_ne_one_class (α : Type u) extends has_zero α, has_one α :=
+/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure is nonzero. -/
+@[protect_proj] class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
 (zero_ne_one : 0 ≠ (1:α))
 
 @[simp]
-lemma zero_ne_one [s: zero_ne_one_class α] : 0 ≠ (1:α) :=
-@zero_ne_one_class.zero_ne_one α s
+lemma zero_ne_one [has_zero α] [has_one α] [nonzero α] : 0 ≠ (1:α) :=
+nonzero.zero_ne_one
 
 @[simp]
-lemma one_ne_zero [s: zero_ne_one_class α] : (1:α) ≠ 0 :=
-assume h, @zero_ne_one_class.zero_ne_one α s h.symm
+lemma one_ne_zero [has_zero α] [has_one α] [nonzero α] : (1:α) ≠ 0 :=
+zero_ne_one.symm
 
 /- semiring -/
 
-@[ancestor add_comm_monoid monoid distrib mul_zero_class]
+@[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
 class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
 
 section semiring
@@ -321,7 +320,7 @@ omit rα rβ rγ
 
 end ring_hom
 
-@[ancestor semiring comm_monoid]
+@[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
 section comm_semiring
@@ -413,7 +412,7 @@ end comm_semiring
 
 /- ring -/
 
-@[ancestor add_comm_group monoid distrib]
+@[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
 section ring
@@ -567,7 +566,7 @@ def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f
 
 end ring_hom
 
-@[ancestor ring comm_semigroup]
+@[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
@@ -666,75 +665,47 @@ end
 
 end comm_ring
 
-/-- Predicate for semirings in which zero does not equal one. -/
-class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
-
-/-- Predicate for commutative semirings in which zero does not equal one. -/
-class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
-
-/-- Predicate for commutative rings in which zero does not equal one. -/
-class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
-
--- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
--- but it doesn't seem worth doing just for these lemmas.
-lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [ring α] [nonzero α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
--- As with succ_ne_self.
-lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [ring α] [nonzero α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_inj ((add_right_inj a).mp (by { convert h, simp })))
 
-/-- A nonzero commutative semiring is a nonzero semiring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
-  nonzero_semiring α :=
-{..ncs}
-
-/-- A nonzero commutative ring is a nonzero commutative semiring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
-  nonzero_comm_semiring α :=
-{ zero_ne_one := by convert zero_ne_one,
-  ..show comm_semiring α, by apply_instance }
-
-/-- An element of the unit group of a nonzero commutative semiring represented as an element
+/-- An element of the unit group of a nonzero semiring represented as an element
     of the semiring is nonzero. -/
-lemma units.coe_ne_zero [nonzero_comm_semiring α] (u : units α) : (u : α) ≠ 0 :=
+lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
 
-/-- Makes a nonzero commutative ring from a commutative ring containing at least two distinct
-    elements. -/
-def nonzero_comm_ring.of_ne [comm_ring α] {x y : α} (h : x ≠ y) : nonzero_comm_ring α :=
-{ one := 1,
-  zero := 0,
-  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
-  ..show comm_ring α, by apply_instance }
+/-- Proves that a semiring that contains at least two distinct elements is nonzero. -/
+theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
+{ zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
 
-/-- Makes a nonzero commutative semiring from a commutative semiring containing at least two
-    distinct elements. -/
-def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : nonzero_comm_semiring α :=
-{ one := 1,
-  zero := 0,
-  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
-  ..show comm_semiring α, by apply_instance }
-
-@[ancestor has_mul has_zero]
-class no_zero_divisors (α : Type u) extends has_mul α, has_zero α :=
+@[protect_proj] class no_zero_divisors (α : Type u) [has_mul α] [has_zero α] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
-lemma eq_zero_or_eq_zero_of_mul_eq_zero [no_zero_divisors α] {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
+lemma eq_zero_or_eq_zero_of_mul_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
+  {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
 no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero a b h
 
-lemma eq_zero_of_mul_self_eq_zero [no_zero_divisors α] {a : α} (h : a * a = 0) : a = 0 :=
+lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
+  {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_class α
+@[protect_proj] class domain (α : Type u) extends ring α :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section domain
 variable [domain α]
+
+instance domain.to_no_zero_divisors : no_zero_divisors α :=
+⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+instance domain.to_nonzero : nonzero α :=
+⟨domain.zero_ne_one⟩
 
 /-- Simplification theorems for the definition of a domain. -/
 @[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
@@ -773,7 +744,7 @@ theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a =
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
 
-/-- For elements a, b of a domain, if a*b is nonzero, so is b*a. -/
+/-- For elements `a`, `b` of a domain, if `a*b` is nonzero, so is `b*a`. -/
 theorem mul_ne_zero_comm' {a b : α} (h : a * b ≠ 0) : b * a ≠ 0 :=
 mul_ne_zero' (ne_zero_of_mul_ne_zero_left h) (ne_zero_of_mul_ne_zero_right h)
 
@@ -781,8 +752,8 @@ end domain
 
 /- integral domains -/
 
-@[ancestor comm_ring no_zero_divisors zero_ne_one_class]
-class integral_domain (α : Type u) extends comm_ring α, no_zero_divisors α, zero_ne_one_class α
+@[protect_proj, ancestor comm_ring domain]
+class integral_domain (α : Type u) extends comm_ring α, domain α
 
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
@@ -836,10 +807,6 @@ lemma mul_self_eq_one_iff (a : α) : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 have a * a = 1 * 1 ↔ a = 1 ∨ a = -1, from mul_self_eq_mul_self_iff a 1,
 by rwa mul_one at this
 
-/-- An integral domain is a domain. -/
-instance integral_domain.to_domain : domain α :=
-{..‹integral_domain α›, ..(by apply_instance : semiring α)}
-
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_right_of_ne_zero (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
 have b * a - c * a = 0, by simp [h],
@@ -869,11 +836,6 @@ exists_congr $ λ d, by rw [mul_right_comm, domain.mul_left_inj hc]
 lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by conv {to_lhs, rw [inv_eq_iff_mul_eq_one, ← mul_one (1 : units α), units.ext_iff, units.coe_mul,
   units.coe_mul, mul_self_eq_mul_self_iff, ← units.ext_iff, ← units.coe_neg, ← units.ext_iff] }
-
-/-- An integral domain is a nonzero commutative ring. -/
-instance integral_domain.to_nonzero_comm_ring
-  (α : Type*) [integral_domain α] : nonzero_comm_ring α :=
-{ ..‹integral_domain α› }
 
 end integral_domain
 
@@ -922,15 +884,6 @@ iff.intro
   (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
 
 end comm_semiring
-
-section domain
-variables [domain α]
-
-/-- Every unit in a domain is nonzero. -/
-@[simp] theorem ne_zero : ∀(u : units α), (↑u : α) ≠ 0
-| ⟨u, v, (huv : 0 * v = 1), hvu⟩ rfl := by simpa using huv
-
-end domain
 
 end units
 

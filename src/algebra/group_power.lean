@@ -422,6 +422,21 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
 lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
+-- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
+-- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
+
+lemma bit0_mul [ring R] {n r : R} : bit0 n * r = gsmul 2 (n * r) :=
+by { dsimp [bit0], rw [add_mul, add_gsmul, one_gsmul], }
+
+lemma mul_bit0 [ring R] {n r : R} : r * bit0 n = gsmul 2 (r * n) :=
+by { dsimp [bit0], rw [mul_add, add_gsmul, one_gsmul], }
+
+lemma bit1_mul [ring R] {n r : R} : bit1 n * r = gsmul 2 (n * r) + r :=
+by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
+
+lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = gsmul 2 (r * n) + r :=
+by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
+
 theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := add_monoid.smul_eq_mul _ _
 | -[1+ n] := show -(_•_)=-_*_, by rw [neg_mul_eq_neg_mul_symm, add_monoid.smul_eq_mul, nat.cast_succ]

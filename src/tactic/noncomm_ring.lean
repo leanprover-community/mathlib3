@@ -18,7 +18,7 @@ by noncomm_ring
 ```
 -/
 meta def noncomm_ring :=
-`[simp only [add_mul, mul_add, sub_eq_add_neg, mul_two, two_mul, pow_two, mul_assoc,
+`[simp only [add_mul, mul_add, sub_eq_add_neg, pow_bit0, pow_bit1, pow_one, mul_assoc,
              neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm];
   abel]
 

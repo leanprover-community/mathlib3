@@ -38,11 +38,13 @@ variables [topological_space α] [monoid α] [topological_monoid α]
 lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
 topological_monoid.continuous_mul
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
 continuous_mul.comp (hf.prod_mk hg)
+
+attribute [continuity] continuous.add
 
 @[to_additive]
 lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=

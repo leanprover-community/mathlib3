@@ -183,12 +183,11 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
-@[simp]
+-- This can't be a `simp` lemma because the left hand side would be a metavariable.
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
 by ext
 
 /-- An arrow starting at the zero object is zero -/
-@[simp]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
 by ext
 

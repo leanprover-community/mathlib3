@@ -110,6 +110,17 @@ def kernel.ι_zero_is_iso [has_kernel (0 : X ⟶ Y)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
+lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
+(cancel_epi (kernel.ι f)).1 (by simp)
+
+variables {f}
+
+lemma kernel_not_epi_of_nonzero (w : f ≠ 0) : ¬epi (kernel.ι f) :=
+λ I, by exactI w (eq_zero_of_epi_kernel f)
+
+lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false :=
+λ I, kernel_not_epi_of_nonzero w $ by { resetI, apply_instance }
+
 end
 
 section has_zero_object
@@ -237,6 +248,22 @@ colimit.ι_desc _ _
 def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   {l : cokernel f ⟶ W // cokernel.π f ≫ l = k} :=
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
+
+/-- The cokernel of the zero morphism is an isomorphism -/
+def cokernel.π_zero_is_iso [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
+  is_iso (cokernel.π (0 : X ⟶ Y)) :=
+coequalizer.π_of_self _
+
+lemma eq_zero_of_mono_cokernel [mono (cokernel.π f)] : f = 0 :=
+(cancel_mono (cokernel.π f)).1 (by simp)
+
+variables {f}
+
+lemma cokernel_not_mono_of_nonzero (w : f ≠ 0) : ¬mono (cokernel.π f) :=
+λ I, by exactI w (eq_zero_of_mono_cokernel f)
+
+lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → false :=
+λ I, cokernel_not_mono_of_nonzero w $ by { resetI, apply_instance }
 
 end
 

@@ -27,7 +27,7 @@ def is_iso_of_mono_of_nonzero {X Y : C} [simple.{v} Y] {f : X ⟶ Y} [mono f] (w
 (simple.mono_is_iso_equiv_nonzero f).symm w
 
 lemma kernel_zero_of_nonzero_from_simple
-  {X Y : C} [simple.{v} X] {f : X ⟶ Y} [has_limit (parallel_pair f 0)] (w : f ≠ 0) :
+  {X Y : C} [simple.{v} X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
   kernel.ι f = 0 :=
 begin
   classical,
@@ -71,7 +71,7 @@ begin
 end
 
 lemma cokernel_zero_of_nonzero_to_simple
-  {X Y : C} [simple.{v} Y] {f : X ⟶ Y} [has_colimit (parallel_pair f 0)] (w : f ≠ 0) :
+  {X Y : C} [simple.{v} Y] {f : X ⟶ Y} [has_cokernel f] (w : f ≠ 0) :
   cokernel.π f = 0 :=
 begin
   classical,

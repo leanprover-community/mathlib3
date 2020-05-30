@@ -62,7 +62,7 @@ begin
   { intros hx, rw [finset.prod_empty, nat_degree_one], refl },
   { intros y s hys ih hx, rw [finset.mem_insert, not_or_distrib] at hx,
     have h1 : C (x - y)⁻¹ ≠ C 0 := λ h, hx.1 (eq_of_sub_eq_zero $ inv_eq_zero.1 $ C_inj.1 h),
-    have h2 : X ^ 1 - C y ≠ 0 := by convert X_pow_sub_C_ne_zero zero_lt_one _,
+    have h2 : X ^ 1 - C y ≠ 0 := by convert X_pow_sub_C_ne_zero zero_lt_one y,
     rw C_0 at h1, rw pow_one at h2,
     rw [finset.prod_insert hys, nat_degree_mul_eq (mul_ne_zero h1 h2), ih hx.2,
         finset.card_insert_of_not_mem hys, nat_degree_mul_eq h1 h2,

@@ -484,66 +484,24 @@ do `(lucas_lehmer_test %%p) ← target,
 
 end lucas_lehmer
 
-lemma lucas_lehmer_test_7_by_hand : s_mod 7 5 = 0 :=
-begin
-  have w : (2^7 - 1 : ℤ) = 127 := by norm_num,
-  have h : s_mod 7 0 = 4 := by norm_num [s_mod],
-  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
-  replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl }),
-  exact h,
-end
-
 /-- We verify that the tactic works to prove `127.prime`. -/
 example : (mersenne 7).prime := lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
--- example : (mersenne 13).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- example : (mersenne 17).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- example : (mersenne 19).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-
-/-- 2147483647.prime, Euler (1772) -/
-example : (mersenne 31).prime :=
-lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-
 /-!
-The next four primality tests are too slow to run interactively with -T100000,
-but work fine on the command line.
+This implementation works successfully to prove `(2^127 - 1).prime`,
+and all the Mersenne primes up to this point appear in [archive/examples/mersenne_primes.lean].
+
+`(2^127 - 1).prime` takes about 5 minutes to run (depending on your CPU!),
+and unfortunately the next Mersenne prime `(2^521 - 1)`,
+which was the first "computer era" prime,
+is out of reach with the current implementation.
+
+There's still low hanging fruit available to do faster computations
+based on the formula
+  n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
+Someone should do this, too!
 -/
-
--- /-- 2305843009213693951.prime, Pervouchine (1883), Seelhoff (1886) -/
--- example : (mersenne 61).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- /-- 618970019642690137449562111.prime, Powers (1911) -/
--- -- takes ~100s
--- example : (mersenne 89).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- /-- 162259276829213363391578010288127.prime, Power (1914) -/
--- -- takes ~190s
--- example : (mersenne 107).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
--- /-- 170141183460469231731687303715884105727.prime, Lucas (1876) -/
--- -- takes ~370s
--- example : (mersenne 127).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-
-/-! This still doesn't get us over the big gap and into the computer era, unfortunately. -/
-
--- /-- (2^521 - 1).prime, Robinson (1954) -/
--- -- This has not been run successfully!
--- example : (mersenne 521).prime :=
--- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
-
-
--- There's still low hanging fruit available to speed this up,
--- based on the formula
---   n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
--- and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
--- Someone should do this, too!
 
 lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446

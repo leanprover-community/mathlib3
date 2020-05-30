@@ -34,18 +34,20 @@ variables {R}
   (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
   (mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P) m n = f m n := rfl
 
-variables (f : M →ₗ[R] N →ₗ[R] P)
-
 theorem ext₂ {f g : M →ₗ[R] N →ₗ[R] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
-def flip : N →ₗ M →ₗ P :=
+/-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map from `M × N` to
+`P`, change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
+def flip (f : M →ₗ[R] N →ₗ[R] P) : N →ₗ M →ₗ P :=
 mk₂ R (λ n m, f m n)
   (λ n₁ n₂ m, (f m).map_add _ _)
   (λ c n m, (f m).map_smul _ _)
   (λ n m₁ m₂, by rw f.map_add; refl)
   (λ c n m, by rw f.map_smul; refl)
+
+variable (f : M →ₗ[R] N →ₗ[R] P)
 
 @[simp] theorem flip_apply (m : M) (n : N) : flip f n m = f m n := rfl
 
@@ -69,8 +71,9 @@ theorem map_add₂ (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (f
 theorem map_smul₂ (r:R) (x y) : f (r • x) y = r • f x y := (flip f y).map_smul _ _
 
 variables (R P)
-def lcomp (f : M →ₗ[R] N) : (N →ₗ P) →ₗ M →ₗ P :=
-flip $ (flip id).comp f
+def lcomp (f : M →ₗ[R] N) : (N →ₗ[R] P) →ₗ[R] M →ₗ[R] P :=
+flip $ linear_map.comp (flip id) f
+
 variables {R P}
 
 @[simp] theorem lcomp_apply (f : M →ₗ[R] N) (g : N →ₗ P) (x : M) :
@@ -199,7 +202,7 @@ protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 is_add_hom.map_add _ _ _
 
-instance : module R (M ⊗ N) := module.of_core
+instance : semimodule R (M ⊗ N) := semimodule.of_core
 { smul := (•),
   smul_add := tensor_product.smul_add,
   add_smul := begin
@@ -334,8 +337,8 @@ example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
 
 variables (R M N P)
-def uncurry : (M →ₗ N →ₗ[R] P) →ₗ M ⊗ N →ₗ P :=
-linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp linear_map.id.flip
+def uncurry : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] M ⊗[R] N →ₗ[R] P :=
+linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
 variables {R M N P}
 
 @[simp] theorem uncurry_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
@@ -366,8 +369,10 @@ theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
 begin
   let e := linear_equiv.to_equiv (lift.equiv R (M ⊗[R] N) P Q),
   apply e.symm.injective,
-  ext x y z,
-  exact H x y z,
+  refine ext _,
+  intros x y,
+  ext z,
+  exact H x y z
 end
 
 -- We'll need this one for checking the pentagon identity!
@@ -376,7 +381,7 @@ theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
 begin
   let e := linear_equiv.to_equiv (lift.equiv R ((M ⊗[R] N) ⊗[R] P) Q S),
   apply e.symm.injective,
-  apply ext_threefold,
+  refine ext_threefold _,
   intros x y z,
   ext w,
   exact H x y z w,

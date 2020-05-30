@@ -151,7 +151,7 @@ lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
   classical,
   rcases
-    exists_linear_independent linear_independent_empty (set.empty_subset s)
+    exists_linear_independent (linear_independent_empty K V) (set.empty_subset s)
     with ⟨b, hb, _, hsb, hlib⟩,
   have hsab : span K s = span K b,
     from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
@@ -254,7 +254,7 @@ begin
   conv {to_rhs, rw [← dim_prod, dim_eq_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  fapply linear_equiv.of_bijective,
+  refine linear_equiv.of_bijective _ _ _,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
       simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker,

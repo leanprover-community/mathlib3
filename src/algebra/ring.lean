@@ -433,6 +433,12 @@ show 0 * a = 0, from  (add_left_cancel this).symm
 instance ring.to_semiring : semiring α :=
 { mul_zero := ring.mul_zero, zero_mul := ring.zero_mul, ..‹ring α› }
 
+/- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
+definitions are given in terms of semirings, but many applications use rings or fields. We increase
+a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
+more specific instances are tried first. -/
+attribute [instance, priority 200] ring.to_semiring
+
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
 neg_eq_of_add_eq_zero
   begin rw [← right_distrib, add_right_neg, zero_mul] end

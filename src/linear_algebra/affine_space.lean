@@ -158,6 +158,33 @@ structure affine_map :=
 (linear : linear_map k V1 V2)
 (add : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
 
+instance: has_coe_to_fun (affine_map k V1 P1 V2 P2) := ⟨_, affine_map.to_fun⟩
+
+/-- Constructing an affine map and coercing back to a function
+produces the same map. -/
+@[simp] lemma affine_map.coe_mk (f : P1 → P2) (linear add) :
+  ((affine_map.mk f linear add : affine_map k V1 P1 V2 P2) : P1 → P2) = f := rfl
+
+/-- `to_fun` is the same as the result of coercing to a function. -/
+@[simp] lemma affine_map.to_fun_eq_coe (f : affine_map k V1 P1 V2 P2) : f.to_fun = ⇑f := rfl
+
+/-- An affine map on the result of adding a vector to a point produces
+the same result as the linear map applied to that vector, added to the
+affine map applied to that point. -/
+@[simp] lemma affine_map.map_vadd (f : affine_map k V1 P1 V2 P2) (p : P1) (v : V1) :
+  f (v +ᵥ p) = f.linear v +ᵥ f p := f.add p v
+
+/-- The linear map on the result of subtracting two points is the
+result of subtracting the result of the affine map on those two
+points. -/
+@[simp] lemma affine_map.map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
+  f p1 -ᵥ f p2 = f.linear (p1 -ᵥ p2) :=
+begin
+  conv_lhs {
+    rw [←vsub_vadd V1 p1 p2, affine_map.map_vadd, vadd_vsub]
+  }
+end
+
 /-- Identity map as an affine map. -/
 def affine_map.id : affine_map k V1 P1 V1 P1 :=
 { to_fun := id,

@@ -49,7 +49,9 @@ namespace category_theory.limits
 variables {C : Type u} [category.{v} C]
 variables [has_zero_morphisms.{v} C]
 
+/-- A morphism `f` has a kernel if the functor `parallel_pair f 0` has a limit. -/
 abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_limit (parallel_pair f 0)
+/-- A morphism `f` has a cokernel if the functor `parallel_pair f 0` has a colimit. -/
 abbreviation has_cokernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_colimit (parallel_pair f 0)
 
 variables {X Y : C} (f : X ⟶ Y)
@@ -375,7 +377,7 @@ class has_kernels :=
 class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
-attribute [instance] has_kernels.has_limit has_cokernels.has_colimit
+attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 /-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
 def has_kernels_of_has_finite_limits [has_finite_limits.{v} C] : has_kernels.{v} C :=

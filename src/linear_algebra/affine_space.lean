@@ -104,33 +104,34 @@ end affine_space
 
 open add_torsor affine_space
 
-section affine_subspace
-
-variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
-          [S : affine_space k V P]
-include S
-
 /-- An `affine_subspace k V P` is a subset of an `affine_space k V P`
 that has an affine space structure induced by a corresponding subspace
 of the `module k V`. -/
-structure affine_subspace :=
+structure affine_subspace (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V]
+    [module k V] [affine_space k V P] :=
 (carrier : set P)
 (direction : submodule k V)
 (nonempty : carrier.nonempty)
 (add : ∀ (p : P) (v : V), p ∈ carrier → v ∈ direction → v +ᵥ p ∈ carrier)
 (sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction)
 
-instance : has_coe (affine_subspace k V P) (set P) := ⟨affine_subspace.carrier⟩
+namespace affine_subspace
+
+variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
+          [S : affine_space k V P]
+include S
+
+instance : has_coe (affine_subspace k V P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k V P) := ⟨λ p s, p ∈ (s : set P)⟩
 
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
-@[simp] lemma affine_subspace.mem_coe (p : P) (s : affine_subspace k V P) :
+@[simp] lemma mem_coe (p : P) (s : affine_subspace k V P) :
   p ∈ (s : set P) ↔ p ∈ s :=
 iff.rfl
 
 /-- The whole affine space as a subspace of itself. -/
-def affine_subspace.univ : affine_subspace k V P :=
+def univ : affine_subspace k V P :=
 { carrier := set.univ,
   direction := submodule.span k set.univ,
   nonempty := set.nonempty_iff_univ_nonempty.1 S.nonempty,
@@ -143,16 +144,22 @@ def affine_subspace.univ : affine_subspace k V P :=
     exact set.mem_of_mem_of_subset (set.mem_univ _) hx
   end }
 
-/-- `affine_subspace.univ`, coerced to a set, is the whole set of
-points. -/
-@[simp] lemma affine_subspace.univ_coe : (affine_subspace.univ k V P : set P) = set.univ :=
+/-- `univ`, coerced to a set, is the whole set of points. -/
+@[simp] lemma univ_coe : (univ k V P : set P) = set.univ :=
 rfl
 
-/-- All points are in `affine_subspace.univ`. -/
-lemma affine_subspace.mem_univ (p : P) : p ∈ affine_subspace.univ k V P :=
+/-- All points are in `univ`. -/
+lemma mem_univ (p : P) : p ∈ univ k V P :=
 set.mem_univ p
 
-instance : inhabited (affine_subspace k V P) := ⟨affine_subspace.univ k V P⟩
+instance : inhabited (affine_subspace k V P) := ⟨univ k V P⟩
+
+end affine_subspace
+
+section affine_span
+
+variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
+          [affine_space k V P]
 
 /-- The affine span of a nonempty set of points is the smallest affine
 subspace containing those points. (Actually defined here in terms of
@@ -173,49 +180,52 @@ rfl
 lemma affine_span_mem (p : P) (s : set P) (hp : p ∈ s) : p ∈ affine_span k V P s ⟨p, hp⟩ :=
 mem_span_points k V p s hp
 
-end affine_subspace
+end affine_span
 
-section affine_map
+/-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
+induces a corresponding linear map from `V1` to `V2`. -/
+structure affine_map (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
+    [ring k]
+    [add_comm_group V1] [module k V1] [affine_space k V1 P1]
+    [add_comm_group V2] [module k V2] [affine_space k V2 P2] :=
+(to_fun : P1 → P2)
+(linear : linear_map k V1 V2)
+(add : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
 
-variables  (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
+namespace affine_map
+
+variables (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
     (V3 : Type*) (P3 : Type*) [ring k]
     [add_comm_group V1] [module k V1] [S1 : affine_space k V1 P1]
     [add_comm_group V2] [module k V2] [affine_space k V2 P2]
     [add_comm_group V3] [module k V3] [affine_space k V3 P3]
 include S1
 
-/-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
-induces a corresponding linear map from `V1` to `V2`. -/
-structure affine_map :=
-(to_fun : P1 → P2)
-(linear : linear_map k V1 V2)
-(add : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
-
-instance: has_coe_to_fun (affine_map k V1 P1 V2 P2) := ⟨_, affine_map.to_fun⟩
+instance: has_coe_to_fun (affine_map k V1 P1 V2 P2) := ⟨_, to_fun⟩
 
 /-- Constructing an affine map and coercing back to a function
 produces the same map. -/
-@[simp] lemma affine_map.coe_mk (f : P1 → P2) (linear add) :
-  ((affine_map.mk f linear add : affine_map k V1 P1 V2 P2) : P1 → P2) = f := rfl
+@[simp] lemma coe_mk (f : P1 → P2) (linear add) :
+  ((mk f linear add : affine_map k V1 P1 V2 P2) : P1 → P2) = f := rfl
 
 /-- `to_fun` is the same as the result of coercing to a function. -/
-@[simp] lemma affine_map.to_fun_eq_coe (f : affine_map k V1 P1 V2 P2) : f.to_fun = ⇑f := rfl
+@[simp] lemma to_fun_eq_coe (f : affine_map k V1 P1 V2 P2) : f.to_fun = ⇑f := rfl
 
 /-- An affine map on the result of adding a vector to a point produces
 the same result as the linear map applied to that vector, added to the
 affine map applied to that point. -/
-@[simp] lemma affine_map.map_vadd (f : affine_map k V1 P1 V2 P2) (p : P1) (v : V1) :
+@[simp] lemma map_vadd (f : affine_map k V1 P1 V2 P2) (p : P1) (v : V1) :
   f (v +ᵥ p) = f.linear v +ᵥ f p := f.add p v
 
 /-- The linear map on the result of subtracting two points is the
 result of subtracting the result of the affine map on those two
 points. -/
-lemma affine_map.map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
+lemma map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
   f p1 -ᵥ f p2 = f.linear (p1 -ᵥ p2) :=
-by conv_lhs { rw [←vsub_vadd V1 p1 p2, affine_map.map_vadd, vadd_vsub] }
+by conv_lhs { rw [←vsub_vadd V1 p1 p2, map_vadd, vadd_vsub] }
 
 /-- Two affine maps are equal if they coerce to the same function. -/
-@[ext] lemma affine_map.ext (f g : affine_map k V1 P1 V2 P2) (h : (f : P1 → P2) = g) : f = g :=
+@[ext] lemma ext (f g : affine_map k V1 P1 V2 P2) (h : (f : P1 → P2) = g) : f = g :=
 begin
   cases f,
   cases g,
@@ -229,19 +239,19 @@ begin
 end
 
 /-- Identity map as an affine map. -/
-def affine_map.id : affine_map k V1 P1 V1 P1 :=
+def id : affine_map k V1 P1 V1 P1 :=
 { to_fun := id,
   linear := linear_map.id,
   add := λ p v, rfl }
 
 /-- The identity affine map acts as the identity. -/
-@[simp] lemma affine_map.id_apply (p : P1) : (affine_map.id k V1 P1) p = p := rfl
+@[simp] lemma id_apply (p : P1) : (id k V1 P1) p = p := rfl
 
-instance : inhabited (affine_map k V1 P1 V1 P1) := ⟨affine_map.id k V1 P1⟩
+instance : inhabited (affine_map k V1 P1 V1 P1) := ⟨id k V1 P1⟩
 
 /-- Composition of affine maps. -/
-def affine_map.comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2)
-  : affine_map k V1 P1 V3 P3 :=
+def comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
+  affine_map k V1 P1 V3 P3 :=
 { to_fun := f.to_fun ∘ g.to_fun,
   linear := f.linear.comp g.linear,
   add := begin
@@ -251,7 +261,7 @@ def affine_map.comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2
   end }
 
 /-- Composition of affine maps acts as applying the two functions. -/
-@[simp] lemma affine_map.comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2)
-    (p : P1) : f.comp k V1 P1 V2 P2 V3 P3 g p = f (g p) := rfl
+@[simp] lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
+  f.comp k V1 P1 V2 P2 V3 P3 g p = f (g p) := rfl
 
 end affine_map

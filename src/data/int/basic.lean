@@ -1145,9 +1145,11 @@ by simp
 
 end
 
-@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] : ((1 : ℤ) : α) = 1 := nat.cast_one
+@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] :
+  ((1 : ℤ) : α) = 1 := nat.cast_one
 
-@[simp, norm_cast] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) : ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
+@[simp, norm_cast] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
+  ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,
   { simp [sub_nat_nat, e, nat.le_of_sub_eq_zero e] },
@@ -1155,7 +1157,8 @@ begin
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end
 
-@[simp, norm_cast] theorem cast_neg_of_nat [add_group α] [has_one α] : ∀ n, ((neg_of_nat n : ℤ) : α) = -n
+@[simp, norm_cast] theorem cast_neg_of_nat [add_group α] [has_one α] :
+  ∀ n, ((neg_of_nat n : ℤ) : α) = -n
 | 0     := neg_zero.symm
 | (n+1) := rfl
 

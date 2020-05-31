@@ -661,6 +661,25 @@ instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
+lemma mem_image_univ_iff_mem_range
+  {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
+  b ∈ univ.image f ↔ b ∈ set.range f :=
+by simp
+
+lemma card_lt_card_of_injective_of_not_mem
+  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
+  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+begin
+  classical,
+  calc
+    fintype.card α = (univ : finset α).card : rfl
+  ... = (image f univ).card : (card_image_of_injective univ h).symm
+  ... < (insert b (image f univ)).card :
+          card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
+  ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
+  ... = fintype.card β : rfl
+end
+
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
   ∀ (l : list ι), (∀ i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (by apply_instance)

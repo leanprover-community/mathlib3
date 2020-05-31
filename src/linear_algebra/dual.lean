@@ -46,7 +46,7 @@ instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
 `vector_space.eval_equiv`. -/
-def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
+def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
 lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
 begin

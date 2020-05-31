@@ -133,14 +133,17 @@ instance {ω : Type u} {m : Type u → Type v} [monad m] [monad_writer ω m] : m
 
 /-- Adapt a monad stack, changing the type of its top-most environment.
 
-    This class is comparable to [Control.Lens.Magnify](https://hackage.haskell.org/package/lens-4.15.4/docs/Control-Lens-Zoom.html#t:Magnify), but does not use lenses (why would it), and is derived automatically for any transformer implementing `monad_functor`.
+This class is comparable to
+[Control.Lens.Magnify](https://hackage.haskell.org/package/lens-4.15.4/docs/Control-Lens-Zoom.html#t:Magnify),
+but does not use lenses (why would it), and is derived automatically for any transformer
+implementing `monad_functor`.
 
-    Note: This class can be seen as a simplification of the more "principled" definition
-    ```
-    class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
-    (map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
-    ```
-    -/
+Note: This class can be seen as a simplification of the more "principled" definition
+```
+class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
+(map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
+```
+-/
 class monad_writer_adapter (ω ω' : out_param (Type u)) (m m' : Type u → Type v) :=
 (adapt_writer {α : Type u} : (ω → ω') → m α → m' α)
 export monad_writer_adapter (adapt_writer)
@@ -150,9 +153,10 @@ variables {ω ω' : Type u} {m m' : Type u → Type v}
 
 /-- Transitivity.
 
-This instance generates the type-class problem with a metavariable argument (which is why this is marked as
-`[nolint dangerous_instance]`).
-Currently that is not a problem, as there are almost no instances of `monad_functor` or `monad_writer_adapter`.
+This instance generates the type-class problem with a metavariable argument (which is why this
+is marked as `[nolint dangerous_instance]`).
+Currently that is not a problem, as there are almost no instances of `monad_functor` or
+`monad_writer_adapter`.
 
 see Note [lower instance priority] -/
 @[nolint dangerous_instance, priority 100]

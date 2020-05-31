@@ -61,6 +61,10 @@ def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
   {l : W ⟶ X // l ≫ f = k} :=
 fork.is_limit.lift' regular_mono.is_limit _ h
 
+/-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
+def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
+@is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
+
 section
 variables [has_zero_morphisms.{v₁} C]
 /-- A normal monomorphism is a morphism which is the kernel of some morphism. -/
@@ -114,6 +118,10 @@ def regular_epi.desc' {W : C} (f : X ⟶ Y) [regular_epi f] (k : X ⟶ W)
   (h : (regular_epi.left : regular_epi.W f ⟶ X) ≫ k = regular_epi.right ≫ k) :
   {l : Y ⟶ W // f ≫ l = k} :=
 cofork.is_colimit.desc' (regular_epi.is_colimit) _ h
+
+/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
+def is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+@is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
 
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=

@@ -13,6 +13,7 @@ open Top
 
 namespace Top
 
+-- FIXME deterministic timeout with `-T50000`
 /-- Equipping a type with the discrete topology is left adjoint to the forgetful functor `Top ⥤ Type`. -/
 def adj₁ : discrete ⊣ forget Top :=
 { hom_equiv := λ X Y,

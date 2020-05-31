@@ -117,10 +117,8 @@ namespace with_zero
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-instance [has_one α] : zero_ne_one_class (with_zero α) :=
-{ zero_ne_one := λ h, option.no_confusion h,
-  ..with_zero.has_zero,
-  ..with_zero.has_one }
+instance [has_one α] : nonzero (with_zero α) :=
+{ zero_ne_one := λ h, option.no_confusion h }
 
 lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
@@ -159,7 +157,8 @@ instance [monoid α] : monoid (with_zero α) :=
     | none   := rfl
     | some a := congr_arg some $ mul_one _
     end,
-  ..with_zero.zero_ne_one_class,
+  ..with_zero.has_one,
+  ..with_zero.nonzero,
   ..with_zero.semigroup }
 
 instance [comm_monoid α] : comm_monoid (with_zero α) :=

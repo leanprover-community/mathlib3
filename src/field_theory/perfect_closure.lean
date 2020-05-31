@@ -6,12 +6,15 @@ Authors: Kenny Lau, Yury Kudryashov
 import algebra.char_p
 import data.equiv.ring
 import algebra.group_with_zero_power
+import algebra.iterate_hom
 
 /-!
 # The perfect closure of a field
 -/
 
 universes u v
+
+open function
 
 section defs
 
@@ -50,6 +53,9 @@ variables {K : Type u} [field K] {L : Type v} [field L] (f : K →* L) (g : K �
 @[simp] theorem pth_root_frobenius (x : K) : pth_root K p (frobenius K p x) = x :=
 (frobenius_equiv K p).symm_apply_apply x
 
+theorem left_inverse_pth_root_frobenius : left_inverse (pth_root K p) (frobenius K p) :=
+pth_root_frobenius
+
 theorem eq_pth_root_iff {x y : K} : x = pth_root K p y ↔ frobenius K p x = y :=
 (frobenius_equiv K p).to_equiv.eq_symm_apply
 
@@ -61,7 +67,7 @@ eq_pth_root_iff.2 $ by rw [← f.map_frobenius, frobenius_pth_root]
 
 theorem monoid_hom.map_iterate_pth_root (x : K) (n : ℕ) :
   f (pth_root K p^[n] x) = (pth_root L p^[n] (f x)) :=
-(nat.iterate₁ $ λ x, (f.map_pth_root x).symm).symm
+semiconj.iterate_right f.map_pth_root n x
 
 theorem ring_hom.map_pth_root (x : K) :
   g (pth_root K p x) = pth_root L p (g x) :=
@@ -126,16 +132,16 @@ private lemma mul_aux_left (x1 x2 y : ℕ × K) (H : r K p x1 x2) :
   mk K p (x1.1 + y.1, ((frobenius K p)^[y.1] x1.2) * ((frobenius K p)^[x1.1] y.2)) =
   mk K p (x2.1 + y.1, ((frobenius K p)^[y.1] x2.2) * ((frobenius K p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ_apply, nat.iterate_succ',
-    nat.iterate_succ', ← frobenius_mul, nat.succ_add]; apply r.intro
+| _, _, r.intro n x := quot.sound $ by rw [← iterate_succ_apply, iterate_succ',
+    iterate_succ', ← frobenius_mul, nat.succ_add]; apply r.intro
 end
 
 private lemma mul_aux_right (x y1 y2 : ℕ × K) (H : r K p y1 y2) :
   mk K p (x.1 + y1.1, ((frobenius K p)^[y1.1] x.2) * ((frobenius K p)^[x.1] y1.2)) =
   mk K p (x.1 + y2.1, ((frobenius K p)^[y2.1] x.2) * ((frobenius K p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ_apply, nat.iterate_succ',
-    nat.iterate_succ', ← frobenius_mul]; apply r.intro
+| _, _, r.intro n y := quot.sound $ by rw [← iterate_succ_apply, iterate_succ',
+    iterate_succ', ← frobenius_mul]; apply r.intro
 end
 
 instance : has_mul (perfect_closure K p) :=
@@ -152,13 +158,13 @@ rfl
 instance : comm_monoid (perfect_closure K p) :=
 { mul_assoc := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, congr_arg (quot.mk _) $
-    by simp only [add_assoc, mul_assoc, nat.iterate₂ (frobenius_mul _),
-      ← nat.iterate_add_apply, add_comm, add_left_comm],
+    by simp only [add_assoc, mul_assoc, ring_hom.iterate_map_mul,
+      ← iterate_add_apply, add_comm, add_left_comm],
   one := mk K p (0, 1),
   one_mul := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero_apply, one_mul, zero_add]),
+    by simp only [ring_hom.iterate_map_one, iterate_zero_apply, one_mul, zero_add]),
   mul_one := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_one _), nat.iterate_zero_apply, mul_one, add_zero]),
+    by simp only [ring_hom.iterate_map_one, iterate_zero_apply, mul_one, add_zero]),
   mul_comm := λ e f, quot.induction_on e (λ ⟨m, x⟩, quot.induction_on f (λ ⟨n, y⟩,
     congr_arg (quot.mk _) $ by simp only [add_comm, mul_comm])),
   .. (infer_instance : has_mul (perfect_closure K p)) }
@@ -171,16 +177,16 @@ private lemma add_aux_left (x1 x2 y : ℕ × K) (H : r K p x1 x2) :
   mk K p (x1.1 + y.1, ((frobenius K p)^[y.1] x1.2) + ((frobenius K p)^[x1.1] y.2)) =
   mk K p (x2.1 + y.1, ((frobenius K p)^[y.1] x2.2) + ((frobenius K p)^[x2.1] y.2)) :=
 match x1, x2, H with
-| _, _, r.intro n x := quot.sound $ by rw [← nat.iterate_succ_apply, nat.iterate_succ',
-    nat.iterate_succ', ← frobenius_add, nat.succ_add]; apply r.intro
+| _, _, r.intro n x := quot.sound $ by rw [← iterate_succ_apply, iterate_succ',
+    iterate_succ', ← frobenius_add, nat.succ_add]; apply r.intro
 end
 
 private lemma add_aux_right (x y1 y2 : ℕ × K) (H : r K p y1 y2) :
   mk K p (x.1 + y1.1, ((frobenius K p)^[y1.1] x.2) + ((frobenius K p)^[x.1] y1.2)) =
   mk K p (x.1 + y2.1, ((frobenius K p)^[y2.1] x.2) + ((frobenius K p)^[x.1] y2.2)) :=
 match y1, y2, H with
-| _, _, r.intro n y := quot.sound $ by rw [← nat.iterate_succ_apply, nat.iterate_succ',
-    nat.iterate_succ', ← frobenius_add]; apply r.intro
+| _, _, r.intro n y := quot.sound $ by rw [← iterate_succ_apply, iterate_succ',
+    iterate_succ', ← frobenius_add]; apply r.intro
 end
 
 instance : has_add (perfect_closure K p) :=
@@ -210,34 +216,34 @@ have := r.intro n (0:K); rwa [frobenius_zero K p] at this
 
 theorem r.sound (m n : ℕ) (x y : K) (H : frobenius K p^[m] x = y) :
   mk K p (n, x) = mk K p (m + n, y) :=
-by subst H; induction m with m ih; [simp only [zero_add, nat.iterate_zero_apply],
-  rw [ih, nat.succ_add, nat.iterate_succ']]; apply quot.sound; apply r.intro
+by subst H; induction m with m ih; [simp only [zero_add, iterate_zero_apply],
+  rw [ih, nat.succ_add, iterate_succ']]; apply quot.sound; apply r.intro
 
 instance : comm_ring (perfect_closure K p) :=
 { add_assoc := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, congr_arg (quot.mk _) $
-    by simp only [add_assoc, nat.iterate₂ (frobenius_add K p),
-      ← nat.iterate_add_apply, add_comm, add_left_comm],
+    by simp only [add_assoc, ring_hom.iterate_map_add,
+      ← iterate_add_apply, add_comm, add_left_comm],
   zero := 0,
   zero_add := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero_apply, zero_add]),
+    by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, zero_add]),
   add_zero := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
-    by simp only [nat.iterate₀ (frobenius_zero K p), nat.iterate_zero_apply, add_zero]),
+    by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, add_zero]),
   add_left_neg := λ e, quot.induction_on e (λ ⟨n, x⟩,
     by simp only [quot_mk_eq_mk, neg_mk, mk_add_mk,
-      nat.iterate₁ (frobenius_neg K p), add_left_neg, mk_zero]),
+      ring_hom.iterate_map_neg, add_left_neg, mk_zero]),
   add_comm := λ e f, quot.induction_on e (λ ⟨m, x⟩, quot.induction_on f (λ ⟨n, y⟩,
     congr_arg (quot.mk _) $ by simp only [add_comm])),
   left_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, show quot.mk _ _ = quot.mk _ _,
     by simp only [add_assoc, add_comm, add_left_comm]; apply r.sound;
-    simp only [nat.iterate₂ (frobenius_mul p), nat.iterate₂ (frobenius_add K p),
-      ← nat.iterate_add_apply, mul_add, add_comm, add_left_comm],
+    simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
+      ← iterate_add_apply, mul_add, add_comm, add_left_comm],
   right_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, show quot.mk _ _ = quot.mk _ _,
     by simp only [add_assoc, add_comm _ s, add_left_comm _ s]; apply r.sound;
-    simp only [nat.iterate₂ (frobenius_mul p), nat.iterate₂ (frobenius_add K p),
-      ← nat.iterate_add_apply, add_mul, add_comm, add_left_comm],
+    simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
+      ← iterate_add_apply, add_mul, add_comm, add_left_comm],
   .. (infer_instance : has_add (perfect_closure K p)),
   .. (infer_instance : has_neg (perfect_closure K p)),
   .. (infer_instance : comm_monoid (perfect_closure K p)) }
@@ -259,9 +265,9 @@ begin
     { cases ih1 with z1 ih1,
       cases ih2 with z2 ih2,
       existsi z2+(y.1+z1),
-      rw [← add_assoc, nat.iterate_add_apply, ih1],
-      rw [← nat.iterate_add_apply, add_comm, nat.iterate_add_apply, ih2],
-      rw [← nat.iterate_add_apply],
+      rw [← add_assoc, iterate_add_apply, ih1],
+      rw [← iterate_add_apply, add_comm, iterate_add_apply, ih2],
+      rw [← iterate_add_apply],
       simp only [add_comm, add_left_comm] } },
   intro H,
   cases x with m x,
@@ -289,7 +295,7 @@ begin
   split; intro H,
   { rw [nat_cast K p 0, nat_cast K p 0, eq_iff'] at H,
     cases H with z H,
-    simpa only [zero_add, nat.iterate₀ (frobenius_nat_cast K p _)] using H },
+    simpa only [zero_add, iterate_fixed (frobenius_nat_cast K p _)] using H },
   rw [nat_cast K p 0, nat_cast K p 0, H]
 end
 
@@ -332,7 +338,7 @@ theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
 (eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $
-  by simpa only [add_comm, nat.iterate_add] using H,
+  by simpa only [add_comm, iterate_add] using H,
 λ H, ⟨0, H⟩⟩
 
 section field
@@ -349,7 +355,7 @@ instance : field (perfect_closure K p) :=
   mul_inv_cancel := λ e, induction_on e $ λ ⟨m, x⟩ H,
     have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
       (by simp only [(frobenius _ _).iterate_map_one, (frobenius K p).iterate_map_zero,
-        nat.iterate_zero_apply, ← (frobenius _ p).iterate_map_mul] at this ⊢;
+        iterate_zero_apply, ← (frobenius _ p).iterate_map_mul] at this ⊢;
         rw [mul_inv_cancel this, (frobenius _ _).iterate_map_one]),
   inv_zero := congr_arg (quot.mk (r K p)) (by rw [inv_zero]),
   .. (infer_instance : has_inv (perfect_closure K p)),
@@ -369,7 +375,7 @@ theorem eq_pth_root (x : ℕ × K) :
 begin
   rcases x with ⟨m, x⟩,
   induction m with m ih, {refl},
-  rw [nat.iterate_succ_apply', ← ih]; refl
+  rw [iterate_succ_apply', ← ih]; refl
 end
 
 /-- Given a field `K` of characteristic `p` and a perfect field `L` of the same characteristic,
@@ -377,24 +383,23 @@ any homomorphism `K →+* L` can be lifted to `perfect_closure K p`. -/
 def lift (L : Type v) [field L] [char_p L p] [perfect_field L p] :
   (K →+* L) ≃ (perfect_closure K p →+* L) :=
 begin
+  have := left_inverse_pth_root_frobenius.iterate,
   refine_struct { .. },
   field to_fun { intro f,
     refine_struct { .. },
     field to_fun { refine λ e, lift_on e (λ x, pth_root L p^[x.1] (f x.2)) _,
       rintro a b ⟨n⟩,
-      simp only [f.map_frobenius, nat.iterate_succ, (∘), pth_root_frobenius] },
+      simp only [f.map_frobenius, iterate_succ_apply, pth_root_frobenius] },
     field map_one' { exact f.map_one },
     field map_zero' { exact f.map_zero },
     field map_mul' { rintro ⟨x⟩ ⟨y⟩,
       simp only [quot_mk_eq_mk, lift_on_mk, mk_mul_mk, ring_hom.map_iterate_frobenius,
         ring_hom.iterate_map_mul, ring_hom.map_mul],
-      rw [nat.iterate_add_apply, nat.iterate_cancel, add_comm, nat.iterate_add_apply,
-        nat.iterate_cancel]; exact pth_root_frobenius },
+      rw [iterate_add_apply, this _ _, add_comm, iterate_add_apply, this _ _] },
     field map_add' { rintro ⟨x⟩ ⟨y⟩,
       simp only [quot_mk_eq_mk, lift_on_mk, mk_add_mk, ring_hom.map_iterate_frobenius,
         ring_hom.iterate_map_add, ring_hom.map_add],
-      rw [nat.iterate_add_apply, nat.iterate_cancel, add_comm x.1, nat.iterate_add_apply,
-        nat.iterate_cancel]; exact pth_root_frobenius } },
+      rw [iterate_add_apply, this _ _, add_comm x.1, iterate_add_apply, this _ _] } },
   field inv_fun { exact λ f, f.comp (of K p) },
   field left_inv { intro f, ext x, refl },
   field right_inv { intro f, ext ⟨x⟩,

@@ -43,8 +43,8 @@ are modules over `R` with a topological structure. In applications, there will b
 conditions between the algebraic and the topological structures, but this is not needed for the
 definition. -/
 structure continuous_multilinear_map (R : Type u) {ι : Type v} (M₁ : ι → Type w₁) (M₂ : Type w₂)
-  [decidable_eq ι] [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [∀i, module R (M₁ i)]
-  [module R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
+  [decidable_eq ι] [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [∀i, semimodule R (M₁ i)]
+  [semimodule R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
   extends multilinear_map R M₁ M₂ :=
 (cont : continuous to_fun)
 
@@ -52,18 +52,21 @@ notation M `[×`:25 n `]→L[`:25 R `] ` M' := continuous_multilinear_map R (λ 
 
 namespace continuous_multilinear_map
 
-section ring
+section semiring
 
-variables [ring R]
-[∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[add_comm_group M₃] [add_comm_group M₄]
-[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂] [module R M₃] [module R M₄]
+variables [semiring R]
+[∀i, add_comm_monoid (M i)] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
+[add_comm_monoid M₄]
+[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
+[semimodule R M₄]
 [∀i, topological_space (M i)] [∀i, topological_space (M₁ i)] [topological_space M₂]
 [topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
 ⟨_, λ f, f.to_multilinear_map.to_fun⟩
+
+@[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
 by { cases f, cases f', congr, ext x, exact H x }
@@ -75,10 +78,6 @@ f.add m i x y
 @[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
 f.smul m i c x
-
-@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
-  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
-f.to_multilinear_map.map_sub _ _ _ _
 
 lemma map_coord_zero {m : Πi, M₁ i} (i : ι) (h : m i = 0) : f m = 0 :=
 f.to_multilinear_map.map_coord_zero i h
@@ -93,24 +92,16 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : continuous_multilinear_map R M₁ M₂) m = 0 := rfl
 
-section topological_add_group
-variable [topological_add_group M₂]
+section topological_add_monoid
+variable [topological_add_monoid M₂]
 
 instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 ⟨λ f f', {cont := f.cont.add f'.cont, ..(f.to_multilinear_map + f'.to_multilinear_map)}⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
-instance : has_neg (continuous_multilinear_map R M₁ M₂) :=
-⟨λ f, {cont := f.cont.neg, ..(-f.to_multilinear_map)}⟩
-
-@[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
-
-instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp [add_comm, add_left_comm]
-
-@[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
+instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
+by refine {zero := 0, add := (+), ..}; intros; ext; simp [add_comm, add_left_comm]
 
 @[simp] lemma sum_apply {α : Type*} (f : α → continuous_multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (s.sum f) m = s.sum (λ a, f a m) :=
@@ -121,7 +112,7 @@ begin
   { assume a s has H, rw finset.sum_insert has, simp [H, has] }
 end
 
-end topological_add_group
+end topological_add_monoid
 
 /-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
@@ -139,7 +130,7 @@ def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinea
   (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) (m : Πi, M₁ i) :
   (f.prod g) m = (f m, g m) := rfl
 
-/- If `R` and `M₃` are implicit in the next definition, Lean is never able to inder them, even
+/- If `R` and `M₃` are implicit in the next definition, Lean is never able to infer them, even
 given `g` and `f`. Therefore, we make them explicit. -/
 variables (R M₃)
 
@@ -149,7 +140,7 @@ def comp_continuous_linear_map
   (g : continuous_multilinear_map R (λ (i : ι), M₃) M₄) (f : M₂ →L[R] M₃) :
   continuous_multilinear_map R (λ (i : ι), M₂) M₄ :=
 { cont := g.cont.comp $ continuous_pi $ λj, f.cont.comp $ continuous_apply _,
-  .. g.to_multilinear_map.comp_linear_map f.to_linear_map }
+  .. g.to_multilinear_map.comp_linear_map R M₃ f.to_linear_map }
 variables {R M₃}
 
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
@@ -200,13 +191,41 @@ f.to_multilinear_map.map_sum _
 
 end apply_sum
 
+end semiring
+
+section ring
+
+variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
+(f f' : continuous_multilinear_map R M₁ M₂)
+
+@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
+f.to_multilinear_map.map_sub _ _ _ _
+
+section topological_add_group
+variable [topological_add_group M₂]
+
+instance : has_neg (continuous_multilinear_map R M₁ M₂) :=
+⟨λ f, {cont := f.cont.neg, ..(-f.to_multilinear_map)}⟩
+
+@[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
+
+instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
+by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
+   intros; ext; simp [add_comm, add_left_comm]
+
+@[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
+
+end topological_add_group
+
 end ring
 
 section comm_ring
 
 variables [comm_ring R]
-[∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, module R (M₁ i)] [module R M₂]
+[∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂]
 [∀i, topological_space (M₁ i)] [topological_space M₂]
 (f : continuous_multilinear_map R M₁ M₂)
 
@@ -220,22 +239,33 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λ i, c i • m i) = finset.univ.prod c • f m :=
 f.to_multilinear_map.map_smul_univ _ _
 
-variables [topological_space R] [topological_module R M₂]
+variables [topological_space R] [topological_semimodule R M₂]
 
 instance : has_scalar R (continuous_multilinear_map R M₁ M₂) :=
 ⟨λ c f, { cont := continuous.smul continuous_const f.cont, .. c • f.to_multilinear_map }⟩
 
 @[simp] lemma smul_apply (c : R) (m : Πi, M₁ i) : (c • f) m = c • f m := rfl
 
+end comm_ring
+
+section comm_ring
+
+variables [comm_ring R]
+[∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+[∀i, topological_space (M₁ i)] [topological_space M₂] [topological_add_group M₂]
+[topological_space R] [topological_semimodule R M₂]
+(f : continuous_multilinear_map R M₁ M₂)
+
 /-- The space of continuous multilinear maps is a module over `R`, for the pointwise addition and
 scalar multiplication. -/
-instance [topological_add_group M₂] : module R (continuous_multilinear_map R M₁ M₂) :=
-module.of_core $ by refine { smul := (•), ..};
+instance : semimodule R (continuous_multilinear_map R M₁ M₂) :=
+semimodule.of_core $ by refine { smul := (•), .. };
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
 /-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
 the corresponding multilinear map. -/
-def to_multilinear_map_linear [topological_add_group M₂] :
+def to_multilinear_map_linear :
   (continuous_multilinear_map R M₁ M₂) →ₗ[R] (multilinear_map R M₁ M₂) :=
 { to_fun := λ f, f.to_multilinear_map,
   add    := λ f g, rfl,

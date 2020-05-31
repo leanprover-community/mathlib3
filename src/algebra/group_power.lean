@@ -137,16 +137,8 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := f.map_one
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
-theorem monoid_hom.iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
-show f^[n] ((λ x, x^m) a) = (λ x, x^m) (f^[n] a),
-from nat.iterate₁ $ λ x, f.map_pow x m
-
 theorem add_monoid_hom.map_smul (f : A →+ B) (a : A) (n : ℕ) : f (n • a) = n • f a :=
 f.to_multiplicative.map_pow a n
-
-theorem add_monoid_hom.iterate_map_smul (f : A →+ A) (a : A) (n m : ℕ) :
-  f^[n] (m • a) = m • (f^[n] a) :=
-f.to_multiplicative.iterate_map_pow a n m
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
@@ -415,18 +407,6 @@ variables [semiring R] [semiring S]
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 f.to_monoid_hom.map_pow a
 
-variable (f : R →+* R)
-
-lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
-| 0 := rfl
-| (n+1) := by { simp only [nat.iterate_succ, pow_succ', coe_mul, coe_pow n] }
-
-lemma iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
-f.to_monoid_hom.iterate_map_pow a n m
-
-lemma iterate_map_smul (a) (n m : ℕ) : f^[n] (m • a) = m • (f^[n] a) :=
-f.to_add_monoid_hom.iterate_map_smul a n m
-
 end ring_hom
 
 lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :
@@ -441,6 +421,21 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
 
 lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
+
+-- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
+-- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
+
+lemma bit0_mul [ring R] {n r : R} : bit0 n * r = gsmul 2 (n * r) :=
+by { dsimp [bit0], rw [add_mul, add_gsmul, one_gsmul], }
+
+lemma mul_bit0 [ring R] {n r : R} : r * bit0 n = gsmul 2 (r * n) :=
+by { dsimp [bit0], rw [mul_add, add_gsmul, one_gsmul], }
+
+lemma bit1_mul [ring R] {n r : R} : bit1 n * r = gsmul 2 (n * r) + r :=
+by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
+
+lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = gsmul 2 (r * n) + r :=
+by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := add_monoid.smul_eq_mul _ _

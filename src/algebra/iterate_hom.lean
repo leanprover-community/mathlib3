@@ -48,8 +48,6 @@ commute.iterate_left (λ x, f.map_gpow x m) n a
 
 end monoid_hom
 
-open_locale smul
-
 namespace add_monoid_hom
 
 variables [add_monoid M] [add_monoid N] [add_group G] [add_group H]

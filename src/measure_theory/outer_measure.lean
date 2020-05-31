@@ -111,7 +111,7 @@ instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
   add_comm  := assume a b, ext $ assume s, add_comm _ _,
   add_assoc := assume a b c, ext $ assume s, add_assoc _ _ _,
   add_zero  := assume a, ext $ assume s, add_zero _,
-  zero_add  := assume a, ext $ assume s, zero_add _ }
+  zero_add  := assume a, ext $ assume s, by simp }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 

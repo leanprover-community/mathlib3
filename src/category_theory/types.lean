@@ -119,7 +119,7 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 @[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_full : full ulift_functor :=
+instance ulift_functor_full : full.{u} ulift_functor :=
 { preimage := λ X Y f x, (f (ulift.up x)).down }
 instance ulift_functor_faithful : faithful ulift_functor :=
 { injectivity' := λ X Y f g p, funext $ λ x,

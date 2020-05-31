@@ -202,7 +202,8 @@ class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
   is_closed s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
-lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α] [topological_space β] {f : α → β} : continuous f :=
+lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
+  [topological_space β] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=

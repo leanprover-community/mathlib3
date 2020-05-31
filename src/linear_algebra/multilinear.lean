@@ -284,8 +284,8 @@ begin
         apply finset.card_le_one_iff.1 (Ai_singleton i) hj,
         exact mem_pi_finset.mp hr i },
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
-                 add_monoid.one_smul] },
-    simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, add_monoid.one_smul,
+                 one_nsmul] },
+    simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
                sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`

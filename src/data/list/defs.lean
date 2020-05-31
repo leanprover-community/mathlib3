@@ -172,15 +172,6 @@ def lookmap (f : α → option α) : list α → list α
   | none   := a :: lookmap l
   end
 
-def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
-| k []      := []
-| k (a::as) := f k a::(map_with_index_core (k+1) as)
-
-/-- Given a function `f : ℕ → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`. -/
-def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
-map_with_index_core f 0 as
-
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/

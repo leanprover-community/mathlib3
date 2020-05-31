@@ -1189,9 +1189,6 @@ protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, set.push_pull]
 
-lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
-assume s t, (preimage_eq_preimage hf).1
-
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
@@ -1737,3 +1734,19 @@ lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
 
 end subsingleton
+
+namespace function
+
+variables {ι : Sort*} {α : Type*} {β : Type*}
+
+lemma surjective.injective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
+lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
+range_iff_surjective.2 hf
+
+lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+  range (g ∘ f) = range g :=
+by rw [range_comp, hf.range_eq, image_univ]
+
+end function

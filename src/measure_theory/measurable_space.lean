@@ -521,7 +521,8 @@ lemma measurable_of_measurable_union_cover
 assume u (hu : is_measurable u), show is_measurable (f ⁻¹' u), from
 begin
   rw show f ⁻¹' u = coe '' (coe ⁻¹' (f ⁻¹' u) : set s) ∪ coe '' (coe ⁻¹' (f ⁻¹' u) : set t),
-    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype, range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
+    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype,
+      range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
   exact is_measurable.union
     (is_measurable_subtype_image hs (hc _ hu))
     (is_measurable_subtype_image ht (hd _ hu))
@@ -829,15 +830,9 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       ext ⟨b, c⟩, refl }
   end,
   measurable_inv_fun :=
-    begin
-      refine measurable_sum _ _,
-      { convert measurable.prod_mk
-          (measurable_inl.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨a, c⟩; refl },
-      { convert measurable.prod_mk
-          (measurable_inr.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨b, c⟩; refl }
-    end }
+    measurable_sum
+      ((measurable_inl.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id))
+      ((measurable_inr.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id)) }
 
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
   measurable_equiv (α × (β ⊕ γ)) ((α × β) ⊕ (α × γ)) :=

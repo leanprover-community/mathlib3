@@ -22,38 +22,40 @@ metadata is stored in the `linter` structure. We define two attributes:
 open tactic
 setup_tactic_parser
 
--- Manual constant subexpression elimination for performance.
-private meta def linter_ns := `linter
-private meta def nolint_infix := `_nolint
+section
+local attribute [semireducible] reflected
 
 /--
-Computes the declaration name used to store the nolint attribute data.
+We store the list of nolint names as `@id (list name) (Prop simp_nf doc_blame has_coe_t)`
 
-Retrieving the parameters for user attributes is *extremely* slow.
-Hence we store the parameters of the nolint attribute as declarations
-in the environment.  E.g. for `@[nolint foo] def bar := _` we add the
-following declaration:
-
-```lean
-meta def bar._nolint.foo : unit := ()
-```
+See Note [user attribute parameters]
 -/
-private meta def mk_nolint_decl_name (decl : name) (linter : name) : name :=
-(decl ++ nolint_infix) ++ linter
+private meta def reflect_name_list : has_reflect (list name) | ns :=
+`(id %%(expr.mk_app `(Prop) $ ns.map (flip expr.const [])) : list name)
+
+private meta def parse_name_list (e : expr) : list name :=
+e.app_arg.get_app_args.map expr.const_name
+
+local attribute [instance] reflect_name_list
 
 /-- Defines the user attribute `nolint` for skipping `#lint` -/
 @[user_attribute]
-meta def nolint_attr : user_attribute _ (list name) :=
+meta def nolint_attr : user_attribute (name_map (list name)) (list name) :=
 { name := "nolint",
   descr := "Do not report this declaration in any of the tests of `#lint`",
   after_set := some $ λ n _ _, (do
-    ls@(_::_) ← nolint_attr.get_param n
+    ls@(_::_) ← parse_name_list <$> nolint_attr.get_param_untyped n
       | fail "you need to specify at least one linter to disable",
-    ls.mmap' $ λ l, do
-      get_decl (linter_ns ++ l) <|> fail ("unknown linter: " ++ to_string l),
-      try $ add_decl $ declaration.defn (mk_nolint_decl_name n l) []
-        `(unit) `(unit.star) (default _) ff),
+    skip),
+  cache_cfg := {
+    dependencies := [],
+    mk_cache := list.mfoldl
+      (λ cache d, native.rb_map.insert cache d <$>
+        parse_name_list <$> nolint_attr.get_param_untyped d)
+      mk_name_map },
   parser := ident* }
+
+end
 
 add_tactic_doc
 { name                     := "nolint",
@@ -64,8 +66,8 @@ add_tactic_doc
 /-- `should_be_linted linter decl` returns true if `decl` should be checked
 using `linter`, i.e., if there is no `nolint` attribute. -/
 meta def should_be_linted (linter : name) (decl : name) : tactic bool := do
-e ← get_env,
-pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
+c ← nolint_attr.get_cache,
+pure $ linter ∉ (c.find decl).get_or_else []
 
 /--
 A linting test for the `#lint` command.
@@ -85,7 +87,7 @@ meta structure linter :=
 (no_errors_found : string)
 (errors_found : string)
 (is_fast : bool := tt)
-(auto_decls : bool := ff)
+(auto_decls : bool)
 
 /-- Takes a list of names that resolve to declarations of type `linter`,
 and produces a list of linters. -/

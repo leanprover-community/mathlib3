@@ -3,9 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.concrete_category.basic
-import category.equiv_functor
-import tactic.simp_result
+import control.equiv_functor
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -232,7 +230,7 @@ dsimp_result (do
     subst h,
     `[try { simp only [] with equiv_rw_simp }]
   else
-    clear' tt (native.rb_map.set_of_list [x']) <|>
+    clear' tt [x'] <|>
       fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip)
   {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.

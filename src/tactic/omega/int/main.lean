@@ -3,10 +3,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Main procedure for linear integer arithmetic. -/
-
 import tactic.omega.prove_unsats
 import tactic.omega.int.dnf
-import tactic.omega.misc
 
 open tactic
 

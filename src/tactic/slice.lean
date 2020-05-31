@@ -40,7 +40,7 @@ do repeat $ to_expr ``(category.assoc) >>= λ e, tactic.rewrite_target e {symm:=
    iterate_range (k+1+a-b) (k+1+a-b) conv.congr,
    repeat $ to_expr ``(category.assoc) >>= λ e, tactic.rewrite_target e {symm:=ff},
    rotate 1,
-   iterate_exactly (k+1+a-b) conv.skip
+   iterate_exactly' (k+1+a-b) conv.skip
 
 meta def slice_lhs (a b : ℕ) (t : conv unit) : tactic unit :=
 do conv.interactive.to_lhs,
@@ -89,3 +89,16 @@ meta def slice_rhs (a b : parse small_nat) (t : conv.interactive.itactic) : tact
 do conv_target' (conv.interactive.to_rhs >> slice a b >> t)
 end interactive
 end tactic
+
+/--
+`slice_lhs a b { tac }` zooms to the left hand side, uses associativity for categorical
+composition as needed, zooms in on the `a`-th through `b`-th morphisms, and invokes `tac`.
+
+`slice_rhs a b { tac }` zooms to the right hand side, uses associativity for categorical
+composition as needed, zooms in on the `a`-th through `b`-th morphisms, and invokes `tac`.
+-/
+add_tactic_doc
+{ name := "slice",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.slice_lhs, `tactic.interactive.slice_rhs],
+  tags := ["category theory"] }

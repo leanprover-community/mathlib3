@@ -27,9 +27,7 @@ in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ se
 
 -/
 import tactic.fin_cases
-import data.nat.basic
 import data.fintype.intervals
-import order.bounded_lattice
 
 open set
 

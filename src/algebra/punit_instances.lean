@@ -5,7 +5,6 @@ Authors: Kenny Lau
 
 Instances on punit.
 -/
-
 import algebra.module
 
 universes u
@@ -62,7 +61,7 @@ instance : decidable_linear_ordered_cancel_add_comm_monoid punit :=
   decidable_lt := λ _ _, decidable.false,
   .. punit.canonically_ordered_add_monoid }
 
-instance (R : Type u) [ring R] : module R punit := module.of_core $
+instance (R : Type u) [semiring R] : semimodule R punit := semimodule.of_core $
 by refine
 { smul := λ _ _, star,
   .. punit.comm_ring, .. };

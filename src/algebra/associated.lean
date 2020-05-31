@@ -3,19 +3,13 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.group.is_unit data.multiset
+import data.multiset
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
-
-theorem is_unit_iff_ne_zero [division_ring α] {x : α} :
-  is_unit x ↔ x ≠ 0 :=
-⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 @[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
@@ -24,7 +18,7 @@ theorem is_unit_iff_ne_zero [division_ring α] {x : α} :
   refine ⟨⟨0, 0, _, _⟩, rfl⟩; apply subsingleton.elim
  end⟩
 
-@[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α) :=
+@[simp] theorem not_is_unit_zero [semiring α] [nonzero α] : ¬ is_unit (0 : α) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
@@ -56,7 +50,7 @@ theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
 
 theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
-⟨λ ⟨u, hu⟩, (int.units_eq_one_or u).elim (by simp *) (by simp *),
+⟨begin rintro ⟨u, rfl⟩, exact (int.units_eq_one_or u).elim (by simp) (by simp) end,
   λ h, is_unit_iff_dvd_one.2 ⟨n, by rw [← int.nat_abs_mul_self, h]; refl⟩⟩
 
 lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
@@ -67,7 +61,7 @@ lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, (domain.mul_left_inj hx0).1 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
+    ⟨e, (domain.mul_right_inj hx0).1 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
 lemma pow_dvd_pow_iff [integral_domain α] {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
@@ -175,7 +169,7 @@ lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [integral_domain α] {p : α} (hp
 have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
   by simpa [mul_comm, _root_.pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
 have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
-have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_left_inj hp0] at h⟩,
+have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_right_inj hp0] at h⟩,
 (hp.div_or_div hpd).elim
   (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
@@ -207,7 +201,7 @@ theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u
 
 theorem associated_one_iff_is_unit [monoid α] {a : α} : (a : α) ~ᵤ 1 ↔ is_unit a :=
 iff.intro
-  (assume h, let ⟨c, h⟩ := h.symm in h ▸ ⟨c, one_mul _⟩)
+  (assume h, let ⟨c, h⟩ := h.symm in h ▸ ⟨c, (one_mul _).symm⟩)
   (assume ⟨c, h⟩, associated.symm ⟨c, by simp [h]⟩)
 
 theorem associated_zero_iff_eq_zero [comm_semiring α] (a : α) : a ~ᵤ 0 ↔ a = 0 :=
@@ -273,7 +267,7 @@ by haveI := classical.dec; exact not_iff_not.2 (eq_zero_iff_of_associated h)
 lemma prime_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q) (hp : prime p) : prime q :=
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
-    ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv.symm, hu.symm]⟩,
+    ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [mul_unit_dvd_iff], intros a b, exact hp.div_or_div }⟩⟩
 
 lemma prime_iff_of_associated [comm_semiring α] {p q : α}
@@ -291,7 +285,7 @@ lemma irreducible_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q)
   have hpab : p = a * (b * (u⁻¹ : units α)),
     from calc p = (p * u) * (u ⁻¹ : units α) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
-  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv.symm]⟩)⟩
+  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
 lemma irreducible_iff_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q) :
   irreducible p ↔ irreducible q :=
@@ -300,7 +294,7 @@ lemma irreducible_iff_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q)
 lemma associated_mul_left_cancel [integral_domain α] {a b c d : α}
 (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
-⟨u * (v : units α), (domain.mul_left_inj ha).1
+⟨u * (v : units α), (domain.mul_right_inj ha).1
   begin
     rw [← hv, mul_assoc c (v : α) d, mul_left_comm c, ← hu],
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]
@@ -405,7 +399,7 @@ theorem coe_unit_eq_one : ∀u:units (associates α), (u : associates α) = 1
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=
 iff.intro
-  (assume ⟨u, h⟩, h.symm ▸ coe_unit_eq_one _)
+  (assume ⟨u, h⟩, h ▸ coe_unit_eq_one _)
   (assume h, h.symm ▸ is_unit_one)
 
 theorem is_unit_mk {a : α} : is_unit (associates.mk a) ↔ is_unit a :=

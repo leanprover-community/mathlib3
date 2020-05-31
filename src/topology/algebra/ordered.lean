@@ -7,9 +7,9 @@ import tactic.tfae
 import order.liminf_limsup
 import data.set.intervals
 import topology.algebra.group
-import topology.constructions
 
-/-! # Theory of topology on ordered spaces
+/-!
+# Theory of topology on ordered spaces
 
 ## Main definitions
 

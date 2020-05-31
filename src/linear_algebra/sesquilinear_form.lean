@@ -3,13 +3,13 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
-
-import algebra.module ring_theory.maps
+import algebra.module
+import ring_theory.maps
 
 /-!
 # Sesquilinear form
 
-This file defines a bilinear form over a module. The definition requires a ring antiautomorphism
+This file defines a sesquilinear form over a module. The definition requires a ring antiautomorphism
 on the scalar ring, which comes from the file ring_theory.involution. Basic ideas such as
 orthogonality are also introduced.
 
@@ -19,7 +19,7 @@ and antilinear in the second, with respect to an antiautomorphism on R (an antii
 ## Notations
 
 Given any term S of type sesq_form, due to a coercion, can use the notation S x y to
-refer to the function field, ie. S x y = S.bilin x y.
+refer to the function field, ie. `S x y = S.sesq x y`.
 
 ## References
 

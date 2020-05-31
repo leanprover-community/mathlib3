@@ -3,11 +3,8 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import algebra.punit_instances
 import algebra.category.Mon.basic
 import category_theory.endomorphism
-import category_theory.epi_mono
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
@@ -31,9 +28,12 @@ open category_theory
 
 /-- The category of groups and group morphisms. -/
 @[to_additive AddGroup]
-def Group : Type (u+1) := induced_category Mon (bundled.map group.to_monoid)
+def Group : Type (u+1) := bundled group
 
 namespace Group
+
+@[to_additive]
+instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
 /-- Construct a bundled Group from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -77,19 +77,22 @@ by { ext1, apply w }
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
+instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
 
 end Group
 
 
 /-- The category of commutative groups and group morphisms. -/
 @[to_additive AddCommGroup]
-def CommGroup : Type (u+1) := induced_category Group (bundled.map comm_group.to_group)
+def CommGroup : Type (u+1) := bundled comm_group
 
 /-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
 abbreviation Ab := AddCommGroup
 
 namespace CommGroup
+
+@[to_additive]
+instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
 /-- Construct a bundled CommGroup from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -118,9 +121,11 @@ instance : unique (1 : CommGroup.{u}) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive] instance : category CommGroup := infer_instance -- short-circuit type class inference
+@[to_additive]
+instance : category CommGroup := infer_instance -- short-circuit type class inference
 
-@[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
+@[to_additive]
+instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
@@ -129,7 +134,7 @@ by { ext1, apply w }
 attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference
+instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _
 
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
@@ -192,7 +197,8 @@ end AddCommGroup
 variables {X Y : Type u}
 
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
-@[to_additive add_equiv.to_AddGroup_iso "Build an isomorphism in the category `AddGroup` from a `add_equiv` between `add_group`s."]
+@[to_additive add_equiv.to_AddGroup_iso "Build an isomorphism in the category `AddGroup` from
+an `add_equiv` between `add_group`s."]
 def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
@@ -200,8 +206,10 @@ def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ G
 attribute [simps] mul_equiv.to_Group_iso add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
-@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
-def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
+@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup`
+from a `add_equiv` between `add_comm_group`s."]
+def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
+  CommGroup.of X ≅ CommGroup.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
@@ -210,7 +218,8 @@ attribute [simps] mul_equiv.to_CommGroup_iso add_equiv.to_AddCommGroup_iso
 namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
-@[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddGroup`."]
+@[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+`AddGroup`."]
 def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -221,7 +230,8 @@ def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
 attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
-@[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddCommGroup`."]
+@[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
+in the category `AddCommGroup`."]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -233,15 +243,19 @@ attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 
-/-- multiplicative equivalences between `group`s are the same as (isomorphic to) isomorphisms in `Group` -/
-@[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same as (isomorphic to) isomorphisms in `AddGroup`"]
+/-- multiplicative equivalences between `group`s are the same as (isomorphic to) isomorphisms
+in `Group` -/
+@[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same
+as (isomorphic to) isomorphisms in `AddGroup`"]
 def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
   (X ≃* Y) ≅ (Group.of X ≅ Group.of Y) :=
 { hom := λ e, e.to_Group_iso,
   inv := λ i, i.Group_iso_to_mul_equiv, }
 
-/-- multiplicative equivalences between `comm_group`s are the same as (isomorphic to) isomorphisms in `CommGroup` -/
-@[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
+/-- multiplicative equivalences between `comm_group`s are the same as (isomorphic to) isomorphisms
+in `CommGroup` -/
+@[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are
+the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
 def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
   (X ≃* Y) ≅ (CommGroup.of X ≅ CommGroup.of Y) :=
 { hom := λ e, e.to_CommGroup_iso,
@@ -249,12 +263,14 @@ def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
 
 namespace category_theory.Aut
 
-/-- The (bundled) group of automorphisms of a type is isomorphic to the (bundled) group of permutations. -/
+/-- The (bundled) group of automorphisms of a type is isomorphic to the (bundled) group
+of permutations. -/
 def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
 { hom := ⟨λ g, g.to_equiv, (by tidy), (by tidy)⟩,
   inv := ⟨λ g, g.to_iso, (by tidy), (by tidy)⟩ }
 
-/-- The (unbundled) group of automorphisms of a type is `mul_equiv` to the (unbundled) group of permutations. -/
+/-- The (unbundled) group of automorphisms of a type is `mul_equiv` to the (unbundled) group
+of permutations. -/
 def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
 iso_perm.Group_iso_to_mul_equiv
 

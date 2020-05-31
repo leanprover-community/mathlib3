@@ -3,10 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
-import category_theory.whiskering
-import category_theory.yoneda
 import category_theory.limits.cones
-import category_theory.eq_to_hom
+import category_theory.adjunction.basic
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -16,8 +14,7 @@ universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category
 
 -- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
 
@@ -31,7 +28,7 @@ structure is_limit (t : cone F) :=
   m = lift s . obviously)
 
 restate_axiom is_limit.fac'
-attribute [simp] is_limit.fac
+attribute [simp, reassoc] is_limit.fac
 restate_axiom is_limit.uniq'
 
 namespace is_limit
@@ -138,6 +135,33 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   end }
 
 /--
+If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit implies
+`G.map_cone c` is also a limit.
+-/
+def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
+  (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
+{ lift := λ s, t.lift ((cones.postcompose (iso_whisker_left K h).inv).obj s) ≫ h.hom.app c.X,
+  fac' := λ s j,
+  begin
+    slice_lhs 2 3 {erw ← h.hom.naturality (c.π.app j)},
+    slice_lhs 1 2 {erw t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j},
+    dsimp,
+    slice_lhs 2 3 {rw nat_iso.inv_hom_id_app},
+    rw category.comp_id,
+  end,
+  uniq' := λ s m J,
+  begin
+    rw ← cancel_mono (h.inv.app c.X),
+    apply t.hom_ext,
+    intro j,
+    dsimp,
+    slice_lhs 2 3 {erw ← h.inv.naturality (c.π.app j)},
+    slice_lhs 1 2 {erw J j},
+    conv_rhs {congr, rw [category.assoc, nat_iso.hom_inv_id_app, comp_id]},
+    apply (t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j).symm
+  end }
+
+/--
 A cone is a limit cone exactly if
 there is a unique cone morphism from any other cone.
 -/
@@ -149,6 +173,18 @@ def iso_unique_cone_morphism {t : cone F} :
   inv := λ h,
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+-- TODO: this should actually hold for an adjunction between cone F and cone G, not just for
+-- equivalences
+/--
+Given two functors which have equivalent categories of cones, we can transport a limiting cone across
+the equivalence.
+-/
+def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
+  is_limit (h.inverse.obj c) :=
+mk_cone_morphism
+  (λ s, h.to_adjunction.hom_equiv s c (t.lift_cone_morphism _))
+  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
 
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)
@@ -281,7 +317,7 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
 
 /-- Colimits of `F` are unique up to isomorphism. -/
 -- We may later want to prove the coherence of these isomorphisms.
-def cone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
+def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
 
 /-- Transport evidence that a cocone is a colimit cocone across an isomorphism of cocones. -/
@@ -600,8 +636,7 @@ by ext j; erw [assoc, limit.pre_π, limit.pre_π, limit.pre_π]; refl
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)]
 
@@ -922,8 +957,7 @@ end
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_colimit F] (G : C ⥤ D) [has_colimit (F ⋙ G)]
 

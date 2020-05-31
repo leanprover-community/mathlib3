@@ -49,7 +49,7 @@ do
   -- We explode the goal into individual fields using `refine_struct`.
   -- Later we'll want to also consider falling back to `fconstructor`,
   -- but for now this suffices.
-  seq `[refine_struct { .. }]
+  seq' `[refine_struct { .. }]
   -- We now deal with each field sequentially.
   -- Since we may pass goals through to the user if the heuristics here fail,
   -- we wrap everything in `propagate_tags`.
@@ -85,14 +85,10 @@ do
       get_local f >>= exact))))
 
 namespace interactive
-open lean.parser
-open interactive interactive.types
-open tactic
-
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /--
-Given a goal `⊢ S β` for some parametrized structure type `S`, and an equivalence `e : α ≃ β`.
+Given a goal `⊢ S β` for some type class `S`, and an equivalence `e : α ≃ β`.
 `transport using e` will look for a hypothesis `s : S α`,
 and attempt to close the goal by transporting `s` across the equivalence `e`.
 
@@ -113,7 +109,7 @@ to finish, rather than solving these goals by hand.
 there are several examples of "transport-by-hand" at the end of `test/equiv_rw.lean`,
 which `transport` is an abstraction of.)
 -/
-meta def transport (s : parse texpr?) (e : parse $ (tk "using" *> ident)) : itactic :=
+meta def transport (s : parse texpr?) (e : parse $ (tk "using" *> texpr)) : itactic :=
 do
   s ← match s with
   | some s := to_expr s
@@ -124,7 +120,7 @@ do
       ctx.any_of (λ e, (do t ← infer_type e, guard (t.get_app_fn.const_name = n), return e))) <|>
         fail "`transport` could not find an appropriate source object. Try `transport s using e`."
   end,
-  e ← get_local e,
+  e ← to_expr e,
   tactic.transport s e
 
 end interactive

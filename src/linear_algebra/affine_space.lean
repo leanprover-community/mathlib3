@@ -179,9 +179,10 @@ section affine_map
 
 variables  (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
     (V3 : Type*) (P3 : Type*) [ring k]
-    [add_comm_group V1] [module k V1] [affine_space k V1 P1]
+    [add_comm_group V1] [module k V1] [S1 : affine_space k V1 P1]
     [add_comm_group V2] [module k V2] [affine_space k V2 P2]
     [add_comm_group V3] [module k V3] [affine_space k V3 P3]
+include S1
 
 /-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/
@@ -209,15 +210,32 @@ affine map applied to that point. -/
 /-- The linear map on the result of subtracting two points is the
 result of subtracting the result of the affine map on those two
 points. -/
-@[simp] lemma affine_map.map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
+lemma affine_map.map_vsub (f : affine_map k V1 P1 V2 P2) (p1 p2 : P1) :
   f p1 -ᵥ f p2 = f.linear (p1 -ᵥ p2) :=
 by conv_lhs { rw [←vsub_vadd V1 p1 p2, affine_map.map_vadd, vadd_vsub] }
+
+/-- Two affine maps are equal if they coerce to the same function. -/
+@[ext] lemma affine_map.ext (f g : affine_map k V1 P1 V2 P2) (h : (f : P1 → P2) = g) : f = g :=
+begin
+  cases f,
+  cases g,
+  congr',
+  ext v,
+  change f_to_fun = g_to_fun at h,
+  cases S1.nonempty with p,
+  have hvp : f_to_fun (v +ᵥ p) = g_to_fun (v +ᵥ p), { rw h },
+  rw [f_add, g_add, h] at hvp,
+  exact vadd_right_cancel V2 _ hvp
+end
 
 /-- Identity map as an affine map. -/
 def affine_map.id : affine_map k V1 P1 V1 P1 :=
 { to_fun := id,
   linear := linear_map.id,
   add := λ p v, rfl }
+
+/-- The identity affine map acts as the identity. -/
+@[simp] lemma affine_map.id_apply (p : P1) : (affine_map.id k V1 P1) p = p := rfl
 
 instance : inhabited (affine_map k V1 P1 V1 P1) := ⟨affine_map.id k V1 P1⟩
 
@@ -231,5 +249,9 @@ def affine_map.comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2
     rw [function.comp_app, g.add, f.add],
     refl
   end }
+
+/-- Composition of affine maps acts as applying the two functions. -/
+@[simp] lemma affine_map.comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2)
+    (p : P1) : f.comp k V1 P1 V2 P2 V3 P3 g p = f (g p) := rfl
 
 end affine_map

@@ -29,7 +29,7 @@ by simp only [mul_left_comm, mul_assoc]
 
 end comm_semigroup
 
-local attribute [simp] mul_assoc
+local attribute [simp] mul_assoc sub_eq_add_neg
 
 section add_monoid
 variables {M : Type u} [add_monoid M] {a b c : M}

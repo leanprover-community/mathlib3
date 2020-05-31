@@ -83,18 +83,18 @@ instance : has_coe_to_fun (quadratic_form R M) :=
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
 
-lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
+@[push_hom] lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
-lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
+@[push_hom] lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
 by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
 
-lemma map_zero : Q 0 = 0 :=
+@[push_hom] lemma map_zero : Q 0 = 0 :=
 by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
 
-lemma map_neg (x : M) : Q (-x) = Q x :=
+@[push_hom] lemma map_neg (x : M) : Q (-x) = Q x :=
 by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
 
-lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
+@[push_hom] lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
 by rw [←neg_sub, map_neg]
 
 variable {Q' : quadratic_form R M}

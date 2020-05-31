@@ -51,18 +51,18 @@ instance : has_coe_to_fun (linear_pmap R E F) :=
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl
 
-@[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
+@[simp, push_hom] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
-lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
+@[push_hom] lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 
-lemma map_neg (f : linear_pmap R E F) (x : f.domain) : f (-x) = -f x :=
+@[push_hom] lemma map_neg (f : linear_pmap R E F) (x : f.domain) : f (-x) = -f x :=
 f.to_fun.map_neg x
 
-lemma map_sub (f : linear_pmap R E F) (x y : f.domain) : f (x - y) = f x - f y :=
+@[push_hom] lemma map_sub (f : linear_pmap R E F) (x y : f.domain) : f (x - y) = f x - f y :=
 f.to_fun.map_sub x y
 
-lemma map_smul (f : linear_pmap R E F) (c : R) (x : f.domain) : f (c • x) = c • f x :=
+@[push_hom] lemma map_smul (f : linear_pmap R E F) (c : R) (x : f.domain) : f (c • x) = c • f x :=
 f.to_fun.map_smul c x
 
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
@@ -266,7 +266,7 @@ begin
   simpa
 end
 
-protected lemma sup_le {f g h : linear_pmap R E F} 
+protected lemma sup_le {f g h : linear_pmap R E F}
   (H : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y)
   (fh : f ≤ h) (gh : g ≤ h) :
   f.sup g H ≤ h :=

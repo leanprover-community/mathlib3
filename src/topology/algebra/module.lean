@@ -216,9 +216,9 @@ theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 
 -- make some straightforward lemmas available to `simp`.
-@[simp] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero
-@[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
-@[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
+@[simp, push_hom] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero
+@[simp, push_hom] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
+@[simp, push_hom] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
@@ -486,8 +486,8 @@ variables
 
 variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 
-@[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
-@[simp] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
+@[simp, push_hom] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
+@[simp, push_hom] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
 @[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
 
 lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
@@ -640,12 +640,12 @@ end
 def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 
 -- Make some straightforward lemmas available to `simp`.
-@[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
-@[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
+@[simp, push_hom] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
+@[simp, push_hom] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
 (e : M →L[R] M₂).map_add x y
-@[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
+@[simp, push_hom] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
 (e : M →L[R] M₂).map_smul c x
-@[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
+@[simp, push_hom] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 
 protected lemma continuous (e : M ≃L[R] M₂) : continuous (e : M → M₂) :=
@@ -826,10 +826,10 @@ variables {R : Type*} [ring R]
 {M : Type*} [topological_space M] [add_comm_group M] [semimodule R M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [semimodule R M₂]
 
-@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
+@[simp, push_hom] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
 (e : M →L[R] M₂).map_sub x y
 
-@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
+@[simp, push_hom] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
 
 section
 variables (R) [topological_space R] [topological_module R R]

@@ -407,14 +407,14 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
 lemma map_eq_zero : f x = 0 ↔ x = 0 :=
 by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
+@[push_hom] lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
 begin
   classical, by_cases h : x = 0, by simp [h],
   apply (domain.mul_right_inj (f.map_ne_zero.2 h)).1,
   rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
 end
 
-lemma map_div : f (x / y) = f x / f y :=
+@[push_hom] lemma map_div : f (x / y) = f x / f y :=
 (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv
 
 lemma injective : function.injective f :=

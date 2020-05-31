@@ -96,12 +96,15 @@ attribute [ext] _root_.add_monoid_hom.ext
 lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
+mk_simp_attribute push_hom "The simpset `push_hom` is used by the tactic `push_hom` to
+reduce applications of homomorphisms over the relevant algebraic operations."
+
 /-- If f is a monoid homomorphism then f 1 = 1. -/
-@[simp, to_additive]
+@[simp, push_hom, to_additive]
 lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 
 /-- If f is a monoid homomorphism then f (a * b) = f a * f b. -/
-@[simp, to_additive]
+@[simp, push_hom, to_additive]
 lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
 @[to_additive]

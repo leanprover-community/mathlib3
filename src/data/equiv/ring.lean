@@ -89,16 +89,16 @@ section
 variables [semiring R] [semiring S] (f : R ≃+* S) (x y : R)
 
 /-- A ring isomorphism preserves multiplication. -/
-@[simp] lemma map_mul : f (x * y) = f x * f y := f.map_mul' x y
+@[simp, push_hom] lemma map_mul : f (x * y) = f x * f y := f.map_mul' x y
 
 /-- A ring isomorphism sends one to one. -/
-@[simp] lemma map_one : f 1 = 1 := (f : R ≃* S).map_one
+@[simp, push_hom] lemma map_one : f 1 = 1 := (f : R ≃* S).map_one
 
 /-- A ring isomorphism preserves addition. -/
-@[simp] lemma map_add : f (x + y) = f x + f y := f.map_add' x y
+@[simp, push_hom] lemma map_add : f (x + y) = f x + f y := f.map_add' x y
 
 /-- A ring isomorphism sends zero to zero. -/
-@[simp] lemma map_zero : f 0 = 0 := (f : R ≃+ S).map_zero
+@[simp, push_hom] lemma map_zero : f 0 = 0 := (f : R ≃+ S).map_zero
 
 variable {x}
 
@@ -114,11 +114,11 @@ section
 
 variables [ring R] [ring S] (f : R ≃+* S) (x y : R)
 
-@[simp] lemma map_neg : f (-x) = -f x := (f : R ≃+ S).map_neg x
+@[simp, push_hom] lemma map_neg : f (-x) = -f x := (f : R ≃+ S).map_neg x
 
-@[simp] lemma map_sub : f (x - y) = f x - f y := (f : R ≃+ S).map_sub x y
+@[simp, push_hom] lemma map_sub : f (x - y) = f x - f y := (f : R ≃+ S).map_sub x y
 
-@[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
+@[simp, push_hom] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
 
 end
 

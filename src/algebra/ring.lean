@@ -242,16 +242,16 @@ theorem coe_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →
 λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
 
 /-- Ring homomorphisms map zero to zero. -/
-@[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
+@[simp, push_hom] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
 
 /-- Ring homomorphisms map one to one. -/
-@[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
+@[simp, push_hom] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
 
 /-- Ring homomorphisms preserve addition. -/
-@[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
+@[simp, push_hom] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
 
 /-- Ring homomorphisms preserve multiplication. -/
-@[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
+@[simp, push_hom] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
 end
 

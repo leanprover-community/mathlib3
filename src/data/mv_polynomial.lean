@@ -567,22 +567,25 @@ instance is_semiring_hom_C_f :
   is_semiring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
 is_semiring_hom.comp _ _
 
-@[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
+@[simp, push_hom] theorem map_monomial (s : σ →₀ ℕ) (a : α) :
+  map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
 
-@[simp] theorem map_C : ∀ (a : α), map f (C a : mv_polynomial σ α) = C (f a) := map_monomial _ _
+@[simp, push_hom] theorem map_C :
+  ∀ (a : α), map f (C a : mv_polynomial σ α) = C (f a) :=
+map_monomial _ _
 
-@[simp] theorem map_X : ∀ (n : σ), map f (X n : mv_polynomial σ α) = X n := eval₂_X _ _
+@[simp, push_hom] theorem map_X : ∀ (n : σ), map f (X n : mv_polynomial σ α) = X n := eval₂_X _ _
 
-@[simp] theorem map_one : map f (1 : mv_polynomial σ α) = 1 := eval₂_one _ _
+@[simp, push_hom] theorem map_one : map f (1 : mv_polynomial σ α) = 1 := eval₂_one _ _
 
-@[simp] theorem map_add (p q : mv_polynomial σ α) :
+@[simp, push_hom] theorem map_add (p q : mv_polynomial σ α) :
   map f (p + q) = map f p + map f q := eval₂_add _ _
 
-@[simp] theorem map_mul (p q : mv_polynomial σ α) :
+@[simp, push_hom] theorem map_mul (p q : mv_polynomial σ α) :
   map f (p * q) = map f p * map f q := eval₂_mul _ _
 
-@[simp] lemma map_pow (p : mv_polynomial σ α) (n : ℕ) :
+@[simp, push_hom] lemma map_pow (p : mv_polynomial σ α) (n : ℕ) :
   map f (p^n) = (map f p)^n := eval₂_pow _ _
 
 instance map.is_semiring_hom :
@@ -1001,9 +1004,9 @@ is_ring_hom.comp _ _
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _
 
-@[simp] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
+@[simp, push_hom] lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 
-@[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
+@[simp, push_hom] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 
 end map
 
@@ -1108,7 +1111,7 @@ eval₂_mul _ _
   rename f (p^n) = (rename f p)^n :=
 eval₂_pow _ _
 
-lemma map_rename [comm_semiring β] (f : α → β) [is_semiring_hom f]
+@[push_hom] lemma map_rename [comm_semiring β] (f : α → β) [is_semiring_hom f]
   (g : γ → δ) (p : mv_polynomial γ α) :
   map f (rename g p) = rename g (map f p) :=
 mv_polynomial.induction_on p

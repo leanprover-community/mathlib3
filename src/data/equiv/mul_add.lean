@@ -56,7 +56,7 @@ instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) := ⟨_, mul_equiv.
 variables [has_mul M] [has_mul N] [has_mul P]
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-@[to_additive]
+@[push_hom, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
@@ -112,7 +112,7 @@ lemma symm_apply_apply (e : M ≃* N) : ∀ x, e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply
 
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
-@[simp, to_additive]
+@[simp, push_hom, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
@@ -140,7 +140,7 @@ lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
 rfl
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
-@[to_additive]
+@[push_hom, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
 

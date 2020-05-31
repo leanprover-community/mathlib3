@@ -288,11 +288,11 @@ theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 
 variables (f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.add x y
+@[simp, push_hom] lemma map_add (x y : M) : f (x + y) = f x + f y := f.add x y
 
-@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.smul c x
+@[simp, push_hom] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.smul c x
 
-@[simp] lemma map_zero : f 0 = 0 :=
+@[simp, push_hom] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
 
 instance : is_add_monoid_hom f :=
@@ -308,7 +308,7 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma to_add_monoid_hom_coe :
   ((f.to_add_monoid_hom) : M → M₂) = f := rfl
 
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
+@[simp, push_hom] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
@@ -335,10 +335,10 @@ variables [semiring R] [add_comm_group M] [add_comm_group M₂]
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂)
 
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
+@[simp, push_hom] lemma map_neg (x : M) : f (- x) = - f x :=
 f.to_add_monoid_hom.map_neg x
 
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
+@[simp, push_hom] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
 f.to_add_monoid_hom.map_sub x y
 
 instance : is_add_group_hom f :=

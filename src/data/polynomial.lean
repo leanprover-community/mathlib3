@@ -587,21 +587,21 @@ def map : polynomial R → polynomial S := eval₂ (C ∘ f) X
 instance is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
 is_semiring_hom.comp _ _
 
-@[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
+@[simp, push_hom] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
-@[simp] lemma map_X : X.map f = X := eval₂_X _ _
+@[simp, push_hom] lemma map_X : X.map f = X := eval₂_X _ _
 
-@[simp] lemma map_zero : (0 : polynomial R).map f = 0 :=  eval₂_zero _ _
+@[simp, push_hom] lemma map_zero : (0 : polynomial R).map f = 0 :=  eval₂_zero _ _
 
-@[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
+@[simp, push_hom] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
 
-@[simp] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
+@[simp, push_hom] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
 
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
+@[simp, push_hom] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
 
 instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+@[simp, push_hom] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
 
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
@@ -1360,11 +1360,11 @@ instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom 
 instance map.is_ring_hom {S} [comm_ring S] (f : R →+* S) : is_ring_hom (map f) :=
 eval₂.is_ring_hom (C ∘ f)
 
-@[simp] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
+@[simp, push_hom] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
 is_ring_hom.map_sub _
 
-@[simp] lemma map_neg {S} [comm_ring S] (f : R →+* S) :
+@[simp, push_hom] lemma map_neg {S} [comm_ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
 is_ring_hom.map_neg _
 
@@ -2277,14 +2277,14 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [field k] (f : R →+* k) :
+@[push_hom] lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [field k] (f : R →+* k) :
+@[push_hom] lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,

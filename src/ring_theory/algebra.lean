@@ -242,25 +242,25 @@ theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.comm
 theorem comp_algebra_map : φ.to_ring_hom.comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
-@[simp] lemma map_add (r s : A) : φ (r + s) = φ r + φ s :=
+@[simp, push_hom] lemma map_add (r s : A) : φ (r + s) = φ r + φ s :=
 φ.to_ring_hom.map_add r s
 
-@[simp] lemma map_zero : φ 0 = 0 :=
+@[simp, push_hom] lemma map_zero : φ 0 = 0 :=
 φ.to_ring_hom.map_zero
 
-@[simp] lemma map_mul (x y) : φ (x * y) = φ x * φ y :=
+@[simp, push_hom] lemma map_mul (x y) : φ (x * y) = φ x * φ y :=
 φ.to_ring_hom.map_mul x y
 
-@[simp] lemma map_one : φ 1 = 1 :=
+@[simp, push_hom] lemma map_one : φ 1 = 1 :=
 φ.to_ring_hom.map_one
 
-@[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
+@[simp, push_hom] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
 by simp only [algebra.smul_def, map_mul, commutes]
 
-@[simp] lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
+@[simp, push_hom] lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
 φ.to_ring_hom.map_pow x n
 
-lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
+@[push_hom] lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (s.sum f) = s.sum (λx, φ (f x)) :=
 φ.to_ring_hom.map_sum f s
 
@@ -303,7 +303,7 @@ variables [algebra R A] [algebra R B]
 
 variables (φ : A →ₐ[R] B)
 
-lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+@[push_hom] lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (s.prod f) = s.prod (λx, φ (f x)) :=
 φ.to_ring_hom.map_prod f s
 
@@ -312,10 +312,10 @@ end comm_semiring
 variables [comm_ring R] [ring A] [ring B] [ring C]
 variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 
-@[simp] lemma map_neg (x) : φ (-x) = -φ x :=
+@[simp, push_hom] lemma map_neg (x) : φ (-x) = -φ x :=
 φ.to_ring_hom.map_neg x
 
-@[simp] lemma map_sub (x y) : φ (x - y) = φ x - φ y :=
+@[simp, push_hom] lemma map_sub (x y) : φ (x - y) = φ x - φ y :=
 φ.to_ring_hom.map_sub x y
 
 /-- R-Alg ⥤ R-Mod -/
@@ -360,22 +360,22 @@ instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂)
 
 @[simp, norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
-@[simp] lemma map_add (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
+@[simp, push_hom] lemma map_add (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
-@[simp] lemma map_zero (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := e.to_add_equiv.map_zero
+@[simp, push_hom] lemma map_zero (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := e.to_add_equiv.map_zero
 
-@[simp] lemma map_mul (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
+@[simp, push_hom] lemma map_mul (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
 
-@[simp] lemma map_one (e : A₁ ≃ₐ[R] A₂) : e 1 = 1 := e.to_mul_equiv.map_one
+@[simp, push_hom] lemma map_one (e : A₁ ≃ₐ[R] A₂) : e 1 = 1 := e.to_mul_equiv.map_one
 
 @[simp] lemma commutes (e : A₁ ≃ₐ[R] A₂) : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'
 
-@[simp] lemma map_neg {A₁ : Type v} {A₂ : Type w}
+@[simp, push_hom] lemma map_neg {A₁ : Type v} {A₂ : Type w}
   [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
   ∀ x, e (-x) = -(e x) := e.to_add_equiv.map_neg
 
-@[simp] lemma map_sub {A₁ : Type v} {A₂ : Type w}
+@[simp, push_hom] lemma map_sub {A₁ : Type v} {A₂ : Type w}
   [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
   ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
 

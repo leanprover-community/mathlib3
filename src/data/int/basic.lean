@@ -1318,7 +1318,7 @@ f.to_add_monoid_hom.eq_int_cast f.map_one n
 lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
 ring_hom.ext f.eq_int_cast
 
-@[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
+@[simp, push_hom] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 end ring_hom

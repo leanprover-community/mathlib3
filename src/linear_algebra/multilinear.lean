@@ -81,11 +81,11 @@ instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
 @[ext] theorem ext {f f' : multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
 by cases f; cases f'; congr'; exact funext H
 
-@[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp, push_hom] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.add m i x y
 
-@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+@[simp, push_hom] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
 f.smul m i c x
 
@@ -95,7 +95,7 @@ begin
   rw [← update_eq_self i m, h, ← this, f.map_smul, zero_smul]
 end
 
-@[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
+@[simp, push_hom] lemma map_zero [nonempty ι] : f 0 = 0 :=
 begin
   obtain ⟨i, _⟩ : ∃i:ι, i ∈ set.univ := set.exists_mem_of_nonempty ι,
   exact map_coord_zero f i rfl
@@ -394,7 +394,7 @@ f.map_sum_finset_aux _ _ rfl
 /-- If `f` is multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
-lemma map_sum [∀ i, fintype (α i)] :
+@[push_hom] lemma map_sum [∀ i, fintype (α i)] :
   f (λ i, finset.univ.sum (g i)) = finset.univ.sum (λ (r : Π i, α i), f (λ i, g i (r i))) :=
 f.map_sum_finset g (λ i, finset.univ)
 
@@ -412,7 +412,7 @@ variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_mon
 map is multiplied by `s.prod c`. This is mainly an auxiliary statement to prove the result when
 `s = univ`, given in `map_smul_univ`, although it can be useful in its own right as it does not
 require the index set `ι` to be finite. -/
-lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
+@[push_hom] lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
   f (s.piecewise (λi, c i • m i) m) = s.prod c • f m :=
 begin
   refine s.induction_on (by simp) _,
@@ -429,7 +429,7 @@ end
 
 /-- Multiplicativity of a multilinear map along all coordinates at the same time,
 writing `f (λi, c i • m i)` as `univ.prod c • f m`. -/
-lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
+@[push_hom] lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = finset.univ.prod c • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
@@ -469,7 +469,7 @@ variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 (f : multilinear_map R M₁ M₂)
 
-@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp, push_hom] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
 by { simp only [map_add, add_left_inj, sub_eq_add_neg, (neg_one_smul R y).symm, map_smul], simp }
 

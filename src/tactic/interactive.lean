@@ -724,6 +724,22 @@ add_tactic_doc
   decl_names := [`tactic.interactive.field_simp],
   tags       := ["simplification", "arithmetic"] }
 
+/--
+TODO
+-/
+meta def push_hom (no_dflt : parse only_flag) (hs : parse simp_arg_list)
+  (attr_names : parse with_ident_list)
+  (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
+let attr_names := `push_hom :: attr_names,
+    hs := hs in
+propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
+
+add_tactic_doc
+{ name       := "push_hom",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.push_hom],
+  tags       := [] }
+
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
 

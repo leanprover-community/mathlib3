@@ -3,7 +3,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Main procedure for linear natural number arithmetic. -/
-
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
 import tactic.omega.nat.neg_elim
@@ -218,6 +217,7 @@ do xf ← to_exprform x,
 /-- Return expr of proof of current LNA goal -/
 meta def prove : tactic expr :=
 do (p,m) ← target >>= to_preform,
+   trace_if_enabled `omega p,
    prove_univ_close m p
 
 /-- Succeed iff argument is expr of ℕ -/

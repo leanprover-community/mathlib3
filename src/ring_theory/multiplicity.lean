@@ -3,8 +3,9 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
-import algebra.associated data.int.gcd algebra.big_operators
-import tactic.converter.interactive
+import algebra.associated
+import data.int.gcd
+import algebra.big_operators
 
 variables {α : Type*}
 
@@ -33,9 +34,9 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
-@[move_cast]
+@[norm_cast]
 theorem int.coe_nat_multiplicity (a b : ℕ) :
-    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
+    multiplicity (a : ℤ) (b : ℤ) = multiplicity a b :=
 begin
     apply roption.ext',
     { repeat {rw [← finite_iff_dom, finite_def]},
@@ -289,7 +290,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 @[simp] lemma multiplicity_self {a : α} (ha : ¬is_unit a) (ha0 : a ≠ 0) :
   multiplicity a a = 1 :=
 eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
-  ⟨b, (domain.mul_left_inj ha0).1 $ by clear _fun_match;
+  ⟨b, (domain.mul_right_inj ha0).1 $ by clear _fun_match;
     simpa [_root_.pow_succ, mul_assoc] using hb⟩)⟩
 
 @[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
@@ -297,7 +298,7 @@ eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
 roption.get_eq_iff_eq_some.2 (eq_some_iff.2
   ⟨by simp, λ ⟨b, hb⟩,
     by rw [← mul_one a, _root_.pow_add, _root_.pow_one, mul_assoc, mul_assoc,
-        domain.mul_left_inj (ne_zero_of_finite ha)] at hb;
+        domain.mul_right_inj (ne_zero_of_finite ha)] at hb;
       exact mt is_unit_iff_dvd_one.2 (not_unit_of_finite ha)
         ⟨b, by clear _fun_match; simp * at *⟩⟩)
 
@@ -356,9 +357,9 @@ protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ}
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
-  multiplicity p (a ^ k) = add_monoid.smul k (multiplicity p a)
+  multiplicity p (a ^ k) = k •ℕ (multiplicity p a)
 | 0        := by simp [one_right hp.not_unit]
-| (succ k) := by simp [_root_.pow_succ, succ_smul, pow, multiplicity.mul hp]
+| (succ k) := by simp [_root_.pow_succ, succ_nsmul, pow, multiplicity.mul hp]
 
 lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=

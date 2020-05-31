@@ -3,8 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.mul_add algebra.field
+import data.equiv.mul_add
+import algebra.field
+import deprecated.ring
 
 /-!
 # (Semi)ring equivs
@@ -54,10 +55,10 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-@[squash_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃* S) a = f a := rfl
 
-@[squash_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
+@[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃+ S) a = f a := rfl
 
 variable (R)
@@ -197,7 +198,7 @@ end ring_hom
 @[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
   {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
@@ -221,7 +222,7 @@ protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain 
 end ring_equiv
 
 /-- The group of ring automorphisms. -/
-def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
+@[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
 
@@ -260,11 +261,11 @@ namespace equiv
 variables (K : Type*) [division_ring K]
 
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, a.coe_ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}
 
-@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+@[simp]
 lemma coe_units_equiv_ne_zero (a : units K) :
   ((units_equiv_ne_zero K a) : K) = a := rfl
 

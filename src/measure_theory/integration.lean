@@ -8,10 +8,9 @@ Lebesgue integral on `ennreal`.
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 -/
-import
-  algebra.pi_instances
-  measure_theory.measure_space
-  measure_theory.borel_space
+import measure_theory.measure_space
+import measure_theory.borel_space
+
 noncomputable theory
 open set (hiding restrict restrict_apply) filter
 open_locale classical topological_space
@@ -59,7 +58,7 @@ instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
-lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
+lemma range_const (α) [measurable_space α] [nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',
@@ -71,7 +70,7 @@ lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, is_measurable {a | p a b}) : is_measurable {a | p a (f a)} :=
 begin
   rw (_ : {a | p a (f a)} = ⋃ b ∈ set.range f, {a | p a b} ∩ f ⁻¹' {b}),
-  { exact is_measurable.bUnion (countable_finite f.finite)
+  { exact is_measurable.bUnion f.finite.countable
       (λ b _, is_measurable.inter (h b) (f.measurable_sn _)) },
   ext a, simp,
   exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩
@@ -157,12 +156,7 @@ end
 
 lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
   (f.map g) ⁻¹' {c} = (⋃b∈f.range.filter (λb, g b = c), f ⁻¹' {b}) :=
-begin
-  rw map_preimage,
-  have : (λb, g b = c) = λb, g b ∈ _root_.singleton c,
-    funext, rw [eq_iff_iff, mem_singleton_iff],
-  rw this
-end
+map_preimage _ _ _
 
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
@@ -739,11 +733,11 @@ end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ennreal) :
   (⨆i, ∫⁻ a, f i a) ≤ (∫⁻ a, ⨆i, f i a) :=
-by { simp only [← supr_apply], exact (monotone_lintegral α).map_supr_ge }
+by { simp only [← supr_apply], exact (monotone_lintegral α).le_map_supr }
 
 theorem supr2_lintegral_le {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ennreal) :
   (⨆i (h : ι' i), ∫⁻ a, f i h a) ≤ (∫⁻ a, ⨆i (h : ι' i), f i h a) :=
-by { convert (monotone_lintegral α).map_supr2_ge f, ext1 a, simp only [supr_apply] }
+by { convert (monotone_lintegral α).le_map_supr2 f, ext1 a, simp only [supr_apply] }
 
 theorem le_infi_lintegral {ι : Sort*} (f : ι → α → ennreal) :
   (∫⁻ a, ⨅i, f i a) ≤ (⨅i, ∫⁻ a, f i a) :=
@@ -1049,7 +1043,7 @@ lemma lintegral_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable 
   (hg_fin : lintegral g < ⊤) (h_le : ∀ₘ a, g a ≤ f a) :
   (∫⁻ a, f a - g a) = (∫⁻ a, f a) - (∫⁻ a, g a) :=
 begin
-  rw [← ennreal.add_right_inj hg_fin,
+  rw [← ennreal.add_left_inj hg_fin,
         ennreal.sub_add_cancel_of_le (lintegral_le_lintegral_ae h_le),
       ← lintegral_add (hf.ennreal_sub hg) hg],
   show  (∫⁻ (a : α), f a - g a + g a) = ∫⁻ (a : α), f a,
@@ -1065,7 +1059,7 @@ lemma lintegral_infi_ae
 have fn_le_f0 : (∫⁻ a, ⨅n, f n a) ≤ lintegral (f 0), from
   lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
 have fn_le_f0' : (⨅n, ∫⁻ a, f n a) ≤ lintegral (f 0), from infi_le_of_le 0 (le_refl _),
-(ennreal.sub_left_inj h_fin fn_le_f0 fn_le_f0').1 $
+(ennreal.sub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
 show lintegral (f 0) - (∫⁻ a, ⨅n, f n a) = lintegral (f 0) - (⨅n, ∫⁻ a, f n a), from
 calc
   lintegral (f 0) - (∫⁻ a, ⨅n, f n a) = ∫⁻ a, f 0 a - ⨅n, f n a :
@@ -1177,7 +1171,7 @@ end
 /-- Dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
-  (hl_cb : l.has_countable_basis)
+  (hl_cb : l.is_countably_generated)
   (hF_meas : ∀ᶠ n in l, measurable (F n))
   (h_bound : ∀ᶠ n in l, ∀ₘ a, F n a ≤ bound a)
   (h_fin : lintegral bound < ⊤)
@@ -1239,7 +1233,7 @@ end
 end
 
 lemma lintegral_tsum [encodable β] {f : β → α → ennreal} (hf : ∀i, measurable (f i)) :
-  (∫⁻ a, ∑ i, f i a) = (∑ i, ∫⁻ a, f i a) :=
+  (∫⁻ a, ∑' i, f i a) = (∑' i, ∫⁻ a, f i a) :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
@@ -1303,7 +1297,7 @@ if hf : measurable f then
     (by simp)
     begin
       assume s hs hd,
-      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑i, (⨆ (h : a ∈ s i), f a)),
+      have : ∀a, (⨆ (h : a ∈ ⋃i, s i), f a) = (∑'i, (⨆ (h : a ∈ s i), f a)),
       { assume a,
         by_cases ha : ∃j, a ∈ s j,
         { rcases ha with ⟨j, haj⟩,

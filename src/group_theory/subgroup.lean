@@ -60,13 +60,14 @@ instance subtype.group {s : set G} [is_subgroup s] : group s :=
 instance subtype.comm_group {G : Type*} [comm_group G] {s : set G} [is_subgroup s] : comm_group s :=
 { .. subtype.group, .. subtype.comm_monoid }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma is_subgroup.coe_inv {s : set G} [is_subgroup s] (a : s) : ((a⁻¹ : s) : G) = a⁻¹ := rfl
+attribute [norm_cast] is_add_subgroup.coe_neg
 
-@[simp] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
+@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
 by induction n; simp [is_submonoid.coe_pow a]
 
-@[simp] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
+@[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
   ((gsmul n a : s) : A) = gsmul n a :=
 by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive gsmul_coe] is_subgroup.coe_gpow
@@ -235,7 +236,7 @@ by refine {..}; simp [trivial] {contextual := tt}
 lemma eq_trivial_iff {s : set G} [is_subgroup s] :
   s = trivial G ↔ (∀ x ∈ s, x = (1 : G)) :=
 by simp only [set.ext_iff, is_subgroup.mem_trivial];
-  exact ⟨λ h x, (h x).1, λ h x, ⟨h x, λ hx, hx.symm ▸ is_submonoid.one_mem s⟩⟩
+  exact ⟨λ h x, (h x).1, λ h x, ⟨h x, λ hx, hx.symm ▸ is_submonoid.one_mem⟩⟩
 
 @[to_additive]
 instance univ_subgroup : normal_subgroup (@univ G) :=
@@ -285,7 +286,7 @@ lemma subset_normalizer (s : set G) [is_subgroup s] : s ⊆ normalizer s :=
 @[to_additive add_normal_in_add_normalizer]
 instance normal_in_normalizer (s : set G) [is_subgroup s] :
   normal_subgroup (subtype.val ⁻¹' s : set (normalizer s)) :=
-{ one_mem := show (1 : G) ∈ s, from is_submonoid.one_mem _,
+{ one_mem := show (1 : G) ∈ s, from is_submonoid.one_mem,
   mul_mem := λ a b ha hb, show (a * b : G) ∈ s, from is_submonoid.mul_mem ha hb,
   inv_mem := λ a ha, show (a⁻¹ : G) ∈ s, from is_subgroup.inv_mem ha,
   normal := λ a ha ⟨m, hm⟩, (hm a).1 ha }
@@ -352,7 +353,7 @@ instance image_subgroup (f : G → H) [is_group_hom f] (s : set G) [is_subgroup 
   is_subgroup (f '' s) :=
 { mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
              ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, map_mul f]⟩,
-  one_mem := ⟨1, one_mem s, map_one f⟩,
+  one_mem := ⟨1, one_mem, map_one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw map_inv f; simp *⟩ }
 
 @[to_additive range_add_subgroup]
@@ -426,12 +427,15 @@ instance set_inclusion.is_group_hom [group G] {s t : set G}
 subtype_mk.is_group_hom _ _
 
 /-- `subtype.val : set.range f → H` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
-@[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+@[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is
+an additive monoid homomorphism."]
 def monoid_hom.range_subtype_val [monoid G] [monoid H] (f : G →* H) : (set.range f) →* H :=
 monoid_hom.of subtype.val
 
-/-- `set.range_factorization f : G → set.range f` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
-@[to_additive "`set.range_factorization f : G → set.range f` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+/-- `set.range_factorization f : G → set.range f` as a monoid homomorphism, when `f` is a monoid
+homomorphism. -/
+@[to_additive "`set.range_factorization f : G → set.range f` as an additive monoid homomorphism,
+when `f` is an additive monoid homomorphism."]
 def monoid_hom.range_factorization [monoid G] [monoid H] (f : G →* H) : G →* (set.range f) :=
 { to_fun := set.range_factorization f,
   map_one' := by { dsimp [set.range_factorization], simp, refl, },
@@ -470,7 +474,9 @@ lemma mem_closure {a : G} : a ∈ s → a ∈ closure s := in_closure.basic
 
 @[to_additive is_add_subgroup]
 instance closure.is_subgroup (s : set G) : is_subgroup (closure s) :=
-{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul, inv_mem := assume a, in_closure.inv }
+{ one_mem := in_closure.one,
+  mul_mem := assume a b, in_closure.mul,
+  inv_mem := assume a, in_closure.inv }
 
 @[to_additive]
 theorem subset_closure {s : set G} : s ⊆ closure s := λ a, mem_closure
@@ -535,7 +541,7 @@ set.subset.antisymm
     { inv_mem := λ x hx, monoid.in_closure.rec_on hx
       (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
-      ((@one_inv G _).symm ▸ is_submonoid.one_mem _)
+      ((@one_inv G _).symm ▸ is_submonoid.one_mem)
       (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
   (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
@@ -547,10 +553,10 @@ begin
   simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
   { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
+    rw [mul_assoc, mul_assoc, mul_left_comm zs] },
   { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
+    rw [mul_assoc, mul_assoc, mul_left_comm yt] }
 end
 
 @[to_additive gmultiples_eq_closure]
@@ -651,7 +657,7 @@ theorem normal_closure_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
 begin
   induction w with x hx x hx ihx x y hx hy ihx ihy,
   {exact (conjugates_of_set_subset h $ hx)},
-  {exact is_submonoid.one_mem t},
+  {exact is_submonoid.one_mem},
   {exact is_subgroup.inv_mem ihx},
   {exact is_submonoid.mul_mem ihx ihy}
 end

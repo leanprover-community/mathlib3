@@ -12,7 +12,9 @@ universe u
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
+set_option old_structure_cmd true
+@[protect_proj without mul_left_not_lt r_well_founded]
+class euclidean_domain (α : Type u) extends comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
@@ -30,6 +32,7 @@ class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
+(zero_ne_one : (0 : α) ≠ 1)
 end prio
 
 namespace euclidean_domain
@@ -39,13 +42,16 @@ variables [euclidean_domain α]
 local infix ` ≺ `:50 := euclidean_domain.r
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_div α := ⟨quotient⟩
+instance : nonzero α := ⟨euclidean_domain.zero_ne_one⟩
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_mod α := ⟨remainder⟩
+instance : has_div α := ⟨euclidean_domain.quotient⟩
+
+@[priority 70] -- see Note [lower instance priority]
+instance : has_mod α := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
-quotient_mul_add_remainder_eq _ _
+euclidean_domain.quotient_mul_add_remainder_eq _ _
 
 lemma mod_eq_sub_mul_div {α : Type*} [euclidean_domain α] (a b : α) :
   a % b = a - b * (a / b) :=
@@ -53,7 +59,7 @@ calc a % b = b * (a / b) + a % b - b * (a / b) : (add_sub_cancel' _ _).symm
 ... = a - b * (a / b) : by rw div_add_mod
 
 theorem mod_lt : ∀ a {b : α}, b ≠ 0 → (a % b) ≺ b :=
-remainder_lt
+euclidean_domain.remainder_lt
 
 theorem mul_right_not_lt {a : α} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
 by rw mul_comm; exact mul_left_not_lt b h
@@ -102,7 +108,7 @@ mod_eq_zero.2 (one_dvd _)
 mod_eq_zero.2 (dvd_zero _)
 
 @[simp] lemma div_zero (a : α) : a / 0 = 0 :=
-quotient_zero a
+euclidean_domain.quotient_zero a
 
 @[simp] lemma zero_div {a : α} : 0 / a = 0 :=
 classical.by_cases
@@ -138,7 +144,7 @@ theorem gcd.induction {P : α → α → Prop} : ∀ a b : α,
   have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 end
 
@@ -150,7 +156,7 @@ def gcd : α → α → α
   have h:_ := mod_lt b a0,
   gcd (b%a) a
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 @[simp] theorem gcd_zero_left (a : α) : gcd 0 a = a :=
 by rw gcd; exact if_pos rfl
@@ -199,12 +205,12 @@ if hr : r = 0 then (r', s', t')
   have r' % r ≺ r, from mod_lt _ hr,
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
 
 @[simp] theorem xgcd_zero_left {s t r' s' t' : α} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by unfold xgcd_aux; exact if_pos rfl
 
-@[simp] theorem xgcd_aux_rec {r s t r' s' t' : α} (h : r ≠ 0) :
+theorem xgcd_aux_rec {r s t r' s' t' : α} (h : r ≠ 0) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by conv {to_lhs, rw [xgcd_aux]}; exact if_neg h
 
@@ -281,7 +287,7 @@ begin
   suffices : x * y ∣ z * gcd x y,
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
-    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_right_inj hxy, hp],
+    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_left_inj hxy, hp],
     rw [← mul_assoc], simp only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },
@@ -326,8 +332,6 @@ end lcm
 
 end euclidean_domain
 
-open euclidean_domain
-
 instance int.euclidean_domain : euclidean_domain ℤ :=
 { quotient := (/),
   quotient_zero := int.div_zero,
@@ -340,7 +344,9 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact int.mod_lt _ b0,
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
-    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
+    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
+  .. int.comm_ring,
+  .. int.nonzero }
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
@@ -353,4 +359,5 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
   remainder_lt := λ a b hnb, by simp [hnb],
-  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
+  .. ‹field K› }

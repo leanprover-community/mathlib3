@@ -3,7 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
+import analysis.calculus.mean_value
+import data.nat.parity
+import analysis.special_functions.exp_log
 
 /-!
 # Collection of convex functions
@@ -25,8 +27,7 @@ open real set
 
 /-- `exp` is convex on the whole real line -/
 lemma convex_on_exp : convex_on univ exp :=
-convex_on_univ_of_deriv2_nonneg differentiable_exp
-  (deriv_exp.symm ▸ differentiable_exp)
+convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/

@@ -260,7 +260,7 @@ lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
 le_antisymm
   (le_infi $ assume t, le_infi $ assume ht,
     calc filter.lift' f h ⊓ principal s ≤ principal (h t) ⊓ principal s :
-        inf_le_inf (infi_le_of_le t $ infi_le _ ht) (le_refl _)
+        inf_le_inf_right _ (infi_le_of_le t $ infi_le _ ht)
       ... = _ : by simp only [principal_eq_iff_eq, inf_principal, eq_self_iff_true, function.comp_app])
   (le_inf
     (le_infi $ assume t, le_infi $ assume ht,

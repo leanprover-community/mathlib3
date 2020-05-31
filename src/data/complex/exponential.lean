@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
-import algebra.archimedean algebra.geom_sum
-import data.nat.choose data.complex.basic
-import tactic.linarith
+import algebra.geom_sum
+import data.nat.choose
+import data.complex.basic
 
 local notation `abs'` := _root_.abs
 open is_absolute_value
@@ -34,17 +34,17 @@ lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : �
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
-have h : ∃ l, ∀ n ≥ m, a - add_monoid.smul l ε < f n :=
+have h : ∃ l, ∀ n ≥ m, a - l •ℕ ε < f n :=
   ⟨k + k + 1, λ n hnm, lt_of_lt_of_le
-    (show a - add_monoid.smul (k + (k + 1)) ε < -abs (f n),
+    (show a - (k + (k + 1)) •ℕ ε < -abs (f n),
       from lt_neg.1 $ lt_of_le_of_lt (ham n hnm) (begin
-        rw [neg_sub, lt_sub_iff_add_lt, add_monoid.add_smul],
+        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul],
         exact add_lt_add_of_le_of_lt hk (lt_of_le_of_lt hk
           (lt_add_of_pos_left _ ε0)),
       end))
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in
-have hl : ∀ (n : ℕ), n ≥ m → f n > a - add_monoid.smul l ε := nat.find_spec h,
+have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
@@ -55,9 +55,9 @@ begin
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - add_monoid.smul (nat.pred l) ε : hi.2
-    ... = a - add_monoid.smul l ε + ε :
-      by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_smul',
+  exact calc f i ≤ a - (nat.pred l) •ℕ ε : hi.2
+    ... = a - l •ℕ ε + ε :
+      by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
         sub_add, add_sub_cancel] }
     ... < f j + ε : add_lt_add_right (hl j (le_trans hi.1 hj)) _
 end
@@ -413,11 +413,10 @@ lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
-λ h, @zero_ne_one ℂ _ $
-  by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
+λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
-by rw [← domain.mul_left_inj (exp_ne_zero x), ← exp_add];
+by rw [← domain.mul_right_inj (exp_ne_zero x), ← exp_add];
   simp [mul_inv_cancel (exp_ne_zero x)]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
@@ -461,10 +460,10 @@ private lemma sinh_add_aux {a b c d : ℂ} :
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 begin
-  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_sinh, mul_left_comm, two_sinh,
-      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, ← mul_assoc, two_cosh],
   exact sinh_add_aux
 end
@@ -479,10 +478,10 @@ private lemma cosh_add_aux {a b c d : ℂ} :
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 begin
-  rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_cosh, ← mul_assoc, two_sinh,
-      ← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, mul_left_comm, two_sinh],
   exact cosh_add_aux
 end
@@ -542,14 +541,14 @@ by rw [← of_real_tanh_of_real_re, of_real_im]
 lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 lemma cosh_add_sinh : cosh x + sinh x = exp x :=
-by rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
        two_cosh, two_sinh, add_add_sub_cancel, two_mul]
 
 lemma sinh_add_cosh : sinh x + cosh x = exp x :=
 by rw [add_comm, cosh_add_sinh]
 
 lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
-by rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), mul_sub,
+by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
@@ -567,16 +566,16 @@ lemma two_cos : 2 * cos x = exp (x * I) + exp (-x * I) :=
 mul_div_cancel' _ two_ne_zero'
 
 lemma sinh_mul_I : sinh (x * I) = sin x * I :=
-by rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
        ← mul_assoc, two_sin, mul_assoc, I_mul_I, mul_neg_one,
        neg_sub, neg_mul_eq_neg_mul]
 
 lemma cosh_mul_I : cosh (x * I) = cos x :=
-by rw [← domain.mul_left_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
-by rw [← domain.mul_right_inj I_ne_zero, ← sinh_mul_I,
+by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
        mul_assoc, ← sinh_mul_I, ← cosh_mul_I, ← cosh_mul_I, sinh_add]
 
@@ -601,7 +600,7 @@ lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
-by rw [← domain.mul_right_inj I_ne_zero, ← sinh_mul_I,
+by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
        ← conj_neg_I, ← conj_mul, ← conj_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
@@ -850,7 +849,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
           add_re, add_re, h₁, h₂, add_assoc,
           ← @sum_hom _ _ _ _ _ _ _ complex.re
             (is_add_group_hom.to_is_add_monoid_hom _)],
-        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
+        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
       end⟩)
@@ -900,7 +899,7 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
       (by simp at hm; tauto))
     (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
-      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add, add_right_inj, eq_comm] at h;
+      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add, add_left_inj, eq_comm] at h;
         simp at *; tauto)
     (λ b hb, ⟨b + n, mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
@@ -928,7 +927,7 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :
   begin
-    refine (div_le_div_right (mul_pos _ _)).2 _,
+    refine iff.mpr (div_le_div_right (mul_pos _ _)) _,
     exact nat.cast_pos.2 (nat.fact_pos _),
     exact nat.cast_pos.2 hn,
     exact sub_le_self _ (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
@@ -973,7 +972,7 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
 calc abs (exp x - 1 - x) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
-  by simp [sub_eq_add_neg, sum_range_succ]
+  by simp [sub_eq_add_neg, sum_range_succ, add_assoc]
 ... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :

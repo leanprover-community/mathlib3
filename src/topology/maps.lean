@@ -169,7 +169,7 @@ protected lemma id : quotient_map (@id α) :=
 
 protected lemma comp {g : β → γ} {f : α → β} (hg : quotient_map g) (hf : quotient_map f) :
   quotient_map (g ∘ f) :=
-⟨function.surjective_comp hg.left hf.left, by rw [hg.right, hf.right, coinduced_compose]⟩
+⟨hg.left.comp hf.left, by rw [hg.right, hf.right, coinduced_compose]⟩
 
 protected lemma of_quotient_map_compose {f : α → β} {g : β → γ}
   (hf : continuous f) (hg : continuous g)

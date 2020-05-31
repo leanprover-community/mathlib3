@@ -3,8 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl
 -/
-
-import order.filter order.conditionally_complete_lattice order.bounds
+import order.filter
 
 /-!
 # liminfs and limsups of functions and filters

@@ -3,7 +3,6 @@ Copyright (c) 2019 Johannes Hölzl, Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Zhouhang Zhou
 -/
-
 import measure_theory.integration
 
 /-!
@@ -519,7 +518,6 @@ end normed_group
 
 section normed_space
 
-set_option class.instance_max_depth 100
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ]

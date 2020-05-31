@@ -3,17 +3,14 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
-import category_theory.equivalence
 import category_theory.eq_to_hom
-import tactic.interactive
 
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /--
 `prod C D` gives the cartesian product of two categories.
@@ -36,20 +33,22 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 /--
-`prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
+`prod.category.uniform C D` is an additional instance specialised so both factors have the same
+universe levels. This helps typeclass resolution.
 -/
 instance uniform_prod : category (C × D) := category_theory.prod C D
 end
 
--- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
+-- Next we define the natural functors into and out of product categories. For now this doesn't
+-- address the universal properties.
 namespace prod
 
 /-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
 -- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
--- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components
+-- of pairs.
 @[simps obj map] def sectl
   (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
@@ -61,8 +60,7 @@ namespace prod
 { obj := λ X, (Z, X),
   map := λ X Y f, (𝟙 Z, f) }
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 @[simps obj map] def fst : C × D ⥤ C :=
@@ -93,8 +91,7 @@ instance swap_is_equivalence : is_equivalence (swap C D) :=
 end prod
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 @[simps] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
 { obj := λ X,
@@ -117,11 +114,10 @@ include 𝒞 𝒟
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₂} [ℬ : category.{v₂} B]
-          {C : Type u₃} [𝒞 : category.{v₃} C]
-          {D : Type u₄} [𝒟 : category.{v₄} D]
-include 𝒜 ℬ 𝒞 𝒟
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₂} [category.{v₂} B]
+          {C : Type u₃} [category.{v₃} C]
+          {D : Type u₄} [category.{v₄} D]
 
 namespace functor
 /-- The cartesian product of two functors. -/

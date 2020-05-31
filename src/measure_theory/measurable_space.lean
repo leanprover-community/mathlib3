@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Measurable spaces -- σ-algberas
 -/
-import data.set.disjointed order.galois_connection data.set.countable
+import data.set.disjointed
+import data.set.countable
 
 /-!
 # Measurable spaces and measurable functions
@@ -207,7 +208,7 @@ inductive generate_measurable (s : set (set α)) : set α → Prop
 /-- Construct the smallest measure space containing a collection of basic sets -/
 def generate_from (s : set (set α)) : measurable_space α :=
 { is_measurable       := generate_measurable s,
-  is_measurable_empty := generate_measurable.empty s,
+  is_measurable_empty := generate_measurable.empty,
   is_measurable_compl := generate_measurable.compl,
   is_measurable_Union := generate_measurable.union }
 
@@ -520,7 +521,8 @@ lemma measurable_of_measurable_union_cover
 assume u (hu : is_measurable u), show is_measurable (f ⁻¹' u), from
 begin
   rw show f ⁻¹' u = coe '' (coe ⁻¹' (f ⁻¹' u) : set s) ∪ coe '' (coe ⁻¹' (f ⁻¹' u) : set t),
-    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype, range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
+    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype,
+      range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
   exact is_measurable.union
     (is_measurable_subtype_image hs (hc _ hu))
     (is_measurable_subtype_image ht (hd _ hu))
@@ -828,15 +830,9 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       ext ⟨b, c⟩, refl }
   end,
   measurable_inv_fun :=
-    begin
-      refine measurable_sum _ _,
-      { convert measurable.prod_mk
-          (measurable_inl.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨a, c⟩; refl },
-      { convert measurable.prod_mk
-          (measurable_inr.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨b, c⟩; refl }
-    end }
+    measurable_sum
+      ((measurable_inl.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id))
+      ((measurable_inr.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id)) }
 
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
   measurable_equiv (α × (β ⊕ γ)) ((α × β) ⊕ (α × γ)) :=
@@ -939,7 +935,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
 
 def generate (s : set (set α)) : dynkin_system α :=
 { has := generate_has s,
-  has_empty := generate_has.empty s,
+  has_empty := generate_has.empty,
   has_compl := assume a, generate_has.compl,
   has_Union_nat := assume f, generate_has.Union }
 
@@ -993,7 +989,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
     from generate_le _ $ assume s₂ hs₂,
       show (generate s).has (s₂ ∩ s₁), from
         (s₂ ∩ s₁).eq_empty_or_nonempty.elim
-        (λ h,  h.symm ▸ generate_has.empty _)
+        (λ h,  h.symm ▸ generate_has.empty)
         (λ h, generate_has.basic _ (hs _ _ hs₂ hs₁ h)),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],

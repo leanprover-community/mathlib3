@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
-import category_theory.limits.types
-import category_theory.limits.preserves
-import ring_theory.subring
-import algebra.pi_instances
 
 /-!
 # The category of commutative rings has all limits

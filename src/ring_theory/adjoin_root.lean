@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Chris Hughes
 
 Adjoining roots of polynomials
 -/
-
-import data.polynomial ring_theory.principal_ideal_domain
+import data.polynomial
+import ring_theory.principal_ideal_domain
 
 /-!
 # Adjoining roots of polynomials
@@ -68,8 +68,6 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' (mem_span_singleton.2 $ by simp)
-
-instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 

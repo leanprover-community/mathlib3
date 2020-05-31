@@ -42,7 +42,7 @@ add_tactic_doc
 { name       := "substs",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.substs],
-  tags       := ["rewrite"] }
+  tags       := ["rewriting"] }
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
@@ -418,6 +418,15 @@ Fixes `guard_hyp` by instantiating meta variables
 -/
 meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
+
+/--
+`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+We use this tactic for writing tests.
+-/
+meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+do
+  h ← get_local n >>= infer_type >>= instantiate_mvars,
+  match_expr p h m
 
 /--
 `guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
@@ -1074,7 +1083,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management"] }
+  tags       := ["goal management", "proof extraction"] }
 
 
 /--
@@ -1094,14 +1103,17 @@ end
 -/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
 do ty ← i_to_expr t,
-   nm ← get_unused_name `inst,
-   mcond (target >>= is_prop)
-   (do mk_mapp `nonempty.elim_to_inhabited [ty, none] >>= tactic.apply <|>
-         fail "could not infer nonempty instance",
-       introI $ inst_name.get_or_else nm)
-   (do mk_mapp `classical.inhabited_of_nonempty' [ty, none] >>= note nm none <|>
-         fail "could not infer nonempty instance",
-       resetI)
+   nm ← returnopt inst_name <|> get_unused_name `inst,
+   tgt ← target,
+   tgt_is_prop ← is_prop tgt,
+   if tgt_is_prop then do
+     decorate_error "could not infer nonempty instance:" $
+       mk_mapp ``nonempty.elim_to_inhabited [ty, none, tgt] >>= tactic.apply,
+     introI nm
+   else do
+     decorate_error "could not infer nonempty instance:" $
+      mk_mapp ``classical.inhabited_of_nonempty' [ty, none] >>= note nm none,
+     resetI
 
 add_tactic_doc
 { name       := "inhabit",

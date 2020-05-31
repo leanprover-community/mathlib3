@@ -13,8 +13,10 @@ Uniform structure on topological groups:
 * `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
-import topology.uniform_space.uniform_embedding topology.uniform_space.complete_separated
-import topology.algebra.group tactic.abel
+import topology.uniform_space.uniform_embedding
+import topology.uniform_space.complete_separated
+import topology.algebra.group
+import tactic.abel
 
 noncomputable theory
 open_locale classical uniformity topological_space
@@ -37,7 +39,7 @@ theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
 lemma uniform_continuous_sub : uniform_continuous (λp:α×α, p.1 - p.2) :=
-uniform_add_group.uniform_continuous_sub α
+uniform_add_group.uniform_continuous_sub
 
 lemma uniform_continuous.sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
@@ -111,7 +113,7 @@ have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).em
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg]
+  simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
@@ -225,8 +227,8 @@ variables [add_comm_group α] [add_comm_group β] [add_comm_group γ]
 /- TODO: when modules are changed to have more explicit base ring, then change replace `is_Z_bilin`
 by using `is_bilinear_map ℤ` from `tensor_product`. -/
 class is_Z_bilin (f : α × β → γ) : Prop :=
-(add_left  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
-(add_right : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))
+(add_left []  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
+(add_right [] : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))
 
 variables (f : α × β → γ) [is_Z_bilin f]
 

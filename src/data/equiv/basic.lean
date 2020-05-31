@@ -127,13 +127,6 @@ begin
   rw apply_eq_iff_eq,
 end
 
-theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
-  f x = y ↔ x = f.symm y :=
-begin
-  conv_lhs { rw ←apply_symm_apply f y, },
-  rw apply_eq_iff_eq,
-end
-
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
 lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=

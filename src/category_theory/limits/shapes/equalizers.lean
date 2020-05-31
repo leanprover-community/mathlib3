@@ -283,7 +283,7 @@ is_limit t :=
 fork.is_limit.mk t
   (λ s, (create s).1)
   (λ s, (create s).2.1)
-  (λ s m w, (create s).2.2 (w walking_parallel_pair.zero))
+  (λ s m w, (create s).2.2 (w zero))
 
 /-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
     only asks for a proof of facts that carry any mathematical content -/
@@ -297,6 +297,17 @@ def cofork.is_colimit.mk (t : cofork f g)
   fac' := λ s j, walking_parallel_pair.cases_on j
     (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
   uniq' := uniq }
+
+/-- This is another convenient method to verify that a fork is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content, and allows access to the
+    same `s` for all parts. -/
+def cofork.is_colimit.mk' {X Y : C} {f g : X ⟶ Y} (t : cofork f g)
+  (create : Π (s : cofork f g), {l : t.X ⟶ s.X // t.π ≫ l = s.π ∧ ∀ {m}, t.π ≫ m = s.π → m = l}) :
+is_colimit t :=
+cofork.is_colimit.mk t
+  (λ s, (create s).1)
+  (λ s, (create s).2.1)
+  (λ s m w, (create s).2.2 (w one)
 
 /-- This is a helper construction that can be useful when verifying that a category has all
     equalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as

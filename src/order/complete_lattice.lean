@@ -829,7 +829,7 @@ end complete_lattice
 
 section ord_continuous
 
-/-- A function `f` between (conditionally) complete lattices is order-continuous if it preserves
+/-- A function `f` between preorders is order-continuous if it preserves
 all suprema. We define it using `is_lub` instead of `Sup` so that the proof works both for
 complete lattices and conditionally complete lattices. -/
 def ord_continuous [preorder α] [preorder β] (f : α → β) :=

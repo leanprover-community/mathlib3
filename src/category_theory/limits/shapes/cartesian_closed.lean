@@ -231,6 +231,7 @@ end
 
 end pre
 
+/-- The precomposition functor. -/
 @[simps]
 def pre.functor [is_cartesian_closed C] (X : C) : Cᵒᵖ ⥤ C :=
 { obj := λ A, (A.unop) ⟹ X,

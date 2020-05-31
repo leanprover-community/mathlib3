@@ -11,7 +11,7 @@ noncomputable theory
 /-!
 # Affine spaces
 
-This file defines affine spaces and subspaces and affine maps and the
+This file defines affine spaces and subspaces, affine maps, and the
 affine span of a set of points.
 
 ## Implementation notes

@@ -14,6 +14,9 @@ We say that a function is *left order continuous* if it sends all least upper bo
 to least upper boundaries. The order dual notion is called *right order continuity*.
 
 For monotone functions `ℝ → ℝ` these notions correspond to the usual left and right continuity.
+
+We prove some basic lemmas (`map_sup`, `map_Sup` etc) and prove that an `order_iso` is both left
+and right order continuous.
 -/
 
 universes u v w x
@@ -251,13 +254,16 @@ namespace order_iso
 section preorder
 
 variables [preorder α] [preorder β] (e : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop))
+  {s : set α} {x : α}
 
-lemma map_is_lub (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) {s : set α} {x : α}
-  (hx : is_lub s x) :
-  is_lub (f '' s) (f x) :=
-⟨monotone.mem_upper_bounds_image (λ x y, f.ord.1) hx.1,
-  λ y hy, f.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', f.rel_symm_apply.2 $ hy $
+protected lemma left_ord_continuous : left_ord_continuous e :=
+λ s x hx,
+⟨monotone.mem_upper_bounds_image (λ x y, e.ord.1) hx.1,
+  λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
+
+protected lemma right_ord_continuous : right_ord_continuous e :=
+@order_iso.left_ord_continuous (order_dual α) (order_dual β) _ _ e.rsymm
 
 end preorder
 

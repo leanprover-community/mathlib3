@@ -282,24 +282,6 @@ section functor
 
 variables [has_finite_products.{v} C] [has_finite_products.{v} D]
 
-@[reassoc]
-lemma thingy (A B : C) [is_iso (prod_comparison F A B)] :
-  inv (prod_comparison F A B) ≫ F.map limits.prod.fst = limits.prod.fst :=
-begin
-  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
-  dsimp [as_iso_hom, prod_comparison],
-  rw prod.lift_fst,
-end
-
-@[reassoc]
-lemma thingy2 (A B : C) [is_iso (prod_comparison F A B)] :
-  inv (prod_comparison F A B) ≫ F.map limits.prod.snd = limits.prod.snd :=
-begin
-  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
-  dsimp [as_iso_hom, prod_comparison],
-  rw prod.lift_snd,
-end
-
 /--
 Note we didn't require any coherence between the choice of finite products here, since we transport
 along the `prod_comparison` isomorphism.
@@ -326,16 +308,13 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_car
       rw [assoc, prod.lift_snd, prod.lift_snd, ← functor.map_comp_assoc, limits.prod.map_snd],
       simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, functor.map_comp, comp_id],
       erw comp_id,
-      haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := left_adjoint_of_nat_iso this.symm,
-      haveI : is_left_adjoint e.inverse := left_adjoint_of_equiv,
-      haveI : is_left_adjoint e.functor := left_adjoint_of_equiv,
-      haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := left_adjoint_of_comp e.inverse _,
-      haveI := left_adjoint_of_comp (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) e.functor,
+      haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_nat_iso this.symm,
+      haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_comp e.inverse _,
       have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅ prod_functor.obj X,
         apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
         change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
         apply iso_whisker_left (prod_functor.obj X) e.counit_iso,
-      apply left_adjoint_of_nat_iso this,
+      apply adjunction.left_adjoint_of_nat_iso this,
     end
   }
 }

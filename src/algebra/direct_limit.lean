@@ -51,7 +51,7 @@ def direct_limit : Type (max v w) :=
 namespace direct_limit
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
-instance : module R (direct_limit G f) := quotient.module _
+instance : semimodule R (direct_limit G f) := quotient.semimodule _
 
 variables (R ι)
 /-- The canonical map from a component to the direct limit. -/

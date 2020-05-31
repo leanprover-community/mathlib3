@@ -5,9 +5,9 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.constructions.preserve_binary_products
 import category_theory.adjunction
 import category_theory.epi_mono
-import tactic
 
 /-!
 # Cartesian closed categories
@@ -205,8 +205,8 @@ by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
 lemma pre_map [exponentiable A] [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
   pre X (f ≫ g) = pre X g ≫ pre X f :=
 begin
-  rw [pre, curry_eq_iff, pre, pre, uncurry_natural_left, uncurry_curry, prod_map_comm_assoc,
-      prod_functorial, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
+  rw [pre, curry_eq_iff, pre, pre, uncurry_natural_left, uncurry_curry, prod_map_map_assoc,
+      prod_map_comp_id, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
       curry_natural_right, comp_id, uncurry_natural_right, uncurry_curry],
 end
 
@@ -223,7 +223,7 @@ lemma exp_natural [has_finite_products.{v} C] [is_cartesian_closed C] {A B : C} 
   (pre.functor A).map g ≫ post (opposite.unop Y) f = post (opposite.unop X) f ≫ (pre.functor B).map g :=
 begin
   dsimp [pre],
-  rw [← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry, prod_map_comm_assoc],
+  rw [← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry, prod_map_map_assoc],
   simp,
 end
 
@@ -284,7 +284,7 @@ variables [has_finite_products.{v} C] [has_finite_products.{v} D]
 
 /--
 Note we didn't require any coherence between the choice of finite products here, since we transport
-along the `mult_comparison` isomorphism.
+along the `prod_comparison` isomorphism.
 -/
 def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_cartesian_closed D :=
 { cart_closed := λ X,
@@ -295,29 +295,29 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_car
       have: e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,
       intro Y,
-      apply mult_comparison e.inverse X (e.functor.obj Y) ≪≫ _,
+      apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
       refine ⟨limits.prod.map (𝟙 _) (e.unit_inv.app _),
               limits.prod.map (𝟙 _) (e.unit.app _),
-              by simpa [← prod_functorial', prod_map_id_id],
-              by simpa [← prod_functorial', prod_map_id_id]⟩,
+              by simpa [← prod_map_id_comp, prod_map_id_id],
+              by simpa [← prod_map_id_comp, prod_map_id_id]⟩,
       intros Y Z g,
-      simp only [mult_comparison, prod.lift_map, equivalence.unit_inv, functor.comp_map,
-                 prod_functor_obj_map, assoc, comp_id, iso.trans_hom],
+      simp only [prod_comparison, thingy, thingy2, prod.lift_map, equivalence.unit_inv, functor.comp_map,
+                 prod_functor_obj_map, assoc, comp_id, iso.trans_hom, as_iso_hom],
       apply prod.hom_ext,
       rw [assoc, prod.lift_fst, prod.lift_fst, ← functor.map_comp, limits.prod.map_fst, comp_id],
       rw [assoc, prod.lift_snd, prod.lift_snd, ← functor.map_comp_assoc, limits.prod.map_snd],
       simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, functor.map_comp, comp_id],
       erw comp_id,
-      haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_nat_iso this.symm,
-      haveI : is_left_adjoint e.inverse := functor.left_adjoint_of_equivalence,
-      haveI : is_left_adjoint e.functor := functor.left_adjoint_of_equivalence,
-      haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_comp e.inverse _,
-      haveI := adjunction.left_adjoint_of_comp (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) e.functor,
+      haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := left_adjoint_of_nat_iso this.symm,
+      haveI : is_left_adjoint e.inverse := left_adjoint_of_equiv,
+      haveI : is_left_adjoint e.functor := left_adjoint_of_equiv,
+      haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := left_adjoint_of_comp e.inverse _,
+      haveI := left_adjoint_of_comp (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) e.functor,
       have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅ prod_functor.obj X,
         apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
         change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
         apply iso_whisker_left (prod_functor.obj X) e.counit_iso,
-      apply adjunction.left_adjoint_of_nat_iso this,
+      apply left_adjoint_of_nat_iso this,
     end
   }
 }
@@ -331,21 +331,21 @@ The exponential comparison map.
 -/
 def exp_comparison (A B : C) :
   F.obj (A ⟹ B) ⟶ F.obj A ⟹ F.obj B :=
-curry ((mult_comparison F A _).inv ≫ F.map (ev _ _))
+curry (inv (prod_comparison F A _) ≫ F.map (ev _ _))
 
 lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
   exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
 by rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod_map_comm_assoc, curry_eq, prod_functorial', assoc, ev_nat,
-       ev_coev_assoc, ← F.map_id, ← mult_comparison_inv_natural_assoc, ← F.map_id,
-       ← mult_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-       prod_functorial', assoc, ev_nat, ev_coev_assoc]
+       pre, uncurry_curry, prod_map_map_assoc, curry_eq, prod_map_id_comp, assoc, ev_nat,
+       ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_id,
+       ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
+       prod_map_id_comp, assoc, ev_nat, ev_coev_assoc]
 
 lemma exp_comparison_natural_right (A B B' : C) (f : B ⟶ B') :
   exp_comparison F A B ≫ post (F.obj A) (F.map f) = F.map (post A f) ≫ exp_comparison F A B' :=
-by rw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
-      uncurry_curry, assoc, ← F.map_comp, ← ev_nat, F.map_comp, mult_comparison_inv_natural_assoc,
-      F.map_id]
+by
+  rw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
+      uncurry_curry, assoc, ← F.map_comp, ← ev_nat, F.map_comp, prod_comparison_inv_natural_assoc, F.map_id]
 
 -- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
 -- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A

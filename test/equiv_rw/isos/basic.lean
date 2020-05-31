@@ -32,7 +32,7 @@ end
 example (R S : Ring.{u}) (i : R ≅ S) (s : S) : R :=
 begin
   equiv_rw i,
-  dsimp,
+  -- dsimp,
   exact s,
 end
 

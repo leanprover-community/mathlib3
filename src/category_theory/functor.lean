@@ -5,9 +5,6 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
 Defines a functor between categories.
 
-(As it is a 'bundled' object rather than the `is_functorial` typeclass parametrised
-by the underlying function on objects, the name is capitalised.)
-
 Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)

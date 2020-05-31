@@ -282,6 +282,24 @@ section functor
 
 variables [has_finite_products.{v} C] [has_finite_products.{v} D]
 
+@[reassoc]
+lemma thingy (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map limits.prod.fst = limits.prod.fst :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_fst,
+end
+
+@[reassoc]
+lemma thingy2 (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map limits.prod.snd = limits.prod.snd :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_snd,
+end
+
 /--
 Note we didn't require any coherence between the choice of finite products here, since we transport
 along the `prod_comparison` isomorphism.

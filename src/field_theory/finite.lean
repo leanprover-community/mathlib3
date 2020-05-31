@@ -121,7 +121,7 @@ variable (K)
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := char_p.char_is_prime K p,
-  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_module },
+  have V : vector_space (zmod p) K, from { .. (zmod.cast_hom p K).to_semimodule },
   obtain ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp, h⟩,
@@ -187,7 +187,7 @@ lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   ∑ x : K, x ^ i = 0 :=
 begin
   by_cases hi : i = 0,
-  { simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
+  { simp only [hi, nsmul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
   classical,
   have hiq : ¬ (q - 1) ∣ i, { contrapose! h,  exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
   let φ : units K ↪ K := ⟨coe, units.ext⟩,

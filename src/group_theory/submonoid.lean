@@ -65,7 +65,8 @@ theorem multiplicative.is_submonoid_iff
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI multiplicative.is_submonoid _⟩
 
 /-- The intersection of two submonoids of a monoid `M` is a submonoid of `M`. -/
-@[to_additive "The intersection of two `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of M."]
+@[to_additive "The intersection of two `add_submonoid`s of an `add_monoid` `M` is
+an `add_submonoid` of M."]
 instance is_submonoid.inter (s₁ s₂ : set M) [is_submonoid s₁] [is_submonoid s₂] :
   is_submonoid (s₁ ∩ s₂) :=
 { one_mem := ⟨is_submonoid.one_mem, is_submonoid.one_mem⟩,
@@ -73,7 +74,8 @@ instance is_submonoid.inter (s₁ s₂ : set M) [is_submonoid s₁] [is_submonoi
     ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
 
 /-- The intersection of an indexed set of submonoids of a monoid `M` is a submonoid of `M`. -/
-@[to_additive "The intersection of an indexed set of `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of `M`."]
+@[to_additive "The intersection of an indexed set of `add_submonoid`s of an `add_monoid` `M` is
+an `add_submonoid` of `M`."]
 instance is_submonoid.Inter {ι : Sort*} (s : ι → set M) [h : ∀ y : ι, is_submonoid (s y)] :
   is_submonoid (set.Inter s) :=
 { one_mem := set.mem_Inter.2 $ λ y, is_submonoid.one_mem,
@@ -82,7 +84,8 @@ instance is_submonoid.Inter {ι : Sort*} (s : ι → set M) [h : ∀ y : ι, is_
 
 /-- The union of an indexed, directed, nonempty set of submonoids of a monoid `M` is a submonoid
     of `M`. -/
-@[to_additive is_add_submonoid_Union_of_directed "The union of an indexed, directed, nonempty set of `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of `M`. "]
+@[to_additive is_add_submonoid_Union_of_directed "The union of an indexed, directed, nonempty set
+of `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of `M`. "]
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set M) [∀ i, is_submonoid (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
@@ -99,21 +102,21 @@ section powers
 /-- The set of natural number powers `1, x, x², ...` of an element `x` of a monoid. -/
 def powers (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
 /-- The set of natural number multiples `0, x, 2x, ...` of an element `x` of an `add_monoid`. -/
-def multiples (x : A) : set A := {y | ∃ n:ℕ, add_monoid.smul n x = y}
+def multiples (x : A) : set A := {y | ∃ n:ℕ, n •ℕ x = y}
 attribute [to_additive multiples] powers
 
 /-- 1 is in the set of natural number powers of an element of a monoid. -/
 lemma powers.one_mem {x : M} : (1 : M) ∈ powers x := ⟨0, pow_zero _⟩
 
 /-- 0 is in the set of natural number multiples of an element of an `add_monoid`. -/
-lemma multiples.zero_mem {x : A} : (0 : A) ∈ multiples x := ⟨0, add_monoid.zero_smul _⟩
+lemma multiples.zero_mem {x : A} : (0 : A) ∈ multiples x := ⟨0, zero_nsmul _⟩
 attribute [to_additive] powers.one_mem
 
 /-- An element of a monoid is in the set of that element's natural number powers. -/
 lemma powers.self_mem {x : M} : x ∈ powers x := ⟨1, pow_one _⟩
 
 /-- An element of an `add_monoid` is in the set of that element's natural number multiples. -/
-lemma multiples.self_mem {x : A} : x ∈ multiples x := ⟨1, add_monoid.one_smul _⟩
+lemma multiples.self_mem {x : A} : x ∈ multiples x := ⟨1, one_nsmul _⟩
 attribute [to_additive] powers.self_mem
 
 /-- The set of natural number powers of an element of a monoid is closed under multiplication. -/
@@ -128,7 +131,8 @@ lemma multiples.add_mem {x y z : A} :
 attribute [to_additive] powers.mul_mem
 
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
-@[to_additive is_add_submonoid "The set of natural number multiples of an element of an `add_monoid` `M` is an `add_submonoid` of `M`."]
+@[to_additive is_add_submonoid "The set of natural number multiples of an element of
+an `add_monoid` `M` is an `add_submonoid` of `M`."]
 instance powers.is_submonoid (x : M) : is_submonoid (powers x) :=
 { one_mem := powers.one_mem,
   mul_mem := λ y z, powers.mul_mem }
@@ -138,7 +142,8 @@ instance powers.is_submonoid (x : M) : is_submonoid (powers x) :=
 instance univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
 
 /-- The preimage of a submonoid under a monoid hom is a submonoid of the domain. -/
-@[to_additive is_add_submonoid "The preimage of an `add_submonoid` under an `add_monoid` hom is an `add_submonoid` of the domain."]
+@[to_additive is_add_submonoid "The preimage of an `add_submonoid` under an `add_monoid` hom is
+an `add_submonoid` of the domain."]
 instance preimage.is_submonoid {N : Type*} [monoid N] (f : M → N) [is_monoid_hom f]
   (s : set N) [is_submonoid s] : is_submonoid (f ⁻¹' s) :=
 { one_mem := show f 1 ∈ s, by rw is_monoid_hom.map_one f; exact is_submonoid.one_mem,
@@ -146,7 +151,8 @@ instance preimage.is_submonoid {N : Type*} [monoid N] (f : M → N) [is_monoid_h
     show f (a * b) ∈ s, by rw is_monoid_hom.map_mul f; exact is_submonoid.mul_mem ha hb }
 
 /-- The image of a submonoid under a monoid hom is a submonoid of the codomain. -/
-@[instance, to_additive is_add_submonoid "The image of an `add_submonoid` under an `add_monoid` hom is an `add_submonoid` of the codomain."]
+@[instance, to_additive is_add_submonoid "The image of an `add_submonoid` under an `add_monoid`
+hom is an `add_submonoid` of the codomain."]
 lemma image.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom f]
   (s : set M) [is_submonoid s] : is_submonoid (f '' s) :=
 { one_mem := ⟨1, is_submonoid.one_mem, is_monoid_hom.map_one f⟩,
@@ -154,7 +160,8 @@ lemma image.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom 
     by rw [is_monoid_hom.map_mul f, hx.2, hy.2]⟩ }
 
 /-- The image of a monoid hom is a submonoid of the codomain. -/
-@[to_additive is_add_submonoid "The image of an `add_monoid` hom is an `add_submonoid` of the codomain."]
+@[to_additive is_add_submonoid "The image of an `add_monoid` hom is an `add_submonoid`
+of the codomain."]
 instance range.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom f] :
   is_submonoid (set.range f) :=
 by rw ← set.image_univ; apply_instance
@@ -166,7 +173,7 @@ lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ
 
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
-  ∀ (h : a ∈ t) {n : ℕ}, add_monoid.smul n a ∈ t :=
+  ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t :=
 @is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
@@ -186,7 +193,8 @@ end powers
 namespace is_submonoid
 
 /-- The product of a list of elements of a submonoid is an element of the submonoid. -/
-@[to_additive "The sum of a list of elements of an `add_submonoid` is an element of the `add_submonoid`."]
+@[to_additive "The sum of a list of elements of an `add_submonoid` is an element of the
+`add_submonoid`."]
 lemma list_prod_mem [is_submonoid s] : ∀{l : list M}, (∀x∈l, x ∈ s) → l.prod ∈ s
 | []     h := one_mem
 | (a::l) h :=
@@ -194,8 +202,10 @@ lemma list_prod_mem [is_submonoid s] : ∀{l : list M}, (∀x∈l, x ∈ s) → 
   have a ∈ s ∧ (∀x∈l, x ∈ s), by simpa using h,
   is_submonoid.mul_mem this.1 (list_prod_mem this.2)
 
-/-- The product of a multiset of elements of a submonoid of a `comm_monoid` is an element of the submonoid. -/
-@[to_additive "The sum of a multiset of elements of an `add_submonoid` of an `add_comm_monoid` is an element of the `add_submonoid`. "]
+/-- The product of a multiset of elements of a submonoid of a `comm_monoid` is an element of
+the submonoid. -/
+@[to_additive "The sum of a multiset of elements of an `add_submonoid` of an `add_comm_monoid`
+is an element of the `add_submonoid`. "]
 lemma multiset_prod_mem {M} [comm_monoid M] (s : set M) [is_submonoid s] (m : multiset M) :
   (∀a∈m, a ∈ s) → m.prod ∈ s :=
 begin
@@ -204,8 +214,10 @@ begin
   exact list_prod_mem hl
 end
 
-/-- The product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is an element of the submonoid. -/
-@[to_additive "The sum of elements of an `add_submonoid` of an `add_comm_monoid` indexed by a `finset` is an element of the `add_submonoid`."]
+/-- The product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is an element
+of the submonoid. -/
+@[to_additive "The sum of elements of an `add_submonoid` of an `add_comm_monoid` indexed by
+a `finset` is an element of the `add_submonoid`."]
 lemma finset_prod_mem {M A} [comm_monoid M] (s : set M) [is_submonoid s] (f : A → M) :
   ∀(t : finset A), (∀b∈t, f b ∈ s) → t.prod f ∈ s
 | ⟨m, hm⟩ hs :=
@@ -231,7 +243,8 @@ instance subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
   mul_assoc := λ x y z, subtype.eq $ mul_assoc x.1 y.1 z.1 }
 
 /-- Submonoids of commutative monoids are themselves commutative monoids. -/
-@[to_additive add_comm_monoid "An `add_submonoid` of a commutative `add_monoid` is itself a commutative `add_monoid`. "]
+@[to_additive add_comm_monoid "An `add_submonoid` of a commutative `add_monoid` is itself
+a commutative `add_monoid`. "]
 instance subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : comm_monoid s :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subtype.monoid }
@@ -253,24 +266,27 @@ by induction n; simp [*, pow_succ]
 
 /-- An `add_submonoid` inherits the multiplication by naturals of the `add_monoid`. -/
 @[simp, norm_cast] lemma is_add_submonoid.smul_coe {A : Type*} [add_monoid A] {s : set A}
-  [is_add_submonoid s] (a : s) (n : ℕ) : ((add_monoid.smul n a : s) : A) = add_monoid.smul n a :=
-by {induction n, refl, simp [*, succ_smul]}
+  [is_add_submonoid s] (a : s) (n : ℕ) : ((n •ℕ a : s) : A) = n •ℕ a :=
+by {induction n, refl, simp [*, succ_nsmul]}
 
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 
 /-- The natural injection from a submonoid into the monoid is a monoid hom. -/
-@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into the `add_monoid` is an `add_monoid` hom. "]
+@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into
+the `add_monoid` is an `add_monoid` hom. "]
 instance subtype_val.is_monoid_hom [is_submonoid s] : is_monoid_hom (subtype.val : s → M) :=
 { map_one := rfl, map_mul := λ _ _, rfl }
 
 /-- The natural injection from a submonoid into the monoid is a monoid hom. -/
-@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into the `add_monoid` is an `add_monoid` hom. "]
+@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into
+the `add_monoid` is an `add_monoid` hom. "]
 instance coe.is_monoid_hom [is_submonoid s] : is_monoid_hom (coe : s → M) :=
 subtype_val.is_monoid_hom
 
 /-- Given a monoid hom `f : γ → M` whose image is contained in a submonoid `s`, the induced map
     from `γ` to `s` is a monoid hom. -/
-@[to_additive is_add_monoid_hom "Given an `add_monoid` hom `f : γ → M` whose image is contained in an `add_submonoid` s, the induced map from `γ` to `s` is an `add_monoid` hom."]
+@[to_additive is_add_monoid_hom "Given an `add_monoid` hom `f : γ → M` whose image is contained in
+an `add_submonoid` s, the induced map from `γ` to `s` is an `add_monoid` hom."]
 instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f : γ → M)
   [is_monoid_hom f] (h : ∀ x, f x ∈ s) : is_monoid_hom (λ x, (⟨f x, h x⟩ : s)) :=
 { map_one := subtype.eq (is_monoid_hom.map_one f),
@@ -278,7 +294,8 @@ instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f :
 
 /-- Given two submonoids `s` and `t` such that `s ⊆ t`, the natural injection from `s` into `t` is
     a monoid hom. -/
-@[to_additive is_add_monoid_hom "Given two `add_submonoid`s `s` and `t` such that `s ⊆ t`, the natural injection from `s` into `t` is an `add_monoid` hom."]
+@[to_additive is_add_monoid_hom "Given two `add_submonoid`s `s` and `t` such that `s ⊆ t`, the
+natural injection from `s` into `t` is an `add_monoid` hom."]
 instance set_inclusion.is_monoid_hom (t : set M) [is_submonoid s] [is_submonoid t] (h : s ⊆ t) :
   is_monoid_hom (set.inclusion h) :=
 subtype_mk.is_monoid_hom _ _
@@ -321,26 +338,30 @@ theorem subset_closure {s : set M} : s ⊆ closure s :=
 assume a, in_closure.basic
 
 /-- The submonoid generated by a set is contained in any submonoid that contains the set. -/
-@[to_additive "The `add_submonoid` generated by a set is contained in any `add_submonoid` that contains the set."]
+@[to_additive "The `add_submonoid` generated by a set is contained in any `add_submonoid` that
+contains the set."]
 theorem closure_subset {s t : set M} [is_submonoid t] (h : s ⊆ t) : closure s ⊆ t :=
 assume a ha, by induction ha; simp [h _, *, is_submonoid.one_mem, is_submonoid.mul_mem]
 
 /-- Given subsets `t` and `s` of a monoid `M`, if `s ⊆ t`, the submonoid of `M` generated by `s` is
     contained in the submonoid generated by `t`. -/
-@[to_additive "Given subsets `t` and `s` of an `add_monoid M`, if `s ⊆ t`, the `add_submonoid` of `M` generated by `s` is contained in the `add_submonoid` generated by `t`."]
+@[to_additive "Given subsets `t` and `s` of an `add_monoid M`, if `s ⊆ t`, the `add_submonoid`
+of `M` generated by `s` is contained in the `add_submonoid` generated by `t`."]
 theorem closure_mono {s t : set M} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
 
 /-- The submonoid generated by an element of a monoid equals the set of natural number powers of
     the element. -/
-@[to_additive "The `add_submonoid` generated by an element of an `add_monoid` equals the set of natural number multiples of the element."]
+@[to_additive "The `add_submonoid` generated by an element of an `add_monoid` equals the set of
+natural number multiples of the element."]
 theorem closure_singleton {x : M} : closure ({x} : set M) = powers x :=
 set.eq_of_subset_of_subset (closure_subset $ set.singleton_subset_iff.2 $ powers.self_mem) $
   is_submonoid.power_subset $ set.singleton_subset_iff.1 $ subset_closure
 
 /-- The image under a monoid hom of the submonoid generated by a set equals the submonoid generated
     by the image of the set under the monoid hom. -/
-@[to_additive "The image under an `add_monoid` hom of the `add_submonoid` generated by a set equals the `add_submonoid` generated by the image of the set under the `add_monoid` hom."]
+@[to_additive "The image under an `add_monoid` hom of the `add_submonoid` generated by a set equals
+the `add_submonoid` generated by the image of the set under the `add_monoid` hom."]
 lemma image_closure {A : Type*} [monoid A] (f : M → A) [is_monoid_hom f] (s : set M) :
   f '' closure s = closure (f '' s) :=
 le_antisymm
@@ -353,9 +374,10 @@ le_antisymm
   end
   (closure_subset $ set.image_subset _ subset_closure)
 
-/-- Given an element `a` of the submonoid of a monoid `M` generated by a set `s`, there exists a list of
-    elements of `s` whose product is `a`. -/
-@[to_additive "Given an element `a` of the `add_submonoid` of an `add_monoid M` generated by a set `s`, there exists a list of elements of `s` whose sum is `a`."]
+/-- Given an element `a` of the submonoid of a monoid `M` generated by a set `s`, there exists
+a list of elements of `s` whose product is `a`. -/
+@[to_additive "Given an element `a` of the `add_submonoid` of an `add_monoid M` generated by
+a set `s`, there exists a list of elements of `s` whose sum is `a`."]
 theorem exists_list_of_mem_closure {s : set M} {a : M} (h : a ∈ closure s) :
   (∃l:list M, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
 begin
@@ -374,15 +396,19 @@ end
 /-- Given sets `s, t` of a commutative monoid `M`, `x ∈ M` is in the submonoid of `M` generated by
     `s ∪ t` iff there exists an element of the submonoid generated by `s` and an element of the
     submonoid generated by `t` whose product is `x`. -/
-@[to_additive "Given sets `s, t` of a commutative `add_monoid M`, `x ∈ M` is in the `add_submonoid` of `M` generated by `s ∪ t` iff there exists an element of the `add_submonoid` generated by `s` and an element of the `add_submonoid` generated by `t` whose sum is `x`."]
+@[to_additive "Given sets `s, t` of a commutative `add_monoid M`, `x ∈ M` is in the `add_submonoid`
+of `M` generated by `s ∪ t` iff there exists an element of the `add_submonoid` generated by `s`
+and an element of the `add_submonoid` generated by `t` whose sum is `x`."]
 theorem mem_closure_union_iff {M : Type*} [comm_monoid M] {s t : set M} {x : M} :
   x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
 ⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
   list.rec_on L (λ _, ⟨1, is_submonoid.one_mem, 1, is_submonoid.one_mem, mul_one _⟩)
     (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in
       or.cases_on (HL1 hd $ list.mem_cons_self _ _)
-        (λ hs, ⟨hd * y, is_submonoid.mul_mem (subset_closure hs) hy, z, hz, by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
-        (λ ht, ⟨y, hy, z * hd, is_submonoid.mul_mem hz (subset_closure ht), by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,
+        (λ hs, ⟨hd * y, is_submonoid.mul_mem (subset_closure hs) hy, z, hz,
+          by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
+        (λ ht, ⟨y, hy, z * hd, is_submonoid.mul_mem hz (subset_closure ht),
+          by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,
 λ ⟨y, hy, z, hz, hyzx⟩, hyzx ▸ is_submonoid.mul_mem (closure_mono (set.subset_union_left _ _) hy)
   (closure_mono (set.subset_union_right _ _) hz)⟩
 
@@ -535,7 +561,8 @@ lemma list_prod_mem : ∀ {l : list M}, (∀x ∈ l, x ∈ S) → l.prod ∈ S
   S.mul_mem this.1 (list_prod_mem this.2)
 
 /-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
-@[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is in the `add_submonoid`."]
+@[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
+in the `add_submonoid`."]
 lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M) :
   (∀a ∈ m, a ∈ S) → m.prod ∈ S :=
 begin
@@ -546,7 +573,8 @@ end
 
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
-@[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset` is in the `add_submonoid`."]
+@[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
+is in the `add_submonoid`."]
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
   t.prod f ∈ S :=
@@ -566,14 +594,19 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
 @[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
+@[simp, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
+attribute [norm_cast] coe_eq_coe coe_mul coe_one
+attribute [norm_cast] add_submonoid.coe_eq_coe add_submonoid.coe_add add_submonoid.coe_zero
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid` structure."]
+@[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
+structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
+by refine { mul := (*), one := 1, .. }; simp [mul_assoc, ← submonoid.coe_eq_coe]
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
-@[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is an `add_comm_monoid`."]
+@[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is
+an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..S.to_monoid}
 
@@ -761,7 +794,7 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → submonoid M} (hS : directed (≤) S)
   {x : M} :
-  x ∈ (supr S : submonoid M) ↔ ∃ i, x ∈ S i :=
+  x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
   refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
   suffices : x ∈ closure (⋃ i, (S i : set M)) → ∃ i, x ∈ S i,
@@ -774,6 +807,11 @@ begin
 end
 
 @[to_additive]
+lemma coe_supr_of_directed {ι} [nonempty ι] {S : ι → submonoid M} (hS : directed (≤) S) :
+  ((⨆ i, S i : submonoid M) : set M) = ⋃ i, ↑(S i) :=
+set.ext $ λ x, by simp [mem_supr_of_directed hS]
+
+@[to_additive]
 lemma mem_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : M} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
@@ -783,10 +821,16 @@ begin
   exact (directed_on_iff_directed _).1 hS
 end
 
+@[to_additive]
+lemma coe_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
+  (↑(Sup S) : set M) = ⋃ s ∈ S, ↑s :=
+set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+
 variables {N : Type*} [monoid N] {P : Type*} [monoid P]
 
 /-- The preimage of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive "The preimage of an `add_submonoid` along an `add_monoid` homomorphism is an `add_submonoid`."]
+@[to_additive "The preimage of an `add_submonoid` along an `add_monoid` homomorphism is an
+`add_submonoid`."]
 def comap (f : M →* N) (S : submonoid N) : submonoid M :=
 { carrier := (f ⁻¹' S),
   one_mem' := show f 1 ∈ S, by rw f.map_one; exact S.one_mem,
@@ -805,7 +849,8 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
 rfl
 
 /-- The image of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive "The image of an `add_submonoid` along an `add_monoid` homomorphism is an `add_submonoid`."]
+@[to_additive "The image of an `add_submonoid` along an `add_monoid` homomorphism is
+an `add_submonoid`."]
 def map (f : M →* N) (S : submonoid M) : submonoid N :=
 { carrier := (f '' S),
   one_mem' := ⟨1, S.one_mem, f.map_one⟩,
@@ -858,8 +903,10 @@ lemma comap_infi {ι : Sort*} (f : M →* N) (s : ι → submonoid N) :
 @[simp, to_additive] lemma comap_top (f : M →* N) : (⊤ : submonoid N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-/-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid of `M × N`. -/
-@[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t` as an `add_submonoid` of `A × B`."]
+/-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
+of `M × N`. -/
+@[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
+as an `add_submonoid` of `A × B`."]
 def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
 { carrier := (s : set M).prod t,
   one_mem' := ⟨s.one_mem, t.one_mem⟩,
@@ -935,29 +982,26 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def restrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
+def mrestrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
 
-@[to_additive]
-lemma restrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.restrict S x = f x := rfl
-
-@[simp, to_additive] lemma restrict_eq {N : Type} [monoid N] (f : M →* N) (x) :
-  f.restrict S x = f x := rfl
+@[simp, to_additive]
+lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
-def cod_restrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
+def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
 /-- Restriction of a monoid hom to its range iterpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
-def range_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
-f.cod_restrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+def mrange_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
+f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
 
 @[simp, to_additive]
-lemma coe_range_restrict {N} [monoid N] (f : M →* N) (x : M) :
-  (f.range_restrict x : N) = f x :=
+lemma coe_mrange_restrict {N} [monoid N] (f : M →* N) (x : M) :
+  (f.mrange_restrict x : N) = f x :=
 rfl
 
 @[to_additive]
@@ -995,7 +1039,7 @@ lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h 
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
 @[to_additive]
-lemma closure_preimage_le (f : M →* N) (s : set N) :
+lemma mclosure_preimage_le (f : M →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
@@ -1007,7 +1051,7 @@ lemma map_mclosure (f : M →* N) (s : set M) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (closure_preimage_le _ _))
+    (mclosure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
 end monoid_hom
@@ -1029,12 +1073,12 @@ namespace submonoid
 
 variables {N : Type*} [monoid N]
 
-open monoid_hom lattice
+open monoid_hom
 
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_restrict _ (λ x, h x.2)
+S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
@@ -1050,7 +1094,7 @@ lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:�
 by rw [closure_singleton_eq, mem_mrange]; refl
 
 @[to_additive]
-lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift s M coe).mrange :=
+lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
 by rw [mrange, ← free_monoid.closure_range_of, map_mclosure,
   ← set.range_comp, free_monoid.lift_comp_of, set.range_coe_subtype]
 
@@ -1131,17 +1175,18 @@ namespace add_submonoid
 open set
 
 lemma smul_mem (S : add_submonoid A) {x : A} (hx : x ∈ S) :
-  ∀ n : ℕ, add_monoid.smul n x ∈ S
+  ∀ n : ℕ, n •ℕ x ∈ S
 | 0     := S.zero_mem
 | (n+1) := S.add_mem hx (smul_mem n)
 
 lemma closure_singleton_eq (x : A) : closure ({x} : set A) = (multiples_hom A x).mrange :=
-closure_eq_of_le (set.singleton_subset_iff.2 ⟨1, trivial, add_monoid.one_smul x⟩) $
+closure_eq_of_le (set.singleton_subset_iff.2 ⟨1, trivial, one_nsmul x⟩) $
   λ x ⟨n, _, hn⟩, hn ▸ smul_mem _ (subset_closure $ set.mem_singleton _) _
 
 /-- The `add_submonoid` generated by an element of an `add_monoid` equals the set of
 natural number multiples of the element. -/
-lemma mem_closure_singleton {x y : A} : y ∈ closure ({x} : set A) ↔ ∃ n:ℕ, add_monoid.smul n x = y :=
+lemma mem_closure_singleton {x y : A} :
+  y ∈ closure ({x} : set A) ↔ ∃ n:ℕ, n •ℕ x = y :=
 by rw [closure_singleton_eq, add_monoid_hom.mem_mrange]; refl
 
 end add_submonoid
@@ -1153,7 +1198,8 @@ variables {S T : submonoid M}
 
 /-- Makes the identity isomorphism from a proof two submonoids of a multiplicative
     monoid are equal. -/
-@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two submonoids of an additive monoid are equal."]
+@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two
+submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.1 h }
 

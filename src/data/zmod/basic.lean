@@ -331,6 +331,36 @@ lemma cast_int_cast (k : ℤ) : ((k : zmod n) : R) = k :=
 
 end universal_property
 
+lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
+char_p.int_coe_eq_int_coe_iff (zmod c) c a b
+
+lemma nat_coe_eq_nat_coe_iff (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
+begin
+  convert zmod.int_coe_eq_int_coe_iff a b c,
+  simp [nat.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd],
+end
+
+lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
+begin
+  change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
+  rw [zmod.int_coe_eq_int_coe_iff, int.modeq.modeq_zero_iff],
+end
+
+lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=
+begin
+  change (a : zmod b) = ((0 : ℕ) : zmod b) ↔ b ∣ a,
+  rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq.modeq_zero_iff],
+end
+
+@[push_cast]
+lemma cast_mod_int (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
+begin
+  rw zmod.int_coe_eq_int_coe_iff,
+  apply int.modeq.mod_modeq,
+end
+
 lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=
 begin
@@ -362,12 +392,11 @@ begin
   { apply fin.val_mul }
 end
 
-instance nonzero_comm_ring (n : ℕ) [fact (1 < n)] : nonzero_comm_ring (zmod n) :=
+instance nonzero (n : ℕ) [fact (1 < n)] : nonzero (zmod n) :=
 { zero_ne_one := assume h, zero_ne_one $
    calc 0 = (0 : zmod n).val : by rw val_zero
       ... = (1 : zmod n).val : congr_arg zmod.val h
-      ... = 1                : val_one n,
-  .. zmod.comm_ring n }
+      ... = 1                : val_one n }
 
 /-- The inversion on `zmod n`.
 It is setup in such a way that `a * a⁻¹` is equal to `gcd a.val n`.
@@ -520,15 +549,7 @@ by rwa [← h, ← not_lt, not_iff_self] at this
 
 lemma neg_one_ne_one {n : ℕ} [fact (2 < n)] :
   (-1 : zmod n) ≠ 1 :=
-begin
-  suffices : (2 : zmod n) ≠ 0,
-  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
-  assume h,
-  rw [show (2 : zmod n) = (2 : ℕ), by norm_cast] at h,
-  have := (char_p.cast_eq_zero_iff (zmod n) n 2).mp h,
-  have := nat.le_of_dvd dec_trivial this,
-  rw fact at *, linarith,
-end
+char_p.neg_one_ne_one (zmod n) n
 
 @[simp] lemma neg_eq_self_mod_two : ∀ (a : zmod 2), -a = a := dec_trivial
 
@@ -690,7 +711,8 @@ end
 instance : field (zmod p) :=
 { mul_inv_cancel := mul_inv_cancel_aux p,
   inv_zero := inv_zero p,
-  .. zmod.nonzero_comm_ring p,
+  .. zmod.comm_ring p,
+  .. zmod.nonzero p,
   .. zmod.has_inv p }
 
 end zmod

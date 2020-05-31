@@ -141,7 +141,7 @@ by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
 @[simp] lemma norm_nonneg (g : α) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
 
-lemma norm_eq_zero {g : α} : ∥g∥ = 0 ↔ g = 0 :=
+@[simp] lemma norm_eq_zero {g : α} : ∥g∥ = 0 ↔ g = 0 :=
 dist_zero_right g ▸ dist_eq_zero
 
 @[simp] lemma norm_zero : ∥(0:α)∥ = 0 := norm_eq_zero.2 rfl
@@ -564,7 +564,7 @@ begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
-  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos εpos) (pow_pos norm_r_pos 2),
+  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos (half_pos εpos) (pow_pos norm_r_pos 2),
   have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
   refine ⟨δ, δpos, λ x hx, _⟩,
   have rx : ∥r∥/2 ≤ ∥x∥ := calc
@@ -670,13 +670,15 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 section normed_space
 
 section prio
-set_option default_priority 100 -- see Note [default priority]
--- see Note[vector space definition] for why we extend `module`.
+set_option default_priority 920 -- see Note [default priority]. Here, we set a rather high priority,
+-- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
+-- unification properties.
+-- see Note[vector space definition] for why we extend `semimodule`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends module α β :=
+  extends semimodule α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 end prio
 
@@ -850,7 +852,7 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.module }
+  ..prod.semimodule }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
@@ -900,12 +902,14 @@ variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
+-- We could add a type synonym equipped with this as an instance,
+-- as we've done for `module.restrict_scalars`.
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..module.restrict_scalars 𝕜 𝕜' E }
+  ..module.restrict_scalars' 𝕜 𝕜' E }
 
 end restrict_scalars
 

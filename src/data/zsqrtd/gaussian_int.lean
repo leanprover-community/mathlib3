@@ -176,8 +176,8 @@ by rw [norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right' (nat.zero_le _)
     (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
 
-instance : nonzero_comm_ring ℤ[i] :=
-{ zero_ne_one := dec_trivial, ..gaussian_int.comm_ring }
+instance : nonzero ℤ[i] :=
+{ zero_ne_one := dec_trivial }
 
 instance : euclidean_domain ℤ[i] :=
 { quotient := (/),
@@ -187,7 +187,9 @@ instance : euclidean_domain ℤ[i] :=
   r := _,
   r_well_founded := measure_wf (int.nat_abs ∘ norm),
   remainder_lt := nat_abs_norm_mod_lt,
-  mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0 }
+  mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0,
+  .. gaussian_int.comm_ring,
+  .. gaussian_int.nonzero }
 
 open principal_ideal_domain
 

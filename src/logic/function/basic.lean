@@ -115,6 +115,12 @@ theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inver
   injective f :=
 h.left_inverse.injective
 
+theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
+  (h₂ : right_inverse g₂ f) :
+  g₁ = g₂ :=
+calc g₁ = g₁ ∘ f ∘ g₂ : by rw [h₂.comp_eq_id, comp.right_id]
+    ... = g₂          : by rw [← comp.assoc, h₁.comp_eq_id, comp.left_id]
+
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
@@ -273,6 +279,19 @@ begin
   { rw h, simp },
   { simp [h] }
 end
+
+theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
+  {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
+  update (update f a v) b w = update (update f b w) a v :=
+begin
+  funext c, simp [update],
+  by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
+  cases h (h₂.symm.trans h₁),
+end
+
+@[simp] theorem update_idem {α} [decidable_eq α] {β : α → Sort*}
+  {a : α} (v w : β a) (f : Πa, β a) : update (update f a v) a w = update f a w :=
+by {funext b, by_cases b = a; simp [update, h]}
 
 end update
 

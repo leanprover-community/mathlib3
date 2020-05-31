@@ -112,6 +112,10 @@ regular_mono f :=
     { erw [← cancel_mono k, category.assoc, category.assoc, ← comm, reassoc_of z] },
   end }
 
+/-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
+def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
+@is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
+
 section
 variables [has_zero_morphisms.{v₁} C]
 /-- A normal monomorphism is a morphism which is the kernel of some morphism. -/
@@ -247,6 +251,10 @@ regular_epi k :=
     { erw [← cancel_epi f, reassoc_of comm, reassoc_of comm, z], refl },
     { exact z },
   end }
+
+/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
+def is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+@is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
 
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=

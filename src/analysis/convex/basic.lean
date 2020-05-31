@@ -880,8 +880,9 @@ The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so th
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull s =
-    (⇑((@finset.univ _ hs.fintype).sum (λ x, (linear_map.proj x : (s → ℝ) →ₗ[ℝ] ℝ).smul_right x.1))) ''
-      (@std_simplex _ hs.fintype) :=
+    (⇑((@finset.univ _ hs.fintype).sum
+      (λ x, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1))) ''
+        (@std_simplex _ hs.fintype) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← range_comp, (∘)],
   apply congr_arg,

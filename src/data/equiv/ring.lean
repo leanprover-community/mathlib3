@@ -198,7 +198,7 @@ end ring_hom
 @[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
   {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
@@ -261,7 +261,7 @@ namespace equiv
 variables (K : Type*) [division_ring K]
 
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, a.coe_ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}
 

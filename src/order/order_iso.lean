@@ -240,15 +240,19 @@ to_equiv_injective $ equiv.coe_fn_injective h
 @[ext] theorem ext {e₁ e₂ : r ≃o s} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
 coe_fn_injective $ funext h
 
+/-- Identity map is an order isomorphism. -/
 @[refl] protected def refl (r : α → α → Prop) : r ≃o r :=
 ⟨equiv.refl _, λ a b, iff.rfl⟩
 
+/-- Inverse map of an order isomorphism is an order isomorphism. -/
 @[symm] protected def symm (f : r ≃o s) : s ≃o r :=
 ⟨f.to_equiv.symm, λ a b, by cases f with f o; rw o; simp⟩
 
+/-- Composition of two order isomorphisms is an order isomorphism. -/
 @[trans] protected def trans (f₁ : r ≃o s) (f₂ : s ≃o t) : r ≃o t :=
 ⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.ord.trans f₂.ord⟩
 
+/-- An order isomorphism is also an order isomorphism between dual orders. -/
 def rsymm (f : r ≃o s) : (swap r) ≃o (swap s) :=
 ⟨f.to_equiv, λ _ _, f.ord⟩
 
@@ -279,11 +283,12 @@ protected lemma surjective (e : r ≃o s) : surjective e := e.to_equiv.surjectiv
 /-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃o s := ⟨f, λ a b, iff.rfl⟩
 
+/-- A surjective order embedding is an order isomorphism. -/
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 ⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
-by delta of_surjective; simp
+rfl
 
 def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :

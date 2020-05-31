@@ -255,9 +255,9 @@ rwa [xgcd_aux_val, xgcd_val] at this
 instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
-    λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div],
-  ..e }
+    λ a b h, (or_iff_not_and_not.2 $ λ h0,
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
+  zero := 0, add := (+), mul := (*), ..e }
 
 end gcd
 
@@ -333,7 +333,12 @@ end lcm
 end euclidean_domain
 
 instance int.euclidean_domain : euclidean_domain ℤ :=
-{ quotient := (/),
+{ add := (+),
+  mul := (*),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
@@ -350,7 +355,12 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
-{ quotient := (/),
+{ add := (+),
+  mul := (*),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  quotient := (/),
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,

@@ -171,8 +171,8 @@ open function (hiding const) is_monoid_hom
 def map_fold [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
   applicative_transformation (const α) (const β) :=
 { app := λ x, f,
-  preserves_seq'  := by { intros, simp only [map_mul f], },
-  preserves_pure' := by { intros, simp only [map_one f] } }
+  preserves_seq'  := by { intros, simp only [map_mul f, (<*>)], },
+  preserves_pure' := by { intros, simp only [map_one f, pure] } }
 
 def free.mk : α → free_monoid α := list.ret
 

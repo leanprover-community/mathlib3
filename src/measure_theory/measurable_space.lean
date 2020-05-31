@@ -521,7 +521,8 @@ lemma measurable_of_measurable_union_cover
 assume u (hu : is_measurable u), show is_measurable (f ⁻¹' u), from
 begin
   rw show f ⁻¹' u = coe '' (coe ⁻¹' (f ⁻¹' u) : set s) ∪ coe '' (coe ⁻¹' (f ⁻¹' u) : set t),
-    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype, range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
+    by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, range_coe_subtype,
+      range_coe_subtype, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
   exact is_measurable.union
     (is_measurable_subtype_image hs (hc _ hu))
     (is_measurable_subtype_image ht (hd _ hu))

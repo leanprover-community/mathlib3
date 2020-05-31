@@ -15,7 +15,8 @@ import ring_theory.subring
 * `centralizer a` : `{ x | commute a x }`
 * `set.centralizer s` : elements that commute with all `a ∈ s`
 
-We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the available structures, and provide operations on `commute _ _`.
+We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the
+available structures, and provide operations on `commute _ _`.
 
 E.g., if `a`, `b`, and c are elements of a semiring, and that `hb :
 commute a b` and `hc : commute a c`.  Then `hb.pow_left 5` proves

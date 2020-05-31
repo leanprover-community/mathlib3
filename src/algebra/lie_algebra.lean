@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import ring_theory.algebra
 import linear_algebra.linear_action
 import linear_algebra.bilinear_form
+import tactic.noncomm_ring
 
 /-!
 # Lie algebras
@@ -79,17 +80,7 @@ by simp [commutator]
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-begin
-  unfold commutator,
-  repeat { rw mul_sub_left_distrib },
-  repeat { rw mul_sub_right_distrib },
-  repeat { rw add_sub },
-  repeat { rw ←sub_add },
-  repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
-  repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm, add_assoc],
-end
+by { unfold commutator, noncomm_ring, }
 
 end ring_commutator
 
@@ -182,7 +173,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
-class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends module R L :=
+class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 end prio
 
@@ -708,7 +699,8 @@ embedding from the corresponding Lie subalgebra of skew-adjoint endomorphisms in
 of matrices. -/
 def skew_adjoint_matrices_lie_embedding :
   J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
-lie_equiv_matrix'.to_morphism.comp (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
+lie_algebra.morphism.comp (lie_algebra.equiv.to_morphism lie_equiv_matrix')
+  (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
 def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=

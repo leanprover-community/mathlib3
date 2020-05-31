@@ -112,7 +112,6 @@ end constructions
 
 
 section prod
-open topological_space
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 lemma continuous_fst : continuous (@prod.fst α β) :=
@@ -352,53 +351,87 @@ embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embeddi
 end prod
 
 section sum
+open sum
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-lemma continuous_inl : continuous (@sum.inl α β) :=
+lemma continuous_inl : continuous (@inl α β) :=
 continuous_sup_rng_left continuous_coinduced_rng
 
-lemma continuous_inr : continuous (@sum.inr α β) :=
+lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
 lemma continuous_sum_rec {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
 continuous_sup_dom hf hg
 
-lemma embedding_inl : embedding (@sum.inl α β) :=
+lemma is_open_sum_iff {s : set (α ⊕ β)} :
+  is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=
+iff.rfl
+
+lemma is_open_map_sum {f : α ⊕ β → γ}
+  (h₁ : is_open_map (λ a, f (inl a))) (h₂ : is_open_map (λ b, f (inr b))) :
+  is_open_map f :=
+begin
+  intros u hu,
+  rw is_open_sum_iff at hu,
+  cases hu with hu₁ hu₂,
+  have : u = inl '' (inl ⁻¹' u) ∪ inr '' (inr ⁻¹' u),
+  { ext (_|_); simp },
+  rw [this, set.image_union, set.image_image, set.image_image],
+  exact is_open_union (h₁ _ hu₁) (h₂ _ hu₂)
+end
+
+lemma embedding_inl : embedding (@inl α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact le_sup_left },
-    { intros u hu, existsi (sum.inl '' u),
+    { intros u hu, existsi (inl '' u),
       change
-        (is_open (sum.inl ⁻¹' (@sum.inl α β '' u)) ∧
-         is_open (sum.inr ⁻¹' (@sum.inl α β '' u))) ∧
-        sum.inl ⁻¹' (sum.inl '' u) = u,
-      have : sum.inl ⁻¹' (@sum.inl α β '' u) = u :=
-        preimage_image_eq u (λ _ _, sum.inl.inj_iff.mp), rw this,
-      have : sum.inr ⁻¹' (@sum.inl α β '' u) = ∅ :=
-        eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, sum.inl_ne_inr h), rw this,
+        (is_open (inl ⁻¹' (@inl α β '' u)) ∧
+         is_open (inr ⁻¹' (@inl α β '' u))) ∧
+        inl ⁻¹' (inl '' u) = u,
+      have : inl ⁻¹' (@inl α β '' u) = u :=
+        preimage_image_eq u (λ _ _, inl.inj_iff.mp), rw this,
+      have : inr ⁻¹' (@inl α β '' u) = ∅ :=
+        eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, inl_ne_inr h), rw this,
       exact ⟨⟨hu, is_open_empty⟩, rfl⟩ }
   end,
-  inj := λ _ _, sum.inl.inj_iff.mp }
+  inj := λ _ _, inl.inj_iff.mp }
 
-lemma embedding_inr : embedding (@sum.inr α β) :=
+lemma embedding_inr : embedding (@inr α β) :=
 { induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact le_sup_right },
-    { intros u hu, existsi (sum.inr '' u),
+    { intros u hu, existsi (inr '' u),
       change
-        (is_open (sum.inl ⁻¹' (@sum.inr α β '' u)) ∧
-         is_open (sum.inr ⁻¹' (@sum.inr α β '' u))) ∧
-        sum.inr ⁻¹' (sum.inr '' u) = u,
-      have : sum.inl ⁻¹' (@sum.inr α β '' u) = ∅ :=
-        eq_empty_iff_forall_not_mem.mpr (assume b ⟨a, _, h⟩, sum.inr_ne_inl h), rw this,
-      have : sum.inr ⁻¹' (@sum.inr α β '' u) = u :=
-        preimage_image_eq u (λ _ _, sum.inr.inj_iff.mp), rw this,
+        (is_open (inl ⁻¹' (@inr α β '' u)) ∧
+         is_open (inr ⁻¹' (@inr α β '' u))) ∧
+        inr ⁻¹' (inr '' u) = u,
+      have : inl ⁻¹' (@inr α β '' u) = ∅ :=
+        eq_empty_iff_forall_not_mem.mpr (assume b ⟨a, _, h⟩, inr_ne_inl h), rw this,
+      have : inr ⁻¹' (@inr α β '' u) = u :=
+        preimage_image_eq u (λ _ _, inr.inj_iff.mp), rw this,
       exact ⟨⟨is_open_empty, hu⟩, rfl⟩ }
   end,
-  inj := λ _ _, sum.inr.inj_iff.mp }
+  inj := λ _ _, inr.inj_iff.mp }
+
+lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
+{ open_range := begin
+    rw is_open_sum_iff,
+    convert and.intro is_open_univ is_open_empty;
+    { ext, simp }
+  end,
+  .. embedding_inl }
+
+lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
+{ open_range := begin
+    rw is_open_sum_iff,
+    convert and.intro is_open_empty is_open_univ;
+    { ext, simp }
+  end,
+  .. embedding_inr }
 
 end sum
 
@@ -530,7 +563,6 @@ end quotient
 
 section pi
 variables {ι : Type*} {π : ι → Type*}
-open topological_space
 
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=

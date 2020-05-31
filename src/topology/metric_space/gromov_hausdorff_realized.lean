@@ -392,7 +392,8 @@ lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 end constructions --section
 
 section consequences
-variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β] [compact_space β] [nonempty β]
+variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β]
+  [compact_space β] [nonempty β]
 
 /- Now that we have proved that the set of candidates is compact, and that HD is continuous,
 we can finally select a candidate minimizing HD. This will be the candidate realizing the

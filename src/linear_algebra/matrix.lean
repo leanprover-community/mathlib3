@@ -74,7 +74,8 @@ matrix.eval.map_add M N
 @[simp] lemma to_lin_zero : (0 : matrix m n R).to_lin = 0 :=
 matrix.eval.map_zero
 
-@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin := matrix.eval.map_neg M
+@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin :=
+@linear_map.map_neg _ _ ((n → R) →ₗ[R] m → R) _ _ _ _ _ matrix.eval M
 
 instance to_lin.is_linear_map :
   @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
@@ -226,7 +227,7 @@ def trace (n : Type u) (R : Type v) (M : Type w)
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
+by rw [h, diag_one, finset.sum_const, nsmul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
@@ -259,6 +260,10 @@ begin
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
+lemma diagonal_to_lin [decidable_eq m] (w : m → R) :
+  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
+by ext v j; simp [mul_vec_diagonal]
+
 end ring
 
 section vector_space
@@ -277,11 +282,6 @@ begin
   exact le_refl _
 end
 
-
-lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
-  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
-by ext v j; simp [mul_vec_diagonal]
-
 lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
   ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=
 begin
@@ -298,7 +298,7 @@ begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],
   congr, funext i,
-  rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
+  rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end
 
 lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :

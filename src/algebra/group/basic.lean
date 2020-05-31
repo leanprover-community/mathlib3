@@ -577,6 +577,7 @@ class comm_group (G : Type u) extends group G, comm_monoid G
 @[protect_proj, ancestor add_group add_comm_monoid]
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive add_comm_group] comm_group
+attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 
 section comm_group
 variables {G : Type u} [comm_group G]

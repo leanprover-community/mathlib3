@@ -114,9 +114,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/module.lean
-apply_nolint module.core has_inhabited_instance
-
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
 apply_nolint ge_iff_le ge_or_gt
@@ -1635,15 +1632,6 @@ apply_nolint free_group.map.aux doc_blame
 apply_nolint free_group.mk doc_blame
 apply_nolint free_group.to_group.aux doc_blame
 
--- group_theory/group_action.lean
-apply_nolint mul_action.comp_hom doc_blame
-apply_nolint mul_action.fixed_points doc_blame
-apply_nolint mul_action.mul_left_cosets doc_blame
-apply_nolint mul_action.orbit doc_blame
-apply_nolint mul_action.orbit_equiv_quotient_stabilizer doc_blame
-apply_nolint mul_action.orbit_rel doc_blame
-apply_nolint mul_action.stabilizer doc_blame
-
 -- group_theory/order_of_element.lean
 apply_nolint exists_pow_eq_one ge_or_gt
 apply_nolint is_cyclic doc_blame
@@ -1754,7 +1742,6 @@ apply_nolint fin_dim_vectorspace_equiv doc_blame
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame
 apply_nolint linear_map.compr₂ doc_blame
-apply_nolint linear_map.flip doc_blame
 apply_nolint linear_map.lcomp doc_blame
 apply_nolint linear_map.lflip doc_blame
 apply_nolint linear_map.llcomp doc_blame

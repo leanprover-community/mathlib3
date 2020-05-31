@@ -9,9 +9,11 @@ import topology.uniform_space.completion
 import topology.algebra.uniform_group
 noncomputable theory
 
+universes u v
+
 section group
 open uniform_space Cauchy filter set
-variables {α : Type*} [uniform_space α]
+variables {α : Type u} [uniform_space α]
 
 instance [has_zero α] : has_zero (completion α) := ⟨(0 : α)⟩
 instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : α → α)⟩
@@ -61,7 +63,7 @@ instance : uniform_add_group (completion α) :=
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 { map_add := coe_add }
 
-variables {β : Type*} [uniform_space β] [add_group β] [uniform_add_group β]
+variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
 
 lemma is_add_group_hom_extension  [complete_space β] [separated β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
@@ -77,7 +79,7 @@ lemma is_add_group_hom_map
 @is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
   ((continuous_coe _).comp hf)
 
-instance {α : Type*} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
+instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd) (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),

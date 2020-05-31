@@ -310,7 +310,7 @@ is_colimit t :=
 cofork.is_colimit.mk t
   (λ s, (create s).1)
   (λ s, (create s).2.1)
-  (λ s m w, (create s).2.2 (w one)
+  (λ s m w, (create s).2.2 (w one))
 
 /-- This is a helper construction that can be useful when verifying that a category has all
     equalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as

@@ -210,10 +210,10 @@ end
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. -/
-def angle (x y : V) : ℝ := (inner x y / (∥x∥ * ∥y∥)).arccos
+def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
 /-- The cosine of the angle between two vectors. -/
-lemma cos_angle (x y : V) : (angle x y).cos = inner x y / (∥x∥ * ∥y∥) :=
+lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=
 real.cos_arccos (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
                 (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
 
@@ -308,7 +308,7 @@ by rw [angle_comm, angle_smul_right_of_neg y x hr, angle_comm]
 
 /-- The cosine of the angle between two vectors, multiplied by the
 product of their norms. -/
-lemma cos_angle_mul_norm_mul_norm (x y : V) : (angle x y).cos * (∥x∥ * ∥y∥) = inner x y :=
+lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = inner x y :=
 begin
   rw cos_angle,
   by_cases h : (∥x∥ * ∥y∥) = 0,
@@ -323,7 +323,7 @@ end
 
 /-- The sine of the angle between two vectors, multiplied by the
 product of their norms. -/
-lemma sin_angle_mul_norm_mul_norm (x y : V) : (angle x y).sin * (∥x∥ * ∥y∥) =
+lemma sin_angle_mul_norm_mul_norm (x y : V) : real.sin (angle x y) * (∥x∥ * ∥y∥) =
     real.sqrt (inner x x * inner y y - inner x y * inner x y) :=
 begin
   unfold angle,
@@ -474,9 +474,9 @@ lemma norm_sub_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y =
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_mul_cos_angle
     (x y : V) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * (angle x y).cos :=
-by rw [(show 2 * ∥x∥ * ∥y∥ * (angle x y).cos =
-             2 * ((angle x y).cos * (∥x∥ * ∥y∥)), by ring),
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) :=
+by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
+             2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
        cos_angle_mul_norm_mul_norm, ←inner_self_eq_norm_square,
        ←inner_self_eq_norm_square, ←inner_self_eq_norm_square, inner_sub_sub_self,
        sub_add_eq_add_sub]
@@ -642,7 +642,7 @@ lemma dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_c
     (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 =
     dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 -
-      2 * dist p1 p2 * dist p3 p2 * (∠ V p1 p2 p3).cos :=
+      2 * dist p1 p2 * dist p3 p2 * real.cos (∠ V p1 p2 p3) :=
 begin
   rw [dist_eq_norm V p1 p3, dist_eq_norm V p1 p2, dist_eq_norm V p3 p2],
   unfold angle,

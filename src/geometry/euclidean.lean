@@ -47,6 +47,7 @@ corresponding results for Euclidean affine spaces.
 -/
 
 variables {V : Type*} [inner_product_space V]
+
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))

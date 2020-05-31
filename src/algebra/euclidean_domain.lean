@@ -333,7 +333,12 @@ end lcm
 end euclidean_domain
 
 instance int.euclidean_domain : euclidean_domain ℤ :=
-{ quotient := (/),
+{ add := (+),
+  mul := (*),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
@@ -350,7 +355,12 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
-{ quotient := (/),
+{ add := (+),
+  mul := (*),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  quotient := (/),
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,

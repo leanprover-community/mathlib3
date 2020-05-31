@@ -923,19 +923,6 @@ namespace interactive
 meta def under_binders (i : itactic) : itactic := tactic.under_binders i
 end interactive
 
-/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
-meta def under_binders {α : Type} (t : tactic α) : tactic α :=
-do
-  v ← intros,
-  r ← t,
-  revert_lst v,
-  return r
-
-namespace interactive
-/-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
-meta def under_binders (i : itactic) : itactic := tactic.under_binders i
-end interactive
-
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))

@@ -84,8 +84,8 @@ calc  (finset.range n).sum (λ i, x ^ i * x ^ (n - 1 - i))
     = (finset.range n).sum (λ i, x ^ (i + (n - 1 - i))) : by simp_rw [← pow_add]
 ... = (finset.range n).sum (λ i, x ^ (n - 1)) : finset.sum_congr rfl
   (λ i hi, congr_arg _ $ nat.add_sub_cancel' $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
-... = add_monoid.smul (finset.range n).card (x ^ (n - 1)) : finset.sum_const _
-... = n * x ^ (n - 1) : by rw [finset.card_range, add_monoid.smul_eq_mul]
+... = (finset.range n).card •ℕ (x ^ (n - 1)) : finset.sum_const _
+... = n * x ^ (n - 1) : by rw [finset.card_range, nsmul_eq_mul]
 
 /-- $x^n-y^n = (x-y) \sum x^ky^{n-1-k}$ reformulated without `-` signs. -/
 theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :

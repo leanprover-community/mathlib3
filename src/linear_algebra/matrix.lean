@@ -227,7 +227,7 @@ def trace (n : Type u) (R : Type v) (M : Type w)
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
+by rw [h, diag_one, finset.sum_const, nsmul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 

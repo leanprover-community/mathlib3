@@ -209,7 +209,7 @@ begin
   ... ≤ C * univ.sum (λ (i : ι), ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1)) :
     mul_le_mul_of_nonneg_left (sum_le_sum (λi hi, A i)) hC
   ... = C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :
-    by { rw [sum_const, card_univ, add_monoid.smul_eq_mul], ring }
+    by { rw [sum_const, card_univ, nsmul_eq_mul], ring }
 end
 
 /-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, then it is

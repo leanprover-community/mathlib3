@@ -548,7 +548,7 @@ end
 variables [decidable_eq n]
 
 /-- Given a pair of square matrices `J`, `J₂` defining bilinear forms on the free module, there
-is a natural embedding from the corresponding submodule of pair-skew-adjoint endomorphisms into the
+is a natural embedding from the corresponding submodule of pair-self-adjoint endomorphisms into the
 module of matrices. -/
 def pair_self_adjoint_matrices_linear_embedding :
   bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form →ₗ[R] matrix n n R :=

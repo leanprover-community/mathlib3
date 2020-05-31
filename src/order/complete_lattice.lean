@@ -828,17 +828,38 @@ assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, 
 end complete_lattice
 
 section ord_continuous
-variables [complete_lattice α] [complete_lattice β]
 
-/-- A function `f` between complete lattices is order-continuous
-  if it preserves all suprema. -/
-def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
+/-- A function `f` between (conditionally) complete lattices is order-continuous if it preserves
+all suprema. We define it using `is_lub` instead of `Sup` so that the proof works both for
+complete lattices and conditionally complete lattices. -/
+def ord_continuous [preorder α] [preorder β] (f : α → β) :=
+∀ ⦃s : set α⦄ ⦃x⦄, is_lub s x → is_lub (f '' s) (f x)
 
-lemma ord_continuous.sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-by rw [← Sup_pair, ← Sup_pair, hf {a₁, a₂}, ← Sup_image, image_pair]
+lemma ord_continuous.map_is_greatest [preorder α] [preorder β] {f : α → β} (hf : ord_continuous f)
+  {s : set α} {x : α} (h : is_greatest s x):
+  is_greatest (f '' s) (f x) :=
+⟨mem_image_of_mem f h.1, (hf h.is_lub).1⟩
 
-lemma ord_continuous.mono {f : α → β} (hf : ord_continuous f) : monotone f :=
-assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_of_le_right h]
+lemma ord_continuous.map_sup [semilattice_sup α] [semilattice_sup β] {f : α → β}
+  (hf : ord_continuous f) (a₁ a₂ : α) :
+  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
+(hf is_lub_pair).unique $ by simp only [image_pair, is_lub_pair]
+
+lemma ord_continuous.map_Sup [complete_lattice α] [complete_lattice β] {f : α → β}
+  (hf : ord_continuous f) (s : set α) :
+  f (Sup s) = ⨆ x ∈ s, f x :=
+(hf $ is_lub_Sup s).unique $ by simp only [← Sup_image, is_lub_Sup]
+
+lemma ord_continuous.mono [preorder α] [preorder β] {f : α → β}
+  (hf : ord_continuous f) : monotone f :=
+λ a₁ a₂ h,
+have is_greatest {a₁, a₂} a₂ := ⟨or.inr rfl, by simp [*]⟩,
+(hf.map_is_greatest this).2 $ mem_image_of_mem _ (or.inl rfl)
+
+lemma ord_continuous.le_iff [semilattice_sup α] [semilattice_sup β] {f : α → β}
+  (hf : ord_continuous f) (h : function.injective f) {x y} :
+  f x ≤ f y ↔ x ≤ y :=
+by simp only [← sup_eq_right, ← hf.map_sup, h.eq_iff]
 
 end ord_continuous
 

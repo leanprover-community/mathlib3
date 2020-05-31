@@ -1473,10 +1473,10 @@ by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_a
 
 end
 
-/-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv` is the `equiv`
+/-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv s β` is the `equiv`
 between the subtype of finitely supported functions with support contained in `s` and
 the type of finitely supported functions from `s`. -/
-def restrict_support_equiv [add_comm_monoid β] (s : set α) :
+def restrict_support_equiv (s : set α) (β : Type*) [add_comm_monoid β] :
   {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
 begin
   refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,

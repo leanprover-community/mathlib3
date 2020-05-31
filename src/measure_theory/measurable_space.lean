@@ -829,15 +829,9 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       ext ⟨b, c⟩, refl }
   end,
   measurable_inv_fun :=
-    begin
-      refine measurable_sum _ _,
-      { convert measurable.prod_mk
-          (measurable_inl.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨a, c⟩; refl },
-      { convert measurable.prod_mk
-          (measurable_inr.comp (measurable.fst measurable_id)) (measurable.snd measurable_id),
-        ext ⟨b, c⟩; refl }
-    end }
+    measurable_sum
+      ((measurable_inl.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id))
+      ((measurable_inr.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id)) }
 
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
   measurable_equiv (α × (β ⊕ γ)) ((α × β) ⊕ (α × γ)) :=

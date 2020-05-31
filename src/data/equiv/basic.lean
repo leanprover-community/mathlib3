@@ -689,7 +689,7 @@ def sum_arrow_equiv_prod_arrow (α β γ : Type*) : ((α ⊕ β) → γ) ≃ (α
 
 def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (β × γ) :=
 ⟨λ p, match p with (inl a, c) := inl (a, c) | (inr b, c) := inr (b, c) end,
- λ s, match s with inl (a, c) := (inl a, c) | inr (b, c) := (inr b, c) end,
+ λ s, match s with inl q := (inl q.1, q.2) | inr q := (inr q.1, q.2) end,
  λ p, by rcases p with ⟨_ | _, _⟩; refl,
  λ s, by rcases s with ⟨_, _⟩ | ⟨_, _⟩; refl⟩
 
@@ -1256,6 +1256,15 @@ def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 
 def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
+
+/-- To give an equivalence between two subsingleton types, it is sufficient to give any two
+    functions between them. -/
+def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]
+  (f : α → β) (g : β → α) : α ≃ β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
 
 namespace quot
 

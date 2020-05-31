@@ -79,6 +79,7 @@ def regular : mul_action α α :=
 
 variables [mul_action α β]
 
+/-- The orbit of an element under an action. -/
 def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
@@ -97,6 +98,7 @@ instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
 
 variable (α)
 
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself. -/
 def stabilizer (b : β) : set α :=
 {x : α | x • b = b}
 
@@ -107,6 +109,7 @@ variable {α}
 
 variables (α) (β)
 
+/-- The set of elements fixed under the whole action. -/
 def fixed_points : set β := {b : β | ∀ x, x ∈ stabilizer α b}
 
 variables {α} (β)
@@ -119,6 +122,7 @@ lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
 
+/-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
 def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
@@ -181,6 +185,7 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
 
 variables (α) (β)
 
+/-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
@@ -190,6 +195,7 @@ variables {β}
 
 open quotient_group
 
+/-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
 equiv.symm (@equiv.of_bijective _ _
@@ -205,10 +211,15 @@ equiv.symm (@equiv.of_bijective _ _
   by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
 
+@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+  ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
+rfl
+
 end
 
 open quotient_group mul_action is_subgroup
 
+/-- Action on left cosets. -/
 def mul_left_cosets (H : set α) [is_subgroup H]
   (x : α) (y : quotient H) : quotient H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))

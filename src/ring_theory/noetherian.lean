@@ -400,7 +400,7 @@ begin
   haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
-  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _)
+  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.semimodule _ _ _)
     _ _ _ is_noetherian_pi,
   { fapply linear_map.mk,
     { exact λ f, ⟨s.attach.sum (λ i, f i • i.1), N.sum_mem (λ c _, N.smul_mem _ $ this _ c.2)⟩ },

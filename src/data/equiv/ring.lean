@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
 import algebra.field
+import algebra.opposites
 import deprecated.ring
 
 /-!
@@ -83,6 +84,18 @@ lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :
 e.to_equiv.image_eq_preimage s
 
 end basic
+
+section comm_semiring
+open opposite
+
+variables (R) [comm_semiring R]
+
+def to_opposite : R ≃+* Rᵒᵖ :=
+{ map_add' := λ x y, rfl,
+  map_mul' := λ x y, mul_comm (op y) (op x),
+  ..equiv_to_opposite }
+
+end comm_semiring
 
 section
 

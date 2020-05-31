@@ -6,6 +6,7 @@ Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 Opposites.
 -/
 import data.list.defs
+import data.equiv.basic
 
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
 variable (α : Sort u)
@@ -54,6 +55,17 @@ lemma unop_inj : function.injective (unop : αᵒᵖ → α) := λ _ _, id
 @[simp] lemma unop_op (x : α) : unop (op x) = x := rfl
 
 attribute [irreducible] opposite
+
+def equiv_to_opposite : α ≃ αᵒᵖ :=
+{ to_fun := op,
+  inv_fun := unop,
+  left_inv := λ a, by simp,
+  right_inv := λ a, by simp, }
+
+@[simp]
+lemma equiv_to_opposite_apply (a : α) : equiv_to_opposite a = op a := rfl
+@[simp]
+lemma equiv_to_opposite_symm_apply (a : αᵒᵖ) : equiv_to_opposite.symm a = unop a := rfl
 
 lemma op_eq_iff_eq_unop {x : α} {y} : op x = y ↔ x = unop y :=
 by rw [← unop_inj_iff, unop_op]

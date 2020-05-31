@@ -34,7 +34,7 @@ noncomputable def out {α} : erased α → α
 /--
 Extracts the erased value, if it is a type.
 
-Note: `(mk a).out` is not definitionally equal to `a`.
+Note: `(mk a).out_type` is not definitionally equal to `a`.
 -/
 @[reducible] def out_type (a : erased (Sort u)) : Sort u := out a
 

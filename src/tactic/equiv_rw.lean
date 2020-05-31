@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import control.equiv_functor
+import category_theory.concrete_category.basic
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.

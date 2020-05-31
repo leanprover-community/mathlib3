@@ -445,7 +445,8 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
 rfl
 
 @[to_additive]
-lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β') [comm_monoid γ] (h : α → β → α' → β' → γ) :
+lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β')
+  [comm_monoid γ] (h : α → β → α' → β' → γ) :
   f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
 begin
   dsimp [finsupp.prod],

@@ -153,7 +153,8 @@ lemma id_c (X : PresheafedSpace.{v} C) :
 by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) ≫ (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) ≫
+    (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
 /-- The forgetful functor from `PresheafedSpace` to `Top`. -/
 def forget : PresheafedSpace.{v} C ⥤ Top :=

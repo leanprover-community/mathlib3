@@ -37,8 +37,9 @@ if [ "$github_repo" = "leanprover-community/mathlib" -a "$github_event" = "push"
   git config user.email "leanprover.community@gmail.com"
   git config user.name "leanprover-community-bot"
   git add -A .
+  git reset --soft HEAD~1
   git commit -m "automatic update to $git_hash"
-  git push
+  git push -f
 else
   bash ../scripts/mk_all.sh
   lean src/export_json.lean

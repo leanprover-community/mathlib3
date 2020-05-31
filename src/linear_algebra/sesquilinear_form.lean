@@ -13,12 +13,13 @@ This file defines a sesquilinear form over a module. The definition requires a r
 on the scalar ring, which comes from the file ring_theory.involution. Basic ideas such as
 orthogonality are also introduced.
 
-A sesquilinear form on an R-module M, is a function from M x M to R, that is linear in the first argument
-and antilinear in the second, with respect to an antiautomorphism on R (an antiisomorphism from R to R).
+A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R, that is linear in the
+first argument and antilinear in the second, with respect to an antiautomorphism on `R` (an
+antiisomorphism from `R` to `R`).
 
 ## Notations
 
-Given any term S of type sesq_form, due to a coercion, can use the notation S x y to
+Given any term `S` of type `sesq_form`, due to a coercion, can use the notation `S x y` to
 refer to the function field, ie. `S x y = S.sesq x y`.
 
 ## References
@@ -35,7 +36,8 @@ open ring_anti_equiv
 universes u v
 
 /-- A sesquilinear form over a module  -/
-structure sesq_form (R : Type u) (M : Type v) [ring R] (I : ring_anti_equiv R R) [add_comm_group M] [module R M] :=
+structure sesq_form (R : Type u) (M : Type v) [ring R] (I : ring_anti_equiv R R) [add_comm_group M]
+  [module R M] :=
 (sesq : M → M → R)
 (sesq_add_left : ∀ (x y z : M), sesq (x + y) z = sesq x z + sesq y z)
 (sesq_smul_left : ∀ (a : R) (x y : M), sesq (a • x) y = a * (sesq x y))
@@ -45,7 +47,8 @@ structure sesq_form (R : Type u) (M : Type v) [ring R] (I : ring_anti_equiv R R)
 namespace sesq_form
 
 section general_ring
-variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
+variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
+  {I : ring_anti_equiv R R} {S : sesq_form R M I}
 
 instance : has_coe_to_fun (sesq_form R M I) :=
 ⟨_, λ S, S.sesq⟩
@@ -77,7 +80,8 @@ lemma sub_right (x y z : M) :
 S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
 
 variable {D : sesq_form R M I}
-@[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
+@[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D :=
+by {cases S, cases D, congr, funext, exact H _ _}
 
 instance : add_comm_group (sesq_form R M I) :=
 { add := λ S D, { sesq := λ x y, S x y + D x y,
@@ -85,7 +89,8 @@ instance : add_comm_group (sesq_form R M I) :=
                   sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
                   sesq_add_right := λ x y z, by {rw add_right, rw add_right, ac_refl},
                   sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
-  add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
+  add_assoc := by {intros, ext,
+    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
   zero := { sesq := λ x y, 0,
             sesq_add_left := λ x y z, (add_zero 0).symm,
             sesq_smul_left := λ a x y, (mul_zero a).symm,
@@ -118,11 +123,16 @@ variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {J : ring_anti_equiv R R} (F : sesq_form R M J) (f : M → M)
 
 instance to_module : module R (sesq_form R M J) :=
-{ smul := λ c S, { sesq := λ x y, c * S x y,
-                    sesq_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_add_left, left_distrib]},
-                    sesq_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
-                    sesq_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_add_right, left_distrib]},
-                    sesq_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_right, ←mul_assoc, mul_comm c, mul_assoc], refl} },
+{ smul := λ c S,
+  { sesq := λ x y, c * S x y,
+    sesq_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq,
+      rw [sesq_add_left, left_distrib]},
+    sesq_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq,
+      rw [sesq_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
+    sesq_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq,
+      rw [sesq_add_right, left_distrib]},
+    sesq_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq,
+      rw [sesq_smul_right, ←mul_assoc, mul_comm c, mul_assoc], refl} },
   smul_add := λ c S D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw left_distrib},
   add_smul := λ c S D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw right_distrib},
   mul_smul := λ a c D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw mul_assoc},
@@ -170,7 +180,8 @@ namespace refl_sesq_form
 
 open refl_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
+  {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
@@ -188,7 +199,8 @@ namespace sym_sesq_form
 
 open sym_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
+  {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is symmetric -/
 def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), I (S x y) = S y x
@@ -209,7 +221,8 @@ namespace alt_sesq_form
 
 open alt_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
+  {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0

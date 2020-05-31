@@ -45,7 +45,8 @@ def map_prefix (f : name → option name) : name → name
 | (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
 | (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
 
-/-- If `nm` is a simple name (having only one string component) starting with `_`, then `deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
+/-- If `nm` is a simple name (having only one string component) starting with `_`, then
+`deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
 meta def deinternalize_field : name → name
 | (mk_string s name.anonymous) :=
   let i := s.mk_iterator in

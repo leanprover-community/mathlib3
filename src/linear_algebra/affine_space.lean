@@ -11,19 +11,19 @@ noncomputable theory
 /-!
 # Affine spaces
 
-This file defines affine spaces and subspaces, affine maps, and the
-affine span of a set of points.
+This file defines affine spaces (over modules) and subspaces, affine
+maps, and the affine span of a set of points.
 
 ## Implementation notes
 
 This file is very minimal and many things are surely omitted. Most
-results can be deduced from corresponding results for vector spaces.
-The variables `k` and `V` are explicit rather than implicit arguments
-to lemmas because otherwise the elaborator sometimes has problems
-inferring appropriate types and type class instances.  Definitions of
-affine spaces vary as to whether a space with no points is permitted;
-here, we require a nonempty type of points (via the definition of
-torsors requiring a nonempty type).
+results can be deduced from corresponding results for modules or
+vector spaces.  The variables `k` and `V` are explicit rather than
+implicit arguments to lemmas because otherwise the elaborator
+sometimes has problems inferring appropriate types and type class
+instances.  Definitions of affine spaces vary as to whether a space
+with no points is permitted; here, we require a nonempty type of
+points (via the definition of torsors requiring a nonempty type).
 
 ## References
 
@@ -32,11 +32,12 @@ torsors requiring a nonempty type).
 
 -/
 
-/-- `affine_space` is an abbreviation for `add_torsor` in the
-case where the group is a vector space. -/
+/-- `affine_space` is an abbreviation for `add_torsor` in the case
+where the group is a vector space, or more generally a module, but we
+omit the type classes `[ring k]` and `[module k V]` in the type
+synonym itself to simplify type class search.. -/
 @[nolint unused_arguments]
-abbreviation affine_space (k : Type*) (V : Type*) (P : Type*) [field k] [add_comm_group V]
-    [vector_space k V] :=
+abbreviation affine_space (k : Type*) (V : Type*) (P : Type*) [add_comm_group V] :=
 add_torsor V P
 
 namespace affine_space
@@ -44,13 +45,13 @@ namespace affine_space
 open add_action
 open add_torsor
 
-variables (k : Type*) (V : Type*) {P : Type*} [field k] [add_comm_group V] [vector_space k V]
+variables (k : Type*) (V : Type*) {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [S : affine_space k V P]
 include S
 
-/-- The vector subspace spanning the differences of a (possibly empty)
-set of points. -/
-def vector_span (s : set P) : subspace k V := submodule.span k (vsub_set V s)
+/-- The submodule spanning the differences of a (possibly empty) set
+of points. -/
+def vector_span (s : set P) : submodule k V := submodule.span k (vsub_set V s)
 
 /-- The points in the affine span of a (possibly empty) set of
 points. Use `affine_span` instead to get an `affine_subspace k V P`,
@@ -69,7 +70,7 @@ lemma span_points_nonempty_of_nonempty {s : set P} :
 | ⟨p, hp⟩ := ⟨p, mem_span_points k V p s hp⟩
 
 /-- Adding a point in the affine span and a vector in the spanning
-subspace produces a point in the affine span. -/
+submodule produces a point in the affine span. -/
 lemma vadd_mem_span_points_of_mem_span_points_of_mem_vector_span {s : set P} {p : P} {v : V}
     (hp : p ∈ span_points k V s) (hv : v ∈ vector_span k V s) : v +ᵥ p ∈ span_points k V s :=
 begin
@@ -79,7 +80,7 @@ begin
 end
 
 /-- Subtracting two points in the affine span produces a vector in the
-spanning subspace. -/
+spanning submodule. -/
 lemma vsub_mem_vector_span_of_mem_span_points_of_mem_span_points {s : set P} {p1 p2 : P}
     (hp1 : p1 ∈ span_points k V s) (hp2 : p2 ∈ span_points k V s) :
   p1 -ᵥ p2 ∈ vector_span k V s :=
@@ -105,16 +106,16 @@ open add_torsor affine_space
 
 section affine_subspace
 
-variables (k : Type*) (V : Type*) (P : Type*) [field k] [add_comm_group V] [vector_space k V]
+variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
           [S : affine_space k V P]
 include S
 
 /-- An `affine_subspace k V P` is a subset of an `affine_space k V P`
 that has an affine space structure induced by a corresponding subspace
-of the `vector_space k V`. -/
+of the `module k V`. -/
 structure affine_subspace :=
 (carrier : set P)
-(direction : subspace k V)
+(direction : submodule k V)
 (nonempty : carrier.nonempty)
 (add : ∀ (p : P) (v : V), p ∈ carrier → v ∈ direction → v +ᵥ p ∈ carrier)
 (sub : ∀ (p1 p2 : P), p1 ∈ carrier → p2 ∈ carrier → p1 -ᵥ p2 ∈ direction)
@@ -155,7 +156,7 @@ instance : inhabited (affine_subspace k V P) := ⟨affine_subspace.univ k V P⟩
 
 /-- The affine span of a nonempty set of points is the smallest affine
 subspace containing those points. (Actually defined here in terms of
-spans in vector spaces.) -/
+spans in modules.) -/
 def affine_span (s : set P) (h : s.nonempty) : affine_subspace k V P :=
 { carrier := span_points k V s,
   direction := vector_span k V s,
@@ -177,10 +178,10 @@ end affine_subspace
 section affine_map
 
 variables  (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
-    (V3 : Type*) (P3 : Type*) [field k]
-    [add_comm_group V1] [vector_space k V1] [affine_space k V1 P1]
-    [add_comm_group V2] [vector_space k V2] [affine_space k V2 P2]
-    [add_comm_group V3] [vector_space k V3] [affine_space k V3 P3]
+    (V3 : Type*) (P3 : Type*) [ring k]
+    [add_comm_group V1] [module k V1] [affine_space k V1 P1]
+    [add_comm_group V2] [module k V2] [affine_space k V2 P2]
+    [add_comm_group V3] [module k V3] [affine_space k V3 P3]
 
 /-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/

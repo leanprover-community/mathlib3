@@ -18,8 +18,23 @@ section
 variables [has_zero_morphisms.{v} C]
 
 /-- An object is simple if monomorphisms into it are (exclusively) either isomorphisms or zero. -/
-class simple (X : C) :=
+-- This is a constructive definition, from which we can extract an inverse for `f` given `f ≠ 0`.
+-- We show below that although it contains data, it is a subsingleton.
+class simple (X : C) : Type (max u v) :=
 (mono_is_iso_equiv_nonzero : ∀ {Y : C} (f : Y ⟶ X) [mono f], is_iso.{v} f ≃ (f ≠ 0))
+
+@[ext] lemma simple.ext {X : C} {a b : simple.{v} X} : a = b :=
+begin
+  unfreezeI,
+  cases a, cases b,
+  congr,
+  funext Y f m,
+  ext,
+  refl,
+end
+
+instance subsingleton_simple (X : C) : subsingleton (simple.{v} X) :=
+subsingleton.intro (@simple.ext _ _ _ X)
 
 /-- A nonzero monomorphism to a simple object is an isomorphism. -/
 def is_iso_of_mono_of_nonzero {X Y : C} [simple.{v} Y] {f : X ⟶ Y} [mono f] (w : f ≠ 0) :

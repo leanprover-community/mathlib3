@@ -70,7 +70,7 @@ theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
   (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
- λ h, subset_of_sublist (range'_sublist_right.2 h)⟩
+ λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
 | s 0     (n+1) _ := rfl
@@ -114,6 +114,9 @@ by simp only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _
+
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
+by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
 
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
@@ -165,6 +168,16 @@ theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
 by rw [range_concat, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
+
+/-- A variant of `prod_range_succ` which pulls off the first
+  term in the product rather than the last.-/
+@[to_additive "A variant of `sum_range_succ` which pulls off the first term in the sum
+  rather than the last."]
+theorem prod_range_succ' {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((range n.succ).map f).prod = f 0 * ((range n).map (λ i, f (succ i))).prod :=
+nat.rec_on n
+  (show 1 * f 0 = f 0 * 1, by rw [one_mul, mul_one])
+  (λ _ hd, by rw [list.prod_range_succ, hd, mul_assoc, ←list.prod_range_succ])
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = range' n l.length

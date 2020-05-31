@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 Operations on set-valued functions, aka partial multifunctions, aka relations.
 -/
-import tactic.basic data.set.lattice order.complete_lattice logic.relator
+import data.set.lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Gluing metric spaces
 Authors: Sébastien Gouëzel
 -/
-
-import topology.metric_space.isometry topology.metric_space.premetric_space
+import topology.metric_space.isometry
+import topology.metric_space.premetric_space
 
 /-!
 # Metric space gluing
@@ -81,7 +81,7 @@ begin
     refine le_antisymm _ (le_cinfi A),
     have : 0 = dist (Φ p) (Φ p) + dist (Ψ p) (Ψ p), by simp,
     rw this,
-    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ },
+    exact cinfi_le ⟨0, forall_range_iff.2 A⟩ p },
   rw [glue_dist, this, zero_add]
 end
 

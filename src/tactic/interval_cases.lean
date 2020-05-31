@@ -27,9 +27,7 @@ in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ se
 
 -/
 import tactic.fin_cases
-import data.nat.basic
 import data.fintype.intervals
-import order.bounded_lattice
 
 open set
 
@@ -192,7 +190,7 @@ Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, 
 `hu` should be of the form `n < b`, for some explicit `b`.
 -/
 meta def interval_cases_using (hl hu : expr) : tactic unit :=
-to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon >>= fin_cases_at none
+to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon none >>= fin_cases_at none
 
 setup_tactic_parser
 

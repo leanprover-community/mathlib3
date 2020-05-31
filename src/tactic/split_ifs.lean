@@ -88,6 +88,12 @@ tactic.split_ifs names at_
 
 add_hint_tactic "split_ifs"
 
+add_tactic_doc
+{ name := "split_ifs",
+  category := doc_category.tactic,
+  decl_names := [``split_ifs],
+  tags := ["case bashing"] }
+
 end interactive
 
 end tactic

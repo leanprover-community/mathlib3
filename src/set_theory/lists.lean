@@ -7,14 +7,15 @@ A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
 set theory.
 -/
-import tactic.interactive data.list.basic data.sigma
+import data.list.basic
+import data.sigma
 
 variables {α : Type*}
 
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
-| nil {} : lists' tt
+| nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
 def lists (α : Type*) := Σ b, lists' α b

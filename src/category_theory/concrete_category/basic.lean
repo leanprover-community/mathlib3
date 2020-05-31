@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
-import category_theory.types category_theory.full_subcategory
+import category_theory.types
+import category_theory.full_subcategory
 
 /-!
 # Concrete categories
@@ -41,7 +42,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
 class concrete_category (C : Type (u+1)) [large_category C] :=
-(forget : C ⥤ Type u)
+(forget [] : C ⥤ Type u)
 [forget_faithful : faithful forget]
 end prio
 
@@ -133,11 +134,11 @@ class has_forget₂ (C D : Type (u+1)) [large_category C] [concrete_category C] 
 `has_forget₂ C `. -/
 @[reducible] def forget₂ (C D : Type (u+1)) [large_category C] [concrete_category C] [large_category D] [concrete_category D]
   [has_forget₂ C D] : C ⥤ D :=
-has_forget₂.forget₂ C D
+has_forget₂.forget₂
 
 instance forget_faithful (C D : Type (u+1)) [large_category C] [concrete_category C] [large_category D] [concrete_category D]
   [has_forget₂ C D] : faithful (forget₂ C D) :=
-(has_forget₂.forget_comp C D).faithful_of_comp
+has_forget₂.forget_comp.faithful_of_comp
 
 instance induced_category.concrete_category {C D : Type (u+1)} [large_category D] [concrete_category D] (f : C → D) :
   concrete_category (induced_category D f) :=

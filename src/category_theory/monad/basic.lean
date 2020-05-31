@@ -10,8 +10,7 @@ open category
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 /--
 The data of a monad on C consists of an endofunctor T together with natural transformations
@@ -21,8 +20,8 @@ The data of a monad on C consists of an endofunctor T together with natural tran
 - Tη_X ≫ μ_X = 1_X (right unit)
 -/
 class monad (T : C ⥤ C) :=
-(η : 𝟭 _ ⟶ T)
-(μ : T ⋙ T ⟶ T)
+(η [] : 𝟭 _ ⟶ T)
+(μ [] : T ⋙ T ⟶ T)
 (assoc' : ∀ X : C, T.map (nat_trans.app μ X) ≫ μ.app _ = μ.app (T.obj X) ≫ μ.app _ . obviously)
 (left_unit' : ∀ X : C, η.app (T.obj X) ≫ μ.app _ = 𝟙 _  . obviously)
 (right_unit' : ∀ X : C, T.map (η.app X) ≫ μ.app _ = 𝟙 _  . obviously)
@@ -43,8 +42,8 @@ The data of a comonad on C consists of an endofunctor G together with natural tr
 - δ_X ≫ G ε_X = 1_X (right counit)
 -/
 class comonad (G : C ⥤ C) :=
-(ε : G ⟶ 𝟭 _)
-(δ : G ⟶ (G ⋙ G))
+(ε [] : G ⟶ 𝟭 _)
+(δ [] : G ⟶ (G ⋙ G))
 (coassoc' : ∀ X : C, nat_trans.app δ _ ≫ G.map (δ.app X) = δ.app _ ≫ δ.app _ . obviously)
 (left_counit' : ∀ X : C, δ.app X ≫ ε.app (G.obj X) = 𝟙 _ . obviously)
 (right_counit' : ∀ X : C, δ.app X ≫ G.map (ε.app X) = 𝟙 _ . obviously)

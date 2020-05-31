@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.order_functions data.set.intervals.basic
+import data.set.intervals.basic
 /-!
 
 # Upper / lower bounds
@@ -52,6 +52,10 @@ def is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
 def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 /-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
+
+lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
+
+lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
 
 /-!
 ### Monotonicity
@@ -298,9 +302,9 @@ lemma bdd_above_singleton : bdd_above ({a} : set α) := is_lub_singleton.bdd_abo
 
 lemma bdd_below_singleton : bdd_below ({a} : set α) := is_glb_singleton.bdd_below
 
-lemma upper_bounds_singleton : upper_bounds {a} = Ici a := is_lub_singleton.upper_bounds_eq
+@[simp] lemma upper_bounds_singleton : upper_bounds {a} = Ici a := is_lub_singleton.upper_bounds_eq
 
-lemma lower_bounds_singleton : lower_bounds {a} = Iic a := is_glb_singleton.lower_bounds_eq
+@[simp] lemma lower_bounds_singleton : lower_bounds {a} = Iic a := is_glb_singleton.lower_bounds_eq
 
 /-!
 #### Bounded intervals
@@ -432,7 +436,7 @@ lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : se
 by simp only [upper_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
 
 @[simp] lemma lower_bounds_empty : lower_bounds (∅ : set α) = univ :=
-by simp only [lower_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
+@upper_bounds_empty (order_dual α) _
 
 @[simp] lemma bdd_above_empty [nonempty α] : bdd_above (∅ : set α) :=
 by simp only [bdd_above, upper_bounds_empty, univ_nonempty]
@@ -493,11 +497,11 @@ lemma is_least.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_
   is_least (insert a s) (min a b) :=
 by { rw insert_eq, exact is_least_singleton.union hs }
 
-lemma upper_bounds_insert (a : α) (s : set α) :
+@[simp] lemma upper_bounds_insert (a : α) (s : set α) :
   upper_bounds (insert a s) = Ici a ∩ upper_bounds s :=
 by rw [insert_eq, upper_bounds_union, upper_bounds_singleton]
 
-lemma lower_bounds_insert (a : α) (s : set α) :
+@[simp] lemma lower_bounds_insert (a : α) (s : set α) :
   lower_bounds (insert a s) = Iic a ∩ lower_bounds s :=
 by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 
@@ -514,16 +518,16 @@ by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 -/
 
 lemma is_lub_pair [semilattice_sup γ] {a b : γ} : is_lub {a, b} (a ⊔ b) :=
-by { rw sup_comm, exact is_lub_singleton.insert _}
+is_lub_singleton.insert _
 
 lemma is_glb_pair [semilattice_inf γ] {a b : γ} : is_glb {a, b} (a ⊓ b) :=
-by { rw inf_comm, exact is_glb_singleton.insert _ }
+is_glb_singleton.insert _
 
 lemma is_least_pair [decidable_linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
-by { rw min_comm, exact is_least_singleton.insert _ }
+is_least_singleton.insert _
 
 lemma is_greatest_pair [decidable_linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
-by { rw max_comm, exact is_greatest_singleton.insert _ }
+is_greatest_singleton.insert _
 
 end
 
@@ -627,8 +631,19 @@ lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
   b ≤ f a :=
 Hb.2 (Hf.mem_upper_bounds_image Ha.1)
 
-lemma le_is_glb_image_le (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
   f a ≤ b :=
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
+
+lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
+  is_glb s x :=
+⟨λ y hy, hf.1 $ hx.1 $ mem_image_of_mem _ hy,
+  λ y hy, hf.1 $ hx.2 $ monotone.mem_lower_bounds_image (λ x y, hf.2) hy⟩
+
+lemma is_lub.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  {s : set α} {x : α} (hx : is_lub (f '' s) (f x)) :
+  is_lub s x :=
+@is_glb.of_image (order_dual α) (order_dual β) _ _ f (λ x y, hf) _ _ hx

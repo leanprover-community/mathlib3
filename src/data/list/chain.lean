@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau, Yury Kudryashov
 -/
 import data.list.pairwise
+import logic.relation
 
 universes u v
 
@@ -15,7 +16,7 @@ namespace list
 
 /- chain relation (conjunction of R a b ∧ R b c ∧ R c d ...) -/
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
+mk_iff_of_inductive_prop list.chain list.chain_iff
 
 variable {R : α → α → Prop}
 
@@ -170,8 +171,38 @@ theorem chain'.tail : ∀ {l} (h : chain' R l), chain' R l.tail
 | [x]           _ := trivial
 | (x :: y :: l) h := (chain'_cons.mp h).right
 
+theorem chain'.rel_head {x y l} (h : chain' R (x :: y :: l)) : R x y :=
+rel_of_chain_cons h
+
+theorem chain'.rel_head' {x l} (h : chain' R (x :: l)) ⦃y⦄ (hy : y ∈ head' l) : R x y :=
+by { rw ← cons_head'_tail hy at h, exact h.rel_head }
+
+theorem chain'.cons' {x} :
+  ∀ {l : list α},  chain' R l → (∀ y ∈ l.head', R x y) → chain' R (x :: l)
+| [] _ _ := chain'_singleton x
+| (a :: l) hl H := hl.cons $ H _ rfl
+
+theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) ∧ chain' R l :=
+⟨λ h, ⟨h.rel_head', h.tail⟩, λ ⟨h₁, h₂⟩, h₂.cons' h₁⟩
+
+theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
+  (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),
+  chain' R (l₁ ++ l₂)
+| [] l₂ h₁ h₂ h := h₂
+| [a] l₂ h₁ h₂ h := h₂.cons' $ h _ rfl
+| (a::b::l) l₂ h₁ h₂ h :=
+  begin
+    simp only [last'] at h,
+    have : chain' R (b::l) := h₁.tail,
+    exact (this.append h₂ h).cons h₁.rel_head
+  end
+
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
 by simp only [chain'_singleton, chain'_cons, and_true]
+
+theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) {l} (hl : chain' R (x :: l)) :
+  chain' R (y :: l) :=
+hl.tail.cons' $ λ z hz, h $ hl.rel_head' hz
 
 theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [] := iff.rfl
@@ -201,6 +232,37 @@ begin
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },
+end
+
+/--
+If `a` and `b` are related by the reflexive transitive closure of `r`,
+then there is a `r`-chain starting from `a` and ending on `b`.
+-/
+lemma exists_chain_of_relation_refl_trans_gen {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
+  ∃ l, chain r a l ∧ last (a :: l) (cons_ne_nil _ _) = b :=
+begin
+  apply relation.refl_trans_gen.head_induction_on h,
+  { exact ⟨[], chain.nil, rfl⟩ },
+  { intros c d e t ih,
+    obtain ⟨l, hl₁, hl₂⟩ := ih,
+    refine ⟨d :: l, chain.cons e hl₁, _⟩,
+    rwa last_cons_cons }
+end
+
+/--
+Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y → p x` then
+the predicate is true at `a`.
+That is, we can propagate the predicate up the chain.
+-/
+lemma chain.induction {r : α → α → Prop} (p : α → Prop) {a b : α}
+  (l : list α) (h : chain r a l)
+  (hb : last (a :: l) (cons_ne_nil _ _) = b)
+  (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
+begin
+  induction l generalizing a,
+  { cases hb, exact final },
+  { rw chain_cons at h,
+    apply carries h.1 (l_ih h.2 hb) }
 end
 
 end list

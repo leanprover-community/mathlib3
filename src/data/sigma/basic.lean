@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
-
 import tactic.lint
 
 section sigma
@@ -29,6 +28,9 @@ lemma injective_sigma_mk {i : α} : function.injective (@sigma.mk α β i)
 theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 by simp
+
+@[simp] theorem sigma.eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
+| ⟨i, x⟩ := rfl
 
 @[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=

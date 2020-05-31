@@ -3,9 +3,11 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
 -/
-import data.set.basic logic.function
+import data.set.basic
+import logic.function.basic
 
-/-! # Functions over sets
+/-!
+# Functions over sets
 
 ## Main definitions
 
@@ -333,12 +335,11 @@ theorem inj_on.right_inv_on_of_left_inv_on (hf : inj_on f s) (hf' : left_inv_on 
   right_inv_on f f' s :=
 λ x h, hf (h₂ $ h₁ h) h (hf' (h₁ h))
 
-theorem eq_on_of_left_inv_of_right_inv (h₁ : left_inv_on f₁' f s) (h₂ : right_inv_on f₂' f t)
+theorem eq_on_of_left_inv_on_of_right_inv_on (h₁ : left_inv_on f₁' f s) (h₂ : right_inv_on f₂' f t)
   (h : maps_to f₂' t s) : eq_on f₁' f₂' t :=
 λ y hy,
-calc
-  f₁' y = (f₁' ∘ f ∘ f₂') y : congr_arg f₁' (h₂ hy).symm
-  ...  = f₂' y              : h₁ (h hy)
+calc f₁' y = (f₁' ∘ f ∘ f₂') y : congr_arg f₁' (h₂ hy).symm
+      ...  = f₂' y              : h₁ (h hy)
 
 theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_inv_on f f' s) :
   left_inv_on f f' t :=
@@ -444,7 +445,7 @@ by simp [piecewise, hi]
 @[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
-by { simp [piecewise, h], congr }
+by simp [piecewise, h]
 
 end set
 
@@ -463,5 +464,29 @@ lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g �
 lemma surjective.surj_on (hf : surjective f) (s : set β) :
   surj_on f univ s :=
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
+
+lemma update_comp_eq_of_not_mem_range [decidable_eq β]
+  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
+  (function.update g i a) ∘ f = g ∘ f :=
+begin
+  ext p,
+  have : f p ≠ i,
+  { by_contradiction H,
+    push_neg at H,
+    rw ← H at h,
+    exact h (set.mem_range_self _) },
+  simp [this],
+end
+
+lemma update_comp_eq_of_injective [decidable_eq α] [decidable_eq β]
+  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp },
+  { have : f j ≠ f i := hf.ne h,
+    simp [h, this] }
+end
 
 end function

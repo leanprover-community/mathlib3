@@ -3,7 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.modeq data.zsqrtd.basic tactic.ring tactic.omega
+import data.nat.modeq
+import data.zsqrtd.basic
+import tactic.omega
 
 namespace pell
 open nat

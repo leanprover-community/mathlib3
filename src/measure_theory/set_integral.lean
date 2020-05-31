@@ -3,7 +3,6 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.bochner_integration
 import measure_theory.indicator_function
 import measure_theory.lebesgue_measure
@@ -306,10 +305,10 @@ begin
 end
 
 -- TODO : prove this for an encodable type
--- by proving an encodable version of `filter.has_countable_basis_at_top_finset_nat`
+-- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
 lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
-  (∫ a in (Union s), f a) = ∑i, ∫ a in s i, f a :=
+  (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
 suffices h : tendsto (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) at_top (𝓝 $ (∫ a in (Union s), f a)),
   by { rwa tsum_eq_has_sum },
 begin
@@ -322,7 +321,7 @@ begin
   rw this,
   refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
   { exact indicator (Union s) (λ a, ∥f a∥) },
-  { exact has_countable_basis_at_top_finset_nat },
+  { exact is_countably_generated_at_top_finset_nat },
   { refine univ_mem_sets' (λ n, _),
     simp only [mem_set_of_eq],
     refine hfm.subset (is_measurable.Union (λ i, is_measurable.Union_Prop (λh, hm _)))

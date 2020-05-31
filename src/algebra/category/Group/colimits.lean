@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
 import category_theory.limits.limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -45,7 +46,7 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
+| zero : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 
@@ -173,8 +174,10 @@ instance : add_comm_group (colimit_type F) :=
   end, }
 
 @[simp] lemma quot_zero : quot.mk setoid.r zero = (0 : colimit_type F) := rfl
-@[simp] lemma quot_neg (x) : quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) := rfl
-@[simp] lemma quot_add (x y) : quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_neg (x) :
+  quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) := rfl
+@[simp] lemma quot_add (x y) :
+  quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled abelian group giving the colimit of a diagram. -/
 def colimit : AddCommGroup := AddCommGroup.of (colimit_type F)
@@ -183,7 +186,8 @@ def colimit : AddCommGroup := AddCommGroup.of (colimit_type F)
 def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
-/-- The group homomorphism from a given abelian group in the diagram to the colimit abelian group. -/
+/-- The group homomorphism from a given abelian group in the diagram to the colimit abelian
+group. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
   map_zero' := by apply quot.sound; apply relation.zero,
@@ -207,7 +211,8 @@ def colimit_cocone : cocone F :=
   ι :=
   { app := cocone_morphism F } }.
 
-/-- The function from the free abelian group on the diagram to the cone point of any other cocone. -/
+/-- The function from the free abelian group on the diagram to the cone point of any other
+cocone. -/
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
 | zero      := 0
@@ -228,13 +233,13 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- zero
-    { erw ((s.ι).app r).map_zero, refl },
+    { simp, },
     -- neg
-    { rw ((s.ι).app r_j).map_neg },
+    { simp, },
     -- add
-    { rw ((s.ι).app r_j).map_add },
+    { simp, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -272,17 +277,9 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_zero],
-      erw m.map_zero,
-      refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw m.map_neg,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw m.map_add,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp *, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 

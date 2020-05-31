@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-
-import group_theory.free_abelian_group data.equiv.functor data.mv_polynomial
-import ring_theory.ideal_operations ring_theory.free_ring
+import data.equiv.functor
+import data.mv_polynomial
+import ring_theory.ideal_operations
+import ring_theory.free_ring
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -143,10 +144,10 @@ theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
 is_submonoid.mul_mem hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
-is_add_submonoid.zero_mem _
+is_add_submonoid.zero_mem
 
 theorem is_supported_one : is_supported 1 s :=
-is_submonoid.one_mem _
+is_submonoid.one_mem
 
 theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
 int.induction_on i is_supported_zero
@@ -172,7 +173,7 @@ end restriction
 theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
 suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
 assume hps : is_supported (of p) s, begin
-  classical,
+  haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
@@ -184,8 +185,7 @@ assume hps : is_supported (of p) s, begin
   exfalso, apply ne.symm int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
   have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
-  rwa [polynomial.coeff_C, if_neg one_ne_zero, polynomial.coeff_X, if_pos rfl] at this,
-  apply_instance
+  rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end
 
 theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
@@ -201,7 +201,7 @@ end
 theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
-  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ finset.mem_singleton_self _⟩)
+  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
   (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
@@ -210,7 +210,7 @@ free_comm_ring.induction_on x
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
 
 theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_supported x ↑s :=
-let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
+let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa set.finite.coe_to_finset⟩
 
 end free_comm_ring
 
@@ -230,20 +230,20 @@ instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
 free_ring.to_free_comm_ring.is_ring_hom _
 
-@[simp] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
-@[simp] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
 
 variable {α}
 
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
 free_ring.lift_of _ _
-@[simp] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
+@[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 free_ring.lift_neg _ _
-@[simp] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
+@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
 free_ring.lift_add _ _ _
-@[simp] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
+@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
 free_ring.lift_sub _ _ _
-@[simp] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
+@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
 free_ring.lift_mul _ _ _
 
 variable (α)

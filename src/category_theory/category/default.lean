@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-
 import tactic.basic
 import tactic.tidy
 
@@ -24,7 +23,9 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
+-- The order in this declaration matters: v often needs to be explicitly specified while u often
+-- can be omitted
+universes v u
 
 namespace category_theory
 
@@ -87,8 +88,7 @@ A `small_category` has objects and morphisms in the same universe level.
 abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 
 section
-variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
-include 𝒞
+variables {C : Type u} [category.{v} C] {X Y Z : C}
 
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
@@ -105,9 +105,11 @@ by { convert w (𝟙 Y), tidy }
 lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ f = h ≫ g) : f = g :=
 by { convert w (𝟙 Y), tidy }
 
-lemma eq_of_comp_left_eq' (f g : X ⟶ Y) (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
+lemma eq_of_comp_left_eq' (f g : X ⟶ Y)
+  (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
 eq_of_comp_left_eq (λ Z h, by convert congr_fun (congr_fun w Z) h)
-lemma eq_of_comp_right_eq' (f g : Y ⟶ Z) (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
+lemma eq_of_comp_right_eq' (f g : Y ⟶ Z)
+  (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
 eq_of_comp_right_eq (λ X h, by convert congr_fun (congr_fun w X) h)
 
 lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g = g) : f = 𝟙 X :=
@@ -135,14 +137,14 @@ by { convert cancel_epi f, simp, }
 lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
 by { convert cancel_mono f, simp, }
 
-instance epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+lemma epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
 begin
   split, intros Z a b w,
   apply (cancel_epi g).1,
   apply (cancel_epi f).1,
   simpa using w,
 end
-instance mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+lemma mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
 begin
   split, intros Z a b w,
   apply (cancel_mono f).1,
@@ -159,7 +161,8 @@ begin
   exact (cancel_mono _).1 w,
 end
 
-lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) : mono f :=
+lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) :
+  mono f :=
 by { resetI, subst h, exact mono_of_mono f g, }
 
 lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
@@ -171,7 +174,8 @@ begin
   exact (cancel_epi _).1 w,
 end
 
-lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) : epi g :=
+lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) :
+  epi g :=
 by { resetI, subst h, exact epi_of_epi f g, }
 end
 

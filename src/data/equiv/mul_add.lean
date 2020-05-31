@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.basic algebra.group.hom deprecated.group
+import data.equiv.basic
+import deprecated.group
 
 /-!
 # Multiplicative and additive equivs
@@ -77,7 +77,7 @@ def refl (M : Type*) [has_mul M] : M ≃* M :=
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+{ map_mul' := λ n₁ n₂, h.left_inv.injective begin
     show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
       h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
    rw h.map_mul,
@@ -87,6 +87,12 @@ def symm (h : M ≃* N) : N ≃* M :=
 
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
+
+@[simp, to_additive]
+theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
+
+@[simp, to_additive]
+theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive]
@@ -156,7 +162,7 @@ instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
   "Two additive isomorphisms agree if they are defined by the same underlying function."]
 lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
@@ -277,4 +283,43 @@ protected def inv : perm G :=
 
 end group
 
+section point_reflection
+
+variables [add_comm_group A] (x y : A)
+
+/-- Point reflection in `x` as a permutation. -/
+def point_reflection (x : A) : perm A :=
+(equiv.neg A).trans (equiv.add_left (x + x))
+
+lemma point_reflection_apply : point_reflection x y = x + x - y := rfl
+
+@[simp] lemma point_reflection_self : point_reflection x x = x := add_sub_cancel _ _
+
+lemma point_reflection_involutive : function.involutive (point_reflection x : A → A) :=
+λ y, by simp only [point_reflection_apply, sub_sub_cancel]
+
+@[simp] lemma point_reflection_symm : (point_reflection x).symm = point_reflection x :=
+by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
+
+/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
+`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma point_reflection_fixed_iff_of_bit0_inj {x y : A} (h : function.injective (bit0 : A → A)) :
+  point_reflection x y = y ↔ y = x :=
+sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
+
+end point_reflection
+
 end equiv
+
+section type_tags
+
+/-- Reinterpret `f : G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] (f : G ≃+ H) :
+  multiplicative G ≃* multiplicative H :=
+⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩
+
+/-- Reinterpret `f : G ≃* H` as `additive G ≃+ additive H`. -/
+def mul_equiv.to_additive [monoid G] [monoid H] (f : G ≃* H) : additive G ≃+ additive H :=
+⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩
+
+end type_tags

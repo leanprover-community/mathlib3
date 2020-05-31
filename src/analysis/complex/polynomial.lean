@@ -3,7 +3,14 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.algebra.polynomial analysis.complex.exponential
+import topology.algebra.polynomial
+import analysis.special_functions.pow
+
+/-!
+# The fundamental theorem of algebra
+
+This file proves that every nonconstant complex polynomial has a root.
+-/
 
 open complex polynomial metric filter is_absolute_value set
 
@@ -84,7 +91,7 @@ have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
         by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
             ← complex.abs_mul, sub_mul];
           simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
-                sub_eq_add_neg]
+                sub_eq_add_neg, add_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $

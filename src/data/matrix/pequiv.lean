@@ -3,7 +3,8 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.matrix.basic data.pequiv
+import data.matrix.basic
+import data.pequiv
 /-
 # partial equivalences for matrices
 
@@ -49,7 +50,7 @@ def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matri
 lemma mul_matrix_apply [decidable_eq m] [semiring α] (f : l ≃. m) (M : matrix m n α) (i j) :
   (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
 begin
-  dsimp [to_matrix, matrix.mul],
+  dsimp [to_matrix, matrix.mul_val],
   cases h : f i with fi,
   { simp [h] },
   { rw finset.sum_eq_single fi;
@@ -64,16 +65,17 @@ by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
 by ext; simp [to_matrix, one_val]; congr
 
-
 lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin
-  dsimp [to_matrix, matrix.mul],
+  dsimp [to_matrix, matrix.mul_val],
   cases h : f.symm j with fj,
   { simp [h, f.eq_some_iff.symm] },
   { conv in (_ ∈ _) { rw ← f.mem_iff_mem },
-    rw finset.sum_eq_single fj;
-    simp [h, eq_comm] {contextual := tt} }
+    rw finset.sum_eq_single fj,
+    { simp [h, f.eq_some_iff.symm], },
+    { intros b H n, simp [h, f.eq_some_iff.symm, n.symm], },
+    { simp, } }
 end
 
 lemma to_pequiv_mul_matrix [decidable_eq m] [semiring α] (f : m ≃ m) (M : matrix m n α) :
@@ -92,7 +94,7 @@ end
 @[simp] lemma to_matrix_bot [decidable_eq n] [has_zero α] [has_one α] :
   ((⊥ : pequiv m n).to_matrix : matrix m n α) = 0 := rfl
 
-lemma to_matrix_injective [decidable_eq n] [zero_ne_one_class α] :
+lemma to_matrix_injective [decidable_eq n] [has_zero α] [has_one α] [nonzero α] :
   function.injective (@to_matrix m n _ _ α _ _ _) :=
 begin
   classical,

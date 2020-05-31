@@ -3,10 +3,10 @@ Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
-
-import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding
-import topology.uniform_space.pi topology.bases topology.uniform_space.uniform_convergence
+import data.real.ennreal
+import topology.uniform_space.uniform_embedding
+import topology.uniform_space.pi
+import topology.uniform_space.uniform_convergence
 
 /-!
 # Extended metric spaces
@@ -76,7 +76,8 @@ uniform_space.of_core {
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
     have (2 : ennreal) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2 ⟨ne_of_gt h, this ▸ ennreal.nat_ne_top 2⟩,
+    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
+      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
     (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
@@ -214,7 +215,7 @@ protected theorem emetric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 < f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases hf ε ε₀ with ⟨i, hi, H⟩,
@@ -230,7 +231,7 @@ protected theorem emetric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 ≤ f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases dense ε₀ with ⟨ε', hε'⟩,
@@ -274,8 +275,8 @@ mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric
 
-theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
-has_countable_basis_of_seq _ _ uniformity_basis_edist_inv_nat.eq_infi
+theorem uniformity_has_countable_basis : is_countably_generated (𝓤 α) :=
+is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :
@@ -574,7 +575,7 @@ nhds_basis_uniformity uniformity_basis_edist
 theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
-theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball s
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]
@@ -655,7 +656,7 @@ begin
   choose T T_in_s finite_T using B,
   let t := ⋃n:ℕ, T n⁻¹,
   have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₂ : countable t := by finish [countable_Union, finite.countable],
   have T₃ : s ⊆ closure t,
   { intros x x_in_s,
     apply mem_closure_iff.2,
@@ -698,7 +699,7 @@ lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 ⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-{ apply countable_bUnion S_countable,
+{ apply S_countable.bUnion,
   intros a aS,
   apply countable_Union,
   simp },
@@ -775,18 +776,18 @@ begin
   simpa only [zero_lt_iff_ne_zero, exists_prop] using this
 end
 
-lemma diam_insert : diam (insert x s) = max (diam s) (⨆ y ∈ s, edist y x) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff, max_le_iff,
-  edist_self, zero_le, true_and, supr_le_iff, forall_and_distrib, edist_comm x, and_self,
-  (and_assoc _ _).symm, max_comm (diam s)]
+lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff,
+  edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
+  forall_and_distrib, and_self, ← and_assoc]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
 
 lemma diam_triple :
-  diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
+  diam ({x, y, z} : set α) = max (max (edist x y) (edist x z)) (edist y z) :=
 by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
-  ennreal.max_zero_left, ennreal.sup_eq_max]
+  ennreal.max_zero_right, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=

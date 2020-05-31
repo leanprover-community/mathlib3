@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Reid Barton
+Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
 import category_theory.limits.limits
 
@@ -38,9 +38,8 @@ namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v} C]
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v} C]
+variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
@@ -56,7 +55,7 @@ is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit 
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
 def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
-is_colimit.cone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
+is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
@@ -89,7 +88,6 @@ by { split, intros, cases a, cases b, cc }
 instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
 by { split, intros, cases a, cases b, cc }
 
-omit 𝒟
 instance id_preserves_limits : preserves_limits (𝟭 C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K, by exactI ⟨λ c h,
@@ -103,7 +101,6 @@ instance id_preserves_colimits : preserves_colimits (𝟭 C) :=
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
-include 𝒟
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]
@@ -126,6 +123,21 @@ end
 def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
+
+/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
+def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
+  preserves_limit K₂ F :=
+{ preserves := λ c t,
+  begin
+    have t' := is_limit.of_cone_equiv (cones.postcompose_equivalence h) t,
+    let hF := iso_whisker_right h F,
+    have := is_limit.of_cone_equiv (cones.postcompose_equivalence hF).symm (preserves_limit.preserves t'),
+    apply is_limit.of_iso_limit this,
+    refine cones.ext (iso.refl _) (λ j, _),
+    dsimp,
+    rw [← F.map_comp],
+    simp,
+  end }
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
@@ -190,7 +202,6 @@ instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
   [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
 reflects_colimits.reflects_colimits_of_shape
 
-omit 𝒟
 instance id_reflects_limits : reflects_limits (𝟭 C) :=
 { reflects_limits_of_shape := λ J 𝒥,
   { reflects_limit := λ K, by exactI ⟨λ c h,
@@ -204,7 +215,6 @@ instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
-include 𝒟
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]

@@ -5,7 +5,8 @@ Author: Mario Carneiro
 
 Supplementary theorems about the `string` type.
 -/
-import data.list.basic data.char
+import data.list.basic
+import data.char
 
 namespace string
 

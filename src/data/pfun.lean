@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Jeremy Avigad
 -/
-import data.set.basic data.equiv.basic data.rel logic.relator
+import data.rel
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -203,7 +203,7 @@ eq_some_iff.2 $ mem_map f $ mem_some _
 
 theorem mem_assert {p : Prop} {f : p → roption α}
   : ∀ {a} (h : p), a ∈ f h → a ∈ assert p f
-| _ _ ⟨h, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ x ⟨h, rfl⟩ := ⟨⟨x, h⟩, rfl⟩
 
 @[simp] theorem mem_assert_iff {p : Prop} {f : p → roption α} {a} :
   a ∈ assert p f ↔ ∃ h : p, a ∈ f h :=
@@ -212,7 +212,7 @@ theorem mem_assert {p : Prop} {f : p → roption α}
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
-| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨h, h₂⟩, rfl⟩
 
 @[simp] theorem mem_bind_iff {f : roption α} {g : α → roption β} {b} :
   b ∈ f.bind g ↔ ∃ a ∈ f, b ∈ g a :=
@@ -264,6 +264,7 @@ by rw [show f = id, from funext H]; exact id_map o
 @[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
 by rw [bind_some_eq_map]; simp [map_id']
 
+@[simp] theorem pure_eq_some (a : α) : pure a = some a := rfl
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :

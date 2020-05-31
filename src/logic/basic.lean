@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-
 import tactic.doc_commands
 
 /-!
@@ -133,6 +132,26 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
 
+/-- Wrapper for adding elementary propositions to the type class systems.
+Warning: this can easily be abused. See the rest of this docstring for details.
+
+Certain propositions should not be treated as a class globally,
+but sometimes it is very convenient to be able to use the type class system
+in specific circumstances.
+
+For example, `zmod p` is a field if and only if `p` is a prime number.
+In order to be able to find this field instance automatically by type class search,
+we have to turn `p.prime` into an instance implicit assumption.
+
+On the other hand, making `nat.prime` a class would require a major refactoring of the library,
+and it is questionable whether making `nat.prime` a class is desirable at all.
+The compromise is to add the assumption `[fact p.prime]` to `zmod.field`.
+
+In particular, this class is not intended for turning the type class system
+into an automated theorem prover for first order logic. -/
+@[class]
+def fact (p : Prop) := p
+
 end miscellany
 
 /-!
@@ -251,6 +270,12 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
 
+@[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
+⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩
+
+@[simp] lemma and_self_right : (a ∧ b) ∧ b ↔ a ∧ b :=
+⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
+
 /-! ### Declarations about `or` -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
@@ -293,6 +318,12 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
+
+@[simp] lemma or_self_left : a ∨ a ∨ b ↔ a ∨ b :=
+⟨λ h, h.elim or.inl id, λ h, h.elim or.inl (or.inr ∘ or.inr)⟩
+
+@[simp] lemma or_self_right : (a ∨ b) ∨ b ↔ a ∨ b :=
+⟨λ h, h.elim id or.inr, λ h, h.elim (or.inl ∘ or.inl) or.inr⟩
 
 /-! Declarations about `iff` -/
 
@@ -553,6 +584,14 @@ by simp [and_comm]
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
+@[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :
+  (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
+⟨λ ⟨b, ⟨a, ha, hab⟩, hb⟩, ⟨a, ha, hab.symm ▸ hb⟩, λ ⟨a, hp, hq⟩, ⟨f a, ⟨a, hp, rfl⟩, hq⟩⟩
+
+@[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
+  (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
+⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
@@ -561,6 +600,9 @@ by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_right' {a' : α} : (∃ a, p a ∧ a' = a) ↔ p a' :=
 by simp [@eq_comm _ a']
+
+theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
+⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
 
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x
@@ -831,6 +873,11 @@ universe variables u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
+
+@[priority 20]
+instance has_zero.nonempty [has_zero α] : nonempty α := ⟨0⟩
+@[priority 20]
+instance has_one.nonempty [has_one α] : nonempty α := ⟨1⟩
 
 lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
 iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)

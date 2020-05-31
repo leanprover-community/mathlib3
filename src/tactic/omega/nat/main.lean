@@ -3,7 +3,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Main procedure for linear natural number arithmetic. -/
-
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
 import tactic.omega.nat.neg_elim

@@ -5,8 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
-import algebra.field
-import analysis.normed_space.operator_norm analysis.normed_space.multilinear
+import analysis.normed_space.multilinear
 
 noncomputable theory
 open_locale classical filter
@@ -19,7 +18,6 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-set_option class.instance_max_depth 70
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥ f x ∥ ≤ M * ∥ x ∥` for some positive constant `M`. -/
@@ -128,8 +126,7 @@ open asymptotics filter
 
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
   is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := h.bound in
-⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+let ⟨M, hMp, hM⟩ := h.bound in is_O.of_bound _ (mem_sets_of_superset univ_mem_sets (λ x _, hM x))
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
@@ -144,7 +141,6 @@ end
 end is_bounded_linear_map
 
 section
-set_option class.instance_max_depth 240
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 /-- Taking the cartesian product of two continuous linear maps is a bounded linear operation. -/
@@ -191,7 +187,7 @@ begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),
   apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
-  { apply_rules [mul_nonneg', pow_nonneg, norm_nonneg, norm_nonneg] },
+  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, norm_nonneg] },
   calc ∥f (g ∘ m)∥ ≤
     ∥f∥ * finset.univ.prod (λ (i : ι), ∥g (m i)∥) : f.le_op_norm _
     ... ≤ ∥f∥ * finset.univ.prod (λ (i : ι), ∥g∥ * ∥m i∥) : begin
@@ -222,8 +218,8 @@ variable {f : E × F → G}
 
 protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
   asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
-let ⟨C, Cpos, hC⟩ := h.bound in
-⟨C, filter.eventually_of_forall ⊤ $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y⟩
+let ⟨C, Cpos, hC⟩ := h.bound in asymptotics.is_O.of_bound _ $
+filter.eventually_of_forall ⊤ $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y
 
 lemma is_bounded_bilinear_map.is_O_comp {α : Type*} (H : is_bounded_bilinear_map 𝕜 f)
   {g : α → E} {h : α → F} {l : filter α} :
@@ -252,11 +248,11 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinea
   smul  := λ c x, h.smul_left _ _ _,
   bound := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
-    refine ⟨C * (∥y∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
+    refine ⟨C * (∥y∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
     have : ∥y∥ ≤ ∥y∥ + 1, by simp [zero_le_one],
     calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
     ... ≤ C * ∥x∥ * (∥y∥ + 1) :
-      by apply_rules [norm_nonneg, mul_le_mul_of_nonneg_left, le_of_lt C_pos, mul_nonneg']
+      by apply_rules [norm_nonneg, mul_le_mul_of_nonneg_left, le_of_lt C_pos, mul_nonneg]
     ... = C * (∥y∥ + 1) * ∥x∥ : by ring
   end }
 
@@ -266,7 +262,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_biline
   smul  := λ c y, h.smul_right _ _ _,
   bound := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
-    refine ⟨C * (∥x∥ + 1), mul_pos' C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
+    refine ⟨C * (∥x∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
     have : ∥x∥ ≤ ∥x∥ + 1, by simp [zero_le_one],
     calc ∥f (x, y)∥ ≤ C * ∥x∥ * ∥y∥ : hC x y
     ... ≤ C * (∥x∥ + 1) * ∥y∥ :
@@ -391,7 +387,6 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
-set_option class.instance_max_depth 100
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/

@@ -3,69 +3,24 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_ring
+
+/-!
+# strictly monotone functions, max, min and abs
+
+This file proves basic properties about strictly monotone functions,
+maxima and minima on a `decidable_linear_order`, and the absolute value
+function on linearly ordered add_comm_groups, semirings and rings.
+
+## Tags
+
+min, max, abs
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
 
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
-
-/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
-def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
-∀ ⦃a b⦄, a < b → f a < f b
-
-namespace strict_mono
-open ordering function
-
-section
-variables [linear_order α] [preorder β] {f : α → β}
-
-lemma lt_iff_lt (H : strict_mono f) {a b} :
-  f a < f b ↔ a < b :=
-⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
-
-lemma injective (H : strict_mono f) : injective f
-| a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H h) e)
-  .resolve_right $ λ h, ne_of_gt (H h) e
-
-theorem compares (H : strict_mono f) {a b} :
-  ∀ {o}, compares o (f a) (f b) ↔ compares o a b
-| lt := H.lt_iff_lt
-| eq := ⟨λ h, H.injective h, congr_arg _⟩
-| gt := H.lt_iff_lt
-
-lemma le_iff_le (H : strict_mono f) {a b} :
-  f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
-end
-
-protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
-
--- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
--- then `strict_mono f` is vacuously true.
-lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
-λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
-
-end strict_mono
-
-section
-open function
-variables [partial_order α] [partial_order β] {f : α → β}
-
-lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
-  strict_mono f :=
-λ a b h,
-begin
-  rw lt_iff_le_and_ne at ⊢ h,
-  exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
-end
-
-end
 
 section
 variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
@@ -85,7 +40,10 @@ lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_su
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
+/-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+
+/-- An instance asserting that `min a a = a` -/
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
@@ -196,6 +154,8 @@ lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 ⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
 
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
+
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 
@@ -287,12 +247,6 @@ end decidable_linear_ordered_add_comm_group
 
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
-
-lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
-
-lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
 
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
 (monotone_mul_left_of_nonneg ha).map_max

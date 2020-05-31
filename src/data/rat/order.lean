@@ -47,7 +47,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
@@ -58,7 +58,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   exact mul_nonneg
 end
 
@@ -89,7 +89,7 @@ protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
 begin
   show rat.nonneg _ ↔ _,
   rw ← sub_nonneg,
-  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos' d0 b0]
+  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
 end
 
 protected theorem le_refl : a ≤ a :=

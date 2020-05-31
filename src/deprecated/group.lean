@@ -1,4 +1,11 @@
-import algebra.group.type_tags algebra.group.is_unit
+/-
+Copyright (c) 2019 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury Kudryashov
+-/
+import algebra.group.type_tags
+import algebra.group.units_hom
+import algebra.ring
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)

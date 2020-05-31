@@ -3,9 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
-
-import data.matrix.basic
-import linear_algebra.dimension linear_algebra.tensor_product
+import linear_algebra.dimension
 
 /-!
 # Linear maps and matrices
@@ -76,6 +74,9 @@ matrix.eval.map_add M N
 @[simp] lemma to_lin_zero : (0 : matrix m n R).to_lin = 0 :=
 matrix.eval.map_zero
 
+@[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin :=
+@linear_map.map_neg _ _ ((n → R) →ₗ[R] m → R) _ _ _ _ _ matrix.eval M
+
 instance to_lin.is_linear_map :
   @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
 matrix.eval.is_linear
@@ -89,13 +90,7 @@ instance to_lin.is_add_monoid_hom :
 
 lemma mul_to_lin (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
-begin
-  ext v x,
-  simp [to_lin_apply, mul_vec, matrix.mul, finset.sum_mul, finset.mul_sum],
-  rw [finset.sum_comm],
-  congr, funext x, congr, funext y,
-  rw [mul_assoc]
-end
+by { ext, simp }
 
 @[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
 by { ext, simp }
@@ -116,6 +111,10 @@ end
 
 /-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
 def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
+
+@[simp] lemma to_matrix_id [decidable_eq n] :
+  (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
 
 end linear_map
 
@@ -156,7 +155,7 @@ begin
   change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = ({j} : finset n).sum (λ y, ite (j = y) (M i y) 0),
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
       { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
@@ -188,6 +187,12 @@ end linear_equiv_matrix
 namespace matrix
 open_locale matrix
 
+lemma comp_to_matrix_mul {R : Type v} [comm_ring R] [decidable_eq l] [decidable_eq m]
+  (f : (m → R) →ₗ[R] (n → R)) (g : (l → R) →ₗ[R] (m → R)) :
+  (f.comp g).to_matrix = f.to_matrix ⬝ g.to_matrix :=
+suffices (f.comp g) = (f.to_matrix ⬝ g.to_matrix).to_lin, by rw [this, to_lin_to_matrix],
+by rw [mul_to_lin, to_matrix_to_lin, to_matrix_to_lin]
+
 section trace
 
 variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
@@ -200,6 +205,8 @@ def diag (n : Type u) (R : Type v) (M : Type w)
   to_fun := λ A i, A i i,
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
+
+@[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
 
 @[simp] lemma diag_one [decidable_eq n] :
   diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
@@ -215,10 +222,12 @@ def trace (n : Type u) (R : Type v) (M : Type w)
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
 
+@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = finset.univ.sum (diag n R M A) := rfl
+
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
+by rw [h, diag_one, finset.sum_const, nsmul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
@@ -251,6 +260,10 @@ begin
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
+lemma diagonal_to_lin [decidable_eq m] (w : m → R) :
+  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
+by ext v j; simp [mul_vec_diagonal]
+
 end ring
 
 section vector_space
@@ -269,12 +282,6 @@ begin
   exact le_refl _
 end
 
-set_option class.instance_max_depth 100
-
-lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
-  (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
-by ext v j; simp [mul_vec_diagonal]
-
 lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
   ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=
 begin
@@ -291,7 +298,7 @@ begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],
   congr, funext i,
-  rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
+  rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end
 
 lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :

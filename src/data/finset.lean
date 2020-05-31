@@ -1072,15 +1072,14 @@ finset.eq_of_veq erase_dup_cons
   to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext' $ by simp
 
-@[simp] lemma to_finset_smul (s : multiset α) :
-  ∀(n : ℕ) (hn : n ≠ 0), (add_monoid.smul n s).to_finset = s.to_finset
+@[simp] lemma to_finset_nsmul (s : multiset α) :
+  ∀(n : ℕ) (hn : n ≠ 0), (n •ℕ s).to_finset = s.to_finset
 | 0     h := by contradiction
 | (n+1) h :=
   begin
     by_cases n = 0,
-    { rw [h, zero_add, add_monoid.one_smul] },
-    { rw [add_monoid.add_smul, to_finset_add, add_monoid.one_smul, to_finset_smul n h,
-        finset.union_idempotent] }
+    { rw [h, zero_add, one_nsmul] },
+    { rw [add_nsmul, to_finset_add, one_nsmul, to_finset_nsmul n h, finset.union_idempotent] }
   end
 
 @[simp] lemma to_finset_inter (s t : multiset α) :

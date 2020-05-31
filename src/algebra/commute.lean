@@ -34,8 +34,6 @@ Most of the proofs come from the properties of `semiconj_by`.
 /-- Two elements commute iff `a * b = b * a`. -/
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
 
-open_locale smul
-
 namespace commute
 
 section has_mul
@@ -167,15 +165,15 @@ semiconj_by.add_left
 
 variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
 
-@[simp] theorem smul_right : commute a (n •ℕ b) := hab.smul_right n
-@[simp] theorem smul_left : commute (n •ℕ a) b := hab.smul_left n
-@[simp] theorem smul_smul : commute (m •ℕ a) (n •ℕ b) := hab.smul_smul m n
+@[simp] theorem nsmul_right : commute a (n •ℕ b) := hab.nsmul_right n
+@[simp] theorem nsmul_left : commute (n •ℕ a) b := hab.nsmul_left n
+@[simp] theorem nsmul_nsmul : commute (m •ℕ a) (n •ℕ b) := hab.nsmul_nsmul m n
 
 variable (a)
 
-@[simp] theorem self_smul : commute a (n •ℕ a) := (commute.refl a).smul_right n
-@[simp] theorem smul_self : commute (n •ℕ a) a := (commute.refl a).smul_left n
-@[simp] theorem self_smul_smul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).smul_smul m n
+@[simp] theorem self_nsmul : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
+@[simp] theorem nsmul_self : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
+@[simp] theorem self_nsmul_nsmul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).nsmul_nsmul m n
 
 @[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
 @[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a

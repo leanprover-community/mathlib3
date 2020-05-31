@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon
 -/
-
-import logic.basic tactic.core
+import tactic.core
 
 namespace tactic
 namespace elide
@@ -69,13 +68,8 @@ loc.apply
             tactic.change_core (elide.unelide t) (some h))
   (target >>= tactic.change ∘ elide.unelide)
 
-add_tactic_doc
-{ name        := "elide / unelide",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
-  tags        := [],
-  description :=
-"The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
+/--
+The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant
 on the identity function. (Tactics should still mostly be able to see
 through the abbreviation, but if you want to unhide the term you can use
@@ -83,7 +77,12 @@ through the abbreviation, but if you want to unhide the term you can use
 
 The `unelide (at ...)` tactic removes all `hidden` subterms in the target
 types (usually added by `elide`).
-" }
+-/
+add_tactic_doc
+{ name        := "elide / unelide",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
+  tags        := ["goal management", "context management", "rewriting"] }
 
 end interactive
 

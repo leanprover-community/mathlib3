@@ -3,10 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.equivalence
 import category_theory.comma
-import category_theory.punit
-import category_theory.eq_to_hom
+import category_theory.groupoid
 
 /-!
 # The category of elements
@@ -41,7 +39,7 @@ def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.
     A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
  -/
-instance category_of_elements (F : C ⥤ Type w) : category.{v} F.elements :=
+instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
@@ -82,6 +80,15 @@ def of_element_iso {F : C ⥤ Type w} {X Y : F.elements} (f : X ≅ Y) : X.1 ≅
   (of_element_iso (iso.refl X)) = iso.refl (X.1) := rfl
 @[simp] lemma of_element_iso_comp {F : C ⥤ Type w} {X Y Z : F.elements} (f : X ≅ Y) (g : Y ≅ Z) :
   (of_element_iso (f ≪≫ g)) = of_element_iso f ≪≫ of_element_iso g := rfl
+
+omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
+-- to avoid conflicts.
+instance groupoid_of_elements [groupoid C] (F : C ⥤ Type w) : groupoid F.elements :=
+{ inv := λ p q f, ⟨inv f.val,
+      calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
+                             ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
+                             ... = p.2 : by {rw ←functor.map_comp, simp}⟩ }
+include 𝒞
 
 namespace category_of_elements
 variable (F : C ⥤ Type w)

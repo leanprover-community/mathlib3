@@ -3,8 +3,8 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
-
-import analysis.normed_space.basic tactic.alias
+import analysis.normed_space.basic
+import topology.local_homeomorph
 
 /-!
 # Asymptotics
@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space
+open_locale topological_space big_operators classical
 
 namespace asymptotics
 
@@ -66,17 +66,56 @@ avoided by this definition. Probably you want to use `is_O` instead of this rela
 def is_O_with (c : ℝ) (f : α → E) (g : α → F) (l : filter α) : Prop :=
 ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥
 
+/-- Definition of `is_O_with`. We record it in a lemma as we will set `is_O_with` to be irreducible
+at the end of this file. -/
+lemma is_O_with_iff {c : ℝ} {f : α → E} {g : α → F} {l : filter α} :
+  is_O_with c f g l ↔ ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_O_with.of_bound {c : ℝ} {f : α → E} {g : α → F} {l : filter α}
+  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O_with c f g l := h
+
 /-- The Landau notation `is_O f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by a constant multiple of `∥g∥`.
 In other words, `∥f∥ / ∥g∥` is eventually bounded, modulo division by zero issues that are avoided
 by this definition. -/
 def is_O (f : α → E) (g : α → F) (l : filter α) : Prop := ∃ c : ℝ, is_O_with c f g l
 
+/-- Definition of `is_O` in terms of `is_O_with`. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff_is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, is_O_with c f g l := iff.rfl
+
+/-- Definition of `is_O` in terms of filters. We record it in a lemma as we will set
+`is_O` to be irreducible at the end of this file. -/
+lemma is_O_iff {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l ↔ ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_O.of_bound (c : ℝ) {f : α → E} {g : α → F} {l : filter α}
+  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O f g l := ⟨c, h⟩
+
 /-- The Landau notation `is_o f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by an arbitrarily small constant
 multiple of `∥g∥`. In other words, `∥f∥ / ∥g∥` tends to `0` along `l`, modulo division by zero
 issues that are avoided by this definition. -/
 def is_o (f : α → E) (g : α → F) (l : filter α) : Prop := ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l
+
+/-- Definition of `is_o` in terms of `is_O_with`. We record it in a lemma as we will set
+`is_o` to be irreducible at the end of this file. -/
+lemma is_o_iff_forall_is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l := iff.rfl
+
+/-- Definition of `is_o` in terms of filters. We record it in a lemma as we will set
+`is_o` to be irreducible at the end of this file. -/
+lemma is_o_iff {f : α → E} {g : α → F} {l : filter α} :
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+
+lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
+h hc
+
+lemma is_o.def' {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  is_O_with c f g l :=
+h hc
 
 end defs
 
@@ -407,6 +446,12 @@ lemma is_O_fst_prod : is_O f' (λ x, (f' x, g' x)) l := is_O_with_fst_prod.is_O
 
 lemma is_O_snd_prod : is_O g' (λ x, (f' x, g' x)) l := is_O_with_snd_prod.is_O
 
+lemma is_O_fst_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).1) f' l :=
+is_O_fst_prod
+
+lemma is_O_snd_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).2) f' l :=
+is_O_snd_prod
+
 section
 
 variables (f' k')
@@ -586,15 +631,18 @@ end is_oO_as_rel
 
 section zero_const
 
-variables (g' l)
+variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
 λ c hc, univ_mem_sets' $ λ x, by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
 
-theorem is_O_with_zero (hc : 0 < c) : is_O_with c (λ x, (0 : E')) g' l :=
-(is_o_zero g' l) hc
+theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
+univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
 
-theorem is_O_zero : is_O (λ x, (0 : E')) g' l := (is_o_zero g' l).is_O
+theorem is_O_with_zero' : is_O_with 0 (λ x, (0 : E')) g l :=
+univ_mem_sets' $ λ x, by simp
+
+theorem is_O_zero : is_O (λ x, (0 : E')) g l := ⟨0, is_O_with_zero' _ _⟩
 
 theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 (is_O_zero g' l).congr_left $ λ x, (sub_self _).symm
@@ -602,7 +650,7 @@ theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 (is_o_zero g' l).congr_left $ λ x, (sub_self _).symm
 
-variables {g' l}
+variables {g g' l}
 
 theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
@@ -726,7 +774,7 @@ theorem is_O_with_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l 
 
 theorem is_O_self_const_mul' {c : R} (hc : is_unit c) (f : α → R) (l : filter α) :
   is_O f (λ x, c * f x) l :=
-let ⟨u, hu⟩ := hc in hu.symm ▸ (is_O_with_self_const_mul' u f l).is_O
+let ⟨u, hu⟩ := hc in hu ▸ (is_O_with_self_const_mul' u f l).is_O
 
 theorem is_O_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l : filter α) :
   is_O f (λ x, c * f x) l :=
@@ -931,6 +979,41 @@ by refine ((h₁.norm_norm.mul h₂.norm_norm).congr _ _).of_norm_norm;
 
 end smul
 
+/-! ### Sum -/
+
+section sum
+
+variables {ι : Type*} {A : ι → α → E'} {C : ι → ℝ} {s : finset ι}
+
+theorem is_O_with.sum (h : ∀ i ∈ s, is_O_with (C i) (A i) g l) :
+  is_O_with (∑ i in s, C i) (λ x, ∑ i in s, A i x) g l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_O_with_zero', finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_O.sum (h : ∀ i ∈ s, is_O (A i) g l) :
+  is_O (λ x, ∑ i in s, A i x) g l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_O_zero, finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_o.sum (h : ∀ i ∈ s, is_o (A i) g' l) :
+  is_o (λ x, ∑ i in s, A i x) g' l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_o_zero, finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+end sum
+
 /-! ### Relation between `f = o(g)` and `f / g → 0` -/
 
 theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
@@ -951,7 +1034,6 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     refine is_O_of_le _ (λ x, _),
-    classical,
     by_cases H : g x = 0,
     { simp only [H, hgf _ H, mul_zero] },
     { simp only [div_mul_cancel _ H] }
@@ -993,7 +1075,72 @@ end
 
 theorem is_O_with.right_le_add_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₁ x + f₂ x) l :=
-(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.neg_left.congr rfl (λ x, neg_neg _)
+(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.of_neg_left.congr rfl (λ x, rfl)
   (λ x, by rw [neg_sub, sub_neg_eq_add])
 
+theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₂ x - f₁ x) l :=
+((h.def' one_half_pos).right_le_sub_of_lt_1 one_half_lt_one).is_O
+
+theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₁ x + f₂ x) l :=
+((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
+
 end asymptotics
+
+namespace local_homeomorph
+
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+
+variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
+
+open asymptotics
+
+/-- Transfer `is_O_with` over a `local_homeomorph`. -/
+lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
+  {f : β → E} {g : β → F} {C : ℝ} :
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+⟨λ h, h.comp_tendsto $
+  by { convert e.continuous_at (e.map_target hb), exact (e.right_inv hb).symm },
+  λ h, (h.comp_tendsto (e.continuous_at_symm hb)).congr' rfl
+    ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg f hx)
+    ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg g hx)⟩
+
+/-- Transfer `is_O` over a `local_homeomorph`. -/
+lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+exists_congr $ λ C, e.is_O_with_congr hb
+
+/-- Transfer `is_o` over a `local_homeomorph`. -/
+lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
+
+end local_homeomorph
+
+namespace homeomorph
+
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+
+variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
+
+open asymptotics
+
+/-- Transfer `is_O_with` over a `homeomorph`. -/
+lemma is_O_with_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} {C : ℝ} :
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+e.to_local_homeomorph.is_O_with_congr trivial
+
+/-- Transfer `is_O` over a `homeomorph`. -/
+lemma is_O_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+exists_congr $ λ C, e.is_O_with_congr
+
+/-- Transfer `is_o` over a `homeomorph`. -/
+lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
+forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr
+
+end homeomorph
+
+attribute [irreducible] asymptotics.is_o asymptotics.is_O asymptotics.is_O_with

@@ -49,7 +49,7 @@ add_tactic_doc
 { name                     := "add_hint_tactic",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.hint.add_hint_tactic],
-  tags                     := ["rewrite", "search"] }
+  tags                     := ["search"] }
 
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
@@ -66,16 +66,35 @@ add_hint_tactic "unfold_aux"
 
 end hint
 
-/-- report a list of tactics that can make progress against the current goal -/
-meta def hint : tactic (list string) :=
-do names ← attribute.get_instances `hint_tactic,
-   try_all_sorted (names.reverse.map name_to_tactic)
+/--
+Report a list of tactics that can make progress against the current goal,
+and for each such tactic, the number of remaining goals afterwards.
+-/
+meta def hint : tactic (list (string × ℕ)) :=
+do
+  names ← attribute.get_instances `hint_tactic,
+  focus1 $ try_all_sorted (names.reverse.map name_to_tactic)
 
 namespace interactive
 
-/-- report a list of tactics that can make progress against the current goal
+/--
+Report a list of tactics that can make progress against the current goal.
+-/
+meta def hint : tactic unit :=
+do
+  hints ← tactic.hint,
+  if hints.length = 0 then
+    fail "no hints available"
+  else do
+    t ← hints.nth 0,
+    if t.2 = 0 then do
+      trace "the following tactics solve the goal:\n----",
+      (hints.filter (λ p : string × ℕ, p.2 = 0)).mmap' (λ p, tactic.trace format!"Try this: {p.1}")
+    else do
+      trace "the following tactics make progress:\n----",
+      hints.mmap' (λ p, tactic.trace format!"Try this: {p.1}")
 
----
+/--
 `hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
 
 ```lean
@@ -98,19 +117,11 @@ You can add a tactic to the list that `hint` tries by either using
 tactic), or
 2. `add_hint_tactic "my_tactic"`, specifying a string which works as an interactive tactic.
 -/
-meta def hint : tactic unit :=
-do hints ← tactic.hint,
-   if hints.length = 0 then
-     fail "no hints available"
-   else
-     do trace "the following tactics make progress:\n----",
-        hints.mmap' (λ s, tactic.trace format!"Try this: {s}")
-
 add_tactic_doc
 { name        := "hint",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.hint],
-  tags        := ["rewrite", "search", "Try this"] }
+  tags        := ["search", "Try this"] }
 
 end interactive
 

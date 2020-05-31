@@ -5,9 +5,9 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic data.set.basic data.equiv.basic
-import order.complete_boolean_algebra category.basic
-import tactic.finish data.sigma.basic order.galois_connection
+import order.complete_boolean_algebra
+import data.sigma.basic
+import order.galois_connection
 
 open function tactic set auto
 
@@ -58,12 +58,13 @@ variables {f : α → β}
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
 
-def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
+/-- `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s` -/
+def kern_image (f : α → β) (s : set α) : set β := {y | ∀ ⦃x⦄, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
 assume a b,
 ⟨ assume h x hx y hy, have f y ∈ a, from hy.symm ▸ hx, h this,
-  assume h x (hx : f x ∈ a), h hx x rfl⟩
+  assume h x (hx : f x ∈ a), h hx rfl⟩
 
 end galois_connection
 
@@ -85,9 +86,15 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
+ext $ λ i, mem_Union.symm
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨assume (h : ∀a ∈ {a : set β | ∃i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem set_of_forall (p : ι → β → Prop) : {x | ∀ i, p i x} = ⋂ i, {x | p i x} :=
+ext $ λ i, mem_Inter.symm
 
 theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (⋃ i, s i) ⊆ t :=
 -- TODO: should be simpler when sets' order is based on lattices
@@ -189,6 +196,14 @@ by rw [diff_eq, compl_Union, inter_Inter]; refl
 theorem diff_Inter (s : set β) (t : ι → set β) :
   s \ (⋂ i, t i) = ⋃ i, s \ t i :=
 by rw [diff_eq, compl_Inter, inter_Union]; refl
+
+lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
+  (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
+by simp only [directed_on, exists_prop, mem_Union, exists_imp_distrib]; exact
+assume a₁ b₁ fb₁ a₂ b₂ fb₂,
+let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
+    ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
+⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 /- bounded unions and intersections -/
 
@@ -377,6 +392,13 @@ subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
 theorem sUnion_union (S T : set (set α)) : ⋃₀ (S ∪ T) = ⋃₀ S ∪ ⋃₀ T := Sup_union
 
 theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂₀ T := Inf_union
+
+theorem sInter_Union (s : ι → set (set α)) : ⋂₀ (⋃ i, s i) = ⋂ i, ⋂₀ s i :=
+begin
+  ext x,
+  simp only [mem_Union, mem_Inter, mem_sInter, exists_imp_distrib],
+  split ; tauto
+end
 
 @[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T := Sup_insert
 
@@ -750,45 +772,6 @@ end set
 
 /- disjoint sets -/
 
-section disjoint
-variable [semilattice_inf_bot α]
-
-/-- Two elements of a lattice are disjoint if their inf is the bottom element.
-  (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
-def disjoint (a b : α) : Prop := a ⊓ b ≤ ⊥
-
-theorem disjoint.eq_bot {a b : α} (h : disjoint a b) : a ⊓ b = ⊥ :=
-eq_bot_iff.2 h
-
-theorem disjoint_iff {a b : α} : disjoint a b ↔ a ⊓ b = ⊥ :=
-eq_bot_iff.symm
-
-theorem disjoint.comm {a b : α} : disjoint a b ↔ disjoint b a :=
-by rw [disjoint, disjoint, inf_comm]
-
-theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
-disjoint.comm.1
-
-@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
-
-theorem disjoint_mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
-  disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
-
-theorem disjoint_mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint_mono h (le_refl _)
-
-theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint_mono (le_refl _) h
-
-@[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
-by simp [disjoint]
-
-lemma ne_of_disjoint {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
-by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
-
-end disjoint
-
 namespace set
 
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
@@ -817,22 +800,24 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
+are disjoint.  -/
 def pairwise_disjoint (s : set (set α)) : Prop :=
 pairwise_on s disjoint
 
-lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
+lemma pairwise_disjoint.subset {s t : set (set α)} (h : s ⊆ t)
   (ht : pairwise_disjoint t) : pairwise_disjoint s :=
 pairwise_on.mono h ht
 
-lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
+lemma pairwise_disjoint.range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
   (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
 begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_mono (hf x) (hf y) (ht _ x.2 _ y.2 _),
+  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine (ht _ x.2 _ y.2 _).mono (hf x) (hf y),
   intro h, apply hxy, apply congr_arg f, exact subtype.eq h
 end
 
 /- warning: classical -/
-lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
+lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
 

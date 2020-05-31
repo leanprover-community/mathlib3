@@ -3,10 +3,10 @@ Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
-
-import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
-import topology.bases
+import data.real.ennreal
+import topology.uniform_space.uniform_embedding
+import topology.uniform_space.pi
+import topology.uniform_space.uniform_convergence
 
 /-!
 # Extended metric spaces
@@ -76,7 +76,8 @@ uniform_space.of_core {
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
     have (2 : ennreal) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2 ⟨ne_of_gt h, this ▸ ennreal.nat_ne_top 2⟩,
+    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
+      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
     (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
@@ -117,7 +118,7 @@ variables [emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance emetric_space.to_uniform_space' : uniform_space α :=
-emetric_space.to_uniform_space α
+emetric_space.to_uniform_space
 
 export emetric_space (edist_self eq_of_edist_eq_zero edist_comm edist_triangle)
 
@@ -190,7 +191,7 @@ eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
   𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} :=
-emetric_space.uniformity_edist α
+emetric_space.uniformity_edist
 
 theorem uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε : ennreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
@@ -214,7 +215,7 @@ protected theorem emetric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 < f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases hf ε ε₀ with ⟨i, hi, H⟩,
@@ -230,7 +231,7 @@ protected theorem emetric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} 
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 ≤ f x}) :=
 begin
-  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
     rcases dense ε₀ with ⟨ε', hε'⟩,
@@ -258,7 +259,8 @@ emetric.mk_uniformity_basis_le (λ _, and.left)
 theorem uniformity_basis_edist_nnreal :
   (𝓤 α).has_basis (λ ε : nnreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
-  (λ ε ε₀, let ⟨δ, hδ⟩ := with_top.dense_coe ε₀ in ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
+  ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
 theorem uniformity_basis_edist_inv_nat :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
@@ -273,8 +275,8 @@ mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric
 
-theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
-has_countable_basis_of_seq _ _ uniformity_basis_edist_inv_nat.eq_infi
+theorem uniformity_has_countable_basis : is_countably_generated (𝓤 α) :=
+is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :
@@ -337,6 +339,45 @@ theorem complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
 uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
 
+/-- Expressing locally uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu x hx, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  rcases H ε εpos x hx with ⟨t, ht, Ht⟩,
+  exact ⟨t, ht, Ht.mono (λ n hs x hx, hε (hs x hx))⟩
+end
+
+/-- Expressing uniform convergence on a set using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_on_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
+  tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, edist (f x) (F n x) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
+  exact (H ε εpos).mono (λ n hs x hx, hε (hs x hx))
+end
+
+/-- Expressing locally uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_locally_uniformly F f p ↔
+  ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+
+/-- Expressing uniform convergence using `edist`. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_uniformly_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} :
+  tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, edist (f x) (F n x) < ε :=
+by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
+
 end emetric
 
 open emetric
@@ -352,7 +393,7 @@ a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an emetric space with a
 specified uniformity. -/
 def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_space α)
-  (H : @uniformity _ U = @uniformity _ (emetric_space.to_uniform_space α)) :
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space) :
   emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -384,11 +425,11 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced subtype.val (λ x y, subtype.eq)
+t.induced coe (λ x y, subtype.coe_ext.2)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist (x : α) y := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -518,6 +559,13 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
+/-- Relation “two points are at a finite edistance” is an equivalence relation. -/
+def edist_lt_top_setoid : setoid α :=
+{ r := λ x y, edist x y < ⊤,
+  iseqv := ⟨λ x, by { rw edist_self, exact ennreal.coe_lt_top },
+    λ x y h, by rwa edist_comm,
+    λ x y z hxy hyz, lt_of_le_of_lt (edist_triangle x y z) (ennreal.add_lt_top.2 ⟨hxy, hyz⟩)⟩ }
+
 @[simp] lemma ball_zero : ball x 0 = ∅ :=
 by rw [emetric.ball_eq_empty_iff]
 
@@ -527,7 +575,7 @@ nhds_basis_uniformity uniformity_basis_edist
 theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
-theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball s
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]
@@ -608,7 +656,7 @@ begin
   choose T T_in_s finite_T using B,
   let t := ⋃n:ℕ, T n⁻¹,
   have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₂ : countable t := by finish [countable_Union, finite.countable],
   have T₃ : s ⊆ closure t,
   { intros x x_in_s,
     apply mem_closure_iff.2,
@@ -648,14 +696,14 @@ this as an instance, as there is already an instance going in the other directio
 from second countable spaces to separable spaces, and we want to avoid loops. -/
 lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_space α] :
   second_countable_topology α :=
-let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
+let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
 ⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-{ apply countable_bUnion S_countable,
+{ apply S_countable.bUnion,
   intros a aS,
   apply countable_Union,
   simp },
-show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
+show uniform_space.to_topological_space = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
 { have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ennreal)⁻¹)} : set (set α))) → is_open u,
   { simp only [and_imp, exists_prop, set.mem_Union, set.mem_singleton_iff, exists_imp_distrib],
     intros u x hx i u_ball,
@@ -728,18 +776,18 @@ begin
   simpa only [zero_lt_iff_ne_zero, exists_prop] using this
 end
 
-lemma diam_insert : diam (insert x s) = max (diam s) (⨆ y ∈ s, edist y x) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff, max_le_iff,
-  edist_self, zero_le, true_and, supr_le_iff, forall_and_distrib, edist_comm x, and_self,
-  (and_assoc _ _).symm, max_comm (diam s)]
+lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff,
+  edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
+  forall_and_distrib, and_self, ← and_assoc]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
 
 lemma diam_triple :
-  diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
+  diam ({x, y, z} : set α) = max (max (edist x y) (edist x z)) (edist y z) :=
 by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
-  ennreal.max_zero_left, ennreal.sup_eq_max]
+  ennreal.max_zero_right, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=

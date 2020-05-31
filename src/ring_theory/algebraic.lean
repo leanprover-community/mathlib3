@@ -3,7 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
 import ring_theory.integral_closure
 
 /-!
@@ -51,7 +50,11 @@ begin
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
   apply eq_iff_eq_cancel_right.mpr,
-  symmetry, apply hom_eval₂,
+  symmetry,
+  -- TODO: add an `aeval`-specific version of `hom_eval₂`
+  simp only [aeval_def],
+  convert hom_eval₂ p (algebra_map R S) ↑S.val ⟨x, hx⟩,
+  refl
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/
@@ -64,7 +67,7 @@ end
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [nonzero_comm_ring R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [nonzero R] [comm_ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=

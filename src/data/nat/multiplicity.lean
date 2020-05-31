@@ -3,7 +3,10 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.choose ring_theory.multiplicity data.nat.modeq algebra.gcd_domain
+import data.nat.choose
+import ring_theory.multiplicity
+import data.nat.modeq
+import algebra.gcd_domain
 /-!
 
 # Natural number multiplicity
@@ -54,21 +57,22 @@ namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) :
   multiplicity p 1 = 0 :=
-by rw [multiplicity.one_right (mt is_unit_nat.mp (ne_of_gt hp.one_lt))]
+by rw [multiplicity.one_right (mt nat.is_unit_iff.mp (ne_of_gt hp.one_lt))]
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
-by rw [int.coe_nat_multiplicity, int.coe_nat_multiplicity,
-  int.coe_nat_multiplicity, int.coe_nat_mul, multiplicity.mul (nat.prime_iff_prime_int.1 hp)]
+by rw [← int.coe_nat_multiplicity, ← int.coe_nat_multiplicity,
+  ← int.coe_nat_multiplicity, int.coe_nat_mul, multiplicity.mul (nat.prime_iff_prime_int.1 hp)]
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
-  multiplicity p (m ^ n) = add_monoid.smul n (multiplicity p m) :=
-by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_smul, add_comm]
+  multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
+by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_nsmul,
+  add_comm]
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
 have h₁ : ¬ is_unit (p : ℤ), from mt is_unit_int.1 (ne_of_gt hp.one_lt),
 have h₂ : (p : ℤ) ≠ 0, from int.coe_nat_ne_zero.2 hp.ne_zero,
-by rw [int.coe_nat_multiplicity, multiplicity_self h₁ h₂]
+by rw [← int.coe_nat_multiplicity, multiplicity_self h₁ h₂]
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
 by induction n; simp [hp.multiplicity_one, nat.pow_succ, hp.multiplicity_mul, *,
@@ -86,7 +90,7 @@ lemma multiplicity_fact {p : ℕ} (hp : p.prime) :
     by rw [multiplicity_fact (le_of_succ_le hb),
       ← multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (succ_pos _) hb]
   ... = ((Ico 1 b).sum (λ i, n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
-    by rw [sum_add_distrib, sum_ite (λ _, 1) (λ _, 0) (λ x, x)]; simp
+    by rw [sum_add_distrib, sum_boole]; simp
   ... = ((Ico 1 b).sum (λ i, (n + 1) / p ^ i) : ℕ) :
     congr_arg coe $ finset.sum_congr rfl (by intros; simp [nat.succ_div]; congr)
 
@@ -105,7 +109,7 @@ calc (finset.Ico 1 b).sum (λ i, n / p ^ i)
     by simp only [nat.add_sub_cancel' hkn]
 ... = (finset.Ico 1 b).sum (λ i, k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (nat.pow_pos hp.pos _)]
-... = _ : by simp [sum_add_distrib, sum_ite (λ _, 1) (λ _, 0) (λ x, x)]
+... = _ : begin simp only [sum_add_distrib], simp [sum_boole], end -- we have to use `sum_add_distrib` before `add_ite` fires.
 
 /-- The multiplity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`

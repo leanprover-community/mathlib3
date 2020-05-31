@@ -3,18 +3,14 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.products
 import category_theory.limits.shapes.finite_limits
-import category_theory.discrete_category
-import data.fintype
 
 universes v u
 
 open category_theory
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 class has_finite_products :=
 (has_limits_of_shape : Π (J : Type v) [fintype J] [decidable_eq J], has_limits_of_shape.{v} (discrete J) C)

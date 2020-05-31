@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.CommRing.basic
-import category_theory.adjunction.basic
 import data.mv_polynomial
 
 /-!

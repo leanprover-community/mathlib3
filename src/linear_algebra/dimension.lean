@@ -2,11 +2,25 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
-
-Dimension of modules and vector spaces.
 -/
 import linear_algebra.basis
 import set_theory.ordinal
+/-!
+# Dimension of modules and vector spaces
+
+## Main definitions
+
+* The dimension of a vector space is defined as `vector_space.dim : cardinal`.
+
+## Main statements
+
+* `mk_eq_mk_of_basis`: the dimension theorem, any two bases of the same vector space have the same
+  cardinality.
+* `dim_quotient_add_dim`: if V' is a submodule of V, then dim (V/V') + dim V' = dim V.
+* `dim_range_add_dim_ker`: the rank-nullity theorem.
+
+-/
+
 noncomputable theory
 
 universes u u' u'' v v' w w'
@@ -23,6 +37,8 @@ include K
 open submodule function set
 
 variables (K V)
+
+/-- the dimension of a vector space, defined as a term of type `cardinal` -/
 def vector_space.dim : cardinal :=
 cardinal.min
   (nonempty_subtype.2 (@exists_is_basis K V _ _ _))
@@ -32,13 +48,12 @@ variables {K V}
 open vector_space
 
 section
-set_option class.instance_max_depth 50
 theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
-    let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
+    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
@@ -47,25 +62,22 @@ begin
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this,
       replace : hv.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
-      rw [hv.repr_eq_single, finsupp.mem_supported, finsupp.support_single_ne_zero zero_ne_one.symm] at this,
-      rw ← hi,
-      apply mem_Union.2,
-      rcases mem_Union.1 (this (mem_singleton _)) with ⟨j, hj⟩,
-      use j,
-      rw mem_image,
-      use i,
-      exact ⟨hj, rfl⟩ },
+      rw [hv.repr_eq_single, finsupp.mem_supported,
+        finsupp.support_single_ne_zero zero_ne_one.symm] at this,
+      subst b,
+      rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
+      exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
     refine le_of_not_lt (λ IJ, _),
     suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
-    { exact not_le_of_lt this ⟨set.embedding_of_subset hs⟩ },
+    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finite_image _ (finset.finite_to_set _)) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
+        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 end
@@ -107,6 +119,7 @@ by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_on
 
 variables [add_comm_group V₂] [vector_space K V₂]
 
+/-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₂) :
   dim K V = dim K V₂ :=
 by letI := classical.dec_eq V;
@@ -138,7 +151,7 @@ lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
   classical,
   rcases
-    exists_linear_independent linear_independent_empty (set.empty_subset s)
+    exists_linear_independent (linear_independent_empty K V) (set.empty_subset s)
     with ⟨b, hb, _, hsb, hlib⟩,
   have hsab : span K s = span K b,
     from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
@@ -222,10 +235,9 @@ dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
 section
 variables [add_comm_group V₃] [vector_space K V₃]
 variables [add_comm_group V₄] [vector_space K V₄]
-set_option class.instance_max_depth 70
 open linear_map
 
-/-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq` -/
+/-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/
 lemma dim_add_dim_split
   (db : V₃ →ₗ[K] V) (eb : V₄ →ₗ[K] V) (cd : V₂ →ₗ[K] V₃) (ce : V₂ →ₗ[K] V₄)
   (hde : ⊤ ≤ db.range ⊔ eb.range)
@@ -233,25 +245,27 @@ lemma dim_add_dim_split
   (eq : db.comp cd = eb.comp ce)
   (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
   dim K V + dim K V₂ = dim K V₃ + dim K V₄ :=
-have hf : surjective (copair db eb),
+have hf : surjective (coprod db eb),
 begin
   refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_copair_prod]
+  rwa [← map_top, ← prod_top, map_coprod_prod]
 end,
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  fapply linear_equiv.of_bijective,
-  { refine cod_restrict _ (pair cd (- ce)) _,
+  refine linear_equiv.of_bijective _ _ _,
+  { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
-      simp [add_eq_zero_iff_eq_neg],
+      simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker,
+        coprod_apply, neg_neg, map_neg, neg_apply],
       exact linear_map.ext_iff.1 eq c } },
-  { rw [ker_cod_restrict, ker_pair, hgd, bot_inf_eq] },
+  { rw [ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
   { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
-    simp [add_eq_zero_iff_eq_neg] at ⊢ h,
+    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, mem_coe, prod.mk.inj_iff,
+      coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
     refine ⟨c, h₁, _⟩,
@@ -262,7 +276,7 @@ lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
   dim K (s ⊔ t : submodule K V) + dim K (s ⊓ t : submodule K V) = dim K s + dim K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
-    rw [← map_le_map_iff (ker_subtype $ s ⊔ t), map_sup, map_top,
+    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
     exact le_refl _
@@ -337,6 +351,7 @@ end
 
 section rank
 
+/-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V₂) : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₂) : rank f ≤ dim K V :=

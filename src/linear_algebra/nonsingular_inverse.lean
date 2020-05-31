@@ -1,13 +1,9 @@
 /-
-  Copyright (c) 2019 Tim Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Tim Baanen.
-
-  Inverses for nonsingular square matrices.
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
 -/
 import algebra.associated
-import algebra.big_operators
-import data.matrix.basic
 import linear_algebra.determinant
 import tactic.linarith
 import tactic.ring_exp
@@ -53,8 +49,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 
@@ -133,7 +127,7 @@ begin
     congr, ext σ,
     rw [←mul_add ↑↑(sign σ)],
     congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i), prod_singleton, prod_singleton,
       prod_singleton, ←add_mul],
     refl },
@@ -142,10 +136,9 @@ begin
     rw [smul_eq_mul, mul_sum],
     congr, ext σ,
     rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i),
-      prod_singleton, prod_singleton, mul_assoc],
-    refl }
+      prod_singleton, prod_singleton, mul_assoc], }
 end
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) :=
@@ -187,7 +180,7 @@ end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
-  s.sum (λ x, cramer α A (f x)) = cramer α A (sum s f) :=
+  s.sum (λ x, cramer α A (f x)) = cramer α A (s.sum f) :=
 (linear_map.map_sum (cramer α A)).symm
 
 /-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
@@ -201,7 +194,8 @@ calc s.sum (λ x, cramer α A (λ j, f j x) i)
 end cramer
 
 section adjugate
-/-! ### `adjugate` section
+/-!
+### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
 These will hold for any matrix over a commutative ring,
@@ -257,22 +251,22 @@ lemma mul_adjugate_val (A : matrix n n α) (i j k) :
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
   congr, ext,
-  rw [pi.smul_apply, smul_eq_mul, mul_ite]
+  rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_ite],
+  rw [mul_val, smul_val, one_val, mul_boole],
   calc
-    sum univ (λ (k : n), A i k * adjugate A k j)
-        = sum univ (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
+    univ.sum (λ (k : n), A i k * adjugate A k j)
+        = univ.sum (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
       : by {congr, ext k, apply mul_adjugate_val A i j k}
-    ... = cramer α A (λ j, sum univ (λ (k : n), if k = j then A i k else 0)) j
+    ... = cramer α A (λ j, univ.sum (λ (k : n), if k = j then A i k else 0)) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
       rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
-    ... = if i = j then det A else 0 : by rw cramer_column_self
+    ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
@@ -300,7 +294,7 @@ begin
   have univ_eq_i := univ_eq_singleton_of_card_one i h,
   have univ_eq_j := univ_eq_singleton_of_card_one j h,
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
 end
@@ -353,7 +347,8 @@ end
 end adjugate
 
 section inv
-/-! ### `inv` section
+/-!
+### `inv` section
 
 Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.

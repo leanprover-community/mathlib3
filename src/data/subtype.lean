@@ -30,6 +30,8 @@ end subtype
 namespace subtype
 variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
 
+lemma val_eq_coe : @val _ p = coe := rfl
+
 protected lemma eq' : ∀ {a1 a2 : {x // p x}}, a1.val = a2.val → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
 
@@ -55,7 +57,7 @@ by refl
 
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
   injective (restrict f p) :=
-injective_comp h subtype.val_injective
+h.comp subtype.val_injective
 
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
 def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
@@ -80,7 +82,7 @@ funext $ assume ⟨v, h⟩, rfl
 
 lemma map_injective {p : α → Prop} {q : β → Prop} {f : α → β} (h : ∀a, p a → q (f a))
   (hf : injective f) : injective (map f h) :=
-coind_injective _ $ injective_comp hf val_injective
+coind_injective _ $ hf.comp val_injective
 
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
 ⟨λ s t, s.val ≈ t.val⟩

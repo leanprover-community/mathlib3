@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
 import category_theory.limits.types
-import category_theory.limits.preserves
 import algebra.pi_instances
 
 /-!

@@ -5,20 +5,18 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power algebra.field_power algebra.floor
-import data.rat tactic.linarith
+import algebra.field_power
+import data.rat
 
 variables {α : Type*}
 
-open_locale add_monoid
-
-class archimedean (α) [ordered_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
+class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
-⟨n+1, lt_of_le_of_lt (by rwa ← add_monoid.smul_one)
+⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
 section linear_ordered_ring
@@ -30,8 +28,8 @@ have hy0 : 0 < y - 1 := sub_pos_of_lt hy1,
 -- TODO `by linarith` fails to prove hy1'
 have hy1' : (-1:α) ≤ y, from le_trans (neg_le_self zero_le_one) (le_of_lt hy1),
 let ⟨n, h⟩ := archimedean.arch x hy0 in
-⟨n, calc x ≤ n • (y - 1)     : h
-       ... < 1 + n • (y - 1) : lt_one_add _
+⟨n, calc x ≤ n •ℕ (y - 1)     : h
+       ... < 1 + n •ℕ (y - 1) : lt_one_add _
        ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
 
 /-- Every x greater than 1 is between two successive natural-number
@@ -80,8 +78,8 @@ lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
-    exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
+    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
@@ -95,11 +93,11 @@ but with ≤ and < the other way around. -/
 lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
-let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos hx) hy in
-have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
+let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
+have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg, one_div_eq_inv,
+by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]
@@ -124,11 +122,11 @@ end
 end linear_ordered_field
 
 instance : archimedean ℕ :=
-⟨λ n m m0, ⟨n, by simpa only [mul_one, nat.smul_eq_mul] using nat.mul_le_mul_left n m0⟩⟩
+⟨λ n m m0, ⟨n, by simpa only [mul_one, nat.nsmul_eq_mul] using nat.mul_le_mul_left n m0⟩⟩
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
-by simpa only [add_monoid.smul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
+by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
     (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 noncomputable def archimedean.floor_ring (α)
@@ -143,7 +141,7 @@ theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
 ⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
-  by rwa [div_lt_iff y0, ← add_monoid.smul_eq_mul] at h⟩⟩
+  by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
 theorem archimedean_iff_nat_le :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x ≤ n :=
@@ -180,7 +178,7 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos (sub_pos.2 h)) nh),
+  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
   have n0' := (@nat.cast_pos α _ _).2 n0,
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $

@@ -3,9 +3,9 @@ Copyright (c) 2019 Scott Morrison All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
 import category_theory.groupoid
-import category_theory.whiskering
+import control.equiv_functor
+import category_theory.types
 
 namespace category_theory
 
@@ -18,8 +18,7 @@ def as_core {C : Type u₁} (X : C) : core C := X
 def of_core {C : Type u₁} (X : core C) : C := X
 attribute [irreducible] core
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 instance core_category : groupoid.{v₁} (core C) :=
 { hom  := λ X Y, (of_core X) ≅ (of_core Y),
@@ -43,8 +42,7 @@ def inclusion : core C ⥤ C :=
   map := λ X Y f, f.hom }
 end
 
-variables {G : Type u₂} [𝒢 : groupoid.{v₂} G]
-include 𝒢
+variables {G : Type u₂} [groupoid.{v₂} G]
 
 /-- A functor from a groupoid to a category C factors through the core of C. -/
 -- Note that this function is not functorial
@@ -55,5 +53,23 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 
 def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj (inclusion C)
 end core
+
+/--
+`of_equiv_functor m` lifts a type-level `equiv_functor`
+to a categorical functor `core (Type u₁) ⥤ core (Type u₂)`.
+-/
+def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
+  core (Type u₁) ⥤ core (Type u₂) :=
+{ obj       := m,
+  map       := λ α β f, (equiv_functor.map_equiv m f.to_equiv).to_iso,
+  -- These are not very pretty.
+  map_id' := λ α, begin ext, exact (congr_fun (equiv_functor.map_refl _) x), end,
+  map_comp' := λ α β γ f g,
+  begin
+    ext,
+    simp only [equiv_functor.map_equiv_apply, equiv.to_iso_hom,
+      function.comp_app, core.comp_hom, types_comp],
+    erw [iso.to_equiv_comp, equiv_functor.map_trans],
+  end, }
 
 end category_theory

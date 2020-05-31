@@ -3,13 +3,8 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-
-import data.complex.basic
 import data.set.intervals
-import tactic.interactive
-import tactic.linarith
-import linear_algebra.basic
-import ring_theory.algebra
+import data.complex.module
 import algebra.pointwise
 
 /-!
@@ -110,7 +105,7 @@ lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b, a + c] ↔ x ∈
 begin
   rw [segment_eq_image', segment_eq_image'],
   refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_left_inj]
+  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj]
 end
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + c] = [b, c] :=
@@ -124,6 +119,18 @@ segment_translate_preimage a b c ▸ image_preimage_eq $ add_left_surjective a
 def convex (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
+
+lemma convex_iff_forall_pos :
+  convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
+begin
+  refine ⟨λ h x y hx hy a b ha hb hab, h hx hy (le_of_lt ha) (le_of_lt hb) hab, _⟩,
+  intros h x y hx hy a b ha hb hab,
+  cases eq_or_lt_of_le ha with ha ha,
+  { subst a, rw [zero_add] at hab, simp [hab, hy] },
+  cases eq_or_lt_of_le hb with hb hb,
+  { subst b, rw [add_zero] at hab, simp [hab, hx] },
+  exact h hx hy ha hb hab
+end
 
 lemma convex_iff_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
 by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
@@ -150,9 +157,9 @@ lemma convex_iff_div:
 ⟨begin
   assume h x y hx hy a b ha hb hab,
   apply h hx hy,
-  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
+  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos.2 hab)),
   rwa [mul_zero, ←div_eq_inv_mul] at ha',
-  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
+  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos.2 hab)),
   rwa [mul_zero, ←div_eq_inv_mul] at hb',
   rw [←add_div],
   exact div_self (ne_of_lt hab).symm
@@ -453,7 +460,7 @@ begin
     f (a • x + b • y) + g (a • x + b • y) ≤ (a * f x + b * f y) + (a * g x + b * g y)
       : add_le_add (hf.2 hx hy ha hb hab) (hg.2 hx hy ha hb hab)
     ... = a * f x + a * g x + b * f y + b * g y : by linarith
-    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add]
+    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add, add_assoc]
 end
 
 lemma convex_on.smul {c : ℝ} (hc : 0 ≤ c) (hf : convex_on s f) : convex_on s (λx, c * f x) :=
@@ -520,7 +527,7 @@ noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι �
 
 variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
 
-open finset (hiding singleton)
+open finset
 
 lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
 by simp only [center_mass, sum_empty, smul_zero]
@@ -541,7 +548,7 @@ begin
   { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div_eq_inv] }
 end
 
-lemma finset.center_mass_singleton (hw : w i ≠ 0) : (finset.singleton i).center_mass w z = z i :=
+lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=
 by rw [center_mass, sum_singleton, sum_singleton, ← mul_smul, inv_mul_cancel hw, one_smul]
 
 lemma finset.center_mass_eq_of_sum_1 (hw : t.sum w = 1) :
@@ -752,7 +759,7 @@ lemma convex_hull_eq (s : set E) :
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
-    use [punit, finset.singleton punit.star, λ _, 1, λ _, x, λ _ _, zero_le_one,
+    use [punit, {punit.star}, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
     simp only [finset.center_mass, finset.sum_singleton, inv_one, one_smul] },
   { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
@@ -873,14 +880,15 @@ The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so th
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull s =
-    (⇑((@finset.univ _ hs.fintype).sum (λ x, (linear_map.proj x : (s → ℝ) →ₗ[ℝ] ℝ).smul_right x.1))) ''
-      (@std_simplex _ hs.fintype) :=
+    (⇑((@finset.univ _ hs.fintype).sum
+      (λ x, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1))) ''
+        (@std_simplex _ hs.fintype) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← range_comp, (∘)],
   apply congr_arg,
   convert (subtype.range_val s).symm,
   ext x,
-  simp [linear_map.sum_apply, ite_smul, finset.sum_ite _ _ (λ x, x), finset.filter_eq]
+  simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/

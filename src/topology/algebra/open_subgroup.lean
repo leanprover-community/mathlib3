@@ -1,6 +1,11 @@
+/-
+Copyright (c) 2019 Johan Commelin All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
 import order.filter.lift
-import linear_algebra.basic
-import topology.opens topology.algebra.ring
+import topology.opens
+import topology.algebra.ring
 
 section
 open topological_space
@@ -48,7 +53,8 @@ variable (U)
 protected lemma is_open : is_open (U : set G) := U.2.1
 
 @[to_additive]
-protected lemma one_mem : (1 : G) ∈ U := is_submonoid.one_mem (U : set G)
+protected lemma one_mem : (1 : G) ∈ U :=
+@is_submonoid.one_mem _ _ (U : set G) _
 
 @[to_additive]
 protected lemma inv_mem {g : G} (h : g ∈ U) : g⁻¹ ∈ U :=
@@ -112,7 +118,7 @@ begin
     simp },
   split,
   { exact (continuous_mul_right _) _ U.is_open },
-  { simpa using is_submonoid.one_mem (U : set G) }
+  { simpa using @is_submonoid.one_mem _ _ (U : set G) _ }
 end
 
 section

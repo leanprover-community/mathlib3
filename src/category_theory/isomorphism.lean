@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.functor
-import tactic.reassoc_axiom
 
 /-!
 # Isomorphisms
@@ -52,8 +51,7 @@ attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {X Y Z : C}
 
 namespace iso
@@ -170,9 +168,9 @@ def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
 namespace is_iso
 
 @[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X :=
-is_iso.hom_inv_id' f
+is_iso.hom_inv_id'
 @[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y :=
-is_iso.inv_hom_id' f
+is_iso.inv_hom_id'
 
 @[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) :
   f ≫ inv f ≫ g = g :=
@@ -213,7 +211,7 @@ instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 @[priority 100] -- see Note [lower instance priority]
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
-  by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
+  by rw [←category.comp_id g, ←category.comp_id h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
 
 end is_iso
 
@@ -239,8 +237,7 @@ namespace functor
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{v₂} D]
-include 𝒟
+variables [category.{v₂} D]
 
 /-- A functor `F : C ⥤ D` sends isomorphisms `i : X ≅ Y` to isomorphisms `F.obj X ≅ F.obj Y` -/
 def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=

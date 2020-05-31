@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import category_theory.yoneda
-import ring_theory.subring
 import topology.algebra.continuous_functions
 
 universes v u
@@ -32,9 +30,9 @@ def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v
 
 namespace continuous_functions
 @[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (monoid.one ↥(continuous_functions X R)).val x = 1 := rfl
+  (monoid.one : continuous_functions X R).val x = 1 := rfl
 @[simp] lemma zero (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (comm_ring.zero ↥(continuous_functions X R)).val x = 0 := rfl
+  (comm_ring.zero : continuous_functions X R).val x = 0 := rfl
 @[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
   (comm_ring.add f g).val x = f.1 x + g.1 x := rfl
 @[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :

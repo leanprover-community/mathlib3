@@ -3,7 +3,6 @@ Copyright (c) 2019 Mathlib Authors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Wojciech Nawrocki
 -/
-
 import data.num.basic
 
 /-!
@@ -20,7 +19,7 @@ to be defined and is better suited for in-kernel computation.
 
 @[derive has_reflect, derive decidable_eq]
 inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
+| nil : tree
 | node : α → tree → tree → tree
 
 namespace tree

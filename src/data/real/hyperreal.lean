@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 Construction of the hyperreal numbers as an ultraproduct of real sequences.
 -/
-
-import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
+import order.filter.filter_product
+import analysis.specific_limits
 
 open filter filter.filter_product
 open_locale topological_space classical
@@ -27,31 +27,31 @@ is_ultrafilter_hyperfilter.1
 @[simp] lemma hyperfilter_ne_bot' {α} [infinite α] : ¬ ⊥ = @hyperfilter α :=
 hyperfilter_ne_bot ∘ eq.symm
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_eq_coe (x y : ℝ) : (x : ℝ*) = y ↔ x = y :=
 filter_product.coe_injective _ _ (by simp)
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma cast_div (x y : ℝ) : ((x / y : ℝ) : ℝ*) = x / y :=
 filter_product.of_div is_ultrafilter_hyperfilter _ _
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_lt_coe (x y : ℝ) : (x : ℝ*) < y ↔ x < y :=
 (filter_product.of_lt is_ultrafilter_hyperfilter).symm
 
-@[simp, elim_cast]
+@[simp, norm_cast]
 lemma coe_le_coe (x y : ℝ) : (x : ℝ*) ≤ y ↔ x ≤ y :=
 (filter_product.of_le hyperfilter_ne_bot).symm
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x :=
 filter_product.of_abs _ _
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y :=
 filter_product.of_max _ _ _
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y :=
 filter_product.of_min _ _ _
 
@@ -73,13 +73,13 @@ suffices ∀ᶠ i in hyperfilter, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def U,
 have h0' : {n : ℕ | ¬ n > 0} = {0} :=
 by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
-  simp only [inv_pos', nat.cast_pos],
+  simp only [inv_pos, nat.cast_pos],
   exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
 
-lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos epsilon_pos
+lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos.2 epsilon_pos
 
 lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
 
@@ -586,19 +586,19 @@ lemma zero_of_infinitesimal_real {r : ℝ} : infinitesimal r → r = 0 := eq_of_
 lemma zero_iff_infinitesimal_real {r : ℝ} : infinitesimal r ↔ r = 0 :=
 ⟨zero_of_infinitesimal_real, λ hr, by rw hr; exact infinitesimal_zero⟩
 
-lemma infinitesimal_add {x y : ℝ*} :
-  infinitesimal x → infinitesimal y → infinitesimal (x + y) :=
-zero_add 0 ▸ is_st_add
+lemma infinitesimal_add {x y : ℝ*} (hx : infinitesimal x) (hy : infinitesimal y) :
+  infinitesimal (x + y) :=
+by simpa only [add_zero] using is_st_add hx hy
 
-lemma infinitesimal_neg {x : ℝ*} : infinitesimal x → infinitesimal (-x) :=
-(neg_zero : -(0 : ℝ) = 0) ▸ is_st_neg
+lemma infinitesimal_neg {x : ℝ*} (hx : infinitesimal x) : infinitesimal (-x) :=
+by simpa only [neg_zero] using is_st_neg hx
 
 lemma infinitesimal_neg_iff {x : ℝ*} : infinitesimal x ↔ infinitesimal (-x) :=
 ⟨infinitesimal_neg, λ h, (neg_neg x) ▸ @infinitesimal_neg (-x) h⟩
 
-lemma infinitesimal_mul {x y : ℝ*} :
-  infinitesimal x → infinitesimal y → infinitesimal (x * y) :=
-zero_mul 0 ▸ is_st_mul
+lemma infinitesimal_mul {x y : ℝ*} (hx : infinitesimal x) (hy : infinitesimal y) :
+  infinitesimal (x * y) :=
+by simpa only [mul_zero] using is_st_mul hx hy
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
   tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=
@@ -621,13 +621,13 @@ infinitesimal_sub_is_st $ is_st_st' hx
 lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} :
   infinite_pos x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ > 0) :=
 ⟨ λ hip, ⟨ infinitesimal_def.mpr $ λ r hr,
-  ⟨ lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos (hip 0)),
+  ⟨ lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos.2 (hip 0)),
     (inv_lt (of_lt_of_lt U hr) (hip 0)).mp (by convert hip r⁻¹) ⟩,
-  inv_pos $ hip 0 ⟩,
-  λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (x > (r : ℝ*)) (λ h, eq.substr h (inv_pos'.mp hp)) $
+  inv_pos.2 $ hip 0 ⟩,
+  λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (x > (r : ℝ*)) (λ h, eq.substr h (inv_pos.mp hp)) $
   λ h, lt_of_le_of_lt (of_le_of_le (le_abs_self r))
-  ((inv_lt_inv (inv_pos'.mp hp) (of_lt_of_lt U (abs_pos_of_ne_zero h))).mp
-  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos (abs_pos_of_ne_zero h))).2) ⟩
+  ((inv_lt_inv (inv_pos.mp hp) (of_lt_of_lt U (abs_pos_of_ne_zero h))).mp
+  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos.2 (abs_pos_of_ne_zero h))).2) ⟩
 
 lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
   infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) :=
@@ -647,8 +647,8 @@ theorem infinite_of_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) (hi : infinitesi
   infinite x :=
 begin
   cases (lt_or_gt_of_ne h0) with hn hp,
-  { exact or.inr (infinite_neg_iff_infinitesimal_inv_neg.mpr ⟨hi, inv_neg'.mpr hn⟩) },
-  { exact or.inl (infinite_pos_iff_infinitesimal_inv_pos.mpr ⟨hi, inv_pos'.mpr hp⟩) }
+  { exact or.inr (infinite_neg_iff_infinitesimal_inv_neg.mpr ⟨hi, inv_lt_zero.mpr hn⟩) },
+  { exact or.inl (infinite_pos_iff_infinitesimal_inv_pos.mpr ⟨hi, inv_pos.mpr hp⟩) }
 end
 
 theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x ↔ infinitesimal x⁻¹ :=

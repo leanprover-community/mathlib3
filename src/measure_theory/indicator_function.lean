@@ -3,10 +3,8 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import data.indicator_function
 import measure_theory.measure_space
-import analysis.normed_space.basic
 
 /-!
 # Indicator function
@@ -100,9 +98,8 @@ variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
 lemma indicator_le_indicator_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
   ∀ₘ a, indicator s f a ≤ indicator s g a :=
 begin
-  filter_upwards [h],
-  simp only [mem_set_of_eq, indicator],
-  assume a h,
+  refine h.mono (λ a h, _),
+  simp only [indicator],
   split_ifs with ha,
   { exact h ha },
   refl

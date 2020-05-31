@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
-import category_theory.limits.limits
 
 /-!
 # The category of commutative rings has all colimits.
@@ -64,8 +63,8 @@ inductive prequotient
 -- There's always `of`
 | of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
-| one {} : prequotient
+| zero : prequotient
+| one : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 | mul : prequotient → prequotient → prequotient
@@ -349,17 +348,17 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- zero
-    { erw ring_hom.map_zero ((s.ι).app r), refl },
+    { simp, },
     -- one
-    { erw ring_hom.map_one ((s.ι).app r), refl },
+    { simp, },
     -- neg
-    { rw ring_hom.map_neg ((s.ι).app r_j) },
+    { simp, },
     -- add
-    { rw ring_hom.map_add ((s.ι).app r_j) },
+    { simp, },
     -- mul
-    { rw ring_hom.map_mul ((s.ι).app r_j) },
+    { simp, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -415,24 +414,11 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_zero],
-      erw ring_hom.map_zero m,
-      refl, },
-    { simp only [desc_morphism, quot_one],
-      erw ring_hom.map_one m,
-      refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw ring_hom.map_neg m,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw ring_hom.map_add m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw ring_hom.map_mul m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp, },
+    { simp, },
+    { simp *, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 

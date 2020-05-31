@@ -5,8 +5,7 @@ Premetric spaces.
 
 Author: Sébastien Gouëzel
 -/
-
-import topology.metric_space.basic tactic.linarith
+import topology.metric_space.basic
 
 /-!
 # Premetric spaces

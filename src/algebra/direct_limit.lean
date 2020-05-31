@@ -14,11 +14,7 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 -/
-
-import linear_algebra.direct_sum_module
-import algebra.big_operators
 import ring_theory.free_comm_ring
-import ring_theory.ideal_operations
 
 universes u v w u₁
 
@@ -33,8 +29,8 @@ variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 This is used for abelian groups and rings and fields because their maps are not bundled.
 See module.directed_system -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
@@ -42,8 +38,8 @@ variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(map_self : ∀ i x h, f i i h x = x)
-(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self [] : ∀ i x h, f i i h x = x)
+(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
@@ -55,7 +51,7 @@ def direct_limit : Type (max v w) :=
 namespace direct_limit
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
-instance : module R (direct_limit G f) := quotient.module _
+instance : semimodule R (direct_limit G f) := quotient.semimodule _
 
 variables (R ι)
 /-- The canonical map from a component to the direct limit. -/
@@ -187,7 +183,7 @@ variables [Π i, add_comm_group (G i)]
 def direct_limit (f : Π i j, i ≤ j → G i → G j)
   [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
 @module.direct_limit ℤ _ ι _ _ _ G _ _ _
-  (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+  (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map)
   ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 namespace direct_limit
@@ -195,19 +191,19 @@ namespace direct_limit
 variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
-lemma directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
+lemma directed_system :
+  module.directed_system G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map) :=
 ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 local attribute [instance] directed_system
 
 instance : add_comm_group (direct_limit G f) :=
-module.direct_limit.add_comm_group G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
-set_option class.instance_max_depth 50
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
-module.direct_limit.of ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) i
+module.direct_limit.of ℤ ι G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map) i
 variables {G f}
 
 instance of.is_add_group_hom (i) : is_add_group_hom (of G f i) :=
@@ -240,8 +236,8 @@ variables (G f)
 that respect the directed system structure (i.e. make some diagram commute) give rise
 to a unique map out of the direct limit. -/
 def lift : direct_limit G f → P :=
-module.direct_limit.lift ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
-  (λ i, is_add_group_hom.to_linear_map $ g i) Hg
+module.direct_limit.lift ℤ ι G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map)
+  (λ i, (add_monoid_hom.of $ g i).to_int_linear_map) Hg
 variables {G f}
 
 instance lift.is_add_group_hom : is_add_group_hom (lift G f P g Hg) :=
@@ -359,31 +355,34 @@ begin
   refine span_induction (ideal.quotient.eq_zero_iff_mem.1 H) _ _ _ _,
   { rintros x (⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩),
     { refine ⟨j, {⟨i, x⟩, ⟨j, f i j hij x⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inl rfl) (is_supported_of.2 $ or.inr $ or.inl rfl), _⟩,
-      { rintros k (rfl | ⟨rfl | h⟩), refl, exact hij, cases h },
+        is_supported_sub (is_supported_of.2 $ or.inr rfl) (is_supported_of.2 $ or.inl rfl), _⟩,
+      { rintros k (rfl | ⟨rfl | _⟩), exact hij, refl },
       { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
         dsimp only, rw directed_system.map_map f, exact sub_self _,
-        { left, refl }, { right, left, refl }, } },
-    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 $ or.inl rfl) is_supported_one, _⟩,
-      { rintros k (rfl | h), refl, cases h },
+        exacts [or.inr rfl, or.inl rfl] } },
+    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
+      { rintros k (rfl|h), refl },
       { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_of, lift_one],
-        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exact _inst_7 i i _, { left, refl } } },
+        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exacts [_inst_7 i i _, rfl] } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
-      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
+        is_supported_sub (is_supported_of.2 $ or.inl rfl)
+          (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
+            (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
+      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
       { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
-        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } },
+        exacts [or.inl rfl, by apply_instance, or.inr (or.inr rfl), or.inr (or.inl rfl)] } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
-      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
+        is_supported_sub (is_supported_of.2 $ or.inl rfl)
+          (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl)
+            (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
+      { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
       { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_of, lift_of, lift_of],
-        dsimp only, rw is_ring_hom.map_mul (f i i _), exact sub_self _,
-        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } } },
+        dsimp only, rw is_ring_hom.map_mul (f i i _),
+        exacts [sub_self _, or.inl rfl, by apply_instance, or.inr (or.inr rfl),
+          or.inr (or.inl rfl)] } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
     rw [restriction_zero, lift_zero] },
@@ -498,15 +497,14 @@ variables [directed_system G f]
 
 namespace direct_limit
 
-instance nonzero_comm_ring : nonzero_comm_ring (ring.direct_limit G f) :=
+instance nonzero : nonzero (ring.direct_limit G f) :=
 { zero_ne_one := nonempty.elim (by apply_instance) $ assume i : ι, begin
     change (0 : ring.direct_limit G f) ≠ 1,
     rw ← ring.direct_limit.of_one,
     intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
     rw is_ring_hom.map_one (f i j hij) at hf,
     exact one_ne_zero hf
-  end,
-  .. ring.direct_limit.comm_ring G f }
+  end }
 
 theorem exists_inv {p : ring.direct_limit G f} : p ≠ 0 → ∃ y, p * y = 1 :=
 ring.direct_limit.induction_on p $ λ i x H,
@@ -530,7 +528,8 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,
-  .. direct_limit.nonzero_comm_ring G f }
+  .. ring.direct_limit.comm_ring G f,
+  .. direct_limit.nonzero G f }
 
 end
 

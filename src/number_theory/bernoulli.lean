@@ -3,9 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
 import data.rat
-import data.fintype
 import data.fintype.card
 
 /-!
@@ -20,7 +18,7 @@ special values of the Riemann zeta function.
 
 In this file, we provide the definition,
 and the basic fact (`sum_bernoulli`) that
-$$ ∑_{k < n} \binom{n}{k} * B_k = n, $$
+$$ \sum_{k < n} \binom{n}{k} * B_k = n, $$
 where $B_k$ denotes the the $k$-th Bernoulli number.
 
 -/

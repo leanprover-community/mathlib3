@@ -3,8 +3,8 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland, Yury Kudryashov
 -/
-
-import algebra.semiconj group_theory.submonoid group_theory.subgroup ring_theory.subring
+import algebra.semiconj
+import ring_theory.subring
 
 /-!
 # Commuting pairs of elements in monoids
@@ -15,7 +15,8 @@ import algebra.semiconj group_theory.submonoid group_theory.subgroup ring_theory
 * `centralizer a` : `{ x | commute a x }`
 * `set.centralizer s` : elements that commute with all `a ∈ s`
 
-We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the available structures, and provide operations on `commute _ _`.
+We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the
+available structures, and provide operations on `commute _ _`.
 
 E.g., if `a`, `b`, and c are elements of a semiring, and that `hb :
 commute a b` and `hc : commute a c`.  Then `hb.pow_left 5` proves
@@ -33,8 +34,6 @@ Most of the proofs come from the properties of `semiconj_by`.
 
 /-- Two elements commute iff `a * b = b * a`. -/
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
-
-open_locale smul
 
 namespace commute
 
@@ -167,15 +166,15 @@ semiconj_by.add_left
 
 variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
 
-@[simp] theorem smul_right : commute a (n •ℕ b) := hab.smul_right n
-@[simp] theorem smul_left : commute (n •ℕ a) b := hab.smul_left n
-@[simp] theorem smul_smul : commute (m •ℕ a) (n •ℕ b) := hab.smul_smul m n
+@[simp] theorem nsmul_right : commute a (n •ℕ b) := hab.nsmul_right n
+@[simp] theorem nsmul_left : commute (n •ℕ a) b := hab.nsmul_left n
+@[simp] theorem nsmul_nsmul : commute (m •ℕ a) (n •ℕ b) := hab.nsmul_nsmul m n
 
 variable (a)
 
-@[simp] theorem self_smul : commute a (n •ℕ a) := (commute.refl a).smul_right n
-@[simp] theorem smul_self : commute (n •ℕ a) a := (commute.refl a).smul_left n
-@[simp] theorem self_smul_smul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).smul_smul m n
+@[simp] theorem self_nsmul : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
+@[simp] theorem nsmul_self : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
+@[simp] theorem self_nsmul_nsmul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).nsmul_nsmul m n
 
 @[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
 @[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a
@@ -216,6 +215,35 @@ by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
 @[simp] theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
 
 end ring
+
+section division_ring
+
+variables {R : Type*} [division_ring R] {a b c : R}
+
+@[simp] theorem finv_left_iff : commute a⁻¹ b ↔ commute a b :=
+semiconj_by.finv_symm_left_iff
+
+theorem finv_left (h : commute a b) : commute a⁻¹ b :=
+finv_left_iff.2 h
+
+@[simp] theorem finv_right_iff : commute a b⁻¹ ↔ commute a b :=
+commute.symm_iff.trans (finv_left_iff.trans commute.symm_iff)
+
+theorem finv_right (h : commute a b) : commute a b⁻¹ :=
+finv_right_iff.2 h
+
+theorem finv_finv (h : commute a b) : commute a⁻¹ b⁻¹ :=
+h.finv_left.finv_right
+
+@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
+  commute a (b / c) :=
+hab.mul_right hac.finv_right
+
+@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
+  commute (a / b) c :=
+hac.mul_left hbc.finv_left
+
+end division_ring
 
 end commute
 

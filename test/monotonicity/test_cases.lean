@@ -60,7 +60,7 @@ do xs ← mmap to_expr [``(1),``(2),``(3),``(6),``(7)],
 run_cmd
 do x ← to_expr ``(7 + 3 : ℕ) >>= check_ac,
    x ← pp x.2.2.1,
-   let y := "(some (is_left_id.left_id has_add.add, (is_right_id.right_id has_add.add, 0)))",
+   let y := "(some (is_left_id.left_id, (is_right_id.right_id, 0)))",
    guard (x.to_string = y) <|> fail ("guard: " ++ x.to_string)
 
 meta def test_pp {α} [has_to_tactic_format α] (tag : format) (expected : string) (prog : tactic α) : tactic unit :=

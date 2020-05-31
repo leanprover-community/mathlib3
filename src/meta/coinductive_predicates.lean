@@ -75,7 +75,7 @@ private meta def mono_aux (ns : list name) (hs : list expr) : tactic unit := do
         skip))) <|>
   first (hs.map $ λh, apply_core h {md := transparency.none, new_goals := new_goals.non_dep_only} >> skip) <|>
   first (ns.map $ λn, do c ← mk_const n, apply_core c {md := transparency.none, new_goals := new_goals.non_dep_only}, skip),
-  all_goals mono_aux
+  all_goals' mono_aux
 
 meta def mono (e : expr) (hs : list expr) : tactic unit := do
   t ← target,
@@ -487,10 +487,10 @@ do
   solve1 (do
     target >>= instantiate_mvars >>= change, -- TODO: bug in existsi & constructor when mvars in hyptohesis
     bs.mmap existsi,
-    iterate (econstructor >> skip)),
+    iterate' (econstructor >> skip)),
 
   -- clean up remaining coinduction steps
-  all_goals (do
+  all_goals' (do
     ctxts'.reverse.mmap clear,
     target >>= instantiate_mvars >>= change, -- TODO: bug in subst when mvars in hyptohesis
     is ← intro_lst $ is.map expr.local_pp_name,

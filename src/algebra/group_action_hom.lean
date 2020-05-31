@@ -10,7 +10,11 @@ import algebra.group_ring_action
 
 ## Main definitions
 
-* tbc
+* `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`, notated `X →[M] Y`.
+* `distrib_mul_action_hom M A B`, the type of equivariant additive monoid homomorphisms
+  from `A` to `B`, notated `A →+[M] B`.
+* `mul_semiring_action_hom M R S`, the type of equivariant ring homomorphisms
+  from `R` to `S`, notated `R →+*[M] S`.
 -/
 
 universes u v w u₁
@@ -74,6 +78,12 @@ g (f (m • x)) = g (m • f x) : by rw f.map_smul
           ... = m • g (f x) : g.map_smul _ _⟩
 
 @[simp] lemma comp_apply (g : Y →[M] Z) (f : X →[M] Y) (x : X) : g.comp f x = g (f x) := rfl
+
+@[simp] lemma id_comp (f : X →[M] Y) : (mul_action_hom.id M Y).comp f = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
+
+@[simp] lemma comp_id (f : X →[M] Y) : f.comp (mul_action_hom.id M X) = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
 
 local attribute [instance] mul_action.regular
 
@@ -153,6 +163,12 @@ def comp (g : B →+[M] C) (f : A →+[M] B) : A →+[M] C :=
 
 @[simp] lemma comp_apply (g : B →+[M] C) (f : A →+[M] B) (x : A) : g.comp f x = g (f x) := rfl
 
+@[simp] lemma id_comp (f : A →+[M] B) : (distrib_mul_action_hom.id M B).comp f = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
+
+@[simp] lemma comp_id (f : A →+[M] B) : f.comp (distrib_mul_action_hom.id M A) = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
+
 end distrib_mul_action_hom
 
 /-- Equivariant ring homomorphisms. -/
@@ -226,5 +242,11 @@ def comp (g : S →+*[M] T) (f : R →+*[M] S) : R →+*[M] T :=
   .. ring_hom.comp (g : S →+* T) (f : R →+* S), }
 
 @[simp] lemma comp_apply (g : S →+*[M] T) (f : R →+*[M] S) (x : R) : g.comp f x = g (f x) := rfl
+
+@[simp] lemma id_comp (f : R →+*[M] S) : (mul_semiring_action_hom.id M S).comp f = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
+
+@[simp] lemma comp_id (f : R →+*[M] S) : f.comp (mul_semiring_action_hom.id M R) = f :=
+ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom

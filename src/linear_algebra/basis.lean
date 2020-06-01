@@ -1169,6 +1169,7 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
   (prod_equiv_of_is_compl q p hq.symm)
 
 open fintype
+variables (K) (V)
 
 theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=

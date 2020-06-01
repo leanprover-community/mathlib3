@@ -827,21 +827,6 @@ assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, 
 
 end complete_lattice
 
-section ord_continuous
-variables [complete_lattice α] [complete_lattice β]
-
-/-- A function `f` between complete lattices is order-continuous
-  if it preserves all suprema. -/
-def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
-
-lemma ord_continuous.sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-by rw [← Sup_pair, ← Sup_pair, hf {a₁, a₂}, ← Sup_image, image_pair]
-
-lemma ord_continuous.mono {f : α → β} (hf : ord_continuous f) : monotone f :=
-assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_of_le_right h]
-
-end ord_continuous
-
 namespace order_dual
 variable (α)
 

@@ -6,6 +6,7 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.terminated_stable
 import algebra.continued_fractions.continuants_recurrence
+import tactic.lint
 /-!
 # Correctness of Terminating Continued Fraction Computations (`gcf.of`)
 
@@ -38,7 +39,7 @@ about the computation process, refer to `algebra.continued_fraction.computation.
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K] {v : K} {n : ℕ}
+variables {K : Type*} [discrete_linear_ordered_field K] {v : K} {n : ℕ}
 
 /--
 Given two successive continuants (at positions `n + 1` and `n`) of a continued fraction
@@ -58,6 +59,8 @@ if fr = 0 then conts.a / conts.b
 -- otherwise, we have to include the fractional part in a final continuants step.
 else let exactConts := next_continuants 1 fr⁻¹ predConts conts in
   exactConts.a / exactConts.b
+
+variable [floor_ring K]
 
 /-- Just a computational lemmas we need for the next main proof -/
 protected lemma comp_exact_value_correctness_of_stream_eq_some_aux_comp {a : K} (b c : K)

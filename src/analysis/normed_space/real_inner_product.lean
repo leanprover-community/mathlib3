@@ -194,6 +194,30 @@ lemma parallelogram_law_with_norm {x y : α} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
+begin
+  rw norm_add_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : α) :
+  inner x y = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
+begin
+  rw norm_sub_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x - y∥ * ∥x - y∥) / 4 :=
+begin
+  rw [norm_add_mul_self, norm_sub_mul_self],
+  ring
+end
+
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=

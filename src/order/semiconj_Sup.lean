@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*}
 open set
 
 /-- We say that `g : β → α` is an order right adjoint function for `f : α → β` if it sends each `y`
-to a least upper boundary for `{x | f x ≤ y}`. If `α` is a partial order, and `f : α → β` has
+to a least upper bound for `{x | f x ≤ y}`. If `α` is a partial order, and `f : α → β` has
 a right adjoint, then this right adjoint is unique. -/
 def is_order_right_adjoint [preorder α] [preorder β] (f : α → β) (g : β → α) :=
 ∀ y, is_lub {x | f x ≤ y} (g y)

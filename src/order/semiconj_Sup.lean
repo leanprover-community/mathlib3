@@ -13,7 +13,7 @@ import data.equiv.mul_add
 
 In this file we prove two facts about semiconjugate (families of) functions.
 
-First, if and order isomorphism `fa : α → α` is semiconjugate to an order embedding
+First, if an order isomorphism `fa : α → α` is semiconjugate to an order embedding
 `fb : β → β` by `g : α → β`, then `fb` is semiconjugate to `fa` by `y ↦ Sup {x | g x ≤ y}`.
 In particular, the relation “semiconjugate” is an equivalence relation on order
 isomorphisms `α → α`.

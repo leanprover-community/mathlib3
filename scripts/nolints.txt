@@ -59,33 +59,27 @@ apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
 
--- algebra/group/basic.lean
+-- algebra/group/conj.lean
+apply_nolint is_conj doc_blame
+
+-- algebra/group/defs.lean
 apply_nolint add_comm_group doc_blame
 apply_nolint add_comm_monoid doc_blame
 apply_nolint add_comm_semigroup doc_blame
 apply_nolint add_group doc_blame
 apply_nolint add_left_cancel_semigroup doc_blame
 apply_nolint add_monoid doc_blame
-apply_nolint add_neg_self def_lemma doc_blame
 apply_nolint add_right_cancel_semigroup doc_blame
 apply_nolint add_semigroup doc_blame
 apply_nolint algebra.sub doc_blame
 apply_nolint comm_group doc_blame
 apply_nolint comm_monoid doc_blame
 apply_nolint comm_semigroup doc_blame
-apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
-apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
 apply_nolint group doc_blame
-apply_nolint inv_mul_self def_lemma doc_blame
 apply_nolint left_cancel_semigroup doc_blame
 apply_nolint monoid doc_blame
-apply_nolint mul_inv_self def_lemma doc_blame
-apply_nolint neg_add_self def_lemma doc_blame
 apply_nolint right_cancel_semigroup doc_blame
 apply_nolint semigroup doc_blame
-
--- algebra/group/conj.lean
-apply_nolint is_conj doc_blame
 
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame

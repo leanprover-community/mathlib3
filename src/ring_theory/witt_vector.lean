@@ -447,12 +447,15 @@ lemma rat_mv_poly_is_integral_iff (p : mv_polynomial ι ℚ) :
   map (int.cast_ring_hom ℚ) (finsupp.map_range rat.num (rat.coe_int_num 0) p) = p ↔
   ∀ m, (coeff m p).denom = 1 :=
 begin
+  rw mv_polynomial.ext_iff,
   split; intro h,
   { rw ← mv_polynomial.ext_iff at h, intro m,
     rw [← h m, coeff_map],
     apply rat.coe_int_denom },
   { apply mv_polynomial.ext, intro m,
     rw coeff_map,
+    lift (coeff m p) to ℤ using h m with n hn,
+    have := rat.coe_int_num n,
     apply integral_of_denom_eq_one,
     exact h m }
 end

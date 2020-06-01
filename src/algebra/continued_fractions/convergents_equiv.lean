@@ -177,7 +177,7 @@ begin
       suffices : gp_head.a / (gp_head.b + convergents'_aux s.tail (m + 2))
                = convergents'_aux (squash_seq s (m + 1)) (m + 2), by
         simpa only [convergents'_aux, s_head_eq],
-      have : convergents'_aux s.tail (m + 2) = convergents'_aux (squash_seq s.tail m) (m + 1),by
+      have : convergents'_aux s.tail (m + 2) = convergents'_aux (squash_seq s.tail m) (m + 1), by
       { have : s.tail.nth (m + 1) = some gp_succ_n, by simpa [seq.nth_tail] using s_succ_nth_eq,
         exact (IH _ this) },
       have : (squash_seq s (m + 1)).head = some gp_head, from

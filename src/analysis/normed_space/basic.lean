@@ -208,7 +208,7 @@ def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
 
 lemma nndist_eq_nnnorm (a b : α) : nndist a b = nnnorm (a - b) := nnreal.eq $ dist_eq_norm _ _
 
-lemma nnnorm_eq_zero {a : α} : nnnorm a = 0 ↔ a = 0 :=
+@[simp] lemma nnnorm_eq_zero {a : α} : nnnorm a = 0 ↔ a = 0 :=
 by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
 @[simp] lemma nnnorm_zero : nnnorm (0 : α) = 0 :=
@@ -494,6 +494,8 @@ eq_of_mul_eq_mul_left (ne_of_gt (norm_pos_iff.2 (by simp))) this
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
 
+@[simp] lemma nnnorm_one [normed_field α] : nnnorm (1:α) = 1 := nnreal.eq $ by simp
+
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
 { map_one := norm_one, map_mul := norm_mul }
 
@@ -515,6 +517,9 @@ end
 
 @[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 by simp only [inv_eq_one_div, norm_div, norm_one]
+
+@[simp] lemma nnnorm_inv {α : Type*} [normed_field α] (a : α) : nnnorm (a⁻¹) = (nnnorm a)⁻¹ :=
+nnreal.eq $ by simp
 
 @[simp] lemma norm_fpow {α : Type*} [normed_field α] (a : α) : ∀n : ℤ,
   ∥a^n∥ = ∥a∥^n
@@ -637,9 +642,19 @@ lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β}
   continuous_at (λ x, f x / g x) x :=
 hf.div hg hnz
 
-lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
+namespace real
 
-@[simp] lemma real.norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
+lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
+
+@[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
+
+@[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
+
+@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
+
+@[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
+
+end real
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]

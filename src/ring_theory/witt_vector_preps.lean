@@ -367,4 +367,31 @@ instance rat.invertible_of_prime (n : ℕ) [h : fact (0 < n)] : invertible (n : 
   inv_of_mul_self := one_div_mul_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h },
   mul_inv_of_self := mul_one_div_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h } }
 
+namespace invertible
+variables {R : Type*} {S : Type*} [monoid R] [monoid S]
+
+def map (f : R →* S) (r : R) [invertible r] : invertible (f r) :=
+{ inv_of := f (⅟r),
+  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
+  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
+
+def copy {r : R} (hr : invertible r) (s : R) (hs : s = r) : invertible s :=
+{ inv_of := ⅟r,
+  inv_of_mul_self := by rw [hs, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+
+end invertible
+
+namespace mv_polynomial
+noncomputable def invertible_C (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
+  invertible (C r : mv_polynomial σ R) :=
+invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
+
+-- name??
+noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
+  invertible (p : mv_polynomial σ ℚ) :=
+(invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
+
+end mv_polynomial
+
 -- ### end FOR_MATHLIB

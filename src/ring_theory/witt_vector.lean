@@ -50,7 +50,7 @@ local notation `aeval` := mv_polynomial.aeval _ _
 
 local attribute [-simp] coe_eval₂_hom
 
-variables (p : ℕ) [fact p.prime]
+variables (p : ℕ)
 variables (R : Type u) [comm_ring R]
 
 /-!
@@ -116,12 +116,6 @@ This fact is recorded in `from_W_to_X_basis_X`. -/
 noncomputable def from_W_to_X_basis : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
 aeval W
 
-lemma witt_polynomial_zero : (W 0 : mv_polynomial ℕ R) = X 0 :=
-begin
-  delta witt_polynomial,
-  simp [finset.sum_range_succ, finset.range_zero, finset.sum_empty],
-end
-
 @[simp] lemma from_W_to_X_basis_X (n) : from_W_to_X_basis p R (X n) = W n :=
 by simp [from_W_to_X_basis]
 
@@ -136,16 +130,15 @@ noncomputable def X_in_terms_of_W [invertible (p : R)] :
 | n := (X n - (∑ i : fin n,
   have _ := i.2, (C (p^(i : ℕ)) * (X_in_terms_of_W i)^(p^(n-i))))) * C (⅟p ^ n)
 
-lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} : X_in_terms_of_W p R n =
-    (X n - (∑ i in finset.range n, C (p^i) * X_in_terms_of_W p R i ^ p ^ (n - i))) *
-      C (⅟p ^ n) :=
+lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} :
+  X_in_terms_of_W p R n =
+  (X n - (∑ i in range n, C (p^i) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n) :=
 by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range], refl }
 
 /-- View a polynomial written in terms of the standard basis
 as a polynomial written in terms of the Witt basis.
 
-This sends `W n` to `X n`,
-and `X n` to `X_in_terms_of_W p R n`. -/
+This sends `W n` to `X n`, and `X n` to `X_in_terms_of_W p R n`. -/
 noncomputable def from_X_to_W_basis [invertible (p : R)] :
   mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
 aeval (X_in_terms_of_W p R)
@@ -159,24 +152,6 @@ by rw [from_X_to_W_basis, aeval_X]
   f (C r) = C r :=
 f.commutes r
 
--- lemma X_in_terms_of_W_zero [invertible (p : R)] :
---   X_in_terms_of_W p R 0 = W 0 :=
--- begin
---   rw X_in_terms_of_W_eq,
---   rw finset.range_zero,
---   rw finset.sum_empty,
---   rw witt_polynomial_zero,
---   simp
--- end
-
-lemma X_in_terms_of_W_aux [invertible (p : R)] {n} : X_in_terms_of_W p R n * C (p^n) =
-  X n - ∑ i in finset.range n, C (p^i) * (X_in_terms_of_W p R i)^p^(n-i) :=
-by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
-
-section
-
-end
-
 lemma X_in_terms_of_W_prop' [invertible (p : R)]
   (f : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R)
   (fX : ∀ (n : ℕ), f (X n) = W n)
@@ -187,16 +162,12 @@ begin
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
   simp only [f.map_mul, alg_hom.map_sub f, fC, fX, alg_hom.map_sum],
-  rw [finset.sum_congr rfl, (_ : W_ R n -
-    (finset.range n).sum (λ i, C (p^i) * (X i)^p^(n-i)) = C (p^n) * X n)],
+  rw [finset.sum_congr rfl, (_ : W_ R n - ∑ i in range n, C (p^i) * (X i)^p^(n-i) = C (p^n) * X n)],
   { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
-  { simp [witt_polynomial, nat.sub_self],
-    rw finset.sum_range_succ,
-    simp },
+  { simp [witt_polynomial, nat.sub_self, finset.sum_range_succ] },
   { intros i h,
     rw finset.mem_range at h,
-    simp only [alg_hom.map_mul f, alg_hom.map_pow f, fC, function.comp_app],
-    rw H _ h }
+    simp only [alg_hom.map_mul f, alg_hom.map_pow f, fC, function.comp_app, H i h] }
 end
 
 @[simp] lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
@@ -215,6 +186,11 @@ begin
   rw [from_X_to_W_basis, alg_hom.comp_apply, aeval_X],
   exact from_W_to_X_basis_X_in_terms_of_W p R n
 end
+
+lemma X_in_terms_of_W_aux [invertible (p : R)] (n : ℕ) :
+  X_in_terms_of_W p R n * C (p^n) =
+  X n - ∑ i in range n, C (p^i) * (X_in_terms_of_W p R i)^p^(n-i) :=
+by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
 
 lemma from_X_to_W_basis_witt_polynomial [invertible (p : R)] (n : ℕ) :
   (from_X_to_W_basis p R) (W n) = X n :=
@@ -266,7 +242,7 @@ begin
   refl,
 end
 
-variables {idx : Type*}
+variables {idx : Type*} [fact p.prime]
 
 noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   mv_polynomial (idx × ℕ) ℚ :=
@@ -302,7 +278,7 @@ lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
   ((aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ n))) Φ)) -
   ∑ i in range n, C (p^i) * (witt_structure_rat p Φ i)^p^(n-i) :=
 begin
-  have := @X_in_terms_of_W_aux p _ ℚ _ _ n,
+  have := X_in_terms_of_W_aux p ℚ n,
   replace := congr_arg (aeval (λ k : ℕ, (aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ k)))) Φ)) this,
   rw [alg_hom.map_mul, aeval_C] at this,
   convert this, clear this,
@@ -387,7 +363,8 @@ begin
   omega
 end
 
-lemma fermat_little' (p : ℕ) [hp : fact p.prime] (a : zmod p) : a^p = a :=
+@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] (a : zmod p) :
+  frobenius _ p a = a :=
 begin
   have ppos : p > 0 := nat.prime.pos ‹_›,
   by_cases h : a = 0,
@@ -396,9 +373,12 @@ begin
     replace := congr_arg (λ x, a * x) this,
     simp at this,
     convert this,
-    rw ← pow_succ, congr, clear this h a hp,
+    rw [← pow_succ, frobenius_def], congr, clear this h a hp,
     revert ppos p, omega manual nat }
 end
+
+lemma fermat_little' (p : ℕ) [hp : fact p.prime] (a : zmod p) : a^p = a :=
+frobenius_zmod p a
 
 lemma mv_polynomial.frobenius_zmod (φ : mv_polynomial σ (zmod p)) :
   frobenius _ p φ = aeval (λ i, X i ^ p) φ :=
@@ -649,10 +629,6 @@ variable {R}
 
 @[simp] lemma Teichmuller_one : Teichmuller p (1:R) = 1 := rfl
 
--- TODO(jmc): Prove this
--- lemma Teichmuller_mul (x y : R) :
---   Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y := sorry
-
 variable {p}
 
 noncomputable def ghost_component (n : ℕ) (w : 𝕎 p R) : R :=
@@ -687,39 +663,32 @@ end
 
 @[simp] lemma map_add (x y : 𝕎 p R) :
   map f (x + y) = map f x + map f y :=
-funext $ λ n,
 begin
-  show f (eval₂ (int.cast_ring_hom R) _ _) = eval₂ (int.cast_ring_hom S) _ _,
-  rw eval₂_comp_left f,
-  congr' 1,
-  { funext n, exact (f.comp (int.cast_ring_hom R)).eq_int_cast n, },
-  { funext bn, cases bn with b i,
-    exact match b with | tt := rfl | ff := rfl end },
-  recover, all_goals {apply_instance},
+  funext n,
+  show f (aeval _ _) = aeval _ _,
+  rw map_aeval,
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
 end
 
 @[simp] lemma map_mul (x y : 𝕎 p R) :
   map f (x * y) = map f x * map f y :=
-funext $ λ n,
 begin
-  show f (eval₂ (int.cast_ring_hom R) _ _) = eval₂ (int.cast_ring_hom S) _ _,
-  rw eval₂_comp_left f,
-  congr' 1,
-  { funext n, exact (f.comp (int.cast_ring_hom R)).eq_int_cast n, },
-  { funext bn, cases bn with b i,
-    exact match b with | tt := rfl | ff := rfl end },
-  recover, all_goals {apply_instance},
+  funext n,
+  show f (aeval _ _) = aeval _ _,
+  rw map_aeval,
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
 end
 
 @[simp] lemma map_neg (x : 𝕎 p R) :
   map f (-x) = -map f x :=
-funext $ λ n,
 begin
-  show f (eval₂ (int.cast_ring_hom R) _ _) = eval₂ (int.cast_ring_hom S) _ _,
-  rw eval₂_comp_left f,
-  congr' 1,
-  { funext n, exact (f.comp (int.cast_ring_hom R)).eq_int_cast n, },
-  recover, all_goals {apply_instance},
+  funext n,
+  show f (aeval _ _) = aeval _ _,
+  rw map_aeval,
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
 end
 
 end map
@@ -744,10 +713,10 @@ funext $ λ n,
 begin
   delta ghost_map ghost_component,
   rw [aeval_witt_polynomial],
-  have : 0 ∈ finset.range (n+1),
+  have : 0 ∈ range (n+1),
   { rw finset.mem_range, exact nat.succ_pos n },
   rw ← finset.insert_erase this,
-  rw finset.sum_insert (finset.not_mem_erase 0 (finset.range (n + 1))),
+  rw finset.sum_insert (finset.not_mem_erase 0 (range (n + 1))),
   convert add_zero _,
   { apply finset.sum_eq_zero, intros i hi,
     rw finset.mem_erase at hi,
@@ -763,28 +732,6 @@ begin
 end
 
 variable {R}
-
--- Unfortunately the following lemma doesn't typecheck,
--- because we don't know that (𝕎 p R) is a comm_semiring
-
--- @[simp] lemma ghost_map.compat (x : idx → 𝕎 p R) (φ : mv_polynomial (idx × ℕ) ℤ) :
---   ghost_map (φ.eval₂ coe (λ bn, x bn.1)) = φ.eval₂ coe (λ bn, ghost_map (x bn.1)) :=
--- funext $ λ n,
--- begin
---   delta ghost_map ghost_component,
---   have := congr_arg (λ (ψ : mv_polynomial (bool × ℕ) R), ψ.eval $ λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) (witt_structure_prop p (X tt + X ff) n),
---   convert this using 1; clear this,
---   { delta witt_vectors.has_add witt_add, dsimp [eval],
---     rw ← eval₂_assoc' _ _ _ _,
---     work_on_goal 0 { congr' 1, funext i, apply eval₂_eq_eval_map },
---     all_goals {try {assumption}, try {apply_instance}} },
---   { dsimp,
---     rw [mv_polynomial.map_add, eval₂_add, eval_add],
---     congr' 1,
---     all_goals {
---       erw [mv_polynomial.map_X (int.cast_ring_hom R), eval₂_X, eval_rename_prodmk],
---       congr } }
--- end
 
 @[simp] lemma ghost_map.add (x y : 𝕎 p R) :
   ghost_map (x + y) = ghost_map x + ghost_map y :=
@@ -874,37 +821,24 @@ open function
 
 variable (R)
 
-noncomputable def mv_polynomial.counit : mv_polynomial R ℤ →+*  R :=
+noncomputable def mv_polynomial.counit : mv_polynomial R ℤ →+* R :=
 eval₂_hom (int.cast_ring_hom R) id
 
 lemma counit_surjective : surjective (mv_polynomial.counit R) :=
-λ r, ⟨X r, eval₂_X _ _ _⟩
+λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
 
 end
 
-noncomputable def helper : invertible (p : mv_polynomial R ℚ) :=
-{ inv_of := C (⅟p),
-  inv_of_mul_self := by { rw [← C_eq_coe_nat, ← C_mul, inv_of_mul_self, C_1] },
-  mul_inv_of_self := by { rw [← C_eq_coe_nat, ← C_mul, mul_inv_of_self, C_1] } }
-
-local attribute [instance] helper
+local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 variable (R)
 
 noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
 comm_ring_of_injective (ghost_map)
-  (ghost_map.bijective_of_invertible p _).1
-  (@ghost_map.zero p _ (mv_polynomial R ℚ) _)
-  (ghost_map.one) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
+  (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1
+  (ghost_map.zero) (ghost_map.one) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
 
 local attribute [instance] aux₁
-
--- experiment... this isn't defeq
--- example : mv_polynomial.map (int.cast_ring_hom R) = aeval ℤ (mv_polynomial σ R) X :=
--- begin
---   delta mv_polynomial.map,
---   dsimp [aeval, eval₂_hom],
--- end
 
 noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
 comm_ring_of_injective (map $ mv_polynomial.map_hom (int.cast_ring_hom ℚ))
@@ -917,6 +851,50 @@ noncomputable instance : comm_ring (𝕎 p R) :=
 comm_ring_of_surjective
   (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)
   (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
+
+/-- Teichmuller is a natural transformation -/
+@[simp] lemma map_Teichmuller (f : R →+* S) (r : R) :
+  map f (Teichmuller p r) = Teichmuller p (f r) :=
+by { ext n, cases n, { refl }, { exact f.map_zero } }
+
+@[simp] lemma aeval_Teichmuller_witt_polynomial (r : R) (n : ℕ) :
+  aeval (Teichmuller p r) (W_ R n) = r ^ p ^ n :=
+begin
+  rw aeval_witt_polynomial,
+  rw [finset.sum_eq_single 0, pow_zero, one_mul, nat.sub_zero],
+  { refl },
+  { intros i hi h0,
+    convert mul_zero _, convert zero_pow _,
+    { cases i, { contradiction }, { refl } },
+    { apply nat.pow_pos, apply nat.prime.pos, assumption } },
+  { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
+end
+
+lemma Teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
+  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+begin
+  apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
+  rw ghost_map.mul,
+  ext1 n,
+  dsimp [ghost_map, ghost_component],
+  simp [mul_pow],
+end
+
+lemma Teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
+  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+begin
+  apply map_injective (map_hom (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
+  { simp [Teichmuller_mul_aux₁], },
+  { assumption } -- map_injective shouldn't have the p.prime assumption
+end
+
+@[simp] lemma Teichmuller_mul (x y : R) :
+  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+begin
+  rcases counit_surjective R x with ⟨x, rfl⟩,
+  rcases counit_surjective R y with ⟨y, rfl⟩,
+  simp only [← map_Teichmuller, ← ring_hom.map_mul, Teichmuller_mul_aux₂, map_mul],
+end
 
 end witt_vectors
 

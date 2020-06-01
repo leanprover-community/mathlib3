@@ -85,22 +85,28 @@ instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i} [�
 
 variables {I f}
 
-instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
+instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
+  left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] : add_left_cancel_semigroup (Π i : I, f i) :=
+instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] :
+  add_left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] : right_cancel_semigroup (Π i : I, f i) :=
+instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
+  right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] : add_right_cancel_semigroup (Π i : I, f i) :=
+instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] :
+  add_right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] : ordered_cancel_add_comm_monoid (Π i : I, f i) :=
+instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] :
+  ordered_cancel_add_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] : ordered_add_comm_group (Π i : I, f i) :=
+instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] :
+  ordered_add_comm_group (Π i : I, f i) :=
 { add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
   ..pi.partial_order }
@@ -188,8 +194,10 @@ variable {I : Type u}     -- The indexing type
 variable (f : I → Type v) -- The family of types already equipped with instances
 variables [Π i, monoid (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point is an additive monoid homomorphism."]
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
+is an additive monoid homomorphism."]
 def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
   map_one' := rfl,

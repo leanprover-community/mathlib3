@@ -165,13 +165,15 @@ end category
 end free_magma
 
 /-- `free_magma` is traversable. -/
-protected def free_magma.traverse {m : Type u → Type u} [applicative m] {α β : Type u} (F : α → m β) :
+protected def free_magma.traverse {m : Type u → Type u} [applicative m] {α β : Type u}
+  (F : α → m β) :
   free_magma α → m (free_magma β)
 | (free_magma.of x) := free_magma.of <$> F x
 | (x * y)           := (*) <$> x.traverse <*> y.traverse
 
 /-- `free_add_magma` is traversable. -/
-protected def free_add_magma.traverse {m : Type u → Type u} [applicative m] {α β : Type u} (F : α → m β) :
+protected def free_add_magma.traverse {m : Type u → Type u} [applicative m] {α β : Type u}
+  (F : α → m β) :
   free_add_magma α → m (free_add_magma β)
 | (free_add_magma.of x) := free_add_magma.of <$> F x
 | (x + y)               := (+) <$> x.traverse <*> y.traverse
@@ -225,7 +227,8 @@ instance : is_lawful_traversable free_magma.{u} :=
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
   traverse_eq_map_id := λ α β f x, free_magma.rec_on'' x (λ _, rfl)
-    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl) }
+    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
+  .. free_magma.is_lawful_monad }
 
 end category
 
@@ -328,8 +331,10 @@ section lift
 
 variables {β : Type v} [semigroup β] (f : α → β)
 
-/-- Lifts a magma homomorphism `α → β` to a semigroup homomorphism `magma.free_semigroup α → β` given a semigroup `β`. -/
-@[to_additive "Lifts an additive magma homomorphism `α → β` to an additive semigroup homomorphism `add_magma.free_add_semigroup α → β` given an additive semigroup `β`."]
+/-- Lifts a magma homomorphism `α → β` to a semigroup homomorphism `magma.free_semigroup α → β`
+given a semigroup `β`. -/
+@[to_additive "Lifts an additive magma homomorphism `α → β` to an additive semigroup homomorphism
+`add_magma.free_add_semigroup α → β` given an additive semigroup `β`."]
 def lift (hf : ∀ x y, f (x * y) = f x * f y) : free_semigroup α → β :=
 quot.lift f $ by rintros a b (⟨c, d, e⟩ | ⟨c, d, e, f⟩); simp only [hf, mul_assoc]
 
@@ -347,8 +352,10 @@ end lift
 
 variables {β : Type v} [has_mul β] (f : α → β)
 
-/-- From a magma homomorphism `α → β` to a semigroup homomorphism `magma.free_semigroup α → magma.free_semigroup β`. -/
-@[to_additive "From an additive magma homomorphism `α → β` to an additive semigroup homomorphism `add_magma.free_add_semigroup α → add_magma.free_add_semigroup β`."]
+/-- From a magma homomorphism `α → β` to a semigroup homomorphism
+`magma.free_semigroup α → magma.free_semigroup β`. -/
+@[to_additive "From an additive magma homomorphism `α → β` to an additive semigroup homomorphism
+`add_magma.free_add_semigroup α → add_magma.free_add_semigroup β`."]
 def map (hf : ∀ x y, f (x * y) = f x * f y) : free_semigroup α → free_semigroup β :=
 lift (of ∘ f) (λ x y, congr_arg of $ hf x y)
 
@@ -398,7 +405,8 @@ def free_semigroup.lift' {α : Type u} {β : Type v} [semigroup β] (f : α → 
 | x (hd::tl) := f x * free_semigroup.lift' hd tl
 
 /-- Auxiliary function for `free_semigroup.lift`. -/
-def free_add_semigroup.lift' {α : Type u} {β : Type v} [add_semigroup β] (f : α → β) : α → list α → β
+def free_add_semigroup.lift' {α : Type u} {β : Type v} [add_semigroup β] (f : α → β) :
+  α → list α → β
 | x [] := f x
 | x (hd::tl) := f x + free_add_semigroup.lift' hd tl
 
@@ -412,8 +420,10 @@ section lift
 
 variables {β : Type v} [semigroup β] (f : α → β)
 
-/-- Lifts a function `α → β` to a semigroup homomorphism `free_semigroup α → β` given a semigroup `β`. -/
-@[to_additive "Lifts a function `α → β` to an additive semigroup homomorphism `free_add_semigroup α → β` given an additive semigroup `β`."]
+/-- Lifts a function `α → β` to a semigroup homomorphism `free_semigroup α → β` given
+a semigroup `β`. -/
+@[to_additive "Lifts a function `α → β` to an additive semigroup homomorphism
+`free_add_semigroup α → β` given an additive semigroup `β`."]
 def lift (x : free_semigroup α) : β :=
 lift' f x.1 x.2
 
@@ -505,8 +515,10 @@ instance : traversable free_semigroup := ⟨@free_semigroup.traverse⟩
 
 variables {m : Type u → Type u} [applicative m] (F : α → m β)
 
-@[simp, to_additive] lemma traverse_pure (x) : traverse F (pure x : free_semigroup α) = pure <$> F x := rfl
-@[simp, to_additive] lemma traverse_pure' : traverse F ∘ pure = λ x, (pure <$> F x : m (free_semigroup β)) := rfl
+@[simp, to_additive]
+lemma traverse_pure (x) :traverse F (pure x : free_semigroup α) = pure <$> F x := rfl
+@[simp, to_additive]
+lemma traverse_pure' : traverse F ∘ pure = λ x, (pure <$> F x : m (free_semigroup β)) := rfl
 
 section
 variables [is_lawful_applicative m]
@@ -541,7 +553,8 @@ instance : is_lawful_traversable free_semigroup.{u} :=
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by resetI; simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
   traverse_eq_map_id := λ α β f x, free_semigroup.rec_on x (λ _, rfl)
-    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl) }
+    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
+  .. free_semigroup.is_lawful_monad }
 
 end category
 
@@ -551,7 +564,8 @@ instance [decidable_eq α] : decidable_eq (free_semigroup α) := prod.decidable_
 end free_semigroup
 
 /-- Isomorphism between `magma.free_semigroup (free_magma α)` and `free_semigroup α`. -/
-@[to_additive free_add_semigroup_free_add_magma "Isomorphism between `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
+@[to_additive free_add_semigroup_free_add_magma "Isomorphism between
+`add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
 { to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),

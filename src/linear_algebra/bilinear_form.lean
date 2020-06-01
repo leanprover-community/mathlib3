@@ -127,11 +127,16 @@ section
 variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] (F : bilin_form R₂ M) (f : M → M)
 
 instance to_module : module R₂ (bilin_form R₂ M) :=
-{ smul := λ c B, { bilin := λ x y, c * B x y,
-                    bilin_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib]},
-                    bilin_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
-                    bilin_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_right, left_distrib]},
-                    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]} },
+{ smul := λ c B,
+  { bilin := λ x y, c * B x y,
+    bilin_add_left := λ x y z,
+      by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib]},
+    bilin_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
+    bilin_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_add_right, left_distrib]},
+    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]} },
   smul_add := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw left_distrib},
   add_smul := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw right_distrib},
   mul_smul := λ a c D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_assoc},

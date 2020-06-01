@@ -59,33 +59,27 @@ apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
 
--- algebra/group/basic.lean
+-- algebra/group/conj.lean
+apply_nolint is_conj doc_blame
+
+-- algebra/group/defs.lean
 apply_nolint add_comm_group doc_blame
 apply_nolint add_comm_monoid doc_blame
 apply_nolint add_comm_semigroup doc_blame
 apply_nolint add_group doc_blame
 apply_nolint add_left_cancel_semigroup doc_blame
 apply_nolint add_monoid doc_blame
-apply_nolint add_neg_self def_lemma doc_blame
 apply_nolint add_right_cancel_semigroup doc_blame
 apply_nolint add_semigroup doc_blame
 apply_nolint algebra.sub doc_blame
 apply_nolint comm_group doc_blame
 apply_nolint comm_monoid doc_blame
 apply_nolint comm_semigroup doc_blame
-apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
-apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
 apply_nolint group doc_blame
-apply_nolint inv_mul_self def_lemma doc_blame
 apply_nolint left_cancel_semigroup doc_blame
 apply_nolint monoid doc_blame
-apply_nolint mul_inv_self def_lemma doc_blame
-apply_nolint neg_add_self def_lemma doc_blame
 apply_nolint right_cancel_semigroup doc_blame
 apply_nolint semigroup doc_blame
-
--- algebra/group/conj.lean
-apply_nolint is_conj doc_blame
 
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame
@@ -941,15 +935,6 @@ apply_nolint ring_equiv.to_add_equiv doc_blame
 apply_nolint ring_equiv.to_equiv doc_blame
 apply_nolint ring_equiv.to_mul_equiv doc_blame
 
--- data/erased.lean
-apply_nolint erased.bind doc_blame
-apply_nolint erased.choice doc_blame
-apply_nolint erased.equiv doc_blame
-apply_nolint erased.join doc_blame
-apply_nolint erased.mk doc_blame
-apply_nolint erased.out doc_blame
-apply_nolint erased.out_type doc_blame
-
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
 
@@ -1048,7 +1033,6 @@ apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
 apply_nolint list.insert_nth doc_blame
-apply_nolint list.map_with_index_core doc_blame
 apply_nolint list.of_fn doc_blame
 apply_nolint list.of_fn_aux doc_blame
 apply_nolint list.of_fn_nth_val doc_blame
@@ -1301,9 +1285,6 @@ apply_nolint option.lift_or_get doc_blame
 apply_nolint option.rel doc_blame
 apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
-
--- data/padics/padic_integers.lean
-apply_nolint padic_norm_z doc_blame
 
 -- data/padics/padic_norm.lean
 apply_nolint padic_norm.neg unused_arguments
@@ -1962,12 +1943,8 @@ apply_nolint order_embedding.refl doc_blame
 apply_nolint order_embedding.trans doc_blame
 apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 apply_nolint order_iso has_inhabited_instance
-apply_nolint order_iso.of_surjective doc_blame
 apply_nolint order_iso.prod_lex_congr doc_blame
-apply_nolint order_iso.refl doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
-apply_nolint order_iso.symm doc_blame
-apply_nolint order_iso.trans doc_blame
 apply_nolint subrel.order_embedding doc_blame
 
 -- order/pilex.lean

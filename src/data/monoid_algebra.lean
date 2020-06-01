@@ -235,6 +235,10 @@ finsupp.semimodule G k
 instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
 
+lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
+  single 1 r * f = f * single 1 r :=
+by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
+
 instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
 { to_fun    := single 1,
   map_one'  := rfl,
@@ -325,8 +329,56 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
 
 end lift
 
--- TODO we should prove here that G and k commute;
--- presumably a `linear_mul_action` typeclass is in order
+section
+
+variables (k)
+/-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
+def group_smul.linear_map [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
+  (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+  (module.restrict_scalars k (monoid_algebra k G) V) :=
+{ to_fun := λ v, (single g (1 : k) • v : V),
+  add := λ x y, smul_add (single g (1 : k)) x y,
+  smul := λ c x,
+  by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
+
+@[simp]
+lemma group_smul.linear_map_apply [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) (v : V) :
+  (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
+rfl
+
+section
+variables {k}
+variables [group G] [comm_ring k]
+  {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
+  {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
+  (f : (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+       (module.restrict_scalars k (monoid_algebra k G) W))
+  (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
+include h
+
+/-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
+def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
+{ to_fun := f,
+  add := λ v v', by simp,
+  smul := λ c v,
+  begin
+  apply finsupp.induction c,
+  { simp, },
+  { intros g r c' nm nz w,
+    rw [add_smul, linear_map.map_add, w, add_smul, add_left_inj,
+      single_eq_algebra_map_mul_of, ←smul_smul, ←smul_smul],
+    erw [f.map_smul, h g v],
+    refl, }
+  end, }
+
+@[simp]
+lemma equivariant_of_linear_of_comm_apply (v : V) : (equivariant_of_linear_of_comm f h) v = f v :=
+rfl
+
+end
+end
 
 universe ui
 variable {ι : Type ui}

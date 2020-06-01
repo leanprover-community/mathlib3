@@ -91,26 +91,7 @@ regular_mono g :=
 def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hr : regular_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono f :=
-{ Z := hr.Z,
-  left := h ≫ hr.left,
-  right := h ≫ hr.right,
-  w := by rw [reassoc_of comm, reassoc_of comm, hr.w],
-  is_limit :=
-  begin
-    apply fork.is_limit.mk' _ _,
-    intro s,
-    have l₁ : (s.ι ≫ h) ≫ hr.left = (s.ι ≫ h) ≫ hr.right,
-      rw [category.assoc, s.condition, category.assoc],
-    obtain ⟨l, hl⟩ := fork.is_limit.lift' hr.is_limit (fork.ι s ≫ h) l₁,
-    obtain ⟨p, hp₁, hp₂⟩ := pullback_cone.is_limit.lift' t _ _ hl.symm,
-    refine ⟨p, hp₁, _⟩,
-    intros m w,
-    have z : m ≫ f = p ≫ f := w.trans hp₁.symm,
-    apply t.hom_ext,
-    apply (pullback_cone.mk f g comm).equalizer_ext,
-    { exact z },
-    { erw [← cancel_mono k, category.assoc, category.assoc, ← comm, reassoc_of z] },
-  end }
+regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
 /-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
 def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
@@ -159,17 +140,7 @@ normal_mono g :=
 def normal_of_is_pullback_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono f :=
-{ Z := hn.Z,
-  g := h ≫ hn.g,
-  w := by rw [reassoc_of comm, hn.w, has_zero_morphisms.comp_zero],
-  is_limit :=
-  begin
-    letI fr := regular_of_is_pullback_fst_of_regular comm t,
-    have q := (has_zero_morphisms.comp_zero h hn.Z).symm,
-    convert fr.is_limit,
-    dunfold kernel_fork.of_ι fork.of_ι,
-    congr, exact q, exact q, exact q, apply proof_irrel_heq,
-  end }
+normal_of_is_pullback_snd_of_normal comm.symm (pullback_cone.flip_is_limit t)
 
 end
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
@@ -231,26 +202,7 @@ regular_epi h :=
 def regular_of_is_pushout_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [fr : regular_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi k :=
-{ W := fr.W,
-  left := fr.left ≫ g,
-  right := fr.right ≫ g,
-  w := by rw [category.assoc, category.assoc, ← comm, reassoc_of fr.w],
-  is_colimit :=
-  begin
-    apply cofork.is_colimit.mk' _ _,
-    intro s,
-    have l₁ : fr.left ≫ g ≫ s.π = fr.right ≫ g ≫ s.π,
-      rw [← category.assoc, ← category.assoc, s.condition],
-    obtain ⟨l, hl⟩ := cofork.is_colimit.desc' fr.is_colimit (g ≫ cofork.π s) l₁,
-    obtain ⟨p, hp₁, hp₂⟩ := pushout_cocone.is_colimit.desc' t _ _ hl,
-    refine ⟨p, hp₂, _⟩,
-    intros m w,
-    have z := w.trans hp₂.symm,
-    apply t.hom_ext,
-    apply (pushout_cocone.mk _ _ comm).coequalizer_ext,
-    { erw [← cancel_epi f, reassoc_of comm, reassoc_of comm, z], refl },
-    { exact z },
-  end }
+regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)
 
 /-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
 def is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
@@ -293,7 +245,7 @@ def normal_epi.desc' {W : C} (f : X ⟶ Y) [normal_epi f] (k : X ⟶ W) (h : nor
   {l : Y ⟶ W // f ≫ l = k} :=
 cokernel_cofork.is_colimit.desc' (normal_epi.is_colimit) _ h
 
-/-- If `h` is a normal mono and `g` is a pullback of `g`, then `g` is a normal mono. -/
+/-- If `h` is a normal epi and `g` is a pushout of `g`, then `g` is a normal epi. -/
 def normal_of_is_pushout_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [gn : normal_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 normal_epi h :=
@@ -309,21 +261,11 @@ normal_epi h :=
     congr, exact q, exact q, exact q, apply proof_irrel_heq,
   end }
 
-/-- If `k` is a normal mono and `f` is a pullback of `k`, then `f` is a normal mono. -/
+/-- If `k` is a normal epi and `f` is a pullback of `k`, then `f` is a normal epi. -/
 def normal_of_is_pushout_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
-normal_mono f :=
-{ Z := hn.Z,
-  g := h ≫ hn.g,
-  w := by rw [reassoc_of comm, hn.w, has_zero_morphisms.comp_zero],
-  is_limit :=
-  begin
-    letI fr := regular_of_is_pullback_fst_of_regular comm t,
-    have q := (has_zero_morphisms.comp_zero h hn.Z).symm,
-    convert fr.is_limit,
-    dunfold kernel_fork.of_ι fork.of_ι,
-    congr, exact q, exact q, exact q, apply proof_irrel_heq,
-  end }
+  [hn : normal_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
+normal_epi k :=
+normal_of_is_pushout_snd_of_normal comm.symm (pushout_cocone.flip_is_colimit t)
 
 end
 

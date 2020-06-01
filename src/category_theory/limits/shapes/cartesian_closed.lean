@@ -331,7 +331,8 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_car
               by simpa [← prod_map_id_comp, prod_map_id_id],
               by simpa [← prod_map_id_comp, prod_map_id_id]⟩,
       intros Y Z g,
-      simp only [prod_comparison, thingy, thingy2, prod.lift_map, equivalence.unit_inv, functor.comp_map,
+      simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
+                 prod.lift_map, equivalence.unit_inv, functor.comp_map,
                  prod_functor_obj_map, assoc, comp_id, iso.trans_hom, as_iso_hom],
       apply prod.hom_ext,
       rw [assoc, prod.lift_fst, prod.lift_fst, ← functor.map_comp, limits.prod.map_fst, comp_id],
@@ -345,9 +346,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_car
         change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
         apply iso_whisker_left (prod_functor.obj X) e.counit_iso,
       apply adjunction.left_adjoint_of_nat_iso this,
-    end
-  }
-}
+    end } }
 
 variables [is_cartesian_closed C] [is_cartesian_closed D]
 variables (F : C ⥤ D) [preserves_limits_of_shape (discrete walking_pair) F]

@@ -36,7 +36,7 @@ def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_produ
   by haveI := hX.is_adj; haveI := hY.is_adj;
      exact adjunction.left_adjoint_of_nat_iso (prod_functor_left_comp _ _).symm }
 
-/-- A category `C` is cartesian closed if every object is exponentiable, and it has finite prodcuts. -/
+/-- A category `C` is cartesian closed if every object is exponentiable, and it has finite products. -/
 class is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
 (cart_closed : Π (X : C), exponentiable X)
 
@@ -66,7 +66,7 @@ exponentiable.is_adj.adj.unit
 /-- `B ^ A` or `A ⟹ B` -/
 def exp : C := (exp.functor A).obj B
 
-infixl `⟹`:20 := exp
+infixl ` ⟹ `:20 := exp
 infixr `^^`:30 := pow
 
 /-- Postcompose an internal hom with an external hom. -/
@@ -93,12 +93,12 @@ adjunction.right_triangle_components (exp.adjunction A)
 
 /-- Coevaluation is natural. -/
 @[simp, reassoc, priority 10]
-lemma coev_nat (f : X ⟶ Y) : f ≫ coev A Y = coev A X ≫ post A (limits.prod.map (𝟙 A) f) :=
+lemma coev_naturality (f : X ⟶ Y) : f ≫ coev A Y = coev A X ≫ post A (limits.prod.map (𝟙 A) f) :=
 (coev.nat_trans A).naturality f
 
 /-- Evaluation is natural. -/
 @[simp, reassoc, priority 10]
-lemma ev_nat (f : X ⟶ Y) : limits.prod.map (𝟙 A) (post _ f) ≫ ev A Y = ev A X ≫ f :=
+lemma ev_naturality (f : X ⟶ Y) : limits.prod.map (𝟙 A) (post _ f) ≫ ev A Y = ev A X ≫ f :=
 (ev.nat_trans A).naturality f
 
 end exp
@@ -106,7 +106,7 @@ end exp
 variables {A}
 
 -- Wrap these in a namespace so we don't clash with the core versions.
-namespace cart_closed
+namespace is_cartesian_closed
 
 variables [has_finite_products.{v} C] [exponentiable A]
 
@@ -117,9 +117,9 @@ def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
 def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
 (exponentiable.is_adj.adj.hom_equiv _ _).inv_fun
 
-end cart_closed
+end is_cartesian_closed
 
-open cart_closed
+open is_cartesian_closed
 
 variables [has_finite_products.{v} C] [exponentiable A]
 
@@ -192,8 +192,12 @@ def terminal_exponentiable : exponentiable ⊤_C :=
     { hom_equiv := λ X _, have unitor : _, from prod.left_unitor X,
         ⟨λ a, unitor.inv ≫ a, λ a, unitor.hom ≫ a, by tidy, by tidy⟩ } } }
 
-/-- The typeclass argument is explicit: any instance can be used, not just the above. -/
-def exp_terminal_iso [exponentiable ⊤_C] : (⊤_C ⟹ X) ≅ X :=
+/--
+Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.
+
+The typeclass argument is explicit: any instance can be used, not just the above.
+-/
+def exp_terminal_iso_self [exponentiable ⊤_C] : (⊤_C ⟹ X) ≅ X :=
 yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, (prod.left_unitor Y).inv ≫ uncurry f)
   (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
@@ -239,7 +243,7 @@ def pre.functor [is_cartesian_closed C] (X : C) : Cᵒᵖ ⥤ C :=
   map_id' := λ B, pre_id B.unop X,
   map_comp' := λ P Q R f g, pre_map g.unop f.unop }
 
-lemma exp_natural [is_cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
+lemma pre_post_comm [is_cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
   (pre.functor A).map g ≫ post (opposite.unop Y) f = post (opposite.unop X) f ≫ (pre.functor B).map g :=
 begin
   dsimp [pre],
@@ -250,7 +254,7 @@ end
 /-- Exponential forms a difunctor. -/
 def exp.difunctor [is_cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
 { obj := pre.functor,
-  map := λ A B f, { app := λ X, post X.unop f, naturality' := λ X Y g, exp_natural _ _ },
+  map := λ A B f, { app := λ X, post X.unop f, naturality' := λ X Y g, pre_post_comm _ _ },
   map_id' := λ X, by { ext, apply functor.map_id },
   map_comp' := λ X Y Z f g, by { ext, apply functor.map_comp } }
 
@@ -285,12 +289,6 @@ def pow_zero [has_initial.{v} C] [is_cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ 
     { apply_instance }
   end }
 
--- MOVE TO SOMEWHERE ELSE BEFORE PR
-/-- A split epi which is mono is an iso. -/
-def is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f] : is_iso f :=
-{ inv := section_ f,
-  hom_inv_id' := by simp [← cancel_mono f] }
-
 /--
 If an initial object `0` exists in a CCC then it is a strict initial object,
 i.e. any morphism to `0` is an iso.
@@ -313,6 +311,8 @@ section functor
 variables [has_finite_products.{v} D]
 
 /--
+Transport the property of being cartesian closed across an equivalence of categories.
+
 Note we didn't require any coherence between the choice of finite products here, since we transport
 along the `prod_comparison` isomorphism.
 -/
@@ -364,17 +364,18 @@ curry (inv (prod_comparison F A _) ≫ F.map (ev _ _))
 lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
   exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
 by rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod_map_map_assoc, curry_eq, prod_map_id_comp, assoc, ev_nat,
+       pre, uncurry_curry, prod_map_map_assoc, curry_eq, prod_map_id_comp, assoc, ev_naturality,
        ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_id,
        ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-       prod_map_id_comp, assoc, ev_nat, ev_coev_assoc]
+       prod_map_id_comp, assoc, ev_naturality, ev_coev_assoc]
 
 /-- The exponential comparison map is natural in its right argument. -/
 lemma exp_comparison_natural_right (A B B' : C) (f : B ⟶ B') :
   exp_comparison F A B ≫ post (F.obj A) (F.map f) = F.map (post A f) ≫ exp_comparison F A B' :=
 by
   rw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
-      uncurry_curry, assoc, ← F.map_comp, ← ev_nat, F.map_comp, prod_comparison_inv_natural_assoc, F.map_id]
+      uncurry_curry, assoc, ← F.map_comp, ← ev_naturality, F.map_comp,
+      prod_comparison_inv_natural_assoc, F.map_id]
 
 -- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
 -- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A

@@ -439,7 +439,7 @@ begin
 end
 
 @[reassoc]
-lemma thingy (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+lemma inv_prod_comparison_map_fst (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
   inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
 begin
   erw (as_iso (prod_comparison F A B)).inv_comp_eq,
@@ -448,7 +448,7 @@ begin
 end
 
 @[reassoc]
-lemma thingy2 (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+lemma inv_prod_comparison_map_snd (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
   inv (prod_comparison F A B) ≫ F.map prod.snd = prod.snd :=
 begin
   erw (as_iso (prod_comparison F A B)).inv_comp_eq,

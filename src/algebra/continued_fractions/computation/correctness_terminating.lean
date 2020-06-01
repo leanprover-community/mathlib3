@@ -198,7 +198,7 @@ end
 
 /-- If `generalized_continued_fraction.of v` terminated at step `n`, then the `n`th convergent is
 exactly `v`. -/
-lemma of_correctness_of_terminated_at (terminated_at_n : (gcf.of v).terminated_at n) :
+theorem of_correctness_of_terminated_at (terminated_at_n : (gcf.of v).terminated_at n) :
   v = (gcf.of v).convergents n :=
 have int_fract_pair.stream v (n + 1) = none, from
   gcf.of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_left terminated_at_n,
@@ -206,7 +206,7 @@ comp_exact_value_correctness_of_stream_eq_none this
 
 /-- If `generalized_continued_fraction.of v` terminates, then its convergent will eventually be
 exactly `v`. -/
-theorem of_correctness_of_terminates (terminates : (gcf.of v).terminates) :
+lemma of_correctness_of_terminates (terminates : (gcf.of v).terminates) :
   ∃ (n : ℕ), v = (gcf.of v).convergents n :=
 exists.elim terminates
 ( assume n terminated_at_n,

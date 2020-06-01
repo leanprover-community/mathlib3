@@ -10,8 +10,8 @@ import order.order_iso
 /-!
 # Order continuity
 
-We say that a function is *left order continuous* if it sends all least upper boundaries
-to least upper boundaries. The order dual notion is called *right order continuity*.
+We say that a function is *left order continuous* if it sends all least upper bounds
+to least upper bounds. The order dual notion is called *right order continuity*.
 
 For monotone functions `ℝ → ℝ` these notions correspond to the usual left and right continuity.
 

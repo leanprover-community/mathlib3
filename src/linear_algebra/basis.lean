@@ -951,7 +951,7 @@ begin
   refine finset.sum_congr rfl (λi hi, _),
   by_cases H : x i = 0,
   { simp [H] },
-  { simp [H], refl }
+  { simp [H] }
 end
 
 end module

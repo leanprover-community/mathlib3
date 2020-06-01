@@ -34,28 +34,64 @@ variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
-def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
+def functor.elements (F : C ⥤ Type w) : Type (max u w) := (Σ c : C, F.obj c)
 
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.
     A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
  -/
-instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
+instance category_of_elements (F : C ⥤ Type w) : category.{v} F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
 
 namespace category_of_elements
+variables {F : C ⥤ Type w}
+
+@[simp] lemma condition {X Y : F.elements} (f : X ⟶ Y) : F.map f.1 X.2 = Y.2 := f.2
 
 @[ext]
-lemma ext (F : C ⥤ Type w) {x y : F.elements} (f g : x ⟶ y) (w : f.val = g.val) : f = g :=
+lemma ext {x y : F.elements} (f g : x ⟶ y) (w : f.val = g.val) : f = g :=
 subtype.eq' w
 
-@[simp] lemma comp_val {F : C ⥤ Type w} {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
+@[simp] lemma comp_val {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
   (f ≫ g).val = f.val ≫ g.val := rfl
 
-@[simp] lemma id_val {F : C ⥤ Type w} {p : F.elements} : (𝟙 p : p ⟶ p).val = 𝟙 p.1 := rfl
+@[simp] lemma id_val {p : F.elements} : (𝟙 p : p ⟶ p).val = 𝟙 p.1 := rfl
 
 end category_of_elements
+
+section
+variables {F : C ⥤ Type w}
+
+def as_element {X : C} (x : F.obj X) : F.elements := ⟨X, x⟩
+
+@[simp] lemma as_element_fst {X : C} (x : F.obj X) : (as_element x).1 = X := rfl
+@[simp] lemma as_element_snd {X : C} (x : F.obj X) : (as_element x).2 = x := rfl
+
+def as_element_hom_of_eq {X Y : C} (f : X ⟶ Y) (x : F.obj X) (y : F.obj Y) (h : F.map f x = y) :
+  as_element x ⟶ as_element y :=
+{ val := f, property := h }
+
+@[simp] lemma as_element_hom_of_eq_val {X Y : C} (f : X ⟶ Y) (x : F.obj X) (y : F.obj Y) (h : F.map f x = y) :
+  (as_element_hom_of_eq f x y h).val = f := rfl
+
+@[simp] lemma as_element_hom_of_eq_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  (x : F.obj X) (y : F.obj Y) (z : F.obj Z) (h₁ : F.map f x = y) (h₂ : F.map g y = z) :
+  as_element_hom_of_eq f x y h₁ ≫ as_element_hom_of_eq g y z h₂ =
+    as_element_hom_of_eq (f ≫ g) x z (by { rw [←h₂, ←h₁], simp }) :=
+rfl
+
+@[reducible]
+def as_element_hom {X Y : C} (f : X ⟶ Y) (x : F.obj X) :
+  as_element x ⟶ as_element (F.map f x) :=
+as_element_hom_of_eq f x _ rfl
+
+def as_element_iso {X Y : C} (f : X ≅ Y) (x : F.obj X) :
+  as_element x ≅ as_element (F.map f.hom x) :=
+{ hom := as_element_hom f.hom x,
+  inv := as_element_hom_of_eq f.inv (F.map f.hom x) _ (by simp) }
+
+end
 
 omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
 -- to avoid conflicts.

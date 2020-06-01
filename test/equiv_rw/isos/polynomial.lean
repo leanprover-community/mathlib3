@@ -1,4 +1,10 @@
-import equiv_rw.isos.basic
+import .basic
+import algebra.category.CommRing.basic
+import data.polynomial
+
+universes u
+
+open category_theory
 
 noncomputable theory
 
@@ -29,7 +35,7 @@ begin
 end
 
 @[simp]
-lemma zero_eq_succ_iff_false (n : ℕ) : 0 = n + 1 ↔ false := sorry
+lemma zero_eq_succ_iff_false (n : ℕ) : 0 = n + 1 ↔ false := by tidy
 
 lemma coeff_one_succ {α : Type*} [comm_semiring α] (n : ℕ) :
   polynomial.coeff (1 : polynomial α) (n+1) = (0 : α) :=
@@ -37,15 +43,10 @@ begin
   simp,
 end
 
-
--- set_option pp.all true
-
 example {R S : CommRing.{u}} (i : R ⟶ S) (r : R) (h : r = 0) : i r = 0 :=
 begin
   simp [h],
 end
-
-
 
 -- TODO make sure that if this lemma is missing, transport still mostly works.
 @[simp]
@@ -83,7 +84,7 @@ begin
   have mem_support_to_fun := finsupp.mem_support_to_fun X,
   dsimp,
   intros,
-  simp, dsimp,
+  simp,
   simp at mem_support_to_fun,
   apply mem_support_to_fun,
 end.
@@ -97,16 +98,21 @@ begin
   dsimp [iso_functorial.map.to_fun],
   ext,
   simp,
-  dsimp,
-  cases n, -- hmm, could be awkward
-  dsimp,
-  simp,
-  simp,
+  split_ifs,
+  { subst h,
+    simp, },
+  { simp, }
 end
 
 def iso_functorial.map.map_mul {R S : CommRing.{u}} (i : R ≅ S) (x y : Polynomial R) :
   iso_functorial.map.to_fun i (x * y) =
-    iso_functorial.map.to_fun i x * iso_functorial.map.to_fun i y := sorry
+    iso_functorial.map.to_fun i x * iso_functorial.map.to_fun i y :=
+begin
+  dsimp [iso_functorial.map.to_fun],
+  ext,
+  simp,
+
+end
 -- etc
 
 -- We can now put those facts together as

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.functor
 import category_theory.isomorphism
+import category_theory.core
 
 /-!
 # Unbundled functors, as a typeclass decorating the object-level function.
@@ -20,7 +21,7 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 -- Perhaps in the future we could redefine `functor` in terms of this, but that isn't the
 -- immediate plan.
 class functorial (F : C → D) : Type (max v₁ v₂ u₁ u₂) :=
-(map          : Π {X Y : C}, (X ⟶ Y) → ((F X) ⟶ (F Y)))
+(map          : Π {X Y : C}, (X ⟶ Y) → (F X ⟶ F Y))
 (map_id' []   : ∀ (X : C), map (𝟙 X) = 𝟙 (F X) . obviously)
 (map_comp' [] : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
@@ -89,5 +90,50 @@ def functorial_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [func
 { ..(functor.of F ⋙ functor.of G) }
 
 end
+
+/-- Evidence that a function `F : C → D` is the object part of a functor `(core C ⥤ D)`. -/
+class iso_functorial (F : C → D) : Type (max v₁ v₂ u₁ u₂) :=
+(map     []   : Π {X Y : C}, (X ≅ Y) → (F X ⟶ F Y))
+(map_id' []   : ∀ (X : C), map (iso.refl X) = 𝟙 (F X) . obviously)
+(map_comp' [] : ∀ {X Y Z : C} (f : X ≅ Y) (g : Y ≅ Z), map (f ≪≫ g) = (map f) ≫ (map g) . obviously)
+
+restate_axiom iso_functorial.map_id'
+attribute [simp] iso_functorial.map_id
+restate_axiom iso_functorial.map_comp'
+attribute [simp] iso_functorial.map_comp
+
+@[simps]
+def iso_functorial.map_iso (F : C → D) [iso_functorial.{v₁ v₂} F] {X Y : C} (i : X ≅ Y) :
+  F X ≅ F Y :=
+{ hom := iso_functorial.map.{v₁ v₂} F i,
+  inv := iso_functorial.map.{v₁ v₂} F i.symm,
+  hom_inv_id' := by rw [←iso_functorial.map_comp, iso.self_symm_id, iso_functorial.map_id],
+  inv_hom_id' := by rw [←iso_functorial.map_comp, iso.symm_self_id, iso_functorial.map_id], }
+
+@[simp]
+lemma iso_functorial.map_iso_id (F : C → D) [iso_functorial.{v₁ v₂} F] (X : C) :
+  iso_functorial.map_iso F (iso.refl X) = iso.refl (F X) :=
+by tidy
+
+@[simp]
+lemma iso_functorial.map_iso_comp (F : C → D) [iso_functorial.{v₁ v₂} F]
+  {X Y Z : C} (f : X ≅ Y) (g : Y ≅ Z) :
+  iso_functorial.map_iso F (f ≪≫ g) = iso_functorial.map_iso F f ≪≫ iso_functorial.map_iso F g :=
+by tidy
+
+namespace functor
+
+/--
+Bundle an iso_functorial function `C → D` as a functor from `core C`.
+-/
+def of_iso_functorial (F : C → D) [I : iso_functorial.{v₁ v₂} F] : (core C) ⥤ D :=
+{ obj := λ X, F (core.desc X),
+  map := λ X Y f, iso_functorial.map.{v₁ v₂} F (core.desc_hom f) }
+
+@[simp]
+lemma of_iso_functorial_obj (F : C → D) [I : iso_functorial.{v₁ v₂} F] (X : core C) :
+  (of_iso_functorial F).obj X = F (core.desc X) := rfl
+
+end functor
 
 end category_theory

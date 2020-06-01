@@ -400,6 +400,14 @@ lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
 
+-- If we try to multiply two elements explicitly built using the constructor,
+-- give the explicit answer.
+@[simp]
+lemma mk_mul_mk {fs ft fm gs gt gm} :
+  (⟨fs, ft, fm⟩ : add_monoid_algebra k G) * (⟨gs, gt, gm⟩ : add_monoid_algebra k G) =
+    fs.sum (λ (x : G), gs.sum (λ (y : G), single (x + y) (ft x * gt y))) :=
+rfl
+
 lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
 begin

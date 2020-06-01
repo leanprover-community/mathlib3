@@ -64,6 +64,8 @@ variable [has_zero β]
 
 instance : has_coe_to_fun (α →₀ β) := ⟨λ_, α → β, to_fun⟩
 
+@[simp] lemma mk_apply {s t m} (a : α) : (⟨s, t, m⟩ : α →₀ β) a = t a := rfl
+
 instance : has_zero (α →₀ β) := ⟨⟨∅, (λ_, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
 
 @[simp] lemma zero_apply {a : α} : (0 : α →₀ β) a = 0 :=

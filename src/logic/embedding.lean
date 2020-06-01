@@ -209,3 +209,35 @@ def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
   (embedding_of_subset s t h x : α) = x := rfl
 
 end set
+
+/--
+The embedding of a left cancellative semigroup into itself
+by left multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a left cancellative additive semigroup into itself
+   by left translation by a fixed element."]
+def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, g * h,
+  inj' := λ h h', (mul_right_inj g).mp, }
+
+@[simp]
+lemma mul_left_embedding_apply {G : Type u} [left_cancel_semigroup G] (g h : G) :
+  mul_left_embedding g h = g * h :=
+rfl
+
+/--
+The embedding of a right cancellative semigroup into itself
+by right multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a right cancellative additive semigroup into itself
+   by right translation by a fixed element."]
+def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, h * g,
+  inj' := λ h h', (mul_left_inj g).mp, }
+
+@[simp]
+lemma mul_right_embedding_apply {G : Type u} [right_cancel_semigroup G] (g h : G) :
+  mul_right_embedding g h = h * g :=
+rfl

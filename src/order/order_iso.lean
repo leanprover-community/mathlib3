@@ -218,7 +218,6 @@ instance : has_coe_to_fun (r ≃o s) := ⟨λ _, α → β, λ f, f⟩
 @[simp] lemma to_order_embedding_eq_coe (f : r ≃o s) : f.to_order_embedding = f := rfl
 
 @[simp] lemma coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
-@[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl
 
 theorem ord (f : r ≃o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
@@ -230,43 +229,66 @@ lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x 
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃o s) : (f.to_equiv : α → β) = f := rfl
 
+theorem to_equiv_injective : injective (to_equiv : (r ≃o s) → α ≃ β)
+| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
+
 /-- The map `coe_fn : (r ≃o s) → (r → s)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≃o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
-| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact equiv.coe_fn_injective h }
+theorem coe_fn_injective ⦃e₁ e₂ : r ≃o s⦄ (h : (e₁ : α → β) = e₂) : e₁ = e₂ :=
+to_equiv_injective $ equiv.coe_fn_injective h
 
+@[ext] theorem ext {e₁ e₂ : r ≃o s} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
+coe_fn_injective $ funext h
+
+/-- Identity map is an order isomorphism. -/
 @[refl] protected def refl (r : α → α → Prop) : r ≃o r :=
 ⟨equiv.refl _, λ a b, iff.rfl⟩
 
+/-- Inverse map of an order isomorphism is an order isomorphism. -/
 @[symm] protected def symm (f : r ≃o s) : s ≃o r :=
 ⟨f.to_equiv.symm, λ a b, by cases f with f o; rw o; simp⟩
 
+/-- Composition of two order isomorphisms is an order isomorphism. -/
 @[trans] protected def trans (f₁ : r ≃o s) (f₂ : s ≃o t) : r ≃o t :=
-⟨f₁.to_equiv.trans f₂.to_equiv, λ a b,
-  by cases f₁ with f₁ o₁; cases f₂ with f₂ o₂; rw [o₁, o₂]; simp⟩
+⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.ord.trans f₂.ord⟩
+
+/-- An order isomorphism is also an order isomorphism between dual orders. -/
+def rsymm (f : r ≃o s) : (swap r) ≃o (swap s) :=
+⟨f.to_equiv, λ _ _, f.ord⟩
 
 @[simp] theorem coe_fn_symm_mk (f o) : ((@order_iso.mk _ _ r s f o).symm : β → α) = f.symm :=
 rfl
 
 @[simp] theorem refl_apply (x : α) : order_iso.refl r x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : r ≃o s) (g : s ≃o t) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := equiv.trans_apply _ _ _
+@[simp] theorem trans_apply (f : r ≃o s) (g : s ≃o t) (a : α) : (f.trans g) a = g (f a) :=
+rfl
 
-@[simp] theorem apply_symm_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
-| ⟨f₁, o₁⟩ x := by simp
+@[simp] theorem apply_symm_apply  (e : r ≃o s) (x : β) : e (e.symm x) = x :=
+e.to_equiv.apply_symm_apply x
 
-@[simp] theorem symm_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
-| ⟨f₁, o₁⟩ x := by simp
+@[simp] theorem symm_apply_apply (e : r ≃o s) (x : α) : e.symm (e x) = x :=
+e.to_equiv.symm_apply_apply x
+
+theorem rel_symm_apply (e : r ≃o s) {x y} : r x (e.symm y) ↔ s (e x) y :=
+by rw [e.ord, e.apply_symm_apply]
+
+theorem symm_apply_rel (e : r ≃o s) {x y} : r (e.symm x) y ↔ s x (e y) :=
+by rw [e.ord, e.apply_symm_apply]
+
+protected lemma bijective (e : r ≃o s) : bijective e := e.to_equiv.bijective
+protected lemma injective (e : r ≃o s) : injective e := e.to_equiv.injective
+protected lemma surjective (e : r ≃o s) : surjective e := e.to_equiv.surjective
 
 /-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/
-def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃o s := ⟨f, λ a b, iff.rfl⟩
+protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃o s := ⟨f, λ a b, iff.rfl⟩
 
+/-- A surjective order embedding is an order isomorphism. -/
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 ⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
-by delta of_surjective; simp
+rfl
 
 def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
@@ -293,6 +315,25 @@ def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
     { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
+
+instance : group (r ≃o r) :=
+{ one := order_iso.refl r,
+  mul := λ f₁ f₂, f₂.trans f₁,
+  inv := order_iso.symm,
+  mul_assoc := λ f₁ f₂ f₃, rfl,
+  one_mul := λ f, ext $ λ _, rfl,
+  mul_one := λ f, ext $ λ _, rfl,
+  mul_left_inv := λ f, ext f.symm_apply_apply }
+
+@[simp] lemma coe_one : ⇑(1 : r ≃o r) = id := rfl
+
+@[simp] lemma coe_mul (e₁ e₂ : r ≃o r) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
+
+lemma mul_apply (e₁ e₂ : r ≃o r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
+
+@[simp] lemma inv_apply_self (e : r ≃o r) (x) : e⁻¹ (e x) = x := e.symm_apply_apply x
+
+@[simp] lemma apply_inv_self (e : r ≃o r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
 end order_iso
 

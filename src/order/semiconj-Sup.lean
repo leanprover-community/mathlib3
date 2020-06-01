@@ -9,7 +9,7 @@ import order.ord_continuous
 import data.equiv.mul_add
 
 /-!
-# Order right-adjoint function
+# Semiconjugate by `Sup`
 
 In this file we prove two facts about semiconjugate (families of) functions.
 

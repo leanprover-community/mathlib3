@@ -941,15 +941,6 @@ apply_nolint ring_equiv.to_add_equiv doc_blame
 apply_nolint ring_equiv.to_equiv doc_blame
 apply_nolint ring_equiv.to_mul_equiv doc_blame
 
--- data/erased.lean
-apply_nolint erased.bind doc_blame
-apply_nolint erased.choice doc_blame
-apply_nolint erased.equiv doc_blame
-apply_nolint erased.join doc_blame
-apply_nolint erased.mk doc_blame
-apply_nolint erased.out doc_blame
-apply_nolint erased.out_type doc_blame
-
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
 
@@ -1048,7 +1039,6 @@ apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
 apply_nolint list.insert_nth doc_blame
-apply_nolint list.map_with_index_core doc_blame
 apply_nolint list.of_fn doc_blame
 apply_nolint list.of_fn_aux doc_blame
 apply_nolint list.of_fn_nth_val doc_blame
@@ -1301,9 +1291,6 @@ apply_nolint option.lift_or_get doc_blame
 apply_nolint option.rel doc_blame
 apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
-
--- data/padics/padic_integers.lean
-apply_nolint padic_norm_z doc_blame
 
 -- data/padics/padic_norm.lean
 apply_nolint padic_norm.neg unused_arguments

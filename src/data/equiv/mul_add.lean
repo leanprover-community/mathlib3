@@ -182,6 +182,8 @@ h.to_add_monoid_hom.map_sub x y
 @[to_additive "The group of additive automorphisms."]
 def mul_aut (M : Type*) [has_mul M] := M ≃* M
 
+attribute [reducible] mul_aut add_aut
+
 namespace mul_aut
 
 variables (M) [has_mul M]
@@ -199,6 +201,9 @@ by refine_struct
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
+
+@[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
+@[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
 
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : mul_aut M →* equiv.perm M :=
@@ -223,6 +228,9 @@ by refine_struct
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (add_aut A) := ⟨1⟩
+
+@[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
+@[simp] lemma coe_one : ⇑(1 : add_aut A) = id := rfl
 
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut A →* equiv.perm A :=
@@ -265,12 +273,26 @@ protected def mul_left (a : G) : perm G :=
   left_inv  := assume x, show a⁻¹ * (a * x) = x, from inv_mul_cancel_left a x,
   right_inv := assume x, show a * (a⁻¹ * x) = x, from mul_inv_cancel_left a x }
 
+@[simp, to_additive]
+lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
+
+@[simp, to_additive]
+lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
+ext $ λ x, rfl
+
 @[to_additive]
 protected def mul_right (a : G) : perm G :=
 { to_fun    := λx, x * a,
   inv_fun   := λx, x * a⁻¹,
   left_inv  := assume x, show (x * a) * a⁻¹ = x, from mul_inv_cancel_right x a,
   right_inv := assume x, show (x * a⁻¹) * a = x, from inv_mul_cancel_right x a }
+
+@[simp, to_additive]
+lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl
+
+@[simp, to_additive]
+lemma mul_right_symm (a : G) : (equiv.mul_right a).symm = equiv.mul_right a⁻¹ :=
+ext $ λ x, rfl
 
 variable (G)
 
@@ -280,6 +302,14 @@ protected def inv : perm G :=
   inv_fun   := λa, a⁻¹,
   left_inv  := assume a, inv_inv a,
   right_inv := assume a, inv_inv a }
+
+variable {G}
+
+@[simp, to_additive]
+lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
+
+@[simp, to_additive]
+lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
 

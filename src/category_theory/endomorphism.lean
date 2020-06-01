@@ -61,7 +61,7 @@ namespace Aut
 instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+            mul := flip iso.trans, .. } ; simp [flip, (*), has_one.one]
 
 /--
 Units in the monoid of endomorphisms of an object

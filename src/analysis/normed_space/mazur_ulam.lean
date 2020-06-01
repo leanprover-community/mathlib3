@@ -5,6 +5,7 @@ Author: Yury Kudryashov
 -/
 import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
+import analysis.normed_space.add_torsor
 
 /-!
 # Mazur-Ulam Theorem
@@ -121,4 +122,12 @@ def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=
 @[simp] lemma to_real_linear_equiv_symm_apply (f : E ≃ᵢ F) (y : F) :
   (f.to_real_linear_equiv.symm : F → E) y = f.symm (y + f 0) := rfl
 
+variables {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E PE]
+  [metric_space PF] [normed_add_torsor F PF]
+
+def to_affine_map (f : PE ≃ᵢ PF) : affine_map ℝ E PE F PF :=
+{ to_fun := f,
+  linear := nonempty.elim (show nonempty PE, from add_torsor.nonempty E) $ λx ,
+    _,
+  add := _ }
 end isometric

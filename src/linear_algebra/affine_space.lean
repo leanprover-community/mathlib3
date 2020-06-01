@@ -246,7 +246,12 @@ def id : affine_map k V1 P1 V1 P1 :=
   map_vadd' := λ p v, rfl }
 
 /-- The identity affine map acts as the identity. -/
-@[simp] lemma id_apply (p : P1) : (id k V1 P1) p = p := rfl
+@[simp] lemma coe_id : ⇑(id k V1 P1) = _root_.id := rfl
+
+variable {P1}
+
+/-- The identity affine map acts as the identity. -/
+lemma id_apply (p : P1) : id k V1 P1 p = p := rfl
 
 variables {k V1 P1}
 

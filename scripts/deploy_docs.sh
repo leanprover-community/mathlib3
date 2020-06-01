@@ -38,5 +38,5 @@ if [ "$github_repo" = "leanprover-community/mathlib" -a "$github_event" = "push"
   git add -A .
   git checkout --orphan master2
   git commit -m "automatic update to $git_hash"
-  git push -f HEAD:master
+  git push -f origin HEAD:master
 fi

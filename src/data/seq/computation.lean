@@ -496,7 +496,8 @@ def join (c : computation (computation α)) : computation α := c >>= id
 @[simp] theorem map_think (f : α → β) : ∀ s, map f (think s) = think (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [think, map]; rw stream.map_cons
 
-@[simp] theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
+@[simp]
+theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
 by apply s.cases_on; intro; simp
 
 @[simp] theorem map_id : ∀ (s : computation α), map id s = s

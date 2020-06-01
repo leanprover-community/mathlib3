@@ -39,7 +39,7 @@ which is isomorphic to the `p`-adic integers `ℤ_[p]`. -/
 def witt_vectors (p : ℕ) (R : Type*) := ℕ → R
 
 universes u v w u₁
-open mv_polynomial (hiding aeval)
+open mv_polynomial (hiding aeval) -- this hiding is a hack, because we setup notation below
 open set
 open finset (range)
 
@@ -110,9 +110,6 @@ This fact is recorded in `from_W_to_X_basis_X`. -/
 noncomputable def from_W_to_X_basis : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
 aeval W
 
--- instance from_W_to_X_basis.is_ring_hom : is_ring_hom (from_W_to_X_basis p R) :=
--- by delta from_W_to_X_basis; apply_instance
-
 lemma witt_polynomial_zero : (W 0 : mv_polynomial ℕ R) = X 0 :=
 begin
   delta witt_polynomial,
@@ -121,8 +118,6 @@ end
 
 @[simp] lemma from_W_to_X_basis_X (n) : from_W_to_X_basis p R (X n) = W n :=
 by simp [from_W_to_X_basis]
-
--- variables {R} -- (pu : units R) (hp : (pu : R) = p)
 
 -- We need p to be invertible for the following definitions
 
@@ -149,9 +144,6 @@ noncomputable def from_X_to_W_basis [invertible (p : R)] :
   mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
 aeval (X_in_terms_of_W p R)
 
--- instance from_X_to_W_basis.is_ring_hom : is_ring_hom (from_X_to_W_basis p pu hp) :=
--- by delta from_X_to_W_basis; apply_instance
-
 @[simp] lemma from_X_to_W_basis_X [invertible (p : R)] (n : ℕ) :
   (from_X_to_W_basis p R) (X n) = X_in_terms_of_W p R n :=
 by rw [from_X_to_W_basis, aeval_X]
@@ -175,36 +167,9 @@ lemma X_in_terms_of_W_aux [invertible (p : R)] {n} : X_in_terms_of_W p R n * C (
   X n - ∑ i in finset.range n, C (p^i) * (X_in_terms_of_W p R i)^p^(n-i) :=
 by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
 
-section -- Kudos to Mario
-
-theorem rat.ring_hom_unique {α} [ring α]
-  (f g : ℚ → α) [is_ring_hom f] [is_ring_hom g] (r : ℚ) : f r = g r :=
-rat.num_denom_cases_on' r $ λ a b b0, begin
-  let φ : ℤ →+* α := (ring_hom.of f).comp (int.cast_ring_hom ℚ),
-  let ψ : ℤ →+* α := (ring_hom.of g).comp (int.cast_ring_hom ℚ),
-  rw [rat.mk_eq_div, int.cast_coe_nat],
-  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
-  have : ∀ n : ℤ, f n = g n := λ n,
-    (ring_hom.eq_int_cast φ n).trans
-    (ring_hom.eq_int_cast ψ n).symm,
-  calc f (a * b⁻¹)
-      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) : by rw [
-    int.cast_coe_nat, ← is_ring_hom.map_mul g,
-    mul_inv_cancel b0', is_ring_hom.map_one g, mul_one,
-    is_ring_hom.map_mul f]
-  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
-  ... = g (a * b⁻¹) : by rw [
-    int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
-    ← is_ring_hom.map_mul f, inv_mul_cancel b0',
-    is_ring_hom.map_one f, one_mul,
-    is_ring_hom.map_mul g]
-end
+section
 
 end
-
--- Important: gonna need this
--- have fC : ∀ (a : ℚ), f (C a) = C a,
--- { intro a, show (f ∘ C) a = _, apply rat.ring_hom_unique (f ∘ C) C a },
 
 lemma X_in_terms_of_W_prop' [invertible (p : R)]
   (f : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R)
@@ -421,22 +386,15 @@ begin
   rw [ring_hom.map_sub, ring_hom.map_sum],
   apply sub_congr,
   { clear IH,
-    simp only [← alg_hom.coe_to_ring_hom, aeval_eq_eval₂_hom, map_eval₂_hom, eval₂_hom_map_hom],
-    rw ring_hom.eq_int_cast' ((map_hom (int.cast_ring_hom ℚ)).comp (algebra_map ℤ (mv_polynomial (idx × ℕ) ℤ))),
-    simp only [coe_eval₂_hom],
-    congr' 1,
-    { congr' 1, symmetry, convert ring_hom.eq_int_cast' _ }, -- what's going on here?
-    funext b,
-    rw [map_hom_rename_hom, map_hom_witt_polynomial], },
+    rw [map_aeval, aeval_eq_eval₂_hom', eval₂_hom_map_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k, rw [map_hom_rename_hom, map_hom_witt_polynomial] },
   { apply finset.sum_congr rfl,
     intros i hi,
     rw finset.mem_range at hi,
     specialize IH i hi,
-    rw [C_pow, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, IH], -- needs map_hom_C
-    -- what follows should be a one-liner
-    congr' 1,
-    simp only [map_hom, C_pow, ring_hom.coe_of],
-    rw map_C, refl, }
+    simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, C_pow,
+      ring_hom.map_pow, map_hom_C, ring_hom.map_mul], }
 end
 
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
@@ -533,19 +491,17 @@ begin
   { clear IH aux aux₂ key,
     simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom', ring_hom.map_pow, eval₂_hom_map_hom,
       eval₂_hom_rename_hom, ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext i, apply eval₂_hom_congr _ _ rfl,
-      { convert ring_hom.ext_int _ _ },
-      { funext k,
-        rw [map_hom_rename_hom, map_hom_X, rename_hom_X] } } },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext i,
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    rw [map_hom_rename_hom, map_hom_X, rename_hom_X] },
   { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom', ring_hom.map_pow,
       eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext i, apply eval₂_hom_congr _ _ rfl,
-      { convert ring_hom.ext_int _ _ },
-      { funext bi, rw map_hom_X } } }
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext i,
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext bi, rw map_hom_X }
 end
 .
 
@@ -583,14 +539,12 @@ begin
 
   { clear key IH,
     rw map_aeval,
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext i,
-      rw ← map_hom_witt_polynomial p (int.cast_ring_hom (zmod _)) n,
-      simp only [map_hom_X, map_aeval, map_eval₂_hom, ring_hom.map_pow,
-        rename_hom_X, eval₂_hom_map_hom],
-      apply eval₂_hom_congr _ rfl rfl,
-      { convert ring_hom.ext_int _ _ } } },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext i,
+    rw ← map_hom_witt_polynomial p (int.cast_ring_hom (zmod _)) n,
+    simp only [map_hom_X, map_aeval, map_eval₂_hom, ring_hom.map_pow,
+      rename_hom_X, eval₂_hom_map_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl, },
 
   { clear key IH,
     rw [aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum],
@@ -612,8 +566,7 @@ begin
     rw [← C_eq_coe_nat, int.nat_cast_eq_coe_nat, C_dvd_iff_zmod],
     rw [ring_hom.map_sub, sub_eq_zero, ring_hom.map_pow, ← mv_polynomial.zmod_pow_char],
     rw [map_aeval, aeval_eq_eval₂_hom', eval₂_hom_map_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     { funext i, rw [ring_hom.map_pow, map_hom_X] } }
 end
 .
@@ -623,18 +576,13 @@ theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
   convert witt_structure_rat_prop p (map_hom (int.cast_ring_hom ℚ) Φ) n,
-  { simp only [← alg_hom.coe_to_ring_hom, aeval_eq_eval₂_hom, map_eval₂_hom],
-    rw [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
-    simp only [coe_eval₂_hom],
-    congr' 2,
-    { convert ring_hom.ext_int _ _, },
-    { funext i, apply map_hom_witt_structure_int } },
-  { simp only [← alg_hom.coe_to_ring_hom, aeval_eq_eval₂_hom, map_eval₂_hom, eval₂_hom_map_hom],
-    simp only [coe_eval₂_hom],
-    congr' 2,
-    { convert ring_hom.ext_int _ _, },
-    { funext b,
-      simp only [map_hom_rename_hom, map_hom_witt_polynomial] } }
+  { rw [map_aeval, aeval_eq_eval₂_hom',
+        ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext i, apply map_hom_witt_structure_int },
+  { rw [map_aeval, aeval_eq_eval₂_hom', eval₂_hom_map_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext b, rw [map_hom_rename_hom, map_hom_witt_polynomial] }
 end
 
 theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
@@ -655,11 +603,10 @@ begin
       convert congr_arg (map_hom (int.cast_ring_hom ℚ)) H using 1,
       { rw [map_aeval, ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ),
         aeval_eq_eval₂_hom', eval₂_hom_map_hom],
-        apply eval₂_hom_congr _ rfl rfl, convert ring_hom.ext_int _ _ },
+        exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
       { rw [map_aeval, aeval_eq_eval₂_hom', eval₂_hom_map_hom],
-        apply eval₂_hom_congr _ _ rfl,
-        { convert ring_hom.ext_int _ _ },
-        { funext i, rw [map_hom_rename_hom, map_hom_witt_polynomial] } } },
+        apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+        funext i, rw [map_hom_rename_hom, map_hom_witt_polynomial] } },
     { intro n, apply witt_structure_rat_prop } },
 end
 .
@@ -670,12 +617,10 @@ theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
 begin
   convert congr_arg (map_hom (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n),
   { rw [aeval_eq_eval₂_hom', map_aeval],
-    apply eval₂_hom_congr _ rfl rfl,
-    convert ring_hom.ext_int _ _ },
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
   { rw [aeval_eq_eval₂_hom', map_aeval],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { simp only [map_hom_rename_hom, map_hom_witt_polynomial] } }
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    simp only [map_hom_rename_hom, map_hom_witt_polynomial] }
 end
 
 namespace witt_vectors
@@ -879,11 +824,9 @@ begin
   { delta witt_vectors.has_add witt_add,
     rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
     simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext k,
-      apply eval₂_hom_congr _ rfl rfl,
-      { convert ring_hom.ext_int _ _ } } },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
   { simp only [aeval_eq_eval₂_hom', ring_hom.map_add, eval₂_hom_X', eval₂_hom_rename_hom],
     refl }
 end
@@ -898,11 +841,9 @@ begin
   { delta witt_vectors.has_mul witt_mul,
     rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
     simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext k,
-      apply eval₂_hom_congr _ rfl rfl,
-      { convert ring_hom.ext_int _ _ } } },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
   { simp only [aeval_eq_eval₂_hom', ring_hom.map_mul, eval₂_hom_X', eval₂_hom_rename_hom],
     refl },
 end
@@ -917,11 +858,9 @@ begin
   { delta witt_vectors.has_neg witt_neg,
     rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
     simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { convert ring_hom.ext_int _ _ },
-    { funext k,
-      apply eval₂_hom_congr _ rfl rfl,
-      { convert ring_hom.ext_int _ _ } } },
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
   { simp only [aeval_eq_eval₂_hom', ring_hom.map_neg, eval₂_hom_X', eval₂_hom_rename_hom],
     refl },
 end
@@ -966,17 +905,10 @@ variable (R)
 noncomputable def mv_polynomial.counit : mv_polynomial R ℤ →+*  R :=
 eval₂_hom (int.cast_ring_hom R) id
 
--- instance mv_polynomial.counit.is_ring_hom : is_ring_hom (mv_polynomial.counit R) :=
--- by delta mv_polynomial.counit; apply_instance
-
 lemma counit_surjective : surjective (mv_polynomial.counit R) :=
 λ r, ⟨X r, eval₂_X _ _ _⟩
 
 end
-
--- instance map_invertible (A : Type*) [comm_ring A] [algebra R A] (n : ℕ) [invertible (n : R)] :
---   invertible (n : A) :=
--- _
 
 noncomputable def helper : invertible (p : mv_polynomial R ℚ) :=
 { inv_of := C (⅟p),

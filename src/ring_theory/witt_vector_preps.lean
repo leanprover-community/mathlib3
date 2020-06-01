@@ -44,9 +44,59 @@ end finset
 namespace ring_hom
 
 @[ext]
-lemma ext_int {R : Type*} [ring R] (f g : ℤ →+* R) : f = g :=
-calc f = int.cast_ring_hom R : ring_hom.eq_int_cast' f
-   ... = g                   : (ring_hom.eq_int_cast' g).symm
+lemma ext_nat {R : Type*} [semiring R] (f g : ℕ →+* R) : f = g :=
+begin
+  ext n,
+  calc f n = nat.cast_ring_hom R n : ring_hom.eq_nat_cast f n
+       ... = g n                   : (ring_hom.eq_nat_cast g n).symm,
+end
+
+@[ext]
+lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
+begin
+  ext n,
+  let φ : ℕ →+* R := f.comp (nat.cast_ring_hom ℤ),
+  let ψ : ℕ →+* R := g.comp (nat.cast_ring_hom ℤ),
+  have h : ∀ n : ℕ, f n = g n, by { intro n, simp [← int.nat_cast_eq_coe_nat] },
+  cases n, { apply h },
+  calc  f (-(n+1))
+      = f (-(n+1)) + (g (n+1) + g (-(n+1))) : by rw [← g.map_add, add_neg_self, g.map_zero, add_zero]
+  ... = f (-(n+1)) + f (n+1) + g (-(n+1))   : by simp only [add_assoc, h, map_add, map_one]
+  ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
+end
+
+@[ext]
+lemma ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=
+begin
+  ext a,
+  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective a,
+  let φ : ℤ →+* R := f.comp (int.cast_ring_hom (zmod n)),
+  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom (zmod n)),
+  show φ k = ψ k,
+  rw φ.ext_int ψ,
+end
+
+ -- Kudos to Mario
+@[ext]
+lemma ext_rat {R : Type*} [semiring R]
+  (f g : ℚ →+* R) : f = g :=
+begin
+  ext r,
+  refine rat.num_denom_cases_on' r _,
+  intros a b b0,
+  let φ : ℤ →+* R := f.comp (int.cast_ring_hom ℚ),
+  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom ℚ),
+  rw [rat.mk_eq_div, int.cast_coe_nat],
+  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
+  have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
+  calc f (a * b⁻¹)
+      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
+        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
+  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
+  ... = g (a * b⁻¹) :
+        by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
+              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
+end
 
 end ring_hom
 

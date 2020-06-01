@@ -275,7 +275,7 @@ begin
 end
 
 section char_dvd
-/- If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
+/-! If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
 
 variables {n} {m : ℕ} [char_p R m]
 
@@ -339,7 +339,7 @@ lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
 end char_dvd
 
 section char_eq
-/- Some specialised simp lemmas, in the case that `R` has characteristic `n`. -/
+/-! Some specialised simp lemmas which apply when `R` has characteristic `n`. -/
 variable [char_p R n]
 
 @[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=

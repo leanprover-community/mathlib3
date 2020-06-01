@@ -9,6 +9,12 @@ import control.equiv_functor.instances -- these make equiv_rw more powerful!
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
 
+import tactic.equiv_rw
+
+-- This fails if we use `occurs` rather than `kdepends_on` in `equiv_rw_type`.
+instance : equiv_functor set :=
+{ map := λ α β e s, by { equiv_rw e.symm, assumption, } }
+
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
   (f : α → ℕ) (h : ∀ b : β, f (e.symm b) = 0) (i : α) : f i = 0 :=

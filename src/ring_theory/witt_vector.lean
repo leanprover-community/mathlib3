@@ -48,6 +48,8 @@ open_locale big_operators
 -- TODO: This should be fixed in mathlib
 local notation `aeval` := mv_polynomial.aeval _ _
 
+local attribute [-simp] coe_eval₂_hom
+
 variables (p : ℕ) [fact p.prime]
 variables (R : Type u) [comm_ring R]
 
@@ -69,8 +71,12 @@ noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
 /-! We set up notation locally to this file, to keep statements short and comprehensible.
 This allows us to simply write `W n` or `W_ ℤ n`. -/
 
-local notation `W_`  := witt_polynomial p   -- Notation with ring of coefficients explicit
-local notation `W`   := witt_polynomial p _ -- Notation with ring of coefficients implicit
+-- Notation with ring of coefficients explicit
+localized "notation `W_` := witt_polynomial p"   in witt
+-- Notation with ring of coefficients implicit
+localized "notation `W`  := witt_polynomial p _" in witt
+
+open_locale witt
 
 /- The first observation is that the Witt polynomial doesn't really depend on the coefficient ring.
 If we map the coefficients through a ring homomorphism, we obtain the corresponding Witt polynomial
@@ -78,20 +84,20 @@ over the target ring. -/
 section
 variables {R} {S : Type*} [comm_ring S]
 
-lemma map_witt_polynomial (f : R →+* S) (n : ℕ) :
-  map f (W n) = W n :=
-begin
-  delta witt_polynomial,
-  rw [← finset.sum_hom _ (map f)],
-  { apply finset.sum_congr rfl,
-    intros i hi,
-    rw [map_mul f, map_C f, f.map_pow, f.map_nat_cast, map_pow f, map_X f], },
-  { apply_instance }
-end
-
 @[simp] lemma map_hom_witt_polynomial (f : R →+* S) (n : ℕ) :
   map_hom f (W n) = W n :=
-map_witt_polynomial p f n
+begin
+  rw [witt_polynomial, ring_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw [ring_hom.map_mul, map_hom_C f, ring_hom.map_pow,
+      ring_hom.map_nat_cast, ring_hom.map_pow, map_hom_X],
+end
+
+-- no longer used...
+lemma map_witt_polynomial (f : R →+* S) (n : ℕ) :
+  map f (W n) = W n :=
+map_hom_witt_polynomial p f n
 
 variables (R)
 
@@ -200,8 +206,6 @@ begin
   intro n,
   exact from_W_to_X_basis_X p R n,
 end
-
-
 
 lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
   (from_W_to_X_basis p R).comp (from_X_to_W_basis p _) = alg_hom.id _ _ :=
@@ -374,7 +378,8 @@ variables {S : Type*} [comm_ring S]
 variables {T : Type*} [comm_ring T]
 
 lemma foo' (Φ : mv_polynomial idx ℤ) (n : ℕ)
-  (IH : ∀ m : ℕ, m < n → map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+  (IH : ∀ m : ℕ, m < n →
+    map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
     witt_structure_rat p (map_hom (int.cast_ring_hom ℚ) Φ) m) :
   map_hom (int.cast_ring_hom ℚ)
     (((aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℤ n)))) Φ) -
@@ -504,8 +509,6 @@ begin
     funext bi, rw map_hom_X }
 end
 .
-
-local attribute [-simp] coe_eval₂_hom
 
 lemma map_hom_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
   map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ n) =

@@ -448,16 +448,13 @@ lemma rat_mv_poly_is_integral_iff (p : mv_polynomial ι ℚ) :
   ∀ m, (coeff m p).denom = 1 :=
 begin
   rw mv_polynomial.ext_iff,
+  apply forall_congr, intro m,
+  rw coeff_map,
   split; intro h,
-  { rw ← mv_polynomial.ext_iff at h, intro m,
-    rw [← h m, coeff_map],
-    apply rat.coe_int_denom },
-  { apply mv_polynomial.ext, intro m,
-    rw coeff_map,
-    lift (coeff m p) to ℤ using h m with n hn,
-    have := rat.coe_int_num n,
-    apply integral_of_denom_eq_one,
-    exact h m }
+  { rw [← h], apply rat.coe_int_denom },
+  { show (rat.num (coeff m p) : ℚ) = coeff m p,
+    lift (coeff m p) to ℤ using h with n hn,
+    rw rat.coe_int_num n }
 end
 
 lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)

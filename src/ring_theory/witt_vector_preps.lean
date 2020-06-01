@@ -317,7 +317,7 @@ begin
   split,
   { intro h, apply mv_polynomial.ext, intro i,
     simp only [map_hom, coeff_map, *, ring_hom.coe_of, coeff_zero], },
-  { rw ← mv_polynomial.ext_iff,
+  { rw mv_polynomial.ext_iff,
     simp only [map_hom, coeff_map, *, ring_hom.coe_of, coeff_zero, imp_self] }
 end
 
@@ -362,9 +362,9 @@ end
 end
 
 -- move this (and generalize to char_zero fields)
-instance rat.invertible_of_prime (p : ℕ) [hp : fact p.prime] : invertible (p : ℚ) :=
-{ inv_of := 1/p,
-  inv_of_mul_self := one_div_mul_cancel $ by { exact_mod_cast hp.ne_zero },
-  mul_inv_of_self := mul_one_div_cancel $ by { exact_mod_cast hp.ne_zero } }
+instance rat.invertible_of_prime (n : ℕ) [h : fact (0 < n)] : invertible (n : ℚ) :=
+{ inv_of := 1/n,
+  inv_of_mul_self := one_div_mul_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h },
+  mul_inv_of_self := mul_one_div_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h } }
 
 -- ### end FOR_MATHLIB

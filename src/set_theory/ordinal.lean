@@ -3081,7 +3081,7 @@ begin
       rw [← h], apply add_lt_omega ha hb },
     rw [lt_omega] at *,
     rcases ha with ⟨n, rfl⟩, rcases hb with ⟨m, rfl⟩, rcases hc with ⟨k, rfl⟩,
-    norm_cast at h ⊢, apply eq_of_add_eq_add_left h }
+    norm_cast at h ⊢, apply add_left_cancel h }
 end
 
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < omega) :

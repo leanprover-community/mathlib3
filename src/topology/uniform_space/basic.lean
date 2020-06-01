@@ -861,10 +861,12 @@ uniform_space.core.mk'
       exact Htβ A }
   end)
 
-/-- The union of an entourage of the diagonal in each set of a disjoint union is again an entourage of the diagonal. -/
+/-- The union of an entourage of the diagonal in each set of a disjoint union is again an entourage
+of the diagonal. -/
 lemma union_mem_uniformity_sum
   {a : set (α × α)} (ha : a ∈ 𝓤 α) {b : set (β × β)} (hb : b ∈ 𝓤 β) :
-  ((λ p : (α × α), (inl p.1, inl p.2)) '' a ∪ (λ p : (β × β), (inr p.1, inr p.2)) '' b) ∈ (@uniform_space.core.sum α β _ _).uniformity :=
+  ((λ p : (α × α), (inl p.1, inl p.2)) '' a ∪ (λ p : (β × β), (inr p.1, inr p.2)) '' b) ∈
+    (@uniform_space.core.sum α β _ _).uniformity :=
 ⟨mem_map_sets_iff.2 ⟨_, ha, subset_union_left _ _⟩, mem_map_sets_iff.2 ⟨_, hb, subset_union_right _ _⟩⟩
 
 /- To prove that the topology defined by the uniform structure on the disjoint union coincides with

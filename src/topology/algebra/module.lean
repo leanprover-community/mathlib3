@@ -161,10 +161,10 @@ end
 definition, although in applications `M` and `M₂` will be topological modules over the topological
 ring `R`. -/
 structure continuous_linear_map
-  (R : Type*) [ring R]
-  (M : Type*) [topological_space M] [add_comm_group M]
-  (M₂ : Type*) [topological_space M₂] [add_comm_group M₂]
-  [module R M] [module R M₂]
+  (R : Type*) [semiring R]
+  (M : Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [semimodule R M] [semimodule R M₂]
   extends linear_map R M M₂ :=
 (cont : continuous to_fun)
 
@@ -175,10 +175,10 @@ for the definition, although in applications `M` and `M₂` will be topological 
 topological ring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
-  (R : Type*) [ring R]
-  (M : Type*) [topological_space M] [add_comm_group M]
-  (M₂ : Type*) [topological_space M₂] [add_comm_group M₂]
-  [module R M] [module R M₂]
+  (R : Type*) [semiring R]
+  (M : Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [semimodule R M] [semimodule R M₂]
   extends linear_equiv R M M₂ :=
 (continuous_to_fun  : continuous to_fun)
 (continuous_inv_fun : continuous inv_fun)
@@ -187,16 +187,16 @@ notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv R M M₂
 
 namespace continuous_linear_map
 
-section general_ring
-/- Properties that hold for non-necessarily commutative rings. -/
+section semiring
+/- Properties that hold for non-necessarily commutative semirings. -/
 
 variables
-{R : Type*} [ring R]
-{M : Type*} [topological_space M] [add_comm_group M]
-{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
-{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R M₂] [module R M₃] [module R M₄]
+{R : Type*} [semiring R]
+{M : Type*} [topological_space M] [add_comm_monoid M]
+{M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
@@ -218,9 +218,7 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
-@[simp] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
-@[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
@@ -254,7 +252,7 @@ lemma id_apply : id R M x = x := rfl
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 
 section add
-variables [topological_add_group M₂]
+variables [topological_add_monoid M₂]
 
 instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
@@ -263,32 +261,19 @@ instance : has_add (M →L[R] M₂) :=
 @[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
 
-instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
-
-@[simp] lemma neg_apply : (-f) x = - (f x) := rfl
-
-@[simp, norm_cast] lemma coe_neg : (((-f) : M →L[R] M₂) : M →ₗ[R] M₂) = -(f : M →ₗ[R] M₂) := rfl
-@[norm_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
-
-instance : add_comm_group (M →L[R] M₂) :=
-by { refine {zero := 0, add := (+), neg := has_neg.neg, ..}; intros; ext;
+instance : add_comm_monoid (M →L[R] M₂) :=
+by { refine {zero := 0, add := (+), ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
-
-lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
-@[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
   t.sum f b = t.sum (λd, f d b) :=
 begin
-  haveI : is_add_group_hom (λ (g : M →L[R] M₂), g b) :=
-    { map_add := λ f g, continuous_linear_map.add_apply f g b },
+  haveI : is_add_monoid_hom (λ (g : M →L[R] M₂), g b) :=
+    { map_add := λ f g, continuous_linear_map.add_apply f g b, map_zero := by simp },
   exact (finset.sum_hom t (λ g : M →L[R] M₂, g b)).symm
 end
 
 end add
-
-@[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
@@ -309,12 +294,12 @@ by { ext, simp }
 @[simp] theorem zero_comp : (0 : M₂ →L[R] M₃).comp f = 0 :=
 by { ext, simp }
 
-@[simp] lemma comp_add [topological_add_group M₂] [topological_add_group M₃]
+@[simp] lemma comp_add [topological_add_monoid M₂] [topological_add_monoid M₃]
   (g : M₂ →L[R] M₃) (f₁ f₂ : M →L[R] M₂) :
   g.comp (f₁ + f₂) = g.comp f₁ + g.comp f₂ :=
 by { ext, simp }
 
-@[simp] lemma add_comp [topological_add_group M₃]
+@[simp] lemma add_comp [topological_add_monoid M₃]
   (g₁ g₂ : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
 by { ext, simp }
@@ -330,16 +315,6 @@ lemma mul_def (f g : M →L[R] M) : f * g = f.comp g := rfl
 @[simp] lemma coe_mul (f g : M →L[R] M) : ⇑(f * g) = f ∘ g := rfl
 
 lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
-
-instance [topological_add_group M] : ring (M →L[R] M) :=
-{ mul := (*),
-  one := 1,
-  mul_one := λ _, ext $ λ _, rfl,
-  one_mul := λ _, ext $ λ _, rfl,
-  mul_assoc := λ _ _ _, ext $ λ _, rfl,
-  left_distrib := λ _ _ _, ext $ λ _, map_add _ _ _,
-  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
-  ..continuous_linear_map.add_comm_group }
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 protected def prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) : M →L[R] (M₂ × M₃) :=
@@ -366,13 +341,13 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 
 @[simp] lemma apply_ker (x : f.ker) : f x = 0 := mem_ker.1 x.2
 
-lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_group M']
-  [module R M'] [t1_space M₂] (f : M' →L[R] M₂) :
+lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
+  [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
   is_complete (f.ker : set M') :=
 is_complete_of_is_closed f.is_closed_ker
 
-instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_group M']
-  [module R M'] [t1_space M₂] (f : M' →L[R] M₂) :
+instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
+  [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
   complete_space f.ker :=
 f.is_closed_ker.complete_space_coe
 
@@ -389,10 +364,6 @@ lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := l
 lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
   range (f.prod g) ≤ (range f).prod (range g) :=
 (f : M →ₗ[R] M₂).range_prod_le g
-
-lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
-  range (f.prod g) = (range f).prod (range g) :=
-linear_map.range_prod_eq h
 
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M →L[R] M₂) (p : submodule R M₂) (h : ∀ x, f x ∈ p) :
@@ -472,29 +443,7 @@ rfl
 @[simp] lemma coprod_apply [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
   f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
 
-/-- Given a right inverse `f₂ : M₂ →L[R] M` to `f₁ : M →L[R] M₂`,
-`proj_ker_of_right_inverse f₁ f₂ h` is the projection `M →L[R] f₁.ker` along `f₂.range`. -/
-def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
-  (h : function.right_inverse f₂ f₁) :
-  M →L[R] f₁.ker :=
-(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
-
-@[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : M) :
-  (f₁.proj_ker_of_right_inverse f₂ h x : M) = x - f₂ (f₁ x) :=
-rfl
-
-@[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
-  f₁.proj_ker_of_right_inverse f₂ h x = x :=
-subtype.coe_ext.2 $ by simp
-
-@[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
-  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
-  f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
-subtype.coe_ext.2 $ by simp [h y]
-
-variables [topological_space R] [topological_module R M₂]
+variables [topological_space R] [topological_semimodule R M₂]
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`) -/
@@ -519,11 +468,64 @@ lemma smul_right_one_eq_iff {f f' : M₂} :
       by simp at this; assumption,
   by cc⟩
 
-lemma smul_right_comp [topological_module R R] {x : M₂} {c : R} :
+lemma smul_right_comp [topological_semimodule R R] {x : M₂} {c : R} :
   (smul_right 1 x : R →L[R] M₂).comp (smul_right 1 c : R →L[R] R) = smul_right 1 (c • x) :=
 by { ext, simp [mul_smul] }
 
-lemma smul_right_one_pow [topological_add_group R] [topological_module R R] (c : R) (n : ℕ) :
+end semiring
+
+section ring
+
+variables
+{R : Type*} [ring R]
+{M : Type*} [topological_space M] [add_comm_group M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+
+variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
+
+@[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
+@[simp] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
+@[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
+
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+  range (f.prod g) = (range f).prod (range g) :=
+linear_map.range_prod_eq h
+
+section
+variables [topological_add_group M₂]
+
+instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
+
+@[simp] lemma neg_apply : (-f) x = - (f x) := rfl
+
+@[simp, norm_cast] lemma coe_neg : (((-f) : M →L[R] M₂) : M →ₗ[R] M₂) = -(f : M →ₗ[R] M₂) := rfl
+@[norm_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
+
+instance : add_comm_group (M →L[R] M₂) :=
+by { refine {zero := 0, add := (+), neg := has_neg.neg, ..}; intros; ext;
+  apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
+
+lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
+@[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
+
+end
+
+instance [topological_add_group M] : ring (M →L[R] M) :=
+{ mul := (*),
+  one := 1,
+  mul_one := λ _, ext $ λ _, rfl,
+  one_mul := λ _, ext $ λ _, rfl,
+  mul_assoc := λ _ _ _, ext $ λ _, rfl,
+  left_distrib := λ _ _ _, ext $ λ _, map_add _ _ _,
+  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+  ..continuous_linear_map.add_comm_group }
+
+lemma smul_right_one_pow [topological_space R]
+  [topological_add_group R] [topological_semimodule R R] (c : R) (n : ℕ) :
   (smul_right 1 c : R →L[R] R)^n = smul_right 1 (c^n) :=
 begin
   induction n with n ihn,
@@ -531,7 +533,29 @@ begin
   { rw [pow_succ, ihn, mul_def, smul_right_comp, smul_eq_mul, pow_succ'] }
 end
 
-end general_ring
+/-- Given a right inverse `f₂ : M₂ →L[R] M` to `f₁ : M →L[R] M₂`,
+`proj_ker_of_right_inverse f₁ f₂ h` is the projection `M →L[R] f₁.ker` along `f₂.range`. -/
+def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
+  (h : function.right_inverse f₂ f₁) :
+  M →L[R] f₁.ker :=
+(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
+
+@[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : M) :
+  (f₁.proj_ker_of_right_inverse f₂ h x : M) = x - f₂ (f₁ x) :=
+rfl
+
+@[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
+  f₁.proj_ker_of_right_inverse f₂ h x = x :=
+subtype.coe_ext.2 $ by simp
+
+@[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
+  (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
+  f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
+subtype.coe_ext.2 $ by simp [h y]
+
+end ring
 
 section comm_ring
 
@@ -575,12 +599,15 @@ end comm_ring
 end continuous_linear_map
 
 namespace continuous_linear_equiv
-variables {R : Type*} [ring R]
-{M : Type*} [topological_space M] [add_comm_group M]
-{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
-{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R M₂] [module R M₃] [module R M₄]
+
+section add_comm_monoid
+
+variables {R : Type*} [semiring R]
+{M : Type*} [topological_space M] [add_comm_monoid M]
+{M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
 
 /-- A continuous linear equivalence induces a continuous linear map. -/
 def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
@@ -616,11 +643,8 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
 (e : M →L[R] M₂).map_add x y
-@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
-(e : M →L[R] M₂).map_sub x y
 @[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
 (e : M →L[R] M₂).map_smul c x
-@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
 @[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 
@@ -700,25 +724,6 @@ def prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) : (M × M₃) ≃L[R] (M�
   (e.prod e' : (M × M₃) →L[R] (M₂ × M₄)) = (e : M →L[R] M₂).prod_map (e' : M₃ →L[R] M₄) :=
 rfl
 
-variables [topological_add_group M₄]
-
-/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
-  and `f` is a rectangular block below the diagonal. -/
-def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
-  (M × M₃) ≃L[R] M₂ × M₄ :=
-{ continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk
-    ((e'.continuous_to_fun.comp continuous_snd).add $ f.continuous.comp continuous_fst),
-  continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
-    (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
-      e.continuous_inv_fun.comp continuous_fst),
-.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
-
-@[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
-  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
-
-@[simp] lemma skew_prod_symm_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
-  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
-
 theorem bijective (e : M ≃L[R] M₂) : function.bijective e := e.to_linear_equiv.to_equiv.bijective
 theorem injective (e : M ≃L[R] M₂) : function.injective e := e.to_linear_equiv.to_equiv.injective
 theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_equiv.to_equiv.surjective
@@ -783,6 +788,49 @@ rfl
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 
+end add_comm_monoid
+
+section add_comm_group
+
+variables {R : Type*} [semiring R]
+{M : Type*} [topological_space M] [add_comm_group M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
+{M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+
+variables [topological_add_group M₄]
+
+/-- Equivalence given by a block lower diagonal matrix. `e` and `e'` are diagonal square blocks,
+  and `f` is a rectangular block below the diagonal. -/
+def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) :
+  (M × M₃) ≃L[R] M₂ × M₄ :=
+{ continuous_to_fun := (e.continuous_to_fun.comp continuous_fst).prod_mk
+    ((e'.continuous_to_fun.comp continuous_snd).add $ f.continuous.comp continuous_fst),
+  continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
+    (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
+      e.continuous_inv_fun.comp continuous_fst),
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+
+@[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
+
+@[simp] lemma skew_prod_symm_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
+  (e.skew_prod e' f).symm x = (e.symm x.1, e'.symm (x.2 - f (e.symm x.1))) := rfl
+
+end add_comm_group
+
+section ring
+
+variables {R : Type*} [ring R]
+{M : Type*} [topological_space M] [add_comm_group M] [semimodule R M]
+{M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [semimodule R M₂]
+
+@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
+(e : M →L[R] M₂).map_sub x y
+
+@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
+
 section
 variables (R) [topological_space R] [topological_module R R]
 
@@ -835,6 +883,8 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
 @[simp] lemma equiv_of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (y : M₂ × f₁.ker) :
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
+
+end ring
 
 end continuous_linear_equiv
 

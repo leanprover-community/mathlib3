@@ -261,7 +261,7 @@ namespace equiv
 variables (K : Type*) [division_ring K]
 
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, a.coe_ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}
 

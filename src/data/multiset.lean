@@ -18,8 +18,6 @@ open list subtype nat
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale add_monoid
-
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/
 def {u} multiset (α : Type u) : Type u :=
@@ -444,8 +442,8 @@ by simpa using add_le_add_right (zero_le t) s
 quotient.induction_on₂ s t length_append
 
 lemma card_smul (s : multiset α) (n : ℕ) :
-  (n • s).card = n * s.card :=
-by induction n; simp [succ_smul, *, nat.succ_mul]; cc
+  (n •ℕ s).card = n * s.card :=
+by induction n; simp [succ_nsmul, *, nat.succ_mul]; cc
 
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
@@ -761,14 +759,15 @@ instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : m
 { map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
-  ∀n, (add_monoid.smul n m).prod = m.prod ^ n
+  ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
 | (n + 1) :=
-  by rw [add_monoid.add_smul, add_monoid.one_smul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
+  by rw [add_nsmul, one_nsmul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
-@[simp] theorem sum_repeat [add_comm_monoid α] : ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
+@[simp] theorem sum_repeat [add_comm_monoid α] :
+  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n •ℕ a :=
 @prod_repeat (multiplicative α) _
 attribute [to_additive] prod_repeat
 
@@ -1890,8 +1889,8 @@ countp_add
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom
 
-@[simp] theorem count_smul (a : α) (n s) : count a (n • s) = n * count a s :=
-by induction n; simp [*, succ_smul', succ_mul]
+@[simp] theorem count_smul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
+by induction n; simp [*, succ_nsmul', succ_mul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
@@ -2735,7 +2734,7 @@ end
 end fold
 
 theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
-  ∃ n : ℕ, s ≤ n • erase_dup s :=
+  ∃ n : ℕ, s ≤ n •ℕ erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_smul, by_cases a ∈ s,
   { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
@@ -3025,6 +3024,8 @@ namespace multiset
 instance : functor multiset :=
 { map := @map }
 
+@[simp] lemma fmap_def {α' β'} {s : multiset α'} (f : α' → β') : f <$> s = s.map f := rfl
+
 instance : is_lawful_functor multiset :=
 by refine { .. }; intros; simp
 
@@ -3058,10 +3059,12 @@ instance : monad multiset :=
   bind := @bind,
   .. multiset.functor }
 
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::0) := rfl
+@[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
+
 instance : is_lawful_monad multiset :=
-{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih,
-    by rw [bind_cons, map_cons, bind_zero, add_zero],
-  pure_bind := λ α β x f, by simp only [cons_bind, zero_bind, add_zero],
+{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih, by simp,
+  pure_bind := λ α β x f, by simp,
   bind_assoc := @bind_assoc }
 
 open functor
@@ -3080,9 +3083,7 @@ by funext; simp [functor.map]
 
 lemma id_traverse {α : Type*} (x : multiset α) :
   traverse id.mk x = x :=
-quotient.induction_on x
-(by { intro, rw [traverse,quotient.lift_beta,function.comp],
-      simp, congr })
+quotient.induction_on x begin intro, simp [traverse], refl end
 
 lemma comp_traverse {G H : Type* → Type*}
                [applicative G] [applicative H]

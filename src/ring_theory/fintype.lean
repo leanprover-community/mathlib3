@@ -12,6 +12,6 @@ import data.fintype.basic
 
 open_locale classical
 
-lemma card_units_lt (R : Type*) [nonzero_semiring R] [fintype R] :
+lemma card_units_lt (R : Type*) [semiring R] [nonzero R] [fintype R] :
   fintype.card (units R) < fintype.card R :=
 card_lt_card_of_injective_of_not_mem (coe : units R → R) units.ext not_is_unit_zero

@@ -42,13 +42,6 @@ universes u v w x
 open set finite_dimensional
 open_locale classical
 
--- To get a reasonable compile time for `continuous_equiv_fun_basis`, typeclass inference needs
--- to be guided.
-local attribute [instance, priority 10000] pi.module normed_space.to_module
-  submodule.add_comm_group submodule.module
-  linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
-
-
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
   {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]

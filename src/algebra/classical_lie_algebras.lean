@@ -28,7 +28,7 @@ namespace lie_algebra
 open_locale matrix
 
 variables (n : Type u₁) (R : Type u₂)
-variables [fintype n] [decidable_eq n] [nonzero_comm_ring R]
+variables [fintype n] [decidable_eq n] [comm_ring R]
 
 local attribute [instance] matrix.lie_ring
 local attribute [instance] matrix.lie_algebra
@@ -77,14 +77,14 @@ def Eb (h : j ≠ i) : sl n R :=
 
 end elementary_basis
 
-lemma sl_non_abelian (h : 1 < fintype.card n) : ¬lie_algebra.is_abelian ↥(sl n R) :=
+lemma sl_non_abelian [nonzero R] (h : 1 < fintype.card n) : ¬lie_algebra.is_abelian ↥(sl n R) :=
 begin
   rcases fintype.exists_pair_of_one_lt_card h with ⟨i, j, hij⟩,
   let A := Eb R i j hij,
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.abelian], refl, },
-  have : 1 = 0 := by simpa [matrix.mul_val, hij] using (congr_fun (congr_fun c' i) i),
+  have : (1 : R) = 0 := by simpa [matrix.mul_val, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
 

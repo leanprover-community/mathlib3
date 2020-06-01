@@ -431,7 +431,7 @@ begin
     begin
       congr' 1,
       ext1 n,
-      rw [tsum_fintype, finset.sum_const, add_monoid.smul_eq_mul, finset.card_univ, mul_assoc]
+      rw [tsum_fintype, finset.sum_const, nsmul_eq_mul, finset.card_univ, mul_assoc]
     end
   ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
     begin

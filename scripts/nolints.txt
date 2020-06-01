@@ -54,27 +54,6 @@ apply_nolint algebra.div doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
--- algebra/free.lean
-apply_nolint free_magma doc_blame
-apply_nolint free_magma.length doc_blame
-apply_nolint free_magma.lift doc_blame
-apply_nolint free_magma.map doc_blame
-apply_nolint free_magma.repr' doc_blame
-apply_nolint free_magma.traverse doc_blame
-apply_nolint free_semigroup doc_blame
-apply_nolint free_semigroup.lift doc_blame
-apply_nolint free_semigroup.lift' doc_blame
-apply_nolint free_semigroup.map doc_blame
-apply_nolint free_semigroup.of doc_blame
-apply_nolint free_semigroup.traverse doc_blame
-apply_nolint free_semigroup.traverse' doc_blame
-apply_nolint free_semigroup_free_magma doc_blame
-apply_nolint magma.free_semigroup doc_blame
-apply_nolint magma.free_semigroup.lift doc_blame
-apply_nolint magma.free_semigroup.map doc_blame
-apply_nolint magma.free_semigroup.of doc_blame
-apply_nolint magma.free_semigroup.r doc_blame
-
 -- algebra/gcd_domain.lean
 apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
@@ -134,9 +113,6 @@ apply_nolint with_zero.div doc_blame
 apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
-
--- algebra/module.lean
-apply_nolint module.core has_inhabited_instance
 
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
@@ -199,7 +175,6 @@ apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
 apply_nolint semiring doc_blame
 apply_nolint sub_mul def_lemma doc_blame
-apply_nolint zero_ne_one_class doc_blame
 
 -- algebraic_geometry/presheafed_space.lean
 apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
@@ -966,15 +941,6 @@ apply_nolint ring_equiv.to_add_equiv doc_blame
 apply_nolint ring_equiv.to_equiv doc_blame
 apply_nolint ring_equiv.to_mul_equiv doc_blame
 
--- data/erased.lean
-apply_nolint erased.bind doc_blame
-apply_nolint erased.choice doc_blame
-apply_nolint erased.equiv doc_blame
-apply_nolint erased.join doc_blame
-apply_nolint erased.mk doc_blame
-apply_nolint erased.out doc_blame
-apply_nolint erased.out_type doc_blame
-
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
 
@@ -1073,7 +1039,6 @@ apply_nolint list.extractp doc_blame
 apply_nolint list.find_indexes_aux doc_blame
 apply_nolint list.forall₂ doc_blame
 apply_nolint list.insert_nth doc_blame
-apply_nolint list.map_with_index_core doc_blame
 apply_nolint list.of_fn doc_blame
 apply_nolint list.of_fn_aux doc_blame
 apply_nolint list.of_fn_nth_val doc_blame
@@ -1327,9 +1292,6 @@ apply_nolint option.rel doc_blame
 apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
 
--- data/padics/padic_integers.lean
-apply_nolint padic_norm_z doc_blame
-
 -- data/padics/padic_norm.lean
 apply_nolint padic_norm.neg unused_arguments
 
@@ -1415,8 +1377,6 @@ apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
 apply_nolint polynomial.mod doc_blame
-apply_nolint polynomial.nonzero_comm_ring.of_polynomial_ne doc_blame
-apply_nolint polynomial.nonzero_comm_semiring.of_polynomial_ne doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
 apply_nolint polynomial.rec_on_horner doc_blame
@@ -1659,15 +1619,6 @@ apply_nolint free_group.map.aux doc_blame
 apply_nolint free_group.mk doc_blame
 apply_nolint free_group.to_group.aux doc_blame
 
--- group_theory/group_action.lean
-apply_nolint mul_action.comp_hom doc_blame
-apply_nolint mul_action.fixed_points doc_blame
-apply_nolint mul_action.mul_left_cosets doc_blame
-apply_nolint mul_action.orbit doc_blame
-apply_nolint mul_action.orbit_equiv_quotient_stabilizer doc_blame
-apply_nolint mul_action.orbit_rel doc_blame
-apply_nolint mul_action.stabilizer doc_blame
-
 -- group_theory/order_of_element.lean
 apply_nolint exists_pow_eq_one ge_or_gt
 apply_nolint is_cyclic doc_blame
@@ -1778,7 +1729,6 @@ apply_nolint fin_dim_vectorspace_equiv doc_blame
 -- linear_algebra/tensor_product.lean
 apply_nolint linear_map.compl₂ doc_blame
 apply_nolint linear_map.compr₂ doc_blame
-apply_nolint linear_map.flip doc_blame
 apply_nolint linear_map.lcomp doc_blame
 apply_nolint linear_map.lflip doc_blame
 apply_nolint linear_map.llcomp doc_blame
@@ -2045,7 +1995,6 @@ apply_nolint ideal.is_prime doc_blame
 apply_nolint ideal.quotient doc_blame has_inhabited_instance
 apply_nolint ideal.quotient.map_mk doc_blame
 apply_nolint ideal.quotient.mk doc_blame
-apply_nolint ideal.quotient.nonzero_comm_ring doc_blame
 apply_nolint ideal.span doc_blame
 apply_nolint is_local_ring doc_blame
 apply_nolint is_local_ring_hom doc_blame

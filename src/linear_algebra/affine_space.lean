@@ -249,6 +249,10 @@ def id : affine_map k V1 P1 V1 P1 :=
 
 instance : inhabited (affine_map k V1 P1 V1 P1) := ⟨id k V1 P1⟩
 
+section comp
+
+variables {k V1 P1 V2 P2 V3 P3}
+
 /-- Composition of affine maps. -/
 def comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
   affine_map k V1 P1 V3 P3 :=
@@ -261,7 +265,13 @@ def comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
   end }
 
 /-- Composition of affine maps acts as applying the two functions. -/
+@[simp] lemma coe_comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
+  ⇑(f.comp g) = f ∘ g := rfl
+
+/-- Composition of affine maps acts as applying the two functions. -/
 @[simp] lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
-  f.comp k V1 P1 V2 P2 V3 P3 g p = f (g p) := rfl
+  f.comp g p = f (g p) := rfl
+
+end comp
 
 end affine_map

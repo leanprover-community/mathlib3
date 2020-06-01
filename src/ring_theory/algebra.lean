@@ -129,9 +129,6 @@ section ring
 
 variables [comm_ring R] [ring A] [algebra R A]
 
-@[priority 200] -- see Note [lower instance priority]
-instance to_module : module R A := { .. algebra.to_semimodule }
-
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
 ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩

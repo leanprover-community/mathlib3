@@ -95,7 +95,7 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 
 instance : comm_group_with_zero ℝ≥0 :=
 { zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
-  inv_zero       := nnreal.eq $ inv_zero,
+  inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
@@ -128,8 +128,8 @@ to_real_hom.map_sum _ _
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
 to_real_hom.map_prod _ _
 
-@[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
-to_real_hom.to_add_monoid_hom.map_smul _ _
+@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
+to_real_hom.to_add_monoid_hom.map_nsmul _ _
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
@@ -190,7 +190,7 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.comm_semiring }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, @zero_ne_one ℝ _ $ congr_arg subtype.val $ h,
+{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
   mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
   .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,
@@ -251,7 +251,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (add_monoid.smul n y : nnreal), by simp [*, smul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

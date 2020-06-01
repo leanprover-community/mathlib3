@@ -136,7 +136,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid,
+  ..submodule.add_comm_monoid_submodule,
   ..submodule.has_one,
   ..submodule.has_mul }
 

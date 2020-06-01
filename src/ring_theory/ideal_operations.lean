@@ -778,17 +778,17 @@ by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ke
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
-end comm_ring
-
 /-- If the target is not the zero ring, then one is not in the kernel.-/
-lemma not_one_mem_ker [nonzero_comm_ring S] (f : R →+* S) : (1:R) ∉ ker f :=
+lemma not_one_mem_ker [nonzero S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
+
+end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
 lemma ker_is_prime [integral_domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
-λ x y, by simpa only [mem_ker, f.map_mul] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
+λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩
 
 end ring_hom
 
@@ -808,7 +808,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 -- It is even a semialgebra. But those aren't in mathlib yet.
 
-instance : semimodule (ideal R) (submodule R M) :=
+instance semimodule_submodule : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := smul_assoc,

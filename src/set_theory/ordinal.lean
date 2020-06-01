@@ -203,7 +203,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
 ⟨@order_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
-    rw [← g.right_inv x, order_iso.to_equiv_to_fun, ← g.ord, f.down', exists_congr],
+    rw [← g.apply_symm_apply x, ← g.ord, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 
@@ -979,9 +979,8 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
-instance : zero_ne_one_class ordinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nonzero ordinal.{u} :=
+{ zero_ne_one := ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨zero_le _, zero_ne_one⟩
@@ -3082,7 +3081,7 @@ begin
       rw [← h], apply add_lt_omega ha hb },
     rw [lt_omega] at *,
     rcases ha with ⟨n, rfl⟩, rcases hb with ⟨m, rfl⟩, rcases hc with ⟨k, rfl⟩,
-    norm_cast at h ⊢, apply eq_of_add_eq_add_left h }
+    norm_cast at h ⊢, apply add_left_cancel h }
 end
 
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < omega) :

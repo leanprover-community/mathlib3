@@ -63,43 +63,50 @@ instance semiring           [∀ i, semiring           $ f i] : semiring        
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
+instance mul_action (α) {m : monoid α} [∀ i, mul_action α $ f i] :
+  @mul_action α (Π i : I, f i) m :=
 { smul := λ c f i, c • f i,
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
-instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f i]      [∀ i, distrib_mul_action α $ f i] : distrib_mul_action α (Π i : I, f i) :=
+instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i} [∀ i, distrib_mul_action α $ f i] :
+  @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
   ..pi.mul_action _ }
 
 variables (I f)
 
-instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i} [∀ i, semimodule α $ f i] :
+  @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
 variables {I f}
 
-instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
-
-instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
+instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
+  left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] : add_left_cancel_semigroup (Π i : I, f i) :=
+instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] :
+  add_left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] : right_cancel_semigroup (Π i : I, f i) :=
+instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
+  right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] : add_right_cancel_semigroup (Π i : I, f i) :=
+instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] :
+  add_right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] : ordered_cancel_add_comm_monoid (Π i : I, f i) :=
+instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] :
+  ordered_cancel_add_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] : ordered_add_comm_group (Π i : I, f i) :=
+instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] :
+  ordered_add_comm_group (Π i : I, f i) :=
 { add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
   ..pi.partial_order }
@@ -187,8 +194,10 @@ variable {I : Type u}     -- The indexing type
 variable (f : I → Type v) -- The family of types already equipped with instances
 variables [Π i, monoid (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point is an additive monoid homomorphism."]
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
+is an additive monoid homomorphism."]
 def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
   map_one' := rfl,
@@ -404,9 +413,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
   smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩,
   .. prod.has_scalar }
-
-instance {r : ring α} [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] : module α (β × γ) := {}
 
 section substructures
 variables (s : set α) (t : set β)

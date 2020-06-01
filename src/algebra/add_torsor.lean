@@ -74,6 +74,16 @@ instance add_group_is_add_torsor (G : Type*) [add_group G] :
   vsub_vadd' := sub_add_cancel,
   vadd_vsub' := add_sub_cancel }
 
+/-- Simplify addition for a torsor for an `add_group G` over
+itself. -/
+@[simp] lemma vadd_eq_add (G : Type*) [add_group G] (g1 g2 : G) : g1 +ᵥ g2 = g1 + g2 :=
+rfl
+
+/-- Simplify subtraction for a torsor for an `add_group G` over
+itself. -/
+@[simp] lemma vsub_eq_sub (G : Type*) [add_group G] (g1 g2 : G) : g1 -ᵥ g2 = g1 - g2 :=
+rfl
+
 namespace add_action
 
 section general

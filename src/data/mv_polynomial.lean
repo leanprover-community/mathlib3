@@ -253,8 +253,8 @@ lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ α) :
-  (∀ m, coeff m p = coeff m q) ↔ p = q :=
-⟨ext p q, λ h m, by rw h⟩
+  p = q ↔ (∀ m, coeff m p = coeff m q) :=
+⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply
@@ -641,12 +641,11 @@ end
 
 lemma map_injective (hf : function.injective f) :
   function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
-λ p q h, ext _ _ $ λ m, hf $
 begin
-  rw ← ext_iff at h,
-  specialize h m,
-  rw [coeff_map, coeff_map] at h,
-  exact h
+  intros p q h,
+  simp only [ext_iff, coeff_map] at h ⊢,
+  intro m,
+  exact hf (h m),
 end
 
 end map
@@ -727,7 +726,7 @@ begin
 end
 
 lemma degrees_pow (p : mv_polynomial σ α) :
-  ∀(n : ℕ), (p^n).degrees ≤ add_monoid.smul n p.degrees
+  ∀(n : ℕ), (p^n).degrees ≤ n •ℕ p.degrees
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
 | (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
 
@@ -750,7 +749,7 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
-by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
+by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero (one_ne_zero : 1 ≠ 0)]
 
 lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
   x v = 0 :=
@@ -809,10 +808,10 @@ by rw [← C_0]; exact total_degree_C (0 : α)
 @[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
 
-@[simp] lemma total_degree_X {α} [nonzero_comm_ring α] (s : σ) :
+@[simp] lemma total_degree_X {α} [comm_semiring α] [nonzero α] (s : σ) :
   (X s : mv_polynomial σ α).total_degree = 1 :=
 begin
-  rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
+  rw [total_degree, X, monomial, finsupp.support_single_ne_zero (one_ne_zero : (1 : α) ≠ 0)],
   simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
 end
 

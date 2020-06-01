@@ -190,16 +190,15 @@ structure affine_map (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Ty
     [add_comm_group V2] [module k V2] [affine_space k V2 P2] :=
 (to_fun : P1 → P2)
 (linear : linear_map k V1 V2)
-(add : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
+(map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
 
 namespace affine_map
 
-variables (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Type*)
-    (V3 : Type*) (P3 : Type*) [ring k]
-    [add_comm_group V1] [module k V1] [S1 : affine_space k V1 P1]
+variables {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*} {P2 : Type*}
+    {V3 : Type*} {P3 : Type*} [ring k]
+    [add_comm_group V1] [module k V1] [affine_space k V1 P1]
     [add_comm_group V2] [module k V2] [affine_space k V2 P2]
     [add_comm_group V3] [module k V3] [affine_space k V3 P3]
-include S1
 
 instance: has_coe_to_fun (affine_map k V1 P1 V2 P2) := ⟨_, to_fun⟩
 
@@ -215,7 +214,7 @@ produces the same map. -/
 the same result as the linear map applied to that vector, added to the
 affine map applied to that point. -/
 @[simp] lemma map_vadd (f : affine_map k V1 P1 V2 P2) (p : P1) (v : V1) :
-  f (v +ᵥ p) = f.linear v +ᵥ f p := f.add p v
+  f (v +ᵥ p) = f.linear v +ᵥ f p := f.map_vadd' p v
 
 /-- The linear map on the result of subtracting two points is the
 result of subtracting the result of the affine map on those two
@@ -227,41 +226,54 @@ by conv_lhs { rw [←vsub_vadd V1 p1 p2, map_vadd, vadd_vsub] }
 /-- Two affine maps are equal if they coerce to the same function. -/
 @[ext] lemma ext (f g : affine_map k V1 P1 V2 P2) (h : (f : P1 → P2) = g) : f = g :=
 begin
-  cases f,
-  cases g,
+  rcases f with ⟨f, f_linear, f_add⟩,
+  rcases g with ⟨g, g_linear, g_add⟩,
+  change f = g at h,
+  subst g,
   congr',
   ext v,
-  change f_to_fun = g_to_fun at h,
-  cases S1.nonempty with p,
-  have hvp : f_to_fun (v +ᵥ p) = g_to_fun (v +ᵥ p), { rw h },
-  rw [f_add, g_add, h] at hvp,
-  exact vadd_right_cancel V2 _ hvp
+  cases (add_torsor.nonempty V1 : nonempty P1) with p,
+  apply vadd_right_cancel V2 (f p),
+  erw [← f_add, ← g_add]
 end
+
+variables (k V1 P1)
 
 /-- Identity map as an affine map. -/
 def id : affine_map k V1 P1 V1 P1 :=
 { to_fun := id,
   linear := linear_map.id,
-  add := λ p v, rfl }
+  map_vadd' := λ p v, rfl }
 
 /-- The identity affine map acts as the identity. -/
-@[simp] lemma id_apply (p : P1) : (id k V1 P1) p = p := rfl
+@[simp] lemma coe_id : ⇑(id k V1 P1) = _root_.id := rfl
+
+variable {P1}
+
+/-- The identity affine map acts as the identity. -/
+lemma id_apply (p : P1) : id k V1 P1 p = p := rfl
+
+variables {k V1 P1}
 
 instance : inhabited (affine_map k V1 P1 V1 P1) := ⟨id k V1 P1⟩
 
 /-- Composition of affine maps. -/
 def comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
   affine_map k V1 P1 V3 P3 :=
-{ to_fun := f.to_fun ∘ g.to_fun,
+{ to_fun := f ∘ g,
   linear := f.linear.comp g.linear,
-  add := begin
+  map_vadd' := begin
     intros p v,
-    rw [function.comp_app, g.add, f.add],
+    rw [function.comp_app, g.map_vadd, f.map_vadd],
     refl
   end }
 
 /-- Composition of affine maps acts as applying the two functions. -/
-@[simp] lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
-  f.comp k V1 P1 V2 P2 V3 P3 g p = f (g p) := rfl
+@[simp] lemma coe_comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
+  ⇑(f.comp g) = f ∘ g := rfl
+
+/-- Composition of affine maps acts as applying the two functions. -/
+lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
+  f.comp g p = f (g p) := rfl
 
 end affine_map

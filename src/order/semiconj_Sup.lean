@@ -13,15 +13,15 @@ import data.equiv.mul_add
 
 In this file we prove two facts about semiconjugate (families of) functions.
 
-First, if and order isomorphism `fa : α → α` is semiconjugate to an order embedding
-`fb : β → β` by `g : α → β`, then `fb` is semiconjugate to `fa` by `y ↦ Sup {x | g x ≤ y}`.
-In particular, the relation “semiconjugate” is an equivalence relation on order
-isomorphisms `α → α`.
+First, if and order isomorphism `fa : α → α` is semiconjugate to an order embedding `fb : β → β` by
+`g : α → β`, then `fb` is semiconjugate to `fa` by `y ↦ Sup {x | g x ≤ y}`, see
+`semiconj.symm_adjoint`.
 
 Second, consider two actions `f₁ f₂ : G → α → α` of a group on a complete lattice by order
-isomorphisms. Then the map `x ↦ ⨆ g : G, (f₁ g)⁻¹ (f₂ g x)` semiconjugates each `f₁ g'` to `f₂ g'`.
-In the case of a conditionally complete lattice, a similar statement holds true under an
-additional assumption that each set `{(f₁ g)⁻¹ (f₂ g x) | g : G}` is bounded above.
+isomorphisms. Then the map `x ↦ ⨆ g : G, (f₁ g)⁻¹ (f₂ g x)` semiconjugates each `f₁ g'` to `f₂ g'`,
+see `function.Sup_div_semiconj`.  In the case of a conditionally complete lattice, a similar
+statement holds true under an additional assumption that each set `{(f₁ g)⁻¹ (f₂ g x) | g : G}` is
+bounded above, see `function.cSup_div_semiconj`.
 
 The lemmas come from [Étienne Ghys, Groupes d'homeomorphismes du cercle et cohomologie
 bornee][ghys87:groupes], Proposition 2.1 and 5.4 respectively. In the paper they are formulated for
@@ -39,6 +39,15 @@ a right adjoint, then this right adjoint is unique. -/
 def is_order_right_adjoint [preorder α] [preorder β] (f : α → β) (g : β → α) :=
 ∀ y, is_lub {x | f x ≤ y} (g y)
 
+lemma is_order_right_adjoint_Sup [complete_lattice α] [preorder β] (f : α → β) :
+  is_order_right_adjoint f (λ y, Sup {x | f x ≤ y}) :=
+λ y, is_lub_Sup _
+
+lemma is_order_right_adjoint_cSup [conditionally_complete_lattice α] [preorder β] (f : α → β)
+  (hne : ∀ y, ∃ x, f x ≤ y) (hbdd : ∀ y, ∃ b, ∀ x, f x ≤ y → x ≤ b) :
+  is_order_right_adjoint f (λ y, Sup {x | f x ≤ y}) :=
+λ y, is_lub_cSup (hne y) (hbdd y)
+
 lemma is_order_right_adjoint.unique [partial_order α] [preorder β] {f : α → β} {g₁ g₂ : β → α}
   (h₁ : is_order_right_adjoint f g₁) (h₂ : is_order_right_adjoint f g₂) :
   g₁ = g₂ :=
@@ -51,9 +60,15 @@ lemma is_order_right_adjoint.right_mono [preorder α] [preorder β] {f : α → 
 
 namespace function
 
+/-- If an order automorphism `fa` is semiconjugate to an order embedding `fb` by a function `g`
+and `g'` is an order right adjoint of `g` (i.e. `g' y = Sup {x | f x ≤ y}`), then `fb` is
+semiconjugatet to `fa` by `g'`.
+
+This is a version of Proposition 2.1 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
+cohomologie bornee][ghys87:groupes]. -/
 lemma semiconj.symm_adjoint [partial_order α] [preorder β]
-  (fa : ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop))
-  (fb : ((≤) : β → β → Prop) ≼o ((≤) : β → β → Prop)) {g : α → β}
+  {fa : ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)}
+  {fb : ((≤) : β → β → Prop) ≼o ((≤) : β → β → Prop)} {g : α → β}
   (h : function.semiconj g fa fb) {g' : β → α} (hg' : is_order_right_adjoint g g') :
   function.semiconj g' fb fa :=
 begin
@@ -75,11 +90,22 @@ begin
   simpa [(∘)] using this
 end
 
+/-- Consider two actions `f₁ f₂ : G → α → α` of a group on a complete lattice by order
+isomorphisms. Then the map `x ↦ ⨆ g : G, (f₁ g)⁻¹ (f₂ g x)` semiconjugates each `f₁ g'` to `f₂ g'`.
+
+This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
+cohomologie bornee][ghys87:groupes]. -/
 lemma Sup_div_semiconj [complete_lattice α] [group G]
   (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)) (g : G) :
   function.semiconj (λ x, ⨆ g' : G, (f₁ g')⁻¹ (f₂ g' x)) (f₂ g) (f₁ g) :=
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_supr) _
 
+/-- Consider two actions `f₁ f₂ : G → α → α` of a group on a conditionally complete lattice by order
+isomorphisms. Suppose that each set $s(x)=\{f_1(g)^{-1} (f_2(g)(x)) | g \in G\}$ is bounded above.
+Then the map `x ↦ Sup s(x)` semiconjugates each `f₁ g'` to `f₂ g'`.
+
+This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
+cohomologie bornee][ghys87:groupes]. -/
 lemma cSup_div_semiconj [conditionally_complete_lattice α] [group G]
   (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop))
   (hbdd : ∀ x, bdd_above (range $ λ g, (f₁ g)⁻¹ (f₂ g x))) (g : G) :

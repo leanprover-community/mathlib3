@@ -90,6 +90,7 @@ open opposite
 
 variables (R) [comm_semiring R]
 
+/-- A commutative ring is isomorphic to its opposite. -/
 def to_opposite : R ≃+* Rᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),

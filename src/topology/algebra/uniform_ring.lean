@@ -88,7 +88,8 @@ instance : ring (completion α) :=
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
-def coe_hom : α →+* completion α :=
+/-- The map from a uniform ring to its completion, as a ring homomorphism. -/
+def coe_ring_hom : α →+* completion α :=
 ⟨coe, coe_one α, assume a b, coe_mul a b, coe_zero, assume a b, coe_add a b⟩
 
 universes u
@@ -123,8 +124,8 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_neg := continuous_neg }
 
 /-- The completion map as a ring morphism. -/
-def map_hom : completion α →+* completion β :=
-  extension_hom (coe_hom.comp f) ((continuous_coe β).comp hf)
+def map_ring_hom : completion α →+* completion β :=
+  extension_hom (coe_ring_hom.comp f) ((continuous_coe β).comp hf)
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

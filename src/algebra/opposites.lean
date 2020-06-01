@@ -35,24 +35,13 @@ instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
 instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
 
-@[simp] lemma zero_unop [has_zero α] : (0 : αᵒᵖ).unop = (0 : α) := rfl
-@[simp] lemma zero_op [has_zero α] : op (0 : α) = (0 : αᵒᵖ) := rfl
-
+section
+local attribute [reducible] opposite
 @[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = 0 ↔ a = 0 :=
-begin
-  split,
-  { intro h,
-    replace h := congr_arg op h,
-    simpa using h, },
-  { intro h, subst h, simp, },
-end
+iff.refl _
+
 @[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = 0 ↔ a = 0 :=
-begin
-  split,
-  { intro h,
-    replace h := congr_arg unop h,
-    simpa using h, },
-  { intro h, subst h, simp, },
+iff.refl _
 end
 
 instance [add_monoid α] : add_monoid (opposite α) :=
@@ -95,24 +84,13 @@ instance [comm_semigroup α] : comm_semigroup (opposite α) :=
 instance [has_one α] : has_one (opposite α) :=
 { one := op 1 }
 
-@[simp] lemma one_unop [has_one α] : (1 : αᵒᵖ).unop = (1 : α) := rfl
-@[simp] lemma one_op [has_one α] : op (1 : α) = (1 : αᵒᵖ) := rfl
-
+section
+local attribute [reducible] opposite
 @[simp] lemma unop_eq_one_iff [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
-begin
-  split,
-  { intro h,
-    replace h := congr_arg op h,
-    simpa using h, },
-  { intro h, subst h, simp, },
-end
+iff.refl _
+
 @[simp] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
-begin
-  split,
-  { intro h,
-    replace h := congr_arg unop h,
-    simpa using h, },
-  { intro h, subst h, simp, },
+iff.refl _
 end
 
 instance [monoid α] : monoid (opposite α) :=

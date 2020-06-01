@@ -2,14 +2,17 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau, Joey van Langen, Casper Putz
-
-Characteristic of semirings.
 -/
 
 import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
 import algebra.module
+import algebra.iterate_hom
+
+/-!
+# Characteristic of semirings
+-/
 
 universes u v
 
@@ -139,7 +142,7 @@ g.map_pow x p
 
 theorem monoid_hom.map_iterate_frobenius (n : ℕ) :
   f (frobenius R p^[n] x) = (frobenius S p^[n] (f x)) :=
-(nat.iterate₁ $ λ x, (f.map_frobenius p x).symm).symm
+function.semiconj.iterate_right (f.map_frobenius p) n x
 
 theorem ring_hom.map_iterate_frobenius (n : ℕ) :
   g (frobenius R p^[n] x) = (frobenius S p^[n] (g x)) :=
@@ -255,10 +258,10 @@ calc r = 1 * r       : by rw one_mul
 
 end prio
 
-lemma false_of_nonzero_of_char_one [nonzero_comm_ring R] [char_p R 1] : false :=
+lemma false_of_nonzero_of_char_one [semiring R] [nonzero R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
 
-lemma ring_char_ne_one [nonzero_semiring R] : ring_char R ≠ 1 :=
+lemma ring_char_ne_one [semiring R] [nonzero R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 end char_one

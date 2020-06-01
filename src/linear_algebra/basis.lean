@@ -292,8 +292,10 @@ begin
   { simpa },
 end
 
+variables (R M)
 lemma linear_independent_empty : linear_independent R (λ x, x : (∅ : set M) → M) :=
 by simp [linear_independent_subtype_disjoint]
+variables {R M}
 
 lemma linear_independent.mono {t s : set M} (h : t ⊆ s) :
   linear_independent R (λ x, x : s → M) → linear_independent R (λ x, x : t → M) :=
@@ -353,7 +355,7 @@ begin
     rcases hs.finset_le hη fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
       λ j hj, hi j (finite.mem_to_finset.2 hj)) },
-  { refine linear_independent_empty.mono _,
+  { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
 end
 
@@ -1056,7 +1058,7 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
 
 variables (K V)
 lemma exists_is_basis : ∃b : set V, is_basis K (λ i, i : b → V) :=
-let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
+let ⟨b, _, hb⟩ := exists_subset_is_basis (linear_independent_empty K V : _) in ⟨b, hb⟩
 
 variables {K V}
 
@@ -1069,7 +1071,7 @@ have ∀t, ∀(s' : finset V), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span 
 assume t, finset.induction_on t
   (assume s' hs' _ hss',
     have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@zero_ne_one K _) hs hs' $
+      from eq_of_linear_independent_of_span_subtype zero_ne_one hs hs' $
           by simpa using hss',
     ⟨s', by simp [this]⟩)
   (assume b₁ t hb₁t ih s' hs' hst hss',

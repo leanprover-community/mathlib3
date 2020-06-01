@@ -32,7 +32,7 @@ with a partial order such that
   * `a ≤ b → c * a ≤ c * b` (multiplication is monotone)
   * `a * b < a * c → b < c`.
 -/
-@[ancestor comm_monoid partial_order]
+@[protect_proj, ancestor comm_monoid partial_order]
 class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c)
@@ -42,7 +42,7 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
-@[ancestor add_comm_monoid partial_order]
+@[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
@@ -407,6 +407,7 @@ end with_bot
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
+@[protect_proj]
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
@@ -481,7 +482,7 @@ end canonically_ordered_add_monoid
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and strictly monotone. -/
-@[ancestor add_comm_monoid add_left_cancel_semigroup add_right_cancel_semigroup partial_order]
+@[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup add_right_cancel_semigroup partial_order]
 class ordered_cancel_add_comm_monoid (α : Type u)
       extends add_comm_monoid α, add_left_cancel_semigroup α,
               add_right_cancel_semigroup α, partial_order α :=
@@ -491,7 +492,7 @@ class ordered_cancel_add_comm_monoid (α : Type u)
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
 in which multiplication is cancellative and strictly monotone. -/
-@[ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order]
+@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order]
 class ordered_cancel_comm_monoid (α : Type u)
       extends comm_monoid α, left_cancel_semigroup α,
               right_cancel_semigroup α, partial_order α :=
@@ -805,13 +806,13 @@ end ordered_cancel_add_comm_monoid
 
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
-@[ancestor add_comm_group partial_order]
+@[protect_proj, ancestor add_comm_group partial_order]
 class ordered_add_comm_group (α : Type u) extends add_comm_group α, partial_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
 /-- An ordered commutative group is an commutative group
 with a partial order in which multiplication is strictly monotone. -/
-@[ancestor comm_group partial_order]
+@[protect_proj, ancestor comm_group partial_order]
 class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :=
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
@@ -1475,7 +1476,7 @@ def ordered_comm_group.mk' {α : Type u} [comm_group α] [partial_order α]
 /-- A decidable linearly ordered cancellative additive commutative monoid
 is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and strictly monotone. -/
-class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
+@[protect_proj] class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, decidable_linear_order α
 
 section decidable_linear_ordered_cancel_add_comm_monoid
@@ -1514,7 +1515,7 @@ end decidable_linear_ordered_cancel_add_comm_monoid
 /-- A decidable linearly ordered additive commutative group is an
 additive commutative group with a decidable linear order in which
 addition is strictly monotone. -/
-class decidable_linear_ordered_add_comm_group (α : Type u)
+@[protect_proj] class decidable_linear_ordered_add_comm_group (α : Type u)
   extends add_comm_group α, decidable_linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 

@@ -41,5 +41,5 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : zero_ne_one_class ℤ :=
-{ zero := 0, one := 1, zero_ne_one := int.zero_ne_one }
+instance : nonzero ℤ :=
+{ zero_ne_one := int.zero_ne_one }

@@ -157,7 +157,6 @@ section vector_space
 universes u
 
 open vector_space
-local attribute [instance] submodule.module
 
 variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 

@@ -3,14 +3,13 @@ Copyright (c) 2020 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-
-import group_theory.subgroup
+import group_theory.submonoid
 
 /-!
 # Subgroups
 
 This file defines multiplicative and additive subgroups as an extension of submonoids, in a bundled
-form (unbundled subgroups are in /subgroups.lean).
+form (unbundled subgroups are in `deprecated/subgroups.lean`).
 
 We prove subgroups of a group form a complete lattice, and results about images and preimages of
 subgroups under group homomorphisms. The bundled subgroups use bundled monoid homomorphisms.
@@ -99,14 +98,6 @@ add_decl_doc subgroup.to_submonoid
 /-- Reinterpret an `add_subgroup` as an `add_submonoid`. -/
 add_decl_doc add_subgroup.to_add_submonoid
 
-/-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
-@[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
-def subgroup.of (s : set G) [h : is_subgroup s] : subgroup G :=
-{ carrier := s,
-  one_mem' := h.1.1,
-  mul_mem' := h.1.2,
-  inv_mem' := h.2 }
-
 /-- Map from subgroups of group `G` to `add_subgroup`s of `additive G`. -/
 def subgroup.to_add_subgroup {G : Type*} [group G] (H : subgroup G) :
   add_subgroup (additive G) :=
@@ -161,12 +152,6 @@ lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 
 attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
-
-@[to_additive]
-instance is_subgroup (K : subgroup G) : is_subgroup (K : set G) :=
-{ one_mem := K.one_mem',
-  mul_mem := K.mul_mem',
-  inv_mem := K.inv_mem' }
 
 end subgroup
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario Carneiro,
   Michael Howes
 -/
-import group_theory.submonoid
+import group_theory.subgroup
+import deprecated.submonoid
 open set function
 
 variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
@@ -715,3 +716,17 @@ lemma simple_group_of_surjective [group G] [group H] [simple_group G] (f : G →
   end⟩
 
 end simple_group
+
+/-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
+@[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
+def subgroup.of [group G] (s : set G) [h : is_subgroup s] : subgroup G :=
+{ carrier := s,
+  one_mem' := h.1.1,
+  mul_mem' := h.1.2,
+  inv_mem' := h.2 }
+
+@[to_additive]
+instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set G) :=
+{ one_mem := K.one_mem',
+  mul_mem := K.mul_mem',
+  inv_mem := K.inv_mem' }

@@ -269,7 +269,7 @@ def comp (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) :
   ⇑(f.comp g) = f ∘ g := rfl
 
 /-- Composition of affine maps acts as applying the two functions. -/
-@[simp] lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
+lemma comp_apply (f : affine_map k V2 P2 V3 P3) (g : affine_map k V1 P1 V2 P2) (p : P1) :
   f.comp g p = f (g p) := rfl
 
 end comp

@@ -61,11 +61,10 @@ def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_produ
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
+We define this as `is_closed` with respect to the cartesian monoidal structure.
 -/
-class is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
-(cart_closed : Π (X : C), exponentiable X)
-
-attribute [instance, priority 100] is_cartesian_closed.cart_closed
+abbreviation is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
+is_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
@@ -342,7 +341,7 @@ Note we didn't require any coherence between the choice of finite products here,
 along the `prod_comparison` isomorphism.
 -/
 def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_cartesian_closed D :=
-{ cart_closed := λ X,
+{ closed := λ X,
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,

@@ -25,7 +25,10 @@ open category monoidal_category
 class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
-/-- A monoidal category `C` is (right) closed if every object is exponentiable, and it has finite products. -/
+/--
+A monoidal category `C` is (right) closed if every object is exponentiable,
+and it has finite products.
+-/
 class is_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 (closed : Π (X : C), closed X)
 

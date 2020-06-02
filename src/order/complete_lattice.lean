@@ -98,10 +98,10 @@ theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
 le_trans (Inf_le hb) h
 
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
-Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
+(is_lub_Sup s).mono (is_lub_Sup t) h
 
 theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
+(is_glb_Inf s).mono (is_glb_Inf t) h
 
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)

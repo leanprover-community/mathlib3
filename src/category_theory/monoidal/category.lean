@@ -409,7 +409,7 @@ def tensor_left (X : C) : C ⥤ C :=
   map := λ Y Y' f, (𝟙 X) ⊗ f, }
 
 /--
-Tensoring on the left with `X ⊗ Y` is naturally isomorphism to
+Tensoring on the left with `X ⊗ Y` is naturally isomorphic to
 tensoring on the left with `Y`, and then again with `X`.
 -/
 def tensor_left_tensor (X Y : C) : tensor_left (X ⊗ Y) ≅ tensor_left Y ⋙ tensor_left X :=
@@ -431,7 +431,7 @@ def tensor_right (X : C) : C ⥤ C :=
   map := λ Y Y' f, f ⊗ (𝟙 X), }
 
 /--
-Tensoring on the right with `X ⊗ Y` is naturally isomorphism to
+Tensoring on the right with `X ⊗ Y` is naturally isomorphic to
 tensoring on the right with `X`, and then again with `Y`.
 -/
 def tensor_right_tensor (X Y : C) : tensor_right (X ⊗ Y) ≅ tensor_right X ⋙ tensor_right Y :=

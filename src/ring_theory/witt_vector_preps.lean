@@ -17,7 +17,6 @@ universes u v w u₁
 
 namespace ring_hom
 
-@[ext]
 lemma ext_nat {R : Type*} [semiring R] (f g : ℕ →+* R) : f = g :=
 begin
   ext n,
@@ -25,7 +24,6 @@ begin
        ... = g n                   : (ring_hom.eq_nat_cast g n).symm,
 end
 
-@[ext]
 lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
 begin
   ext n,
@@ -39,7 +37,6 @@ begin
   ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
 end
 
-@[ext]
 lemma ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=
 begin
   ext a,
@@ -50,8 +47,6 @@ begin
   rw φ.ext_int ψ,
 end
 
- -- Kudos to Mario
-@[ext]
 lemma ext_rat {R : Type*} [semiring R]
   (f g : ℚ →+* R) : f = g :=
 begin
@@ -383,14 +378,15 @@ def copy {r : R} (hr : invertible r) (s : R) (hs : s = r) : invertible s :=
 end invertible
 
 namespace mv_polynomial
-noncomputable def invertible_C (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
+noncomputable instance invertible_C
+  (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
   invertible (C r : mv_polynomial σ R) :=
 invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
 
 -- name??
 noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
   invertible (p : mv_polynomial σ ℚ) :=
-(invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
+(mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
 
 end mv_polynomial
 

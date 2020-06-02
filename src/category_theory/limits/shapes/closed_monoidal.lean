@@ -29,6 +29,6 @@ class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 class monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 (closed : Π (X : C), closed X)
 
-attribute [instance, priority 100] is_closed.monoidal_closed
+attribute [instance, priority 100] monoidal_closed.closed
 
 end category_theory

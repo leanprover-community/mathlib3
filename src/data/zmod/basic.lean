@@ -731,3 +731,7 @@ begin
   show φ k = ψ k,
   rw φ.ext_int ψ,
 end
+
+instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
+  subsingleton ((zmod n) →+* R) :=
+⟨ring_hom.ext_zmod⟩

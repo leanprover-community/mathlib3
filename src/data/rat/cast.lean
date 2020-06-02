@@ -275,3 +275,6 @@ begin
         by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
               ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
 end
+
+instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
+⟨ring_hom.ext_rat⟩

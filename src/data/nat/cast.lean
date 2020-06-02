@@ -180,6 +180,9 @@ begin
        ... = g n                   : (ring_hom.eq_nat_cast g n).symm,
 end
 
+instance nat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℕ →+* R) :=
+⟨ring_hom.ext_nat⟩
+
 namespace with_top
 variables {α : Type*} [canonically_ordered_comm_semiring α] [decidable_eq α]
 

@@ -1347,6 +1347,9 @@ begin
   ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
 end
 
+instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
+⟨ring_hom.ext_int⟩
+
 end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=

@@ -289,7 +289,8 @@ instance : ring (cau_seq β abv) :=
 by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
    { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
 
-instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] : comm_ring (cau_seq β abv) :=
+instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
+  comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
 
@@ -467,7 +468,8 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
   by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
     abv_zero abv] using ε0⟩
 
-theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
+theorem const_inv {x : β} (hx : x ≠ 0) :
+  const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
 ext (assume n, by simp[inv_apply, const_apply])
 
 end field

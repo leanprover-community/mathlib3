@@ -1550,6 +1550,24 @@ apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 apply_nolint gaussian_int.to_complex doc_blame
 
+-- deprecated/subgroup.lean
+apply_nolint add_group.closure doc_blame
+apply_nolint add_group.in_closure doc_blame
+apply_nolint gmultiples doc_blame
+apply_nolint gpowers doc_blame
+apply_nolint group.in_closure doc_blame
+apply_nolint is_add_group_hom.ker doc_blame
+apply_nolint is_add_subgroup.add_center doc_blame
+apply_nolint is_add_subgroup.add_normalizer doc_blame
+apply_nolint is_add_subgroup.trivial doc_blame
+apply_nolint is_group_hom.ker doc_blame
+apply_nolint is_subgroup.center doc_blame
+apply_nolint is_subgroup.normalizer doc_blame
+apply_nolint normal_add_subgroup doc_blame
+apply_nolint normal_subgroup doc_blame
+apply_nolint simple_add_group doc_blame
+apply_nolint simple_group doc_blame
+
 -- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
@@ -1656,24 +1674,6 @@ apply_nolint quotient_group.lift doc_blame
 apply_nolint quotient_group.map doc_blame
 apply_nolint quotient_group.quotient_ker_equiv_of_surjective doc_blame
 apply_nolint quotient_group.quotient_ker_equiv_range doc_blame
-
--- group_theory/subgroup.lean
-apply_nolint add_group.closure doc_blame
-apply_nolint add_group.in_closure doc_blame
-apply_nolint gmultiples doc_blame
-apply_nolint gpowers doc_blame
-apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker doc_blame
-apply_nolint is_add_subgroup.add_center doc_blame
-apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker doc_blame
-apply_nolint is_subgroup.center doc_blame
-apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint normal_add_subgroup doc_blame
-apply_nolint normal_subgroup doc_blame
-apply_nolint simple_add_group doc_blame
-apply_nolint simple_group doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame

@@ -59,7 +59,9 @@ def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_produ
     exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
   end }
 
-/-- A category `C` is cartesian closed if every object is exponentiable, and it has finite products. -/
+/--
+A category `C` is cartesian closed if it has finite products and every object is exponentiable.
+-/
 class is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
 (cart_closed : Π (X : C), exponentiable X)
 

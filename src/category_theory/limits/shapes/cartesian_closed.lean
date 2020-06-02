@@ -6,15 +6,30 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.preserve_binary_products
+import category_theory.limits.shapes.closed_monoidal
+import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
 import category_theory.epi_mono
 
 /-!
 # Cartesian closed categories
 
-Define exponentiable objects and cartesian closed categories.
+Given a category with finite products,
+the cartesian monoidal structure is provided by the local instance
+`monoidal_of_has_finite_products`.
+
+We define exponentiable objects to be closed objects with respect to this monoidal structure,
+i.e. `(X × -)` is a left adjoint.
+
+We say a category is cartesian closed if every object is exponentiable
+(equivalently, that the category equipped with the cartesian monoidal structure is closed monoidal).
+
 Show that exponential forms a difunctor.
 Define the exponential comparison morphisms.
+
+## TODO
+Some of the results here are true more generally for closed objects and
+for closed monoidal categories, and these could be generalised.
 -/
 universes v u u₂
 
@@ -22,9 +37,14 @@ namespace category_theory
 
 open limits category
 
-/-- An object `X` is *exponentiable* if `(X × -)` is a left adjoint. -/
-class exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] (X : C) :=
-(is_adj : is_left_adjoint (prod_functor.obj X))
+local attribute [instance] monoidal_of_has_finite_products
+
+/--
+An object `X` is *exponentiable* if `(X × -)` is a left adjoint.
+We define this as being `closed` in the cartesian monoidal structure.
+-/
+abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] (X : C) :=
+closed X
 
 /--
 If `X` and `Y` are exponentiable then `X ⨯ Y` is.
@@ -33,14 +53,18 @@ This isn't an instance because it's not usually how we want to construct exponen
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
 { is_adj :=
-  by haveI := hX.is_adj; haveI := hY.is_adj;
-     exact adjunction.left_adjoint_of_nat_iso (prod_functor_left_comp _ _).symm }
+  begin
+    haveI := hX.is_adj,
+    haveI := hY.is_adj,
+    exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
+  end }
 
-/-- A category `C` is cartesian closed if every object is exponentiable, and it has finite products. -/
-class is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
-(cart_closed : Π (X : C), exponentiable X)
-
-attribute [instance, priority 100] is_cartesian_closed.cart_closed
+/--
+A category `C` is cartesian closed if it has finite products and every object is exponentiable.
+We define this as `is_closed` with respect to the cartesian monoidal structure.
+-/
+abbreviation is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
+is_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
@@ -49,19 +73,19 @@ variables [has_finite_products.{v} C] [exponentiable A]
 
 /-- This is (-)^A. -/
 def exp.functor : C ⥤ C :=
-(@exponentiable.is_adj _ _ _ A _).right
+(@closed.is_adj _ _ _ A _).right
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
 def exp.adjunction : prod_functor.obj A ⊣ exp.functor A :=
-exponentiable.is_adj.adj
+closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
 def ev.nat_trans : exp.functor A ⋙ prod_functor.obj A ⟶ 𝟭 C :=
-exponentiable.is_adj.adj.counit
+closed.is_adj.adj.counit
 
 /-- The coevaluation natural transformation. -/
 def coev.nat_trans : 𝟭 C ⟶ prod_functor.obj A ⋙ exp.functor A :=
-exponentiable.is_adj.adj.unit
+closed.is_adj.adj.unit
 
 /-- `B ^ A` or `A ⟹ B` -/
 def exp : C := (exp.functor A).obj B
@@ -112,10 +136,10 @@ variables [has_finite_products.{v} C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-(exponentiable.is_adj.adj.hom_equiv _ _).to_fun
+(closed.is_adj.adj.hom_equiv _ _).to_fun
 /-- Uncurrying in a cartesian closed category. -/
 def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
-(exponentiable.is_adj.adj.hom_equiv _ _).inv_fun
+(closed.is_adj.adj.hom_equiv _ _).inv_fun
 
 end is_cartesian_closed
 
@@ -145,11 +169,11 @@ adjunction.hom_equiv_naturality_left_symm _ _ _
 
 @[simp]
 lemma uncurry_curry (f : A ⨯ X ⟶ Y) : uncurry (curry f) = f :=
-(exponentiable.is_adj.adj.hom_equiv _ _).left_inv f
+(closed.is_adj.adj.hom_equiv _ _).left_inv f
 
 @[simp]
 lemma curry_uncurry (f : X ⟶ A⟹Y) : curry (uncurry f) = f :=
-(exponentiable.is_adj.adj.hom_equiv _ _).right_inv f
+(closed.is_adj.adj.hom_equiv _ _).right_inv f
 
 lemma curry_eq_iff (f : A ⨯ Y ⟶ X) (g : Y ⟶ A ⟹ X) :
   curry f = g ↔ f = uncurry g :=
@@ -173,10 +197,10 @@ lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = coev A X :
 by { rw [curry_eq, post, functor.map_id], apply comp_id }
 
 lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=
-(exponentiable.is_adj.adj.hom_equiv _ _).injective
+(closed.is_adj.adj.hom_equiv _ _).injective
 
 lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
-(exponentiable.is_adj.adj.hom_equiv _ _).symm.injective
+(closed.is_adj.adj.hom_equiv _ _).symm.injective
 
 section terminal
 
@@ -317,11 +341,11 @@ Note we didn't require any coherence between the choice of finite products here,
 along the `prod_comparison` isomorphism.
 -/
 def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_cartesian_closed D :=
-{ cart_closed := λ X,
+{ closed := λ X,
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,
-      have := q.is_adj,
+      have : is_left_adjoint (prod_functor.obj (e.inverse.obj X)) := q.is_adj,
       have: e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,
       intro Y,

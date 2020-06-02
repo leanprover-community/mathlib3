@@ -85,15 +85,13 @@ set_option default_priority 100
     coproducts, all kernels and cokernels, and if every monomorphism is the kernel of some morphism
     and every epimorphism is the cokernel of some morphism. -/
 class abelian extends preadditive.{v} C :=
-[has_zero_object : has_zero_object.{v} C]
-[has_binary_products : has_binary_products.{v} C]
+[has_finite_products : has_finite_products.{v} C]
 [has_kernels : has_kernels.{v} C]
 [has_cokernels : has_cokernels.{v} C]
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono.{v} f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi.{v} f)
 
-attribute [instance] abelian.has_zero_object
-attribute [instance] abelian.has_binary_products
+attribute [instance] abelian.has_finite_products
 attribute [instance] abelian.has_kernels abelian.has_cokernels
 end prio
 end category_theory

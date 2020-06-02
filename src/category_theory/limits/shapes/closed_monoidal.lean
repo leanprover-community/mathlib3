@@ -10,6 +10,10 @@ import category_theory.adjunction.basic
 # Closed monoidal categories
 
 Define (right) closed objects and (right) closed monoidal categories.
+
+## TODO
+Some of the theorems proved about cartesian closed categories
+should be generalised and moved to this file.
 -/
 universes v u u₂
 

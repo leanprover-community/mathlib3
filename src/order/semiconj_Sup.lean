@@ -62,7 +62,7 @@ namespace function
 
 /-- If an order automorphism `fa` is semiconjugate to an order embedding `fb` by a function `g`
 and `g'` is an order right adjoint of `g` (i.e. `g' y = Sup {x | f x ≤ y}`), then `fb` is
-semiconjugatet to `fa` by `g'`.
+semiconjugate to `fa` by `g'`.
 
 This is a version of Proposition 2.1 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/

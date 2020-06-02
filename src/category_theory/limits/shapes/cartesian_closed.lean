@@ -61,10 +61,10 @@ def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_produ
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
-We define this as `is_closed` with respect to the cartesian monoidal structure.
+We define this as `monoidal_closed` with respect to the cartesian monoidal structure.
 -/
-abbreviation is_cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
-is_closed C
+abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
+monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
@@ -238,10 +238,10 @@ end terminal
 
 section pre
 
-variables [has_finite_products.{v} C] {B}
+variables {B}
 
 /-- Pre-compose an internal hom with an external hom. -/
-def pre (X : C) (f : B ⟶ A) [exponentiable A] [exponentiable B] :  (A⟹X) ⟶ B⟹X :=
+def pre (X : C) (f : B ⟶ A) [exponentiable B] : (A⟹X) ⟶ B⟹X :=
 curry (limits.prod.map f (𝟙 _) ≫ ev A X)
 
 lemma pre_id (A X : C) [exponentiable A] : pre X (𝟙 A) = 𝟙 (A⟹X) :=
@@ -249,7 +249,7 @@ by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
 
 -- There's probably a better proof of this somehow
 /-- Precomposition is contrafunctorial. -/
-lemma pre_map [exponentiable A] [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
+lemma pre_map [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
   pre X (f ≫ g) = pre X g ≫ pre X f :=
 begin
   rw [pre, curry_eq_iff, pre, pre, uncurry_natural_left, uncurry_curry, prod_map_map_assoc,
@@ -261,13 +261,13 @@ end pre
 
 /-- The precomposition functor. -/
 @[simps]
-def pre.functor [is_cartesian_closed C] (X : C) : Cᵒᵖ ⥤ C :=
+def pre.functor [cartesian_closed C] (X : C) : Cᵒᵖ ⥤ C :=
 { obj := λ A, (A.unop) ⟹ X,
   map := λ A B f, pre X f.unop,
   map_id' := λ B, pre_id B.unop X,
   map_comp' := λ P Q R f g, pre_map g.unop f.unop }
 
-lemma pre_post_comm [is_cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
+lemma pre_post_comm [cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
   (pre.functor A).map g ≫ post (opposite.unop Y) f = post (opposite.unop X) f ≫ (pre.functor B).map g :=
 begin
   dsimp [pre],
@@ -276,7 +276,7 @@ begin
 end
 
 /-- Exponential forms a difunctor. -/
-def exp.difunctor [is_cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
+def exp.difunctor [cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
 { obj := pre.functor,
   map := λ A B f, { app := λ X, post X.unop f, naturality' := λ X Y g, pre_post_comm _ _ },
   map_id' := λ X, by { ext, apply functor.map_id },
@@ -302,7 +302,7 @@ def mul_zero [has_initial.{v} C] : ⊥_ C ⨯ A ≅ ⊥_ C :=
 limits.prod.braiding _ _ ≪≫ zero_mul
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
-def pow_zero [has_initial.{v} C] [is_cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :=
+def pow_zero [has_initial.{v} C] [cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :=
 { hom := default _,
   inv := curry (mul_zero.hom ≫ default (⊥_ C ⟶ B)),
   hom_inv_id' :=
@@ -326,7 +326,7 @@ begin
 end
 
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
-instance initial_mono (B : C) [has_initial.{v} C] [is_cartesian_closed C] : mono (initial.to B) :=
+instance initial_mono (B : C) [has_initial.{v} C] [cartesian_closed C] : mono (initial.to B) :=
 ⟨λ B g h _, eq_of_inv_eq_inv (subsingleton.elim (inv g) (inv h))⟩
 
 variables {D : Type u₂} [category.{v} D]
@@ -340,7 +340,7 @@ Transport the property of being cartesian closed across an equivalence of catego
 Note we didn't require any coherence between the choice of finite products here, since we transport
 along the `prod_comparison` isomorphism.
 -/
-def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_cartesian_closed D :=
+def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian_closed D :=
 { closed := λ X,
   { is_adj :=
     begin
@@ -372,7 +372,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : is_cartesian_closed C] : is_car
       apply adjunction.left_adjoint_of_nat_iso this,
     end } }
 
-variables [is_cartesian_closed C] [is_cartesian_closed D]
+variables [cartesian_closed C] [cartesian_closed D]
 variables (F : C ⥤ D) [preserves_limits_of_shape (discrete walking_pair) F]
 
 /--

@@ -63,8 +63,9 @@ begin
                  count_cons_self, eq_self_iff_true, if_false, ne.def, not_false_iff,
                  count_erase_self, list.count_cons_of_ne] },
     { simp [ne.symm p₁, p₂, p₃] } },
-  { by_cases p₄ : h₁ ∈ l₂; simp only [ne.symm p₁, ne.symm p₂, p₄, count_bag_inter, if_true, if_false,
-      mem_cons_iff, false_or, eq_self_iff_true, ne.def, not_false_iff,count_erase_of_ne, count_cons_of_ne] }
+  { by_cases p₄ : h₁ ∈ l₂; simp only [ne.symm p₁, ne.symm p₂, p₄, count_bag_inter, if_true,
+      if_false, mem_cons_iff, false_or, eq_self_iff_true, ne.def, not_false_iff,count_erase_of_ne,
+      count_cons_of_ne] }
 end
 
 theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁

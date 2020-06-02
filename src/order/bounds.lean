@@ -103,6 +103,18 @@ lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_g
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
 @is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
 
+lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
+hb.2 (hst ha.1)
+
+lemma is_greatest.mono (ha : is_greatest s a) (hb : is_greatest t b) (hst : s ⊆ t) : a ≤ b :=
+hb.2 (hst ha.1)
+
+lemma is_lub.mono (ha : is_lub s a) (hb : is_lub t b) (hst : s ⊆ t) : a ≤ b :=
+hb.mono ha $ upper_bounds_mono_set hst
+
+lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
+hb.mono ha $ lower_bounds_mono_set hst
+
 /-!
 ### Conversions
 -/
@@ -122,6 +134,12 @@ h.is_glb.lower_bounds_eq
 
 lemma is_greatest.upper_bounds_eq (h : is_greatest s a) : upper_bounds s = Ici a :=
 h.is_lub.upper_bounds_eq
+
+lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
+by { rw h.upper_bounds_eq, refl }
+
+lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
+by { rw h.lower_bounds_eq, refl }
 
 /-- If `s` has a least upper bound, then it is bounded above. -/
 lemma is_lub.bdd_above (h : is_lub s a) : bdd_above s := ⟨a, h.1⟩
@@ -247,7 +265,6 @@ lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
 
 #### Unbounded intervals
 -/
-
 
 lemma is_least_Ici : is_least (Ici a) a := ⟨left_mem_Ici, λ x, id⟩
 
@@ -573,12 +590,6 @@ Ha.unique Hb
 
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
-
-lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
-by { rw h.upper_bounds_eq, refl }
-
-lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
-by { rw h.lower_bounds_eq, refl }
 
 end partial_order
 

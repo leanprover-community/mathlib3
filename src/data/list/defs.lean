@@ -33,7 +33,8 @@ def split_at : ℕ → list α → list α × list α
 
 
 /-- An auxiliary function for `split_on_p`. -/
-def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] :
+  list α → (list α → list α) → list (list α)
 | [] f       := [f []]
 | (h :: t) f :=
   if P h then f [] :: split_on_p_aux t id
@@ -300,7 +301,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | []      is := H0 is
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
-    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is,
+      length (t :: ts)),
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])

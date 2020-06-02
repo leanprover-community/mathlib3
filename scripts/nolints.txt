@@ -59,33 +59,27 @@ apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
 
--- algebra/group/basic.lean
+-- algebra/group/conj.lean
+apply_nolint is_conj doc_blame
+
+-- algebra/group/defs.lean
 apply_nolint add_comm_group doc_blame
 apply_nolint add_comm_monoid doc_blame
 apply_nolint add_comm_semigroup doc_blame
 apply_nolint add_group doc_blame
 apply_nolint add_left_cancel_semigroup doc_blame
 apply_nolint add_monoid doc_blame
-apply_nolint add_neg_self def_lemma doc_blame
 apply_nolint add_right_cancel_semigroup doc_blame
 apply_nolint add_semigroup doc_blame
 apply_nolint algebra.sub doc_blame
 apply_nolint comm_group doc_blame
 apply_nolint comm_monoid doc_blame
 apply_nolint comm_semigroup doc_blame
-apply_nolint eq_of_add_eq_add_left def_lemma doc_blame
-apply_nolint eq_of_add_eq_add_right def_lemma doc_blame
 apply_nolint group doc_blame
-apply_nolint inv_mul_self def_lemma doc_blame
 apply_nolint left_cancel_semigroup doc_blame
 apply_nolint monoid doc_blame
-apply_nolint mul_inv_self def_lemma doc_blame
-apply_nolint neg_add_self def_lemma doc_blame
 apply_nolint right_cancel_semigroup doc_blame
 apply_nolint semigroup doc_blame
-
--- algebra/group/conj.lean
-apply_nolint is_conj doc_blame
 
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame
@@ -1556,6 +1550,24 @@ apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 apply_nolint gaussian_int.to_complex doc_blame
 
+-- deprecated/subgroup.lean
+apply_nolint add_group.closure doc_blame
+apply_nolint add_group.in_closure doc_blame
+apply_nolint gmultiples doc_blame
+apply_nolint gpowers doc_blame
+apply_nolint group.in_closure doc_blame
+apply_nolint is_add_group_hom.ker doc_blame
+apply_nolint is_add_subgroup.add_center doc_blame
+apply_nolint is_add_subgroup.add_normalizer doc_blame
+apply_nolint is_add_subgroup.trivial doc_blame
+apply_nolint is_group_hom.ker doc_blame
+apply_nolint is_subgroup.center doc_blame
+apply_nolint is_subgroup.normalizer doc_blame
+apply_nolint normal_add_subgroup doc_blame
+apply_nolint normal_subgroup doc_blame
+apply_nolint simple_add_group doc_blame
+apply_nolint simple_group doc_blame
+
 -- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
@@ -1662,24 +1674,6 @@ apply_nolint quotient_group.lift doc_blame
 apply_nolint quotient_group.map doc_blame
 apply_nolint quotient_group.quotient_ker_equiv_of_surjective doc_blame
 apply_nolint quotient_group.quotient_ker_equiv_range doc_blame
-
--- group_theory/subgroup.lean
-apply_nolint add_group.closure doc_blame
-apply_nolint add_group.in_closure doc_blame
-apply_nolint gmultiples doc_blame
-apply_nolint gpowers doc_blame
-apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker doc_blame
-apply_nolint is_add_subgroup.add_center doc_blame
-apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker doc_blame
-apply_nolint is_subgroup.center doc_blame
-apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint normal_add_subgroup doc_blame
-apply_nolint normal_subgroup doc_blame
-apply_nolint simple_add_group doc_blame
-apply_nolint simple_group doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
@@ -1949,12 +1943,8 @@ apply_nolint order_embedding.refl doc_blame
 apply_nolint order_embedding.trans doc_blame
 apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 apply_nolint order_iso has_inhabited_instance
-apply_nolint order_iso.of_surjective doc_blame
 apply_nolint order_iso.prod_lex_congr doc_blame
-apply_nolint order_iso.refl doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
-apply_nolint order_iso.symm doc_blame
-apply_nolint order_iso.trans doc_blame
 apply_nolint subrel.order_embedding doc_blame
 
 -- order/pilex.lean

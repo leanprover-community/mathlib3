@@ -53,6 +53,11 @@ variables [has_terminal.{v} C] [has_binary_products.{v} C]
 local attribute [instance] monoidal_of_has_finite_products
 
 @[simp]
+lemma tensor_obj (X Y : C) : X ⊗ Y = (X ⨯ Y) := rfl
+@[simp]
+lemma tensor_hom {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) : f ⊗ g = limits.prod.map f g := rfl
+
+@[simp]
 lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.prod.snd := rfl
 @[simp]
 lemma left_unitor_inv (X : C) : (λ_ X).inv = prod.lift (terminal.from X) (𝟙 _) := rfl
@@ -90,6 +95,11 @@ end
 namespace monoidal_of_has_finite_coproducts
 variables [has_initial.{v} C] [has_binary_coproducts.{v} C]
 local attribute [instance] monoidal_of_has_finite_coproducts
+
+@[simp]
+lemma tensor_obj (X Y : C) : X ⊗ Y = (X ⨿ Y) := rfl
+@[simp]
+lemma tensor_hom {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) : f ⊗ g = limits.coprod.map f g := rfl
 
 @[simp]
 lemma left_unitor_hom (X : C) : (λ_ X).hom = coprod.desc (initial.to X) (𝟙 _) := rfl

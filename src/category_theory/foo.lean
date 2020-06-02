@@ -2,7 +2,7 @@ import data.fintype.basic
 
 def equiv.sigma_quotient_fin_card
   {α : Type*} [fa : fintype α] [decidable_eq α] (s : setoid α) [decidable_rel s.r] :
-  trunc (Σ' e : α ≃ Σ (q : quotient s), fin (fintype.card {x // ⟦x⟧ = q}), ∀ x, (e x).1 = ⟦x⟧) :=
+  trunc { e : α ≃ Σ (q : quotient s), fin (fintype.card {x // ⟦x⟧ = q}) // ∀ x, (e x).1 = ⟦x⟧ } :=
 begin
   resetI, rcases fa with ⟨⟨S, hS₁⟩, hS₂⟩,
   refine quotient.rec_on_subsingleton S (λ l h₁ h₂, trunc.mk _) hS₁ hS₂, clear hS₂ hS₁ S,

@@ -128,4 +128,30 @@ end
 
 end abelian
 
+variables {C}
+variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
+
+structure as_sum_of_simples (X : C) :=
+(ι : Type v)
+[fintype : fintype ι]
+[decidable_eq : decidable_eq ι]
+(f : ι → C)
+[simple : Π i, simple.{v} (f i)]
+(iso : X ≅ ⨁ f)
+
+
+structure as_sum_of_isotypics (X : C) :=
+(ι : Type v)
+[fintype : fintype ι]
+[decidable_eq : decidable_eq ι]
+(f : ι → C)
+(multiplicity : ι → ℕ)
+[simple : Π i, simple.{v} (f i)]
+(distinct : ∀ {i j : ι} (h : i ≠ j), (f i ≅ f j) → false)
+(iso : X ≅ ⨁ (λ (p : Σ (i : ι), fin (multiplicity i)), f p.1))
+
+variables (C)
+class semisimple :=
+(as_sum_of_simples : Π X : C, trunc (as_sum_of_simples.{v} X))
+
 end category_theory

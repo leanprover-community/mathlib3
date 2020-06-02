@@ -330,6 +330,34 @@ binary_fan.is_limit.hom_ext has_binary_biproduct.is_limit h₀ h₁
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext has_binary_biproduct.is_colimit h₀ h₁
 
+lemma foo {W X Y Z : C} [has_binary_biproducts.{v} C]
+  (f : W ⟶ Y) (g : X ⟶ Z) :
+(@lim (discrete walking_pair) _ C _ _).map (@map_pair _ _ (pair W X) (pair Y Z) f g)
+=
+(@colim (discrete walking_pair) _ C _ _).map (@map_pair _ _ (pair W X) (pair Y Z) f g) :=
+begin
+  dsimp [limits.lim, limits.colim],
+  ext,
+  rw category.assoc,
+  conv_lhs { congr, skip, },
+  erw limit.lift_π,
+end
+
+
+-- Because `biprod.map` is defined in terms of `lim` rather than `colim`,
+-- we need to provide additional `simp` lemmas.
+@[simp]
+lemma biprod.inl_map {W X Y Z : C} [has_binary_biproducts.{v} C] (f : W ⟶ Y) (g : X ⟶ Z) :
+  biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
+begin
+  ext,
+  simp,
+  rw limit.map_π,
+  have t := colimit.ι_map (@map_pair _ _ (pair W X) (pair Y Z) f g) walking_pair.left,
+  dsimp at t,
+  change _ = f ≫ (@biprod.inl _ _ Y Z _) at t,
+end
+
 -- TODO:
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts
@@ -384,7 +412,7 @@ instance (X Y : C) [has_preadditive_binary_biproduct.{v} X Y] : has_binary_bipro
 end
 
 section
-variables (X Y : C) [has_preadditive_binary_biproduct.{v} X Y]
+variables {X Y : C} [has_preadditive_binary_biproduct.{v} X Y]
 
 @[simp, reassoc] lemma biprod.inl_fst : (biprod.inl : X ⟶ X ⊞ Y) ≫ biprod.fst = 𝟙 X :=
 has_preadditive_binary_biproduct.ι₁_π₁
@@ -448,6 +476,21 @@ attribute [instance, priority 100] has_preadditive_binary_biproducts.has_preaddi
 @[priority 100]
 instance [has_preadditive_binary_biproducts.{v} C] : has_binary_biproducts.{v} C :=
 ⟨λ X Y, by apply_instance⟩
+
+lemma biprod.inl_map [has_binary_biproducts.{v} C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
+  biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
+begin
+  change biprod.inl ≫ (@lim (discrete walking_pair) _ C _ _).map (@map_pair _ _ (pair W X) (pair Y Z) f g) = f ≫ biprod.inl,
+  dsimp [limits.lim],
+  erw ←biprod.inl_add_inr,
+end
+
+lemma biprod.fst_inl_add_snd_inr [has_binary_biproducts.{v} C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
+  biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
+calc
+  biprod.map f g = 𝟙 (W ⊞ X) ≫ biprod.map f g : (category.id_comp _).symm
+    ... = (biprod.fst ≫ biprod.inl + biprod.snd ≫ biprod.inr) ≫ biprod.map f g : sorry
+    ... = biprod.fst ≫ biprod.inl ≫ biprod.map f g + biprod.snd ≫ biprod.inr ≫ biprod.map f g : sorry
 
 /-- If a preadditive category has all binary products, then it has all preadditive binary
     biproducts. -/

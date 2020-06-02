@@ -37,6 +37,8 @@ biproduct, which is a preadditive version of binary biproducts. We show that a p
 biproduct is a binary biproduct and construct preadditive binary biproducts both from binary
 products and from binary coproducts.
 
+TODO: the preadditive version of finite biproducts
+
 ## Notation
 As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞ Y` for
 a binary biproduct. We introduce `⨁ f` for the indexed biproduct.

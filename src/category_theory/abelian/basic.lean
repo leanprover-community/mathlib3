@@ -81,8 +81,8 @@ variables (C)
 section prio
 set_option default_priority 100
 
-/-- A (preadditive) category `C` is called abelian if it has a zero object, all binary products and
-    coproducts, all kernels and cokernels, and if every monomorphism is the kernel of some morphism
+/-- A (preadditive) category `C` is called abelian if it has all finite products,
+    all kernels and cokernels, and if every monomorphism is the kernel of some morphism
     and every epimorphism is the cokernel of some morphism. -/
 class abelian extends preadditive.{v} C :=
 [has_finite_products : has_finite_products.{v} C]
@@ -93,6 +93,12 @@ class abelian extends preadditive.{v} C :=
 
 attribute [instance] abelian.has_finite_products
 attribute [instance] abelian.has_kernels abelian.has_cokernels
+
+-- Verify that we can find the `has_zero_object C` instance:
+--   `has_finite_products C` gives `has_terminal C`,
+--   and as `preadditive C` gives `has_zero_morphisms C`, together we have `has_zero_object C`.
+example [abelian.{v} C] : has_zero_object.{v} C := by apply_instance
+
 end prio
 end category_theory
 

@@ -550,4 +550,33 @@ noncomputable def to_field [comm_ring K] (φ : fraction_map A K) : field K :=
   mul_inv_cancel := φ.mul_inv_cancel,
   inv_zero := dif_pos rfl, ..φ.to_integral_domain }
 
+/-- The cast from `int` to `rat` as a `fraction_map`. -/
+def int.cast_rat_fraction_map : fraction_map ℤ ℚ :=
+{
+  map_units' := λ x, is_unit_iff_ne_zero.mpr (begin
+    intro, cases x,
+    rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at x_property,
+    change (x_val : ℚ) = 0 at a,
+    apply x_property,
+    exact_mod_cast a,
+  end),
+  surj' := λ x, begin
+    use (⟨x.num, ⟨(x.denom : ℤ), begin
+        rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero],
+        exact int.coe_nat_ne_zero_iff_pos.mpr x.pos,
+      end⟩⟩ : ℤ × ↥(non_zero_divisors ℤ)),
+      change x * (x.denom) = x.num,
+      exact rat.mul_own_denom_eq_num, end,
+  eq_iff_exists' := λ x y, begin
+    split; intro,
+    { use 1, simp only [mul_one, submonoid.coe_one] at *,
+      change (x : ℚ) = y at a, exact_mod_cast a, },
+    { cases a, change (x : ℚ) = y, norm_cast,
+      have : (↑a_w : ℤ) ≠ 0 := by intro;
+        exact zero_ne_one.symm (a_w.2 1
+          (by rw (show (a_w.val : ℤ) = 0, from a); exact mul_zero 1)),
+    exact (int.eq_of_mul_eq_mul_right this) a_h,}
+   end,
+   ..int.cast_ring_hom ℚ
+  }
 end fraction_map

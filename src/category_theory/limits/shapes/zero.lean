@@ -194,10 +194,10 @@ by ext
 end
 
 /-- A zero object is in particular initial. -/
-def has_initial [has_zero_object.{v} C] : has_initial.{v} C :=
+def has_initial : has_initial.{v} C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-def has_terminal [has_zero_object.{v} C] : has_terminal.{v} C :=
+def has_terminal : has_terminal.{v} C :=
 has_terminal_of_unique 0
 
 end has_zero_object

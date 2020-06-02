@@ -721,3 +721,17 @@ instance : field (zmod p) :=
   .. zmod.has_inv p }
 
 end zmod
+
+lemma ring_hom.ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=
+begin
+  ext a,
+  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective a,
+  let φ : ℤ →+* R := f.comp (int.cast_ring_hom (zmod n)),
+  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom (zmod n)),
+  show φ k = ψ k,
+  rw φ.ext_int ψ,
+end
+
+instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
+  subsingleton ((zmod n) →+* R) :=
+⟨ring_hom.ext_zmod⟩

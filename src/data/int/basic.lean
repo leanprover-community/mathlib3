@@ -1334,6 +1334,22 @@ ring_hom.ext f.eq_int_cast
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
+lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
+begin
+  ext n,
+  let φ : ℕ →+* R := f.comp (nat.cast_ring_hom ℤ),
+  let ψ : ℕ →+* R := g.comp (nat.cast_ring_hom ℤ),
+  have h : ∀ n : ℕ, f n = g n, by { intro n, simp [← int.nat_cast_eq_coe_nat] },
+  cases n, { apply h },
+  calc  f (-(n+1))
+      = f (-(n+1)) + (g (n+1) + g (-(n+1))) : by rw [← g.map_add, add_neg_self, g.map_zero, add_zero]
+  ... = f (-(n+1)) + f (n+1) + g (-(n+1))   : by simp only [add_assoc, h, map_add, map_one]
+  ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
+end
+
+instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
+⟨ring_hom.ext_int⟩
+
 end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=

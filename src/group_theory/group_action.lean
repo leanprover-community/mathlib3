@@ -184,8 +184,6 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
     by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
 
-section orbit
-
 @[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
 ⟨g⁻¹, by simp⟩
 
@@ -198,8 +196,6 @@ def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
-
-end orbit
 
 variables {β}
 

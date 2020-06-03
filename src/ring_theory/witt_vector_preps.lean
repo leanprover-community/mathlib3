@@ -107,7 +107,7 @@ lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.injective_single _
 
-lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
 (C_injective σ R).eq_iff
 
@@ -342,16 +342,14 @@ ring_hom.map_dvd (int.cast_ring_hom R) h
 lemma rat.denom_div_cast_eq_one_iff (m n : ℤ) (hn : n ≠ 0) :
   ((m : ℚ) / n).denom = 1 ↔ n ∣ m :=
 begin
+  replace hn : (n:ℚ) ≠ 0, by rwa [ne.def, int.cast_eq_zero],
   split,
   { intro h,
     lift ((m : ℚ) / n) to ℤ using h with k hk,
     use k,
-    rw eq_div_iff_mul_eq _ _ (show (n:ℚ) ≠ 0, by exact_mod_cast hn) at hk,
-    norm_cast at hk,
-    rw [← hk, mul_comm], },
+    rwa [eq_div_iff_mul_eq _ _ hn, ← int.cast_mul, mul_comm, eq_comm, int.cast_inj] at hk },
   { rintros ⟨d, rfl⟩,
-    rw [int.cast_mul, mul_comm, mul_div_cancel, rat.coe_int_denom],
-    exact_mod_cast hn }
+    rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
 end
 
 end

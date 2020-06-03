@@ -6,7 +6,6 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.terminated_stable
 import algebra.continued_fractions.continuants_recurrence
-import tactic.lint
 /-!
 # Correctness of Terminating Continued Fraction Computations (`gcf.of`)
 

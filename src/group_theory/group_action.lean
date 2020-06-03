@@ -225,9 +225,9 @@ equiv.symm (@equiv.of_bijective _ _
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
 
-open quotient_group mul_action is_subgroup
-
 end
+
+open quotient_group mul_action is_subgroup
 
 /-- Action on left cosets. -/
 def mul_left_cosets (H : set α) [is_subgroup H]

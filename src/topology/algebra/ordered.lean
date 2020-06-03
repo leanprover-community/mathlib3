@@ -91,6 +91,7 @@ for specific types.
 -/
 
 open classical set filter topological_space
+open function (curry uncurry)
 open_locale topological_space classical
 
 universes u v w
@@ -287,10 +288,25 @@ lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
-lemma is_preconnected.forall_Icc_subset {s : set α} (hs : is_preconnected s)
+/-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
+lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   Icc a b ⊆ s :=
 by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
+
+/-- The only unbounded preconnected subset of a conditionally complete lattice is the whole
+space. -/
+lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
+  (ha : ¬bdd_above s) :
+  s = univ :=
+begin
+  refine eq_univ_of_forall (λ x, _),
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x,
+  { contrapose! hb, exact ⟨x, hb⟩ },
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
+  { contrapose! ha, exact ⟨x, ha⟩ },
+  exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+end
 
 end linear_order
 
@@ -972,7 +988,7 @@ lemma is_glb_of_mem_nhds : ∀ {s : set α} {a : α} {f : filter α},
 
 lemma is_lub_of_is_lub_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s.nonempty)
-  (hb : tendsto f (𝓝 a ⊓ principal s) (𝓝 b)) : is_lub (f '' s) b :=
+  (hb : tendsto f (nhds_within a s) (𝓝 b)) : is_lub (f '' s) b :=
 have hnbot : (𝓝 a ⊓ principal s) ≠ ⊥, from nhds_principal_ne_bot_of_is_lub ha hs,
 have ∀a'∈s, ¬ b < f a',
   from assume a' ha' h,
@@ -1000,7 +1016,7 @@ and.intro
 
 lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) : is_glb s a → s.nonempty →
-  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_glb (f '' s) b :=
+  tendsto f (nhds_within a s) (𝓝 b) → is_glb (f '' s) b :=
 @is_lub_of_is_lub_of_tendsto (order_dual α) (order_dual β) _ _ _ _ _ _ f s a b
   (λ x hx y hy, hf y hy x hx)
 
@@ -1014,16 +1030,20 @@ lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b
   tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_lub (f '' s) b :=
 @is_glb_of_is_glb_of_tendsto α (order_dual β) _ _ _ _ _ _
 
-lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) : a ∈ closure s :=
+lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) :
+  a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_lub ha hs
 
-lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) (sc : is_closed s) : a ∈ s :=
+lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty)
+  (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
 
-lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) : a ∈ closure s :=
+lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) :
+  a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_glb ha hs
 
-lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) (sc : is_closed s) : a ∈ s :=
+lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty)
+  (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_glb ha hs
 
 /-- A compact set is bounded below -/
@@ -1279,8 +1299,8 @@ begin
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
-/-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally complete
-lattices, under a boundedness assumption. -/
+/-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally
+complete lattices, under a boundedness assumption. -/
 lemma csupr_of_csupr_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_above (range g)) : f (supr g) = supr (f ∘ g) :=
 by rw [supr, cSup_of_cSup_of_monotone_of_continuous Mf Cf (range_nonempty _) H, ← range_comp, supr]
@@ -1295,11 +1315,88 @@ begin
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
-/-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete
-lattices, under a boundedness assumption. -/
+/-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally
+complete lattices, under a boundedness assumption. -/
 lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf (range_nonempty _) H, ← range_comp, infi]
+
+/-- A bounded connected subset of a conditionally complete lattice includes the open interval
+`(Inf s, Sup s)`. -/
+lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb : bdd_below s)
+  (ha : bdd_above s) :
+  Ioo (Inf s) (Sup s) ⊆ s :=
+λ x hx, let ⟨y, ys, hy⟩ := (is_glb_lt_iff (is_glb_cInf hs.nonempty hb)).1 hx.1 in
+let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup hs.nonempty ha)).1 hx.2 in
+hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+
+lemma is_connected.Ioi_cInf_subset {s : set α} (hs : is_connected s) (hb : bdd_below s)
+  (ha : ¬bdd_above s) :
+  Ioi (Inf s) ⊆ s :=
+begin
+  intros x hx,
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := (is_glb_lt_iff (is_glb_cInf hs.nonempty hb)).1 hx,
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
+  { contrapose! ha, exact ⟨x, ha⟩ },
+  exact hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+end
+
+lemma is_connected.Iio_cSup_subset {s : set α} (hs : is_connected s) (hb : ¬bdd_below s)
+  (ha : bdd_above s) :
+  Iio (Sup s) ⊆ s :=
+@is_connected.Ioi_cInf_subset (order_dual α) _ _ _ s hs ha hb
+
+/-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
+`Iic`, `Iio`, or `univ`, or `∅`. -/
+lemma is_preconnected.mem_intervals {s : set α} (hs : is_preconnected s) :
+  s ∈ ({Icc (Inf s) (Sup s), Ico (Inf s) (Sup s), Ioc (Inf s) (Sup s), Ioo (Inf s) (Sup s),
+    Ici (Inf s), Ioi (Inf s), Iic (Sup s), Iio (Sup s), univ, ∅} : set (set α)) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { apply_rules [or.inr, mem_singleton] },
+  replace hs : is_connected s := ⟨hne, hs⟩,
+  by_cases hb : bdd_below s; by_cases ha : bdd_above s,
+  { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs.Ioo_cInf_cSup_subset hb ha)
+      (λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩) with hs|hs|hs|hs,
+    { exact (or.inl hs) },
+    { exact (or.inr $ or.inl hs) },
+    { exact (or.inr $ or.inr $ or.inl hs) },
+    { exact (or.inr $ or.inr $ or.inr $ or.inl hs) } },
+  { refine (or.inr $ or.inr $ or.inr $ or.inr _),
+    cases mem_Ici_Ioi_of_subset_of_subset (hs.Ioi_cInf_subset hb ha) (λ x hx, cInf_le hb hx)
+      with hs hs,
+    { exact or.inl hs },
+    { exact or.inr (or.inl hs) } },
+  { iterate 6 { apply or.inr },
+    cases mem_Iic_Iio_of_subset_of_subset (hs.Iio_cSup_subset hb ha) (λ x hx, le_cSup ha hx)
+      with hs hs,
+    { exact or.inl hs },
+    { exact or.inr (or.inl hs) } },
+  { iterate 8 { apply or.inr },
+    exact or.inl (hs.is_preconnected.eq_univ_of_unbounded hb ha) }
+end
+
+lemma set_of_is_preconnected_subset_of_ordered :
+  {s : set α | is_preconnected s} ⊆
+    -- bounded intervals
+    (range (uncurry Icc) ∪ range (uncurry Ico) ∪ range (uncurry Ioc) ∪ range (uncurry Ioo)) ∪
+    -- unbounded intervals and `univ`
+    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ}) :=
+begin
+  intros s hs,
+  rcases hs.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs,
+  { exact (or.inl $ or.inl $ or.inl $ or.inl ⟨(Inf s, Sup s), hs.symm⟩) },
+  { exact (or.inl $ or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+  { exact (or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+  { exact (or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+  { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inl ⟨Inf s, hs.symm⟩) },
+  { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inr ⟨Inf s, hs.symm⟩) },
+  { exact (or.inr $ or.inl $ or.inl  $ or.inr ⟨Sup s, hs.symm⟩) },
+  { exact (or.inr $ or.inl $  or.inr ⟨Sup s, hs.symm⟩) },
+  { exact (or.inr $ or.inr hs) },
+  { refine (or.inl $ or.inr ⟨(Inf s, Inf s), _⟩),
+    simp [uncurry, mem_singleton_iff.1 hs] }
+end
 
 /-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
 on a closed subset, contains `a`, and the set `s ∩ [a, b)` has no maximal point, then `b ∈ s`. -/
@@ -1336,7 +1433,6 @@ begin
   exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
     (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
 end
-
 section densely_ordered
 
 variables [densely_ordered α] {a b : α}
@@ -1379,7 +1475,7 @@ end
 
 lemma is_preconnected_iff_forall_Icc_subset {s : set α} :
   is_preconnected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
-⟨λ h x y hx hy hxy, h.forall_Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
+⟨λ h x y hx hy hxy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
   ⟨Icc (min x y) (max x y), h (min x y) (max x y)
     ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
     ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
@@ -1410,72 +1506,6 @@ is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff 
 instance ordered_connected_space : preconnected_space α :=
 ⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
-lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
-  (ha : ¬bdd_above s) :
-  s = univ :=
-begin
-  refine eq_univ_of_forall (λ x, _),
-  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x,
-  { contrapose! hb, exact ⟨x, hb⟩ },
-  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
-  { contrapose! ha, exact ⟨x, ha⟩ },
-  exact hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
-end
-
-lemma is_preconnected.Ioo_cInf_cSup_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
-  (hb : bdd_below s) (ha : bdd_above s) :
-  Ioo (Inf s) (Sup s) ⊆ s :=
-λ x hx, let ⟨y, ys, hy⟩ := (is_glb_lt_iff (is_glb_cInf sne hb)).1 hx.1 in
-let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup sne ha)).1 hx.2 in
-hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
-
-lemma is_preconnected.Ioi_cInf_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
-  (hb : bdd_below s) (ha : ¬bdd_above s) :
-  Ioi (Inf s) ⊆ s :=
-begin
-  intros x hx,
-  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := (is_glb_lt_iff (is_glb_cInf sne hb)).1 hx,
-  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
-  { contrapose! ha, exact ⟨x, ha⟩ },
-  exact hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
-end
-
-lemma is_preconnected.Iio_cSup_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
-  (hb : ¬bdd_below s) (ha : bdd_above s) :
-  Iio (Sup s) ⊆ s :=
-@is_preconnected.Ioi_cInf_subset (order_dual α) _ _ _ _ s hs sne ha hb
-
-/-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
-`Iic`, `Iio`, or `univ`, or `∅`. -/
-lemma is_preconnected.mem_intervals {s : set α} (hs : is_preconnected s) :
-  s ∈ ({Icc (Inf s) (Sup s), Ico (Inf s) (Sup s), Ioc (Inf s) (Sup s), Ioo (Inf s) (Sup s),
-    Ici (Inf s), Ioi (Inf s), Iic (Sup s), Iio (Sup s), univ, ∅} : set (set α)) :=
-begin
-  rcases s.eq_empty_or_nonempty with rfl|hne,
-  { apply_rules [or.inr, mem_singleton] },
-  by_cases hb : bdd_below s; by_cases ha : bdd_above s,
-  { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs.Ioo_cInf_cSup_subset hne hb ha)
-      (λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩) with hs|hs|hs|hs,
-    { exact (or.inl hs) },
-    { exact (or.inr $ or.inl hs) },
-    { exact (or.inr $ or.inr $ or.inl hs) },
-    { exact (or.inr $ or.inr $ or.inr $ or.inl hs) } },
-  { refine (or.inr $ or.inr $ or.inr $ or.inr _),
-    cases mem_Ici_Ioi_of_subset_of_subset (hs.Ioi_cInf_subset hne hb ha) (λ x hx, cInf_le hb hx)
-      with hs hs,
-    { exact or.inl hs },
-    { exact or.inr (or.inl hs) } },
-  { iterate 6 { apply or.inr },
-    cases mem_Iic_Iio_of_subset_of_subset (hs.Iio_cSup_subset hne hb ha) (λ x hx, le_cSup ha hx)
-      with hs hs,
-    { exact or.inl hs },
-    { exact or.inr (or.inl hs) } },
-  { iterate 8 { apply or.inr },
-    exact or.inl (hs.eq_univ_of_unbounded hb ha) }
-end
-
-open function (curry uncurry)
-
 lemma set_of_is_preconnected_eq_of_ordered :
   {s : set α | is_preconnected s} =
     -- bounded intervals
@@ -1483,26 +1513,11 @@ lemma set_of_is_preconnected_eq_of_ordered :
     -- unbounded intervals and `univ`
     (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ}) :=
 begin
-  ext s,
-  split,
-  { intro hs,
-    rcases hs.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs,
-    { exact (or.inl $ or.inl $ or.inl $ or.inl ⟨(Inf s, Sup s), hs.symm⟩) },
-    { exact (or.inl $ or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
-    { exact (or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
-    { exact (or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
-    { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inl ⟨Inf s, hs.symm⟩) },
-    { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inr ⟨Inf s, hs.symm⟩) },
-    { exact (or.inr $ or.inl $ or.inl  $ or.inr ⟨Sup s, hs.symm⟩) },
-    { exact (or.inr $ or.inl $  or.inr ⟨Sup s, hs.symm⟩) },
-    { exact (or.inr $ or.inr hs) },
-    { refine (or.inl $ or.inr ⟨(Inf s, Inf s), _⟩),
-      simp [uncurry, mem_singleton_iff.1 hs] } },
-  { revert s,
-    simp [-mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
-      is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
-      is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
-      is_preconnected_Iic, is_preconnected_univ] }
+  refine subset.antisymm set_of_is_preconnected_subset_of_ordered _,
+  simp [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
+    is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
+    is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
+    is_preconnected_Iic, is_preconnected_univ]
 end
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/

@@ -223,7 +223,7 @@ end
 
 lemma dvd_of_digits_sub_of_digits {α : Type*} [euclidean_domain α]
   {a b k : α} (h : k ∣ a - b) (L : list ℕ) :
-  k ∣ ((of_digits a L) - (of_digits b L)) :=
+  k ∣ of_digits a L - of_digits b L :=
 begin
   induction L,
   { change k ∣ 0 - 0, simp, },
@@ -233,7 +233,7 @@ begin
 end
 
 lemma of_digits_modeq' (b b' : ℕ) (k : ℕ) (h : b ≡ b' [MOD k]) (L : list ℕ) :
-  (of_digits b L) ≡ (of_digits b' L) [MOD k] :=
+  of_digits b L ≡ of_digits b' L [MOD k] :=
 begin
   induction L,
   { refl, },
@@ -243,14 +243,14 @@ begin
     conv_rhs { rw [nat.add_mod, nat.mul_mod], }, }
 end
 
-lemma of_digits_modeq (b k : ℕ) (L : list ℕ) : (of_digits b L) ≡ (of_digits (b % k) L) [MOD k] :=
+lemma of_digits_modeq (b k : ℕ) (L : list ℕ) : of_digits b L ≡ of_digits (b % k) L [MOD k] :=
 of_digits_modeq' b (b % k) k (nat.modeq.symm (nat.modeq.mod_modeq b k)) L
 
-lemma of_digits_mod (b k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
+lemma of_digits_mod (b k : ℕ) (L : list ℕ) : of_digits b L % k = of_digits (b % k) L % k :=
 of_digits_modeq b k L
 
 lemma of_digits_zmodeq' (b b' : ℤ) (k : ℕ) (h : b ≡ b' [ZMOD k]) (L : list ℕ) :
-  (of_digits b L) ≡ (of_digits b' L) [ZMOD k] :=
+  of_digits b L ≡ of_digits b' L [ZMOD k] :=
 begin
   induction L,
   { refl, },
@@ -261,11 +261,11 @@ begin
 end
 
 lemma of_digits_zmodeq (b : ℤ) (k : ℕ) (L : list ℕ) :
-  (of_digits b L) ≡ (of_digits (b % k) L) [ZMOD k] :=
+  of_digits b L ≡ of_digits (b % k) L [ZMOD k] :=
 of_digits_zmodeq' b (b % k) k (int.modeq.symm (int.modeq.mod_modeq b ↑k)) L
 
 lemma of_digits_zmod (b : ℤ) (k : ℕ) (L : list ℕ) :
-  (of_digits b L) % k = (of_digits (b % k) L) % k :=
+  of_digits b L % k = of_digits (b % k) L % k :=
 of_digits_zmodeq b k L
 
 lemma modeq_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
@@ -298,7 +298,7 @@ lemma nine_dvd_iff (n : ℕ) : 9 ∣ n ↔ 9 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 9 10 (by norm_num) n
 
 lemma zmodeq_of_digits_digits (b b' : ℕ) (c : ℤ) (h : b' ≡ c [ZMOD b]) (n : ℕ) :
-  n ≡ (of_digits c (digits b' n)) [ZMOD b] :=
+  n ≡ of_digits c (digits b' n) [ZMOD b] :=
 begin
   conv { congr, skip, rw ←(of_digits_digits b' n) },
   rw coe_int_of_digits,
@@ -346,7 +346,7 @@ begin
 end
 
 lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ) - c) (n : ℕ) :
-  b ∣ n ↔ (b : ℤ) ∣ (of_digits c (digits b' n)) :=
+  b ∣ n ↔ (b : ℤ) ∣ of_digits c (digits b' n) :=
 begin
   rw ←int.coe_nat_dvd,
   exact dvd_iff_dvd_of_dvd_sub
@@ -354,5 +354,10 @@ begin
       (zmodeq_of_digits_digits b b' c (int.modeq.modeq_iff_dvd.2 h).symm _).symm),
 end
 
-lemma eleven_dvd_iff (n : ℕ) : 11 ∣ n ↔ 11 ∣ (of_digits (-1 : ℤ) (digits 10 n)) :=
-dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n
+lemma eleven_dvd_iff (n : ℕ) :
+  11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
+begin
+  have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
+  rw of_digits_neg_one at t,
+  exact t,
+end

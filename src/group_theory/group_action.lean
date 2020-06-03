@@ -199,6 +199,8 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
+end orbit
+
 variables {β}
 
 open quotient_group
@@ -224,6 +226,8 @@ equiv.symm (@equiv.of_bijective _ _
 rfl
 
 open quotient_group mul_action is_subgroup
+
+end
 
 /-- Action on left cosets. -/
 def mul_left_cosets (H : set α) [is_subgroup H]

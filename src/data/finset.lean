@@ -2485,6 +2485,8 @@ end sort_linear_order
 section disjoint
 variable [decidable_eq α]
 
+lemma disjoint_iff {s t : finset α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+
 theorem disjoint_left {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
   and_imp]; refl

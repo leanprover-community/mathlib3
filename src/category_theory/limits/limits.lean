@@ -396,6 +396,18 @@ def iso_unique_cocone_morphism {t : cocone F} :
   { desc := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cocone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
+-- TODO: this should actually hold for an adjunction between cocpne F and cocone G, not just for
+-- equivalences
+/--
+Given two functors which have equivalent categories of cocones, we can transport a limiting cocone
+across the equivalence.
+-/
+def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D} (h : cocone F ≌ cocone G) {c : cocone G} (t : is_colimit c) :
+  is_colimit (h.inverse.obj c) :=
+mk_cocone_morphism
+  (λ s, (h.symm.to_adjunction.hom_equiv c s).symm (t.desc_cocone_morphism _))
+  (λ s m, (adjunction.hom_equiv_apply_eq _ _ _).1 t.uniq_cocone_morphism)
+
 namespace of_nat_iso
 variables {X : C} (h : coyoneda.obj (op X) ≅ F.cocones)
 

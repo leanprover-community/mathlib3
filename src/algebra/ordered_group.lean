@@ -658,6 +658,14 @@ lemma strict_mono.add_monotone (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x + g x) :=
 λ x y h, add_lt_add_of_lt_of_le (hf h) (hg $ le_of_lt h)
 
+lemma strict_mono.add_const (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, f x + c) :=
+hf.add_monotone monotone_const
+
+lemma strict_mono.const_add (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, c + f x) :=
+monotone_const.add_strict_mono hf
+
 end mono
 
 end ordered_cancel_add_comm_monoid

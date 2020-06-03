@@ -256,3 +256,25 @@ lemma ring_hom.map_rat_cast {k k'} [division_ring k] [char_zero k] [division_rin
   (f : k →+* k') (r : ℚ) :
   f r = r :=
 (f.comp (cast_hom k)).eq_rat_cast r
+
+lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
+begin
+  ext r,
+  refine rat.num_denom_cases_on' r _,
+  intros a b b0,
+  let φ : ℤ →+* R := f.comp (int.cast_ring_hom ℚ),
+  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom ℚ),
+  rw [rat.mk_eq_div, int.cast_coe_nat],
+  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
+  have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
+  calc f (a * b⁻¹)
+      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
+        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
+  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
+  ... = g (a * b⁻¹) :
+        by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
+              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
+end
+
+instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
+⟨ring_hom.ext_rat⟩

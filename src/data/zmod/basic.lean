@@ -59,7 +59,8 @@ def add_comm_semigroup (n : ℕ) : add_comm_semigroup (fin (n+1)) :=
     from calc ((a + b) % (n+1) + c) ≡ a + b + c [MOD (n+1)] : modeq_add (nat.mod_mod _ _) rfl
       ... ≡ a + (b + c) [MOD (n+1)] : by rw add_assoc
       ... ≡ (a + (b + c) % (n+1)) [MOD (n+1)] : modeq_add rfl (nat.mod_mod _ _).symm),
-  add_comm := λ ⟨a, _⟩ ⟨b, _⟩, fin.eq_of_veq (show (a + b) % (n+1) = (b + a) % (n+1), by rw add_comm),
+  add_comm := λ ⟨a, _⟩ ⟨b, _⟩,
+    fin.eq_of_veq (show (a + b) % (n+1) = (b + a) % (n+1), by rw add_comm),
   ..fin.has_add }
 
 /-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
@@ -68,7 +69,8 @@ def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
     (calc ((a * b) % (n+1) * c) ≡ a * b * c [MOD (n+1)] : modeq_mul (nat.mod_mod _ _) rfl
       ... ≡ a * (b * c) [MOD (n+1)] : by rw mul_assoc
       ... ≡ a * (b * c % (n+1)) [MOD (n+1)] : modeq_mul rfl (nat.mod_mod _ _).symm),
-  mul_comm := λ ⟨a, _⟩ ⟨b, _⟩, fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
+  mul_comm := λ ⟨a, _⟩ ⟨b, _⟩,
+    fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
   ..fin.has_mul }
 
 local attribute [instance] fin.add_comm_semigroup fin.comm_semigroup
@@ -392,12 +394,11 @@ begin
   { apply fin.val_mul }
 end
 
-instance nonzero_comm_ring (n : ℕ) [fact (1 < n)] : nonzero_comm_ring (zmod n) :=
+instance nonzero (n : ℕ) [fact (1 < n)] : nonzero (zmod n) :=
 { zero_ne_one := assume h, zero_ne_one $
    calc 0 = (0 : zmod n).val : by rw val_zero
       ... = (1 : zmod n).val : congr_arg zmod.val h
-      ... = 1                : val_one n,
-  .. zmod.comm_ring n }
+      ... = 1                : val_one n }
 
 /-- The inversion on `zmod n`.
 It is setup in such a way that `a * a⁻¹` is equal to `gcd a.val n`.
@@ -422,7 +423,8 @@ begin
              ... = a.val.gcd 0 : by rw nat.gcd_zero_right; refl },
   { set k := n.succ,
     calc a * a⁻¹ = a * a⁻¹ + k * nat.gcd_b (val a) k : by rw [cast_self, zero_mul, add_zero]
-             ... = ↑(↑a.val * nat.gcd_a (val a) k + k * nat.gcd_b (val a) k) : by { push_cast, rw cast_val, refl }
+             ... = ↑(↑a.val * nat.gcd_a (val a) k + k * nat.gcd_b (val a) k) :
+                     by { push_cast, rw cast_val, refl }
              ... = nat.gcd a.val k : (congr_arg coe (nat.gcd_eq_gcd_ab a.val k)).symm, }
 end
 
@@ -625,8 +627,10 @@ begin
   suffices : ((n % 2 : ℕ) + (n / 2) : ℤ) ≤ (val x),
   { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring },
   norm_cast,
-  calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 : nat.add_le_add_right (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) _
-                       ... ≤ x.val     : by { rw add_comm, exact nat.succ_le_of_lt (lt_of_not_ge h) }
+  calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
+    nat.add_le_add_right (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) _
+                       ... ≤ x.val     :
+    by { rw add_comm, exact nat.succ_le_of_lt (lt_of_not_ge h) }
 end
 
 @[simp] lemma val_min_abs_zero : ∀ n, (0 : zmod n).val_min_abs = 0
@@ -712,7 +716,22 @@ end
 instance : field (zmod p) :=
 { mul_inv_cancel := mul_inv_cancel_aux p,
   inv_zero := inv_zero p,
-  .. zmod.nonzero_comm_ring p,
+  .. zmod.comm_ring p,
+  .. zmod.nonzero p,
   .. zmod.has_inv p }
 
 end zmod
+
+lemma ring_hom.ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=
+begin
+  ext a,
+  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective a,
+  let φ : ℤ →+* R := f.comp (int.cast_ring_hom (zmod n)),
+  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom (zmod n)),
+  show φ k = ψ k,
+  rw φ.ext_int ψ,
+end
+
+instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
+  subsingleton ((zmod n) →+* R) :=
+⟨ring_hom.ext_zmod⟩

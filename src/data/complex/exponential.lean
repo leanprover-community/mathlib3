@@ -34,17 +34,17 @@ lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : �
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
-have h : ∃ l, ∀ n ≥ m, a - add_monoid.smul l ε < f n :=
+have h : ∃ l, ∀ n ≥ m, a - l •ℕ ε < f n :=
   ⟨k + k + 1, λ n hnm, lt_of_lt_of_le
-    (show a - add_monoid.smul (k + (k + 1)) ε < -abs (f n),
+    (show a - (k + (k + 1)) •ℕ ε < -abs (f n),
       from lt_neg.1 $ lt_of_le_of_lt (ham n hnm) (begin
-        rw [neg_sub, lt_sub_iff_add_lt, add_monoid.add_smul],
+        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul],
         exact add_lt_add_of_le_of_lt hk (lt_of_le_of_lt hk
           (lt_add_of_pos_left _ ε0)),
       end))
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in
-have hl : ∀ (n : ℕ), n ≥ m → f n > a - add_monoid.smul l ε := nat.find_spec h,
+have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
@@ -55,9 +55,9 @@ begin
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - add_monoid.smul (nat.pred l) ε : hi.2
-    ... = a - add_monoid.smul l ε + ε :
-      by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_smul',
+  exact calc f i ≤ a - (nat.pred l) •ℕ ε : hi.2
+    ... = a - l •ℕ ε + ε :
+      by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
         sub_add, add_sub_cancel] }
     ... < f j + ε : add_lt_add_right (hl j (le_trans hi.1 hj)) _
 end
@@ -413,8 +413,7 @@ lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
-λ h, @zero_ne_one ℂ _ $
-  by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
+λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
 by rw [← domain.mul_right_inj (exp_ne_zero x), ← exp_add];

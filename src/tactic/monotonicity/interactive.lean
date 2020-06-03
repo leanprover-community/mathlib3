@@ -549,7 +549,7 @@ associative operator and if the operator is commutative
 meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
-do try `[dunfold has_sub.sub algebra.sub],
+do try `[dunfold has_sub.sub algebra.sub int.sub],
    tgt ← target >>= instantiate_mvars,
    (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",
@@ -595,7 +595,7 @@ inductive rep_arity : Type
 meta def repeat_or_not : rep_arity → tactic unit → option (tactic unit) → tactic unit
  | rep_arity.one  tac none := tac
  | rep_arity.many tac none := repeat tac
- | (rep_arity.exactly n) tac none := iterate_exactly n tac
+ | (rep_arity.exactly n) tac none := iterate_exactly' n tac
  | rep_arity.one  tac (some until) := tac >> until
  | rep_arity.many tac (some until) := repeat_until tac until
  | (rep_arity.exactly n) tac (some until) := iterate_exactly n tac >> until

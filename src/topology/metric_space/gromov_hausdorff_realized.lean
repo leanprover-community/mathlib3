@@ -142,7 +142,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg]
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg, add_assoc]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -392,7 +392,8 @@ lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 end constructions --section
 
 section consequences
-variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β] [compact_space β] [nonempty β]
+variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β]
+  [compact_space β] [nonempty β]
 
 /- Now that we have proved that the set of candidates is compact, and that HD is continuous,
 we can finally select a candidate minimizing HD. This will be the candidate realizing the

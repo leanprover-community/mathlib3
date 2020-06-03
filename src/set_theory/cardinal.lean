@@ -110,9 +110,8 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : zero_ne_one_class cardinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nonzero cardinal.{u} :=
+{ zero_ne_one := ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.inj (subsingleton.elim _ _)⟩,
@@ -954,7 +953,7 @@ lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) 
   (h : injective f) : lift.{u v} (mk (f ⁻¹' s)) ≤ lift.{v u} (mk s) :=
 begin
   rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
-  apply subtype.coind_injective, exact injective_comp h subtype.val_injective
+  apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)

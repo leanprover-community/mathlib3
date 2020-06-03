@@ -71,7 +71,7 @@ lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a �
 @[simp] lemma symm_symm (f : α ≃. β) : f.symm.symm = f := by cases f; refl
 
 lemma symm_injective : function.injective (@pequiv.symm α β) :=
-injective_of_has_left_inverse ⟨_, symm_symm⟩
+left_inverse.injective symm_symm
 
 lemma trans_assoc (f : α ≃. β) (g : β ≃. γ) (h : γ ≃. δ) :
   (f.trans g).trans h = f.trans (g.trans h) :=
@@ -98,7 +98,7 @@ by rw ← mem_iff_mem at *; cases h : f.symm b; simp * at *
 
 lemma injective_of_forall_ne_is_some (f : α ≃. β) (a₂ : α)
   (h : ∀ (a₁ : α), a₁ ≠ a₂ → is_some (f a₁)) : injective f :=
-injective_of_has_left_inverse
+has_left_inverse.injective
   ⟨λ b, option.rec_on b a₂ (λ b', option.rec_on (f.symm b') a₂ id),
     λ x, begin
       classical,
@@ -156,7 +156,8 @@ lemma trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} 
 begin
   ext,
   dsimp [pequiv.trans],
-  simp only [eq_some_iff f, option.is_some_iff_exists, option.mem_def, bind_eq_some', of_set_eq_some_iff],
+  simp only [eq_some_iff f, option.is_some_iff_exists, option.mem_def, bind_eq_some',
+    of_set_eq_some_iff],
   split,
   { rintros ⟨b, hb₁, hb₂⟩,
     exact ⟨pequiv.inj _ hb₂ hb₁, b, hb₂⟩ },
@@ -220,7 +221,8 @@ lemma trans_single_of_mem {a : α} {b : β} (c : γ) {f : α ≃. β} (h : b ∈
   f.trans (single b c) = single a c :=
 symm_injective $ single_trans_of_mem _ ((mem_iff_mem f).2 h)
 
-@[simp] lemma single_trans_single (a : α) (b : β) (c : γ) : (single a b).trans (single b c) = single a c :=
+@[simp]
+lemma single_trans_single (a : α) (b : β) (c : γ) : (single a b).trans (single b c) = single a c :=
 single_trans_of_mem _ (mem_single _ _)
 
 @[simp] lemma single_subsingleton_eq_refl [subsingleton α] (a b : α) : single a b = pequiv.refl α :=

@@ -53,6 +53,10 @@ def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 /-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
+lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
+
+lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
+
 /-!
 ### Monotonicity
 -/
@@ -99,6 +103,18 @@ lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_g
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
 @is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
 
+lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
+hb.2 (hst ha.1)
+
+lemma is_greatest.mono (ha : is_greatest s a) (hb : is_greatest t b) (hst : s ⊆ t) : a ≤ b :=
+hb.2 (hst ha.1)
+
+lemma is_lub.mono (ha : is_lub s a) (hb : is_lub t b) (hst : s ⊆ t) : a ≤ b :=
+hb.mono ha $ upper_bounds_mono_set hst
+
+lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
+hb.mono ha $ lower_bounds_mono_set hst
+
 /-!
 ### Conversions
 -/
@@ -118,6 +134,12 @@ h.is_glb.lower_bounds_eq
 
 lemma is_greatest.upper_bounds_eq (h : is_greatest s a) : upper_bounds s = Ici a :=
 h.is_lub.upper_bounds_eq
+
+lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
+by { rw h.upper_bounds_eq, refl }
+
+lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
+by { rw h.lower_bounds_eq, refl }
 
 /-- If `s` has a least upper bound, then it is bounded above. -/
 lemma is_lub.bdd_above (h : is_lub s a) : bdd_above s := ⟨a, h.1⟩
@@ -243,7 +265,6 @@ lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
 
 #### Unbounded intervals
 -/
-
 
 lemma is_least_Ici : is_least (Ici a) a := ⟨left_mem_Ici, λ x, id⟩
 
@@ -514,16 +535,16 @@ by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 -/
 
 lemma is_lub_pair [semilattice_sup γ] {a b : γ} : is_lub {a, b} (a ⊔ b) :=
-by { rw sup_comm, exact is_lub_singleton.insert _}
+is_lub_singleton.insert _
 
 lemma is_glb_pair [semilattice_inf γ] {a b : γ} : is_glb {a, b} (a ⊓ b) :=
-by { rw inf_comm, exact is_glb_singleton.insert _ }
+is_glb_singleton.insert _
 
 lemma is_least_pair [decidable_linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
-by { rw min_comm, exact is_least_singleton.insert _ }
+is_least_singleton.insert _
 
 lemma is_greatest_pair [decidable_linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
-by { rw max_comm, exact is_greatest_singleton.insert _ }
+is_greatest_singleton.insert _
 
 end
 
@@ -569,12 +590,6 @@ Ha.unique Hb
 
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
-
-lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
-by { rw h.upper_bounds_eq, refl }
-
-lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
-by { rw h.lower_bounds_eq, refl }
 
 end partial_order
 
@@ -627,7 +642,7 @@ lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
   b ≤ f a :=
 Hb.2 (Hf.mem_upper_bounds_image Ha.1)
 
-lemma le_is_glb_image_le (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
   f a ≤ b :=
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 

@@ -2,11 +2,11 @@
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
-
-Matrices
 -/
 import algebra.pi_instances
-
+/-!
+# Matrices
+-/
 universes u v w
 
 open_locale big_operators
@@ -305,8 +305,6 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
 instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
   semimodule α (matrix m n β) := pi.semimodule _ _ _
-instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
-  module α (matrix m n β) := { .. matrix.semimodule }
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
@@ -491,9 +489,10 @@ def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
 sub_down (sub_left A)
 
 section row_col
-/-! ### `row_col` section
+/-!
+### `row_col` section
 
-  Simplification lemmas for `matrix.row` and `matrix.col`.
+Simplification lemmas for `matrix.row` and `matrix.col`.
 -/
 open_locale matrix
 

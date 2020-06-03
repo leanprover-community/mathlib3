@@ -155,12 +155,11 @@ have ∀h:finite s, C s h,
 this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
-fintype_insert' _ (not_mem_empty _)
+unique.fintype
 
 @[simp] theorem card_singleton (a : α) :
   fintype.card ({a} : set α) = 1 :=
-by rw [show fintype.card ({a} : set α) = _, from
-    card_fintype_insert' ∅ (not_mem_empty a)]; refl
+fintype.card_of_subsingleton _
 
 @[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
 ⟨set.fintype_singleton _⟩

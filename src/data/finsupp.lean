@@ -132,7 +132,7 @@ variables [has_zero β] {a a' : α} {b : β}
 /-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
-⟨if b = 0 then ∅ else finset.singleton a, λ a', if a = a' then b else 0, λ a', begin
+⟨if b = 0 then ∅ else {a}, λ a', if a = a' then b else 0, λ a', begin
   by_cases hb : b = 0; by_cases a = a';
     simp only [hb, h, if_pos, if_false, mem_singleton],
   { exact ⟨false.elim, λ H, H rfl⟩ },
@@ -336,7 +336,7 @@ lemma single_of_emb_domain_single
   (h : l.emb_domain f = single a b) :
   ∃ x, l = single x b ∧ f x = a :=
 begin
-  have h_map_support : finset.map f (l.support) = finset.singleton a,
+  have h_map_support : finset.map f (l.support) = {a},
     by rw [←support_emb_domain, h, support_single_ne_zero hb]; refl,
   have ha : a ∈ finset.map f (l.support),
     by simp only [h_map_support, finset.mem_singleton],
@@ -445,7 +445,8 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
 rfl
 
 @[to_additive]
-lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β') [comm_monoid γ] (h : α → β → α' → β' → γ) :
+lemma prod_comm {α' : Type*} [has_zero β] {β' : Type*} [has_zero β'] (f : α →₀ β) (g : α' →₀ β')
+  [comm_monoid γ] (h : α → β → α' → β' → γ) :
   f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
 begin
   dsimp [finsupp.prod],
@@ -480,8 +481,7 @@ lemma prod_single_index [comm_monoid γ] {a : α} {b : β} {h : α → β → γ
 begin
   by_cases h : b = 0,
   { simp only [h, h_zero, single_zero]; refl },
-  { simp only [finsupp.prod, support_single_ne_zero h, insert_empty_eq_singleton,
-      prod_singleton, single_eq_same] }
+  { simp only [finsupp.prod, support_single_ne_zero h, prod_singleton, single_eq_same] }
 end
 
 instance : has_add (α →₀ β) := ⟨zip_with (+) (add_zero 0)⟩
@@ -708,18 +708,16 @@ have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
 begin
   intro a,
   by_cases h : a ∈ f.support,
-  { have : (finset.singleton a : finset α) ⊆ f.support,
+  { have : ({a} : finset α) ⊆ f.support,
       { simpa only [finset.subset_iff, mem_singleton, forall_eq] },
     refine (finset.sum_subset this (λ _ _ H, _)).symm,
     exact if_neg (mt mem_singleton.2 H) },
   { transitivity (f.support.sum (λa, (0 : β))),
     { refine (finset.sum_congr rfl $ λ a' ha', if_neg _),
       rintro rfl, exact h ha' },
-    { rw [sum_const_zero, insert_empty_eq_singleton, sum_singleton,
-        if_pos rfl, not_mem_support_iff.1 h] } }
+    { rw [sum_const_zero, sum_singleton, if_pos rfl, not_mem_support_iff.1 h] } }
 end,
-ext $ assume a, by simp only [sum_apply, single_apply, this,
-  insert_empty_eq_singleton, sum_singleton, if_pos]
+ext $ assume a, by simp only [sum_apply, single_apply, this, sum_singleton, if_pos]
 
 @[to_additive]
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
@@ -1144,17 +1142,17 @@ section multiset
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
 `f` on the elements of `α`. -/
 def to_multiset (f : α →₀ ℕ) : multiset α :=
-f.sum (λa n, add_monoid.smul n {a})
+f.sum (λa n, n •ℕ {a})
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 :=
 rfl
 
 lemma to_multiset_add (m n : α →₀ ℕ) :
   (m + n).to_multiset = m.to_multiset + n.to_multiset :=
-sum_add_index (assume a, add_monoid.zero_smul _) (assume a b₁ b₂, add_monoid.add_smul _ _ _)
+sum_add_index (assume a, zero_nsmul _) (assume a b₁ b₂, add_nsmul _ _ _)
 
-lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = add_monoid.smul n {a} :=
-by rw [to_multiset, sum_single_index]; apply add_monoid.zero_smul
+lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
+by rw [to_multiset, sum_single_index]; apply zero_nsmul
 
 instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
 { map_zero := to_multiset_zero, map_add := to_multiset_add }
@@ -1177,7 +1175,7 @@ begin
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
       to_multiset_single, to_multiset_add, to_multiset_single,
-      is_add_monoid_hom.map_smul (multiset.map g)],
+      is_add_monoid_hom.map_nsmul (multiset.map g)],
     refl }
 end
 
@@ -1201,16 +1199,16 @@ begin
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
   { assume a n f ha hn ih,
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
-      support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
+      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn,
       multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
     refl,
     refine disjoint.mono_left support_single_subset _,
-    rwa [finset.singleton_eq_singleton, finset.singleton_disjoint] }
+    rwa [finset.singleton_disjoint] }
 end
 
 @[simp] lemma count_to_multiset (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
-calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α).count a) :
+calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
   ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
@@ -1449,6 +1447,10 @@ ext $ λ a', by by_cases a = a';
   [{ subst h, simp only [smul_apply', single_eq_same] },
    simp only [h, smul_apply', ne.def, not_false_iff, single_eq_of_ne, smul_zero]]
 
+@[simp] lemma smul_single' {R : semiring γ}
+  (c : γ) (a : α) (b : γ) : c • finsupp.single a b = finsupp.single a (c * b) :=
+smul_single _ _ _
+
 end
 
 @[simp] lemma smul_apply [semiring β] {a : α} {b : β} {v : α →₀ β} :
@@ -1476,10 +1478,10 @@ by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_a
 
 end
 
-/-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv` is the `equiv`
+/-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv s β` is the `equiv`
 between the subtype of finitely supported functions with support contained in `s` and
 the type of finitely supported functions from `s`. -/
-def restrict_support_equiv [add_comm_monoid β] (s : set α) :
+def restrict_support_equiv (s : set α) (β : Type*) [add_comm_monoid β] :
   {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
 begin
   refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,

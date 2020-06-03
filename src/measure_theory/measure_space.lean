@@ -496,7 +496,7 @@ instance add_comm_monoid : add_comm_monoid (measure α) :=
   add       := (+),
   add_assoc := assume a b c, ext $ assume s hs, add_assoc _ _ _,
   add_comm  := assume a b, ext $ assume s hs, add_comm _ _,
-  zero_add  := assume a, ext $ assume s hs, zero_add _,
+  zero_add  := assume a, ext $ by simp,
   add_zero  := assume a, ext $ assume s hs, add_zero _ }
 
 instance : partial_order (measure α) :=
@@ -560,7 +560,7 @@ private lemma le_Sup (h : μ ∈ m) : μ ≤ Sup m := le_Inf $ assume μ' h', h'
 private lemma Sup_le (h : ∀μ' ∈ m, μ' ≤ μ) : Sup m ≤ μ := Inf_le h
 
 instance : order_bot (measure α) :=
-{ bot := 0, bot_le := assume a s hs, bot_le, .. measure.partial_order }
+{ bot := 0, bot_le := assume a s hs, by exact bot_le, .. measure.partial_order }
 
 instance : order_top (measure α) :=
 { top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),

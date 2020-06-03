@@ -5,7 +5,8 @@ Authors: Yury Kudryashov
 -/
 import order.filter.basic
 
-/-! # Minimum and maximum w.r.t. a filter and on a aet
+/-!
+# Minimum and maximum w.r.t. a filter and on a aet
 
 ## Main Definitions
 

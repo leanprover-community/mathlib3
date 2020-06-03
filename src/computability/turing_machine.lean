@@ -54,7 +54,9 @@ Given these parameters, there are a few common structures for the model that ari
 -/
 
 open relation
-open function (update)
+open nat (iterate)
+open function (update iterate_succ iterate_succ_apply iterate_succ'
+  iterate_succ_apply' iterate_zero_apply)
 
 namespace turing
 
@@ -519,7 +521,7 @@ by conv {to_rhs, rw ← T.move_right_left}; rw [tape.move_left_nth, add_sub_canc
 @[simp] theorem tape.move_right_n_head {Γ} [inhabited Γ] (T : tape Γ) (i : ℕ) :
   ((tape.move dir.right)^[i] T).head = T.nth i :=
 by induction i generalizing T; [refl, simp only [*,
-  tape.move_right_nth, int.coe_nat_succ, nat.iterate_succ]]
+  tape.move_right_nth, int.coe_nat_succ, iterate_succ]]
 
 /-- Replace the current value of the head on the tape. -/
 def tape.write {Γ} [inhabited Γ] (b : Γ) (T : tape Γ) : tape Γ := {head := b, ..T}
@@ -555,10 +557,10 @@ by rintro ⟨⟩; refl
   ((tape.move dir.right)^[n] (tape.mk' L (R.modify_nth f n))) :=
 begin
   induction n with n IH generalizing L R,
-  { simp only [list_blank.nth_zero, list_blank.modify_nth, nat.iterate_zero],
+  { simp only [list_blank.nth_zero, list_blank.modify_nth, iterate_zero_apply],
     rw [← tape.write_mk', list_blank.cons_head_tail] },
   simp only [list_blank.head_cons, list_blank.nth_succ, list_blank.modify_nth,
-    tape.move_right_mk', list_blank.tail_cons, nat.iterate_succ, IH]
+    tape.move_right_mk', list_blank.tail_cons, iterate_succ_apply, IH]
 end
 
 theorem tape.map_move {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -582,8 +584,7 @@ theorem tape.map_mk₁ {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : pointed_map 
 state returned before a `none` result. If the state transition function always returns `some`,
 then the computation diverges, returning `roption.none`. -/
 def eval {σ} (f : σ → option σ) : σ → roption σ :=
-pfun.fix (λ s, roption.some $
-  match f s with none := sum.inl s | some s' := sum.inr s' end)
+pfun.fix (λ s, roption.some $ (f s).elim (sum.inl s) sum.inr)
 
 /-- The reflexive transitive closure of a state transition function. `reaches f a b` means
 there is a finite sequence of steps `f a = some a₁`, `f a₁ = some a₂`, ... such that `aₙ = b`.
@@ -654,10 +655,21 @@ theorem reaches₀.tail' {σ} {f : σ → option σ} {a b c : σ}
   (h : reaches₀ f a b) (h₂ : c ∈ f b) : reaches₁ f a c :=
 h _ (trans_gen.single h₂)
 
+/-- (co-)Induction principle for `eval`. If a property `C` holds of any point `a` evaluating to `b`
+which is either terminal (meaning `a = b`) or where the next point also satisfies `C`, then it
+holds of any point where `eval f a` evaluates to `b`. This formalizes the notion that if
+`eval f a` evaluates to `b` then it reaches terminal state `b` in finitely many steps. -/
+@[elab_as_eliminator] def eval_induction {σ}
+  {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
+  (H : ∀ a, b ∈ eval f a →
+    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+  roption.mem_some_iff.2 $ by rw e; refl)
+
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
 ⟨λ h, begin
-  refine pfun.fix_induction h (λ a h IH, _),
+  refine eval_induction h (λ a h IH, _),
   cases e : f a with a',
   { rw roption.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       roption.mem_some_iff.2 $ by rw e; refl),
@@ -807,7 +819,8 @@ roption.ext $ λ b₂,
     rwa bb at h
   end⟩
 
-/-! ## The TM0 model
+/-!
+## The TM0 model
 
 A TM0 turing machine is essentially a Post-Turing machine, adapted for type theory.
 
@@ -977,7 +990,8 @@ end
 
 end TM0
 
-/-! ## The TM1 model
+/-!
+## The TM1 model
 
 The TM1 model is a simplification and extension of TM0 (Post-Turing model) in the direction of
 Wang B-machines. The machine's internal state is extended with a (finite) store `σ` of variables
@@ -1079,7 +1093,7 @@ noncomputable def stmts₁ : stmt → finset stmt
 | Q                  := {Q}
 
 theorem stmts₁_self {q} : q ∈ stmts₁ q :=
-by cases q; apply finset.mem_insert_self
+by cases q; apply_rules [finset.mem_insert_self, finset.mem_singleton_self]
 
 theorem stmts₁_trans {q₁ q₂} :
   q₁ ∈ stmts₁ q₂ → stmts₁ q₁ ⊆ stmts₁ q₂ :=
@@ -1087,8 +1101,7 @@ begin
   intros h₁₂ q₀ h₀₁,
   induction q₂ with _ q IH _ q IH _ q IH;
     simp only [stmts₁] at h₁₂ ⊢;
-    simp only [finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h₁₂,
+    simp only [finset.mem_insert, finset.mem_union, finset.mem_singleton] at h₁₂,
   iterate 3 {
     rcases h₁₂ with rfl | h₁₂,
     { unfold stmts₁ at h₀₁, exact h₀₁ },
@@ -1109,7 +1122,7 @@ theorem stmts₁_supports_stmt_mono {S q₁ q₂}
 begin
   induction q₂ with _ q IH _ q IH _ q IH;
     simp only [stmts₁, supports_stmt, finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h hs,
+      finset.mem_singleton] at h hs,
   iterate 3 { rcases h with rfl | h; [exact hs, exact IH h hs] },
   case TM1.stmt.branch : p q₁ q₂ IH₁ IH₂ {
     rcases h with rfl | h | h, exacts [hs, IH₁ h hs.1, IH₂ h hs.2] },
@@ -1175,7 +1188,8 @@ end
 
 end TM1
 
-/-! ## TM1 emulator in TM0
+/-!
+## TM1 emulator in TM0
 
 To prove that TM1 computable functions are TM0 computable, we need to reduce each TM1 program to a
 TM0 program. So suppose a TM1 program is given. We take the following:
@@ -1317,7 +1331,8 @@ end⟩
 end
 end TM1to0
 
-/-! ## TM1(Γ) emulator in TM1(bool)
+/-!
+## TM1(Γ) emulator in TM1(bool)
 
 The most parsimonious Turing machine model that is still Turing complete is `TM0` with `Γ = bool`.
 Because our construction in the previous section reducing `TM1` to `TM0` doesn't change the
@@ -1415,13 +1430,13 @@ begin
     step_aux (stmt.move d^[i] q) v T =
     step_aux q v (tape.move d^[i] T), from this n,
   intro, induction i with i IH generalizing T, {refl},
-  rw [nat.iterate_succ', step_aux, IH, ← nat.iterate_succ]
+  rw [iterate_succ', step_aux, IH, iterate_succ]
 end
 
 theorem supports_stmt_move {S d q} :
   supports_stmt S (move d q) = supports_stmt S q :=
 suffices ∀ {i}, supports_stmt S (stmt.move d^[i] q) = _, from this,
-by intro; induction i generalizing q; simp only [*, nat.iterate]; refl
+by intro; induction i generalizing q; simp only [*, iterate]; refl
 
 theorem supports_stmt_write {S l q} :
   supports_stmt S (write l q) = supports_stmt S q :=
@@ -1490,7 +1505,7 @@ begin
       using this (list.reverse_reverse _).symm },
   intros, induction l₁ with b l₁ IH generalizing l₂,
   { cases e, refl },
-  simp only [list.length, list.cons_append, nat.iterate_succ],
+  simp only [list.length, list.cons_append, iterate_succ_apply],
   convert IH e,
   simp only [list_blank.tail_cons, list_blank.append, tape.move_left_mk', list_blank.head_cons]
 end
@@ -1504,7 +1519,7 @@ begin
     simp only [tr_tape'_move_left, list_blank.cons_head_tail,
       list_blank.head_cons, list_blank.tail_cons] },
   intros, induction i with i IH, {refl},
-  rw [nat.iterate_succ, nat.iterate_succ', tape.move_left_right, IH]
+  rw [iterate_succ_apply, iterate_succ_apply', tape.move_left_right, IH]
 end
 
 theorem step_aux_write (q v a b L R) :
@@ -1570,7 +1585,7 @@ fun_respects.2 $ λ ⟨l₁, v, T⟩, begin
   clear R l₁, intros,
   induction q with _ q IH _ q IH _ q IH generalizing v L R,
   case TM1.stmt.move : d q IH {
-    cases d; simp only [tr_normal, nat.iterate, step_aux_move, step_aux,
+    cases d; simp only [tr_normal, iterate, step_aux_move, step_aux,
       list_blank.head_cons, tape.move_left_mk',
       list_blank.cons_head_tail, list_blank.tail_cons,
       tr_tape'_move_left enc0, tr_tape'_move_right enc0];
@@ -1632,7 +1647,7 @@ theorem tr_supports {S} (ss : supports M S) :
   case TM1.stmt.move : d q IH {
     unfold writes at hw ⊢,
     replace IH := IH hs hw, refine ⟨_, IH.2⟩,
-    cases d; simp only [tr_normal, nat.iterate, supports_stmt_move, IH] },
+    cases d; simp only [tr_normal, iterate, supports_stmt_move, IH] },
   case TM1.stmt.write : f q IH {
     unfold writes at hw ⊢,
     simp only [finset.mem_image, finset.mem_union, finset.mem_univ,
@@ -1667,7 +1682,8 @@ end
 
 end TM1to1
 
-/-! ## TM0 emulator in TM1
+/-!
+## TM0 emulator in TM1
 
 To establish that TM0 and TM1 are equivalent computational models, we must also have a TM0 emulator
 in TM1. The main complication here is that TM0 allows an action to depend on the value at the head
@@ -1741,7 +1757,8 @@ end
 
 end TM0to1
 
-/-! ## The TM2 model
+/-!
+## The TM2 model
 
 The TM2 model removes the tape entirely from the TM1 model, replacing it with an arbitrary (finite)
 collection of stacks, each with elements of different types (the alphabet of stack `k : K` is
@@ -1805,7 +1822,7 @@ instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, defaul
 
 parameters {Γ Λ σ K}
 /-- The step function for the TM2 model. -/
-def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
+@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | (push k f q)     v S := step_aux q v (update S k (f v :: S k))
 | (peek k f q)     v S := step_aux q (f v (S k).head') S
 | (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
@@ -1816,7 +1833,7 @@ def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
 | halt             v S := ⟨none, v, S⟩
 
 /-- The step function for the TM2 model. -/
-def step (M : Λ → stmt) : cfg → option cfg
+@[simp] def step (M : Λ → stmt) : cfg → option cfg
 | ⟨none,   v, S⟩ := none
 | ⟨some l, v, S⟩ := some (step_aux (M l) v S)
 
@@ -1846,7 +1863,7 @@ noncomputable def stmts₁ : stmt → finset stmt
 | Q@halt             := {Q}
 
 theorem stmts₁_self {q} : q ∈ stmts₁ q :=
-by cases q; apply finset.mem_insert_self
+by cases q; apply_rules [finset.mem_insert_self, finset.mem_singleton_self]
 
 theorem stmts₁_trans {q₁ q₂} :
   q₁ ∈ stmts₁ q₂ → stmts₁ q₁ ⊆ stmts₁ q₂ :=
@@ -1854,8 +1871,7 @@ begin
   intros h₁₂ q₀ h₀₁,
   induction q₂ with _ _ q IH _ _ q IH _ _ q IH _ q IH;
     simp only [stmts₁] at h₁₂ ⊢;
-    simp only [finset.mem_insert, finset.insert_empty_eq_singleton,
-      finset.mem_singleton, finset.mem_union] at h₁₂,
+    simp only [finset.mem_insert, finset.mem_singleton, finset.mem_union] at h₁₂,
   iterate 4 {
     rcases h₁₂ with rfl | h₁₂,
     { unfold stmts₁ at h₀₁, exact h₀₁ },
@@ -1876,7 +1892,7 @@ theorem stmts₁_supports_stmt_mono {S q₁ q₂}
 begin
   induction q₂ with _ _ q IH _ _ q IH _ _ q IH _ q IH;
     simp only [stmts₁, supports_stmt, finset.mem_insert, finset.mem_union,
-      finset.insert_empty_eq_singleton, finset.mem_singleton] at h hs,
+      finset.mem_singleton] at h hs,
   iterate 4 { rcases h with rfl | h; [exact hs, exact IH h hs] },
   case TM2.stmt.branch : f q₁ q₂ IH₁ IH₂ {
     rcases h with rfl | h | h, exacts [hs, IH₁ h hs.1, IH₂ h hs.2] },
@@ -1937,7 +1953,8 @@ end
 
 end TM2
 
-/-! ## TM2 emulator in TM1
+/-!
+## TM2 emulator in TM1
 
 To prove that TM2 computable functions are TM1 computable, we need to reduce each TM2 program to a
 TM1 program. So suppose a TM2 program is given. This program has to maintain a whole collection of
@@ -2183,7 +2200,7 @@ begin
     refine ⟨_, λ k', _, by rw [
       tape.move_right_n_head, list.length, tape.mk'_nth_nat, this,
       add_bottom_modify_nth (λ a, update a k (some (f v))),
-      nat.add_one, nat.iterate_succ']⟩,
+      nat.add_one, iterate_succ']⟩,
     refine list_blank.ext (λ i, _),
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
     by_cases h' : k' = k,
@@ -2200,21 +2217,21 @@ begin
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
       rw function.update_noteq h' } },
-  case TM2to1.st_act.peek : b f {
+  case TM2to1.st_act.peek : f {
     rw function.update_eq_self,
     use [L, hL], rw [tape.move_left_right], congr,
     cases e : S k, {refl},
-    rw [list.length_cons, nat.iterate_succ', tape.move_right_left, tape.move_right_n_head,
+    rw [list.length_cons, iterate_succ', tape.move_right_left, tape.move_right_n_head,
       tape.mk'_nth_nat, add_bottom_nth_snd, stk_nth_val _ (hL k), e,
       list.reverse_cons, ← list.length_reverse, list.nth_concat_length], refl },
-  case TM2to1.st_act.pop : b f {
+  case TM2to1.st_act.pop : f {
     cases e : S k,
     { simp only [tape.mk'_head, list_blank.head_cons, tape.move_left_mk',
-        list.length, tape.write_mk', list.head', nat.iterate_zero, list.tail_nil],
+        list.length, tape.write_mk', list.head', iterate_zero_apply, list.tail_nil],
       rw [← e, function.update_eq_self], exact ⟨L, hL, by rw [add_bottom_head_fst, cond]⟩ },
     { refine ⟨_, λ k', _, by rw [
         list.length_cons, tape.move_right_n_head, tape.mk'_nth_nat, add_bottom_nth_succ_fst,
-        cond, nat.iterate_succ', tape.move_right_left, tape.move_right_n_head, tape.mk'_nth_nat,
+        cond, iterate_succ', tape.move_right_left, tape.move_right_n_head, tape.mk'_nth_nat,
         tape.write_move_right_n (λ a:Γ', (a.1, update a.2 k none)),
         add_bottom_modify_nth (λ a, update a k none),
         add_bottom_nth_snd, stk_nth_val _ (hL k), e,
@@ -2266,7 +2283,7 @@ theorem tr_respects_aux₁ {k} (o q v) {S : list (Γ k)} {L : list_blank (∀ k,
 begin
   induction n with n IH, {refl},
   apply (IH (le_of_lt H)).tail,
-  rw nat.iterate_succ', simp only [TM1.step, TM1.step_aux, tr,
+  rw iterate_succ_apply', simp only [TM1.step, TM1.step_aux, tr,
     tape.mk'_nth_nat, tape.move_right_n_head, add_bottom_nth_snd,
     option.mem_def],
   rw [stk_nth_val _ hL, list.nth_le_nth], refl, rwa list.length_reverse
@@ -2280,7 +2297,7 @@ begin
   induction n with n IH, {refl},
   refine reaches₀.head _ IH,
   rw [option.mem_def, TM1.step, tr, TM1.step_aux, tape.move_right_n_head, tape.mk'_nth_nat,
-    add_bottom_nth_succ_fst, TM1.step_aux, nat.iterate_succ', tape.move_right_left], refl,
+    add_bottom_nth_succ_fst, TM1.step_aux, iterate_succ', tape.move_right_left], refl,
 end
 
 theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
@@ -2385,24 +2402,22 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
-    have hgo := sub _ (or.inl $ or.inr rfl),
-    have hret := sub _ (or.inl $ or.inl rfl),
+    have hgo := sub _ (or.inl $ or.inl rfl),
+    have hret := sub _ (or.inl $ or.inr rfl),
     cases IH ss' (λ x hx, sub x $ or.inr hx) with IH₁ IH₂,
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
-    { unfold TM1.supports_stmt TM2to1.tr,
-      exact ⟨IH₁, λ _ _, hret⟩ },
     { unfold TM1.supports_stmt TM2to1.tr,
       rcases s with _|_|_,
       { exact ⟨λ _ _, hret, λ _ _, hgo⟩ },
       { exact ⟨λ _ _, hret, λ _ _, hgo⟩ },
       { exact ⟨⟨λ _ _, hret, λ _ _, hret⟩, λ _ _, hgo⟩ } },
+    { unfold TM1.supports_stmt TM2to1.tr,
+      exact ⟨IH₁, λ _ _, hret⟩ },
     { exact IH₂ _ h } },
   { -- load
     unfold TM2to1.tr_stmts₁ at ss' sub ⊢,

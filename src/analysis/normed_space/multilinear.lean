@@ -57,6 +57,8 @@ noncomputable theory
 open_locale classical
 open finset
 
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
@@ -110,7 +112,7 @@ begin
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
     rw [f.map_coord_zero i hi, _root_.norm_zero],
-    exact mul_nonneg' (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
+    exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
       λi, rescale_to_shell hc δ_pos (h i),
@@ -207,7 +209,7 @@ begin
   ... ≤ C * univ.sum (λ (i : ι), ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1)) :
     mul_le_mul_of_nonneg_left (sum_le_sum (λi hi, A i)) hC
   ... = C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :
-    by { rw [sum_const, card_univ, add_monoid.smul_eq_mul], ring }
+    by { rw [sum_const, card_univ, nsmul_eq_mul], ring }
 end
 
 /-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, then it is
@@ -233,7 +235,7 @@ begin
     ≤ D * (fintype.card ι) * (max ∥m'∥ ∥m∥) ^ (fintype.card ι - 1) * ∥m' - m∥ :
       f.norm_image_sub_le_of_bound D_pos H m' m
     ... ≤ D * (fintype.card ι) * (∥m∥ + 1) ^ (fintype.card ι - 1) * ∥m' - m∥ :
-      by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul_of_nonneg_left, mul_nonneg',
+      by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul_of_nonneg_left, mul_nonneg,
         norm_nonneg, nat.cast_nonneg, pow_le_pow_of_le_left]
 end
 
@@ -300,6 +302,9 @@ open real
 def op_norm := Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)}
 instance has_op_norm : has_norm (continuous_multilinear_map 𝕜 E₁ E₂) := ⟨op_norm⟩
 
+lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod
+  (λi, ∥m i∥)} := rfl
+
 -- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : continuous_multilinear_map 𝕜 E₁ E₂} :
@@ -323,7 +328,7 @@ begin
     rw norm_eq_zero at hi,
     have : f m = 0 := f.map_coord_zero i hi,
     rw [this, norm_zero],
-    exact mul_nonneg' (op_norm_nonneg f) A },
+    exact mul_nonneg (op_norm_nonneg f) A },
   { have hlt : 0 < finset.univ.prod (λi, ∥m i∥) := lt_of_le_of_ne A (ne.symm h),
     exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
       (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
@@ -374,31 +379,15 @@ end
 @[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
 by rw op_norm_zero_iff
 
-/-- The operator norm is homogeneous. -/
-lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-le_antisymm
-  (Inf_le _ bounds_bdd_below
-    ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
-    begin
-      erw [norm_smul, mul_assoc],
-      exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-    end⟩)
-  (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
-    (or.elim (lt_or_eq_of_le (norm_nonneg c))
-      (λ hlt,
-        begin
-          rw mul_comm,
-          exact mul_le_of_le_div hlt (Inf_le _ bounds_bdd_below
-          ⟨div_nonneg hn hlt, λ _,
-          (by { rw div_mul_eq_mul_div, exact le_div_of_mul_le hlt
-          (by { rw [ mul_comm, ←norm_smul ], exact hc _ }) })⟩)
-        end)
-      (λ heq, by { rw [←heq, zero_mul], exact hn }))))
+lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+(Inf_le _ bounds_bdd_below
+  ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+  begin
+    erw [norm_smul, mul_assoc],
+    exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+  end⟩)
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
-  ∥-f∥ = ∥(-1:𝕜) • f∥ : by rw neg_one_smul
-  ... = ∥(-1:𝕜)∥ * ∥f∥ : by rw op_norm_smul
-  ... = ∥f∥ : by simp
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -406,7 +395,7 @@ instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E₁ E�
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜 (continuous_multilinear_map 𝕜 E₁ E₂) :=
-⟨op_norm_smul⟩
+⟨op_norm_smul_le⟩
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
 For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads
@@ -447,7 +436,7 @@ begin
     ... ≤ (∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) * ∥q - p∥
           + ∥q - p∥ * univ.prod (λi, ∥p.2 i∥) :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
-        mul_nonneg', pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
+        mul_nonneg, pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
         norm_fst_le (q - p), norm_nonneg, prod_nonneg]
     ... = ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1)
               + univ.prod (λi, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
@@ -554,14 +543,6 @@ lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂)
 continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 namespace continuous_multilinear_map
-
-/- The next two instances are not found automatically. Register them explicitly.
-TODO: understand why, and fix. -/
-instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_group 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
-
-instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
 
 /-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
 `s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying
@@ -720,7 +701,7 @@ linear_map.mk_continuous
   add    := λx y, by { ext m, exact f.cons_add m x y },
   smul   := λc x, by { ext m, exact f.cons_smul m c x } }
   -- then register its continuity thanks to its boundedness properties.
-(∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg' (norm_nonneg _) (norm_nonneg _)) _)
+(∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _)
 
 @[simp] lemma continuous_multilinear_map.curry_left_apply
   (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
@@ -848,7 +829,7 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[�
   add  := λ m i x y, by { simp, refl },
   smul := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
-  (mul_nonneg' (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
+  (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
 @[simp] lemma continuous_multilinear_map.curry_right_apply
   (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :

@@ -10,7 +10,6 @@ import logic.unique
 import data.prod
 
 /-!
-
 # Basic properties of sets
 
 Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
@@ -513,9 +512,11 @@ ext (assume x, or_and_distrib_left)
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
 ext (assume x, and_or_distrib_right)
 
-/-! ### Lemmas about `insert`
+/-!
+### Lemmas about `insert`
 
-`insert α s` is the set `{α} ∪ s`. -/
+`insert α s` is the set `{α} ∪ s`.
+-/
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
@@ -581,10 +582,11 @@ by finish [iff_def]
 
 /-! ### Lemmas about singletons -/
 
-theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
+theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ :=
+(insert_emptyc_eq _).symm
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
-by finish [singleton_def]
+iff.rfl
 
 @[simp]
 lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
@@ -607,7 +609,8 @@ by finish [ext_iff, or_comm]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
-@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
+@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
+⟨a, rfl⟩
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩
@@ -615,11 +618,11 @@ by finish
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} :=
 ext $ by simp
 
-@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
-by simp [singleton_def]
-
 @[simp] theorem singleton_union : {a} ∪ s = insert a s :=
-by rw [union_comm, union_singleton]
+rfl
+
+@[simp] theorem union_singleton : s ∪ {a} = insert a s :=
+by rw [union_comm, singleton_union]
 
 theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
@@ -1186,9 +1189,6 @@ protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, set.push_pull]
 
-lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
-assume s t, (preimage_eq_preimage hf).1
-
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
@@ -1380,7 +1380,7 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 range_iff_surjective.2 quot.exists_rep
 
 lemma range_const_subset {c : α} : range (λx:ι, c) ⊆ {c} :=
-range_subset_iff.2 $ λ x, or.inl rfl
+range_subset_iff.2 $ λ x, rfl
 
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
@@ -1734,3 +1734,19 @@ lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
 
 end subsingleton
+
+namespace function
+
+variables {ι : Sort*} {α : Type*} {β : Type*}
+
+lemma surjective.injective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
+lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
+range_iff_surjective.2 hf
+
+lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+  range (g ∘ f) = range g :=
+by rw [range_comp, hf.range_eq, image_univ]
+
+end function

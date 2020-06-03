@@ -93,7 +93,8 @@ example {α} [comm_ring α] (a : α) : a - a = 0 := by ring_exp_eq
 example (a : ℤ) : a - a = 0 := by ring_exp
 example (a : ℤ) : a + - a = 0 := by ring_exp
 example (a : ℤ) : - a = (-1) * a := by ring_exp
-example (a b : ℕ) : a - b + a + a = a - b + 2 * a := by ring_exp -- Here, (a - b) is treated as an atom.
+-- Here, (a - b) is treated as an atom.
+example (a b : ℕ) : a - b + a + a = a - b + 2 * a := by ring_exp
 example (n : ℕ) : n + 1 - 1 = n := by ring_exp! -- But we can force a bit of evaluation anyway.
 end negation
 

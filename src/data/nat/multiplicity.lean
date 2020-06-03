@@ -57,7 +57,7 @@ namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) :
   multiplicity p 1 = 0 :=
-by rw [multiplicity.one_right (mt is_unit_nat.mp (ne_of_gt hp.one_lt))]
+by rw [multiplicity.one_right (mt nat.is_unit_iff.mp (ne_of_gt hp.one_lt))]
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
@@ -65,8 +65,9 @@ by rw [← int.coe_nat_multiplicity, ← int.coe_nat_multiplicity,
   ← int.coe_nat_multiplicity, int.coe_nat_mul, multiplicity.mul (nat.prime_iff_prime_int.1 hp)]
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
-  multiplicity p (m ^ n) = add_monoid.smul n (multiplicity p m) :=
-by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_smul, add_comm]
+  multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
+by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_nsmul,
+  add_comm]
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
 have h₁ : ¬ is_unit (p : ℤ), from mt is_unit_int.1 (ne_of_gt hp.one_lt),

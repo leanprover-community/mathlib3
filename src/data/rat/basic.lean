@@ -359,7 +359,7 @@ protected theorem add_assoc : a + b + c = a + (b + c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
-by simp [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm]
+by simp [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm, add_assoc]
 
 protected theorem add_left_neg : -a + a = 0 :=
 num_denom_cases_on' a $ λ n d h,
@@ -436,7 +436,7 @@ instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
 --instance : domain ℚ           := by apply_instance
-instance : nonzero_comm_ring ℚ  := by apply_instance
+instance : nonzero ℚ            := by apply_instance
 instance : comm_ring ℚ          := by apply_instance
 --instance : ring ℚ             := by apply_instance
 instance : comm_semiring ℚ      := by apply_instance
@@ -515,10 +515,11 @@ lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num)
 if hr : r.num = 0 then
   have hr' : r = 0, from zero_of_num_zero hr,
   by simp *
-else calc q / r = q * r⁻¹ : div_eq_mul_inv
-            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
-            ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
-            ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
+else
+  calc q / r = q * r⁻¹ : div_eq_mul_inv
+         ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
+         ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
+         ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
 lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=

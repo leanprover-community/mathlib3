@@ -6,7 +6,8 @@ Authors: Yury Kudryashov
 import order.filter.extr
 import topology.continuous_on
 
-/-! # Local extrema of functions on topological spaces
+/-!
+# Local extrema of functions on topological spaces
 
 ## Main definitions
 

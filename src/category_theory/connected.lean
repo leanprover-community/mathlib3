@@ -88,7 +88,8 @@ This can be thought of as a local-to-global property.
 
 The converse is shown in `connected.of_constant_of_preserves_morphisms`
 -/
-lemma constant_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α) (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
+lemma constant_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α)
+  (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
   F j = F (default J) :=
 any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j
 

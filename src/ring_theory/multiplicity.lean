@@ -357,9 +357,9 @@ protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ}
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
-  multiplicity p (a ^ k) = add_monoid.smul k (multiplicity p a)
+  multiplicity p (a ^ k) = k •ℕ (multiplicity p a)
 | 0        := by simp [one_right hp.not_unit]
-| (succ k) := by simp [_root_.pow_succ, succ_smul, pow, multiplicity.mul hp]
+| (succ k) := by simp [_root_.pow_succ, succ_nsmul, pow, multiplicity.mul hp]
 
 lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=

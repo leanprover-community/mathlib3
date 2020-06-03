@@ -71,7 +71,7 @@ theorem abv_div
 by rw [division_def, abv_mul abv, abv_inv abv]; refl
 
 lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
-by simpa [sub_eq_add_neg] using abv_add abv (a - b) (b - c)
+by simpa [sub_eq_add_neg, add_assoc] using abv_add abv (a - b) (b - c)
 
 lemma sub_abv_le_abv_sub (a b : β) : abv a - abv b ≤ abv (a - b) :=
 sub_le_iff_le_add.2 $ by simpa using abv_add abv (a - b) b
@@ -110,7 +110,7 @@ theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
 ⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm]
+  by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
     using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
@@ -289,7 +289,8 @@ instance : ring (cau_seq β abv) :=
 by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
    { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
 
-instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] : comm_ring (cau_seq β abv) :=
+instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
+  comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
 
@@ -345,7 +346,7 @@ instance equiv : setoid (cau_seq β abv) :=
 ⟨λ f g, lim_zero (f - g),
 ⟨λ f, by simp [zero_lim_zero],
  λ f g h, by simpa using neg_lim_zero h,
- λ f g h fg gh, by simpa [sub_eq_add_neg] using add_lim_zero fg gh⟩⟩
+ λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε:α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -467,7 +468,8 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
   by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
     abv_zero abv] using ε0⟩
 
-theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
+theorem const_inv {x : β} (hx : x ≠ 0) :
+  const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
 ext (assume n, by simp[inv_apply, const_apply])
 
 end field
@@ -503,7 +505,7 @@ theorem pos_add_lim_zero {f g : cau_seq α abs} : pos f → lim_zero g → pos (
     rwa [← sub_eq_add_neg, sub_self_div_two] at this
   end⟩
 
-theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
+protected theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * g)
 | ⟨F, F0, hF⟩ ⟨G, G0, hG⟩ :=
   let ⟨i, h⟩ := exists_forall_ge_and hF hG in
   ⟨_, _root_.mul_pos F0 G0, i,

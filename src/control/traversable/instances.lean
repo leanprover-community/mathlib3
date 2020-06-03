@@ -7,6 +7,7 @@ Instances of `traversable` for types from the core library
 -/
 import data.list.forall2
 import data.set.lattice
+import control.applicative
 
 universes u v
 
@@ -42,7 +43,8 @@ instance : is_lawful_traversable option :=
 { id_traverse := @option.id_traverse,
   comp_traverse := @option.comp_traverse,
   traverse_eq_map_id := @option.traverse_eq_map_id,
-  naturality := @option.naturality }
+  naturality := @option.naturality,
+  .. option.is_lawful_monad }
 
 namespace list
 
@@ -75,11 +77,12 @@ protected lemma naturality {α β} (f : α → F β) (x : list α) :
 by induction x; simp! * with functor_norm
 open nat
 
-instance : is_lawful_traversable list :=
+instance : is_lawful_traversable.{u} list :=
 { id_traverse := @list.id_traverse,
   comp_traverse := @list.comp_traverse,
   traverse_eq_map_id := @list.traverse_eq_map_id,
-  naturality := @list.naturality }
+  naturality := @list.naturality,
+  .. list.is_lawful_monad }
 end
 
 section traverse
@@ -159,6 +162,7 @@ instance {σ : Type u} : is_lawful_traversable.{u} (sum σ) :=
 { id_traverse := @sum.id_traverse σ,
   comp_traverse := @sum.comp_traverse σ,
   traverse_eq_map_id := @sum.traverse_eq_map_id σ,
-  naturality := @sum.naturality σ }
+  naturality := @sum.naturality σ,
+  .. sum.is_lawful_monad }
 
 end sum

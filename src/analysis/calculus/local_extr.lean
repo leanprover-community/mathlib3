@@ -6,7 +6,8 @@ Authors: Yury Kudryashov
 import topology.local_extr
 import analysis.calculus.deriv
 
-/-! # Local extrema of smooth functions
+/-!
+# Local extrema of smooth functions
 
 ## Main definitions
 

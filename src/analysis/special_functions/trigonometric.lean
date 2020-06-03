@@ -854,8 +854,8 @@ instance angle.is_add_group_hom : @is_add_group_hom ℝ angle _ _ (coe : ℝ →
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
 @[simp] lemma coe_smul (x : ℝ) (n : ℕ) :
-  ↑(add_monoid.smul n x : ℝ) = add_monoid.smul n (↑x : angle) :=
-add_monoid_hom.map_smul ⟨coe, coe_zero, coe_add⟩ _ _
+  ↑(n •ℕ x : ℝ) = n •ℕ (↑x : angle) :=
+add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
 @[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) :=
 add_monoid_hom.map_gsmul ⟨coe, coe_zero, coe_add⟩ _ _
 
@@ -1160,7 +1160,7 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
 lemma tan_surjective : function.surjective tan :=
-function.surjective_of_has_right_inverse ⟨_, tan_arctan⟩
+function.right_inverse.surjective tan_arctan
 
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)

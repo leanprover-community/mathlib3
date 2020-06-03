@@ -60,10 +60,12 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
-@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} :
+  x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
-@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} :
+  x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
 @[simp] theorem bind_eq_none' {o : option α} {f : α → option β} :
@@ -89,10 +91,12 @@ lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
-@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
+  f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
-@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} :
+  x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id

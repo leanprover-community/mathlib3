@@ -35,7 +35,29 @@ lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
 
-variables {α} (p : Prop) [decidable p]
+variables {α}
+
+@[simp] lemma units.inv_smul_smul (u : units α) (x : β) :
+  (↑u⁻¹:α) • (u:α) • x = x :=
+by rw [smul_smul, u.inv_mul, one_smul]
+
+@[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
+  (u:α) • (↑u⁻¹:α) • x = x :=
+by rw [smul_smul, u.mul_inv, one_smul]
+
+section gwz
+
+variables {G : Type*} [group_with_zero G] [mul_action G β]
+
+lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
+(units.mk0 c hc).inv_smul_smul x
+
+lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
+(units.mk0 c hc).smul_inv_smul x
+
+end gwz
+
+variables (p : Prop) [decidable p]
 
 lemma ite_smul (a₁ a₂ : α) (b : β) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
 by split_ifs; refl
@@ -57,6 +79,7 @@ def regular : mul_action α α :=
 
 variables [mul_action α β]
 
+/-- The orbit of an element under an action. -/
 def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
@@ -75,6 +98,7 @@ instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
 
 variable (α)
 
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself. -/
 def stabilizer (b : β) : set α :=
 {x : α | x • b = b}
 
@@ -85,6 +109,7 @@ variable {α}
 
 variables (α) (β)
 
+/-- The set of elements fixed under the whole action. -/
 def fixed_points : set β := {b : β | ∀ x, x ∈ stabilizer α b}
 
 variables {α} (β)
@@ -97,6 +122,7 @@ lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
 
+/-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
 def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
@@ -116,18 +142,25 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
+lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+(to_units α c).inv_smul_smul x
+
+lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+(to_units α c).smul_inv_smul x
+
 variables (α) (β)
 
+/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := (•) g,
   inv_fun := (•) g⁻¹,
-  left_inv := λ a, by rw [← mul_action.mul_smul, inv_mul_self, mul_action.one_smul],
-  right_inv := λ a, by rw [← mul_action.mul_smul, mul_inv_self, mul_action.one_smul] }
+  left_inv := inv_smul_smul g,
+  right_inv := smul_inv_smul g }
 
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
+{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -152,6 +185,7 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
 
 variables (α) (β)
 
+/-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
@@ -161,6 +195,7 @@ variables {β}
 
 open quotient_group
 
+/-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
 equiv.symm (@equiv.of_bijective _ _
@@ -176,10 +211,15 @@ equiv.symm (@equiv.of_bijective _ _
   by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
 
+@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+  ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
+rfl
+
 end
 
 open quotient_group mul_action is_subgroup
 
+/-- Action on left cosets. -/
 def mul_left_cosets (H : set α) [is_subgroup H]
   (x : α) (y : quotient H) : quotient H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
@@ -215,6 +255,16 @@ distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
+
+theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
+⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
+
+theorem units.smul_ne_zero (u : units α) {x : β} : (u : α) • x ≠ 0 ↔ x ≠ 0 :=
+not_congr u.smul_eq_zero
+
+@[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
+  u • x = 0 ↔ x = 0 :=
+exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
 
 variable (β)
 

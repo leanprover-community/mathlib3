@@ -220,7 +220,7 @@ lemma comp_coeff_zero (q : formal_multilinear_series 𝕜 F G) (p : formal_multi
 begin
   let c : composition 0 := composition.ones 0,
   dsimp [formal_multilinear_series.comp],
-  have : finset.singleton c = (finset.univ : finset (composition 0)),
+  have : {c} = (finset.univ : finset (composition 0)),
   { apply finset.eq_of_subset_of_card_le; simp [finset.card_univ, composition_card 0] },
   rw ← this,
   simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
@@ -362,9 +362,9 @@ begin
   let r0 : nnreal := (4 * max Cp 1)⁻¹,
   set r := min rp 1 * min rq 1 * r0,
   have r_pos : 0 < r,
-  { apply mul_pos' (mul_pos' _ _),
+  { apply mul_pos (mul_pos _ _),
     { rw [nnreal.inv_pos],
-      apply mul_pos',
+      apply mul_pos,
       { norm_num },
       { exact lt_of_lt_of_le zero_lt_one (le_max_right _ _) } },
     { rw ennreal.coe_pos at rp_pos, simp [rp_pos, zero_lt_one] },
@@ -431,7 +431,7 @@ begin
     begin
       congr' 1,
       ext1 n,
-      rw [tsum_fintype, finset.sum_const, add_monoid.smul_eq_mul, finset.card_univ, mul_assoc]
+      rw [tsum_fintype, finset.sum_const, nsmul_eq_mul, finset.card_univ, mul_assoc]
     end
   ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
     begin

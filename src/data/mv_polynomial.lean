@@ -149,6 +149,14 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
   map_add := λ a a', C_add,
   map_mul := λ a a', C_mul }
 
+lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+  function.injective (C : R → mv_polynomial σ R) :=
+finsupp.injective_single _
+
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+  (C r : mv_polynomial σ R) = C s ↔ r = s :=
+(C_injective σ R).eq_iff
+
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
 
@@ -253,8 +261,8 @@ lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ α) :
-  (∀ m, coeff m p = coeff m q) ↔ p = q :=
-⟨ext p q, λ h m, by rw h⟩
+  p = q ↔ (∀ m, coeff m p = coeff m q) :=
+⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply
@@ -641,12 +649,11 @@ end
 
 lemma map_injective (hf : function.injective f) :
   function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
-λ p q h, ext _ _ $ λ m, hf $
 begin
-  rw ← ext_iff at h,
-  specialize h m,
-  rw [coeff_map, coeff_map] at h,
-  exact h
+  intros p q h,
+  simp only [ext_iff, coeff_map] at h ⊢,
+  intro m,
+  exact hf (h m),
 end
 
 end map
@@ -667,15 +674,14 @@ lemma degrees_monomial (s : σ →₀ ℕ) (a : α) : degrees (monomial s a) ≤
 finset.sup_le $ assume t h,
 begin
   have := finsupp.support_single_subset h,
-  rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  rw [finset.mem_singleton] at this,
   rw this
 end
 
 lemma degrees_monomial_eq (s : σ →₀ ℕ) (a : α) (ha : a ≠ 0) :
   degrees (monomial s a) = s.to_multiset :=
 le_antisymm (degrees_monomial s a) $ finset.le_sup $
-  by rw [monomial, finsupp.support_single_ne_zero ha,
-    finset.singleton_eq_singleton, finset.mem_singleton]
+  by rw [monomial, finsupp.support_single_ne_zero ha, finset.mem_singleton]
 
 lemma degrees_C (a : α) : degrees (C a : mv_polynomial σ α) = 0 :=
 multiset.le_zero.1 $ degrees_monomial _ _
@@ -711,7 +717,7 @@ lemma degrees_mul (p q : mv_polynomial σ α) : (p * q).degrees ≤ p.degrees + 
 begin
   refine finset.sup_le (assume b hb, _),
   have := support_mul p q hb,
-  simp only [finset.mem_bind, finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  simp only [finset.mem_bind, finset.mem_singleton] at this,
   rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
   rw [finsupp.to_multiset_add],
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
@@ -728,7 +734,7 @@ begin
 end
 
 lemma degrees_pow (p : mv_polynomial σ α) :
-  ∀(n : ℕ), (p^n).degrees ≤ add_monoid.smul n p.degrees
+  ∀(n : ℕ), (p^n).degrees ≤ n •ℕ p.degrees
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
 | (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
 
@@ -751,7 +757,7 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
-by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
+by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero (one_ne_zero : 1 ≠ 0)]
 
 lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
   x v = 0 :=
@@ -799,7 +805,7 @@ end
 nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   have _ := finsupp.support_single_subset hn,
   begin
-    rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+    rw [finset.mem_singleton] at this,
     subst this,
     exact le_refl _
   end
@@ -810,12 +816,11 @@ by rw [← C_0]; exact total_degree_C (0 : α)
 @[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
 
-@[simp] lemma total_degree_X {α} [nonzero_comm_ring α] (s : σ) :
+@[simp] lemma total_degree_X {α} [comm_semiring α] [nonzero α] (s : σ) :
   (X s : mv_polynomial σ α).total_degree = 1 :=
 begin
-  rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
-  simp only [finset.sup, sum_single_index, finset.insert_empty_eq_singleton,
-    finset.fold_singleton, sup_bot_eq],
+  rw [total_degree, X, monomial, finsupp.support_single_ne_zero (one_ne_zero : (1 : α) ≠ 0)],
+  simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
 end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :
@@ -834,7 +839,7 @@ lemma total_degree_mul (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := add_monoid_algebra.support_mul a b hn,
   begin
-    simp only [finset.mem_bind, finset.mem_singleton, finset.singleton_eq_singleton] at this,
+    simp only [finset.mem_bind, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
     rw [finsupp.sum_add_index],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
@@ -1219,7 +1224,7 @@ theorem exists_fin_rename (p : mv_polynomial γ α) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
-  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, q.rename e, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end

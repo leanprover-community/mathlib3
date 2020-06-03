@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
 import algebra.order_functions
+import init_.data.nat.lemmas
 
 /-!
 # Basic operations on the natural numbers
@@ -18,6 +19,19 @@ and extra recursors:
 -/
 
 universes u v
+
+instance : canonically_ordered_comm_semiring ℕ :=
+{ le_iff_exists_add := assume a b,
+  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  zero_ne_one       := ne_of_lt zero_lt_one,
+  mul_eq_zero_iff   := assume a b,
+    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  bot               := 0,
+  bot_le            := nat.zero_le,
+  .. (infer_instance : ordered_add_comm_monoid ℕ),
+  .. (infer_instance : linear_ordered_semiring ℕ),
+  .. (infer_instance : comm_semiring ℕ) }
 
 namespace nat
 variables {m n k : ℕ}
@@ -578,7 +592,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1] },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -918,6 +932,23 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
 
+lemma lt_two_pow (n : ℕ) : n < 2^n :=
+lt_pow_self dec_trivial n
+
+lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
+one_pow n ▸ pow_le_pow_of_le_left h n
+lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
+
+lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
+
+lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
+one_pow n ▸ pow_lt_pow_of_lt_left h₁ h₀
+lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
+one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
+
+lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
+lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
+
 lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 
@@ -929,6 +960,25 @@ strict_mono.lt_iff_lt (pow_right_strict_mono k)
 
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
 strict_mono.injective (pow_right_strict_mono k)
+
+lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
+| (x+1) w :=
+begin
+  split,
+  { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
+  { intro a, cases x with x,
+    { simp only [one_pow], },
+    { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
+      use (x+2)^(l-k),
+      rw [←nat.pow_add, add_comm k, nat.sub_add_cancel le], } }
+end
+
+/-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
+lemma pow_dvd_pow_iff_le_right {x k l : ℕ} (w : 1 < x) : x^k ∣ x^l ↔ k ≤ l :=
+by rw [pow_dvd_pow_iff_pow_le_pow (lt_of_succ_lt w), pow_le_iff_le_right w]
+
+lemma pow_dvd_pow_iff_le_right' {b k l : ℕ} : (b+2)^k ∣ (b+2)^l ↔ k ≤ l :=
+pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
 
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
@@ -961,55 +1011,6 @@ by unfold bodd div2; cases bodd_div2 n; refl
 
 @[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
 @[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
-
-/- iterate -/
-
-section
-variables {α : Sort*} (op : α → α)
-
-@[simp] theorem iterate_zero (a : α) : op^[0] a = a := rfl
-
-@[simp] theorem iterate_succ (n : ℕ) (a : α) : op^[succ n] a = (op^[n]) (op a) := rfl
-
-theorem iterate_add : ∀ (m n : ℕ) (a : α), op^[m + n] a = (op^[m]) (op^[n] a)
-| m 0 a := rfl
-| m (succ n) a := iterate_add m n _
-
-@[simp] theorem iterate_one : op^[1] = op := funext $ λ a, rfl
-
-theorem iterate_succ' (n : ℕ) (a : α) : op^[succ n] a = op (op^[n] a) :=
-by rw [← one_add, iterate_add, iterate_one]
-
-lemma iterate_mul (m : ℕ) : ∀ n, op^[m * n] = (op^[m]^[n])
-| 0 := by { ext a, simp only [mul_zero, iterate_zero] }
-| (n + 1) := by { ext x, simp only [mul_add, mul_one, iterate_one, iterate_add, iterate_mul n] }
-
-@[elab_as_eliminator]
-theorem iterate_ind {α : Type u} (f : α → α) {p : (α → α) → Prop} (hf : p f) (hid : p id)
-  (hcomp : ∀ ⦃f g⦄, p f → p g → p (f ∘ g)) :
-  ∀ n, p (f^[n])
-| 0 := hid
-| (n+1) := hcomp (iterate_ind n) hf
-
-theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
-  op^[n] x = x :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
-
-theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β} {op'' : α → β}
-  (H : ∀ x, op' (op'' x) = op'' (op x)) {n : ℕ} {x : α} :
-  op'^[n] (op'' x) = op'' (op^[n] x) :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
-
-theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α}
-  (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
-  op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
-by induction n; [simp only [iterate_zero], simp only [iterate_succ', H, *]]
-
-theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
-  op^[n] (op'^[n] x) = x :=
-by induction n; [refl, rwa [iterate_succ, iterate_succ', H]]
-
-end
 
 /- size and shift -/
 
@@ -1274,6 +1275,9 @@ by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
 lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
 
+lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
+by { apply choose_symm_of_eq_add, rw [add_comm m 1, add_assoc 1 m m, add_comm (2 * m) 1, two_mul m] }
+
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
@@ -1301,6 +1305,17 @@ begin
   apply nat.add_sub_cancel',
   exact mul_le_mul_left _ hk,
 end
+
+theorem units_eq_one (u : units ℕ) : u = 1 :=
+units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
+
+theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
+add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
+
+@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
+iff.intro
+  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 section find_greatest
 
@@ -1482,6 +1497,13 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 | (some n) (some (m + 1)) := by erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
     with_bot.coe_eq_coe, with_bot.coe_eq_coe]; simp [nat.add_succ, nat.succ_inj', nat.succ_ne_zero]
 
+@[simp] lemma with_bot.coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
+by rw [← with_bot.coe_zero, with_bot.coe_le_coe]; exact nat.zero_le _
+
+@[simp] lemma with_bot.lt_zero_iff (n : with_bot ℕ) : n < 0 ↔ n = ⊥ :=
+option.cases_on n dec_trivial (λ n, iff_of_false
+  (by simp [with_bot.some_eq_coe]) (λ h, option.no_confusion h))
+
 -- induction
 
 /-- Induction principle starting at a non-zero number. For maps to a `Sort*` see `le_rec_on`. -/
@@ -1523,72 +1545,3 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 end nat
-
-namespace function
-
-theorem injective.iterate {α : Type u} {op : α → α} (Hinj : injective op) :
-  ∀ n, injective (op^[n]) :=
-nat.iterate_ind op Hinj injective_id $ λ _ _, injective_comp
-
-theorem surjective.iterate {α : Type u} {op : α → α} (Hinj : surjective op) :
-  ∀ n, surjective (op^[n]) :=
-nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective_comp
-
-theorem bijective.iterate {α : Type u} {op : α → α} (Hinj : bijective op) :
-  ∀ n, bijective (op^[n]) :=
-nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective_comp
-
-end function
-
-namespace monoid_hom
-
-variables {M : Type*} {G : Type*} [monoid M] [group G]
-
-@[simp, to_additive]
-theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
-nat.iterate₀ f.map_one
-
-@[simp, to_additive]
-theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
-  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
-nat.iterate₂ f.map_mul
-
-@[simp, to_additive]
-theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
-  f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
-nat.iterate₁ f.map_inv
-
-@[simp]
-theorem iterate_map_sub {A : Type*} [add_group A] (f : A →+ A) (n : ℕ) (x y) :
-  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
-nat.iterate₂ f.map_sub
-
-end monoid_hom
-
-namespace ring_hom
-
-variables {R : Type*} [semiring R] {S : Type*} [ring S]
-
-@[simp] theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
-nat.iterate₀ f.map_one
-
-@[simp] theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
-nat.iterate₀ f.map_zero
-
-@[simp] theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
-  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
-nat.iterate₂ f.map_mul
-
-@[simp] theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
-  f^[n] (x + y) = (f^[n] x) + (f^[n] y) :=
-nat.iterate₂ f.map_add
-
-@[simp] theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
-  f^[n] (-x) = -(f^[n] x) :=
-nat.iterate₁ f.map_neg
-
-@[simp] theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
-  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
-nat.iterate₂ f.map_sub
-
-end ring_hom

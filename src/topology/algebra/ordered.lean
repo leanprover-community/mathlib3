@@ -8,7 +8,8 @@ import order.liminf_limsup
 import data.set.intervals
 import topology.algebra.group
 
-/-! # Theory of topology on ordered spaces
+/-!
+# Theory of topology on ordered spaces
 
 ## Main definitions
 

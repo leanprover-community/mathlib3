@@ -15,8 +15,8 @@ import analysis.normed_space.basic
 * `borel α` : the least `σ`-algebra that contains all open sets;
 * `class borel_space` : a space with `topological_space` and `measurable_space` structures
   such that `‹measurable_space α› = borel α`;
-* `class opens_measurable_space` : a space with `topological_space` and `measurable_space` structures
-  such that all open sets are measurable; equivalently, `borel α ≤ ‹measurable_space α›`.
+* `class opens_measurable_space` : a space with `topological_space` and `measurable_space`
+  structures such that all open sets are measurable; equivalently, `borel α ≤ ‹measurable_space α›`.
 * `borel_space` instances on `empty`, `unit`, `bool`, `nat`, `int`, `rat`;
 * `measurable` and `borel_space` instances on `ℝ`, `ℝ≥0`, `ennreal`.
 
@@ -123,8 +123,8 @@ lemma borel_eq_generate_Ioi (α)
 begin
   refine le_antisymm _ (generate_from_le _),
   { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
-    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x}))) {x | a < x} :=
-      λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x})))
+      {x | a < x} := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
     by_cases h : ∃ a', ∀ b, b < a ↔ b ≤ a',
     { rcases h with ⟨a', ha'⟩,
@@ -201,9 +201,8 @@ is_measurable.compl_iff.1 $ h.is_measurable
 lemma is_measurable_singleton [t1_space α] {x : α} : is_measurable ({x} : set α) :=
 is_closed_singleton.is_measurable
 
--- TODO (Lean 3.8): this will become `= is_measurable_singleton`
 lemma is_measurable_eq [t1_space α] {a : α} : is_measurable {x | x = a} :=
-by { convert is_measurable_singleton; try { apply_instance }, ext x, exact mem_singleton_iff.symm }
+is_measurable_singleton
 
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_closed_closure.is_measurable
@@ -530,7 +529,8 @@ begin
   apply le_antisymm (_ : _ ≤ g) (measurable_space.generate_from_le (λ t, _)),
   { rw borel_eq_generate_from_Ioo_rat,
     refine generate_from_le (λ t, _),
-    simp only [mem_Union], rintro ⟨a, b, h, rfl|⟨⟨⟩⟩⟩,
+    simp only [mem_Union], rintro ⟨a, b, h, H⟩,
+    rw [mem_singleton_iff.1 H],
     rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, - Iio c) ∩ Iio b),
     { have hg : ∀q:ℚ, g.is_measurable (Iio q) :=
         λ q, generate_measurable.basic _ (by simp; exact ⟨_, rfl⟩),

@@ -56,8 +56,8 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   inf := λ a b, Inf {a, b},
   le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
-  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
-  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
   sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
   le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
   le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
@@ -98,10 +98,10 @@ theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
 le_trans (Inf_le hb) h
 
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
-Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
+(is_lub_Sup s).mono (is_lub_Sup t) h
 
 theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
+(is_glb_Inf s).mono (is_glb_Inf t) h
 
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
@@ -252,6 +252,11 @@ supr_le $ le_supr _ ∘ h
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
+theorem Sup_eq_supr {s : set α} : Sup s = (⨆a ∈ s, a) :=
+le_antisymm
+  (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)
+  (supr_le $ assume b, supr_le $ assume h, le_Sup h)
+
 lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
@@ -265,6 +270,10 @@ lemma monotone.le_map_supr2 [complete_lattice β] {f : α → β} (hf : monotone
 calc (⨆ i h, f (s i h)) ≤ (⨆ i, f (⨆ h, s i h)) :
   supr_le_supr $ λ i, hf.le_map_supr
 ... ≤ f (⨆ i (h : ι' i), s i h) : hf.le_map_supr
+
+lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
+  (⨆a∈s, f a) ≤ f (Sup s) :=
+by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
@@ -321,6 +330,11 @@ le_infi $ infi_le _ ∘ h
 @[simp] theorem le_infi_iff : a ≤ infi s ↔ (∀i, a ≤ s i) :=
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
 
+theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
+le_antisymm
+  (le_infi $ assume b, le_infi $ assume h, Inf_le h)
+  (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
+
 lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
   f (infi s) ≤ (⨅ i, f (s i)) :=
 le_infi $ λ i, hf $ infi_le _ _
@@ -330,6 +344,10 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
   f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
 calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
 ... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
+
+lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
+  f (Inf s) ≤ ⨅ a∈s, f a :=
+by rw [Inf_eq_infi]; exact hf.map_infi2_le _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=
@@ -550,16 +568,6 @@ le_antisymm
     (supr_le_supr2 $ assume i, ⟨or.inl i, le_refl _⟩)
     (supr_le_supr2 $ assume j, ⟨or.inr j, le_refl _⟩))
 
-theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
-le_antisymm
-  (le_infi $ assume b, le_infi $ assume h, Inf_le h)
-  (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
-
-theorem Sup_eq_supr {s : set α} : Sup s = (⨆a ∈ s, a) :=
-le_antisymm
-  (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)
-  (supr_le $ assume b, supr_le $ assume h, le_Sup h)
-
 lemma Sup_range {α : Type u} [has_Sup α] {f : ι → α} : Sup (range f) = supr f := rfl
 
 lemma Inf_range {α : Type u} [has_Inf α] {f : ι → α} : Inf (range f) = infi f := rfl
@@ -628,13 +636,13 @@ theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set 
 by simp
 
 theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x) = f a ⊓ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, infi_insert, inf_comm], simp }
+by rw [infi_insert, infi_singleton]
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 by simp
 
 theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
-by { rw [show {a, b} = (insert b {a} : set β), from rfl, supr_insert, sup_comm], simp }
+by rw [supr_insert, supr_singleton]
 
 lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨅ c ∈ f '' t, g c) = (⨅ b ∈ t, g (f b)) :=
@@ -818,21 +826,6 @@ theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone
 assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h
 
 end complete_lattice
-
-section ord_continuous
-variables [complete_lattice α] [complete_lattice β]
-
-/-- A function `f` between complete lattices is order-continuous
-  if it preserves all suprema. -/
-def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
-
-lemma ord_continuous.sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-by rw [← Sup_pair, ← Sup_pair, hf {a₁, a₂}, ← Sup_image, image_pair]
-
-lemma ord_continuous.mono {f : α → β} (hf : ord_continuous f) : monotone f :=
-assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_of_le_right h]
-
-end ord_continuous
 
 namespace order_dual
 variable (α)

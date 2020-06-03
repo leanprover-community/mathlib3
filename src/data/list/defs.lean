@@ -33,7 +33,8 @@ def split_at : ℕ → list α → list α × list α
 
 
 /-- An auxiliary function for `split_on_p`. -/
-def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] :
+  list α → (list α → list α) → list (list α)
 | [] f       := [f []]
 | (h :: t) f :=
   if P h then f [] :: split_on_p_aux t id
@@ -172,15 +173,6 @@ def lookmap (f : α → option α) : list α → list α
   | none   := a :: lookmap l
   end
 
-def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
-| k []      := []
-| k (a::as) := f k a::(map_with_index_core (k+1) as)
-
-/-- Given a function `f : ℕ → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`. -/
-def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
-map_with_index_core f 0 as
-
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
@@ -309,9 +301,10 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | []      is := H0 is
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
-    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is,
+      length (t :: ts)),
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
-  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (lt_add_of_pos_left _ (succ_pos _)),
+  have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
 using_well_founded {
   dec_tac := tactic.assumption,

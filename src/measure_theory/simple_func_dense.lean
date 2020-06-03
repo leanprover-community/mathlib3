@@ -21,14 +21,14 @@ variables {α : Type u} {β : Type v} {ι : Type*}
 
 namespace measure_theory
 open ennreal nat metric
-open_locale measure_theory
+
 variables [measure_space α] [normed_group β] [second_countable_topology β]
   [measurable_space β] [borel_space β]
 
 local infixr ` →ₛ `:25 := simple_func
 
--- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
--- It should be broken in a sequence of more manageable pieces.
+-- FIXME this monolithic proof used to cause a deterministic timeout with `-T50000`
+-- It no longer does, but it should still be broken up into a sequence of more manageable pieces.
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=

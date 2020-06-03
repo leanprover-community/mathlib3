@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import linear_algebra.finsupp
+import linear_algebra.projection
 import order.zorn
 import data.fintype.card
 
@@ -291,8 +292,10 @@ begin
   { simpa },
 end
 
+variables (R M)
 lemma linear_independent_empty : linear_independent R (λ x, x : (∅ : set M) → M) :=
 by simp [linear_independent_subtype_disjoint]
+variables {R M}
 
 lemma linear_independent.mono {t s : set M} (h : t ⊆ s) :
   linear_independent R (λ x, x : s → M) → linear_independent R (λ x, x : t → M) :=
@@ -352,7 +355,7 @@ begin
     rcases hs.finset_le hη fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
       λ j hj, hi j (finite.mem_to_finset.2 hj)) },
-  { refine linear_independent_empty.mono _,
+  { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
 end
 
@@ -609,8 +612,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact injective_comp prod.injective_inl inj_v },
-    { exact injective_comp prod.injective_inr inj_v' },
+    { exact prod.injective_inl.comp inj_v },
+    { exact prod.injective_inr.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -735,7 +738,7 @@ lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_
 linear_map.ext hv.total_repr
 
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
-linear_map.ker_eq_bot.2 $ injective_of_left_inverse hv.total_repr
+linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
 lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
 by rw [is_basis.repr, linear_map.range, submodule.map_comp,
@@ -809,8 +812,21 @@ def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
+`v` and `v'` and a bijection between the indexing sets of the two bases. -/
+def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
+  (e : ι ≃ ι') : M ≃ₗ[R] M' :=
+{ inv_fun := hv'.constr (v ∘ e.symm),
+  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
+      from hv.ext $ by simp,
+    λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
+  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
+      from hv'.ext $ by simp,
+    λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
+  ..hv.constr (v' ∘ e) }
+
+/-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
-def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} {f : M → M'} {g : M' → M}
+def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
@@ -912,6 +928,10 @@ linear_equiv.trans (module_equiv_finsupp h)
     add := λ x y, by ext; exact finsupp.add_apply,
     smul := λ x y, by ext; exact finsupp.smul_apply,
     ..finsupp.equiv_fun_on_fintype }
+
+/-- A module over a finite ring that admits a finite basis is finite. -/
+def module.fintype_of_fintype [fintype R] : fintype M :=
+fintype.of_equiv _ (equiv_fun_basis h).to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
@@ -1038,7 +1058,7 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
 
 variables (K V)
 lemma exists_is_basis : ∃b : set V, is_basis K (λ i, i : b → V) :=
-let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
+let ⟨b, _, hb⟩ := exists_subset_is_basis (linear_independent_empty K V : _) in ⟨b, hb⟩
 
 variables {K V}
 
@@ -1051,7 +1071,7 @@ have ∀t, ∀(s' : finset V), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span 
 assume t, finset.induction_on t
   (assume s' hs' _ hss',
     have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@zero_ne_one K _) hs hs' $
+      from eq_of_linear_independent_of_span_subtype zero_ne_one hs hs' $
           by simpa using hss',
     ⟨s', by simp [this]⟩)
   (assume b₁ t hb₁t ih s' hs' hst hss',
@@ -1126,6 +1146,10 @@ begin
   exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _
 end
 
+lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_compl p q :=
+let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
+
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
   (hf_surj : f.range = ⊤) : ∃g:V' →ₗ V, f.comp g = linear_map.id :=
 begin
@@ -1140,20 +1164,9 @@ open submodule linear_map
 
 theorem quotient_prod_linear_equiv (p : submodule K V) :
   nonempty ((p.quotient × p) ≃ₗ[K] V) :=
-begin
-  rcases p.mkq.exists_right_inverse_of_surjective p.range_mkq with ⟨f, hf⟩,
-  have mkf : ∀ x, submodule.quotient.mk (f x) = x := linear_map.ext_iff.1 hf,
-  have fp : ∀ x, x - f (p.mkq x) ∈ p :=
-    λ x, (submodule.quotient.eq p).1 (mkf (p.mkq x)).symm,
-  refine ⟨linear_equiv.of_linear (f.coprod p.subtype)
-    (p.mkq.prod (cod_restrict p (linear_map.id - f.comp p.mkq) fp))
-    (by ext; simp) _⟩,
-  ext ⟨⟨x⟩, y, hy⟩; simp,
-  { apply (submodule.quotient.eq p).2,
-    simpa [sub_eq_add_neg, add_left_comm] using sub_mem p hy (fp x) },
-  { refine subtype.coe_ext.2 _,
-    simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
-end
+let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
+((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
+  (prod_equiv_of_is_compl q p hq.symm)
 
 open fintype
 

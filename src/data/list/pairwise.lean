@@ -74,7 +74,8 @@ pairwise.iff_of_mem (by simp only [true_and, iff_self, forall_2_true_iff] {conte
 
 theorem pairwise.imp_mem {l : list α} :
   pairwise R l ↔ pairwise (λ x y, x ∈ l → y ∈ l → R x y) l :=
-pairwise.iff_of_mem (by simp only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
+pairwise.iff_of_mem
+  (by simp only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
 
 theorem pairwise_of_sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pairwise R l₂ → pairwise R l₁
 | ._ ._ sublist.slnil h := h
@@ -101,15 +102,19 @@ forall_of_forall_of_pairwise
   (pairwise.imp (λ _ _ h _, h) hl)
 
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
-by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff, pairwise.nil, and_true]
+by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff,
+  pairwise.nil, and_true]
 
 theorem pairwise_pair {a b : α} : pairwise R [a, b] ↔ R a b :=
-by simp only [pairwise_cons, mem_singleton, forall_eq, forall_prop_of_false (not_mem_nil _), forall_true_iff, pairwise.nil, and_true]
+by simp only [pairwise_cons, mem_singleton, forall_eq, forall_prop_of_false (not_mem_nil _),
+  forall_true_iff, pairwise.nil, and_true]
 
 theorem pairwise_append {l₁ l₂ : list α} : pairwise R (l₁++l₂) ↔
   pairwise R l₁ ∧ pairwise R l₂ ∧ ∀ x ∈ l₁, ∀ y ∈ l₂, R x y :=
-by induction l₁ with x l₁ IH; [simp only [list.pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_true_iff, and_true, true_and, nil_append],
-simp only [cons_append, pairwise_cons, forall_mem_append, IH, forall_mem_cons, forall_and_distrib, and_assoc, and.left_comm]]
+by induction l₁ with x l₁ IH; [simp only [list.pairwise.nil, forall_prop_of_false (not_mem_nil _),
+  forall_true_iff, and_true, true_and, nil_append],
+simp only [cons_append, pairwise_cons, forall_mem_append, IH, forall_mem_cons, forall_and_distrib,
+  and_assoc, and.left_comm]]
 
 theorem pairwise_append_comm (s : symmetric R) {l₁ l₂ : list α} :
   pairwise R (l₁++l₂) ↔ pairwise R (l₂++l₁) :=
@@ -178,11 +183,13 @@ pairwise_of_sublist (filter_sublist _)
 theorem pairwise_join {L : list (list α)} : pairwise R (join L) ↔
   (∀ l ∈ L, pairwise R l) ∧ pairwise (λ l₁ l₂, ∀ (x ∈ l₁) (y ∈ l₂), R x y) L :=
 begin
-  induction L with l L IH, {simp only [join, pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_const, and_self]},
+  induction L with l L IH,
+  {simp only [join, pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_const, and_self]},
   have : (∀ (x : α), x ∈ l → ∀ (y : α) (x_1 : list α), x_1 ∈ L → y ∈ x_1 → R x y) ↔
           ∀ (a' : list α), a' ∈ L → ∀ (x : α), x ∈ l → ∀ (y : α), y ∈ a' → R x y :=
     ⟨λ h a b c d e, h c d e a b, λ h c d e a b, h a b c d e⟩,
-  simp only [join, pairwise_append, IH, mem_join, exists_imp_distrib, and_imp, this, forall_mem_cons, pairwise_cons],
+  simp only [join, pairwise_append, IH, mem_join, exists_imp_distrib, and_imp, this,
+    forall_mem_cons, pairwise_cons],
   simp only [and_assoc, and_comm, and.left_comm],
 end
 
@@ -196,7 +203,8 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
     pairwise.nil, mem_reverse, mem_singleton, forall_eq, true_and] using h]
 
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
-  pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j), R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
+  pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
+    R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
 | [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (not_lt_zero j).elim h
 | (a::l) := begin
   rw [pairwise_cons, pairwise_iff_nth_le],

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.group.hom
+import algebra.ring
 
 universes u v
 variable {α : Type u}
@@ -116,10 +117,8 @@ namespace with_zero
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-instance [has_one α] : zero_ne_one_class (with_zero α) :=
-{ zero_ne_one := λ h, option.no_confusion h,
-  ..with_zero.has_zero,
-  ..with_zero.has_one }
+instance [has_one α] : nonzero (with_zero α) :=
+{ zero_ne_one := λ h, option.no_confusion h }
 
 lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
@@ -158,7 +157,8 @@ instance [monoid α] : monoid (with_zero α) :=
     | none   := rfl
     | some a := congr_arg some $ mul_one _
     end,
-  ..with_zero.zero_ne_one_class,
+  ..with_zero.has_one,
+  ..with_zero.nonzero,
   ..with_zero.semigroup }
 
 instance [comm_monoid α] : comm_monoid (with_zero α) :=
@@ -243,5 +243,25 @@ begin
 end
 
 end comm_group
+
+section semiring
+
+instance [semiring α] : semiring (with_zero α) :=
+{ left_distrib := λ a b c, begin
+    cases a with a, {refl},
+    cases b with b; cases c with c; try {refl},
+    exact congr_arg some (left_distrib _ _ _)
+  end,
+  right_distrib := λ a b c, begin
+    cases c with c,
+    { change (a + b) * 0 = a * 0 + b * 0, simp },
+    cases a with a; cases b with b; try {refl},
+    exact congr_arg some (right_distrib _ _ _)
+  end,
+  ..with_zero.add_comm_monoid,
+  ..with_zero.mul_zero_class,
+  ..with_zero.monoid }
+
+end semiring
 
 end with_zero

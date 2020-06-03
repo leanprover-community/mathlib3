@@ -144,9 +144,10 @@ protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
 ⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
-@[refl] def refl : C ≌ C := equivalence.mk (𝟭 C) (𝟭 C) (iso.refl _) (iso.refl _)
+@[refl, simps] def refl : C ≌ C :=
+⟨𝟭 C, 𝟭 C, iso.refl _, iso.refl _, λ X, category.id_comp _⟩
 
-@[symm] def symm (e : C ≌ D) : D ≌ C :=
+@[symm, simps] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
 
 variables {E : Type u₃} [category.{v₃} E]
@@ -269,13 +270,13 @@ end functor
 namespace is_equivalence
 
 @[simp] lemma fun_inv_map (F : C ⥤ D) [is_equivalence F] (X Y : D) (f : X ⟶ Y) :
-  F.map (F.inv.map f) = (F.inv_fun_id.hom.app X) ≫ f ≫ (F.inv_fun_id.inv.app Y) :=
+  F.map (F.inv.map f) = F.inv_fun_id.hom.app X ≫ f ≫ F.inv_fun_id.inv.app Y :=
 begin
   erw [nat_iso.naturality_2],
   refl
 end
 @[simp] lemma inv_fun_map (F : C ⥤ D) [is_equivalence F] (X Y : C) (f : X ⟶ Y) :
-  F.inv.map (F.map f) = (F.fun_inv_id.hom.app X) ≫ f ≫ (F.fun_inv_id.inv.app Y) :=
+  F.inv.map (F.map f) = F.fun_inv_id.hom.app X ≫ f ≫ F.fun_inv_id.inv.app Y :=
 begin
   erw [nat_iso.naturality_2],
   refl
@@ -320,30 +321,15 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
-{ preimage := λ X Y f, (F.fun_inv_id.app X).inv ≫ (F.inv.map f) ≫ (F.fun_inv_id.app Y).hom,
-  witness' := λ X Y f,
-  begin
-    apply F.inv.injectivity,
-    /- obviously can finish from here... -/
-    dsimp, simp, dsimp,
-    slice_lhs 4 6 {
-      rw [←functor.map_comp, ←functor.map_comp],
-      rw [←is_equivalence.fun_inv_map],
-    },
-    slice_lhs 1 2 { simp },
-    dsimp, simp,
-    slice_lhs 2 4 {
-      rw [←functor.map_comp, ←functor.map_comp],
-      erw [nat_iso.naturality_2],
-    },
-    erw [nat_iso.naturality_1], refl
-  end }.
+{ preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
+  witness' := λ X Y f, F.inv.injectivity
+  (by simpa only [is_equivalence.inv_fun_map, assoc, hom_inv_id_app_assoc, hom_inv_id_app] using comp_id _) }
 
 @[simp] private def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.injectivity, tidy end,
-  map_comp' := λ X Y Z f g, by apply F.injectivity; simp }.
+  map_comp' := λ X Y Z f g, by apply F.injectivity; simp }
 
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=

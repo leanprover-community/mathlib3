@@ -187,11 +187,11 @@ end
 /-- The `n`-th iterated derivative within a set with unique derivatives can be obtained by
 iterating `n` times the differentiation operation. -/
 lemma iterated_deriv_within_eq_iterate {x : 𝕜} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
-  iterated_deriv_within n f s x = nat.iterate (λ (g : 𝕜 → F), deriv_within g s) n f x :=
+  iterated_deriv_within n f s x = ((λ (g : 𝕜 → F), deriv_within g s)^[n]) f x :=
 begin
   induction n with n IH generalizing x,
   { simp },
-  { rw [iterated_deriv_within_succ (hs x hx), nat.iterate_succ'],
+  { rw [iterated_deriv_within_succ (hs x hx), function.iterate_succ'],
     exact deriv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx) }
 end
 
@@ -282,7 +282,7 @@ end
 
 /-- The `n`-th iterated derivative can be obtained by iterating `n` times the
 differentiation operation. -/
-lemma iterated_deriv_eq_iterate : iterated_deriv n f = nat.iterate deriv n f :=
+lemma iterated_deriv_eq_iterate : iterated_deriv n f = (deriv^[n]) f :=
 begin
   ext x,
   rw [← iterated_deriv_within_univ],

@@ -112,6 +112,9 @@ end.
 `of_digits b L` takes a list `L` of natural numbers, and interprets them
 as a number in semiring, as the little-endian digits in base `b`.
 -/
+-- If we had a function converting a list into a polynomial,
+-- and appropriate lemmas about that function,
+-- we could rewrite this in terms of that.
 def of_digits {α : Type*} [semiring α] (b : α) : list ℕ → α
 | [] := 0
 | (h :: t) := h + b * of_digits t

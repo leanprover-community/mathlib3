@@ -84,7 +84,7 @@ def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
-@[simp] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
+lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
 @[simp] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
@@ -182,9 +182,13 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
     by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
 
+@[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+⟨g⁻¹, by simp⟩
+
+@[simp] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-
 /-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,

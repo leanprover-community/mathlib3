@@ -146,12 +146,24 @@ suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 
 /-! ### Powers -/
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
+lemma tendsto_add_one_pow_at_top_at_top_of_pos [linear_ordered_semiring α] [archimedean α] {r : α}
+  (h : 0 < r) :
+  tendsto (λ n:ℕ, (r + 1)^n) at_top at_top :=
+(tendsto_at_top_at_top_of_monotone (λ n m, pow_le_pow (le_add_of_nonneg_left' (le_of_lt h)))).2 $
+  λ x, (add_one_pow_unbounded_of_pos x h).imp $ λ _, le_of_lt
+
+lemma tendsto_pow_at_top_at_top_of_one_lt [linear_ordered_ring α] [archimedean α]
+  {r : α} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
-(tendsto_at_top_at_top _).2 $ assume p,
-  let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
-  ⟨n, λ m hnm, le_of_lt $
-    lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
+sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
+
+lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
+  tendsto (λn:ℕ, m ^ n) at_top at_top :=
+begin
+  simp only [← nat.pow_eq_pow],
+  exact nat.sub_add_cancel (le_of_lt h) ▸
+    tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
+end
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
@@ -168,7 +180,7 @@ by_cases
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
-        (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
+        (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
@@ -197,13 +209,6 @@ end
 lemma tendsto_pow_at_top_nhds_0_of_abs_lt_1 {r : ℝ} (h : abs r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
-
-lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
-  tendsto (λn:ℕ, k ^ n) at_top at_top :=
-tendsto_coe_nat_real_at_top_iff.1 $
-  have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
-  by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
-
 
 /-! ### Geometric series-/
 section geometric

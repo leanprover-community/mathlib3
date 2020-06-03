@@ -173,6 +173,16 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 | 0     := rfl
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
+lemma ring_hom.ext_nat {R : Type*} [semiring R] (f g : ℕ →+* R) : f = g :=
+begin
+  ext n,
+  calc f n = nat.cast_ring_hom R n : ring_hom.eq_nat_cast f n
+       ... = g n                   : (ring_hom.eq_nat_cast g n).symm,
+end
+
+instance nat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℕ →+* R) :=
+⟨ring_hom.ext_nat⟩
+
 namespace with_top
 variables {α : Type*} [canonically_ordered_comm_semiring α] [decidable_eq α]
 

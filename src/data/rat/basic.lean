@@ -611,6 +611,9 @@ by rw [← int.cast_coe_nat, coe_int_num]
 @[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
+@[simp, norm_cast] lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
+⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
+
 end casts
 
 lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
@@ -622,6 +625,19 @@ begin
   { conv { for q [1] { rw ←(@num_denom q) }}, rwa [coe_int_eq_mk, coe_nat_eq_mk] },
   have : (q.denom : ℤ) ≠ 0, from ne_of_gt (by exact_mod_cast q.pos),
   rw [(rat.mul_def this one_ne_zero), (mul_comm (q.denom : ℤ) 1), (div_mk_div_cancel_left this)]
+end
+
+lemma denom_div_cast_eq_one_iff (m n : ℤ) (hn : n ≠ 0) :
+  ((m : ℚ) / n).denom = 1 ↔ n ∣ m :=
+begin
+  replace hn : (n:ℚ) ≠ 0, by rwa [ne.def, ← int.cast_zero, coe_int_inj],
+  split,
+  { intro h,
+    lift ((m : ℚ) / n) to ℤ using h with k hk,
+    use k,
+    rwa [eq_div_iff_mul_eq _ _ hn, ← int.cast_mul, mul_comm, eq_comm, coe_int_inj] at hk },
+  { rintros ⟨d, rfl⟩,
+    rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
 end
 
 end rat

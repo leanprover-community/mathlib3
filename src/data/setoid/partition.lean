@@ -113,6 +113,9 @@ theorem mk_classes_classes (r : setoid α) :
 ext' $ λ x y, ⟨λ h, r.symm' (h {z | r.rel z x} (r.mem_classes x) $ r.refl' x),
   λ h b hb hx, eq_of_mem_classes (r.mem_classes x) (r.refl' x) hb hx ▸ r.symm' h⟩
 
+@[simp] theorem sUnion_classes (r : setoid α) : ⋃₀ r.classes = set.univ :=
+set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 ⟨{ y | r.rel y x }, ⟨x, rfl⟩, setoid.refl _⟩
+
 section partition
 
 /-- A collection `c : set (set α)` of sets is a partition of `α` into pairwise

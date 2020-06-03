@@ -1410,6 +1410,101 @@ is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff 
 instance ordered_connected_space : preconnected_space α :=
 ⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
+lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
+  (ha : ¬bdd_above s) :
+  s = univ :=
+begin
+  refine eq_univ_of_forall (λ x, _),
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x,
+  { contrapose! hb, exact ⟨x, hb⟩ },
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
+  { contrapose! ha, exact ⟨x, ha⟩ },
+  exact hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+end
+
+lemma is_preconnected.Ioo_cInf_cSup_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
+  (hb : bdd_below s) (ha : bdd_above s) :
+  Ioo (Inf s) (Sup s) ⊆ s :=
+λ x hx, let ⟨y, ys, hy⟩ := (is_glb_lt_iff (is_glb_cInf sne hb)).1 hx.1 in
+let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup sne ha)).1 hx.2 in
+hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+
+lemma is_preconnected.Ioi_cInf_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
+  (hb : bdd_below s) (ha : ¬bdd_above s) :
+  Ioi (Inf s) ⊆ s :=
+begin
+  intros x hx,
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := (is_glb_lt_iff (is_glb_cInf sne hb)).1 hx,
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
+  { contrapose! ha, exact ⟨x, ha⟩ },
+  exact hs.forall_Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+end
+
+lemma is_preconnected.Iio_cSup_subset {s : set α} (hs : is_preconnected s) (sne : s.nonempty)
+  (hb : ¬bdd_below s) (ha : bdd_above s) :
+  Iio (Sup s) ⊆ s :=
+@is_preconnected.Ioi_cInf_subset (order_dual α) _ _ _ _ s hs sne ha hb
+
+/-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
+`Iic`, `Iio`, or `univ`, or `∅`. -/
+lemma is_preconnected.mem_intervals {s : set α} (hs : is_preconnected s) :
+  s ∈ ({Icc (Inf s) (Sup s), Ico (Inf s) (Sup s), Ioc (Inf s) (Sup s), Ioo (Inf s) (Sup s),
+    Ici (Inf s), Ioi (Inf s), Iic (Sup s), Iio (Sup s), univ, ∅} : set (set α)) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { apply_rules [or.inr, mem_singleton] },
+  by_cases hb : bdd_below s; by_cases ha : bdd_above s,
+  { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs.Ioo_cInf_cSup_subset hne hb ha)
+      (λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩) with hs|hs|hs|hs,
+    { exact (or.inl hs) },
+    { exact (or.inr $ or.inl hs) },
+    { exact (or.inr $ or.inr $ or.inl hs) },
+    { exact (or.inr $ or.inr $ or.inr $ or.inl hs) } },
+  { refine (or.inr $ or.inr $ or.inr $ or.inr _),
+    cases mem_Ici_Ioi_of_subset_of_subset (hs.Ioi_cInf_subset hne hb ha) (λ x hx, cInf_le hb hx)
+      with hs hs,
+    { exact or.inl hs },
+    { exact or.inr (or.inl hs) } },
+  { iterate 6 { apply or.inr },
+    cases mem_Iic_Iio_of_subset_of_subset (hs.Iio_cSup_subset hne hb ha) (λ x hx, le_cSup ha hx)
+      with hs hs,
+    { exact or.inl hs },
+    { exact or.inr (or.inl hs) } },
+  { iterate 8 { apply or.inr },
+    exact or.inl (hs.eq_univ_of_unbounded hb ha) }
+end
+
+open function (curry uncurry)
+
+lemma set_of_is_preconnected_eq_of_ordered :
+  {s : set α | is_preconnected s} =
+    -- bounded intervals
+    (range (uncurry Icc) ∪ range (uncurry Ico) ∪ range (uncurry Ioc) ∪ range (uncurry Ioo)) ∪
+    -- unbounded intervals and `univ`
+    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ}) :=
+begin
+  ext s,
+  split,
+  { intro hs,
+    rcases hs.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs,
+    { exact (or.inl $ or.inl $ or.inl $ or.inl ⟨(Inf s, Sup s), hs.symm⟩) },
+    { exact (or.inl $ or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+    { exact (or.inl $ or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+    { exact (or.inl $ or.inr ⟨(Inf s, Sup s), hs.symm⟩) },
+    { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inl ⟨Inf s, hs.symm⟩) },
+    { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inr ⟨Inf s, hs.symm⟩) },
+    { exact (or.inr $ or.inl $ or.inl  $ or.inr ⟨Sup s, hs.symm⟩) },
+    { exact (or.inr $ or.inl $  or.inr ⟨Sup s, hs.symm⟩) },
+    { exact (or.inr $ or.inr hs) },
+    { refine (or.inl $ or.inr ⟨(Inf s, Inf s), _⟩),
+      simp [uncurry, mem_singleton_iff.1 hs] } },
+  { revert s,
+    simp [-mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
+      is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
+      is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
+      is_preconnected_Iic, is_preconnected_univ] }
+end
+
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=

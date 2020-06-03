@@ -128,7 +128,7 @@ set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
 lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩
 
-lemma pairwise_disjoint_of_is_partition {c : set (set α)} (hc : is_partition c) : 
+lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) : 
   c.pairwise_disjoint :=
 eqv_classes_disjoint hc.2
 

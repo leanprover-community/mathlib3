@@ -37,10 +37,10 @@ instance [has_zero α] : has_zero (opposite α) :=
 
 section
 local attribute [reducible] opposite
-@[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = 0 ↔ a = 0 :=
+@[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
 iff.refl _
 
-@[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = 0 ↔ a = 0 :=
+@[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = (0 : αᵒᵖ) ↔ a = (0 : α) :=
 iff.refl _
 end
 

@@ -32,20 +32,48 @@ namespace ring_equiv
 
 open ring_equiv
 
-variables {R F} [ring R] [ring F] (Hs : R ≃+* F) (x y : R)
+variables {R F} [semiring R] [semiring F] (Hs : R ≃+* F)
 
 lemma bijective : function.bijective Hs :=
 Hs.to_equiv.bijective
 
-lemma map_zero_iff {x : R} : Hs x = 0 ↔ x = 0 :=
+lemma map_zero_iff (x : R) : Hs x = 0 ↔ x = 0 :=
 ⟨λ H, Hs.bijective.1 $ H.symm ▸ Hs.map_zero.symm,
 λ H, H.symm ▸ Hs.map_zero⟩
 
 end ring_equiv
 
 /-- A ring involution -/
-structure ring_invo [ring R] extends R ≃+* opposite R :=
-(to_fun_to_fun : ∀ x, (to_fun (to_fun x).unop).unop = x)
+structure ring_invo [semiring R] extends R ≃+* opposite R :=
+(involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
+
+namespace ring_invo
+variables {R} [semiring R]
+
+/-- Construct a ring involution from a ring homomorphism. -/
+def mk' (f : R →+* opposite R) (involution : ∀ r, (f (f r).unop).unop = r) :
+  ring_invo R :=
+{ inv_fun := λ r, (f r.unop).unop,
+  left_inv := λ r, involution r,
+  right_inv := λ r, congr_arg opposite.op (involution (r.unop)),
+  involution' := involution,
+  ..f }
+
+instance : has_coe_to_fun (ring_invo R) := ⟨_, λ f, f.to_ring_equiv.to_fun⟩
+
+@[simp]
+lemma to_fun_apply {f : ring_invo R} {r : R} : f.to_fun r = f r := rfl
+
+instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* opposite R) :=
+⟨ring_invo.to_ring_equiv⟩
+
+@[norm_cast] lemma coe_ring_equiv (f : ring_invo R) (a : R) :
+  (f : R ≃+* opposite R) a = f a := rfl
+
+lemma map_zero_iff (f : ring_invo R) {x : R} : f x = 0 ↔ x = 0 :=
+by rw [←coe_ring_equiv, ring_equiv.map_zero_iff]
+
+end ring_invo
 
 open ring_invo
 
@@ -53,7 +81,7 @@ section comm_ring
 variables (R F) [comm_ring R] [comm_ring F]
 
 protected def ring_invo.id : ring_invo R :=
-{ to_fun_to_fun := λ _, rfl,
+{ involution' := λ r, rfl,
   ..(ring_equiv.to_opposite R) }
 
 instance : inhabited (ring_invo R) := ⟨ring_invo.id _⟩

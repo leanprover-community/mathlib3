@@ -52,6 +52,9 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
+@[simp]
+lemma to_fun_apply {f : R ≃+* S} {r : R} : f.to_fun r = f r := rfl
+
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
@@ -95,6 +98,12 @@ def to_opposite : R ≃+* Rᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),
   ..equiv_to_opposite }
+
+@[simp]
+lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
+
+@[simp]
+lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
 end comm_semiring
 

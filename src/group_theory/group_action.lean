@@ -84,7 +84,7 @@ def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
-@[simp] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
+lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
 @[simp] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
@@ -92,6 +92,8 @@ iff.rfl
 
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
+
+@[simp] lemma smul_mem_orbit (g : α) (a : β) : g • a ∈ orbit α a := ⟨g, rfl⟩
 
 instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
   fintype (orbit α b) := set.fintype_range _
@@ -142,10 +144,10 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
-lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+@[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 (to_units α c).inv_smul_smul x
 
-lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+@[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 (to_units α c).smul_inv_smul x
 
 variables (α) (β)
@@ -182,9 +184,15 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
     by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
 
+section orbit
+
+@[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+⟨g⁻¹, by simp⟩
+
+@[simp] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-
 /-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
@@ -214,8 +222,6 @@ equiv.symm (@equiv.of_bijective _ _
 @[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
-
-end
 
 open quotient_group mul_action is_subgroup
 

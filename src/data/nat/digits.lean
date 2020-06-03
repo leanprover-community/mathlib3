@@ -221,7 +221,8 @@ begin
   { dsimp [of_digits], simp [list.sum_cons, L_ih], }
 end
 
-lemma dvd_of_digits_sub_of_digits {α : Type*} [euclidean_domain α]
+-- This is really a theorem about polynomials.
+lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]
   {a b k : α} (h : k ∣ a - b) (L : list ℕ) :
   k ∣ of_digits a L - of_digits b L :=
 begin

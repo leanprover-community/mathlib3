@@ -298,12 +298,12 @@ lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
   (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
-  intro h',
-  convert dvd_sub h' h,
-  exact eq.symm (sub_sub_self b c),
-  intro h',
-  convert dvd_add h h',
-  exact eq_add_of_sub_eq rfl,
+  { intro h',
+    convert dvd_sub h' h,
+    exact eq.symm (sub_sub_self b c) },
+  { intro h',
+    convert dvd_add h h',
+    exact eq_add_of_sub_eq rfl }
 end
 
 end comm_ring

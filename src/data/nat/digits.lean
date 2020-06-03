@@ -114,7 +114,7 @@ as a number in semiring, as the little-endian digits in base `b`.
 -/
 def of_digits {α : Type*} [semiring α] (b : α) : list ℕ → α
 | [] := 0
-| (h :: t) := h + b * (of_digits t)
+| (h :: t) := h + b * of_digits t
 
 lemma of_digits_eq_foldr {α : Type*} [semiring α] (b : α) (L : list ℕ) :
   of_digits b L = L.foldr (λ x y, x + b * y) 0 :=
@@ -126,10 +126,7 @@ end
 
 @[simp] lemma of_digits_one_cons {α : Type*} [semiring α] (h : ℕ) (L : list ℕ) :
   of_digits (1 : α) (h :: L) = h + of_digits 1 L :=
-begin
-  dsimp [of_digits],
-  simp,
-end
+by simp [of_digits]
 
 @[norm_cast] lemma coe_of_digits (α : Type*) [semiring α] (b : ℕ) (L : list ℕ) :
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
@@ -162,25 +159,22 @@ end
 
 lemma digits_of_digits
   (b : ℕ) (h : 2 ≤ b) (L : list ℕ)
-  (w₁ : ∀ l ∈ L, l < b) (w₂ : if h : L = [] then true else L.last h ≠ 0):
+  (w₁ : ∀ l ∈ L, l < b) (w₂ : ∀ (h : L ≠ []), L.last h ≠ 0) :
   digits b (of_digits b L) = L :=
 begin
-  induction L,
+  induction L with l L ih,
   { dsimp [of_digits], simp },
   { dsimp [of_digits],
-    rw dif_neg at w₂,
-    swap,
-    { simp, },
+    replace w₂ := w₂ (by simp),
     rw digits_add b h,
-    { rw L_ih,
+    { rw ih,
       { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
-      { split_ifs,
-        { trivial, },
-        { rw [list.last_cons _ h_1] at w₂,
+      { intro h,
+        { rw [list.last_cons _ h] at w₂,
             convert w₂, }}},
-    { convert w₁ L_hd (list.mem_cons_self _ _), simp, },
-    { by_cases h' : L_tl = [],
+    { convert w₁ l (list.mem_cons_self _ _), simp, },
+    { by_cases h' : L = [],
       { rcases h' with rfl,
         simp at w₂,
         left,

@@ -20,15 +20,6 @@ monoid homomorphism `f : M →* N` satisfying 3 properties:
 2. For all `z : N`, there exists `(x, y) : M × S` such that `z * f y = f x`;
 3. For all `x, y : M`, `f x = f y` iff there exists `c ∈ S` such that `x * c = y * c`.
 
-We also define the quotient of `M × S` by the unique congruence relation (equivalence relation
-preserving a binary operation) `r` such that for any other congruence relation `s` on `M × S`
-satisfying '`∀ y ∈ S`, `(1, 1) ∼ (y, y)` under `s`', we have that `(x₁, y₁) ∼ (x₂, y₂)` by `s`
-whenever `(x₁, y₁) ∼ (x₂, y₂)` by `r`. We show this relation is equivalent to the standard
-localization relation.
-This defines the localization as a quotient type, `localization'`, but the majority of subsequent
-lemmas in the file are given in terms of localizations up to isomorphism, using maps which satisfy
-the characteristic predicate.
-
 Given such a localization map `f : M →* N`, we can define the surjection
 `localization.mk'` sending `(x, y) : M × S` to `f x * (f y)⁻¹`, and
 `localization.lift`, the homomorphism from `N` induced by a homomorphism from `M` which maps
@@ -36,6 +27,15 @@ elements of `S` to invertible elements of the codomain. Similarly, given commuta
 `P, Q`, a submonoid `T` of `P` and a localization map for `T` from `P` to `Q`, then a homomorphism
 `g : M →* P` such that `g(S) ⊆ T` induces a homomorphism of localizations,
 `localization.map`, from `N` to `Q`.
+
+We also define the quotient of `M × S` by the unique congruence relation (equivalence relation
+preserving a binary operation) `r` such that for any other congruence relation `s` on `M × S`
+satisfying '`∀ y ∈ S`, `(1, 1) ∼ (y, y)` under `s`', we have that `(x₁, y₁) ∼ (x₂, y₂)` by `s`
+whenever `(x₁, y₁) ∼ (x₂, y₂)` by `r`. We show this relation is equivalent to the standard
+localization relation.
+This defines the localization as a quotient type, `localization_construction`, but the majority of subsequent
+lemmas in the file are given in terms of localizations up to isomorphism, using maps which satisfy
+the characteristic predicate.
 
 ## Implementation notes
 
@@ -48,6 +48,13 @@ shortens some proofs.
 
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
+
+To reason about the localization as a quotient type, use `mk_eq_monoid_of_mk'` and associated
+lemmas. These show the quotient map `mk : M → S → localization_construction S` equals the surjection
+`localization.mk'` induced by the map `monoid_of : localization S (localization_construction S)`
+(where `of` establishes the localization as a quotient type satisfies the characteristic predicate).
+The lemma `mk_eq_monoid_of_mk'` hence gives you access to the results in the rest of the file,
+which are about the `localization.mk'` induced by any localization map.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
@@ -90,7 +97,9 @@ attribute [to_additive add_submonoid.localization.to_add_monoid_hom]
 /-- The monoid hom underlying a `localization`. -/
 add_decl_doc localization.to_monoid_hom
 
-namespace localization'
+end submonoid
+namespace localization_construction
+run_cmd to_additive.map_namespace `localization_construction `add_localization_construction
 
 /-- The congruence relation on `M × S`, `M` a `comm_monoid` and `S` a submonoid of `M`, whose
 quotient is the localization of `M` at `S`, defined as the unique congruence relation on
@@ -128,11 +137,11 @@ begin
 end
 
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
-equivalently as an infimum (see `localization'.r`) or explicitly
-(see `localization'.r'`). -/
+equivalently as an infimum (see `localization_construction.r`) or explicitly
+(see `localization_construction.r'`). -/
 @[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a
-submonoid can be expressed equivalently as an infimum (see `localization'.r`) or explicitly
-(see `localization'.r'`)."]
+submonoid can be expressed equivalently as an infimum (see `add_localization_construction.r`) or
+explicitly (see `add_localization_construction.r'`)."]
 theorem r_eq_r' : r S = r' S :=
 le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
   le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
@@ -150,20 +159,20 @@ variables {S}
 lemma r_iff_exists {x y : M × S} : r S x y ↔ ∃ c : S, x.1 * y.2 * c = y.1 * x.2 * c :=
 by rw r_eq_r' S; refl
 
-end localization'
+end localization_construction
 
 /-- The localization of a `comm_monoid` at one of its submonoids (as a quotient type). -/
-@[to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient
-type)."]
-def localization' := (localization'.r S).quotient
+@[to_additive add_localization_construction "The localization of an `add_comm_monoid` at one
+of its submonoids (as a quotient type)."]
+def localization_construction := (localization_construction.r S).quotient
 
-namespace localization'
+namespace localization_construction
 
-@[to_additive] instance localization'.inhabited :
-  inhabited S.localization' :=
+@[to_additive] instance inhabited :
+  inhabited (localization_construction S) :=
 con.quotient.inhabited
 
-@[to_additive] instance : comm_monoid S.localization' :=
+@[to_additive] instance : comm_monoid (localization_construction S) :=
 (r S).comm_monoid
 
 variables {S}
@@ -172,35 +181,35 @@ variables {S}
 class of `(x, y)` in the localization of `M` at `S`. -/
 @[to_additive "Given an `add_comm_monoid` `M` and submonoid `S`, `mk` sends `x : M`, `y ∈ S` to
 the equivalence class of `(x, y)` in the localization of `M` at `S`."]
-def mk (x : M) (y : S) : S.localization' := (r S).mk' (x, y)
+def mk (x : M) (y : S) : localization_construction S := (r S).mk' (x, y)
 
 @[elab_as_eliminator, to_additive]
-theorem ind {p : S.localization' → Prop}
+theorem ind {p : localization_construction S → Prop}
   (H : ∀ (y : M × S), p (mk y.1 y.2)) (x) : p x :=
 by rcases x; convert H x; exact prod.mk.eta.symm
 
 @[elab_as_eliminator, to_additive]
-theorem induction_on {p : S.localization' → Prop} (x)
+theorem induction_on {p : localization_construction S → Prop} (x)
   (H : ∀ (y : M × S), p (mk y.1 y.2)) : p x := ind H x
 
 @[elab_as_eliminator, to_additive]
-theorem induction_on₂ {p : S.localization' → S.localization' → Prop} (x y)
+theorem induction_on₂ {p : localization_construction S → localization_construction S → Prop} (x y)
   (H : ∀ (x y : M × S), p (mk x.1 x.2) (mk y.1 y.2)) : p x y :=
 induction_on x $ λ x, induction_on y $ H x
 
 @[elab_as_eliminator, to_additive]
 theorem induction_on₃
-  {p : S.localization' → S.localization' → S.localization' → Prop} (x y z)
+  {p : localization_construction S → localization_construction S
+    → localization_construction S → Prop} (x y z)
   (H : ∀ (x y z : M × S), p (mk x.1 x.2) (mk y.1 y.2) (mk z.1 z.2)) : p x y z :=
 induction_on₂ x y $ λ x y, induction_on z $ H x y
 
 @[to_additive] lemma one_rel (y : S) : r S 1 (y, y) := λ b hb, hb y
 
 @[to_additive] theorem r_of_eq {x y : M × S} (h : y.1 * x.2 = x.1 * y.2) : r S x y :=
-by rw r_eq_r'; exact ⟨1, by rw h⟩
+r_iff_exists.2 ⟨1, by rw h⟩
 
-end localization'
-end submonoid
+end localization_construction
 
 variables {S N}
 
@@ -381,8 +390,8 @@ by rw [eq_comm, eq_mk'_iff_mul_eq, eq_comm]
 f.mk'_eq_iff_eq.trans $ f.eq_iff_exists
 
 @[to_additive] protected lemma eq' {a₁ b₁} {a₂ b₂ : S} :
-  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ localization'.r S (a₁, a₂) (b₁, b₂) :=
-by rw [f.eq, localization'.r_iff_exists]
+  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ localization_construction.r S (a₁, a₂) (b₁, b₂) :=
+by rw [f.eq, localization_construction.r_iff_exists]
 
 @[to_additive] lemma eq_iff_eq (g : localization S P) {x y} :
   f.to_map x = f.to_map y ↔ g.to_map x = g.to_map y :=
@@ -872,7 +881,8 @@ by ext; refl
 isomorphism `j : M ≃* P` such that `j(S) = T` induces an isomorphism of localizations
 `N ≃* U`. -/
 @[to_additive "Given localization maps `f : M →+ N, k : P →+ U` for submonoids `S, T` respectively,
-an isomorphism `j : M ≃+ P` such that `j(S) = T` induces an isomorphism of localizations `N ≃+ U`."]
+an isomorphism `j : M ≃+ P` such that `j(S) = T` induces an isomorphism of
+localizations `N ≃+ U`."]
 noncomputable def mul_equiv_of_mul_equiv
   (k : localization T Q) {j : M ≃* P} (H : S.map j.to_monoid_hom = T) :
   N ≃* Q :=
@@ -910,15 +920,15 @@ ext_iff.1 (f.mul_equiv_of_localizations_right_inv (k.of_mul_equiv_of_dom H)) x
 monoid_hom.ext $ f.of_mul_equiv_of_mul_equiv_apply H
 
 end localization
-
-namespace localization'
+end submonoid
+namespace localization_construction
 variables (S)
 
 /-- Natural hom sending `x : M`, `M` a `comm_monoid`, to the equivalence class of
 `(x, 1)` in the localization of `M` at a submonoid. -/
 @[to_additive "Natural homomorphism sending `x : M`, `M` an `add_comm_monoid`, to the equivalence
 class of `(x, 0)` in the localization of `M` at a submonoid."]
-def monoid_of : localization S S.localization' :=
+def monoid_of : submonoid.localization S (localization_construction S) :=
 { map_units' := λ y, is_unit_iff_exists_inv.2 ⟨mk 1 y, (r S).eq.2 $
     show r S (_, 1 * y) 1, by simpa using (r S).symm (one_rel y)⟩,
   surj' := λ z, induction_on z $ λ x, ⟨x, (r S).eq.2 $
@@ -931,24 +941,57 @@ def monoid_of : localization S S.localization' :=
 
 variables {S}
 
-@[to_additive] lemma monoid_of_eq_mk (x) : mk x 1 = (monoid_of S).to_map x := rfl
+@[to_additive] lemma mk_one_eq_monoid_of_mk (x) : mk x 1 = (monoid_of S).to_map x := rfl
 
-@[to_additive, simp] lemma mk_eq_monoid_mk' (x y) : mk x y = (monoid_of S).mk' x y :=
-show _ = _ * _, from (localization.mul_inv_right (monoid_of S).map_units _ _ _).2 $
+@[to_additive] lemma mk_eq_monoid_of_mk'_apply (x y) : mk x y = (monoid_of S).mk' x y :=
+show _ = _ * _, from (submonoid.localization.mul_inv_right (monoid_of S).map_units _ _ _).2 $
 begin
-  rw [←monoid_of_eq_mk, ←monoid_of_eq_mk,
+  rw [←mk_one_eq_monoid_of_mk, ←mk_one_eq_monoid_of_mk,
       show mk x y * mk y 1 = mk (x * y) (1 * y), by rw mul_comm 1 y; refl,
       show mk x 1 = mk (x * 1) ((1 : S) * 1), by rw [mul_one, mul_one]],
-  exact (con.eq _).2 (con.symm _ $ (localization'.r S).mul (con.refl _ (x, 1)) $ one_rel _),
+  exact (con.eq _).2 (con.symm _ $ (localization_construction.r S).mul
+    (con.refl _ (x, 1)) $ one_rel _),
 end
 
+@[simp, to_additive] lemma mk_eq_monoid_of_mk' : mk = (monoid_of S).mk' :=
+funext $ λ _, funext $ λ _, mk_eq_monoid_of_mk'_apply _ _
+
+variables (f : submonoid.localization S N)
 /-- Given a localization map `f : M →* N` for a submonoid `S`, we get an isomorphism between
 the localization of `M` at `S` as a quotient type and `N`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S`, we get an isomorphism
 between the localization of `M` at `S` as a quotient type and `N`."]
-noncomputable def mul_equiv_of_quotient (f : localization S N) :
-  S.localization' ≃* N :=
-localization.mul_equiv_of_localizations (monoid_of S) f
+noncomputable def mul_equiv_of_quotient (f : submonoid.localization S N) :
+  localization_construction S ≃* N :=
+(monoid_of S).mul_equiv_of_localizations  f
 
-end localization'
-end submonoid
+variables {f}
+
+@[simp, to_additive] lemma mul_equiv_of_quotient_apply (x) :
+  mul_equiv_of_quotient f x = (monoid_of S).lift f.map_units x := rfl
+
+@[simp, to_additive] lemma mul_equiv_of_quotient_mk' (x y) :
+  mul_equiv_of_quotient f ((monoid_of S).mk' x y) = f.mk' x y :=
+(monoid_of S).lift_mk' _ _ _
+
+@[to_additive] lemma mul_equiv_of_quotient_mk (x y) :
+  mul_equiv_of_quotient f (mk x y) = f.mk' x y :=
+by rw mk_eq_monoid_of_mk'_apply; exact mul_equiv_of_quotient_mk' _ _
+
+@[simp, to_additive] lemma mul_equiv_of_quotient_monoid_of (x) :
+  mul_equiv_of_quotient f ((monoid_of S).to_map x) = f.to_map x :=
+(monoid_of S).lift_eq _ _
+
+@[simp, to_additive] lemma mul_equiv_of_quotient_symm_mk' (x y) :
+  (mul_equiv_of_quotient f).symm (f.mk' x y) = (monoid_of S).mk' x y :=
+f.lift_mk' _ _ _
+
+@[to_additive] lemma mul_equiv_of_quotient_symm_mk (x y) :
+  (mul_equiv_of_quotient f).symm (f.mk' x y) = mk x y :=
+by rw mk_eq_monoid_of_mk'_apply; exact mul_equiv_of_quotient_symm_mk' _ _
+
+@[simp, to_additive] lemma mul_equiv_of_quotient_symm_monoid_of (x) :
+  (mul_equiv_of_quotient f).symm (f.to_map x) = (monoid_of S).to_map x :=
+f.lift_eq _ _
+
+end localization_construction

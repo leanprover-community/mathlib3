@@ -27,6 +27,10 @@ elements of `M` to invertible elements of the codomain. Similarly, given commuta
 `g : R →+* P` such that `g(M) ⊆ T` induces a homomorphism of localizations,
 `localization.map`, from `S` to `Q`.
 
+We show the localization as a quotient type, defined in `group_theory.monoid_localization` as
+`submonoid.localization_construction`, is a `comm_ring` and that the natural ring hom
+`of : R →+* localization_construction M` is a localization map.
+
 We prove some lemmas about the `R`-algebra structure of `S`.
 
 When `R` is an integral domain, we define `fraction_map R K` as an abbreviation for
@@ -49,6 +53,13 @@ A ring localization map is defined to be a localization map of the underlying `c
 
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
+
+To reason about the localization as a quotient type, use `mk_eq_of_mk'` and associated lemmas.
+These show the quotient map `mk : R → M → localization_construction M` equals the surjection
+`localization.mk'` induced by the map `of : localization M (localization_construction M)` (where `of`
+establishes the localization as a quotient type satisfies the characteristic predicate). The
+lemma `mk_eq_of_mk'` hence gives you access to the results in the rest of the file, which are about
+the `localization.mk'` induced by any localization map.
 
 We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
 `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure.
@@ -94,18 +105,13 @@ def to_localization (f : R →+* S) (H1 : ∀ y : M, is_unit (f y))
 
 end ring_hom
 
-namespace submonoid
-namespace localization
-
 /-- Makes a `comm_ring` localization map from an additive `comm_monoid` localization map of
 `comm_ring`s. -/
-def to_ring_localization (f : submonoid.localization M S)
+def submonoid.localization.to_ring_localization
+  (f : submonoid.localization M S)
   (h : ∀ x y, f.to_map (x + y) = f.to_map x + f.to_map y) :
-  _root_.localization M S :=
+  localization M S :=
 { ..ring_hom.mk' f.to_monoid_hom h, ..f }
-
-end localization
-end submonoid
 
 namespace localization
 
@@ -462,12 +468,11 @@ f.to_localization.mul_equiv_of_mul_equiv_mk' H _ _
 
 end localization
 
-namespace submonoid
-namespace localization'
+namespace localization_construction
 
 variables {M}
 
-instance : has_add (localization' M) :=
+instance : has_add (localization_construction M) :=
 ⟨λ z w, con.lift_on₂ z w
   (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
 λ r1 r2 r3 r4 h1 h2, (con.eq _).2
@@ -481,7 +486,7 @@ begin
       ... = (r3.2 * r4.1 + r4.2 * r3.1) * (r1.2 * r2.2) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
 end⟩
 
-instance : has_neg (localization' M) :=
+instance : has_neg (localization_construction M) :=
 ⟨λ z, con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
   λ r1 r2 h, (con.eq _).2
 begin
@@ -492,7 +497,7 @@ begin
   ring,
 end⟩
 
-instance : comm_ring (localization' M) :=
+instance : comm_ring (localization_construction M) :=
 { add            := has_add.add,
   add_assoc      := λ m n k, quotient.induction_on₃' m n k $ λ x y z,
     quotient.sound' $ r_of_eq $ by simp only [submonoid.coe_mul]; ring,
@@ -510,33 +515,65 @@ instance : comm_ring (localization' M) :=
     quotient.sound' $ r_of_eq $ by simp only [prod.snd_mul, prod.fst_mul, submonoid.coe_mul]; ring,
   right_distrib  := λ m n k, quotient.induction_on₃' m n k $ λ x y z,
     quotient.sound' $ r_of_eq $ by simp only [prod.snd_mul, prod.fst_mul, submonoid.coe_mul]; ring,
-  ..submonoid.localization'.comm_monoid M }
+  ..localization_construction.comm_monoid M }
 
 variables (M)
 /-- Natural hom sending `x : R`, `R` a `comm_ring`, to the equivalence class of
 `(x, 1)` in the localization of `R` at a submonoid. -/
-def of : _root_.localization M (localization' M) :=
-(monoid_of M).to_ring_localization $ λ x y, (con.eq _).2 $ r_of_eq $
-  by simp [add_comm]
+def of : localization M (localization_construction M) :=
+(localization_construction.monoid_of M).to_ring_localization $
+  λ x y, (con.eq _).2 $ r_of_eq $ by simp [add_comm]
 
 variables {M}
 
 lemma monoid_of_eq_of (x) : (monoid_of M).to_map x = (of M).to_map x := rfl
 
-lemma of_eq_mk (x) : (of M).to_map x = mk x 1 := rfl
+lemma mk_one_eq_of (x) : mk x 1 = (of M).to_map x := rfl
 
-@[simp] lemma mk_eq_mk' (x y) : mk x y = (of M).mk' x y :=
-mk_eq_monoid_mk' _ _
+lemma mk_eq_mk'_apply (x y) : mk x y = (of M).mk' x y :=
+mk_eq_monoid_of_mk'_apply _ _
 
+@[simp] lemma mk_eq_mk' : mk = (of M).mk' :=
+mk_eq_monoid_of_mk'
+
+variables (f : localization M S)
 /-- Given a localization map `f : R →+* S` for a submonoid `M`, we get an isomorphism
 between the localization of `R` at `M` as a quotient type and `S`. -/
-noncomputable def ring_equiv_of_quotient (f : _root_.localization M S) :
-  M.localization' ≃+* S :=
+noncomputable def ring_equiv_of_quotient :
+  localization_construction M ≃+* S :=
 (mul_equiv_of_quotient f.to_localization).to_ring_equiv $
 ((of M).lift f.map_units).map_add
 
-end localization'
-end submonoid
+variables {f}
+
+@[simp] lemma ring_equiv_of_quotient_apply (x) :
+  ring_equiv_of_quotient f x = (of M).lift f.map_units x := rfl
+
+@[simp] lemma ring_equiv_of_quotient_mk' (x y) :
+  ring_equiv_of_quotient f ((of M).mk' x y) = f.mk' x y :=
+mul_equiv_of_quotient_mk' _ _
+
+lemma ring_equiv_of_quotient_mk (x y) :
+  ring_equiv_of_quotient f (mk x y) = f.mk' x y :=
+mul_equiv_of_quotient_mk _ _
+
+@[simp] lemma ring_equiv_of_quotient_of (x) :
+  ring_equiv_of_quotient f ((of M).to_map x) = f.to_map x :=
+mul_equiv_of_quotient_monoid_of _
+
+@[simp] lemma ring_equiv_of_quotient_symm_mk' (x y) :
+  (ring_equiv_of_quotient f).symm (f.mk' x y) = (of M).mk' x y :=
+mul_equiv_of_quotient_symm_mk' _ _
+
+lemma ring_equiv_of_quotient_symm_mk (x y) :
+  (ring_equiv_of_quotient f).symm (f.mk' x y) = mk x y :=
+mul_equiv_of_quotient_symm_mk _ _
+
+@[simp] lemma ring_equiv_of_quotient_symm_of (x) :
+  (ring_equiv_of_quotient f).symm (f.to_map x) = (of M).to_map x :=
+mul_equiv_of_quotient_symm_monoid_of _
+
+end localization_construction
 variables {M}
 
 namespace localization

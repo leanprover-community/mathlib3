@@ -56,8 +56,8 @@ this structure.
 
 To reason about the localization as a quotient type, use `mk_eq_of_mk'` and associated lemmas.
 These show the quotient map `mk : R → M → localization_construction M` equals the surjection
-`localization.mk'` induced by the map `of : localization M (localization_construction M)` (where `of`
-establishes the localization as a quotient type satisfies the characteristic predicate). The
+`localization.mk'` induced by the map `of : localization M (localization_construction M)` (where
+`of` establishes the localization as a quotient type satisfies the characteristic predicate). The
 lemma `mk_eq_of_mk'` hence gives you access to the results in the rest of the file, which are about
 the `localization.mk'` induced by any localization map.
 

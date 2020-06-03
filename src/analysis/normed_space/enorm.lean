@@ -16,7 +16,7 @@ measurable functions `f : α → ℝ` has a family of `L_p` extended norms.
 We prove some basic inequalities, then define
 
 * `emetric_space` structure on `V` corresponding to `e : enorm 𝕜 V`;
-* the subspace of vectors with finite norm;
+* the subspace of vectors with finite norm, called `e.finite_subspace`;
 * a `normed_space` structure on this space.
 
 The last definition is an instance because the type involves `e`.

@@ -3,8 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.nat.basic
-import data.nat.modeq
 import data.int.modeq
 import algebra.euclidean_domain
 import tactic.ring
@@ -146,7 +144,7 @@ end
 begin
   induction L,
   { refl, },
-  { dsimp [of_digits], push_cast, rw L_ih, simp, }
+  { dsimp [of_digits], push_cast, rw L_ih, }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
@@ -226,19 +224,6 @@ begin
   { dsimp [of_digits], simp [list.sum_cons, L_ih], }
 end
 
--- I don't want to move this to `euclidean_domain.lean`, because `ring` isn't available there.
-lemma dvd_mul_sub_mul {α : Type*} [euclidean_domain α]
-  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
-  k ∣ a * x - b * y :=
-begin
-  cases hab,
-  rw eq_add_of_sub_eq hab_h,
-  cases hxy,
-  rw eq_add_of_sub_eq hxy_h,
-  use k * hab_w * hxy_w + hab_w * y + b * hxy_w,
-  ring,
-end
-
 lemma dvd_of_digits_sub_of_digits {α : Type*} [euclidean_domain α]
   {a b k : α} (h : k ∣ a - b) (L : list ℕ) :
   k ∣ ((of_digits a L) - (of_digits b L)) :=
@@ -250,7 +235,8 @@ begin
     exact dvd_mul_sub_mul h L_ih, }
 end
 
-lemma of_digits_modeq' (b b' : ℕ) (k : ℕ) (h : b ≡ b' [MOD k]) (L : list ℕ) : (of_digits b L) ≡ (of_digits b' L) [MOD k] :=
+lemma of_digits_modeq' (b b' : ℕ) (k : ℕ) (h : b ≡ b' [MOD k]) (L : list ℕ) :
+  (of_digits b L) ≡ (of_digits b' L) [MOD k] :=
 begin
   induction L,
   { refl, },
@@ -266,7 +252,8 @@ of_digits_modeq' b (b % k) k (nat.modeq.symm (nat.modeq.mod_modeq b k)) L
 lemma of_digits_mod (b k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
 of_digits_modeq b k L
 
-lemma of_digits_zmodeq' (b b' : ℤ) (k : ℕ) (h : b ≡ b' [ZMOD k]) (L : list ℕ) : (of_digits b L) ≡ (of_digits b' L) [ZMOD k] :=
+lemma of_digits_zmodeq' (b b' : ℤ) (k : ℕ) (h : b ≡ b' [ZMOD k]) (L : list ℕ) :
+  (of_digits b L) ≡ (of_digits b' L) [ZMOD k] :=
 begin
   induction L,
   { refl, },
@@ -276,10 +263,12 @@ begin
     conv_rhs { rw [int.add_mod, int.mul_mod], }, }
 end
 
-lemma of_digits_zmodeq (b : ℤ) (k : ℕ) (L : list ℕ) : (of_digits b L) ≡ (of_digits (b % k) L) [ZMOD k] :=
+lemma of_digits_zmodeq (b : ℤ) (k : ℕ) (L : list ℕ) :
+  (of_digits b L) ≡ (of_digits (b % k) L) [ZMOD k] :=
 of_digits_zmodeq' b (b % k) k (int.modeq.symm (int.modeq.mod_modeq b ↑k)) L
 
-lemma of_digits_zmod (b : ℤ) (k : ℕ) (L : list ℕ) : (of_digits b L) % k = (of_digits (b % k) L) % k :=
+lemma of_digits_zmod (b : ℤ) (k : ℕ) (L : list ℕ) :
+  (of_digits b L) % k = (of_digits (b % k) L) % k :=
 of_digits_zmodeq b k L
 
 lemma modeq_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
@@ -319,19 +308,44 @@ begin
   apply of_digits_zmodeq' _ _ _ h,
 end
 
-lemma modeq_eleven_digits_sum (n : ℕ) : n ≡ of_digits (-1 : ℤ) (digits 10 n) [ZMOD 11] :=
-zmodeq_of_digits_digits 11 10 (-1 : ℤ) dec_trivial n
+namespace list
 
--- TODO move?
-lemma dvd_iff_dvd_of_dvd_sub {a b c : ℤ} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+/-- The alternating sum of elements in a list. -/
+-- As we don't prove anything about this yet,
+-- I haven't moved this to `data/list/defs.lean`.
+def alternating_sum {G : Type*} [add_group G] : list G → G
+| [] := 0
+| (g :: []) := g
+| (g :: h :: t) := g - h + alternating_sum t
+
+
+-- TODO It would be good to prove:
+
+-- open_locale big_operators
+-- lemma alternating_sum_eq_finset_sum {R : Type*} [ring R] (L : list R) :
+--   alternating_sum L =
+--     ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) * L.nth_le i i.2 :=
+-- sorry
+
+end list
+
+lemma of_digits_neg_one : Π (L : list ℕ),
+  of_digits (-1 : ℤ) L = (L.map (λ n : ℕ, (n : ℤ))).alternating_sum
+| [] := rfl
+| [n] := by simp [of_digits, list.alternating_sum]
+| (a :: b :: t) :=
+  begin
+    simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
+    push_cast,
+    ring,
+  end
+
+lemma modeq_eleven_digits_sum (n : ℕ) :
+  n ≡ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum [ZMOD 11] :=
 begin
-  split,
-  intro h',
-  convert dvd_sub h' h,
-  exact eq.symm (sub_sub_self b c),
-  intro h',
-  convert dvd_add h h',
-  exact eq_add_of_sub_eq rfl,
+  have t := zmodeq_of_digits_digits 11 10 (-1 : ℤ) dec_trivial n,
+  rw of_digits_neg_one at t,
+  exact t,
 end
 
 lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ) - c) (n : ℕ) :
@@ -339,7 +353,8 @@ lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ)
 begin
   rw ←int.coe_nat_dvd,
   exact dvd_iff_dvd_of_dvd_sub
-    (int.modeq.modeq_iff_dvd.1 (zmodeq_of_digits_digits b b' c (int.modeq.modeq_iff_dvd.2 h).symm _).symm),
+    (int.modeq.modeq_iff_dvd.1
+      (zmodeq_of_digits_digits b b' c (int.modeq.modeq_iff_dvd.2 h).symm _).symm),
 end
 
 lemma eleven_dvd_iff (n : ℕ) : 11 ∣ n ↔ 11 ∣ (of_digits (-1 : ℤ) (digits 10 n)) :=

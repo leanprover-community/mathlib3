@@ -285,6 +285,27 @@ begin
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
+lemma dvd_mul_sub_mul {α : Type*} [comm_ring α]
+  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+  k ∣ a * x - b * y :=
+begin
+  convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
+  rw [mul_sub_left_distrib, mul_sub_right_distrib],
+  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
+end
+
+lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
+  (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+begin
+  split,
+  intro h',
+  convert dvd_sub h' h,
+  exact eq.symm (sub_sub_self b c),
+  intro h',
+  convert dvd_add h h',
+  exact eq_add_of_sub_eq rfl,
+end
+
 end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/

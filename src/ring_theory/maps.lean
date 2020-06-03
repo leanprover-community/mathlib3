@@ -44,14 +44,14 @@ lemma map_zero_iff (x : R) : Hs x = 0 ↔ x = 0 :=
 end ring_equiv
 
 /-- A ring involution -/
-structure ring_invo [semiring R] extends R ≃+* opposite R :=
+structure ring_invo [semiring R] extends R ≃+* Rᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
 
 namespace ring_invo
 variables {R} [semiring R]
 
 /-- Construct a ring involution from a ring homomorphism. -/
-def mk' (f : R →+* opposite R) (involution : ∀ r, (f (f r).unop).unop = r) :
+def mk' (f : R →+* Rᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
   ring_invo R :=
 { inv_fun := λ r, (f r.unop).unop,
   left_inv := λ r, involution r,
@@ -64,11 +64,11 @@ instance : has_coe_to_fun (ring_invo R) := ⟨_, λ f, f.to_ring_equiv.to_fun⟩
 @[simp]
 lemma to_fun_apply {f : ring_invo R} {r : R} : f.to_fun r = f r := rfl
 
-instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* opposite R) :=
+instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* Rᵒᵖ) :=
 ⟨ring_invo.to_ring_equiv⟩
 
 @[norm_cast] lemma coe_ring_equiv (f : ring_invo R) (a : R) :
-  (f : R ≃+* opposite R) a = f a := rfl
+  (f : R ≃+* Rᵒᵖ) a = f a := rfl
 
 lemma map_zero_iff (f : ring_invo R) {x : R} : f x = 0 ↔ x = 0 :=
 by rw [←coe_ring_equiv, ring_equiv.map_zero_iff]

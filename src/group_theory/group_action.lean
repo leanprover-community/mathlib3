@@ -93,8 +93,6 @@ iff.rfl
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
 
-@[simp] lemma smul_mem_orbit (g : α) (a : β) : g • a ∈ orbit α a := ⟨g, rfl⟩
-
 instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
   fintype (orbit α b) := set.fintype_range _
 

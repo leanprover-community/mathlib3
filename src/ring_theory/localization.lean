@@ -472,8 +472,6 @@ instance : has_add (localization' M) :=
   (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
 λ r1 r2 r3 r4 h1 h2, (con.eq _).2
 begin
-  change localization'.r M r1 r3 at h1,
-  change localization'.r M r2 r4 at h2,
   rw r_eq_r' at h1 h2 ⊢,
   cases h1 with t₅ ht₅,
   cases h2 with t₆ ht₆,

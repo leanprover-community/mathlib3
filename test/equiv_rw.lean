@@ -209,7 +209,8 @@ begin
 end
 
 -- rewriting in the argument of a dependent function can't be done in one step
-example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
+example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) :
+  option β :=
 begin
   equiv_rw e at h,
   have t := h b,

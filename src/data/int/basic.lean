@@ -30,9 +30,12 @@ attribute [simp] int.of_nat_eq_coe int.bodd
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
 
-@[simp, norm_cast] theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
-@[simp, norm_cast] theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
-@[simp, norm_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
+@[simp, norm_cast]
+theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
+@[simp, norm_cast]
+theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
+@[simp, norm_cast]
+theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
@@ -1012,7 +1015,8 @@ by rw [← bitwise_or, test_bit_bitwise]
 @[simp] lemma test_bit_land (m n k) : test_bit (land m n) k = test_bit m k && test_bit n k :=
 by rw [← bitwise_and, test_bit_bitwise]
 
-@[simp] lemma test_bit_ldiff (m n k) : test_bit (ldiff m n) k = test_bit m k && bnot (test_bit n k) :=
+@[simp]
+lemma test_bit_ldiff (m n k) : test_bit (ldiff m n) k = test_bit m k && bnot (test_bit n k) :=
 by rw [← bitwise_diff, test_bit_bitwise]
 
 @[simp] lemma test_bit_lxor (m n k) : test_bit (lxor m n) k = bxor (test_bit m k) (test_bit n k) :=
@@ -1048,7 +1052,8 @@ shiftl_add _ _ _
 @[simp] lemma shiftr_coe_nat (m n : ℕ) : shiftr m n = nat.shiftr m n := by cases n; refl
 
 @[simp] lemma shiftl_neg_succ (m n : ℕ) : shiftl -[1+ m] n = -[1+ nat.shiftl' tt m n] := rfl
-@[simp] lemma shiftr_neg_succ (m n : ℕ) : shiftr -[1+ m] n = -[1+ nat.shiftr m n] := by cases n; refl
+@[simp]
+lemma shiftr_neg_succ (m n : ℕ) : shiftr -[1+ m] n = -[1+ nat.shiftr m n] := by cases n; refl
 
 lemma shiftr_add : ∀ (m : ℤ) (n k : ℕ), shiftr m (n + k) = shiftr (shiftr m n) k
 | (m : ℕ) n k := by rw [shiftr_coe_nat, shiftr_coe_nat,
@@ -1183,14 +1188,16 @@ end
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
 by simp [sub_eq_add_neg]
 
-@[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
+@[simp]
+theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
 ⟨λ h, begin cases n,
   { exact congr_arg coe (nat.cast_eq_zero.1 h) },
   { rw [cast_neg_succ_of_nat, neg_eq_zero, ← cast_succ, nat.cast_eq_zero] at h,
     contradiction }
 end, λ h, by rw [h, cast_zero]⟩
 
-@[simp, norm_cast] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} : (m : α) = n ↔ m = n :=
+@[simp, norm_cast] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} :
+  (m : α) = n ↔ m = n :=
 by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
 
 theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.injective (coe : ℤ → α)
@@ -1218,9 +1225,11 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
 
-@[simp, norm_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
+@[simp, norm_cast]
+theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
 
-@[simp, norm_cast] theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
+@[simp, norm_cast]
+theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
 
 @[simp, norm_cast] theorem cast_bit0 [ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n := cast_add _ _
 
@@ -1281,16 +1290,20 @@ theorem mem_range_iff {m n r : ℤ} : r ∈ range m n ↔ m ≤ r ∧ r < n :=
     exact sub_lt_sub_right h2 _,
   show m + _ = _, by rw [to_nat_of_nonneg (sub_nonneg_of_le h1), add_sub_cancel'_right]⟩⟩
 
-instance decidable_le_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m ≤ r → r < n → P r) :=
+instance decidable_le_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
+  decidable (∀ r, m ≤ r → r < n → P r) :=
 decidable_of_iff (∀ r ∈ range m n, P r) $ by simp only [mem_range_iff, and_imp]
 
-instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m ≤ r → r ≤ n → P r) :=
+instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) :
+  decidable (∀ r, m ≤ r → r ≤ n → P r) :=
 decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simp only [mem_range_iff, and_imp, lt_add_one_iff]
 
-instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m < r → r < n → P r) :=
+instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
+  decidable (∀ r, m < r → r < n → P r) :=
 int.decidable_le_lt P _ _
 
-instance decidable_lt_le (P : int → Prop) [decidable_pred P] (m n : ℤ) : decidable (∀ r, m < r → r ≤ n → P r) :=
+instance decidable_lt_le (P : int → Prop) [decidable_pred P] (m n : ℤ) :
+  decidable (∀ r, m < r → r ≤ n → P r) :=
 int.decidable_le_le P _ _
 
 end decidable
@@ -1320,6 +1333,22 @@ ring_hom.ext f.eq_int_cast
 
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
+
+lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
+begin
+  ext n,
+  let φ : ℕ →+* R := f.comp (nat.cast_ring_hom ℤ),
+  let ψ : ℕ →+* R := g.comp (nat.cast_ring_hom ℤ),
+  have h : ∀ n : ℕ, f n = g n, by { intro n, simp [← int.nat_cast_eq_coe_nat] },
+  cases n, { apply h },
+  calc  f (-(n+1))
+      = f (-(n+1)) + (g (n+1) + g (-(n+1))) : by rw [← g.map_add, add_neg_self, g.map_zero, add_zero]
+  ... = f (-(n+1)) + f (n+1) + g (-(n+1))   : by simp only [add_assoc, h, map_add, map_one]
+  ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
+end
+
+instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
+⟨ring_hom.ext_int⟩
 
 end ring_hom
 

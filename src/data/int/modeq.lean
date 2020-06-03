@@ -48,11 +48,13 @@ by rw [mul_comm a, mul_comm b, mul_comm n]; exact modeq_mul_left' hc h
 theorem modeq_add (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a + c ≡ b + d [ZMOD n] :=
 modeq_iff_dvd.2 $ by {convert dvd_add (modeq_iff_dvd.1 h₁) (modeq_iff_dvd.1 h₂), ring}
 
-theorem modeq_add_cancel_left (h₁ : a ≡ b [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : c ≡ d [ZMOD n] :=
+theorem modeq_add_cancel_left (h₁ : a ≡ b [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) :
+  c ≡ d [ZMOD n] :=
 have d - c = b + d - (a + c) - (b - a) := by ring,
 modeq_iff_dvd.2 $ by { rw [this], exact dvd_sub (modeq_iff_dvd.1 h₂) (modeq_iff_dvd.1 h₁) }
 
-theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : a ≡ b [ZMOD n] :=
+theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) :
+  a ≡ b [ZMOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
 theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := int.mod_mod _ _
@@ -99,7 +101,8 @@ by rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab];
 
 theorem modeq_add_fac {a b n : ℤ} (c : ℤ) (ha : a ≡ b [ZMOD n]) : a + n*c ≡ b [ZMOD n] :=
 calc a + n*c ≡ b + n*c [ZMOD n] : int.modeq.modeq_add ha (int.modeq.refl _)
-         ... ≡ b + 0 [ZMOD n] : int.modeq.modeq_add (int.modeq.refl _) (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _))
+         ... ≡ b + 0 [ZMOD n] : int.modeq.modeq_add (int.modeq.refl _)
+                 (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _))
          ... ≡ b [ZMOD n] : by simp
 
 open nat
@@ -107,7 +110,8 @@ lemma mod_coprime {a b : ℕ} (hab : coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZM
 ⟨ gcd_a a b,
   have hgcd : nat.gcd a b = 1, from coprime.gcd_eq_one hab,
   calc
-   ↑a * gcd_a a b ≡ ↑a*gcd_a a b + ↑b*gcd_b a b [ZMOD ↑b] : int.modeq.symm $ modeq_add_fac _ $ int.modeq.refl _
+   ↑a * gcd_a a b ≡ ↑a*gcd_a a b + ↑b*gcd_b a b [ZMOD ↑b] : int.modeq.symm $
+                      modeq_add_fac _ $ int.modeq.refl _
               ... ≡ 1 [ZMOD ↑b] : by rw [←gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
 
 lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=

@@ -179,8 +179,10 @@ instance : semilattice_sup_bot ℝ≥0 :=
 { .. nnreal.order_bot, .. nnreal.distrib_lattice }
 
 instance : linear_ordered_semiring ℝ≥0 :=
-{ add_left_cancel            := assume a b c h, nnreal.eq $ @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
-  add_right_cancel           := assume a b c h, nnreal.eq $ @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+{ add_left_cancel            := assume a b c h, nnreal.eq $
+    @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+  add_right_cancel           := assume a b c h, nnreal.eq $
+    @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
@@ -413,8 +415,8 @@ end
 
 @[simp] lemma sub_le_iff_le_add {r p q : nnreal} : r - p ≤ q ↔ r ≤ q + p :=
 match le_total p r with
-| or.inl h :=
-  by rw [← nnreal.coe_le_coe, ← nnreal.coe_le_coe, nnreal.coe_sub h, nnreal.coe_add, sub_le_iff_le_add]
+| or.inl h := by rw [← nnreal.coe_le_coe, ← nnreal.coe_le_coe, nnreal.coe_sub h, nnreal.coe_add,
+    sub_le_iff_le_add]
 | or.inr h :=
   have r ≤ p + q, from le_add_right h,
   by simpa [nnreal.coe_le_coe, nnreal.coe_le_coe, sub_eq_zero h, add_comm]

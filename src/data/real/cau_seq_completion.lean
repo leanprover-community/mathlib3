@@ -39,7 +39,8 @@ by have : mk f = 0 ↔ lim_zero (f - 0) := quotient.eq;
 instance : has_add Cauchy :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f + g)) $
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using add_lim_zero hf hg⟩
+  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    using add_lim_zero hf hg⟩
 
 @[simp] theorem mk_add (f g : cau_seq β abv) : mk f + mk g = mk (f + g) := rfl
 

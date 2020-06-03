@@ -45,7 +45,8 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 
 open filter metric
 
-private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
+private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]}
+  (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
 (F.continuous_eval.tendsto _).comp ncs.tendsto_limit
 
@@ -113,7 +114,8 @@ let h := (div_lt_one_iff_lt deriv_sq_norm_pos).2 hnorm in
 by rw T_def; apply h
 
 private lemma T_pow {n : ℕ} (hn : n > 0) : T ^ n < 1 :=
-have T ^ n ≤ T ^ 1, from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
+have T ^ n ≤ T ^ 1,
+from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
 lt_of_le_of_lt (by simpa) T_lt_one
 
 private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (nat.pow_pos (by norm_num) _))
@@ -145,9 +147,11 @@ calc
     ≤ ∥z' - z∥ : padic_polynomial_dist _ _ _
 ... = ∥z1∥ : by simp only [sub_eq_add_neg, add_assoc, hz', add_add_neg_cancel'_right, norm_neg]
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
-... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ : (div_le_div_right deriv_norm_pos).2 hz.2
+... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
+  (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
-... < ∥F.derivative.eval a∥ : (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
+... < ∥F.derivative.eval a∥ :
+  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
 
 private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :

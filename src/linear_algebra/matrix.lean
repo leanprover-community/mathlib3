@@ -316,3 +316,31 @@ end
 end vector_space
 
 end matrix
+
+/-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
+is compatible with the algebra structures. -/
+def alg_equiv_matrix' {R : Type v} [comm_ring R] [decidable_eq n] :
+  module.End R (n → R) ≃ₐ[R] matrix n n R :=
+{ map_mul'  := matrix.comp_to_matrix_mul,
+  map_add'  := linear_equiv_matrix'.map_add,
+  commutes' := λ r, by { change (r • (linear_map.id : module.End R _)).to_matrix = r • 1,
+                         rw ←linear_map.to_matrix_id, refl, },
+  ..linear_equiv_matrix' }
+
+/-- A linear equivalence of two modules induces an equivalence of algebras of their
+endomorphisms. -/
+def linear_equiv.alg_conj {R : Type v} [comm_ring R] {M₁ M₂ : Type*}
+  [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂] (e : M₁ ≃ₗ[R] M₂) :
+  module.End R M₁ ≃ₐ[R] module.End R M₂ :=
+{ map_mul'  := λ f g, by apply e.arrow_congr_comp,
+  map_add'  := e.conj.add,
+  commutes' := λ r, by { change e.conj (r • linear_map.id) = r • linear_map.id,
+                         rw [linear_equiv.map_smul, linear_equiv.conj_id], },
+  ..e.conj }
+
+/-- A basis of a module induces an equivalence of algebras from the endomorphisms of the module to
+square matrices. -/
+def alg_equiv_matrix {R : Type v} {M : Type w}
+  [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
+  module.End R M ≃ₐ[R] matrix n n R :=
+(equiv_fun_basis h).alg_conj.trans alg_equiv_matrix'

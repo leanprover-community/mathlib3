@@ -149,6 +149,14 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
   map_add := λ a a', C_add,
   map_mul := λ a a', C_mul }
 
+lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+  function.injective (C : R → mv_polynomial σ R) :=
+finsupp.injective_single _
+
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+  (C r : mv_polynomial σ R) = C s ↔ r = s :=
+(C_injective σ R).eq_iff
+
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
 

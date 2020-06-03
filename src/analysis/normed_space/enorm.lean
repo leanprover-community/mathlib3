@@ -8,7 +8,7 @@ import analysis.normed_space.basic
 /-!
 # Extended norm
 
-In this file we define structure `enorm 𝕜 V` representing an extended norm (i.e., a norm that can
+In this file we define a structure `enorm 𝕜 V` representing an extended norm (i.e., a norm that can
 take the value `∞`) on a vector space `V` over a normed field `𝕜`. We do not use `class` for
 an `enorm` because the same space can have more than one extended norm. For example, the space of
 measurable functions `f : α → ℝ` has a family of `L_p` extended norms.

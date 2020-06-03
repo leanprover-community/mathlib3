@@ -15,60 +15,6 @@ universes u v w u₁
 -- ### FOR_MATHLIB
 -- everything in this file should move to other files
 
-namespace ring_hom
-
-lemma ext_nat {R : Type*} [semiring R] (f g : ℕ →+* R) : f = g :=
-begin
-  ext n,
-  calc f n = nat.cast_ring_hom R n : ring_hom.eq_nat_cast f n
-       ... = g n                   : (ring_hom.eq_nat_cast g n).symm,
-end
-
-lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
-begin
-  ext n,
-  let φ : ℕ →+* R := f.comp (nat.cast_ring_hom ℤ),
-  let ψ : ℕ →+* R := g.comp (nat.cast_ring_hom ℤ),
-  have h : ∀ n : ℕ, f n = g n, by { intro n, simp [← int.nat_cast_eq_coe_nat] },
-  cases n, { apply h },
-  calc  f (-(n+1))
-      = f (-(n+1)) + (g (n+1) + g (-(n+1))) : by rw [← g.map_add, add_neg_self, g.map_zero, add_zero]
-  ... = f (-(n+1)) + f (n+1) + g (-(n+1))   : by simp only [add_assoc, h, map_add, map_one]
-  ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
-end
-
-lemma ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=
-begin
-  ext a,
-  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective a,
-  let φ : ℤ →+* R := f.comp (int.cast_ring_hom (zmod n)),
-  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom (zmod n)),
-  show φ k = ψ k,
-  rw φ.ext_int ψ,
-end
-
-lemma ext_rat {R : Type*} [semiring R]
-  (f g : ℚ →+* R) : f = g :=
-begin
-  ext r,
-  refine rat.num_denom_cases_on' r _,
-  intros a b b0,
-  let φ : ℤ →+* R := f.comp (int.cast_ring_hom ℚ),
-  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom ℚ),
-  rw [rat.mk_eq_div, int.cast_coe_nat],
-  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
-  have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
-  calc f (a * b⁻¹)
-      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
-        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
-  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
-  ... = g (a * b⁻¹) :
-        by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
-              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
-end
-
-end ring_hom
-
 namespace mv_polynomial
 
 variables {σ : Type*} {R : Type*} [comm_semiring R]
@@ -102,14 +48,6 @@ begin
              ... = g (C r)           : (g.commutes r).symm },
   { simpa only [hf] },
 end
-
-lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
-  function.injective (C : R → mv_polynomial σ R) :=
-finsupp.injective_single _
-
-@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
-  (C r : mv_polynomial σ R) = C s ↔ r = s :=
-(C_injective σ R).eq_iff
 
 end mv_polynomial
 
@@ -336,21 +274,6 @@ ring_hom.map_dvd (nat.cast_ring_hom R) h
 lemma coe_int_dvd {R : Type*} [comm_ring R] (m n : ℤ) (h : m ∣ n) :
   (m : R) ∣ n :=
 ring_hom.map_dvd (int.cast_ring_hom R) h
-
--- by { rcases h with ⟨k, rfl⟩, refine ⟨k, by norm_cast⟩ }
-
-lemma rat.denom_div_cast_eq_one_iff (m n : ℤ) (hn : n ≠ 0) :
-  ((m : ℚ) / n).denom = 1 ↔ n ∣ m :=
-begin
-  replace hn : (n:ℚ) ≠ 0, by rwa [ne.def, int.cast_eq_zero],
-  split,
-  { intro h,
-    lift ((m : ℚ) / n) to ℤ using h with k hk,
-    use k,
-    rwa [eq_div_iff_mul_eq _ _ hn, ← int.cast_mul, mul_comm, eq_comm, int.cast_inj] at hk },
-  { rintros ⟨d, rfl⟩,
-    rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
-end
 
 end
 

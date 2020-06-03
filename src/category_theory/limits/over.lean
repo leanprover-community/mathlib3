@@ -81,11 +81,17 @@ instance has_colimits_of_shape [has_colimits_of_shape J C] :
 instance has_colimits [has_colimits.{v} C] : has_colimits.{v} (over X) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
+instance forget_preserves_colimit {X : C} {F : J ⥤ over X} [has_colimit (F ⋙ forget)] :
+  preserves_colimit F (forget : over X ⥤ C) :=
+preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F)
+
+instance forget_preserves_colimits_of_shape [has_colimits_of_shape J C] {X : C} :
+  preserves_colimits_of_shape J (forget : over X ⥤ C) :=
+{ preserves_colimit := λ F, by apply_instance }
+
 instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
   preserves_colimits (forget : over X ⥤ C) :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  { preserves_colimit := λ F, by exactI
-    preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
+{ preserves_colimits_of_shape := λ J 𝒥, by apply_instance }
 
 namespace construct_products
 

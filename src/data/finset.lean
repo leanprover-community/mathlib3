@@ -2495,7 +2495,7 @@ theorem disjoint_val {s t : finset α} : disjoint s t ↔ s.1.disjoint t.1 :=
 disjoint_left
 
 theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
-disjoint_iff
+_root_.disjoint_iff
 
 instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
 decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff

@@ -128,30 +128,69 @@ end
 
 end abelian
 
+section
 variables {C}
 variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
 
-structure as_sum_of_simples (X : C) :=
+structure simple_decomposition (X : C) :=
 (ι : Type v)
 [fintype : fintype ι]
 [decidable_eq : decidable_eq ι]
-(f : ι → C)
-[simple : Π i, simple.{v} (f i)]
-(iso : X ≅ ⨁ f)
+(summand : ι → C)
+[is_simple : Π i, simple.{v} (summand i)]
+(iso : X ≅ ⨁ summand)
 
+attribute [instance] simple_decomposition.fintype simple_decomposition.decidable_eq
+attribute [instance] simple_decomposition.is_simple
 
-structure as_sum_of_isotypics (X : C) :=
-(ι : Type v)
-[fintype : fintype ι]
-[decidable_eq : decidable_eq ι]
-(f : ι → C)
-(multiplicity : ι → ℕ)
-[simple : Π i, simple.{v} (f i)]
-(distinct : ∀ {i j : ι} (h : i ≠ j), (f i ≅ f j) → false)
-(iso : X ≅ ⨁ (λ (p : Σ (i : ι), fin (multiplicity i)), f p.1))
+def simple_decomposition.multiplicity
+  [decidable_rel (λ X Y : C, nonempty (X ≅ Y))] -- This will presumably be provided by classical logic.
+  {X : C} (D : simple_decomposition.{v} X) (Y : C) [simple.{v} Y] : ℕ :=
+fintype.card { i // nonempty (D.summand i ≅ Y) }
 
-variables (C)
+end
+
+section
+variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
+
+def equiv_of_simple_decompositions [preadditive.{v} C] {X : C} (D E : simple_decomposition.{v} X) :
+  Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
+-- TODO this requires some work
+-- We'll do it by induction, and use Gaussian elimination on 2x2 matrices.
+sorry
+
+open_locale classical
+
+lemma multiplicity_constant {X : C} (D E : simple_decomposition.{v} X) (Y : C) [simple.{v} Y] :
+  D.multiplicity Y = E.multiplicity Y :=
+begin
+  obtain ⟨e, f⟩ := equiv_of_simple_decompositions D E,
+  dsimp [simple_decomposition.multiplicity],
+  apply fintype.card_congr,
+  refine equiv.subtype_congr e _,
+  intro i,
+  refine equiv.nonempty_iff_nonempty _,
+  exact
+  { to_fun := λ e', (f i).trans e',
+    inv_fun := λ e', (f i).symm.trans e',
+    left_inv := by { intro i, simp, },
+    right_inv := by { intro i, simp, }, }
+end
+
+end
+
+variables (C) [preadditive.{v} C] [has_finite_biproducts.{v} C]
 class semisimple :=
-(as_sum_of_simples : Π X : C, trunc (as_sum_of_simples.{v} X))
+(simple_decomposition : Π X : C, trunc (simple_decomposition.{v} X))
+
+variables {C} [semisimple.{v} C] [decidable_rel (λ X Y : C, nonempty (X ≅ Y))]
+
+def multiplicity (Y : C) [simple.{v} Y] (X : C) : ℕ :=
+begin
+  have D := semisimple.simple_decomposition.{v} X,
+  trunc_cases D,
+  { exact D.multiplicity Y, },
+  { convert multiplicity_constant a b Y, },
+end
 
 end category_theory

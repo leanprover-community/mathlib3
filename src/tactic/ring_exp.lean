@@ -965,6 +965,12 @@ lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} :
   ... = p ^ (ps * qs) : symm (pow_mul _ _ _)
   ... = p ^ psqs : by rw [psqs_pf]
 
+/--
+Compute the exponentiation of two coefficients.
+
+The returned value is of the form `ex.coeff _ (p ^ q)`,
+with the proof of `expr.of_rat p ^ expr.of_rat q = expr.of_rat (p ^ q)`.
+-/
 meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_pow [p_p, q_p],

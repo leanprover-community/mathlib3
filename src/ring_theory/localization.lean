@@ -185,7 +185,7 @@ lemma exists_integer_multiple (a : S) :
 by { simp_rw mul_comm _ a, apply exists_integer_multiple' }
 
 
-/-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
+/-- Given `z : S`, `f.to_localization.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec {f : localization M S} (z : S) :
   z * f.to_map (f.to_localization.sec z).2 = f.to_map (f.to_localization.sec z).1 :=
@@ -337,7 +337,7 @@ variables {g : R →+* P} (hg : ∀ y : M, is_unit (g y))
 `S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
 lemma lift_mk' (x y) :
   f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) hg y)⁻¹ :=
-f.to_localization_map.lift_mk' _ _ _
+f.to_localization.lift_mk' _ _ _
 
 lemma lift_mk'_spec (x v) (y : M) :
   f.lift hg (f.mk' x y) = v ↔ g x = g y * v :=

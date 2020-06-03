@@ -328,7 +328,7 @@ f.map_right_cancel $ by rw [mul_comm _ x, mul_comm _ y, h]
 `f x * (f y)⁻¹`. -/
 @[to_additive "Given a localization map `f : M →+ N`, the surjection sending `(x, y) : M × S`
 to `f x - f y`."]
-noncomputable def mk' (f : localization_map S N) (x : M) (y : S) : N :=
+noncomputable def mk' (f : localization S N) (x : M) (y : S) : N :=
 f.to_map x * ↑(is_unit.lift_right (f.to_map.mrestrict S) f.map_units y)⁻¹
 
 @[to_additive] lemma mk'_mul (x₁ x₂ : M) (y₁ y₂ : S) :

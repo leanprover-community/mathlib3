@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.int.modeq
-import algebra.euclidean_domain
+import data.fintype.card
 import tactic.ring
 import tactic.interval_cases
 
@@ -319,11 +319,25 @@ def alternating_sum {G : Type*} [add_group G] : list G → G
 
 -- TODO It would be good to prove:
 
--- open_locale big_operators
--- lemma alternating_sum_eq_finset_sum {R : Type*} [ring R] (L : list R) :
---   alternating_sum L =
---     ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) * L.nth_le i i.2 :=
--- sorry
+open_locale big_operators
+lemma alternating_sum_eq_finset_sum {R : Type*} [ring R] : ∀ (L : list R),
+  alternating_sum L = ∑ i : fin L.length, (-1 : R) ^ (i : ℕ) * L.nth_le i i.2
+| [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
+| (g :: []) :=
+begin
+  show g = ∑ i : fin 1, (-1 : R) ^ (i : ℕ) * [g].nth_le i i.2,
+  rw [fin.sum_univ_succ], simp,
+end
+| (g :: h :: L) :=
+calc g - h + L.alternating_sum
+    = g - h + ∑ i : fin L.length, (-1 : R) ^ (i : ℕ) * L.nth_le i i.2 :
+      congr_arg _ (alternating_sum_eq_finset_sum _)
+... = ∑ i : fin (L.length + 2), (-1 : R) ^ (i : ℕ) * list.nth_le (g :: h :: L) i _ :
+begin
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
+  unfold_coes,
+  simp [nat.succ_eq_add_one, pow_add]; refl,
+end
 
 end list
 

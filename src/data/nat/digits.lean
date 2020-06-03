@@ -317,8 +317,6 @@ def alternating_sum {G : Type*} [add_group G] : list G → G
 | (g :: h :: t) := g - h + alternating_sum t
 
 
--- TODO It would be good to prove:
-
 open_locale big_operators
 lemma alternating_sum_eq_finset_sum {R : Type*} [ring R] : ∀ (L : list R),
   alternating_sum L = ∑ i : fin L.length, (-1 : R) ^ (i : ℕ) * L.nth_le i i.2

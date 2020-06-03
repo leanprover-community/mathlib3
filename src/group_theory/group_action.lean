@@ -142,10 +142,10 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
-lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+@[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 (to_units α c).inv_smul_smul x
 
-lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+@[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 (to_units α c).smul_inv_smul x
 
 variables (α) (β)

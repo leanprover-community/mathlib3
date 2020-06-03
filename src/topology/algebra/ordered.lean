@@ -101,7 +101,7 @@ set of points `(x, y)` with `x ≤ y` is closed in the product space. We introdu
 This property is satisfied for the order topology on a linear order, but it can be satisfied more
 generally, and suffices to derive many interesting properties relating order and topology. -/
 class order_closed_topology (α : Type*) [topological_space α] [preorder α] : Prop :=
-(is_closed_le' : is_closed { p:α×α | p.1 ≤ p.2})
+(is_closed_le' : is_closed {p:α×α | p.1 ≤ p.2})
 
 instance : Π [topological_space α], topological_space (order_dual α) := id
 
@@ -187,7 +187,7 @@ begin
   exact (continuous_within_at.prod hf hg).mem_closure hx h
 end
 
-/-- If `s` is a closed set and functions `f` and `g` are continuous on `s`,
+/-- If `s` is a closed set and two functions `f` and `g` are continuous on `s`,
 then the set `{x ∈ s | f x ≤ g x}` is a closed set. -/
 lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set β} (hs : is_closed s)
   (hf : continuous_on f s) (hg : continuous_on g s) :
@@ -263,7 +263,7 @@ begin
 end
 
 /-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
-on a preconnected set `s` and for some `a b ∈ s` se have `f a ≤ g a` and `g b ≤ f b`,
+on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
 then for some `x ∈ s` we have `f x = g x`. -/
 lemma is_preconnected.intermediate_value₂ {γ : Type*} [topological_space γ] {s : set γ}
   (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}

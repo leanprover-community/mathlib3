@@ -132,7 +132,7 @@ lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) :
   c.pairwise_disjoint :=
 eqv_classes_disjoint hc.2
 
-lemma sUnion_eq_univ_of_is_partition {c : set (set α)} (hc : is_partition c) : 
+lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) : 
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
   let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩

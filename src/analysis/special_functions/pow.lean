@@ -225,7 +225,7 @@ lemma zero_rpow_le_one (x : ℝ) : (0 : ℝ) ^ x ≤ 1 :=
 by { by_cases h : x = 0; simp [h, zero_le_one] }
 
 lemma zero_rpow_nonneg (x : ℝ) : 0 ≤ (0 : ℝ) ^ x :=
-by { by_cases h : x = 0; simp [h, le_refl, zero_le_one] }
+by { by_cases h : x = 0; simp [h, zero_le_one] }
 
 lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];

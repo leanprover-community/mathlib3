@@ -416,7 +416,7 @@ local attribute [instance] lie_algebra.of_associative_algebra
 def lie_subalgebra.incl
   {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
   (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
-{ map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+{ map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.incl_apply], refl, },
   ..L'.to_submodule.incl }
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/

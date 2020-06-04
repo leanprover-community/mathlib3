@@ -509,12 +509,12 @@ by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
-protected def subtype : p →ₗ[R] M :=
+protected def incl : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-@[simp] theorem subtype_apply (x : p) : p.incl x = x := rfl
+@[simp] theorem incl_apply (x : p) : p.incl x = x := rfl
 
-lemma subtype_eq_val : ((submodule.incl p) : p → M) = subtype.val := rfl
+lemma incl_eq_val : ((submodule.incl p) : p → M) = subtype.val := rfl
 
 end add_comm_monoid
 

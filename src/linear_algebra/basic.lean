@@ -2061,7 +2061,7 @@ begin
     ext j,
     have hb : ∀i ∈ J, b i = 0,
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },
-    simp only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
+    simp only [comp_apply, pi_apply, id_apply, proj_apply, incl_apply, cod_restrict_apply],
     split_ifs,
     { refl },
     { exact (hb _ $ (hu trivial).resolve_left h).symm } }

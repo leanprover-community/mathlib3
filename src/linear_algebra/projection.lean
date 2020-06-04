@@ -38,7 +38,7 @@ lemma ker_id_sub_eq_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
   ker (id - p.incl.comp f) = p :=
 begin
   ext x,
-  simp only [comp_apply, mem_ker, subtype_apply, sub_apply, id_apply, sub_eq_zero],
+  simp only [comp_apply, mem_ker, incl_apply, sub_apply, id_apply, sub_eq_zero],
   exact ⟨λ h, h.symm ▸ submodule.coe_mem _, λ hx, by erw [hf ⟨x, hx⟩, subtype.coe_mk]⟩
 end
 
@@ -87,7 +87,7 @@ linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x 
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
   apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
-  { simp only [ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
+  { simp only [ker_eq_bot', prod.forall, incl_apply, prod.mk_eq_zero, coprod_apply],
     -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
     rintros ⟨x, hx⟩ ⟨y, hy⟩,
     simp only [coe_mk, mk_eq_zero, ← eq_neg_iff_add_eq_zero],

@@ -294,7 +294,8 @@ lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   Icc a b ⊆ s :=
 by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
 
-/-- The only unbounded preconnected subset of a linear order is the whole space. -/
+/-- If preconnected set in a linear order space is unbounded below and above, then it is the whole
+space. -/
 lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
   (ha : ¬bdd_above s) :
   s = univ :=
@@ -943,8 +944,8 @@ section order_topology
 variables [topological_space α] [topological_space β]
   [linear_order α] [linear_order β] [order_topology α] [order_topology β]
 
-lemma nhds_principal_ne_bot_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) :
-  𝓝 a ⊓ principal s ≠ ⊥ :=
+lemma is_lub.nhds_within_ne_bot {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) :
+  nhds_within a s ≠ ⊥ :=
 let ⟨a', ha'⟩ := hs in
 forall_sets_nonempty_iff_ne_bot.mp $ assume t ht,
   let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp ht in
@@ -965,9 +966,9 @@ forall_sets_nonempty_iff_ne_bot.mp $ assume t ht,
       have a' ∈ t₁, from hlt₁ ⟨‹l < a'›, ha.left ha'⟩,
       ⟨a', ht ⟨‹a' ∈ t₁›, ht₂ ‹a' ∈ s›⟩⟩)
 
-lemma nhds_principal_ne_bot_of_is_glb : ∀ {a : α} {s : set α}, is_glb s a → s.nonempty →
-  𝓝 a ⊓ principal s ≠ ⊥ :=
-@nhds_principal_ne_bot_of_is_lub (order_dual α) _ _ _
+lemma is_glb.nhds_within_ne_bot : ∀ {a : α} {s : set α}, is_glb s a → s.nonempty →
+  nhds_within a s ≠ ⊥ :=
+@is_lub.nhds_within_ne_bot (order_dual α) _ _ _
 
 lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
   (hsa : a ∈ upper_bounds s) (hsf : s ∈ f) (hfa : f ⊓ 𝓝 a ≠ ⊥) : is_lub s a :=
@@ -986,7 +987,7 @@ lemma is_glb_of_mem_nhds : ∀ {s : set α} {a : α} {f : filter α},
 lemma is_lub_of_is_lub_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s.nonempty)
   (hb : tendsto f (nhds_within a s) (𝓝 b)) : is_lub (f '' s) b :=
-have hnbot : (𝓝 a ⊓ principal s) ≠ ⊥, from nhds_principal_ne_bot_of_is_lub ha hs,
+have hnbot : nhds_within a s ≠ ⊥, from ha.nhds_within_ne_bot hs,
 have ∀a'∈s, ¬ b < f a',
   from assume a' ha' h,
   have ∀ᶠ x in 𝓝 b, x < f a', from mem_nhds_sets (is_open_gt' _) h,
@@ -1029,7 +1030,7 @@ lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b
 
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) :
   a ∈ closure s :=
-by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_lub ha hs
+by rw closure_eq_nhds; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
@@ -1037,7 +1038,7 @@ by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
 
 lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) :
   a ∈ closure s :=
-by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_glb ha hs
+by rw closure_eq_nhds; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
@@ -1270,24 +1271,22 @@ section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
 
-lemma cSup_mem_closure {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (B : bdd_above s) : Sup s ∈ closure s :=
+lemma cSup_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_above s) : Sup s ∈ closure s :=
 mem_closure_of_is_lub (is_lub_cSup hs B) hs
 
-lemma cInf_mem_closure {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (B : bdd_below s) : Inf s ∈ closure s :=
+lemma cInf_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_below s) : Inf s ∈ closure s :=
 mem_closure_of_is_glb (is_glb_cInf hs B) hs
 
-lemma cSup_mem_of_is_closed {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_above s) : Sup s ∈ s :=
+lemma cSup_mem_of_is_closed {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_above s) :
+  Sup s ∈ s :=
 mem_of_is_lub_of_is_closed (is_lub_cSup hs B) hs hc
 
-lemma cInf_mem_of_is_closed {α : Type u} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_below s) : Inf s ∈ s :=
+lemma cInf_mem_of_is_closed {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_below s) :
+  Inf s ∈ s :=
 mem_of_is_glb_of_is_closed (is_glb_cInf hs B) hs hc
 
 /-- A continuous monotone function sends supremum to supremum in conditionally complete
-lattices, under a boundedness assumption. -/
+linear order, under a boundedness assumption. -/
 lemma cSup_of_cSup_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_above s) : f (Sup s) = Sup (f '' s) :=
 begin
@@ -1297,13 +1296,13 @@ begin
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally
-complete lattices, under a boundedness assumption. -/
+complete linear order, under a boundedness assumption. -/
 lemma csupr_of_csupr_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_above (range g)) : f (supr g) = supr (f ∘ g) :=
 by rw [supr, cSup_of_cSup_of_monotone_of_continuous Mf Cf (range_nonempty _) H, ← range_comp, supr]
 
 /-- A continuous monotone function sends infimum to infimum in conditionally complete
-lattices, under a boundedness assumption. -/
+linear order, under a boundedness assumption. -/
 lemma cInf_of_cInf_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_below s) : f (Inf s) = Inf (f '' s) :=
 begin
@@ -1313,12 +1312,12 @@ begin
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally
-complete lattices, under a boundedness assumption. -/
+complete linear order, under a boundedness assumption. -/
 lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf (range_nonempty _) H, ← range_comp, infi]
 
-/-- A bounded connected subset of a conditionally complete lattice includes the open interval
+/-- A bounded connected subset of a conditionally complete linear order includes the open interval
 `(Inf s, Sup s)`. -/
 lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb : bdd_below s)
   (ha : bdd_above s) :

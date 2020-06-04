@@ -147,35 +147,19 @@ aeval (X_in_terms_of_W p R)
   (from_X_to_W_basis p R) (X n) = X_in_terms_of_W p R n :=
 by rw [from_X_to_W_basis, aeval_X]
 
--- move this
-@[simp] lemma alg_hom_C {σ : Type*} (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
-  f (C r) = C r :=
-f.commutes r
-
-lemma X_in_terms_of_W_prop' [invertible (p : R)]
-  (f : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R)
-  (fX : ∀ (n : ℕ), f (X n) = W n)
-  (n : ℕ) : f (X_in_terms_of_W p R n) = X n :=
+@[simp] lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
+  from_W_to_X_basis p R (X_in_terms_of_W p R n) = X n :=
 begin
-  have fC : ∀ r, f (C r) = C r := f.commutes,
   apply nat.strong_induction_on n,
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
-  simp only [f.map_mul, alg_hom.map_sub f, fC, fX, alg_hom.map_sum],
+  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom_C, from_W_to_X_basis_X p R n, alg_hom.map_sum],
   rw [finset.sum_congr rfl, (_ : W_ R n - ∑ i in range n, C (p^i) * (X i)^p^(n-i) = C (p^n) * X n)],
   { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { simp [witt_polynomial, nat.sub_self, finset.sum_range_succ] },
   { intros i h,
     rw finset.mem_range at h,
-    simp only [alg_hom.map_mul f, alg_hom.map_pow f, fC, function.comp_app, H i h] }
-end
-
-@[simp] lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
-  from_W_to_X_basis p R (X_in_terms_of_W p R n) = X n :=
-begin
-  apply X_in_terms_of_W_prop' p R _ _ n,
-  intro n,
-  exact from_W_to_X_basis_X p R n,
+    simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, function.comp_app, H i h] },
 end
 
 lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
@@ -241,6 +225,11 @@ begin
   rw from_X_to_W_basis_X,
   refl,
 end
+
+noncomputable def witt.alg_equiv [invertible (p : R)] : mv_polynomial ℕ R ≃ₐ[R] mv_polynomial ℕ R :=
+equiv_of_family (W_ R) (X_in_terms_of_W p R)
+(X_in_terms_of_W_prop₂ p R)
+(X_in_terms_of_W_prop p R)
 
 variables {idx : Type*} [fact p.prime]
 
@@ -790,32 +779,19 @@ variables (p) (R)
 
 noncomputable def ghost_map.equiv_of_invertible [invertible (p : R)] :
   𝕎 p R ≃ (ℕ → R) :=
-{ to_fun := ghost_map,
-  inv_fun := λ x n, aeval x (X_in_terms_of_W p R n),
-  left_inv :=
-  begin
-    intro x, funext n,
-    dsimp [ghost_map, ghost_component],
-    transitivity (aeval x (aeval (W_ R) (X_in_terms_of_W p R n))),
-    { simp only [aeval_eq_eval₂_hom', map_eval₂_hom],
-      apply eval₂_hom_congr _ rfl rfl,
-      ext r, symmetry, apply aeval_C },
-    { convert aeval_X _ _ x n, exact X_in_terms_of_W_prop p R n }
-  end,
-  right_inv :=
-  begin
-    intro x, funext n,
-    dsimp [ghost_map, ghost_component],
-    transitivity (aeval x (aeval (X_in_terms_of_W p R) (W_ R n))),
-    { simp only [aeval_eq_eval₂_hom', map_eval₂_hom],
-      apply eval₂_hom_congr _ rfl rfl,
-      ext r, symmetry, apply aeval_C },
-    { convert aeval_X _ _ x n, exact X_in_terms_of_W_prop₂ p R n }
-  end }
+mv_polynomial.comap_equiv (witt.alg_equiv p R)
+
+lemma ghost_map_eq [invertible (p : R)] :
+  (ghost_map : 𝕎 p R → ℕ → R) = ghost_map.equiv_of_invertible p R :=
+begin
+  ext w n,
+  dsimp [ghost_map.equiv_of_invertible, witt.alg_equiv],
+  rw [aeval_X], refl,
+end
 
 lemma ghost_map.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map : 𝕎 p R → ℕ → R) :=
-(ghost_map.equiv_of_invertible p R).bijective
+by { rw ghost_map_eq, exact (ghost_map.equiv_of_invertible p R).bijective }
 
 section
 open function

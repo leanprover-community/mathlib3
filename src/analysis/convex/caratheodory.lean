@@ -21,7 +21,20 @@ variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] 
 lemma convex_coefficients (t : finset E) (x : E) :
   x ∈ convex_hull (↑t : set E) ↔
     ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
-sorry
+begin
+  fsplit,
+  { intro m,
+    rw set.finite.convex_hull_eq (finset.finite_to_set t) at m,
+    obtain ⟨w, w_nonneg, w_sum_one, w_center⟩ := m,
+    let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
+    use w',
+    fsplit,
+    { intro y, by_cases y ∈ t,
+      { convert w_nonneg y h, simp [w', if_pos, h], },
+      { simp [w', if_neg, h], }, },
+    { sorry, }, },
+  sorry,
+end
 
 -- a basic fact about linear algebra!
 lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :

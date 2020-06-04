@@ -122,9 +122,9 @@ def of_digits {α : Type*} [semiring α] (b : α) : list ℕ → α
 lemma of_digits_eq_foldr {α : Type*} [semiring α] (b : α) (L : list ℕ) :
   of_digits b L = L.foldr (λ x y, x + b * y) 0 :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], rw L_ih, },
+  { dsimp [of_digits], rw ih, },
 end
 
 @[simp] lemma of_digits_one_cons {α : Type*} [semiring α] (h : ℕ) (L : list ℕ) :
@@ -134,30 +134,30 @@ by simp [of_digits]
 @[norm_cast] lemma coe_of_digits (α : Type*) [semiring α] (b : ℕ) (L : list ℕ) :
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw L_ih, }
+  { dsimp [of_digits], push_cast, rw ih, }
 end
 
 @[norm_cast] lemma coe_int_of_digits (b : ℕ) (L : list ℕ) :
   ((of_digits b L : ℕ) : ℤ) = of_digits (b : ℤ) L :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw L_ih, }
+  { dsimp [of_digits], push_cast, rw ih, }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
   ∀ l ∈ L, l = 0 :=
 begin
-  induction L,
+  induction L with d L ih,
   { intros l m,
     cases m, },
   { intros l m,
     dsimp [of_digits] at w,
     rcases m with rfl,
     { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
-    { exact L_ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
+    { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
 lemma digits_of_digits
@@ -165,7 +165,7 @@ lemma digits_of_digits
   (w₁ : ∀ l ∈ L, l < b) (w₂ : ∀ (h : L ≠ []), L.last h ≠ 0) :
   digits b (of_digits b L) = L :=
 begin
-  induction L with l L ih,
+  induction L with d L ih,
   { dsimp [of_digits], simp },
   { dsimp [of_digits],
     replace w₂ := w₂ (by simp),
@@ -176,7 +176,7 @@ begin
       { intro h,
         { rw [list.last_cons _ h] at w₂,
             convert w₂, }}},
-    { convert w₁ l (list.mem_cons_self _ _), simp, },
+    { convert w₁ d (list.mem_cons_self _ _), simp, },
     { by_cases h' : L = [],
       { rcases h' with rfl,
         simp at w₂,
@@ -200,25 +200,25 @@ begin
     { change of_digits 0 [n+1] = n+1,
       dsimp [of_digits],
       simp, } },
-  cases b with b,
-  { induction n with n,
-    { refl, },
-    { simp [n_ih, add_comm 1], } },
-  apply nat.strong_induction_on n _, clear n,
-  intros n h,
-  cases n,
-  { refl, },
-  { change of_digits (b+2) ((n+1) % (b+2) :: digits (b+2) ((n+1) / (b+2))) = (n+1),
-    dsimp [of_digits],
-    rw h _ (nat.div_lt_self' n b),
-    simp [nat.mod_add_div], },
+  { cases b with b,
+    { induction n with n ih,
+      { refl, },
+      { simp [ih, add_comm 1], } },
+    { apply nat.strong_induction_on n _, clear n,
+      intros n h,
+      cases n,
+      { refl, },
+      { change of_digits (b+2) ((n+1) % (b+2) :: digits (b+2) ((n+1) / (b+2))) = (n+1),
+        dsimp [of_digits],
+        rw h _ (nat.div_lt_self' n b),
+        simp [nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], simp [list.sum_cons, L_ih], }
+  { simp [of_digits, list.sum_cons, ih], }
 end
 
 -- This is really a theorem about polynomials.
@@ -226,21 +226,20 @@ lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]
   {a b k : α} (h : k ∣ a - b) (L : list ℕ) :
   k ∣ of_digits a L - of_digits b L :=
 begin
-  induction L,
+  induction L with d L ih,
   { change k ∣ 0 - 0, simp, },
-  { dsimp [of_digits],
-    simp only [add_sub_add_left_eq_sub],
-    exact dvd_mul_sub_mul h L_ih, }
+  { simp only [of_digits, add_sub_add_left_eq_sub],
+    exact dvd_mul_sub_mul h ih, }
 end
 
 lemma of_digits_modeq' (b b' : ℕ) (k : ℕ) (h : b ≡ b' [MOD k]) (L : list ℕ) :
   of_digits b L ≡ of_digits b' L [MOD k] :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
   { dsimp [of_digits],
     dsimp [nat.modeq] at *,
-    conv_lhs { rw [nat.add_mod, nat.mul_mod, h, L_ih], },
+    conv_lhs { rw [nat.add_mod, nat.mul_mod, h, ih], },
     conv_rhs { rw [nat.add_mod, nat.mul_mod], }, }
 end
 
@@ -253,11 +252,11 @@ of_digits_modeq b k L
 lemma of_digits_zmodeq' (b b' : ℤ) (k : ℕ) (h : b ≡ b' [ZMOD k]) (L : list ℕ) :
   of_digits b L ≡ of_digits b' L [ZMOD k] :=
 begin
-  induction L,
+  induction L with d L ih,
   { refl, },
   { dsimp [of_digits],
     dsimp [int.modeq] at *,
-    conv_lhs { rw [int.add_mod, int.mul_mod, h, L_ih], },
+    conv_lhs { rw [int.add_mod, int.mul_mod, h, ih], },
     conv_rhs { rw [int.add_mod, int.mul_mod], }, }
 end
 
@@ -334,7 +333,8 @@ calc g - h + L.alternating_sum
 begin
   rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
   unfold_coes,
-  simp [nat.succ_eq_add_one, pow_add]; refl,
+  simp [nat.succ_eq_add_one, pow_add],
+  refl,
 end
 
 end list

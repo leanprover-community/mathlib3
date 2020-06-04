@@ -56,10 +56,10 @@ begin
   { assume hm0 hn0,
     have hp0 : p.eval 0 ∈ P,
     { rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, mk_eq_mk_hom, ← coeff_map],
-      simp [← hp, coeff_zero_eq_eval_zero, zero_pow hm0] },
+      simp [hp, coeff_zero_eq_eval_zero, zero_pow hm0] },
     have hq0 : q.eval 0 ∈ P,
     { rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, mk_eq_mk_hom, ← coeff_map],
-      simp [← hq, coeff_zero_eq_eval_zero, zero_pow hn0] },
+      simp [hq, coeff_zero_eq_eval_zero, zero_pow hn0] },
     apply h0,
     rw [coeff_zero_eq_eval_zero, eval_mul, pow_two],
     exact ideal.mul_mem_mul hp0 hq0 },
@@ -69,15 +69,15 @@ begin
   have hq0 : q ≠ 0, from λ h, by simp * at *,
   have hbc0 : degree b = 0 ∧ degree c = 0,
   { apply_fun degree at hbc,
-    rwa [degree_C hpql0, degree_mul_eq, nat.with_bot.add_eq_zero_iff] at hbc },
+    rwa [degree_C hpql0, degree_mul_eq, eq_comm, nat.with_bot.add_eq_zero_iff] at hbc },
   have hmp : m ≤ nat_degree p,
     from with_bot.coe_le_coe.1
-      (calc ↑m = degree (p.map (mk_hom P)) : by simp [← hp, hbc0.1]
+      (calc ↑m = degree (p.map (mk_hom P)) : by simp [hp, hbc0.1]
          ... ≤ degree p : degree_map_le _
          ... ≤ nat_degree p : degree_le_nat_degree),
   have hmp : n ≤ nat_degree q,
     from with_bot.coe_le_coe.1
-      (calc ↑n = degree (q.map (mk_hom P)) : by simp [← hq, hbc0.2]
+      (calc ↑n = degree (q.map (mk_hom P)) : by simp [hq, hbc0.2]
          ... ≤ degree q : degree_map_le _
          ... ≤ nat_degree q : degree_le_nat_degree),
   have hpmqn : p.nat_degree = m ∧ q.nat_degree = n,

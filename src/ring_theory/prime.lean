@@ -23,9 +23,9 @@ lemma mul_eq_mul_prime_prod {α : Type*} [decidable_eq α] {x y a : R} {s : fins
   ∃ (t u : finset α) (b c : R),
       t ∪ u = s
     ∧ disjoint t u
-    ∧ b * c = a
-    ∧ b * ∏ i in t, p i = x
-    ∧ c * ∏ i in u, p i = y :=
+    ∧ a = b * c
+    ∧ x = b * ∏ i in t, p i
+    ∧ y = c * ∏ i in u, p i :=
 begin
   induction s using finset.induction with i s his ih generalizing x y a,
   { exact ⟨∅, ∅, x, y, by simp [hx]⟩ },
@@ -36,11 +36,11 @@ begin
     have hit : i ∉ t, from λ hit, his (htus ▸ mem_union_left _ hit),
     have hiu : i ∉ u, from λ hiu, his (htus ▸ mem_union_right _ hiu),
     obtain ⟨d, rfl⟩ | ⟨d, rfl⟩ : p i ∣ b ∨ p i ∣ c,
-      from hpi.div_or_div ⟨a, by rw [hbc, mul_comm]⟩,
+      from hpi.div_or_div ⟨a, by rw [← hbc, mul_comm]⟩,
     { rw [mul_assoc, mul_comm a, domain.mul_right_inj hpi.ne_zero] at hbc,
       exact ⟨insert i t, u, d, c, by rw [insert_union, htus],
         disjoint_insert_left.2 ⟨hiu, htu⟩,
-          by simp [← hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
+          by simp [hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
     { rw [← mul_assoc, mul_right_comm b, domain.mul_left_inj hpi.ne_zero] at hbc,
       exact ⟨t, insert i u, b, d, by rw [union_insert, htus],
         disjoint_insert_right.2 ⟨hit, htu⟩,
@@ -53,9 +53,9 @@ end
 lemma mul_eq_mul_prime_pow {x y a p : R} {n : ℕ} (hp : prime p) (hx : x * y = a * p ^ n) :
   ∃ (i j : ℕ) (b c : R),
     i + j = n
-  ∧ b * c = a
-  ∧ b * p ^ i = x
-  ∧ c * p ^ j = y :=
+  ∧ a = b * c
+  ∧ x = b * p ^ i
+  ∧ y = c * p ^ j :=
 begin
   rcases mul_eq_mul_prime_prod (λ _ _, hp)
     (show x * y = a * (range n).prod (λ _, p), by simpa) with

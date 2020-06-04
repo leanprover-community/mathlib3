@@ -42,7 +42,7 @@ begin
 end
 
 lemma mul_eq_mul_prime_pow {x y a p : R} {n : ℕ} (hp : prime p) (hx : x * y = a * p ^ n) :
-  ∃ i j b c, i + j = n ∧ b * c = a ∧ b * p ^ i  = x ∧ c * p ^ j = y :=
+  ∃ i j b c, i + j = n ∧ b * c = a ∧ b * p ^ i = x ∧ c * p ^ j = y :=
 begin
   rcases mul_eq_mul_prime_prod (λ _ _, hp)
     (show x * y = a * (range n).prod (λ _, p), by simpa) with

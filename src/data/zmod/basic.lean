@@ -276,60 +276,98 @@ begin
   refl
 end
 
-variable [char_p R n]
+section char_dvd
+/-! If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
 
-@[simp] lemma cast_one : ((1 : zmod n) : R) = 1 :=
+variables {n} {m : ℕ} [char_p R m]
+
+@[simp] lemma cast_one (h : m ∣ n) : ((1 : zmod n) : R) = 1 :=
 begin
   unfreezeI,
   cases n, { exact int.cast_one },
   show ((1 % (n+1) : ℕ) : R) = 1,
-  cases n, { apply subsingleton.elim },
+  cases n, { rw [nat.dvd_one] at h, subst m, apply subsingleton.elim },
   rw nat.mod_eq_of_lt,
   { exact nat.cast_one },
   exact nat.lt_of_sub_eq_succ rfl
 end
 
-@[simp] lemma cast_add (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
+lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 begin
   unfreezeI,
   cases n, { apply int.cast_add },
   show ((fin.val (a + b) : ℕ) : R) = fin.val a + fin.val b,
   symmetry, resetI,
   rw [fin.val_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub,
-    @char_p.cast_eq_zero_iff R _ n.succ],
-  { apply nat.dvd_sub_mod },
+    @char_p.cast_eq_zero_iff R _ m],
+  { exact dvd_trans h (nat.dvd_sub_mod _) },
   { apply nat.mod_le }
 end
 
-@[simp] lemma cast_mul (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
+lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
 begin
   unfreezeI,
   cases n, { apply int.cast_mul },
   show ((fin.val (a * b) : ℕ) : R) = fin.val a * fin.val b,
   symmetry, resetI,
   rw [fin.val_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub,
-    @char_p.cast_eq_zero_iff R _ n.succ],
-  { apply nat.dvd_sub_mod },
+    @char_p.cast_eq_zero_iff R _ m],
+  { exact dvd_trans h (nat.dvd_sub_mod _) },
   { apply nat.mod_le }
 end
 
 /-- The canonical ring homomorphism from `zmod n` to a ring of characteristic `n`. -/
-def cast_hom (n : ℕ) (R : Type*) [ring R] [char_p R n] : zmod n →+* R :=
+def cast_hom (h : m ∣ n) (R : Type*) [ring R] [char_p R m] : zmod n →+* R :=
 { to_fun := coe,
   map_zero' := cast_zero,
-  map_one' := cast_one,
-  map_add' := cast_add,
-  map_mul' := cast_mul }
+  map_one' := cast_one h,
+  map_add' := cast_add h,
+  map_mul' := cast_mul h }
 
-@[simp] lemma cast_hom_apply (i : zmod n) : cast_hom n R i = i := rfl
+@[simp] lemma cast_hom_apply {h : m ∣ n} (i : zmod n) : cast_hom h R i = i := rfl
+
+lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
+(cast_hom h R).map_sub a b
+
+lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
+(cast_hom h R).map_pow a k
+
+lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
+(cast_hom h R).map_nat_cast k
+
+lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
+(cast_hom h R).map_int_cast k
+
+end char_dvd
+
+section char_eq
+/-! Some specialised simp lemmas which apply when `R` has characteristic `n`. -/
+variable [char_p R n]
+
+@[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=
+cast_one (dvd_refl _)
+
+@[simp] lemma cast_add' (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
+cast_add (dvd_refl _) a b
+
+@[simp] lemma cast_mul' (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
+cast_mul (dvd_refl _) a b
+
+@[simp] lemma cast_sub' (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
+cast_sub (dvd_refl _) a b
+
+@[simp] lemma cast_pow' (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
+cast_pow (dvd_refl _) a k
 
 @[simp, norm_cast]
-lemma cast_nat_cast (k : ℕ) : ((k : zmod n) : R) = k :=
-(cast_hom n R).map_nat_cast k
+lemma cast_nat_cast' (k : ℕ) : ((k : zmod n) : R) = k :=
+cast_nat_cast (dvd_refl _) k
 
 @[simp, norm_cast]
-lemma cast_int_cast (k : ℤ) : ((k : zmod n) : R) = k :=
-(cast_hom n R).map_int_cast k
+lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
+cast_int_cast (dvd_refl _) k
+
+end char_eq
 
 end universal_property
 

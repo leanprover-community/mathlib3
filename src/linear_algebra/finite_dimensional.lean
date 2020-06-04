@@ -204,7 +204,7 @@ begin
   cases exists_is_basis K S with bS hbS,
   have : linear_independent K (subtype.val : (subtype.val '' bS : set V) → V),
     from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _
-      (submodule.subtype S) hbS.1 (by simp),
+      (submodule.incl S) hbS.1 (by simp),
   cases exists_subset_is_basis this with b hb,
   letI : fintype b := classical.choice (finite_of_linear_independent hb.2.1),
   letI : fintype (subtype.val '' bS) := classical.choice (finite_of_linear_independent this),
@@ -215,7 +215,7 @@ begin
   erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← subtype_eq_val, span_image],
   have := hbS.2,
   erw [subtype.val_range, set.set_of_mem_eq] at this,
-  rw [this, map_top (submodule.subtype S), range_subtype],
+  rw [this, map_top (submodule.incl S), range_subtype],
 end
 
 variable (K)

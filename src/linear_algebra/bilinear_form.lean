@@ -558,7 +558,7 @@ module of matrices. -/
 def pair_self_adjoint_matrices_linear_embedding :
   bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form →ₗ[R] matrix n n R :=
 linear_equiv_matrix'.to_linear_map.comp
-  (bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form).subtype
+  (bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form).incl
 
 lemma pair_self_adjoint_matrices_linear_embedding_apply
   (f : bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form) :

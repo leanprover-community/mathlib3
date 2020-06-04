@@ -35,7 +35,7 @@ variable {p}
 open submodule
 
 lemma ker_id_sub_eq_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
-  ker (id - p.subtype.comp f) = p :=
+  ker (id - p.incl.comp f) = p :=
 begin
   ext x,
   simp only [comp_apply, mem_ker, subtype_apply, sub_apply, id_apply, sub_eq_zero],
@@ -67,7 +67,7 @@ open linear_map
 
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
 def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
-linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
+linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.incl)
   (by simp only [ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
   (by simp only [range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
 
@@ -98,7 +98,7 @@ begin
 end
 
 @[simp] lemma coe_prod_equiv_of_is_compl (h : is_compl p q) :
-  (prod_equiv_of_is_compl p q h : (p × q) →ₗ[R] E) = p.subtype.coprod q.subtype := rfl
+  (prod_equiv_of_is_compl p q h : (p × q) →ₗ[R] E) = p.incl.coprod q.incl := rfl
 
 @[simp] lemma coe_prod_equiv_of_is_compl' (h : is_compl p q) (x : p × q) :
   prod_equiv_of_is_compl p q h x = x.1 + x.2 := rfl
@@ -159,7 +159,7 @@ linear_proj_of_is_compl_apply_right' h x x.2
 ext $ λ x, mem_ker.trans (linear_proj_of_is_compl_apply_eq_zero_iff h)
 
 lemma linear_proj_of_is_compl_comp_subtype (h : is_compl p q) :
-  (linear_proj_of_is_compl p q h).comp p.subtype = id :=
+  (linear_proj_of_is_compl p q h).comp p.incl = id :=
 linear_map.ext $ linear_proj_of_is_compl_apply_left h
 
 lemma linear_proj_of_is_compl_idempotent (h : is_compl p q) (x : E) :

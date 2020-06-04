@@ -144,7 +144,7 @@ section
 end
 
 theorem restrict_dom_comp_subtype (s : set α) :
-  (restrict_dom M R s).comp (submodule.subtype _) = linear_map.id :=
+  (restrict_dom M R s).comp (submodule.incl _) = linear_map.id :=
 begin
   ext l,
   apply subtype.coe_ext.2,
@@ -159,7 +159,7 @@ end
 theorem range_restrict_dom (s : set α) :
   (restrict_dom M R s).range = ⊤ :=
 begin
-  have := linear_map.range_comp (submodule.subtype _) (restrict_dom M R s),
+  have := linear_map.range_comp (submodule.incl _) (restrict_dom M R s),
   rw [restrict_dom_comp_subtype, linear_map.range_id] at this,
   exact eq_top_mono (submodule.map_mono le_top) this.symm
 end
@@ -180,7 +180,7 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
-  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
+  suffices : ((submodule.incl _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
@@ -212,7 +212,7 @@ begin
   let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
   refine F.to_linear_equiv _,
   have : (F : (supported M R s) → (↥s →₀ M)) = ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
-    (submodule.subtype (supported M R s))) := rfl,
+    (submodule.incl (supported M R s))) := rfl,
   rw this,
   exact linear_map.is_linear _
 end
@@ -374,7 +374,7 @@ by rw span_eq_map_total; simp
 variables (α) (M) (v)
 
 protected def total_on (s : set α) : supported R R s →ₗ[R] span R (v '' s) :=
-linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supported R R s))) $
+linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.incl (supported R R s))) $
   λ ⟨l, hl⟩, (mem_span_iff_total _).2 ⟨l, hl, rfl⟩
 
 variables {α} {M} {v}

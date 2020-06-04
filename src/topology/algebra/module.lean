@@ -386,10 +386,10 @@ rfl
 /-- Embedding of a submodule into the ambient space as a continuous linear map. -/
 def subtype_val (p : submodule R M) : p →L[R] M :=
 { cont := continuous_subtype_val,
-  to_linear_map := p.subtype }
+  to_linear_map := p.incl }
 
 @[simp, norm_cast] lemma coe_subtype_val (p : submodule R M) :
-  (subtype_val p : p →ₗ[R] M) = p.subtype :=
+  (subtype_val p : p →ₗ[R] M) = p.incl :=
 rfl
 
 @[simp, norm_cast] lemma subtype_val_apply (p : submodule R M) (x : p) :

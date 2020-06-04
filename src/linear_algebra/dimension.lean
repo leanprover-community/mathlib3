@@ -201,13 +201,13 @@ by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
 
 lemma dim_map_le (f : V →ₗ V₂) (p : submodule K V) : dim K (p.map f) ≤ dim K p :=
 begin
-  have h := dim_range_le (f.comp (submodule.subtype p)),
+  have h := dim_range_le (f.comp (submodule.incl p)),
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
 lemma dim_range_of_surjective (f : V →ₗ[K] V₂) (h : surjective f) : dim K f.range = dim K V₂ :=
 begin
-  refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.subtype _) _ _),
+  refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.incl _) _ _),
   exact linear_map.ker_eq_bot.2 subtype.val_injective,
   rwa [range_subtype, linear_map.range_eq_top]
 end

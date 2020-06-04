@@ -116,7 +116,7 @@ mk_span_singleton' x y $ λ c hc, (smul_eq_zero.1 hc).elim
 /-- Projection to the first coordinate as a `linear_pmap` -/
 protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) E :=
 { domain := p.prod p',
-  to_fun := (linear_map.fst R E F).comp (p.prod p').subtype }
+  to_fun := (linear_map.fst R E F).comp (p.prod p').incl }
 
 @[simp] lemma fst_apply (p : submodule R E) (p' : submodule R F) (x : p.prod p') :
   linear_pmap.fst p p' x = (x : E × F).1 := rfl
@@ -124,7 +124,7 @@ protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E ×
 /-- Projection to the second coordinate as a `linear_pmap` -/
 protected def snd (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) F :=
 { domain := p.prod p',
-  to_fun := (linear_map.snd R E F).comp (p.prod p').subtype }
+  to_fun := (linear_map.snd R E F).comp (p.prod p').incl }
 
 @[simp] lemma snd_apply (p : submodule R E) (p' : submodule R F) (x : p.prod p') :
   linear_pmap.snd p p' x = (x : E × F).2 := rfl
@@ -338,7 +338,7 @@ namespace linear_map
 
 /-- Restrict a linear map to a submodule, reinterpreting the result as a `linear_pmap`. -/
 def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : linear_pmap R E F :=
-⟨p, f.comp p.subtype⟩
+⟨p, f.comp p.incl⟩
 
 @[simp] lemma to_pmap_apply (f : E →ₗ[R] F) (p : submodule R E) (x : p) :
   f.to_pmap p x = f x := rfl

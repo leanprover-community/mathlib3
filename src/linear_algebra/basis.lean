@@ -161,11 +161,11 @@ begin
   rw linear_independent_iff at *,
   intros l hl,
   apply hs l,
-  have := congr_arg (submodule.subtype (span R (range v))) hl,
+  have := congr_arg (submodule.incl (span R (range v))) hl,
   convert this,
   rw [finsupp.total_apply, finsupp.total_apply],
   unfold finsupp.sum,
-  rw linear_map.map_sum (submodule.subtype (span R (range v))),
+  rw linear_map.map_sum (submodule.incl (span R (range v))),
   simp
 end
 
@@ -465,7 +465,7 @@ lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x
 subtype.coe_ext.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
 
 lemma linear_independent.total_comp_repr :
-  (finsupp.total ι M R v).comp hv.repr = submodule.subtype _ :=
+  (finsupp.total ι M R v).comp hv.repr = submodule.incl _ :=
 linear_map.ext $ hv.total_repr
 
 lemma linear_independent.repr_ker : hv.repr.ker = ⊥ :=
@@ -892,10 +892,10 @@ split,
   intro x,
   have h₁ : subtype.val '' set.range (λ i, subtype.mk (v i) _) = range v,
     by rw ←set.range_comp,
-  have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
+  have h₂ : map (submodule.incl _) (span R (set.range (λ i, subtype.mk (v i) _)))
               = span R (range v),
     by rw [←span_image, submodule.subtype_eq_val, h₁],
-  have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
+  have h₃ : (x : M) ∈ map (submodule.incl _) (span R (set.range (λ i, subtype.mk (v i) _))),
     by rw h₂; apply subtype.mem x,
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
@@ -1147,7 +1147,7 @@ begin
 end
 
 lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_compl p q :=
-let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+let ⟨f, hf⟩ := p.incl.exists_left_inverse_of_injective p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')

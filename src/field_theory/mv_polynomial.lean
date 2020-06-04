@@ -232,7 +232,7 @@ calc vector_space.dim α (R σ α) =
   ... = fintype.card (σ → α) : cardinal.fintype_card _
 
 def evalᵢ : R σ α →ₗ[α] (σ → α) → α :=
-((evalₗ α σ).comp (restrict_degree σ α (fintype.card α - 1)).subtype)
+((evalₗ α σ).comp (restrict_degree σ α (fintype.card α - 1)).incl)
 
 lemma range_evalᵢ : (evalᵢ σ α).range = ⊤ :=
 begin

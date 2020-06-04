@@ -417,7 +417,7 @@ def lie_subalgebra.incl
   {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
   (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
 { map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
-  ..L'.to_submodule.subtype }
+  ..L'.to_submodule.incl }
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
 def lie_algebra.morphism.range {R : Type u} {L₁ : Type v} {L₂ : Type w}

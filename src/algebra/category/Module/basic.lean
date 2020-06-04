@@ -141,7 +141,7 @@ def kernel_cone : cone (parallel_pair f 0) :=
   π :=
   { app := λ j,
     match j with
-    | zero := f.ker.subtype
+    | zero := f.ker.incl
     | one := 0
     end,
     naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }

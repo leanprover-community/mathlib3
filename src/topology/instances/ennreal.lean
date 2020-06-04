@@ -157,6 +157,7 @@ by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnr
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Icc_mem_nhds : x ≠ ⊤ → ε > 0 → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
 begin
   assume xt ε0, rw mem_nhds_sets_iff,
@@ -168,6 +169,7 @@ begin
     exact ⟨is_open_Ioo, mem_Ioo_self_sub_add xt x0 ε0 ε0 ⟩ }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, principal (Icc (x - ε) (x + ε)) :=
 begin
   assume xt, refine le_antisymm _ _,
@@ -195,6 +197,7 @@ end
 
 /-- Characterization of neighborhoods for `ennreal` numbers. See also `tendsto_order`
 for a version with strict inequalities. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal} (ha : a ≠ ⊤) :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]

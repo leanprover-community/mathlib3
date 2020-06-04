@@ -213,6 +213,13 @@ induced by a function that is constant on `c`'s equivalence classes."]
 protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) : β := quotient.lift_on' q f h
 
+/-- The binary function on the quotient by a congruence relation `c` induced by a binary function
+    that is constant on `c`'s equivalence classes. -/
+@[elab_as_eliminator, to_additive "The binary function on the quotient by a congruence relation `c`
+induced by a binary function that is constant on `c`'s equivalence classes."]
+protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
+  (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
 variables {c}
 
 /-- The inductive principle used to prove propositions about the elements of a quotient by a

@@ -192,6 +192,7 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 iff.intro
   (assume (h : Inf s = ⊥) b (hb : ⊥ < b), by rwa [←h, Inf_lt_iff] at hb)
@@ -763,6 +764,7 @@ lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :
 by rw [← Sup_range, Sup_eq_top];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
 by rw [← Inf_range, Inf_eq_bot];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))

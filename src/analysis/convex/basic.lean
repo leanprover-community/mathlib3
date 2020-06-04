@@ -731,7 +731,7 @@ set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull
 
 @[simp]
 lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
-convex.convex_hull_eq (convex_singleton x)
+(convex_singleton x).convex_hull_eq
 
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
@@ -821,38 +821,16 @@ end
 lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
   convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
 begin
-  refine subset.antisymm (convex_hull_min _ _) _,
-  { intros x hx,
-    use {x},
-    split,
-    { use {x},
-      simp only [convex_hull_singleton, finset.coe_singleton],
-      haveI : nonempty (↑{x} ⊆ s) := ⟨by { rw finset.coe_singleton, simpa using hx }⟩,
-      apply Union_const, },
-    { simp, }, },
-  { intros x y xm ym a b apos bpos sum,
-    rcases xm with ⟨_,⟨⟨tx,rfl⟩,⟨_,⟨⟨sx,rfl⟩,mx⟩⟩⟩⟩,
-    rw set.finite.convex_hull_eq (finset.finite_to_set tx) at mx,
-    rcases mx with ⟨wx, ⟨hx, ⟨ssx, rfl⟩⟩⟩,
-    rcases ym with ⟨_,⟨⟨ty,rfl⟩,⟨_,⟨⟨sy,rfl⟩,my⟩⟩⟩⟩,
-    rw set.finite.convex_hull_eq (finset.finite_to_set ty) at my,
-    rcases my with ⟨wy, ⟨hy, ⟨ssy, rfl⟩⟩⟩,
-    rw finset.center_mass_segment' _ _ _ _ _ _ ssx ssy _ _ sum,
-    refine ⟨_, ⟨_, finset.center_mass_mem_convex_hull _ _ _ _⟩⟩,
-    exact ↑tx ∪ ↑ty,
-    { use tx ∪ ty,
-      simp only [finset.coe_union],
-      apply @Union_const _ _ _,
-      simp only [finset.coe_union, union_subset_iff, nonempty_Prop],
-      exact ⟨sx, sy⟩, },
-    { rintros (i|i) h,
-      { refine mul_nonneg apos (hx i _), simpa using h, },
-      { refine mul_nonneg bpos (hy i _), simpa using h, }, },
-    { rw [finset.sum_sum_elim, ←finset.mul_sum, ssx, mul_one, ←finset.mul_sum, ssy, mul_one, sum],
-      norm_num, },
-    { rintros (i|i) h,
-      { exact or.inl (by simpa using h), },
-      { exact or.inr (by simpa using h), }, }, },
+  refine subset.antisymm _ _,
+  { rw [convex_hull_eq.{u}],
+    rintros x ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
+    simp only [mem_Union],
+    refine ⟨t.image z, _, _⟩,
+    { rw [finset.coe_image, image_subset_iff],
+      exact hz },
+    { apply t.center_mass_mem_convex_hull hw₀,
+      { simp only [hw₁, zero_lt_one] },
+      { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
    { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 

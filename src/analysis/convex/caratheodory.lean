@@ -15,15 +15,75 @@ end
 
 open set finite_dimensional
 
-
 variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
+
+-- a basic fact about convex hulls of finsets.
+lemma quux (t : finset E) (x : E) (m : x ∈ convex_hull (↑t : set E)) :
+  ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
+sorry
+
+-- a basic fact about linear algebra!
+lemma turkle {t : finset E} (h : findim ℝ E + 1 ≤ t.card) :
+  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+sorry
+
+lemma drab' {t : finset E} (h : findim ℝ E + 1 < t.card) :
+  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  -- pick an element x₀ ∈ t,
+  -- apply the previous lemma to the other xᵢ - x₀,
+  -- to obtain a function `f`
+  -- and then adjust f x₀ := - others.sum f
+  sorry
+end
+
+lemma slak {F : Type*} [decidable_eq F] {t : finset F} (f : F → ℝ) (h₁ : t.sum f = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
+  ∃ x ∈ t, 0 < f x :=
+begin
+  by_contradiction w,
+  simp at w,
+  obtain ⟨x, m, x_nz⟩ := h₂,
+  have x_neg : f x < 0 := sorry, -- easy
+  rw ←finset.insert_erase m at h₁,
+  rw finset.sum_insert (finset.not_mem_erase _ _) at h₁,
+  sorry, -- easyish
+end
+
+lemma drab {t : finset E} (h : findim ℝ E + 1 < t.card) :
+  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, 0 < f x :=
+begin
+  obtain ⟨f, sum, total, nonzero⟩ := drab' h,
+  exact ⟨f, sum, total, slak f total nonzero⟩,
+end
 
 namespace caratheodory
 
+lemma foo {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
+  ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
+begin
+   -- This is the actual work!
+   obtain ⟨f, fpos, fsum, rfl⟩ := quux _ _ m, clear m,
+   obtain ⟨g, gcombo, gsum, gpos⟩ := drab h, clear h,
+   let s := t.filter (λ z : E, 0 < g z),
+   have : s.nonempty := sorry,
+   obtain ⟨i, mem, w⟩ := s.exists_max_image (λ z, f z / g z) (sorry : s.nonempty),
+   use i,
+   { simp,
+     sorry, },
+   { sorry, },
+end
+
 lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :
   convex_hull (↑t : set E) = ⋃ (x : (↑t : set E)), convex_hull ↑(t.erase x) :=
--- This is the actual work!
-sorry
+begin
+  apply subset.antisymm,
+  { intros x m',
+    obtain ⟨y, m⟩ := foo h m',
+    exact mem_Union.2 ⟨y, m⟩, },
+  { convert Union_subset _,
+    intro x,
+    apply convex_hull_mono, simp, }
+end
 
 lemma shrink' (t : finset E) (k : ℕ) (h : t.card = findim ℝ E + 1 + k) :
   convex_hull (↑t : set E) ⊆

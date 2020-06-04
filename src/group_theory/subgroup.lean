@@ -604,7 +604,8 @@ def prod_equiv (H : subgroup G) (K : subgroup N) : H.prod K ≃* H × K :=
 ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H
 
 variable {H}
-@[instance, to_additive] lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
+@[instance, priority 100, to_additive]
+lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
 by simp [normal, mul_comm, mul_left_comm]
 
 namespace normal
@@ -621,7 +622,8 @@ have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH (a * b) h a⁻¹, by simpa
 
 end normal
 
-@[instance, to_additive] lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
+@[instance, priority 100, to_additive]
+lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
@@ -638,7 +640,8 @@ variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
 
-@[instance, to_additive] lemma center_normal : (center G).normal :=
+@[instance, priority 100, to_additive]
+lemma center_normal : (center G).normal :=
 begin
   assume n hn g h,
   assoc_rw [hn (h * g), hn g],
@@ -663,7 +666,8 @@ variable {H}
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_left (H.inv_mem xH), H.mul_mem_cancel_right xH]
 
-@[instance, to_additive] lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
+@[instance, priority 100, to_additive]
+lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 λ x xH g, by simpa using (g.2 x).1 xH
 
 open_locale classical
@@ -751,7 +755,7 @@ lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_b
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
-@[instance, to_additive]
+@[instance, priority 100, to_additive]
 lemma normal_ker (f : G →* N) : f.ker.normal :=
 λ _, by simp [mem_ker] { contextual := tt }
 

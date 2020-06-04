@@ -1313,7 +1313,7 @@ begin
   induction n using enat.cases_on,
   { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
-  { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
+  { apply nat_le_order, simpa only [enat.coe_lt_coe] using h }
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1380,9 +1380,9 @@ end
 /-- The order of the product of two formal power series
  is at least the sum of their orders.-/
 lemma order_mul_ge (φ ψ : power_series α) :
-  order (φ * ψ) ≥ order φ + order ψ :=
+  order φ + order ψ ≤ order (φ * ψ) :=
 begin
-  apply order_ge,
+  apply le_order,
   intros n hn, rw [coeff_mul, finset.sum_eq_zero],
   rintros ⟨i,j⟩ hij,
   by_cases hi : ↑i < order φ,

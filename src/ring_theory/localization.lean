@@ -28,8 +28,8 @@ elements of `M` to invertible elements of the codomain. Similarly, given commuta
 `localization_map.map`, from `S` to `Q`.
 
 We show the localization as a quotient type, defined in `group_theory.monoid_localization` as
-`submonoid.localization_construction`, is a `comm_ring` and that the natural ring hom
-`of : R →+* localization_construction M` is a localization map.
+`submonoid.localization`, is a `comm_ring` and that the natural ring hom
+`of : R →+* localization M` is a localization map.
 
 We prove some lemmas about the `R`-algebra structure of `S`.
 
@@ -55,8 +55,8 @@ To apply a localization map `f` as a function, we use `f.to_map`, as coercions d
 this structure.
 
 To reason about the localization as a quotient type, use `mk_eq_of_mk'` and associated lemmas.
-These show the quotient map `mk : R → M → localization_construction M` equals the surjection
-`localization_map.mk'` induced by the map `of : localization M (localization_construction M)`
+These show the quotient map `mk : R → M → localization M` equals the surjection
+`localization_map.mk'` induced by the map `of : localization M (localization M)`
 (where `of` establishes the localization as a quotient type satisfies the characteristic
 predicate). The lemma `mk_eq_of_mk'` hence gives you access to the results in the rest of the file,
 which are about the `localization_map.mk'` induced by any localization map.
@@ -468,11 +468,11 @@ f.to_localization_map.mul_equiv_of_mul_equiv_mk' H _ _
 
 end localization_map
 
-namespace localization_construction
+namespace localization
 
 variables {M}
 
-instance : has_add (localization_construction M) :=
+instance : has_add (localization M) :=
 ⟨λ z w, con.lift_on₂ z w
   (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
 λ r1 r2 r3 r4 h1 h2, (con.eq _).2
@@ -486,7 +486,7 @@ begin
       ... = (r3.2 * r4.1 + r4.2 * r3.1) * (r1.2 * r2.2) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
 end⟩
 
-instance : has_neg (localization_construction M) :=
+instance : has_neg (localization M) :=
 ⟨λ z, con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
   λ r1 r2 h, (con.eq _).2
 begin
@@ -497,7 +497,7 @@ begin
   ring,
 end⟩
 
-instance : has_zero (localization_construction M) :=
+instance : has_zero (localization M) :=
 ⟨mk 0 1⟩
 
 private meta def tac := `[{
@@ -506,7 +506,7 @@ private meta def tac := `[{
   simp only [prod.snd_mul, prod.fst_mul, submonoid.coe_mul],
   ring }]
 
-instance : comm_ring (localization_construction M) :=
+instance : comm_ring (localization M) :=
 { zero := 0,
   one  := 1,
   add  := (+),
@@ -519,13 +519,13 @@ instance : comm_ring (localization_construction M) :=
   add_comm       := λ y z, quotient.induction_on₂' z y (by tac),
   left_distrib   := λ m n k, quotient.induction_on₃' m n k (by tac),
   right_distrib  := λ m n k, quotient.induction_on₃' m n k (by tac),
-   ..localization_construction.comm_monoid M }
+   ..localization.comm_monoid M }
 
 variables (M)
 /-- Natural hom sending `x : R`, `R` a `comm_ring`, to the equivalence class of
 `(x, 1)` in the localization of `R` at a submonoid. -/
-def of : localization_map M (localization_construction M) :=
-(localization_construction.monoid_of M).to_ring_localization $
+def of : localization_map M (localization M) :=
+(localization.monoid_of M).to_ring_localization $
   λ x y, (con.eq _).2 $ r_of_eq $ by simp [add_comm]
 
 variables {M}
@@ -544,7 +544,7 @@ variables (f : localization_map M S)
 /-- Given a localization map `f : R →+* S` for a submonoid `M`, we get an isomorphism
 between the localization of `R` at `M` as a quotient type and `S`. -/
 noncomputable def ring_equiv_of_quotient :
-  localization_construction M ≃+* S :=
+  localization M ≃+* S :=
 (mul_equiv_of_quotient f.to_localization_map).to_ring_equiv $
 ((of M).lift f.map_units).map_add
 
@@ -577,7 +577,7 @@ mul_equiv_of_quotient_symm_mk _ _
   (ring_equiv_of_quotient f).symm (f.to_map x) = (of M).to_map x :=
 mul_equiv_of_quotient_symm_monoid_of _
 
-end localization_construction
+end localization
 variables {M}
 
 namespace localization_map

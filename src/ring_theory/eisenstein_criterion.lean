@@ -41,22 +41,22 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
   {P : ideal R} (hP : P.is_prime) {q : polynomial R} {c : polynomial P.quotient}
   (hq : map (mk_hom P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
-  (calc ↑n = degree (q.map (mk_hom P)) : by simp [hq, hc0]
+  (calc ↑n = degree (q.map (mk_hom P)) :
+      by rw [hq, degree_mul_eq, hc0, zero_add, degree_pow_eq, degree_X, nsmul_one, nat.cast_with_bot]
       ... ≤ degree q : degree_map_le _
       ... ≤ nat_degree q : degree_le_nat_degree)
 
 lemma eval_zero_mem_ideal_of_eq_mul_X_pow {n : ℕ} {P : ideal R}
   {q : polynomial R} {c : polynomial P.quotient}
   (hq : map (mk_hom P) q = c * X ^ n) (hn0 : 0 < n) : eval 0 q ∈ P :=
-by rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, mk_eq_mk_hom, ← coeff_map];
-  simp [hq, coeff_zero_eq_eval_zero, zero_pow hn0]
+by rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, mk_eq_mk_hom, ← coeff_map,
+    coeff_zero_eq_eval_zero, hq, eval_mul, eval_pow, eval_X, zero_pow hn0, mul_zero]
 
 lemma is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit {p q : polynomial R}
   (hu : ∀ (x : R), C x ∣ p * q → is_unit x) (hpm : p.nat_degree = 0) :
   is_unit p :=
 begin
-  rw [eq_C_of_degree_le_zero (nat_degree_eq_zero_iff_degree_le_zero.1 hpm),
-      is_unit_C],
+  rw [eq_C_of_degree_le_zero (nat_degree_eq_zero_iff_degree_le_zero.1 hpm), is_unit_C],
   refine hu _ _,
   rw [← eq_C_of_degree_le_zero (nat_degree_eq_zero_iff_degree_le_zero.1 hpm)],
   exact dvd_mul_right _ _

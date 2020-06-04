@@ -22,7 +22,7 @@ namespace eisenstein_criterion_aux
 /- Section for auxiliary lemmas used in the proof of `irreducible_of_eisenstein_criterion`-/
 
 lemma map_eq_C_mul_X_pow_of_forall_coeff_mem {f : polynomial R} {P : ideal R}
-  (hfl : f.leading_coeff ∉ P) (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) (hf0 : f ≠ 0) :
+  (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) (hf0 : f ≠ 0) :
   map (mk_hom P) f = C ((mk_hom P) f.leading_coeff) * X ^ f.nat_degree :=
 polynomial.ext (λ n, begin
   rcases lt_trichotomy ↑n (degree f) with h | h | h,
@@ -77,7 +77,7 @@ theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP
   (hu : ∀ x : R, C x ∣ f → is_unit x) : irreducible f :=
 have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
 have hf : f.map (mk_hom P) = C (mk_hom P (leading_coeff f)) * X ^ nat_degree f,
-  from map_eq_C_mul_X_pow_of_forall_coeff_mem hfl hfP hf0,
+  from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP hf0,
 have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
   (lt_of_lt_of_le hfd0 degree_le_nat_degree),
 ⟨mt degree_eq_zero_of_is_unit (λ h, by simp only [*, lt_irrefl] at *),

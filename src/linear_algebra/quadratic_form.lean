@@ -139,7 +139,7 @@ instance : has_zero (quadratic_form R M) :=
     polar_add_right' := λ x y y', by simp [polar],
     polar_smul_right' := λ a x y, by simp [polar] } ⟩
 
-@[simp] lemma zero_map (x : M) : (0 : quadratic_form R M) x = 0 := rfl
+@[simp] lemma zero_apply (x : M) : (0 : quadratic_form R M) x = 0 := rfl
 
 instance : inhabited (quadratic_form R M) := ⟨0⟩
 
@@ -157,7 +157,7 @@ instance : has_add (quadratic_form R M) :=
     polar_smul_right' := λ a x y,
       by simp only [polar_add, smul_eq_mul, mul_add, polar_smul_right] } ⟩
 
-@[simp] lemma add_map (Q Q' : quadratic_form R M) (x : M) : (Q + Q') x = Q x + Q' x := rfl
+@[simp] lemma add_apply (Q Q' : quadratic_form R M) (x : M) : (Q + Q') x = Q x + Q' x := rfl
 
 instance : has_scalar R₁ (quadratic_form R₁ M) :=
 ⟨ λ a Q,
@@ -177,18 +177,18 @@ instance : has_scalar R₁ (quadratic_form R₁ M) :=
 @[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = Q (a • x) := rfl
 
 instance : add_comm_monoid (quadratic_form R M) :=
-{ add_comm := λ Q Q', by { ext, simp only [add_map, add_comm] },
-  add_assoc := λ Q Q' Q'', by { ext, simp only [add_map, add_assoc] },
-  add_zero := λ Q, by { ext, simp only [zero_map, add_map, add_zero] },
-  zero_add := λ Q, by { ext, simp only [zero_map, add_map, zero_add] },
+{ add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
+  add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
+  add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
+  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] },
   ..quadratic_form.has_add,
   ..quadratic_form.has_zero }
 
 instance : distrib_mul_action R₁ (quadratic_form R₁ M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp [mul_smul, smul_comm]),
   one_smul := λ Q, ext (λ x, by simp),
-  smul_add := λ a Q Q', by { ext, simp only [add_map, smul_apply] },
-  smul_zero := λ a, by { ext, simp only [zero_map, smul_apply] },
+  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply] },
+  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply] },
   ..quadratic_form.has_scalar }
 
 section comp
@@ -238,12 +238,12 @@ def mk_left (f : M → R₁)
 /-- The product of linear forms is a quadratic form. -/
 def lin_mul_lin (f g : M →ₗ[R₁] R₁) : quadratic_form R₁ M :=
 mk_left (f * g)
-  (λ a x, by { simp, ring } )
+  (λ a x, by { simp, ring })
   (λ x x' y, by { simp [polar], ring })
   (λ a x y, by { simp [polar], ring })
 
 @[simp]
-lemma lin_mul_lin_map (f g : M →ₗ[R₁] R₁) (x) : lin_mul_lin f g x = f x * g x := rfl
+lemma lin_mul_lin_apply (f g : M →ₗ[R₁] R₁) (x) : lin_mul_lin f g x = f x * g x := rfl
 
 @[simp]
 lemma add_lin_mul_lin (f g h : M →ₗ[R₁] R₁) :
@@ -269,7 +269,7 @@ def proj (i j : n) : quadratic_form R₁ (n → R₁) :=
 lin_mul_lin (@linear_map.proj _ _ _ (λ _, R₁) _ _ i) (@linear_map.proj _ _ _ (λ _, R₁) _ _ j)
 
 @[simp]
-lemma proj_map (i j : n) (x : n → R₁) : proj i j x = x i * x j := rfl
+lemma proj_apply (i j : n) (x : n → R₁) : proj i j x = x i * x j := rfl
 
 end comm_ring
 
@@ -333,7 +333,7 @@ by { ext, simp [bilin_form.smul_apply, map_smul, mul_sub, mul_left_comm] }
 
 @[simp] lemma associated_add (Q Q' : quadratic_form R₁ M) :
   (Q + Q').associated = Q.associated + Q'.associated :=
-by { ext, simp only [associated_apply, add_apply, add_map], ring }
+by { ext, simp only [associated_apply, bilin_form.add_apply, quadratic_form.add_apply], ring }
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
   (Q.comp f).associated = Q.associated.comp f f :=
@@ -342,7 +342,7 @@ by { ext, simp }
 @[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :
   (lin_mul_lin f g).associated =
     ⅟(2 : R₁) • (bilin_form.lin_mul_lin f g + bilin_form.lin_mul_lin g f) :=
-by { ext, simp [add_apply, bilin_form.smul_apply], ring }
+by { ext, simp [bilin_form.add_apply, bilin_form.smul_apply], ring }
 
 lemma associated_to_quadratic_form (B : bilin_form R₁ M) (x y : M) :
   B.to_quadratic_form.associated x y = ⅟2 * (B x y + B y x) :=
@@ -377,7 +377,7 @@ lemma smul_pos_def_of_nonzero {K : Type u} [linear_ordered_field K] [module K M]
 
 variables {n : Type*}
 
-lemma add_pos_def (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def Q') :
+lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def Q') :
   pos_def (Q + Q') :=
 λ x hx, add_pos (hQ x hx) (hQ' x hx)
 

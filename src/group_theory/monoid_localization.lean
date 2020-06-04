@@ -52,7 +52,7 @@ this structure.
 To reason about the localization as a quotient type, use `mk_eq_monoid_of_mk'` and associated
 lemmas. These show the quotient map `mk : M → S → localization S` equals the
 surjection `localization_map.mk'` induced by the map
-`monoid_of : localization S (localization S)` (where `of` establishes the
+`monoid_of : localization_map S (localization S)` (where `of` establishes the
 localization as a quotient type satisfies the characteristic predicate). The lemma
 `mk_eq_monoid_of_mk'` hence gives you access to the results in the rest of the file, which are
 about the `localization_map.mk'` induced by any localization map.

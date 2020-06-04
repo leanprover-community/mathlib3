@@ -46,17 +46,17 @@ structure with an isomorphic one; one way around this is to isolate a predicate 
 a structure up to isomorphism, and reason about things that satisfy the predicate.
 
 A ring localization map is defined to be a localization map of the underlying `comm_monoid` (a
-`submonoid.localization`) which is also a ring hom. To prove most lemmas about a
-`localization` `f` in this file we invoke the corresponding proof for the underlying
-`comm_monoid` localization map `f.to_localization`, which can be found in
-`group_theory.monoid_localization` and the namespace `submonoid.localization`.
+`submonoid.localization_map`) which is also a ring hom. To prove most lemmas about a
+`localization_map` `f` in this file we invoke the corresponding proof for the underlying
+`comm_monoid` localization map `f.to_localization_map`, which can be found in
+`group_theory.monoid_localization` and the namespace `submonoid.localization_map`.
 
 To apply a localization map `f` as a function, we use `f.to_map`, as coercions don't work well for
 this structure.
 
 To reason about the localization as a quotient type, use `mk_eq_of_mk'` and associated lemmas.
 These show the quotient map `mk : R → M → localization M` equals the surjection
-`localization_map.mk'` induced by the map `of : localization M (localization M)`
+`localization_map.mk'` induced by the map `of : localization_map M (localization M)`
 (where `of` establishes the localization as a quotient type satisfies the characteristic
 predicate). The lemma `mk_eq_of_mk'` hence gives you access to the results in the rest of the file,
 which are about the `localization_map.mk'` induced by any localization map.

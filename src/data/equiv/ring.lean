@@ -80,6 +80,10 @@ variables {R}
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
+protected lemma bijective (e : R ≃+* S) : function.bijective e := e.to_equiv.bijective
+protected lemma injective (e : R ≃+* S) : function.injective e := e.to_equiv.injective
+protected lemma surjective (e : R ≃+* S) : function.surjective e := e.to_equiv.surjective
+
 @[simp] lemma apply_symm_apply (e : R ≃+* S) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
 @[simp] lemma symm_apply_apply (e : R ≃+* S) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
 

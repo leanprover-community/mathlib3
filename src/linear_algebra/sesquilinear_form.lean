@@ -167,10 +167,10 @@ begin
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { exfalso,
-      -- I'm not sure why, but
-      -- `map_zero_iff` doesn't fire here even if marked as a simp lemma.
+      -- `map_eq_zero_iff` doesn't fire here even if marked as a simp lemma, probably bcecause
+      -- different instance paths
       simp only [opposite.unop_eq_zero_iff] at H,
-      exact ha ((K.map_zero_iff a).mp H), },
+      exact ha (K.map_eq_zero_iff.mp H), },
     { exact H }}
 end
 

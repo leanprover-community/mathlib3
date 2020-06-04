@@ -28,21 +28,6 @@ Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorph
 
 variables (R : Type*) (F : Type*)
 
-namespace ring_equiv
-
-open ring_equiv
-
-variables {R F} [semiring R] [semiring F] (Hs : R ≃+* F)
-
-lemma bijective : function.bijective Hs :=
-Hs.to_equiv.bijective
-
-lemma map_zero_iff {x : R} : Hs x = 0 ↔ x = 0 :=
-⟨λ H, Hs.bijective.1 $ H.symm ▸ Hs.map_zero.symm,
-λ H, H.symm ▸ Hs.map_zero⟩
-
-end ring_equiv
-
 /-- A ring involution -/
 structure ring_invo [semiring R] extends R ≃+* Rᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
@@ -70,8 +55,8 @@ instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* Rᵒᵖ) :=
 @[norm_cast] lemma coe_ring_equiv (f : ring_invo R) (a : R) :
   (f : R ≃+* Rᵒᵖ) a = f a := rfl
 
-lemma map_zero_iff (f : ring_invo R) {x : R} : f x = 0 ↔ x = 0 :=
-by rw [←coe_ring_equiv, ring_equiv.map_zero_iff]
+@[simp] lemma map_eq_zero_iff (f : ring_invo R) {x : R} : f x = 0 ↔ x = 0 :=
+f.to_ring_equiv.map_eq_zero_iff
 
 end ring_invo
 

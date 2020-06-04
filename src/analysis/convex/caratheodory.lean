@@ -27,11 +27,11 @@ begin
     rw set.finite.convex_hull_eq (finset.finite_to_set t) at m,
     obtain ⟨w, w_nonneg, w_sum_one, w_center⟩ := m,
     let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
-    use w',
-    fsplit,
+    refine ⟨w', _, _, _⟩,
     { intro y, by_cases y ∈ t,
       { convert w_nonneg y h, simp [w', if_pos, h], },
       { simp [w', if_neg, h], }, },
+    { sorry, },
     { sorry, }, },
   sorry,
 end

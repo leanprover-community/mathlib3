@@ -7,7 +7,7 @@ import order.basic
 import data.equiv.encodable
 
 /-!
-# Order ideals, cofinal sets, and Rasiowa–sikorski
+# Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
 
 ## Main definitions
 
@@ -16,20 +16,22 @@ We work with a preorder `P` throughout.
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
 - `cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
-               Could also be called 'upward dense'.
-- `ideal_of_countable_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family
-  of cofinal subsets of P: an ideal in `P` which contains `p` and intersects every
-  set in `𝒟`.
+               Dual to the notion of 'dense set' used in forcing.
+- `ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal
+  subsets of P: an ideal in `P` which contains `p` and intersects every set in `𝒟`.
 
 ## References
 
+https://en.wikipedia.org/wiki/Ideal_(order_theory)
+https://en.wikipedia.org/wiki/Cofinal_(mathematics)
 https://en.wikipedia.org/wiki/Rasiowa–Sikorski_lemma
 
-Note that Wikipedia uses the opposite ordering on `P`.
+Note that for the Rasiowa–Sikorski lemma, Wikipedia uses the opposite ordering on `P`,
+in line with most presentations of forcing.
 
 ## Tags
 
-generic, filter, countable, cofinal, dense, ideal
+ideal, cofinal, dense, countable, generic
 
 -/
 
@@ -37,7 +39,7 @@ namespace order
 
 variables {P : Type*} [preorder P]
 
-/-- An (order) ideal on a preorder `P` is a subset of `P` that is
+/-- An ideal on a preorder `P` is a subset of `P` that is
   - nonempty
   - upward directed
   - downward closed. -/
@@ -89,7 +91,7 @@ exists.elim (classical.some_spec $ D.mem_gt x) $ λ _ b, b
 
 end cofinal
 
-section ideal_of_countable_cofinals
+section ideal_of_cofinals
 
 variables (p : P) {ι : Type*} [encodable ι] (𝒟 : ι → cofinal P)
 
@@ -115,7 +117,7 @@ by { dunfold sequence_of_cofinals, rw encodable.encodek, apply cofinal.above_mem
   - contains `p`, according to `mem_ideal_of_cofinals p 𝒟`, and
   - intersects every set in `𝒟`, according to `cofinal_meets_ideal_of_cofinals p 𝒟`.
 
-  This proves the Rasiowa–sikorski lemma. -/
+  This proves the Rasiowa–Sikorski lemma. -/
 def ideal_of_cofinals : ideal P :=
 { carrier   := { x : P | ∃ n, x ≤ sequence_of_cofinals p 𝒟 n },
   nonempty  := ⟨p, 0, le_refl _⟩,
@@ -131,6 +133,6 @@ lemma mem_ideal_of_cofinals : p ∈ ideal_of_cofinals p 𝒟 := ⟨0, le_refl _�
 lemma cofinal_meets_ideal_of_cofinals (i : ι) : ∃ x : P, x ∈ 𝒟 i ∧ x ∈ ideal_of_cofinals p 𝒟 :=
 ⟨_, sequence_of_cofinals.encode_mem p 𝒟 i, _, le_refl _⟩
 
-end ideal_of_countable_cofinals
+end ideal_of_cofinals
 
 end order

@@ -37,7 +37,7 @@ variables {R F} [semiring R] [semiring F] (Hs : R ≃+* F)
 lemma bijective : function.bijective Hs :=
 Hs.to_equiv.bijective
 
-lemma map_zero_iff (x : R) : Hs x = 0 ↔ x = 0 :=
+lemma map_zero_iff {x : R} : Hs x = 0 ↔ x = 0 :=
 ⟨λ H, Hs.bijective.1 $ H.symm ▸ Hs.map_zero.symm,
 λ H, H.symm ▸ Hs.map_zero⟩
 

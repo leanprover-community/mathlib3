@@ -294,17 +294,14 @@ lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   Icc a b ⊆ s :=
 by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
 
-/-- The only unbounded preconnected subset of a conditionally complete lattice is the whole
-space. -/
+/-- The only unbounded preconnected subset of a linear order is the whole space. -/
 lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
   (ha : ¬bdd_above s) :
   s = univ :=
 begin
   refine eq_univ_of_forall (λ x, _),
-  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x,
-  { contrapose! hb, exact ⟨x, hb⟩ },
-  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
-  { contrapose! ha, exact ⟨x, ha⟩ },
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := not_bdd_below_iff.1 hb x,
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z := not_bdd_above_iff.1 ha x,
   exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 end
 
@@ -1330,33 +1327,35 @@ lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb :
 let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup hs.nonempty ha)).1 hx.2 in
 hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 
-lemma is_connected.Ioi_cInf_subset {s : set α} (hs : is_connected s) (hb : bdd_below s)
+lemma is_preconnected.Ioi_cInf_subset {s : set α} (hs : is_preconnected s) (hb : bdd_below s)
   (ha : ¬bdd_above s) :
   Ioi (Inf s) ⊆ s :=
 begin
+  have sne : s.nonempty := @nonempty_of_not_bdd_above α _ s ⟨Inf ∅⟩ ha,
   intros x hx,
-  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := (is_glb_lt_iff (is_glb_cInf hs.nonempty hb)).1 hx,
-  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z,
-  { contrapose! ha, exact ⟨x, ha⟩ },
-  exact hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := (is_glb_lt_iff (is_glb_cInf sne hb)).1 hx,
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z := not_bdd_above_iff.1 ha x,
+  exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 end
 
-lemma is_connected.Iio_cSup_subset {s : set α} (hs : is_connected s) (hb : ¬bdd_below s)
+lemma is_preconnected.Iio_cSup_subset {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
   (ha : bdd_above s) :
   Iio (Sup s) ⊆ s :=
-@is_connected.Ioi_cInf_subset (order_dual α) _ _ _ s hs ha hb
+@is_preconnected.Ioi_cInf_subset (order_dual α) _ _ _ s hs ha hb
 
-/-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
-`Iic`, `Iio`, or `univ`, or `∅`. -/
+/-- A preconnected set in a conditionally complete linear order is either one of the intervals
+`[Inf s, Sup s]`, `[Inf s, Sup s)`, `(Inf s, Sup s]`, `(Inf s, Sup s)`, `[Inf s, +∞)`,
+`(Inf s, +∞)`, `(-∞, Sup s]`, `(-∞, Sup s)`, `(-∞, +∞)`, or `∅`. The converse statement requires
+`α` to be densely ordererd. -/
 lemma is_preconnected.mem_intervals {s : set α} (hs : is_preconnected s) :
   s ∈ ({Icc (Inf s) (Sup s), Ico (Inf s) (Sup s), Ioc (Inf s) (Sup s), Ioo (Inf s) (Sup s),
     Ici (Inf s), Ioi (Inf s), Iic (Sup s), Iio (Sup s), univ, ∅} : set (set α)) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|hne,
   { apply_rules [or.inr, mem_singleton] },
-  replace hs : is_connected s := ⟨hne, hs⟩,
+  have hs' : is_connected s := ⟨hne, hs⟩,
   by_cases hb : bdd_below s; by_cases ha : bdd_above s,
-  { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs.Ioo_cInf_cSup_subset hb ha)
+  { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs'.Ioo_cInf_cSup_subset hb ha)
       (λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩) with hs|hs|hs|hs,
     { exact (or.inl hs) },
     { exact (or.inr $ or.inl hs) },
@@ -1373,9 +1372,11 @@ begin
     { exact or.inl hs },
     { exact or.inr (or.inl hs) } },
   { iterate 8 { apply or.inr },
-    exact or.inl (hs.is_preconnected.eq_univ_of_unbounded hb ha) }
+    exact or.inl (hs.eq_univ_of_unbounded hb ha) }
 end
 
+/-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
+`Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordererd. -/
 lemma set_of_is_preconnected_subset_of_ordered :
   {s : set α | is_preconnected s} ⊆
     -- bounded intervals
@@ -1452,7 +1453,7 @@ begin
   exact nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
 end
 
-/-- A closed interval is preconnected. -/
+/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
 lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
 is_preconnected_closed_iff.2
 begin
@@ -1506,6 +1507,8 @@ is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff 
 instance ordered_connected_space : preconnected_space α :=
 ⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
+/-- In a dense conditionally complete linear order, the set of preconnected sets is exactly
+the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`. -/
 lemma set_of_is_preconnected_eq_of_ordered :
   {s : set α | is_preconnected s} =
     -- bounded intervals

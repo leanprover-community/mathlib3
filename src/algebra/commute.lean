@@ -32,71 +32,6 @@ rather than just `rw [hb.pow_left 5]`.
 Most of the proofs come from the properties of `semiconj_by`.
 -/
 
-/-- Two elements commute iff `a * b = b * a`. -/
-def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
-
-namespace commute
-
-section has_mul
-
-variables {S : Type*} [has_mul S]
-
-/-- Equality behind `commute a b`; useful for rewriting. -/
-protected theorem eq {a b : S} (h : commute a b) : a * b = b * a := h
-
-/-- Any element commutes with itself. -/
-@[refl, simp] protected theorem refl (a : S) : commute a a := eq.refl (a * a)
-
-/-- If `a` commutes with `b`, then `b` commutes with `a`. -/
-@[symm] protected theorem symm {a b : S} (h : commute a b) : commute b a :=
-eq.symm h
-
-protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
-⟨commute.symm, commute.symm⟩
-
-end has_mul
-
-section semigroup
-
-variables {S : Type*} [semigroup S] {a b c : S}
-
-/-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-@[simp] theorem mul_right (hab : commute a b) (hac : commute a c) :
-  commute a (b * c) :=
-hab.mul_right hac
-
-/-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-@[simp] theorem mul_left (hac : commute a c) (hbc : commute b c) :
-  commute (a * b) c :=
-hac.mul_left hbc
-
-end semigroup
-
-protected theorem all {S : Type*} [comm_semigroup S] (a b : S) : commute a b := mul_comm a b
-
-section monoid
-
-variables {M : Type*} [monoid M]
-
-@[simp] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
-@[simp] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
-
-theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
-semiconj_by.units_inv_right
-
-@[simp] theorem units_inv_right_iff {a : M} {u : units M} : commute a ↑u⁻¹ ↔ commute a u :=
-semiconj_by.units_inv_right_iff
-
-theorem units_inv_left {u : units M} {a : M} : commute ↑u a → commute ↑u⁻¹ a :=
-semiconj_by.units_inv_symm_left
-
-@[simp] theorem units_inv_left_iff {u : units M} {a : M}: commute ↑u⁻¹ a ↔ commute ↑u a :=
-semiconj_by.units_inv_symm_left_iff
-
-@[simp] protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} :
-  commute a b → commute (f a) (f b) :=
-semiconj_by.map f
-
 variables {a b : M} (hab : commute a b) (m n : ℕ)
 
 @[simp] theorem pow_right : commute a (b ^ n) := hab.pow_right n
@@ -109,39 +44,9 @@ variable (a)
 @[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
 @[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
 
-variables {u₁ u₂ : units M}
-
-theorem units_coe : commute u₁ u₂ → commute (u₁ : M) u₂ := semiconj_by.units_coe
-theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj_by.units_of_coe
-@[simp] theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
-
-end monoid
-
-section group
-
-variables {G : Type*} [group G] {a b : G}
-
-theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
-@[simp] theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_right_iff
-
-theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
-@[simp] theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
-
-theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
-@[simp] theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
-
-section
-
-variables (hab : commute a b) (m n : ℤ)
-include hab
-
 @[simp] theorem gpow_right : commute a (b ^ m) := hab.gpow_right m
 @[simp] theorem gpow_left : commute (a ^ m) b := (hab.symm.gpow_right m).symm
 @[simp] theorem gpow_gpow : commute (a ^ m) (b ^ n) := (hab.gpow_right n).gpow_left m
-
-end
-
-variables (a) (m n : ℤ)
 
 @[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
 @[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
@@ -152,17 +57,6 @@ end group
 section semiring
 
 variables {A : Type*}
-
-@[simp] theorem zero_right [mul_zero_class A] (a : A) : commute a 0 := semiconj_by.zero_right a
-@[simp] theorem zero_left [mul_zero_class A] (a : A) : commute 0 a := semiconj_by.zero_left a a
-
-@[simp] theorem add_right [distrib A] {a b c : A} :
-  commute a b → commute a c → commute a (b + c) :=
-semiconj_by.add_right
-
-@[simp] theorem add_left [distrib A] {a b c : A} :
-  commute a c → commute b c → commute (a + b) c :=
-semiconj_by.add_left
 
 variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
 
@@ -184,18 +78,6 @@ end semiring
 section ring
 
 variables {R : Type*} [ring R] {a b c : R}
-
-theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
-@[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
-
-theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
-@[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
-
-@[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
-@[simp] theorem neg_one_left (a : R): commute (-1) a := semiconj_by.neg_one_left a
-
-@[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
-@[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
 
 variables (hab : commute a b) (m n : ℤ)
 
@@ -219,29 +101,6 @@ end ring
 section division_ring
 
 variables {R : Type*} [division_ring R] {a b c : R}
-
-@[simp] theorem finv_left_iff : commute a⁻¹ b ↔ commute a b :=
-semiconj_by.finv_symm_left_iff
-
-theorem finv_left (h : commute a b) : commute a⁻¹ b :=
-finv_left_iff.2 h
-
-@[simp] theorem finv_right_iff : commute a b⁻¹ ↔ commute a b :=
-commute.symm_iff.trans (finv_left_iff.trans commute.symm_iff)
-
-theorem finv_right (h : commute a b) : commute a b⁻¹ :=
-finv_right_iff.2 h
-
-theorem finv_finv (h : commute a b) : commute a⁻¹ b⁻¹ :=
-h.finv_left.finv_right
-
-@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
-  commute a (b / c) :=
-hab.mul_right hac.finv_right
-
-@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
-  commute (a / b) c :=
-hac.mul_left hbc.finv_left
 
 end division_ring
 

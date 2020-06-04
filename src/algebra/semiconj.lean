@@ -29,78 +29,6 @@ rather than just `rw [h.pow_right 5]`.
 
 universes u v
 
-/-- `x` is semiconjugate to `y` by `a`, if `a * x = y * a`. -/
-def semiconj_by {M : Type u} [has_mul M] (a x y : M) : Prop := a * x = y * a
-
-namespace semiconj_by
-
-/-- Equality behind `semiconj_by a x y`; useful for rewriting. -/
-protected lemma eq {S : Type u} [has_mul S] {a x y : S} (h : semiconj_by a x y) :
-  a * x = y * a := h
-
-section semigroup
-
-variables {S : Type u} [semigroup S] {a b x y z x' y' : S}
-
-/-- If `a` semiconjugates `x` to `y` and `x'` to `y'`,
-then it semiconjugates `x * x'` to `y * y'`. -/
-@[simp] lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
-  semiconj_by a (x * x') (y * y') :=
-by unfold semiconj_by; assoc_rw [h.eq, h'.eq]
-
-/-- If both `a` and `b` semiconjugate `x` to `y`, then so does `a * b`. -/
-lemma mul_left (ha : semiconj_by a y z) (hb : semiconj_by b x y) :
-  semiconj_by (a * b) x z :=
-by unfold semiconj_by; assoc_rw [hb.eq, ha.eq, mul_assoc]
-
-end semigroup
-
-section monoid
-
-variables {M : Type u} [monoid M]
-
-/-- Any element semiconjugates `1` to `1`. -/
-@[simp] lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
-
-/-- One semiconjugates any element to itself. -/
-@[simp] lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
-
-/-- If `a` semiconjugates a unit `x` to a unit `y`, then it semiconjugates `x⁻¹` to `y⁻¹`. -/
-lemma units_inv_right {a : M} {x y : units M} (h : semiconj_by a x y) :
-  semiconj_by a ↑x⁻¹ ↑y⁻¹ :=
-calc a * ↑x⁻¹ = ↑y⁻¹ * (y * a) * ↑x⁻¹ : by rw [units.inv_mul_cancel_left]
-          ... = ↑y⁻¹ * a              : by rw [← h.eq, mul_assoc, units.mul_inv_cancel_right]
-
-@[simp] lemma units_inv_right_iff {a : M} {x y : units M} :
-  semiconj_by a ↑x⁻¹ ↑y⁻¹ ↔ semiconj_by a x y :=
-⟨units_inv_right, units_inv_right⟩
-
-/-- If a unit `a` semiconjugates `x` to `y`, then `a⁻¹` semiconjugates `y` to `x`. -/
-lemma units_inv_symm_left {a : units M} {x y : M} (h : semiconj_by ↑a x y) :
-  semiconj_by ↑a⁻¹ y x :=
-calc ↑a⁻¹ * y = ↑a⁻¹ * (y * a * ↑a⁻¹) : by rw [units.mul_inv_cancel_right]
-          ... = x * ↑a⁻¹              : by rw [← h.eq, ← mul_assoc, units.inv_mul_cancel_left]
-
-@[simp] lemma units_inv_symm_left_iff {a : units M} {x y : M} :
-  semiconj_by ↑a⁻¹ y x ↔ semiconj_by ↑a x y :=
-⟨units_inv_symm_left, units_inv_symm_left⟩
-
-@[simp] protected lemma map {N : Type v} [monoid N] (f : M →* N) {a x y : M} (h : semiconj_by a x y) :
-  semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, f.map_mul] using congr_arg f h
-
-theorem units_coe {a x y : units M} (h : semiconj_by a x y) :
-  semiconj_by (a : M) x y :=
-congr_arg units.val h
-
-theorem units_of_coe {a x y : units M} (h : semiconj_by (a : M) x y) :
-  semiconj_by a x y :=
-units.ext h
-
-@[simp] theorem units_coe_iff {a x y : units M} :
-  semiconj_by (a : M) x y ↔ semiconj_by a x y :=
-⟨units_of_coe, units_coe⟩
-
 @[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) :
   ∀ n : ℕ, semiconj_by a (x^n) (y^n)
 | 0 := one_right a
@@ -111,63 +39,9 @@ units.ext h
 | (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [gpow_neg_succ, units.coe_pow, units_inv_right, h, pow_right]
 
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-lemma units_conj_mk (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
-by unfold semiconj_by; rw [units.inv_mul_cancel_right]
-
-end monoid
-
-section group
-
-variables {G : Type u} [group G] {a x y : G}
-
-@[simp] lemma inv_right_iff : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
-@units_inv_right_iff G _ a (to_units G x) (to_units G y)
-
-lemma inv_right : semiconj_by a x y → semiconj_by a x⁻¹ y⁻¹ :=
-inv_right_iff.2
-
-@[simp] lemma inv_symm_left_iff : semiconj_by a⁻¹ y x ↔ semiconj_by a x y :=
-@units_inv_symm_left_iff G _ (to_units G a) _ _
-
-lemma inv_symm_left : semiconj_by a x y → semiconj_by a⁻¹ y x :=
-inv_symm_left_iff.2
-
-lemma inv_inv_symm (h : semiconj_by a x y) : semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
-h.inv_right.inv_symm_left
-
-lemma inv_inv_symm_iff : semiconj_by a⁻¹ y⁻¹ x⁻¹ ↔ semiconj_by a x y :=
-inv_right_iff.trans inv_symm_left_iff
-
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-lemma conj_mk (a x : G) : semiconj_by a x (a * x * a⁻¹) :=
-by unfold semiconj_by; rw [inv_mul_cancel_right]
-
 @[simp] lemma gpow_right (h : semiconj_by a x y) : ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n
 | -[1+n] := (h.pow_right n.succ).inv_right
-
-end group
-
-section semiring
-
-variables {R : Type u}
-
-@[simp] lemma add_right [distrib R] {a x y x' y' : R}
-  (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
-  semiconj_by a (x + x') (y + y') :=
-by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
-
-@[simp] lemma add_left [distrib R] {a b x y : R}
-  (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
-  semiconj_by (a + b) x y :=
-by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
-
-@[simp] lemma zero_right [mul_zero_class R] (a : R) : semiconj_by a 0 0 :=
-by simp only [semiconj_by, mul_zero, zero_mul]
-
-@[simp] lemma zero_left [mul_zero_class R] (x y : R) : semiconj_by 0 x y :=
-by simp only [semiconj_by, mul_zero, zero_mul]
 
 variables [semiring R] {a b x y : R} (h : semiconj_by a x y)
 include h
@@ -196,32 +70,6 @@ end semiring
 section ring
 
 variables {R : Type u} [ring R] {a b x y x' y' : R}
-
-lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
-
-@[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
-⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, neg_right⟩
-
-lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
-
-@[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
-⟨λ h, neg_neg a ▸ h.neg_left, neg_left⟩
-
-@[simp] lemma neg_one_right (a : R) : semiconj_by a (-1) (-1) :=
-(one_right a).neg_right
-
-@[simp] lemma neg_one_left (x : R) : semiconj_by (-1) x x :=
-(one_left x).neg_left
-
-@[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
-  semiconj_by a (x - x') (y - y') :=
-h.add_right h'.neg_right
-
-@[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
-  semiconj_by (a - b) x y :=
-ha.add_left hb.neg_left
 
 @[simp] lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
 | (n : ℕ) := h.nsmul_right n

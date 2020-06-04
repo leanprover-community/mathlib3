@@ -200,8 +200,7 @@ induction_on x $ λ x, induction_on y $ H x
 
 @[elab_as_eliminator, to_additive]
 theorem induction_on₃
-  {p : localization S → localization S
-    → localization S → Prop} (x y z)
+  {p : localization S → localization S → localization S → Prop} (x y z)
   (H : ∀ (x y z : M × S), p (mk x.1 x.2) (mk y.1 y.2) (mk z.1 z.2)) : p x y z :=
 induction_on₂ x y $ λ x y, induction_on z $ H x y
 

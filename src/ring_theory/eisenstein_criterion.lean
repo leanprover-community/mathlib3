@@ -21,7 +21,7 @@ variables {R : Type*} [integral_domain R]
 then if every coefficient in `R` except the leading coefficient is in `P`, and
 the trailing coefficient is not in `P^2` and no non units in `R` divide `f`, then `f` is
 irreducible. -/
-theorem eisenstein_criterion {f : polynomial R} {P : ideal R} (hP : P.is_prime)
+theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP : P.is_prime)
   (hfl : f.leading_coeff ∉ P)
   (hfP : ∀ n : ℕ, ↑n < degree f → f.coeff n ∈ P)
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)

@@ -39,7 +39,17 @@ end
 -- a basic fact about linear algebra!
 lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
-sorry
+begin
+  have := mt finset_card_le_findim_of_linear_independent (by { simpa using h }),
+  rw linear_dependent_iff at this,
+  obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
+  -- Now we have to extend `g` to all of `t`, then to all of `E`.
+  let f : E → ℝ := λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set E)) ∈ s then g ⟨x, h⟩ else 0 else 0,
+  -- and finally clean up the mess caused by the extension.
+  refine ⟨f, _, _⟩,
+  { sorry, },
+  { sorry, },
+end
 
 lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card {t : finset E} (h : findim ℝ E + 1 < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=

@@ -101,6 +101,13 @@ linear_independent_iff.trans
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
 
+theorem linear_dependent_iff : ¬ linear_independent R v ↔
+  ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
+begin
+  rw linear_independent_iff',
+  simp only [exists_prop, classical.not_forall],
+end
+
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
 begin
  rw [linear_independent_iff],

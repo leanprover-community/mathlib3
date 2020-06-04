@@ -21,6 +21,10 @@ import set_theory.ordinal
 
 -/
 
+-- TODO move
+def function.embedding.inl {α β : Type*} : α ↪ α ⊕ β :=
+⟨sum.inl, λ a b, sum.inl.inj⟩
+
 noncomputable theory
 
 universes u u' u'' v v' w w'
@@ -148,9 +152,14 @@ lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
 by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
 lemma cardinal_le_dim_of_linear_independent
-  {v : ι → V} (hv : linear_independent K v) :
-  cardinal.lift.{w v} (cardinal.mk ι) ≤ cardinal.lift.{v w} (dim K V) :=
-sorry
+  {ι : Type v} {v : ι → V} (hv : linear_independent K v) :
+  (cardinal.mk ι) ≤ (dim.{u v} K V) :=
+begin
+  obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
+  simpa using le_trans
+    (cardinal.lift_mk_le.{v v v}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (le_of_eq is.mk_eq_dim),
+end
 
 lemma cardinal_le_dim_of_linear_independent'
   {s : set V} (hs : linear_independent K (λ x, x : s → V)) :

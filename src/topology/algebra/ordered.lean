@@ -1375,13 +1375,15 @@ begin
 end
 
 /-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
-`Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordererd. -/
+`Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordererd. Though
+one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of possibile cases to improve
+readability. -/
 lemma set_of_is_preconnected_subset_of_ordered :
   {s : set α | is_preconnected s} ⊆
     -- bounded intervals
     (range (uncurry Icc) ∪ range (uncurry Ico) ∪ range (uncurry Ioc) ∪ range (uncurry Ioo)) ∪
     -- unbounded intervals and `univ`
-    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ}) :=
+    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ, ∅}) :=
 begin
   intros s hs,
   rcases hs.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs,
@@ -1393,9 +1395,8 @@ begin
   { exact (or.inr $ or.inl $ or.inl $ or.inl $ or.inr ⟨Inf s, hs.symm⟩) },
   { exact (or.inr $ or.inl $ or.inl  $ or.inr ⟨Sup s, hs.symm⟩) },
   { exact (or.inr $ or.inl $  or.inr ⟨Sup s, hs.symm⟩) },
-  { exact (or.inr $ or.inr hs) },
-  { refine (or.inl $ or.inr ⟨(Inf s, Inf s), _⟩),
-    simp [uncurry, mem_singleton_iff.1 hs] }
+  { exact (or.inr $ or.inr $ or.inl hs) },
+  { exact (or.inr $ or.inr $ or.inr hs) }
 end
 
 /-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
@@ -1507,19 +1508,22 @@ instance ordered_connected_space : preconnected_space α :=
 ⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
 /-- In a dense conditionally complete linear order, the set of preconnected sets is exactly
-the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`. -/
+the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`,
+or `∅`. Though one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of
+possibile cases to improve readability. -/
 lemma set_of_is_preconnected_eq_of_ordered :
   {s : set α | is_preconnected s} =
     -- bounded intervals
     (range (uncurry Icc) ∪ range (uncurry Ico) ∪ range (uncurry Ioc) ∪ range (uncurry Ioo)) ∪
     -- unbounded intervals and `univ`
-    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ}) :=
+    (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ, ∅}) :=
 begin
   refine subset.antisymm set_of_is_preconnected_subset_of_ordered _,
-  simp [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
+  simp only [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
+    mem_union, mem_set_of_eq, insert_eq, mem_singleton_iff, forall_eq, forall_true_iff, and_true,
     is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
     is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
-    is_preconnected_Iic, is_preconnected_univ]
+    is_preconnected_Iic, is_preconnected_univ, is_preconnected_empty],
 end
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/

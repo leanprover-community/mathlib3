@@ -729,6 +729,10 @@ convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hul
 lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
 set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
 
+@[simp]
+lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
+(convex_singleton x).convex_hull_eq
+
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
 begin
@@ -812,6 +816,22 @@ begin
   { rintros _ ⟨w, hw₀, hw₁, rfl⟩,
     exact hs.to_finset.center_mass_mem_convex_hull (λ x hx, hw₀ _ $ finite.mem_to_finset.1 hx)
       (hw₁.symm ▸ zero_lt_one) (λ x hx, finite.mem_to_finset.1 hx) }
+end
+
+lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
+  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
+begin
+  refine subset.antisymm _ _,
+  { rw [convex_hull_eq.{u}],
+    rintros x ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
+    simp only [mem_Union],
+    refine ⟨t.image z, _, _⟩,
+    { rw [finset.coe_image, image_subset_iff],
+      exact hz },
+    { apply t.center_mass_mem_convex_hull hw₀,
+      { simp only [hw₁, zero_lt_one] },
+      { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
+   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map ℝ f) (s : set E) :

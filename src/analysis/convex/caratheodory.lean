@@ -181,6 +181,11 @@ begin
     apply subset_Union _ b', },
 end
 
+/--
+Carathéodory's convexity theorem.
+
+The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
+-/
 theorem caratheodory (s : set E) :
   convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
 begin

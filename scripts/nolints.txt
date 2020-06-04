@@ -1970,13 +1970,7 @@ apply_nolint local_ring.residue_field.map doc_blame
 apply_nolint integral_closure doc_blame
 
 -- ring_theory/maps.lean
-apply_nolint comm_ring.anti_equiv_to_equiv doc_blame
-apply_nolint comm_ring.equiv_to_anti_equiv doc_blame
-apply_nolint is_ring_anti_hom doc_blame
-apply_nolint ring_anti_equiv has_inhabited_instance
-apply_nolint ring_anti_equiv.refl doc_blame
 apply_nolint ring_invo.id doc_blame
-apply_nolint ring_invo.to_ring_anti_equiv doc_blame
 
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame

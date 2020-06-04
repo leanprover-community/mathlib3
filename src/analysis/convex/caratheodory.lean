@@ -18,17 +18,17 @@ open set finite_dimensional
 variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
 
 -- a basic fact about convex hulls of finsets.
-lemma quux (t : finset E) (x : E) :
+lemma convex_coefficients (t : finset E) (x : E) :
   x ∈ convex_hull (↑t : set E) ↔
     ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
 sorry
 
 -- a basic fact about linear algebra!
-lemma turkle {t : finset E} (h : findim ℝ E < t.card) :
+lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 sorry
 
-lemma drab' {t : finset E} (h : findim ℝ E + 1 < t.card) :
+lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card {t : finset E} (h : findim ℝ E + 1 < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,
@@ -38,7 +38,8 @@ begin
   sorry
 end
 
-lemma slak {F : Type*} [decidable_eq F] {t : finset F} (f : F → ℝ) (h₁ : t.sum f = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
+lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
+  (f : F → ℝ) (h₁ : t.sum f = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
   ∃ x ∈ t, 0 < f x :=
 begin
   by_contradiction w,
@@ -50,21 +51,21 @@ begin
   sorry, -- easyish
 end
 
-lemma drab {t : finset E} (h : findim ℝ E + 1 < t.card) :
+lemma exists_relation_sum_zero_pos_coefficient {t : finset E} (h : findim ℝ E + 1 < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, 0 < f x :=
 begin
-  obtain ⟨f, sum, total, nonzero⟩ := drab' h,
-  exact ⟨f, sum, total, slak f total nonzero⟩,
+  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
+  exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
 end
 
 namespace caratheodory
 
 -- All the sorries here are very doable!
-lemma foo {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
+lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
    obtain ⟨f, fpos, fsum, rfl⟩ := (quux _ _).1 m, clear m,
-   obtain ⟨g, gcombo, gsum, gpos⟩ := drab h, clear h,
+   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
    let s := t.filter (λ z : E, 0 < g z),
    have : s.nonempty := sorry,
    obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) (sorry : s.nonempty),
@@ -87,7 +88,7 @@ lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :
 begin
   apply subset.antisymm,
   { intros x m',
-    obtain ⟨y, m⟩ := foo h m',
+    obtain ⟨y, m⟩ := mem_convex_hull_erase h m',
     exact mem_Union.2 ⟨y, m⟩, },
   { convert Union_subset _,
     intro x,

@@ -42,7 +42,7 @@ theorem iterate_zero_apply (x : α) : f^[0] x = x := rfl
 
 theorem iterate_succ_apply (n : ℕ) (x : α) : f^[n.succ] x = (f^[n]) (f x) := rfl
 
-theorem iterate_id (n : ℕ) : nat.iterate (id : α → α) n = id :=
+@[simp] theorem iterate_id (n : ℕ) : (id : α → α)^[n] = id :=
 nat.rec_on n rfl $ λ n ihn, by rw [iterate_succ, ihn, comp.left_id]
 
 theorem iterate_add : ∀ (m n : ℕ), f^[m + n] = (f^[m]) ∘ (f^[n])

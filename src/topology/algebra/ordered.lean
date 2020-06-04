@@ -54,7 +54,8 @@ vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see th
 
 ### Min, max, `Sup` and `Inf`
 
-* `continuous.min`, `continuous.max`: pointwise `min`/`max` of two continuous functions is continuous.
+* `continuous.min`, `continuous.max`: pointwise `min`/`max` of two continuous functions is
+  continuous.
 * `tendsto.min`, `tendsto.max` : if `f` tends to `a` and `g` tends to `b`, then their pointwise
   `min`/`max` tend to `min a b` and `max a b`, respectively.
 * `tendsto_of_tendsto_of_tendsto_of_le_of_le` : theorem known as squeeze theorem,
@@ -63,8 +64,8 @@ vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see th
 
 ### Connected sets and Intermediate Value Theorem
 
-* `is_connected_I??` : all intervals `I??` are connected,
-* `is_connected.intermediate_value`, `intermediate_value_univ` : Intermediate Value Theorem for
+* `is_preconnected_I??` : all intervals `I??` are preconnected,
+* `is_preconnected.intermediate_value`, `intermediate_value_univ` : Intermediate Value Theorem for
   connected sets and connected spaces, respectively;
 * `intermediate_value_Icc`, `intermediate_value_Icc'`: Intermediate Value Theorem for functions
   on closed intervals.
@@ -100,7 +101,7 @@ set of points `(x, y)` with `x ≤ y` is closed in the product space. We introdu
 This property is satisfied for the order topology on a linear order, but it can be satisfied more
 generally, and suffices to derive many interesting properties relating order and topology. -/
 class order_closed_topology (α : Type*) [topological_space α] [preorder α] : Prop :=
-(is_closed_le' : is_closed (λp:α×α, p.1 ≤ p.2))
+(is_closed_le' : is_closed {p:α×α | p.1 ≤ p.2})
 
 instance : Π [topological_space α], topological_space (order_dual α) := id
 
@@ -161,11 +162,13 @@ lemma ge_of_tendsto' {f : β → α} {a b : α} {x : filter β}
   (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, b ≤ f c) : b ≤ a :=
 ge_of_tendsto nt lim (eventually_of_forall _ h)
 
-@[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
+@[simp]
+lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
 closure_eq_iff_is_closed.mpr $ is_closed_le hf hg
 
-lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
+lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : continuous f)
+  (hg : continuous g) :
   closure {b | f b < g b} ⊆ {b | f b ≤ g b} :=
 by { rw [←closure_le_eq hf hg], exact closure_mono (λ b, le_of_lt) }
 
@@ -178,10 +181,22 @@ begin
   show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
   suffices : (f x, g x) ∈ closure {p : α × α | p.1 ≤ p.2},
     begin
-      rwa closure_eq_iff_is_closed.2 at this,
+      rwa closure_eq_of_is_closed at this,
       exact order_closed_topology.is_closed_le'
     end,
   exact (continuous_within_at.prod hf hg).mem_closure hx h
+end
+
+/-- If `s` is a closed set and two functions `f` and `g` are continuous on `s`,
+then the set `{x ∈ s | f x ≤ g x}` is a closed set. -/
+lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set β} (hs : is_closed s)
+  (hf : continuous_on f s) (hg : continuous_on g s) :
+  is_closed {x ∈ s | f x ≤ g x} :=
+begin
+  have A : {x ∈ s | f x ≤ g x} ⊆ s := inter_subset_left _ _,
+  refine is_closed_of_closure_subset (λ x hx, _),
+  have B : x ∈ s := closure_minimal A hs hx,
+  exact ⟨B, ((hf x B).mono A).closure_le hx ((hg x B).mono A) (λ y, and.right)⟩
 end
 
 end preorder
@@ -234,28 +249,48 @@ interior_eq_of_open is_open_Iio
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 interior_eq_of_open is_open_Ioo
 
-lemma is_preconnected.forall_Icc_subset {s : set α} (hs : is_preconnected s)
-  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  Icc a b ⊆ s :=
+/-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
+on a preconnected space and `f a ≤ g a` and `g b ≤ f b`, then for some `x` we have `f x = g x`. -/
+lemma intermediate_value_univ₂ {γ : Type*} [topological_space γ] [preconnected_space γ] {a b : γ}
+  {f g : γ → α} (hf : continuous f) (hg : continuous g) (ha : f a ≤ g a) (hb : g b ≤ f b) :
+  ∃ x, f x = g x :=
 begin
-  assume x hx,
-  obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
-    from is_preconnected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
-      (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
-  exact le_antisymm hy'.1 hy'.2 ▸ hy
+  obtain ⟨x, h, hfg, hgf⟩ : (univ ∩ {x | f x ≤ g x ∧ g x ≤ f x}).nonempty,
+    from is_preconnected_closed_iff.1 preconnected_space.is_preconnected_univ _ _
+      (is_closed_le hf hg) (is_closed_le hg hf) (λ x hx, le_total _ _) ⟨a, trivial, ha⟩
+      ⟨b, trivial, hb⟩,
+  exact ⟨x, le_antisymm hfg hgf⟩
 end
+
+/-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
+on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
+then for some `x ∈ s` we have `f x = g x`. -/
+lemma is_preconnected.intermediate_value₂ {γ : Type*} [topological_space γ] {s : set γ}
+  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (hb' : g b ≤ f b) :
+  ∃ x ∈ s, f x = g x :=
+let ⟨x, hx⟩ := @intermediate_value_univ₂ α _ _ _ s _ (subtype.preconnected_space hs) ⟨a, ha⟩ ⟨b, hb⟩
+  _ _ (continuous_on_iff_continuous_restrict.1 hf) (continuous_on_iff_continuous_restrict.1 hg)
+  ha' hb'
+in ⟨x, x.2, hx⟩
 
 /-- Intermediate Value Theorem for continuous functions on connected sets. -/
 lemma is_preconnected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
+  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α}
+  (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
-(hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
+λ x hx, mem_image_iff_bex.2 $ hs.intermediate_value₂ ha hb hf continuous_on_const hx.1 hx.2
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : preconnected_space γ]
+lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_space γ]
   (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
-@image_univ _ _ f ▸ H.is_preconnected_univ.intermediate_value trivial trivial hf.continuous_on
+λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
+
+lemma is_preconnected.forall_Icc_subset {s : set α} (hs : is_preconnected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
 
 end linear_order
 
@@ -1322,7 +1357,7 @@ begin
 end
 
 /-- A closed interval is preconnected. -/
-lemma is_connected_Icc : is_preconnected (Icc a b) :=
+lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
 is_preconnected_closed_iff.2
 begin
   rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
@@ -1348,7 +1383,7 @@ lemma is_preconnected_iff_forall_Icc_subset {s : set α} :
   ⟨Icc (min x y) (max x y), h (min x y) (max x y)
     ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
     ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
-    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
+    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_preconnected_Icc⟩⟩
 
 lemma is_preconnected_Ici : is_preconnected (Ici a) :=
 is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
@@ -1362,7 +1397,7 @@ is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff 
 lemma is_preconnected_Ioi : is_preconnected (Ioi a) :=
 is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
 
-lemma is_connected_Ioo : is_preconnected (Ioo a b) :=
+lemma is_preconnected_Ioo : is_preconnected (Ioo a b) :=
 is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
 
 lemma is_preconnected_Ioc : is_preconnected (Ioc a b) :=
@@ -1378,12 +1413,12 @@ instance ordered_connected_space : preconnected_space α :=
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
-is_connected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
+is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
 lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
-is_connected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
+is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 end densely_ordered
 
@@ -1408,7 +1443,6 @@ lemma compact.exists_forall_ge {α : Type u} [topological_space α]:
 @compact.exists_forall_le (order_dual β) _ _ _ _ _
 
 end conditionally_complete_linear_order
-
 
 section liminf_limsup
 
@@ -1593,7 +1627,9 @@ lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] 
   {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)
 
-lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] : tendsto (abs : α → α) at_top at_top :=
+/-- $\lim_{x\to+\infty}|x|=+\infty$ -/
+lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
+  tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x

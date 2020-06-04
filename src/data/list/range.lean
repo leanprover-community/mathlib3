@@ -35,7 +35,8 @@ theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a
 | s 0     := rfl
 | s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
 
-theorem map_sub_range' (a) : ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
+theorem map_sub_range' (a) :
+  ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
 | s 0     _ := rfl
 | s (n+1) h :=
 begin
@@ -74,14 +75,16 @@ theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ 
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
 | s 0     (n+1) _ := rfl
-| s (m+1) (n+1) h := (nth_range' (s+1) (lt_of_add_lt_add_right h)).trans $ by rw add_right_comm; refl
+| s (m+1) (n+1) h := (nth_range' (s+1) (lt_of_add_lt_add_right h)).trans $
+    by rw add_right_comm; refl
 
 theorem range'_concat (s n : ℕ) : range' s (n + 1) = range' s n ++ [s+n] :=
 by rw add_comm n 1; exact (range'_append s n 1).symm
 
 theorem range_core_range' : ∀ s n : ℕ, range_core s (range' s n) = range' 0 (n + s)
 | 0     n := rfl
-| (s+1) n := by rw [show n+(s+1) = n+1+s, from add_right_comm n s 1]; exact range_core_range' s (n+1)
+| (s+1) n := by rw [show n+(s+1) = n+1+s, from add_right_comm n s 1];
+    exact range_core_range' s (n+1)
 
 theorem range_eq_range' (n : ℕ) : range n = range' 0 n :=
 (range_core_range' n 0).trans $ by rw zero_add

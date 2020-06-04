@@ -19,11 +19,11 @@ lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simp
 lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simp
 lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simp
 
-lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), sqrt_two_add_series 0 n ≥ 0
+lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), 0 ≤ sqrt_two_add_series 0 n
 | 0     := le_refl 0
 | (n+1) := sqrt_nonneg _
 
-lemma sqrt_two_add_series_nonneg {x : ℝ} (h : 0 ≤ x) : ∀(n : ℕ), sqrt_two_add_series x n ≥ 0
+lemma sqrt_two_add_series_nonneg {x : ℝ} (h : 0 ≤ x) : ∀(n : ℕ), 0 ≤ sqrt_two_add_series x n
 | 0     := h
 | (n+1) := sqrt_nonneg _
 
@@ -122,9 +122,9 @@ by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
 lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
 by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
 
-lemma pi_gt_sqrt_two_add_series (n : ℕ) : pi > 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) :=
+lemma pi_gt_sqrt_two_add_series (n : ℕ) : 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) < pi :=
 begin
-  have : pi > sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2),
+  have : sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2) < pi,
   { apply mul_lt_of_lt_div, apply pow_pos, norm_num,
     rw [←sin_pi_over_two_pow_succ], apply sin_lt, apply div_pos pi_pos, apply pow_pos, norm_num },
   apply lt_of_le_of_lt (le_of_eq _) this,

@@ -1784,6 +1784,19 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
     rw [linear_map.smul_apply, e₂.smul], refl } }
 
+@[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
+  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+  [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
+  (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₁ →ₗ[R] M₂₁) (x : M₂) :
+  arrow_congr e₁ e₂ f x = e₂ (f (e₁.symm x)) :=
+rfl
+
+lemma arrow_congr_comp {N N₂ N₃ : Sort*}
+  [add_comm_group N] [add_comm_group N₂] [add_comm_group N₃] [module R N] [module R N₂] [module R N₃]
+  (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
+  arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
+by { ext, simp only [symm_apply_apply, arrow_congr_apply, linear_map.comp_apply], }
+
 /-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
 and `M` into `M₃` are linearly isomorphic. -/
 def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl R M) f
@@ -1791,6 +1804,13 @@ def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ 
 /-- If `M` and `M₂` are linearly isomorphic then the two spaces of linear maps from `M` and `M₂` to
 themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
+
+@[simp] lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) (x : M₂) :
+  (e.conj f) x = e (f (e.symm x)) :=
+rfl
+
+@[simp] lemma conj_id (e : M ≃ₗ[R] M₂) : e.conj linear_map.id = linear_map.id :=
+by { ext, rw [conj_apply, id_apply, id_apply, apply_symm_apply], }
 
 end comm_ring
 

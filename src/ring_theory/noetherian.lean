@@ -280,6 +280,7 @@ end
 
 open is_noetherian submodule function
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_noetherian_iff_well_founded
   {R M} [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
@@ -332,6 +333,7 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp

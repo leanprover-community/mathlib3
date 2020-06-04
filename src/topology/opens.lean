@@ -14,7 +14,7 @@ variables {α : Type*} {β : Type*} [topological_space α] [topological_space β
 namespace topological_space
 variable (α)
 /-- The type of open subsets of a topological space. -/
-def opens := {s : set α // _root_.is_open s}
+def opens := {s : set α // is_open s}
 
 /-- The type of closed subsets of a topological space. -/
 def closeds := {s : set α // is_closed s}
@@ -73,18 +73,18 @@ complete_lattice.copy
   (@galois_insertion.lift_complete_lattice
     (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl
-/- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
+/- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨U.1 ∪ V.1, _root_.is_open_union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨U.1 ∩ V.1, _root_.is_open_inter U.2 V.2⟩)
+/- sup -/ (λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩)
 begin
   funext,
   apply subtype.ext.mpr,
   symmetry,
   apply interior_eq_of_open,
-  exact (_root_.is_open_inter U.2 V.2),
+  exact (is_open_inter U.2 V.2),
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), _root_.is_open_sUnion $ λ U hU,
+/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), is_open_sUnion $ λ U hU,
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
 begin
   funext,

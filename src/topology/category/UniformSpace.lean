@@ -136,8 +136,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       apply subtype.eq, funext x, cases f,
-      change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      exact @completion.extension_coe _ _ _ _ _ (CpltSepUniformSpace.separated _) f_property _
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin

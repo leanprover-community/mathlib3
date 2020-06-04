@@ -11,7 +11,7 @@ set_option old_structure_cmd true
 
 variable {α : Type*}
 
-class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
+@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
@@ -322,7 +322,7 @@ begin
   apply one_div_pos_of_pos he
 end
 
-lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ c > 0 :=
+lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 begin
   apply exists.intro ((a - b) / (1 + 1)),
   split,
@@ -340,7 +340,7 @@ begin
   exact div_pos_of_pos_of_pos (sub_pos_of_lt h) two_pos
 end
 
-lemma ge_of_forall_ge_sub {a b : α} (h : ∀ ε : α, ε > 0 → a ≥ b - ε) : a ≥ b :=
+lemma le_of_forall_sub_le {a b : α} (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
   apply le_of_not_gt,
   intro hb,
@@ -640,7 +640,7 @@ mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end linear_ordered_field
 
-class discrete_linear_ordered_field (α : Type*)
+@[protect_proj] class discrete_linear_ordered_field (α : Type*)
   extends linear_ordered_field α, decidable_linear_ordered_comm_ring α
 
 section discrete_linear_ordered_field

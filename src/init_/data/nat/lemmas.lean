@@ -12,8 +12,8 @@ Results copied from the core library to mathlib by Johan Commelin
 
 namespace nat
 
-instance : zero_ne_one_class ℕ :=
-{ zero := 0, one := 1, zero_ne_one := nat.zero_ne_one }
+instance : nonzero ℕ :=
+{ zero_ne_one := nat.zero_ne_one }
 
 instance : comm_semiring nat :=
 { add            := nat.add,

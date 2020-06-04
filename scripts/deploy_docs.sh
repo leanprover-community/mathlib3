@@ -36,6 +36,7 @@ if [ "$github_repo" = "leanprover-community/mathlib" -a "$github_event" = "push"
   git config user.email "leanprover.community@gmail.com"
   git config user.name "leanprover-community-bot"
   git add -A .
+  git checkout --orphan master2
   git commit -m "automatic update to $git_hash"
-  git push
+  git push -f origin HEAD:master
 fi

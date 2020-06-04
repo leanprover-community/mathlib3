@@ -20,7 +20,7 @@ set_option old_structure_cmd true
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
-class normalization_domain (α : Type*) extends integral_domain α :=
+@[protect_proj] class normalization_domain (α : Type*) extends integral_domain α :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
@@ -64,11 +64,11 @@ lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize, by rintro rfl; exact normalize_zero⟩
 
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
-⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu.symm ▸ normalize_coe_units u⟩
+⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
 
 theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
-  assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
+  assume h, by rw [norm_unit_mul h (units.coe_ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
 by rw [normalize, normalize, norm_unit_mul_norm_unit, units.coe_one, mul_one]
@@ -79,7 +79,7 @@ begin
   rcases associated_of_dvd_dvd hab hba with ⟨u, rfl⟩,
   refine classical.by_cases (by rintro rfl; simp only [zero_mul]) (assume ha : a ≠ 0, _),
   suffices : a * ↑(norm_unit a) = a * ↑u * ↑(norm_unit a) * ↑u⁻¹,
-    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.ne_zero, norm_unit_coe_units],
+    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.coe_ne_zero, norm_unit_coe_units],
   calc a * ↑(norm_unit a) = a * ↑(norm_unit a) * ↑u * ↑u⁻¹:
       (units.mul_inv_cancel_right _ _).symm
     ... = a * ↑u * ↑(norm_unit a) * ↑u⁻¹ : by rw mul_right_comm a
@@ -141,7 +141,7 @@ set_option default_priority 100 -- see Note [default priority]
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
 `0` is top. The type class focuses on `gcd` and we derive the correpsonding `lcm` facts from `gcd`.
 -/
-class gcd_domain (α : Type*) extends normalization_domain α :=
+@[protect_proj] class gcd_domain (α : Type*) extends normalization_domain α :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -282,7 +282,7 @@ iff.intro
   (assume h : lcm a b = 0,
     have normalize (a * b) = 0,
       by rw [← gcd_mul_lcm _ _, h, mul_zero],
-    by simpa only [normalize_eq_zero, mul_eq_zero, units.ne_zero, or_false])
+    by simpa only [normalize_eq_zero, mul_eq_zero, units.coe_ne_zero, or_false])
   (by rintro (rfl | rfl); [apply lcm_zero_left, apply lcm_zero_right])
 
 @[simp] lemma normalize_lcm (a b : α) : normalize (lcm a b) = lcm a b :=

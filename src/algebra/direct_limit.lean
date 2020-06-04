@@ -51,7 +51,7 @@ def direct_limit : Type (max v w) :=
 namespace direct_limit
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
-instance : module R (direct_limit G f) := quotient.module _
+instance : semimodule R (direct_limit G f) := quotient.semimodule _
 
 variables (R ι)
 /-- The canonical map from a component to the direct limit. -/
@@ -497,15 +497,14 @@ variables [directed_system G f]
 
 namespace direct_limit
 
-instance nonzero_comm_ring : nonzero_comm_ring (ring.direct_limit G f) :=
+instance nonzero : nonzero (ring.direct_limit G f) :=
 { zero_ne_one := nonempty.elim (by apply_instance) $ assume i : ι, begin
     change (0 : ring.direct_limit G f) ≠ 1,
     rw ← ring.direct_limit.of_one,
     intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
     rw is_ring_hom.map_one (f i j hij) at hf,
     exact one_ne_zero hf
-  end,
-  .. ring.direct_limit.comm_ring G f }
+  end }
 
 theorem exists_inv {p : ring.direct_limit G f} : p ≠ 0 → ∃ y, p * y = 1 :=
 ring.direct_limit.induction_on p $ λ i x H,
@@ -529,7 +528,8 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,
-  .. direct_limit.nonzero_comm_ring G f }
+  .. ring.direct_limit.comm_ring G f,
+  .. direct_limit.nonzero G f }
 
 end
 

@@ -244,6 +244,9 @@ mem_to_finset
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
 
+@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩ 
+
 end set
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
@@ -660,6 +663,25 @@ instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, fintype (α hp)] : fintype (Π hp : p, α hp) :=
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
+
+lemma mem_image_univ_iff_mem_range
+  {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
+  b ∈ univ.image f ↔ b ∈ set.range f :=
+by simp
+
+lemma card_lt_card_of_injective_of_not_mem
+  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
+  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+begin
+  classical,
+  calc
+    fintype.card α = (univ : finset α).card : rfl
+  ... = (image f univ).card : (card_image_of_injective univ h).symm
+  ... < (insert b (image f univ)).card :
+          card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
+  ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
+  ... = fintype.card β : rfl
+end
 
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :

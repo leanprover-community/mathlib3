@@ -3,7 +3,8 @@ import linear_algebra.finite_dimensional
 
 universes u
 
-open set
+open set finset
+open_locale big_operators
 
 lemma set.subset_subset_Union
   {E : Type*} {A : set E} {ι : Sort*} {f : ι → set E} (i : ι) (h : A ⊆ f i) : A ⊆ ⋃ (i : ι), f i :=
@@ -20,11 +21,11 @@ variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] 
 -- a basic fact about convex hulls of finsets.
 lemma convex_coefficients (t : finset E) (x : E) :
   x ∈ convex_hull (↑t : set E) ↔
-    ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
+    ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (∑ e in t, f e = 1) ∧ (∑ e in t, f e • e = x) :=
 begin
   fsplit,
   { intro m,
-    rw set.finite.convex_hull_eq (finset.finite_to_set t) at m,
+    rw set.finite.convex_hull_eq (finite_to_set t) at m,
     obtain ⟨w, w_nonneg, w_sum_one, w_center⟩ := m,
     let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
     refine ⟨w', _, _, _⟩,
@@ -38,7 +39,7 @@ end
 
 -- a basic fact about linear algebra!
 lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :
-  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   have := mt finset_card_le_findim_of_linear_independent (by { simpa using h }),
   rw linear_dependent_iff at this,
@@ -52,7 +53,7 @@ begin
 end
 
 lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card {t : finset E} (h : findim ℝ E + 1 < t.card) :
-  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,
   -- apply the previous lemma to the other xᵢ - x₀,
@@ -62,20 +63,18 @@ begin
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
-  (f : F → ℝ) (h₁ : t.sum f = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
+  (f : F → ℝ) (h₁ : ∑ e in t, f e = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
   ∃ x ∈ t, 0 < f x :=
 begin
-  by_contradiction w,
-  simp at w,
-  obtain ⟨x, m, x_nz⟩ := h₂,
-  have x_neg : f x < 0 := sorry, -- easy
-  rw ←finset.insert_erase m at h₁,
-  rw finset.sum_insert (finset.not_mem_erase _ _) at h₁,
-  sorry, -- easyish
+  contrapose! h₁,
+  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ t, f x ≠ 0 := h₂,
+  apply ne_of_lt,
+  calc ∑ e in t, f e < ∑ e in t, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+                 ... = 0           : by rw [sum_const, nsmul_zero],
 end
 
 lemma exists_relation_sum_zero_pos_coefficient {t : finset E} (h : findim ℝ E + 1 < t.card) :
-  ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ t.sum f = 0 ∧ ∃ x ∈ t, 0 < f x :=
+  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, 0 < f x :=
 begin
   obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
   exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
@@ -109,7 +108,7 @@ end
 lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :
   convex_hull (↑t : set E) = ⋃ (x : (↑t : set E)), convex_hull ↑(t.erase x) :=
 begin
-  apply subset.antisymm,
+  apply set.subset.antisymm,
   { intros x m',
     obtain ⟨y, m⟩ := mem_convex_hull_erase h m',
     exact mem_Union.2 ⟨y, m⟩, },
@@ -124,19 +123,19 @@ lemma shrink' (t : finset E) (k : ℕ) (h : t.card = findim ℝ E + 1 + k) :
 begin
   induction k with k ih generalizing t,
   { apply subset_subset_Union t,
-    apply subset_subset_Union (subset.refl _),
+    apply subset_subset_Union (set.subset.refl _),
     exact subset_subset_Union (le_of_eq h) (subset.refl _), },
   rw step _ (by { rw h, simp, } : findim ℝ E + 1 < t.card),
   apply Union_subset,
   intro i,
   transitivity,
   { apply ih,
-    rw [finset.card_erase_of_mem, h, nat.pred_succ],
+    rw [card_erase_of_mem, h, nat.pred_succ],
     exact i.2, },
   { apply Union_subset_Union,
     intro t',
     apply Union_subset_Union_const,
-    exact λ h, subset.trans h (finset.erase_subset _ _), }
+    exact λ h, set.subset.trans h (erase_subset _ _), }
 end
 
 lemma shrink (t : finset E) :
@@ -145,8 +144,8 @@ lemma shrink (t : finset E) :
 begin
   by_cases h : t.card ≤ findim ℝ E + 1,
   { apply subset_subset_Union t,
-    apply subset_subset_Union (subset.refl _),
-    exact subset_subset_Union h (subset.refl _), },
+    apply subset_subset_Union (set.subset.refl _),
+    exact subset_subset_Union h (set.subset.refl _), },
   simp at h,
   obtain ⟨k, w⟩ := le_iff_exists_add.mp (le_of_lt h), clear h,
   exact shrink' _ _ w,
@@ -189,7 +188,7 @@ The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (
 theorem caratheodory (s : set E) :
   convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
 begin
-  apply subset.antisymm,
+  apply set.subset.antisymm,
   apply caratheodory_le,
   convert Union_subset _,
   intro t,

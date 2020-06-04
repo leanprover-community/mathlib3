@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import algebra.associated
 import algebra.big_operators
 /-!
-# prime
+# Prime elements in rings
 This file contains lemmas about prime elements of commutative rings.
 -/
 

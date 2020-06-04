@@ -140,10 +140,17 @@ def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 -- dependencies.
 def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
 
-def alternating_sum {G : Type*} [has_zero G] [has_add G] [has_sub G] : list G → G
+/-- The alternating sum of a list. -/
+def alternating_sum {G : Type*} [has_zero G] [has_add G] [has_neg G] : list G → G
 | [] := 0
 | (g :: []) := g
-| (g :: h :: t) := g - h + alternating_sum t
+| (g :: h :: t) := g + -h + alternating_sum t
+
+/-- The alternating product of a list. -/
+def alternating_prod {G : Type*} [has_one G] [has_mul G] [has_inv G] : list G → G
+| [] := 1
+| (g :: []) := g
+| (g :: h :: t) := g * h⁻¹ * alternating_prod t
 
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])

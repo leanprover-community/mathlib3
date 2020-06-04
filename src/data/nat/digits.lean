@@ -73,6 +73,9 @@ end
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
 rfl
 
+@[simp] lemma digits_add_two_add_one (b n : ℕ) :
+  digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
+
 @[simp]
 lemma digits_of_lt (b x : ℕ) (w₁ : 0 < x) (w₂ : x < b) : digits b x = [x] :=
 begin
@@ -203,15 +206,15 @@ begin
   { cases b with b,
     { induction n with n ih,
       { refl, },
-      { simp [ih, add_comm 1], } },
+      { simp only [ih, add_comm 1, of_digits_one_cons, nat.cast_id, digits_one_succ], } },
     { apply nat.strong_induction_on n _, clear n,
       intros n h,
       cases n,
       { refl, },
-      { change of_digits (b+2) ((n+1) % (b+2) :: digits (b+2) ((n+1) / (b+2))) = (n+1),
+      { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
-        simp [nat.mod_add_div], }, }, },
+        rw [nat.cast_id, nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
@@ -304,53 +307,6 @@ begin
   rw coe_int_of_digits,
   apply of_digits_zmodeq' _ _ _ h,
 end
-
-namespace list
-
-/-- The alternating sum of elements in a list. -/
--- As we don't prove anything about this yet,
--- I haven't moved this to `data/list/defs.lean`.
-def alternating_sum {G : Type*} [add_group G] : list G → G
-| [] := 0
-| (g :: []) := g
-| (g :: h :: t) := g - h + alternating_sum t
-
-section
-variables {G : Type*} [add_group G]
-
-@[simp] lemma alternating_sum_nil :
-  alternating_sum ([] : list G) = 0 := rfl
-
-@[simp] lemma alternating_sum_singleton (g : G) :
-  alternating_sum [g] = g := rfl
-
-@[simp] lemma alternating_sum_cons_cons (g h : G) (l : list G) :
-  alternating_sum (g :: h :: l) = g - h + alternating_sum l := rfl
-
-end
-
-open_locale big_operators
-lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
-  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2
-| [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
-| (g :: []) :=
-begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) •ℤ [g].nth_le i i.2,
-  rw [fin.sum_univ_succ], simp,
-end
-| (g :: h :: L) :=
-calc g - h + L.alternating_sum
-    = g - h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
-      congr_arg _ (alternating_sum_eq_finset_sum _)
-... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
-begin
-  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
-  unfold_coes,
-  simp [nat.succ_eq_add_one, pow_add],
-  refl,
-end
-
-end list
 
 lemma of_digits_neg_one : Π (L : list ℕ),
   of_digits (-1 : ℤ) L = (L.map (λ n : ℕ, (n : ℤ))).alternating_sum

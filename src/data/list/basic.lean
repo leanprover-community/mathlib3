@@ -1891,6 +1891,20 @@ nat.le.intro (head_add_tail_sum L)
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
 
+section
+variables {G : Type*} [has_zero G] [has_add G] [has_sub G]
+
+@[simp] lemma alternating_sum_nil :
+  alternating_sum ([] : list G) = 0 := rfl
+
+@[simp] lemma alternating_sum_singleton (g : G) :
+  alternating_sum [g] = g := rfl
+
+@[simp] lemma alternating_sum_cons_cons (g h : G) (l : list G) :
+  alternating_sum (g :: h :: l) = g - h + alternating_sum l := rfl
+
+end
+
 /-! ### join -/
 
 attribute [simp] join

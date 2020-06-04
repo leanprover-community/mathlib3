@@ -18,12 +18,13 @@ open set finite_dimensional
 variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
 
 -- a basic fact about convex hulls of finsets.
-lemma quux (t : finset E) (x : E) (m : x ∈ convex_hull (↑t : set E)) :
-  ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
+lemma quux (t : finset E) (x : E) :
+  x ∈ convex_hull (↑t : set E) ↔
+    ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (t.sum f = 1) ∧ (t.sum (λ e, f e • e) = x) :=
 sorry
 
 -- a basic fact about linear algebra!
-lemma turkle {t : finset E} (h : findim ℝ E + 1 ≤ t.card) :
+lemma turkle {t : finset E} (h : findim ℝ E < t.card) :
   ∃ f : E → ℝ, t.sum (λ e, f e • e) = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 sorry
 
@@ -58,19 +59,27 @@ end
 
 namespace caratheodory
 
+-- All the sorries here are very doable!
 lemma foo {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
-   -- This is the actual work!
-   obtain ⟨f, fpos, fsum, rfl⟩ := quux _ _ m, clear m,
+   obtain ⟨f, fpos, fsum, rfl⟩ := (quux _ _).1 m, clear m,
    obtain ⟨g, gcombo, gsum, gpos⟩ := drab h, clear h,
    let s := t.filter (λ z : E, 0 < g z),
    have : s.nonempty := sorry,
-   obtain ⟨i, mem, w⟩ := s.exists_max_image (λ z, f z / g z) (sorry : s.nonempty),
-   use i,
+   obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) (sorry : s.nonempty),
+   let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
+   have : k i₀ = 0 := sorry,
+   use i₀,
    { simp,
      sorry, },
-   { sorry, },
+   { apply (quux _ _).2,
+     { refine ⟨k, _, _, _⟩,
+       { sorry },
+       { sorry },
+       { sorry }, },
+     { assumption, },
+     { assumption, }, },
 end
 
 lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :

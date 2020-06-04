@@ -598,38 +598,34 @@ def prod_equiv (H : subgroup G) (K : subgroup N) : H.prod K ≃* H × K :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑H ↑K }
 
 /-- A subgroup is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/
-@[to_additive "An add_subgroup is normal if whenever `n ∈ H`, then
+@[class, to_additive "An add_subgroup is normal if whenever `n ∈ H`, then
   `g + n - g ∈ H` for every `g : G` "] def normal : Prop :=
 ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H
 
 variable {H}
-@[simp, to_additive] lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
+@[instance, to_additive] lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
 by simp [normal, mul_comm, mul_left_comm]
-
-@[to_additive] instance comm_group.normal {G : Type*} [comm_group G] (H : subgroup G) : fact H.normal :=
-normal_of_comm _
 
 namespace normal
 
 variable nH : H.normal
 
-@[to_additive] lemma normal : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H := nH
+@[to_additive] lemma conj_mem : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H := nH
 
 @[to_additive] lemma mem_comm {a b : G} (h : a * b ∈ H) : b * a ∈ H :=
-have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH.normal (a * b) h a⁻¹, by simpa
+have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH (a * b) h a⁻¹, by simpa
 
 @[to_additive] lemma mem_comm_iff {a b : G} : a * b ∈ H ↔ b * a ∈ H :=
 ⟨nH.mem_comm, nH.mem_comm⟩
 
 end normal
 
-@[to_additive] lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
-
-instance : fact (normal (⊥ : subgroup G)) := bot_normal
+@[instance, to_additive] lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
 
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
 variable (G)
-@[to_additive] def center : subgroup G :=
+@[to_additive "The center of a group `G` is the set of elements that commute with everything in `G`"]
+def center : subgroup G :=
 { carrier := {z | ∀ g, g * z = z * g},
   one_mem' := by simp,
   mul_mem' := λ a b (ha : ∀ g, g * a = a * g) (hb : ∀ g, g * b = b * g) g,
@@ -641,7 +637,7 @@ variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
 
-@[to_additive] lemma center_normal : (center G).normal :=
+@[instance, to_additive] lemma center_normal : (center G).normal :=
 begin
   assume n hn g h,
   assoc_rw [hn (h * g), hn g],
@@ -650,7 +646,8 @@ end
 
 variables {G} (H)
 /-- The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal. -/
-@[to_additive] def normalizer : subgroup G :=
+@[to_additive "The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal."]
+def normalizer : subgroup G :=
 { carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
   one_mem' := by simp,
   mul_mem' := λ a b (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) (hb : ∀ n, n ∈ H ↔ b * n * b⁻¹ ∈ H) n,

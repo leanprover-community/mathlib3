@@ -77,7 +77,7 @@ namespace caratheodory
 lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
-   obtain ⟨f, fpos, fsum, rfl⟩ := (quux _ _).1 m, clear m,
+   obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
    obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
    let s := t.filter (λ z : E, 0 < g z),
    have : s.nonempty := sorry,

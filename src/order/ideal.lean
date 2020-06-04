@@ -22,9 +22,9 @@ We work with a preorder `P` throughout.
 
 ## References
 
-https://en.wikipedia.org/wiki/Ideal_(order_theory)
-https://en.wikipedia.org/wiki/Cofinal_(mathematics)
-https://en.wikipedia.org/wiki/Rasiowa–Sikorski_lemma
+- https://en.wikipedia.org/wiki/Ideal_(order_theory)
+- https://en.wikipedia.org/wiki/Cofinal_(mathematics)
+- https://en.wikipedia.org/wiki/Rasiowa–Sikorski_lemma
 
 Note that for the Rasiowa–Sikorski lemma, Wikipedia uses the opposite ordering on `P`,
 in line with most presentations of forcing.

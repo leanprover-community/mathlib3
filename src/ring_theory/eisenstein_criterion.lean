@@ -107,7 +107,7 @@ begin
     from le_nat_degree_of_map_eq_mul_X_pow hP hq hbc0.2,
   have hpmqn : p.nat_degree = m ∧ q.nat_degree = n,
   { rw [nat_degree_mul_eq hp0 hq0] at hmnd,
-    clear_except hmnd hmn hmp hnq,
+    clear_except hmnd hmp hnq,
     omega },
   obtain rfl | rfl : m = 0 ∨ n = 0,
   { rwa [nat.pos_iff_ne_zero, nat.pos_iff_ne_zero, imp_false, not_not,

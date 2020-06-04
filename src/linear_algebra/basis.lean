@@ -65,8 +65,10 @@ noncomputable theory
 open function set submodule
 open_locale classical
 
+universes v
+
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
-          {M : Type*} {M' : Type*} {V : Type*} {V' : Type*}
+          {M : Type*} {M' : Type*} {V : Type v} {V' : Type*}
 
 section module
 variables {v : ι → M}
@@ -1055,6 +1057,27 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
 ⟨ b, hx,
   @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ hb₃,
   by simp; exact eq_top_iff.2 hb₂⟩
+
+lemma exists_sum_is_basis (hs : linear_independent K v) :
+  ∃ (ι' : Type v) (v' : ι' → V), is_basis K (sum.elim v v') :=
+begin
+  -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
+  let s := set.range v,
+  let e : ι ≃ s := equiv.set.range v (hs.injective zero_ne_one),
+  have : (λ x, x : s → V) = v ∘ e.symm := by { funext, dsimp, rw [equiv.set.apply_range_symm v], },
+  have : linear_independent K (λ x, x : s → V),
+  { rw this,
+    exact linear_independent.comp hs _ (e.symm.injective), },
+  obtain ⟨b, ss, is⟩ := exists_subset_is_basis this,
+  let e' : ι ⊕ (b \ s : set V) ≃ b :=
+  calc ι ⊕ (b \ s : set V) ≃ s ⊕ (b \ s : set V) : equiv.sum_congr e (equiv.refl _)
+                       ... ≃ b                   : equiv.set.sum_diff_subset ss,
+  refine ⟨(b \ s : set V), λ x, x.1, _⟩,
+  convert is_basis.comp is e' _,
+  { funext x,
+    cases x; simp; refl, },
+  { exact e'.bijective, },
+end
 
 variables (K V)
 lemma exists_is_basis : ∃b : set V, is_basis K (λ i, i : b → V) :=

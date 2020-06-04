@@ -966,6 +966,37 @@ lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred
 have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
+protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] :
+  s ⊕ (t \ s : set α) ≃ t :=
+calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) : (equiv.set.union (by simp [inter_diff_self])).symm
+... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
+
+@[simp] lemma sum_diff_subset_apply_inl
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] (x : s) :
+  equiv.set.sum_diff_subset h (sum.inl x) = inclusion h x := rfl
+
+@[simp] lemma sum_diff_subset_apply_inr
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] (x : t \ s) :
+  equiv.set.sum_diff_subset h (sum.inr x) = inclusion (diff_subset t s) x := rfl
+
+lemma sum_diff_subset_symm_apply_of_mem
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] {x : t} (hx : x.1 ∈ s) :
+  (equiv.set.sum_diff_subset h).symm x = sum.inl ⟨x, hx⟩ :=
+begin
+  apply (equiv.set.sum_diff_subset h).injective,
+  simp only [apply_symm_apply, sum_diff_subset_apply_inl],
+  exact subtype.eq rfl,
+end
+
+lemma sum_diff_subset_symm_apply_of_not_mem
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] {x : t} (hx : x.1 ∉ s) :
+  (equiv.set.sum_diff_subset h).symm x = sum.inr ⟨x, ⟨x.2, hx⟩⟩  :=
+begin
+  apply (equiv.set.sum_diff_subset h).injective,
+  simp only [apply_symm_apply, sum_diff_subset_apply_inr],
+  exact subtype.eq rfl,
+end
+
 protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred s] :
   (s ∪ t : set α) ⊕ (s ∩ t : set α) ≃ s ⊕ t :=
 calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
@@ -1006,6 +1037,13 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
 
 @[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
   set.range f H a = ⟨f a, set.mem_range_self _⟩ := rfl
+
+theorem apply_range_symm {α β} (f : α → β) (H : injective f) (b : range f) :
+  f ((set.range f H).symm b) = b :=
+begin
+  conv_rhs { rw ←((set.range f H).right_inv b), },
+  simp,
+end
 
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩

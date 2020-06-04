@@ -18,15 +18,20 @@ open set finite_dimensional
 
 variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
 
+-- move this
+@[simp] lemma finset.finite_to_set_to_finset {α : Type*} (s : finset α) :
+  (finite_to_set s).to_finset = s :=
+by { ext, rw [finite.mem_to_finset, mem_coe] }
+
 -- a basic fact about convex hulls of finsets.
 lemma convex_coefficients (t : finset E) (x : E) :
   x ∈ convex_hull (↑t : set E) ↔
     ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (∑ e in t, f e = 1) ∧ (∑ e in t, f e • e = x) :=
 begin
+  rw set.finite.convex_hull_eq (finite_to_set t),
+  simp only [exists_prop, finset.finite_to_set_to_finset, mem_coe, mem_set_of_eq],
   fsplit,
-  { intro m,
-    rw set.finite.convex_hull_eq (finite_to_set t) at m,
-    obtain ⟨w, w_nonneg, w_sum_one, w_center⟩ := m,
+  { rintro ⟨w, w_nonneg, w_sum_one, w_center⟩,
     let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
     refine ⟨w', _, _, _⟩,
     { intro y, by_cases y ∈ t,
@@ -34,7 +39,9 @@ begin
       { simp [w', if_neg, h], }, },
     { sorry, },
     { sorry, }, },
-  sorry,
+  { rintro ⟨w, w_nonneg, w_sum_one, w_center⟩,
+    refine ⟨w, (λ e _, w_nonneg e), w_sum_one, _⟩,
+    rwa center_mass_eq_of_sum_1 t id w_sum_one }
 end
 
 -- a basic fact about linear algebra!

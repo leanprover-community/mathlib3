@@ -256,7 +256,8 @@ instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, H.inv_mem a.2⟩⟩
 
 @[simp, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
-@[simp, to_additive] lemma coe_inv (x : H) : ((↑x)⁻¹ : G) = ↑(x⁻¹) := rfl
+@[simp, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
+@[simp, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
 
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive to_add_group "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
@@ -622,8 +623,8 @@ end normal
 
 @[instance, to_additive] lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
 
-/-- The center of a group `G` is the set of elements that commute with everything in `G` -/
 variable (G)
+/-- The center of a group `G` is the set of elements that commute with everything in `G` -/
 @[to_additive "The center of a group `G` is the set of elements that commute with everything in `G`"]
 def center : subgroup G :=
 { carrier := {z | ∀ g, g * z = z * g},
@@ -656,10 +657,21 @@ def normalizer : subgroup G :=
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
 
 variable {H}
-lemma mem_normalizer_iff {g : G} : g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
+@[to_additive] lemma mem_normalizer_iff {g : G} :
+  g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
 
-lemma le_normalizer : H ≤ normalizer H :=
+@[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_left (H.inv_mem xH), H.mul_mem_cancel_right xH]
+
+@[instance, to_additive] lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
+λ x xH g, by simpa using (g.2 x).1 xH
+
+open_locale classical
+
+lemma le_normalizer_of_normal (hK : (H.comap K.subtype).normal) (HK : H ≤ K) : K ≤ H.normalizer :=
+λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
+  λ yH, by simpa [mem_comap, mul_assoc] using
+             hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
 end subgroup
 
@@ -723,7 +735,7 @@ subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_s
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]
-lemma rang_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
+lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
@@ -738,6 +750,10 @@ lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_b
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
+
+@[instance, to_additive]
+lemma normal_ker (f : G →* N) : f.ker.normal :=
+λ _, by simp [mem_ker] { contextual := tt }
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

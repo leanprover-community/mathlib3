@@ -57,7 +57,8 @@ begin
   -- and finally clean up the mess caused by the extension.
   refine ⟨f, _, _⟩,
   { sorry, },
-  { sorry, },
+  { refine ⟨z, z.2, _⟩, dsimp only [f], rw [dif_pos, if_pos],
+    swap 3, { exact z.2 }, all_goals { rwa [subtype.coe_eta] }, },
 end
 
 lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card {t : finset E} (h : findim ℝ E + 1 < t.card) :
@@ -97,13 +98,14 @@ begin
    obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
    obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
    let s := t.filter (λ z : E, 0 < g z),
-   have : s.nonempty := sorry,
+   have : s.nonempty,
+   { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
+     refine ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
    obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) this,
    let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
    have : k i₀ = 0 := sorry,
    use i₀,
-   { simp,
-     sorry, },
+   { simpa using filter_subset _ mem },
    { apply (convex_coefficients _ _).2,
      { refine ⟨k, _, _, _⟩,
        { sorry },

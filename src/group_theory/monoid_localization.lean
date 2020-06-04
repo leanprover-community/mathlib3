@@ -73,7 +73,7 @@ satisfies this predicate, then `N` is isomorphic to the localization of `M` at `
 (surj' : ∀ z : N, ∃ x : M × S, z + to_fun x.2 = to_fun x.1)
 (eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, x + c = y + c)
 
-/-- The add_monoid hom underlying a `localization` of `add_comm_monoid`s. -/
+/-- The add_monoid hom underlying a `localization_map` of `add_comm_monoid`s. -/
 add_decl_doc localization_map.to_add_monoid_hom
 
 end add_submonoid
@@ -95,7 +95,7 @@ attribute [to_additive add_submonoid.localization_map] submonoid.localization_ma
 attribute [to_additive add_submonoid.localization_map.to_add_monoid_hom]
   submonoid.localization_map.to_monoid_hom
 
-/-- The monoid hom underlying a `localization`. -/
+/-- The monoid hom underlying a `localization_map`. -/
 add_decl_doc localization_map.to_monoid_hom
 
 end submonoid

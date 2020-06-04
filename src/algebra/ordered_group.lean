@@ -42,7 +42,7 @@ lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
 lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
-have a + b ≥ a + 0, from add_le_add_left' h,
+have a + 0 ≤ a + b, from add_le_add_left' h,
 by rwa add_zero at this
 
 lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
@@ -452,11 +452,11 @@ end
 lemma add_le_add {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right h₁ c) (add_le_add_left h₂ b)
 
-lemma le_add_of_nonneg_right (h : b ≥ 0) : a ≤ a + b :=
-have a + b ≥ a + 0, from add_le_add_left h a,
+lemma le_add_of_nonneg_right (h : 0 ≤ b) : a ≤ a + b :=
+have a + 0 ≤ a + b, from add_le_add_left h a,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right h a,
 by rwa zero_add at this
 
@@ -469,11 +469,11 @@ lt_of_le_of_lt (add_le_add_right h₁ c) (add_lt_add_left h₂ b)
 lemma add_lt_add_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a + c < b + d :=
 lt_of_lt_of_le (add_lt_add_right h₁ c) (add_le_add_left h₂ b)
 
-lemma lt_add_of_pos_right (a : α) {b : α} (h : b > 0) : a < a + b :=
+lemma lt_add_of_pos_right (a : α) {b : α} (h : 0 < b) : a < a + b :=
 have a + 0 < a + b, from add_lt_add_left h a,
 by rwa [add_zero] at this
 
-lemma lt_add_of_pos_left (a : α) {b : α} (h : b > 0) : a < b + a :=
+lemma lt_add_of_pos_left (a : α) {b : α} (h : 0 < b) : a < b + a :=
 have 0 + a < b + a, from add_lt_add_right h a,
 by rwa [zero_add] at this
 
@@ -1077,13 +1077,13 @@ add_lt_add_of_le_of_lt hab (neg_lt_neg hcd)
 lemma sub_lt_sub_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a - d < b - c :=
 add_lt_add_of_lt_of_le hab (neg_le_neg hcd)
 
-lemma sub_le_self (a : α) {b : α} (h : b ≥ 0) : a - b ≤ a :=
+lemma sub_le_self (a : α) {b : α} (h : 0 ≤ b) : a - b ≤ a :=
 calc
   a - b = a + -b : rfl
     ... ≤ a + 0  : add_le_add_left (neg_nonpos_of_nonneg h) _
     ... = a      : by rw add_zero
 
-lemma sub_lt_self (a : α) {b : α} (h : b > 0) : a - b < a :=
+lemma sub_lt_self (a : α) {b : α} (h : 0 < b) : a - b < a :=
 calc
   a - b = a + -b : rfl
     ... < a + 0  : add_lt_add_left (neg_neg_of_pos h) _
@@ -1362,11 +1362,11 @@ by rw [min_neg_neg, neg_neg]
 
 def abs (a : α) : α := max a (-a)
 
-lemma abs_of_nonneg {a : α} (h : a ≥ 0) : abs a = a :=
+lemma abs_of_nonneg {a : α} (h : 0 ≤ a) : abs a = a :=
 have h' : -a ≤ a, from le_trans (neg_nonpos_of_nonneg h) h,
 max_eq_left h'
 
-lemma abs_of_pos {a : α} (h : a > 0) : abs a = a :=
+lemma abs_of_pos {a : α} (h : 0 < a) : abs a = a :=
 abs_of_nonneg (le_of_lt h)
 
 lemma abs_of_nonpos {a : α} (h : a ≤ 0) : abs a = -a :=
@@ -1382,10 +1382,10 @@ abs_of_nonneg (le_refl _)
 lemma abs_neg (a : α) : abs (-a) = abs a :=
 begin unfold abs, rw [max_comm, neg_neg] end
 
-lemma abs_pos_of_pos {a : α} (h : a > 0) : abs a > 0 :=
+lemma abs_pos_of_pos {a : α} (h : 0 < a) : 0 < abs a :=
 by rwa (abs_of_pos h)
 
-lemma abs_pos_of_neg {a : α} (h : a < 0) : abs a > 0 :=
+lemma abs_pos_of_neg {a : α} (h : a < 0) : 0 < abs a :=
 abs_neg a ▸ abs_pos_of_pos (neg_pos_of_neg h)
 
 lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
@@ -1399,7 +1399,7 @@ assume ha, h (eq.symm ha ▸ abs_zero)
 lemma eq_zero_of_neg_eq {a : α} (h : -a = a) : a = 0 :=
 match lt_trichotomy a 0 with
 | or.inl h₁ :=
-  have a > 0, from h ▸ neg_pos_of_neg h₁,
+  have 0 < a, from h ▸ neg_pos_of_neg h₁,
   absurd h₁ (lt_asymm this)
 | or.inr (or.inl h₁) := h₁
 | or.inr (or.inr h₁) :=
@@ -1407,7 +1407,7 @@ match lt_trichotomy a 0 with
   absurd h₁ (lt_asymm this)
 end
 
-lemma abs_nonneg (a : α) : abs a ≥ 0 :=
+lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 or.elim (le_total 0 a)
   (assume h : 0 ≤ a, by rwa (abs_of_nonneg h))
   (assume h : a ≤ 0, calc
@@ -1435,7 +1435,7 @@ lemma eq_of_abs_sub_eq_zero {a b : α} (h : abs (a - b) = 0) : a = b :=
 have a - b = 0, from eq_zero_of_abs_eq_zero h,
 show a = b, from eq_of_sub_eq_zero this
 
-lemma abs_pos_of_ne_zero {a : α} (h : a ≠ 0) : abs a > 0 :=
+lemma abs_pos_of_ne_zero {a : α} (h : a ≠ 0) : 0 < abs a :=
 or.elim (lt_or_gt_of_ne h) abs_pos_of_neg abs_pos_of_pos
 
 lemma abs_by_cases (P : α → Prop) {a : α} (h1 : P a) (h2 : P (-a)) : P (abs a) :=
@@ -1449,14 +1449,14 @@ abs_by_cases (λ x : α, x ≤ b) h1 h2
 lemma abs_lt_of_lt_of_neg_lt {a b : α} (h1 : a < b) (h2 : -a < b) : abs a < b :=
 abs_by_cases (λ x : α, x < b) h1 h2
 
-private lemma aux1 {a b : α} (h1 : a + b ≥ 0) (h2 : a ≥ 0) : abs (a + b) ≤ abs a + abs b :=
+private lemma aux1 {a b : α} (h1 : 0 ≤ a + b) (h2 : 0 ≤ a) : abs (a + b) ≤ abs a + abs b :=
 decidable.by_cases
-  (assume h3 : b ≥ 0, calc
+  (assume h3 : 0 ≤ b, calc
     abs (a + b) ≤ abs (a + b)   : by apply le_refl
             ... = a + b         : by rw (abs_of_nonneg h1)
             ... = abs a + b     : by rw (abs_of_nonneg h2)
             ... = abs a + abs b : by rw (abs_of_nonneg h3))
- (assume h3 : ¬ b ≥ 0,
+ (assume h3 : ¬ 0 ≤ b,
   have h4 : b ≤ 0, from le_of_lt (lt_of_not_ge h3),
   calc
     abs (a + b) = a + b         : by rw (abs_of_nonneg h1)
@@ -1465,7 +1465,7 @@ decidable.by_cases
             ... ≤ abs a + -b    : add_le_add_left (neg_nonneg_of_nonpos h4) _
             ... = abs a + abs b : by rw (abs_of_nonpos h4))
 
-private lemma aux2 {a b : α} (h1 : a + b ≥ 0) : abs (a + b) ≤ abs a + abs b :=
+private lemma aux2 {a b : α} (h1 : 0 ≤ a + b) : abs (a + b) ≤ abs a + abs b :=
 or.elim (le_total b 0)
  (assume h2 : b ≤ 0,
   have h3 : ¬ a < 0, from
@@ -1493,8 +1493,8 @@ or.elim (le_total 0 (a + b))
   (assume h2 : 0 ≤ a + b, aux2 h2)
   (assume h2 : a + b ≤ 0,
    have h3 : -a + -b = -(a + b), by rw neg_add,
-   have h4 : -(a + b) ≥ 0, from neg_nonneg_of_nonpos h2,
-   have h5   : -a + -b ≥ 0, begin rw [← h3] at h4, exact h4 end,
+   have h4 : 0 ≤ -(a + b), from neg_nonneg_of_nonpos h2,
+   have h5   : 0 ≤ -a + -b, begin rw [← h3] at h4, exact h4 end,
    calc
       abs (a + b) = abs (-a + -b)   : by rw [← abs_neg, neg_add]
               ... ≤ abs (-a) + abs (-b) : aux2 h5

@@ -79,6 +79,7 @@ end
 
 /-- Elements of the uniformity (defined generally for completions) can be characterized in terms
 of the distance. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.mem_uniformity_dist (s : set (completion α × completion α)) :
   s ∈ uniformity (completion α) ↔ (∃ε>0, ∀{a b}, dist a b < ε → (a, b) ∈ s) :=
 begin
@@ -150,6 +151,7 @@ end
 
 /- Reformulate `completion.mem_uniformity_dist` in terms that are suitable for the definition
 of the metric space structure. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist' :
   uniformity (completion α) = (⨅ε:{ε:ℝ // ε>0}, principal {p | dist p.1 p.2 < ε.val}) :=
 begin
@@ -160,6 +162,7 @@ begin
   { exact ⟨⟨1, zero_lt_one⟩⟩ }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist :
   uniformity (completion α) = (⨅ ε>0, principal {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _

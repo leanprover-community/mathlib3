@@ -301,6 +301,7 @@ theorem add_gsmul : ∀ (a : A) (i j : ℤ), (i + j) •ℤ a = i •ℤ a + j �
 
 lemma gpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, gpow_add, gpow_neg]
+
 lemma sub_gsmul (m n : ℤ) (a : A) : (m - n) •ℤ a = m •ℤ a - n •ℤ a :=
 @gpow_sub (multiplicative A) _ _ _ _
 

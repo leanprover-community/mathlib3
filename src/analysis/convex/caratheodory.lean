@@ -139,8 +139,14 @@ begin
     conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
     exact neg_add_self _, },
   { refine ⟨x₁ + x₀, _, _⟩,
-    { sorry, },
-    { sorry, } },
+    { rw mem_map at x₁_mem,
+      rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
+      rw mem_erase at x₁_mem,
+      simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
+    { simp only [f],
+      split_ifs with hx₀ hx₀,
+      { sorry },
+      { simpa using nz, } } },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}

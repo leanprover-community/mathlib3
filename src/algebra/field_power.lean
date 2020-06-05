@@ -13,7 +13,7 @@ universe u
 @[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L)
   (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := f.map_pow a n
-| -[1+n] := by simp only [fpow_neg_succ_of_nat, f.map_pow, f.map_inv, f.map_one]
+| -[1+n] := by simp only [fpow_neg_succ, f.map_pow, f.map_inv, f.map_one]
 
 namespace is_ring_hom
 
@@ -45,9 +45,9 @@ begin
   { apply absurd h,
     apply not_le_of_gt,
     exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
-  { simp only [fpow_neg_succ_of_nat, one_div_eq_inv],
+  { simp only [fpow_neg_succ, one_div_eq_inv],
     apply le_trans (inv_le_one _); apply one_le_pow_of_one_le hx },
-  { simp only [fpow_neg_succ_of_nat],
+  { simp only [fpow_neg_succ],
     apply (inv_le_inv _ _).2,
     { apply pow_le_pow hx,
       have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
@@ -133,7 +133,8 @@ begin
   rcases lt_trichotomy x 1 with H|rfl|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← fpow_inv, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul, h], },
+    rw [← fpow_neg_one, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul,
+      h], },
   { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end

@@ -573,7 +573,7 @@ begin
 end
 
 @[simp] lemma inv_right_iff' : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
-⟨λ h, inv_inv'' x ▸ inv_inv'' y ▸ h.inv_right', inv_right'⟩
+⟨λ h, inv_inv' x ▸ inv_inv' y ▸ h.inv_right', inv_right'⟩
 
 lemma div_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x / x') (y / y') :=

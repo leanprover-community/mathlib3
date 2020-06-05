@@ -5,6 +5,25 @@ Authors: Neil Strickland, Yury Kudryashov
 -/
 import algebra.group.semiconj
 
+/-!
+# Commuting pairs of elements in monoids
+
+We define the predicate `commute a b = a * b = b * a` and provide some operations on terms `(h :
+commute a b)`. E.g., if `a`, `b`, and c are elements of a semiring, and that `hb : commute a b` and
+`hc : commute a c`.  Then `hb.pow_left 5` proves `commute (a ^ 5) b` and `(hb.pow_right 2).add_right
+(hb.mul_right hc)` proves `commute a (b ^ 2 + b * c)`.
+
+Lean does not immediately recognise these terms as equations, so for rewriting we need syntax like
+`rw [(hb.pow_left 5).eq]` rather than just `rw [hb.pow_left 5]`.
+
+This file defines only a few operations (`mul_left`, `inv_right`, etc).  Other operations
+(`pow_right`, field inverse etc) are in the files that define corresponding notions.
+
+## Implementation details
+
+Most of the proofs come from the properties of `semiconj_by`.
+-/
+
 /-- Two elements commute iff `a * b = b * a`. -/
 @[to_additive add_commute]
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b

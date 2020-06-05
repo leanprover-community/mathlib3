@@ -1227,6 +1227,12 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 
 @[simp] lemma coe_cast_ring_hom [ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
+lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
+int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
+
+lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
+(m.cast_commute x).symm
+
 @[simp, norm_cast]
 theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
 
@@ -1358,31 +1364,3 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
-
-namespace semiconj_by
-
-variables {R : Type*} [ring R]
-
-lemma cast_int_right (a : R) : ∀ n : ℤ, semiconj_by a n n := sorry
-
-lemma cast_int_left (n : ℕ) (x : R) : semiconj_by (n : R) x x := sorry
-
-end semiconj_by
-
-namespace commute
-
-variables {R : Type*} [semiring R]
-
-lemma cast_nat_right (a : R) (n : ℕ) : commute a n := semiconj_by.cast_nat_right a n
-
-lemma cast_nat_left (n : ℕ) (x : R) : commute (n : R) x := semiconj_by.cast_nat_left n x
-
-end commute
-
-theorem nat.mul_cast_comm {R : Type*} [semiring R] (a : R) (n : ℕ) : a * n = n * a :=
-commute.cast_nat_right a n
-
-
-theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
-by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
-

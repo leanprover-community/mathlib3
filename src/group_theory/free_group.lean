@@ -427,7 +427,7 @@ hom_eq $ λ x, (hg x).trans lift_eval_of.symm
 theorem lift_of : lift (of : α → free_group α) = monoid_hom.id _ :=
 hom_eq $ λ x, by simp
 
-theorem to_group.range_subset {s : set G} [is_subgroup s] (H : set.range f ⊆ s) :
+theorem lift.range_subset {s : set G} [is_subgroup s] (H : set.range f ⊆ s) :
   set.range (lift f) ⊆ s :=
 by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L is_submonoid.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
@@ -435,7 +435,7 @@ by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L is_submonoid.one_mem
       (is_subgroup.inv_mem $ H ⟨x, rfl⟩) ih)
     (by simp at ih ⊢; from is_submonoid.mul_mem (H ⟨x, rfl⟩) ih))
 
-theorem to_group.range_eq_closure :
+theorem lift.range_eq_closure :
   set.range (lift f) = group.closure (set.range f) :=
 set.subset.antisymm
   (to_group.range_subset group.subset_closure)

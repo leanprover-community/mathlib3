@@ -144,9 +144,12 @@ begin
       rw mem_erase at x₁_mem,
       simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
     { dsimp only [f],
-      split_ifs with hx₀ hx₀,
-      { simp,
-        sorry },
+      split_ifs with hx₁ hx₀,
+      { simp only [ne.def, neg_eq_zero],
+        simp only [add_left_eq_self] at hx₁, subst hx₁,
+        simp only [exists_prop, mem_erase, function.embedding.coe_fn_mk, mem_map, ne.def, sub_eq_zero] at x₁_mem,
+        rcases x₁_mem with ⟨x₁_mem_w, ⟨x₁_mem_h_left_left, x₁_mem_h_left_right⟩, x₁_mem_h_right⟩,
+        contradiction, },
       { simpa using nz, } } },
 end
 

@@ -3,7 +3,9 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
-import algebra.group.basic
+import algebra.group.hom
+import algebra.group.type_tags
+import data.equiv.basic
 
 /-!
 # Torsors of additive group actions
@@ -200,25 +202,78 @@ by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_v
        ←add_sub_assoc, ←neg_vsub_eq_vsub_rev, neg_add_self, zero_sub]
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_right_cancel (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_cancel_right (p1 p2 p3 : P) :
   (p1 -ᵥ p3 : G) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
 
+@[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
+  ((v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) : G) = v₁ - v₂ :=
+by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, vsub_self, add_zero]
+
 end general
 
 section comm
 
-variables (G : Type*) {P : Type*} [add_comm_group G] [S : add_torsor G P]
-include S
+variables (G : Type*) {P : Type*} [add_comm_group G] [add_torsor G P]
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_left_cancel (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
   (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
+
+@[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
+  ((v +ᵥ p1) -ᵥ (v +ᵥ p2) : G) = p1 -ᵥ p2 :=
+by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 
 end comm
 
 end add_torsor
+
+namespace equiv
+
+variables (G : Type*) {P : Type*} [add_group G] [add_torsor G P]
+
+open add_action add_torsor
+
+/-- `v ↦ v +ᵥ p` as an equivalence. -/
+def vadd_const (p : P) : G ≃ P :=
+{ to_fun := λ v, v +ᵥ p,
+  inv_fun := λ p', p' -ᵥ p,
+  left_inv := λ v, vadd_vsub _ _ _,
+  right_inv := λ p', vsub_vadd _ _ _ }
+
+@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const G p) = λ v, v+ᵥ p := rfl
+
+@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const G p).symm = λ p', p' -ᵥ p := rfl
+
+variables {G} (P)
+
+/-- The permutation given by `p ↦ v +ᵥ p`. -/
+def const_vadd (v : G) : equiv.perm P :=
+{ to_fun := (+ᵥ) v,
+  inv_fun := (+ᵥ) (-v),
+  left_inv := λ p, by simp [vadd_assoc],
+  right_inv := λ p, by simp [vadd_assoc] }
+
+@[simp] lemma coe_const_vadd (v : G) : ⇑(const_vadd P v) = (+ᵥ) v := rfl
+
+variable (G)
+
+@[simp] lemma const_vadd_zero : const_vadd P (0:G) = 1 := ext $ zero_vadd G
+
+variable {G}
+
+@[simp] lemma const_vadd_add (v₁ v₂ : G) :
+  const_vadd P (v₁ + v₂) = const_vadd P v₁ * const_vadd P v₂ :=
+ext $ λ p, (vadd_assoc G v₁ v₂ p).symm
+
+/-- `equiv.const_vadd` as a homomorphism from `multiplicative G` to `equiv.perm P` -/
+def const_vadd_hom : multiplicative G →* equiv.perm P :=
+{ to_fun := λ v, const_vadd P v.to_add,
+  map_one' := const_vadd_zero G P,
+  map_mul' := const_vadd_add P }
+
+end equiv

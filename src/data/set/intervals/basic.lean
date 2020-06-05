@@ -280,38 +280,81 @@ variables {α : Type u} [partial_order α] {a b : α}
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
 
-lemma Ico_diff_Ioo_eq_singleton (h : a < b) : Ico a b \ Ioo a b = {a} :=
-set.ext $ λ x, begin
-  simp [not_and'], split,
-  { rintro ⟨⟨ax, xb⟩, hne⟩,
-    exact (eq_or_lt_of_le ax).elim eq.symm (λ h', absurd h' (hne xb)) },
-  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
-end
+lemma Icc_diff_left : Icc a b \ {a} = Ioc a b :=
+ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm, and.right_comm]
 
-lemma Ioc_diff_Ioo_eq_singleton (h : a < b) : Ioc a b \ Ioo a b = {b} :=
-set.ext $ λ x, begin
-  simp, split,
-  { rintro ⟨⟨ax, xb⟩, hne⟩,
-    exact (eq_or_lt_of_le xb).elim id (λ h', absurd h' (hne ax)) },
-  { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
-end
+lemma Icc_diff_right : Icc a b \ {b} = Ico a b :=
+ext $ λ x, by simp [lt_iff_le_and_ne, and_assoc]
 
-lemma Icc_diff_Ico_eq_singleton (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
-set.ext $ λ x, begin
-  simp, split,
-  { rintro ⟨⟨ax, xb⟩, h⟩,
-    exact classical.by_contradiction
-      (λ ne, h ax (lt_of_le_of_ne xb ne)) },
-  { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
-end
+lemma Ico_diff_left : Ico a b \ {a} = Ioo a b :=
+ext $ λ x, by simp [and.right_comm, ← lt_iff_le_and_ne, eq_comm]
 
-lemma Icc_diff_Ioc_eq_singleton (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
-set.ext $ λ x, begin
-  simp [not_and'], split,
-  { rintro ⟨⟨ax, xb⟩, h⟩,
-    exact classical.by_contradiction
-      (λ hne, h xb (lt_of_le_of_ne ax (ne.symm hne))) },
-  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
+lemma Ioc_diff_right : Ioc a b \ {b} = Ioo a b :=
+ext $ λ x, by simp [and_assoc, ← lt_iff_le_and_ne]
+
+lemma Icc_diff_both : Icc a b \ {a, b} = Ioo a b :=
+by rw [insert_eq, ← diff_diff, Icc_diff_left, Ioc_diff_right]
+
+lemma Ici_diff_left : Ici a \ {a} = Ioi a :=
+ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm]
+
+lemma Iic_diff_right : Iic a \ {a} = Iio a :=
+ext $ λ x, by simp [lt_iff_le_and_ne]
+
+lemma Ico_diff_Ioo_same (h : a < b) : Ico a b \ Ioo a b = {a} :=
+by rw [← Ico_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Ico.2 h)]
+
+lemma Ioc_diff_Ioo_same (h : a < b) : Ioc a b \ Ioo a b = {b} :=
+by rw [← Ioc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Ioc.2 h)]
+
+lemma Icc_diff_Ico_same (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
+by rw [← Icc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Icc.2 h)]
+
+lemma Icc_diff_Ioc_same (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
+by rw [← Icc_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Icc.2 h)]
+
+lemma Icc_diff_Ioo_same (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} :=
+by { rw [← Icc_diff_both, diff_diff_cancel_left], simp [insert_subset, h] }
+
+lemma Ici_diff_Ioi_same : Ici a \ Ioi a = {a} :=
+by rw [← Ici_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 left_mem_Ici)]
+
+lemma Iic_diff_Iio_same : Iic a \ Iio a = {a} :=
+by rw [← Iic_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 right_mem_Iic)]
+
+lemma Ioi_union_left : Ioi a ∪ {a} = Ici a := ext $ λ x, by simp [eq_comm, le_iff_eq_or_lt]
+
+lemma Iio_union_right : Iio a ∪ {a} = Iic a := ext $ λ x, le_iff_lt_or_eq.symm
+
+lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
+  s ∈ ({Ici a, Ioi a} : set (set α)) :=
+classical.by_cases
+  (λ h : a ∈ s, or.inl $ subset.antisymm hc $ by simp [← Ioi_union_left, insert_subset, *])
+  (λ h, or.inr $ subset.antisymm (λ x hx, lt_of_le_of_ne (hc hx) (λ heq, h $ heq.symm ▸ hx)) ho)
+
+lemma mem_Iic_Iio_of_subset_of_subset {s : set α} (ho : Iio a ⊆ s) (hc : s ⊆ Iic a) :
+  s ∈ ({Iic a, Iio a} : set (set α)) :=
+@mem_Ici_Ioi_of_subset_of_subset (order_dual α) _ a s ho hc
+
+lemma mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset {s : set α} (ho : Ioo a b ⊆ s) (hc : s ⊆ Icc a b) :
+  s ∈ ({Icc a b, Ico a b, Ioc a b, Ioo a b} : set (set α)) :=
+begin
+  classical,
+  by_cases ha : a ∈ s; by_cases hb : b ∈ s,
+  { refine or.inl (subset.antisymm hc _),
+    rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha,
+      ← Icc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho },
+  { refine (or.inr $ or.inl $ subset.antisymm _ _),
+    { rw [← Icc_diff_right],
+      exact subset_diff_singleton hc hb },
+    { rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha] at ho } },
+  { refine (or.inr $ or.inr $ or.inl $ subset.antisymm _ _),
+    { rw [← Icc_diff_left],
+      exact subset_diff_singleton hc ha },
+    { rwa [← Ioc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho } },
+  { refine (or.inr $ or.inr $ or.inr $ subset.antisymm _ ho),
+    rw [← Ico_diff_left, ← Icc_diff_right],
+    apply_rules [subset_diff_singleton] }
 end
 
 end partial_order

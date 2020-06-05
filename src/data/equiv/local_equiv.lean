@@ -77,8 +77,6 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (left_inv'   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
 (right_inv'  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
 
--- attribute [simp] local_equiv.left_inv local_equiv.right_inv local_equiv.map_source local_equiv.map_target
-
 /-- Associating a local_equiv to an equiv-/
 def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
 { to_fun      := e.to_fun,

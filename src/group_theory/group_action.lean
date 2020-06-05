@@ -17,7 +17,7 @@ infixr ` • `:73 := has_scalar.smul
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
-class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
+@[protect_proj] class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 end prio
@@ -84,7 +84,7 @@ def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
-@[simp] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
+lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
 @[simp] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
@@ -130,7 +130,7 @@ def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
   mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
 
 instance (b : β) : is_submonoid (stabilizer α b) :=
-{ one_mem := one_smul b,
+{ one_mem := one_smul _ b,
   mul_mem := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 
@@ -142,10 +142,10 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
-lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+@[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 (to_units α c).inv_smul_smul x
 
-lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+@[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 (to_units α c).smul_inv_smul x
 
 variables (α) (β)
@@ -182,9 +182,13 @@ instance (b : β) : is_subgroup (stabilizer α b) :=
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
     by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
 
+@[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+⟨g⁻¹, by simp⟩
+
+@[simp] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-
 /-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,

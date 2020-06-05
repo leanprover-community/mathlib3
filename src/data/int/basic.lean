@@ -1217,6 +1217,11 @@ not_congr cast_eq_zero
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
 
+/-- `coe : ℤ → α` as an `add_monoid_hom`. -/
+def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
+
+@[simp] lemma coe_cast_add_hom [add_group α] [has_one α] : ⇑(cast_add_hom α) = coe := rfl
+
 /-- `coe : ℤ → α` as a `ring_hom`. -/
 def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
@@ -1312,14 +1317,26 @@ end int
 
 open int
 
-theorem add_monoid_hom.eq_int_cast {A} [add_group A] [has_one A] (f : ℤ →+ A) (h1 : f 1 = 1)
-  (n : ℤ) : f n = n :=
-begin
-  have : ∀ n : ℕ, f n = n, from λ n, (f.comp of_nat_hom.to_add_monoid_hom).eq_nat_cast h1 n,
-  cases n,
-  { exact this n },
-  rw [cast_neg_succ_of_nat, neg_succ_of_nat_eq, f.map_neg, f.map_add, h1, this]
-end
+namespace add_monoid_hom
+
+variables {A : Type*}
+
+/-- Two additive monoid homomorphisms `f`, `g` from `ℤ` to an additive monoid are equal
+if `f 1 = g 1`. -/
+@[ext] theorem ext_int [add_monoid A] {f g : ℤ →+ A} (h1 : f 1 = g 1) : f = g :=
+have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
+have ∀ n : ℕ, f n = g n := ext_iff.1 this,
+ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
+
+variables [add_group A] [has_one A]
+
+theorem eq_int_cast_hom (f : ℤ →+ A) (h1 : f 1 = 1) : f = int.cast_add_hom A :=
+ext_int $ by simp [h1]
+
+theorem eq_int_cast (f : ℤ →+ A) (h1 : f 1 = 1) : ∀ n : ℤ, f n = n :=
+ext_iff.1 (f.eq_int_cast_hom h1)
+
+end add_monoid_hom
 
 namespace ring_hom
 
@@ -1335,17 +1352,7 @@ ring_hom.ext f.eq_int_cast
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
-begin
-  ext n,
-  let φ : ℕ →+* R := f.comp (nat.cast_ring_hom ℤ),
-  let ψ : ℕ →+* R := g.comp (nat.cast_ring_hom ℤ),
-  have h : ∀ n : ℕ, f n = g n, by { intro n, simp [← int.nat_cast_eq_coe_nat] },
-  cases n, { apply h },
-  calc  f (-(n+1))
-      = f (-(n+1)) + (g (n+1) + g (-(n+1))) : by rw [← g.map_add, add_neg_self, g.map_zero, add_zero]
-  ... = f (-(n+1)) + f (n+1) + g (-(n+1))   : by simp only [add_assoc, h, map_add, map_one]
-  ... = g (-(n+1))                          : by rw [← f.map_add, neg_add_self, f.map_zero, zero_add]
-end
+coe_add_monoid_hom_inj $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
 
 instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
 ⟨ring_hom.ext_int⟩

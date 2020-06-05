@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Scott Morrison
+-/
 import analysis.convex.basic
 import linear_algebra.finite_dimensional
 
@@ -131,7 +136,11 @@ begin
     -- convert sum_sub_distrib.symm,
     -- this may have already gone wrong
     sorry, },
-  { sorry, },
+  { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
+    dsimp [f],
+    rw [if_pos rfl],
+    conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
+    exact neg_add_self _, },
   { refine ⟨x₁ + x₀, _, _⟩,
     { sorry, },
     { sorry, } },
@@ -168,8 +177,9 @@ begin
    { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
      refine ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
    obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) this,
+   have hg : 0 < g i₀ := by { rw mem_filter at mem, exact mem.2 },
    let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
-   have : k i₀ = 0 := sorry,
+   have hk : k i₀ = 0 := by field_simp [k, ne_of_gt hg],
    use i₀,
    { simpa using filter_subset _ mem },
    { apply (convex_coefficients _ _).2,

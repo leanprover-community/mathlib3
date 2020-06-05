@@ -60,14 +60,14 @@ a field.
 fractional ideal, fractional ideals, invertible ideal
 -/
 
-open localization
+open localization_map
 
 namespace ring
 
 section defs
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  (f : localization S P)
+  (f : localization_map S P)
 
 /-- A submodule `I` is a fractional ideal if `a I ⊆ R` for some `a ≠ 0`. -/
 def is_fractional (I : submodule R f.codomain) :=
@@ -90,7 +90,7 @@ open set
 open submodule
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  {f : localization S P}
+  {f : localization_map S P}
 
 instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ I.1⟩
 

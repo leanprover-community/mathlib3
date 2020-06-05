@@ -322,7 +322,7 @@ begin
   apply one_div_pos_of_pos he
 end
 
-lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ c > 0 :=
+lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 begin
   apply exists.intro ((a - b) / (1 + 1)),
   split,
@@ -340,7 +340,7 @@ begin
   exact div_pos_of_pos_of_pos (sub_pos_of_lt h) two_pos
 end
 
-lemma ge_of_forall_ge_sub {a b : α} (h : ∀ ε : α, ε > 0 → a ≥ b - ε) : a ≥ b :=
+lemma le_of_forall_sub_le {a b : α} (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
   apply le_of_not_gt,
   intro hb,
@@ -440,12 +440,12 @@ lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 @[simp] lemma inv_pos : ∀ {a : α}, 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_pos_of_pos
 
 @[simp] lemma inv_lt_zero : ∀ {a : α}, a⁻¹ < 0 ↔ a < 0 :=
 suffices ∀ a : α, a < 0 → a⁻¹ < 0,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_neg_of_neg
 
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=

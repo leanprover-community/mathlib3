@@ -332,7 +332,7 @@ iff.intro
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β]
   {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
-by conv_lhs { rw ← inv_inv'' a };
+by conv_lhs { rw ← inv_inv' a };
    exact (mem_inv_smul_set_iff (inv_ne_zero ha) _ _)
 
 end

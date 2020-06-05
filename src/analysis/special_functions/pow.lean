@@ -747,7 +747,7 @@ by { rw ← nnreal.coe_eq, exact real.rpow_one _ }
 by { rw ← nnreal.coe_eq, exact real.one_rpow _ }
 
 lemma rpow_add {x : nnreal} (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
-by { rw ← nnreal.coe_eq, exact real.rpow_add _ _ hx }
+by { rw ← nnreal.coe_eq, exact real.rpow_add hx _ _ }
 
 lemma rpow_mul (x : nnreal) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
 by { rw ← nnreal.coe_eq, exact real.rpow_mul x.2 y z }

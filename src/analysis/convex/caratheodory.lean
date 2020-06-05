@@ -8,37 +8,11 @@ import linear_algebra.finite_dimensional
 
 universes u
 
-open set finset
+open set finset finite_dimensional
 open_locale big_operators
 
-lemma set.subset_subset_Union
-  {E : Type*} {A : set E} {ι : Sort*} {f : ι → set E} (i : ι) (h : A ⊆ f i) : A ⊆ ⋃ (i : ι), f i :=
-begin
-  transitivity,
-  exact h,
-  exact subset_Union f i,
-end
-
-section
-variables {β : Type*}
-
-lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
-  s.filter (λ a, b ≠ a) = s.erase b :=
-by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
-
-lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
-  s.filter (λ a, a ≠ b) = s.erase b :=
-trans (filter_congr (λ _ _, ⟨ne.symm, ne.symm⟩)) (filter_ne s b)
-end
-
-open set finite_dimensional
-
-variables {E : Type u} [decidable_eq E] [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
-
--- move this
-@[simp] lemma finset.finite_to_set_to_finset {α : Type*} (s : finset α) :
-  (finite_to_set s).to_finset = s :=
-by { ext, rw [finite.mem_to_finset, mem_coe] }
+variables {E : Type u} [decidable_eq E] [add_comm_group E]
+variables [vector_space ℝ E] [finite_dimensional ℝ E]
 
 -- a basic fact about convex hulls of finsets.
 lemma convex_coefficients (t : finset E) (x : E) :
@@ -61,13 +35,6 @@ begin
     refine ⟨w, (λ e _, w_nonneg e), w_sum_one, _⟩,
     rwa center_mass_eq_of_sum_1 t id w_sum_one }
 end
-
--- a lemma about finset
-@[simp]
-lemma coe_mem {α : Type*} {E : finset α} (x : (↑E : set α)) : ↑x ∈ E := x.2
-@[simp]
-lemma mk_coe {α : Type*} {E : finset α} (x : (↑E : set α)) {h} : (⟨↑x, h⟩ : (↑E : set α)) = x :=
-by { apply subtype.eq, refl, }
 
 -- a basic fact about linear algebra!
 lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :

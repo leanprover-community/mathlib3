@@ -53,6 +53,12 @@ instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
 @[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = ↑s := rfl
 
+@[simp] lemma coe_mem {s : finset α} (x : (↑s : set α)) : ↑x ∈ s := x.2
+
+@[simp] lemma mk_coe {s : finset α} (x : (↑s : set α)) {h} :
+  (⟨↑x, h⟩ : (↑s : set α)) = x :=
+by { apply subtype.eq, refl, }
+
 instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
   decidable (a ∈ (↑s : set α)) := s.decidable_mem _
 
@@ -965,6 +971,14 @@ end
 lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, a = b) = ite (b ∈ s) {b} ∅ :=
 trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
+
+lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, b ≠ a) = s.erase b :=
+by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
+
+lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, a ≠ b) = s.erase b :=
+trans (filter_congr (λ _ _, ⟨ne.symm, ne.symm⟩)) (filter_ne s b)
 
 end filter
 

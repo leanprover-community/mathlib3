@@ -202,7 +202,7 @@ by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_v
        ←add_sub_assoc, ←neg_vsub_eq_vsub_rev, neg_add_self, zero_sub]
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_right_cancel (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_cancel_right (p1 p2 p3 : P) :
   (p1 -ᵥ p3 : G) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 
@@ -220,7 +220,7 @@ section comm
 variables (G : Type*) {P : Type*} [add_comm_group G] [add_torsor G P]
 
 /-- Cancellation subtracting the results of two subtractions. -/
-@[simp] lemma vsub_sub_vsub_left_cancel (p1 p2 p3 : P) :
+@[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
   (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 

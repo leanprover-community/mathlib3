@@ -696,14 +696,14 @@ def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
 { to_fun := λ x, ⟨λ n, n •ℕ x, zero_nsmul x, λ m n, add_nsmul _ _ _⟩,
   inv_fun := λ f, f 1,
   left_inv := one_nsmul,
-  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_nsmul] }
+  right_inv := λ f, add_monoid_hom.ext_nat $ one_nsmul (f 1) }
 
 /-- Additive homomorphisms from `ℤ` are defined by the image of `1`. -/
 def gmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
 { to_fun := λ x, ⟨λ n, n •ℤ x, zero_gsmul x, λ m n, add_gsmul _ _ _⟩,
   inv_fun := λ f, f 1,
   left_inv := one_gsmul,
-  right_inv := λ f, add_monoid_hom.ext $ λ n, by simp [← f.map_gsmul] }
+  right_inv := λ f, add_monoid_hom.ext_int $ one_gsmul (f 1) }
 
 variables {M G A}
 

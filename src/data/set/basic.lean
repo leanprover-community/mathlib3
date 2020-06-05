@@ -854,11 +854,22 @@ by rw [union_comm, ←diff_subset_iff]
 @[simp] lemma diff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
 by { rw [←union_singleton, union_comm], apply diff_subset_iff }
 
+lemma subset_diff_singleton {x : α} {s t : set α} (h : s ⊆ t) (hx : x ∉ s) : s ⊆ t \ {x} :=
+subset_inter h $ subset_compl_comm.1 $ singleton_subset_iff.2 hx
+
 lemma subset_insert_diff_singleton (x : α) (s : set α) : s ⊆ insert x (s \ {x}) :=
 by rw [←diff_singleton_subset_iff]
 
 lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
+
+lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
+ext $ λ x, by simp [classical.not_and_distrib, and_or_distrib_left]
+
+lemma diff_compl : s \ -t = s ∩ t := by rw [diff_eq, compl_compl]
+
+lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
+by rw [diff_eq t u, diff_inter, diff_compl]
 
 @[simp] theorem insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
 ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
@@ -897,8 +908,11 @@ by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 @[simp] lemma diff_self {s : set α} : s \ s = ∅ := ext $ by simp
 
-lemma mem_diff_singleton {s s' : set α} {t : set (set α)} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
-by simp
+lemma diff_diff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
+by simp only [diff_diff_right, diff_self, inter_eq_self_of_subset_right h, empty_union]
+
+lemma mem_diff_singleton {x y : α} {s : set α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
+iff.rfl
 
 lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=

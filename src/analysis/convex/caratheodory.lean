@@ -11,30 +11,7 @@ universes u
 open set finset finite_dimensional
 open_locale big_operators
 
-variables {E : Type u} [decidable_eq E] [add_comm_group E]
-variables [vector_space ℝ E] [finite_dimensional ℝ E]
-
--- a basic fact about convex hulls of finsets.
-lemma convex_coefficients (t : finset E) (x : E) :
-  x ∈ convex_hull (↑t : set E) ↔
-    ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (∑ e in t, f e = 1) ∧ (∑ e in t, f e • e = x) :=
-begin
-  rw finset.convex_hull_eq t,
-  simp only [exists_prop, mem_coe, mem_set_of_eq],
-  fsplit,
-  { rintro ⟨w, w_nonneg, w_sum_one, w_center⟩,
-    let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
-    refine ⟨w', _, _, _⟩,
-    { intro y, dsimp [w'], split_ifs with h h,
-      { exact w_nonneg y h },
-      { refl }, },
-    { rw [← w_sum_one, sum_congr rfl], intros x hx, exact if_pos hx, },
-    { rw [← w_center, center_mass_eq_of_sum_1 t id w_sum_one, sum_congr rfl],
-      intros x hx, simp only [w', if_pos hx, id] }, },
-  { rintro ⟨w, w_nonneg, w_sum_one, w_center⟩,
-    refine ⟨w, (λ e _, w_nonneg e), w_sum_one, _⟩,
-    rwa center_mass_eq_of_sum_1 t id w_sum_one }
-end
+variables {E : Type u} [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
 
 namespace caratheodory
 
@@ -42,11 +19,12 @@ namespace caratheodory
 If `x` is in the convex hull of some finset `t` with strictly more than `findim + 1` elements,
 then it is in the union of the convex hulls of the finsets `t.erase y` for `y ∈ t`.
 -/
-lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card)
+lemma mem_convex_hull_erase [decidable_eq E] {t : finset E} (h : findim ℝ E + 1 < t.card)
   {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
-  obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
+  rw finset.convex_hull_eq at m,
+  obtain ⟨f, fpos, fsum, rfl⟩ := m,
   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient_of_dim_succ_lt_card h,
   clear h,
   let s := t.filter (λ z : E, 0 < g z),
@@ -73,18 +51,19 @@ begin
         rw ← le_div_iff hge,
         exact w _ hes, },
       { calc _ ≤ 0   : mul_nonpos_of_nonneg_of_nonpos _ _ -- prove two goals below
-           ... ≤ f e : fpos e,
-        { apply div_nonneg_of_nonneg_of_pos (fpos _) hg },
+           ... ≤ f e : fpos e het,
+        { apply div_nonneg_of_nonneg_of_pos (fpos i₀ (mem_of_subset (filter_subset t) mem)) hg },
         { simpa [mem_filter, het] using hes }, } },
     { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
       calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e :
         by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_smul, zero_add], }
       ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
       ... = _ : _,
-      simp only [sub_smul, sum_sub_distrib, mul_smul, ← smul_sum, gcombo, smul_zero, sub_zero] }, },
+      simp only [sub_smul, sum_sub_distrib, mul_smul, ← smul_sum, gcombo, smul_zero, sub_zero,
+        center_mass, fsum, inv_one', id.def, one_smul], }, },
 end
 
-lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :
+lemma step [decidable_eq E] (t : finset E) (h : findim ℝ E + 1 < t.card) :
   convex_hull (↑t : set E) = ⋃ (x : (↑t : set E)), convex_hull ↑(t.erase x) :=
 begin
   apply set.subset.antisymm,
@@ -104,17 +83,18 @@ begin
   { apply subset_subset_Union t,
     apply subset_subset_Union (set.subset.refl _),
     exact subset_subset_Union (le_of_eq h) (subset.refl _), },
-  rw step _ (by { rw h, simp, } : findim ℝ E + 1 < t.card),
-  apply Union_subset,
-  intro i,
-  transitivity,
-  { apply ih,
-    rw [card_erase_of_mem, h, nat.pred_succ],
-    exact i.2, },
-  { apply Union_subset_Union,
-    intro t',
-    apply Union_subset_Union_const,
-    exact λ h, set.subset.trans h (erase_subset _ _), }
+  { classical,
+    rw step _ (by { rw h, simp, } : findim ℝ E + 1 < t.card),
+    apply Union_subset,
+    intro i,
+    transitivity,
+    { apply ih,
+      rw [card_erase_of_mem, h, nat.pred_succ],
+      exact i.2, },
+    { apply Union_subset_Union,
+      intro t',
+      apply Union_subset_Union_const,
+      exact λ h, set.subset.trans h (erase_subset _ _), } }
 end
 
 lemma shrink (t : finset E) :

@@ -775,7 +775,7 @@ begin
     exact inv_mem _ ihx }
 end
 
-/-- The normal closure of s is the smallest normal subgroup containing s. -/
+/-- The normal closure of `s` is the smallest normal subgroup containing `s`. -/
 theorem normal_closure_le_normal {N : subgroup G} (hN : N.normal)
   (h : s ⊆ N) : normal_closure s ≤ N :=
 begin

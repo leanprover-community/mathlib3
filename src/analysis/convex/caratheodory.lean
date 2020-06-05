@@ -24,9 +24,7 @@ variables {β : Type*}
 
 lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, b ≠ a) = s.erase b :=
-begin
-  sorry
-end
+by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
 
 lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, a ≠ b) = s.erase b :=

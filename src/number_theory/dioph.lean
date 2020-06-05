@@ -751,17 +751,17 @@ localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 omit df dg
 open pell
 
-theorem pell_dioph : dioph (λv:vector3 ℕ 4, ∃ h : v &0 > 1,
+theorem pell_dioph : dioph (λv:vector3 ℕ 4, ∃ h : 1 < v &0,
   xn h (v &1) = v &2 ∧ yn h (v &1) = v &3) :=
 have dioph {v : vector3 ℕ 4 |
-v &0 > 1 ∧ v &1 ≤ v &3 ∧
+1 < v &0 ∧ v &1 ≤ v &3 ∧
 (v &2 = 1 ∧ v &3 = 0 ∨
 ∃ (u w s t b : ℕ),
   v &2 * v &2 - (v &0 * v &0 - 1) * v &3 * v &3 = 1 ∧
   u * u - (v &0 * v &0 - 1) * w * w = 1 ∧
   s * s - (b * b - 1) * t * t = 1 ∧
-  b > 1 ∧ (b ≡ 1 [MOD 4 * v &3]) ∧ (b ≡ v &0 [MOD u]) ∧
-  w > 0 ∧ v &3 * v &3 ∣ w ∧
+  1 < b ∧ (b ≡ 1 [MOD 4 * v &3]) ∧ (b ≡ v &0 [MOD u]) ∧
+  0 < w ∧ v &3 * v &3 ∣ w ∧
   (s ≡ v &2 [MOD u]) ∧
   (t ≡ v &1 [MOD 4 * v &3]))}, from
 D.1 D< D&0 D∧ D&1 D≤ D&3 D∧
@@ -776,18 +776,18 @@ D.1 D< D&0 D∧ D&1 D≤ D&3 D∧
   (D≡ (D&1) (D&6) (D.4 D* D&8)))),
 dioph.ext this $ λv, matiyasevic.symm
 
-theorem xn_dioph : dioph_pfun (λv:vector3 ℕ 2, ⟨v &0 > 1, λh, xn h (v &1)⟩) :=
-have dioph (λv:vector3 ℕ 3, ∃ y, ∃ h : v &1 > 1, xn h (v &2) = v &0 ∧ yn h (v &2) = y), from
+theorem xn_dioph : dioph_pfun (λv:vector3 ℕ 2, ⟨1 < v &0, λh, xn h (v &1)⟩) :=
+have dioph (λv:vector3 ℕ 3, ∃ y, ∃ h : 1 < v &1, xn h (v &2) = v &0 ∧ yn h (v &2) = y), from
 let D_pell := @reindex_dioph _ (fin2 4) _ pell_dioph [&2, &3, &1, &0] in D∃3 D_pell,
 (dioph_pfun_vec _).2 $ dioph.ext this $ λv, ⟨λ⟨y, h, xe, ye⟩, ⟨h, xe⟩, λ⟨h, xe⟩, ⟨_, h, xe, rfl⟩⟩
 
 include df dg
 theorem pow_dioph : dioph_fn (λv, f v ^ g v) :=
 have dioph {v : vector3 ℕ 3 |
-v &2 = 0 ∧ v &0 = 1 ∨ v &2 > 0 ∧
-(v &1 = 0 ∧ v &0 = 0 ∨ v &1 > 0 ∧
+v &2 = 0 ∧ v &0 = 1 ∨ 0 < v &2 ∧
+(v &1 = 0 ∧ v &0 = 0 ∨ 0 < v &1 ∧
 ∃ (w a t z x y : ℕ),
-  (∃ (a1 : a > 1), xn a1 (v &2) = x ∧ yn a1 (v &2) = y) ∧
+  (∃ (a1 : 1 < a), xn a1 (v &2) = x ∧ yn a1 (v &2) = y) ∧
   (x ≡ y * (a - v &1) + v &0 [MOD t]) ∧
   2 * a * v &1 = t + (v &1 * v &1 + 1) ∧
   v &0 < t ∧ v &1 ≤ w ∧ v &2 ≤ w ∧

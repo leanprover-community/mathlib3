@@ -172,9 +172,6 @@ match classical.em (a = 0) with
 | or.inr h := eq.symm (eq_one_div_of_mul_eq_one_left (mul_one_div_cancel h))
 end
 
-lemma inv_inv' (a : α) : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, one_div_one_div]
-
 lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=
 by rw [← one_div_one_div a, h,one_div_one_div]
 

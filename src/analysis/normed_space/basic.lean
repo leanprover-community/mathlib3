@@ -195,6 +195,7 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]

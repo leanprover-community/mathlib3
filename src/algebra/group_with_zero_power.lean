@@ -87,7 +87,7 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
 | 0       := inv_one'.symm
-| -[1+ n] := (inv_inv'' _).symm
+| -[1+ n] := (inv_inv' _).symm
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
 
@@ -103,7 +103,7 @@ or.elim (nat.lt_or_ge m (nat.succ n))
   suffices a ^ -[1+ n-m] = a ^ of_nat m * a ^ -[1+n],
     by rwa [of_nat_add_neg_succ_of_nat_of_lt h1],
   show (a ^ nat.succ (n - m))⁻¹ = a ^ of_nat m * a ^ -[1+n],
-  by rw [← nat.succ_sub h2, pow_sub' _ h (le_of_lt h1), mul_inv_rev', inv_inv'']; refl)
+  by rw [← nat.succ_sub h2, pow_sub' _ h (le_of_lt h1), mul_inv_rev', inv_inv']; refl)
  (assume : m ≥ n.succ,
   suffices a ^ (of_nat (m - n.succ)) = (a ^ (of_nat m)) * (a ^ -[1+ n]),
     by rw [of_nat_add_neg_succ_of_nat_of_ge]; assumption,
@@ -135,7 +135,7 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | -[1+ m] (n : ℕ) := (fpow_neg _ (m.succ * n)).trans $
   show (a ^ (m.succ * n))⁻¹ = _, by rw [pow_mul, ← inv_pow']; refl
 | -[1+ m] -[1+ n] := (pow_mul a m.succ n.succ).trans $
-  show _ = (_⁻¹ ^ _)⁻¹, by rw [inv_pow', inv_inv'']
+  show _ = (_⁻¹ ^ _)⁻¹, by rw [inv_pow', inv_inv']
 
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]

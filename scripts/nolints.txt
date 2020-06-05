@@ -115,16 +115,10 @@ apply_nolint gt_iff_lt ge_or_gt
 
 -- algebra/ordered_field.lean
 apply_nolint discrete_linear_ordered_field doc_blame
-apply_nolint exists_add_lt_and_pos_of_lt ge_or_gt
-apply_nolint ge_of_forall_ge_sub ge_or_gt
 apply_nolint linear_ordered_field doc_blame
 
 -- algebra/ordered_group.lean
 apply_nolint abs doc_blame
-apply_nolint abs_nonneg ge_or_gt
-apply_nolint abs_pos_of_ne_zero ge_or_gt
-apply_nolint abs_pos_of_neg ge_or_gt
-apply_nolint abs_pos_of_pos ge_or_gt
 apply_nolint decidable_linear_ordered_add_comm_group doc_blame
 apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
 apply_nolint dist_bdd_within_interval unused_arguments
@@ -182,9 +176,6 @@ apply_nolint prime_spectrum has_inhabited_instance
 -- algebraic_geometry/stalks.lean
 apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
 apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
-
--- analysis/normed_space/basic.lean
-apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
 
 -- analysis/normed_space/real_inner_product.lean
 apply_nolint has_inner doc_blame
@@ -740,7 +731,6 @@ apply_nolint complex.real_prod_equiv doc_blame
 
 -- data/complex/exponential.lean
 apply_nolint abv_sum_le_sum_abv unused_arguments
-apply_nolint cauchy_product ge_or_gt
 apply_nolint complex.cos doc_blame
 apply_nolint complex.cosh doc_blame
 apply_nolint complex.exp doc_blame
@@ -1459,11 +1449,6 @@ apply_nolint hyperreal.pos_of_infinite_pos ge_or_gt
 -- data/real/nnreal.lean
 apply_nolint nnreal.of_real doc_blame
 
--- data/real/pi.lean
-apply_nolint real.pi_gt_sqrt_two_add_series ge_or_gt
-apply_nolint real.sqrt_two_add_series_nonneg ge_or_gt
-apply_nolint real.sqrt_two_add_series_zero_nonneg ge_or_gt
-
 -- data/semiquot.lean
 apply_nolint semiquot.bind doc_blame
 apply_nolint semiquot.get doc_blame
@@ -1630,11 +1615,6 @@ apply_nolint free_group.map.aux doc_blame
 apply_nolint free_group.mk doc_blame
 apply_nolint free_group.to_group.aux doc_blame
 
--- group_theory/order_of_element.lean
-apply_nolint exists_pow_eq_one ge_or_gt
-apply_nolint is_cyclic doc_blame
-apply_nolint is_cyclic.comm_group doc_blame
-
 -- group_theory/perm/cycles.lean
 apply_nolint equiv.perm.cycle_factors doc_blame
 apply_nolint equiv.perm.cycle_factors_aux doc_blame
@@ -1787,7 +1767,6 @@ apply_nolint unique doc_blame
 apply_nolint Meas doc_blame
 
 -- measure_theory/integration.lean
-apply_nolint measure_theory.lintegral_eq_nnreal ge_or_gt
 apply_nolint measure_theory.measure.integral doc_blame
 apply_nolint measure_theory.measure.with_density doc_blame
 apply_nolint measure_theory.simple_func.fin_vol_supp doc_blame
@@ -1871,8 +1850,6 @@ apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
 
 -- number_theory/dioph.lean
-apply_nolint dioph.pell_dioph ge_or_gt
-apply_nolint dioph.xn_dioph ge_or_gt
 apply_nolint fin2 has_inhabited_instance
 apply_nolint fin2.cases' doc_blame
 apply_nolint fin2.elim0 doc_blame
@@ -1884,19 +1861,12 @@ apply_nolint vector3.rec_on doc_blame
 
 -- number_theory/pell.lean
 apply_nolint pell.az doc_blame unused_arguments
-apply_nolint pell.eq_pow_of_pell ge_or_gt
-apply_nolint pell.matiyasevic ge_or_gt
-apply_nolint pell.x_pos ge_or_gt
 apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 apply_nolint pell.xz doc_blame
 apply_nolint pell.yz doc_blame
 
 -- order/bounded_lattice.lean
 apply_nolint with_top doc_blame
-
--- order/complete_lattice.lean
-apply_nolint Inf_eq_bot ge_or_gt
-apply_nolint infi_eq_bot ge_or_gt
 
 -- order/conditionally_complete_lattice.lean
 apply_nolint conditionally_complete_linear_order doc_blame
@@ -2000,30 +1970,16 @@ apply_nolint local_ring.residue_field.map doc_blame
 apply_nolint integral_closure doc_blame
 
 -- ring_theory/maps.lean
-apply_nolint comm_ring.anti_equiv_to_equiv doc_blame
-apply_nolint comm_ring.equiv_to_anti_equiv doc_blame
-apply_nolint is_ring_anti_hom doc_blame
-apply_nolint ring_anti_equiv has_inhabited_instance
-apply_nolint ring_anti_equiv.refl doc_blame
 apply_nolint ring_invo.id doc_blame
-apply_nolint ring_invo.to_ring_anti_equiv doc_blame
 
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
-
--- ring_theory/noetherian.lean
-apply_nolint is_noetherian_iff_well_founded ge_or_gt
-apply_nolint well_founded_submodule_gt ge_or_gt
 
 -- ring_theory/power_series.lean
 apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
-apply_nolint power_series.order_add_ge ge_or_gt
-apply_nolint power_series.order_ge ge_or_gt
-apply_nolint power_series.order_ge_nat ge_or_gt
-apply_nolint power_series.order_mul_ge ge_or_gt
 
 -- ring_theory/principal_ideal_domain.lean
 apply_nolint principal_ideal_domain doc_blame
@@ -2779,9 +2735,6 @@ apply_nolint open_add_subgroup doc_blame
 apply_nolint open_add_subgroup.sum doc_blame
 apply_nolint open_subgroup.prod doc_blame
 
--- topology/algebra/polynomial.lean
-apply_nolint polynomial.tendsto_infinity ge_or_gt
-
 -- topology/algebra/ring.lean
 apply_nolint ideal.closure doc_blame
 
@@ -2828,64 +2781,28 @@ apply_nolint continuous_map.induced doc_blame
 apply_nolint homeomorph has_inhabited_instance
 
 -- topology/instances/ennreal.lean
-apply_nolint ennreal.nhds_of_ne_top ge_or_gt
 apply_nolint ennreal.tendsto_at_top ge_or_gt
-apply_nolint ennreal.tendsto_nhds ge_or_gt
 apply_nolint infi_real_pos_eq_infi_nnreal_pos ge_or_gt
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
 
--- topology/metric_space/baire.lean
-apply_nolint nonempty_interior_of_Union_of_closed ge_or_gt
-
 -- topology/metric_space/basic.lean
 apply_nolint cauchy_seq_bdd ge_or_gt
 apply_nolint lebesgue_number_lemma_of_metric ge_or_gt
 apply_nolint lebesgue_number_lemma_of_metric_sUnion ge_or_gt
 apply_nolint metric.cauchy_iff ge_or_gt
-apply_nolint metric.cauchy_seq_iff ge_or_gt
-apply_nolint metric.cauchy_seq_iff' ge_or_gt
-apply_nolint metric.exists_ball_subset_ball ge_or_gt
 apply_nolint metric.is_open_iff ge_or_gt
 apply_nolint metric.mem_closure_range_iff ge_or_gt
 apply_nolint metric.mem_nhds_iff ge_or_gt
 apply_nolint metric.mem_of_closed' ge_or_gt
-apply_nolint metric.mem_uniformity_dist ge_or_gt
-apply_nolint metric.pos_of_mem_ball ge_or_gt
-apply_nolint metric.tendsto_at_top ge_or_gt
 apply_nolint metric.tendsto_nhds ge_or_gt
-apply_nolint metric.totally_bounded_iff ge_or_gt
-apply_nolint metric.uniform_continuous_iff ge_or_gt
-apply_nolint metric.uniform_embedding_iff ge_or_gt
-apply_nolint metric.uniform_embedding_iff' ge_or_gt
 apply_nolint metric_space.induced doc_blame
 apply_nolint metric_space.replace_uniformity doc_blame
 
--- topology/metric_space/completion.lean
-apply_nolint metric.completion.mem_uniformity_dist ge_or_gt
-apply_nolint metric.completion.uniformity_dist ge_or_gt
-apply_nolint metric.completion.uniformity_dist' ge_or_gt
-
 -- topology/metric_space/emetric_space.lean
-apply_nolint emetric.cauchy_iff ge_or_gt
-apply_nolint emetric.cauchy_seq_iff ge_or_gt
-apply_nolint emetric.cauchy_seq_iff' ge_or_gt
-apply_nolint emetric.exists_ball_subset_ball ge_or_gt
-apply_nolint emetric.is_open_iff ge_or_gt
-apply_nolint emetric.mem_nhds_iff ge_or_gt
-apply_nolint emetric.nhds_eq ge_or_gt
-apply_nolint emetric.tendsto_at_top ge_or_gt
-apply_nolint emetric.tendsto_nhds ge_or_gt
-apply_nolint emetric.totally_bounded_iff ge_or_gt
-apply_nolint emetric.totally_bounded_iff' ge_or_gt
-apply_nolint emetric.uniform_continuous_iff ge_or_gt
-apply_nolint emetric.uniform_embedding_iff ge_or_gt
-apply_nolint emetric.uniform_embedding_iff' ge_or_gt
 apply_nolint has_edist doc_blame
-apply_nolint mem_uniformity_edist ge_or_gt
-apply_nolint uniformity_dist_of_mem_uniformity ge_or_gt
 apply_nolint uniformity_edist ge_or_gt
 
 -- topology/metric_space/gluing.lean
@@ -2934,9 +2851,6 @@ apply_nolint topological_fiber_bundle_core.base has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.fiber has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.index has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.total_space has_inhabited_instance
-
--- topology/uniform_space/absolute_value.lean
-apply_nolint is_absolute_value.mem_uniformity ge_or_gt
 
 -- topology/uniform_space/basic.lean
 apply_nolint uniform_continuous₂ doc_blame

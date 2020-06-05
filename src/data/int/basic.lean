@@ -1324,15 +1324,9 @@ variables {A : Type*}
 /-- Two additive monoid homomorphisms `f`, `g` from `ℤ` to an additive monoid are equal
 if `f 1 = g 1`. -/
 @[ext] theorem ext_int [add_monoid A] {f g : ℤ →+ A} (h1 : f 1 = g 1) : f = g :=
-begin
-  have : f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
-  replace : ∀ n : ℕ, f n = g n := ext_iff.1 this,
-  ext (n|n),
-  { exact this n },
-  { simp only [neg_succ_of_nat_eq, ← int.coe_nat_succ],
-    apply left_neg_eq_right_neg (f.map_add_eq_zero $ neg_add_self _),
-    rw [this, ← map_add, add_neg_self, map_zero] }
-end
+have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
+have ∀ n : ℕ, f n = g n := ext_iff.1 this,
+ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 
 variables [add_group A] [has_one A]
 

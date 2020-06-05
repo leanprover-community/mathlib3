@@ -30,10 +30,9 @@ namespace tactic
 -/
 meta def erase_simp_args (hs : list simp_arg_type) (s : name_set) : tactic name_set :=
 do
-  -- TODO: when Lean 3.4 support is dropped, use `decode_simp_arg_list_with_symm` on the next line:
-  (hs, _, _) ← decode_simp_arg_list hs,
-  pure $ hs.foldr (λ (h : pexpr) (s : name_set),
-    match h.get_app_fn h with
+  (hs, _, _) ← decode_simp_arg_list_with_symm hs,
+  pure $ hs.foldr (λ (h : pexpr × bool) (s : name_set),
+    match h.1.get_app_fn h.1 with
     | (expr.const n _) := s.erase n
     | _ := s
     end) s

@@ -475,7 +475,7 @@ lemma dist_square_eq_dist_square_add_dist_square_iff_angle_eq_pi_div_two (p1 p2 
 by erw [metric_space.dist_comm p3 p2, dist_eq_norm V p1 p3, dist_eq_norm V p1 p2,
         dist_eq_norm V p2 p3,
         ←norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two,
-        vsub_sub_vsub_right_cancel V p1, ←neg_vsub_eq_vsub_rev V p2 p3, norm_neg]
+        vsub_sub_vsub_cancel_right V p1, ←neg_vsub_eq_vsub_rev V p2 p3, norm_neg]
 
 /-- Law of cosines (cosine rule), angle-at-point form. -/
 lemma dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle
@@ -488,8 +488,8 @@ begin
   unfold angle,
   convert norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_mul_cos_angle
           (p1 -ᵥ p2 : V) (p3 -ᵥ p2 : V),
-  { exact (vsub_sub_vsub_right_cancel V p1 p3 p2).symm },
-  { exact (vsub_sub_vsub_right_cancel V p1 p3 p2).symm }
+  { exact (vsub_sub_vsub_cancel_right V p1 p3 p2).symm },
+  { exact (vsub_sub_vsub_cancel_right V p1 p3 p2).symm }
 end
 
 /-- Pons asinorum, angle-at-point form. -/
@@ -499,8 +499,8 @@ begin
   rw [dist_eq_norm V p1 p2, dist_eq_norm V p1 p3] at h,
   unfold angle,
   convert angle_sub_eq_angle_sub_rev_of_norm_eq h,
-  { exact (vsub_sub_vsub_left_cancel V p3 p2 p1).symm },
-  { exact (vsub_sub_vsub_left_cancel V p2 p3 p1).symm }
+  { exact (vsub_sub_vsub_cancel_left V p3 p2 p1).symm },
+  { exact (vsub_sub_vsub_cancel_left V p2 p3 p1).symm }
 end
 
 /-- Converse of pons asinorum, angle-at-point form. -/
@@ -510,7 +510,7 @@ begin
   unfold angle at h hpi,
   rw [dist_eq_norm V p1 p2, dist_eq_norm V p1 p3],
   rw [←angle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev] at hpi,
-  rw [←vsub_sub_vsub_left_cancel V p3 p2 p1, ←vsub_sub_vsub_left_cancel V p2 p3 p1] at h,
+  rw [←vsub_sub_vsub_cancel_left V p3 p2 p1, ←vsub_sub_vsub_cancel_left V p2 p3 p1] at h,
   exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
 end
 

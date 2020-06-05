@@ -63,6 +63,10 @@ begin
         center_mass, fsum, inv_one', id.def, one_smul], }, },
 end
 
+/--
+The convex hull of a finset `t` with `findim ℝ E + 1 < t.card` is equal to
+the union of the convex hulls of the finsets `t.erase x` for `x ∈ t`.
+-/
 lemma step [decidable_eq E] (t : finset E) (h : findim ℝ E + 1 < t.card) :
   convex_hull (↑t : set E) = ⋃ (x : (↑t : set E)), convex_hull ↑(t.erase x) :=
 begin
@@ -75,6 +79,10 @@ begin
     apply convex_hull_mono, simp, }
 end
 
+/--
+The convex hull of a finset `t` with `findim ℝ E + 1 < t.card` is contained in
+the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ findim ℝ E + 1`.
+-/
 lemma shrink' (t : finset E) (k : ℕ) (h : t.card = findim ℝ E + 1 + k) :
   convex_hull (↑t : set E) ⊆
     ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ findim ℝ E + 1), convex_hull ↑t' :=
@@ -97,6 +105,10 @@ begin
       exact λ h, set.subset.trans h (erase_subset _ _), } }
 end
 
+/--
+The convex hull of any finset `t` is contained in
+the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ findim ℝ E + 1`.
+-/
 lemma shrink (t : finset E) :
   convex_hull (↑t : set E) ⊆
     ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ findim ℝ E + 1), convex_hull ↑t' :=

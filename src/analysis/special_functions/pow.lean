@@ -571,7 +571,7 @@ tendsto.comp (nnreal.continuous_at_rpow h) (tendsto.prod_mk_nhds hx hy)
 namespace ennreal
 
 /-- The real power function `x^y` on extended nonnegative reals, defined for `x : ennreal` and
-`y : ℝ ` as the restriction of the real power function if `0 < x < ⊤`, and with the natural values
+`y : ℝ` as the restriction of the real power function if `0 < x < ⊤`, and with the natural values
 for `0` and `⊤` (i.e., `0 ^ x = 0` for `x > 0`, `1` for `x = 0` and `⊤` for `x < 0`, and
 `⊤ ^ x = 1 / 0 ^ x`). -/
 noncomputable def rpow : ennreal → ℝ → ennreal
@@ -734,7 +734,7 @@ begin
 end
 
 lemma mul_rpow_of_ne_top {x y : ennreal} (hx : x ≠ ⊤) (hy : y ≠ ⊤) (z : ℝ) :
-  ((x : ennreal) * y) ^ z = x^z * y^z :=
+  (x * y) ^ z = x^z * y^z :=
 begin
   lift x to nnreal using hx,
   lift y to nnreal using hy,
@@ -782,7 +782,7 @@ begin
     simp [coe_rpow_of_nonneg _ h₁, nnreal.one_le_rpow h h₁] }
 end
 
-lemma rpow_le_rpow {x y : ennreal} {z: ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
+lemma rpow_le_rpow {x y : ennreal} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
   rcases le_iff_eq_or_lt.1 h₂ with H|H, { simp [← H, le_refl] },
   cases y, { simp [top_rpow_of_pos H] },
@@ -791,7 +791,7 @@ begin
   simp [coe_rpow_of_nonneg _ h₂, nnreal.rpow_le_rpow h₁ h₂]
 end
 
-lemma rpow_lt_rpow {x y : ennreal} {z: ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
+lemma rpow_lt_rpow {x y : ennreal} {z : ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
 begin
   cases x, { exact (not_top_lt h₁).elim },
   cases y, { simp [top_rpow_of_pos h₂, coe_rpow_of_nonneg _ (le_of_lt h₂)] },

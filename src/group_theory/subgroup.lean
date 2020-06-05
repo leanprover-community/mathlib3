@@ -896,8 +896,12 @@ lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_b
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
 @[instance, priority 100, to_additive]
-lemma normal_ker (f : G →* N) : f.ker.normal :=
-λ _, by simp [mem_ker] { contextual := tt }
+lemma normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
+  normal (H.comap f) :=
+λ _, by simp [mem_comap, hH.conj_mem] {contextual := tt}
+
+@[instance, priority 100, to_additive]
+lemma normal_ker (f : G →* N) : f.ker.normal := normal.comap bot_normal _
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

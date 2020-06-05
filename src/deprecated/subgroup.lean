@@ -13,12 +13,6 @@ variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 section group
 variables [group G] [add_group A]
 
-@[to_additive]
-lemma injective_mul {a : G} : injective ((*) a) :=
-assume a₁ a₂ h,
-have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
-by rwa [inv_mul_self, one_mul, one_mul] at this
-
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/

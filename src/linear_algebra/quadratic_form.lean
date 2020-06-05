@@ -66,6 +66,10 @@ lemma polar_add (f g : M → R) (x y : M) :
   polar (f + g) x y = polar f x y + polar g x y :=
 by { simp only [polar, pi.add_apply], abel }
 
+lemma polar_neg (f : M → R) (x y : M) :
+  polar (-f) x y = - polar f x y :=
+by { simp only [polar, pi.neg_apply, sub_eq_add_neg, neg_add] }
+
 lemma polar_smul (f : M → R) (s : R) (x y : M) :
   polar (s • f) x y = s * polar f x y :=
 by { simp only [polar, pi.smul_apply, smul_eq_mul, mul_sub] }
@@ -165,6 +169,24 @@ instance : has_add (quadratic_form R M) :=
 
 @[simp] lemma add_apply (Q Q' : quadratic_form R M) (x : M) : (Q + Q') x = Q x + Q' x := rfl
 
+instance : has_neg (quadratic_form R M) :=
+⟨ λ Q,
+  { to_fun := -Q,
+  to_fun_smul := λ a x,
+    by simp only [pi.neg_apply, map_smul, mul_neg_eq_neg_mul_symm],
+  polar_add_left' := λ x x' y,
+    by simp only [polar_neg, polar_add_left, neg_add],
+  polar_smul_left' := λ a x y,
+    by simp only [polar_neg, polar_smul_left, mul_neg_eq_neg_mul_symm, smul_eq_mul],
+  polar_add_right' := λ x y y',
+    by simp only [polar_neg, polar_add_right, neg_add],
+  polar_smul_right' := λ a x y,
+    by simp only [polar_neg, polar_smul_right, mul_neg_eq_neg_mul_symm, smul_eq_mul] } ⟩
+
+@[simp] lemma coe_fn_neg (Q : quadratic_form R M) : ⇑(-Q) = -Q := rfl
+
+@[simp] lemma neg_apply (Q : quadratic_form R M) (x : M) : (-Q) x = -Q x := rfl
+
 instance : has_scalar R₁ (quadratic_form R₁ M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
@@ -180,15 +202,17 @@ instance : has_scalar R₁ (quadratic_form R₁ M) :=
 
 @[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
 
-instance : add_comm_monoid (quadratic_form R M) :=
+instance : add_comm_group (quadratic_form R M) :=
 { add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
   add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
+  add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
   add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
   zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] },
   ..quadratic_form.has_add,
+  ..quadratic_form.has_neg,
   ..quadratic_form.has_zero }
 
-instance : semimodule R₁ (quadratic_form R₁ M) :=
+instance : module R₁ (quadratic_form R₁ M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
   smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, mul_add] },

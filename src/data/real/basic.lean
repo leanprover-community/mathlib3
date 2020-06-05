@@ -149,6 +149,9 @@ noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
 lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

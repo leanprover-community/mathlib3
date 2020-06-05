@@ -305,7 +305,8 @@ Choice function for encodable types and decidable predicates.
 We provide the following API
 
 choose      {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] : (∃ x, p x) → α :=
-choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
+choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) :
+  p (choose ex) :=
 -/
 
 namespace encodable

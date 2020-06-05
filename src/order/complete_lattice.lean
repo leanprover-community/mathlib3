@@ -98,10 +98,10 @@ theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
 le_trans (Inf_le hb) h
 
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
-Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
+(is_lub_Sup s).mono (is_lub_Sup t) h
 
 theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
+(is_glb_Inf s).mono (is_glb_Inf t) h
 
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
@@ -192,6 +192,7 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 iff.intro
   (assume (h : Inf s = ⊥) b (hb : ⊥ < b), by rwa [←h, Inf_lt_iff] at hb)
@@ -763,6 +764,7 @@ lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :
 by rw [← Sup_range, Sup_eq_top];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
 by rw [← Inf_range, Inf_eq_bot];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))

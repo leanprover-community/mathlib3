@@ -208,6 +208,7 @@ begin
     (λ _ _, rfl),
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, (range m).sum (λ n, abv (a n))))
   (hb : is_cau_seq abv (λ m, (range m).sum b)) (ε : α) (ε0 : 0 < ε) :

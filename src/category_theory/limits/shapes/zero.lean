@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.images
 import category_theory.epi_mono
 import category_theory.punit
 
@@ -97,6 +98,11 @@ by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
 by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
 
+lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
+by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
+
+lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : image.ι f ≠ 0 :=
+λ h, w (eq_zero_of_image_eq_zero h)
 end
 
 section
@@ -145,6 +151,20 @@ protected def has_zero : has_zero C :=
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+by rw [(has_zero_object.unique_from.{v} X).uniq f, (has_zero_object.unique_from.{v} X).uniq g]
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+by rw [(has_zero_object.unique_to.{v} X).uniq f, (has_zero_object.unique_to.{v} X).uniq g]
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
+
 /-- A category with a zero object has zero morphisms.
 
     It is rarely a good idea to use this. Many categories that have a zero object have zero
@@ -163,20 +183,13 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
-@[ext]
+-- This can't be a `simp` lemma because the left hand side would be a metavariable.
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
-begin
-  rw (has_zero_object.unique_from.{v} X).uniq f,
-  rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
-end
+by ext
 
 /-- An arrow starting at the zero object is zero -/
-@[ext]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
-begin
-  rw (has_zero_object.unique_to.{v} X).uniq f,
-  rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
-end
+by ext
 
 end
 

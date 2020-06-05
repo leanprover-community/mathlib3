@@ -65,8 +65,6 @@ failures.
 -/
 library_note "nolint_ge"
 
-
-
 /-!
 ## Linter for duplicate namespaces
 -/

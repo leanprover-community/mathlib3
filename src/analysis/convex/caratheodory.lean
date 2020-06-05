@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Scott Morrison
+-/
 import analysis.convex.basic
 import linear_algebra.finite_dimensional
 
@@ -12,6 +17,18 @@ begin
   transitivity,
   exact h,
   exact subset_Union f i,
+end
+
+section
+variables {β : Type*}
+
+lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, b ≠ a) = s.erase b :=
+by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
+
+lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, a ≠ b) = s.erase b :=
+trans (filter_congr (λ _ _, ⟨ne.symm, ne.symm⟩)) (filter_ne s b)
 end
 
 open set finite_dimensional
@@ -92,29 +109,38 @@ lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
   ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,
-  have card_pos : 0 < t.card :=
-    calc 0 < findim ℝ E + 1 : nat.succ_pos _
-       ... < t.card         : h,
+  have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- apply the previous lemma to the other xᵢ - x₀,
-  let t' := (t.erase x₀).map ⟨λ x, x - x₀, λ a b, (add_left_inj (-x₀)).mp⟩,
+  let shift : E ↪ E := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let t' := (t.erase x₀).map shift,
   have h' : findim ℝ E < t'.card,
-  { apply @nat.lt_of_add_lt_add_right _ 1,
-    calc findim ℝ E + 1 < t.card : h
-                    ... = t.card - 1 + 1 : (nat.succ_pred_eq_of_pos card_pos).symm
-                    ... = t'.card + 1    : by rw [card_map, card_erase_of_mem m]; refl, },
+  { simp only [t', card_map, finset.card_erase_of_mem m],
+    exact nat.lt_pred_iff.mpr h, },
   -- to obtain a function `g`
   obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
-  -- and then adjust f x₀ := -(t.erase x₀).sum g
-  let f : E → ℝ := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g z else g z,
+  -- and then obtain `f` by translating back by `x₀`,
+  -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
+  let f : E → ℝ := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
   refine ⟨f, _ ,_ ,_⟩,
-  { sorry },
+  { simp [f],
+    conv_lhs { apply_congr, skip, rw [ite_smul], },
+    rw [finset.sum_ite],
+    conv { congr, congr, apply_congr, simp [filter_eq', m], },
+    conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
+    rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
+    simp [←smul_sub],
+    change (∑ (x : E) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
+    rw ←sum_map _ shift,
+    exact gsum, },
   { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
     dsimp [f],
     rw [if_pos rfl],
     conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
     exact neg_add_self _, },
-  { sorry },
+  { refine ⟨x₁ + x₀, _, _⟩,
+    { sorry, },
+    { sorry, } },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}

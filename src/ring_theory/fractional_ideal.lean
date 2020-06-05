@@ -168,6 +168,7 @@ mem_one_iff.mpr ⟨1, f.to_map.map_one⟩
 @[simp] lemma coe_one :
   ↑(1 : fractional_ideal f) = ((1 : ideal R) : submodule R f.codomain) :=
 rfl
+@[simp] lemma val_one : (1 : fractional_ideal f).1 = (1 : ideal R) := rfl
 
 section lattice
 
@@ -628,14 +629,19 @@ begin
   rw [eq_span_singleton_of_principal I, generator_I_eq_zero, span_singleton_zero]
 end
 
+@[simp]
+lemma span_singleton_inv {x : g.codomain} (h : x ≠ 0) :
+  (span_singleton x)⁻¹ = span_singleton (x⁻¹) :=
+(right_inverse_eq _ _ (by simp [h])).symm
+
 lemma invertible_of_principal (I : fractional_ideal g)
-[submodule.is_principal I.1] (h : I ≠ 0) :
-I * I⁻¹ = 1 :=
-begin
-  refine mul_inv_cancel_iff.mpr ⟨span_singleton (generator I.1)⁻¹, _⟩,
-  apply mul_generator_self_inv,
-  assumption
-end
+  [submodule.is_principal I.1] (h : I ≠ 0) :
+  I * I⁻¹ = 1 :=
+mul_inv_cancel_iff.mpr ⟨span_singleton (generator ↑I)⁻¹, mul_generator_self_inv I h⟩
+
+lemma inv_principal (I : fractional_ideal g) [submodule.is_principal I.1] (h : I ≠ 0) :
+  submodule.is_principal (I⁻¹).1 :=
+I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
 
 lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
   ∃ (a : K) (aI : ideal R), I = span_singleton a * aI :=

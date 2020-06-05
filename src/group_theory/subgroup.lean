@@ -736,7 +736,7 @@ theorem conjugates_of_set_subset {s : set G} {N : subgroup G} (hN : N.normal) (h
   conjugates_of_set s ⊆ N :=
 set.bUnion_subset (λ x H, conjugates_subset_normal hN (h H))
 
-/-- The set of conjugates of s is closed under conjugation. -/
+/-- The set of conjugates of `s` is closed under conjugation. -/
 lemma conj_mem_conjugates_of_set {x c : G} :
   x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
 λ H,

@@ -762,7 +762,7 @@ subset_closure
 theorem subset_normal_closure : s ⊆ normal_closure s :=
 set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closure
 
-/-- The normal closure of s is a normal subgroup. -/
+/-- The normal closure of `s` is a normal subgroup. -/
 @[instance] lemma normal_closure_normal : (normal_closure s).normal :=
 λ n h g,
 begin

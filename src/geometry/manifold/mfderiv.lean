@@ -308,6 +308,9 @@ lemma unique_mdiff_on.inter (hs : unique_mdiff_on I s) (ht : is_open t) : unique
 lemma is_open.unique_mdiff_on (hs : is_open s) : unique_mdiff_on I s :=
 λx hx, is_open.unique_mdiff_within_at hx hs
 
+lemma unique_mdiff_on_univ : unique_mdiff_on I (univ : set M) :=
+is_open_univ.unique_mdiff_on
+
 /- We name the typeclass variables related to `smooth_manifold_with_corners` structure as they are
 necessary in lemmas mentioning the derivative, but not in lemmas about differentiability, so we
 want to include them or omit them when necessary. -/

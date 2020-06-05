@@ -21,11 +21,14 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
 * `times_cont_mdiff I I' n f` states that the function `f` is `Cⁿ`.
 * `times_cont_mdiff_on.comp` gives the invariance of the `Cⁿ` property under composition
 * `times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within` states that the bundled derivative
-  of a `Cⁿ` function is `Cᵐ` when `m < n`.
-
+  of a `Cⁿ` function in a domain is `Cᵐ` when `m + 1 ≤ n`.
+* `times_cont_mdiff.times_cont_mdiff_bundle_mfderiv` states that the bundled derivative
+  of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
 -/
 
 open set
+
+/-! ### Definition of smooth functions between manifolds -/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -52,6 +55,8 @@ def times_cont_mdiff (n : with_top ℕ) (f : M → M') :=
 continuous f ∧
 ∀(x : M) (y : M'), times_cont_diff_on 𝕜 n ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
   ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' y).source))
+
+/-! ### Basic properties of smooth functions between manifolds -/
 
 variables {I I'}
 
@@ -171,6 +176,8 @@ begin
     exact this.2 x y }
 end
 
+/-! ### Smoothness of the composition of smooth functions between manifolds -/
+
 section composition
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
@@ -224,6 +231,7 @@ end
 
 end composition
 
+/-! ### Atlas members are smooth -/
 section atlas
 
 variables {e : local_homeomorph M H} (𝕜)
@@ -282,11 +290,13 @@ lemma times_cont_mdiff_on_atlas_symm (h : e ∈ atlas H M) (n : with_top ℕ) :
 
 end atlas
 
+/-! ### The bundled derivative of a smooth function is smooth -/
+
 section bundle_derivative
 
-/-- If a function is `C^n` with `1 ≤ n`, then its bundled derivative is continuous. In this
-auxiliary lemma, we prove this fact when the source and target space are model spaces in models
-with corners. The general fact is proved in
+/-- If a function is `C^n` with `1 ≤ n` on a domain with unique derivatives, then its bundled
+derivative is continuous. In this auxiliary lemma, we prove this fact when the source and target
+space are model spaces in models with corners. The general fact is proved in
 `times_cont_mdiff_on.continuous_on_bundle_mfderiv_within`-/
 lemma times_cont_mdiff_on.continuous_on_bundle_mfderiv_within_aux
   {f : H → H'} {s : set H}
@@ -339,9 +349,9 @@ begin
   simp [ext_chart_at, inter_comm]
 end
 
-/-- If a function is `C^n`, then its bundled derivative is `C^m` when `m+1 ≤ n`. In this
-auxiliary lemma, we prove this fact when the source and target space are model spaces in models
-with corners. The general fact is proved in
+/-- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative is
+`C^m` when `m+1 ≤ n`. In this auxiliary lemma, we prove this fact when the source and target space
+are model spaces in models with corners. The general fact is proved in
 `times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within` -/
 lemma times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within_aux
   {f : H → H'} {s : set H}
@@ -406,7 +416,8 @@ begin
   exact is_bounded_bilinear_map_apply.times_cont_diff.comp_times_cont_diff_on this,
 end
 
-/-- If a function is `C^n`, then its bundled derivative is `C^m` when `m+1 ≤ n`. -/
+/-- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative
+is `C^m` when `m+1 ≤ n`. -/
 theorem times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within
   (hf : times_cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
   times_cont_mdiff_on I.tangent I'.tangent m (bundle_mfderiv_within I I' f s)
@@ -583,7 +594,8 @@ begin
   exact diff_DrirrflilDl.congr eq_comp,
 end
 
-/-- If a function is `C^n`, then its bundled derivative is continuous. -/
+/-- If a function is `C^n` on a domain with unique derivatives, with `1 ≤ n`, then its bundled
+derivative is continuous there. -/
 theorem times_cont_mdiff_on.continuous_on_bundle_mfderiv_within
   (hf : times_cont_mdiff_on I I' n f s) (hmn : 1 ≤ n) (hs : unique_mdiff_on I s) :
   continuous_on (bundle_mfderiv_within I I' f s) ((tangent_bundle.proj I M) ⁻¹' s) :=
@@ -592,6 +604,27 @@ begin
          ((tangent_bundle.proj I M) ⁻¹' s) :=
     hf.times_cont_mdiff_on_bundle_mfderiv_within hmn hs,
   exact this.continuous_on
+end
+
+/-- If a function is `C^n`, then its bundled derivative is `C^m` when `m+1 ≤ n`. -/
+theorem times_cont_mdiff.times_cont_mdiff_bundle_mfderiv
+  (hf : times_cont_mdiff I I' n f) (hmn : m + 1 ≤ n) :
+  times_cont_mdiff I.tangent I'.tangent m (bundle_mfderiv I I' f) :=
+begin
+  rw ← times_cont_mdiff_on_univ at hf ⊢,
+  convert hf.times_cont_mdiff_on_bundle_mfderiv_within hmn unique_mdiff_on_univ,
+  rw bundle_mfderiv_within_univ
+end
+
+/-- If a function is `C^n`, with `1 ≤ n`, then its bundled derivative is continuous. -/
+theorem times_cont_mdiff.continuous_bundle_mfderiv
+  (hf : times_cont_mdiff I I' n f) (hmn : 1 ≤ n) :
+  continuous (bundle_mfderiv I I' f) :=
+begin
+  rw ← times_cont_mdiff_on_univ at hf,
+  rw continuous_iff_continuous_on_univ,
+  convert hf.continuous_on_bundle_mfderiv_within hmn unique_mdiff_on_univ,
+  rw bundle_mfderiv_within_univ
 end
 
 end bundle_derivative

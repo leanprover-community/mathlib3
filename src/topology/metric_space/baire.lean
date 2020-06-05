@@ -318,7 +318,7 @@ end
 /-- One of the most useful consequences of Baire theorem: if a countable union of closed sets
 covers the space, then one of the sets has nonempty interior. -/
 theorem nonempty_interior_of_Union_of_closed [nonempty α] [encodable β] {f : β → set α}
-  (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) : ∃s x ε, ε > 0 ∧ ball x ε ⊆ f s :=
+  (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) : ∃s x ε, 0 < ε ∧ ball x ε ⊆ f s :=
 begin
   have : ∃s, (interior (f s)).nonempty,
   { by_contradiction h,

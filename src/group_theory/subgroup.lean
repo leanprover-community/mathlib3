@@ -208,6 +208,14 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := λ hx hy, H.m
 @[to_additive "An `add_subgroup` is closed under inverse."]
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := λ hx, H.inv_mem' hx
 
+@[to_additive]
+lemma mul_mem_cancel_left {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
+⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩
+
+@[to_additive]
+lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : x * y ∈ H ↔ y ∈ H :=
+⟨λ hab, by simpa using H.mul_mem (H.inv_mem h) hab, H.mul_mem h⟩
+
 /-- Product of a list of elements in a subgroup is in the subgroup. -/
 @[to_additive "Sum of a list of elements in an `add_subgroup` is in the `add_subgroup`."]
 lemma list_prod_mem {l : list G} : (∀ x ∈ l, x ∈ K) → l.prod ∈ K :=
@@ -248,7 +256,8 @@ instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, H.inv_mem a.2⟩⟩
 
 @[simp, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
-@[simp, to_additive] lemma coe_inv (x : H) : ((↑x)⁻¹ : G) = ↑(x⁻¹) := rfl
+@[simp, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
+@[simp, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
 
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive to_add_group "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
@@ -589,6 +598,85 @@ as additive groups"]
 def prod_equiv (H : subgroup G) (K : subgroup N) : H.prod K ≃* H × K :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑H ↑K }
 
+/-- A subgroup is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/
+@[class, to_additive "An add_subgroup is normal if whenever `n ∈ H`, then
+  `g + n - g ∈ H` for every `g : G` "] def normal : Prop :=
+∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H
+
+variable {H}
+@[instance, priority 100, to_additive]
+lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
+by simp [normal, mul_comm, mul_left_comm]
+
+namespace normal
+
+variable nH : H.normal
+
+@[to_additive] lemma conj_mem : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H := nH
+
+@[to_additive] lemma mem_comm {a b : G} (h : a * b ∈ H) : b * a ∈ H :=
+have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH (a * b) h a⁻¹, by simpa
+
+@[to_additive] lemma mem_comm_iff {a b : G} : a * b ∈ H ↔ b * a ∈ H :=
+⟨nH.mem_comm, nH.mem_comm⟩
+
+end normal
+
+@[instance, priority 100, to_additive]
+lemma bot_normal : normal (⊥ : subgroup G) := by simp [normal]
+
+variable (G)
+/-- The center of a group `G` is the set of elements that commute with everything in `G` -/
+@[to_additive "The center of a group `G` is the set of elements that commute with everything in `G`"]
+def center : subgroup G :=
+{ carrier := {z | ∀ g, g * z = z * g},
+  one_mem' := by simp,
+  mul_mem' := λ a b (ha : ∀ g, g * a = a * g) (hb : ∀ g, g * b = b * g) g,
+    by assoc_rw [ha, hb g],
+  inv_mem' := λ a (ha : ∀ g, g * a = a * g) g,
+    by rw [← inv_inj', mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
+
+variable {G}
+
+@[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
+
+@[instance, priority 100, to_additive]
+lemma center_normal : (center G).normal :=
+begin
+  assume n hn g h,
+  assoc_rw [hn (h * g), hn g],
+  simp
+end
+
+variables {G} (H)
+/-- The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal. -/
+@[to_additive "The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal."]
+def normalizer : subgroup G :=
+{ carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
+  one_mem' := by simp,
+  mul_mem' := λ a b (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) (hb : ∀ n, n ∈ H ↔ b * n * b⁻¹ ∈ H) n,
+    by { rw [hb, ha], simp [mul_assoc] },
+  inv_mem' := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
+    by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
+
+variable {H}
+@[to_additive] lemma mem_normalizer_iff {g : G} :
+  g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
+
+@[to_additive] lemma le_normalizer : H ≤ normalizer H :=
+λ x xH n, by rw [H.mul_mem_cancel_left (H.inv_mem xH), H.mul_mem_cancel_right xH]
+
+@[instance, priority 100, to_additive]
+lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
+λ x xH g, by simpa using (g.2 x).1 xH
+
+open_locale classical
+
+lemma le_normalizer_of_normal (hK : (H.comap K.subtype).normal) (HK : H ≤ K) : K ≤ H.normalizer :=
+λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
+  λ yH, by simpa [mem_comap, mul_assoc] using
+             hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
+
 end subgroup
 
 namespace add_subgroup
@@ -599,6 +687,9 @@ lemma gsmul_mem (H : add_subgroup A) {x : A} (hx : x ∈ H) :
   ∀ n : ℤ, gsmul n x ∈ H
 | (int.of_nat n) := add_submonoid.smul_mem H.to_add_submonoid hx n
 | -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.smul_mem H.to_add_submonoid hx n
+
+lemma sub_mem (H : add_subgroup A) {x y : A} (hx : x ∈ H) (hy : y ∈ H) : x - y ∈ H :=
+H.add_mem hx (H.neg_mem hy)
 
 /-- The `add_subgroup` generated by an element of an `add_group` equals the set of
 natural number multiples of the element. -/
@@ -648,7 +739,7 @@ subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_s
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]
-lemma rang_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
+lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
@@ -663,6 +754,10 @@ lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_b
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
+
+@[instance, priority 100, to_additive]
+lemma normal_ker (f : G →* N) : f.ker.normal :=
+λ _, by simp [mem_ker] { contextual := tt }
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

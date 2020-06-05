@@ -224,10 +224,18 @@ def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →*
   f.flip y x = f x y :=
 rfl
 
+/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
+@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
+then they are equal at `-x`." ]
+lemma eq_on_inv {G} [group G] [monoid M] {f g : G →* M} {x : G} (h : f x = g x) :
+  f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (f.map_mul_eq_one $ inv_mul_self x) $
+  h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
+
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
+eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]

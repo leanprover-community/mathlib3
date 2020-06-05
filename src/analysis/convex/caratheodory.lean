@@ -36,116 +36,19 @@ begin
     rwa center_mass_eq_of_sum_1 t id w_sum_one }
 end
 
--- a basic fact about linear algebra!
-lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :
-  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
-begin
-  have := mt finset_card_le_findim_of_linear_independent (by { simpa using h }),
-  rw linear_dependent_iff at this,
-  obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
-  -- Now we have to extend `g` to all of `t`, then to all of `E`.
-  let f : E → ℝ := λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set E)) ∈ s then g ⟨x, h⟩ else 0 else 0,
-  -- and finally clean up the mess caused by the extension.
-  refine ⟨f, _, _⟩,
-  { dsimp [f],
-    convert sum using 1,
-    fapply sum_bij_ne_zero,
-    { intros, exact ⟨a, H⟩, },
-    { intros, dsimp,
-      rw [dif_pos h₁] at h₂,
-      by_contradiction w,
-      rw [if_neg w] at h₂,
-      simpa using h₂, },
-    { intros _ _ _ _ _ _, exact subtype.mk.inj, },
-    { intros, dsimp,
-      use b,
-      have h₁ : ↑b ∈ t := by simp,
-      use h₁,
-      rw [dif_pos h₁, if_pos],
-      { fsplit; simp; assumption, },
-      { simpa, } },
-    { intros a h₁, dsimp, rw [dif_pos h₁], intro h₂,
-      split_ifs with h₃,
-      { refl, },
-      { rw [if_neg h₃, zero_smul, eq_self_iff_true, not_true] at h₂, contradiction, }, }, },
-  { refine ⟨z, z.2, _⟩, dsimp only [f], erw [dif_pos z.2, if_pos]; rwa [subtype.coe_eta] },
-end
-
-lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
-  {t : finset E} (h : findim ℝ E + 1 < t.card) :
-  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
-begin
-  -- pick an element x₀ ∈ t,
-  have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
-  obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
-  -- apply the previous lemma to the other xᵢ - x₀,
-  let shift : E ↪ E := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
-  let t' := (t.erase x₀).map shift,
-  have h' : findim ℝ E < t'.card,
-  { simp only [t', card_map, finset.card_erase_of_mem m],
-    exact nat.lt_pred_iff.mpr h, },
-  -- to obtain a function `g`
-  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
-  -- and then obtain `f` by translating back by `x₀`,
-  -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
-  let f : E → ℝ := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
-  refine ⟨f, _ ,_ ,_⟩,
-  { simp [f],
-    conv_lhs { apply_congr, skip, rw [ite_smul], },
-    rw [finset.sum_ite],
-    conv { congr, congr, apply_congr, simp [filter_eq', m], },
-    conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
-    rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
-    simp [←smul_sub],
-    change (∑ (x : E) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
-    rw ←sum_map _ shift,
-    exact gsum, },
-  { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
-    dsimp [f],
-    rw [if_pos rfl],
-    conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
-    exact neg_add_self _, },
-  { refine ⟨x₁ + x₀, _, _⟩,
-    { rw mem_map at x₁_mem,
-      rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
-      rw mem_erase at x₁_mem,
-      simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
-    { dsimp only [f],
-      split_ifs with hx₁ hx₀,
-      { simp only [ne.def, neg_eq_zero],
-        simp only [add_left_eq_self] at hx₁, subst hx₁,
-        simp only [exists_prop, mem_erase, function.embedding.coe_fn_mk, mem_map, ne.def, sub_eq_zero] at x₁_mem,
-        rcases x₁_mem with ⟨x₁_mem_w, ⟨x₁_mem_h_left_left, x₁_mem_h_left_right⟩, x₁_mem_h_right⟩,
-        contradiction, },
-      { simpa using nz, } } },
-end
-
-lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
-  (f : F → ℝ) (h₁ : ∑ e in t, f e = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
-  ∃ x ∈ t, 0 < f x :=
-begin
-  contrapose! h₁,
-  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ t, f x ≠ 0 := h₂,
-  apply ne_of_lt,
-  calc ∑ e in t, f e < ∑ e in t, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
-                 ... = 0           : by rw [sum_const, nsmul_zero],
-end
-
-lemma exists_relation_sum_zero_pos_coefficient {t : finset E} (h : findim ℝ E + 1 < t.card) :
-  ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, 0 < f x :=
-begin
-  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
-  exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
-end
-
 namespace caratheodory
 
--- All the sorries here are very doable!
-lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
+/--
+If `x` is in the convex hull of some finset `t` with strictly more than `findim + 1` elements,
+then it is in the union of the convex hulls of the finsets `t.erase y` for `y ∈ t`.
+-/
+lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card)
+  {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
   obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
-  obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
+  obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient_of_dim_succ_lt_card h,
+  clear h,
   let s := t.filter (λ z : E, 0 < g z),
   have : s.nonempty,
   { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
@@ -233,17 +136,17 @@ end caratheodory
 lemma caratheodory_le (s : set E) :
   convex_hull s ⊆ ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
 begin
-  -- First we replace `convex_hull s` with the union of the convex hulls of finite subsets.
+  -- First we replace `convex_hull s` with the union of the convex hulls of finite subsets,
   rw convex_hull_eq_union_convex_hull_finite_subsets,
-  -- And prove the inclusion for each of those
+  -- and prove the inclusion for each of those.
   apply Union_subset,
   intro r,
   apply Union_subset,
   intro h,
-  -- Second, for each convex hull of a finite subset, we shrink it
+  -- Second, for each convex hull of a finite subset, we shrink it.
   transitivity,
   { apply caratheodory.shrink, },
-  { -- After that it's just shuffling everything around.
+  { -- After that it's just shuffling unions around.
     apply Union_subset,
     intro r',
     apply Union_subset,

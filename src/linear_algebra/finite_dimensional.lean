@@ -224,6 +224,127 @@ begin
   exact fintype_card_le_findim_of_linear_independent h,
 end
 
+/--
+If a finset has cardinality larger than the dimension of the space,
+then there is a nontrivial linear relation amongst its elements.
+-/
+lemma exists_nontrivial_relation_of_dim_lt_card {t : finset V} (h : findim K V < t.card) :
+  ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  have := mt finset_card_le_findim_of_linear_independent (by { simpa using h }),
+  rw linear_dependent_iff at this,
+  obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
+  -- Now we have to extend `g` to all of `t`, then to all of `V`.
+  let f : V → K := λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set V)) ∈ s then g ⟨x, h⟩ else 0 else 0,
+  -- and finally clean up the mess caused by the extension.
+  refine ⟨f, _, _⟩,
+  { dsimp [f],
+    convert sum using 1,
+    fapply sum_bij_ne_zero,
+    { intros, exact ⟨a, H⟩, },
+    { intros, dsimp,
+      rw [dif_pos h₁] at h₂,
+      by_contradiction w,
+      rw [if_neg w] at h₂,
+      simpa using h₂, },
+    { intros _ _ _ _ _ _, exact subtype.mk.inj, },
+    { intros, dsimp,
+      use b,
+      have h₁ : ↑b ∈ t := by simp,
+      use h₁,
+      rw [dif_pos h₁, if_pos],
+      { fsplit; simp; assumption, },
+      { simpa, } },
+    { intros a h₁, dsimp, rw [dif_pos h₁], intro h₂,
+      split_ifs with h₃,
+      { refl, },
+      { rw [if_neg h₃, zero_smul, eq_self_iff_true, not_true] at h₂, contradiction, }, }, },
+  { refine ⟨z, z.2, _⟩, dsimp only [f], erw [dif_pos z.2, if_pos]; rwa [subtype.coe_eta] },
+end
+
+/--
+If a finset has cardinality larger than `findim + 1`,
+then there is a nontrivial linear relation amongst its elements,
+such that the coefficients of the relation sum to zero.
+-/
+lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
+  {t : finset V} (h : findim K V + 1 < t.card) :
+  ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  -- pick an element x₀ ∈ t,
+  have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
+  obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
+  -- apply the previous lemma to the other xᵢ - x₀,
+  let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let t' := (t.erase x₀).map shift,
+  have h' : findim ℝ E < t'.card,
+  { simp only [t', card_map, finset.card_erase_of_mem m],
+    exact nat.lt_pred_iff.mpr h, },
+  -- to obtain a function `g`
+  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
+  -- and then obtain `f` by translating back by `x₀`,
+  -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
+  let f : V → K := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
+  refine ⟨f, _ ,_ ,_⟩,
+  { simp [f],
+    conv_lhs { apply_congr, skip, rw [ite_smul], },
+    rw [finset.sum_ite],
+    conv { congr, congr, apply_congr, simp [filter_eq', m], },
+    conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
+    rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
+    simp [←smul_sub],
+    change (∑ (x : V) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
+    rw ←sum_map _ shift,
+    exact gsum, },
+  { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
+    dsimp [f],
+    rw [if_pos rfl],
+    conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
+    exact neg_add_self _, },
+  { refine ⟨x₁ + x₀, _, _⟩,
+    { rw mem_map at x₁_mem,
+      rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
+      rw mem_erase at x₁_mem,
+      simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
+    { dsimp only [f],
+      split_ifs with hx₁ hx₀,
+      { simp only [ne.def, neg_eq_zero],
+        simp only [add_left_eq_self] at hx₁, subst hx₁,
+        simp only [exists_prop, mem_erase, function.embedding.coe_fn_mk, mem_map, ne.def, sub_eq_zero] at x₁_mem,
+        rcases x₁_mem with ⟨x₁_mem_w, ⟨x₁_mem_h_left_left, x₁_mem_h_left_right⟩, x₁_mem_h_right⟩,
+        contradiction, },
+      { simpa using nz, } } },
+end
+
+-- TODO This doesn't belong here -- it's just about sums of reals. Where should it go?
+lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
+  (f : F → ℝ) (h₁ : ∑ e in t, f e = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
+  ∃ x ∈ t, 0 < f x :=
+begin
+  contrapose! h₁,
+  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ t, f x ≠ 0 := h₂,
+  apply ne_of_lt,
+  calc ∑ e in t, f e < ∑ e in t, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+                 ... = 0           : by rw [sum_const, nsmul_zero],
+end
+
+section
+variables {W : Type v} [add_comm_group W] [vector_space K W]
+
+/--
+A slight strengthening of `exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card`
+available when working over ℝ: we can ensure a positive coefficient, not just a nonzero coefficient.
+-/
+lemma exists_relation_sum_zero_pos_coefficient_of_dim_succ_lt_card
+  {t : finset W} (h : findim ℝ W + 1 < t.card) :
+  ∃ f : W → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, 0 < f x :=
+begin
+  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
+  exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
+end
+end
+
+
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the
 whole space. -/
 lemma eq_top_of_findim_eq [finite_dimensional K V] {S : submodule K V}

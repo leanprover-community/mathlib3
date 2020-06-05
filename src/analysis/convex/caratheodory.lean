@@ -92,10 +92,19 @@ lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
   ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,
+  have card_pos : 0 < t.card := sorry,
+  obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- apply the previous lemma to the other xᵢ - x₀,
-  -- to obtain a function `f`
-  -- and then adjust f x₀ := - others.sum f
-  sorry
+  let t' := (t.erase x₀).map ⟨λ x, x - x₀, begin sorry, end⟩,
+  have h' : findim ℝ E < t'.card := sorry,
+  -- to obtain a function `g`
+  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
+  -- and then adjust f x₀ := -(t.erase x₀).sum g
+  let f : E → ℝ := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g z else g z,
+  refine ⟨f, _ ,_ ,_⟩,
+  { sorry, },
+  { sorry, },
+  { sorry, },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}

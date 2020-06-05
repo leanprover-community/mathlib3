@@ -7,6 +7,8 @@ open localization
 
 namespace ring
 
+open fractional_ideal
+
 variables {R : Type u} {K : Type v} [field K]
 
 /-- Condition (DD3) of being a Dedekind domain: all nonzero fractional ideals are invertible. -/

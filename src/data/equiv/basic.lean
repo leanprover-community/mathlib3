@@ -966,7 +966,7 @@ lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred
 have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
-protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] :
+protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] :
   s ⊕ (t \ s : set α) ≃ t :=
 calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) : (equiv.set.union (by simp [inter_diff_self])).symm
 ... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })

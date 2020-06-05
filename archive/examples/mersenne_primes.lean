@@ -6,6 +6,8 @@ Author: Scott Morrison
 import number_theory.lucas_lehmer
 
 /-!
+# Explicit Mersenne primes
+
 We run some Lucas-Lehmer tests to prove some Mersenne primes are prime.
 
 See the discussion at the end of [src/number_theory/lucas_lehmer.lean]

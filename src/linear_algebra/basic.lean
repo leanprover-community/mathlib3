@@ -1310,7 +1310,7 @@ ker_eq_bot_of_injective $ λ x y, subtype.eq'
 by simpa using map_comap_subtype p ⊤
 
 lemma map_subtype_le (p' : submodule R p) : map p.incl p' ≤ p :=
-by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
+by simpa using (map_mono le_top : map p.incl p' ≤ p.incl.range)
 
 /-- Under the canonical linear map from a submodule `p` to the ambient space `M`, the image of the
 maximal submodule of `p` is just `p `. -/

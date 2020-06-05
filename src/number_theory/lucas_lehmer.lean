@@ -152,7 +152,7 @@ begin
 end
 
 /--
-A Mersenne number 2^p-1 is prime if and only if
+A Mersenne number `2^p-1` is prime if and only if
 the Lucas-Lehmer residue `s p (p-2) % (2^p - 1)` is zero.
 -/
 @[derive decidable_pred]
@@ -317,10 +317,10 @@ end X
 open X
 
 /-!
-Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction in ℕ.
+Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction in `ℕ`.
 -/
 
-/-- If 1 < p, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
+/-- If `1 < p`, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction,
   simp at a,
@@ -382,7 +382,7 @@ calc (ω : X (q (p'+2)))^2^(p'+2)
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
     ... = 1                : by simp
 
-/-- ω as an element of the group of units. -/
+/-- `ω` as an element of the group of units. -/
 def ω_unit (p : ℕ) : units (X (q p)) :=
 { val := ω,
   inv := ωb,
@@ -391,7 +391,7 @@ def ω_unit (p : ℕ) : units (X (q p)) :=
 
 @[simp] lemma ω_unit_coe (p : ℕ) : (ω_unit p : X (q p)) = ω := rfl
 
-/-- The order of ω in the unit group is exactly 2^p. -/
+/-- The order of `ω` in the unit group is exactly `2^p`. -/
 theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin

@@ -709,7 +709,7 @@ end subgroup
 namespace group
 variables {s : set G}
 
-/-- Given an element a, conjugates a is the set of conjugates. -/
+/-- Given an element `a`, `conjugates a` is the set of conjugates. -/
 def conjugates (a : G) : set G := {b | is_conj a b}
 
 lemma mem_conjugates_self {a : G} : a ∈ conjugates a := is_conj_refl _

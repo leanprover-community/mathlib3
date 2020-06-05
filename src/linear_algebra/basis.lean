@@ -894,7 +894,7 @@ split,
     by rw ←set.range_comp,
   have h₂ : map (submodule.incl _) (span R (set.range (λ i, subtype.mk (v i) _)))
               = span R (range v),
-    by rw [←span_image, submodule.subtype_eq_val, h₁],
+    by rw [←span_image, submodule.incl_eq_val, h₁],
   have h₃ : (x : M) ∈ map (submodule.incl _) (span R (set.range (λ i, subtype.mk (v i) _))),
     by rw h₂; apply subtype.mem x,
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,

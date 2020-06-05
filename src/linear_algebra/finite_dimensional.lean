@@ -212,7 +212,7 @@ begin
   have : subtype.val '' bS = b, from set.eq_of_subset_of_card_le hb.1
     (by rw [set.card_image_of_injective _ subtype.val_injective, ← findim_eq_card_basis hbS,
          ← findim_eq_card_basis hb.2, h]; apply_instance),
-  erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← subtype_eq_val, span_image],
+  erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← incl_eq_val, span_image],
   have := hbS.2,
   erw [subtype.val_range, set.set_of_mem_eq] at this,
   rw [this, map_top (submodule.incl S), range_subtype],

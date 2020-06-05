@@ -198,7 +198,7 @@ theorem is_noetherian_submodule {N : submodule R M} :
 ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.incl.range, from (N.range_subtype).symm ▸ hs,
   linear_map.map_comap_eq_self this ▸ submodule.fg_map (hn _),
 λ h, ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker N.incl (h _ $ submodule.map_subtype_le _ _) $
-  by rw [submodule.ker_subtype, inf_bot_eq]; exact submodule.fg_bot⟩⟩
+  by rw [submodule.ker_incl, inf_bot_eq]; exact submodule.fg_bot⟩⟩
 
 theorem is_noetherian_submodule_left {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, (N ⊓ s).fg :=

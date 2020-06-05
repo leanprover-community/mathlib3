@@ -168,5 +168,5 @@ end
 lemma monoid_algebra.submodule.exists_is_compl
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
-let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
+let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.incl p.ker_incl in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩

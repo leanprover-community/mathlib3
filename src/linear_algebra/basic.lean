@@ -1303,7 +1303,7 @@ open linear_map
 
 @[simp] theorem comap_bot (f : M →ₗ[R] M₂) : comap f ⊥ = ker f := rfl
 
-@[simp] theorem ker_subtype : p.incl.ker = ⊥ :=
+@[simp] theorem ker_incl : p.incl.ker = ⊥ :=
 ker_eq_bot_of_injective $ λ x y, subtype.eq'
 
 @[simp] theorem range_subtype : p.incl.range = p :=
@@ -1325,7 +1325,7 @@ eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 comap_subtype_eq_top.2 (le_refl _)
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
-by rw [of_le, ker_cod_restrict, ker_subtype]
+by rw [of_le, ker_cod_restrict, ker_incl]
 
 lemma range_of_le (p q : submodule R M) (h : p ≤ q) : (of_le h).range = comap q.incl p :=
 by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
@@ -1376,7 +1376,7 @@ open linear_map
 
 lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
   disjoint p q ↔ comap p.incl q = ⊥ :=
-by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
+by rw [eq_bot_iff, ← map_le_map_iff' p.ker_incl, map_bot, map_comap_subtype, disjoint]
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
 def map_subtype.order_iso :
@@ -1386,7 +1386,7 @@ def map_subtype.order_iso :
   inv_fun   := λ q, comap p.incl q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
+  ord'      := λ p₁ p₂, (map_le_map_iff' (ker_incl p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/

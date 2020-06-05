@@ -229,7 +229,7 @@ theorem linear_independent_iff_total_on {s : set M} :
   linear_independent R (λ x, x : s → M) ↔ (finsupp.total_on M M R id s).ker = ⊥ :=
 by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot, comap_bot,
   linear_map.ker_comp, linear_independent_subtype_disjoint, disjoint, ← map_comap_subtype,
-  map_le_iff_le_comap, comap_bot, ker_subtype, le_bot_iff]
+  map_le_iff_le_comap, comap_bot, ker_incl, le_bot_iff]
 
 lemma linear_independent.to_subtype_range
   (hv : linear_independent R v) : linear_independent R (λ x, x : range v → M) :=
@@ -1147,7 +1147,7 @@ begin
 end
 
 lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_compl p q :=
-let ⟨f, hf⟩ := p.incl.exists_left_inverse_of_injective p.ker_subtype in
+let ⟨f, hf⟩ := p.incl.exists_left_inverse_of_injective p.ker_incl in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')

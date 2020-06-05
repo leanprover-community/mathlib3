@@ -92,19 +92,29 @@ lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
   ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,
-  have card_pos : 0 < t.card := sorry,
+  have card_pos : 0 < t.card :=
+    calc 0 < findim ℝ E + 1 : nat.succ_pos _
+       ... < t.card         : h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- apply the previous lemma to the other xᵢ - x₀,
-  let t' := (t.erase x₀).map ⟨λ x, x - x₀, begin sorry, end⟩,
-  have h' : findim ℝ E < t'.card := sorry,
+  let t' := (t.erase x₀).map ⟨λ x, x - x₀, λ a b, (add_left_inj (-x₀)).mp⟩,
+  have h' : findim ℝ E < t'.card,
+  { apply @nat.lt_of_add_lt_add_right _ 1,
+    calc findim ℝ E + 1 < t.card : h
+                    ... = t.card - 1 + 1 : (nat.succ_pred_eq_of_pos card_pos).symm
+                    ... = t'.card + 1    : by rw [card_map, card_erase_of_mem m]; refl, },
   -- to obtain a function `g`
   obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
   -- and then adjust f x₀ := -(t.erase x₀).sum g
   let f : E → ℝ := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g z else g z,
   refine ⟨f, _ ,_ ,_⟩,
-  { sorry, },
-  { sorry, },
-  { sorry, },
+  { sorry },
+  { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
+    dsimp [f],
+    rw [if_pos rfl],
+    conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
+    exact neg_add_self _, },
+  { sorry },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
@@ -138,8 +148,9 @@ begin
    { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
      refine ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
    obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) this,
+   have hg : 0 < g i₀ := by { rw mem_filter at mem, exact mem.2 },
    let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
-   have : k i₀ = 0 := sorry,
+   have hk : k i₀ = 0 := by field_simp [k, ne_of_gt hg],
    use i₀,
    { simpa using filter_subset _ mem },
    { apply (convex_coefficients _ _).2,

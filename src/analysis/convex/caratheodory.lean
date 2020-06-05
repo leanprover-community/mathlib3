@@ -45,8 +45,8 @@ lemma convex_coefficients (t : finset E) (x : E) :
   x ∈ convex_hull (↑t : set E) ↔
     ∃ f : E → ℝ, (∀ y, 0 ≤ f y) ∧ (∑ e in t, f e = 1) ∧ (∑ e in t, f e • e = x) :=
 begin
-  rw set.finite.convex_hull_eq (finite_to_set t),
-  simp only [exists_prop, finset.finite_to_set_to_finset, mem_coe, mem_set_of_eq],
+  rw finset.convex_hull_eq t,
+  simp only [exists_prop, mem_coe, mem_set_of_eq],
   fsplit,
   { rintro ⟨w, w_nonneg, w_sum_one, w_center⟩,
     let w' : E → ℝ := λ z, if z ∈ t then w z else 0,
@@ -139,8 +139,14 @@ begin
     conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
     exact neg_add_self _, },
   { refine ⟨x₁ + x₀, _, _⟩,
-    { sorry, },
-    { dsimp [f], sorry, } },
+    { rw mem_map at x₁_mem,
+      rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
+      rw mem_erase at x₁_mem,
+      simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
+    { simp only [f],
+      split_ifs with hx₀ hx₀,
+      { sorry },
+      { simpa using nz, } } },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}
@@ -167,25 +173,37 @@ namespace caratheodory
 lemma mem_convex_hull_erase {t : finset E} (h : findim ℝ E + 1 < t.card) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
-   obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
-   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
-   let s := t.filter (λ z : E, 0 < g z),
-   have : s.nonempty,
-   { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
-     refine ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
-   obtain ⟨i₀, mem, w⟩ := s.exists_max_image (λ z, f z / g z) this,
-   have hg : 0 < g i₀ := by { rw mem_filter at mem, exact mem.2 },
-   let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
-   have hk : k i₀ = 0 := by field_simp [k, ne_of_gt hg],
-   use i₀,
-   { simpa using filter_subset _ mem },
-   { apply (convex_coefficients _ _).2,
-     { refine ⟨k, _, _, _⟩,
-       { sorry },
-       { sorry },
-       { sorry }, },
-     { assumption, },
-     { assumption, }, },
+  obtain ⟨f, fpos, fsum, rfl⟩ := (convex_coefficients _ _).1 m, clear m,
+  obtain ⟨g, gcombo, gsum, gpos⟩ := exists_relation_sum_zero_pos_coefficient h, clear h,
+  let s := t.filter (λ z : E, 0 < g z),
+  have : s.nonempty,
+  { obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
+    refine ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
+  obtain ⟨i₀, mem, w⟩ := s.exists_min_image (λ z, f z / g z) this,
+  have hg : 0 < g i₀ := by { rw mem_filter at mem, exact mem.2 },
+  have hi₀ : i₀ ∈ t := filter_subset _ mem,
+  let k : E → ℝ := λ z, f z - (f i₀ / g i₀) * g z,
+  have hk : k i₀ = 0 := by field_simp [k, ne_of_gt hg],
+  have ksum : ∑ e in t.erase i₀, k e = 1,
+  { calc ∑ e in t.erase i₀, k e = ∑ e in t, k e :
+      by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_add], }
+    ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) : rfl
+    ... = 1 : by rw [sum_sub_distrib, fsum, ← mul_sum, gsum, mul_zero, sub_zero] },
+  refine ⟨⟨i₀, hi₀⟩, _⟩,
+  { rw finset.convex_hull_eq,
+    refine ⟨k, _, ksum, _⟩,
+    { simp only [and_imp, sub_nonneg, mem_erase, ne.def, subtype.coe_mk],
+      intros e hei₀ het,
+      by_cases hes : e ∈ s,
+      { have hge : 0 < g e := by { rw mem_filter at hes, exact hes.2 },
+        rw ← le_div_iff hge,
+        exact w _ hes, },
+      { calc _ ≤ 0   : mul_nonpos_of_nonneg_of_nonpos _ _ -- prove two goals below
+           ... ≤ f e : fpos e,
+        { apply div_nonneg_of_nonneg_of_pos (fpos _) hg },
+        { simpa [mem_filter, het] using hes }, } },
+    { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
+      sorry }, },
 end
 
 lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :

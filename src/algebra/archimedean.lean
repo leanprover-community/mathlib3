@@ -19,18 +19,22 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
+lemma add_one_pow_unbounded_of_pos [linear_ordered_semiring α] [archimedean α] (x : α) {y : α}
+  (hy : 0 < y) :
+  ∃ n : ℕ, x < (y + 1) ^ n :=
+let ⟨n, h⟩ := archimedean.arch x hy in
+⟨n, calc x ≤ n •ℕ y : h
+       ... < 1 + n •ℕ y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
+                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = (y + 1) ^ n : by rw [add_comm]⟩
+
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
-lemma pow_unbounded_of_one_lt (x : α) {y : α}
-    (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
-have hy0 : 0 < y - 1 := sub_pos_of_lt hy1,
--- TODO `by linarith` fails to prove hy1'
-have hy1' : (-1:α) ≤ y, from le_trans (neg_le_self zero_le_one) (le_of_lt hy1),
-let ⟨n, h⟩ := archimedean.arch x hy0 in
-⟨n, calc x ≤ n •ℕ (y - 1)     : h
-       ... < 1 + n •ℕ (y - 1) : lt_one_add _
-       ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
+lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
+  ∃ n : ℕ, x < y ^ n :=
+sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
 
 /-- Every x greater than 1 is between two successive natural-number
 powers of another y greater than one. -/

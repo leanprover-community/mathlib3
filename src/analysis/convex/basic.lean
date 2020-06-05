@@ -3,7 +3,8 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import data.set.intervals
+import data.set.intervals.unordered_interval
+import data.set.intervals.image_preimage
 import data.complex.module
 import algebra.pointwise
 
@@ -91,7 +92,7 @@ lemma segment_eq_Icc {a b : ℝ} (h : a ≤ b) : [a, b] = Icc a b :=
 begin
   rw [segment_eq_image'],
   show (((+) a) ∘ (λ t, t * (b - a))) '' Icc 0 1 = Icc a b,
-  rw [image_comp, image_mul_right_Icc (@zero_le_one ℝ _) (sub_nonneg.2 h), image_add_left_Icc],
+  rw [image_comp, image_mul_right_Icc (@zero_le_one ℝ _) (sub_nonneg.2 h), image_const_add_Icc],
   simp
 end
 
@@ -729,6 +730,10 @@ convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hul
 lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
 set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
 
+@[simp]
+lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
+(convex_singleton x).convex_hull_eq
+
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
 begin
@@ -792,13 +797,13 @@ begin
   exact ⟨z i, hz i hit, Hi⟩
 end
 
-lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
-  convex_hull s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : hs.to_finset.sum w = 1),
-    hs.to_finset.center_mass w id = x} :=
+lemma finset.convex_hull_eq (s : finset E) :
+  convex_hull ↑s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : s.sum w = 1),
+    s.center_mass w id = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
-    replace hx : x ∈ hs.to_finset, from finite.mem_to_finset.2 hx,
+    rw [finset.mem_coe] at hx,
     refine ⟨_, _, _, finset.center_mass_ite_eq _ _ _ hx⟩,
     { intros, split_ifs, exacts [zero_le_one, le_refl 0] },
     { rw [finset.sum_ite_eq, if_pos hx] } },
@@ -810,8 +815,30 @@ begin
       apply_rules [add_nonneg, mul_nonneg, hwx₀, hwy₀], },
     { simp only [finset.sum_add_distrib, finset.mul_sum.symm, mul_one, *] } },
   { rintros _ ⟨w, hw₀, hw₁, rfl⟩,
-    exact hs.to_finset.center_mass_mem_convex_hull (λ x hx, hw₀ _ $ finite.mem_to_finset.1 hx)
-      (hw₁.symm ▸ zero_lt_one) (λ x hx, finite.mem_to_finset.1 hx) }
+    exact s.center_mass_mem_convex_hull (λ x hx, hw₀ _  hx)
+      (hw₁.symm ▸ zero_lt_one) (λ x hx, hx) }
+end
+
+lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
+  convex_hull s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : hs.to_finset.sum w = 1),
+    hs.to_finset.center_mass w id = x} :=
+by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
+  using hs.to_finset.convex_hull_eq
+
+lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
+  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
+begin
+  refine subset.antisymm _ _,
+  { rw [convex_hull_eq.{u}],
+    rintros x ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
+    simp only [mem_Union],
+    refine ⟨t.image z, _, _⟩,
+    { rw [finset.coe_image, image_subset_iff],
+      exact hz },
+    { apply t.center_mass_mem_convex_hull hw₀,
+      { simp only [hw₁, zero_lt_one] },
+      { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
+   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map ℝ f) (s : set E) :

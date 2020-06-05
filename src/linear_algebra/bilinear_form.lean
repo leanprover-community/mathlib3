@@ -210,6 +210,36 @@ B.comp linear_map.id f
 
 end comp
 
+section lin_mul_lin
+
+variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type w} [add_comm_group N] [module R₂ N]
+
+/-- `lin_mul_lin f g` is the bilinear form mapping `x` and `y` to `f x * g y` -/
+def lin_mul_lin (f g : M →ₗ[R₂] R₂) : bilin_form R₂ M :=
+{ bilin := λ x y, f x * g y,
+  bilin_add_left := λ x y z, by simp [add_mul],
+  bilin_smul_left := λ x y z, by simp [mul_assoc],
+  bilin_add_right := λ x y z, by simp [mul_add],
+  bilin_smul_right := λ x y z, by simp [mul_left_comm] }
+
+variables {f g : M →ₗ[R₂] R₂}
+
+@[simp] lemma lin_mul_lin_apply (x y) : lin_mul_lin f g x y = f x * g y := rfl
+
+@[simp] lemma lin_mul_lin_comp (l r : N →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp l r = lin_mul_lin (f.comp l) (g.comp r) :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_left (l : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_left l = lin_mul_lin (f.comp l) g :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_right (r : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_right r = lin_mul_lin f (g.comp r) :=
+rfl
+
+end lin_mul_lin
+
 /-- The proposition that two elements of a bilinear form space are orthogonal -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
 B x y = 0

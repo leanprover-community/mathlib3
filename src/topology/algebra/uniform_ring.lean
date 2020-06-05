@@ -88,44 +88,44 @@ instance : ring (completion α) :=
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
-instance is_ring_hom_coe : is_ring_hom (coe : α → completion α) :=
-⟨coe_one α, assume a b, coe_mul a b, assume a b, coe_add a b⟩
+/-- The map from a uniform ring to its completion, as a ring homomorphism. -/
+def coe_ring_hom : α →+* completion α :=
+⟨coe, coe_one α, assume a b, coe_mul a b, coe_zero, assume a b, coe_add a b⟩
 
 universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
-          {f : α → β} [is_ring_hom f] (hf : continuous f)
+          (f : α →+* β) (hf : continuous f)
 
-/-- The completion extension is a ring morphism.
-This cannot be an instance, since it depends on the continuity of `f`. -/
-protected lemma is_ring_hom_extension [complete_space β] [separated β] :
-  is_ring_hom (completion.extension f) :=
+/-- The completion extension as a ring morphism. -/
+def extension_hom [complete_space β] [separated β] :
+  completion α →+* β :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
-{ map_one := by rw [← coe_one, extension_coe hf, is_ring_hom.map_one f],
-  map_add := assume a b, completion.induction_on₂ a b
+{ to_fun := completion.extension f,
+  map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
+  map_add' := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_add)
       ((continuous_extension.comp continuous_fst).add
                       (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf,
-             is_add_hom.map_add f]),
-  map_mul := assume a b, completion.induction_on₂ a b
+             f.map_add]),
+  map_one' := by rw [← coe_one, extension_coe hf, f.map_one],
+  map_mul' := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_mul)
       ((continuous_extension.comp continuous_fst).mul (continuous_extension.comp continuous_snd)))
     (assume a b,
-      by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, is_ring_hom.map_mul f]) }
+      by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, f.map_mul]) }
 
 instance top_ring_compl : topological_ring (completion α) :=
 { continuous_add := continuous_add,
   continuous_mul := continuous_mul,
   continuous_neg := continuous_neg }
 
-/-- The completion map is a ring morphism.
-This cannot be an instance, since it depends on the continuity of `f`. -/
-protected lemma is_ring_hom_map : is_ring_hom (completion.map f) :=
-@completion.is_ring_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_ring_hom.comp _ _)
-  ((continuous_coe β).comp hf) _ _
+/-- The completion map as a ring morphism. -/
+def map_ring_hom : completion α →+* completion β :=
+  extension_hom (coe_ring_hom.comp f) ((continuous_coe β).comp hf)
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

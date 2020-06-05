@@ -304,7 +304,7 @@ begin
   exact tendsto_const_nhds.mul
                     (tendsto.comp
                       (tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) (T_lt_one hnorm))
-                      (tendsto_pow_at_top_at_top_of_gt_1_nat (by norm_num)))
+                      (nat.tendsto_pow_at_top_at_top_of_one_lt (by norm_num)))
 end
 
 private lemma bound : ∀ {ε}, ε > 0 → ∃ N : ℕ, ∀ {n}, n ≥ N → ∥F.derivative.eval a∥ * T^(2^n) < ε :=

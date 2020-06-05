@@ -357,7 +357,7 @@ end
 
 @[to_additive]
 lemma alternating_prod_eq_finset_prod {G : Type*} [comm_group G] :
-  ∀ (L : list G), alternating_prod L = ∏ i : fin L.length, (L.nth_le i i.2) ^ (-1 : ℤ) ^ (i : ℕ)
+  ∀ (L : list G), alternating_prod L = ∏ i : fin L.length, (L.nth_le i i.2) ^ ((-1 : ℤ) ^ (i : ℕ))
 | [] := by { rw [alternating_prod, finset.prod_eq_one], rintro ⟨i, ⟨⟩⟩ }
 | (g :: []) :=
 begin

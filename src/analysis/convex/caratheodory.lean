@@ -6,6 +6,25 @@ Authors: Johan Commelin, Scott Morrison
 import analysis.convex.basic
 import linear_algebra.finite_dimensional
 
+/-!
+# Carathéodory's convexity theorem
+
+This file is devoted to proving Carathéodory's convexity theorem:
+The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
+
+## Main results:
+
+* `convex_hull_eq_union`: Carathéodory's convexity theorem
+
+## Implementation details
+
+This theorem was formalized as part of the Sphere Eversion project.
+
+## Tags
+convex hull, caratheodory
+
+-/
+
 universes u
 
 open set finset finite_dimensional
@@ -125,7 +144,12 @@ end
 
 end caratheodory
 
-lemma caratheodory_le (s : set E) :
+/--
+One inclusion of Carathéodory's convexity theorem.
+
+The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
+-/
+lemma convex_hull_subset_union (s : set E) :
   convex_hull s ⊆ ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
 begin
   -- First we replace `convex_hull s` with the union of the convex hulls of finite subsets,
@@ -139,16 +163,11 @@ begin
   transitivity,
   { apply caratheodory.shrink, },
   { -- After that it's just shuffling unions around.
-    apply Union_subset,
-    intro r',
-    apply Union_subset,
-    intro h',
-    apply Union_subset,
-    intro b',
-    apply subset_subset_Union r',
-    apply subset_subset_Union,
-    exact subset.trans h' h,
-    apply subset_Union _ b', },
+    iterate 3 { apply Union_subset, intro, },
+    apply set.subset_subset_Union,
+    apply set.subset_subset_Union,
+    exact subset.trans ‹i ⊆ r› ‹↑r ⊆ s›,
+    apply subset_Union _ ‹i.card ≤ findim ℝ E + 1›, },
 end
 
 /--
@@ -156,18 +175,13 @@ Carathéodory's convexity theorem.
 
 The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
 -/
-theorem caratheodory (s : set E) :
+theorem convex_hull_eq_union (s : set E) :
   convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
 begin
   apply set.subset.antisymm,
-  apply caratheodory_le,
-  convert Union_subset _,
-  intro t,
-  convert Union_subset _,
-  intro ss,
-  convert Union_subset _,
-  intro b,
-  exact convex_hull_mono ss,
+  { apply convex_hull_subset_union, },
+  iterate 3 { convert Union_subset _, intro, },
+  exact convex_hull_mono ‹_›,
 end
 
 /--
@@ -179,7 +193,7 @@ theorem eq_center_mass_card_dim_succ_of_mem_convex_hull (s : set E) (x : E) (h :
   ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 ≤ f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
 begin
-  rw caratheodory at h,
+  rw convex_hull_eq_union at h,
   simp only [exists_prop, mem_Union] at h,
   obtain ⟨t, w, b, m⟩ := h,
   refine ⟨t, w, b, _⟩,

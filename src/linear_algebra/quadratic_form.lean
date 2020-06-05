@@ -66,6 +66,10 @@ lemma polar_add (f g : M → R) (x y : M) :
   polar (f + g) x y = polar f x y + polar g x y :=
 by { simp only [polar, pi.add_apply], abel }
 
+lemma polar_smul (f : M → R) (s : R) (x y : M) :
+  polar (s • f) x y = s * polar f x y :=
+by { simp only [polar, pi.smul_apply, smul_eq_mul, mul_sub] }
+
 lemma polar_comm (f : M → R₁) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
 
@@ -157,24 +161,24 @@ instance : has_add (quadratic_form R M) :=
     polar_smul_right' := λ a x y,
       by simp only [polar_add, smul_eq_mul, mul_add, polar_smul_right] } ⟩
 
+@[simp] lemma coe_fn_add (Q Q' : quadratic_form R M) : ⇑(Q + Q') = Q + Q' := rfl
+
 @[simp] lemma add_apply (Q Q' : quadratic_form R M) (x : M) : (Q + Q') x = Q x + Q' x := rfl
 
 instance : has_scalar R₁ (quadratic_form R₁ M) :=
 ⟨ λ a Q,
-  { to_fun := λ x, Q (a • x),
-    to_fun_smul := λ b x, by rw [smul_comm, map_smul],
-    polar_add_left' := λ x x' y,
-      by convert polar_add_left (a • x) (a • x') (a • y) using 1; simp only [polar, smul_add],
+  { to_fun := a • Q,
+    to_fun_smul := λ b x, by simp only [pi.smul_apply, map_smul, smul_eq_mul, mul_left_comm],
+    polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, mul_add],
     polar_smul_left' := λ b x y,
-      by convert polar_smul_left b (a • x) (a • y) using 1;
-      simp only [polar, smul_add, smul_comm, smul_eq_mul],
-    polar_add_right' := λ x y y',
-      by convert polar_add_right (a • x) (a • y) (a • y') using 1; simp only [polar, smul_add],
+      by simp only [polar_smul, polar_smul_left, smul_eq_mul, mul_left_comm],
+    polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, mul_add],
     polar_smul_right' := λ b x y,
-      by convert polar_smul_right b (a • x) (a • y) using 1;
-      simp only [polar, smul_add, smul_comm, smul_eq_mul] } ⟩
+      by simp only [polar_smul, polar_smul_right, smul_eq_mul, mul_left_comm] } ⟩
 
-@[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = Q (a • x) := rfl
+@[simp] lemma coe_fn_smul (a : R₁) (Q : quadratic_form R₁ M) : ⇑(a • Q) = a • Q := rfl
+
+@[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
 
 instance : add_comm_monoid (quadratic_form R M) :=
 { add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
@@ -184,12 +188,13 @@ instance : add_comm_monoid (quadratic_form R M) :=
   ..quadratic_form.has_add,
   ..quadratic_form.has_zero }
 
-instance : distrib_mul_action R₁ (quadratic_form R₁ M) :=
-{ mul_smul := λ a b Q, ext (λ x, by simp [mul_smul, smul_comm]),
+instance : semimodule R₁ (quadratic_form R₁ M) :=
+{ mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
-  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply] },
-  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply] },
-  ..quadratic_form.has_scalar }
+  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, mul_add] },
+  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, mul_zero] },
+  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_mul] },
+  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_mul] } }
 
 section comp
 
@@ -311,29 +316,28 @@ namespace quadratic_form
 open bilin_form sym_bilin_form
 
 section associated
-variables [invertible (2 : R₁)] {B₁ : bilin_form R₁ M} (Q : quadratic_form R₁ M)
+variables [invertible (2 : R₁)] {B₁ : bilin_form R₁ M}
 
-/-- `Q.associated` is the symmetric bilinear form associated to a quadratic form `Q`. -/
-def associated : bilin_form R₁ M :=
-{ bilin := λ x y, ⅟2 * polar Q x y,
-  bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
-  bilin_smul_left := λ x y z, by rw [← mul_left_comm, polar_smul_left],
-  bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
-  bilin_smul_right := λ x y z, by rw [← mul_left_comm, polar_smul_right] }
+/-- `associated` is the linear map that sends a quadratic form to its associated
+symmetric bilinear form -/
+def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+{ to_fun := λ Q,
+  { bilin := λ x y, ⅟2 * polar Q x y,
+    bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
+    bilin_smul_left := λ x y z, by rw [← mul_left_comm, polar_smul_left],
+    bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
+    bilin_smul_right := λ x y z, by rw [← mul_left_comm, polar_smul_right] },
+  add := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
+  smul := λ a Q, by { ext, simp [bilin_form.smul_apply, polar_smul, mul_left_comm] },
+}
+
+variables {Q : quadratic_form R₁ M}
 
 @[simp] lemma associated_apply (x y : M) :
-  Q.associated x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
+  associated Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
 lemma associated_is_sym : is_sym Q.associated :=
 λ x y, by simp [add_comm, add_left_comm, sub_eq_add_neg]
-
-@[simp] lemma associated_smul (a : R₁) :
-  (a • Q).associated = (a * a) • Q.associated :=
-by { ext, simp [bilin_form.smul_apply, map_smul, mul_sub, mul_left_comm] }
-
-@[simp] lemma associated_add (Q Q' : quadratic_form R₁ M) :
-  (Q + Q').associated = Q.associated + Q'.associated :=
-by { ext, simp only [associated_apply, bilin_form.add_apply, quadratic_form.add_apply], ring }
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
   (Q.comp f).associated = Q.associated.comp f f :=
@@ -345,7 +349,7 @@ by { ext, simp }
 by { ext, simp [bilin_form.add_apply, bilin_form.smul_apply], ring }
 
 lemma associated_to_quadratic_form (B : bilin_form R₁ M) (x y : M) :
-  B.to_quadratic_form.associated x y = ⅟2 * (B x y + B y x) :=
+  associated B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
 by simp [associated_apply, ←polar_to_quadratic_form, polar]
 
 lemma associated_left_inverse (h : is_sym B₁) :
@@ -358,6 +362,7 @@ quadratic_form.ext $ λ x,
   calc  Q.associated.to_quadratic_form x
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
+
 end associated
 
 section pos_def
@@ -367,13 +372,9 @@ variables {R₂ : Type u} [ordered_ring R₂] [module R₂ M] {Q₂ : quadratic_
 /-- A positive definite quadratic form is positive on nonzero vectors. -/
 def pos_def (Q₂ : quadratic_form R₂ M) : Prop := ∀ x ≠ 0, 0 < Q₂ x
 
-lemma smul_pos_def_of_smul_nonzero {R} [linear_ordered_comm_ring R] [module R M]
-  {Q : quadratic_form R M} (h : pos_def Q) {a : R} : (∀ x ≠ (0 : M), a • x ≠ 0) → pos_def (a • Q) :=
-λ ha x hx, h (a • x) (ha x hx)
-
-lemma smul_pos_def_of_nonzero {K : Type u} [linear_ordered_field K] [module K M]
-  {Q : quadratic_form K M} (h : pos_def Q) {a : K} : a ≠ 0 → pos_def (a • Q) :=
-λ ha x hx, h (a • x) (λ hax, (smul_eq_zero.mp hax).elim ha hx)
+lemma pos_def.smul {R} [linear_ordered_comm_ring R] [module R M]
+  {Q : quadratic_form R M} (h : pos_def Q) {a : R} (a_pos : 0 < a) : pos_def (a • Q) :=
+λ x hx, mul_pos a_pos (h x hx)
 
 variables {n : Type*}
 
@@ -414,8 +415,8 @@ Q.associated.to_matrix
 
 open quadratic_form
 lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
-  (a • Q).to_matrix = (a * a) • Q.to_matrix :=
-by simp_rw [to_matrix, associated_smul, mul_smul, bilin_form.to_matrix_smul]
+  (a • Q).to_matrix = a • Q.to_matrix :=
+by simp only [to_matrix, bilin_form.to_matrix_smul, linear_map.map_smul]
 
 end
 
@@ -437,8 +438,8 @@ variables {Q : quadratic_form R₁ (n → R₁)}
 /-- The discriminant of a quadratic form generalizes the discriminant of a quadratic polynomial. -/
 def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix.det
 
-lemma discr_smul (a : R₁) : (a • Q).discr = (a * a) ^ fintype.card n * Q.discr :=
-by simp [discr, to_matrix_smul]
+lemma discr_smul (a : R₁) : (a • Q).discr = a ^ fintype.card n * Q.discr :=
+by simp only [discr, to_matrix_smul, matrix.det_smul]
 
 lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
   (Q.comp f).discr = f.to_matrix.det * f.to_matrix.det * Q.discr :=

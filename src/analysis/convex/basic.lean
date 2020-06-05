@@ -840,22 +840,6 @@ begin
    { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
-lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
-  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
-begin
-  refine subset.antisymm _ _,
-  { rw [convex_hull_eq.{u}],
-    rintros x ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
-    simp only [mem_Union],
-    refine ⟨t.image z, _, _⟩,
-    { rw [finset.coe_image, image_subset_iff],
-      exact hz },
-    { apply t.center_mass_mem_convex_hull hw₀,
-      { simp only [hw₁, zero_lt_one] },
-      { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
-   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
-end
-
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map ℝ f) (s : set E) :
   convex_hull (f '' s) = f '' convex_hull s :=
 set.subset.antisymm (convex_hull_min (image_subset _ (subset_convex_hull s)) $

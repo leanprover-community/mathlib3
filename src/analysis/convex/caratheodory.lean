@@ -307,3 +307,20 @@ begin
   intro b,
   exact convex_hull_mono ss,
 end
+
+/--
+A more explicit formulation of Carathéodory's convexity theorem,
+writing an element of a convex hull as the center of mass
+of an explicit `finset` with cardinality at most `dim + 1`.
+-/
+theorem eq_center_mass_card_dim_succ_of_mem_convex_hull (s : set E) (x : E) (h : x ∈ convex_hull s) :
+  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
+    (f : E → ℝ), (∀ y ∈ t, 0 ≤ f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
+begin
+  rw caratheodory at h,
+  simp only [exists_prop, mem_Union] at h,
+  obtain ⟨t, w, b, m⟩ := h,
+  refine ⟨t, w, b, _⟩,
+  rw finset.convex_hull_eq at m,
+  simpa using m,
+end

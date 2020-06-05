@@ -143,9 +143,10 @@ begin
       rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
       rw mem_erase at x₁_mem,
       simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
-    { simp only [f],
+    { dsimp only [f],
       split_ifs with hx₀ hx₀,
-      { sorry },
+      { simp,
+        sorry },
       { simpa using nz, } } },
 end
 
@@ -203,7 +204,11 @@ begin
         { apply div_nonneg_of_nonneg_of_pos (fpos _) hg },
         { simpa [mem_filter, het] using hes }, } },
     { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
-      sorry }, },
+      calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e :
+        by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_smul, zero_add], }
+      ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
+      ... = _ : _,
+      simp only [sub_smul, sum_sub_distrib, mul_smul, ← smul_sum, gcombo, smul_zero, sub_zero] }, },
 end
 
 lemma step (t : finset E) (h : findim ℝ E + 1 < t.card) :

@@ -100,10 +100,7 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
   map_mul' := cast_mul,
   .. cast_add_monoid_hom α }
 
-lemma coe_cast_ring_hom [semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
-
-theorem mul_cast_comm [semiring α] (a : α) (n : ℕ) : a * n = n * a :=
-by induction n; simp [left_distrib, right_distrib, *]
+@[simp] lemma coe_cast_ring_hom [semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
 @[simp] theorem cast_nonneg [linear_ordered_semiring α] : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_refl _
@@ -219,3 +216,28 @@ begin
 end
 
 end with_top
+
+namespace semiconj_by
+
+variables {R : Type*} [semiring R]
+
+lemma cast_nat_right (a : R) (n : ℕ) : semiconj_by a n n :=
+nat.rec_on n (zero_right a) $ λ n ihn, ihn.add_right (one_right a)
+
+lemma cast_nat_left (n : ℕ) (x : R) : semiconj_by (n : R) x x :=
+nat.rec_on n (zero_left x x) $ λ n ihn, ihn.add_left (one_left x)
+
+end semiconj_by
+
+namespace commute
+
+variables {R : Type*} [semiring R]
+
+lemma cast_nat_right (a : R) (n : ℕ) : commute a n := semiconj_by.cast_nat_right a n
+
+lemma cast_nat_left (n : ℕ) (x : R) : commute (n : R) x := semiconj_by.cast_nat_left n x
+
+end commute
+
+theorem nat.mul_cast_comm {R : Type*} [semiring R] (a : R) (n : ℕ) : a * n = n * a :=
+commute.cast_nat_right a n

@@ -34,16 +34,6 @@ Most of the proofs come from the properties of `semiconj_by`.
 
 variables {a b : M} (hab : commute a b) (m n : ℕ)
 
-@[simp] theorem pow_right : commute a (b ^ n) := hab.pow_right n
-@[simp] theorem pow_left : commute (a ^ n) b := (hab.symm.pow_right n).symm
-@[simp] theorem pow_pow : commute (a ^ m) (b ^ n) := (hab.pow_left m).pow_right n
-
-variable (a)
-
-@[simp] theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
-@[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
-@[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
-
 @[simp] theorem gpow_right : commute a (b ^ m) := hab.gpow_right m
 @[simp] theorem gpow_left : commute (a ^ m) b := (hab.symm.gpow_right m).symm
 @[simp] theorem gpow_gpow : commute (a ^ m) (b ^ n) := (hab.gpow_right n).gpow_left m
@@ -59,16 +49,6 @@ section semiring
 variables {A : Type*}
 
 variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
-
-@[simp] theorem nsmul_right : commute a (n •ℕ b) := hab.nsmul_right n
-@[simp] theorem nsmul_left : commute (n •ℕ a) b := hab.nsmul_left n
-@[simp] theorem nsmul_nsmul : commute (m •ℕ a) (n •ℕ b) := hab.nsmul_nsmul m n
-
-variable (a)
-
-@[simp] theorem self_nsmul : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
-@[simp] theorem nsmul_self : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
-@[simp] theorem self_nsmul_nsmul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).nsmul_nsmul m n
 
 @[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
 @[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a

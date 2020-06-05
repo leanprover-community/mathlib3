@@ -47,6 +47,68 @@ infix ` •ℕ `:70 := nsmul
 @[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
 
 /-!
+### Commutativity
+
+First we prove some facts about `semiconj_by` and `commute`. They do not require any theory about
+`pow` and/or `nsmul` and will be useful later in this file.
+-/
+
+namespace semiconj_by
+
+variables [monoid M]
+
+@[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
+nat.rec_on n (one_right a) $ λ n ihn, h.mul_right ihn
+
+variables [semiring R] {a b x y : R} (h : semiconj_by a x y)
+include h
+
+@[simp] lemma nsmul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
+| 0 := zero_right a
+| (n+1) := h.add_right (nsmul_right n)
+
+@[simp] lemma nsmul_left : ∀ n, semiconj_by (n •ℕ a) x y
+| 0 := zero_left x y
+| (n+1) := h.add_left (nsmul_left n)
+
+lemma nsmul_nsmul (m n : ℕ) : semiconj_by (m •ℕ a) (n •ℕ x) (n •ℕ y) :=
+(h.nsmul_left m).nsmul_right n
+
+end semiconj_by
+
+namespace commute
+
+section monoid
+
+variables [monoid M] {a b : M}
+
+@[simp] theorem pow_right (h : commute a b) (n : ℕ) : commute a (b ^ n) := h.pow_right n
+@[simp] theorem pow_left (h : commute a b) (n : ℕ) : commute (a ^ n) b := (h.symm.pow_right n).symm
+@[simp] theorem pow_pow (h : commute a b) (m n : ℕ) : commute (a ^ m) (b ^ n) :=
+(h.pow_left m).pow_right n
+
+@[simp] theorem self_pow (a : M) (n : ℕ) : commute a (a ^ n) := (commute.refl a).pow_right n
+@[simp] theorem pow_self (a : M) (n : ℕ) : commute (a ^ n) a := (commute.refl a).pow_left n
+@[simp] theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
+(commute.refl a).pow_pow m n
+
+end monoid
+
+variables [semiring R] {a b : R}
+
+@[simp] theorem nsmul_right (h : commute a b) (n : ℕ) : commute a (n •ℕ b) := h.nsmul_right n
+@[simp] theorem nsmul_left (h : commute a b) (n : ℕ) : commute (n •ℕ a) b := h.nsmul_left n
+@[simp] theorem nsmul_nsmul (h : commute a b) (m n : ℕ) : commute (m •ℕ a) (n •ℕ b) :=
+h.nsmul_nsmul m n
+
+@[simp] theorem self_nsmul (a : R) (n : ℕ) : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
+@[simp] theorem nsmul_self (a : R) (n : ℕ) : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
+@[simp] theorem self_nsmul_nsmul (a : R) (m n : ℕ) : commute (m •ℕ a) (n •ℕ a) :=
+(commute.refl a).nsmul_nsmul m n
+
+end commute
+
+/-!
 ### (Additive) monoid
 -/
 section monoid
@@ -73,9 +135,7 @@ by split_ifs; refl
   a ^ (if P then 1 else 0) = if P then a else 1 :=
 by simp
 
-theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n :=
-by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
-  rw [pow_succ, mul_assoc, ih]]
+theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 theorem nsmul_add_comm' : ∀ (a : A) (n : ℕ), n •ℕ a + a = a + n •ℕ a :=
 @pow_mul_comm' (multiplicative A) _
 
@@ -91,7 +151,7 @@ theorem two_nsmul (a : A) : 2 •ℕ a = a + a :=
 
 theorem pow_add (a : M) (m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n with n ih; [rw [add_zero, pow_zero, mul_one],
-  rw [pow_succ, ← pow_mul_comm', ← mul_assoc, ← ih, ← pow_succ']]; refl
+  rw [pow_succ', ← mul_assoc, ← ih, ← pow_succ', add_assoc]]
 theorem add_nsmul : ∀ (a : A) (m n : ℕ), (m + n) •ℕ a = m •ℕ a + n •ℕ a :=
 @pow_add (multiplicative A) _
 
@@ -124,7 +184,7 @@ theorem bit1_nsmul : ∀ (a : A) (n : ℕ), bit1 n •ℕ a = n •ℕ a + n •
 @pow_bit1 (multiplicative A) _
 
 theorem pow_mul_comm (a : M) (m n : ℕ) : a^m * a^n = a^n * a^m :=
-by rw [←pow_add, ←pow_add, add_comm]
+commute.pow_pow_self a m n
 theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n •ℕ a + m •ℕ a :=
 @pow_mul_comm (multiplicative A) _
 
@@ -153,11 +213,15 @@ theorem is_add_monoid_hom.map_nsmul (f : A → B) [is_add_monoid_hom f] (a : A) 
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+lemma commute.mul_pow {a b : M} (h : commute a b) (n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
+nat.rec_on n (by simp) $ λ n ihn,
+by simp only [pow_succ, ihn, ← mul_assoc, (h.pow_left n).right_comm]
+
 end monoid
 
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :
   @has_pow.pow _ _ monoid.has_pow p q = p ^ q :=
-by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ, mul_comm, ih]]
+by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ', ih]]
 
 @[simp] theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
 by induction m with m ih; [rw [zero_nsmul, zero_mul],
@@ -171,8 +235,7 @@ section comm_monoid
 variables [comm_monoid M] [add_comm_monoid A]
 
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
-by induction n with n ih; [exact (mul_one _).symm,
-  simp only [pow_succ, ih, mul_assoc, mul_left_comm]]
+(commute.all a b).mul_pow n
 theorem nsmul_add : ∀ (a b : A) (n : ℕ), n •ℕ (a + b) = n •ℕ a + n •ℕ b :=
 @mul_pow (multiplicative A) _
 
@@ -203,7 +266,7 @@ theorem nsmul_sub : ∀ (a : A) {m n : ℕ}, n ≤ m → (m - n) •ℕ a = m �
 @pow_sub (multiplicative A) _
 
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
-by rw inv_pow; exact inv_comm_of_comm (pow_mul_comm _ _ _)
+(commute.refl a).inv_left.pow_pow m n
 theorem nsmul_neg_comm : ∀ (a : A) (m n : ℕ), m •ℕ (-a) + n •ℕ a = n •ℕ a + m •ℕ (-a) :=
 @pow_inv_comm (multiplicative A) _
 end nat
@@ -245,7 +308,7 @@ open nat
 @[simp] theorem gpow_zero (a : G) : a ^ (0:ℤ) = 1 := rfl
 @[simp] theorem zero_gsmul (a : A) : (0:ℤ) •ℤ a = 0 := rfl
 
-@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a := mul_one _
+@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a := pow_one a
 @[simp] theorem one_gsmul (a : A) : (1:ℤ) •ℤ a = a := add_zero _
 
 @[simp] theorem one_gpow : ∀ (n : ℤ), (1 : G) ^ n = 1
@@ -274,37 +337,35 @@ theorem inv_gpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 theorem gsmul_neg (a : A) (n : ℤ) : gsmul n (- a) = - gsmul n a :=
 @inv_gpow (multiplicative A) _ a n
 
-private lemma gpow_add_aux (a : G) (m n : nat) :
-  a ^ ((of_nat m) + -[1+n]) = a ^ of_nat m * a ^ -[1+n] :=
-or.elim (nat.lt_or_ge m (nat.succ n))
- (assume h1 : m < succ n,
-  have h2 : m ≤ n, from le_of_lt_succ h1,
-  suffices a ^ -[1+ n-m] = a ^ of_nat m * a ^ -[1+n],
-    by rwa [of_nat_add_neg_succ_of_nat_of_lt h1],
-  show (a ^ nat.succ (n - m))⁻¹ = a ^ of_nat m * a ^ -[1+n],
-  by rw [← succ_sub h2, pow_sub _ (le_of_lt h1), mul_inv_rev, inv_inv]; refl)
- (assume : m ≥ succ n,
-  suffices a ^ (of_nat (m - succ n)) = (a ^ (of_nat m)) * (a ^ -[1+ n]),
-    by rw [of_nat_add_neg_succ_of_nat_of_ge]; assumption,
-  suffices a ^ (m - succ n) = a ^ m * (a ^ n.succ)⁻¹, from this,
-  by rw pow_sub; assumption)
+lemma gpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
+| (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
+| -[1+0]     := by simp [int.neg_succ_of_nat_eq]
+| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, gpow_neg, neg_add, neg_add_cancel_right, gpow_neg,
+  ← int.coe_nat_succ, gpow_coe_nat, gpow_coe_nat, _root_.pow_succ _ (n + 1), mul_inv_rev,
+  inv_mul_cancel_right]
 
-theorem gpow_add (a : G) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
-| (of_nat m) (of_nat n) := pow_add _ _ _
-| (of_nat m) -[1+n]     := gpow_add_aux _ _ _
-| -[1+m]     (of_nat n) := by rw [add_comm, gpow_add_aux,
-  gpow_neg_succ, gpow_of_nat, ← inv_pow, ← pow_inv_comm]
-| -[1+m]     -[1+n]     :=
-  suffices (a ^ (m + succ (succ n)))⁻¹ = (a ^ m.succ)⁻¹ * (a ^ n.succ)⁻¹, from this,
-  by rw [← succ_add_eq_succ_add, add_comm, _root_.pow_add, mul_inv_rev]
+theorem add_one_gsmul : ∀ (a : A) (i : ℤ), (i + 1) •ℤ a = i •ℤ a + a :=
+@gpow_add_one (multiplicative A) _
+
+lemma gpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
+calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
+             ... = a^n * a⁻¹             : by rw [← gpow_add_one, sub_add_cancel]
+
+lemma gpow_add (a : G) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
+begin
+  induction n using int.induction_on with n ihn n ihn,
+  case hz : { simp },
+  { simp only [← add_assoc, gpow_add_one, ihn, mul_assoc] },
+  { rw [gpow_sub_one, ← mul_assoc, ← ihn, ← gpow_sub_one, add_sub_assoc] }
+end
 
 theorem add_gsmul : ∀ (a : A) (i j : ℤ), (i + j) •ℤ a = i •ℤ a + j •ℤ a :=
 @gpow_add (multiplicative A) _
 
-theorem gpow_add_one (a : G) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
-by rw [gpow_add, gpow_one]
-theorem add_one_gsmul : ∀ (a : A) (i : ℤ), (i + 1) •ℤ a = i •ℤ a + a :=
-@gpow_add_one (multiplicative A) _
+lemma gpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
+by rw [sub_eq_add_neg, gpow_add, gpow_neg]
+lemma sub_gsmul (m n : ℤ) (a : A) : (m - n) •ℤ a = m •ℤ a - n •ℤ a :=
+@gpow_sub (multiplicative A) _ _ _ _
 
 theorem gpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [gpow_add, gpow_one]
@@ -316,14 +377,10 @@ by rw [← gpow_add, ← gpow_add, add_comm]
 theorem gsmul_add_comm : ∀ (a : A) (i j), i •ℤ a + j •ℤ a = j •ℤ a + i •ℤ a :=
 @gpow_mul_comm (multiplicative A) _
 
-theorem gpow_mul (a : G) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
-| (m : ℕ) (n : ℕ) := pow_mul _ _ _
-| (m : ℕ) -[1+ n] := (gpow_neg _ (m * succ n)).trans $
-  show (a ^ (m * succ n))⁻¹ = _, by rw pow_mul; refl
-| -[1+ m] (n : ℕ) := (gpow_neg _ (succ m * n)).trans $
-  show (a ^ (m.succ * n))⁻¹ = _, by rw [pow_mul, ← inv_pow]; refl
-| -[1+ m] -[1+ n] := (pow_mul a (succ m) (succ n)).trans $
-  show _ = (_⁻¹^_)⁻¹, by rw [inv_pow, inv_inv]
+theorem gpow_mul (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ m) ^ n :=
+int.induction_on n (by simp) (λ n ihn, by simp [mul_add, gpow_add, ihn])
+  (λ n ihn, by simp only [mul_sub, gpow_sub, ihn, mul_one, gpow_one])
+
 theorem gsmul_mul' : ∀ (a : A) (m n : ℤ), m * n •ℤ a = n •ℤ (m •ℤ a) :=
 @gpow_mul (multiplicative A) _
 
@@ -725,3 +782,46 @@ by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
 lemma mnat_monoid_hom_ext [monoid M] ⦃f g : multiplicative ℕ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]
+
+/-!
+### Commutativity (again)
+
+Facts about `semiconj_by` and `commute` that require 
+-/
+
+namespace semiconj_by
+
+variables [monoid M] [group G]
+
+@[simp] lemma units_gpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
+  ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
+| (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
+| -[1+n] := by simp only [gpow_neg_succ, units.coe_pow, units_inv_right, h, pow_right]
+
+@[simp] lemma gpow_right (h : semiconj_by a x y) : ∀ m : ℤ, semiconj_by a (x^m) (y^m)
+| (n : ℕ) := h.pow_right n
+| -[1+n] := (h.pow_right n.succ).inv_right
+
+
+omit h
+
+end semiring
+
+section ring
+
+variables {R : Type u} [ring R] {a b x y x' y' : R}
+
+@[simp] lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
+| (n : ℕ) := h.nsmul_right n
+| -[1+n] := (h.nsmul_right n.succ).neg_right
+
+@[simp] lemma gsmul_left (h : semiconj_by a x y) : ∀ m, semiconj_by (m •ℤ a) x y
+| (n : ℕ) := h.nsmul_left n
+| -[1+n] := (h.nsmul_left n.succ).neg_left
+
+lemma gsmul_gsmul (h : semiconj_by a x y) (m n : ℤ) : semiconj_by (m •ℤ a) (n •ℤ x) (n •ℤ y) :=
+(h.gsmul_left m).gsmul_right n
+
+end ring
+
+end semiconj_by

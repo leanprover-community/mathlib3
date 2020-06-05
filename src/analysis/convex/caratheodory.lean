@@ -45,6 +45,13 @@ begin
     rwa center_mass_eq_of_sum_1 t id w_sum_one }
 end
 
+-- a lemma about finset
+@[simp]
+lemma coe_mem {α : Type*} {E : finset α} (x : (↑E : set α)) : ↑x ∈ E := x.2
+@[simp]
+lemma mk_coe {α : Type*} {E : finset α} (x : (↑E : set α)) {h} : (⟨↑x, h⟩ : (↑E : set α)) = x :=
+by { apply subtype.eq, refl, }
+
 -- a basic fact about linear algebra!
 lemma exists_nontrivial_relation_of_dim_lt_card {t : finset E} (h : findim ℝ E < t.card) :
   ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
@@ -56,12 +63,32 @@ begin
   let f : E → ℝ := λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set E)) ∈ s then g ⟨x, h⟩ else 0 else 0,
   -- and finally clean up the mess caused by the extension.
   refine ⟨f, _, _⟩,
-  { sorry, },
-  { refine ⟨z, z.2, _⟩, dsimp only [f], rw [dif_pos, if_pos],
-    swap 3, { exact z.2 }, all_goals { rwa [subtype.coe_eta] }, },
+  { dsimp [f],
+    convert sum using 1,
+    fapply sum_bij_ne_zero,
+    { intros, exact ⟨a, H⟩, },
+    { intros, dsimp,
+      rw [dif_pos h₁] at h₂,
+      by_contradiction w,
+      rw [if_neg w] at h₂,
+      simpa using h₂, },
+    { intros _ _ _ _ _ _, exact subtype.mk.inj, },
+    { intros, dsimp,
+      use b,
+      have h₁ : ↑b ∈ t := by simp,
+      use h₁,
+      rw [dif_pos h₁, if_pos],
+      { fsplit; simp; assumption, },
+      { simpa, } },
+    { intros a h₁, dsimp, rw [dif_pos h₁], intro h₂,
+      split_ifs with h₃,
+      { refl, },
+      { rw [if_neg h₃, zero_smul, eq_self_iff_true, not_true] at h₂, contradiction, }, }, },
+  { refine ⟨z, z.2, _⟩, dsimp only [f], erw [dif_pos z.2, if_pos]; rwa [subtype.coe_eta] },
 end
 
-lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card {t : finset E} (h : findim ℝ E + 1 < t.card) :
+lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
+  {t : finset E} (h : findim ℝ E + 1 < t.card) :
   ∃ f : E → ℝ, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   -- pick an element x₀ ∈ t,

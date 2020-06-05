@@ -86,7 +86,7 @@ linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.incl)
 linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x ∈ q`. -/
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
-  apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
+  apply linear_equiv.of_bijective (p.incl.coprod q.incl),
   { simp only [ker_eq_bot', prod.forall, incl_apply, prod.mk_eq_zero, coprod_apply],
     -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
     rintros ⟨x, hx⟩ ⟨y, hy⟩,

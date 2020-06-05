@@ -140,7 +140,7 @@ begin
     exact neg_add_self _, },
   { refine ⟨x₁ + x₀, _, _⟩,
     { sorry, },
-    { sorry, } },
+    { dsimp [f], sorry, } },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {F : Type*} [decidable_eq F] {t : finset F}

@@ -1376,7 +1376,7 @@ end
 
 /-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
 `Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordererd. Though
-one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of possibile cases to improve
+one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of possible cases to improve
 readability. -/
 lemma set_of_is_preconnected_subset_of_ordered :
   {s : set α | is_preconnected s} ⊆
@@ -1510,7 +1510,7 @@ instance ordered_connected_space : preconnected_space α :=
 /-- In a dense conditionally complete linear order, the set of preconnected sets is exactly
 the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`,
 or `∅`. Though one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of
-possibile cases to improve readability. -/
+possible cases to improve readability. -/
 lemma set_of_is_preconnected_eq_of_ordered :
   {s : set α | is_preconnected s} =
     -- bounded intervals

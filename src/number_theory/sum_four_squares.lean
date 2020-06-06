@@ -32,7 +32,7 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
   by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
-  by simp [mul_add, _root_.pow_succ, mul_comm, mul_assoc, mul_left_comm]
+  by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 lemma exists_sum_two_squares_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=

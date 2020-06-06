@@ -166,7 +166,7 @@ instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, _root_.pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {

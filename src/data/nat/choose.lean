@@ -98,14 +98,14 @@ begin
         rw[pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
   end,
   induction n with n ih,
-  { rw [_root_.pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
+  { rw [pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
     dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
   { rw[sum_range_succ', h_first],
     rw[finset.sum_congr rfl (h_middle n), finset.sum_add_distrib, add_assoc],
     rw[pow_succ (x + y), ih, add_mul, finset.mul_sum, finset.mul_sum],
     congr' 1,
     rw[finset.sum_range_succ', finset.sum_range_succ, h_first, h_last,
-       mul_zero, zero_add, _root_.pow_succ] }
+       mul_zero, zero_add, pow_succ] }
 end
 
 /-- The binomial theorem-/

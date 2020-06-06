@@ -21,10 +21,6 @@ import set_theory.ordinal
 
 -/
 
--- TODO move
-def function.embedding.inl {α β : Type*} : α ↪ α ⊕ β :=
-⟨sum.inl, λ a b, sum.inl.inj⟩
-
 noncomputable theory
 
 universes u u' u'' v v' w w'

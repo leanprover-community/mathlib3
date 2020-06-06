@@ -121,6 +121,14 @@ def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
 def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
 ⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
 
+/-- The embedding of `α` into the sum `α ⊕ β`. -/
+def inl {α β : Type*} : α ↪ α ⊕ β :=
+⟨sum.inl, λ a b, sum.inl.inj⟩
+
+/-- The embedding of `β` into the sum `α ⊕ β`. -/
+def inr {α β : Type*} : β ↪ α ⊕ β :=
+⟨sum.inr, λ a b, sum.inr.inj⟩
+
 /-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=
 ⟨λ a, ⟨f a, H a⟩, λ a b h, f.inj (@congr_arg _ _ _ _ subtype.val h)⟩

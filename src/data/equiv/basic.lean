@@ -966,21 +966,23 @@ lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred
 have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
+/-- `sum_diff_subset s t` is the natural equivalence between
+`s ⊕ (t \ s)` and `t`, where `s` and `t` are two sets. -/
 protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] :
   s ⊕ (t \ s : set α) ≃ t :=
 calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) : (equiv.set.union (by simp [inter_diff_self])).symm
 ... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] (x : s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] (x : s) :
   equiv.set.sum_diff_subset h (sum.inl x) = inclusion h x := rfl
 
 @[simp] lemma sum_diff_subset_apply_inr
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] (x : t \ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] (x : t \ s) :
   equiv.set.sum_diff_subset h (sum.inr x) = inclusion (diff_subset t s) x := rfl
 
 lemma sum_diff_subset_symm_apply_of_mem
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] {x : t} (hx : x.1 ∈ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] {x : t} (hx : x.1 ∈ s) :
   (equiv.set.sum_diff_subset h).symm x = sum.inl ⟨x, hx⟩ :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,
@@ -989,7 +991,7 @@ begin
 end
 
 lemma sum_diff_subset_symm_apply_of_not_mem
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] [decidable_pred t] {x : t} (hx : x.1 ∉ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] {x : t} (hx : x.1 ∉ s) :
   (equiv.set.sum_diff_subset h).symm x = sum.inr ⟨x, ⟨x.2, hx⟩⟩  :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,

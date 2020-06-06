@@ -49,6 +49,13 @@ universes u v w
 
 attribute [class] topological_space
 
+run_cmd do env ← tactic.get_env,
+  tactic.set_env $
+  [``topological_space.is_open,
+   ``topological_space.is_open_univ,
+   ``topological_space.is_open_inter,
+   ``topological_space.is_open_sUnion].foldl environment.mk_protected env
+
 /-- A constructor for topologies by specifying the closed sets,
 and showing that they satisfy the appropriate conditions. -/
 def topological_space.of_closed {α : Type u} (T : set (set α))

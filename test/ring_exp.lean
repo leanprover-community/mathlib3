@@ -177,7 +177,7 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z // x^i - y^i = z*(x - y)}
 begin
   cases @pow_sub_pow_factor (k+1) with z hz,
   existsi z*x + y^(k+1),
-  rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
+  rw [pow_succ x, pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
   ←mul_sub x, hz],
   ring_exp_eq
 end

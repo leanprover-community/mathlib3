@@ -112,7 +112,47 @@ lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
     (finite_int_iff.2 ⟨hp, hz⟩) :=
 by rw [padic_val_rat, dif_pos]; simp *; refl
 
+/--
+A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
+-/
+def padic_val_nat (p : nat) (n : nat) : ℕ :=
+  int.to_nat (padic_val_rat p n)
+
+/--
+`padic_val_rat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
+-/
+lemma zero_le_padic_val_rat (p n : nat) : 0 ≤ padic_val_rat p n :=
+begin
+  unfold padic_val_rat,
+  split_ifs,
+  { simp, },
+  { trivial, },
+end
+
+/--
+`padic_val_rat` coincides with `padic_val_nat`.
+-/
+lemma padic_val_rat_of_nat (p n : nat) : padic_val_rat p n = ↑(padic_val_nat p n) :=
+begin
+  unfold padic_val_nat,
+  rw int.to_nat_of_nonneg (zero_le_padic_val_rat p n),
+end
+
+/--
+A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
+-/
+def padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
+  padic_val_nat p n =
+  (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
+begin
+  have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
+  simpa [int.coe_nat_multiplicity p n, rat.coe_nat_denom n, padic_val_rat_of_nat p n]
+    using padic_val_rat_def p n_nonzero,
+end
+
 end padic_val_rat
+
+/-
 
 section padic_val_rat
 open multiplicity
@@ -483,3 +523,5 @@ end
 
 end padic_norm
 end padic_norm
+
+-/

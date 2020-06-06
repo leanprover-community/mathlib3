@@ -53,6 +53,15 @@ even_add.2 $ by simp only [*]
 @[simp] theorem not_even_bit1 (n : nat) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
+lemma two_not_dvd_two_mul_add_one (a : ℕ) : ¬(2 ∣ 2 * a + 1) :=
+begin
+  convert not_even_bit1 a,
+  exact two_mul a,
+end
+
+lemma two_not_dvd_two_mul_sub_one : Π {a : ℕ} (w : 0 < a), ¬(2 ∣ 2 * a - 1)
+| (a+1) _ := two_not_dvd_two_mul_add_one a
+
 @[parity_simps] theorem even_sub {m n : nat} (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
   conv { to_rhs, rw [←nat.sub_add_cancel h, even_add] },

@@ -35,6 +35,15 @@ instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
 instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
 
+section
+local attribute [reducible] opposite
+@[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
+iff.refl _
+
+@[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = (0 : αᵒᵖ) ↔ a = (0 : α) :=
+iff.refl _
+end
+
 instance [add_monoid α] : add_monoid (opposite α) :=
 { zero_add := λ x, unop_inj $ zero_add $ unop x,
   add_zero := λ x, unop_inj $ add_zero $ unop x,
@@ -74,6 +83,15 @@ instance [comm_semigroup α] : comm_semigroup (opposite α) :=
 
 instance [has_one α] : has_one (opposite α) :=
 { one := op 1 }
+
+section
+local attribute [reducible] opposite
+@[simp] lemma unop_eq_one_iff [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
+iff.refl _
+
+@[simp] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
+iff.refl _
+end
 
 instance [monoid α] : monoid (opposite α) :=
 { one_mul := λ x, unop_inj $ mul_one $ unop x,

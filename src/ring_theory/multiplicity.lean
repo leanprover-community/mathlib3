@@ -359,7 +359,7 @@ protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ}
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
   multiplicity p (a ^ k) = k •ℕ (multiplicity p a)
 | 0        := by simp [one_right hp.not_unit]
-| (succ k) := by simp [pow_succ, succ_snmul, pow, multiplicity.mul hp]
+| (succ k) := by simp [pow_succ, succ_nsmul, pow, multiplicity.mul hp]
 
 lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=

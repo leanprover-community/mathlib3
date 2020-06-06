@@ -69,6 +69,10 @@ example {α} [comm_ring α] (k : ℕ) (x y z : α) :
 
 -- We can represent a large exponent `n` more efficiently than just `n` multiplications:
 example (a b : ℚ) : (a * b) ^ 1000000 = (b * a) ^ 1000000 := by ring_exp
+
+example (n : ℕ) : 2 ^ (n + 1 + 1)  = 2 * 2 ^ (n + 1) :=
+by ring_exp_eq
+
 end exponentiation
 
 section power_of_sum

@@ -68,7 +68,7 @@ def fpow (a : G₀) : ℤ → G₀
 
 theorem fpow_of_nat (a : G₀) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 
-@[simp] theorem fpow_neg_succ (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
 
 local attribute [ematch] le_of_lt
 
@@ -95,34 +95,26 @@ theorem inv_fpow (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow' a n
 | -[1+ n] := congr_arg has_inv.inv $ inv_pow' a (n+1)
 
-private lemma fpow_add_aux (a : G₀) (h : a ≠ 0) (m n : nat) :
-  a ^ ((of_nat m) + -[1+n]) = a ^ of_nat m * a ^ -[1+n] :=
-or.elim (nat.lt_or_ge m (nat.succ n))
- (assume h1 : m < n.succ,
-  have h2 : m ≤ n, from nat.le_of_lt_succ h1,
-  suffices a ^ -[1+ n-m] = a ^ of_nat m * a ^ -[1+n],
-    by rwa [of_nat_add_neg_succ_of_nat_of_lt h1],
-  show (a ^ nat.succ (n - m))⁻¹ = a ^ of_nat m * a ^ -[1+n],
-  by rw [← nat.succ_sub h2, pow_sub' _ h (le_of_lt h1), mul_inv_rev', inv_inv']; refl)
- (assume : m ≥ n.succ,
-  suffices a ^ (of_nat (m - n.succ)) = (a ^ (of_nat m)) * (a ^ -[1+ n]),
-    by rw [of_nat_add_neg_succ_of_nat_of_ge]; assumption,
-  suffices a ^ (m - n.succ) = a ^ m * (a ^ n.succ)⁻¹, from this,
-  by rw pow_sub'; assumption)
+lemma fpow_add_one {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
+| (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
+| -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
+| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, fpow_neg, neg_add, neg_add_cancel_right, fpow_neg,
+  ← int.coe_nat_succ, fpow_coe_nat, fpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev', mul_assoc,
+  inv_mul_cancel' a ha, mul_one]
 
-theorem fpow_add {a : G₀} (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
-| (of_nat m) (of_nat n) := pow_add _ _ _
-| (of_nat m) -[1+n]     := fpow_add_aux _ h _ _
-| -[1+m]     (of_nat n) := by rw [add_comm, fpow_add_aux _ h,
-  fpow_neg_succ, fpow_of_nat, ← inv_pow', ← pow_inv_comm']
-| -[1+m]     -[1+n]     :=
-  suffices (a ^ (m + n.succ.succ))⁻¹ = (a ^ m.succ)⁻¹ * (a ^ n.succ)⁻¹, from this,
-  by rw [← nat.succ_add_eq_succ_add, add_comm, pow_add, mul_inv_rev']
+lemma fpow_sub_one {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
+calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : by rw [mul_assoc, mul_inv_cancel' a ha, mul_one]
+             ... = a^n * a⁻¹             : by rw [← fpow_add_one ha, sub_add_cancel]
 
-theorem fpow_add_one (a : G₀) (h : a ≠ 0) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
-by rw [fpow_add h, fpow_one]
+lemma fpow_add {a : G₀} (ha : a ≠ 0) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
+begin
+  induction n using int.induction_on with n ihn n ihn,
+  case hz : { simp },
+  { simp only [← add_assoc, fpow_add_one ha, ihn, mul_assoc] },
+  { rw [fpow_sub_one ha, ← mul_assoc, ← ihn, ← fpow_sub_one ha, add_sub_assoc] }
+end
 
-theorem fpow_one_add (a : G₀) (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
+theorem fpow_one_add {a : G₀} (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [fpow_add h, fpow_one]
 
 theorem fpow_mul_comm (a : G₀) (h : a ≠ 0) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
@@ -140,20 +132,10 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
 
-lemma fpow_inv (a : G₀) : a ^ (-1 : ℤ) = a⁻¹ :=
-show (a*1)⁻¹ = a⁻¹, by rw [mul_one]
-
-@[simp] lemma unit_pow {a : G₀} (ha : a ≠ 0) :
-  ∀ n : ℕ, (((units.mk0 a ha) ^ n : units G₀) : G₀) = a ^ n
-| 0     := units.coe_one.symm
-| (k+1) := by { simp only [pow_succ, units.coe_mul, units.coe_mk0], rw unit_pow }
-
-lemma fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ (-[1+ n]) = (a ^ (n + 1))⁻¹ := rfl
-
-@[simp] lemma unit_gpow {a : G₀} (h : a ≠ 0) :
-  ∀ (z : ℤ), (((units.mk0 a h) ^ z : units G₀) : G₀) = a ^ z
-| (of_nat k) := unit_pow _ _
-| -[1+k] := by rw [fpow_neg_succ_of_nat, gpow_neg_succ, units.inv_eq_inv, unit_pow]
+@[simp, norm_cast] lemma units.coe_gpow' (u : units G₀) :
+  ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
+| (n : ℕ) := u.coe_pow n
+| -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.inv_eq_inv, u.coe_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (of_nat n) := pow_ne_zero' _ ha

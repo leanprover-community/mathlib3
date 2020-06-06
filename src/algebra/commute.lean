@@ -402,7 +402,7 @@ protected theorem mul_gpow {G : Type*} [group G] {a b : G} (hab : commute a b) :
   ∀ (n : ℤ), (a * b) ^ n = a ^ n * b ^ n
 | (n : ℕ) := hab.mul_pow n
 | -[1+n] :=
-    by { simp only [gpow_neg_succ, hab.mul_pow, mul_inv_rev],
+    by { simp only [gpow_neg_succ_of_nat, hab.mul_pow, mul_inv_rev],
          exact (hab.pow_pow n.succ n.succ).inv_inv.symm.eq }
 
 end commute

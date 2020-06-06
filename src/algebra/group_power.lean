@@ -236,8 +236,8 @@ infix ` •ℤ `:70 := gsmul
 theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n •ℤ a = n •ℕ a := rfl
 
-@[simp] theorem gpow_neg_succ (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
-@[simp] theorem gsmul_neg_succ (a : A) (n : ℕ) : -[1+n] •ℤ a = - (n.succ •ℕ a) := rfl
+@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem gsmul_neg_succ_of_nat (a : A) (n : ℕ) : -[1+n] •ℤ a = - (n.succ •ℕ a) := rfl
 
 local attribute [ematch] le_of_lt
 open nat
@@ -340,6 +340,9 @@ by cases n; [exact f.map_pow _ _, exact (f.map_inv _).trans (congr_arg _ $ f.map
 
 theorem add_monoid_hom.map_gsmul (f : A →+ B) (a : A) (n : ℤ) : f (n •ℤ a) = n •ℤ f a :=
 f.to_multiplicative.map_gpow a n
+
+@[simp, norm_cast] lemma units.coe_gpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
+(units.coe_hom G).map_gpow u n
 
 end group
 

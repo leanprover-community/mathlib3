@@ -140,9 +140,6 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
 
-lemma fpow_inv (a : G₀) : a ^ (-1 : ℤ) = a⁻¹ :=
-show (a*1)⁻¹ = a⁻¹, by rw [mul_one]
-
 @[simp] lemma unit_pow {a : G₀} (ha : a ≠ 0) :
   ∀ n : ℕ, (((units.mk0 a ha) ^ n : units G₀) : G₀) = a ^ n
 | 0     := units.coe_one.symm

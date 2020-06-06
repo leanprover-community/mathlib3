@@ -198,6 +198,10 @@ lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ 
   prod.lift f g ≫ prod.snd = g :=
 limit.lift_π _ _
 
+lemma prod.lift_comp_comp {V W X Y : C} [has_limit (pair X Y)] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
+  prod.lift (f ≫ g) (f ≫ h) = f ≫ prod.lift g h :=
+by tidy
+
 @[simp, reassoc]
 lemma coprod.inl_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
   coprod.inl ≫ coprod.desc f g = f :=
@@ -207,6 +211,10 @@ colimit.ι_desc _ _
 lemma coprod.inr_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
   coprod.inr ≫ coprod.desc f g = g :=
 colimit.ι_desc _ _
+
+lemma coprod.desc_comp_comp {V W X Y : C} [has_colimit (pair X Y)] (f : V ⟶ W) (g : X ⟶ V)
+  (h : Y ⟶ V) : coprod.desc (g ≫ f) (h ≫ f) = coprod.desc g h ≫ f :=
+by tidy
 
 instance prod.mono_lift_of_mono_left {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
   [mono f] : mono (prod.lift f g) :=

@@ -90,7 +90,7 @@ begin
 end
 
 lemma s_mod_mod (p i : ℕ) : s_mod p i % (2^p - 1) = s_mod p i :=
-by cases i; { dsimp [s_mod], simp, }
+by cases i; simp [s_mod]
 
 lemma s_mod_lt (p : ℕ) (w : 0 < p) (i : ℕ) : s_mod p i < 2^p - 1 :=
 begin
@@ -117,18 +117,12 @@ begin
   have : 1 ≤ b^p := nat.one_le_pow p b w,
   push_cast [this],
 end
+
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
 int.coe_nat_pow_pred 2 p dec_trivial
 
 lemma s_zmod_eq_s_mod (p : ℕ) (i : ℕ) : s_zmod p i = (s_mod p i : zmod (2^p - 1)) :=
-begin
-  induction i with i ih;
-  { dsimp [s_mod, s_zmod],
-    -- unfortunately this is too complicated for `push_cast` to handle on its own...
-    rw ←int.coe_nat_two_pow_pred p,
-    push_cast;
-    rw ih, },
-end
+by induction i; push_cast [←int.coe_nat_two_pow_pred p, s_mod, s_zmod, *]
 
 /-- The Lucas-Lehmer residue is `s p (p-2)` in `zmod (2^p - 1)`. -/
 def lucas_lehmer_residue (p : ℕ) : zmod (2^p - 1) := s_zmod p (p-2)
@@ -464,7 +458,7 @@ do `(lucas_lehmer_test %%p) ← target,
    `[rw lucas_lehmer.residue_eq_zero_iff_s_mod_eq_zero, swap, norm_num],
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
-   M ← to_expr ``(2^%%p - 1 : ℤ) >>= eval_expr ℤ,
+   let M : ℤ := 2^p - 1,
    t ← to_expr ``(2^%%p - 1 = %%M),
    v ← to_expr ``(by norm_num : 2^%%p - 1 = %%M),
    w ← assertv `w t v,

@@ -1188,7 +1188,7 @@ begin
 end
 
 -- this doesn't need the ring structure.
-lemma finset.exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
+lemma exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
   (h₁ : ∑ e in s, f e = 0) (h₂ : ∃ x ∈ s, f x ≠ 0) :
   ∃ x ∈ s, 0 < f x :=
 begin

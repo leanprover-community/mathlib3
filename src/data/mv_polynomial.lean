@@ -916,7 +916,7 @@ lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ α) (n : ℕ)
 begin
   contrapose! h,
   calc n * fintype.card σ
-        = ∑ s:σ, n         : by rw [finset.sum_const, nat.smul_eq_mul, mul_comm, finset.card_univ]
+        = ∑ s:σ, n         : by rw [finset.sum_const, nat.nsmul_eq_mul, mul_comm, finset.card_univ]
     ... ≤ ∑ s, d s         : finset.sum_le_sum (λ s _, h s)
     ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
     ... ≤ f.total_degree   : finset.le_sup hd,

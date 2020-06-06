@@ -52,12 +52,12 @@ For example, let `(v : ℚ) := 3.4`. We have:
 Now `(gcf.of v).convergents 1 = 3 + 1/2`, and our fractional term (the residual) at position `2` is
 `0.5`. We hence have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`.
 -/
-protected def comp_exact_value (predConts conts : gcf.pair K) (fr : K) : K :=
+protected def comp_exact_value (pred_conts conts : gcf.pair K) (fr : K) : K :=
 -- if the fractional part is zero, we exactly approximated the value by the last continuants
 if fr = 0 then conts.a / conts.b
 -- otherwise, we have to include the fractional part in a final continuants step.
-else let exactConts := next_continuants 1 fr⁻¹ predConts conts in
-  exactConts.a / exactConts.b
+else let exact_conts := next_continuants 1 fr⁻¹ pred_conts conts in
+  exact_conts.a / exact_conts.b
 
 variable [floor_ring K]
 
@@ -109,8 +109,8 @@ begin
         int_fract_pair.succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
     -- introduce some notation
     let conts := g.continuants_aux (n + 2),
-    set predConts := g.continuants_aux (n + 1) with predConts_eq,
-    set ppredConts := g.continuants_aux n with ppredConts_eq,
+    set pred_conts := g.continuants_aux (n + 1) with pred_conts_eq,
+    set ppred_conts := g.continuants_aux n with ppred_conts_eq,
     cases decidable.em (ifp_succ_n.fr = 0) with ifp_succ_n_fr_eq_zero ifp_succ_n_fr_ne_zero,
     -- ifp_succ_n.fr = 0
     { suffices : v = conts.a / conts.b, by
@@ -124,14 +124,14 @@ begin
       have s_nth_eq : g.s.nth n = some ⟨1, ⌊ifp_n.fr⁻¹⌋⟩, from
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq nth_fract_ne_zero,
       rw [←ifp_n_fract_inv_eq_floor] at s_nth_eq,
-      suffices : v = gcf.comp_exact_value ppredConts predConts ifp_n.fr, by
+      suffices : v = gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr, by
         simpa [conts, continuants_aux, s_nth_eq,gcf.comp_exact_value, nth_fract_ne_zero] using this,
       exact (IH nth_stream_eq) },
     -- ifp_succ_n.fr ≠ 0
     { -- use the IH to show that the following equality suffices
-      suffices : gcf.comp_exact_value ppredConts predConts ifp_n.fr
-               = gcf.comp_exact_value predConts conts ifp_succ_n.fr, by
-      { have : v = gcf.comp_exact_value ppredConts predConts ifp_n.fr, from IH nth_stream_eq,
+      suffices : gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr
+               = gcf.comp_exact_value pred_conts conts ifp_succ_n.fr, by
+      { have : v = gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr, from IH nth_stream_eq,
         conv_lhs { rw this }, assumption },
       -- get the correspondence between ifp_n and ifp_succ_n
       obtain ⟨ifp_n', nth_stream_eq', ifp_n_fract_ne_zero, ⟨refl⟩⟩ :
@@ -145,25 +145,25 @@ begin
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq ifp_n_fract_ne_zero,
       -- the claim now follows by unfolding the definitions and tedious calculations
       -- some shorthand notation
-      let ppA := ppredConts.a, let ppB := ppredConts.b,
-      let pA := predConts.a, let pB := predConts.b,
-      have : gcf.comp_exact_value ppredConts predConts ifp_n.fr
+      let ppA := ppred_conts.a, let ppB := ppred_conts.b,
+      let pA := pred_conts.a, let pB := pred_conts.b,
+      have : gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr
           = (ppA + ifp_n.fr⁻¹ * pA) / (ppB + ifp_n.fr⁻¹ * pB), by
         -- unfold comp_exact_value and the convergent computation once
         { field_simp [ifp_n_fract_ne_zero, gcf.comp_exact_value, next_continuants, next_numerator,
           next_denominator], ac_refl },
       rw this,
       -- two calculations needed to show the claim
-      have tmpCalc := gcf.comp_exact_value_correctness_of_stream_eq_some_aux_comp
+      have tmp_calc := gcf.comp_exact_value_correctness_of_stream_eq_some_aux_comp
         pA ppA ifp_succ_n_fr_ne_zero,
-      have tmpCalc' := gcf.comp_exact_value_correctness_of_stream_eq_some_aux_comp
+      have tmp_calc' := gcf.comp_exact_value_correctness_of_stream_eq_some_aux_comp
         pB ppB ifp_succ_n_fr_ne_zero,
-      rw inv_eq_one_div at tmpCalc tmpCalc',
+      rw inv_eq_one_div at tmp_calc tmp_calc',
       have : fract (1 / ifp_n.fr) ≠ 0, by simpa using ifp_succ_n_fr_ne_zero,
       -- now unfold the recurrence one step and simplify both sides to arrive at the conclusion
       field_simp [conts, gcf.comp_exact_value,
-        (gcf.continuants_aux_recurrence s_nth_eq ppredConts_eq predConts_eq), next_continuants,
-        next_numerator, next_denominator, this, tmpCalc, tmpCalc'],
+        (gcf.continuants_aux_recurrence s_nth_eq ppred_conts_eq pred_conts_eq), next_continuants,
+        next_numerator, next_denominator, this, tmp_calc, tmp_calc'],
       ac_refl } }
 end
 

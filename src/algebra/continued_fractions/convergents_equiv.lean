@@ -285,13 +285,14 @@ begin
         g.s.ge_stable n'.le_succ s_nth_eq,
       -- Notations
       let g' := squash_gcf g (n' + 1),
-      set predConts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
-      set ppredConts := g.continuants_aux n' with n'th_conts_aux_eq,
-      let pA := predConts.a, let pB := predConts.b, let ppA := ppredConts.a, let ppB := ppredConts.b,
-      set predConts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
-      set ppredConts' := g'.continuants_aux n' with n'th_conts_aux_eq',
-      let pA' := predConts'.a, let pB' := predConts'.b, let ppA' := ppredConts'.a,
-      let ppB' := ppredConts'.b,
+      set pred_conts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
+      set ppred_conts := g.continuants_aux n' with n'th_conts_aux_eq,
+      let pA := pred_conts.a, let pB := pred_conts.b,
+      let ppA := ppred_conts.a, let ppB := ppred_conts.b,
+      set pred_conts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
+      set ppred_conts' := g'.continuants_aux n' with n'th_conts_aux_eq',
+      let pA' := pred_conts'.a, let pB' := pred_conts'.b, let ppA' := ppred_conts'.a,
+      let ppB' := ppred_conts'.b,
       -- first compute the convergent of the squashed gcf
       have : g'.convergents (n' + 1)
            = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'),
